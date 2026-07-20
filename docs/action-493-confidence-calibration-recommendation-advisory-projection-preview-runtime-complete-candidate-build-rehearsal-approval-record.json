@@ -1,0 +1,378 @@
+{
+  "schema_version": "action_493_runtime_complete_candidate_build_rehearsal_approval_gate_v1",
+  "action_nature": "static_approval_gate_only_no_rehearsal_no_build_no_deploy_no_activation",
+  "source_action": 492,
+  "source_action_result": "runtime_complete_candidate_reconstructed_and_frozen",
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "historical_change_candidate_hash": "7a11d9c6697a9d89ffb3e762dd15185fda225bc8e39c80a212cd3729d05857f6",
+  "historical_full_candidate_inventory_hash": "cc6a97c5797a1fa76a6bebe9be1497fe88819f1b73992b271c142ff61d3bc2f0",
+  "historical_candidate_file_count": 30,
+  "historical_candidate_status": "historical_candidate_runtime_incomplete",
+  "historical_deployment_approval_executable": false,
+  "change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+  "full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+  "candidate_file_count": 31,
+  "added_runtime_path": "lib/pure-confidence-calibration.ts",
+  "added_runtime_path_hash": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+  "runtime_dependency_closure_complete": true,
+  "runtime_dependency_paths_missing": 0,
+  "unresolved_source_versions": 0,
+  "temporary_path_policy": {
+    "policy_name": "action_486_safe_temp_path_policy_for_action_494",
+    "future_action": 494,
+    "target_subtree": "ture/action-494-confidence-calibration-projection-preview-runtime-complete-candidate-rehearsal",
+    "trusted_runtime_temp_root_required": true,
+    "canonicalize_temp_root_and_target": true,
+    "path_relative_containment_required": true,
+    "macos_var_private_var_equivalence_supported": true,
+    "textual_prefix_only_containment_allowed": false,
+    "traversal_allowed": false,
+    "target_or_parent_symlink_allowed": false,
+    "repository_home_config_app_data_source_node_modules_or_netlify_location_allowed": false,
+    "target_must_be_absent_or_empty": true,
+    "exact_action_494_subtree_only": true,
+    "bounded_cleanup_required": true
+  },
+  "source_reconstruction_policy": {
+    "method": "exact_clean_base_plus_action_492_31_file_overlay",
+    "broad_dirty_worktree_copy_allowed": false,
+    "changed_paths_required": 31,
+    "overlay_hashes_exact_required": true,
+    "missing_overlay_files_allowed": 0,
+    "unexpected_overlay_files_allowed": 0,
+    "runtime_dependency_paths_missing_allowed": 0,
+    "unrelated_dirty_files_allowed": 0,
+    "control_only_files_newly_included_allowed": 0,
+    "environment_or_credential_files_allowed": 0
+  },
+  "integrity_strategy": "baseline_plus_overlay_manifest_integrity",
+  "source_integrity_policy": {
+    "exact_direct_hash_verification_for_all_candidate_files": true,
+    "bounded_clean_base_plus_overlay_inventory": true,
+    "missing_files_allowed": 0,
+    "unexpected_source_files_allowed": 0,
+    "unapproved_deletions_allowed": 0,
+    "modified_unapproved_source_files_allowed": 0,
+    "merge_conflict_markers_allowed": false,
+    "env_files_allowed": false,
+    "credential_files_allowed": false,
+    "netlify_directory_allowed": false,
+    "node_modules_in_source_inventory_allowed": false,
+    "source_only_git_whitespace_integrity_check_required": true,
+    "invalid_historical_node_modules_pathspec_allowed": false
+  },
+  "source_safety_policy": {
+    "policy_name": "action_488_ordered_source_safety_classification",
+    "raw_secret_value_storage_allowed": false,
+    "raw_secret_value_printing_allowed": false,
+    "always_reject": [
+      ".env*",
+      ".npmrc inside candidate",
+      "credential files",
+      "token/password-bearing files",
+      "private keys",
+      "PEM/key stores",
+      "Netlify credential stores",
+      "unknown sensitive-looking files outside approved inventory"
+    ],
+    "approved_bounded_artifact_requirements": [
+      "exact_path",
+      "provenance",
+      "classification",
+      "expected_hash_or_approved_schema",
+      "no_credential_value",
+      "no_environment_payload",
+      "no_token_password_private_key_field"
+    ],
+    "filename_only_sensitive_words_authoritative": false
+  },
+  "dependency_materialization_method": "temporary_verified_node_modules_copy",
+  "dependency_materialization_policy": {
+    "source_integrity_required_before_dependency_copy": true,
+    "verified_existing_local_dependency_installation_required": true,
+    "npm_install_allowed": false,
+    "npm_ci_allowed": false,
+    "registry_access_allowed": false,
+    "dependency_update_allowed": false,
+    "lockfile_rewrite_allowed": false,
+    "npmrc_copy_allowed": false,
+    "package_cache_copy_allowed": false,
+    "source_node_modules_mutation_allowed": false,
+    "copied_node_modules_excluded_from_candidate_inventory": true,
+    "known_extraneous_packages_excluded_count": 5,
+    "extraneous_influence": "no_influence_detected"
+  },
+  "candidate_internal_command_inventory": [
+    {
+      "order": 1,
+      "name": "candidate_integrity_confirmation",
+      "command": "static_internal_check",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "source_integrity_precondition",
+      "candidate_member_required": false
+    },
+    {
+      "order": 2,
+      "name": "next_typegen",
+      "command": "npx next typegen",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "next_type_generation",
+      "candidate_member_required": false
+    },
+    {
+      "order": 3,
+      "name": "typescript_no_emit",
+      "command": "npx tsc --noEmit",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "typecheck",
+      "candidate_member_required": false
+    },
+    {
+      "order": 4,
+      "name": "next_build",
+      "command": "npm run build",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "production_build",
+      "candidate_member_required": false
+    },
+    {
+      "order": 5,
+      "name": "lint",
+      "command": "npm run lint",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "lint",
+      "candidate_member_required": false
+    },
+    {
+      "order": 6,
+      "name": "action_461_preview_consumer_runtime_relevant_suite",
+      "command": "PLAYWRIGHT_SKIP_WEB_SERVER=true npx playwright test tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+      "required_candidate_path": "tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+      "runtime_or_build_relevance": "runtime_preview_consumer",
+      "candidate_member_required": true
+    },
+    {
+      "order": 7,
+      "name": "action_462_independent_preview_consumer_runtime_relevant_suite",
+      "command": "PLAYWRIGHT_SKIP_WEB_SERVER=true npx playwright test tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+      "required_candidate_path": "tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+      "runtime_or_build_relevance": "independent_runtime_preview_consumer_verification",
+      "candidate_member_required": true
+    },
+    {
+      "order": 8,
+      "name": "runtime_facing_projection_call_site_scan",
+      "command": "static_scan_runtime_projection_call_site_count_equals_1",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "runtime_call_site_integrity",
+      "candidate_member_required": false
+    },
+    {
+      "order": 9,
+      "name": "no_route_scan",
+      "command": "static_scan_no_new_routes",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "route_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 10,
+      "name": "no_persistence_scan",
+      "command": "static_scan_no_persistence",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "persistence_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 11,
+      "name": "no_replay_scan",
+      "command": "static_scan_no_replay",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "replay_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 12,
+      "name": "no_provider_supabase_preview_integration_scan",
+      "command": "static_scan_no_provider_or_supabase_preview_integration",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "provider_supabase_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 13,
+      "name": "no_feedback_scan",
+      "command": "static_scan_no_feedback",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "feedback_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 14,
+      "name": "no_confidence_application_scan",
+      "command": "static_scan_no_confidence_application",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "advisory_only_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 15,
+      "name": "no_downstream_behavior_effect_scan",
+      "command": "static_scan_no_ranking_scanner_publication_execution_add_trade_or_risk_effect",
+      "required_candidate_path": null,
+      "runtime_or_build_relevance": "downstream_behavior_safety",
+      "candidate_member_required": false
+    },
+    {
+      "order": 16,
+      "name": "preview_flag_disabled_confirmation",
+      "command": "static_check_CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED_absent_or_disabled",
+      "required_candidate_path": "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+      "runtime_or_build_relevance": "preview_flag_safety",
+      "candidate_member_required": true
+    }
+  ],
+  "conditional_candidate_internal_checks": [
+    {
+      "name": "action_309_safety_guard",
+      "required_if_present": "scripts/action-309-post-recovery-safety-guard.mjs",
+      "present_in_action_492_candidate": false,
+      "status": "optional_absent_not_required"
+    },
+    {
+      "name": "recommendation_details_regression_suite",
+      "required_if_present": "tests/e2e/recommendation-details-regression.spec.ts",
+      "present_in_action_492_candidate": false,
+      "status": "optional_absent_not_required"
+    }
+  ],
+  "candidate_internal_required_paths_missing": 0,
+  "candidate_internal_required_missing_paths": [],
+  "external_control_inventory": [
+    {
+      "name": "action_491_verifier",
+      "path": "scripts/action-491-confidence-calibration-recommendation-advisory-projection-preview-candidate-runtime-dependency-completeness-remediation-gate-verify.mjs",
+      "candidate_internal": false
+    },
+    {
+      "name": "action_492_verifier",
+      "path": "scripts/action-492-confidence-calibration-recommendation-advisory-projection-preview-runtime-complete-candidate-reconstruction-and-hash-freeze-verify.mjs",
+      "candidate_internal": false
+    },
+    {
+      "name": "action_493_verifier",
+      "path": "scripts/action-493-confidence-calibration-recommendation-advisory-projection-preview-runtime-complete-candidate-build-rehearsal-approval-gate-verify.mjs",
+      "candidate_internal": false
+    },
+    {
+      "name": "action_493_focused_suite",
+      "path": "tests/e2e/action-493-confidence-calibration-recommendation-advisory-projection-preview-runtime-complete-candidate-build-rehearsal-approval-gate.spec.ts",
+      "candidate_internal": false
+    }
+  ],
+  "execution_order": [
+    "phase_0_safe_temp_path_validation",
+    "phase_1_source_only_candidate_reconstruction_and_integrity",
+    "phase_2_temporary_verified_node_modules_copy",
+    "phase_3_candidate_internal_commands_serial",
+    "phase_4_post_command_protected_hash_checks_record_and_cleanup",
+    "phase_5_external_rehearsal_control_verifiers_and_contract_tests"
+  ],
+  "post_command_integrity_policy": {
+    "protected_paths": [
+      "package.json",
+      "package-lock.json",
+      "next.config.ts",
+      "tsconfig.json",
+      "eslint.config.mjs",
+      "netlify.toml"
+    ],
+    "protected_path_hashes": {
+      "package.json": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+      "package-lock.json": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+      "next.config.ts": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc",
+      "tsconfig.json": "83b460dca7c269a562dba8f46d08de45397869b7ddbf31101eabca1a975eaa82",
+      "eslint.config.mjs": "53065bd014f2b6fb89dc5f1a84cd37053217cbec71be6f15c3958a3b3bc4143c",
+      "netlify.toml": "7cc579b1e99306abc9f21c0340c5b7e94309567d7b86e2757ba996d2b414b1b7"
+    },
+    "all_31_candidate_overlay_files_unchanged_required": true,
+    "source_node_modules_unchanged_required": true,
+    "active_dirty_worktree_unchanged_required": true,
+    "install_marker_allowed": false,
+    "environment_file_allowed": false,
+    "credential_file_allowed": false,
+    "raw_secret_recorded_allowed": false,
+    "preview_flag_must_remain_disabled": true,
+    "unexpected_source_mutation_allowed": false
+  },
+  "candidate_rehearsal_result_vocabulary": [
+    "full_candidate_rehearsal_passed",
+    "full_candidate_rehearsal_failed",
+    "full_candidate_rehearsal_aborted"
+  ],
+  "external_evidence_result_vocabulary": [
+    "rehearsal_evidence_verified",
+    "rehearsal_evidence_verification_failed",
+    "rehearsal_evidence_verification_aborted"
+  ],
+  "overall_readiness_vocabulary": [
+    "ready_for_preview_deployment_final_approval",
+    "ready_with_conditions",
+    "blocked"
+  ],
+  "approval_vocabulary": [
+    "approved",
+    "approved_with_conditions",
+    "blocked"
+  ],
+  "failure_semantics": {
+    "candidate_rehearsal_aborted_when": [
+      "temp_path_fails",
+      "candidate_differs_before_commands",
+      "runtime_dependency_closure_incomplete",
+      "source_safety_blocks",
+      "dependency_materialization_cannot_be_proven",
+      "preview_flag_enabled"
+    ],
+    "candidate_rehearsal_failed_when": [
+      "candidate_internal_command_begins_and_fails",
+      "protected_source_mutation_occurs",
+      "cleanup_fails_after_command_execution_begins"
+    ],
+    "external_verifier_failure_after_candidate_internal_pass": "rehearsal_evidence_verification_failed",
+    "same_action_repair_or_rerun_allowed": false
+  },
+  "rehearsal_attempt_limit": 1,
+  "deployment_authorized": false,
+  "activation_authorized": false,
+  "candidate_reconstruction_performed": false,
+  "build_performed": false,
+  "rehearsal_performed": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "network_used": false,
+  "install_performed": false,
+  "environment_modified": false,
+  "package_or_lockfile_modified": false,
+  "netlify_operation_performed": false,
+  "provider_call_executed": false,
+  "supabase_read_executed": false,
+  "supabase_write_executed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "scanner_changed": false,
+  "ranking_changed": false,
+  "publication_changed": false,
+  "execution_changed": false,
+  "add_trade_changed": false,
+  "risk_sizing_changed": false,
+  "approval_decision": "approved",
+  "unresolved_conditions": [],
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "preview_flag_name": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+  "preview_flag_state": "absent_or_disabled",
+  "preview_flag_enabled": false,
+  "next_action": "action_494_runtime_complete_candidate_build_rehearsal"
+}

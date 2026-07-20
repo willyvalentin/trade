@@ -1,0 +1,119 @@
+{
+  "schema_version": "action_536_action_534_command_boundary_remediation_record_v1",
+  "source_action": 534,
+  "action_536_nature": "static_action_534_runner_audit_only_command_boundary_remediation",
+  "latest_action_534_result_path": "docs/action-534-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-candidate-rehearsal-result.json",
+  "latest_action_534_result": "external_terminal_candidate_rehearsal_failed",
+  "latest_action_534_execution_boundary": "operator_unrestricted_local_terminal",
+  "latest_authoritative_build_attempt_count": 0,
+  "latest_webpack_diagnostic_attempt_count": 0,
+  "latest_cleanup_result": "passed",
+  "latest_deployment_performed": false,
+  "latest_preview_activated": false,
+  "blocker_classification": "action_534_external_control_verifiers_misassigned_as_candidate_internal_prebuild_commands",
+  "implicated_commands": [
+    {
+      "path": "scripts/action-518-confidence-calibration-recommendation-advisory-projection-preview-remediated-32-file-candidate-reconstruction-and-hash-freeze-verify.mjs",
+      "candidate_membership": false,
+      "runtime_build_required_candidate_path": false,
+      "control_only_verifier": true,
+      "classification": "external_control_required_after_cleanup",
+      "intended_execution_boundary": "external_after_cleanup",
+      "failure_reason": "absent_from_candidate"
+    },
+    {
+      "path": "scripts/action-532-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-runner-precheck-evidence-acceptance-gate-verify.mjs",
+      "candidate_membership": false,
+      "runtime_build_required_candidate_path": false,
+      "control_only_verifier": true,
+      "classification": "external_control_required_after_cleanup",
+      "intended_execution_boundary": "external_after_cleanup",
+      "failure_reason": "absent_from_candidate"
+    }
+  ],
+  "candidate_internal_command_inventory": [
+    {
+      "phase": "runner_candidate_integrity_confirmation",
+      "classification": "candidate_internal_required",
+      "implemented_by": "action_534_runner_internal_logic"
+    },
+    {
+      "phase": "runner_strict_source_safety_hash_matrix",
+      "classification": "candidate_internal_required",
+      "implemented_by": "action_534_runner_internal_logic"
+    },
+    {
+      "phase": "semantic_preview_flag_matrix",
+      "command": "node -e process.exit(0)",
+      "classification": "candidate_internal_required"
+    },
+    {
+      "phase": "next_typegen",
+      "command": "npx next typegen",
+      "classification": "candidate_internal_required"
+    },
+    {
+      "phase": "tsc_no_emit",
+      "command": "npx tsc --noEmit",
+      "classification": "candidate_internal_required"
+    },
+    {
+      "phase": "authoritative_build",
+      "command": "npm run build",
+      "classification": "candidate_internal_required"
+    }
+  ],
+  "external_control_inventory_after_cleanup": [
+    "scripts/action-518-confidence-calibration-recommendation-advisory-projection-preview-remediated-32-file-candidate-reconstruction-and-hash-freeze-verify.mjs",
+    "scripts/action-532-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-runner-precheck-evidence-acceptance-gate-verify.mjs",
+    "scripts/action-533-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-candidate-rehearsal-handoff-gate-verify.mjs",
+    "scripts/action-534-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-candidate-rehearsal-result-verify.mjs",
+    "scripts/action-535-confidence-calibration-recommendation-advisory-projection-preview-action-534-historical-candidate-inventory-hash-exception-remediation-verify.mjs",
+    "scripts/action-536-confidence-calibration-recommendation-advisory-projection-preview-action-534-command-boundary-remediation-verify.mjs"
+  ],
+  "candidate_internal_preconditions_passed_in_latest_attempt": true,
+  "latest_candidate_reconstruction_result": "exact_candidate_reconstructed",
+  "latest_runtime_dependency_closure_result": "complete",
+  "latest_source_integrity_result": "baseline_plus_overlay_manifest_integrity",
+  "latest_source_safety_result": "source_safety_passed",
+  "latest_preview_flag_verification_result": "preview_flag_disabled_verified",
+  "latest_dependency_materialization_result": "temporary_verified_node_modules_copy",
+  "latest_typegen_result": "passed",
+  "latest_typescript_result": "passed",
+  "candidate_change_required": false,
+  "candidate_hash_change_required": false,
+  "candidate_file_count": 32,
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "change_candidate_hash": "bc43bd1fe8f61561ddededd2263d64f7d12f37db46d184e3bfd0ea55a8b538de",
+  "full_candidate_inventory_hash": "80620318166b0b9e1858cff3f12fc78d9ad77d9116655335e1c7fd7e566930b0",
+  "remediated_route_hash": "26407a8b78625a19a48a02ecf44e03db1642998da5f1d8acc5e8d47227773265",
+  "authoritative_build_command": "npm run build",
+  "authoritative_build_attempt_limit": 1,
+  "webpack_diagnostic_policy": "optional_one_shot_after_authoritative_failure_cannot_establish_readiness",
+  "same_action_build_retry_allowed": false,
+  "source_repair_during_rehearsal_allowed": false,
+  "historical_operator_attempt_count": 2,
+  "latest_operator_attempt_metadata_recorded_as": 1,
+  "latest_operator_attempt_metadata_note": "latest_result_retained_attempt_number_1_but_audited_as_second_operator_execution_after_historical_abort",
+  "next_operator_attempt_number": 3,
+  "prior_attempt_result": "external_terminal_candidate_rehearsal_failed",
+  "prior_attempt_blocker": "candidate_internal_external_control_boundary_defect",
+  "operator_retry_authorized": true,
+  "operator_retry_limit": 1,
+  "operator_retry_command": "node scripts/action-534-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-candidate-rehearsal.mjs",
+  "build_performed": false,
+  "candidate_reconstructed": false,
+  "rehearsal_performed": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "provider_called": false,
+  "supabase_accessed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "remediation_result": "action_534_command_boundary_remediation_completed",
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_534_external_terminal_candidate_rehearsal_operator_retry_after_command_boundary_remediation"
+}

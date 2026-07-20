@@ -1,0 +1,349 @@
+{
+  "schema_version": "action_490_command_inventory_binding_remediation_approval_record_v1",
+  "action_nature": "static_approval_gate_only_no_rehearsal_no_deploy_no_activation",
+  "source_action": 489,
+  "source_action_result": {
+    "rehearsal_decision": "full_candidate_rehearsal_aborted",
+    "abort_reason": "command_inventory_unresolvable_in_bound_30_file_candidate",
+    "path_safety_result": "passed",
+    "source_reconstruction_result": "passed",
+    "overlay_verification_result": "passed",
+    "source_inventory_result": "passed",
+    "source_safety_result": "source_safety_passed",
+    "source_only_git_integrity_result": "passed_git_diff_check_on_approved_source_overlay_without_node_modules_pathspec",
+    "dependency_materialization_result": "passed_temporary_verified_node_modules_copy",
+    "extraneous_packages_excluded": true,
+    "serial_runtime_commands_started": 0,
+    "cleanup_result": "temporary_candidate_and_dependency_copy_removed",
+    "deployment_performed": false,
+    "preview_activated": false
+  },
+  "root_cause_classification": "rehearsal_control_tests_incorrectly_required_inside_frozen_deployment_candidate",
+  "root_cause_summary": "Action 489 incorrectly required later Action 481-489 rehearsal-control tests to exist inside the frozen deployment candidate.",
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "approved_change_candidate_hash": "7a11d9c6697a9d89ffb3e762dd15185fda225bc8e39c80a212cd3729d05857f6",
+  "full_candidate_inventory_hash": "cc6a97c5797a1fa76a6bebe9be1497fe88819f1b73992b271c142ff61d3bc2f0",
+  "candidate_changed_file_count": 30,
+  "approved_integrity_strategy": "baseline_plus_overlay_manifest_integrity",
+  "approved_dependency_method": "temporary_verified_node_modules_copy",
+  "preview_flag_name": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+  "preview_flag_state": "absent_or_disabled",
+  "preview_flag_enabled": false,
+  "candidate_expansion_required": false,
+  "candidate_hashes_changed": false,
+  "later_action_artifacts_copied_into_candidate": false,
+  "dirty_working_tree_copied_into_candidate": false,
+  "package_manifest_modified": false,
+  "lockfile_modified": false,
+  "environment_modified": false,
+  "class_a_internal_command_inventory": [
+    {
+      "command_id": "candidate_integrity_confirmation",
+      "command_identity": "verify clean base plus exact 30-file overlay and frozen inventory hash",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "package.json",
+        "package-lock.json",
+        "next.config.ts",
+        "tsconfig.json",
+        "eslint.config.mjs"
+      ],
+      "runtime_relevance": "candidate_source_integrity"
+    },
+    {
+      "command_id": "next_typegen",
+      "command_identity": "npx next typegen",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "package.json",
+        "package-lock.json",
+        "next.config.ts",
+        "tsconfig.json"
+      ],
+      "runtime_relevance": "next_route_type_generation"
+    },
+    {
+      "command_id": "typescript_no_emit",
+      "command_identity": "npx tsc --noEmit",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "components/recommendations/recommendation-details-display-helpers.ts",
+        "lib/confidence-calibration-advisory-adapter.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection.ts",
+        "lib/pure-confidence-calibration.ts"
+      ],
+      "runtime_relevance": "runtime_source_type_correctness"
+    },
+    {
+      "command_id": "production_build",
+      "command_identity": "npm run build",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "package.json",
+        "package-lock.json",
+        "next.config.ts",
+        "tsconfig.json",
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "lib/confidence-calibration-advisory-adapter.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection.ts",
+        "lib/pure-confidence-calibration.ts"
+      ],
+      "runtime_relevance": "production_build_correctness"
+    },
+    {
+      "command_id": "lint",
+      "command_identity": "npm run lint",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "package.json",
+        "package-lock.json",
+        "eslint.config.mjs"
+      ],
+      "runtime_relevance": "source_quality_and_static_safety"
+    },
+    {
+      "command_id": "action_309_safety_guard",
+      "command_identity": "node scripts/action-309-post-recovery-safety-guard.mjs",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "scripts/action-309-post-recovery-safety-guard.mjs"
+      ],
+      "runtime_relevance": "post_recovery_runtime_boundary_safety"
+    },
+    {
+      "command_id": "action_461_preview_consumer_suite",
+      "command_identity": "PLAYWRIGHT_SKIP_WEB_SERVER=true npx playwright test tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "playwright.config.ts",
+        "docs/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.md",
+        "scripts/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation-verify.mjs",
+        "tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx",
+        "lib/confidence-calibration-advisory-adapter.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection.ts",
+        "lib/pure-confidence-calibration.ts"
+      ],
+      "runtime_relevance": "preview_consumer_runtime_regression_coverage"
+    },
+    {
+      "command_id": "action_462_independent_preview_consumer_suite",
+      "command_identity": "PLAYWRIGHT_SKIP_WEB_SERVER=true npx playwright test tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "playwright.config.ts",
+        "docs/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.md",
+        "scripts/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification-verify.mjs",
+        "tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection.ts"
+      ],
+      "runtime_relevance": "independent_preview_consumer_runtime_regression_coverage"
+    },
+    {
+      "command_id": "recommendation_details_regression_suite",
+      "command_identity": "PLAYWRIGHT_SKIP_WEB_SERVER=true npx playwright test tests/e2e/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.spec.ts",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "playwright.config.ts",
+        "docs/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.md",
+        "docs/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.md",
+        "docs/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.md",
+        "docs/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.md",
+        "docs/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.md",
+        "scripts/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate-verify.mjs",
+        "scripts/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate-verify.mjs",
+        "scripts/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation-verify.mjs",
+        "scripts/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification-verify.mjs",
+        "scripts/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate-verify.mjs",
+        "tests/e2e/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.spec.ts",
+        "tests/e2e/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.spec.ts",
+        "tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+        "tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+        "tests/e2e/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.spec.ts",
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx"
+      ],
+      "runtime_relevance": "recommendation_details_preview_regression_coverage"
+    },
+    {
+      "command_id": "runtime_side_effect_scans",
+      "command_identity": "exact scans for projection call-site, route absence, persistence absence, replay absence, provider/Supabase absence, feedback absence, confidence-application absence, scanner/ranking/publication/execution/Add Trade/risk/sizing absence, and disabled preview flag",
+      "execution_class": "candidate_internal",
+      "required_paths": [
+        "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+        "components/recommendations/RecommendationDetailsModal.tsx",
+        "components/recommendations/RecommendationCardContainer.tsx",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+        "lib/confidence-calibration-recommendation-advisory-projection.ts"
+      ],
+      "runtime_relevance": "runtime_preview_side_effect_absence"
+    }
+  ],
+  "class_a_required_path_inventory": [
+    { "path": "package.json", "classification": "base_manifest", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58", "required_by_command": "candidate_integrity_confirmation,next_typegen,typescript_no_emit,production_build,lint", "runtime_relevance": "build_tooling" },
+    { "path": "package-lock.json", "classification": "base_lockfile", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657", "required_by_command": "candidate_integrity_confirmation,next_typegen,typescript_no_emit,production_build,lint", "runtime_relevance": "dependency_reproducibility" },
+    { "path": "next.config.ts", "classification": "base_next_config", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc", "required_by_command": "candidate_integrity_confirmation,next_typegen,production_build", "runtime_relevance": "next_build_config" },
+    { "path": "tsconfig.json", "classification": "base_ts_config", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "83b460dca7c269a562dba8f46d08de45397869b7ddbf31101eabca1a975eaa82", "required_by_command": "candidate_integrity_confirmation,next_typegen,typescript_no_emit,production_build", "runtime_relevance": "typescript_config" },
+    { "path": "eslint.config.mjs", "classification": "base_lint_config", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "53065bd014f2b6fb89dc5f1a84cd37053217cbec71be6f15c3958a3b3bc4143c", "required_by_command": "candidate_integrity_confirmation,lint", "runtime_relevance": "lint_config" },
+    { "path": "playwright.config.ts", "classification": "base_test_config", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "de08b0f808e50aa0e3dd87c56d838143b8bd3f1a1113cb8a2907a1d7eb757188", "required_by_command": "action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "internal_runtime_test_runner_config" },
+    { "path": "scripts/action-309-post-recovery-safety-guard.mjs", "classification": "base_safety_guard", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "0a4f431cb3ebc220a7eca109669a7966451bd495303aa20926482ee257bca7aa", "required_by_command": "action_309_safety_guard", "runtime_relevance": "post_recovery_safety_guard" },
+    { "path": "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx", "classification": "overlay_runtime_preview_component", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "d98db3ed746ce2a1929ed7e2029f2bfa7e70db99f15521445e5fb533cf66b7a5", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,recommendation_details_regression_suite,runtime_side_effect_scans", "runtime_relevance": "runtime_preview_component" },
+    { "path": "components/recommendations/RecommendationCardContainer.tsx", "classification": "overlay_runtime_type_carrier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "8186b03dc7597595628a37db85e83bf4a28b018cf305d8a14ab08e1d254deda0", "required_by_command": "typescript_no_emit,production_build,action_462_independent_preview_consumer_suite,recommendation_details_regression_suite,runtime_side_effect_scans", "runtime_relevance": "runtime_preview_data_carrier" },
+    { "path": "components/recommendations/RecommendationDetailsModal.tsx", "classification": "overlay_runtime_preview_call_site", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "4bdc997057df677892aff016aafc28fb74b563871fbd6a5c0ef1f0b5238622f6", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,recommendation_details_regression_suite,runtime_side_effect_scans", "runtime_relevance": "single_runtime_preview_call_site" },
+    { "path": "components/recommendations/recommendation-details-display-helpers.ts", "classification": "base_runtime_helper", "present_in_frozen_candidate": true, "presence_source": "clean_base", "expected_hash": "8a71ad27bafff9a3ab1c72a8a2d56dad3b19e21728020f51f300e54fce3184f8", "required_by_command": "typescript_no_emit", "runtime_relevance": "recommendation_details_runtime_helper" },
+    { "path": "lib/confidence-calibration-advisory-adapter.ts", "classification": "overlay_runtime_projection_dependency", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite", "runtime_relevance": "preview_projection_dependency" },
+    { "path": "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts", "classification": "overlay_disabled_preview_flag_helper", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "7fab6acdd97d3811a2f7ed1bf95be34471f10b552c42f7781e125f88770bf716", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,runtime_side_effect_scans", "runtime_relevance": "disabled_preview_flag_helper" },
+    { "path": "lib/confidence-calibration-recommendation-advisory-projection-preview.ts", "classification": "overlay_runtime_preview_adapter", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "eb7e802e45021c05062bbeed8c69369a08bb6f928d3d8ef84a646e0d6ccf042b", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,runtime_side_effect_scans", "runtime_relevance": "runtime_preview_adapter" },
+    { "path": "lib/confidence-calibration-recommendation-advisory-projection.ts", "classification": "overlay_runtime_projection_helper", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "5b5a2eff5f98c45a40de21270f614c23cc0b78052d7c29bc52b8a580ebf12442", "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite,action_462_independent_preview_consumer_suite,runtime_side_effect_scans", "runtime_relevance": "runtime_projection_helper" },
+    { "path": "lib/pure-confidence-calibration.ts", "classification": "missing_runtime_type_and_test_dependency", "present_in_frozen_candidate": false, "presence_source": "missing_from_clean_base_and_30_file_overlay", "expected_hash": null, "required_by_command": "typescript_no_emit,production_build,action_461_preview_consumer_suite", "runtime_relevance": "runtime_required_type_source_and_preview_consumer_test_dependency" },
+    { "path": "docs/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.md", "classification": "overlay_runtime_regression_evidence_doc", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "493574030dc3b5842e5a49749ca9c576faae19902a1f20f2ed8a779acbed4d00", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_evidence" },
+    { "path": "docs/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.md", "classification": "overlay_runtime_integration_contract_doc", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "9d52a15cfeda4570cf1d2ef15e263087d3c09a0cc0dabca7bb59a4a0a353c9cb", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_evidence" },
+    { "path": "docs/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.md", "classification": "overlay_runtime_preview_consumer_doc", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "c77d5909d749612c7223c1a7ed20078a9ea46593a6ca2637710de397194552d2", "required_by_command": "action_461_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_evidence" },
+    { "path": "docs/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.md", "classification": "overlay_independent_runtime_preview_consumer_doc", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "37d56be86a3dad04542b21d8cccfad40ae3c7040497a7a19249f9ca49de82d6e", "required_by_command": "action_462_independent_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_evidence" },
+    { "path": "docs/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.md", "classification": "overlay_recommendation_details_regression_doc", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "06d97e974b16e44e614f7223c404ac9da17e4fc357d3766a15e36d7cfd398ed1", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "recommendation_details_regression_supporting_evidence" },
+    { "path": "scripts/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate-verify.mjs", "classification": "overlay_runtime_regression_verifier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "9b9e6d442602c3b95d7db9536dedaac230e16cdb9c52aa3f3332dc347213fd69", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_verifier" },
+    { "path": "scripts/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate-verify.mjs", "classification": "overlay_runtime_integration_contract_verifier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "9176975b4e1f565d6753c4893e1c2716595f633459dc97758da186b3ae60c2ca", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_verifier" },
+    { "path": "scripts/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation-verify.mjs", "classification": "overlay_runtime_preview_consumer_verifier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "07164bcdb210649e0c1332e6d7e486263c8061f96433c96f32e4f2adc590a419", "required_by_command": "action_461_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "runtime_preview_consumer_verifier" },
+    { "path": "scripts/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification-verify.mjs", "classification": "overlay_independent_runtime_preview_consumer_verifier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "b1ba180b2442b2f1dc74592cfa19ccdbec213354b4f32afa2b371c0ecb0ed2bf", "required_by_command": "action_462_independent_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "independent_runtime_preview_consumer_verifier" },
+    { "path": "scripts/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate-verify.mjs", "classification": "overlay_recommendation_details_regression_verifier", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "ec7d8b556c2aab59adc0e9f53e417bf6c07d3c7b45d984ebbdf8acf383633765", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "recommendation_details_regression_verifier" },
+    { "path": "tests/e2e/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.spec.ts", "classification": "overlay_static_release_test_dependency", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "94134bddc65468eb39c7d6881cdeac4013941c96c43cbe0b134bde9b01cf8976", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_test" },
+    { "path": "tests/e2e/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.spec.ts", "classification": "overlay_runtime_integration_contract_test", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "0444f2498ae1ceac4fc0b2bc3f01ad450f6e782bfbb7ed8530dc25dcf1fa2f08", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "runtime_regression_supporting_test" },
+    { "path": "tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts", "classification": "overlay_runtime_preview_consumer_test", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "71c5e0c0267771ace4b86c68e887b281c9e2ab39927926e303a66bcf5819e468", "required_by_command": "action_461_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "runtime_preview_consumer_test" },
+    { "path": "tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts", "classification": "overlay_independent_runtime_preview_consumer_test", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "69bbec236b9d42bba202e64deecabb800ed11e7ffba9959624b9847ea2a51a81", "required_by_command": "action_462_independent_preview_consumer_suite,recommendation_details_regression_suite", "runtime_relevance": "independent_runtime_preview_consumer_test" },
+    { "path": "tests/e2e/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.spec.ts", "classification": "overlay_recommendation_details_regression_test", "present_in_frozen_candidate": true, "presence_source": "30_file_overlay", "expected_hash": "8abcb43b591ff325a513af930c95d43b59c8a83a0feb05c196c401d480401714", "required_by_command": "recommendation_details_regression_suite", "runtime_relevance": "recommendation_details_runtime_regression_test" }
+  ],
+  "class_a_required_path_count": 31,
+  "class_a_missing_path_count": 1,
+  "class_a_missing_paths": [
+    "lib/pure-confidence-calibration.ts"
+  ],
+  "unresolved_internal_paths": 1,
+  "class_b_external_control_inventory": [
+    "scripts/action-481-confidence-calibration-recommendation-advisory-projection-preview-deployment-reconstruction-remediation-gate-verify.mjs",
+    "scripts/action-482-confidence-calibration-recommendation-advisory-projection-preview-dependency-materialization-completion-gate-verify.mjs",
+    "scripts/action-483-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-verify.mjs",
+    "scripts/action-484-confidence-calibration-recommendation-advisory-projection-preview-temporary-candidate-git-integrity-remediation-approval-gate-verify.mjs",
+    "scripts/action-485-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry-verify.mjs",
+    "scripts/action-486-confidence-calibration-recommendation-advisory-projection-preview-temp-path-abort-remediation-approval-gate-verify.mjs",
+    "scripts/action-487-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry-after-temp-path-remediation-verify.mjs",
+    "scripts/action-488-confidence-calibration-recommendation-advisory-projection-preview-source-safety-marker-classification-remediation-approval-gate-verify.mjs",
+    "scripts/action-489-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry-after-source-safety-remediation-verify.mjs",
+    "scripts/action-490-confidence-calibration-recommendation-advisory-projection-preview-command-inventory-binding-remediation-approval-gate-verify.mjs",
+    "tests/e2e/action-481-confidence-calibration-recommendation-advisory-projection-preview-deployment-reconstruction-remediation-gate.spec.ts",
+    "tests/e2e/action-482-confidence-calibration-recommendation-advisory-projection-preview-dependency-materialization-completion-gate.spec.ts",
+    "tests/e2e/action-483-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal.spec.ts",
+    "tests/e2e/action-484-confidence-calibration-recommendation-advisory-projection-preview-temporary-candidate-git-integrity-remediation-approval-gate.spec.ts",
+    "tests/e2e/action-485-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry.spec.ts",
+    "tests/e2e/action-486-confidence-calibration-recommendation-advisory-projection-preview-temp-path-abort-remediation-approval-gate.spec.ts",
+    "tests/e2e/action-487-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry-after-temp-path-remediation.spec.ts",
+    "tests/e2e/action-488-confidence-calibration-recommendation-advisory-projection-preview-source-safety-marker-classification-remediation-approval-gate.spec.ts",
+    "tests/e2e/action-489-confidence-calibration-recommendation-advisory-projection-preview-full-candidate-build-rehearsal-retry-after-source-safety-remediation.spec.ts",
+    "tests/e2e/action-490-confidence-calibration-recommendation-advisory-projection-preview-command-inventory-binding-remediation-approval-gate.spec.ts"
+  ],
+  "class_b_external_control_path_count": 20,
+  "later_action_tests_classified_control_only": true,
+  "external_control_checks_after_cleanup_only": true,
+  "external_control_checks_can_mutate_candidate": false,
+  "external_control_checks_count_as_rehearsal_attempt": false,
+  "candidate_runtime_relevance_policy": {
+    "externalize_only_action_documentation_records_gates_or_orchestration": true,
+    "externalize_only_if_not_imported_by_runtime_code": true,
+    "externalize_only_if_not_required_by_next_build": true,
+    "externalize_only_if_not_required_by_typescript_compilation": true,
+    "externalize_only_if_not_required_by_deployed_preview_component": true,
+    "externalize_only_if_not_required_by_candidate_runtime_regression_coverage": true,
+    "must_remain_internal_preview_consumer_itself": true,
+    "must_remain_internal_recommendation_details_rendering": true,
+    "must_remain_internal_projection_call_site_behavior": true,
+    "must_remain_internal_runtime_route_absence": true,
+    "must_remain_internal_runtime_side_effect_absence": true
+  },
+  "execution_sequence": [
+    "phase_0_safe_temp_path_validation",
+    "phase_1_source_candidate_reconstruction_overlay_hash_verification_source_inventory_source_safety_git_integrity",
+    "phase_2_dependency_materialization_and_extraneous_package_exclusion",
+    "phase_3a_candidate_internal_commands_serially",
+    "phase_4_post_command_integrity_bounded_evidence_record_temp_cleanup",
+    "phase_5_external_rehearsal_control_verifiers_and_tests_after_cleanup"
+  ],
+  "rehearsal_attempt_count_for_action_491": 1,
+  "external_post_rehearsal_checks_count_as_attempt": false,
+  "candidate_rehearsal_result_vocabulary": [
+    "full_candidate_rehearsal_passed",
+    "full_candidate_rehearsal_failed",
+    "full_candidate_rehearsal_aborted"
+  ],
+  "external_evidence_result_vocabulary": [
+    "rehearsal_evidence_verified",
+    "rehearsal_evidence_verification_failed",
+    "rehearsal_evidence_verification_aborted"
+  ],
+  "overall_readiness_vocabulary": [
+    "ready_for_preview_deployment_final_approval",
+    "ready_with_conditions",
+    "blocked"
+  ],
+  "failure_semantics": {
+    "internal_command_failure_after_commands_begin": "full_candidate_rehearsal_failed",
+    "missing_required_internal_path_before_commands": "full_candidate_rehearsal_aborted",
+    "candidate_integrity_dependency_or_flag_blocker": "full_candidate_rehearsal_aborted",
+    "external_control_failure_after_candidate_internal_pass": "rehearsal_evidence_verification_failed",
+    "external_failure_must_not_claim_candidate_runtime_build_failed": true,
+    "final_action_491_distinguishes_candidate_external_and_overall_readiness": true
+  },
+  "approval_vocabulary": [
+    "approved",
+    "approved_with_conditions",
+    "blocked"
+  ],
+  "approval_decision": "blocked",
+  "approval_blockers": [
+    "runtime_required_internal_path_missing_from_frozen_candidate:lib/pure-confidence-calibration.ts"
+  ],
+  "unresolved_conditions": [],
+  "rehearsal_attempt_authorized": false,
+  "deployment_authorized": false,
+  "activation_authorized": false,
+  "netlify_operation_performed": false,
+  "network_used": false,
+  "install_performed": false,
+  "dependency_update_performed": false,
+  "provider_call_executed": false,
+  "supabase_write_executed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "scanner_changed": false,
+  "ranking_changed": false,
+  "publication_changed": false,
+  "execution_changed": false,
+  "add_trade_changed": false,
+  "risk_sizing_changed": false,
+  "current_runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_491_candidate_runtime_dependency_completeness_remediation_gate"
+}

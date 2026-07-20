@@ -56,10 +56,18 @@ test.describe("post-trade staging insert function no-execution implementation", 
   test("module declares exactly two future insert steps and their dependency", () => {
     const source = readSource(insertFunctionPath);
 
-    expect(source).toContain('table: "execution_records"');
-    expect(source).toContain('operation: "future_insert_returning_id"');
-    expect(source).toContain('table: "execution_record_audit_events"');
-    expect(source).toContain('operation: "future_insert_with_execution_record_id"');
+    expect(source.match(/\n        table: "execution_records"/g)).toHaveLength(1);
+    expect(
+      source.match(/\n        operation: "future_insert_returning_id"/g),
+    ).toHaveLength(1);
+    expect(
+      source.match(/\n        table: "execution_record_audit_events"/g),
+    ).toHaveLength(1);
+    expect(
+      source.match(
+        /\n        operation: "future_insert_with_execution_record_id"/g,
+      ),
+    ).toHaveLength(1);
     expect(source).toContain("dependsOnStep: 1");
     expect(source).toContain("mock_execution_record_insert_result");
     expect(source).toContain("placeholderReference");

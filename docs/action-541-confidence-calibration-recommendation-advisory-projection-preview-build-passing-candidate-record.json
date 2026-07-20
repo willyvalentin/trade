@@ -1,0 +1,86 @@
+{
+  "schema_version": "action_541_build_passing_candidate_record_v1",
+  "source_action": 541,
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "historical_candidate": {
+    "source_action": 518,
+    "status": "historical_superseded_by_action_540_source_change",
+    "change_candidate_hash": "bc43bd1fe8f61561ddededd2263d64f7d12f37db46d184e3bfd0ea55a8b538de",
+    "full_candidate_inventory_hash": "80620318166b0b9e1858cff3f12fc78d9ad77d9116655335e1c7fd7e566930b0",
+    "file_count": 32,
+    "record_path": "docs/action-518-confidence-calibration-recommendation-advisory-projection-preview-remediated-32-file-candidate-record.json"
+  },
+  "path_transition": {
+    "retained_path_count": 32,
+    "added_path_count": 1,
+    "added_paths": [
+      "app/page.tsx"
+    ],
+    "removed_path_count": 0,
+    "removed_paths": [],
+    "modified_existing_paths": [],
+    "resulting_file_count": 33
+  },
+  "action_540_page_fix": {
+    "path": "app/page.tsx",
+    "sha256": "9fcbb64437773efbb7662779109f68f59fb624371c123bdec74a3b89392abf66",
+    "required_connection_import": "import { connection } from \"next/server\";",
+    "dynamic_contract": "force-dynamic",
+    "connection_boundary_before_schema_read": true,
+    "schema_read_preserved": true,
+    "mock_or_fallback_introduced": false
+  },
+  "route_state": {
+    "path": "app/api/recommendations/evaluate-outcomes/route.ts",
+    "sha256": "26407a8b78625a19a48a02ecf44e03db1642998da5f1d8acc5e8d47227773265",
+    "export_surface": [
+      "POST"
+    ],
+    "buildOutcomeEligibility_module_private": true
+  },
+  "action_465_null_hash_exception_policy": {
+    "preserved": true,
+    "policy_source": "docs/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-inventory.json",
+    "self_referential_hash_exclusion_path": "docs/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-inventory.json"
+  },
+  "candidate_hashes": {
+    "new_candidate_file_count": 33,
+    "new_change_candidate_hash": "1ed32886de0eb3522f648ad3b8522ada7b6de905098c4fa141bc33e77bfa5570",
+    "new_full_candidate_inventory_hash": "f416ea941168ac0a730fee70b059a78fd760bfb7238f94c06369f241b3ab68ce"
+  },
+  "closure_result": {
+    "missing_paths": 0,
+    "unexpected_paths": 0,
+    "unrelated_dirty_files": 0,
+    "control_only_artifacts": 0,
+    "environment_file_count": 0,
+    "secret_file_count": 0,
+    "netlify_artifact_count": 0,
+    "credentials_count": 0,
+    "post_trade_unrelated_paths": 0,
+    "runtime_dependency_closure": "complete",
+    "build_dependency_closure": "complete",
+    "missing_required_paths": 0,
+    "unresolved_versions": 0,
+    "runtime_projection_call_site_count": 1,
+    "preview_disabled_by_default": true
+  },
+  "validation_results": {
+    "candidate_integrity_verification": "passed",
+    "source_safety_verification": "passed",
+    "preview_disabled_verification": "passed",
+    "next_typegen": "passed",
+    "tsc_no_emit": "passed",
+    "lint": "passed_with_existing_warning",
+    "turbopack_build": "passed",
+    "webpack_build": "not_run_turbopack_passed"
+  },
+  "candidate_authoritative": true,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "provider_call_executed": false,
+  "supabase_call_executed_during_reconstruction": false,
+  "source_behavior_changed_beyond_action_540": false,
+  "next_action": "action_542_final_preview_deployment_readiness_and_deploy_decision"
+}

@@ -1,0 +1,4623 @@
+{
+  "inventory_schema_version": "action_454_static_projection_hash_inventory_v1",
+  "action": "action_454_static_confidence_calibration_recommendation_advisory_projection_hash_freeze",
+  "action_453_approval": "approved_with_conditions",
+  "protected_source_hashes": {
+    "lib/confidence-calibration-recommendation-advisory-projection.ts": "5b5a2eff5f98c45a40de21270f614c23cc0b78052d7c29bc52b8a580ebf12442",
+    "lib/confidence-calibration-advisory-adapter.ts": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b",
+    "lib/pure-confidence-calibration.ts": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+    "lib/pure-pattern-discovery.ts": "48b7667c8690a1d8d56b819a3727e37ea73af7710a45131eb3debab48627191c",
+    "lib/snapshot-to-learning-dataset-mapper.ts": "7294a851ede33aadc0dbfcb68c13337cd244002b84be7cbbe40abbe91673741d",
+    "lib/learning-dataset-static-fixtures.ts": "706bd57150914862604af70e0bba7614151f53c32abc5dbde9595c53bf4b332b",
+    "lib/intelligence-context-static-fixtures.ts": "46358cb997b4f7a431a3fee72562659da48b13219404224f4e80e08dbf8ed406",
+    "lib/pattern-insight-static-fixtures.ts": "db8dae9f101f710123a0a3ac6493356bd761c15f231023ab9742caefaacf8f57",
+    "docs/action-441-static-confidence-calibration-advisory-hash-inventory.json": "6323f6690157a52de71750aaa142b8bada965289e470e7f7cd9ef37de55f552c",
+    "scripts/action-441-static-confidence-calibration-advisory-hash-freeze.mjs": "76d0be269dedc76c97ede48edf5d9763d3b72d3027bbc14c6f8eb695c8d2f9bf",
+    "scripts/action-441-static-confidence-calibration-advisory-hash-freeze-verify.mjs": "b58312093b8c00deecc3eeb756ba4a0c317a8d01afca7b0142b997576debe3fd",
+    "docs/action-444-static-confidence-calibration-advisory-shadow-input-manifest.json": "a9a32955e741d0d168bae6c21a30df2e6dd6d07666a757809a7967ee2f02dda0",
+    "scripts/action-444-static-confidence-calibration-advisory-shadow-run.mjs": "70102dbbaa0b5663b86a90a949ad961785a1245f5b5fb754773f1561b582625a",
+    "scripts/action-444-static-confidence-calibration-advisory-shadow-use-verify.mjs": "8f39b8517019f0dcd3ea02bb8bd4ba7b50f8182d994a17164d0378f07144f5ca"
+  },
+  "scenario_count": 52,
+  "exact_ids": [
+    "cp453_01",
+    "cp453_02",
+    "cp453_03",
+    "cp453_04",
+    "cp453_05",
+    "cp453_06",
+    "cp453_07",
+    "cp453_08",
+    "cp453_09",
+    "cp453_10",
+    "cp453_11",
+    "cp453_12",
+    "cp453_13",
+    "cp453_14",
+    "cp453_15",
+    "cp453_16",
+    "cp453_17",
+    "cp453_18",
+    "cp453_19",
+    "cp453_20",
+    "cp453_21",
+    "cp453_22",
+    "cp453_23",
+    "cp453_24",
+    "cp453_25",
+    "cp453_26",
+    "cp453_27",
+    "cp453_28",
+    "cp453_29",
+    "cp453_30",
+    "cp453_31",
+    "cp453_32",
+    "cp453_33",
+    "cp453_34",
+    "cp453_35",
+    "cp453_36",
+    "cp453_37",
+    "cp453_38",
+    "cp453_39",
+    "cp453_40",
+    "cp453_41",
+    "cp453_42",
+    "cp453_43",
+    "cp453_44",
+    "cp453_45",
+    "cp453_46",
+    "cp453_47",
+    "cp453_48",
+    "cp453_49",
+    "cp453_50",
+    "cp453_51",
+    "cp453_52"
+  ],
+  "exact_status_distribution": {
+    "projection_ready": 4,
+    "projection_ready_with_warnings": 3,
+    "projection_no_adjustment": 1,
+    "projection_insufficient_evidence": 1,
+    "blocked_invalid_input": 11,
+    "blocked_confidence_mismatch": 3,
+    "blocked_advisory_result": 11,
+    "blocked_invalid_lineage": 12,
+    "blocked_future_leakage": 5,
+    "blocked_unsupported_status": 1
+  },
+  "advisory_hash_classification_distribution": {
+    "valid_advisory_hash": 42,
+    "malformed_hash": 1,
+    "swapped_hash": 1,
+    "unrelated_valid_format_hash": 1,
+    "retained_hash_tampering": 6,
+    "hash_role_substitution": 1
+  },
+  "warning_distribution": {
+    "duplicate_mapper_row_identity": 4,
+    "metric_value_unavailable": 4
+  },
+  "issue_distribution": {
+    "blocked_advisory_result": 12,
+    "invalid_recommendation_envelope": 6,
+    "blocked_confidence_mismatch": 3,
+    "invalid_original_confidence": 5,
+    "blocked_invalid_lineage": 6,
+    "blocked_future_leakage": 5,
+    "blocked_feedback_reuse": 6,
+    "unsupported_advisory_status": 1,
+    "invalid_evidence_quality": 1,
+    "warning_status_contradiction": 1
+  },
+  "projection_configuration": {
+    "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+    "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+    "projection_id_prefix": "confidence_calibration_recommendation_projection_v1:",
+    "advisory_schema_version": "confidence_calibration_advisory_result_v1",
+    "advisory_configuration_version": "confidence_calibration_advisory_config_v1",
+    "confidence_scale_basis_points_per_point": 100,
+    "accepted_min_confidence_basis_points": 0,
+    "accepted_max_confidence_basis_points": 10000,
+    "status_mapping": {
+      "advisory_ready": "projection_ready",
+      "advisory_ready_with_warnings": "projection_ready_with_warnings",
+      "advisory_no_adjustment": "projection_no_adjustment",
+      "advisory_insufficient_evidence": "projection_insufficient_evidence",
+      "blocked_invalid_input": "blocked_invalid_input",
+      "blocked_confidence_mismatch": "blocked_confidence_mismatch",
+      "blocked_invalid_lineage": "blocked_invalid_lineage",
+      "blocked_future_leakage": "blocked_future_leakage",
+      "blocked_calibration_result": "blocked_advisory_result",
+      "blocked_unsupported_status": "blocked_unsupported_status"
+    },
+    "visibility_policy": "projection_visible_for_eligible_advisories",
+    "identity_policy": "action_448_projection_identity_v1",
+    "canonical_hash_version": "action_448_canonical_json_sha256_v1",
+    "warning_message_key_prefix": "confidence_calibration_advisory.",
+    "issue_message_key_prefix": "confidence_calibration_advisory.",
+    "projection_issue_message_key_prefix": "confidence_calibration_recommendation_projection.",
+    "runtime_preview_status": "runtime_preview_waiting_for_operator_inputs"
+  },
+  "static_only": true,
+  "non_production": true,
+  "non_authoritative": true,
+  "non_learning": true,
+  "no_persistence": true,
+  "no_replay": true,
+  "no_runtime": true,
+  "no_external_access": true,
+  "no_feedback": true,
+  "recommendation_mutated": false,
+  "confidence_applied": false,
+  "projection_shadow_executed": false,
+  "consumer_added": false,
+  "deployment_artifact_changed": false,
+  "runtime_preview_status": "runtime_preview_waiting_for_operator_inputs",
+  "bounded_metadata_only": true,
+  "full_recommendation_objects_retained": false,
+  "full_advisory_objects_retained": false,
+  "repeat_freeze_runs": 2,
+  "scenarios": [
+    {
+      "scenario_id": "cp453_01",
+      "order": 1,
+      "primary_family": "eligible_status",
+      "coverage_tags": [
+        "advisory_ready",
+        "exact_match",
+        "valid_advisory_hash"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 150,
+        "proposed_confidence_basis_points": 5150,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 150,
+        "projected_advisory_confidence_basis_points": 5150,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:a4e6f89906ee7340503a2d96",
+        "projection_hash": "a4e6f89906ee7340503a2d9651831e248640a1ecb0e54c348b52d9e95b26121f",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 150,
+        "advisory_proposed_confidence_basis_points": 5150,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_01",
+        "recommendation_snapshot_hash": "b582e1f71bc40b2d129166edaea69e42f94247002bd71aa8f728b7d3018e4fa9",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready",
+        "advisory_id": "confidence_calibration_advisory_v1:23155f3f88d94fe19854b372",
+        "advisory_identity_hash": "67ea006727e3f44f233828009b0141a65ff4ff53a8fb73b417026499c1429af6",
+        "advisory_result_hash": "23155f3f88d94fe19854b372168c808a3189814d9745a602eadc4f44d5d53306",
+        "advisory_proposed_delta_basis_points": 150,
+        "advisory_proposed_confidence_basis_points": 5150,
+        "warnings": [],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "f50e4908e762888a760067ae1741f7fd95c12b5ad158cbacfe5d18e801b9d913",
+          "decision_boundary_sha256": "7a1dd935df9afbece749a7a18acf1d9ec064c5b23ad0c767cf7ad4d67b0e49d2",
+          "evidence_lineage_hash": "7ce4e93c5fa33255cf5ab37dfbf88f0883b72786b6703e446459576cc7b1c1c2",
+          "pattern_discovery_result_hashes": [
+            "df362258b78d49ccbf2291bb0c961f87c26cffe18e218ed0d871ac010f6453a6",
+            "e554eec4e7e013e18e60da0927914a2e5d2f2a739536f95ede090d30a3de2ea0"
+          ],
+          "pattern_insight_hashes": [
+            "822b3e7ae0185a8cd5bbd2d5708fc08aa99d4110b6d02fc288b189279ef07aee",
+            "cff1d0ce14f4afacf96c48f8f30eafac47686713d5a82cf069a7d1f08c3b3e26"
+          ],
+          "calibration_identity_hash": "caf77d2a6c4a8cb52e4ff8dcb1678f896643dc45f0a39d34d877e9833869dafa",
+          "calibration_result_hash": "6281104d346b5b181c4582d06fc02a225af6d937915c3c6683ac8f7017ca76ad"
+        }
+      },
+      "projection_identity_sha256": "a4e6f89906ee7340503a2d9651831e248640a1ecb0e54c348b52d9e95b26121f",
+      "canonical_projection_result_sha256": "02d74c532a31b44c062d02f123ec011f5b5f88146bd66c47d024f5fb1a21cdf7",
+      "scenario_summary_sha256": "4c2fa7dee041eb2d00f1e7f2bfcb0e88bc7667eecbd95f7cede1fe48bc31e4b3"
+    },
+    {
+      "scenario_id": "cp453_02",
+      "order": 2,
+      "primary_family": "eligible_status",
+      "coverage_tags": [
+        "advisory_ready_with_warnings",
+        "warning_preservation"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5100,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5100,
+        "proposed_delta_basis_points": 125,
+        "proposed_confidence_basis_points": 5225,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "duplicate_mapper_row_identity"
+        ],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready_with_warnings",
+        "recommendation_original_confidence_basis_points": 5100,
+        "projected_advisory_delta_basis_points": 125,
+        "projected_advisory_confidence_basis_points": 5225,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready_with_warnings",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:5f2a6e72b271570d95d88bba",
+        "projection_hash": "5f2a6e72b271570d95d88bba0f012442d4fd8048b4075e5764a08296bc6cde5c",
+        "recommendation_original_confidence_basis_points": 5100,
+        "advisory_proposed_delta_basis_points": 125,
+        "advisory_proposed_confidence_basis_points": 5225,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          }
+        ],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_02",
+        "recommendation_snapshot_hash": "c03bf21705efacc8c0ce1d6e50b506b7a2718ba58388cf6bce8f0ed86e90b601",
+        "recommendation_original_confidence_basis_points": 5100,
+        "advisory_status": "advisory_ready_with_warnings",
+        "advisory_id": "confidence_calibration_advisory_v1:2ec728d20b59cb7a48f7ca99",
+        "advisory_identity_hash": "5a0dc0b37137079ac223a6756e7fa35cc6d89d70effdccec07dfbc915ef55ede",
+        "advisory_result_hash": "2ec728d20b59cb7a48f7ca99bb8f0b64af6b7ac154bb2f922ccff18abe885618",
+        "advisory_proposed_delta_basis_points": 125,
+        "advisory_proposed_confidence_basis_points": 5225,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          }
+        ],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "75c8e85842c463208a20d6336b130894b43b8e1a22c5f105c64498a0838312cc",
+          "decision_boundary_sha256": "94ca0a4b6f1146d29457b99629f2711e2ba720a78767756ece18e6fb0f3db49e",
+          "evidence_lineage_hash": "c6e5d5792f4821a1e6f4f461f014cb4c4a94340985c0d204fb19c1239781e14a",
+          "pattern_discovery_result_hashes": [
+            "15a7e877815753d8d6b79b2590b451fb795e6a8d92b5edee5d463fef2e0188da",
+            "7d61e881b56d555173bd9c8408ca9d2c6d636fa3aa90ba232045dce6bf5b3a72"
+          ],
+          "pattern_insight_hashes": [
+            "28fccbadca7e18b4199fdc493635aa1c45c86290b7d59a027325b8d82d8c26d3",
+            "b5026ce127679267b48bffedba2b7fd7dea6c389ff26a708e47910fe8c256fed"
+          ],
+          "calibration_identity_hash": "65a5471604b9e144fb61627413998b54e19c22e5ab9230f6d2257f1da3038969",
+          "calibration_result_hash": "4d62a4ae33f325cf34b5d9cf7282d56f6373013bb77dba7eea803679d1d8a0bc"
+        }
+      },
+      "projection_identity_sha256": "5f2a6e72b271570d95d88bba0f012442d4fd8048b4075e5764a08296bc6cde5c",
+      "canonical_projection_result_sha256": "3f37c6047a789b8b41f32c4d4863210679ca3c1ea260a4ae59bbdcaedec9a375",
+      "scenario_summary_sha256": "46431c8e01155416313e306c66f4e4a78c8ffca8973b874278dddfd0d518cfbd"
+    },
+    {
+      "scenario_id": "cp453_03",
+      "order": 3,
+      "primary_family": "no_adjustment",
+      "coverage_tags": [
+        "advisory_no_adjustment",
+        "valid_zero_delta"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5200,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_no_adjustment",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5200,
+        "proposed_delta_basis_points": 0,
+        "proposed_confidence_basis_points": 5200,
+        "calibration_status": "no_adjustment",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_no_adjustment",
+        "recommendation_original_confidence_basis_points": 5200,
+        "projected_advisory_delta_basis_points": 0,
+        "projected_advisory_confidence_basis_points": 5200,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_no_adjustment",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:cbe66c0ae431cb9704687353",
+        "projection_hash": "cbe66c0ae431cb9704687353462102bcd2a00127895971cea7222111c10f9864",
+        "recommendation_original_confidence_basis_points": 5200,
+        "advisory_proposed_delta_basis_points": 0,
+        "advisory_proposed_confidence_basis_points": 5200,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_03",
+        "recommendation_snapshot_hash": "e9c45bfb31cba26fda58c0098e2c2d672388683cb0bd4a2625897cb4bc7d7e0d",
+        "recommendation_original_confidence_basis_points": 5200,
+        "advisory_status": "advisory_no_adjustment",
+        "advisory_id": "confidence_calibration_advisory_v1:0e0b984432208747cbbf2399",
+        "advisory_identity_hash": "62176f0216d0fcc77eb5b02988db0c5667ecbbb7637ff78eddf0934fd6cbb824",
+        "advisory_result_hash": "0e0b984432208747cbbf23992e19ba722f985994d7217dc3750feaa85ee2a0e3",
+        "advisory_proposed_delta_basis_points": 0,
+        "advisory_proposed_confidence_basis_points": 5200,
+        "warnings": [],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "dc4f06d307a2bc4c277c90d6d3ae344804fc935afa116b06b5b74f411ef3ecdb",
+          "decision_boundary_sha256": "70f49fc954da6507ef723d1024fe98fd108794c4fc8a179e43489f7dcc912d56",
+          "evidence_lineage_hash": "aabd66dcd66f0dd4fb47405df93c500a6077cc61e9340f234fb5cc5b814ffb45",
+          "pattern_discovery_result_hashes": [
+            "21970bf4d415707f356ce6f6b42e13023dfc3942ed3e2f6d1e93ac47cf555652",
+            "738362239bc747dd31fef869501d9815a9d046f6ae845ec4ecfc6e7c50c879a9"
+          ],
+          "pattern_insight_hashes": [
+            "1f91d85b8b289c54bea568cd46c356c3ab61b6aa5fcc6a73cdf8a8f2f1446285",
+            "27ccf6f78b2e143a8272fbb2a5aa48865273e024b885ceac68d34657d9ccae3c"
+          ],
+          "calibration_identity_hash": "224850d6d7c63da62d4ec937cc1551d1927c58e6fb392c6bf1d5bc0e82568af5",
+          "calibration_result_hash": "b66dc2c6ffabf2fd8cf62bf8732d5e4ac3f377897210c88f59d807c6e38dbdcd"
+        }
+      },
+      "projection_identity_sha256": "cbe66c0ae431cb9704687353462102bcd2a00127895971cea7222111c10f9864",
+      "canonical_projection_result_sha256": "ef4684f316430255ad7a3e35bc6396a9a78f7887849f3a7b8880153ec6ed4b26",
+      "scenario_summary_sha256": "8677c08f20fb5656e67cad4abc02afacfdfa620833ef83a1750a2aa2b23cc3e6"
+    },
+    {
+      "scenario_id": "cp453_04",
+      "order": 4,
+      "primary_family": "blocked_status",
+      "coverage_tags": [
+        "advisory_insufficient_evidence"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5300,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_insufficient_evidence",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5300,
+        "proposed_delta_basis_points": 0,
+        "proposed_confidence_basis_points": 5300,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [
+          "insufficient_eligible_evidence"
+        ],
+        "lineage_present": true,
+        "advisory_visible": false,
+        "advisory_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_insufficient_evidence",
+        "recommendation_original_confidence_basis_points": 5300,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_insufficient_evidence",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5300,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/issues/0",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "83be69900f106deafa055694d5c1ca4d0b68d8be9a0c3d786122fcd86d9752b2",
+      "scenario_summary_sha256": "768557c0ed4b9c12f37d7da7592a91dc61f8e91b30f87ea605206abcddd1d507"
+    },
+    {
+      "scenario_id": "cp453_05",
+      "order": 5,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "missing_fingerprint",
+        "earlier_recommendation_fault"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "missing_or_malformed",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5400,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5400,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 5520,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5400,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "e7f3db7a31ffbbbc1ee5bf6a01243ff9ce61a9e2c9f39f85974c91c1b7952fe5"
+    },
+    {
+      "scenario_id": "cp453_06",
+      "order": 6,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "malformed_fingerprint",
+        "earlier_recommendation_fault"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "missing_or_malformed",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5500,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5500,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 5620,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5500,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "4e245104ef5e98414e77fc2e6739e9eb5c005a130e3f732a746f558c1881bf82"
+    },
+    {
+      "scenario_id": "cp453_07",
+      "order": 7,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "missing_snapshot",
+        "earlier_recommendation_fault"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "missing_or_malformed",
+        "original_confidence_basis_points": 5600,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5600,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 5720,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5600,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "e1b4dc4a2af9dee7a9a313da186446dc3d651a0c39594f36e59d06b7b8365142"
+    },
+    {
+      "scenario_id": "cp453_08",
+      "order": 8,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "malformed_snapshot",
+        "earlier_recommendation_fault"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "missing_or_malformed",
+        "original_confidence_basis_points": 5700,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5700,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 5820,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5700,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "ef0c3e0b14e1da5ae5ac5ba785f79acb5936c242bce5774272119dac48394c3c"
+    },
+    {
+      "scenario_id": "cp453_09",
+      "order": 9,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "schema_version_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5800,
+        "schema_version": "recommendation_projection_envelope_v2",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5800,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 5920,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5800,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "eefe5ce028bb1286bbd0763b7a1dec863ec7fd94c80e453219199259b77599bd"
+    },
+    {
+      "scenario_id": "cp453_10",
+      "order": 10,
+      "primary_family": "recommendation_identity",
+      "coverage_tags": [
+        "decision_boundary_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5900,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "unknown",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5900,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 6020,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 5900,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": null,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_recommendation_envelope",
+            "path": "/recommendation",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_recommendation_envelope"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6c426a2b9bffff3bca21c4aa644e5e5a4c41b193c42a16a8abf635f6b1062f26",
+      "scenario_summary_sha256": "1fe7590534f6478355291d8d4f77b0d86247b03b588f9923c03d0757a203501d"
+    },
+    {
+      "scenario_id": "cp453_11",
+      "order": 11,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "one_basis_point_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 6000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 6001,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 6120,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_confidence_mismatch",
+        "recommendation_original_confidence_basis_points": 6000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_confidence_mismatch",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 6000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_confidence_mismatch",
+            "path": "/advisory/original_confidence",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_confidence_mismatch"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "354993280510566f578e9edfed1fef37844cfc16903355da481242e6d07117e8",
+      "scenario_summary_sha256": "0e2345445f04a035a15c73ce2f452586a72e090eef9854a94852c8fbed2d63fb"
+    },
+    {
+      "scenario_id": "cp453_12",
+      "order": 12,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "decimal_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 6100,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": null,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 6220,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_confidence_mismatch",
+        "recommendation_original_confidence_basis_points": 6100,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_confidence_mismatch",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 6100,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_confidence_mismatch",
+            "path": "/advisory/original_confidence",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_confidence_mismatch"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "69f8a106b86d250b2906013d28053fef52c3650bd4d7a892299fe88b740678b4",
+      "scenario_summary_sha256": "d26e11860a68997c1754ae7d706bde4d73001f26b71a4a6b9e8315fb543ebcca"
+    },
+    {
+      "scenario_id": "cp453_13",
+      "order": 13,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "invalid_precision"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 6200.5,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 6200,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 6320,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 6200,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 6200.5,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_original_confidence",
+            "path": "/recommendation/original_confidence_basis_points",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_original_confidence"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "3de464d02e560865db0db281e9dece3cd7e4a179c3014db6819c3aa1f049dc84",
+      "scenario_summary_sha256": "1e4cdbe1915293a7a9018f38368868daf7354de3d8b6b2b8e9bf67bb9d210e52"
+    },
+    {
+      "scenario_id": "cp453_14",
+      "order": 14,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "below_range"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": -1,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": -1,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 119,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": -1,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": -1,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_original_confidence",
+            "path": "/recommendation/original_confidence_basis_points",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_original_confidence"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "d517966af9dd5ce1f10465f374af315596d50825e3e49452d48928a0989f275b",
+      "scenario_summary_sha256": "3c05771e72eba9fd4bb37991527287c50b5563e91920e5f3bd4d1a7cf4fec161"
+    },
+    {
+      "scenario_id": "cp453_15",
+      "order": 15,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "above_range"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 10001,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 10001,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 10121,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 10001,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 10001,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_original_confidence",
+            "path": "/recommendation/original_confidence_basis_points",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_original_confidence"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "5c7e2694e545d736491998b6f8d7a2b4f08c567767bb87477e5079c394be3f07",
+      "scenario_summary_sha256": "d0ffba273a0cced548fdd82806c369f88f23073193157e77a86377392056fe60"
+    },
+    {
+      "scenario_id": "cp453_16",
+      "order": 16,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "NaN"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": "NaN",
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 0,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 120,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 0,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": "NaN",
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_original_confidence",
+            "path": "/recommendation/original_confidence_basis_points",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_original_confidence"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "11ffa88262b2e9723d27eb993e8c544467846b41aa12af3f008a3be12e31bfc7",
+      "scenario_summary_sha256": "dc75981b0325231fa14280c83d6188ae9b12d3fa56d9f732d72a48e921f07c49"
+    },
+    {
+      "scenario_id": "cp453_17",
+      "order": 17,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "Infinity"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": "Infinity",
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 10000,
+        "proposed_delta_basis_points": 120,
+        "proposed_confidence_basis_points": 10120,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_input",
+        "recommendation_original_confidence_basis_points": 10000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_input",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": "Infinity",
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "invalid_original_confidence",
+            "path": "/recommendation/original_confidence_basis_points",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.invalid_original_confidence"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "106a7532dd12debbf4ce975fa191dcd3443800d5155d749d85213bda60e52932",
+      "scenario_summary_sha256": "88edaf2e2d4a8f74edf1e4358f6890ed02613697281785c200c8c73460bbadb7"
+    },
+    {
+      "scenario_id": "cp453_18",
+      "order": 18,
+      "primary_family": "confidence_agreement",
+      "coverage_tags": [
+        "signed_zero",
+        "confidence_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 0,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 1,
+        "proposed_delta_basis_points": 1,
+        "proposed_confidence_basis_points": 1,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_confidence_mismatch",
+        "recommendation_original_confidence_basis_points": 0,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_confidence_mismatch",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 0,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_confidence_mismatch",
+            "path": "/advisory/original_confidence",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_confidence_mismatch"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "0710303f441f6ed311e95ef7ba0abb261713c2cc0d325ccb3f0be29eff4d847d",
+      "scenario_summary_sha256": "262c3e4ce897f72055de5677d314d486ebe56dab70e6c54097e18fa491d05c6f"
+    },
+    {
+      "scenario_id": "cp453_19",
+      "order": 19,
+      "primary_family": "advisory_hash",
+      "coverage_tags": [
+        "malformed_hash"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "malformed_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "266af3039fa1483f75112d72df1a61f054deb5983681673e645d31f677b7c5cf",
+      "scenario_summary_sha256": "c1c8eae25443041b89523c6a7e5a23c45474b7432b25d2d1f35585efe1b8e6a1"
+    },
+    {
+      "scenario_id": "cp453_20",
+      "order": 20,
+      "primary_family": "advisory_hash",
+      "coverage_tags": [
+        "swapped_hash"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "swapped_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "dfc9f4b0ec4105d34079fcd3feb74bb299deac2aa56daf724eb0ad7aa26afb36",
+      "scenario_summary_sha256": "babe4990828def7ee0b9cffb15c6c0aa2ae92064e9c62dab27f695338479d15a"
+    },
+    {
+      "scenario_id": "cp453_21",
+      "order": 21,
+      "primary_family": "advisory_hash",
+      "coverage_tags": [
+        "unrelated_valid_format_hash",
+        "blocked_calibration_result"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "unrelated_valid_format_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "4511a5129938ccfd0c20b681e2d764a652210fba7cf907504111c1c6d73d59e6",
+      "scenario_summary_sha256": "0659f3c2653d00eb23dc6f84efc22dca488363c85e961555307c66d233cf0655"
+    },
+    {
+      "scenario_id": "cp453_22",
+      "order": 22,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_status_tampering"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "metric_value_unavailable"
+        ],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "72e0b2de1340ab3e1e409ebaf15e9460f3c130145372cf8c38c69022613dd5fd",
+      "scenario_summary_sha256": "d0d295597ed18efa52bcc845e9f478552d1347f5676514a32fefe1c81f2ce012"
+    },
+    {
+      "scenario_id": "cp453_23",
+      "order": 23,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_advisory_id_tampering"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "046996af6aff285701f49b08a16b5e27c808da91ca28b1d5e42d5c8962f98baa",
+      "scenario_summary_sha256": "0ffa9f674eb9da090709af099f235002ea76306b9ee94aae1ad9554d1872db81"
+    },
+    {
+      "scenario_id": "cp453_24",
+      "order": 24,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_confidence_tampering",
+        "no_adjustment_changed_delta"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5200,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_no_adjustment",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5200,
+        "proposed_delta_basis_points": 75,
+        "proposed_confidence_basis_points": 5200,
+        "calibration_status": "no_adjustment",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5200,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5200,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "415005bfe7151ce750fe2b340ebf27028521e3723328394af2271457ac366ea6",
+      "scenario_summary_sha256": "e0b1a45c9781b8e89ae641f0747bac3dd9d4bfd746b10ea439009601dc68b3fb"
+    },
+    {
+      "scenario_id": "cp453_25",
+      "order": 25,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_warning_tampering"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "metric_value_unavailable"
+        ],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "5cf702a169332131aa590e948c44c3610d70938568612c9dd4f1bde15ede3d6a",
+      "scenario_summary_sha256": "ba57aac5d5c458a9bda392c8cf9944a4a34d7002380c78943886a1e9c0430844"
+    },
+    {
+      "scenario_id": "cp453_26",
+      "order": 26,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_issue_tampering"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "duplicate_mapper_row_identity"
+        ],
+        "issue_codes": [
+          "invalid_evidence_quality"
+        ],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          }
+        ],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "a1846da671136259f64cdbf9174ea428ca712f61860a00b008aafedccfb542f9",
+      "scenario_summary_sha256": "8469afa4e4b2c30d945e4e3749225c3b08ee547683f615ef6dcdf5964522bdf5"
+    },
+    {
+      "scenario_id": "cp453_27",
+      "order": 27,
+      "primary_family": "retained_hash",
+      "coverage_tags": [
+        "retained_hash_lineage_tampering",
+        "phase_10_defense"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "retained_hash_tampering",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "f5e98e158a4443abc29d881219002336b588e428c79cd2d16bc633b7effce1c2",
+      "scenario_summary_sha256": "51f8e4c360c853ff910d77fc8471ead05d5cb8dc5a5cb624e4227d89a819dc64"
+    },
+    {
+      "scenario_id": "cp453_28",
+      "order": 28,
+      "primary_family": "advisory_hash",
+      "coverage_tags": [
+        "hash_role_substitution"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "hash_role_substitution",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "ef337a047d0b0c4faa83cdc2d9657dddb821f149e7b0a3148e52c946fcaa18a7",
+      "scenario_summary_sha256": "82b3ff9f78eea5370ae9140951bda604f1921c9d692183cc3bb9ab8216d6677e"
+    },
+    {
+      "scenario_id": "cp453_29",
+      "order": 29,
+      "primary_family": "lineage",
+      "coverage_tags": [
+        "recommendation_fingerprint_mismatch",
+        "changed_fingerprint"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "5270ba8815f1d73eb2d11ffda7d8f5242d273c158e558466bf20aff080660192",
+      "scenario_summary_sha256": "360c129f21c6fe4d2537ad4e5919aa17bba0f57707f01c706520a01997266bed"
+    },
+    {
+      "scenario_id": "cp453_30",
+      "order": 30,
+      "primary_family": "lineage",
+      "coverage_tags": [
+        "recommendation_snapshot_mismatch",
+        "changed_snapshot"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "6881a9c42e1f81dd0a74986b0e0ff200004376e5f175aad18b2026156159ef7a",
+      "scenario_summary_sha256": "8fa662ac475a29453be1cc530c6f2136b2b88949a3ef04de7356026bdf38c374"
+    },
+    {
+      "scenario_id": "cp453_31",
+      "order": 31,
+      "primary_family": "lineage",
+      "coverage_tags": [
+        "pattern_discovery_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "495127830d3f80473c76d48baa028665794885427cf87539c7d548e26046357b",
+      "scenario_summary_sha256": "3bc46ed63b1e4f676dc28e9bc37cf54aff93ce0a224a13fc156ef7926cc86fe1"
+    },
+    {
+      "scenario_id": "cp453_32",
+      "order": 32,
+      "primary_family": "lineage",
+      "coverage_tags": [
+        "pattern_insight_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "505c061b16f84fdfb28b5a72bb520d01a700eca8a9c80126b575d4605de85654",
+      "scenario_summary_sha256": "7d278d27d63f9aa40db743d747f74db5f1e13d1781498abb5e3be85032387db6"
+    },
+    {
+      "scenario_id": "cp453_33",
+      "order": 33,
+      "primary_family": "lineage",
+      "coverage_tags": [
+        "evidence_lineage_mismatch"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "1ea42c7bf2b5e0b16cdd51d8e0ad1e8faca6eea803ac60a631d3c54bd4a9242e",
+      "scenario_summary_sha256": "4d35904b828b973598823323b48de0378405db92c244afdba36d20b9d4e6a1db"
+    },
+    {
+      "scenario_id": "cp453_34",
+      "order": 34,
+      "primary_family": "anti_leakage",
+      "coverage_tags": [
+        "future_outcome"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_future_leakage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_future_leakage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_future_leakage",
+            "path": "/recommendation/anti_leakage",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_future_leakage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "79cdfdd4e480e2ba3e02c7b474be39ed72ab88d4c63b42cddac2f27064522173",
+      "scenario_summary_sha256": "7a8a6d4c106d94800a35dc131576d5b6c8fdb592cd1c7fb6918350b25e656e72"
+    },
+    {
+      "scenario_id": "cp453_35",
+      "order": 35,
+      "primary_family": "anti_leakage",
+      "coverage_tags": [
+        "post_entry_evidence"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_future_leakage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_future_leakage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_future_leakage",
+            "path": "/recommendation/anti_leakage",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_future_leakage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "d54fbd472f9f3441cbb54fe0ed535211b3a560997d19fe4271669cfbdeeb3796",
+      "scenario_summary_sha256": "ac4c790b37dca18805159026b7912c9fa877eef8729ec602227df5c3ecda6273"
+    },
+    {
+      "scenario_id": "cp453_36",
+      "order": 36,
+      "primary_family": "anti_leakage",
+      "coverage_tags": [
+        "post_exit_evidence"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_future_leakage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_future_leakage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_future_leakage",
+            "path": "/recommendation/anti_leakage",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_future_leakage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "0a9dff992fee3a236bab80339c03583847980511f9b234dd822d02b58d10912b",
+      "scenario_summary_sha256": "918ca910908fc43f2990f6f80351ed8d50aa032c3f294742313e245e0433094f"
+    },
+    {
+      "scenario_id": "cp453_37",
+      "order": 37,
+      "primary_family": "anti_leakage",
+      "coverage_tags": [
+        "same_recommendation_realized_result"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_future_leakage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_future_leakage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_future_leakage",
+            "path": "/recommendation/anti_leakage",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_future_leakage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "ce575db8a0779e440de182b37046f7d5b73c858204d4fe23dab094f17d896c00",
+      "scenario_summary_sha256": "f1458243be2a4c1e2cdd2a54ee6e0185b710bea423d57fdf5b30b8590e7cb263"
+    },
+    {
+      "scenario_id": "cp453_38",
+      "order": 38,
+      "primary_family": "anti_leakage",
+      "coverage_tags": [
+        "missing_leakage_state",
+        "unknown_leakage_state"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_future_leakage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_future_leakage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_future_leakage",
+            "path": "/recommendation/anti_leakage",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_future_leakage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "f405110966c2de6e84ddb04855864e1cfa32d2842d102a8709bda71b07c9c743",
+      "scenario_summary_sha256": "91e7c277c3dc55a47d22770ca088e6758e5a72d748f618ca86dce1785b90d2e7"
+    },
+    {
+      "scenario_id": "cp453_39",
+      "order": 39,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "projection_reused_as_recommendation_confidence"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "b17fb540a7d954ec75e8355737191e8a1170393287ddd8f1189b93784c40f6e1",
+      "scenario_summary_sha256": "9366e119563b0ddfc2cd136069acbf0a77006a16bea5c2c530a2d0df6b5daec3"
+    },
+    {
+      "scenario_id": "cp453_40",
+      "order": 40,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "scanner_signal_reuse"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "717c4b2bd078a29bc042ced2a585b5b0e36676ab06c1817780e93713f3e6a891",
+      "scenario_summary_sha256": "e24e0711aadf675cfaa4535570d0fb6b37170bc83a76cf4ab74983086d656255"
+    },
+    {
+      "scenario_id": "cp453_41",
+      "order": 41,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "ranking_signal_reuse"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "1a2c5977bb609d90e80f72fdc1827a76d0c49d85c45fad5580907740bc959159",
+      "scenario_summary_sha256": "f264689b6365533230b095b2bff50ea1f52e01126ba8bc1391c29efb9a7629be"
+    },
+    {
+      "scenario_id": "cp453_42",
+      "order": 42,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "publication_signal_reuse"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "e02cc1221f26497374144c0bc8c5ee4da619d6f0c1623e01b7ff05217e9d3386",
+      "scenario_summary_sha256": "7d2d3cada456e4410a71efe49b62559143f4baea6677098cb6f784887a78a7a7"
+    },
+    {
+      "scenario_id": "cp453_43",
+      "order": 43,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "execution_signal_reuse"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "794c10050dfb545589f39943205fc172f8480e3ceb69e954e9eeb460cb35c789",
+      "scenario_summary_sha256": "d805dce3178b5ef2f4cfec86de3f1b99759fa19b8ff2e16dd93a42f038dbc547"
+    },
+    {
+      "scenario_id": "cp453_44",
+      "order": 44,
+      "primary_family": "anti_feedback",
+      "coverage_tags": [
+        "learning_dataset_reuse",
+        "pattern_discovery_evidence_reuse",
+        "context_outcome_reuse",
+        "calibration_evidence_reuse",
+        "advisory_base_input_reuse"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_feedback_reuse",
+            "path": "/recommendation/anti_feedback",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_feedback_reuse"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "9b790961560b037db20e558bbfe20a4269625219d424d4b296610c17818b9f24",
+      "scenario_summary_sha256": "1c5be0356f9c6f80c441fadc2f07c5e65a9cce93a98a9c78d749747219af92ec"
+    },
+    {
+      "scenario_id": "cp453_45",
+      "order": 45,
+      "primary_family": "blocked_status",
+      "coverage_tags": [
+        "blocked_unsupported_status",
+        "indirect_cycle"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "blocked_unsupported_status",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": false,
+        "advisory_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_unsupported_status",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_unsupported_status",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "unsupported_advisory_status",
+            "path": "/advisory/status",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.unsupported_advisory_status"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "62067aea72323f6b5b28eb2e536b9a78a2b9240cb7d27d043ccfaa12bc46a41c",
+      "scenario_summary_sha256": "8717f246605e02828334ac448a18bb8de59f0d007bbe4b5533d246d788bff40c"
+    },
+    {
+      "scenario_id": "cp453_46",
+      "order": 46,
+      "primary_family": "warnings",
+      "coverage_tags": [
+        "warning_ordering",
+        "warning_deduplication"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "metric_value_unavailable",
+          "duplicate_mapper_row_identity",
+          "duplicate_mapper_row_identity"
+        ],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready_with_warnings",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 100,
+        "projected_advisory_confidence_basis_points": 5100,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready_with_warnings",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:47de963d34a2988456809712",
+        "projection_hash": "47de963d34a2988456809712f5fac166cc4ce6399d31bb8693071e94421df3c0",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          },
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/1",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_46",
+        "recommendation_snapshot_hash": "4f01e649e35dfc73e832f4ee41b3269d597ccdf97e6562baf767402433af9850",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready_with_warnings",
+        "advisory_id": "confidence_calibration_advisory_v1:e55aa3712cfebe4018422393",
+        "advisory_identity_hash": "25735df666babc0d3de6f32e5e8ad77b6fa7aa2755c0b28ab502f560adf196d7",
+        "advisory_result_hash": "e55aa3712cfebe4018422393a795e22a3f011d1d98a15d843a9c801dd39cf053",
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          },
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/1",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "12af750ae2172068c84d4929be0f8ab9cf294b2177ad09cfc86cc8d88ce199f0",
+          "decision_boundary_sha256": "d495cc2e71ecaeba8627494f5e7ae88516daaf0aa86394132a5c8eb43a927a3e",
+          "evidence_lineage_hash": "3c0ee54c98c28dd75114c06827bb7f0ab37d3cf1ae4b264101ee613edeab7ee3",
+          "pattern_discovery_result_hashes": [
+            "e1e76e991aa12147f80ad0587d6f9426b0c269191afbd9e45fbe2feb98b54ef4",
+            "e911422583f48b75d5723866bdf9e6c92cc2106e8dcaa1074a283c5498e504c4"
+          ],
+          "pattern_insight_hashes": [
+            "adafa1b7e522743e45235e25907825910d9ec68598e3b2b82d6950555ad2c51c",
+            "d71a0b3d7fcffbbcb0003e5b593431822e64dfa1cc9d1785a014e8fa5dd12ca6"
+          ],
+          "calibration_identity_hash": "a756235572c2644a1b46aa11bf64d5f1670b05ff3948ea395dbb3bffd2ad14c6",
+          "calibration_result_hash": "4ffbcfcdb4d410ff1f5f4a3f65d7a3e18939541f3024cf0175b7a287b7e6e981"
+        }
+      },
+      "projection_identity_sha256": "47de963d34a2988456809712f5fac166cc4ce6399d31bb8693071e94421df3c0",
+      "canonical_projection_result_sha256": "fe98ef5bb8f2542d70182d6073f5dd437329c8f74c69b2eeae78e28d21d38a7c",
+      "scenario_summary_sha256": "26928d74459f874405e7efe07c417e5b2ba6efcc8edb7222d138a23bcfb4a49a"
+    },
+    {
+      "scenario_id": "cp453_47",
+      "order": 47,
+      "primary_family": "issues",
+      "coverage_tags": [
+        "issue_preservation",
+        "issue_ordering",
+        "issue_deduplication",
+        "malformed_warning",
+        "malformed_issue"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready_with_warnings",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [
+          "metric_value_unavailable",
+          "duplicate_mapper_row_identity",
+          "duplicate_mapper_row_identity"
+        ],
+        "issue_codes": [
+          "invalid_evidence_quality",
+          "warning_status_contradiction",
+          "warning_status_contradiction"
+        ],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready_with_warnings",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 100,
+        "projected_advisory_confidence_basis_points": 5100,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready_with_warnings",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:3463d4a13508c5cd99da2e25",
+        "projection_hash": "3463d4a13508c5cd99da2e25fa25f106d3c7b942edcdd7ee4859b6239b7811b9",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          },
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/1",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [
+          {
+            "code": "invalid_evidence_quality",
+            "path": "/issues/1",
+            "severity": "error",
+            "messageKey": "confidence_calibration_advisory.invalid_evidence_quality"
+          },
+          {
+            "code": "warning_status_contradiction",
+            "path": "/issues/0",
+            "severity": "error",
+            "messageKey": "confidence_calibration_advisory.warning_status_contradiction"
+          }
+        ],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_47",
+        "recommendation_snapshot_hash": "68ca4e10bf0ee2e7b4d32800925916375629c01c22b1030d9af8ee606c7575fc",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready_with_warnings",
+        "advisory_id": "confidence_calibration_advisory_v1:c4b9858aaad4ef0c801794d1",
+        "advisory_identity_hash": "9027aff03674f3e7b2c76bcc45807f78803d3546c2521368f5f11765aac3a979",
+        "advisory_result_hash": "c4b9858aaad4ef0c801794d19ad42fb614a1bcf8fe8a698eb865d3e4e28d9c17",
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "warnings": [
+          {
+            "code": "duplicate_mapper_row_identity",
+            "path": "/warnings/0",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.duplicate_mapper_row_identity"
+          },
+          {
+            "code": "metric_value_unavailable",
+            "path": "/warnings/1",
+            "severity": "warning",
+            "messageKey": "confidence_calibration_advisory.metric_value_unavailable"
+          }
+        ],
+        "issues": [
+          {
+            "code": "invalid_evidence_quality",
+            "path": "/issues/1",
+            "severity": "error",
+            "messageKey": "confidence_calibration_advisory.invalid_evidence_quality"
+          },
+          {
+            "code": "warning_status_contradiction",
+            "path": "/issues/0",
+            "severity": "error",
+            "messageKey": "confidence_calibration_advisory.warning_status_contradiction"
+          }
+        ],
+        "lineage_hashes": {
+          "recommendation_source_hash": "2e28f951d0f4c7135fd09d3f2178f58d47a48a44e490517abbb72ba915e7705a",
+          "decision_boundary_sha256": "8f3a4d0f9891f7ec5ac24ef963abc0470ec38f3397d452264dda53864a8f2932",
+          "evidence_lineage_hash": "68915aa3f314e40fffe5e6df8c89fe88845b0f340b100fb02c93767c7f7e3e23",
+          "pattern_discovery_result_hashes": [
+            "9a5b5d07cfd06cbd92bf44801cc19e872ec364bfb26128b9765419f598a15fff",
+            "cd00b095c624aebbdda7501f7154eda87ec3d747d7348c8342ca0c785d21c8cf"
+          ],
+          "pattern_insight_hashes": [
+            "8c4b86b105deed12ff7720de2abe6676b0abcb6690386fb48a3ca28a2a76d3b1",
+            "d1f1ef06c72343e529c91efe2c47623f6ad3730244c9bef81c8437679b986973"
+          ],
+          "calibration_identity_hash": "48929f3c935fc78e5b28bf263c9a4b19192a4cf6b0f52e021b625fd8f59274d6",
+          "calibration_result_hash": "f1c748c1d48484f250db463e3f977e2e40c7a1691f38fa060c70cb9643d483ad"
+        }
+      },
+      "projection_identity_sha256": "3463d4a13508c5cd99da2e25fa25f106d3c7b942edcdd7ee4859b6239b7811b9",
+      "canonical_projection_result_sha256": "2752697d6c37fe27fc7fcf90a21f4f81bc85ab1918328bbf8c0865f686dcb3a3",
+      "scenario_summary_sha256": "cb0bef912571c4f92e483de16d4b1cf54fa5d9a491ea50ef14baad964ec647fe"
+    },
+    {
+      "scenario_id": "cp453_48",
+      "order": 48,
+      "primary_family": "semantic_ordering",
+      "coverage_tags": [
+        "reordered_warnings",
+        "reordered_issues",
+        "reordered_lineage",
+        "reordered_object_keys",
+        "reordered_nested_keys"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 100,
+        "projected_advisory_confidence_basis_points": 5100,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:35f78c2da26985e8cbf8e98e",
+        "projection_hash": "35f78c2da26985e8cbf8e98e5bc4141e129d91767d3fb928ec099fec292c15fd",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_48",
+        "recommendation_snapshot_hash": "04071c5c6accee9e7dbf3030bdc0a4a3bfc0632fb2db563324d195c74b21fe94",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready",
+        "advisory_id": "confidence_calibration_advisory_v1:0b2d71c38e0b57800d3d4799",
+        "advisory_identity_hash": "2d0afbe9c51cac9a16ff3f17cf809112ddee746467b407d6908398f71a769c7c",
+        "advisory_result_hash": "0b2d71c38e0b57800d3d4799cd4e3acbfff4f1f31d62854ec3b8fc477f12df1d",
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "warnings": [],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "6655e5f3d250ae4c64a4d4bf9eee03584385c6306ec14258c9a1ff84e0e61c2d",
+          "decision_boundary_sha256": "b0f0c920f2c6653fae817a73f01db3cf75a0ab17c1fb40c18de72dc4fb17b1aa",
+          "evidence_lineage_hash": "803121649f0015512789cb142f5692951e3ee76cf4e6829f0a38ae252e26ccde",
+          "pattern_discovery_result_hashes": [
+            "190bd0af09bd15bbd016018b1df061a99c9bb353de8f36f83b0528308ce39a0f",
+            "ab3b8dc4b07e6cdbe5421e6547b350960fbce2252bbb9c7d81448892006c92fc"
+          ],
+          "pattern_insight_hashes": [
+            "628b696a3d56d1de31411d783e1a31150351b070e2cbd4913a12ff47ea65e142",
+            "89f0eb215a83be4d08c9e0bb19f2108e5c89937d81e8ddf5bd69cecf03ec1995"
+          ],
+          "calibration_identity_hash": "6915e6a1322aecce11d88a12348e55fed13a32487c42934c3748a61977a25a6f",
+          "calibration_result_hash": "6935bf5ee251dcec0d5461a3bc5a5b6c9f64ef948f0d04230e048cd49af5a905"
+        }
+      },
+      "projection_identity_sha256": "35f78c2da26985e8cbf8e98e5bc4141e129d91767d3fb928ec099fec292c15fd",
+      "canonical_projection_result_sha256": "509c163ae09df1cfab184fd3a4d7dfe25f3e8fbbda3b7e60719d2c15a75c62ee",
+      "scenario_summary_sha256": "b122725402c0b4f6b9a2b2e5a58041ffe2f87bb8e2b5b6dd4c526ad2657e8711"
+    },
+    {
+      "scenario_id": "cp453_49",
+      "order": 49,
+      "primary_family": "output_boundary",
+      "coverage_tags": [
+        "no_recommendation_object",
+        "no_update_command",
+        "no_persistence_command",
+        "no_ranking_scanner_publication_execution_command",
+        "no_feedback_event",
+        "no_runtime_callback"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 100,
+        "projected_advisory_confidence_basis_points": 5100,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:fe6265c62522c9964ed994e5",
+        "projection_hash": "fe6265c62522c9964ed994e5772609988d6b4300b715b7f7f439f1d0f7fc48aa",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_49",
+        "recommendation_snapshot_hash": "7be541d8c0a11a81c7bb27e437a2c7c7ef309655b63dcec4d772f889cc7f90aa",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready",
+        "advisory_id": "confidence_calibration_advisory_v1:8bb3ca56f2ed81cb7dad7e23",
+        "advisory_identity_hash": "516c03337569503b19234c9cde467a257da26e9ffd2ed5a981ccab73dc5395ad",
+        "advisory_result_hash": "8bb3ca56f2ed81cb7dad7e234c7cd396f1096346e3d9a559653cc985c802fcde",
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "warnings": [],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "3ca68ec4e84e1df60a62fd1a79af7e10201c621467d7200a2cc842603200fbd1",
+          "decision_boundary_sha256": "00e084f3fd349d82eff87cfb7020780a398ecec306ee0cd5894e2789f21f10a7",
+          "evidence_lineage_hash": "73708ad11d29672878ce42dad5a5f0cedc4bf493b49b4f2f0a9234997f6be7a1",
+          "pattern_discovery_result_hashes": [
+            "35c4c9cff6536ac18d06b874047933b4956cacb444bc6cc6578c065ebea5f898",
+            "612eecd09ea7a9321883db11d886163df27659fb8964ee09fd44963e4534b30f"
+          ],
+          "pattern_insight_hashes": [
+            "803791cc468dd38df6aeb593545d054556109b21b042aa346f642f0060536a29",
+            "90d136a1eb7d652911b57c4f0e32fcfbbce41e6a67d6ce4d5c7b86f0931984a3"
+          ],
+          "calibration_identity_hash": "10e0314b24852b75cd389cb73b53fab6fa0dcc377d8090a0f902bf1d1d01f69d",
+          "calibration_result_hash": "14f6b48701ed8aaf948373248203679470732b21732aa3076a862a15276dc476"
+        }
+      },
+      "projection_identity_sha256": "fe6265c62522c9964ed994e5772609988d6b4300b715b7f7f439f1d0f7fc48aa",
+      "canonical_projection_result_sha256": "619852740ea2b358ce166e4351c81c181add667b121d586c0054b7fa344bb27e",
+      "scenario_summary_sha256": "127e45d675f00697688ffe0c652b32ad741a087b413488ccc24659749354950f"
+    },
+    {
+      "scenario_id": "cp453_50",
+      "order": 50,
+      "primary_family": "non_mutation",
+      "coverage_tags": [
+        "recommendation_input_unchanged",
+        "effect_flags_all_false"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "projection_ready",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": 100,
+        "projected_advisory_confidence_basis_points": 5100,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "projection_ready",
+        "projection_id": "confidence_calibration_recommendation_projection_v1:bb43a32fc5a09b1c2bb4c165",
+        "projection_hash": "bb43a32fc5a09b1c2bb4c165e4e347635fa6d7073f5cc491d3eae7a1a7c54a44",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "projection_visible": true,
+        "advisory_visible": true,
+        "warnings": [],
+        "issues": [],
+        "bounded_lineage_present": true
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": {
+        "projection_schema_version": "confidence_calibration_recommendation_projection_v1",
+        "configuration_version": "confidence_calibration_recommendation_projection_config_v1",
+        "recommendation_fingerprint": "rec_projection_fingerprint_cp453_50",
+        "recommendation_snapshot_hash": "9d5b18611400cacda24480e0ee110a8dd5f00bea724ab46373c2ae564f80c952",
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_status": "advisory_ready",
+        "advisory_id": "confidence_calibration_advisory_v1:922c2eec080d0d3bfd55bd73",
+        "advisory_identity_hash": "9c9301919ba3c9cfe8ef4641ce0c416b83e52d96712812234b87ee58c57dccc7",
+        "advisory_result_hash": "922c2eec080d0d3bfd55bd73a23de536aa2b2fce910fdd9a34bcac6204943389",
+        "advisory_proposed_delta_basis_points": 100,
+        "advisory_proposed_confidence_basis_points": 5100,
+        "warnings": [],
+        "issues": [],
+        "lineage_hashes": {
+          "recommendation_source_hash": "2407386b6eb6828d5385986677eb4730cf2c8c0d00fe20fa63c7d235356ac27f",
+          "decision_boundary_sha256": "c9e074301587f12e02fc94449cdb3d4eb2602f89a03620e9d202e401ca6d1c98",
+          "evidence_lineage_hash": "c48e16db982f490f708212c7371a5be5b84653c5bb95106d791e7110888f0261",
+          "pattern_discovery_result_hashes": [
+            "38d2b34c346a710dc973d09cd2b6f3cd6f6d52d73d669b9a9cace2bf9c3325d3",
+            "f6ea1d23d9e181d85be84fc2080020f95a966a1acaa9d629402ee3c77fe947bb"
+          ],
+          "pattern_insight_hashes": [
+            "7c1359576f463144592f8a447fa25a34246629f6b510fe8b72b939d70df3b925",
+            "9fe4ad001a79e14a260013456408a3808a57f7f130945792809a2566e665f388"
+          ],
+          "calibration_identity_hash": "1ebbbd97bf248824054f45bdb2ac80bd0174aa2787b11ed3770e7e1f69222ca9",
+          "calibration_result_hash": "fb866ab8eccc43446bc986d7c16fbe21cf00dcf4f5d8a1d1bf68b04db713edb6"
+        }
+      },
+      "projection_identity_sha256": "bb43a32fc5a09b1c2bb4c165e4e347635fa6d7073f5cc491d3eae7a1a7c54a44",
+      "canonical_projection_result_sha256": "26c842c9d855b3fe305a1af7c462c24f1c67afb45651e80bda82a0bd9c0b815b",
+      "scenario_summary_sha256": "20a28d0f25c77be94662b7606796e740d49a40490359f637d82470bbab0e698e"
+    },
+    {
+      "scenario_id": "cp453_51",
+      "order": 51,
+      "primary_family": "phase_11_defense",
+      "coverage_tags": [
+        "tampered_lineage_retained_old_hash",
+        "phase_10_blocked_advisory_result"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_advisory_result",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_advisory_result",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_advisory_result",
+            "path": "/advisory/advisory_hash",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_advisory_result"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "e264df05ff3d2bae4c7284b6d79f220095afb4692829fcf36c240ef5261bfbbe",
+      "scenario_summary_sha256": "48473647514035bdb0356ca3a70fc373f1925017234af1bcf5c9797dd7d9bae8"
+    },
+    {
+      "scenario_id": "cp453_52",
+      "order": 52,
+      "primary_family": "phase_11_defense",
+      "coverage_tags": [
+        "tampered_lineage_recomputed_matching_hash",
+        "phase_11_blocked_invalid_lineage",
+        "direct_cycle"
+      ],
+      "source_class": "deterministic_test_local_projection_envelope_and_bounded_advisory_result",
+      "recommendation_envelope": {
+        "fingerprint_state": "present",
+        "snapshot_hash_state": "present",
+        "original_confidence_basis_points": 5000,
+        "schema_version": "recommendation_projection_envelope_v1",
+        "decision_boundary": "passed",
+        "source_classification": "static_projection",
+        "immutable": true
+      },
+      "advisory_input": {
+        "status": "advisory_ready",
+        "advisory_id_present": true,
+        "advisory_hash_classification": "valid_advisory_hash",
+        "original_confidence_basis_points": 5000,
+        "proposed_delta_basis_points": 100,
+        "proposed_confidence_basis_points": 5100,
+        "calibration_status": "calibrated",
+        "calibration_id_present": true,
+        "warning_codes": [],
+        "issue_codes": [],
+        "lineage_present": true,
+        "advisory_visible": true,
+        "advisory_eligible": true,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "expected": {
+        "status": "blocked_invalid_lineage",
+        "recommendation_original_confidence_basis_points": 5000,
+        "projected_advisory_delta_basis_points": null,
+        "projected_advisory_confidence_basis_points": null,
+        "recommendation_confidence_unchanged": true,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "actual": {
+        "status": "blocked_invalid_lineage",
+        "projection_id": null,
+        "projection_hash": null,
+        "recommendation_original_confidence_basis_points": 5000,
+        "advisory_proposed_delta_basis_points": null,
+        "advisory_proposed_confidence_basis_points": null,
+        "projection_visible": false,
+        "advisory_visible": false,
+        "warnings": [],
+        "issues": [
+          {
+            "code": "blocked_invalid_lineage",
+            "path": "/advisory/lineage_hashes",
+            "severity": "error",
+            "messageKey": "confidence_calibration_recommendation_projection.blocked_invalid_lineage"
+          }
+        ],
+        "bounded_lineage_present": false
+      },
+      "effect_flags": {
+        "recommendation_confidence_unchanged": true,
+        "ranking_affected": false,
+        "scanner_affected": false,
+        "publication_affected": false,
+        "execution_affected": false,
+        "application_eligible": false,
+        "non_authoritative": true,
+        "applied": false
+      },
+      "projection_identity_payload": null,
+      "projection_identity_sha256": null,
+      "canonical_projection_result_sha256": "9593f4d56c314cd226dabf8632b4e2011582b93a9564fe5dfc5c5d76b95f40e1",
+      "scenario_summary_sha256": "c4f9e1c00b3866a4f5d3d640f6d9028436e7bd9e41771493a58b23b6f81e5696"
+    }
+  ],
+  "recommended_next_action": "action_455_independent_projection_hash_freeze_verification",
+  "package_inventory_sha256": "ef706460039171b45f15fea6c5aa6597b4986b53298f17843809a1941c3db072"
+}

@@ -1,0 +1,273 @@
+{
+  "evidence_schema_version": "1.0.0",
+  "capability_decision": "capable",
+  "capability_context": {
+    "classification": "disposable_non_candidate_dependency_capability_context",
+    "path": "/private/tmp/ture-action-369-cow-capability",
+    "source_revision": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+    "separate_from_original_worktree": true,
+    "separate_from_failed_candidate": true,
+    "corrected_candidate": false,
+    "committed": false,
+    "deployable": false,
+    "deployment_input": false
+  },
+  "runtime": {
+    "node_version": "v26.3.1",
+    "npm_version": "11.16.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "filesystem": {
+    "filesystem_type": "apfs",
+    "source_volume_device": "/dev/disk3s5",
+    "destination_volume_device": "/dev/disk3s5",
+    "same_volume": true,
+    "clone_mechanism": "macos_clonefile_recursive_no_fallback",
+    "clone_api": "clonefile(2)",
+    "fallback_path_available": false,
+    "clone_creation_succeeded": true,
+    "clone_started_at_utc": "2026-07-11T23:07:40Z",
+    "evidence_completed_at_utc": "2026-07-12T00:32:45Z",
+    "cloned_regular_files": 23839,
+    "created_directories": 2235,
+    "copied_internal_symlinks": 26,
+    "physical_locality_proven": true,
+    "destination_root_is_symlink": false,
+    "cow_semantics_evidence": "every regular file was created by a successful clonefile(2) call; the implementation has no ordinary-copy fallback"
+  },
+  "source_dependency_identity": {
+    "classification": "trusted_existing_workspace_dependency_installation",
+    "path": "/Users/willysimonsson/Dev/trade/node_modules",
+    "package_json_sha256": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "package_lock_sha256": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "action_367_metadata_digest_sha256": "a9576999e30f6c5182cf26f68f38bb4803df27960dd09415e0975509bb88dd96",
+    "source_last_change_evidence": "Action 367 before/after metadata digest and Action 369 before/after deterministic inventory digest are exact"
+  },
+  "destination_identity": {
+    "path": "/private/tmp/ture-action-369-cow-capability/node_modules",
+    "realpath": "/private/tmp/ture-action-369-cow-capability/node_modules",
+    "physically_below_project_root": true,
+    "writable_disposable_destination": true,
+    "external_dependency_bridge": false
+  },
+  "source_inventory_before_and_after": {
+    "entry_count": 26100,
+    "regular_file_count": 23839,
+    "directory_count": 2235,
+    "symlink_count": 26,
+    "external_symlink_count": 0,
+    "executable_file_count": 104,
+    "total_logical_bytes": 447449795,
+    "native_binary_count": 5,
+    "permission_mode_counts": {
+      "0644": 23735,
+      "0755": 2365
+    },
+    "deterministic_inventory_digest_sha256": "44b4cad2882f45c4b0114848410f5b28105495812885239e34452da0d666ec91",
+    "unchanged_after_materialization_mutation_probe_and_validation": true
+  },
+  "destination_inventory_after_clone_and_validation": {
+    "entry_count": 26100,
+    "regular_file_count": 23839,
+    "directory_count": 2235,
+    "symlink_count": 26,
+    "external_symlink_count": 0,
+    "executable_file_count": 104,
+    "total_logical_bytes": 447449795,
+    "native_binary_count": 5,
+    "permission_mode_counts": {
+      "0644": 23735,
+      "0755": 2365
+    },
+    "deterministic_inventory_digest_sha256": "44b4cad2882f45c4b0114848410f5b28105495812885239e34452da0d666ec91",
+    "unclassified_drift_after_validation": false
+  },
+  "digest_comparison": {
+    "digests_match": true,
+    "missing_file_count": 0,
+    "extra_file_count": 0,
+    "content_difference_count": 0,
+    "file_type_difference_count": 0,
+    "permission_difference_count": 0,
+    "executable_bit_difference_count": 0
+  },
+  "inode_isolation": {
+    "unsafe_shared_inode_count": 0,
+    "hardlink_mutation_risk_excluded": true,
+    "representative_source": {
+      "path": "node_modules/next/package.json",
+      "device": "16777234",
+      "inode": "140598313",
+      "link_count": 1
+    },
+    "representative_destination_after_restore": {
+      "path": "node_modules/next/package.json",
+      "device": "16777234",
+      "inode": "156007963",
+      "link_count": 1
+    }
+  },
+  "destination_write_isolation": {
+    "probe_path": "node_modules/next/package.json",
+    "source_sha256_before_and_after": "1ec03f46fd6a51b9adbc80b023f6e75223f0a7125b1394023d55841ca5ddf625",
+    "destination_sha256_before": "1ec03f46fd6a51b9adbc80b023f6e75223f0a7125b1394023d55841ca5ddf625",
+    "destination_sha256_during_probe": "db37154155aac2005e85c68ec99d25638728850c0740e7d7d8f8d2f6f9ebb1d2",
+    "destination_restored_by_clonefile": true,
+    "source_inode_unchanged": true,
+    "source_size_mtime_ctime_unchanged": true,
+    "source_mutation_observed": false,
+    "passed": true
+  },
+  "symlink_evidence": {
+    "source_symlink_count": 26,
+    "destination_symlink_count": 26,
+    "source_external_symlink_count": 0,
+    "destination_external_symlink_count": 0,
+    "root_node_modules_symlink": false
+  },
+  "permission_and_executable_evidence": {
+    "permission_difference_count": 0,
+    "executable_bit_difference_count": 0,
+    "source_executable_file_count": 104,
+    "destination_executable_file_count": 104,
+    "native_binaries_platform_compatible": true,
+    "native_binary_examples": [
+      "@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",
+      "@next/swc-darwin-arm64/next-swc.darwin-arm64.node",
+      "@tailwindcss/oxide-darwin-arm64/tailwindcss-oxide.darwin-arm64.node",
+      "@unrs/resolver-binding-darwin-arm64/resolver.darwin-arm64.node",
+      "lightningcss-darwin-arm64/lightningcss.darwin-arm64.node"
+    ]
+  },
+  "package_and_lockfile_integrity": {
+    "source_package_json_sha256_before_and_after": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "destination_package_json_sha256_before_and_after": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "source_package_lock_sha256_before_and_after": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "destination_package_lock_sha256_before_and_after": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "unchanged": true
+  },
+  "git_and_deployment_exclusion": {
+    "node_modules_gitignored": true,
+    "tracked_dependency_file_count": 0,
+    "node_modules_in_failed_candidate_preview_input_paths": false,
+    "node_modules_in_failed_candidate_included_files": false,
+    "failed_candidate_manifest_sha256": "74b38f5a2d19cd55fec34a974abd86b60ec4eb0ad8bdf7057dd7d901c1803cb7",
+    "environment_file_introduced": false,
+    "generated_secret_file_introduced": false,
+    "dependency_in_deployment_input": false
+  },
+  "registry_and_fallback_prevention": {
+    "sandbox_profile_sha256": "6e96c8dbe68640a5ef85f88c666733bb045fd114050b4045c697877afc900d8a",
+    "network_policy": "deny every non-loopback outbound connection; permit loopback only for Turbopack worker IPC",
+    "trusted_source_write_denied": true,
+    "failed_candidate_write_denied": true,
+    "context_package_and_lockfile_write_denied": true,
+    "npm_offline_mode": true,
+    "playwright_browser_download_disabled": true,
+    "registry_access_prevented": true,
+    "registry_access_not_observed": true,
+    "registry_access_cannot_be_ruled_out": false,
+    "automatic_install_fallback_observed": false,
+    "dependency_repair_observed": false,
+    "installation_command_count": 0,
+    "lifecycle_install_script_count": 0
+  },
+  "module_resolution": {
+    "next": "/private/tmp/ture-action-369-cow-capability/node_modules/next/dist/server/next.js",
+    "typescript": "/private/tmp/ture-action-369-cow-capability/node_modules/typescript/lib/typescript.js",
+    "eslint": "/private/tmp/ture-action-369-cow-capability/node_modules/eslint/lib/api.js",
+    "playwright": "/private/tmp/ture-action-369-cow-capability/node_modules/@playwright/test/index.js",
+    "react": "/private/tmp/ture-action-369-cow-capability/node_modules/react/index.js",
+    "supabase": "/private/tmp/ture-action-369-cow-capability/node_modules/@supabase/supabase-js/dist/index.cjs",
+    "zod": "/private/tmp/ture-action-369-cow-capability/node_modules/zod/index.cjs"
+  },
+  "binary_resolution": {
+    "next": "/private/tmp/ture-action-369-cow-capability/node_modules/next/dist/bin/next",
+    "tsc": "/private/tmp/ture-action-369-cow-capability/node_modules/typescript/bin/tsc",
+    "eslint": "/private/tmp/ture-action-369-cow-capability/node_modules/eslint/bin/eslint.js",
+    "playwright": "/private/tmp/ture-action-369-cow-capability/node_modules/@playwright/test/cli.js"
+  },
+  "validation_results": {
+    "next_typegen": "passed",
+    "typescript_no_emit": "passed",
+    "complete_next_turbopack_build": "passed",
+    "complete_build_requires_nonsecret_process_placeholders": true,
+    "complete_build_placeholder_scope": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    ],
+    "lint": "passed_with_one_preexisting_warning",
+    "action_309_guard": "passed",
+    "golden_static_verifier": "passed",
+    "actions_318_to_320_guards": "passed",
+    "action_369_focused_playwright": "passed",
+    "runtime_ping_static_playwright": "passed",
+    "representative_static_safety_tests": "passed",
+    "context_verifier_chain_executed": true,
+    "context_portable_verifiers_passed": [
+      "action_309",
+      "golden_static",
+      "action_338",
+      "action_344",
+      "action_350",
+      "action_366",
+      "action_368",
+      "action_369"
+    ],
+    "context_bound_verifiers_classified_not_dependency_failures": [
+      "action_358",
+      "action_359",
+      "action_360",
+      "action_361",
+      "action_362",
+      "action_363",
+      "action_364",
+      "action_365",
+      "action_367",
+      "action_318",
+      "action_319",
+      "action_320"
+    ],
+    "context_bound_failure_reason": "disposable archive intentionally has no historical Git graph, immutable-candidate binding, or original branch/worktree identity; Action 367 also verifies its earlier absolute symlink-bridge context",
+    "original_worktree_portable_guard_chain": "passed",
+    "full_required_stack_executable": true
+  },
+  "route_integrity": {
+    "path": "app/api/runtime-health/ping/route.ts",
+    "source_and_context_sha256": "98c7de74c94364eed9a447469ef367f1f454b42ae17d3911b3ebfad6ed5213bb",
+    "changed": false
+  },
+  "failed_candidate": {
+    "path": "/private/tmp/ture-action-365-preview-revision-51aced6",
+    "head": "8cfe239dc122d85770bfc86586f00716695915d1",
+    "clean": true,
+    "amended": false,
+    "pushed": false,
+    "deployed": false,
+    "permanently_non_deployable": true
+  },
+  "approval_state": {
+    "action_362_approval_preserved": true,
+    "preview_attempt_consumed": false
+  },
+  "source_integrity_after_validation": {
+    "trusted_dependency_source_unchanged": true,
+    "original_package_and_lockfile_unchanged": true,
+    "original_route_unchanged": true,
+    "unrelated_worktree_changes_untouched": true
+  },
+  "safety": {
+    "corrected_candidate_created": false,
+    "commit_performed": false,
+    "push_performed": false,
+    "deployment_performed": false,
+    "provider_contacted": false,
+    "supabase_contacted": false,
+    "replay_executed": false,
+    "persistence_executed": false,
+    "scanner_or_ranking_changed": false,
+    "production_blocked": true,
+    "main_push_blocked": true
+  }
+}

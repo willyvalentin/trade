@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0.0",
+  "action": 378,
+  "capability_vocabulary": [
+    "target_verified",
+    "target_verified_with_conditions",
+    "capability_blocked"
+  ],
+  "final_capability_decision": "capability_blocked",
+  "block_reason": "required_operator_authorized_credential_and_exact_site_id_absent",
+  "candidate": {
+    "candidate_sha": "b0bb5c4686d9cab3b682b3b06fadee4cf73cab07",
+    "baseline_sha": "51aced66782ec9a37cd358238f02b6f5c0ae97bd",
+    "route_sha256": "98c7de74c94364eed9a447469ef367f1f454b42ae17d3911b3ebfad6ed5213bb",
+    "manifest_sha256": "b7ac9ddaf40cc516bcdbdc7208dc6669f6b34a18a1810c0bde72209b25710892",
+    "before_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "drift_detected": false
+  },
+  "tooling": {
+    "context": "/private/tmp/ture-action-376-netlify-cli-tooling",
+    "cli_package": "netlify-cli",
+    "cli_version": "26.2.0",
+    "tooling_lock_sha256": "c4debb7fd8121b93021194a5b6f76e62a7278f804e97ebdd8057f97981d78ef2",
+    "cli_manifest_sha256": "a145ebb0632b2fee19d5f1cce90812041541bfdaf59d5de6f39cb89be75b4887",
+    "cli_executable_sha256": "e39432e46703049b6769e17c0a7a8f1748c345100a1f934d8a6c7076001d426c",
+    "global_cli_used": false,
+    "repository_cli_used": false,
+    "npx_used": false,
+    "cli_command_executed": false
+  },
+  "upstream_state": {
+    "action_377_decision": "approved_with_conditions",
+    "action_362_approval_preserved": true,
+    "preview_attempt_consumed": false,
+    "deployment_attempt_count": 0
+  },
+  "operator_inputs": {
+    "operator_authorization_recorded": false,
+    "credential_present": false,
+    "exact_site_id_present": false,
+    "credential_source_searched": false,
+    "site_id_inferred_or_searched": false,
+    "network_preconditions_satisfied": false
+  },
+  "authentication": {
+    "strategy": "operator_supplied_process_scoped_personal_access_token",
+    "credential_provenance": "unavailable_not_supplied",
+    "credential_valid": null,
+    "authentication_result": "not_attempted_missing_required_inputs",
+    "permission_sufficiency": "not_evaluated",
+    "credential_value_recorded": false,
+    "credential_fingerprint_recorded": false,
+    "authorization_header_created": false,
+    "authentication_performed": false
+  },
+  "synthetic_canary": {
+    "result": "passed",
+    "real_credential_used": false,
+    "canary_value_recorded": false,
+    "canary_detected_before_redaction": true,
+    "canary_absent_after_redaction": true,
+    "raw_output_direct_to_evidence_prohibited": true,
+    "environment_dump_prohibited": true,
+    "authorization_header_prohibited": true,
+    "token_like_pattern_rejected": true,
+    "pipeline": "deterministic_local_redaction_and_rejection_verifier"
+  },
+  "frozen_read_only_boundary": {
+    "official_api_host_status": "not_resolved_or_contacted_without_operator_inputs",
+    "operations": [
+      {
+        "operation": "getCurrentUser",
+        "purpose": "credential_validity_and_current_user_identity",
+        "classification": "read_only_not_executed"
+      },
+      {
+        "operation": "listAccountsForUser",
+        "purpose": "owned_account_team_identity",
+        "classification": "read_only_not_executed"
+      },
+      {
+        "operation": "getSite",
+        "purpose": "exact_operator_approved_site_metadata",
+        "classification": "read_only_not_executed"
+      }
+    ],
+    "contacted_endpoint_inventory": [],
+    "netlify_network_window_opened": false,
+    "netlify_api_called": false,
+    "application_endpoint_contacted": false,
+    "unapproved_endpoint_contacted": false
+  },
+  "identity": {
+    "current_user_identity": null,
+    "account_identity": null,
+    "team_identity": null,
+    "identity_redaction_result": "not_applicable_no_identity_response",
+    "unrelated_identity_enumerated": false
+  },
+  "site": {
+    "site_identity": null,
+    "site_identity_representation": "absent_no_operator_approved_site_id",
+    "site_name": null,
+    "ownership_result": "not_evaluated",
+    "ownership_direct_or_team": "not_evaluated",
+    "production_domain_relationship": "not_evaluated",
+    "deploy_subdomain_relationship": "not_evaluated",
+    "production_branch": null,
+    "branch_deploy_state": "not_evaluated",
+    "deploy_preview_state": "not_evaluated",
+    "draft_deploy_support": "not_evaluated",
+    "explicit_site_targeting": "statically_supported_not_target_verified",
+    "persistent_linkage_requirement": "not_evaluated",
+    "site_creation_avoidable": "not_evaluated",
+    "push_merge_requirement": "not_evaluated",
+    "configuration_mutation_requirement": "not_evaluated"
+  },
+  "production_risk": {
+    "production_flag_requirement": "statically_explicit_and_denylisted",
+    "production_alias_risk": "unresolved_without_exact_site_metadata",
+    "automatic_promotion": "not_evaluated",
+    "production_traffic_unaffected": "not_proven",
+    "preview_url_uniqueness": "not_proven",
+    "abandonment_independence": "not_proven",
+    "risk_bounded": false
+  },
+  "target": {
+    "classification_vocabulary": [
+      "verified_non_production_preview",
+      "verified_production",
+      "ambiguous_target",
+      "unavailable_target"
+    ],
+    "classification": "unavailable_target",
+    "verified_non_production_preview_requirements_met": false,
+    "deterministic_future_target_binding_established": false
+  },
+  "linkage": {
+    "policy": "explicit_verified_site_id_without_persistent_linkage",
+    "linkage_attempted": false,
+    "linkage_created": false,
+    "netlify_state_created": false,
+    "shared_worktree_netlify_state_present": false,
+    "candidate_netlify_state_present": false
+  },
+  "filesystem_and_config": {
+    "action_378_runtime_context_created": false,
+    "disposable_home_consumed": false,
+    "disposable_config_consumed": false,
+    "disposable_cache_consumed": false,
+    "disposable_temp_consumed": false,
+    "real_home_netlify_state_consumed": false,
+    "shared_worktree_before_status_sha256": "f71b1082455bd1790b7f8c1825cccfe9996e2aa25b5d280c3851e2f22d417179",
+    "shared_worktree_after_blocked_check_status_sha256": "f71b1082455bd1790b7f8c1825cccfe9996e2aa25b5d280c3851e2f22d417179",
+    "shared_package_json_sha256": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "shared_package_lock_sha256": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "repository_drift_detected": false,
+    "candidate_drift_detected": false,
+    "environment_file_changed": false,
+    "global_config_written": false,
+    "credential_file_written": false,
+    "shell_profile_changed": false,
+    "note": "status comparison captured before adding source_controlled_action_378_evidence_document_verifier_and_test"
+  },
+  "credential_cleanup": {
+    "result": "not_applicable_no_credential_loaded",
+    "bounded_process_secret_cleared": true,
+    "credential_persisted": false,
+    "secret_bearing_output_persisted": false
+  },
+  "mutation_and_deployment": {
+    "mutation_performed": false,
+    "site_configuration_changed": false,
+    "environment_changed": false,
+    "candidate_changed": false,
+    "repository_config_changed": false,
+    "deployment_performed": false,
+    "preview_url_allocated": false,
+    "preview_attempt_consumed": false,
+    "deployment_attempt_count": 0,
+    "production_changed": false,
+    "main_changed": false,
+    "production_blocked": true,
+    "main_blocked": true
+  },
+  "stop_conditions_encountered": [
+    "operator_authorization_absent",
+    "process_scoped_credential_absent",
+    "exact_operator_approved_site_id_absent"
+  ],
+  "next_preview_execution_action": null,
+  "recommended_next_action": "none_until_explicit_operator_authorization_credential_and_exact_site_id_are_supplied_in_a_separate_capability_action"
+}
