@@ -11537,3 +11537,249 @@ Decision: `post_trade_git_runner_authority_consumption_migration_rpc_plan_ready`
 Result status: `post_trade_git_runner_authority_consumption_action_621_planning_gate_completed`
 
 Recommended next Action: Action 622 - Implement Git Runner Authority Consumption Storage Schema Migration
+
+## Action 622 - Git Runner Authority Consumption Storage Schema Migration
+
+Action 622 implemented only the dormant Git runner authority-consumption storage schema migration selected by Action 621.
+
+This Action created no transactional RPCs, SECURITY DEFINER functions, server-only storage adapter, runtime caller, runner, Git execution, process creation or observation, repository inspection, live package registration, live authority consumption, credentials, environment access, network access, Avanza/trading behavior, staging activation, commit, push, merge, or deployment behavior.
+
+Files created:
+
+- `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`
+- `tests/e2e/post-trade-git-runner-authority-consumption-storage-migration.spec.ts`
+- `docs/git-runner-authority-consumption-storage-migration-action-622.md`
+- `docs/git-runner-authority-consumption-storage-action-622-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Baseline:
+
+- committed Action 621 checkpoint `f577917 Plan Git authority consumption storage and RPCs`;
+- Action 614 approved three-table storage architecture;
+- Action 615-620 final-approved pure authority-consumption transition contract.
+
+Migration identity:
+
+- `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`;
+- timestamp `20260720000000` did not collide with an existing migration;
+- unrelated missing migration `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` was not recreated.
+
+Tables created:
+
+- `public.git_runner_authority_consumption_records`;
+- `public.git_runner_authority_consumption_stages`;
+- `public.git_runner_authority_consumption_audit_events`.
+
+Schema posture:
+
+- CHECK-backed closed text values, not Postgres enums;
+- lowercase SHA-256 CHECK grammar for all fingerprint columns;
+- exact package state, stage outcome, audit operation/status/reason constraints;
+- exact six-stage identity mapping;
+- unique package, stage, process-request, and audit fingerprints where planned;
+- foreign keys from stages/audit to package records with `on delete restrict`;
+- RLS enabled on all three tables;
+- direct privileges revoked from `public`, `anon`, and `authenticated`;
+- no permissive policies;
+- no direct application role grants.
+
+Deferred to future reviewed transactional RPCs:
+
+- exactly six stage rows per package;
+- package counters versus stage rows;
+- prior accepted completions before later stage consumption;
+- duplicate terminalization prevention;
+- audit append and state mutation atomicity;
+- audit sequence allocation;
+- transition-version CAS;
+- expiry/revocation race precedence;
+- one-winner concurrent consumption.
+
+Decision: `post_trade_git_runner_authority_consumption_storage_schema_migration_ready_for_static_security_review`
+
+Result status: `post_trade_git_runner_authority_consumption_storage_action_622_migration_implemented`
+
+Recommended next Action: Action 623 - Static Security Review of Git Runner Authority Consumption Storage Schema Migration
+
+## Action 623 - Static Security Review of Git Runner Authority Consumption Storage Schema Migration
+
+Action 623 independently reviewed the uncommitted Action 622 storage-schema migration package.
+
+No migration, production code, tests, runtime path, RPC, SECURITY DEFINER function, database connection, Git command, process creation or observation, repository inspection, credential access, environment access, network access, Avanza/trading behavior, staging activation, commit, push, merge, or deployment was added by the review.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-storage-action-623-static-security-review.md`
+- `docs/git-runner-authority-consumption-storage-action-623-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Reviewed package:
+
+- `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`
+- `tests/e2e/post-trade-git-runner-authority-consumption-storage-migration.spec.ts`
+- Action 622 docs/checkpoint
+- Action 621 migration/RPC plan and database-security plan
+- Action 614 storage and transaction architecture
+- Action 615-620 pure authority-consumption transition contract
+- Action 607-612 authority-package contract
+
+Findings:
+
+- Critical: 0
+- High: 0
+- Medium: 3
+- Low: 0
+- Informational: 0
+
+Blocking findings:
+
+- `A623-MED-001`: terminal package-state constraints do not bind each terminal state to exact terminal reason/progress posture.
+- `A623-MED-002`: fixed semantic identity fields are only nonempty/versioned rather than exact where the approved model is fixed.
+- `A623-MED-003`: migration tests do not prove SQL three-valued logic or contradictory terminal package rows.
+
+Review verdict:
+
+- migration identity/scope, table architecture, fingerprints, uniqueness, stage model, audit model, append-only posture, RLS/privileges, indexes, SQL static safety, comments/non-authorization, cross-row deferred invariants, runtime reachability, and prohibited-operation posture passed;
+- package closed-value/state-invariant posture and migration-test quality are blocked pending remediation.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Action 622 migration suite: passed, 20 tests.
+- Pure transition suite: passed, 77 tests.
+- Authority-package suite: passed, 155 tests.
+- Direct-spawn/revalidation/resolver group: passed, 564 tests.
+- Compatibility/parser/orchestrator/observation group: passed, 451 tests.
+- Neutralization/raw/direct-spawn/revalidation/composition/process group: passed, 152 tests.
+- Action 533 suite: passed, 181 tests.
+- Broad dormant/process/credential/CLI/authorization group: passed, 1540 tests.
+- Scoped ESLint on migration test file: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+- Known migration baseline limitation remains unrelated: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql` is absent and was not recreated.
+- Database execution was not performed; repository-local `psql` was unavailable.
+
+Decision: `post_trade_git_runner_authority_consumption_storage_schema_migration_static_security_review_blocked_pending_corrections`
+
+Result status: `post_trade_git_runner_authority_consumption_storage_action_623_review_completed_blocked`
+
+Recommended next Action: Action 624 - Remediate Git Runner Authority Consumption Storage Migration Review Findings
+
+## Action 624 - Git Runner Authority Consumption Storage Review Remediation
+
+Action 624 remediated the Action 623 blocking findings against the uncommitted Action 622-623 storage migration package.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-storage-action-624-review-remediation.md`
+- `docs/git-runner-authority-consumption-storage-action-624-checkpoint.md`
+
+Files modified:
+
+- `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`
+- `tests/e2e/post-trade-git-runner-authority-consumption-storage-migration.spec.ts`
+- `docs/git-runner-authority-consumption-storage-migration-action-622.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Remediation verdicts:
+
+- `A623-MED-001`: remediated. Package terminal state checks now use closed `case state ... else false end` semantics and bind each terminal state to exact reason, progress, active-consumer, aggregate, expired, and revoked posture.
+- `A623-MED-002`: remediated. The record table now binds exact v1 schema/package/capability/expiry/freshness/source-policy/sequence identities, exact versions, exact `platform='macos'`, and exact `executable_identity='/usr/bin/git'`.
+- `A623-MED-003`: remediated. Focused migration tests increased from 20 to 31 and now cover exact identity checks, SQL UNKNOWN-safe CASE posture, terminal reason closure, contradictory terminal rows, zero-consumed failure rows, and terminal active-consumer/aggregate nullability.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: first sandbox attempt failed on `tsconfig.tsbuildinfo` `EPERM`; minimum-permission rerun passed.
+- Focused migration suite: first sandbox attempt failed on Playwright `.last-run.json` `EPERM`; minimum-permission rerun passed, 31 tests.
+- Pure authority-consumption transition suite: passed, 77 tests.
+- Authority-package suite: passed, 155 tests.
+- Resolver/revalidation/direct-spawn group: passed, 913 tests.
+- Compatibility/parser/orchestrator/observation group: passed, 451 tests.
+- Neutralization/raw-completion/composition/process group: passed, 103 tests.
+- Action 533 suite: passed, 181 tests.
+- Broad dormant/process/credential/authorization group: wildcard discovery hit the known unrelated missing `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`; rerun excluding that baseline-limitation file passed, 655 tests.
+- Scoped ESLint on changed TS/JS files: passed.
+- Static reachability/prohibited-operation checks: passed.
+- Known migration baseline limitation remains unrelated and was not recreated.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+
+Action 624 added no RPC, SECURITY DEFINER function, runtime caller, API/UI/cron/worker/CLI path, runner, authority consumption, Git execution, process creation or observation, repository runtime inspection, credentials, environment access, network access, Avanza/trading behavior, staging, deployment, retry, fallback, cache, or reissue behavior.
+
+Decision: `post_trade_git_runner_authority_consumption_storage_action_623_findings_remediated_ready_for_re_review`
+
+Result status: `post_trade_git_runner_authority_consumption_storage_action_624_remediation_completed`
+
+Recommended next Action: Action 625 - Independent Final Re-Review of Git Runner Authority Consumption Storage Migration Remediation
+
+## Action 625 - Git Runner Authority Consumption Storage Final Re-Review
+
+Action 625 independently re-reviewed the complete uncommitted Action 622-624 storage migration package.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-storage-action-625-final-re-review.md`
+- `docs/git-runner-authority-consumption-storage-action-625-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Finding verdicts:
+
+- `A623-MED-001`: remediated. The package state-progress CHECK uses closed `case state ... else false end` semantics and binds consumed, failed, ambiguous, expired, revoked, active, partially consumed, and issued rows to exact reason/progress/nullability/flag posture.
+- `A623-MED-002`: remediated. Fixed semantic identity and version fields are exact for storage schema, package contract, capability set, expiry policy, freshness policy, sequence, source policy, platform, and executable identity.
+- `A623-MED-003`: remediated. The 31 focused static migration tests inspect executable constraint bodies for CASE posture, exact identities, branch semantics, contradictory terminal rows, and SQL UNKNOWN-safe closure.
+
+New findings:
+
+- Critical: 0
+- High: 0
+- Medium: 0
+- Low: 0
+- Informational: 0
+
+Review verdicts:
+
+- terminal-state matrix: pass;
+- consumed, failed, ambiguous, expired, revoked, and nonterminal states: pass;
+- exact identity/version inventory: pass;
+- SQL three-valued logic and nullable-expression review: pass;
+- valid pure-state compatibility: pass;
+- package/stage/audit/RLS/privilege regression: pass;
+- migration scope and cross-row limitation posture: pass;
+- runtime reachability and prohibited-operation posture: pass.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- Focused migration suite: first sandbox attempt failed on Playwright `.last-run.json` `EPERM`; minimum-permission rerun passed, 31 tests.
+- Pure authority-consumption transition suite: passed, 77 tests.
+- Authority-package suite: passed, 155 tests.
+- Resolver/revalidation/direct-spawn group: passed, 913 tests.
+- Compatibility/parser/orchestrator/observation group: passed, 451 tests.
+- Neutralization/raw-completion/composition/process group: passed, 103 tests.
+- Action 533 suite: passed, 181 tests.
+- Broad dormant/process/credential/authorization group: passed, 655 tests, excluding only the known unrelated migration-static blocker.
+- Known missing authorization-consumption migration-static test: failed with `ENOENT` before tests were found, as expected.
+- Scoped ESLint on the migration test file: passed.
+- `git diff --check`: passed.
+- quiet `.env.local` diff guard: passed.
+- `find docs -type f -size 0`: passed.
+- Database execution: not performed; `psql` is unavailable and no repository-local disposable Postgres harness exists.
+
+Action 625 final approval does not authorize transactional RPCs, runtime database use, live registration, live authority consumption, replay prevention, Git execution, process or repository access, runner/API/UI activation, credentials, environment, network, Avanza/trading, staging, or deployment.
+
+Decision: `post_trade_git_runner_authority_consumption_storage_schema_migration_final_security_review_approved`
+
+Result status: `post_trade_git_runner_authority_consumption_storage_action_625_final_re_review_completed`
+
+Recommended next Action: Action 626 - Implement Git Runner Authority Consumption Transactional RPC Migration
