@@ -41,6 +41,7 @@ Preferred harness: disposable plain Postgres container.
 
 Security controls:
 
+- exact image tag `postgres:16` plus immutable image identity `sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`, repo digest `postgres@sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`, and platform `linux/arm64`;
 - unique Action-scoped container, volume, database, roles, and temp directory;
 - explicit local-only connection endpoint created by the harness;
 - apply only the two reviewed migrations;
@@ -53,6 +54,8 @@ Security controls:
 - no production dependency added.
 
 Fallback: Supabase CLI local stack only after a prerequisite Action proves isolated local config, no linked project use, and manual two-migration application without `db reset`.
+
+Action 631P rejected automatic image fallback. If the exact selected image identity is absent, mismatched, ambiguous, non-native, or requires a pull, Action 631 must stop without starting a container.
 
 ## Remote-Exclusion Controls
 

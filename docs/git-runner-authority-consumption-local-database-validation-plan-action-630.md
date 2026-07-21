@@ -70,6 +70,8 @@ Selected next Action: Action 631 - Implement Disposable Postgres Validation Harn
 
 Reason: Docker CLI availability and the preferred disposable plain Postgres harness architecture are documented. Action 631 must still perform a fail-closed local runtime preflight before starting any container, including daemon availability, image strategy, explicit local port isolation, environment neutralization, and SQL execution mechanism checks. If those checks cannot prove a disposable no-remote harness, Action 631 must stop.
 
+Action 631P resolved the image prerequisite. Action 631 must use exactly `postgres:16` with immutable image identity `sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`, repo digest `postgres@sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`, and platform `linux/arm64`. The tag alone is insufficient; mismatch, absence, ambiguity, non-native platform, or image pull requirement blocks the harness.
+
 ## Remote-Exclusion Model
 
 The future executable validation must fail closed unless all of these are true:
@@ -105,6 +107,8 @@ Rejected approach: migration repair or history manipulation.
 The storage migration uses `gen_random_uuid()`, so the harness must provide `pgcrypto` or a Postgres/Supabase-compatible UUID generation path before applying the storage migration. The future gate must record the exact Postgres version from the disposable database and must not alter tracked migrations to fit an arbitrary version.
 
 No unapproved extension should be enabled. Required extension setup should be part of disposable bootstrap SQL and torn down with the database.
+
+Action 631P selected plain Postgres 16 because no source-controlled production Postgres major was found and the reviewed migrations require no Supabase-specific schemas, hooks, remote metadata, or services. Production-version equivalence remains unresolved and must be separately reviewed before any staging or deployment claim.
 
 ## Role Bootstrap
 

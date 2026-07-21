@@ -12069,3 +12069,74 @@ Decision: `post_trade_git_runner_authority_consumption_local_database_validation
 Result status: `post_trade_git_runner_authority_consumption_action_630_planning_gate_completed`
 
 Recommended next Action: Action 631 - Implement Disposable Postgres Validation Harness for Git Runner Authority Consumption Migrations
+
+## Action 631P - Disposable Postgres Runtime Prerequisite
+
+Action 631P resolved the Action 631 precondition blocker by selecting one exact locally available image identity for the future disposable Postgres validation harness. This was a documentation and compatibility-selection gate only.
+
+Original blocker:
+
+- Action 631 stopped because Action 630 selected a disposable plain Postgres harness architecture but did not bind the harness to an exact image tag and immutable image identity.
+
+Preconditions:
+
+- Workspace: `/Users/willysimonsson/Dev/trade-action-534`.
+- Branch: `codex/action-534-live-resolver`.
+- HEAD: `d988de96e70ee4556dbb6b1c24b094f98cc71003`.
+- Git status before edits: clean.
+- Required migrations: present.
+- No Action 631 harness files existed before this action.
+- No Action 631 container collision existed in the blocked Action 631 precondition capture.
+
+Compatibility inventory:
+
+- The migrations use plain Postgres features: `uuid`, `gen_random_uuid()`, `timestamptz`, regex `CHECK` constraints, foreign keys, unique constraints, indexes, RLS, PL/pgSQL, `SECURITY DEFINER`, fixed `search_path`, `RETURNS TABLE`, row locks, exception handling, comments, and explicit revoke posture.
+- The migrations require `pgcrypto` or an equivalent local UUID generation prerequisite.
+- No Supabase-specific schema, PostgREST, `auth`, `storage`, `realtime`, `pg_net`, `vault`, remote metadata, linked project, or Supabase credential dependency was found.
+
+Selected image:
+
+- Tag: `postgres:16`.
+- Immutable image identity: `sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`.
+- Repo digest: `postgres@sha256:4b7183ac05f8ef417db21fd72d71047a4238340c261d3cc3ddb6d579ab5071ae`.
+- Platform: `linux/arm64`.
+
+Policy:
+
+- The tag alone is insufficient.
+- Action 631 must verify the tag, full immutable identifier, repo digest, and native platform before creating harness files or starting a container.
+- No fallback to another image, tag, major version, architecture, Supabase CLI, registry lookup, or image pull is allowed.
+- The Supabase Postgres image `public.ecr.aws/supabase/postgres:17.6.1.121` was rejected for v1 because no Supabase-specific migration dependency was found and the image expands hidden state.
+- Production Postgres major equivalence remains unresolved and must be separately checked before any staging or deployment claim.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-action-631p-image-prerequisite.md`
+- `docs/git-runner-authority-consumption-action-631p-checkpoint.md`
+
+Files modified:
+
+- `docs/git-runner-authority-consumption-local-database-validation-plan-action-630.md`
+- `docs/git-runner-authority-consumption-local-harness-security-action-630.md`
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Action 631P did not start Docker, run a container, pull an image, contact a registry, connect to a database, execute SQL, apply migrations, register a package, consume authority, implement the harness, add tests, modify production TS/JS, execute Git through product behavior, activate runtime/API/UI/runner paths, read credentials, access environment-variable values, add network behavior, add Avanza/trading/staging/deployment behavior, or add retry/fallback/cache/reconciliation/reset behavior.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- RPC migration static suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 45 tests.
+- Storage migration static suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 31 tests.
+- Pure transition suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 77 tests.
+- Authority-package suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 155 tests.
+- Direct-spawn/revalidation/resolver group: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 913 tests.
+- Compatibility/parser/orchestrator/observation group: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 451 tests.
+- Action 533 suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 181 tests.
+- Broad dormant/process/credential/CLI/authorization group excluding the known missing migration-static blocker: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 804 tests.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_git_runner_authority_consumption_disposable_postgres_runtime_prerequisite_ready`
+
+Result status: `post_trade_git_runner_authority_consumption_action_631p_runtime_prerequisite_resolved`
+
+Recommended next Action: Action 631 - Implement Disposable Postgres Validation Harness for Git Runner Authority Consumption Migrations
