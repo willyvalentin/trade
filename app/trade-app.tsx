@@ -415,6 +415,7 @@ import {
 } from "@/lib/provider-plan-profile";
 import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import { buildAuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
+import { buildBoundedShadowCollectorExecutionProofDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
 import {
   buildContinuousIntelligenceBudgetPlan,
   continuousIntelligenceBudgetPlanJson,
@@ -14405,6 +14406,8 @@ export function TradeApp({
     });
   const authenticatedShadowCollectorDryRunDiagnostics =
     buildAuthenticatedShadowCollectorDryRunDiagnostics();
+  const boundedShadowCollectorExecutionProofDiagnostics =
+    buildBoundedShadowCollectorExecutionProofDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14515,6 +14518,8 @@ export function TradeApp({
         sharedCandleCacheRollingRestCollectorSummary,
       authenticated_shadow_collector_dry_run:
         authenticatedShadowCollectorDryRunDiagnostics,
+      bounded_shadow_collector_execution_proof:
+        boundedShadowCollectorExecutionProofDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -37547,6 +37552,22 @@ function MarketDiagnosticsConsolePanel({
       >
         {JSON.stringify(
           summary.authenticated_shadow_collector_dry_run ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof ?? null,
           null,
           2,
         )}

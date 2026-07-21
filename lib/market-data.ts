@@ -26,6 +26,10 @@ export type IntradayCandleRequestDiagnostics = {
   first_candle_time: string | null;
   last_candle_time: string | null;
   provider_message: string | null;
+  fallback_used: false;
+  response_structurally_valid: true;
+  retry_count: 0;
+  rate_limited: false;
 };
 
 export type MarketQuote = {
@@ -241,6 +245,7 @@ async function fetchTwelveData<T>(
 async function fetchTwelveDataDetailed<T>(
   path: string,
   params: Record<string, string | number>,
+  options?: { signal?: AbortSignal },
 ): Promise<{
   data: T;
   safeParams: Record<string, string | number>;
@@ -260,7 +265,7 @@ async function fetchTwelveDataDetailed<T>(
   let response: Response;
 
   try {
-    response = await fetch(url, { cache: "no-store" });
+    response = await fetch(url, { cache: "no-store", signal: options?.signal });
   } catch (error) {
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
@@ -351,6 +356,7 @@ export async function getIntradayCandlesWithDiagnostics(
   interval: "5min" | "15min",
   start: Date,
   end: Date,
+  options?: { signal?: AbortSignal },
 ): Promise<{
   candles: IntradayCandle[];
   diagnostics: IntradayCandleRequestDiagnostics;
@@ -369,6 +375,7 @@ export async function getIntradayCandlesWithDiagnostics(
     await fetchTwelveDataDetailed<TwelveDataTimeSeriesResponse>(
     "/time_series",
       params,
+      options,
   );
 
   if (!Array.isArray(data.values)) {
@@ -428,6 +435,10 @@ export async function getIntradayCandlesWithDiagnostics(
         (candles.length > 0
           ? null
           : "Provider returned no candles for the requested window."),
+      fallback_used: false,
+      response_structurally_valid: true,
+      retry_count: 0,
+      rate_limited: false,
     },
   };
 }

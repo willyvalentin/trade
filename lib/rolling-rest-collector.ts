@@ -528,6 +528,7 @@ export function createRollingRestCollectorShadowRuntime(input?: {
       shadow_mode_enabled: boolean;
       request_id: string;
       requester_id: string;
+      now?: Date | string;
       provider: (
         request: SharedCandleProviderRequest,
       ) => Promise<SharedCandleProviderResult>;
@@ -540,6 +541,7 @@ export function createRollingRestCollectorShadowRuntime(input?: {
         shadow_mode_enabled: input.shadow_mode_enabled,
         request_id: input.request_id,
         requester_id: input.requester_id,
+        now: input.now,
         provider: input.provider,
       });
       audit = mergeAudit(audit, auditFromCollection(result));

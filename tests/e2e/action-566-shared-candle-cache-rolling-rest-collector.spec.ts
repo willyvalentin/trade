@@ -116,25 +116,31 @@ test("Action 566 shared cache handles exact hits, partial refreshes, stale refre
     candle("2026-07-21T13:40:00.000Z"),
   ]);
 
-  const exactHit = cache.lookupExact({
-    provider: "twelve_data",
-    ticker: "AAPL",
-    interval: "1min",
-    timestamp: "2026-07-21T13:32:00.000Z",
-    timezone: "America/New_York",
-    adjusted: true,
-  });
+  const exactHit = cache.lookupExact(
+    {
+      provider: "twelve_data",
+      ticker: "AAPL",
+      interval: "1min",
+      timestamp: "2026-07-21T13:32:00.000Z",
+      timezone: "America/New_York",
+      adjusted: true,
+    },
+    { now },
+  );
   expect(exactHit.status).toBe("exact_hit");
 
-  const partial = cache.lookupRange({
-    provider: "twelve_data",
-    ticker: "AAPL",
-    interval: "1min",
-    start: "2026-07-21T13:30:00.000Z",
-    end: "2026-07-21T13:32:00.000Z",
-    timezone: "America/New_York",
-    adjusted: true,
-  });
+  const partial = cache.lookupRange(
+    {
+      provider: "twelve_data",
+      ticker: "AAPL",
+      interval: "1min",
+      start: "2026-07-21T13:30:00.000Z",
+      end: "2026-07-21T13:32:00.000Z",
+      timezone: "America/New_York",
+      adjusted: true,
+    },
+    { now },
+  );
   expect(partial.status).toBe("partial_hit");
   expect(partial.missing_ranges).toEqual([
     { start: "2026-07-21T13:30:00.000Z", end: "2026-07-21T13:30:00.000Z" },
@@ -170,7 +176,7 @@ test("Action 566 shared cache handles exact hits, partial refreshes, stale refre
   );
   expect(lookahead.lookahead_rejected_count).toBe(1);
 
-  const snapshot = cache.snapshot();
+  const snapshot = cache.snapshot({ now });
   expect(snapshot.cache_size).toBeLessThanOrEqual(3);
 });
 
@@ -226,7 +232,7 @@ test("Action 566 collector uses cache first, disables provider by default, and c
   expect(enabled.provider_call_attempted).toBe(true);
   expect(enabled.merge_result?.accepted_count).toBe(2);
   expect(enabled.no_effect_boundary.recommendations_changed).toBe(false);
-  expect(cache.snapshot().cache_size).toBe(2);
+  expect(cache.snapshot({ now }).cache_size).toBe(2);
 
   const exactCacheHit = await collectSharedCandlesWithCache({
     cache,
@@ -267,6 +273,7 @@ test("Action 566 runtime coalesces concurrent provider requests and cleans faile
       shadow_mode_enabled: true,
       request_id: requestId,
       requester_id: requestId,
+      now,
       provider: async (providerRequest) => {
         calls += 1;
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -293,6 +300,7 @@ test("Action 566 runtime coalesces concurrent provider requests and cleans faile
       shadow_mode_enabled: true,
       request_id: "failed",
       requester_id: "test",
+      now,
       provider: async () => {
         throw new Error("provider failed");
       },
@@ -311,6 +319,7 @@ test("Action 566 runtime coalesces concurrent provider requests and cleans faile
     shadow_mode_enabled: true,
     request_id: "retry",
     requester_id: "test",
+    now,
     provider: async (providerRequest) => {
       retryCalls += 1;
       return providerResult(providerRequest, [
