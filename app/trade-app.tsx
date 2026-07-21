@@ -413,6 +413,7 @@ import {
 import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
+import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   buildContinuousIntelligenceBudgetPlan,
   continuousIntelligenceBudgetPlanJson,
@@ -14395,6 +14396,12 @@ export function TradeApp({
   const continuousIntelligenceBudgetPlan = buildContinuousIntelligenceBudgetPlan(
     continuousIntelligenceBudgetPlanInput,
   );
+  const sharedCandleCacheRollingRestCollectorSummary =
+    buildRollingRestCollectorShadowSummary({
+      budget_plan: continuousIntelligenceBudgetPlan,
+      shadow_mode_enabled: null,
+      now: currentTime,
+    });
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14501,6 +14508,8 @@ export function TradeApp({
       serving_cadence: recommendationServingCadenceSummary,
       provider_budget_guard: providerBudgetGuardSummary,
       continuous_intelligence_budget_plan: continuousIntelligenceBudgetPlan,
+      shared_candle_cache_rolling_rest_collector:
+        sharedCandleCacheRollingRestCollectorSummary,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -37504,6 +37513,23 @@ function MarketDiagnosticsConsolePanel({
           {continuousIntelligenceBudgetPlanJsonText}
         </pre>
       )}
+      <pre
+        id="trade-shared-candle-cache-rolling-rest-collector-json"
+        className="sr-only"
+        data-shadow-mode-enabled={
+          summary.shared_candle_cache_rolling_rest_collector?.shadow_mode_enabled ??
+          false
+        }
+        data-collector-status={
+          summary.shared_candle_cache_rolling_rest_collector?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.shared_candle_cache_rolling_rest_collector ?? null,
+          null,
+          2,
+        )}
+      </pre>
     </section>
   );
 }
