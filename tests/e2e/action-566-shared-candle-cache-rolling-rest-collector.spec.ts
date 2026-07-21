@@ -195,6 +195,7 @@ test("Action 566 collector uses cache first, disables provider by default, and c
     shadow_mode_enabled: false,
     request_id: "disabled",
     requester_id: "test",
+    now,
     provider: async (providerRequest) => {
       calls += 1;
       return providerResult(providerRequest, [
@@ -213,6 +214,7 @@ test("Action 566 collector uses cache first, disables provider by default, and c
     shadow_mode_enabled: true,
     request_id: "enabled",
     requester_id: "test",
+    now,
     provider: async (providerRequest) => {
       calls += 1;
       return providerResult(providerRequest, [
@@ -233,6 +235,7 @@ test("Action 566 collector uses cache first, disables provider by default, and c
     shadow_mode_enabled: true,
     request_id: "cache-hit",
     requester_id: "test",
+    now,
     provider: async (providerRequest) => {
       calls += 1;
       return providerResult(providerRequest, []);

@@ -414,6 +414,7 @@ import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
 import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
+import { buildAuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
 import {
   buildContinuousIntelligenceBudgetPlan,
   continuousIntelligenceBudgetPlanJson,
@@ -14402,6 +14403,8 @@ export function TradeApp({
       shadow_mode_enabled: null,
       now: currentTime,
     });
+  const authenticatedShadowCollectorDryRunDiagnostics =
+    buildAuthenticatedShadowCollectorDryRunDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14510,6 +14513,8 @@ export function TradeApp({
       continuous_intelligence_budget_plan: continuousIntelligenceBudgetPlan,
       shared_candle_cache_rolling_rest_collector:
         sharedCandleCacheRollingRestCollectorSummary,
+      authenticated_shadow_collector_dry_run:
+        authenticatedShadowCollectorDryRunDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -37526,6 +37531,22 @@ function MarketDiagnosticsConsolePanel({
       >
         {JSON.stringify(
           summary.shared_candle_cache_rolling_rest_collector ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-authenticated-shadow-collector-dry-run-json"
+        className="sr-only"
+        data-route-present={
+          summary.authenticated_shadow_collector_dry_run?.route_present ?? false
+        }
+        data-status={
+          summary.authenticated_shadow_collector_dry_run?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.authenticated_shadow_collector_dry_run ?? null,
           null,
           2,
         )}

@@ -78,6 +78,7 @@ import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-re
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ContinuousIntelligenceBudgetPlan } from "@/lib/continuous-intelligence-budget-orchestrator";
+import type { AuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
 import type { RollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   clientUnavailableLearningAccelerationConfig,
@@ -142,6 +143,7 @@ export type MarketDiagnosticsConsoleSummary = {
   top_warnings: MarketDiagnosticsConsoleWarning[];
   continuous_intelligence_budget_plan: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector: RollingRestCollectorShadowSummary | null;
+  authenticated_shadow_collector_dry_run: AuthenticatedShadowCollectorDryRunDiagnostics | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -167,6 +169,7 @@ export type MarketDiagnosticsConsoleInput = {
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
+  authenticated_shadow_collector_dry_run?: AuthenticatedShadowCollectorDryRunDiagnostics | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -14794,6 +14797,92 @@ function buildSections(
           }),
         ]
       : []),
+    ...(input.authenticated_shadow_collector_dry_run
+      ? [
+          section({
+            section_id: "authenticated_shadow_collector_dry_run",
+            title: "Authenticated Shadow Collector Dry Run",
+            severity: "info",
+            lines: [
+              lineValue(
+                "Status",
+                words(input.authenticated_shadow_collector_dry_run.status),
+              ),
+              lineValue(
+                "Route",
+                input.authenticated_shadow_collector_dry_run.route_marker,
+              ),
+              lineValue(
+                "Route present",
+                input.authenticated_shadow_collector_dry_run.route_present,
+              ),
+              lineValue(
+                "Authentication required",
+                input.authenticated_shadow_collector_dry_run.authentication_required,
+              ),
+              lineValue(
+                "Feature flag",
+                input.authenticated_shadow_collector_dry_run.feature_flag_state,
+              ),
+              lineValue(
+                "Dry-run only",
+                input.authenticated_shadow_collector_dry_run.dry_run_only,
+              ),
+              lineValue(
+                "Provider execution allowed",
+                input.authenticated_shadow_collector_dry_run
+                  .provider_execution_allowed,
+              ),
+              lineValue(
+                "Database writes allowed",
+                input.authenticated_shadow_collector_dry_run.database_writes_allowed,
+              ),
+              lineValue(
+                "Cache mutation allowed",
+                input.authenticated_shadow_collector_dry_run.cache_mutation_allowed,
+              ),
+              lineValue(
+                "Schedule present",
+                input.authenticated_shadow_collector_dry_run.schedule_present,
+              ),
+              lineValue(
+                "Latest safe observed result",
+                input.authenticated_shadow_collector_dry_run
+                  .latest_safe_observed_result,
+              ),
+              lineValue(
+                "Next action",
+                input.authenticated_shadow_collector_dry_run.next_action,
+              ),
+              `No-effect boundary: ${input.authenticated_shadow_collector_dry_run.no_effect_boundary}`,
+            ],
+            metrics: {
+              status: input.authenticated_shadow_collector_dry_run.status,
+              route_marker:
+                input.authenticated_shadow_collector_dry_run.route_marker,
+              route_present:
+                input.authenticated_shadow_collector_dry_run.route_present,
+              authentication_required:
+                input.authenticated_shadow_collector_dry_run.authentication_required,
+              feature_flag_state:
+                input.authenticated_shadow_collector_dry_run.feature_flag_state,
+              dry_run_only:
+                input.authenticated_shadow_collector_dry_run.dry_run_only,
+              provider_execution_allowed:
+                input.authenticated_shadow_collector_dry_run
+                  .provider_execution_allowed,
+              database_writes_allowed:
+                input.authenticated_shadow_collector_dry_run.database_writes_allowed,
+              cache_mutation_allowed:
+                input.authenticated_shadow_collector_dry_run.cache_mutation_allowed,
+              schedule_present:
+                input.authenticated_shadow_collector_dry_run.schedule_present,
+              no_effect_boundary:
+                input.authenticated_shadow_collector_dry_run.no_effect_boundary,
+            },
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18711,6 +18800,7 @@ function buildJsonPayload(input: {
   warnings: MarketDiagnosticsConsoleWarning[];
   continuousIntelligenceBudgetPlan: ContinuousIntelligenceBudgetPlan | null;
   sharedCandleCacheRollingRestCollector: RollingRestCollectorShadowSummary | null;
+  authenticatedShadowCollectorDryRun: AuthenticatedShadowCollectorDryRunDiagnostics | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -18727,6 +18817,8 @@ function buildJsonPayload(input: {
       input.continuousIntelligenceBudgetPlan,
     shared_candle_cache_rolling_rest_collector:
       input.sharedCandleCacheRollingRestCollector,
+    authenticated_shadow_collector_dry_run:
+      input.authenticatedShadowCollectorDryRun,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -18861,6 +18953,8 @@ export function buildMarketDiagnosticsConsoleSummary(
         input.continuous_intelligence_budget_plan ?? null,
       sharedCandleCacheRollingRestCollector:
         input.shared_candle_cache_rolling_rest_collector ?? null,
+      authenticatedShadowCollectorDryRun:
+        input.authenticated_shadow_collector_dry_run ?? null,
     }),
     null,
     2,
@@ -18896,6 +18990,8 @@ export function buildMarketDiagnosticsConsoleSummary(
       input.continuous_intelligence_budget_plan ?? null,
     shared_candle_cache_rolling_rest_collector:
       input.shared_candle_cache_rolling_rest_collector ?? null,
+    authenticated_shadow_collector_dry_run:
+      input.authenticated_shadow_collector_dry_run ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),
@@ -18922,6 +19018,8 @@ export function marketDiagnosticsConsoleSummaryJson(
         summary.continuous_intelligence_budget_plan,
       shared_candle_cache_rolling_rest_collector:
         summary.shared_candle_cache_rolling_rest_collector,
+      authenticated_shadow_collector_dry_run:
+        summary.authenticated_shadow_collector_dry_run,
       copy_payloads: {
         summary_text: {
           format: summary.copy_payloads.summary_text.format,
