@@ -59,6 +59,7 @@ export type RollingRestCollectorJob = {
   planner_requested_credits: number;
   planner_allocated_credits: number;
   planner_deferred_credits: number;
+  planner_defer_reasons: string[];
   executable_credits: number;
   defer_reason: string | null;
   shard_index: number;
@@ -261,6 +262,9 @@ function adaptJobs(input: {
   );
   return input.budget_plan.workloads.map<RollingRestCollectorJob>((workload) => {
     const layer = layerMetadata.get(workload.rest_layer);
+    const demandMetadataAvailable = !missingDemandMetadata.has(
+      workload.workload_id,
+    );
     const interval: string | null = null;
     const requestedTimeRange = {
       start: null,
@@ -272,7 +276,10 @@ function adaptJobs(input: {
         ? workload.allocated_credits
         : 0;
     const deferReason =
-      workload.defer_reasons[0] ??
+      workload.kind === "execution_ready_opportunity_monitoring" &&
+      !demandMetadataAvailable
+        ? "missing_execution_ready_metadata"
+        : workload.defer_reasons[0] ??
       (executableCredits === 0 && workload.allocated_symbols.length === 0
         ? "no_concrete_ticker_demand"
         : interval === null
@@ -298,6 +305,7 @@ function adaptJobs(input: {
       planner_requested_credits: workload.requested_credits,
       planner_allocated_credits: workload.allocated_credits,
       planner_deferred_credits: workload.deferred_credits,
+      planner_defer_reasons: workload.defer_reasons,
       executable_credits: executableCredits,
       defer_reason: deferReason,
       shard_index: 0,
@@ -314,7 +322,7 @@ function adaptJobs(input: {
       }),
       shadow_only: true,
       demand_source: workload.demand_source,
-      demand_metadata_available: !missingDemandMetadata.has(workload.workload_id),
+      demand_metadata_available: demandMetadataAvailable,
     };
   });
 }
