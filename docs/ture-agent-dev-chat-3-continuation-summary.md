@@ -11997,3 +11997,75 @@ Decision: `post_trade_git_runner_authority_consumption_transactional_rpc_migrati
 Result status: `post_trade_git_runner_authority_consumption_action_629_final_re_review_completed`
 
 Recommended next Action: Action 630 - Plan Disposable Local Database Validation of Git Runner Authority Consumption Migrations
+
+## Action 630 - Disposable Local Database Validation Planning
+
+Action 630 planned the local database-validation gate required before the Git runner authority-consumption storage and RPC migrations can be considered database-executed.
+
+Files created:
+
+- `docs/git-runner-authority-consumption-local-database-validation-plan-action-630.md`
+- `docs/git-runner-authority-consumption-local-harness-security-action-630.md`
+- `docs/git-runner-authority-consumption-action-630-checkpoint.md`
+
+Files modified:
+
+- `docs/ture-agent-dev-chat-3-continuation-summary.md`
+
+Static baseline:
+
+- Action 629 final static approval is committed on the current branch.
+- Storage migration exists: `supabase/migrations/20260720000000_create_git_runner_authority_consumption_storage.sql`.
+- RPC migration exists: `supabase/migrations/20260720001000_create_git_runner_authority_consumption_rpcs.sql`.
+
+Execution gap:
+
+- No database execution has occurred. SQL parser acceptance, function creation, catalog metadata, RLS/ACL behavior, constraints, PL/pgSQL return-query behavior, row locks, CAS, rollback, concurrency, and exact read-row counts remain unvalidated until a disposable local DB gate executes.
+
+Tooling discovery:
+
+- Supabase CLI: `/opt/homebrew/bin/supabase`, version `2.107.0` when run with disposable `HOME=/private/tmp/action630-supabase-home`. Normal HOME invocation attempted telemetry write under `~/.supabase` and was not used.
+- Docker CLI: `/usr/local/bin/docker`, version `29.6.1`, build `8900f1d`.
+- Podman: not found.
+- `psql`: not found.
+- `pg_isready`: not found.
+- `supabase/config.toml`: absent.
+- Package DB scripts: absent.
+- Compose/Dockerfile harness: absent.
+- Repository DB driver dependency: absent.
+
+Selected harness:
+
+- Preferred architecture: disposable plain Postgres container with exact application of only the two reviewed migrations and local role/bootstrap SQL.
+- Fallback: Supabase CLI local stack only if isolated config, no linked project use, no remote contact, and manual two-migration application are separately proven.
+- Selected next Action: Action 631 - Implement Disposable Postgres Validation Harness for Git Runner Authority Consumption Migrations.
+
+Reason:
+
+- Docker CLI availability and the preferred disposable plain Postgres harness architecture are documented. Action 631 must still perform a fail-closed local runtime preflight before starting any container, including daemon availability, image strategy, explicit local port isolation, environment neutralization, and SQL execution mechanism checks. If those checks cannot prove a disposable no-remote harness, Action 631 must stop.
+
+Planning results:
+
+- Remote-exclusion posture, missing-migration handling, database version/extension plan, role bootstrap, migration application order, SQL/catalog validation, storage constraints, privilege/RLS tests, function signatures, RPC integration, expiry matrix, failure/ambiguity, concurrency/CAS, rollback/audit atomicity, read tests, error-leakage tests, fixture strategy, cleanup model, evidence package, test matrix, and future gates are defined in Action 630 docs.
+- Known unrelated missing migration remains: `supabase/migrations/20260710000000_create_execution_authorization_consumptions.sql`; full repository migration replay must be avoided.
+
+Action 630 did not start a database, connect to a database, apply migrations, execute SQL against Postgres, register a package, consume authority, execute Git, create or observe a product process, inspect a repository through runtime behavior, activate runtime/API/UI/runner paths, read credentials, access network, add Avanza/trading/staging/deployment behavior, or implement retry/fallback/cache/reissue/reconciliation/reset behavior.
+
+Validation:
+
+- `./node_modules/.bin/tsc --noEmit`: passed.
+- RPC migration static suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 45 tests.
+- Storage migration static suite: passed, 31 tests.
+- Pure transition suite: passed, 77 tests.
+- Authority-package suite: passed, 155 tests.
+- Direct-spawn, executable-revalidation, executable-resolution, and resolver security group: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 913 tests.
+- Compatibility, parser, orchestrator, and observation group: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 451 tests.
+- Broad dormant/process/credential/CLI/authorization group excluding the known missing migration-static blocker: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 804 tests.
+- Action 533 cross-boundary integration suite: first sandbox attempt hit `.last-run.json` `EPERM`; minimum-permission rerun passed, 181 tests.
+- `git diff --check`, quiet `.env.local` diff guard, and `find docs -type f -size 0`: passed.
+
+Decision: `post_trade_git_runner_authority_consumption_local_database_validation_plan_ready`
+
+Result status: `post_trade_git_runner_authority_consumption_action_630_planning_gate_completed`
+
+Recommended next Action: Action 631 - Implement Disposable Postgres Validation Harness for Git Runner Authority Consumption Migrations
