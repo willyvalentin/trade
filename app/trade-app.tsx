@@ -19480,6 +19480,10 @@ function formatCalibrationSignalConfidence(
   return signal.confidence_in_conclusion.replaceAll("_", " ");
 }
 
+function formatUpwardProjectionCap(value: number | null) {
+  return value === null ? "Current" : value === 0 ? "No raise" : `+${value}`;
+}
+
 function ConfidenceProjectionOutcomeReviewPanel({
   review,
   reviewJson,
@@ -19509,6 +19513,13 @@ function ConfidenceProjectionOutcomeReviewPanel({
   const completeness = review.observation_completeness;
   const recommendationCompleteness =
     review.recommendation_observation_completeness;
+  const upwardCapExperiment =
+    review.upward_projection_cap_shadow_experiment;
+  const upwardCapCandidate =
+    upwardCapExperiment.selected_provisional_candidate;
+  const currentProjectionVariant = upwardCapExperiment.variants.find(
+    (variant) => variant.variant === upwardCapExperiment.current_projection_variant,
+  );
   const mainBlocker =
     completeness.most_common_blocker?.reason.replaceAll("_", " ") ?? "none";
   const signalDirection =
@@ -19789,6 +19800,86 @@ function ConfidenceProjectionOutcomeReviewPanel({
           className="sr-only"
         >
           {JSON.stringify(selectedSignal, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              Upward adjustment shadow experiment
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {upwardCapCandidate?.label ?? "Collect more capped observations"}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              Observation-only cap variants test smaller upward AI Projection
+              adjustments. Visible AI Projection and original confidence are
+              unchanged.
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            Observation only
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Current Result"
+            value={formatConfidenceReviewPoints(
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+                null,
+            )}
+            tone={
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+              null
+            }
+          />
+          <SummaryCard
+            label="Best Candidate"
+            value={upwardCapCandidate?.label ?? "None"}
+          />
+          <SummaryCard
+            label="Candidate Cap"
+            value={formatUpwardProjectionCap(upwardCapCandidate?.cap ?? null)}
+          />
+          <SummaryCard
+            label="Observations"
+            value={String(
+              upwardCapExperiment.eligible_recommendation_level_observations,
+            )}
+          />
+          <SummaryCard
+            label="Cap Applied"
+            value={String(upwardCapCandidate?.cap_applied_observations ?? 0)}
+          />
+          <SummaryCard
+            label="Vs Current"
+            value={formatConfidenceReviewPoints(
+              upwardCapCandidate?.improvement_vs_current_projection ?? null,
+            )}
+            tone={upwardCapCandidate?.improvement_vs_current_projection ?? null}
+          />
+          <SummaryCard
+            label="Evidence"
+            value={upwardCapExperiment.evidence_strength.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Persistence"
+            value={
+              upwardCapExperiment.persistence_created ? "created" : "none"
+            }
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {upwardCapExperiment.selection_policy}
+        </p>
+        <pre
+          id="upward-projection-cap-shadow-experiment-json"
+          className="sr-only"
+        >
+          {JSON.stringify(upwardCapExperiment, null, 2)}
         </pre>
       </div>
 

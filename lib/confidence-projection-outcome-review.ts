@@ -163,6 +163,97 @@ export type ConfidenceProjectionCalibrationMetrics = {
   explanation_categories: ConfidenceProjectionReviewGroup[];
 };
 
+export type UpwardProjectionCapShadowVariant =
+  | "current_projection"
+  | "upward_cap_plus_3"
+  | "upward_cap_plus_2"
+  | "upward_cap_plus_1"
+  | "no_upward_adjustment";
+
+export type UpwardProjectionCapShadowEvidenceStrength =
+  | "insufficient"
+  | "weak_directional"
+  | "early_usable"
+  | "meaningful";
+
+export type UpwardProjectionCapShadowProjection = {
+  variant: UpwardProjectionCapShadowVariant;
+  variant_identifier: string;
+  original_confidence: number | null;
+  current_projected_confidence: number | null;
+  current_projection_delta: number | null;
+  shadow_projected_confidence: number | null;
+  shadow_delta: number | null;
+  cap_applied: boolean;
+  amount_removed_from_current_adjustment: number;
+};
+
+export type UpwardProjectionCapShadowVariantGroup = {
+  key: string;
+  label: string;
+  eligible_observations: number;
+  cap_applied_observations: number;
+  improved_count: number;
+  worsened_count: number;
+  neutral_count: number;
+  mean_calibration_error: number | null;
+  net_improvement_vs_original_confidence: number | null;
+  improvement_vs_current_projection: number | null;
+};
+
+export type UpwardProjectionCapShadowVariantMetrics = {
+  variant: UpwardProjectionCapShadowVariant;
+  variant_identifier: string;
+  label: string;
+  cap: number | null;
+  eligible_observations: number;
+  cap_applied_observations: number;
+  improved_count: number;
+  worsened_count: number;
+  neutral_count: number;
+  mean_calibration_error: number | null;
+  net_improvement_vs_original_confidence: number | null;
+  improvement_vs_current_projection: number | null;
+  average_shadow_delta: number | null;
+  cap_applied_improved_vs_current_count: number;
+  cap_applied_worsened_vs_current_count: number;
+  uncapped_worsened_vs_current_count: number;
+  result_by_confidence_band: UpwardProjectionCapShadowVariantGroup[];
+  result_by_outcome_status: UpwardProjectionCapShadowVariantGroup[];
+  selection_status: "candidate" | "baseline" | "rejected";
+  selection_reasons: string[];
+  rejection_reasons: string[];
+};
+
+export type UpwardProjectionCapShadowExperiment = {
+  version: "upward_projection_cap_shadow_v1";
+  status: "observation_only";
+  current_projection_variant: UpwardProjectionCapShadowVariant;
+  variants: UpwardProjectionCapShadowVariantMetrics[];
+  selected_provisional_candidate: UpwardProjectionCapShadowVariantMetrics | null;
+  evidence_strength: UpwardProjectionCapShadowEvidenceStrength;
+  sample_quality: ConfidenceProjectionSampleQuality;
+  eligible_recommendation_level_observations: number;
+  current_projection_mean_error: number | null;
+  best_candidate_improvement_vs_current_projection: number | null;
+  selection_policy: string;
+  persistence_created: false;
+  current_visible_projection_changed: false;
+  no_effects: {
+    ranking_affected: false;
+    scanner_affected: false;
+    publication_affected: false;
+    execution_affected: false;
+    add_trade_affected: false;
+    risk_affected: false;
+    sizing_affected: false;
+    provider_called: false;
+    persistence_created: false;
+    learning_write_executed: false;
+    projection_formula_changed: false;
+  };
+};
+
 export type ConfidenceProjectionSubgroupType =
   | "confidence_band"
   | "recommendation_tier"
@@ -351,6 +442,7 @@ export type ConfidenceProjectionOutcomeReview = {
   observation_completeness: ConfidenceProjectionObservationCompleteness;
   recommendation_observation_completeness: ConfidenceProjectionRecommendationObservationCompleteness;
   outcome_metadata_resolution: ConfidenceProjectionOutcomeMetadataResolutionSummary;
+  upward_projection_cap_shadow_experiment: UpwardProjectionCapShadowExperiment;
   observations: ConfidenceProjectionOutcomeObservation[];
   copy: {
     data_source: string;
@@ -434,6 +526,44 @@ const insufficiencyCategories: ConfidenceProjectionInsufficiencyCategory[] = [
   "projection_related",
   "outcome_related",
   "metadata_related",
+];
+
+const upwardProjectionCapShadowVariantDefinitions: Array<{
+  variant: UpwardProjectionCapShadowVariant;
+  variant_identifier: string;
+  label: string;
+  cap: number | null;
+}> = [
+  {
+    variant: "current_projection",
+    variant_identifier: "upward_projection_cap_shadow_v1_current",
+    label: "Current projection",
+    cap: null,
+  },
+  {
+    variant: "upward_cap_plus_3",
+    variant_identifier: "upward_projection_cap_shadow_v1_plus_3",
+    label: "Upward cap +3",
+    cap: 3,
+  },
+  {
+    variant: "upward_cap_plus_2",
+    variant_identifier: "upward_projection_cap_shadow_v1_plus_2",
+    label: "Upward cap +2",
+    cap: 2,
+  },
+  {
+    variant: "upward_cap_plus_1",
+    variant_identifier: "upward_projection_cap_shadow_v1_plus_1",
+    label: "Upward cap +1",
+    cap: 1,
+  },
+  {
+    variant: "no_upward_adjustment",
+    variant_identifier: "upward_projection_cap_shadow_v1_no_raise",
+    label: "No upward adjustment",
+    cap: 0,
+  },
 ];
 
 const reasonCategory: Record<
@@ -532,6 +662,72 @@ function normalizedMetadataText(value: unknown) {
 
 function clampConfidence(value: number) {
   return Math.min(Math.max(Math.round(value), 0), 100);
+}
+
+function variantDefinition(variant: UpwardProjectionCapShadowVariant) {
+  return (
+    upwardProjectionCapShadowVariantDefinitions.find(
+      (definition) => definition.variant === variant,
+    ) ?? upwardProjectionCapShadowVariantDefinitions[0]
+  );
+}
+
+export function applyUpwardProjectionCapShadowVariant(input: {
+  originalConfidence: number | null;
+  currentProjectedConfidence: number | null;
+  currentProjectionDelta: number | null;
+  variant: UpwardProjectionCapShadowVariant;
+}): UpwardProjectionCapShadowProjection {
+  const definition = variantDefinition(input.variant);
+  const originalConfidence =
+    input.originalConfidence === null ? null : clampConfidence(input.originalConfidence);
+  const currentProjectedConfidence =
+    input.currentProjectedConfidence === null
+      ? null
+      : clampConfidence(input.currentProjectedConfidence);
+  const currentProjectionDelta =
+    input.currentProjectionDelta ??
+    (originalConfidence !== null && currentProjectedConfidence !== null
+      ? currentProjectedConfidence - originalConfidence
+      : null);
+
+  if (
+    originalConfidence === null ||
+    currentProjectedConfidence === null ||
+    currentProjectionDelta === null
+  ) {
+    return {
+      variant: definition.variant,
+      variant_identifier: definition.variant_identifier,
+      original_confidence: originalConfidence,
+      current_projected_confidence: currentProjectedConfidence,
+      current_projection_delta: currentProjectionDelta,
+      shadow_projected_confidence: null,
+      shadow_delta: null,
+      cap_applied: false,
+      amount_removed_from_current_adjustment: 0,
+    };
+  }
+
+  const cappedDelta =
+    definition.cap === null || currentProjectionDelta <= 0
+      ? currentProjectionDelta
+      : Math.min(currentProjectionDelta, definition.cap);
+  const boundedShadowConfidence = clampConfidence(originalConfidence + cappedDelta);
+  const shadowDelta = boundedShadowConfidence - originalConfidence;
+  const amountRemoved = Math.max(0, currentProjectionDelta - shadowDelta);
+
+  return {
+    variant: definition.variant,
+    variant_identifier: definition.variant_identifier,
+    original_confidence: originalConfidence,
+    current_projected_confidence: currentProjectedConfidence,
+    current_projection_delta: currentProjectionDelta,
+    shadow_projected_confidence: boundedShadowConfidence,
+    shadow_delta: shadowDelta,
+    cap_applied: amountRemoved > 0,
+    amount_removed_from_current_adjustment: amountRemoved,
+  };
 }
 
 function confidenceFromPayloadWithSource(
@@ -1435,6 +1631,308 @@ function summarizeCalibrationMetrics(
   };
 }
 
+function compareShadowProjection(input: {
+  observation: ConfidenceProjectionOutcomeObservation;
+  shadowProjection: UpwardProjectionCapShadowProjection;
+}) {
+  const shadowComparison = compareConfidenceProjectionCalibration({
+    originalConfidence: input.observation.original_confidence,
+    projectedConfidence: input.shadowProjection.shadow_projected_confidence,
+    outcomeScore: input.observation.outcome_success_score,
+  });
+  const improvementVsCurrent =
+    input.observation.projected_error !== null &&
+    shadowComparison.projected_error !== null
+      ? input.observation.projected_error - shadowComparison.projected_error
+      : null;
+
+  return {
+    shadowComparison,
+    improvementVsCurrent,
+  };
+}
+
+function shadowVariantRows(
+  observations: ConfidenceProjectionOutcomeObservation[],
+  variant: UpwardProjectionCapShadowVariant,
+) {
+  return observations.map((observation) => {
+    const projection = applyUpwardProjectionCapShadowVariant({
+      originalConfidence: observation.original_confidence,
+      currentProjectedConfidence: observation.projected_confidence,
+      currentProjectionDelta: observation.confidence_delta,
+      variant,
+    });
+    const comparison = compareShadowProjection({
+      observation,
+      shadowProjection: projection,
+    });
+
+    return {
+      observation,
+      projection,
+      ...comparison,
+    };
+  });
+}
+
+function summarizeShadowVariantGroup(
+  key: string,
+  label: string,
+  rows: ReturnType<typeof shadowVariantRows>,
+): UpwardProjectionCapShadowVariantGroup {
+  const improvedCount = rows.filter(
+    (row) => row.shadowComparison.comparison === "improved",
+  ).length;
+  const worsenedCount = rows.filter(
+    (row) => row.shadowComparison.comparison === "worsened",
+  ).length;
+  const neutralCount = rows.filter(
+    (row) => row.shadowComparison.comparison === "neutral",
+  ).length;
+
+  return {
+    key,
+    label,
+    eligible_observations: rows.length,
+    cap_applied_observations: rows.filter((row) => row.projection.cap_applied)
+      .length,
+    improved_count: improvedCount,
+    worsened_count: worsenedCount,
+    neutral_count: neutralCount,
+    mean_calibration_error: average(
+      rows
+        .map((row) => row.shadowComparison.projected_error)
+        .filter((value): value is number => value !== null),
+    ),
+    net_improvement_vs_original_confidence: average(
+      rows
+        .map((row) => row.shadowComparison.error_improvement)
+        .filter((value): value is number => value !== null),
+    ),
+    improvement_vs_current_projection: average(
+      rows
+        .map((row) => row.improvementVsCurrent)
+        .filter((value): value is number => value !== null),
+    ),
+  };
+}
+
+function summarizeShadowVariantGroups(
+  rows: ReturnType<typeof shadowVariantRows>,
+  getter: (observation: ConfidenceProjectionOutcomeObservation) => string,
+) {
+  const keys = Array.from(new Set(rows.map((row) => getter(row.observation)))).sort();
+  return keys.map((key) =>
+    summarizeShadowVariantGroup(
+      key,
+      key.replace(/_/g, " "),
+      rows.filter((row) => getter(row.observation) === key),
+    ),
+  );
+}
+
+function shadowEvidenceStrength(
+  capAppliedObservationCount: number,
+): UpwardProjectionCapShadowEvidenceStrength {
+  if (capAppliedObservationCount >= 30) return "meaningful";
+  if (capAppliedObservationCount >= 10) return "early_usable";
+  if (capAppliedObservationCount >= 5) return "weak_directional";
+  return "insufficient";
+}
+
+function shadowVariantRejectionReasons(input: {
+  variant: UpwardProjectionCapShadowVariant;
+  metrics: Omit<
+    UpwardProjectionCapShadowVariantMetrics,
+    "selection_status" | "selection_reasons" | "rejection_reasons"
+  >;
+  currentProjectionMeanError: number | null;
+}) {
+  const reasons: string[] = [];
+
+  if (input.variant === "current_projection") return reasons;
+  if (
+    input.currentProjectionMeanError !== null &&
+    input.metrics.mean_calibration_error !== null &&
+    input.metrics.mean_calibration_error > input.currentProjectionMeanError
+  ) {
+    reasons.push("mean_error_worse_than_current_projection");
+  }
+  if (input.metrics.cap_applied_improved_vs_current_count === 0) {
+    reasons.push("no_capped_observation_improved_vs_current_projection");
+  }
+  if (input.metrics.uncapped_worsened_vs_current_count > 0) {
+    reasons.push("uncapped_observation_worsened_vs_current_projection");
+  }
+  if (input.metrics.eligible_observations === 0) {
+    reasons.push("no_complete_recommendation_level_observations");
+  }
+
+  return reasons;
+}
+
+function buildUpwardProjectionCapShadowVariantMetrics(input: {
+  observations: ConfidenceProjectionOutcomeObservation[];
+  variant: UpwardProjectionCapShadowVariant;
+  currentProjectionMeanError: number | null;
+}): UpwardProjectionCapShadowVariantMetrics {
+  const definition = variantDefinition(input.variant);
+  const rows = shadowVariantRows(input.observations, input.variant);
+  const baseMetrics = summarizeShadowVariantGroup(
+    definition.variant,
+    definition.label,
+    rows,
+  );
+  const capAppliedImprovedVsCurrentCount = rows.filter(
+    (row) => row.projection.cap_applied && (row.improvementVsCurrent ?? 0) > 0,
+  ).length;
+  const capAppliedWorsenedVsCurrentCount = rows.filter(
+    (row) => row.projection.cap_applied && (row.improvementVsCurrent ?? 0) < 0,
+  ).length;
+  const uncappedWorsenedVsCurrentCount = rows.filter(
+    (row) => !row.projection.cap_applied && (row.improvementVsCurrent ?? 0) < 0,
+  ).length;
+  const metricsWithoutSelection = {
+    variant: definition.variant,
+    variant_identifier: definition.variant_identifier,
+    label: definition.label,
+    cap: definition.cap,
+    eligible_observations: baseMetrics.eligible_observations,
+    cap_applied_observations: baseMetrics.cap_applied_observations,
+    improved_count: baseMetrics.improved_count,
+    worsened_count: baseMetrics.worsened_count,
+    neutral_count: baseMetrics.neutral_count,
+    mean_calibration_error: baseMetrics.mean_calibration_error,
+    net_improvement_vs_original_confidence:
+      baseMetrics.net_improvement_vs_original_confidence,
+    improvement_vs_current_projection:
+      baseMetrics.improvement_vs_current_projection,
+    average_shadow_delta: average(
+      rows
+        .map((row) => row.projection.shadow_delta)
+        .filter((value): value is number => value !== null),
+    ),
+    cap_applied_improved_vs_current_count: capAppliedImprovedVsCurrentCount,
+    cap_applied_worsened_vs_current_count: capAppliedWorsenedVsCurrentCount,
+    uncapped_worsened_vs_current_count: uncappedWorsenedVsCurrentCount,
+    result_by_confidence_band: confidenceBandDefinitions.map((band) =>
+      summarizeShadowVariantGroup(
+        band.key,
+        band.label,
+        rows.filter(
+          (row) =>
+            confidenceBandFor(row.observation.original_confidence)?.key === band.key,
+        ),
+      ),
+    ),
+    result_by_outcome_status: summarizeShadowVariantGroups(
+      rows,
+      (observation) => observation.outcome_status || "unknown",
+    ),
+  };
+  const rejectionReasons = shadowVariantRejectionReasons({
+    variant: definition.variant,
+    metrics: metricsWithoutSelection,
+    currentProjectionMeanError: input.currentProjectionMeanError,
+  });
+
+  return {
+    ...metricsWithoutSelection,
+    selection_status:
+      definition.variant === "current_projection"
+        ? "baseline"
+        : rejectionReasons.length === 0
+          ? "candidate"
+          : "rejected",
+    selection_reasons:
+      definition.variant === "current_projection"
+        ? ["baseline_current_visible_projection_retained"]
+        : rejectionReasons.length === 0
+          ? [
+              "mean_error_not_worse_than_current_projection",
+              "at_least_one_capped_observation_improved",
+              "uncapped_observations_not_worsened",
+              "observation_only_no_effects",
+            ]
+          : [],
+    rejection_reasons: rejectionReasons,
+  };
+}
+
+function sortShadowCandidates(
+  first: UpwardProjectionCapShadowVariantMetrics,
+  second: UpwardProjectionCapShadowVariantMetrics,
+) {
+  const firstValue =
+    first.improvement_vs_current_projection ?? Number.NEGATIVE_INFINITY;
+  const secondValue =
+    second.improvement_vs_current_projection ?? Number.NEGATIVE_INFINITY;
+
+  return (
+    secondValue - firstValue ||
+    second.cap_applied_observations - first.cap_applied_observations ||
+    upwardProjectionCapShadowVariantDefinitions.findIndex(
+      (definition) => definition.variant === first.variant,
+    ) -
+      upwardProjectionCapShadowVariantDefinitions.findIndex(
+        (definition) => definition.variant === second.variant,
+      )
+  );
+}
+
+function buildUpwardProjectionCapShadowExperiment(
+  observations: ConfidenceProjectionOutcomeObservation[],
+  currentProjectionMeanError: number | null,
+  sampleQuality: ConfidenceProjectionSampleQuality,
+): UpwardProjectionCapShadowExperiment {
+  const complete = observations.filter((item) => item.completeness === "complete");
+  const variants = upwardProjectionCapShadowVariantDefinitions.map((definition) =>
+    buildUpwardProjectionCapShadowVariantMetrics({
+      observations: complete,
+      variant: definition.variant,
+      currentProjectionMeanError,
+    }),
+  );
+  const selectedProvisionalCandidate =
+    variants
+      .filter((variant) => variant.selection_status === "candidate")
+      .sort(sortShadowCandidates)[0] ?? null;
+
+  return {
+    version: "upward_projection_cap_shadow_v1",
+    status: "observation_only",
+    current_projection_variant: "current_projection",
+    variants,
+    selected_provisional_candidate: selectedProvisionalCandidate,
+    evidence_strength: shadowEvidenceStrength(
+      selectedProvisionalCandidate?.cap_applied_observations ?? 0,
+    ),
+    sample_quality: sampleQuality,
+    eligible_recommendation_level_observations: complete.length,
+    current_projection_mean_error: currentProjectionMeanError,
+    best_candidate_improvement_vs_current_projection:
+      selectedProvisionalCandidate?.improvement_vs_current_projection ?? null,
+    selection_policy:
+      "Select a non-live shadow variant only when mean calibration error is not worse than current projection, at least one capped observation improves, uncapped observations do not worsen, and all effects remain observation-only.",
+    persistence_created: false,
+    current_visible_projection_changed: false,
+    no_effects: {
+      ranking_affected: false,
+      scanner_affected: false,
+      publication_affected: false,
+      execution_affected: false,
+      add_trade_affected: false,
+      risk_affected: false,
+      sizing_affected: false,
+      provider_called: false,
+      persistence_created: false,
+      learning_write_executed: false,
+      projection_formula_changed: false,
+    },
+  };
+}
+
 function sampleQuality(completeCount: number): ConfidenceProjectionSampleQuality {
   if (completeCount >= 100) return "strong_observation_sample";
   if (completeCount >= 30) return "usable_observation_sample";
@@ -2210,6 +2708,12 @@ export function buildConfidenceProjectionOutcomeReview(
   const outcomeMetadataResolution = buildOutcomeMetadataResolutionSummary(
     dedupedOutcomes,
   );
+  const upwardProjectionCapShadowExperiment =
+    buildUpwardProjectionCapShadowExperiment(
+      observations,
+      recommendationLevel.mean_projected_error,
+      recommendationLevel.sample_quality,
+    );
 
   return {
     status: horizonObservations.length > 0 ? "ready" : "no_observations",
@@ -2245,6 +2749,8 @@ export function buildConfidenceProjectionOutcomeReview(
     observation_completeness: observationCompleteness,
     recommendation_observation_completeness: recommendationObservationCompleteness,
     outcome_metadata_resolution: outcomeMetadataResolution,
+    upward_projection_cap_shadow_experiment:
+      upwardProjectionCapShadowExperiment,
     observations,
     copy: {
       data_source:
