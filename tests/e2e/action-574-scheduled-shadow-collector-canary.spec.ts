@@ -400,7 +400,7 @@ test("Action 574 deterministic execution ids bind one UTC day and request finger
 
 test("Action 574 diagnostics expose the durable single-winner provider-entry contract", () => {
   expect(buildContinuousIntelligenceShadowCanaryDiagnostics()).toMatchObject({
-    schedule_active: false,
+    schedule_active: "unknown",
     atomic_daily_claim_required: true,
     atomic_begin_attempt_required: true,
     atomic_finalization_required: true,

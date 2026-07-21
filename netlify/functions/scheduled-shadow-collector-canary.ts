@@ -1,4 +1,6 @@
 const canaryRoute = "/api/automation/continuous-intelligence/shadow-collector/canary";
+export const continuousIntelligenceShadowCanaryFunctionBuildMarker =
+  "continuous_intelligence_shadow_canary_function_foundation_v1" as const;
 
 function siteUrl() {
   return process.env.URL || process.env.DEPLOY_PRIME_URL || "https://trade.valentinlabs.com";
