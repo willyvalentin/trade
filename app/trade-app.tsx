@@ -413,6 +413,11 @@ import {
 import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
+import {
+  buildContinuousIntelligenceBudgetPlan,
+  continuousIntelligenceBudgetPlanJson,
+} from "@/lib/continuous-intelligence-budget-orchestrator";
+import { buildContinuousIntelligenceBudgetPlanInput } from "@/lib/continuous-intelligence-budget-plan-input";
 import type { LearningAccelerationModeEvaluation } from "@/lib/learning-acceleration-mode";
 import {
   buildLiveMarketTrialRunbookSummary,
@@ -14335,6 +14340,61 @@ export function TradeApp({
   });
   const providerBudgetGuardSummaryJsonText =
     providerBudgetGuardSummaryJson(providerBudgetGuardSummary);
+  const continuousIntelligenceBudgetPlanInput =
+    buildContinuousIntelligenceBudgetPlanInput({
+      generated_at: currentTime.toISOString(),
+      market_phase: currentMarketSessionEvaluation.phase,
+      market_day_type: marketStatus?.dayType,
+      is_trading_day: currentMarketSessionEvaluation.is_trading_day,
+      provider_budget_status: providerBudgetGuardSummary.status,
+      active_position_symbols: activePositions
+        .filter((position) => !isDemoPosition(position))
+        .map((position) => position.ticker),
+      visible_recommendation_symbols: dailyRecommendations
+        .filter((recommendation) => !isDemoRecommendation(recommendation))
+        .map((recommendation) => recommendation.ticker),
+      scanner_selected_symbols:
+        scannerUniverseCoverageSummary.selected_ticker_symbols,
+      scanner_context_symbols:
+        scannerUniverseCoverageSummary.context_ticker_symbols,
+      dynamic_mover_symbols: dynamicMarketMoversSummary?.selected_tickers ?? [],
+      dynamic_movers_status: dynamicMarketMoversSummary?.status ?? null,
+      dynamic_movers_selected_count:
+        dynamicMarketMoversSummary?.selected_count ?? null,
+      outcome_symbols: [
+        ...recommendationPerformanceSnapshots.map((snapshot) => snapshot.ticker),
+        ...recommendationOutcomeEvaluationDiagnostics.tickersEvaluated,
+      ],
+      pending_outcomes:
+        recommendationPerformanceStatistics.summary.pending_outcomes,
+      missing_candles: recommendationOutcomeEvaluationDiagnostics.missingCandles,
+      provider_errors: recommendationOutcomeEvaluationDiagnostics.providerErrors,
+      skipped_due_to_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.skippedDueToBudgetCount,
+      pending_provider_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount,
+      legacy_constraints: {
+        grow_scan_ticker_cap: 25,
+        grow_background_scan_cadence_minutes: 10,
+        scanner_default_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.default_tickers_per_window,
+        scanner_max_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.max_tickers_per_window,
+        official_scan_windows_per_day:
+          providerBudgetGuardSummary.totals.official_scan_windows_per_day,
+        scheduled_scan_cron: "*/15 13-19 * * 1-5",
+        scheduled_scan_gate: `${dayTradeScanOrchestrationSummary.active_window}:${dayTradeScanOrchestrationSummary.decision}`,
+        outcome_max_batches: 5,
+        outcome_max_snapshots: 10,
+        market_data_fetch_mode: "direct Twelve Data fetches with cache:no-store",
+        shared_cache_status:
+          "partial intraday retention and historical candle storage; no complete shared cache yet",
+        dynamic_movers_status: dynamicMarketMoversSummary?.status ?? "unknown",
+      },
+    });
+  const continuousIntelligenceBudgetPlan = buildContinuousIntelligenceBudgetPlan(
+    continuousIntelligenceBudgetPlanInput,
+  );
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14440,6 +14500,7 @@ export function TradeApp({
       scan_orchestration: dayTradeScanOrchestrationSummary,
       serving_cadence: recommendationServingCadenceSummary,
       provider_budget_guard: providerBudgetGuardSummary,
+      continuous_intelligence_budget_plan: continuousIntelligenceBudgetPlan,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -37224,6 +37285,12 @@ function MarketDiagnosticsConsolePanel({
   summaryJson: string;
 }) {
   const [copyStatus, setCopyStatus] = useState("");
+  const continuousIntelligenceBudgetPlanJsonText =
+    summary.continuous_intelligence_budget_plan
+      ? continuousIntelligenceBudgetPlanJson(
+          summary.continuous_intelligence_budget_plan,
+        )
+      : "";
   const preview = summary.copy_payloads.summary_text.content
     .split("\n")
     .slice(0, 36)
@@ -37414,6 +37481,29 @@ function MarketDiagnosticsConsolePanel({
       >
         {summaryJson}
       </pre>
+      {summary.continuous_intelligence_budget_plan && (
+        <pre
+          id="trade-continuous-intelligence-budget-plan-json"
+          className="sr-only"
+          data-contract={summary.continuous_intelligence_budget_plan.contract}
+          data-status={summary.continuous_intelligence_budget_plan.status}
+          data-session={summary.continuous_intelligence_budget_plan.session}
+          data-allocated-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .allocated_credits
+          }
+          data-reserved-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .reserved_credits
+          }
+          data-websocket-slots={
+            summary.continuous_intelligence_budget_plan.websocket_hot_set
+              .assigned_count
+          }
+        >
+          {continuousIntelligenceBudgetPlanJsonText}
+        </pre>
+      )}
     </section>
   );
 }
