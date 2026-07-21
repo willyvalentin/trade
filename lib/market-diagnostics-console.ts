@@ -79,6 +79,7 @@ import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runb
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ContinuousIntelligenceBudgetPlan } from "@/lib/continuous-intelligence-budget-orchestrator";
 import type { AuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
+import type { BoundedShadowCollectorExecutionProofDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
 import type { RollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   clientUnavailableLearningAccelerationConfig,
@@ -144,6 +145,7 @@ export type MarketDiagnosticsConsoleSummary = {
   continuous_intelligence_budget_plan: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector: RollingRestCollectorShadowSummary | null;
   authenticated_shadow_collector_dry_run: AuthenticatedShadowCollectorDryRunDiagnostics | null;
+  bounded_shadow_collector_execution_proof: BoundedShadowCollectorExecutionProofDiagnostics | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -170,6 +172,7 @@ export type MarketDiagnosticsConsoleInput = {
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
   authenticated_shadow_collector_dry_run?: AuthenticatedShadowCollectorDryRunDiagnostics | null;
+  bounded_shadow_collector_execution_proof?: BoundedShadowCollectorExecutionProofDiagnostics | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -14883,6 +14886,64 @@ function buildSections(
           }),
         ]
       : []),
+    ...(input.bounded_shadow_collector_execution_proof
+      ? [
+          section({
+            section_id: "bounded_shadow_collector_execution_proof",
+            title: "Bounded Shadow Collector Execution Proof",
+            severity: "info",
+            lines: [
+              lineValue(
+                "Status",
+                words(input.bounded_shadow_collector_execution_proof.status),
+              ),
+              lineValue(
+                "Route",
+                input.bounded_shadow_collector_execution_proof.route_marker,
+              ),
+              lineValue(
+                "Authentication required",
+                input.bounded_shadow_collector_execution_proof.authentication_required,
+              ),
+              lineValue(
+                "Execution flag",
+                input.bounded_shadow_collector_execution_proof.execution_feature_flag_state,
+              ),
+              lineValue(
+                "Latest safe observed result",
+                input.bounded_shadow_collector_execution_proof.latest_safe_observed_result,
+              ),
+              lineValue(
+                "Browser route invocation",
+                input.bounded_shadow_collector_execution_proof.browser_route_invocation,
+              ),
+              lineValue(
+                "Next action",
+                input.bounded_shadow_collector_execution_proof.next_action,
+              ),
+              `No-effect boundary: ${input.bounded_shadow_collector_execution_proof.no_effect_boundary}`,
+            ],
+            metrics: {
+              status: input.bounded_shadow_collector_execution_proof.status,
+              route_marker:
+                input.bounded_shadow_collector_execution_proof.route_marker,
+              route_present:
+                input.bounded_shadow_collector_execution_proof.route_present,
+              authentication_required:
+                input.bounded_shadow_collector_execution_proof.authentication_required,
+              execution_feature_flag_state:
+                input.bounded_shadow_collector_execution_proof.execution_feature_flag_state,
+              provider_call_inferred_by_client:
+                input.bounded_shadow_collector_execution_proof
+                  .provider_call_inferred_by_client,
+              browser_route_invocation:
+                input.bounded_shadow_collector_execution_proof.browser_route_invocation,
+              no_effect_boundary:
+                input.bounded_shadow_collector_execution_proof.no_effect_boundary,
+            },
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18801,6 +18862,7 @@ function buildJsonPayload(input: {
   continuousIntelligenceBudgetPlan: ContinuousIntelligenceBudgetPlan | null;
   sharedCandleCacheRollingRestCollector: RollingRestCollectorShadowSummary | null;
   authenticatedShadowCollectorDryRun: AuthenticatedShadowCollectorDryRunDiagnostics | null;
+  boundedShadowCollectorExecutionProof: BoundedShadowCollectorExecutionProofDiagnostics | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -18819,6 +18881,8 @@ function buildJsonPayload(input: {
       input.sharedCandleCacheRollingRestCollector,
     authenticated_shadow_collector_dry_run:
       input.authenticatedShadowCollectorDryRun,
+    bounded_shadow_collector_execution_proof:
+      input.boundedShadowCollectorExecutionProof,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -18955,6 +19019,8 @@ export function buildMarketDiagnosticsConsoleSummary(
         input.shared_candle_cache_rolling_rest_collector ?? null,
       authenticatedShadowCollectorDryRun:
         input.authenticated_shadow_collector_dry_run ?? null,
+      boundedShadowCollectorExecutionProof:
+        input.bounded_shadow_collector_execution_proof ?? null,
     }),
     null,
     2,
@@ -18992,6 +19058,8 @@ export function buildMarketDiagnosticsConsoleSummary(
       input.shared_candle_cache_rolling_rest_collector ?? null,
     authenticated_shadow_collector_dry_run:
       input.authenticated_shadow_collector_dry_run ?? null,
+    bounded_shadow_collector_execution_proof:
+      input.bounded_shadow_collector_execution_proof ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),
@@ -19020,6 +19088,8 @@ export function marketDiagnosticsConsoleSummaryJson(
         summary.shared_candle_cache_rolling_rest_collector,
       authenticated_shadow_collector_dry_run:
         summary.authenticated_shadow_collector_dry_run,
+      bounded_shadow_collector_execution_proof:
+        summary.bounded_shadow_collector_execution_proof,
       copy_payloads: {
         summary_text: {
           format: summary.copy_payloads.summary_text.format,
