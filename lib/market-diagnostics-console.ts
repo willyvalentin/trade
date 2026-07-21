@@ -80,6 +80,9 @@ import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ContinuousIntelligenceBudgetPlan } from "@/lib/continuous-intelligence-budget-orchestrator";
 import type { AuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
 import type { BoundedShadowCollectorExecutionProofDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
+import type { BoundedShadowCollectorExecutionProofPreflightDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
+import type { BoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
+import type { BoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
 import type { RollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   clientUnavailableLearningAccelerationConfig,
@@ -146,6 +149,9 @@ export type MarketDiagnosticsConsoleSummary = {
   shared_candle_cache_rolling_rest_collector: RollingRestCollectorShadowSummary | null;
   authenticated_shadow_collector_dry_run: AuthenticatedShadowCollectorDryRunDiagnostics | null;
   bounded_shadow_collector_execution_proof: BoundedShadowCollectorExecutionProofDiagnostics | null;
+  bounded_shadow_collector_execution_proof_preflight: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
+  bounded_shadow_collector_operator_authorization: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
+  bounded_shadow_collector_live_proof_receipt: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -173,6 +179,9 @@ export type MarketDiagnosticsConsoleInput = {
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
   authenticated_shadow_collector_dry_run?: AuthenticatedShadowCollectorDryRunDiagnostics | null;
   bounded_shadow_collector_execution_proof?: BoundedShadowCollectorExecutionProofDiagnostics | null;
+  bounded_shadow_collector_execution_proof_preflight?: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
+  bounded_shadow_collector_operator_authorization?: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
+  bounded_shadow_collector_live_proof_receipt?: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -14944,6 +14953,119 @@ function buildSections(
           }),
         ]
       : []),
+    ...(input.bounded_shadow_collector_execution_proof_preflight
+      ? [
+          section({
+            section_id: "bounded_shadow_collector_execution_proof_preflight",
+            title: "Bounded Shadow Collector Execution Preflight",
+            severity: "info",
+            lines: [
+              lineValue(
+                "Status",
+                words(input.bounded_shadow_collector_execution_proof_preflight.status),
+              ),
+              lineValue(
+                "Route",
+                input.bounded_shadow_collector_execution_proof_preflight.route_marker,
+              ),
+              lineValue(
+                "Authentication required",
+                input.bounded_shadow_collector_execution_proof_preflight.authentication_required,
+              ),
+              lineValue(
+                "Execution capacity reserved",
+                input.bounded_shadow_collector_execution_proof_preflight.execution_capacity_reserved,
+              ),
+              lineValue(
+                "Browser route invocation",
+                input.bounded_shadow_collector_execution_proof_preflight.browser_route_invocation,
+              ),
+              lineValue(
+                "Next action",
+                input.bounded_shadow_collector_execution_proof_preflight.next_action,
+              ),
+              `No-effect boundary: ${input.bounded_shadow_collector_execution_proof_preflight.no_effect_boundary}`,
+            ],
+            metrics: {
+              status: input.bounded_shadow_collector_execution_proof_preflight.status,
+              route_marker:
+                input.bounded_shadow_collector_execution_proof_preflight.route_marker,
+              route_present:
+                input.bounded_shadow_collector_execution_proof_preflight.route_present,
+              authentication_required:
+                input.bounded_shadow_collector_execution_proof_preflight.authentication_required,
+              provider_call_inferred_by_client:
+                input.bounded_shadow_collector_execution_proof_preflight
+                  .provider_call_inferred_by_client,
+              browser_route_invocation:
+                input.bounded_shadow_collector_execution_proof_preflight.browser_route_invocation,
+              execution_capacity_reserved:
+                input.bounded_shadow_collector_execution_proof_preflight.execution_capacity_reserved,
+              no_effect_boundary:
+                input.bounded_shadow_collector_execution_proof_preflight.no_effect_boundary,
+            },
+          }),
+        ]
+      : []),
+    ...(input.bounded_shadow_collector_operator_authorization
+      ? [
+          section({
+            section_id: "bounded_shadow_collector_operator_authorization",
+            title: "Bounded Shadow Collector Operator Authorization",
+            severity: "info",
+            lines: [
+              lineValue("Status", words(input.bounded_shadow_collector_operator_authorization.status)),
+              lineValue("Authorization TTL", `${input.bounded_shadow_collector_operator_authorization.ttl_seconds} seconds`),
+              lineValue("Single use", input.bounded_shadow_collector_operator_authorization.single_use),
+              lineValue("Request bound", input.bounded_shadow_collector_operator_authorization.request_bound),
+              lineValue("Process local", input.bounded_shadow_collector_operator_authorization.process_local_only),
+              lineValue("Durable", input.bounded_shadow_collector_operator_authorization.durable),
+              lineValue("Token present in diagnostics", input.bounded_shadow_collector_operator_authorization.token_present_in_diagnostics),
+              `No-effect boundary: ${input.bounded_shadow_collector_operator_authorization.no_effect_boundary}`,
+            ],
+            metrics: {
+              status: input.bounded_shadow_collector_operator_authorization.status,
+              route_marker: input.bounded_shadow_collector_operator_authorization.route_marker,
+              route_present: input.bounded_shadow_collector_operator_authorization.route_present,
+              ttl_seconds: input.bounded_shadow_collector_operator_authorization.ttl_seconds,
+              single_use: input.bounded_shadow_collector_operator_authorization.single_use,
+              request_bound: input.bounded_shadow_collector_operator_authorization.request_bound,
+              process_local_only: input.bounded_shadow_collector_operator_authorization.process_local_only,
+              durable: input.bounded_shadow_collector_operator_authorization.durable,
+              token_present_in_diagnostics:
+                input.bounded_shadow_collector_operator_authorization.token_present_in_diagnostics,
+            },
+          }),
+        ]
+      : []),
+    ...(input.bounded_shadow_collector_live_proof_receipt
+      ? [
+          section({
+            section_id: "bounded_shadow_collector_live_proof_receipt",
+            title: "Bounded Shadow Collector Live Proof Receipt",
+            severity: "info",
+            lines: [
+              lineValue("Status", words(input.bounded_shadow_collector_live_proof_receipt.status)),
+              lineValue("Receipt persisted", input.bounded_shadow_collector_live_proof_receipt.receipt_persisted),
+              lineValue("Process local", input.bounded_shadow_collector_live_proof_receipt.process_local_only),
+              lineValue("Browser route invocation", input.bounded_shadow_collector_live_proof_receipt.browser_route_invocation),
+              lineValue("Token present in diagnostics", input.bounded_shadow_collector_live_proof_receipt.token_present_in_diagnostics),
+            ],
+            metrics: {
+              status: input.bounded_shadow_collector_live_proof_receipt.status,
+              route_marker: input.bounded_shadow_collector_live_proof_receipt.route_marker,
+              route_present: input.bounded_shadow_collector_live_proof_receipt.route_present,
+              receipt_persisted: input.bounded_shadow_collector_live_proof_receipt.receipt_persisted,
+              process_local_only: input.bounded_shadow_collector_live_proof_receipt.process_local_only,
+              browser_route_invocation: input.bounded_shadow_collector_live_proof_receipt.browser_route_invocation,
+              provider_call_inferred_by_client:
+                input.bounded_shadow_collector_live_proof_receipt.provider_call_inferred_by_client,
+              token_present_in_diagnostics:
+                input.bounded_shadow_collector_live_proof_receipt.token_present_in_diagnostics,
+            },
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18863,6 +18985,9 @@ function buildJsonPayload(input: {
   sharedCandleCacheRollingRestCollector: RollingRestCollectorShadowSummary | null;
   authenticatedShadowCollectorDryRun: AuthenticatedShadowCollectorDryRunDiagnostics | null;
   boundedShadowCollectorExecutionProof: BoundedShadowCollectorExecutionProofDiagnostics | null;
+  boundedShadowCollectorExecutionProofPreflight: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
+  boundedShadowCollectorOperatorAuthorization: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
+  boundedShadowCollectorLiveProofReceipt: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -18883,6 +19008,12 @@ function buildJsonPayload(input: {
       input.authenticatedShadowCollectorDryRun,
     bounded_shadow_collector_execution_proof:
       input.boundedShadowCollectorExecutionProof,
+    bounded_shadow_collector_execution_proof_preflight:
+      input.boundedShadowCollectorExecutionProofPreflight,
+    bounded_shadow_collector_operator_authorization:
+      input.boundedShadowCollectorOperatorAuthorization,
+    bounded_shadow_collector_live_proof_receipt:
+      input.boundedShadowCollectorLiveProofReceipt,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -19021,6 +19152,12 @@ export function buildMarketDiagnosticsConsoleSummary(
         input.authenticated_shadow_collector_dry_run ?? null,
       boundedShadowCollectorExecutionProof:
         input.bounded_shadow_collector_execution_proof ?? null,
+      boundedShadowCollectorExecutionProofPreflight:
+        input.bounded_shadow_collector_execution_proof_preflight ?? null,
+      boundedShadowCollectorOperatorAuthorization:
+        input.bounded_shadow_collector_operator_authorization ?? null,
+      boundedShadowCollectorLiveProofReceipt:
+        input.bounded_shadow_collector_live_proof_receipt ?? null,
     }),
     null,
     2,
@@ -19060,6 +19197,12 @@ export function buildMarketDiagnosticsConsoleSummary(
       input.authenticated_shadow_collector_dry_run ?? null,
     bounded_shadow_collector_execution_proof:
       input.bounded_shadow_collector_execution_proof ?? null,
+    bounded_shadow_collector_execution_proof_preflight:
+      input.bounded_shadow_collector_execution_proof_preflight ?? null,
+    bounded_shadow_collector_operator_authorization:
+      input.bounded_shadow_collector_operator_authorization ?? null,
+    bounded_shadow_collector_live_proof_receipt:
+      input.bounded_shadow_collector_live_proof_receipt ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),

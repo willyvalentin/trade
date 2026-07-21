@@ -415,7 +415,12 @@ import {
 } from "@/lib/provider-plan-profile";
 import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import { buildAuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
-import { buildBoundedShadowCollectorExecutionProofDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
+import {
+  buildBoundedShadowCollectorExecutionProofDiagnostics,
+  buildBoundedShadowCollectorExecutionProofPreflightDiagnostics,
+} from "@/lib/bounded-shadow-collector-execution-proof";
+import { buildBoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
+import { buildBoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
 import {
   buildContinuousIntelligenceBudgetPlan,
   continuousIntelligenceBudgetPlanJson,
@@ -14408,6 +14413,12 @@ export function TradeApp({
     buildAuthenticatedShadowCollectorDryRunDiagnostics();
   const boundedShadowCollectorExecutionProofDiagnostics =
     buildBoundedShadowCollectorExecutionProofDiagnostics();
+  const boundedShadowCollectorExecutionProofPreflightDiagnostics =
+    buildBoundedShadowCollectorExecutionProofPreflightDiagnostics();
+  const boundedShadowCollectorOperatorAuthorizationDiagnostics =
+    buildBoundedShadowCollectorOperatorAuthorizationDiagnostics();
+  const boundedShadowCollectorLiveProofReceiptDiagnostics =
+    buildBoundedShadowCollectorLiveProofReceiptDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14520,6 +14531,12 @@ export function TradeApp({
         authenticatedShadowCollectorDryRunDiagnostics,
       bounded_shadow_collector_execution_proof:
         boundedShadowCollectorExecutionProofDiagnostics,
+      bounded_shadow_collector_execution_proof_preflight:
+        boundedShadowCollectorExecutionProofPreflightDiagnostics,
+      bounded_shadow_collector_operator_authorization:
+        boundedShadowCollectorOperatorAuthorizationDiagnostics,
+      bounded_shadow_collector_live_proof_receipt:
+        boundedShadowCollectorLiveProofReceiptDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -37568,6 +37585,54 @@ function MarketDiagnosticsConsolePanel({
       >
         {JSON.stringify(
           summary.bounded_shadow_collector_execution_proof ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-preflight-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof_preflight?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof_preflight?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof_preflight ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-operator-authorization-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_operator_authorization?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_operator_authorization?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_operator_authorization ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-live-proof-receipt-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_live_proof_receipt?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_live_proof_receipt?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_live_proof_receipt ?? null,
           null,
           2,
         )}

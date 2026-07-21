@@ -97,6 +97,7 @@ function executionInput(overrides: Partial<{
   request: ReturnType<typeof request>;
   provider: Parameters<ReturnType<typeof createBoundedShadowCollectorExecutionProofRuntime>["execute"]>[0]["provider"];
   timeout_ms: number;
+  execution_feature_enabled: boolean;
 }> = {}) {
   return {
     request: overrides.request ?? request(),
@@ -107,6 +108,9 @@ function executionInput(overrides: Partial<{
       "provider_metadata_status" in overrides
         ? overrides.provider_metadata_status ?? null
         : "within_budget",
+    execution_feature_enabled: overrides.execution_feature_enabled ?? true,
+    ticker_input_source: "scanner_context_symbols" as const,
+    evaluation_now: now,
     provider: overrides.provider ?? (async () => providerResult()),
     timeout_ms: overrides.timeout_ms,
   };
@@ -283,6 +287,29 @@ test("Action 568 requires an explicit normal-capacity Action 565 planner authori
   expect(zeroAllocated).toMatchObject({ ok: false, blocker: "planner_authorization_unavailable" });
   expect(executionReadyOnly).toMatchObject({ ok: false, blocker: "planner_authorization_unavailable" });
   expect(protectedNormalWorkload).toMatchObject({ ok: false, blocker: "planner_authorization_unavailable" });
+  expect(calls).toBe(0);
+});
+
+test("Action 568 blocks otherwise-correct policy totals when planner state is unavailable", async () => {
+  const base = plan("AAPL");
+  const nonPlanning = structuredClone(base);
+  Object.defineProperty(nonPlanning, "status", { value: "active" });
+  const providerBlocked = structuredClone(base);
+  Object.defineProperty(providerBlocked, "degradation_level", { value: "provider_blocked" });
+  const unknownDegradation = structuredClone(base);
+  Object.defineProperty(unknownDegradation, "degradation_level", { value: "unknown" });
+  let calls = 0;
+  const runtime = createBoundedShadowCollectorExecutionProofRuntime();
+  for (const unavailablePlan of [nonPlanning, providerBlocked, unknownDegradation]) {
+    const result = await runtime.execute(executionInput({
+      budget_plan: unavailablePlan,
+      provider: async () => {
+        calls += 1;
+        return providerResult();
+      },
+    }));
+    expect(result).toMatchObject({ ok: false, blocker: "budget_not_available", provider_request_count: 0 });
+  }
   expect(calls).toBe(0);
 });
 
