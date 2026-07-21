@@ -77,6 +77,7 @@ import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
 import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-readiness";
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import type { ContinuousIntelligenceBudgetPlan } from "@/lib/continuous-intelligence-budget-orchestrator";
 import {
   clientUnavailableLearningAccelerationConfig,
   type LearningAccelerationModeEvaluation,
@@ -138,6 +139,7 @@ export type MarketDiagnosticsConsoleSummary = {
   sections: MarketDiagnosticsConsoleSection[];
   top_blockers: MarketDiagnosticsConsoleWarning[];
   top_warnings: MarketDiagnosticsConsoleWarning[];
+  continuous_intelligence_budget_plan: ContinuousIntelligenceBudgetPlan | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -161,6 +163,7 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
+  continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -2673,6 +2676,7 @@ function buildSections(
   const latestBatch = input.batch_memory.latest_batch;
   const providerPlanProfile = providerPlanProfileMetrics(input);
   const providerUpgrade = providerUpgradeChecklist(providerPlanProfile);
+  const continuousBudgetPlan = input.continuous_intelligence_budget_plan ?? null;
   const headline = diagnosticsHeadline(input);
   const batchCandidateAudit = getBatchCandidateAudit(input);
   const scheduledScanTimelineToday =
@@ -14521,6 +14525,90 @@ function buildSections(
           input.provider_budget_guard.latest_limit_signal.status,
       },
     }),
+    ...(continuousBudgetPlan
+      ? [
+          section({
+            section_id: "continuous_intelligence_budget_plan",
+            title: "Continuous Intelligence Budget Plan",
+            severity:
+              continuousBudgetPlan.degradation_level === "provider_blocked"
+                ? "critical"
+                : continuousBudgetPlan.degradation_level === "constrained" ||
+                    continuousBudgetPlan.degradation_level === "critical_only" ||
+                    continuousBudgetPlan.degradation_level === "unknown"
+                  ? "warning"
+                  : "info",
+            lines: [
+              lineValue("Status", words(continuousBudgetPlan.status)),
+              lineValue("Session", words(continuousBudgetPlan.session)),
+              lineValue(
+                "Credits",
+                `allocated ${continuousBudgetPlan.allocation.allocated_credits} / reserved ${continuousBudgetPlan.allocation.reserved_credits} / deferred ${continuousBudgetPlan.allocation.deferred_credits}`,
+              ),
+              lineValue(
+                "Priority",
+                `critical ${continuousBudgetPlan.priority_allocation.critical.allocated_credits} / high ${continuousBudgetPlan.priority_allocation.high.allocated_credits} / normal ${continuousBudgetPlan.priority_allocation.normal.allocated_credits} / background ${continuousBudgetPlan.priority_allocation.background.allocated_credits}`,
+              ),
+              lineValue(
+                "REST layers",
+                continuousBudgetPlan.rest_layers
+                  .map(
+                    (layer) =>
+                      `${layer.layer}:${layer.allocated_credits}c/${layer.shard_count} shards`,
+                  )
+                  .join(", "),
+              ),
+              lineValue(
+                "WebSocket slots",
+                `${continuousBudgetPlan.websocket_hot_set.assigned_count}/${continuousBudgetPlan.websocket_hot_set.slot_limit}`,
+              ),
+              lineValue(
+                "Degradation",
+                words(continuousBudgetPlan.degradation_level),
+              ),
+              lineValue(
+                "Legacy mismatches",
+                continuousBudgetPlan.legacy_constraints.filter(
+                  (constraint) => constraint.mismatch,
+                ).length,
+              ),
+              lineValue(
+                "Next action",
+                "Action 566: Shared Candle Cache and Rolling REST Collector, Shadow Mode",
+              ),
+              "Planning only / no runtime effect: no provider calls, WebSocket connections, schedule changes, ranking changes, execution changes, database writes, or migrations.",
+            ],
+            metrics: {
+              contract: continuousBudgetPlan.contract,
+              plan_version: continuousBudgetPlan.plan_version,
+              status: continuousBudgetPlan.status,
+              session: continuousBudgetPlan.session,
+              degradation_level: continuousBudgetPlan.degradation_level,
+              total_credits: continuousBudgetPlan.policy.total_credits,
+              allocated_credits:
+                continuousBudgetPlan.allocation.allocated_credits,
+              reserved_credits:
+                continuousBudgetPlan.allocation.reserved_credits,
+              deferred_credits:
+                continuousBudgetPlan.allocation.deferred_credits,
+              unused_headroom_credits:
+                continuousBudgetPlan.allocation.unused_headroom_credits,
+              websocket_assigned:
+                continuousBudgetPlan.websocket_hot_set.assigned_count,
+              websocket_limit:
+                continuousBudgetPlan.websocket_hot_set.slot_limit,
+              legacy_mismatch_count:
+                continuousBudgetPlan.legacy_constraints.filter(
+                  (constraint) => constraint.mismatch,
+                ).length,
+              planning_only: true,
+              provider_calls: false,
+              websocket_connections: false,
+              database_writes: false,
+            },
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18436,6 +18524,7 @@ function buildJsonPayload(input: {
   sections: MarketDiagnosticsConsoleSection[];
   blockers: MarketDiagnosticsConsoleWarning[];
   warnings: MarketDiagnosticsConsoleWarning[];
+  continuousIntelligenceBudgetPlan: ContinuousIntelligenceBudgetPlan | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -18448,6 +18537,8 @@ function buildJsonPayload(input: {
       severity: sectionItem.severity,
       metrics: sectionItem.metrics,
     })),
+    continuous_intelligence_budget_plan:
+      input.continuousIntelligenceBudgetPlan,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -18578,6 +18669,8 @@ export function buildMarketDiagnosticsConsoleSummary(
       sections,
       blockers: topWarnings.blockers,
       warnings: topWarnings.warnings,
+      continuousIntelligenceBudgetPlan:
+        input.continuous_intelligence_budget_plan ?? null,
     }),
     null,
     2,
@@ -18609,6 +18702,8 @@ export function buildMarketDiagnosticsConsoleSummary(
     sections,
     top_blockers: topWarnings.blockers,
     top_warnings: topWarnings.warnings,
+    continuous_intelligence_budget_plan:
+      input.continuous_intelligence_budget_plan ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),
@@ -18631,6 +18726,8 @@ export function marketDiagnosticsConsoleSummaryJson(
       sections: summary.sections,
       top_blockers: summary.top_blockers,
       top_warnings: summary.top_warnings,
+      continuous_intelligence_budget_plan:
+        summary.continuous_intelligence_budget_plan,
       copy_payloads: {
         summary_text: {
           format: summary.copy_payloads.summary_text.format,
