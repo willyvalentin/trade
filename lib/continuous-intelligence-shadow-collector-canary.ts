@@ -19,6 +19,10 @@ import {
   type ContinuousIntelligenceShadowCanaryLifecycleIdentity,
   type ContinuousIntelligenceShadowCanaryClaimResult,
 } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
+import {
+  buildContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics,
+  type ContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics,
+} from "@/lib/continuous-intelligence-shadow-canary-activation-readiness";
 
 export const continuousIntelligenceShadowCollectorCanaryContractVersion =
   "continuous_intelligence_shadow_collector_canary_v1" as const;
@@ -410,12 +414,12 @@ export function buildContinuousIntelligenceShadowCanaryReceiptId(
   return `canary_receipt_${boundedShadowCollectorExecutionProofFingerprint(request).replaceAll("|", "_").replaceAll(":", "-").slice(0, 96)}`;
 }
 
-export type ContinuousIntelligenceShadowCanaryDiagnostics = {
+export type ContinuousIntelligenceShadowCanaryDiagnostics = ContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics & {
   contract_version: typeof continuousIntelligenceShadowCollectorCanaryContractVersion;
   canary_route_present: true;
   canary_preflight_route_present: true;
   scheduled_function_foundation_present: true;
-  schedule_active: false;
+  schedule_active: "unknown";
   enabled_flag_state_client_side: "unknown";
   kill_switch_state_client_side: "unknown";
   fixed_ticker_allowlist_size: 1;
@@ -443,5 +447,5 @@ export type ContinuousIntelligenceShadowCanaryDiagnostics = {
 };
 
 export function buildContinuousIntelligenceShadowCanaryDiagnostics(): ContinuousIntelligenceShadowCanaryDiagnostics {
-  return { contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, canary_route_present: true, canary_preflight_route_present: true, scheduled_function_foundation_present: true, schedule_active: false, enabled_flag_state_client_side: "unknown", kill_switch_state_client_side: "unknown", fixed_ticker_allowlist_size: 1, per_run_request_cap: 1, per_run_credit_cap: 1, daily_run_cap: 2, daily_credit_cap: 2, durable_usage_required: true, atomic_daily_claim_required: true, atomic_begin_attempt_required: true, atomic_finalization_required: true, finalization_identity_bound: true, direct_finalization_update_allowed: false, provider_entry_grant: "attempt_started_only", terminal_claim_retry_allowed: false, daily_claim_contract: continuousIntelligenceShadowCanaryClaimContractVersion, daily_claim_table: continuousIntelligenceShadowCanaryClaimTableName, cross_instance_cap_enforced_by_database: true, process_local_lock_is_daily_cap_authority: false, status: "not_observed", latest_safe_canary_result: null, browser_invocation: false, provider_inferred: false, recommendation_scanner_execution_effects: false };
+  return { ...buildContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics(), contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, canary_route_present: true, canary_preflight_route_present: true, scheduled_function_foundation_present: true, schedule_active: "unknown", enabled_flag_state_client_side: "unknown", kill_switch_state_client_side: "unknown", fixed_ticker_allowlist_size: 1, per_run_request_cap: 1, per_run_credit_cap: 1, daily_run_cap: 2, daily_credit_cap: 2, durable_usage_required: true, atomic_daily_claim_required: true, atomic_begin_attempt_required: true, atomic_finalization_required: true, finalization_identity_bound: true, direct_finalization_update_allowed: false, provider_entry_grant: "attempt_started_only", terminal_claim_retry_allowed: false, daily_claim_contract: continuousIntelligenceShadowCanaryClaimContractVersion, daily_claim_table: continuousIntelligenceShadowCanaryClaimTableName, cross_instance_cap_enforced_by_database: true, process_local_lock_is_daily_cap_authority: false, status: "not_observed", latest_safe_canary_result: null, browser_invocation: false, provider_inferred: false, recommendation_scanner_execution_effects: false };
 }
