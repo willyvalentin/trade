@@ -78,6 +78,7 @@ import type { LiveMarketTrialReadinessSummary } from "@/lib/live-market-trial-re
 import type { LiveMarketTrialRunbookSummary } from "@/lib/live-market-trial-runbook";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
 import type { ContinuousIntelligenceBudgetPlan } from "@/lib/continuous-intelligence-budget-orchestrator";
+import type { RollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   clientUnavailableLearningAccelerationConfig,
   type LearningAccelerationModeEvaluation,
@@ -140,6 +141,7 @@ export type MarketDiagnosticsConsoleSummary = {
   top_blockers: MarketDiagnosticsConsoleWarning[];
   top_warnings: MarketDiagnosticsConsoleWarning[];
   continuous_intelligence_budget_plan: ContinuousIntelligenceBudgetPlan | null;
+  shared_candle_cache_rolling_rest_collector: RollingRestCollectorShadowSummary | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -164,6 +166,7 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
+  shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -14609,6 +14612,188 @@ function buildSections(
           }),
         ]
       : []),
+    ...(input.shared_candle_cache_rolling_rest_collector
+      ? [
+          section({
+            section_id: "shared_candle_cache_rolling_rest_collector",
+            title: "Shared Candle Cache and Rolling REST Collector",
+            severity: "info",
+            lines: [
+              lineValue(
+                "Status",
+                words(input.shared_candle_cache_rolling_rest_collector.status),
+              ),
+              lineValue(
+                "Shadow mode",
+                input.shared_candle_cache_rolling_rest_collector
+                  .shadow_mode_enabled
+                  ? "enabled"
+                  : "disabled",
+              ),
+              lineValue(
+                "Versions",
+                `collector ${input.shared_candle_cache_rolling_rest_collector.collector_version} / cache ${input.shared_candle_cache_rolling_rest_collector.cache_version}`,
+              ),
+              lineValue(
+                "Session/degradation",
+                `${words(
+                  input.shared_candle_cache_rolling_rest_collector.session,
+                )} / ${words(
+                  input.shared_candle_cache_rolling_rest_collector
+                    .degradation_level,
+                )}`,
+              ),
+              lineValue(
+                "Planner credits",
+                `requested ${input.shared_candle_cache_rolling_rest_collector.diagnostics.planner_requested_credits} / allocated ${input.shared_candle_cache_rolling_rest_collector.diagnostics.planner_allocated_credits} / deferred ${input.shared_candle_cache_rolling_rest_collector.diagnostics.planner_deferred_credits}`,
+              ),
+              lineValue(
+                "Executable credits",
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .executable_credits,
+              ),
+              lineValue(
+                "Jobs",
+                `planned ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_planned} / cache-checked ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_cache_checked} / provider-executed ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_provider_executed} / cache-satisfied ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_cache_satisfied} / partial ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_partially_satisfied} / deferred ${input.shared_candle_cache_rolling_rest_collector.diagnostics.jobs_deferred}`,
+              ),
+              lineValue(
+                "Cache",
+                `hits ${input.shared_candle_cache_rolling_rest_collector.diagnostics.cache_hits} / misses ${input.shared_candle_cache_rolling_rest_collector.diagnostics.cache_misses} / partial ${input.shared_candle_cache_rolling_rest_collector.diagnostics.cache_partial_hits}`,
+              ),
+              lineValue(
+                "Provider calls",
+                `attempted ${input.shared_candle_cache_rolling_rest_collector.diagnostics.provider_calls_attempted} / succeeded ${input.shared_candle_cache_rolling_rest_collector.diagnostics.provider_calls_succeeded} / failed ${input.shared_candle_cache_rolling_rest_collector.diagnostics.provider_calls_failed}`,
+              ),
+              lineValue(
+                "Candles",
+                `returned ${input.shared_candle_cache_rolling_rest_collector.diagnostics.candles_returned} / valid ${input.shared_candle_cache_rolling_rest_collector.diagnostics.candles_valid} / invalid ${input.shared_candle_cache_rolling_rest_collector.diagnostics.candles_invalid}`,
+              ),
+              lineValue(
+                "In-flight joins",
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .in_flight_joins,
+              ),
+              lineValue(
+                "Top defer reasons",
+                JSON.stringify(
+                  input.shared_candle_cache_rolling_rest_collector.diagnostics
+                    .top_defer_reasons,
+                ),
+              ),
+              lineValue(
+                "Cache size/stale/timeouts",
+                `${input.shared_candle_cache_rolling_rest_collector.diagnostics.cache_size}/${input.shared_candle_cache_rolling_rest_collector.diagnostics.stale_entry_count}/${input.shared_candle_cache_rolling_rest_collector.diagnostics.timeout_count}`,
+              ),
+              lineValue(
+                "Next action",
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .next_action,
+              ),
+              "No-effect boundary: Action 566 does not affect recommendations, ranking, confidence, AI Projection, execution, scanner universe, official schedules, or database writes.",
+            ],
+            metrics: {
+              status:
+                input.shared_candle_cache_rolling_rest_collector.status,
+              shadow_mode_enabled:
+                input.shared_candle_cache_rolling_rest_collector
+                  .shadow_mode_enabled,
+              collector_version:
+                input.shared_candle_cache_rolling_rest_collector
+                  .collector_version,
+              cache_version:
+                input.shared_candle_cache_rolling_rest_collector.cache_version,
+              budget_plan_contract:
+                input.shared_candle_cache_rolling_rest_collector
+                  .budget_plan_contract,
+              budget_plan_version:
+                input.shared_candle_cache_rolling_rest_collector
+                  .budget_plan_version,
+              session:
+                input.shared_candle_cache_rolling_rest_collector.session,
+              degradation_level:
+                input.shared_candle_cache_rolling_rest_collector
+                  .degradation_level,
+              provider_state:
+                input.shared_candle_cache_rolling_rest_collector.provider_state,
+              planner_requested_credits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .planner_requested_credits,
+              planner_allocated_credits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .planner_allocated_credits,
+              planner_deferred_credits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .planner_deferred_credits,
+              executable_credits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .executable_credits,
+              jobs_planned:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_planned,
+              jobs_cache_checked:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_cache_checked,
+              jobs_provider_executed:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_provider_executed,
+              jobs_cache_satisfied:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_cache_satisfied,
+              jobs_partially_satisfied:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_partially_satisfied,
+              jobs_deferred:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .jobs_deferred,
+              cache_hits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .cache_hits,
+              cache_misses:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .cache_misses,
+              cache_partial_hits:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .cache_partial_hits,
+              in_flight_joins:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .in_flight_joins,
+              provider_calls_attempted:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .provider_calls_attempted,
+              provider_calls_succeeded:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .provider_calls_succeeded,
+              provider_calls_failed:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .provider_calls_failed,
+              candles_returned:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .candles_returned,
+              candles_valid:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .candles_valid,
+              candles_invalid:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .candles_invalid,
+              top_defer_reasons: JSON.stringify(
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .top_defer_reasons,
+              ),
+              cache_size:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .cache_size,
+              stale_entry_count:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .stale_entry_count,
+              timeout_count:
+                input.shared_candle_cache_rolling_rest_collector.diagnostics
+                  .timeout_count,
+              no_effect_boundary:
+                "recommendations/ranking/confidence/ai_projection/execution/scanner/schedules/writes unchanged",
+            },
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18525,6 +18710,7 @@ function buildJsonPayload(input: {
   blockers: MarketDiagnosticsConsoleWarning[];
   warnings: MarketDiagnosticsConsoleWarning[];
   continuousIntelligenceBudgetPlan: ContinuousIntelligenceBudgetPlan | null;
+  sharedCandleCacheRollingRestCollector: RollingRestCollectorShadowSummary | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -18539,6 +18725,8 @@ function buildJsonPayload(input: {
     })),
     continuous_intelligence_budget_plan:
       input.continuousIntelligenceBudgetPlan,
+    shared_candle_cache_rolling_rest_collector:
+      input.sharedCandleCacheRollingRestCollector,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -18671,6 +18859,8 @@ export function buildMarketDiagnosticsConsoleSummary(
       warnings: topWarnings.warnings,
       continuousIntelligenceBudgetPlan:
         input.continuous_intelligence_budget_plan ?? null,
+      sharedCandleCacheRollingRestCollector:
+        input.shared_candle_cache_rolling_rest_collector ?? null,
     }),
     null,
     2,
@@ -18704,6 +18894,8 @@ export function buildMarketDiagnosticsConsoleSummary(
     top_warnings: topWarnings.warnings,
     continuous_intelligence_budget_plan:
       input.continuous_intelligence_budget_plan ?? null,
+    shared_candle_cache_rolling_rest_collector:
+      input.shared_candle_cache_rolling_rest_collector ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),
@@ -18728,6 +18920,8 @@ export function marketDiagnosticsConsoleSummaryJson(
       top_warnings: summary.top_warnings,
       continuous_intelligence_budget_plan:
         summary.continuous_intelligence_budget_plan,
+      shared_candle_cache_rolling_rest_collector:
+        summary.shared_candle_cache_rolling_rest_collector,
       copy_payloads: {
         summary_text: {
           format: summary.copy_payloads.summary_text.format,
