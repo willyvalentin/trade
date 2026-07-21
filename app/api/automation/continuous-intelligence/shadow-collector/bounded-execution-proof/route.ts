@@ -18,6 +18,18 @@ import {
   boundedShadowCollectorLatestProofReceiptStore,
   buildBoundedShadowCollectorLiveProofReceipt,
 } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import {
+  boundedShadowCollectorProofAuditFlagName,
+} from "@/lib/bounded-shadow-collector-proof-audit-contract";
+import {
+  isBoundedShadowCollectorProofAuditEnabled,
+} from "@/lib/bounded-shadow-collector-proof-audit-store";
+import { persistBoundedShadowCollectorProofAudit } from "@/lib/server/bounded-shadow-collector-proof-audit-persistence";
+import {
+  continuousIntelligenceCreditLedgerFlagName,
+  isContinuousIntelligenceCreditLedgerEnabled,
+} from "@/lib/continuous-intelligence-credit-ledger";
+import { persistContinuousIntelligenceCreditLedger } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 
 export const dynamic = "force-dynamic";
@@ -196,8 +208,52 @@ export async function POST(request: Request) {
       result,
       operator_authorization_verified: true,
       authorization_consumed: true,
+      entry_kind: "bounded_manual_proof",
     });
     boundedShadowCollectorLatestProofReceiptStore.record(receipt);
+    const durableAudit = isBoundedShadowCollectorProofAuditEnabled(
+      process.env.TURE_BOUNDED_PROOF_DURABLE_AUDIT_ENABLED,
+    )
+      ? {
+          enabled: true,
+          attempted: true,
+          ...(await persistBoundedShadowCollectorProofAudit(receipt)),
+        }
+      : {
+          enabled: false,
+          attempted: false,
+          status: "disabled" as const,
+          receipt_id: receipt.receipt_id,
+          durable: false,
+          persisted: false,
+          idempotent: false,
+          safe_blocker_category: "durable_audit_disabled" as const,
+        };
+    const creditLedger = isContinuousIntelligenceCreditLedgerEnabled(
+      process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED,
+    )
+      ? {
+          enabled: true,
+          attempted: true,
+          ...(await persistContinuousIntelligenceCreditLedger({
+            receipt,
+            durable_audit: {
+              status: durableAudit.status,
+              persisted: durableAudit.persisted,
+            },
+          })),
+        }
+      : {
+          enabled: false,
+          attempted: false,
+          status: "disabled" as const,
+          source_receipt_id: receipt.receipt_id,
+          ledger_entry_id: null,
+          persisted: false,
+          idempotent: false,
+          reconciliation_status: null,
+          safe_blocker_category: "credit_ledger_disabled" as const,
+        };
 
     console.info("[bounded-shadow-collector-execution-proof]", {
       route_marker: boundedShadowCollectorExecutionProofRouteMarker,
@@ -212,6 +268,8 @@ export async function POST(request: Request) {
         route_marker: boundedShadowCollectorExecutionProofRouteMarker,
         route_path: boundedShadowCollectorExecutionProofRoutePath,
         execution_feature_flag: boundedShadowCollectorExecutionProofFlagName,
+        durable_audit_feature_flag: boundedShadowCollectorProofAuditFlagName,
+        credit_ledger_feature_flag: continuousIntelligenceCreditLedgerFlagName,
         result: {
           ...result,
           operator_authorization_verified: true,
@@ -219,6 +277,8 @@ export async function POST(request: Request) {
           authorization_request_bound: true,
         },
         receipt,
+        durable_audit: durableAudit,
+        credit_ledger: creditLedger,
       },
       responseStatus(result),
     );

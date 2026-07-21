@@ -421,6 +421,9 @@ import {
 } from "@/lib/bounded-shadow-collector-execution-proof";
 import { buildBoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
 import { buildBoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import { buildBoundedShadowCollectorProofAuditDiagnostics } from "@/lib/bounded-shadow-collector-proof-audit-contract";
+import { buildContinuousIntelligenceCreditLedgerDiagnostics } from "@/lib/continuous-intelligence-credit-ledger";
+import { buildContinuousIntelligenceShadowCanaryDiagnostics } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import {
   buildContinuousIntelligenceBudgetPlan,
   continuousIntelligenceBudgetPlanJson,
@@ -14419,6 +14422,12 @@ export function TradeApp({
     buildBoundedShadowCollectorOperatorAuthorizationDiagnostics();
   const boundedShadowCollectorLiveProofReceiptDiagnostics =
     buildBoundedShadowCollectorLiveProofReceiptDiagnostics();
+  const boundedShadowCollectorProofAuditDiagnostics =
+    buildBoundedShadowCollectorProofAuditDiagnostics();
+  const continuousIntelligenceCreditLedgerDiagnostics =
+    buildContinuousIntelligenceCreditLedgerDiagnostics();
+  const continuousIntelligenceShadowCanaryDiagnostics =
+    buildContinuousIntelligenceShadowCanaryDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14537,6 +14546,12 @@ export function TradeApp({
         boundedShadowCollectorOperatorAuthorizationDiagnostics,
       bounded_shadow_collector_live_proof_receipt:
         boundedShadowCollectorLiveProofReceiptDiagnostics,
+      bounded_shadow_collector_proof_audit:
+        boundedShadowCollectorProofAuditDiagnostics,
+      continuous_intelligence_credit_ledger:
+        continuousIntelligenceCreditLedgerDiagnostics,
+      continuous_intelligence_shadow_collector_canary:
+        continuousIntelligenceShadowCanaryDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,

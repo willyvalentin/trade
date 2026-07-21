@@ -83,6 +83,9 @@ import type { BoundedShadowCollectorExecutionProofDiagnostics } from "@/lib/boun
 import type { BoundedShadowCollectorExecutionProofPreflightDiagnostics } from "@/lib/bounded-shadow-collector-execution-proof";
 import type { BoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
 import type { BoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import type { BoundedShadowCollectorProofAuditDiagnostics } from "@/lib/bounded-shadow-collector-proof-audit-contract";
+import type { ContinuousIntelligenceCreditLedgerDiagnostics } from "@/lib/continuous-intelligence-credit-ledger";
+import type { ContinuousIntelligenceShadowCanaryDiagnostics } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import type { RollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
 import {
   clientUnavailableLearningAccelerationConfig,
@@ -152,6 +155,9 @@ export type MarketDiagnosticsConsoleSummary = {
   bounded_shadow_collector_execution_proof_preflight: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
   bounded_shadow_collector_operator_authorization: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
   bounded_shadow_collector_live_proof_receipt: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
+  bounded_shadow_collector_proof_audit: BoundedShadowCollectorProofAuditDiagnostics | null;
+  continuous_intelligence_credit_ledger: ContinuousIntelligenceCreditLedgerDiagnostics | null;
+  continuous_intelligence_shadow_collector_canary: ContinuousIntelligenceShadowCanaryDiagnostics | null;
   copy_payloads: {
     summary_text: MarketDiagnosticsConsoleCopyPayload;
     json: MarketDiagnosticsConsoleCopyPayload;
@@ -182,6 +188,9 @@ export type MarketDiagnosticsConsoleInput = {
   bounded_shadow_collector_execution_proof_preflight?: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
   bounded_shadow_collector_operator_authorization?: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
   bounded_shadow_collector_live_proof_receipt?: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
+  bounded_shadow_collector_proof_audit?: BoundedShadowCollectorProofAuditDiagnostics | null;
+  continuous_intelligence_credit_ledger?: ContinuousIntelligenceCreditLedgerDiagnostics | null;
+  continuous_intelligence_shadow_collector_canary?: ContinuousIntelligenceShadowCanaryDiagnostics | null;
   learning_acceleration_config?: LearningAccelerationModeEvaluation | null;
   historical_candle_storage_detection?: {
     historical_candles_table_detected?: boolean | null;
@@ -15066,6 +15075,75 @@ function buildSections(
           }),
         ]
       : []),
+    ...(input.bounded_shadow_collector_proof_audit
+      ? [
+          section({
+            section_id: "bounded_shadow_collector_proof_audit",
+            title: "Bounded Shadow Collector Durable Proof Audit",
+            severity: "info",
+            lines: [
+              lineValue("Status", words(input.bounded_shadow_collector_proof_audit.status)),
+              lineValue("Migration expected", input.bounded_shadow_collector_proof_audit.migration_expected),
+              lineValue("Feature flag client state", input.bounded_shadow_collector_proof_audit.feature_flag_state_client_side),
+              lineValue("Durable readback route", input.bounded_shadow_collector_proof_audit.durable_readback_route_present),
+              lineValue("Import route", input.bounded_shadow_collector_proof_audit.import_route_present),
+              "Passive diagnostics only: no audit route invocation, provider call, token action, runtime reservation, cache mutation, schedule, recommendation, scanner, ranking, confidence, execution, or broker effect.",
+            ],
+            metrics: {
+              contract_version: input.bounded_shadow_collector_proof_audit.contract_version,
+              table_name: input.bounded_shadow_collector_proof_audit.table_name,
+              migration_expected: input.bounded_shadow_collector_proof_audit.migration_expected,
+              persistence_feature_flag: input.bounded_shadow_collector_proof_audit.persistence_feature_flag,
+              feature_flag_state_client_side: input.bounded_shadow_collector_proof_audit.feature_flag_state_client_side,
+              status: input.bounded_shadow_collector_proof_audit.status,
+              durable_readback_route_present: input.bounded_shadow_collector_proof_audit.durable_readback_route_present,
+              import_route_present: input.bounded_shadow_collector_proof_audit.import_route_present,
+              provider_call_inferred_by_client: input.bounded_shadow_collector_proof_audit.provider_call_inferred_by_client,
+              token_present_in_diagnostics: input.bounded_shadow_collector_proof_audit.token_present_in_diagnostics,
+              candle_payload_persisted: input.bounded_shadow_collector_proof_audit.candle_payload_persisted,
+            },
+          }),
+        ]
+      : []),
+    ...(input.continuous_intelligence_credit_ledger
+      ? [
+          section({
+            section_id: "continuous_intelligence_credit_ledger",
+            title: "Provider Credit Reconciliation Ledger",
+            severity: "info",
+            lines: [
+              lineValue("Status", words(input.continuous_intelligence_credit_ledger.status)),
+              lineValue("Migration expected", input.continuous_intelligence_credit_ledger.migration_expected),
+              lineValue("Actual-credit verification", words(input.continuous_intelligence_credit_ledger.actual_credit_verification_status)),
+              lineValue("Reserve charging allowed", input.continuous_intelligence_credit_ledger.reserve_charging_allowed),
+              "Passive diagnostics only: no ledger route invocation, provider call, token action, runtime reservation, cache mutation, schedule, recommendation, scanner, ranking, confidence, execution, or broker effect.",
+            ],
+            metrics: input.continuous_intelligence_credit_ledger,
+          }),
+        ]
+      : []),
+    ...(input.continuous_intelligence_shadow_collector_canary
+      ? [
+          section({
+            section_id: "continuous_intelligence_shadow_collector_canary",
+            title: "Scheduled Shadow Collector Canary",
+            severity: "info",
+            lines: [
+              lineValue("Status", words(input.continuous_intelligence_shadow_collector_canary.status)),
+              lineValue("Schedule active", input.continuous_intelligence_shadow_collector_canary.schedule_active),
+              lineValue("Durable usage required", input.continuous_intelligence_shadow_collector_canary.durable_usage_required),
+              lineValue("Atomic begin-attempt required", input.continuous_intelligence_shadow_collector_canary.atomic_begin_attempt_required),
+              lineValue("Atomic finalization required", input.continuous_intelligence_shadow_collector_canary.atomic_finalization_required),
+              lineValue("Finalization identity bound", input.continuous_intelligence_shadow_collector_canary.finalization_identity_bound),
+              lineValue("Provider entry grant", words(input.continuous_intelligence_shadow_collector_canary.provider_entry_grant)),
+              lineValue("Terminal claim retry allowed", input.continuous_intelligence_shadow_collector_canary.terminal_claim_retry_allowed),
+              lineValue("Daily caps", `${input.continuous_intelligence_shadow_collector_canary.daily_run_cap} runs / ${input.continuous_intelligence_shadow_collector_canary.daily_credit_cap} credits`),
+              "Passive diagnostics only: no browser invocation, provider call, schedule activation, cache mutation, recommendation, scanner, ranking, confidence, execution, or broker effect.",
+            ],
+            metrics: input.continuous_intelligence_shadow_collector_canary,
+          }),
+        ]
+      : []),
     section({
       section_id: "provider_plan_profile",
       title: "Provider plan profile",
@@ -18988,6 +19066,9 @@ function buildJsonPayload(input: {
   boundedShadowCollectorExecutionProofPreflight: BoundedShadowCollectorExecutionProofPreflightDiagnostics | null;
   boundedShadowCollectorOperatorAuthorization: BoundedShadowCollectorOperatorAuthorizationDiagnostics | null;
   boundedShadowCollectorLiveProofReceipt: BoundedShadowCollectorLiveProofReceiptDiagnostics | null;
+  boundedShadowCollectorProofAudit: BoundedShadowCollectorProofAuditDiagnostics | null;
+  continuousIntelligenceCreditLedger: ContinuousIntelligenceCreditLedgerDiagnostics | null;
+  continuousIntelligenceShadowCollectorCanary: ContinuousIntelligenceShadowCanaryDiagnostics | null;
 }) {
   return {
     summary_kind: "market_diagnostics_console",
@@ -19014,6 +19095,9 @@ function buildJsonPayload(input: {
       input.boundedShadowCollectorOperatorAuthorization,
     bounded_shadow_collector_live_proof_receipt:
       input.boundedShadowCollectorLiveProofReceipt,
+    bounded_shadow_collector_proof_audit: input.boundedShadowCollectorProofAudit,
+    continuous_intelligence_credit_ledger: input.continuousIntelligenceCreditLedger,
+    continuous_intelligence_shadow_collector_canary: input.continuousIntelligenceShadowCollectorCanary,
     top_blockers: input.blockers,
     top_warnings: input.warnings,
   };
@@ -19158,6 +19242,12 @@ export function buildMarketDiagnosticsConsoleSummary(
         input.bounded_shadow_collector_operator_authorization ?? null,
       boundedShadowCollectorLiveProofReceipt:
         input.bounded_shadow_collector_live_proof_receipt ?? null,
+      boundedShadowCollectorProofAudit:
+        input.bounded_shadow_collector_proof_audit ?? null,
+      continuousIntelligenceCreditLedger:
+        input.continuous_intelligence_credit_ledger ?? null,
+      continuousIntelligenceShadowCollectorCanary:
+        input.continuous_intelligence_shadow_collector_canary ?? null,
     }),
     null,
     2,
@@ -19203,6 +19293,12 @@ export function buildMarketDiagnosticsConsoleSummary(
       input.bounded_shadow_collector_operator_authorization ?? null,
     bounded_shadow_collector_live_proof_receipt:
       input.bounded_shadow_collector_live_proof_receipt ?? null,
+    bounded_shadow_collector_proof_audit:
+      input.bounded_shadow_collector_proof_audit ?? null,
+    continuous_intelligence_credit_ledger:
+      input.continuous_intelligence_credit_ledger ?? null,
+    continuous_intelligence_shadow_collector_canary:
+      input.continuous_intelligence_shadow_collector_canary ?? null,
     copy_payloads: {
       summary_text: payload("summary_text", generatedAt, textPayload),
       json: payload("json", generatedAt, jsonPayload),
