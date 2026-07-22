@@ -8,10 +8,11 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
   sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import { sanitizeContinuousIntelligenceShadowCanaryManualExecutionLease } from "@/lib/continuous-intelligence-shadow-canary-manual-execution-lease";
 import { buildContinuousIntelligenceShadowCanaryManualAuthorizationContext } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-context";
 import {
   generateContinuousIntelligenceShadowCanaryManualAuthorizationToken,
-  issueContinuousIntelligenceShadowCanaryManualAuthorization,
+  issueContinuousIntelligenceShadowCanaryManualAuthorizationWithLease,
 } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-persistence";
 
 export const dynamic = "force-dynamic";
@@ -72,13 +73,14 @@ export async function POST(request: Request) {
       }, 403);
     }
     const rawToken = generateContinuousIntelligenceShadowCanaryManualAuthorizationToken();
-    const result = await issueContinuousIntelligenceShadowCanaryManualAuthorization({
+    const result = await issueContinuousIntelligenceShadowCanaryManualAuthorizationWithLease({
       binding,
       authorization_id: `manual_canary_authorization_${randomUUID()}`,
+      execution_lease_id: `manual_canary_execution_lease_${randomUUID()}`,
       raw_token: rawToken,
       now: context.now,
     });
-    if (result.status !== "issued" || !result.authorization) {
+    if (result.status !== "issued" || !result.authorization || !result.lease) {
       return json({
         error: "Manual canary authorization was not issued.",
         contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
@@ -97,6 +99,7 @@ export async function POST(request: Request) {
       route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
       issued: true,
       authorization: sanitizeContinuousIntelligenceShadowCanaryManualAuthorization(result.authorization),
+      execution_lease: sanitizeContinuousIntelligenceShadowCanaryManualExecutionLease(result.lease),
       authorization_token: rawToken,
       raw_token_returned_once: true,
       provider_calls_executed: false,

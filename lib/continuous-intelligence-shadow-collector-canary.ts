@@ -132,6 +132,12 @@ export type ContinuousIntelligenceShadowCanaryRuntimeRecheck = {
   safe_blocker: "canary_runtime_busy" | "canary_planner_authorization_unavailable" | "provider_not_configured" | "provider_metadata_unresolved" | null;
 };
 
+function hasOnlyDisabledDefaultBlockers(preflight: ContinuousIntelligenceShadowCanaryPreflight) {
+  return preflight.blockers.length === 2 &&
+    preflight.blockers.includes("canary_disabled") &&
+    preflight.blockers.includes("canary_kill_switch_active");
+}
+
 export function isContinuousIntelligenceShadowCanaryEnabled(value: unknown) {
   return value === "true" || value === "1";
 }
@@ -200,6 +206,26 @@ export function recheckContinuousIntelligenceShadowCanaryRuntime(
 ): ContinuousIntelligenceShadowCanaryRuntimeRecheck {
   const context = preflight.canonical_execution_context;
   if (!preflight.eligible || !preflight.request || !context) {
+    return { eligible: false, status: "blocked", proof_preflight: null, safe_blocker: "canary_planner_authorization_unavailable" };
+  }
+  return buildContinuousIntelligenceShadowCanaryRuntimeRecheck(preflight);
+}
+
+export function recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease(
+  preflight: ContinuousIntelligenceShadowCanaryPreflight,
+): ContinuousIntelligenceShadowCanaryRuntimeRecheck {
+  const context = preflight.canonical_execution_context;
+  if (!hasOnlyDisabledDefaultBlockers(preflight) || !preflight.request || !context) {
+    return { eligible: false, status: "blocked", proof_preflight: null, safe_blocker: "canary_planner_authorization_unavailable" };
+  }
+  return buildContinuousIntelligenceShadowCanaryRuntimeRecheck(preflight);
+}
+
+function buildContinuousIntelligenceShadowCanaryRuntimeRecheck(
+  preflight: ContinuousIntelligenceShadowCanaryPreflight,
+): ContinuousIntelligenceShadowCanaryRuntimeRecheck {
+  const context = preflight.canonical_execution_context;
+  if (!context || !preflight.request) {
     return { eligible: false, status: "blocked", proof_preflight: null, safe_blocker: "canary_planner_authorization_unavailable" };
   }
   const proof = boundedShadowCollectorExecutionProofRuntime.preflight({
@@ -318,10 +344,14 @@ export async function executeContinuousIntelligenceShadowCanary(input: {
   lifecycle_identity: Readonly<ContinuousIntelligenceShadowCanaryLifecycleIdentity>;
   runtime_recheck: ContinuousIntelligenceShadowCanaryRuntimeRecheck;
   provider: BoundedShadowCollectorExecutionProofProvider;
+  allow_disabled_default_override?: boolean;
 }) {
   const context = input.preflight.canonical_execution_context;
   const proofPreflight = input.runtime_recheck.proof_preflight;
-  if (!input.preflight.eligible || !input.preflight.request || !context || !proofPreflight) {
+  if (
+    (!input.preflight.eligible && !(input.allow_disabled_default_override && hasOnlyDisabledDefaultBlockers(input.preflight))) ||
+    !input.preflight.request || !context || !proofPreflight
+  ) {
     return {
       result: buildBoundedShadowCollectorExecutionProofBlockedResult("feature_flag_disabled", null, "Scheduled shadow canary is not eligible."),
       receipt_context: null,

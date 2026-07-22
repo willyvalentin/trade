@@ -41,7 +41,8 @@ test("Action 583 canonical route finalizes every admitted path before durable re
   );
   expect(route).toContain("entry_kind: \"bounded_manual_proof\"");
   expect(route).toContain("providerEntered ? 1 : 0");
-  expect(route).toContain("isContinuousIntelligenceShadowCanaryKillSwitchOff");
+  expect(route).toContain("recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease");
+  expect(route).toContain("context.kill_switch_active");
   expect(route).toContain("provider_calls_executed: providerEntered");
   expect(route).not.toContain("console.");
 });

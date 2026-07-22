@@ -14,6 +14,12 @@ import {
   type ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationRecord,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import {
+  buildContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord,
+  continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionWithLeaseRpcName,
+  continuousIntelligenceShadowCanaryManualAuthorizationIssueWithLeaseRpcName,
+  type ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord,
+} from "@/lib/continuous-intelligence-shadow-canary-manual-execution-lease";
 import { continuousIntelligenceShadowCanaryClaimTableName } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -56,6 +62,22 @@ type ManualAuthorizationDatabase = {
   admitExecution: (input: {
     authorization_id: string;
     authorization_token: string;
+    request_fingerprint: string;
+    execution_id: string;
+    claim_id: string;
+    utc_day: string;
+  }) => Promise<{ data: unknown; error: { code?: string } | null }>;
+  issueWithLease: (input: ContinuousIntelligenceShadowCanaryManualAuthorizationBinding & {
+    authorization_id: string;
+    execution_lease_id: string;
+    token_hash: string;
+    issued_at: string;
+    expires_at: string;
+  }) => Promise<{ data: unknown; error: { code?: string } | null }>;
+  admitExecutionWithLease: (input: {
+    authorization_id: string;
+    authorization_token: string;
+    execution_lease_id: string;
     request_fingerprint: string;
     execution_id: string;
     claim_id: string;
@@ -121,6 +143,53 @@ function database(client: SupabaseClient): ManualAuthorizationDatabase {
         {
           p_authorization_id: input.authorization_id,
           p_authorization_token: input.authorization_token,
+          p_request_fingerprint: input.request_fingerprint,
+          p_execution_id: input.execution_id,
+          p_claim_id: input.claim_id,
+          p_utc_day: input.utc_day,
+        },
+      );
+      return { data: first(data), error };
+    },
+    async issueWithLease(input) {
+      const { data, error } = await client.rpc(
+        continuousIntelligenceShadowCanaryManualAuthorizationIssueWithLeaseRpcName,
+        {
+          p_authorization_id: input.authorization_id,
+          p_execution_lease_id: input.execution_lease_id,
+          p_token_hash: input.token_hash,
+          p_issued_at: input.issued_at,
+          p_expires_at: input.expires_at,
+          p_request_fingerprint: input.request_fingerprint,
+          p_execution_id: input.execution_id,
+          p_claim_id: input.claim_id,
+          p_ticker: input.ticker,
+          p_interval: input.interval,
+          p_requested_start: input.requested_start,
+          p_requested_end: input.requested_end,
+          p_calendar_contract_version: input.calendar_contract_version,
+          p_calendar_fingerprint: input.calendar_fingerprint,
+          p_budget_policy_version: input.budget_policy_version,
+          p_policy_total_credits: input.policy_total_credits,
+          p_policy_hard_reserve_credits: input.policy_hard_reserve_credits,
+          p_policy_normal_planned_max_credits: input.policy_normal_planned_max_credits,
+          p_estimated_credits: input.estimated_credits,
+          p_canary_contract_version: input.canary_contract_version,
+          p_claim_contract_version: input.claim_contract_version,
+          p_deployment_commit: input.deployment_commit,
+          p_deployment_build_marker: input.deployment_build_marker,
+          p_purpose: input.purpose,
+        },
+      );
+      return { data: first(data), error };
+    },
+    async admitExecutionWithLease(input) {
+      const { data, error } = await client.rpc(
+        continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionWithLeaseRpcName,
+        {
+          p_authorization_id: input.authorization_id,
+          p_authorization_token: input.authorization_token,
+          p_execution_lease_id: input.execution_lease_id,
           p_request_fingerprint: input.request_fingerprint,
           p_execution_id: input.execution_id,
           p_claim_id: input.claim_id,
@@ -198,6 +267,71 @@ export async function issueContinuousIntelligenceShadowCanaryManualAuthorization
   return { status: "unavailable", authorization: null };
 }
 
+export async function issueContinuousIntelligenceShadowCanaryManualAuthorizationWithLease(input: {
+  binding: ContinuousIntelligenceShadowCanaryManualAuthorizationBinding;
+  authorization_id: string;
+  execution_lease_id: string;
+  raw_token: string;
+  now: Date;
+  db?: ManualAuthorizationDatabase | null;
+}): Promise<ContinuousIntelligenceShadowCanaryManualAuthorizationIssueResult & {
+  lease: ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord | null;
+}> {
+  const db = input.db === undefined ? serviceDatabase() : input.db;
+  if (!db || input.raw_token.length < 32) return { status: "unavailable", authorization: null, lease: null };
+  const issuedAt = input.now.toISOString();
+  const expiresAt = new Date(input.now.getTime() + continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000).toISOString();
+  try {
+    const result = await db.issueWithLease({
+      ...input.binding,
+      authorization_id: input.authorization_id,
+      execution_lease_id: input.execution_lease_id,
+      token_hash: hashContinuousIntelligenceShadowCanaryManualAuthorizationToken(input.raw_token),
+      issued_at: issuedAt,
+      expires_at: expiresAt,
+    });
+    if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
+      return { status: "unavailable", authorization: null, lease: null };
+    }
+    const raw = result.data as Record<string, unknown>;
+    const outcome = typeof raw.outcome === "string" ? raw.outcome : null;
+    const authorizationId = typeof raw.authorization_id === "string" ? raw.authorization_id : null;
+    const leaseId = typeof raw.execution_lease_id === "string" ? raw.execution_lease_id : null;
+    const responseIssuedAt = typeof raw.issued_at === "string" ? raw.issued_at : null;
+    const responseExpiresAt = typeof raw.expires_at === "string" ? raw.expires_at : null;
+    if (
+      (outcome !== "issued" && outcome !== "already_issued") ||
+      authorizationId !== input.authorization_id ||
+      !leaseId || !responseIssuedAt || !responseExpiresAt ||
+      raw.authorization_status !== "issued" || raw.lease_status !== "issued"
+    ) {
+      return { status: outcome === "conflicting_active_authorization" ? outcome : "unavailable", authorization: null, lease: null };
+    }
+    const authorization = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord({
+      ...input.binding,
+      authorization_id: authorizationId,
+      issued_at: responseIssuedAt,
+      expires_at: responseExpiresAt,
+      consumed_at: null,
+      authorization_status: "issued",
+      market_interval: input.binding.interval,
+    });
+    const lease = buildContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord({
+      binding: input.binding,
+      authorization_id: authorizationId,
+      execution_lease_id: leaseId,
+      issued_at: responseIssuedAt,
+      expires_at: responseExpiresAt,
+      status: "issued",
+    });
+    if (!authorization || !lease) return { status: "unavailable", authorization: null, lease: null };
+    return { status: outcome, authorization, lease };
+  } catch {
+    // The authorization and lease must be created together or not at all.
+  }
+  return { status: "unavailable", authorization: null, lease: null };
+}
+
 export async function consumeContinuousIntelligenceShadowCanaryManualAuthorization(input: {
   authorization_id: string;
   raw_token: string;
@@ -259,6 +393,42 @@ export async function admitContinuousIntelligenceShadowCanaryManualExecution(inp
     ) return { status };
   } catch {
     // Atomic admission must fail closed without returning database details.
+  }
+  return { status: "unavailable" as const };
+}
+
+export async function admitContinuousIntelligenceShadowCanaryManualExecutionWithLease(input: {
+  authorization_id: string;
+  raw_token: string;
+  execution_lease_id: string;
+  request_fingerprint: string;
+  execution_id: string;
+  claim_id: string;
+  utc_day: string;
+  db?: ManualAuthorizationDatabase | null;
+}) {
+  const db = input.db === undefined ? serviceDatabase() : input.db;
+  if (!db || !input.raw_token || !input.execution_lease_id) return { status: "unavailable" as const };
+  try {
+    const result = await db.admitExecutionWithLease({
+      authorization_id: input.authorization_id,
+      authorization_token: input.raw_token,
+      execution_lease_id: input.execution_lease_id,
+      request_fingerprint: input.request_fingerprint,
+      execution_id: input.execution_id,
+      claim_id: input.claim_id,
+      utc_day: input.utc_day,
+    });
+    if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
+      return { status: "unavailable" as const };
+    }
+    const status = (result.data as Record<string, unknown>).admission_status;
+    if (
+      status === "attempt_started" || status === "already_admitted" || status === "authorization_expired" ||
+      status === "authorization_replayed" || status === "identity_mismatch" || status === "daily_limit_reached"
+    ) return { status };
+  } catch {
+    // Atomic authorization, lease, and claim admission fails closed.
   }
   return { status: "unavailable" as const };
 }
