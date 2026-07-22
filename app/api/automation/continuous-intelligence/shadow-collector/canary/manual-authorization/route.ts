@@ -8,6 +8,9 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
   sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import {
+  validateContinuousIntelligenceShadowCanaryManualAuthorizationIssuanceResponse,
+} from "@/lib/continuous-intelligence-shadow-canary-manual-authorization-issuance-response";
 import { sanitizeContinuousIntelligenceShadowCanaryManualExecutionLease } from "@/lib/continuous-intelligence-shadow-canary-manual-execution-lease";
 import { buildContinuousIntelligenceShadowCanaryManualAuthorizationContext } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-context";
 import {
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
         audit_or_ledger_writes_executed: false,
       }, result.status === "unavailable" ? 503 : 409);
     }
-    return json({
+    const response = {
       contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
       route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
       issued: true,
@@ -107,7 +110,32 @@ export async function POST(request: Request) {
       attempts_begun: false,
       audit_or_ledger_writes_executed: false,
       no_effect_boundary: "Provider execution has not occurred.",
+    } as const;
+    const validation = validateContinuousIntelligenceShadowCanaryManualAuthorizationIssuanceResponse({
+      http_status: 200,
+      body: response,
+      now: context.now,
+      expected: {
+        authorization_id: result.authorization.authorization_id,
+        execution_lease_id: result.lease.execution_lease_id,
+      },
     });
+    if (!validation.ok) {
+      return json({
+        error: "Manual canary issuance response failed semantic validation.",
+        contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+        route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+        terminal_status: validation.terminal_status,
+        diagnostic_code: validation.diagnostic_code,
+        validation_stage: validation.validation_stage,
+        failed_fields: validation.failed_fields,
+        provider_calls_executed: false,
+        claims_created: false,
+        attempts_begun: false,
+        audit_or_ledger_writes_executed: false,
+      }, 503);
+    }
+    return json(response);
   } catch {
     return json({
       error: "Manual canary authorization failed safely.",
