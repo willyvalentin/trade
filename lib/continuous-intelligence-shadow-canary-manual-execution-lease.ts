@@ -1,0 +1,106 @@
+import {
+  continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+  continuousIntelligenceShadowCanaryManualAuthorizationPurpose,
+  continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds,
+  type ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
+} from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+
+export const continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion =
+  "continuous_intelligence_shadow_canary_manual_execution_lease_v1" as const;
+export const continuousIntelligenceShadowCanaryManualExecutionLeaseTableName =
+  "continuous_intelligence_shadow_canary_manual_execution_leases" as const;
+export const continuousIntelligenceShadowCanaryManualAuthorizationIssueWithLeaseRpcName =
+  "issue_ci_shadow_canary_manual_lease" as const;
+export const continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionWithLeaseRpcName =
+  "admit_ci_shadow_canary_manual_lease" as const;
+
+export type ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus =
+  | "issued"
+  | "consumed"
+  | "expired"
+  | "revoked";
+
+export type ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord =
+  Omit<ContinuousIntelligenceShadowCanaryManualAuthorizationBinding, "contract_version"> & {
+    contract_version: typeof continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion;
+    authorization_contract_version: typeof continuousIntelligenceShadowCanaryManualAuthorizationContractVersion;
+    execution_lease_id: string;
+    authorization_id: string;
+    issued_at: string;
+    expires_at: string;
+    consumed_at: string | null;
+    status: ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus;
+  };
+
+function isTimestamp(value: string) {
+  return Number.isFinite(Date.parse(value));
+}
+
+function bounded(value: string, maximum: number) {
+  return value.length > 0 && value.length <= maximum;
+}
+
+export function buildContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord(input: {
+  binding: ContinuousIntelligenceShadowCanaryManualAuthorizationBinding;
+  authorization_id: string;
+  execution_lease_id: string;
+  issued_at: string;
+  expires_at: string;
+  status: ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus;
+  consumed_at?: string | null;
+}): ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord | null {
+  const consumedAt = input.consumed_at ?? null;
+  if (
+    input.binding.contract_version !== continuousIntelligenceShadowCanaryManualAuthorizationContractVersion ||
+    input.binding.purpose !== continuousIntelligenceShadowCanaryManualAuthorizationPurpose ||
+    !bounded(input.authorization_id, 128) ||
+    !bounded(input.execution_lease_id, 128) ||
+    !isTimestamp(input.issued_at) ||
+    !isTimestamp(input.expires_at) ||
+    Date.parse(input.expires_at) <= Date.parse(input.issued_at) ||
+    Date.parse(input.expires_at) - Date.parse(input.issued_at) >
+      continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000 ||
+    (consumedAt !== null && !isTimestamp(consumedAt)) ||
+    (input.status === "consumed" && consumedAt === null) ||
+    (input.status !== "consumed" && consumedAt !== null)
+  ) {
+    return null;
+  }
+  const { contract_version: authorizationContractVersion, ...binding } = input.binding;
+  return Object.freeze({
+    ...binding,
+    authorization_contract_version: authorizationContractVersion,
+    contract_version: continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion,
+    execution_lease_id: input.execution_lease_id,
+    authorization_id: input.authorization_id,
+    issued_at: input.issued_at,
+    expires_at: input.expires_at,
+    status: input.status,
+    consumed_at: consumedAt,
+  });
+}
+
+export function sanitizeContinuousIntelligenceShadowCanaryManualExecutionLease(
+  lease: ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord,
+) {
+  return {
+    execution_lease_id: lease.execution_lease_id,
+    authorization_id: lease.authorization_id,
+    issued_at: lease.issued_at,
+    expires_at: lease.expires_at,
+    consumed_at: lease.consumed_at,
+    status: lease.status,
+    request_fingerprint: lease.request_fingerprint,
+    execution_id: lease.execution_id,
+    claim_id: lease.claim_id,
+    ticker: lease.ticker,
+    interval: lease.interval,
+    requested_start: lease.requested_start,
+    requested_end: lease.requested_end,
+    policy_total_credits: lease.policy_total_credits,
+    policy_hard_reserve_credits: lease.policy_hard_reserve_credits,
+    policy_normal_planned_max_credits: lease.policy_normal_planned_max_credits,
+    estimated_credits: lease.estimated_credits,
+    contract_version: lease.contract_version,
+  } as const;
+}

@@ -13,15 +13,13 @@ import {
 import {
   buildContinuousIntelligenceShadowCanaryReceiptId,
   executeContinuousIntelligenceShadowCanary,
-  isContinuousIntelligenceShadowCanaryEnabled,
-  isContinuousIntelligenceShadowCanaryKillSwitchOff,
-  recheckContinuousIntelligenceShadowCanaryRuntime,
+  recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease,
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { persistBoundedShadowCollectorProofAudit } from "@/lib/server/bounded-shadow-collector-proof-audit-persistence";
 import { persistContinuousIntelligenceCreditLedger } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
 import {
-  admitContinuousIntelligenceShadowCanaryManualExecution,
+  admitContinuousIntelligenceShadowCanaryManualExecutionWithLease,
   readContinuousIntelligenceShadowCanaryManualAuthorization,
 } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-persistence";
 import { finalizeContinuousIntelligenceShadowCanaryDailyClaim } from "@/lib/server/continuous-intelligence-shadow-canary-claim-persistence";
@@ -39,9 +37,9 @@ function json(body: Record<string, unknown>, status = 200) {
 function parse(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const raw = value as Record<string, unknown>;
-  if (Object.keys(raw).length !== 2 || typeof raw.authorization_id !== "string" || typeof raw.authorization_token !== "string") return null;
-  if (raw.authorization_id.length < 1 || raw.authorization_id.length > 128 || raw.authorization_token.length < 32 || raw.authorization_token.length > 256) return null;
-  return { authorization_id: raw.authorization_id, authorization_token: raw.authorization_token };
+  if (Object.keys(raw).length !== 3 || typeof raw.authorization_id !== "string" || typeof raw.authorization_token !== "string" || typeof raw.execution_lease_id !== "string") return null;
+  if (raw.authorization_id.length < 1 || raw.authorization_id.length > 128 || raw.authorization_token.length < 32 || raw.authorization_token.length > 256 || raw.execution_lease_id.length < 1 || raw.execution_lease_id.length > 128) return null;
+  return { authorization_id: raw.authorization_id, authorization_token: raw.authorization_token, execution_lease_id: raw.execution_lease_id };
 }
 
 export async function POST(request: Request) {
@@ -65,7 +63,7 @@ export async function POST(request: Request) {
     : null;
   const auditEnabled = isBoundedShadowCollectorProofAuditEnabled(process.env.TURE_BOUNDED_PROOF_DURABLE_AUDIT_ENABLED);
   const ledgerEnabled = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED);
-  if (!binding || !context.preflight.eligible || !context.schedule_absent || !context.daily_capacity_available || !context.provider_budget_resolved || !auditEnabled || !ledgerEnabled) {
+  if (!binding || !context.preflight_static_blockers_are_only_disabled_state || !context.canary_disabled || !context.kill_switch_active || !context.schedule_absent || !context.daily_capacity_available || !context.provider_budget_resolved || !auditEnabled || !ledgerEnabled) {
     return json({ error: "Manual canary execution is blocked by current runtime state.", failure_category: "execution_preflight_blocked", provider_calls_executed: false }, 403);
   }
 
@@ -74,9 +72,10 @@ export async function POST(request: Request) {
     return json({ error: "Manual canary authorization is unavailable or no longer bound to this request.", failure_category: "authorization_preflight_blocked", provider_calls_executed: false }, 409);
   }
 
-  const admission = await admitContinuousIntelligenceShadowCanaryManualExecution({
+  const admission = await admitContinuousIntelligenceShadowCanaryManualExecutionWithLease({
     authorization_id: input.authorization_id,
     raw_token: input.authorization_token,
+    execution_lease_id: input.execution_lease_id,
     request_fingerprint: binding.request_fingerprint,
     execution_id: binding.execution_id,
     claim_id: binding.claim_id,
@@ -86,7 +85,7 @@ export async function POST(request: Request) {
     return json({ error: "Manual canary execution was not admitted.", failure_category: admission.status, provider_calls_executed: false }, admission.status === "unavailable" ? 503 : 409);
   }
 
-  const runtimeRecheck = recheckContinuousIntelligenceShadowCanaryRuntime(context.preflight);
+  const runtimeRecheck = recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease(context.preflight);
   let providerEntered = false;
   let result = buildBoundedShadowCollectorExecutionProofBlockedResult(
     "internal_execution_failure",
@@ -95,13 +94,14 @@ export async function POST(request: Request) {
     0,
   );
   try {
-    if (!runtimeRecheck.eligible || !isContinuousIntelligenceShadowCanaryEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_ENABLED) || !isContinuousIntelligenceShadowCanaryKillSwitchOff(process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_KILL_SWITCH)) {
+    if (!runtimeRecheck.eligible || !context.canary_disabled || !context.kill_switch_active) {
       result = buildBoundedShadowCollectorExecutionProofBlockedResult("feature_flag_disabled", context.preflight.canonical_execution_context?.proof_preflight.request_fingerprint ?? null, "Manual canary execution was blocked before provider entry.", 0);
     } else {
       const execution = await executeContinuousIntelligenceShadowCanary({
         preflight: context.preflight,
         lifecycle_identity: context.lifecycle_identity!,
         runtime_recheck: runtimeRecheck,
+        allow_disabled_default_override: true,
         provider: async ({ ticker, interval, start, end, signal }) => {
           providerEntered = true;
           const response = await getIntradayCandlesWithDiagnostics(ticker, interval, start, end, { signal });
