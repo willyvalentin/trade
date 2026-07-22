@@ -111,9 +111,9 @@ test("Action 574 has authenticated no-store canary routes and an unscheduled fun
     route.indexOf("executeContinuousIntelligenceShadowCanary({"),
   );
   expect(route.indexOf("executeContinuousIntelligenceShadowCanary({")).toBeLessThan(
-    route.indexOf("finalizeContinuousIntelligenceShadowCanaryDailyClaim({"),
+    route.lastIndexOf("finalizeContinuousIntelligenceShadowCanaryDailyClaim({"),
   );
-  expect(route.indexOf("finalizeContinuousIntelligenceShadowCanaryDailyClaim({")).toBeLessThan(
+  expect(route.lastIndexOf("finalizeContinuousIntelligenceShadowCanaryDailyClaim({")).toBeLessThan(
     route.indexOf("persistBoundedShadowCollectorProofAudit(receipt)"),
   );
 });

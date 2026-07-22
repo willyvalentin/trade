@@ -23,10 +23,14 @@ export const continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName =
   "issue_continuous_intelligence_shadow_canary_manual_authorization" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName =
   "consume_continuous_intelligence_shadow_canary_manual_authorization" as const;
+export const continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionRpcName =
+  "admit_continuous_intelligence_shadow_canary_manual_execution" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationRoutePath =
   "/api/automation/continuous-intelligence/shadow-collector/canary/manual-authorization" as const;
 export const continuousIntelligenceShadowCanaryManualExecutionGateRoutePath =
   "/api/automation/continuous-intelligence/shadow-collector/canary/manual-execution-gate" as const;
+export const continuousIntelligenceShadowCanaryManualExecutionRoutePath =
+  "/api/automation/continuous-intelligence/shadow-collector/canary/manual-execution" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationPurpose =
   "one_manual_shadow_canary_attempt" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds = 60 as const;
@@ -270,6 +274,13 @@ function sameBinding(
     authorization.deployment_commit === expected.deployment_commit &&
     authorization.deployment_build_marker === expected.deployment_build_marker
   );
+}
+
+export function matchesContinuousIntelligenceShadowCanaryManualAuthorizationBinding(
+  authorization: ContinuousIntelligenceShadowCanaryManualAuthorizationRecord,
+  expected: ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
+) {
+  return sameBinding(authorization, expected);
 }
 
 function bindingFromAuthorization(
