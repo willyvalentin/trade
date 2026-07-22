@@ -2,7 +2,7 @@
 
 ## Decision
 
-`canonical_timestamp_normalization_ready`
+`timestamp_normalization_production_verified_ready_for_new_explicit_attempt`
 
 ## Root-Cause Repair
 
@@ -81,3 +81,29 @@ The focused Action 595 test covers:
 - `git diff --check`: passed.
 
 No SQL migration was required.
+
+## Production Verification After Deployment
+
+Read-only verification ran after deployed commit `d25f7cd` was confirmed as an
+ancestor of production `origin/main` `c583eba`. The normalization source files
+are unchanged between those revisions.
+
+- The canonical issuance-readiness GET returned HTTP `200` and
+  `diagnostic_ready`.
+- Production readiness, schedule inactivity, and global safe defaults were
+  all true. The non-mutating preflight returned HTTP `403` only for
+  `canary_disabled` and `canary_kill_switch_active`; it made no provider call.
+- Production readback has one expired, unconsumed authorization and one
+  expired, unconsumed lease. Their stored range timestamps are valid,
+  noncanonical PostgREST forms, which is the exact form repaired by this
+  action.
+- The six focused normalization tests passed against the deployed-source-
+  equivalent code: `+00:00`, zero-padded microseconds, canonical `Z`, semantic
+  equality, and malformed/timezone-less rejection are all covered.
+- Claims, audit rows, and ledger rows remain `0`; daily usage remains `0 / 0`.
+  No authorization or lease was issued or consumed, no provider was called,
+  and no flags or schedules changed.
+
+The deployed execution binding canonicalizes persisted authorization and lease
+timestamps before comparison. A future live attempt still requires separate,
+explicit operator authorization.
