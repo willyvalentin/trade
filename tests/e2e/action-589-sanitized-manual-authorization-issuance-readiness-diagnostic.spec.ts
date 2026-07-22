@@ -22,7 +22,7 @@ import {
 } from "../../lib/us-equity-market-calendar";
 
 const routePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/manual-authorization/readiness/route.ts";
-const migrationPath = "supabase/migrations/20260722004000_create_continuous_intelligence_shadow_canary_manual_issuance_readiness_probe.sql";
+const migrationPath = "supabase/migrations/20260722005000_stabilize_continuous_intelligence_shadow_canary_rpc_names.sql";
 const issuanceRoutePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/manual-authorization/route.ts";
 const now = new Date("2026-07-22T16:30:00.000Z");
 
@@ -141,8 +141,8 @@ test("Action 589 adds a service-role-only read probe and a GET-only route withou
   const issuance = read(issuanceRoutePath);
   expect(migration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessProbeRpcName);
   expect(migration).toContain("security invoker");
-  expect(migration).toContain("grant execute on function public.read_continuous_intelligence_shadow_canary_manual_issuance_readiness() to service_role");
-  expect(migration).toContain("revoke all on function public.read_continuous_intelligence_shadow_canary_manual_issuance_readiness() from public, anon, authenticated");
+  expect(migration).toContain("grant execute on function public.ci_mca_readiness() to service_role");
+  expect(migration).toContain("revoke all on function public.ci_mca_readiness() from public, anon, authenticated");
   expect(migration).not.toContain("insert into public.continuous_intelligence_shadow_canary_manual_authorizations");
   expect(migration).not.toContain("insert into public.continuous_intelligence_shadow_canary_manual_execution_leases");
   expect(route).toContain("export async function GET");

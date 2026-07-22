@@ -33,3 +33,25 @@ The response contains booleans and active-record counts only. It never contains 
 ## No-Effect Boundary
 
 The diagnostic does not generate credentials; insert, update, consume, claim, provider, audit, ledger, flag, and schedule effects are all explicitly false. Existing issuance and execution routes are not changed.
+
+## Production Verification (2026-07-22)
+
+`production_issuance_readiness_diagnostic_failed`
+
+The current production deployment (`8bb236f`) contains Action 589. One authenticated, parameter-free GET was sent to the canonical readiness route. It returned HTTP `502` before the route emitted its sanitized diagnostic envelope, so no route-level category or subcategory was available to retain.
+
+The read-only service-role probe was then checked directly. Its API endpoint returned HTTP `404`, meaning the new probe was not available through the production PostgREST API despite migration `20260722004000` being registered. This is a current diagnostic-infrastructure availability failure. It does not prove that the earlier Action 587 issuance failure had the same cause; that issuance response was intentionally not retained.
+
+Durable counts were zero immediately before and after the single route call:
+
+| Store | Before | After |
+| --- | ---: | ---: |
+| Manual authorizations | 0 | 0 |
+| Manual execution leases | 0 | 0 |
+| Daily claims | 0 | 0 |
+| Durable audit rows | 0 | 0 |
+| Credit-ledger rows | 0 | 0 |
+
+Daily usage therefore remained `0 / 0`. No token or lease credential was generated or exposed; no authorization, lease, claim, provider request, audit or ledger write, flag change, or schedule action occurred.
+
+The immediate follow-up is to restore the deployed route/probe availability and verify the PostgREST schema exposure before any future issuance is considered. Do not retry issuance based on this result.

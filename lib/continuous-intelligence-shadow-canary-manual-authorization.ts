@@ -20,9 +20,9 @@ export const continuousIntelligenceShadowCanaryManualAuthorizationContractVersio
 export const continuousIntelligenceShadowCanaryManualAuthorizationTableName =
   "continuous_intelligence_shadow_canary_manual_authorizations" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName =
-  "issue_continuous_intelligence_shadow_canary_manual_authorization" as const;
+  "ci_mca_issue" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName =
-  "consume_continuous_intelligence_shadow_canary_manual_authorization" as const;
+  "ci_mca_consume" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionRpcName =
   "admit_continuous_intelligence_shadow_canary_manual_execution" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationRoutePath =

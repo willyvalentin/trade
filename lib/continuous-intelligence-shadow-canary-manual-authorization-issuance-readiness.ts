@@ -11,7 +11,7 @@ export const continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadin
 export const continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessRoutePath =
   "/api/automation/continuous-intelligence/shadow-collector/canary/manual-authorization/readiness" as const;
 export const continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessProbeRpcName =
-  "read_continuous_intelligence_shadow_canary_manual_issuance_readiness" as const;
+  "ci_mca_readiness" as const;
 
 export type ContinuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessCategory =
   | "diagnostic_ready"
