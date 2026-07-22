@@ -1,0 +1,116 @@
+import { randomUUID } from "node:crypto";
+
+import { NextResponse } from "next/server";
+
+import {
+  buildContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
+  continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+  continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+  sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
+} from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import { buildContinuousIntelligenceShadowCanaryManualAuthorizationContext } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-context";
+import {
+  generateContinuousIntelligenceShadowCanaryManualAuthorizationToken,
+  issueContinuousIntelligenceShadowCanaryManualAuthorization,
+} from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-persistence";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 5;
+
+const noStoreHeaders = { "Cache-Control": "no-store" };
+const acceptedBody = JSON.stringify({
+  contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+});
+
+function json(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, { status, headers: noStoreHeaders });
+}
+
+async function isFixedBody(request: Request) {
+  const text = await request.text();
+  return text.trim().length === 0 || text.trim() === acceptedBody;
+}
+
+export async function POST(request: Request) {
+  const expectedSecret = process.env.AUTOMATION_SECRET;
+  if (!expectedSecret || request.headers.get("x-automation-secret") !== expectedSecret) {
+    return json({ error: "Unauthorized.", contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion, route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath }, 401);
+  }
+  if (!(await isFixedBody(request))) {
+    return json({ error: "Manual canary authorization accepts no execution parameters.", contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion, route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath, failure_category: "validation_failed" }, 400);
+  }
+  try {
+    const context = await buildContinuousIntelligenceShadowCanaryManualAuthorizationContext();
+    const binding = context.lifecycle_identity
+      ? buildContinuousIntelligenceShadowCanaryManualAuthorizationBinding({
+          preflight: context.preflight,
+          lifecycle_identity: context.lifecycle_identity,
+          calendar_fingerprint: context.calendar_fingerprint,
+          deployment_commit: context.deployment_commit,
+          deployment_build_marker: context.deployment_build_marker,
+        })
+      : null;
+    const eligible =
+      context.readiness.decision === "ready_for_one_manual_canary_attempt" &&
+      context.canary_disabled &&
+      context.kill_switch_active &&
+      context.schedule_absent &&
+      context.daily_capacity_available &&
+      context.provider_budget_resolved &&
+      context.preflight_static_blockers_are_only_disabled_state &&
+      binding !== null;
+    if (!eligible || !binding) {
+      return json({
+        error: "Manual canary authorization is blocked by current verified state.",
+        contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+        route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+        blocker: "authorization_preflight_blocked",
+        readiness_decision: context.readiness.decision,
+        provider_calls_executed: false,
+        claims_created: false,
+        audit_or_ledger_writes_executed: false,
+      }, 403);
+    }
+    const rawToken = generateContinuousIntelligenceShadowCanaryManualAuthorizationToken();
+    const result = await issueContinuousIntelligenceShadowCanaryManualAuthorization({
+      binding,
+      authorization_id: `manual_canary_authorization_${randomUUID()}`,
+      raw_token: rawToken,
+      now: context.now,
+    });
+    if (result.status !== "issued" || !result.authorization) {
+      return json({
+        error: "Manual canary authorization was not issued.",
+        contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+        route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+        blocker: result.status,
+        authorization: result.authorization
+          ? sanitizeContinuousIntelligenceShadowCanaryManualAuthorization(result.authorization)
+          : null,
+        provider_calls_executed: false,
+        claims_created: false,
+        audit_or_ledger_writes_executed: false,
+      }, result.status === "unavailable" ? 503 : 409);
+    }
+    return json({
+      contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+      route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+      issued: true,
+      authorization: sanitizeContinuousIntelligenceShadowCanaryManualAuthorization(result.authorization),
+      authorization_token: rawToken,
+      raw_token_returned_once: true,
+      provider_calls_executed: false,
+      claims_created: false,
+      attempts_begun: false,
+      audit_or_ledger_writes_executed: false,
+      no_effect_boundary: "Provider execution has not occurred.",
+    });
+  } catch {
+    return json({
+      error: "Manual canary authorization failed safely.",
+      contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+      route_path: continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
+      failure_category: "runtime_unavailable",
+    }, 503);
+  }
+}
