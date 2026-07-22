@@ -32,6 +32,7 @@ const issuanceRoutePath = "app/api/automation/continuous-intelligence/shadow-col
 const gateRoutePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/manual-execution-gate/route.ts";
 const executionRoutePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/route.ts";
 const migrationPath = "supabase/migrations/20260722001000_create_continuous_intelligence_shadow_canary_manual_authorizations.sql";
+const rpcHardeningMigrationPath = "supabase/migrations/20260722005000_stabilize_continuous_intelligence_shadow_canary_rpc_names.sql";
 const persistencePath = "lib/server/continuous-intelligence-shadow-canary-manual-authorization-persistence.ts";
 const now = new Date("2026-07-22T15:00:00.000Z");
 
@@ -295,8 +296,9 @@ test("Action 580 route and migration boundaries are authenticated, parameter-bou
   expect(migration).toContain("market_interval text");
   expect(migration).not.toMatch(/returns table \([\s\S]*?\n  interval text,/);
   expect(migration).not.toContain("raw_token");
-  expect(migration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName);
-  expect(migration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName);
+  const rpcHardeningMigration = read(rpcHardeningMigrationPath);
+  expect(rpcHardeningMigration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName);
+  expect(rpcHardeningMigration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName);
   expect(migration).toContain("grant execute on function public.issue_continuous_intelligence_shadow_canary_manual_authorization");
   expect(migration).toContain("to service_role");
   expect(migration).toContain("enable row level security");
