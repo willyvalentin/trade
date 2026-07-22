@@ -24,6 +24,7 @@ import {
   type ContinuousIntelligenceShadowCanaryClaimDatabase,
   type ContinuousIntelligenceShadowCanaryClaimRow,
 } from "../../lib/continuous-intelligence-shadow-canary-claim-store";
+import { buildUsEquityMarketCalendarEvaluation } from "../../lib/us-equity-market-calendar";
 
 const functionPath = "netlify/functions/scheduled-shadow-collector-canary.ts";
 const routePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/route.ts";
@@ -38,7 +39,9 @@ function read(path: string) {
 function preflight(overrides: Partial<Parameters<typeof buildContinuousIntelligenceShadowCanaryPreflight>[0]> = {}) {
   return buildContinuousIntelligenceShadowCanaryPreflight({
     now: new Date("2026-07-21T15:15:00.000Z"),
-    calendar: { available: true, is_regular_trading_day: true },
+    calendar: buildUsEquityMarketCalendarEvaluation(
+      new Date("2026-07-21T15:15:00.000Z"),
+    ),
     enabled_flag: "true",
     kill_switch: "false",
     provider_configured: true,
@@ -60,11 +63,19 @@ test("Action 574 flags fail closed and cannot be enabled by prior action flags",
 });
 
 test("Action 574 uses only AAPL and a completed bounded New York range", () => {
-  const range = buildContinuousIntelligenceShadowCanaryRange({ now: new Date("2026-07-21T15:15:00.000Z"), calendar: { available: true, is_regular_trading_day: true } });
+  const now = new Date("2026-07-21T15:15:00.000Z");
+  const range = buildContinuousIntelligenceShadowCanaryRange({
+    now,
+    calendar: buildUsEquityMarketCalendarEvaluation(now),
+  });
   expect(continuousIntelligenceShadowCollectorCanaryAllowlist).toEqual(["AAPL"]);
   expect(range).toMatchObject({ ticker: "AAPL", interval: "5min" });
   expect(new Date(range?.end ?? 0).getTime() - new Date(range?.start ?? 0).getTime()).toBe(30 * 60 * 1000);
-  expect(buildContinuousIntelligenceShadowCanaryRange({ now: new Date("2026-07-19T15:15:00.000Z"), calendar: { available: false, is_regular_trading_day: false } })).toBeNull();
+  const outsideCoverage = new Date("2029-07-19T15:15:00.000Z");
+  expect(buildContinuousIntelligenceShadowCanaryRange({
+    now: outsideCoverage,
+    calendar: buildUsEquityMarketCalendarEvaluation(outsideCoverage),
+  })).toBeNull();
 });
 
 test("Action 574 requires durable daily usage and enforces two-run/two-credit caps", () => {

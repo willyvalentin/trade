@@ -7,6 +7,7 @@ import {
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { isContinuousIntelligenceCreditLedgerEnabled } from "@/lib/continuous-intelligence-credit-ledger";
 import { readContinuousIntelligenceCanaryDailyUsage } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
+import { buildUsEquityMarketCalendarEvaluation } from "@/lib/us-equity-market-calendar";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 5;
@@ -31,8 +32,7 @@ export async function POST(request: Request) {
     : { status: "schema_unavailable" as const, run_count: null, estimated_credits: null };
   const result = buildContinuousIntelligenceShadowCanaryPreflight({
     now,
-    // No server-side holiday verification source is wired in this action.
-    calendar: { available: false, is_regular_trading_day: false },
+    calendar: buildUsEquityMarketCalendarEvaluation(now),
     enabled_flag: process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_ENABLED,
     kill_switch: process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_KILL_SWITCH,
     provider_configured: Boolean(process.env.TWELVE_DATA_API_KEY),
