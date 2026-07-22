@@ -19,6 +19,7 @@ import {
   finalizeContinuousIntelligenceShadowCanaryDailyClaim,
 } from "@/lib/server/continuous-intelligence-shadow-canary-claim-persistence";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
+import { buildUsEquityMarketCalendarEvaluation } from "@/lib/us-equity-market-calendar";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 10;
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     : { status: "schema_unavailable" as const, run_count: null, estimated_credits: null };
   const preflight = buildContinuousIntelligenceShadowCanaryPreflight({
     now,
-    calendar: { available: false, is_regular_trading_day: false },
+    calendar: buildUsEquityMarketCalendarEvaluation(now),
     enabled_flag: process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_ENABLED,
     kill_switch: process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_KILL_SWITCH,
     provider_configured: Boolean(process.env.TWELVE_DATA_API_KEY),

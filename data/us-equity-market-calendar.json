@@ -1,0 +1,66 @@
+{
+  "contract_version": "us_equity_market_calendar_dataset_v1",
+  "calendar_contract_version": "us_equity_market_calendar_v1",
+  "timezone": "America/New_York",
+  "coverage_start": "2026-01-01",
+  "coverage_end": "2028-12-31",
+  "weekend_policy": "closed_weekend",
+  "standard_session": {
+    "open_local_time": "09:30",
+    "close_local_time": "16:00",
+    "session_type": "regular_session"
+  },
+  "provenance": {
+    "source_category": "repository_pinned_official_exchange_calendar",
+    "source_organizations": [
+      "New York Stock Exchange",
+      "Nasdaq Stock Market"
+    ],
+    "source_documents": [
+      "NYSE Holidays and Trading Hours 2026-2028",
+      "Nasdaq U.S. Equity and Options Markets Holiday Schedule 2026"
+    ],
+    "source_retrieved_at": "2026-07-22T00:00:00.000Z",
+    "dataset_generated_at": "2026-07-22T00:00:00.000Z",
+    "recommended_refresh_date": "2028-07-01",
+    "generation_method": "Manual transcription of official exchange holiday and early-close tables with NYSE yearly trading-calendar review and Nasdaq 2026 cross-check.",
+    "review_status": "reviewed"
+  },
+  "exceptions": [
+    { "market_date": "2026-01-01", "session_type": "closed_holiday", "reason": "New Year's Day" },
+    { "market_date": "2026-01-19", "session_type": "closed_holiday", "reason": "Martin Luther King, Jr. Day" },
+    { "market_date": "2026-02-16", "session_type": "closed_holiday", "reason": "Washington's Birthday" },
+    { "market_date": "2026-04-03", "session_type": "closed_holiday", "reason": "Good Friday" },
+    { "market_date": "2026-05-25", "session_type": "closed_holiday", "reason": "Memorial Day" },
+    { "market_date": "2026-06-19", "session_type": "closed_holiday", "reason": "Juneteenth National Independence Day" },
+    { "market_date": "2026-07-03", "session_type": "closed_holiday", "reason": "Independence Day observed" },
+    { "market_date": "2026-09-07", "session_type": "closed_holiday", "reason": "Labor Day" },
+    { "market_date": "2026-11-26", "session_type": "closed_holiday", "reason": "Thanksgiving Day" },
+    { "market_date": "2026-11-27", "session_type": "early_close_session", "open_local_time": "09:30", "close_local_time": "13:00", "reason": "Day after Thanksgiving early close" },
+    { "market_date": "2026-12-24", "session_type": "early_close_session", "open_local_time": "09:30", "close_local_time": "13:00", "reason": "Christmas Eve early close" },
+    { "market_date": "2026-12-25", "session_type": "closed_holiday", "reason": "Christmas Day" },
+    { "market_date": "2027-01-01", "session_type": "closed_holiday", "reason": "New Year's Day" },
+    { "market_date": "2027-01-18", "session_type": "closed_holiday", "reason": "Martin Luther King, Jr. Day" },
+    { "market_date": "2027-02-15", "session_type": "closed_holiday", "reason": "Washington's Birthday" },
+    { "market_date": "2027-03-26", "session_type": "closed_holiday", "reason": "Good Friday" },
+    { "market_date": "2027-05-31", "session_type": "closed_holiday", "reason": "Memorial Day" },
+    { "market_date": "2027-06-18", "session_type": "closed_holiday", "reason": "Juneteenth National Independence Day observed" },
+    { "market_date": "2027-07-05", "session_type": "closed_holiday", "reason": "Independence Day observed" },
+    { "market_date": "2027-09-06", "session_type": "closed_holiday", "reason": "Labor Day" },
+    { "market_date": "2027-11-25", "session_type": "closed_holiday", "reason": "Thanksgiving Day" },
+    { "market_date": "2027-11-26", "session_type": "early_close_session", "open_local_time": "09:30", "close_local_time": "13:00", "reason": "Day after Thanksgiving early close" },
+    { "market_date": "2027-12-24", "session_type": "closed_holiday", "reason": "Christmas Day observed" },
+    { "market_date": "2028-01-17", "session_type": "closed_holiday", "reason": "Martin Luther King, Jr. Day" },
+    { "market_date": "2028-02-21", "session_type": "closed_holiday", "reason": "Washington's Birthday" },
+    { "market_date": "2028-04-14", "session_type": "closed_holiday", "reason": "Good Friday" },
+    { "market_date": "2028-05-29", "session_type": "closed_holiday", "reason": "Memorial Day" },
+    { "market_date": "2028-06-19", "session_type": "closed_holiday", "reason": "Juneteenth National Independence Day" },
+    { "market_date": "2028-07-03", "session_type": "early_close_session", "open_local_time": "09:30", "close_local_time": "13:00", "reason": "Day before Independence Day early close" },
+    { "market_date": "2028-07-04", "session_type": "closed_holiday", "reason": "Independence Day" },
+    { "market_date": "2028-09-04", "session_type": "closed_holiday", "reason": "Labor Day" },
+    { "market_date": "2028-11-23", "session_type": "closed_holiday", "reason": "Thanksgiving Day" },
+    { "market_date": "2028-11-24", "session_type": "early_close_session", "open_local_time": "09:30", "close_local_time": "13:00", "reason": "Day after Thanksgiving early close" },
+    { "market_date": "2028-12-25", "session_type": "closed_holiday", "reason": "Christmas Day" }
+  ],
+  "dataset_fingerprint": "fnv1a32:6aa61e36"
+}

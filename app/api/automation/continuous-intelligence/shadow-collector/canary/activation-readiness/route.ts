@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { buildBoundedShadowCollectorExecutionProofPlan } from "@/lib/bounded-shadow-collector-execution-proof";
 import {
   buildContinuousIntelligenceShadowCanaryActivationReadiness,
+  buildContinuousIntelligenceShadowCanaryMarketCalendarReadinessFacts,
   continuousIntelligenceShadowCanaryActivationReadinessContractVersion,
   continuousIntelligenceShadowCanaryActivationReadinessRoutePath,
   normalizeContinuousIntelligenceShadowCanaryDeploymentSignal,
@@ -19,6 +20,7 @@ import {
   continuousIntelligenceDeploymentManifestContractVersion,
   continuousIntelligenceShadowCanaryFunctionBuildMarker,
 } from "@/lib/server/continuous-intelligence-deployment-manifest";
+import { buildUsEquityMarketCalendarEvaluation } from "@/lib/us-equity-market-calendar";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 5;
@@ -64,6 +66,7 @@ export async function GET(request: Request) {
     workload.allocated_symbols.includes("AAPL"),
   );
   const schema = await readContinuousIntelligenceShadowCanarySchemaReadiness();
+  const marketCalendar = buildUsEquityMarketCalendarEvaluation(now);
   const routePaths = continuousIntelligenceDeploymentManifest.route_paths;
   const functionFoundationPresent = continuousIntelligenceDeploymentManifest.function_foundations.some(
     (foundation) =>
@@ -108,13 +111,10 @@ export async function GET(request: Request) {
         proofPlan.allocation.normal_planned_limit_respected,
       execution_ready_reserve_consumed: false,
     },
-    market_calendar: {
-      source_configured: false,
-      source_verified: false,
-      holiday_awareness_available: false,
-      regular_session_determination_available: false,
-      latest_completed_30_minute_range_derivable: false,
-    },
+    market_calendar:
+      buildContinuousIntelligenceShadowCanaryMarketCalendarReadinessFacts(
+        marketCalendar,
+      ),
     schedule: {
       function_foundation_present: functionFoundationPresent,
       repository_schedule_declaration: continuousIntelligenceDeploymentManifest.repository_schedule_declaration,

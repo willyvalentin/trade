@@ -23,6 +23,14 @@ import {
   buildContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics,
   type ContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics,
 } from "@/lib/continuous-intelligence-shadow-canary-activation-readiness";
+import {
+  usEquityMarketCalendarContractVersion,
+  usEquityMarketCalendarCoverage,
+  usEquityMarketCalendarSourceCategory,
+  type UsEquityMarketCalendarEvaluation,
+  type UsEquityMarketCalendarFreshnessStatus,
+  type UsEquityMarketCalendarVerificationStatus,
+} from "@/lib/us-equity-market-calendar-contract";
 
 export const continuousIntelligenceShadowCollectorCanaryContractVersion =
   "continuous_intelligence_shadow_collector_canary_v1" as const;
@@ -67,10 +75,8 @@ export type ContinuousIntelligenceShadowCanaryBlocker =
   | "audit_unavailable"
   | "ledger_unavailable";
 
-export type ContinuousIntelligenceShadowCanaryCalendar = {
-  available: boolean;
-  is_regular_trading_day: boolean;
-};
+export type ContinuousIntelligenceShadowCanaryCalendar =
+  UsEquityMarketCalendarEvaluation;
 
 export type ContinuousIntelligenceShadowCanaryDailyUsage = {
   status: "available" | "schema_unavailable" | "persistence_failed";
@@ -92,6 +98,7 @@ export type ContinuousIntelligenceShadowCanaryPreflight = {
   status: "ready" | "blocked";
   blockers: ContinuousIntelligenceShadowCanaryBlocker[];
   request: ContinuousIntelligenceShadowCanaryRange | null;
+  market_calendar: UsEquityMarketCalendarEvaluation;
   daily_usage: ContinuousIntelligenceShadowCanaryDailyUsage;
   limits: typeof continuousIntelligenceShadowCollectorCanaryLimits;
   planner_authorization: {
@@ -125,31 +132,6 @@ export type ContinuousIntelligenceShadowCanaryRuntimeRecheck = {
   safe_blocker: "canary_runtime_busy" | "canary_planner_authorization_unavailable" | "provider_not_configured" | "provider_metadata_unresolved" | null;
 };
 
-function nyParts(now: Date) {
-  const values = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(now);
-  const part = (type: string) => Number(values.find((item) => item.type === type)?.value ?? "0");
-  return { year: part("year"), month: part("month"), day: part("day"), hour: part("hour"), minute: part("minute") };
-}
-
-function newYorkWallTimeToUtc(parts: ReturnType<typeof nyParts>, hour: number, minute: number) {
-  let candidate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, hour, minute));
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const observed = nyParts(candidate);
-    const observedUtc = Date.UTC(observed.year, observed.month - 1, observed.day, observed.hour, observed.minute);
-    const desiredUtc = Date.UTC(parts.year, parts.month - 1, parts.day, hour, minute);
-    candidate = new Date(candidate.getTime() + desiredUtc - observedUtc);
-  }
-  return candidate;
-}
-
 export function isContinuousIntelligenceShadowCanaryEnabled(value: unknown) {
   return value === "true" || value === "1";
 }
@@ -162,22 +144,34 @@ export function buildContinuousIntelligenceShadowCanaryRange(input: {
   now: Date;
   calendar: ContinuousIntelligenceShadowCanaryCalendar;
 }): ContinuousIntelligenceShadowCanaryRange | null {
-  if (!input.calendar.available || !input.calendar.is_regular_trading_day) return null;
-  const parts = nyParts(input.now);
-  const currentMinutes = parts.hour * 60 + parts.minute;
-  const openMinutes = 9 * 60 + 30;
-  const closeMinutes = 16 * 60;
-  const endMinutes = currentMinutes >= closeMinutes
-    ? closeMinutes
-    : Math.floor(currentMinutes / 30) * 30;
-  if (endMinutes - openMinutes < 30) return null;
-  const startMinutes = endMinutes - 30;
-  const start = newYorkWallTimeToUtc(parts, Math.floor(startMinutes / 60), startMinutes % 60);
-  const end = newYorkWallTimeToUtc(parts, Math.floor(endMinutes / 60), endMinutes % 60);
-  if (end.getTime() > input.now.getTime() || end.getTime() - start.getTime() !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms) {
+  const range = input.calendar.latest_completed_range;
+  if (
+    input.calendar.verification_status !== "verified" ||
+    (input.calendar.freshness_status !== "current" &&
+      input.calendar.freshness_status !== "expiring_soon") ||
+    range.status !== "available" ||
+    !range.start ||
+    !range.end
+  ) {
     return null;
   }
-  return { ticker: "AAPL", interval: "5min", start: start.toISOString(), end: end.toISOString() };
+  const start = new Date(range.start);
+  const end = new Date(range.end);
+  if (
+    !Number.isFinite(start.getTime()) ||
+    !Number.isFinite(end.getTime()) ||
+    end.getTime() > input.now.getTime() ||
+    end.getTime() - start.getTime() !==
+      continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms
+  ) {
+    return null;
+  }
+  return {
+    ticker: "AAPL",
+    interval: "5min",
+    start: start.toISOString(),
+    end: end.toISOString(),
+  };
 }
 
 export function buildContinuousIntelligenceShadowCanaryLifecycleIdentity(input: {
@@ -247,8 +241,11 @@ export function buildContinuousIntelligenceShadowCanaryPreflight(input: {
   const blockers: ContinuousIntelligenceShadowCanaryBlocker[] = [];
   if (!isContinuousIntelligenceShadowCanaryEnabled(input.enabled_flag)) blockers.push("canary_disabled");
   if (!isContinuousIntelligenceShadowCanaryKillSwitchOff(input.kill_switch)) blockers.push("canary_kill_switch_active");
-  if (!input.calendar.available) blockers.push("canary_market_calendar_unavailable");
-  if (input.calendar.available && !input.calendar.is_regular_trading_day) blockers.push("canary_range_unavailable");
+  if (
+    input.calendar.verification_status !== "verified" ||
+    (input.calendar.freshness_status !== "current" &&
+      input.calendar.freshness_status !== "expiring_soon")
+  ) blockers.push("canary_market_calendar_unavailable");
   if (!request) blockers.push("canary_range_unavailable");
   if (!input.provider_configured) blockers.push("provider_not_configured");
   if (input.provider_metadata_status !== "within_budget" && input.provider_metadata_status !== "approaching_limit") blockers.push("provider_metadata_unresolved");
@@ -307,6 +304,7 @@ export function buildContinuousIntelligenceShadowCanaryPreflight(input: {
     status: blockers.length === 0 ? "ready" : "blocked",
     blockers: [...new Set(blockers)],
     request,
+    market_calendar: structuredClone(input.calendar),
     daily_usage: input.daily_usage,
     limits: continuousIntelligenceShadowCollectorCanaryLimits,
     planner_authorization: plannerAuthorization,
@@ -443,9 +441,85 @@ export type ContinuousIntelligenceShadowCanaryDiagnostics = ContinuousIntelligen
   latest_safe_canary_result: null;
   browser_invocation: false;
   provider_inferred: false;
+  market_calendar_contract_version: typeof usEquityMarketCalendarContractVersion;
+  market_calendar_source_category: typeof usEquityMarketCalendarSourceCategory;
+  market_calendar_dataset_validation_status: "verified" | "invalid" | "not_observed";
+  market_calendar_verification_status: UsEquityMarketCalendarVerificationStatus | "not_observed";
+  market_calendar_coverage_start: string;
+  market_calendar_coverage_end: string;
+  market_calendar_current_coverage_status: UsEquityMarketCalendarEvaluation["coverage_status"] | "not_observed";
+  market_calendar_freshness_status: UsEquityMarketCalendarFreshnessStatus | "not_observed";
+  market_calendar_early_close_awareness: boolean | "not_observed";
+  market_calendar_holiday_awareness: boolean | "not_observed";
+  market_calendar_latest_completed_range_status: UsEquityMarketCalendarEvaluation["latest_completed_range"]["status"] | "not_observed";
+  market_calendar_provider_calls_inferred: false;
+  market_calendar_durable_writes_inferred: false;
+  market_calendar_schedule_changed: false;
   recommendation_scanner_execution_effects: false;
 };
 
-export function buildContinuousIntelligenceShadowCanaryDiagnostics(): ContinuousIntelligenceShadowCanaryDiagnostics {
-  return { ...buildContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics(), contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, canary_route_present: true, canary_preflight_route_present: true, scheduled_function_foundation_present: true, schedule_active: "unknown", enabled_flag_state_client_side: "unknown", kill_switch_state_client_side: "unknown", fixed_ticker_allowlist_size: 1, per_run_request_cap: 1, per_run_credit_cap: 1, daily_run_cap: 2, daily_credit_cap: 2, durable_usage_required: true, atomic_daily_claim_required: true, atomic_begin_attempt_required: true, atomic_finalization_required: true, finalization_identity_bound: true, direct_finalization_update_allowed: false, provider_entry_grant: "attempt_started_only", terminal_claim_retry_allowed: false, daily_claim_contract: continuousIntelligenceShadowCanaryClaimContractVersion, daily_claim_table: continuousIntelligenceShadowCanaryClaimTableName, cross_instance_cap_enforced_by_database: true, process_local_lock_is_daily_cap_authority: false, status: "not_observed", latest_safe_canary_result: null, browser_invocation: false, provider_inferred: false, recommendation_scanner_execution_effects: false };
+export function buildContinuousIntelligenceShadowCanaryDiagnostics(input?: {
+  dataset_validation_status: "verified" | "invalid";
+  calendar_evaluation?: UsEquityMarketCalendarEvaluation | null;
+}): ContinuousIntelligenceShadowCanaryDiagnostics {
+  const datasetValidationStatus = input?.dataset_validation_status ?? "not_observed";
+  const evaluation =
+    datasetValidationStatus === "verified"
+      ? input?.calendar_evaluation ?? null
+      : null;
+  const verificationStatus =
+    datasetValidationStatus === "invalid"
+      ? "invalid"
+      : evaluation?.verification_status ?? "not_observed";
+  return {
+    ...buildContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics(),
+    contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion,
+    canary_route_present: true,
+    canary_preflight_route_present: true,
+    scheduled_function_foundation_present: true,
+    schedule_active: "unknown",
+    enabled_flag_state_client_side: "unknown",
+    kill_switch_state_client_side: "unknown",
+    fixed_ticker_allowlist_size: 1,
+    per_run_request_cap: 1,
+    per_run_credit_cap: 1,
+    daily_run_cap: 2,
+    daily_credit_cap: 2,
+    durable_usage_required: true,
+    atomic_daily_claim_required: true,
+    atomic_begin_attempt_required: true,
+    atomic_finalization_required: true,
+    finalization_identity_bound: true,
+    direct_finalization_update_allowed: false,
+    provider_entry_grant: "attempt_started_only",
+    terminal_claim_retry_allowed: false,
+    daily_claim_contract: continuousIntelligenceShadowCanaryClaimContractVersion,
+    daily_claim_table: continuousIntelligenceShadowCanaryClaimTableName,
+    cross_instance_cap_enforced_by_database: true,
+    process_local_lock_is_daily_cap_authority: false,
+    status: "not_observed",
+    latest_safe_canary_result: null,
+    browser_invocation: false,
+    provider_inferred: false,
+    market_calendar_contract_version: usEquityMarketCalendarContractVersion,
+    market_calendar_source_category: usEquityMarketCalendarSourceCategory,
+    market_calendar_dataset_validation_status: datasetValidationStatus,
+    market_calendar_verification_status: verificationStatus,
+    market_calendar_coverage_start: usEquityMarketCalendarCoverage.start,
+    market_calendar_coverage_end: usEquityMarketCalendarCoverage.end,
+    market_calendar_current_coverage_status:
+      evaluation?.coverage_status ?? "not_observed",
+    market_calendar_freshness_status:
+      evaluation?.freshness_status ?? "not_observed",
+    market_calendar_early_close_awareness:
+      evaluation?.early_close_awareness_available ?? "not_observed",
+    market_calendar_holiday_awareness:
+      evaluation?.holiday_awareness_available ?? "not_observed",
+    market_calendar_latest_completed_range_status:
+      evaluation?.latest_completed_range.status ?? "not_observed",
+    market_calendar_provider_calls_inferred: false,
+    market_calendar_durable_writes_inferred: false,
+    market_calendar_schedule_changed: false,
+    recommendation_scanner_execution_effects: false,
+  };
 }

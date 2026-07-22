@@ -51,6 +51,53 @@ function completeSchema(): ContinuousIntelligenceShadowCanaryActivationReadiness
   };
 }
 
+function calendar(
+  overrides: Partial<ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"]> = {},
+): ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"] {
+  return {
+    contract_version: "us_equity_market_calendar_v1",
+    source_category: "repository_pinned_official_exchange_calendar",
+    verification_status: "unavailable",
+    source_configured: false,
+    source_verified: false,
+    provenance_available: false,
+    coverage_includes_current_date: false,
+    coverage_status: "after_coverage",
+    freshness_status: "expired",
+    source_freshness_valid: false,
+    holiday_awareness_available: false,
+    early_close_awareness_available: false,
+    regular_session_determination_available: false,
+    latest_completed_30_minute_range_derivable: false,
+    market_date: "2026-07-22",
+    session_type: "unknown",
+    selected_range: null,
+    ...overrides,
+  };
+}
+
+function verifiedCalendar(): ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"] {
+  return calendar({
+    verification_status: "verified",
+    source_configured: true,
+    source_verified: true,
+    provenance_available: true,
+    coverage_includes_current_date: true,
+    coverage_status: "covered",
+    freshness_status: "current",
+    source_freshness_valid: true,
+    holiday_awareness_available: true,
+    early_close_awareness_available: true,
+    regular_session_determination_available: true,
+    latest_completed_30_minute_range_derivable: true,
+    session_type: "regular_session",
+    selected_range: {
+      start: "2026-07-22T13:30:00.000Z",
+      end: "2026-07-22T14:00:00.000Z",
+    },
+  });
+}
+
 function input(overrides: Partial<ContinuousIntelligenceShadowCanaryActivationReadinessInput> = {}): ContinuousIntelligenceShadowCanaryActivationReadinessInput {
   return {
     now: "2026-07-22T14:30:00.000Z",
@@ -80,13 +127,7 @@ function input(overrides: Partial<ContinuousIntelligenceShadowCanaryActivationRe
       hard_reserve_preserved: true,
       execution_ready_reserve_consumed: false,
     },
-    market_calendar: {
-      source_configured: false,
-      source_verified: false,
-      holiday_awareness_available: false,
-      regular_session_determination_available: false,
-      latest_completed_30_minute_range_derivable: false,
-    },
+    market_calendar: calendar(),
     schedule: {
       function_foundation_present: true,
       repository_schedule_declaration: "absent",
@@ -130,7 +171,7 @@ test("Action 575 has deterministic staged readiness decisions", () => {
   const complete = buildContinuousIntelligenceShadowCanaryActivationReadiness(input());
   expect(complete.migration_schema_facts).toMatchObject({ all_tables_available: true, all_lifecycle_rpcs_available: true, lifecycle_permissions_safe: true });
   expect(complete.decision).toBe("ready_for_preflight_observation");
-  expect(complete.recommended_next_action).toContain("verified server-side US market calendar");
+  expect(complete.recommended_next_action).toContain("Refresh the pinned verified US market calendar");
 });
 
 test("Action 575 keeps readiness-phase flags fail closed", () => {
@@ -171,15 +212,9 @@ test("Action 575 blocks unsafe lifecycle permissions and unavailable service-rol
 });
 
 test("Action 575 requires a verified market calendar before manual execution readiness", () => {
-  const verifiedCalendar: ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"] = {
-    source_configured: true,
-    source_verified: true,
-    holiday_awareness_available: true,
-    regular_session_determination_available: true,
-    latest_completed_30_minute_range_derivable: true,
-  };
-  const manual = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({ market_calendar: verifiedCalendar }));
-  const laterReview = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({ market_calendar: verifiedCalendar, manual_canary_evidence_verified: true }));
+  const verified = verifiedCalendar();
+  const manual = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({ market_calendar: verified }));
+  const laterReview = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({ market_calendar: verified, manual_canary_evidence_verified: true }));
   expect(manual).toMatchObject({ readiness_status: "ready", decision: "ready_for_one_manual_canary_attempt" });
   expect(laterReview.decision).toBe("ready_for_schedule_activation_review");
 });
@@ -195,19 +230,13 @@ test("Action 575 treats absent schedule metadata as safe and unexpected scheduli
 });
 
 test("Action 575 never promotes unknown remote deployment state to safe absence", () => {
-  const verifiedCalendar: ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"] = {
-    source_configured: true,
-    source_verified: true,
-    holiday_awareness_available: true,
-    regular_session_determination_available: true,
-    latest_completed_30_minute_range_derivable: true,
-  };
+  const verified = verifiedCalendar();
   const remoteUnknown = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({
-    market_calendar: verifiedCalendar,
+    market_calendar: verified,
     schedule: { ...input().schedule, repository_schedule_declaration: "absent", remote_schedule_active: "unknown" },
   }));
   const duplicateUnknown = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({
-    market_calendar: verifiedCalendar,
+    market_calendar: verified,
     schedule: { ...input().schedule, duplicate_schedule_mechanism: "unknown" },
   }));
   const duplicatePresent = buildContinuousIntelligenceShadowCanaryActivationReadiness(input({

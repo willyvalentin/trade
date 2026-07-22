@@ -80,11 +80,23 @@ export type ContinuousIntelligenceShadowCanaryActivationReadinessInput = {
     execution_ready_reserve_consumed: boolean;
   };
   market_calendar: {
+    contract_version: string;
+    source_category: string;
+    verification_status: "verified" | "stale" | "unavailable" | "invalid";
     source_configured: boolean;
     source_verified: boolean;
+    provenance_available: boolean;
+    coverage_includes_current_date: boolean;
+    coverage_status: "covered" | "before_coverage" | "after_coverage" | "invalid_date";
+    freshness_status: "current" | "expiring_soon" | "expired" | "unverified";
+    source_freshness_valid: boolean;
     holiday_awareness_available: boolean;
+    early_close_awareness_available: boolean;
     regular_session_determination_available: boolean;
     latest_completed_30_minute_range_derivable: boolean;
+    market_date: string | null;
+    session_type: string;
+    selected_range: { start: string; end: string } | null;
   };
   schedule: {
     function_foundation_present: boolean;
@@ -184,6 +196,42 @@ export type ContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics = {
   activation_readiness_claim_mutation_inferred: false;
 };
 
+export function buildContinuousIntelligenceShadowCanaryMarketCalendarReadinessFacts(
+  calendar: import("@/lib/us-equity-market-calendar-contract").UsEquityMarketCalendarEvaluation,
+): ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"] {
+  const freshnessValid =
+    calendar.freshness_status === "current" ||
+    calendar.freshness_status === "expiring_soon";
+  return {
+    contract_version: calendar.contract_version,
+    source_category: calendar.source_category,
+    verification_status: calendar.verification_status,
+    source_configured: calendar.provenance_available,
+    source_verified: calendar.verification_status === "verified",
+    provenance_available: calendar.provenance_available,
+    coverage_includes_current_date: calendar.coverage_status === "covered",
+    coverage_status: calendar.coverage_status,
+    freshness_status: calendar.freshness_status,
+    source_freshness_valid: freshnessValid,
+    holiday_awareness_available: calendar.holiday_awareness_available,
+    early_close_awareness_available: calendar.early_close_awareness_available,
+    regular_session_determination_available:
+      calendar.regular_session_determination_available,
+    latest_completed_30_minute_range_derivable:
+      calendar.latest_completed_range.status === "available",
+    market_date: calendar.market_date,
+    session_type: calendar.session_type,
+    selected_range:
+      calendar.latest_completed_range.start &&
+      calendar.latest_completed_range.end
+        ? {
+            start: calendar.latest_completed_range.start,
+            end: calendar.latest_completed_range.end,
+          }
+        : null,
+  };
+}
+
 function normalizedTimestamp(value: Date | string) {
   const parsed = value instanceof Date ? new Date(value.getTime()) : new Date(value);
   return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : new Date(0).toISOString();
@@ -224,14 +272,34 @@ export function normalizeContinuousIntelligenceShadowCanaryDeploymentSignal(
   return "unknown";
 }
 
-function recommendationFor(decision: ContinuousIntelligenceShadowCanaryReadinessDecision) {
+function recommendationFor(input: {
+  decision: ContinuousIntelligenceShadowCanaryReadinessDecision;
+  calendarReady: boolean;
+  scheduleStateVerified: boolean;
+  marketCalendar: ContinuousIntelligenceShadowCanaryActivationReadinessInput["market_calendar"];
+}) {
+  const { decision } = input;
   switch (decision) {
     case "ready_for_migration_application":
       return "Apply the approved Actions 572-575 migrations, then repeat the read-only schema probe.";
     case "ready_for_flag_configuration":
       return "Configure durable audit and credit-ledger flags only; keep the canary disabled and kill switch active.";
     case "ready_for_preflight_observation":
-      return "Integrate a verified server-side US market calendar before observing production canary preflight.";
+      if (!input.calendarReady) {
+        if (
+          input.marketCalendar.verification_status === "stale" ||
+          input.marketCalendar.freshness_status === "expired" ||
+          input.marketCalendar.coverage_status === "before_coverage" ||
+          input.marketCalendar.coverage_status === "after_coverage"
+        ) {
+          return "Refresh the pinned verified US market calendar coverage before observing production canary preflight.";
+        }
+        return "Integrate or repair a verified server-side US market calendar before observing production canary preflight.";
+      }
+      if (!input.scheduleStateVerified) {
+        return "Configure and verify sanitized deployment schedule-state signals before observing production canary preflight.";
+      }
+      return "Observe production canary preflight without invoking the canary.";
     case "ready_for_one_manual_canary_attempt":
       return "Observe production preflight, then separately authorize one manually controlled canary attempt.";
     case "ready_for_schedule_activation_review":
@@ -285,7 +353,13 @@ export function buildContinuousIntelligenceShadowCanaryActivationReadiness(
   const calendarReady =
     input.market_calendar.source_configured &&
     input.market_calendar.source_verified &&
+    input.market_calendar.verification_status === "verified" &&
+    input.market_calendar.provenance_available &&
+    input.market_calendar.coverage_includes_current_date &&
+    input.market_calendar.coverage_status === "covered" &&
+    input.market_calendar.source_freshness_valid &&
     input.market_calendar.holiday_awareness_available &&
+    input.market_calendar.early_close_awareness_available &&
     input.market_calendar.regular_session_determination_available &&
     input.market_calendar.latest_completed_30_minute_range_derivable;
   if (!calendarReady) warnings.push("verified_market_calendar_required");
@@ -343,7 +417,12 @@ export function buildContinuousIntelligenceShadowCanaryActivationReadiness(
     schedule_facts: structuredClone(input.schedule),
     provider_budget_facts: { ...structuredClone(input.provider_budget), reserve_credits_used: 0, provider_calls_executed: false, capacity_reserved: false },
     no_effect_facts: { provider_calls_executed: false, claims_created: false, attempts_begun: false, claims_finalized: false, audit_writes_executed: false, ledger_writes_executed: false, flags_changed: false, schedule_changed: false, recommendation_scanner_ranking_confidence_effects: false, position_execution_broker_effects: false },
-    recommended_next_action: recommendationFor(decision),
+    recommended_next_action: recommendationFor({
+      decision,
+      calendarReady,
+      scheduleStateVerified,
+      marketCalendar: input.market_calendar,
+    }),
   };
 }
 
