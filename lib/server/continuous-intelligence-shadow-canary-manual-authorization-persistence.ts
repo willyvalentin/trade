@@ -9,6 +9,7 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName,
   continuousIntelligenceShadowCanaryManualAuthorizationTableName,
   continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds,
+  parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationRecord,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
@@ -54,29 +55,6 @@ type ManualAuthorizationDatabase = {
   readAuthorization: (authorization_id: string) => Promise<{ data: unknown; error: { code?: string } | null }>;
   readClaim: (claim_id: string) => Promise<{ data: unknown; error: { code?: string } | null }>;
 };
-
-function record(value: unknown): ContinuousIntelligenceShadowCanaryManualAuthorizationRecord | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const raw = value as Record<string, unknown>;
-  const requiredText = [
-    "authorization_id", "issued_at", "expires_at", "authorization_status", "request_fingerprint", "execution_id",
-    "claim_id", "ticker", "interval", "requested_start", "requested_end", "calendar_contract_version",
-    "calendar_fingerprint", "budget_policy_version", "canary_contract_version", "claim_contract_version",
-    "deployment_commit", "deployment_build_marker", "purpose", "contract_version",
-  ];
-  if (!requiredText.every((key) => typeof raw[key] === "string")) return null;
-  if (
-    raw.authorization_status !== "issued" && raw.authorization_status !== "consumed" && raw.authorization_status !== "expired" && raw.authorization_status !== "revoked" ||
-    raw.ticker !== "AAPL" || raw.interval !== "5min" || raw.purpose !== "one_manual_shadow_canary_attempt" ||
-    raw.policy_total_credits !== 377 || raw.policy_hard_reserve_credits !== 57 ||
-    raw.policy_normal_planned_max_credits !== 320 || raw.estimated_credits !== 1 ||
-    (raw.consumed_at !== null && typeof raw.consumed_at !== "string")
-  ) return null;
-  return {
-    ...raw,
-    status: raw.authorization_status,
-  } as unknown as ContinuousIntelligenceShadowCanaryManualAuthorizationRecord;
-}
 
 function first(value: unknown) {
   return Array.isArray(value) ? value[0] : value;
@@ -131,7 +109,7 @@ function database(client: SupabaseClient): ManualAuthorizationDatabase {
     async readAuthorization(authorizationId) {
       const { data, error } = await client
         .from(continuousIntelligenceShadowCanaryManualAuthorizationTableName)
-        .select("authorization_id,contract_version,purpose,token_hash,issued_at,expires_at,consumed_at,authorization_status:status,request_fingerprint,execution_id,claim_id,ticker,interval,requested_start,requested_end,calendar_contract_version,calendar_fingerprint,budget_policy_version,policy_total_credits,policy_hard_reserve_credits,policy_normal_planned_max_credits,estimated_credits,canary_contract_version,claim_contract_version,deployment_commit,deployment_build_marker")
+        .select("authorization_id,contract_version,purpose,token_hash,issued_at,expires_at,consumed_at,authorization_status:status,request_fingerprint,execution_id,claim_id,ticker,market_interval:interval,requested_start,requested_end,calendar_contract_version,calendar_fingerprint,budget_policy_version,policy_total_credits,policy_hard_reserve_credits,policy_normal_planned_max_credits,estimated_credits,canary_contract_version,claim_contract_version,deployment_commit,deployment_build_marker")
         .eq("authorization_id", authorizationId)
         .maybeSingle();
       return { data, error };
@@ -187,7 +165,7 @@ export async function issueContinuousIntelligenceShadowCanaryManualAuthorization
     });
     if (result.error || !result.data) return { status: "unavailable", authorization: null };
     const outcome = operationOutcome(result.data);
-    const authorization = record(result.data);
+    const authorization = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(result.data);
     if (outcome === "issued" && authorization) return { status: "issued", authorization };
     if (outcome === "already_issued" && authorization) return { status: "already_issued", authorization };
     if (outcome === "conflicting_active_authorization") return { status: "conflicting_active_authorization", authorization: null };
@@ -217,7 +195,7 @@ export async function consumeContinuousIntelligenceShadowCanaryManualAuthorizati
     });
     if (result.error || !result.data) return { status: "unavailable", authorization: null };
     const outcome = operationOutcome(result.data);
-    const authorization = record(result.data);
+    const authorization = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(result.data);
     if (
       outcome === "consumed" || outcome === "already_consumed" || outcome === "expired" ||
       outcome === "revoked" || outcome === "identity_mismatch" || outcome === "invalid_token"
@@ -239,7 +217,7 @@ export async function readContinuousIntelligenceShadowCanaryManualAuthorization(
     const result = await db.readAuthorization(input.authorization_id);
     if (result.error) return { status: "unavailable" as const, authorization: null };
     const raw = result.data;
-    const authorization = record(raw);
+    const authorization = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(raw);
     if (!authorization) return { status: "invalid_token" as const, authorization: null };
     const tokenHash = raw && typeof raw === "object" && !Array.isArray(raw)
       ? (raw as Record<string, unknown>).token_hash
