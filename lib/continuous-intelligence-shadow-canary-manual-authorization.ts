@@ -383,6 +383,7 @@ export function sanitizeContinuousIntelligenceShadowCanaryManualAuthorization(
 ) {
   return {
     authorization_id: record.authorization_id,
+    contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
     issued_at: record.issued_at,
     expires_at: record.expires_at,
     consumed_at: record.consumed_at,
