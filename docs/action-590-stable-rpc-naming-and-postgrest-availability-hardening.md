@@ -27,3 +27,23 @@ The migration does not alter the paired issuance or atomic admission implementat
 `historical_issuance_rpc_name_mismatch_unproven`
 
 The Action 589 readiness mismatch is confirmed. It does not establish the cause of the earlier Action 587 issuance failure because the historical issuance result was intentionally discarded and the Action 585 paired issuance RPC had separate evidence of PostgREST availability.
+
+## Production Verification (2026-07-22)
+
+`production_readiness_rpc_fix_verified_with_sanitized_blocker`
+
+One authenticated, parameter-free GET to the canonical issuance-readiness route returned HTTP `200`. The route reached `ci_mca_readiness` through PostgREST successfully: authorization and lease tables/RLS, both issuance RPCs, signatures, service-role-only permissions, and transaction prerequisites all verified true. The issuance concurrency guard was clear.
+
+The sole sanitized blocker was `environment_configuration_missing`. The service-role probe itself succeeded, so the unavailable required environment fact is the runtime deployment identity used to bind a future authorization, not the database credential. Because that identity is absent, the diagnostic correctly also reports response mapping as unavailable rather than constructing a detached binding.
+
+Durable state remained zero before and after the route call:
+
+| Store | Before | After |
+| --- | ---: | ---: |
+| Manual authorizations | 0 | 0 |
+| Manual execution leases | 0 | 0 |
+| Daily claims | 0 | 0 |
+| Durable audit rows | 0 | 0 |
+| Credit-ledger rows | 0 | 0 |
+
+Daily usage remained `0 / 0`. Production readiness, global safe defaults, and schedule inactivity were verified. The canary stayed disabled, the kill switch stayed active, and no credential generation, durable write, claim, provider call, audit or ledger write, flag change, or schedule action occurred.

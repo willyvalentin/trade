@@ -14,6 +14,10 @@ import {
 import {
   usEquityMarketCalendarContractVersion,
 } from "@/lib/us-equity-market-calendar-contract";
+import {
+  areContinuousIntelligenceShadowCanaryTimestampsEqual,
+  normalizeContinuousIntelligenceShadowCanaryTimestamp,
+} from "@/lib/continuous-intelligence-shadow-canary-timestamp";
 
 export const continuousIntelligenceShadowCanaryManualAuthorizationContractVersion =
   "continuous_intelligence_shadow_canary_manual_authorization_v1" as const;
@@ -92,6 +96,13 @@ export function parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRec
     if (typeof field !== "string") return null;
     text[key] = field;
   }
+  const issuedAt = normalizeContinuousIntelligenceShadowCanaryTimestamp(text.issued_at);
+  const expiresAt = normalizeContinuousIntelligenceShadowCanaryTimestamp(text.expires_at);
+  const requestedStart = normalizeContinuousIntelligenceShadowCanaryTimestamp(text.requested_start);
+  const requestedEnd = normalizeContinuousIntelligenceShadowCanaryTimestamp(text.requested_end);
+  const consumedAt = raw.consumed_at === null
+    ? null
+    : normalizeContinuousIntelligenceShadowCanaryTimestamp(raw.consumed_at);
   if (
     text.authorization_status !== "issued" && text.authorization_status !== "consumed" && text.authorization_status !== "expired" && text.authorization_status !== "revoked" ||
     text.contract_version !== continuousIntelligenceShadowCanaryManualAuthorizationContractVersion ||
@@ -103,32 +114,31 @@ export function parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRec
     text.claim_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
     raw.policy_total_credits !== 377 || raw.policy_hard_reserve_credits !== 57 ||
     raw.policy_normal_planned_max_credits !== 320 || raw.estimated_credits !== 1 ||
-    !isTimestamp(text.issued_at) || !isTimestamp(text.expires_at) ||
-    !isTimestamp(text.requested_start) || !isTimestamp(text.requested_end) ||
-    Date.parse(text.expires_at) <= Date.parse(text.issued_at) ||
-    Date.parse(text.expires_at) - Date.parse(text.issued_at) > continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000 ||
-    Date.parse(text.requested_end) - Date.parse(text.requested_start) !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms ||
+    !issuedAt || !expiresAt || !requestedStart || !requestedEnd ||
+    (raw.consumed_at !== null && !consumedAt) ||
+    Date.parse(expiresAt) <= Date.parse(issuedAt) ||
+    Date.parse(expiresAt) - Date.parse(issuedAt) > continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000 ||
+    Date.parse(requestedEnd) - Date.parse(requestedStart) !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms ||
     !bounded(text.authorization_id, 128) || !bounded(text.request_fingerprint, 240) ||
     !bounded(text.execution_id, 128) || !bounded(text.claim_id, 128) ||
     !bounded(text.calendar_fingerprint, 128) || !bounded(text.deployment_commit, 128) ||
-    !bounded(text.deployment_build_marker, 128) ||
-    (raw.consumed_at !== null && (typeof raw.consumed_at !== "string" || !isTimestamp(raw.consumed_at)))
+    !bounded(text.deployment_build_marker, 128)
   ) return null;
   return {
     contract_version: text.contract_version,
     purpose: text.purpose,
     authorization_id: text.authorization_id,
-    issued_at: text.issued_at,
-    expires_at: text.expires_at,
-    consumed_at: raw.consumed_at,
+    issued_at: issuedAt,
+    expires_at: expiresAt,
+    consumed_at: consumedAt,
     status: text.authorization_status,
     request_fingerprint: text.request_fingerprint,
     execution_id: text.execution_id,
     claim_id: text.claim_id,
     ticker: text.ticker,
     interval: text.market_interval,
-    requested_start: text.requested_start,
-    requested_end: text.requested_end,
+    requested_start: requestedStart,
+    requested_end: requestedEnd,
     calendar_contract_version: text.calendar_contract_version,
     calendar_fingerprint: text.calendar_fingerprint,
     budget_policy_version: text.budget_policy_version,
@@ -185,10 +195,6 @@ export type ContinuousIntelligenceShadowCanaryManualExecutionHandoff = {
   required_action_581_design: typeof continuousIntelligenceShadowCanaryAction581ContinuationRequirement;
 };
 
-function isTimestamp(value: string) {
-  return Number.isFinite(Date.parse(value));
-}
-
 function bounded(value: string, maximum: number) {
   return value.length > 0 && value.length <= maximum;
 }
@@ -203,14 +209,16 @@ export function buildContinuousIntelligenceShadowCanaryManualAuthorizationBindin
   const request = input.preflight.request;
   const fingerprint = input.preflight.canonical_execution_context?.proof_preflight.request_fingerprint;
   const calendar = input.preflight.market_calendar;
+  const requestedStart = request ? normalizeContinuousIntelligenceShadowCanaryTimestamp(request.start) : null;
+  const requestedEnd = request ? normalizeContinuousIntelligenceShadowCanaryTimestamp(request.end) : null;
   if (
     !request ||
     !fingerprint ||
     request.ticker !== "AAPL" ||
     request.interval !== "5min" ||
-    !isTimestamp(request.start) ||
-    !isTimestamp(request.end) ||
-    Date.parse(request.end) - Date.parse(request.start) !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms ||
+    !requestedStart ||
+    !requestedEnd ||
+    Date.parse(requestedEnd) - Date.parse(requestedStart) !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms ||
     input.lifecycle_identity.request_fingerprint !== fingerprint ||
     input.lifecycle_identity.expected_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
     calendar.contract_version !== usEquityMarketCalendarContractVersion ||
@@ -232,8 +240,8 @@ export function buildContinuousIntelligenceShadowCanaryManualAuthorizationBindin
     claim_id: input.lifecycle_identity.claim_id,
     ticker: "AAPL",
     interval: "5min",
-    requested_start: request.start,
-    requested_end: request.end,
+    requested_start: requestedStart,
+    requested_end: requestedEnd,
     calendar_contract_version: usEquityMarketCalendarContractVersion,
     calendar_fingerprint: input.calendar_fingerprint,
     budget_policy_version: continuousIntelligenceCreditLedgerContractVersion,
@@ -260,8 +268,8 @@ function sameBinding(
     authorization.claim_id === expected.claim_id &&
     authorization.ticker === expected.ticker &&
     authorization.interval === expected.interval &&
-    authorization.requested_start === expected.requested_start &&
-    authorization.requested_end === expected.requested_end &&
+    areContinuousIntelligenceShadowCanaryTimestampsEqual(authorization.requested_start, expected.requested_start) &&
+    areContinuousIntelligenceShadowCanaryTimestampsEqual(authorization.requested_end, expected.requested_end) &&
     authorization.calendar_contract_version === expected.calendar_contract_version &&
     authorization.calendar_fingerprint === expected.calendar_fingerprint &&
     authorization.budget_policy_version === expected.budget_policy_version &&
@@ -345,14 +353,21 @@ export function evaluateContinuousIntelligenceShadowCanaryManualExecutionGate(in
   const { authorization, expected_binding: expected, facts } = input;
   if (!authorization || !expected) return "authorization_missing";
   if (authorization.status === "consumed") return "authorization_consumed";
-  if (authorization.status === "expired" || Date.parse(authorization.expires_at) <= input.now.getTime()) {
+  const expiresAt = normalizeContinuousIntelligenceShadowCanaryTimestamp(authorization.expires_at);
+  if (!expiresAt) return "authorization_missing";
+  if (authorization.status === "expired" || Date.parse(expiresAt) <= input.now.getTime()) {
     return "authorization_expired";
   }
   if (authorization.status !== "issued") return "authorization_missing";
   if (!sameBinding(authorization, expected)) {
     if (authorization.deployment_commit !== expected.deployment_commit || authorization.deployment_build_marker !== expected.deployment_build_marker) return "deployment_changed";
     if (authorization.calendar_fingerprint !== expected.calendar_fingerprint || authorization.calendar_contract_version !== expected.calendar_contract_version) return "calendar_changed";
-    if (authorization.requested_start !== expected.requested_start || authorization.requested_end !== expected.requested_end || authorization.ticker !== expected.ticker || authorization.interval !== expected.interval) return "range_changed";
+    if (
+      !areContinuousIntelligenceShadowCanaryTimestampsEqual(authorization.requested_start, expected.requested_start) ||
+      !areContinuousIntelligenceShadowCanaryTimestampsEqual(authorization.requested_end, expected.requested_end) ||
+      authorization.ticker !== expected.ticker ||
+      authorization.interval !== expected.interval
+    ) return "range_changed";
     return "authorization_identity_mismatch";
   }
   if (facts.readiness_decision !== "ready_for_one_manual_canary_attempt") return "runtime_unavailable";

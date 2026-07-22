@@ -4,6 +4,7 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import { normalizeContinuousIntelligenceShadowCanaryTimestamp } from "@/lib/continuous-intelligence-shadow-canary-timestamp";
 
 export const continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion =
   "continuous_intelligence_shadow_canary_manual_execution_lease_v1" as const;
@@ -32,10 +33,6 @@ export type ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord =
     status: ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus;
   };
 
-function isTimestamp(value: string) {
-  return Number.isFinite(Date.parse(value));
-}
-
 function bounded(value: string, maximum: number) {
   return value.length > 0 && value.length <= maximum;
 }
@@ -49,32 +46,48 @@ export function buildContinuousIntelligenceShadowCanaryManualExecutionLeaseRecor
   status: ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus;
   consumed_at?: string | null;
 }): ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord | null {
-  const consumedAt = input.consumed_at ?? null;
+  const issuedAt = normalizeContinuousIntelligenceShadowCanaryTimestamp(input.issued_at);
+  const expiresAt = normalizeContinuousIntelligenceShadowCanaryTimestamp(input.expires_at);
+  const requestedStart = normalizeContinuousIntelligenceShadowCanaryTimestamp(input.binding.requested_start);
+  const requestedEnd = normalizeContinuousIntelligenceShadowCanaryTimestamp(input.binding.requested_end);
+  const consumedAt = input.consumed_at === undefined || input.consumed_at === null
+    ? null
+    : normalizeContinuousIntelligenceShadowCanaryTimestamp(input.consumed_at);
   if (
     input.binding.contract_version !== continuousIntelligenceShadowCanaryManualAuthorizationContractVersion ||
     input.binding.purpose !== continuousIntelligenceShadowCanaryManualAuthorizationPurpose ||
     !bounded(input.authorization_id, 128) ||
     !bounded(input.execution_lease_id, 128) ||
-    !isTimestamp(input.issued_at) ||
-    !isTimestamp(input.expires_at) ||
-    Date.parse(input.expires_at) <= Date.parse(input.issued_at) ||
-    Date.parse(input.expires_at) - Date.parse(input.issued_at) >
+    !issuedAt ||
+    !expiresAt ||
+    !requestedStart ||
+    !requestedEnd ||
+    Date.parse(requestedEnd) - Date.parse(requestedStart) !== 30 * 60 * 1000 ||
+    (input.consumed_at !== undefined && input.consumed_at !== null && !consumedAt) ||
+    Date.parse(expiresAt) <= Date.parse(issuedAt) ||
+    Date.parse(expiresAt) - Date.parse(issuedAt) >
       continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000 ||
-    (consumedAt !== null && !isTimestamp(consumedAt)) ||
     (input.status === "consumed" && consumedAt === null) ||
     (input.status !== "consumed" && consumedAt !== null)
   ) {
     return null;
   }
-  const { contract_version: authorizationContractVersion, ...binding } = input.binding;
+  const normalizedBinding = {
+    ...input.binding,
+    requested_start: requestedStart,
+    requested_end: requestedEnd,
+  };
+  const { contract_version: authorizationContractVersion, ...binding } = normalizedBinding;
   return Object.freeze({
     ...binding,
+    requested_start: requestedStart,
+    requested_end: requestedEnd,
     authorization_contract_version: authorizationContractVersion,
     contract_version: continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion,
     execution_lease_id: input.execution_lease_id,
     authorization_id: input.authorization_id,
-    issued_at: input.issued_at,
-    expires_at: input.expires_at,
+    issued_at: issuedAt,
+    expires_at: expiresAt,
     status: input.status,
     consumed_at: consumedAt,
   });
