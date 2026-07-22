@@ -10,7 +10,6 @@ import {
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
 import { buildContinuousIntelligenceShadowCanaryManualAuthorizationContext } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-context";
 import {
-  consumeContinuousIntelligenceShadowCanaryManualAuthorization,
   readContinuousIntelligenceShadowCanaryManualAuthorization,
   readContinuousIntelligenceShadowCanaryManualAuthorizationClaimConflict,
 } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-persistence";
@@ -100,21 +99,22 @@ export async function POST(request: Request) {
     if (authorizationRead.status === "unavailable" || claimState.status === "unavailable") outcome = "runtime_unavailable";
     if (authorizationRead.status === "invalid_token") outcome = "authorization_missing";
 
-    let authorization = authorizationRead.authorization;
-    if (outcome === "ready_for_one_manual_execution" && !input.dry_run && expectedBinding) {
-      const consumed = await consumeContinuousIntelligenceShadowCanaryManualAuthorization({
-        authorization_id: input.authorization_id,
-        raw_token: input.authorization_token,
-        request_fingerprint: expectedBinding.request_fingerprint,
-        execution_id: expectedBinding.execution_id,
-        claim_id: expectedBinding.claim_id,
-      });
-      authorization = consumed.authorization;
-      if (consumed.status !== "consumed") {
-        outcome = consumed.status === "already_consumed" ? "authorization_consumed" :
-          consumed.status === "expired" ? "authorization_expired" :
-            consumed.status === "identity_mismatch" ? "authorization_identity_mismatch" : "runtime_unavailable";
-      }
+    const authorization = authorizationRead.authorization;
+    if (outcome === "ready_for_one_manual_execution" && !input.dry_run) {
+      return json({
+        error: "Manual execution continuation must use the canonical server-controlled route.",
+        contract_version: continuousIntelligenceShadowCanaryManualAuthorizationContractVersion,
+        route_path: continuousIntelligenceShadowCanaryManualExecutionGateRoutePath,
+        outcome: "execution_handoff_unavailable",
+        provider_execution_warning: "Provider execution has not occurred.",
+        no_effect_facts: {
+          provider_calls_executed: false,
+          claims_created: false,
+          attempts_begun: false,
+          audit_or_ledger_writes_executed: false,
+          schedule_changes: false,
+        },
+      }, 409);
     }
     const executionHandoff = buildContinuousIntelligenceShadowCanaryManualExecutionHandoff({
       authorization,

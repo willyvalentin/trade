@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName,
+  continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionRpcName,
   continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName,
   continuousIntelligenceShadowCanaryManualAuthorizationTableName,
   continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds,
@@ -51,6 +52,14 @@ type ManualAuthorizationDatabase = {
     request_fingerprint: string;
     execution_id: string;
     claim_id: string;
+  }) => Promise<{ data: unknown; error: { code?: string } | null }>;
+  admitExecution: (input: {
+    authorization_id: string;
+    authorization_token: string;
+    request_fingerprint: string;
+    execution_id: string;
+    claim_id: string;
+    utc_day: string;
   }) => Promise<{ data: unknown; error: { code?: string } | null }>;
   readAuthorization: (authorization_id: string) => Promise<{ data: unknown; error: { code?: string } | null }>;
   readClaim: (claim_id: string) => Promise<{ data: unknown; error: { code?: string } | null }>;
@@ -102,6 +111,20 @@ function database(client: SupabaseClient): ManualAuthorizationDatabase {
           p_request_fingerprint: input.request_fingerprint,
           p_execution_id: input.execution_id,
           p_claim_id: input.claim_id,
+        },
+      );
+      return { data: first(data), error };
+    },
+    async admitExecution(input) {
+      const { data, error } = await client.rpc(
+        continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionRpcName,
+        {
+          p_authorization_id: input.authorization_id,
+          p_authorization_token: input.authorization_token,
+          p_request_fingerprint: input.request_fingerprint,
+          p_execution_id: input.execution_id,
+          p_claim_id: input.claim_id,
+          p_utc_day: input.utc_day,
         },
       );
       return { data: first(data), error };
@@ -204,6 +227,40 @@ export async function consumeContinuousIntelligenceShadowCanaryManualAuthorizati
     // No raw database errors leave the server boundary.
   }
   return { status: "unavailable", authorization: null };
+}
+
+export async function admitContinuousIntelligenceShadowCanaryManualExecution(input: {
+  authorization_id: string;
+  raw_token: string;
+  request_fingerprint: string;
+  execution_id: string;
+  claim_id: string;
+  utc_day: string;
+  db?: ManualAuthorizationDatabase | null;
+}) {
+  const db = input.db === undefined ? serviceDatabase() : input.db;
+  if (!db || !input.raw_token) return { status: "unavailable" as const };
+  try {
+    const result = await db.admitExecution({
+      authorization_id: input.authorization_id,
+      authorization_token: input.raw_token,
+      request_fingerprint: input.request_fingerprint,
+      execution_id: input.execution_id,
+      claim_id: input.claim_id,
+      utc_day: input.utc_day,
+    });
+    if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
+      return { status: "unavailable" as const };
+    }
+    const status = (result.data as Record<string, unknown>).admission_status;
+    if (
+      status === "attempt_started" || status === "already_admitted" || status === "authorization_expired" ||
+      status === "authorization_replayed" || status === "identity_mismatch" || status === "daily_limit_reached"
+    ) return { status };
+  } catch {
+    // Atomic admission must fail closed without returning database details.
+  }
+  return { status: "unavailable" as const };
 }
 
 export async function readContinuousIntelligenceShadowCanaryManualAuthorization(input: {

@@ -30,6 +30,23 @@ function json(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, { status, headers: noStoreHeaders });
 }
 
+async function finalizePreProviderCanaryClaim(input: {
+  claim_id: string;
+  execution_id: string;
+  request_fingerprint: string;
+  source_receipt_id: string;
+}) {
+  return finalizeContinuousIntelligenceShadowCanaryDailyClaim({
+    claim_id: input.claim_id,
+    execution_id: input.execution_id,
+    request_fingerprint: input.request_fingerprint,
+    status: "failed",
+    provider_attempted: false,
+    source_receipt_id: input.source_receipt_id,
+    finalized_at: new Date().toISOString(),
+  });
+}
+
 async function parseCanaryRequest(request: Request): Promise<"empty" | "manual_continuation_not_implemented" | "invalid"> {
   const text = await request.text();
   if (text.trim().length === 0 || text.trim() === '{"contract_version":"continuous_intelligence_shadow_collector_canary_v1"}') return "empty";
@@ -93,11 +110,13 @@ export async function POST(request: Request) {
     return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, preflight, daily_claim: claim, provider_calls_executed: false }, claim.status === "daily_usage_unavailable" ? 503 : 429);
   }
   if (claim.claim_id !== lifecycleIdentity.claim_id) {
-    return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, preflight, daily_claim: claim, failure_category: "daily_usage_unavailable", provider_calls_executed: false }, 503);
+    const finalization = await finalizePreProviderCanaryClaim(lifecycleIdentity);
+    return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, preflight, daily_claim: claim, finalization_status: finalization.status, failure_category: "daily_usage_unavailable", provider_calls_executed: false }, 503);
   }
   const runtimeRecheck = recheckContinuousIntelligenceShadowCanaryRuntime(preflight);
   if (!runtimeRecheck.eligible) {
-    return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, preflight, daily_claim: claim, runtime_recheck: runtimeRecheck, provider_calls_executed: false }, 409);
+    const finalization = await finalizePreProviderCanaryClaim(lifecycleIdentity);
+    return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, preflight, daily_claim: claim, runtime_recheck: runtimeRecheck, finalization_status: finalization.status, provider_calls_executed: false }, 409);
   }
   const attempt = await beginContinuousIntelligenceShadowCanaryAttempt({
     claim_id: lifecycleIdentity.claim_id,
@@ -106,12 +125,16 @@ export async function POST(request: Request) {
     expected_contract_version: lifecycleIdentity.expected_contract_version,
   });
   if (!attempt.provider_execution_allowed) {
+    const finalization = claim.idempotent
+      ? null
+      : await finalizePreProviderCanaryClaim(lifecycleIdentity);
     return json({
       contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion,
       route_path: continuousIntelligenceShadowCollectorCanaryRoutePath,
       preflight,
       daily_claim: claim,
       attempt,
+      finalization_status: finalization?.status ?? null,
       duplicate_execution: attempt.status !== "daily_usage_unavailable",
       provider_calls_executed: false,
     }, attempt.status === "daily_usage_unavailable" ? 503 : 200);
