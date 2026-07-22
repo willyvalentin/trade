@@ -67,6 +67,18 @@ Focused Action 585 coverage verifies:
 
 Action 580 and Action 583 regression tests remain part of the focused validation set.
 
+## Production Verification (2026-07-22)
+
+`atomic_one_time_live_canary_configuration_lease_production_verified`
+
+Read-only production verification confirmed the deployed main lineage contains Action 585, and the lease table is available with zero rows. The table rejects anonymous and authenticated access, while service-role readback found no authorization, lease, claim, audit, or credit-ledger records. Probes for `raw_token`, `lease_token_hash`, and `token_hash` on the lease table each returned PostgreSQL's missing-column code, confirming that no raw lease or token credential column is present.
+
+The deployed activation-readiness route returned `ready_for_one_manual_canary_attempt`. It reported canary disabled, kill switch enabled, and no repository, deployment, or remote schedule declaration. The non-mutating canary preflight returned only `canary_disabled` and `canary_kill_switch_active`, with daily usage `0` runs / `0` estimated credits, canonical `AAPL` / `5min` / 30-minute bounds, and zero provider calls or durable writes.
+
+The deployed manual-authorization and canonical manual-execution routes both reject `HEAD` with `405`, so this verification did not issue credentials or submit execution. The legacy manual-execution-gate route is likewise non-executing. The migration contract binds issuance and admission to the service-role-only paired authorization/lease RPCs; admission locks the pair, validates the exact immutable contract, creates the attempted claim, and consumes both records in the same transaction.
+
+Global defaults remain unchanged: canary disabled, kill switch active, and no schedule active. No production authorization, lease, claim, provider call, audit write, ledger write, flag change, or schedule activation occurred during this verification.
+
 ## Operational Status
 
-This is source-level readiness only. The new migration must be applied and the reviewed code deployed before another read-only Action 584-style production readiness review can authorize a one-time attempt. Until that separate production verification succeeds, global defaults remain disabled/active and no production manual authorization or lease may be issued.
+The durable lease path is production-verified. It remains dormant behind the existing global defaults and requires a separately authorized, explicit one-time live canary action before any authorization or provider request may occur.
