@@ -30,9 +30,25 @@ function json(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, { status, headers: noStoreHeaders });
 }
 
-async function emptyBody(request: Request) {
+async function parseCanaryRequest(request: Request): Promise<"empty" | "manual_continuation_not_implemented" | "invalid"> {
   const text = await request.text();
-  return text.trim().length === 0 || text.trim() === '{"contract_version":"continuous_intelligence_shadow_collector_canary_v1"}';
+  if (text.trim().length === 0 || text.trim() === '{"contract_version":"continuous_intelligence_shadow_collector_canary_v1"}') return "empty";
+  try {
+    const value = JSON.parse(text) as Record<string, unknown>;
+    const keys = Object.keys(value);
+    if (keys.some((key) => [
+      "manual_authorization_id",
+      "manual_authorization_token",
+      "authorization_id",
+      "authorization_token",
+      "authorization",
+      "execution_handoff",
+      "outcome",
+    ].includes(key))) return "manual_continuation_not_implemented";
+    return "invalid";
+  } catch {
+    return "invalid";
+  }
 }
 
 export async function POST(request: Request) {
@@ -40,8 +56,12 @@ export async function POST(request: Request) {
   if (!expectedSecret || request.headers.get("x-automation-secret") !== expectedSecret) {
     return json({ error: "Unauthorized.", contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath }, 401);
   }
-  if (!(await emptyBody(request))) {
+  const manualAuthorization = await parseCanaryRequest(request);
+  if (manualAuthorization === "invalid") {
     return json({ error: "Canary accepts no execution parameters.", contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, failure_category: "canary_configuration_invalid" }, 400);
+  }
+  if (manualAuthorization === "manual_continuation_not_implemented") {
+    return json({ error: "Manual execution continuation is not implemented.", contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryRoutePath, failure_category: "manual_execution_continuation_not_implemented", provider_calls_executed: false, claims_created: false, attempts_begun: false, audit_or_ledger_writes_executed: false }, 409);
   }
   const now = new Date();
   const ledgerEnabled = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED);
