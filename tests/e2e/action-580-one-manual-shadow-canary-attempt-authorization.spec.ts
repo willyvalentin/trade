@@ -14,6 +14,7 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationPurpose,
   continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds,
   evaluateContinuousIntelligenceShadowCanaryManualExecutionGate,
+  parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord,
   sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
   type ContinuousIntelligenceShadowCanaryManualAuthorizationRecord,
@@ -79,6 +80,19 @@ function authorization(
 
 function tokenHash(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function rpcAuthorizationRow(
+  bound = authorization(),
+  overrides: Record<string, unknown> = {},
+) {
+  const { status, interval, ...rest } = bound;
+  return {
+    ...rest,
+    authorization_status: status,
+    market_interval: interval,
+    ...overrides,
+  };
 }
 
 function fakeDatabase() {
@@ -173,6 +187,22 @@ test("Action 580 issuance persists a SHA-256 hash only, bounds TTL, and returns 
   expect(JSON.stringify(sanitizeContinuousIntelligenceShadowCanaryManualAuthorization(issued.authorization))).not.toContain("token_hash");
 });
 
+test("Action 580 maps the issue and consume RPC market_interval result to the internal 5min interval", () => {
+  const issued = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(rpcAuthorizationRow());
+  const consumed = parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(
+    rpcAuthorizationRow(authorization(binding(), { status: "consumed", consumed_at: now.toISOString() })),
+  );
+  expect(issued?.interval).toBe("5min");
+  expect(consumed).toMatchObject({ status: "consumed", interval: "5min" });
+  expect(parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(
+    rpcAuthorizationRow(authorization(), { market_interval: "1min" }),
+  )).toBeNull();
+  const oldShape = Object.fromEntries(
+    Object.entries(rpcAuthorizationRow()).filter(([key]) => key !== "market_interval"),
+  );
+  expect(parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord({ ...oldShape, interval: "5min" })).toBeNull();
+});
+
 test("Action 580 issuance is single-active, duplicate-idempotent, and conflicts fail closed", async () => {
   const fixture = fakeDatabase();
   const first = fixture.issue({ binding: binding(), authorization_id: "manual_canary_authorization_one", raw_token: "a".repeat(43) });
@@ -262,6 +292,8 @@ test("Action 580 route and migration boundaries are authenticated, parameter-bou
   expect(continuationBlocker).toBeLessThan(executionRoute.indexOf("const response = await getIntradayCandlesWithDiagnostics"));
   expect(executionRoute).not.toContain("consumeContinuousIntelligenceShadowCanaryManualAuthorization");
   expect(migration).toContain("token_hash text not null unique");
+  expect(migration).toContain("market_interval text");
+  expect(migration).not.toMatch(/returns table \([\s\S]*?\n  interval text,/);
   expect(migration).not.toContain("raw_token");
   expect(migration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationIssueRpcName);
   expect(migration).toContain(continuousIntelligenceShadowCanaryManualAuthorizationConsumeRpcName);

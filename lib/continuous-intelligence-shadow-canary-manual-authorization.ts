@@ -71,6 +71,74 @@ export type ContinuousIntelligenceShadowCanaryManualAuthorizationRecord =
     status: ContinuousIntelligenceShadowCanaryManualAuthorizationStatus;
   };
 
+export function parseContinuousIntelligenceShadowCanaryManualAuthorizationRpcRecord(
+  value: unknown,
+): ContinuousIntelligenceShadowCanaryManualAuthorizationRecord | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const requiredText = [
+    "authorization_id", "issued_at", "expires_at", "authorization_status", "request_fingerprint", "execution_id",
+    "claim_id", "ticker", "market_interval", "requested_start", "requested_end", "calendar_contract_version",
+    "calendar_fingerprint", "budget_policy_version", "canary_contract_version", "claim_contract_version",
+    "deployment_commit", "deployment_build_marker", "purpose", "contract_version",
+  ];
+  const text: Record<string, string> = {};
+  for (const key of requiredText) {
+    const field = raw[key];
+    if (typeof field !== "string") return null;
+    text[key] = field;
+  }
+  if (
+    text.authorization_status !== "issued" && text.authorization_status !== "consumed" && text.authorization_status !== "expired" && text.authorization_status !== "revoked" ||
+    text.contract_version !== continuousIntelligenceShadowCanaryManualAuthorizationContractVersion ||
+    text.purpose !== continuousIntelligenceShadowCanaryManualAuthorizationPurpose ||
+    text.ticker !== "AAPL" || text.market_interval !== "5min" ||
+    text.calendar_contract_version !== usEquityMarketCalendarContractVersion ||
+    text.budget_policy_version !== continuousIntelligenceCreditLedgerContractVersion ||
+    text.canary_contract_version !== continuousIntelligenceShadowCollectorCanaryContractVersion ||
+    text.claim_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
+    raw.policy_total_credits !== 377 || raw.policy_hard_reserve_credits !== 57 ||
+    raw.policy_normal_planned_max_credits !== 320 || raw.estimated_credits !== 1 ||
+    !isTimestamp(text.issued_at) || !isTimestamp(text.expires_at) ||
+    !isTimestamp(text.requested_start) || !isTimestamp(text.requested_end) ||
+    Date.parse(text.expires_at) <= Date.parse(text.issued_at) ||
+    Date.parse(text.expires_at) - Date.parse(text.issued_at) > continuousIntelligenceShadowCanaryManualAuthorizationTtlSeconds * 1000 ||
+    Date.parse(text.requested_end) - Date.parse(text.requested_start) !== continuousIntelligenceShadowCollectorCanaryLimits.max_range_ms ||
+    !bounded(text.authorization_id, 128) || !bounded(text.request_fingerprint, 240) ||
+    !bounded(text.execution_id, 128) || !bounded(text.claim_id, 128) ||
+    !bounded(text.calendar_fingerprint, 128) || !bounded(text.deployment_commit, 128) ||
+    !bounded(text.deployment_build_marker, 128) ||
+    (raw.consumed_at !== null && (typeof raw.consumed_at !== "string" || !isTimestamp(raw.consumed_at)))
+  ) return null;
+  return {
+    contract_version: text.contract_version,
+    purpose: text.purpose,
+    authorization_id: text.authorization_id,
+    issued_at: text.issued_at,
+    expires_at: text.expires_at,
+    consumed_at: raw.consumed_at,
+    status: text.authorization_status,
+    request_fingerprint: text.request_fingerprint,
+    execution_id: text.execution_id,
+    claim_id: text.claim_id,
+    ticker: text.ticker,
+    interval: text.market_interval,
+    requested_start: text.requested_start,
+    requested_end: text.requested_end,
+    calendar_contract_version: text.calendar_contract_version,
+    calendar_fingerprint: text.calendar_fingerprint,
+    budget_policy_version: text.budget_policy_version,
+    policy_total_credits: raw.policy_total_credits,
+    policy_hard_reserve_credits: raw.policy_hard_reserve_credits,
+    policy_normal_planned_max_credits: raw.policy_normal_planned_max_credits,
+    estimated_credits: raw.estimated_credits,
+    canary_contract_version: text.canary_contract_version,
+    claim_contract_version: text.claim_contract_version,
+    deployment_commit: text.deployment_commit,
+    deployment_build_marker: text.deployment_build_marker,
+  } as ContinuousIntelligenceShadowCanaryManualAuthorizationRecord;
+}
+
 export type ContinuousIntelligenceShadowCanaryManualExecutionGateOutcome =
   | "ready_for_one_manual_execution"
   | "authorization_missing"
