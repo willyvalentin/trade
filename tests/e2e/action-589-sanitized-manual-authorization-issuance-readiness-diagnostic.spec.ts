@@ -20,6 +20,10 @@ import {
   buildUsEquityMarketCalendarEvaluation,
   usEquityMarketCalendarValidation,
 } from "../../lib/us-equity-market-calendar";
+import {
+  continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable,
+  resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit,
+} from "../../lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
 
 const routePath = "app/api/automation/continuous-intelligence/shadow-collector/canary/manual-authorization/readiness/route.ts";
 const migrationPath = "supabase/migrations/20260722005000_stabilize_continuous_intelligence_shadow_canary_rpc_names.sql";
@@ -133,6 +137,22 @@ test("Action 589 maps each persistence readiness failure to one bounded category
   for (const [expected, overrides] of cases) {
     expect(buildContinuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadiness(input(overrides)).category).toBe(expected);
   }
+});
+
+test("Action 591 accepts only a canonical configured runtime deployment commit", () => {
+  const commit = "a".repeat(40);
+  expect(resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit({
+    [continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable]: commit,
+  })).toBe(commit);
+  expect(resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit({
+    [continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable]: "not-a-commit",
+    COMMIT_REF: "B".repeat(40),
+  })).toBe("b".repeat(40));
+  expect(resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit({
+    [continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable]: "not-a-commit",
+    COMMIT_REF: "too-short",
+    NETLIFY_COMMIT_REF: "still-not-a-commit",
+  })).toBeNull();
 });
 
 test("Action 589 adds a service-role-only read probe and a GET-only route without touching issuance behavior", () => {

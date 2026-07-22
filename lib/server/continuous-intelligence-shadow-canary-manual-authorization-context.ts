@@ -16,6 +16,7 @@ import {
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { readContinuousIntelligenceCanaryDailyUsage } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
 import { readContinuousIntelligenceShadowCanarySchemaReadiness } from "@/lib/server/continuous-intelligence-shadow-canary-activation-readiness";
+import { resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit } from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
 import {
   continuousIntelligenceDeploymentManifest,
   continuousIntelligenceDeploymentManifestContractVersion,
@@ -134,7 +135,7 @@ export async function buildContinuousIntelligenceShadowCanaryManualAuthorization
       usEquityMarketCalendarValidation.status === "verified"
         ? usEquityMarketCalendarValidation.computed_fingerprint
         : null,
-    deployment_commit: process.env.COMMIT_REF ?? process.env.NETLIFY_COMMIT_REF ?? null,
+    deployment_commit: resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit(process.env),
     deployment_build_marker: continuousIntelligenceShadowCanaryFunctionBuildMarker,
     schedule_absent: scheduleAbsent,
     preflight_static_blockers_are_only_disabled_state: preflightStaticBlockersAreOnlyDisabledState,
