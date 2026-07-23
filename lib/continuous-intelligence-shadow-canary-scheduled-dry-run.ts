@@ -6,6 +6,7 @@ import {
   parseContinuousIntelligenceShadowCanaryScheduledExecutionRequest,
   type ContinuousIntelligenceShadowCanaryScheduledExecutionRequest,
 } from "@/lib/continuous-intelligence-shadow-canary-scheduled-admission";
+import type { ContinuousIntelligenceShadowCanaryScheduledDeploymentBinding } from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
 import {
   continuousIntelligenceShadowCanaryScheduledExecutionPolicyVersion,
   type ContinuousIntelligenceShadowCanaryScheduledBudgetStatus,
@@ -31,7 +32,7 @@ export type ContinuousIntelligenceShadowCanaryScheduledDryRunRequest =
   };
 
 export type ScheduledDryRunDependencies = {
-  deployment: "exact" | "mismatch" | "unavailable";
+  deployment: ContinuousIntelligenceShadowCanaryScheduledDeploymentBinding;
   scheduled_execution_enabled: boolean;
   canary: "ready" | "blocked" | "unavailable";
   kill_switch: "ready" | "blocked" | "unavailable";
@@ -49,7 +50,9 @@ export type ScheduledDryRunDependencies = {
 
 export type ScheduledDryRunBlocker =
   | ScheduledDryRunAuthentication
-  | "request_contract_invalid" | "deployment_identity_mismatch" | "scheduled_execution_feature_disabled"
+  | "request_contract_invalid" | "deployment_identity_mismatch" | "deployment_configuration_conflict"
+  | "deployment_configuration_malformed" | "deployment_platform_identity_conflict"
+  | "deployment_platform_identity_malformed" | "scheduled_execution_feature_disabled"
   | "canary_disabled" | "kill_switch_active" | "schedule_inactive" | "calendar_or_window_unavailable"
   | "provider_or_planner_unavailable" | "audit_or_ledger_unavailable" | "historical_usage_unavailable"
   | "scheduled_budget_blocked" | "reserve_protected" | "persistence_stop_active"
@@ -125,7 +128,17 @@ export function evaluateContinuousIntelligenceShadowCanaryScheduledDryRun(input:
   if (blockers.length === 0 && !d) blockers.push("unavailable");
   if (blockers.length === 0 && d) {
     stage = "safety_envelope";
-    if (d.deployment !== "exact") blockers.push(d.deployment === "mismatch" ? "deployment_identity_mismatch" : "unavailable");
+    if (d.deployment !== "exact") {
+      switch (d.deployment) {
+        case "mismatch":
+        case "request_mismatch": blockers.push("deployment_identity_mismatch"); break;
+        case "explicit_configuration_conflict": blockers.push("deployment_configuration_conflict"); break;
+        case "explicit_configuration_malformed": blockers.push("deployment_configuration_malformed"); break;
+        case "platform_identity_conflict": blockers.push("deployment_platform_identity_conflict"); break;
+        case "platform_identity_malformed": blockers.push("deployment_platform_identity_malformed"); break;
+        default: blockers.push("unavailable");
+      }
+    }
     if (!d.scheduled_execution_enabled) blockers.push("scheduled_execution_feature_disabled");
     if (d.canary !== "ready") blockers.push(d.canary === "blocked" ? "canary_disabled" : "unavailable");
     if (d.kill_switch !== "ready") blockers.push(d.kill_switch === "blocked" ? "kill_switch_active" : "unavailable");
