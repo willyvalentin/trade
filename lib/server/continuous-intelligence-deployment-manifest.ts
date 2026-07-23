@@ -12,6 +12,9 @@ import {
   continuousIntelligenceShadowCollectorCanaryPreflightRoutePath,
   continuousIntelligenceShadowCollectorCanaryRoutePath,
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
+import { continuousIntelligenceShadowCanaryScheduledAdmissionRoutePath } from "@/lib/continuous-intelligence-shadow-canary-scheduled-admission";
+import { continuousIntelligenceShadowCanaryScheduledDryRunRoutePath } from "@/lib/continuous-intelligence-shadow-canary-scheduled-dry-run";
+import { continuousIntelligenceShadowCanaryScheduledLiveShadowRoutePath } from "@/lib/continuous-intelligence-shadow-canary-scheduled-live-shadow";
 
 export const continuousIntelligenceDeploymentManifestContractVersion =
   "continuous_intelligence_deployment_manifest_v1" as const;
@@ -28,6 +31,9 @@ export const continuousIntelligenceDeploymentManifest = Object.freeze({
     "/api/automation/continuous-intelligence/credit-ledger/reconcile",
     continuousIntelligenceShadowCollectorCanaryRoutePath,
     continuousIntelligenceShadowCollectorCanaryPreflightRoutePath,
+    continuousIntelligenceShadowCanaryScheduledAdmissionRoutePath,
+    continuousIntelligenceShadowCanaryScheduledDryRunRoutePath,
+    continuousIntelligenceShadowCanaryScheduledLiveShadowRoutePath,
     continuousIntelligenceShadowCanaryActivationReadinessRoutePath,
   ]),
   function_foundations: Object.freeze([
