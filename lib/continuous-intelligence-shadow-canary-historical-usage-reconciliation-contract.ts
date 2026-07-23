@@ -8,6 +8,22 @@ export const continuousIntelligenceShadowCanaryHistoricalUsageReconciliationReas
   "verified_post_provider_receipt_identity_collision" as const;
 export const continuousIntelligenceShadowCanaryHistoricalUsageReconciliationAuthorizationTtlSeconds = 300 as const;
 
+/**
+ * One historical compatibility target. This is an immutable evidence binding, not
+ * a pattern for admitting legacy claim IDs.
+ */
+export const continuousIntelligenceShadowCanaryHistoricalUsageLegacyAction609Target = Object.freeze({
+  claim_id: "canary_claim_canary_execution_20260723_8feacb91",
+  execution_id: "canary_execution_20260723_8feacb91",
+  source_audit_id: "canary_receipt_AAPL_5min_2026-07-22T19-30-00.000Z_2026-07-22T20-00-00.000Z",
+});
+
+export type ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTargetClassification =
+  | "canonical_manual_claim"
+  | "explicit_legacy_action_609_claim"
+  | "unsupported_legacy_claim"
+  | "malformed_claim";
+
 export type ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationClaim = {
   claim_id: string;
   execution_id: string;
@@ -23,7 +39,7 @@ export type ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationClaim
 
 export type ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationEligibility =
   | { category: "eligible_verified_post_provider_ledger_failure"; reconciliation_identity: string; target_claim_id: string; source_audit_id: string }
-  | { category: "ineligible_claim_not_found" | "ineligible_wrong_scope" | "ineligible_non_terminal_claim" | "ineligible_provider_usage_unverified" | "ineligible_audit_missing" | "ineligible_audit_linkage_mismatch" | "ineligible_ledger_already_present" | "ineligible_reconciliation_already_present" | "ineligible_duplicate_attempt" | "ineligible_usage_delta_not_exactly_one" | "ineligible_historical_state_unavailable" | "ineligible_historical_state_malformed"; reconciliation_identity: null };
+  | { category: "ineligible_claim_not_found" | "ineligible_wrong_scope" | "ineligible_unsupported_legacy_target" | "ineligible_non_terminal_claim" | "ineligible_provider_usage_unverified" | "ineligible_audit_missing" | "ineligible_audit_linkage_mismatch" | "ineligible_ledger_already_present" | "ineligible_reconciliation_already_present" | "ineligible_duplicate_attempt" | "ineligible_usage_delta_not_exactly_one" | "ineligible_historical_state_unavailable" | "ineligible_historical_state_malformed"; reconciliation_identity: null };
 
 export type ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationAuthorization = {
   contract_version: typeof continuousIntelligenceShadowCanaryHistoricalUsageReconciliationContractVersion;
@@ -90,6 +106,32 @@ function isCanonicalManualClaimId(value: unknown): value is string {
   return typeof value === "string" && /^canary_claim_manual_canary_execution_\d{8}_manual_canary_authorization_[0-9a-f-]{36}$/.test(value);
 }
 
+export function classifyContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTarget(input: {
+  claim_id: unknown;
+  execution_id: unknown;
+  source_audit_id: unknown;
+}): ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTargetClassification {
+  if (isCanonicalManualClaimId(input.claim_id)) return "canonical_manual_claim";
+  if (
+    input.claim_id === continuousIntelligenceShadowCanaryHistoricalUsageLegacyAction609Target.claim_id &&
+    input.execution_id === continuousIntelligenceShadowCanaryHistoricalUsageLegacyAction609Target.execution_id &&
+    input.source_audit_id === continuousIntelligenceShadowCanaryHistoricalUsageLegacyAction609Target.source_audit_id
+  ) return "explicit_legacy_action_609_claim";
+  if (typeof input.claim_id === "string" && input.claim_id.startsWith("canary_claim_canary_execution_")) {
+    return "unsupported_legacy_claim";
+  }
+  return "malformed_claim";
+}
+
+export function isApprovedContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTarget(input: {
+  claim_id: unknown;
+  execution_id: unknown;
+  source_audit_id: unknown;
+}): boolean {
+  const classification = classifyContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTarget(input);
+  return classification === "canonical_manual_claim" || classification === "explicit_legacy_action_609_claim";
+}
+
 function isCanonicalIsoTimestamp(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value));
 }
@@ -104,11 +146,17 @@ function isNonNegativeInteger(value: unknown): value is number {
 
 export function buildContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationIdentity(input: {
   target_claim_id: unknown;
+  execution_id?: unknown;
+  source_audit_id?: unknown;
   contract_version?: unknown;
 }): string | null {
   const contractVersion = input.contract_version ?? continuousIntelligenceShadowCanaryHistoricalUsageReconciliationContractVersion;
   if (
-    !isCanonicalManualClaimId(input.target_claim_id) ||
+    !isApprovedContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTarget({
+      claim_id: input.target_claim_id,
+      execution_id: input.execution_id,
+      source_audit_id: input.source_audit_id,
+    }) ||
     !isCanonicalReconciliationContractVersion(contractVersion)
   ) return null;
   // Claim IDs are durable, server-issued, non-secret identifiers. Keeping the
@@ -129,8 +177,13 @@ export function evaluateContinuousIntelligenceShadowCanaryHistoricalUsageReconci
     return { category: "ineligible_historical_state_unavailable", reconciliation_identity: null };
   }
   const claim = input.claim as Partial<ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationClaim>;
+  const targetClassification = classifyContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationTarget({
+    claim_id: claim.claim_id,
+    execution_id: claim.execution_id,
+    source_audit_id: claim.audit?.audit_id,
+  });
   if (
-    !isCanonicalManualClaimId(claim.claim_id) ||
+    targetClassification === "malformed_claim" ||
     !isBoundedText(claim.execution_id, 160) ||
     !["completed", "failed", "attempted", "claimed"].includes(claim.status ?? "") ||
     !["confirmed", "not_reached", "unknown"].includes(claim.provider_usage ?? "") ||
@@ -138,6 +191,9 @@ export function evaluateContinuousIntelligenceShadowCanaryHistoricalUsageReconci
     !["verified_receipt_identity_collision", "none", "unknown"].includes(claim.ledger_failure ?? "") ||
     typeof claim.normal_ledger_present !== "boolean" || typeof claim.reconciliation_present !== "boolean" || typeof claim.duplicate_attempt !== "boolean"
   ) return { category: "ineligible_historical_state_malformed", reconciliation_identity: null };
+  if (targetClassification === "unsupported_legacy_claim") {
+    return { category: "ineligible_unsupported_legacy_target", reconciliation_identity: null };
+  }
   if (claim.scope !== "manual" || claim.claim_id !== input.allowed_target_claim_id) return { category: "ineligible_wrong_scope", reconciliation_identity: null };
   if (claim.status !== "completed") return { category: "ineligible_non_terminal_claim", reconciliation_identity: null };
   if (claim.provider_usage !== "confirmed") return { category: "ineligible_provider_usage_unverified", reconciliation_identity: null };
@@ -155,7 +211,11 @@ export function evaluateContinuousIntelligenceShadowCanaryHistoricalUsageReconci
     input.claim_capacity_units !== 2 || input.persisted_ledger_units !== 1 || input.verified_provider_usage_units !== 2 ||
     input.claim_capacity_units - input.persisted_ledger_units !== 1
   ) return { category: "ineligible_usage_delta_not_exactly_one", reconciliation_identity: null };
-  const reconciliationIdentity = buildContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationIdentity({ target_claim_id: claim.claim_id });
+  const reconciliationIdentity = buildContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationIdentity({
+    target_claim_id: claim.claim_id,
+    execution_id: claim.execution_id,
+    source_audit_id: claim.audit.audit_id,
+  });
   return reconciliationIdentity
     ? { category: "eligible_verified_post_provider_ledger_failure", reconciliation_identity: reconciliationIdentity, target_claim_id: claim.claim_id, source_audit_id: claim.audit.audit_id }
     : { category: "ineligible_historical_state_malformed", reconciliation_identity: null };
@@ -175,7 +235,7 @@ export function validateContinuousIntelligenceShadowCanaryHistoricalUsageReconci
     authorization.status !== "issued" || authorization.reason !== continuousIntelligenceShadowCanaryHistoricalUsageReconciliationReason ||
     authorization.durable_accounting_mutation_acknowledged !== true || authorization.expected_claim_capacity_units !== 2 ||
     authorization.expected_persisted_ledger_units !== 1 || authorization.expected_missing_usage_units !== 1 ||
-    !isBoundedText(authorization.authorization_id, 160) || !isCanonicalManualClaimId(authorization.target_claim_id) ||
+    !isBoundedText(authorization.authorization_id, 160) || !isBoundedText(authorization.target_claim_id, 160) ||
     !isBoundedText(authorization.expected_audit_id, 160) || !isBoundedText(authorization.requested_by, 160) ||
     !isBoundedText(authorization.deployment_commit, 160) || !isCanonicalIsoTimestamp(authorization.issued_at) ||
     !isCanonicalIsoTimestamp(authorization.expires_at) || Date.parse(authorization.expires_at) <= input.now.getTime() ||
@@ -184,8 +244,7 @@ export function validateContinuousIntelligenceShadowCanaryHistoricalUsageReconci
   ) return false;
   return authorization.target_claim_id === input.eligibility.target_claim_id &&
     authorization.expected_audit_id === input.eligibility.source_audit_id &&
-    authorization.reconciliation_identity === input.eligibility.reconciliation_identity &&
-    authorization.reconciliation_identity === buildContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationIdentity({ target_claim_id: authorization.target_claim_id });
+    authorization.reconciliation_identity === input.eligibility.reconciliation_identity;
 }
 
 export function buildContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationRecord(input: {
@@ -261,7 +320,10 @@ export function verifyContinuousIntelligenceShadowCanaryHistoricalUsageReconcili
   }
   const claimCapacityUnits = input.claim_capacity_units;
   const normalExecutionLedgerUnits = input.normal_execution_ledger_units;
-  if (!isCanonicalManualClaimId(input.target_claim_id)) {
+  if (
+    !isCanonicalManualClaimId(input.target_claim_id) &&
+    input.target_claim_id !== continuousIntelligenceShadowCanaryHistoricalUsageLegacyAction609Target.claim_id
+  ) {
     return { category: "reconciliation_state_malformed", total_accounted_usage_units: null };
   }
   const records = input.reconciliation_records as ContinuousIntelligenceShadowCanaryHistoricalUsageReconciliationRecord[];
