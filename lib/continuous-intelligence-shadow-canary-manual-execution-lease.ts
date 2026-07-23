@@ -21,6 +21,41 @@ export type ContinuousIntelligenceShadowCanaryManualExecutionLeaseStatus =
   | "expired"
   | "revoked";
 
+export type ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus =
+  | "attempt_started"
+  | "already_admitted"
+  | "authorization_expired"
+  | "authorization_replayed"
+  | "identity_mismatch"
+  | "daily_limit_reached"
+  | "daily_usage_unavailable";
+
+const manualExecutionAdmissionStatuses = new Set<ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus>([
+  "attempt_started",
+  "already_admitted",
+  "authorization_expired",
+  "authorization_replayed",
+  "identity_mismatch",
+  "daily_limit_reached",
+  "daily_usage_unavailable",
+]);
+
+export function parseContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus(
+  value: unknown,
+): ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus | null {
+  return typeof value === "string" && manualExecutionAdmissionStatuses.has(
+    value as ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus,
+  )
+    ? value as ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus
+    : null;
+}
+
+export function statusForContinuousIntelligenceShadowCanaryManualExecutionAdmission(
+  status: ContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus | "unavailable",
+) {
+  return status === "unavailable" || status === "daily_usage_unavailable" ? 503 : 409;
+}
+
 export type ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord =
   Omit<ContinuousIntelligenceShadowCanaryManualAuthorizationBinding, "contract_version"> & {
     contract_version: typeof continuousIntelligenceShadowCanaryManualExecutionLeaseContractVersion;

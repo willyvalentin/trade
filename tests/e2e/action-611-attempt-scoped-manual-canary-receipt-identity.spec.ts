@@ -24,6 +24,7 @@ import {
   type ContinuousIntelligenceShadowCanaryLifecycleIdentity,
 } from "../../lib/continuous-intelligence-shadow-canary-claim-store";
 import {
+  buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity,
   buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId,
   buildContinuousIntelligenceShadowCanaryReceiptId,
 } from "../../lib/continuous-intelligence-shadow-collector-canary";
@@ -68,8 +69,24 @@ function lifecycle(input: { utc_day: string; request_fingerprint: string }) {
   } as const satisfies ContinuousIntelligenceShadowCanaryLifecycleIdentity;
 }
 
-function manualReceipt(input: {
+function manualAuthorizationId(suffix: string) {
+  return `manual_canary_authorization_00000000-0000-4000-8000-${suffix}`;
+}
+
+function manualLifecycle(input: {
   identity: ContinuousIntelligenceShadowCanaryLifecycleIdentity;
+  authorization_id: string;
+}) {
+  const identity = buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity({
+    lifecycle_identity: input.identity,
+    authorization_id: input.authorization_id,
+  });
+  if (!identity) throw new Error("Expected a canonical manual admission lifecycle identity.");
+  return identity;
+}
+
+function manualReceipt(input: {
+  identity: ReturnType<typeof manualLifecycle>;
   generated_at: Date;
 }) {
   const { request, preflight } = fixture();
@@ -151,8 +168,14 @@ function ledgerDatabase() {
 
 test("Action 611 makes manual receipt identity attempt-scoped while retaining scheduled identity", () => {
   const { request, preflight } = fixture();
-  const action604 = lifecycle({ utc_day: "2026-07-22", request_fingerprint: preflight.request_fingerprint });
-  const action609 = lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint });
+  const action604 = manualLifecycle({
+    identity: lifecycle({ utc_day: "2026-07-22", request_fingerprint: preflight.request_fingerprint }),
+    authorization_id: manualAuthorizationId("000000000604"),
+  });
+  const action609 = manualLifecycle({
+    identity: lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint }),
+    authorization_id: manualAuthorizationId("000000000609"),
+  });
   const action604Id = buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId({ request, lifecycle_identity: action604 });
   const action609Id = buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId({ request, lifecycle_identity: action609 });
 
@@ -171,7 +194,10 @@ test("Action 611 makes manual receipt identity attempt-scoped while retaining sc
 
 test("Action 611 fails closed for missing or malformed manual claim identity", () => {
   const { request, preflight } = fixture();
-  const valid = lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint });
+  const valid = manualLifecycle({
+    identity: lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint }),
+    authorization_id: manualAuthorizationId("000000000611"),
+  });
   expect(buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId({
     request,
     lifecycle_identity: { ...valid, claim_id: "canary_claim_other" },
@@ -189,11 +215,17 @@ test("Action 611 fails closed for missing or malformed manual claim identity", (
 test("Action 611 persists audit and ledger separately for identical windows on different claims", async () => {
   const { preflight } = fixture();
   const action604 = manualReceipt({
-    identity: lifecycle({ utc_day: "2026-07-22", request_fingerprint: preflight.request_fingerprint }),
+    identity: manualLifecycle({
+      identity: lifecycle({ utc_day: "2026-07-22", request_fingerprint: preflight.request_fingerprint }),
+      authorization_id: manualAuthorizationId("000000000604"),
+    }),
     generated_at: new Date("2026-07-22T21:01:00.000Z"),
   });
   const action609 = manualReceipt({
-    identity: lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint }),
+    identity: manualLifecycle({
+      identity: lifecycle({ utc_day: "2026-07-23", request_fingerprint: preflight.request_fingerprint }),
+      authorization_id: manualAuthorizationId("000000000609"),
+    }),
     generated_at: new Date("2026-07-23T00:49:03.995Z"),
   });
   const audits = auditDatabase();

@@ -312,16 +312,19 @@ function hasValidBoundedManualClaimLinkage(
     receipt.daily_claim_status !== "failed"
   ) return false;
   const executionId = receipt.daily_claim_execution_id;
-  const match = /^canary_execution_(\d{4})(\d{2})(\d{2})_[0-9a-f]{8}$/.exec(executionId);
-  if (!match) return false;
-  const utcDay = `${match[1]}-${match[2]}-${match[3]}`;
-  return (
-    receipt.daily_claim_id === `canary_claim_${executionId}` &&
-    executionId === buildContinuousIntelligenceShadowCanaryExecutionId({
-      utc_day: utcDay,
-      request_fingerprint: receipt.request_fingerprint,
-    })
-  );
+  const legacyMatch = /^canary_execution_(\d{4})(\d{2})(\d{2})_[0-9a-f]{8}$/.exec(executionId);
+  if (legacyMatch) {
+    const utcDay = `${legacyMatch[1]}-${legacyMatch[2]}-${legacyMatch[3]}`;
+    return (
+      receipt.daily_claim_id === `canary_claim_${executionId}` &&
+      executionId === buildContinuousIntelligenceShadowCanaryExecutionId({
+        utc_day: utcDay,
+        request_fingerprint: receipt.request_fingerprint,
+      })
+    );
+  }
+  const manualMatch = /^manual_canary_execution_(\d{4})(\d{2})(\d{2})_manual_canary_authorization_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.exec(executionId);
+  return manualMatch !== null && receipt.daily_claim_id === `canary_claim_${executionId}`;
 }
 
 export function isBoundedShadowCollectorProofAuditEnabled(value: unknown) {

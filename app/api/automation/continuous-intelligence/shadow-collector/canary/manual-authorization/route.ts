@@ -8,6 +8,7 @@ import {
   continuousIntelligenceShadowCanaryManualAuthorizationRoutePath,
   sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import { buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import {
   validateContinuousIntelligenceShadowCanaryManualAuthorizationIssuanceResponse,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization-issuance-response";
@@ -45,10 +46,18 @@ export async function POST(request: Request) {
   }
   try {
     const context = await buildContinuousIntelligenceShadowCanaryManualAuthorizationContext();
-    const binding = context.lifecycle_identity
+    const authorizationId = `manual_canary_authorization_${randomUUID()}`;
+    const executionLeaseId = `manual_canary_execution_lease_${randomUUID()}`;
+    const lifecycleIdentity = context.lifecycle_identity
+      ? buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity({
+          lifecycle_identity: context.lifecycle_identity,
+          authorization_id: authorizationId,
+        })
+      : null;
+    const binding = lifecycleIdentity
       ? buildContinuousIntelligenceShadowCanaryManualAuthorizationBinding({
           preflight: context.preflight,
-          lifecycle_identity: context.lifecycle_identity,
+          lifecycle_identity: lifecycleIdentity,
           calendar_fingerprint: context.calendar_fingerprint,
           deployment_commit: context.deployment_commit,
           deployment_build_marker: context.deployment_build_marker,
@@ -78,8 +87,8 @@ export async function POST(request: Request) {
     const rawToken = generateContinuousIntelligenceShadowCanaryManualAuthorizationToken();
     const result = await issueContinuousIntelligenceShadowCanaryManualAuthorizationWithLease({
       binding,
-      authorization_id: `manual_canary_authorization_${randomUUID()}`,
-      execution_lease_id: `manual_canary_execution_lease_${randomUUID()}`,
+      authorization_id: authorizationId,
+      execution_lease_id: executionLeaseId,
       raw_token: rawToken,
       now: context.now,
     });

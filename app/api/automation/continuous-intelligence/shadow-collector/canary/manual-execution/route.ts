@@ -11,6 +11,7 @@ import {
   matchesContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
 import {
+  buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity,
   buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId,
   executeContinuousIntelligenceShadowCanary,
   recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease,
@@ -18,6 +19,9 @@ import {
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { persistBoundedShadowCollectorProofAudit } from "@/lib/server/bounded-shadow-collector-proof-audit-persistence";
 import { persistContinuousIntelligenceCreditLedger } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
+import {
+  statusForContinuousIntelligenceShadowCanaryManualExecutionAdmission,
+} from "@/lib/continuous-intelligence-shadow-canary-manual-execution-lease";
 import {
   admitContinuousIntelligenceShadowCanaryManualExecutionWithLease,
   readContinuousIntelligenceShadowCanaryManualAuthorization,
@@ -52,10 +56,16 @@ export async function POST(request: Request) {
   if (!input) return json({ error: "Invalid manual canary execution input.", failure_category: "validation_failed" }, 400);
 
   const context = await buildContinuousIntelligenceShadowCanaryManualAuthorizationContext();
-  const binding = context.lifecycle_identity
+  const lifecycleIdentity = context.lifecycle_identity
+    ? buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity({
+        lifecycle_identity: context.lifecycle_identity,
+        authorization_id: input.authorization_id,
+      })
+    : null;
+  const binding = lifecycleIdentity
     ? buildContinuousIntelligenceShadowCanaryManualAuthorizationBinding({
         preflight: context.preflight,
-        lifecycle_identity: context.lifecycle_identity,
+        lifecycle_identity: lifecycleIdentity,
         calendar_fingerprint: context.calendar_fingerprint,
         deployment_commit: context.deployment_commit,
         deployment_build_marker: context.deployment_build_marker,
@@ -66,10 +76,10 @@ export async function POST(request: Request) {
   if (!binding || !context.preflight_static_blockers_are_only_disabled_state || !context.canary_disabled || !context.kill_switch_active || !context.schedule_absent || !context.daily_capacity_available || !context.provider_budget_resolved || !auditEnabled || !ledgerEnabled) {
     return json({ error: "Manual canary execution is blocked by current runtime state.", failure_category: "execution_preflight_blocked", provider_calls_executed: false }, 403);
   }
-  const receiptId = context.lifecycle_identity && context.preflight.request
+  const receiptId = lifecycleIdentity && context.preflight.request
     ? buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId({
         request: context.preflight.request,
-        lifecycle_identity: context.lifecycle_identity,
+        lifecycle_identity: lifecycleIdentity,
       })
     : null;
   if (!receiptId) {
@@ -91,7 +101,10 @@ export async function POST(request: Request) {
     utc_day: context.now.toISOString().slice(0, 10),
   });
   if (admission.status !== "attempt_started") {
-    return json({ error: "Manual canary execution was not admitted.", failure_category: admission.status, provider_calls_executed: false }, admission.status === "unavailable" ? 503 : 409);
+    return json(
+      { error: "Manual canary execution was not admitted.", failure_category: admission.status, provider_calls_executed: false },
+      statusForContinuousIntelligenceShadowCanaryManualExecutionAdmission(admission.status),
+    );
   }
 
   const runtimeRecheck = recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease(context.preflight);
