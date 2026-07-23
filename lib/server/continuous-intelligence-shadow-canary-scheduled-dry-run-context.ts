@@ -8,8 +8,21 @@ export async function buildContinuousIntelligenceShadowCanaryScheduledDryRunDepe
   const safety = await buildContinuousIntelligenceShadowCanaryScheduledExecutionSafetyContext({ request, scheduler_authentication: "scheduler_auth_ready" });
   const blockers = new Set(safety.admission.blockers);
   const lifecycle = buildContinuousIntelligenceShadowCanaryScheduledLifecycleIdentity(request);
+  const deployment = blockers.has("deployment_configuration_conflict")
+    ? "explicit_configuration_conflict"
+    : blockers.has("deployment_configuration_malformed")
+      ? "explicit_configuration_malformed"
+      : blockers.has("deployment_platform_identity_conflict")
+        ? "platform_identity_conflict"
+        : blockers.has("deployment_platform_identity_malformed")
+          ? "platform_identity_malformed"
+          : blockers.has("deployment_identity_mismatch")
+            ? "request_mismatch"
+            : blockers.has("unavailable")
+              ? "unavailable"
+              : "exact";
   return {
-    deployment: blockers.has("deployment_identity_mismatch") ? "mismatch" : "exact",
+    deployment,
     scheduled_execution_enabled: false,
     canary: blockers.has("canary_disabled") ? "blocked" : "ready",
     kill_switch: blockers.has("kill_switch_active") ? "blocked" : "ready",

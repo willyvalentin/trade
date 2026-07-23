@@ -15,7 +15,14 @@ import {
   continuousIntelligenceShadowCanaryScheduledAdmissionEnvironment,
   type ContinuousIntelligenceShadowCanaryScheduledExecutionRequest,
 } from "@/lib/continuous-intelligence-shadow-canary-scheduled-admission";
-import { resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit } from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
+import {
+  evaluateContinuousIntelligenceShadowCanaryScheduledDeploymentBinding,
+  resolveContinuousIntelligenceShadowCanaryScheduledRuntimeDeploymentIdentity,
+} from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
+import {
+  evaluateContinuousIntelligenceShadowCanaryScheduledDurableState,
+  type ContinuousIntelligenceShadowCanaryScheduledDurableState,
+} from "@/lib/continuous-intelligence-shadow-canary-scheduled-durable-state";
 import { readContinuousIntelligenceCanaryDailyUsage } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
 import { readContinuousIntelligenceShadowCanarySchemaReadiness } from "@/lib/server/continuous-intelligence-shadow-canary-activation-readiness";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -35,38 +42,16 @@ function isAbsent(value: unknown) {
   return value === "false" || value === "0";
 }
 
-function isScheduledExecutionId(value: unknown) {
-  return typeof value === "string" && (
-    value.startsWith("canary_execution_") || value.startsWith("scheduled_canary_execution_")
-  );
-}
-
-type ScheduledDurableState = {
-  active_claims: "clear" | "same_occurrence_active" | "conflicting_scope_active" | "unavailable";
-  persistence_stop: "clear" | "audit_failed" | "ledger_failed" | "usage_mismatch" | "finalization_unproven" | "unavailable";
-  active_scheduled_claims: number | null;
-  scheduled_claims_for_market_window: number | null;
-};
-
-function unavailableScheduledDurableState(): ScheduledDurableState {
-  return {
-    active_claims: "unavailable",
-    persistence_stop: "unavailable",
-    active_scheduled_claims: null,
-    scheduled_claims_for_market_window: null,
-  };
-}
-
 export async function readContinuousIntelligenceShadowCanaryScheduledDurableState(input: {
   utc_day: string;
   start: string;
   end: string;
   occurrence_id: string | null;
   request_fingerprint: string | null;
-}): Promise<ScheduledDurableState> {
+}): Promise<ContinuousIntelligenceShadowCanaryScheduledDurableState> {
   const supabase = getServerSupabaseClient();
   if (!supabase.client) {
-    return unavailableScheduledDurableState();
+    return evaluateContinuousIntelligenceShadowCanaryScheduledDurableState({ claims: null, audits: null, ledger: null, ...input });
   }
   try {
     const [claims, audits, ledger] = await Promise.all([
@@ -87,40 +72,14 @@ export async function readContinuousIntelligenceShadowCanaryScheduledDurableStat
         .gte("generated_at", input.start)
         .lt("generated_at", input.end),
     ]);
-    if (claims.error || audits.error || ledger.error || claims.data === null || audits.data === null || ledger.data === null) {
-      return unavailableScheduledDurableState();
-    }
-    const scheduledClaims = claims.data.filter((claim) => isScheduledExecutionId(claim.execution_id));
-    const active = scheduledClaims.filter((claim) => claim.status === "claimed" || claim.status === "attempted");
-    const expectedExecutionId = input.occurrence_id
-      ? `scheduled_canary_execution_${input.occurrence_id}`
-      : null;
-    const activeClaims = active.some((claim) => claim.execution_id === expectedExecutionId)
-      ? "same_occurrence_active"
-      : active.length > 0
-        ? "conflicting_scope_active"
-        : "clear";
-    const scheduledClaimsForMarketWindow = input.request_fingerprint
-      ? scheduledClaims.filter((claim) => claim.request_fingerprint === input.request_fingerprint).length
-      : null;
-    const terminal = scheduledClaims.filter((claim) => claim.status === "completed" || claim.status === "failed");
-    if (terminal.some((claim) => !claim.source_receipt_id)) {
-      return { active_claims: activeClaims, persistence_stop: "finalization_unproven", active_scheduled_claims: active.length, scheduled_claims_for_market_window: scheduledClaimsForMarketWindow };
-    }
-    const auditClaimIds = new Set(audits.data.map((audit) => audit.daily_claim_id));
-    if (terminal.some((claim) => !auditClaimIds.has(claim.claim_id))) {
-      return { active_claims: activeClaims, persistence_stop: "audit_failed", active_scheduled_claims: active.length, scheduled_claims_for_market_window: scheduledClaimsForMarketWindow };
-    }
-    const ledgerReceipts = new Set(ledger.data.map((entry) => entry.source_receipt_id));
-    if (terminal.some((claim) => !ledgerReceipts.has(claim.source_receipt_id))) {
-      return { active_claims: activeClaims, persistence_stop: "ledger_failed", active_scheduled_claims: active.length, scheduled_claims_for_market_window: scheduledClaimsForMarketWindow };
-    }
-    if (terminal.length !== audits.data.length || terminal.length !== ledger.data.length) {
-      return { active_claims: activeClaims, persistence_stop: "usage_mismatch", active_scheduled_claims: active.length, scheduled_claims_for_market_window: scheduledClaimsForMarketWindow };
-    }
-    return { active_claims: activeClaims, persistence_stop: "clear", active_scheduled_claims: active.length, scheduled_claims_for_market_window: scheduledClaimsForMarketWindow };
+    return evaluateContinuousIntelligenceShadowCanaryScheduledDurableState({
+      claims: claims.error ? null : claims.data,
+      audits: audits.error ? null : audits.data,
+      ledger: ledger.error ? null : ledger.data,
+      ...input,
+    });
   } catch {
-    return unavailableScheduledDurableState();
+    return evaluateContinuousIntelligenceShadowCanaryScheduledDurableState({ claims: null, audits: null, ledger: null, ...input });
   }
 }
 
@@ -132,7 +91,8 @@ export async function buildContinuousIntelligenceShadowCanaryScheduledAdmissionC
   const now = input.now ?? new Date();
   const bounds = utcBounds(now);
   const calendar = buildUsEquityMarketCalendarEvaluation(now);
-  const deploymentCommit = resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit(process.env);
+  const runtimeDeploymentIdentity = resolveContinuousIntelligenceShadowCanaryScheduledRuntimeDeploymentIdentity(process.env);
+  const deploymentCommit = runtimeDeploymentIdentity.deployment_commit;
   const ledgerEnabled = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED);
   const dailyUsage = ledgerEnabled
     ? await readContinuousIntelligenceCanaryDailyUsage(bounds.start, bounds.end)
@@ -195,7 +155,10 @@ export async function buildContinuousIntelligenceShadowCanaryScheduledAdmissionC
   return buildContinuousIntelligenceShadowCanaryScheduledAdmissionPreflight({
     scheduler_authentication: input.scheduler_authentication,
     request: input.request,
-    deployment_identity: input.request && deploymentCommit === input.request.deployment_commit ? "exact" : deploymentCommit ? "mismatch" : "unavailable",
+    deployment_identity: evaluateContinuousIntelligenceShadowCanaryScheduledDeploymentBinding({
+      runtime: runtimeDeploymentIdentity,
+      request_deployment_commit: input.request?.deployment_commit ?? null,
+    }),
     canary_enabled: isContinuousIntelligenceShadowCanaryEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_ENABLED),
     kill_switch_inactive: isContinuousIntelligenceShadowCanaryKillSwitchOff(process.env.TURE_CONTINUOUS_INTELLIGENCE_SHADOW_CANARY_KILL_SWITCH),
     schedule_active: scheduleActive,
