@@ -1,8 +1,39 @@
 # Action 606 - Persist Manual Canary Audit and Clarify Usage Accounting
 
+## Production Verification
+
+Read-only production verification after deployment and migration registration
+confirmed that the deployed preflight remains blocked only by the two safe
+defaults: `canary_disabled` and `canary_kill_switch_active`. It performed no
+provider work or durable mutation.
+
+The new UTC-day usage output is available and explicitly separates scheduled,
+manual, total-ledger, and claim-capacity scopes. For the current `2026-07-23`
+window it reports zero in all four scopes. That is correct because the single
+Action 604 manual ledger row and its completed claim are both dated
+`2026-07-22` UTC:
+
+- scheduled usage on `2026-07-22`: `0 / 0`
+- bounded manual attempts on `2026-07-22`: `1`
+- bounded manual estimated credits on `2026-07-22`: `1`
+- total ledger estimated credits on `2026-07-22`: `1`
+- claim-capacity estimated credits on `2026-07-22`: `1`
+
+The current preflight intentionally has no historical-date parameter, so it
+cannot display the Action 604 record as "today" after the UTC-day rollover.
+The durable state is unchanged: zero audit rows, one manual ledger row, one
+terminal completed claim, one provider request, no active authorization or
+lease, and no nonterminal claim.
+
+The deployed code and registered migration define the terminal
+`bounded_manual_proof` claim-linkage and fixed policy contract. A direct
+schema-only production catalog dump could not run because the local execution
+environment has no database password; no fallback write or synthetic insert
+was attempted.
+
 ## Decision
 
-`manual_canary_audit_and_usage_accounting_ready`
+`manual_canary_audit_and_usage_accounting_production_blocked`
 
 ## Root Causes Addressed
 

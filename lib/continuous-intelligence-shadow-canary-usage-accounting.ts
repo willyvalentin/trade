@@ -10,6 +10,22 @@ export type ContinuousIntelligenceShadowCanaryUsageClaimRow = {
   status: "claimed" | "attempted" | "completed" | "failed";
 };
 
+export const continuousIntelligenceShadowCanaryUsageAccountingRoutePath =
+  "/api/automation/continuous-intelligence/shadow-collector/canary/usage-accounting" as const;
+export const continuousIntelligenceShadowCanaryUsageAccountingMaximumHistoricalDays = 31;
+
+export type ContinuousIntelligenceShadowCanaryUsageAccountingDateResolution =
+  | {
+      ok: true;
+      utc_day: string;
+      start: string;
+      end: string;
+    }
+  | {
+      ok: false;
+      category: "invalid_utc_date" | "future_utc_date" | "historical_range_exceeded";
+    };
+
 type UsageScope = {
   attempts: number;
   estimated_credits: number;
@@ -19,6 +35,7 @@ export type ContinuousIntelligenceShadowCanaryUsageAccounting =
   | {
       status: "available";
       scope: "utc_day";
+      queried_utc_date: string;
       scheduled_shadow_collector_canary: UsageScope;
       bounded_manual_proof: UsageScope;
       total_ledger: UsageScope;
@@ -27,6 +44,7 @@ export type ContinuousIntelligenceShadowCanaryUsageAccounting =
   | {
       status: "unavailable";
       scope: "utc_day";
+      queried_utc_date: string | null;
       scheduled_shadow_collector_canary: null;
       bounded_manual_proof: null;
       total_ledger: null;
@@ -61,6 +79,36 @@ function summarize(rows: ContinuousIntelligenceShadowCanaryUsageLedgerRow[]): Us
   };
 }
 
+function isCanonicalUtcDay(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const instant = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(instant.getTime()) && instant.toISOString().slice(0, 10) === value;
+}
+
+export function resolveContinuousIntelligenceShadowCanaryUsageAccountingDate(input: {
+  requested_utc_date?: string | null;
+  now?: Date;
+}): ContinuousIntelligenceShadowCanaryUsageAccountingDateResolution {
+  const now = input.now ?? new Date();
+  if (!Number.isFinite(now.getTime())) return { ok: false, category: "invalid_utc_date" };
+  const currentUtcDay = now.toISOString().slice(0, 10);
+  const requestedUtcDay = input.requested_utc_date ?? currentUtcDay;
+  if (!isCanonicalUtcDay(requestedUtcDay)) return { ok: false, category: "invalid_utc_date" };
+  const currentStart = Date.parse(`${currentUtcDay}T00:00:00.000Z`);
+  const requestedStart = Date.parse(`${requestedUtcDay}T00:00:00.000Z`);
+  const ageInDays = (currentStart - requestedStart) / (24 * 60 * 60 * 1000);
+  if (ageInDays < 0) return { ok: false, category: "future_utc_date" };
+  if (ageInDays > continuousIntelligenceShadowCanaryUsageAccountingMaximumHistoricalDays) {
+    return { ok: false, category: "historical_range_exceeded" };
+  }
+  return {
+    ok: true,
+    utc_day: requestedUtcDay,
+    start: new Date(requestedStart).toISOString(),
+    end: new Date(requestedStart + 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
 export function buildContinuousIntelligenceShadowCanaryUsageAccounting(input: {
   utc_day: string;
   ledger_rows: unknown;
@@ -81,6 +129,7 @@ export function buildContinuousIntelligenceShadowCanaryUsageAccounting(input: {
   return {
     status: "available",
     scope: "utc_day",
+    queried_utc_date: input.utc_day,
     scheduled_shadow_collector_canary: summarize(scheduled),
     bounded_manual_proof: summarize(manual),
     total_ledger: summarize(input.ledger_rows),
@@ -88,14 +137,17 @@ export function buildContinuousIntelligenceShadowCanaryUsageAccounting(input: {
   };
 }
 
-export function unavailableContinuousIntelligenceShadowCanaryUsageAccounting(): ContinuousIntelligenceShadowCanaryUsageAccounting {
-  return unavailable();
+export function unavailableContinuousIntelligenceShadowCanaryUsageAccounting(
+  queriedUtcDate: string | null = null,
+): ContinuousIntelligenceShadowCanaryUsageAccounting {
+  return unavailable(queriedUtcDate);
 }
 
-function unavailable(): ContinuousIntelligenceShadowCanaryUsageAccounting {
+function unavailable(queriedUtcDate: string | null = null): ContinuousIntelligenceShadowCanaryUsageAccounting {
   return {
     status: "unavailable",
     scope: "utc_day",
+    queried_utc_date: queriedUtcDate,
     scheduled_shadow_collector_canary: null,
     bounded_manual_proof: null,
     total_ledger: null,

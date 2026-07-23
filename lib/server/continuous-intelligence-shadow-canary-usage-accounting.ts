@@ -14,7 +14,7 @@ export async function readContinuousIntelligenceShadowCanaryUsageAccounting(inpu
   end: string;
 }) {
   const supabase = getServerSupabaseClient();
-  if (!supabase.client) return unavailableContinuousIntelligenceShadowCanaryUsageAccounting();
+  if (!supabase.client) return unavailableContinuousIntelligenceShadowCanaryUsageAccounting(input.utc_day);
   try {
     const [ledger, claims] = await Promise.all([
       supabase.client
@@ -28,7 +28,7 @@ export async function readContinuousIntelligenceShadowCanaryUsageAccounting(inpu
         .eq("utc_day", input.utc_day),
     ]);
     if (ledger.error || claims.error || ledger.data === null || claims.data === null) {
-      return unavailableContinuousIntelligenceShadowCanaryUsageAccounting();
+      return unavailableContinuousIntelligenceShadowCanaryUsageAccounting(input.utc_day);
     }
     return buildContinuousIntelligenceShadowCanaryUsageAccounting({
       utc_day: input.utc_day,
@@ -36,6 +36,6 @@ export async function readContinuousIntelligenceShadowCanaryUsageAccounting(inpu
       claim_rows: claims.data,
     });
   } catch {
-    return unavailableContinuousIntelligenceShadowCanaryUsageAccounting();
+    return unavailableContinuousIntelligenceShadowCanaryUsageAccounting(input.utc_day);
   }
 }
