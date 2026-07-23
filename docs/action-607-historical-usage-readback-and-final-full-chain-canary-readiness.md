@@ -21,7 +21,7 @@ Scheduled-cap enforcement remains based only on
 
 ## Production Readiness Evidence
 
-Read-only production checks confirmed:
+Read-only production checks previously confirmed:
 
 - issuance readiness: `diagnostic_ready`;
 - activation readiness: `ready_for_one_manual_canary_attempt`;
@@ -38,12 +38,27 @@ record is on UTC `2026-07-22` with scheduled usage `0 / 0`, bounded manual
 attempts `1`, bounded manual estimated credits `1`, total ledger credits `1`,
 and claim-capacity estimated credits `1`.
 
-## Deployment Boundary
+## Post-Deployment Verification Boundary
 
-This worktree now contains the historical route and its tests, but the user
-requested no deployment in Action 607. Consequently, the new endpoint cannot
-yet be invoked against production. No production credential, execution,
-provider call, claim, audit, ledger write, flag, or schedule action occurred.
+One authenticated production request was dispatched to the deployed
+usage-accounting route for `utc_date=2026-07-22`. The execution environment
+truncated the command transcript before the route's sanitized response could
+be retained. The endpoint was not called a second time, preserving the
+one-request verification boundary.
+
+The independently read historical aggregate remains consistent with the
+expected route result:
+
+- queried UTC date: `2026-07-22`;
+- scheduled attempts / credits: `0 / 0`;
+- bounded manual attempts / estimated credits: `1 / 1`;
+- total ledger credits: `1`; and
+- claim-capacity estimated credits: `1`.
+
+Because the deployed route response itself was not retained, this action does
+not claim a complete endpoint-level verification. No credential issuance,
+execution, provider call, claim, audit or ledger mutation, flag change, or
+schedule action occurred during this verification.
 
 ## Decision
 
