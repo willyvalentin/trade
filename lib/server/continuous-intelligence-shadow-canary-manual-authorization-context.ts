@@ -16,6 +16,7 @@ import {
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { readContinuousIntelligenceCanaryDailyUsage } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
 import { readContinuousIntelligenceShadowCanarySchemaReadiness } from "@/lib/server/continuous-intelligence-shadow-canary-activation-readiness";
+import { readContinuousIntelligenceShadowCanaryUsageAccounting } from "@/lib/server/continuous-intelligence-shadow-canary-usage-accounting";
 import { resolveContinuousIntelligenceShadowCanaryRuntimeDeploymentCommit } from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
 import {
   continuousIntelligenceDeploymentManifest,
@@ -52,9 +53,16 @@ export async function buildContinuousIntelligenceShadowCanaryManualAuthorization
     process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED,
   );
   const bounds = utcDayBounds(now);
-  const dailyUsage = ledgerEnabled
-    ? await readContinuousIntelligenceCanaryDailyUsage(bounds.start, bounds.end)
-    : { status: "schema_unavailable" as const, run_count: null, estimated_credits: null };
+  const [dailyUsage, usageAccounting] = await Promise.all([
+    ledgerEnabled
+      ? readContinuousIntelligenceCanaryDailyUsage(bounds.start, bounds.end)
+      : Promise.resolve({ status: "schema_unavailable" as const, run_count: null, estimated_credits: null }),
+    readContinuousIntelligenceShadowCanaryUsageAccounting({
+      utc_day: now.toISOString().slice(0, 10),
+      start: bounds.start,
+      end: bounds.end,
+    }),
+  ]);
   const calendar = buildUsEquityMarketCalendarEvaluation(now);
   const proofPlan = buildBoundedShadowCollectorExecutionProofPlan({
     now,
@@ -139,6 +147,7 @@ export async function buildContinuousIntelligenceShadowCanaryManualAuthorization
     deployment_build_marker: continuousIntelligenceShadowCanaryFunctionBuildMarker,
     schedule_absent: scheduleAbsent,
     preflight_static_blockers_are_only_disabled_state: preflightStaticBlockersAreOnlyDisabledState,
+    usage_accounting: usageAccounting,
     daily_capacity_available:
       dailyUsage.status === "available" &&
       dailyUsage.run_count !== null &&

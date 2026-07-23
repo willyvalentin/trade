@@ -138,6 +138,7 @@ export async function POST(request: Request) {
     entry_kind: "bounded_manual_proof",
     daily_claim_id: binding.claim_id,
     daily_claim_status: finalized.claim_status,
+    daily_claim_execution_id: binding.execution_id,
   });
   const audit = await persistBoundedShadowCollectorProofAudit(receipt);
   const ledger = await persistContinuousIntelligenceCreditLedger({ receipt, durable_audit: { status: audit.status, persisted: audit.persisted }, entry_kind: "bounded_manual_proof" });

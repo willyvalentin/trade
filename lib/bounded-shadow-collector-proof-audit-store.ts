@@ -3,6 +3,8 @@ import {
   type BoundedShadowCollectorProofEntryKind,
   type BoundedShadowCollectorLiveProofReceipt,
 } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import { buildContinuousIntelligenceShadowCanaryExecutionId } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
+import { continuousIntelligenceCreditLedgerPolicy } from "@/lib/continuous-intelligence-credit-ledger";
 
 type ProofAuditSafeMessage =
   | "Bounded proof blocked before provider attempt."
@@ -27,6 +29,7 @@ export type BoundedShadowCollectorProofAuditRow = {
   entry_kind: BoundedShadowCollectorProofEntryKind;
   daily_claim_id: string | null;
   daily_claim_status: "claimed" | "attempted" | "completed" | "failed" | null;
+  daily_claim_execution_id: string | null;
   provider_metadata_status: "within_budget" | "approaching_limit" | "unresolved";
   generated_at: string;
   request_fingerprint: string;
@@ -61,6 +64,9 @@ export type BoundedShadowCollectorProofAuditRow = {
   planner_requested_credits: number | null;
   planner_allocated_credits: number | null;
   proof_executable_credits: 1 | null;
+  policy_total_credits: 377;
+  policy_hard_reserve_credits: 57;
+  policy_normal_planned_max_credits: 320;
   hard_reserve_preserved: boolean;
   execution_ready_reserve_consumed: false;
   operator_authorization_verified: boolean;
@@ -127,6 +133,7 @@ const exactReceiptKeys = new Set([
   "entry_kind",
   "daily_claim_id",
   "daily_claim_status",
+  "daily_claim_execution_id",
   "provider_metadata_status",
   "receipt_id",
   "generated_at",
@@ -283,6 +290,40 @@ function hasExpectedNoEffectBoundary(
   return isRecord(value) && hasExactKeys(value, noEffectKeys) && Object.values(value).every((item) => item === false);
 }
 
+function hasValidBoundedManualClaimLinkage(
+  receipt: BoundedShadowCollectorLiveProofReceipt,
+) {
+  const values = [
+    receipt.daily_claim_id,
+    receipt.daily_claim_status,
+    receipt.daily_claim_execution_id,
+  ];
+  if (values.every((value) => value === null)) return true;
+  if (values.some((value) => value === null)) return false;
+  if (
+    typeof receipt.daily_claim_id !== "string" ||
+    typeof receipt.daily_claim_status !== "string" ||
+    typeof receipt.daily_claim_execution_id !== "string"
+  ) {
+    return false;
+  }
+  if (
+    receipt.daily_claim_status !== "completed" &&
+    receipt.daily_claim_status !== "failed"
+  ) return false;
+  const executionId = receipt.daily_claim_execution_id;
+  const match = /^canary_execution_(\d{4})(\d{2})(\d{2})_[0-9a-f]{8}$/.exec(executionId);
+  if (!match) return false;
+  const utcDay = `${match[1]}-${match[2]}-${match[3]}`;
+  return (
+    receipt.daily_claim_id === `canary_claim_${executionId}` &&
+    executionId === buildContinuousIntelligenceShadowCanaryExecutionId({
+      utc_day: utcDay,
+      request_fingerprint: receipt.request_fingerprint,
+    })
+  );
+}
+
 export function isBoundedShadowCollectorProofAuditEnabled(value: unknown) {
   return value === "true" || value === "1";
 }
@@ -303,6 +344,7 @@ export function mapBoundedShadowCollectorProofAuditReceipt(
     !["within_budget", "approaching_limit", "unresolved"].includes(receipt.provider_metadata_status) ||
     (receipt.daily_claim_id !== null && !isBoundedText(receipt.daily_claim_id, 128)) ||
     (receipt.daily_claim_status !== null && !["claimed", "attempted", "completed", "failed"].includes(receipt.daily_claim_status)) ||
+    (receipt.daily_claim_execution_id !== null && !isBoundedText(receipt.daily_claim_execution_id, 128)) ||
     !isBoundedText(receipt.contract_version) ||
     !isBoundedText(receipt.build_marker) ||
     !["5min", "15min"].includes(receipt.interval) ||
@@ -353,8 +395,12 @@ export function mapBoundedShadowCollectorProofAuditReceipt(
     (receipt.candle_count !== null && (!Number.isInteger(receipt.candle_count) || receipt.candle_count < 0)) ||
     receipt.execution_ready_reserve_consumed !== false ||
     receipt.authorization_single_use !== true ||
-    (receipt.entry_kind === "bounded_manual_proof" && (receipt.daily_claim_id !== null || receipt.daily_claim_status !== null)) ||
-    (receipt.entry_kind === "scheduled_shadow_collector_canary" && (receipt.daily_claim_id === null || receipt.daily_claim_status === null)) ||
+    (receipt.entry_kind === "bounded_manual_proof" && !hasValidBoundedManualClaimLinkage(receipt)) ||
+    (receipt.entry_kind === "scheduled_shadow_collector_canary" && (
+      receipt.daily_claim_id === null ||
+      receipt.daily_claim_status === null ||
+      receipt.daily_claim_execution_id !== null
+    )) ||
     receipt.no_effect_boundary.supabase_writes_executed !== false ||
     !hasExpectedNoEffectBoundary(receipt.no_effect_boundary) ||
     (authorization !== null && authorization.proof_executable_credits !== 1)
@@ -368,6 +414,7 @@ export function mapBoundedShadowCollectorProofAuditReceipt(
     entry_kind: receipt.entry_kind,
     daily_claim_id: receipt.daily_claim_id,
     daily_claim_status: receipt.daily_claim_status,
+    daily_claim_execution_id: receipt.daily_claim_execution_id,
     provider_metadata_status: receipt.provider_metadata_status,
     generated_at: receipt.generated_at,
     request_fingerprint: receipt.request_fingerprint,
@@ -402,6 +449,9 @@ export function mapBoundedShadowCollectorProofAuditReceipt(
     planner_requested_credits: authorization?.planner_requested_credits ?? null,
     planner_allocated_credits: authorization?.planner_allocated_credits ?? null,
     proof_executable_credits: authorization?.proof_executable_credits ?? null,
+    policy_total_credits: continuousIntelligenceCreditLedgerPolicy.total_credits,
+    policy_hard_reserve_credits: continuousIntelligenceCreditLedgerPolicy.hard_reserve_credits,
+    policy_normal_planned_max_credits: continuousIntelligenceCreditLedgerPolicy.normal_planned_max_credits,
     hard_reserve_preserved: receipt.hard_reserve_preserved,
     execution_ready_reserve_consumed: false,
     operator_authorization_verified: receipt.operator_authorization_verified,

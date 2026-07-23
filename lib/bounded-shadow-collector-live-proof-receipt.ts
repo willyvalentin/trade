@@ -32,6 +32,7 @@ export type BoundedShadowCollectorLiveProofReceipt = {
   entry_kind: BoundedShadowCollectorProofEntryKind;
   daily_claim_id: string | null;
   daily_claim_status: "claimed" | "attempted" | "completed" | "failed" | null;
+  daily_claim_execution_id: string | null;
   provider_metadata_status: "within_budget" | "approaching_limit" | "unresolved";
   receipt_id: string;
   generated_at: string;
@@ -91,6 +92,7 @@ type ReceiptInput = {
   entry_kind?: BoundedShadowCollectorProofEntryKind;
   daily_claim_id?: string | null;
   daily_claim_status?: "claimed" | "attempted" | "completed" | "failed" | null;
+  daily_claim_execution_id?: string | null;
 };
 
 function defaultReceiptId() {
@@ -131,6 +133,7 @@ export function buildBoundedShadowCollectorLiveProofReceipt(
     entry_kind: input.entry_kind ?? "bounded_manual_proof",
     daily_claim_id: input.daily_claim_id ?? null,
     daily_claim_status: input.daily_claim_status ?? null,
+    daily_claim_execution_id: input.daily_claim_execution_id ?? null,
     provider_metadata_status: input.preflight.provider.metadata_status,
     receipt_id: input.receipt_id ?? defaultReceiptId(),
     generated_at: (input.now ?? new Date()).toISOString(),
