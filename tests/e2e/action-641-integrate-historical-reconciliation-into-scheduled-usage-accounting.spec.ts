@@ -102,11 +102,33 @@ test("Action 641 rejects wrong reconciliation contract, operation, reason, provi
   }
 });
 
-test("Action 641 server read path selects reconciliations alongside claims and ledger without writer imports", () => {
+test("Action 642 reads reconciliation evidence through a bounded service-role RPC without direct table access", () => {
   const source = readFileSync(resolve(root, "lib/server/continuous-intelligence-shadow-canary-usage-accounting.ts"), "utf8");
-  expect(source).toContain('"ci_hur_reconciliations"');
-  expect(source).toContain("provider_request_count_for_reconciliation");
+  const migration = readFileSync(
+    resolve(root, "supabase/migrations/20260724000000_add_historical_usage_reconciliation_read_rpc.sql"),
+    "utf8",
+  );
+
+  expect(source).toContain('"ci_hur_read_for_usage_accounting"');
+  expect(source).toContain("supabase.client.rpc(");
+  expect(source).toContain("p_historical_utc_day: input.utc_day");
   expect(source).toContain("reconciliation_rows: reconciliations.data");
+  expect(source).not.toContain('.from("ci_hur_reconciliations")');
+
+  expect(migration).toContain("language sql");
+  expect(migration).toContain("stable");
+  expect(migration).toContain("security definer");
+  expect(migration).toContain("set search_path = pg_catalog, public");
+  expect(migration).toContain("where reconciliation.historical_utc_day = p_historical_utc_day");
+  expect(migration).toContain("revoke all on function public.ci_hur_read_for_usage_accounting(date)");
+  expect(migration).toContain("from public, anon, authenticated");
+  expect(migration).toContain("grant execute on function public.ci_hur_read_for_usage_accounting(date)");
+  expect(migration).toContain("to service_role");
+  expect(migration).not.toContain("grant select on");
+  expect(migration).not.toContain("insert into");
+  expect(migration).not.toContain("update ");
+  expect(migration).not.toContain("delete from");
+
   for (const forbidden of ["insert(", "update(", "delete(", "getIntradayCandlesWithDiagnostics", "claimContinuous", "persistBounded"]) {
     expect(source).not.toContain(forbidden);
   }
