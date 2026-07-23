@@ -71,6 +71,8 @@ function availableUsage(input: {
   scheduledCredits?: number;
   manualAttempts?: number;
   manualCredits?: number;
+  reconciliationAttempts?: number;
+  reconciliationCredits?: number;
   totalAttempts?: number;
   totalCredits?: number;
   claimAttempts?: number;
@@ -80,19 +82,22 @@ function availableUsage(input: {
   const scheduledCredits = input.scheduledCredits ?? 0;
   const manualAttempts = input.manualAttempts ?? 0;
   const manualCredits = input.manualCredits ?? 0;
+  const reconciliationAttempts = input.reconciliationAttempts ?? 0;
+  const reconciliationCredits = input.reconciliationCredits ?? 0;
   return {
     status: "available",
     scope: "utc_day",
     queried_utc_date: "2026-07-23",
     scheduled_shadow_collector_canary: { attempts: scheduledAttempts, estimated_credits: scheduledCredits },
     bounded_manual_proof: { attempts: manualAttempts, estimated_credits: manualCredits },
+    historical_manual_usage_reconciliation: { attempts: reconciliationAttempts, estimated_credits: reconciliationCredits },
     total_ledger: {
-      attempts: input.totalAttempts ?? scheduledAttempts + manualAttempts,
-      estimated_credits: input.totalCredits ?? scheduledCredits + manualCredits,
+      attempts: input.totalAttempts ?? scheduledAttempts + manualAttempts + reconciliationAttempts,
+      estimated_credits: input.totalCredits ?? scheduledCredits + manualCredits + reconciliationCredits,
     },
     claim_capacity: {
-      attempts: input.claimAttempts ?? scheduledAttempts + manualAttempts,
-      estimated_credits: input.claimCredits ?? scheduledCredits + manualCredits,
+      attempts: input.claimAttempts ?? scheduledAttempts + manualAttempts + reconciliationAttempts,
+      estimated_credits: input.claimCredits ?? scheduledCredits + manualCredits + reconciliationCredits,
     },
   };
 }
@@ -144,7 +149,7 @@ test("Action 621 budget evaluator keeps manual usage separate and fails closed o
     .toBe("reserve_protected");
   expect(evaluateContinuousIntelligenceShadowCanaryScheduledBudget({
     policy: continuousIntelligenceShadowCanaryScheduledExecutionPolicy,
-    usage: { ...availableUsage(), status: "unavailable", scheduled_shadow_collector_canary: null, bounded_manual_proof: null, total_ledger: null, claim_capacity: null },
+    usage: { ...availableUsage(), status: "unavailable", scheduled_shadow_collector_canary: null, bounded_manual_proof: null, historical_manual_usage_reconciliation: null, total_ledger: null, claim_capacity: null },
     invocation: { provider_calls: 1, estimated_credits: 1, active_scheduled_claims: 0, scheduled_claims_for_market_window: 0 },
   })).toBe("historical_usage_unavailable");
 });
