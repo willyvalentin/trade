@@ -138,8 +138,14 @@ export function evaluateContinuousIntelligenceShadowCanaryScheduledBudget(input:
 }): ContinuousIntelligenceShadowCanaryScheduledBudgetStatus {
   const policy = input.policy;
   if (!policy || input.usage.status !== "available") return "historical_usage_unavailable";
-  const { scheduled_shadow_collector_canary: scheduled, bounded_manual_proof: manual, total_ledger: total, claim_capacity: capacity } = input.usage;
-  if (!scheduled || !manual || !total || !capacity) return "historical_usage_unavailable";
+  const {
+    scheduled_shadow_collector_canary: scheduled,
+    bounded_manual_proof: manual,
+    historical_manual_usage_reconciliation: reconciliation,
+    total_ledger: total,
+    claim_capacity: capacity,
+  } = input.usage;
+  if (!scheduled || !manual || !reconciliation || !total || !capacity) return "historical_usage_unavailable";
   const values = [
     input.invocation.provider_calls,
     input.invocation.estimated_credits,
@@ -149,6 +155,8 @@ export function evaluateContinuousIntelligenceShadowCanaryScheduledBudget(input:
     scheduled.estimated_credits,
     manual.attempts,
     manual.estimated_credits,
+    reconciliation.attempts,
+    reconciliation.estimated_credits,
     total.attempts,
     total.estimated_credits,
     capacity.attempts,
@@ -156,8 +164,8 @@ export function evaluateContinuousIntelligenceShadowCanaryScheduledBudget(input:
   ];
   if (!values.every((value) => Number.isInteger(value) && value >= 0)) return "unknown";
   if (
-    total.attempts !== scheduled.attempts + manual.attempts ||
-    total.estimated_credits !== scheduled.estimated_credits + manual.estimated_credits ||
+    total.attempts !== scheduled.attempts + manual.attempts + reconciliation.attempts ||
+    total.estimated_credits !== scheduled.estimated_credits + manual.estimated_credits + reconciliation.estimated_credits ||
     capacity.attempts !== total.attempts ||
     capacity.estimated_credits !== total.estimated_credits
   ) return "usage_disagreement";

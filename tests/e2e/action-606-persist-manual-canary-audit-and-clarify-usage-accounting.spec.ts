@@ -169,6 +169,7 @@ test("Action 606 reports scheduled, manual, total ledger, and claim capacity wit
     queried_utc_date: "2026-07-23",
     scheduled_shadow_collector_canary: { attempts: 1, estimated_credits: 1 },
     bounded_manual_proof: { attempts: 1, estimated_credits: 1 },
+    historical_manual_usage_reconciliation: { attempts: 0, estimated_credits: 0 },
     total_ledger: { attempts: 2, estimated_credits: 2 },
     claim_capacity: { attempts: 1, estimated_credits: 1 },
   });
