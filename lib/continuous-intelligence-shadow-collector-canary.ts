@@ -442,6 +442,33 @@ export function buildContinuousIntelligenceShadowCanaryReceiptId(
   return `canary_receipt_${boundedShadowCollectorExecutionProofFingerprint(request).replaceAll("|", "_").replaceAll(":", "-").slice(0, 96)}`;
 }
 
+/**
+ * Manual proofs are durable attempts, rather than request-only observations.
+ * The execution ID is bound to the UTC day and canonical request fingerprint,
+ * so it is stable for a retry of one admitted attempt and distinct for a later
+ * admitted claim that happens to use the same completed market-data window.
+ */
+export function buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId(input: {
+  request: BoundedShadowCollectorExecutionProofRequest;
+  lifecycle_identity: Readonly<ContinuousIntelligenceShadowCanaryLifecycleIdentity>;
+}) {
+  const requestFingerprint = boundedShadowCollectorExecutionProofFingerprint(input.request);
+  const expectedExecutionId = buildContinuousIntelligenceShadowCanaryExecutionId({
+    utc_day: input.lifecycle_identity.utc_day,
+    request_fingerprint: requestFingerprint,
+  });
+  if (
+    input.lifecycle_identity.expected_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
+    input.lifecycle_identity.request_fingerprint !== requestFingerprint ||
+    input.lifecycle_identity.execution_id !== expectedExecutionId ||
+    input.lifecycle_identity.claim_id !== `canary_claim_${expectedExecutionId}`
+  ) {
+    return null;
+  }
+  const receiptId = `manual_canary_receipt_${expectedExecutionId}`;
+  return receiptId.length <= 128 ? receiptId : null;
+}
+
 export type ContinuousIntelligenceShadowCanaryDiagnostics = ContinuousIntelligenceShadowCanaryActivationReadinessDiagnostics & {
   contract_version: typeof continuousIntelligenceShadowCollectorCanaryContractVersion;
   canary_route_present: true;

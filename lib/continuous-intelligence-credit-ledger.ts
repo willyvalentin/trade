@@ -250,7 +250,8 @@ export function buildContinuousIntelligenceCreditLedgerEntry(
   return {
     contract_version: continuousIntelligenceCreditLedgerContractVersion,
     ledger_entry_id: ledgerEntryId,
-    generated_at: (input.now ?? new Date()).toISOString(),
+    // The receipt is the idempotent durable event; retries must not change its row.
+    generated_at: receipt.generated_at,
     source_receipt_id: receipt.receipt_id,
     entry_kind: receipt.entry_kind,
     request_fingerprint: receipt.request_fingerprint,

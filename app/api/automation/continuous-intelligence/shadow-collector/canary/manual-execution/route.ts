@@ -11,7 +11,7 @@ import {
   matchesContinuousIntelligenceShadowCanaryManualAuthorizationBinding,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
 import {
-  buildContinuousIntelligenceShadowCanaryReceiptId,
+  buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId,
   executeContinuousIntelligenceShadowCanary,
   recheckContinuousIntelligenceShadowCanaryRuntimeWithManualExecutionLease,
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
@@ -65,6 +65,15 @@ export async function POST(request: Request) {
   const ledgerEnabled = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED);
   if (!binding || !context.preflight_static_blockers_are_only_disabled_state || !context.canary_disabled || !context.kill_switch_active || !context.schedule_absent || !context.daily_capacity_available || !context.provider_budget_resolved || !auditEnabled || !ledgerEnabled) {
     return json({ error: "Manual canary execution is blocked by current runtime state.", failure_category: "execution_preflight_blocked", provider_calls_executed: false }, 403);
+  }
+  const receiptId = context.lifecycle_identity && context.preflight.request
+    ? buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId({
+        request: context.preflight.request,
+        lifecycle_identity: context.lifecycle_identity,
+      })
+    : null;
+  if (!receiptId) {
+    return json({ error: "Manual canary execution has no canonical attempt identity.", failure_category: "execution_preflight_blocked", provider_calls_executed: false }, 403);
   }
 
   const authorizationRead = await readContinuousIntelligenceShadowCanaryManualAuthorization({ authorization_id: input.authorization_id, raw_token: input.authorization_token });
@@ -121,7 +130,7 @@ export async function POST(request: Request) {
     request_fingerprint: binding.request_fingerprint,
     status: terminalStatus,
     provider_attempted: providerEntered,
-    source_receipt_id: buildContinuousIntelligenceShadowCanaryReceiptId(context.preflight.request!),
+    source_receipt_id: receiptId,
     finalized_at: new Date().toISOString(),
   });
   if (!finalized.finalization_proven || !runtimeRecheck.proof_preflight || !context.preflight.request) {
@@ -133,7 +142,7 @@ export async function POST(request: Request) {
     result,
     operator_authorization_verified: true,
     authorization_consumed: true,
-    receipt_id: buildContinuousIntelligenceShadowCanaryReceiptId(context.preflight.request),
+    receipt_id: receiptId,
     now: context.now,
     entry_kind: "bounded_manual_proof",
     daily_claim_id: binding.claim_id,
