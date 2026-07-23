@@ -166,6 +166,7 @@ test("Action 606 reports scheduled, manual, total ledger, and claim capacity wit
   expect(usage).toEqual({
     status: "available",
     scope: "utc_day",
+    queried_utc_date: "2026-07-23",
     scheduled_shadow_collector_canary: { attempts: 1, estimated_credits: 1 },
     bounded_manual_proof: { attempts: 1, estimated_credits: 1 },
     total_ledger: { attempts: 2, estimated_credits: 2 },
