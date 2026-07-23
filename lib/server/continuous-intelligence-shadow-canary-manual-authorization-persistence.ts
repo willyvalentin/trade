@@ -18,6 +18,7 @@ import {
   buildContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord,
   continuousIntelligenceShadowCanaryManualAuthorizationAdmitExecutionWithLeaseRpcName,
   continuousIntelligenceShadowCanaryManualAuthorizationIssueWithLeaseRpcName,
+  parseContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus,
   type ContinuousIntelligenceShadowCanaryManualExecutionLeaseRecord,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-execution-lease";
 import { continuousIntelligenceShadowCanaryClaimTableName } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
@@ -386,11 +387,10 @@ export async function admitContinuousIntelligenceShadowCanaryManualExecution(inp
     if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
       return { status: "unavailable" as const };
     }
-    const status = (result.data as Record<string, unknown>).admission_status;
-    if (
-      status === "attempt_started" || status === "already_admitted" || status === "authorization_expired" ||
-      status === "authorization_replayed" || status === "identity_mismatch" || status === "daily_limit_reached"
-    ) return { status };
+    const status = parseContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus(
+      (result.data as Record<string, unknown>).admission_status,
+    );
+    if (status) return { status };
   } catch {
     // Atomic admission must fail closed without returning database details.
   }
@@ -422,11 +422,10 @@ export async function admitContinuousIntelligenceShadowCanaryManualExecutionWith
     if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
       return { status: "unavailable" as const };
     }
-    const status = (result.data as Record<string, unknown>).admission_status;
-    if (
-      status === "attempt_started" || status === "already_admitted" || status === "authorization_expired" ||
-      status === "authorization_replayed" || status === "identity_mismatch" || status === "daily_limit_reached"
-    ) return { status };
+    const status = parseContinuousIntelligenceShadowCanaryManualExecutionAdmissionStatus(
+      (result.data as Record<string, unknown>).admission_status,
+    );
+    if (status) return { status };
   } catch {
     // Atomic authorization, lease, and claim admission fails closed.
   }

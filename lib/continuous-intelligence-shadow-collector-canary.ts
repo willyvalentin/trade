@@ -442,24 +442,79 @@ export function buildContinuousIntelligenceShadowCanaryReceiptId(
   return `canary_receipt_${boundedShadowCollectorExecutionProofFingerprint(request).replaceAll("|", "_").replaceAll(":", "-").slice(0, 96)}`;
 }
 
+export type ContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity =
+  ContinuousIntelligenceShadowCanaryLifecycleIdentity & {
+    authorization_id: string;
+    base_execution_id: string;
+  };
+
+function isCanonicalManualAuthorizationId(value: string) {
+  return /^manual_canary_authorization_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
+}
+
+function buildContinuousIntelligenceShadowCanaryManualAdmissionExecutionId(input: {
+  utc_day: string;
+  authorization_id: string;
+}) {
+  return `manual_canary_execution_${input.utc_day.replaceAll("-", "")}_${input.authorization_id}`;
+}
+
 /**
- * Manual proofs are durable attempts, rather than request-only observations.
- * The execution ID is bound to the UTC day and canonical request fingerprint,
- * so it is stable for a retry of one admitted attempt and distinct for a later
- * admitted claim that happens to use the same completed market-data window.
+ * A manual authorization ID is server-issued and durable. It scopes one manual
+ * admission without exposing the authorization token or changing scheduled IDs.
+ */
+export function buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity(input: {
+  lifecycle_identity: Readonly<ContinuousIntelligenceShadowCanaryLifecycleIdentity>;
+  authorization_id: string;
+}): Readonly<ContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity> | null {
+  const baseExecutionId = buildContinuousIntelligenceShadowCanaryExecutionId({
+    utc_day: input.lifecycle_identity.utc_day,
+    request_fingerprint: input.lifecycle_identity.request_fingerprint,
+  });
+  if (
+    !isCanonicalManualAuthorizationId(input.authorization_id) ||
+    input.lifecycle_identity.expected_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
+    input.lifecycle_identity.execution_id !== baseExecutionId ||
+    input.lifecycle_identity.claim_id !== `canary_claim_${baseExecutionId}`
+  ) {
+    return null;
+  }
+  const executionId = buildContinuousIntelligenceShadowCanaryManualAdmissionExecutionId({
+    utc_day: input.lifecycle_identity.utc_day,
+    authorization_id: input.authorization_id,
+  });
+  const claimId = `canary_claim_${executionId}`;
+  if (executionId.length > 128 || claimId.length > 128) return null;
+  return Object.freeze({
+    ...input.lifecycle_identity,
+    execution_id: executionId,
+    claim_id: claimId,
+    authorization_id: input.authorization_id,
+    base_execution_id: baseExecutionId,
+  });
+}
+
+/**
+ * Manual receipts inherit their admission identity from the server-issued
+ * authorization, so separate same-day attempts cannot collide in persistence.
  */
 export function buildContinuousIntelligenceShadowCanaryManualAttemptReceiptId(input: {
   request: BoundedShadowCollectorExecutionProofRequest;
-  lifecycle_identity: Readonly<ContinuousIntelligenceShadowCanaryLifecycleIdentity>;
+  lifecycle_identity: Readonly<ContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity>;
 }) {
   const requestFingerprint = boundedShadowCollectorExecutionProofFingerprint(input.request);
-  const expectedExecutionId = buildContinuousIntelligenceShadowCanaryExecutionId({
+  const expectedBaseExecutionId = buildContinuousIntelligenceShadowCanaryExecutionId({
     utc_day: input.lifecycle_identity.utc_day,
     request_fingerprint: requestFingerprint,
+  });
+  const expectedExecutionId = buildContinuousIntelligenceShadowCanaryManualAdmissionExecutionId({
+    utc_day: input.lifecycle_identity.utc_day,
+    authorization_id: input.lifecycle_identity.authorization_id,
   });
   if (
     input.lifecycle_identity.expected_contract_version !== continuousIntelligenceShadowCanaryClaimContractVersion ||
     input.lifecycle_identity.request_fingerprint !== requestFingerprint ||
+    input.lifecycle_identity.base_execution_id !== expectedBaseExecutionId ||
     input.lifecycle_identity.execution_id !== expectedExecutionId ||
     input.lifecycle_identity.claim_id !== `canary_claim_${expectedExecutionId}`
   ) {

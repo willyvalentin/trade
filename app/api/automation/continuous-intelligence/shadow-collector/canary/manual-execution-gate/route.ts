@@ -8,6 +8,7 @@ import {
   evaluateContinuousIntelligenceShadowCanaryManualExecutionGate,
   sanitizeContinuousIntelligenceShadowCanaryManualAuthorization,
 } from "@/lib/continuous-intelligence-shadow-canary-manual-authorization";
+import { buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { buildContinuousIntelligenceShadowCanaryManualAuthorizationContext } from "@/lib/server/continuous-intelligence-shadow-canary-manual-authorization-context";
 import {
   readContinuousIntelligenceShadowCanaryManualAuthorization,
@@ -66,10 +67,16 @@ export async function POST(request: Request) {
   }
   try {
     const context = await buildContinuousIntelligenceShadowCanaryManualAuthorizationContext();
-    const expectedBinding = context.lifecycle_identity
+    const lifecycleIdentity = context.lifecycle_identity
+      ? buildContinuousIntelligenceShadowCanaryManualAdmissionLifecycleIdentity({
+          lifecycle_identity: context.lifecycle_identity,
+          authorization_id: input.authorization_id,
+        })
+      : null;
+    const expectedBinding = lifecycleIdentity
       ? buildContinuousIntelligenceShadowCanaryManualAuthorizationBinding({
           preflight: context.preflight,
-          lifecycle_identity: context.lifecycle_identity,
+          lifecycle_identity: lifecycleIdentity,
           calendar_fingerprint: context.calendar_fingerprint,
           deployment_commit: context.deployment_commit,
           deployment_build_marker: context.deployment_build_marker,
