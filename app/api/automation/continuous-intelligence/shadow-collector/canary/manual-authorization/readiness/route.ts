@@ -72,5 +72,6 @@ export async function GET(request: Request) {
     contract_version: continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessContractVersion,
     route_path: continuousIntelligenceShadowCanaryManualAuthorizationIssuanceReadinessRoutePath,
     readiness,
+    usage_accounting: context.usage_accounting,
   });
 }

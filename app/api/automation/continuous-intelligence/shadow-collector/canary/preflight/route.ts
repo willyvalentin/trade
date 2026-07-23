@@ -7,6 +7,7 @@ import {
 } from "@/lib/continuous-intelligence-shadow-collector-canary";
 import { isContinuousIntelligenceCreditLedgerEnabled } from "@/lib/continuous-intelligence-credit-ledger";
 import { readContinuousIntelligenceCanaryDailyUsage } from "@/lib/server/continuous-intelligence-credit-ledger-persistence";
+import { readContinuousIntelligenceShadowCanaryUsageAccounting } from "@/lib/server/continuous-intelligence-shadow-canary-usage-accounting";
 import { buildUsEquityMarketCalendarEvaluation } from "@/lib/us-equity-market-calendar";
 
 export const dynamic = "force-dynamic";
@@ -24,12 +25,19 @@ export async function POST(request: Request) {
     return json({ error: "Unauthorized.", contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryPreflightRoutePath }, 401);
   }
   const now = new Date();
-  const usage = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED)
-    ? await readContinuousIntelligenceCanaryDailyUsage(
-        new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString(),
-        new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString(),
-      )
-    : { status: "schema_unavailable" as const, run_count: null, estimated_credits: null };
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString();
+  const usageEnabled = isContinuousIntelligenceCreditLedgerEnabled(process.env.TURE_CONTINUOUS_INTELLIGENCE_CREDIT_LEDGER_ENABLED);
+  const [usage, usageAccounting] = await Promise.all([
+    usageEnabled
+      ? readContinuousIntelligenceCanaryDailyUsage(start, end)
+      : Promise.resolve({ status: "schema_unavailable" as const, run_count: null, estimated_credits: null }),
+    readContinuousIntelligenceShadowCanaryUsageAccounting({
+      utc_day: now.toISOString().slice(0, 10),
+      start,
+      end,
+    }),
+  ]);
   const result = buildContinuousIntelligenceShadowCanaryPreflight({
     now,
     calendar: buildUsEquityMarketCalendarEvaluation(now),
@@ -39,5 +47,10 @@ export async function POST(request: Request) {
     provider_metadata_status: process.env.TURE_CONTINUOUS_INTELLIGENCE_PROVIDER_BUDGET_STATUS ?? null,
     daily_usage: usage,
   });
-  return json({ contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion, route_path: continuousIntelligenceShadowCollectorCanaryPreflightRoutePath, result }, result.eligible ? 200 : 403);
+  return json({
+    contract_version: continuousIntelligenceShadowCollectorCanaryContractVersion,
+    route_path: continuousIntelligenceShadowCollectorCanaryPreflightRoutePath,
+    result,
+    usage_accounting: usageAccounting,
+  }, result.eligible ? 200 : 403);
 }
