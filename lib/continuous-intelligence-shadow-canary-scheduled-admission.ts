@@ -9,6 +9,7 @@ import {
 } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
 import {
   continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable,
+  type ContinuousIntelligenceShadowCanaryScheduledDeploymentBinding,
 } from "@/lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
 import { normalizeContinuousIntelligenceShadowCanaryTimestamp } from "@/lib/continuous-intelligence-shadow-canary-timestamp";
 
@@ -60,6 +61,10 @@ export type ContinuousIntelligenceShadowCanaryScheduledAdmissionBlocker =
   | "scheduler_auth_missing"
   | "scheduler_auth_invalid"
   | "deployment_identity_mismatch"
+  | "deployment_configuration_conflict"
+  | "deployment_configuration_malformed"
+  | "deployment_platform_identity_conflict"
+  | "deployment_platform_identity_malformed"
   | "canary_disabled"
   | "kill_switch_active"
   | "schedule_inactive"
@@ -80,7 +85,7 @@ type Readiness = "ready" | "unavailable";
 export type ContinuousIntelligenceShadowCanaryScheduledAdmissionInput = {
   scheduler_authentication: ContinuousIntelligenceShadowCanarySchedulerAuthentication;
   request: ContinuousIntelligenceShadowCanaryScheduledExecutionRequest | null;
-  deployment_identity: "exact" | "mismatch" | "unavailable";
+  deployment_identity: ContinuousIntelligenceShadowCanaryScheduledDeploymentBinding;
   canary_enabled: boolean;
   kill_switch_inactive: boolean;
   schedule_active: boolean;
@@ -137,7 +142,15 @@ export type ContinuousIntelligenceShadowCanaryScheduledLifecycleIdentity =
     occurrence_id: string;
     source_metadata: ContinuousIntelligenceShadowCanaryScheduledSourceMetadata;
     ledger_entry_id: string;
-  };
+};
+
+const scheduledExecutionIdentityPattern =
+  /^scheduled_canary_execution_scheduled_canary_occurrence_\d{8}_[0-2]\d[0-5]\d_[0-9a-f]{8}$/;
+
+/** Only a canonical occurrence-backed scheduled execution may enter scheduled state. */
+export function isContinuousIntelligenceShadowCanaryScheduledExecutionIdentity(value: unknown) {
+  return typeof value === "string" && scheduledExecutionIdentityPattern.test(value);
+}
 
 export type ContinuousIntelligenceShadowCanaryScheduledClaimAdmissionResult =
   | {
@@ -554,7 +567,12 @@ export function buildContinuousIntelligenceShadowCanaryScheduledAdmissionPreflig
 ): ContinuousIntelligenceShadowCanaryScheduledAdmissionResult {
   const blockers: ContinuousIntelligenceShadowCanaryScheduledAdmissionBlocker[] = [];
   if (input.scheduler_authentication !== "scheduler_auth_ready") blockers.push(input.scheduler_authentication);
-  if (!input.request || input.deployment_identity !== "exact") blockers.push("deployment_identity_mismatch");
+  if (!input.request || input.deployment_identity === "mismatch" || input.deployment_identity === "request_mismatch") blockers.push("deployment_identity_mismatch");
+  if (input.deployment_identity === "explicit_configuration_conflict") blockers.push("deployment_configuration_conflict");
+  if (input.deployment_identity === "explicit_configuration_malformed") blockers.push("deployment_configuration_malformed");
+  if (input.deployment_identity === "platform_identity_conflict") blockers.push("deployment_platform_identity_conflict");
+  if (input.deployment_identity === "platform_identity_malformed") blockers.push("deployment_platform_identity_malformed");
+  if (input.deployment_identity === "unavailable") blockers.push("unavailable");
   if (!input.canary_enabled) blockers.push("canary_disabled");
   if (!input.kill_switch_inactive) blockers.push("kill_switch_active");
   if (!input.schedule_active) blockers.push("schedule_inactive");

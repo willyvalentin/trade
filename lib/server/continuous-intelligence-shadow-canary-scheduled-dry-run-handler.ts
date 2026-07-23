@@ -27,6 +27,12 @@ export function createContinuousIntelligenceShadowCanaryScheduledDryRunHandler(i
       ? "scheduled_dry_run_ready_before_execution"
       : evidence.first_blocker === "deployment_identity_mismatch"
         ? "scheduled_dry_run_deployment_mismatch"
+        : evidence.first_blocker === "deployment_configuration_conflict"
+          ? "scheduled_dry_run_deployment_configuration_conflict"
+          : evidence.first_blocker === "deployment_configuration_malformed" ||
+              evidence.first_blocker === "deployment_platform_identity_conflict" ||
+              evidence.first_blocker === "deployment_platform_identity_malformed"
+            ? "scheduled_dry_run_deployment_identity_unavailable"
         : evidence.first_blocker === "unavailable"
           ? "scheduled_dry_run_unavailable"
           : "scheduled_dry_run_blocked";
