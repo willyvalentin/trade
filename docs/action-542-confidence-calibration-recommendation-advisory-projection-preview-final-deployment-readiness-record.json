@@ -1,0 +1,88 @@
+{
+  "schema_version": "action_542_final_deployment_readiness_record_v1",
+  "source_action": 542,
+  "candidate_binding": {
+    "source_action": 541,
+    "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+    "candidate_file_count": 33,
+    "change_candidate_hash": "1ed32886de0eb3522f648ad3b8522ada7b6de905098c4fa141bc33e77bfa5570",
+    "full_candidate_inventory_hash": "f416ea941168ac0a730fee70b059a78fd760bfb7238f94c06369f241b3ab68ce",
+    "app_page_hash": "9fcbb64437773efbb7662779109f68f59fb624371c123bdec74a3b89392abf66",
+    "evaluate_outcomes_route_hash": "26407a8b78625a19a48a02ecf44e03db1642998da5f1d8acc5e8d47227773265",
+    "route_export_surface": [
+      "POST"
+    ],
+    "action_465_null_hash_exception_exact_and_singular": true
+  },
+  "action_541_validation_summary": {
+    "candidate_integrity": "passed",
+    "source_safety": "passed",
+    "preview_disabled": "passed",
+    "next_typegen": "passed",
+    "typescript": "passed",
+    "lint": "passed_with_one_existing_warning",
+    "turbopack_build": "passed",
+    "webpack": "not_required",
+    "candidate_authoritative": true
+  },
+  "preview_disabled_status": {
+    "flag_name": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+    "required_initial_state": "absent_or_disabled",
+    "helper_result_when_absent": false,
+    "helper_result_in_production": false,
+    "explicit_true_required": true,
+    "alternate_activation_path_detected": false,
+    "deployment_environment_change_made_in_action_542": false
+  },
+  "downstream_effect_checks": {
+    "observation_only": true,
+    "disabled_by_default": true,
+    "non_authoritative": true,
+    "non_persistent": true,
+    "non_replayed": true,
+    "non_feedback_producing": true,
+    "provider_free": true,
+    "supabase_write_free": true,
+    "original_confidence_unchanged": true,
+    "recommendation_ranking_affected": false,
+    "scanner_selection_affected": false,
+    "publication_affected": false,
+    "execution_affected": false,
+    "add_trade_affected": false,
+    "risk_calculation_affected": false,
+    "position_sizing_affected": false
+  },
+  "deployment_target": {
+    "platform": "netlify",
+    "site": "trade-vl",
+    "site_id": "2b582e03-ac97-4371-8051-558d9980fb94",
+    "team": "Valentin Labs AB",
+    "netlify_operation_performed": false
+  },
+  "readiness_decision": "approved_for_preview_deployment",
+  "unresolved_conditions": [],
+  "post_deployment_smoke_checks": [
+    "production page loads",
+    "no server/render exception",
+    "recommendation interface loads normally",
+    "original confidence remains authoritative",
+    "preview output is absent while flag disabled",
+    "no recommendation ranking/order changes",
+    "no execution or Add Trade changes",
+    "no unexpected Supabase writes",
+    "Netlify deploy status healthy"
+  ],
+  "rollback_conditions": [
+    "root page rendering failure",
+    "recommendation UI regression",
+    "changed recommendation ordering",
+    "original confidence overwritten",
+    "execution or risk behavior affected",
+    "unexpected persistence/write behavior",
+    "production build/runtime error"
+  ],
+  "deployment_performed": false,
+  "preview_activated": false,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "operator_approved_preview_deployment_of_exact_action_541_candidate"
+}

@@ -717,3 +717,103 @@ Current finding:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Result
+
+Action 411 created
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` still owns the live market trial runbook UI state and
+  hydration/write-effect guards.
+- The exact persistence behavior is narrow enough for a wrapper if the key,
+  default state, normalization, read fallback behavior, and write semantics are
+  preserved together.
+- Supabase/trade persistence, execution/orchestrator behavior, live market
+  scanning/execution behavior, and provider/data behavior remain app-owned.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## Action 412 Result
+
+Action 412 created
+`lib/persistence/live-market-trial-runbook-persistence.ts`.
+
+Current finding:
+
+- `app/trade-app.tsx` now imports live market trial runbook persistence helpers
+  from the wrapper.
+- The file still owns runbook UI state, hydration/write-effect timing, UI
+  callbacks, live market workflow, provider/data behavior, Supabase/trade
+  behavior, and execution/orchestrator behavior.
+- This was a persistence-helper extraction only; no runtime live market,
+  provider, trade, or execution behavior moved.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- escalated `npm run test:e2e` passed: 64 tests after the default sandbox run
+  was blocked on `0.0.0.0:3010`.
+
+Next recommended action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## Action 413 Result
+
+Action 413 created
+`docs/live-market-trial-runbook-persistence-post-extraction-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` uses the runbook persistence wrapper only for default,
+  read, and write helper calls.
+- `app/trade-app.tsx` still owns runbook UI state, effect timing, callbacks,
+  live market workflow, provider/data behavior, Supabase/trade behavior, and
+  execution/orchestrator behavior.
+- The localStorage wrapper phase is complete enough to move to a more focused
+  execution audit/event persistence reassessment.
+
+Next recommended action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
+
+## Action 414 Result
+
+Action 414 created
+`docs/execution-audit-event-log-persistence-boundary-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` still contains many domain-specific best-effort
+  `trade-management-events` append helpers.
+- Dedicated audit/event modules already own typed execution event logs and
+  Supabase audit persistence contracts.
+- Further audit/event persistence extraction should wait until execution
+  record/result creation boundaries are clearer.
+
+Next recommended action:
+
+**Action 415 - Reassess Execution Record Creation Boundary**
+
+## Action 415 Result
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Current finding:
+
+- `app/trade-app.tsx` still owns dev broker capture stub wiring and local
+  diagnostics record append behavior.
+- Existing eligibility/preview layers do not create real broker results,
+  production execution records, Supabase writes, or trade mutations.
+- Future execution record work needs a contract design before any runtime
+  implementation.
+
+Next recommended action:
+
+**Action 416 - Create Execution Record Creation Contract Design**

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
@@ -16,7 +16,7 @@ import {
   type RecommendationOutcomeCandleRequest,
   type RecommendationOutcomeCandleResult,
 } from "@/lib/recommendation-outcome-evaluation-runner";
-import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry-type";
+import { buildOutcomePostEligibilityDiagnostics } from "@/lib/recommendation-outcome-post-eligibility-diagnostics";
 import { buildPlanReferenceMetadataTrace } from "@/lib/plan-reference-metadata-trace";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
@@ -29,9 +29,15 @@ import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
+  getLearningAccelerationConfig,
+  shouldIncludeLearningAccelerationOutcomeSample,
+} from "@/lib/learning-acceleration-mode";
+import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
+import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -40,6 +46,7 @@ type EvaluateOutcomesRequest = {
   snapshots?: unknown;
   existing_outcomes?: unknown;
   horizons?: unknown;
+  max_batches?: unknown;
   max_snapshots?: unknown;
   max_candle_requests?: unknown;
   enrich_completed_outcomes?: unknown;
@@ -55,7 +62,8 @@ type OutcomeSnapshotIneligibleReason =
   | "missing_stop"
   | "missing_target"
   | "missing_recommended_at"
-  | "missing_batch_membership";
+  | "missing_batch_membership"
+  | "learning_only_disabled";
 
 type OutcomeEligibilityDiagnostics = {
   total_snapshots_loaded_for_batch: number;
@@ -72,6 +80,11 @@ type OutcomeEligibilityDiagnostics = {
   duplicate_snapshot_fingerprints_count: number;
   duplicate_snapshot_rows: number;
   duplicate_snapshot_rows_ignored_count: number;
+  hidden_archived_duplicate_rows_ignored_count: number;
+  visible_duplicate_rows_ignored_count: number;
+  canonical_visible_snapshots_retained_count: number;
+  canonical_visible_duplicate_fingerprints_retained_count: number;
+  archived_duplicate_rows_blocked_count: number;
   duplicate_snapshot_conflict_count: number;
   duplicate_snapshot_conflict_reasons: Record<string, number>;
   visible_recommendations: number;
@@ -88,6 +101,8 @@ type OutcomeEligibilityDiagnostics = {
 };
 
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
+const defaultOfficialLiveMaxBatchesPerRun = 5;
+const officialLiveBatchDiscoveryLimit = 20;
 const allowedHorizons = new Set<RecommendationOutcomeHorizon>([
   "15m",
   "30m",
@@ -172,6 +187,16 @@ function resolveOutcomeProviderBudgetLimit(value: unknown) {
     effectiveBudgetLimit:
       providerPlanProfile.profile_outcome_candle_requests_per_run,
   };
+}
+
+function resolveOfficialLiveMaxBatchesPerRun(value: unknown) {
+  const parsed = finiteNumber(value);
+
+  if (parsed === null) {
+    return defaultOfficialLiveMaxBatchesPerRun;
+  }
+
+  return Math.max(1, Math.min(10, Math.round(parsed)));
 }
 
 function parseSnapshot(value: unknown): RecommendationSnapshot | null {
@@ -379,13 +404,81 @@ function officialEvaluationSnapshot(snapshot: RecommendationSnapshot) {
   };
 }
 
+function timestampMs(value: unknown) {
+  const text = stringOrNull(value);
+  if (!text) return 0;
+  const date = new Date(text);
+  return Number.isFinite(date.getTime()) ? date.getTime() : 0;
+}
+
+function batchFingerprintOf(batch: Record<string, unknown>) {
+  return stringOrNull(batch.batch_fingerprint) ?? "unknown_batch";
+}
+
+function sortBatchesOldestFirst(
+  batches: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  return batches.slice().sort((first, second) => {
+    const firstTime = timestampMs(first.published_at) || timestampMs(first.created_at);
+    const secondTime =
+      timestampMs(second.published_at) || timestampMs(second.created_at);
+
+    if (firstTime !== secondTime) {
+      return firstTime - secondTime;
+    }
+
+    return batchFingerprintOf(first).localeCompare(batchFingerprintOf(second));
+  });
+}
+
+function sortSnapshotsOldestFirst(
+  snapshots: RecommendationSnapshot[],
+): RecommendationSnapshot[] {
+  return snapshots.slice().sort((first, second) => {
+    const firstTime =
+      timestampMs(first.recommended_at) || timestampMs(first.created_at);
+    const secondTime =
+      timestampMs(second.recommended_at) || timestampMs(second.created_at);
+
+    if (firstTime !== secondTime) {
+      return firstTime - secondTime;
+    }
+
+    return first.snapshot_fingerprint.localeCompare(second.snapshot_fingerprint);
+  });
+}
+
+function buildSameDayOfficialBatchAggregate(
+  batches: Array<Record<string, unknown>>,
+  snapshotFingerprints: string[],
+) {
+  const firstBatch = batches[0] ?? null;
+
+  if (!firstBatch) return null;
+  if (batches.length === 1) return firstBatch;
+
+  const firstPayload = objectOrNull(firstBatch.payload_json) ?? {};
+
+  return {
+    ...firstBatch,
+    payload_json: {
+      ...firstPayload,
+      action_556_same_day_official_batch_revisit: true,
+      selected_batch_fingerprints: batches.map(batchFingerprintOf),
+      recommendation_snapshot_fingerprints: snapshotFingerprints,
+    },
+  };
+}
+
 async function loadOfficialLiveSnapshots({
   batchFingerprint,
   includeGrowMaxLearningSnapshots,
+  maxBatchesPerRun,
   now,
 }: {
   batchFingerprint: string | null;
   includeGrowMaxLearningSnapshots: boolean;
+  maxBatchesPerRun: number;
   now: Date;
 }) {
   const serverSupabase = getServerSupabaseClient();
@@ -395,9 +488,20 @@ async function loadOfficialLiveSnapshots({
       status: "failed" as const,
       error: `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`,
       batch: null as Record<string, unknown> | null,
+      batches: [] as Array<Record<string, unknown>>,
       snapshots: [] as RecommendationSnapshot[],
       recommendation_rows_loaded_count: 0,
       missing_snapshot_fingerprints: [] as string[],
+      snapshot_batch_fingerprints: {} as Record<string, string>,
+      same_day_official_batch_revisit: {
+        same_day_official_batches_discovered: 0,
+        max_batches_per_run: maxBatchesPerRun,
+        selected_batch_count: 0,
+        selected_batch_fingerprints: [] as string[],
+        selected_batch_order: "oldest_first",
+        batches_skipped_due_to_limit: 0,
+        snapshots_loaded_per_batch: {} as Record<string, number>,
+      },
     };
   }
 
@@ -405,8 +509,11 @@ async function loadOfficialLiveSnapshots({
     const batchQuery = serverSupabase.client
       .from("recommendation_batches")
       .select("*")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .limit(batchFingerprint ? 1 : 20);
+      .order("published_at", {
+        ascending: batchFingerprint ? false : true,
+        nullsFirst: false,
+      })
+      .limit(batchFingerprint ? 1 : officialLiveBatchDiscoveryLimit);
     const batchResult = batchFingerprint
       ? await batchQuery.eq("batch_fingerprint", batchFingerprint)
       : await batchQuery.eq("trading_date", getNewYorkDateString(now));
@@ -418,105 +525,188 @@ async function loadOfficialLiveSnapshots({
           batchResult.error?.message ??
           "Unable to load official recommendation batches.",
         batch: null,
+        batches: [],
         snapshots: [],
+        recommendation_rows_loaded_count: 0,
         missing_snapshot_fingerprints: [],
+        snapshot_batch_fingerprints: {},
+        same_day_official_batch_revisit: {
+          same_day_official_batches_discovered: 0,
+          max_batches_per_run: maxBatchesPerRun,
+          selected_batch_count: 0,
+          selected_batch_fingerprints: [],
+          selected_batch_order: "oldest_first",
+          batches_skipped_due_to_limit: 0,
+          snapshots_loaded_per_batch: {},
+        },
       };
     }
 
-    const batch =
-      (batchResult.data as Array<Record<string, unknown>>).find(
-        (row) =>
-          isOfficialLiveBatch(row, {
-            includeGrowMaxLearningSnapshots,
-          }),
-      ) ?? null;
+    const officialBatches = sortBatchesOldestFirst(
+      (batchResult.data as Array<Record<string, unknown>>).filter((row) =>
+        isOfficialLiveBatch(row, {
+          includeGrowMaxLearningSnapshots,
+        }),
+      ),
+    );
+    const selectedBatches = batchFingerprint
+      ? officialBatches.slice(0, 1)
+      : officialBatches;
 
-    if (!batch) {
+    if (selectedBatches.length === 0) {
       return {
         status: "blocked" as const,
         error: batchFingerprint
           ? "No non-diagnostic official batch matched the requested fingerprint."
           : "No non-diagnostic official live batch found for today.",
         batch: null,
+        batches: [],
         snapshots: [],
         recommendation_rows_loaded_count: 0,
         missing_snapshot_fingerprints: [],
+        snapshot_batch_fingerprints: {},
+        same_day_official_batch_revisit: {
+          same_day_official_batches_discovered: officialBatches.length,
+          max_batches_per_run: maxBatchesPerRun,
+          selected_batch_count: 0,
+          selected_batch_fingerprints: [],
+          selected_batch_order: "oldest_first",
+          batches_skipped_due_to_limit: 0,
+          snapshots_loaded_per_batch: {},
+        },
       };
     }
 
-    const payload = objectOrNull(batch.payload_json) ?? {};
-    const expectedSnapshotFingerprints = Array.from(
-      new Set(arrayOfStrings(payload.recommendation_snapshot_fingerprints)),
-    );
-    const scanRunFingerprint = stringOrNull(batch.scan_run_fingerprint);
     const snapshotRows: Array<Record<string, unknown>> = [];
     const snapshotQueryErrors: string[] = [];
+    const missingSnapshotFingerprints: string[] = [];
+    const snapshotBatchFingerprints: Record<string, string> = {};
+    const snapshotsLoadedPerBatch: Record<string, number> = {};
+    const allExpectedSnapshotFingerprints = new Set<string>();
 
-    if (expectedSnapshotFingerprints.length > 0) {
-      const snapshotResult = await serverSupabase.client
-        .from("recommendation_snapshots")
-        .select("*")
-        .in("snapshot_fingerprint", expectedSnapshotFingerprints)
-        .order("created_at", { ascending: false });
+    for (const batch of selectedBatches) {
+      const payload = objectOrNull(batch.payload_json) ?? {};
+      const selectedBatchFingerprint = batchFingerprintOf(batch);
+      const expectedSnapshotFingerprints = Array.from(
+        new Set(arrayOfStrings(payload.recommendation_snapshot_fingerprints)),
+      );
+      const scanRunFingerprint = stringOrNull(batch.scan_run_fingerprint);
+      const batchSnapshotRows: Array<Record<string, unknown>> = [];
 
-      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
-        snapshotQueryErrors.push(
-          snapshotResult.error?.message ??
-            "Unable to load snapshots by batch fingerprint members.",
-        );
-      } else {
-        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+      for (const fingerprint of expectedSnapshotFingerprints) {
+        allExpectedSnapshotFingerprints.add(fingerprint);
       }
-    }
 
-    if (scanRunFingerprint) {
-      const snapshotResult = await serverSupabase.client
-        .from("recommendation_snapshots")
-        .select("*")
-        .eq("scan_run_id", scanRunFingerprint)
-        .order("created_at", { ascending: false });
+      if (expectedSnapshotFingerprints.length > 0) {
+        const snapshotResult = await serverSupabase.client
+          .from("recommendation_snapshots")
+          .select("*")
+          .in("snapshot_fingerprint", expectedSnapshotFingerprints)
+          .order("created_at", { ascending: false });
 
-      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
-        snapshotQueryErrors.push(
-          snapshotResult.error?.message ??
-            "Unable to load snapshots by scan run fingerprint.",
-        );
-      } else {
-        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+        if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+          snapshotQueryErrors.push(
+            snapshotResult.error?.message ??
+              `Unable to load snapshots by batch fingerprint members for ${selectedBatchFingerprint}.`,
+          );
+        } else {
+          batchSnapshotRows.push(
+            ...(snapshotResult.data as Array<Record<string, unknown>>),
+          );
+        }
       }
-    }
 
-    const selectedBatchFingerprint = stringOrNull(batch.batch_fingerprint);
-    if (
-      includeGrowMaxLearningSnapshots &&
-      selectedBatchFingerprint &&
-      expectedSnapshotFingerprints.length === 0 &&
-      !scanRunFingerprint
-    ) {
-      const snapshotResult = await serverSupabase.client
-        .from("recommendation_snapshots")
-        .select("*")
-        .contains("payload_json", { batch_fingerprint: selectedBatchFingerprint })
-        .order("created_at", { ascending: false });
+      if (scanRunFingerprint) {
+        const snapshotResult = await serverSupabase.client
+          .from("recommendation_snapshots")
+          .select("*")
+          .eq("scan_run_id", scanRunFingerprint)
+          .order("created_at", { ascending: false });
 
-      if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
-        snapshotQueryErrors.push(
-          snapshotResult.error?.message ??
-            "Unable to load snapshots by payload batch fingerprint.",
-        );
-      } else {
-        snapshotRows.push(...(snapshotResult.data as Array<Record<string, unknown>>));
+        if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+          snapshotQueryErrors.push(
+            snapshotResult.error?.message ??
+              `Unable to load snapshots by scan run fingerprint for ${selectedBatchFingerprint}.`,
+          );
+        } else {
+          batchSnapshotRows.push(
+            ...(snapshotResult.data as Array<Record<string, unknown>>),
+          );
+        }
       }
+
+      if (
+        includeGrowMaxLearningSnapshots &&
+        selectedBatchFingerprint &&
+        expectedSnapshotFingerprints.length === 0 &&
+        !scanRunFingerprint
+      ) {
+        const snapshotResult = await serverSupabase.client
+          .from("recommendation_snapshots")
+          .select("*")
+          .contains("payload_json", { batch_fingerprint: selectedBatchFingerprint })
+          .order("created_at", { ascending: false });
+
+        if (snapshotResult.error || !Array.isArray(snapshotResult.data)) {
+          snapshotQueryErrors.push(
+            snapshotResult.error?.message ??
+              `Unable to load snapshots by payload batch fingerprint for ${selectedBatchFingerprint}.`,
+          );
+        } else {
+          batchSnapshotRows.push(
+            ...(snapshotResult.data as Array<Record<string, unknown>>),
+          );
+        }
+      }
+
+      const rawBatchSnapshots = batchSnapshotRows
+        .map(recommendationSnapshotFromPersistenceRow)
+        .filter(
+          (snapshot): snapshot is RecommendationSnapshot =>
+            snapshot !== null,
+        );
+      const batchSnapshots = includeGrowMaxLearningSnapshots
+        ? rawBatchSnapshots
+        : rawBatchSnapshots
+            .filter(isOfficialLiveSnapshot)
+            .map(officialEvaluationSnapshot);
+      const foundFingerprints = new Set(
+        batchSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+      );
+
+      for (const snapshot of batchSnapshots) {
+        snapshotBatchFingerprints[snapshot.snapshot_fingerprint] =
+          selectedBatchFingerprint;
+      }
+
+      snapshotsLoadedPerBatch[selectedBatchFingerprint] = batchSnapshots.length;
+      missingSnapshotFingerprints.push(
+        ...expectedSnapshotFingerprints.filter(
+          (fingerprint) => !foundFingerprints.has(fingerprint),
+        ),
+      );
+      snapshotRows.push(...batchSnapshotRows);
     }
 
     if (snapshotRows.length === 0 && snapshotQueryErrors.length > 0) {
       return {
         status: "failed" as const,
         error: snapshotQueryErrors.join("; "),
-        batch,
+        batch: selectedBatches[0] ?? null,
+        batches: selectedBatches,
         snapshots: [],
         recommendation_rows_loaded_count: 0,
-        missing_snapshot_fingerprints: expectedSnapshotFingerprints,
+        missing_snapshot_fingerprints: Array.from(allExpectedSnapshotFingerprints),
+        snapshot_batch_fingerprints: {},
+        same_day_official_batch_revisit: {
+          same_day_official_batches_discovered: officialBatches.length,
+          max_batches_per_run: maxBatchesPerRun,
+          selected_batch_count: selectedBatches.length,
+          selected_batch_fingerprints: selectedBatches.map(batchFingerprintOf),
+          selected_batch_order: "oldest_first",
+          batches_skipped_due_to_limit: 0,
+          snapshots_loaded_per_batch: snapshotsLoadedPerBatch,
+        },
       };
     }
 
@@ -526,13 +716,15 @@ async function loadOfficialLiveSnapshots({
         (snapshot): snapshot is RecommendationSnapshot =>
           snapshot !== null,
       );
-    const snapshots = includeGrowMaxLearningSnapshots
+    const snapshots = sortSnapshotsOldestFirst(
+      includeGrowMaxLearningSnapshots
       ? rawSnapshots
       : rawSnapshots
           .filter(isOfficialLiveSnapshot)
-          .map(officialEvaluationSnapshot);
-    const foundFingerprints = new Set(
-      snapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+          .map(officialEvaluationSnapshot),
+    );
+    const uniqueSnapshotFingerprints = Array.from(
+      new Set(snapshots.map((snapshot) => snapshot.snapshot_fingerprint)),
     );
     const recommendationIds = Array.from(
       new Set(
@@ -554,15 +746,29 @@ async function loadOfficialLiveSnapshots({
         : 0;
     }
 
+    const aggregateBatch = buildSameDayOfficialBatchAggregate(
+      selectedBatches,
+      uniqueSnapshotFingerprints,
+    );
+
     return {
       status: snapshots.length > 0 ? ("ready" as const) : ("blocked" as const),
       error: snapshots.length > 0 ? null : "No official snapshot members were available for evaluation.",
-      batch,
+      batch: aggregateBatch,
+      batches: selectedBatches,
       snapshots,
       recommendation_rows_loaded_count: recommendationRowsLoadedCount,
-      missing_snapshot_fingerprints: expectedSnapshotFingerprints.filter(
-        (fingerprint) => !foundFingerprints.has(fingerprint),
-      ),
+      missing_snapshot_fingerprints: missingSnapshotFingerprints,
+      snapshot_batch_fingerprints: snapshotBatchFingerprints,
+      same_day_official_batch_revisit: {
+        same_day_official_batches_discovered: officialBatches.length,
+        max_batches_per_run: maxBatchesPerRun,
+        selected_batch_count: selectedBatches.length,
+        selected_batch_fingerprints: selectedBatches.map(batchFingerprintOf),
+        selected_batch_order: "oldest_first",
+        batches_skipped_due_to_limit: 0,
+        snapshots_loaded_per_batch: snapshotsLoadedPerBatch,
+      },
     };
   } catch (error) {
     return {
@@ -572,9 +778,20 @@ async function loadOfficialLiveSnapshots({
           ? error.message
           : "Unknown official outcome snapshot load error.",
       batch: null,
+      batches: [],
       snapshots: [],
       recommendation_rows_loaded_count: 0,
       missing_snapshot_fingerprints: [],
+      snapshot_batch_fingerprints: {},
+      same_day_official_batch_revisit: {
+        same_day_official_batches_discovered: 0,
+        max_batches_per_run: maxBatchesPerRun,
+        selected_batch_count: 0,
+        selected_batch_fingerprints: [],
+        selected_batch_order: "oldest_first",
+        batches_skipped_due_to_limit: 0,
+        snapshots_loaded_per_batch: {},
+      },
     };
   }
 }
@@ -622,69 +839,195 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
   }
 }
 
+function isOfficialOutcomePending(outcome: RecommendationOutcome | undefined) {
+  if (!outcome) return true;
+
+  if (
+    outcome.status === "pending" ||
+    outcome.status === "incomplete" ||
+    outcome.status === "unknown"
+  ) {
+    return true;
+  }
+
+  return outcome.data_completeness !== "complete";
+}
+
+function officialOutcomeBySnapshotAndHorizon(
+  outcomes: RecommendationOutcome[],
+  snapshotFingerprint: string,
+  horizon: RecommendationOutcomeHorizon,
+) {
+  return outcomes.find(
+    (outcome) =>
+      outcome.snapshot_fingerprint === snapshotFingerprint &&
+      outcome.horizon === horizon,
+  );
+}
+
+function filterOfficialSnapshotsNeedingOutcomeEvaluation({
+  existingOutcomes,
+  horizons,
+  maxBatchesPerRun,
+  snapshotBatchFingerprints,
+  snapshots,
+}: {
+  existingOutcomes: RecommendationOutcome[];
+  horizons: RecommendationOutcomeHorizon[];
+  maxBatchesPerRun: number;
+  snapshotBatchFingerprints: Record<string, string>;
+  snapshots: RecommendationSnapshot[];
+}) {
+  const selectedPendingBatches = new Set<string>();
+  const selectedSnapshots: RecommendationSnapshot[] = [];
+
+  for (const snapshot of snapshots) {
+    const needsEvaluation = horizons.some((horizon) =>
+      isOfficialOutcomePending(
+        officialOutcomeBySnapshotAndHorizon(
+          existingOutcomes,
+          snapshot.snapshot_fingerprint,
+          horizon,
+        ),
+      ),
+    );
+
+    if (!needsEvaluation) continue;
+
+    const batchFingerprint =
+      snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch";
+
+    if (!selectedPendingBatches.has(batchFingerprint)) {
+      if (selectedPendingBatches.size >= maxBatchesPerRun) {
+        continue;
+      }
+      selectedPendingBatches.add(batchFingerprint);
+    }
+
+    selectedSnapshots.push(snapshot);
+  }
+
+  return selectedSnapshots;
+}
+
+function buildSameDayOfficialBatchRevisitDiagnostics({
+  existingOutcomes,
+  horizons,
+  maxBatchesPerRun,
+  maxSnapshotsForRun,
+  officialSnapshotLoad,
+  selectedSnapshots,
+}: {
+  existingOutcomes: RecommendationOutcome[];
+  horizons: RecommendationOutcomeHorizon[];
+  maxBatchesPerRun: number;
+  maxSnapshotsForRun: number;
+  officialSnapshotLoad: Awaited<ReturnType<typeof loadOfficialLiveSnapshots>> | null;
+  selectedSnapshots: RecommendationSnapshot[];
+}) {
+  const base =
+    officialSnapshotLoad?.same_day_official_batch_revisit ?? {
+      same_day_official_batches_discovered: 0,
+      max_batches_per_run: maxBatchesPerRun,
+      selected_batch_count: 0,
+      selected_batch_fingerprints: [] as string[],
+      selected_batch_order: "oldest_first",
+      batches_skipped_due_to_limit: 0,
+      snapshots_loaded_per_batch: {} as Record<string, number>,
+    };
+  const snapshotBatchFingerprints =
+    officialSnapshotLoad?.snapshot_batch_fingerprints ?? {};
+  const selectedSnapshotFingerprints = new Set(
+    selectedSnapshots.map((snapshot) => snapshot.snapshot_fingerprint),
+  );
+  const selectedPendingBatches = new Set<string>();
+  const snapshotsSelectedPerBatch: Record<string, number> = {};
+  let horizonRowsMissing = 0;
+  let horizonRowsIncomplete = 0;
+  let horizonRowsComplete = 0;
+
+  for (const snapshot of officialSnapshotLoad?.snapshots ?? []) {
+    for (const horizon of horizons) {
+      const outcome = officialOutcomeBySnapshotAndHorizon(
+        existingOutcomes,
+        snapshot.snapshot_fingerprint,
+        horizon,
+      );
+
+      if (!outcome) {
+        horizonRowsMissing += 1;
+      } else if (isOfficialOutcomePending(outcome)) {
+        horizonRowsIncomplete += 1;
+      } else {
+        horizonRowsComplete += 1;
+      }
+    }
+  }
+
+  for (const snapshot of selectedSnapshots) {
+    const batchFingerprint =
+      snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ?? "unknown_batch";
+    selectedPendingBatches.add(batchFingerprint);
+    snapshotsSelectedPerBatch[batchFingerprint] =
+      (snapshotsSelectedPerBatch[batchFingerprint] ?? 0) + 1;
+  }
+
+  const batchesEvaluated = Object.keys(snapshotsSelectedPerBatch);
+  const batchesSkipped = base.selected_batch_fingerprints.filter(
+    (fingerprint) => !batchesEvaluated.includes(fingerprint),
+  );
+  const oldestPendingBatch =
+    base.selected_batch_fingerprints.find((fingerprint) =>
+      selectedSnapshots.some(
+        (snapshot) =>
+          snapshotBatchFingerprints[snapshot.snapshot_fingerprint] === fingerprint,
+      ),
+    ) ?? null;
+
+  return {
+    ...base,
+    max_batches_per_run: maxBatchesPerRun,
+    max_snapshots_per_run: maxSnapshotsForRun,
+    batches_evaluated: batchesEvaluated,
+    batches_skipped: batchesSkipped,
+    oldest_pending_batch: oldestPendingBatch,
+    snapshots_selected_per_batch: snapshotsSelectedPerBatch,
+    horizon_rows_missing: horizonRowsMissing,
+    horizon_rows_incomplete: horizonRowsIncomplete,
+    horizon_rows_complete: horizonRowsComplete,
+    batches_skipped_due_to_limit: Math.max(
+      0,
+      base.selected_batch_fingerprints.filter((fingerprint) => {
+        if (selectedPendingBatches.has(fingerprint)) return false;
+
+        return (officialSnapshotLoad?.snapshots ?? []).some(
+          (snapshot) =>
+            snapshotBatchFingerprints[snapshot.snapshot_fingerprint] ===
+              fingerprint &&
+            horizons.some((horizon) =>
+              isOfficialOutcomePending(
+                officialOutcomeBySnapshotAndHorizon(
+                  existingOutcomes,
+                  snapshot.snapshot_fingerprint,
+                  horizon,
+                ),
+              ),
+            ),
+        );
+      }).length,
+    ),
+    remaining_backlog_after_run: Math.max(
+      0,
+      selectedSnapshotFingerprints.size - maxSnapshotsForRun,
+    ),
+  };
+}
+
 function incrementReason(
   reasons: Record<string, number>,
   reason: OutcomeSnapshotIneligibleReason,
 ) {
   reasons[reason] = (reasons[reason] ?? 0) + 1;
-}
-
-function incrementDiagnosticReason(reasons: Record<string, number>, reason: string) {
-  reasons[reason] = (reasons[reason] ?? 0) + 1;
-}
-
-function stableDiagnosticJson(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value) ?? "undefined";
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableDiagnosticJson).join(",")}]`;
-  }
-
-  return `{${Object.entries(value as Record<string, unknown>)
-    .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
-    .map(
-      ([key, entryValue]) =>
-        `${JSON.stringify(key)}:${stableDiagnosticJson(entryValue)}`,
-    )
-    .join(",")}}`;
-}
-
-function normalizedTicker(value: string | null | undefined) {
-  return value?.trim().toUpperCase() ?? null;
-}
-
-function duplicateSnapshotConflictReasons(
-  first: RecommendationSnapshot,
-  next: RecommendationSnapshot,
-) {
-  const reasons: string[] = [];
-
-  if (normalizedTicker(first.ticker) !== normalizedTicker(next.ticker)) {
-    reasons.push("mismatched_ticker");
-  }
-
-  if (finiteNumber(first.entry) !== finiteNumber(next.entry)) {
-    reasons.push("mismatched_entry");
-  }
-
-  if (finiteNumber(first.stop) !== finiteNumber(next.stop)) {
-    reasons.push("mismatched_stop");
-  }
-
-  if (finiteNumber(first.target) !== finiteNumber(next.target)) {
-    reasons.push("mismatched_target");
-  }
-
-  if (
-    stableDiagnosticJson(first.payload_json) !==
-    stableDiagnosticJson(next.payload_json)
-  ) {
-    reasons.push("conflicting_payload");
-  }
-
-  return reasons;
 }
 
 function snapshotPayloadHasBatchMembership(
@@ -732,6 +1075,8 @@ function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
   return (
     snapshot.source_mode === "research_only" ||
     snapshot.data_mode === "research_only" ||
+    payload.visibility_status === "research_only" ||
+    payload.learning_acceleration_sample === true ||
     payload.research_only === true ||
     payload.source_mode === "research_only" ||
     payload.learning_scope === "research_only"
@@ -977,19 +1322,21 @@ function buildOutcomeEligibility({
     arrayOfStrings(payload.recommendation_snapshot_fingerprints),
   );
   const scanRunFingerprint = stringOrNull(batch?.scan_run_fingerprint);
-  const seenFingerprints = new Set<string>();
-  const uniqueFingerprints = new Set<string>();
-  const firstSnapshotByFingerprint = new Map<string, RecommendationSnapshot>();
   const ineligibleReasons: Record<string, number> = {};
-  const duplicateConflictReasons: Record<string, number> = {};
   const eligibleSnapshots: RecommendationSnapshot[] = [];
   let eligibleVisibleSnapshotCount = 0;
   let eligibleLearningSnapshotCount = 0;
   let eligibleResearchOnlySnapshotCount = 0;
-  let duplicateSnapshotFingerprintsCount = 0;
-  let duplicateSnapshotConflictCount = 0;
+  let canonicalVisibleSnapshotsRetainedCount = 0;
+  const canonicalization = canonicalizeOutcomeSnapshotsForBatch({
+    batchFingerprint,
+    batchSnapshotFingerprints,
+    growMaxLearningModeEnabled,
+    scanRunFingerprint,
+    snapshots,
+  });
 
-  for (const snapshot of snapshots) {
+  for (const snapshot of canonicalization.canonicalSnapshots) {
     const reasons: OutcomeSnapshotIneligibleReason[] = [];
     const fingerprint =
       typeof snapshot.snapshot_fingerprint === "string" &&
@@ -999,22 +1346,6 @@ function buildOutcomeEligibility({
 
     if (!fingerprint) {
       reasons.push("missing_snapshot_fingerprint");
-    } else {
-      uniqueFingerprints.add(fingerprint);
-      if (seenFingerprints.has(fingerprint)) {
-        duplicateSnapshotFingerprintsCount += 1;
-        const firstSnapshot = firstSnapshotByFingerprint.get(fingerprint);
-        const conflictReasons = firstSnapshot
-          ? duplicateSnapshotConflictReasons(firstSnapshot, snapshot)
-          : [];
-        if (conflictReasons.length > 0) {
-          duplicateSnapshotConflictCount += 1;
-          for (const conflictReason of conflictReasons) {
-            incrementDiagnosticReason(duplicateConflictReasons, conflictReason);
-          }
-        }
-        reasons.push("duplicate_snapshot_fingerprint");
-      }
     }
 
     if (isDiagnosticDryRunSnapshot(snapshot)) {
@@ -1054,21 +1385,27 @@ function buildOutcomeEligibility({
       reasons.push("missing_batch_membership");
     }
 
+    const researchOnly = isResearchOnlySnapshot(snapshot);
+    const learningOnly = !researchOnly && isLearningOnlySnapshot(snapshot);
+
+    if (
+      !shouldIncludeLearningAccelerationOutcomeSample({
+        growMaxLearningModeEnabled,
+        learningAccelerationEnabled: growMaxLearningModeEnabled,
+        researchOnly,
+        learningOnly,
+      })
+    ) {
+      reasons.push("learning_only_disabled");
+    }
+
     if (reasons.length > 0) {
       for (const reason of reasons) {
         incrementReason(ineligibleReasons, reason);
       }
-      if (fingerprint) {
-        seenFingerprints.add(fingerprint);
-        if (!firstSnapshotByFingerprint.has(fingerprint)) {
-          firstSnapshotByFingerprint.set(fingerprint, snapshot);
-        }
-      }
       continue;
     }
 
-    const researchOnly = isResearchOnlySnapshot(snapshot);
-    const learningOnly = isLearningOnlySnapshot(snapshot);
     const visible =
       snapshot.is_visible !== false &&
       snapshot.status !== "hidden" &&
@@ -1077,6 +1414,7 @@ function buildOutcomeEligibility({
 
     if (visible) {
       eligibleVisibleSnapshotCount += 1;
+      canonicalVisibleSnapshotsRetainedCount += 1;
     }
     if (learningOnly) {
       eligibleLearningSnapshotCount += 1;
@@ -1092,22 +1430,13 @@ function buildOutcomeEligibility({
           ? true
           : snapshot.is_visible,
     });
-    if (fingerprint) {
-      seenFingerprints.add(fingerprint);
-      if (!firstSnapshotByFingerprint.has(fingerprint)) {
-        firstSnapshotByFingerprint.set(fingerprint, snapshot);
-      }
-    }
   }
 
-  const duplicateSnapshotRowsIgnoredCount = Math.max(
-    0,
-    duplicateSnapshotFingerprintsCount - duplicateSnapshotConflictCount,
-  );
   const batchHealth =
-    duplicateSnapshotConflictCount > 0
+    canonicalization.diagnostics.duplicate_snapshot_conflict_count > 0
       ? "grow_max_duplicate_conflicts"
-      : duplicateSnapshotFingerprintsCount > 0 && eligibleSnapshots.length > 0
+      : canonicalization.diagnostics.duplicate_snapshot_rows > 0 &&
+          eligibleSnapshots.length > 0
         ? "grow_max_deduped"
         : eligibleSnapshots.length > 0
           ? "eligible"
@@ -1133,13 +1462,30 @@ function buildOutcomeEligibility({
       : 0,
     ineligible_snapshot_count: snapshots.length - eligibleSnapshots.length,
     ineligible_reasons: ineligibleReasons,
-    unique_snapshot_fingerprints_count: uniqueFingerprints.size,
+    unique_snapshot_fingerprints_count:
+      canonicalization.diagnostics.unique_snapshot_fingerprints_count,
     unique_learning_ideas: eligibleSnapshots.length,
-    duplicate_snapshot_fingerprints_count: duplicateSnapshotFingerprintsCount,
-    duplicate_snapshot_rows: duplicateSnapshotFingerprintsCount,
-    duplicate_snapshot_rows_ignored_count: duplicateSnapshotRowsIgnoredCount,
-    duplicate_snapshot_conflict_count: duplicateSnapshotConflictCount,
-    duplicate_snapshot_conflict_reasons: duplicateConflictReasons,
+    duplicate_snapshot_fingerprints_count:
+      canonicalization.diagnostics.duplicate_snapshot_rows,
+    duplicate_snapshot_rows: canonicalization.diagnostics.duplicate_snapshot_rows,
+    duplicate_snapshot_rows_ignored_count:
+      canonicalization.diagnostics.duplicate_snapshot_rows_ignored_count,
+    hidden_archived_duplicate_rows_ignored_count:
+      canonicalization.diagnostics
+        .hidden_archived_duplicate_rows_ignored_count,
+    visible_duplicate_rows_ignored_count:
+      canonicalization.diagnostics.visible_duplicate_rows_ignored_count,
+    canonical_visible_snapshots_retained_count:
+      canonicalVisibleSnapshotsRetainedCount,
+    canonical_visible_duplicate_fingerprints_retained_count:
+      canonicalization.diagnostics
+        .canonical_visible_duplicate_fingerprints_retained_count,
+    archived_duplicate_rows_blocked_count:
+      canonicalization.diagnostics.archived_duplicate_rows_blocked_count,
+    duplicate_snapshot_conflict_count:
+      canonicalization.diagnostics.duplicate_snapshot_conflict_count,
+    duplicate_snapshot_conflict_reasons:
+      canonicalization.diagnostics.duplicate_snapshot_conflict_reasons,
     visible_recommendations: eligibleVisibleSnapshotCount,
     visible_grid_count: eligibleVisibleSnapshotCount,
     grid_cards: eligibleVisibleSnapshotCount,
@@ -1175,69 +1521,6 @@ function buildOutcomeEligibility({
 
 function outcomeKey(outcome: Pick<RecommendationOutcome, "snapshot_fingerprint" | "horizon">) {
   return `${outcome.snapshot_fingerprint ?? "unknown"}:${outcome.horizon}`;
-}
-
-function completenessRank(outcome: RecommendationOutcome) {
-  const completeness = outcome.data_completeness;
-  if (completeness === "complete") return 3;
-  if (completeness === "partial") return 2;
-  if (completeness === "none") return 1;
-  return 0;
-}
-
-function statusRank(outcome: RecommendationOutcome) {
-  if (
-    outcome.status === "target_before_stop" ||
-    outcome.status === "stop_before_target" ||
-    outcome.status === "neither_hit" ||
-    outcome.status === "entry_not_triggered" ||
-    outcome.status === "entry_triggered"
-  ) {
-    return 3;
-  }
-
-  if (outcome.status === "incomplete" || outcome.status === "unknown") return 1;
-  if (outcome.status === "pending" || outcome.status === "invalid") return 0;
-  return 2;
-}
-
-function candleCount(outcome: RecommendationOutcome) {
-  const count = finiteNumber(outcome.payload_json.candle_count);
-  return count === null ? 0 : count;
-}
-
-function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome) {
-  return (
-    outcome.payload_json.retained_candles_available === true ||
-    outcome.payload_json.counterfactual_ready === true ||
-    (Array.isArray(outcome.payload_json.counterfactual_candles) &&
-      outcome.payload_json.counterfactual_candles.length > 0)
-  );
-}
-
-function hasBetterCoverage(
-  nextOutcome: RecommendationOutcome,
-  existingOutcome: RecommendationOutcome | undefined,
-) {
-  if (!existingOutcome) return true;
-
-  const nextScore =
-    completenessRank(nextOutcome) * 100 +
-    statusRank(nextOutcome) * 10 +
-    candleCount(nextOutcome);
-  const existingScore =
-    completenessRank(existingOutcome) * 100 +
-    statusRank(existingOutcome) * 10 +
-    candleCount(existingOutcome);
-
-  if (nextScore > existingScore) return true;
-
-  return (
-    nextScore === existingScore &&
-    nextOutcome.status === existingOutcome.status &&
-    !hasRetainedCounterfactualCandles(existingOutcome) &&
-    hasRetainedCounterfactualCandles(nextOutcome)
-  );
 }
 
 function sideReadSource(outcome: RecommendationOutcome) {
@@ -1374,10 +1657,18 @@ export async function POST(request: Request) {
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
   const growMaxLearningModeEnabled = growMaxLearningMode.grow_max_learning_mode;
-  const providerBudgetLimit = growMaxLearningModeEnabled
+  const learningAccelerationMode = getLearningAccelerationConfig({
+    growMaxLearningModeEnabled,
+  });
+  const learningAccelerationEnabled =
+    learningAccelerationMode.learning_acceleration_enabled;
+  const includeLearningSnapshots =
+    growMaxLearningModeEnabled || learningAccelerationEnabled;
+  const providerBudgetLimit = includeLearningSnapshots
     ? Math.min(25, providerBudgetResolution.effectiveBudgetLimit)
     : providerBudgetResolution.effectiveBudgetLimit;
   const horizons = parseHorizons(body?.horizons);
+  const maxBatchesPerRun = resolveOfficialLiveMaxBatchesPerRun(body?.max_batches);
 
   const expectedSecret = process.env.AUTOMATION_SECRET;
   const providedSecret = request.headers.get("x-automation-secret");
@@ -1406,7 +1697,8 @@ export async function POST(request: Request) {
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? await loadOfficialLiveSnapshots({
           batchFingerprint,
-          includeGrowMaxLearningSnapshots: growMaxLearningModeEnabled,
+          includeGrowMaxLearningSnapshots: includeLearningSnapshots,
+          maxBatchesPerRun,
           now,
         })
       : null;
@@ -1418,7 +1710,7 @@ export async function POST(request: Request) {
         : await loadRecentSupabaseSnapshots();
   const eligibility = buildOutcomeEligibility({
     batch: officialSnapshotLoad?.batch ?? null,
-    growMaxLearningModeEnabled,
+    growMaxLearningModeEnabled: includeLearningSnapshots,
     horizons,
     recommendationRowsLoadedCount:
       officialSnapshotLoad?.recommendation_rows_loaded_count ?? 0,
@@ -1465,6 +1757,40 @@ export async function POST(request: Request) {
             .filter((outcome): outcome is RecommendationOutcome => outcome !== null)
         : readRecommendationOutcomesFromLocalStorage(undefined);
   const maxSnapshots = finiteNumber(body?.max_snapshots);
+  const maxSnapshotsForRun =
+    maxSnapshots === null
+      ? includeLearningSnapshots
+        ? Math.max(1, eligibleSnapshots.length)
+        : 6
+      : Math.max(
+          1,
+          Math.min(
+            includeLearningSnapshots ? eligibleSnapshots.length : 10,
+            Math.round(maxSnapshots),
+          ),
+        );
+  const outcomeEvaluationSnapshots =
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
+      ? filterOfficialSnapshotsNeedingOutcomeEvaluation({
+          existingOutcomes,
+          horizons,
+          maxBatchesPerRun,
+          snapshotBatchFingerprints:
+            officialSnapshotLoad?.snapshot_batch_fingerprints ?? {},
+          snapshots: eligibleSnapshots,
+        })
+      : eligibleSnapshots;
+  const sameDayOfficialBatchRevisitDiagnostics =
+    mode === "official_live_today" || mode === "enrich_completed_outcomes"
+      ? buildSameDayOfficialBatchRevisitDiagnostics({
+          existingOutcomes,
+          horizons,
+          maxBatchesPerRun,
+          maxSnapshotsForRun,
+          officialSnapshotLoad,
+          selectedSnapshots: outcomeEvaluationSnapshots,
+        })
+      : null;
   const serverSupabase =
     mode === "official_live_today" || mode === "enrich_completed_outcomes"
       ? getServerSupabaseClient()
@@ -1501,6 +1827,8 @@ export async function POST(request: Request) {
       selected_batch_fingerprint: stringOrNull(
         officialSnapshotLoad?.batch?.batch_fingerprint,
       ),
+      same_day_official_batch_revisit:
+        sameDayOfficialBatchRevisitDiagnostics,
       evaluated_snapshots_count: 0,
       outcomes_created_count: 0,
       outcomes_updated_count: 0,
@@ -1522,6 +1850,21 @@ export async function POST(request: Request) {
       grow_max_learning_mode: growMaxLearningModeEnabled,
       grow_max_learning_mode_enabled_source:
         growMaxLearningMode.grow_max_learning_mode_enabled_source,
+      learning_acceleration_enabled: learningAccelerationEnabled,
+      learning_acceleration_enabled_source:
+        learningAccelerationMode.learning_acceleration_enabled_source,
+      learning_acceleration_env_raw_present:
+        learningAccelerationMode.learning_acceleration_env_raw_present,
+      learning_acceleration_env_raw_value_category:
+        learningAccelerationMode.learning_acceleration_env_raw_value_category,
+      learning_acceleration_env_raw_value_normalized:
+        learningAccelerationMode.learning_acceleration_env_raw_value_normalized,
+      learning_acceleration_runtime_environment:
+        learningAccelerationMode.learning_acceleration_runtime_environment,
+      learning_acceleration_mode:
+        learningAccelerationMode.learning_acceleration_mode,
+      learning_acceleration_samples_evaluated:
+        eligibilityDiagnostics.eligible_research_only_snapshot_count,
       server_plan_mode: providerPlanProfile.server_plan_mode,
       public_plan_mode: providerPlanProfile.public_plan_mode,
       plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -1596,22 +1939,15 @@ export async function POST(request: Request) {
   }
 
   const run = await runRecommendationOutcomeEvaluation({
-    snapshots: eligibleSnapshots,
+    snapshots: outcomeEvaluationSnapshots,
     existingOutcomes,
     horizons,
-    maxSnapshots:
-      maxSnapshots === null
-        ? growMaxLearningModeEnabled
-          ? Math.max(1, eligibleSnapshots.length)
-          : 6
-        : Math.max(
-            1,
-            Math.min(
-              growMaxLearningModeEnabled ? eligibleSnapshots.length : 10,
-              Math.round(maxSnapshots),
-            ),
-          ),
+    maxSnapshots: maxSnapshotsForRun,
     maxCandleRequests: providerBudgetLimit,
+    snapshotOrder:
+      mode === "official_live_today" || mode === "enrich_completed_outcomes"
+        ? "input"
+        : "newest_first",
     now,
     source: "api",
     provider: "twelve_data",
@@ -1624,7 +1960,7 @@ export async function POST(request: Request) {
             const key = outcomeKey(outcome);
             const existingOutcome = existingByKey.get(key);
 
-            if (!hasBetterCoverage(outcome, existingOutcome)) {
+            if (!hasBetterOutcomeCoverage(outcome, existingOutcome)) {
               persistenceEvents.push({
                 key,
                 action: "skipped_equal_or_better",
@@ -1676,6 +2012,11 @@ export async function POST(request: Request) {
       warning.toLowerCase().includes("horizon has not elapsed"),
     ),
   ).length;
+  const postEligibilityDiagnostics = buildOutcomePostEligibilityDiagnostics({
+    candidates: run.candidates,
+    candleRequestsPlanned: run.candle_requests_planned,
+    preFilterEligibleSnapshotCount: outcomeEvaluationSnapshots.length,
+  });
   const latestProviderError =
     run.candidates.find((candidate) => candidate.status === "provider_error")
       ?.error ?? null;
@@ -1690,6 +2031,17 @@ export async function POST(request: Request) {
         blocker.toLowerCase().includes("side is unavailable"),
       ),
   ).length;
+  const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
+    snapshots,
+    candidates: run.candidates,
+    outcomes: run.outcomes,
+    batchFingerprint:
+      stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
+      batchFingerprint,
+    scanRunFingerprint: stringOrNull(
+      officialSnapshotLoad?.batch?.scan_run_fingerprint,
+    ),
+  });
   const diagnostics = {
     route_version: outcomeEvaluationRouteVersion,
     mode,
@@ -1697,6 +2049,13 @@ export async function POST(request: Request) {
     batch_fingerprint:
       stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
       batchFingerprint,
+    same_day_official_batch_revisit:
+      sameDayOfficialBatchRevisitDiagnostics
+        ? {
+            ...sameDayOfficialBatchRevisitDiagnostics,
+            provider_requests_used: run.candle_requests_executed,
+          }
+        : null,
     evaluated_snapshots_count: evaluatedSnapshotFingerprints.size,
     evaluated_candidate_count: run.evaluated_snapshot_count,
     outcomes_created_count: persistenceEvents.filter(
@@ -1732,6 +2091,21 @@ export async function POST(request: Request) {
     grow_max_learning_mode: growMaxLearningModeEnabled,
     grow_max_learning_mode_enabled_source:
       growMaxLearningMode.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled: learningAccelerationEnabled,
+    learning_acceleration_enabled_source:
+      learningAccelerationMode.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      learningAccelerationMode.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      learningAccelerationMode.learning_acceleration_env_raw_value_category,
+    learning_acceleration_env_raw_value_normalized:
+      learningAccelerationMode.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      learningAccelerationMode.learning_acceleration_runtime_environment,
+    learning_acceleration_mode:
+      learningAccelerationMode.learning_acceleration_mode,
+    learning_acceleration_samples_evaluated:
+      eligibilityDiagnostics.eligible_research_only_snapshot_count,
     server_plan_mode: providerPlanProfile.server_plan_mode,
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
@@ -1740,6 +2114,7 @@ export async function POST(request: Request) {
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
     ...eligibilityDiagnostics,
+    ...postEligibilityDiagnostics,
     candle_requests_planned: run.candle_requests_planned,
     candle_requests_executed: run.candle_requests_executed,
     candle_requests_saved_by_reuse: run.candle_requests_saved_by_reuse,
@@ -1781,9 +2156,12 @@ export async function POST(request: Request) {
       persistenceEvents.find((event) => event.error !== null)?.error ??
       supabaseOutcomes?.error ??
       null,
-    outcomes_skipped_equal_or_better_count: persistenceEvents.filter(
-      (event) => event.action === "skipped_equal_or_better",
-    ).length,
+    outcomes_skipped_equal_or_better_count:
+      persistenceEvents.filter(
+        (event) => event.action === "skipped_equal_or_better",
+      ).length +
+      (postEligibilityDiagnostics.post_eligibility_block_reasons
+        .already_has_equal_or_better_outcome ?? 0),
     missing_snapshot_fingerprints:
       officialSnapshotLoad?.missing_snapshot_fingerprints ?? [],
     enrichment_mode: run.enrichment_mode,
@@ -1803,7 +2181,7 @@ export async function POST(request: Request) {
     shadow_entry_trial_count: run.shadow_entry_trial_count,
     shadow_entry_triggered_count: run.shadow_entry_triggered_count,
     entry_type_trigger_summary: run.entry_type_trigger_summary,
-    plan_reference_metadata_trace: run.plan_reference_metadata_trace,
+    plan_reference_metadata_trace: planReferenceMetadataTrace,
   };
 
   return NextResponse.json({

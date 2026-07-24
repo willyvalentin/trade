@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "marker": "action_307m_production_recovery_status",
+  "recommended_action": "rollback_to_last_known_good_next_runtime_deploy",
+  "static_assets_work": true,
+  "proxy_runs": true,
+  "next_runtime_routes_failing_after_proxy": true,
+  "replay_execute_allowed": false,
+  "provider_call_executed": false,
+  "replay_executed": false,
+  "synthetic_outcomes_persisted": false,
+  "supabase_write_executed": false,
+  "scanner_behavior_changed": false,
+  "live_ranking_changed": false
+}

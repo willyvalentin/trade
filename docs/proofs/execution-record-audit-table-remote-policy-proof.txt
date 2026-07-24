@@ -1,0 +1,33 @@
+Action: 782 - Verify Audit Table Remote Schema And RLS
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+
+Command:
+/opt/homebrew/bin/supabase db query --linked -o table "select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check from pg_policies where schemaname = 'public' and tablename in ('execution_records', 'execution_record_audit_events') order by tablename, policyname;"
+
+Command exit code: 0
+
+Output:
+
+Initialising login role...
+
+No policy rows were returned.
+
+Interpretation:
+
+- Policies on `public.execution_record_audit_events`: none returned.
+- Policies on `public.execution_records`: none returned.
+- No broad anon/client write policy for `public.execution_record_audit_events` was found.
+- Because grants are captured separately and broad anon/authenticated table grants were returned, client write posture is not treated as fully proven by this policy artifact alone.
+- Follow-up anon/client denial proof remains required before any writer/route/write-path readiness claim.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.
+
+Action 783 update:
+
+- Policy proof was re-confirmed as part of the Action 783 policy/grant resolution attempt.
+- The policy query returned no rows for `public.execution_record_audit_events`.
+- No audit-table anon/authenticated/client read/write policy was found.
+- Because broad anon/authenticated table grants exist, this policy proof still requires explicit anon/client denial proof before write-path readiness.
+- Role-simulation denial proof was not completed in Action 783 because Supabase CLI temp-role connectivity became unstable.

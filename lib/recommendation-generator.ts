@@ -12,6 +12,10 @@ import {
   type ScannerCandidate,
 } from "@/lib/scanner";
 import {
+  getOrRefreshIntradayIndicators,
+  SCANNER_INDICATOR_MAX_AGE_MINUTES,
+} from "@/lib/intraday-indicator-cache";
+import {
   getIntradayScanPolicy,
   getIntradayScanWindowLabel,
   type IntradayScanWindow,
@@ -42,6 +46,7 @@ import {
 import {
   buildScannerCandidateRankingSummary,
   type ScannerCandidateRankingSummary,
+  type ScannerCandidateRankingResult,
 } from "@/lib/scanner-candidate-ranking";
 import {
   buildOpenAiRecommendationRealityGuardSummary,
@@ -63,17 +68,31 @@ import {
   getServerSupabaseReadClient,
 } from "@/lib/supabase-server";
 import {
-  planReferenceMetadataDiagnostics,
-  recommendationConfidenceMetadataPrefix,
-} from "@/lib/recommendation-inline-metadata";
-import {
   inferRecommendationEntryTypeMetadata,
-  type RecommendationEntryTriggerSemantics,
-  type RecommendationEntryType,
   type RecommendationEntryTypeConfidence,
   type RecommendationEntryTypeMetadata,
   type RecommendationEntryTypeSource,
+  type RecommendationEntryTriggerSemantics,
+  type RecommendationEntryType,
 } from "@/lib/recommendation-entry-type";
+import {
+  markPlanReferenceRetained,
+  resolvePlanReferencePriceMetadata,
+  type PlanReferenceMetadataStatus,
+  type PlanReferencePriceMetadata,
+} from "@/lib/recommendation-plan-reference";
+import { recommendationConfidenceMetadataPrefix } from "@/lib/recommendation-inline-metadata";
+import {
+  buildSelectedCandidateBuildDiagnostic,
+  summarizeSelectedCandidateBuildDiagnostics,
+  type CandidateBuildRejectionReason,
+  type SelectedCandidateBuildDiagnostic,
+  type SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
+import {
+  refreshSelectedCandidateReferences,
+  type ReferenceRefreshDiagnostics,
+} from "@/lib/reference-refresh-diagnostics";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -90,15 +109,6 @@ type ConfidenceBreakdown = {
   risk_reward_quality: number;
   market_regime_alignment: number;
   timing_quality: number;
-};
-
-type PlanReferencePriceMetadata = {
-  reference_price_used_for_plan: number | null;
-  reference_price_source: string;
-  reference_price_timestamp: string | null;
-  reference_price_symbol: string | null;
-  reference_price_provider: string | null;
-  reference_price_read_path: string | null;
 };
 
 type EntryTypeMetadata = RecommendationEntryTypeMetadata;
@@ -192,6 +202,10 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   reference_price_symbol?: string | null;
   reference_price_provider?: string | null;
   reference_price_read_path?: string | null;
+  plan_reference_price?: PlanReferencePriceMetadata | null;
+  plan_reference_metadata_status?: PlanReferenceMetadataStatus | null;
+  recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
+  entry_type_metadata?: EntryTypeMetadata | null;
   entry_type?: RecommendationEntryType | null;
   entry_trigger_semantics?: RecommendationEntryTriggerSemantics | null;
   entry_type_source?: RecommendationEntryTypeSource | null;
@@ -251,6 +265,11 @@ export type RecommendationScanLogDetails = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  deterministic_fallback_reference_block_count?: number | null;
+  deterministic_fallback_reference_block_reasons?: string[] | null;
+  reference_refresh?: ReferenceRefreshDiagnostics | null;
+  selected_candidate_build_diagnostics?: SelectedCandidateBuildDiagnostic[] | null;
+  selected_to_built_drop_off?: SelectedToBuiltDropOffSummary | null;
   recommendation_build_path?: "openai" | "deterministic_fallback" | "no_publish" | null;
   recommendations_built_count?: number | null;
   automation_route_version?: string | null;
@@ -1872,80 +1891,9 @@ function nullableNumber(value: unknown) {
 
 function buildPlanReferencePriceMetadata(
   candidate: MockCandidate,
+  options?: Parameters<typeof resolvePlanReferencePriceMetadata>[1],
 ): PlanReferencePriceMetadata {
-  const scannerReferencePrice = nullableNumber(
-    candidate.reference_price_used_for_plan,
-  );
-  if (scannerReferencePrice !== null && scannerReferencePrice > 0) {
-    return {
-      reference_price_used_for_plan: scannerReferencePrice,
-      reference_price_source:
-        nullableString(candidate.reference_price_source) ?? "fallback_last_price",
-      reference_price_timestamp:
-        nullableString(candidate.reference_price_timestamp) ?? null,
-      reference_price_symbol:
-        nullableString(candidate.reference_price_symbol) ??
-        normalizeTicker(candidate.ticker) ??
-        null,
-      reference_price_provider:
-        nullableString(candidate.reference_price_provider) ?? null,
-      reference_price_read_path:
-        nullableString(candidate.reference_price_read_path) ??
-        "candidate.reference_price_used_for_plan",
-    };
-  }
-
-  const latestClose = nullableNumber(candidate.latest_close);
-  if (latestClose !== null && latestClose > 0) {
-    return {
-      reference_price_used_for_plan: latestClose,
-      reference_price_source: "fallback_last_price",
-      reference_price_timestamp: null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider: null,
-      reference_price_read_path: "candidate.latest_close",
-    };
-  }
-
-  const intradayLatestPrice = nullableNumber(
-    candidate.intraday_indicators?.latestPrice,
-  );
-  if (intradayLatestPrice !== null && intradayLatestPrice > 0) {
-    return {
-      reference_price_used_for_plan: intradayLatestPrice,
-      reference_price_source: "latest_intraday_candle_close",
-      reference_price_timestamp:
-        nullableString(candidate.intraday_indicator_cached_at) ?? null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider:
-        candidate.intraday_indicator_source === "fresh" ||
-        candidate.intraday_indicator_source === "cache"
-          ? "twelve_data"
-          : null,
-      reference_price_read_path: "candidate.intraday_indicators.latestPrice",
-    };
-  }
-
-  const mockCurrentPrice = nullableNumber(candidate.mock_current_price);
-  if (mockCurrentPrice !== null && mockCurrentPrice > 0) {
-    return {
-      reference_price_used_for_plan: mockCurrentPrice,
-      reference_price_source: "current_price",
-      reference_price_timestamp: null,
-      reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-      reference_price_provider: "mock",
-      reference_price_read_path: "candidate.mock_current_price",
-    };
-  }
-
-  return {
-    reference_price_used_for_plan: null,
-    reference_price_source: "unknown",
-    reference_price_timestamp: null,
-    reference_price_symbol: normalizeTicker(candidate.ticker) || null,
-    reference_price_provider: null,
-    reference_price_read_path: null,
-  };
+  return resolvePlanReferencePriceMetadata(candidate, options);
 }
 
 function midpoint(low: number | null, high: number | null) {
@@ -1955,12 +1903,45 @@ function midpoint(low: number | null, high: number | null) {
   return (low + high) / 2;
 }
 
+function planReferenceBlockReason(
+  metadata: PlanReferencePriceMetadata,
+  ticker: string,
+) {
+  const reason =
+    metadata.plan_reference_metadata_trace.reference_price_stale_block_reason ??
+    (metadata.reference_price_used_for_plan === null
+      ? "missing_fresh_reference_price"
+      : null);
+
+  return reason
+    ? `${ticker}: ${reason} (${metadata.plan_reference_metadata_trace.reference_price_source_attempted ?? "unknown_source"})`
+    : null;
+}
+
+function buildPlanPricesFromReference(referencePrice: number) {
+  const entryLow = Number((referencePrice * 0.99).toFixed(2));
+  const entryHigh = Number((referencePrice * 1.01).toFixed(2));
+  const stopLoss = Number((referencePrice * 0.96).toFixed(2));
+  const riskPerShare = Math.max(entryHigh - stopLoss, referencePrice * 0.01);
+  const target1 = Number((entryHigh + riskPerShare * 1.5).toFixed(2));
+  const target2 = Number((entryHigh + riskPerShare * 2.25).toFixed(2));
+
+  return {
+    entryLow,
+    entryHigh,
+    stopLoss,
+    target1,
+    target2,
+    riskReward: Number(((target2 - entryHigh) / riskPerShare).toFixed(2)),
+  };
+}
+
 function buildPlanEntryTypeMetadata(input: {
   side: "long" | "short";
   entry: number | null;
   planReferencePrice: PlanReferencePriceMetadata;
   source: RecommendationEntryTypeSource;
-  existingMetadata?: Record<string, unknown> | null;
+  existingMetadata?: RecommendationEntryTypeMetadata | null;
 }): EntryTypeMetadata {
   return inferRecommendationEntryTypeMetadata({
     side: input.side,
@@ -1971,6 +1952,60 @@ function buildPlanEntryTypeMetadata(input: {
     source: input.source,
     existingMetadata: input.existingMetadata ?? null,
   });
+}
+
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function planReferenceMetadataTraceOrNull(
+  value: unknown,
+): PlanReferencePriceMetadata["plan_reference_metadata_trace"] | null {
+  const trace = objectOrNull(value);
+  if (!trace) return null;
+
+  return {
+    candidate_price_available_before_generation:
+      trace.candidate_price_available_before_generation === true,
+    generated_recommendation_retained_reference_price:
+      typeof trace.generated_recommendation_retained_reference_price === "boolean"
+        ? trace.generated_recommendation_retained_reference_price
+        : null,
+    price_read_path: nullableString(trace.price_read_path),
+    source_read_path: nullableString(trace.source_read_path),
+    timestamp_read_path: nullableString(trace.timestamp_read_path),
+    provider_read_path: nullableString(trace.provider_read_path),
+    reference_timestamp_age_ms: nullableNumber(trace.reference_timestamp_age_ms),
+    reference_timestamp_age_minutes: nullableNumber(
+      trace.reference_timestamp_age_minutes,
+    ),
+    reference_freshness_checked_at: nullableString(
+      trace.reference_freshness_checked_at,
+    ),
+    reference_freshness_market_date: nullableString(
+      trace.reference_freshness_market_date,
+    ),
+    reference_freshness_status:
+      trace.reference_freshness_status === "accepted" ||
+      trace.reference_freshness_status === "rejected" ||
+      trace.reference_freshness_status === "not_checked"
+        ? trace.reference_freshness_status
+        : undefined,
+    reference_price_stale_block_reason: nullableString(
+      trace.reference_price_stale_block_reason,
+    ),
+    reference_price_source_attempted: nullableString(
+      trace.reference_price_source_attempted,
+    ),
+    reference_price_final_source_used: nullableString(
+      trace.reference_price_final_source_used,
+    ),
+    reference_price_rejected_read_path: nullableString(
+      trace.reference_price_rejected_read_path,
+    ),
+  };
 }
 
 function buildOpenAiBatchContext(input: {
@@ -2131,6 +2166,103 @@ function buildOpenAiCandidatePayloads({
   });
 }
 
+function riskGeometryStatus(planPrices: ReturnType<typeof buildPlanPricesFromReference>) {
+  if (
+    planPrices.entryLow <= 0 ||
+    planPrices.entryHigh <= 0 ||
+    planPrices.stopLoss <= 0 ||
+    planPrices.target1 <= 0 ||
+    planPrices.target2 <= 0
+  ) {
+    return "invalid_non_positive_plan";
+  }
+
+  if (
+    planPrices.stopLoss >= planPrices.entryLow ||
+    planPrices.entryLow > planPrices.entryHigh ||
+    planPrices.target1 <= planPrices.entryHigh ||
+    planPrices.target2 <= planPrices.target1
+  ) {
+    return "invalid_long_geometry";
+  }
+
+  if (planPrices.riskReward < 1.5) {
+    return "weak_risk_reward";
+  }
+
+  return "valid";
+}
+
+function buildDiagnosticForCandidate(input: {
+  candidate: ScoredCandidate;
+  ranking: ScannerCandidateRankingResult | null;
+  planReferencePrice: PlanReferencePriceMetadata | null;
+  riskGeometryStatus?: string | null;
+  built: boolean;
+  rejectionReason?: CandidateBuildRejectionReason | string | null;
+  explanation?: string | null;
+}): SelectedCandidateBuildDiagnostic {
+  const indicators = input.candidate.intraday_indicators;
+  const planReference = input.planReferencePrice;
+
+  return buildSelectedCandidateBuildDiagnostic({
+    ticker: input.candidate.ticker,
+    side: "long",
+    score: input.candidate.local_score,
+    tier: input.ranking?.score.tier ?? "unknown",
+    setupType: input.candidate.setup_type,
+    source: input.ranking?.source_contribution ?? input.candidate.intraday_indicator_source,
+    referencePriceStatus: planReference?.plan_reference_metadata_status ?? null,
+    referencePriceSource: planReference?.reference_price_source ?? null,
+    referencePriceReadPath: planReference?.reference_price_read_path ?? null,
+    referencePriceAgeMinutes:
+      planReference?.plan_reference_metadata_trace.reference_timestamp_age_minutes ??
+      null,
+    vwapStatus:
+      typeof indicators?.isAboveVwap === "boolean"
+        ? indicators.isAboveVwap
+          ? "above_vwap"
+          : "below_vwap"
+        : "unknown",
+    momentumStatus: indicators?.momentumDirection ?? "unknown",
+    volumeStatus: indicators?.volumeTrend ?? "unknown",
+    riskGeometryStatus: input.riskGeometryStatus ?? "not_checked",
+    enoughDataToBuildPlan:
+      Boolean(planReference?.reference_price_used_for_plan) &&
+      (input.riskGeometryStatus === "valid" || input.built),
+    built: input.built,
+    rejectionReason: input.rejectionReason,
+    explanation: input.explanation,
+  });
+}
+
+function diagnosticReasonForReferenceBlock(
+  planReferencePrice: PlanReferencePriceMetadata,
+): CandidateBuildRejectionReason {
+  const staleReason =
+    planReferencePrice.plan_reference_metadata_trace.reference_price_stale_block_reason;
+
+  if (staleReason === "scanner_cache_reference_too_old") {
+    return "scanner_cache_reference_too_old";
+  }
+  if (staleReason === "stale_reference_price") return "stale_reference_price";
+  if (staleReason === "future_reference_timestamp") {
+    return "future_reference_timestamp";
+  }
+  if (planReferencePrice.plan_reference_metadata_status === "price_missing_source") {
+    return "missing_reference_source";
+  }
+  if (
+    planReferencePrice.plan_reference_metadata_status === "price_missing_timestamp" ||
+    planReferencePrice.plan_reference_metadata_status ===
+      "price_missing_source_and_timestamp"
+  ) {
+    return "missing_reference_timestamp";
+  }
+
+  return "missing_fresh_reference_price";
+}
+
 function buildDeterministicLearningRecommendations({
   candidates,
   rankingSummary,
@@ -2145,13 +2277,35 @@ function buildDeterministicLearningRecommendations({
   source: RecommendationGenerationSource;
   maxRecommendations: number;
   powerHourTrial?: boolean;
-}): AiRecommendation[] {
+}): {
+  recommendations: AiRecommendation[];
+  skippedReasons: string[];
+  buildDiagnostics: SelectedCandidateBuildDiagnostic[];
+} {
   const rankingByTicker = new Map(
     rankingSummary.results.map((result) => [result.ticker, result]),
   );
+  const recommendations: AiRecommendation[] = [];
+  const skippedReasons: string[] = [];
+  const buildDiagnostics: SelectedCandidateBuildDiagnostic[] = [];
 
-  return candidates.slice(0, maxRecommendations).map((candidate) => {
+  for (const candidate of candidates) {
     const ranking = rankingByTicker.get(candidate.ticker) ?? null;
+    if (recommendations.length >= maxRecommendations) {
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice: null,
+          built: false,
+          rejectionReason: "fallback_builder_limit_reached",
+          explanation:
+            "Deterministic fallback reached the configured recommendation limit before this selected candidate.",
+        }),
+      );
+      continue;
+    }
+
     const tier = ranking?.score.tier ?? "unknown";
     const localScore = clamp(
       candidate.local_score,
@@ -2173,24 +2327,66 @@ function buildDeterministicLearningRecommendations({
     const reasons = candidate.local_score_reasons.slice(0, 3);
     const setupType = normalizeSetupType(candidate.setup_type);
     const setupLabel = getSetupTypeLabel(setupType);
-    const planReferencePrice = buildPlanReferencePriceMetadata(candidate);
+    const planReferencePrice = markPlanReferenceRetained(
+      buildPlanReferencePriceMetadata(candidate, {
+        enforceFreshness: true,
+      }),
+    );
+    const referencePrice = planReferencePrice.reference_price_used_for_plan;
+    const staleBlockReason = planReferenceBlockReason(
+      planReferencePrice,
+      candidate.ticker,
+    );
+
+    if (referencePrice === null || staleBlockReason) {
+      const diagnosticReason = diagnosticReasonForReferenceBlock(planReferencePrice);
+      skippedReasons.push(
+        staleBlockReason ??
+          `${candidate.ticker}: missing_fresh_reference_price (unknown_source)`,
+      );
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          built: false,
+          rejectionReason: diagnosticReason,
+          explanation:
+            staleBlockReason ??
+            `${candidate.ticker} lacked a fresh reference price for deterministic fallback.`,
+        }),
+      );
+      continue;
+    }
+
+    const planPrices = buildPlanPricesFromReference(referencePrice);
+    const geometryStatus = riskGeometryStatus(planPrices);
+
+    if (geometryStatus !== "valid") {
+      const rejectionReason =
+        geometryStatus === "weak_risk_reward"
+          ? "weak_risk_reward"
+          : "invalid_risk_geometry";
+      skippedReasons.push(`${candidate.ticker}: ${rejectionReason}`);
+      buildDiagnostics.push(
+        buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          riskGeometryStatus: geometryStatus,
+          built: false,
+          rejectionReason,
+          explanation: `${candidate.ticker} blocked by ${geometryStatus}.`,
+        }),
+      );
+      continue;
+    }
+
     const entryTypeMetadata = buildPlanEntryTypeMetadata({
       side: "long",
-      entry: midpoint(
-        nullableNumber(candidate.proposed_entry_low),
-        nullableNumber(candidate.proposed_entry_high),
-      ),
+      entry: midpoint(planPrices.entryLow, planPrices.entryHigh),
       planReferencePrice,
       source: "deterministic_plan_builder",
-    });
-    const planReferenceStatus = planReferenceMetadataDiagnostics({
-      referencePrice: planReferencePrice.reference_price_used_for_plan,
-      entry: midpoint(
-        nullableNumber(candidate.proposed_entry_low),
-        nullableNumber(candidate.proposed_entry_high),
-      ),
-      stop: candidate.proposed_stop_loss,
-      target: candidate.proposed_target_1,
     });
     const confidenceBreakdown: ConfidenceBreakdown = {
       setup_quality: candidate.local_score_breakdown.trend,
@@ -2201,17 +2397,17 @@ function buildDeterministicLearningRecommendations({
       timing_quality: candidate.local_score_breakdown.timing,
     };
 
-    return {
+    recommendations.push({
       ticker: candidate.ticker,
       company_name: candidate.company_name,
       direction: "long",
       setup_type: setupType,
-      entry_low: Number(candidate.proposed_entry_low),
-      entry_high: Number(candidate.proposed_entry_high),
-      stop_loss: Number(candidate.proposed_stop_loss),
-      target_1: Number(candidate.proposed_target_1),
-      target_2: Number(candidate.proposed_target_2),
-      risk_reward: Number(candidate.proposed_risk_reward),
+      entry_low: planPrices.entryLow,
+      entry_high: planPrices.entryHigh,
+      stop_loss: planPrices.stopLoss,
+      target_1: planPrices.target1,
+      target_2: planPrices.target2,
+      risk_reward: planPrices.riskReward,
       confidence: confidenceFromScore(localScore),
       confidence_score: localScore,
       confidence_label: confidenceLabelFromScore(localScore),
@@ -2235,9 +2431,7 @@ function buildDeterministicLearningRecommendations({
         reasons.length > 0
           ? reasons.join(" ")
           : `${candidate.ticker} is a ${tier} ranked ${setupLabel} learning candidate with a defined intraday plan.`,
-      invalidation: `The setup is invalidated if price trades below ${Number(
-        candidate.proposed_stop_loss,
-      ).toFixed(2)} or intraday momentum and volume confirmation fail.`,
+      invalidation: `The setup is invalidated if price trades below ${planPrices.stopLoss.toFixed(2)} or intraday momentum and volume confirmation fail.`,
       reason_to_avoid:
         warningSummary.length > 0
           ? warningSummary.join(" ")
@@ -2266,12 +2460,25 @@ function buildDeterministicLearningRecommendations({
       batch_status: powerHourTrial
         ? "observation_learning"
         : "learning_candidate",
-      ...planReferenceStatus,
+      recommendation_build_path: "deterministic_fallback",
+      plan_reference_price: planReferencePrice,
       entry_type_metadata: entryTypeMetadata,
       ...entryTypeMetadata,
       ...planReferencePrice,
-    };
-  });
+    });
+    buildDiagnostics.push(
+      buildDiagnosticForCandidate({
+        candidate,
+        ranking,
+        planReferencePrice,
+        riskGeometryStatus: geometryStatus,
+        built: true,
+        rejectionReason: "built",
+      }),
+    );
+  }
+
+  return { recommendations, skippedReasons, buildDiagnostics };
 }
 
 function parseSettingNumber(value: unknown, fallback: number) {
@@ -2529,43 +2736,61 @@ function sanitizeRecommendations(
         ]),
       );
       const candidatePlanReferencePrice = buildPlanReferencePriceMetadata(candidate);
+      const recommendationPlanReferencePrice = objectOrNull(
+        recommendation.plan_reference_price,
+      );
       const planReferencePrice: PlanReferencePriceMetadata = {
         reference_price_used_for_plan:
           nullableNumber(recommendation.reference_price_used_for_plan) ??
+          nullableNumber(
+            recommendationPlanReferencePrice?.reference_price_used_for_plan,
+          ) ??
           candidatePlanReferencePrice.reference_price_used_for_plan,
         reference_price_source:
           nullableString(recommendation.reference_price_source) ??
+          nullableString(recommendationPlanReferencePrice?.reference_price_source) ??
           candidatePlanReferencePrice.reference_price_source ??
           "unknown",
         reference_price_timestamp:
           nullableString(recommendation.reference_price_timestamp) ??
+          nullableString(
+            recommendationPlanReferencePrice?.reference_price_timestamp,
+          ) ??
           candidatePlanReferencePrice.reference_price_timestamp,
         reference_price_symbol:
           nullableString(recommendation.reference_price_symbol) ??
+          nullableString(recommendationPlanReferencePrice?.reference_price_symbol) ??
           candidatePlanReferencePrice.reference_price_symbol,
         reference_price_provider:
           nullableString(recommendation.reference_price_provider) ??
+          nullableString(recommendationPlanReferencePrice?.reference_price_provider) ??
           candidatePlanReferencePrice.reference_price_provider,
         reference_price_read_path:
           nullableString(recommendation.reference_price_read_path) ??
+          nullableString(recommendationPlanReferencePrice?.reference_price_read_path) ??
           candidatePlanReferencePrice.reference_price_read_path,
+        plan_reference_metadata_status:
+          recommendation.plan_reference_metadata_status ??
+          (recommendationPlanReferencePrice?.plan_reference_metadata_status as
+            | PlanReferenceMetadataStatus
+            | undefined) ??
+          candidatePlanReferencePrice.plan_reference_metadata_status,
+        plan_reference_metadata_trace:
+          planReferenceMetadataTraceOrNull(
+            recommendationPlanReferencePrice?.plan_reference_metadata_trace,
+          ) ??
+          candidatePlanReferencePrice.plan_reference_metadata_trace,
       };
+      const retainedPlanReferencePrice = markPlanReferenceRetained(planReferencePrice);
       const entryTypeMetadata = buildPlanEntryTypeMetadata({
         side: "long",
         entry: midpoint(entryLow, entryHigh),
-        planReferencePrice,
+        planReferencePrice: retainedPlanReferencePrice,
         source:
           nullableString(recommendation.entry_type_source) ===
           "deterministic_plan_builder"
             ? "deterministic_plan_builder"
             : "metadata_inference",
-        existingMetadata: recommendation as Record<string, unknown>,
-      });
-      const planReferenceStatus = planReferenceMetadataDiagnostics({
-        referencePrice: planReferencePrice.reference_price_used_for_plan,
-        entry: midpoint(entryLow, entryHigh),
-        stop: stopLoss,
-        target: target1,
       });
 
       seenTickers.add(ticker);
@@ -2575,11 +2800,15 @@ function sanitizeRecommendations(
         confidence_breakdown: recommendation.confidence_breakdown,
         confidence_reasoning: recommendation.confidence_reasoning,
         risk_flags: riskFlags,
-        plan_reference_price: planReferencePrice,
-        ...planReferencePrice,
-        ...planReferenceStatus,
+        plan_reference_price: retainedPlanReferencePrice,
+        recommendation_build_path:
+          recommendation.recommendation_build_path ??
+          (recommendation.entry_type_source === "deterministic_plan_builder"
+            ? "deterministic_fallback"
+            : null),
         entry_type_metadata: entryTypeMetadata,
         ...entryTypeMetadata,
+        ...retainedPlanReferencePrice,
         power_hour_trial: powerHourTrial,
         eod_risk: powerHourTrial ? "high" : null,
         recommendation_intent: powerHourTrial
@@ -3675,13 +3904,70 @@ export async function generateRecommendations({
       source === "scheduled"
         ? Math.max(1, settings.max_recommendations_per_session)
         : Math.max(6, settings.max_recommendations_per_session * 3);
-    const candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    const referenceRefreshResult =
+      candidatesForOpenAI.length > 0
+        ? await refreshSelectedCandidateReferences({
+            candidates: candidatesForOpenAI,
+            maxAttempts: source === "scheduled" ? 10 : 3,
+            now: new Date(),
+            fetchIntradayIndicators: (ticker) =>
+              getOrRefreshIntradayIndicators(ticker, {
+                source: source === "scheduled" ? "scheduled" : "manual",
+                maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+                allowFreshFetch: true,
+              }),
+          })
+        : null;
+    const referenceRefreshDiagnostics =
+      referenceRefreshResult?.diagnostics ?? null;
+    candidatesForOpenAI = referenceRefreshResult?.candidates ?? candidatesForOpenAI;
     const availableCandidateTickers = availableCandidates.map(
       (candidate) => candidate.ticker,
     );
     const candidateTickersForOpenAI = candidatesForOpenAI.map(
       (candidate) => candidate.ticker,
     );
+    const candidatesForOpenAiSet = new Set(candidateTickersForOpenAI);
+    let selectedCandidateBuildDiagnostics =
+      scoredCandidates
+        .filter((candidate) => selectedRankingTickerSet.has(candidate.ticker))
+        .filter((candidate) => !candidatesForOpenAiSet.has(candidate.ticker))
+        .map((candidate) => {
+          const ranking = rankingResultByTicker.get(candidate.ticker) ?? null;
+          const planReferencePrice = markPlanReferenceRetained(
+            buildPlanReferencePriceMetadata(candidate, {
+              enforceFreshness: true,
+            }),
+          );
+          const referencePrice = planReferencePrice.reference_price_used_for_plan;
+          const planPrices =
+            referencePrice === null
+              ? null
+              : buildPlanPricesFromReference(referencePrice);
+          const geometryStatus = planPrices
+            ? riskGeometryStatus(planPrices)
+            : "not_checked";
+          const rankingTier = ranking?.score.tier ?? "unknown";
+          const rejectionReason =
+            candidate.local_score < publishableThreshold
+              ? "below_publish_threshold"
+              : rankingTier !== "strong" &&
+                  rankingTier !== "valid" &&
+                  rankingTier !== "experimental"
+                ? "ranking_selected_but_not_qualified"
+                : "fallback_builder_limit_reached";
+
+          return buildDiagnosticForCandidate({
+            candidate,
+            ranking,
+            planReferencePrice,
+            riskGeometryStatus: geometryStatus,
+            built: false,
+            rejectionReason,
+            explanation: `${candidate.ticker} was selected by ranking but not sent to the recommendation builder: ${rejectionReason}.`,
+          });
+        });
     const realScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
         universe: scannerBaseCandidates,
@@ -3713,12 +3999,17 @@ export async function generateRecommendations({
     logPipeline("top_scored_candidate_setup_type", topCandidateSetupType);
     logPipeline("scored_candidates", scoredCandidateSummary);
     logPipeline("scanner_candidate_ranking", scannerCandidateRankingSummary);
+    logPipeline("reference_refresh", referenceRefreshDiagnostics);
     logPipeline("real_scanner_candidate_generation", realScannerCandidateGeneration);
     logPipeline("candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("final_candidate_tickers_sent_to_openai", candidateTickersForOpenAI);
     logPipeline("duplicate_fallback_used", duplicateFallbackUsed);
 
     if (candidatesForOpenAI.length === 0) {
+      const selectedToBuiltDropOff = summarizeSelectedCandidateBuildDiagnostics(
+        selectedCandidateBuildDiagnostics,
+        scannerCandidateRankingSummary.target_min,
+      );
       const message =
         qualifiedCandidates.length === 0
           ? "Scan completed. No structurally valid ranked learning candidates were publishable."
@@ -3772,6 +4063,9 @@ export async function generateRecommendations({
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
+          reference_refresh: referenceRefreshDiagnostics,
+          selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -3784,6 +4078,7 @@ export async function generateRecommendations({
 
     let deterministicFallbackUsed = false;
     let deterministicFallbackReason: string | null = null;
+    let deterministicFallbackSkippedReasons: string[] = [];
     let aiResponse: AiResponse;
     let openAiOutputRecommendationCount = 0;
     let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
@@ -3792,7 +4087,7 @@ export async function generateRecommendations({
     function deterministicFallback(reason: string): AiResponse {
       deterministicFallbackUsed = true;
       deterministicFallbackReason = reason;
-      const recommendations = buildDeterministicLearningRecommendations({
+      const deterministic = buildDeterministicLearningRecommendations({
         candidates: candidatesForOpenAI,
         rankingSummary: scannerCandidateRankingSummary,
         scanWindow,
@@ -3800,17 +4095,28 @@ export async function generateRecommendations({
         maxRecommendations: settings.max_recommendations_per_session,
         powerHourTrial,
       });
+      deterministicFallbackSkippedReasons = deterministic.skippedReasons;
+      selectedCandidateBuildDiagnostics = [
+        ...selectedCandidateBuildDiagnostics.filter(
+          (item) => !candidateTickersForOpenAI.includes(item.ticker),
+        ),
+        ...deterministic.buildDiagnostics,
+      ];
 
       logPipeline("deterministic_fallback_used", true);
       logPipeline("deterministic_fallback_reason", reason);
       logPipeline(
         "deterministic_fallback_recommendations_count",
-        recommendations.length,
+        deterministic.recommendations.length,
+      );
+      logPipeline(
+        "deterministic_fallback_reference_block_reasons",
+        deterministicFallbackSkippedReasons,
       );
 
       return {
         result: "trade_recommendation",
-        recommendations,
+        recommendations: deterministic.recommendations,
       };
     }
 
@@ -3917,6 +4223,53 @@ export async function generateRecommendations({
       });
     }
 
+    if (!deterministicFallbackUsed) {
+      const builtTickerSet = new Set(
+        recommendationsToInsert.map((recommendation) => recommendation.ticker),
+      );
+      const openAiBuildDiagnostics = candidatesForOpenAI.map((candidate) => {
+        const ranking = rankingResultByTicker.get(candidate.ticker) ?? null;
+        const planReferencePrice = markPlanReferenceRetained(
+          buildPlanReferencePriceMetadata(candidate, {
+            enforceFreshness: true,
+          }),
+        );
+        const referencePrice = planReferencePrice.reference_price_used_for_plan;
+        const planPrices =
+          referencePrice === null ? null : buildPlanPricesFromReference(referencePrice);
+        const geometryStatus = planPrices ? riskGeometryStatus(planPrices) : "not_checked";
+        const built = builtTickerSet.has(candidate.ticker);
+
+        return buildDiagnosticForCandidate({
+          candidate,
+          ranking,
+          planReferencePrice,
+          riskGeometryStatus: geometryStatus,
+          built,
+          rejectionReason: built
+            ? "built"
+            : sanitizedRecommendations.skippedReasons.length > 0
+              ? "sanitizer_rejected"
+              : "openai_no_trade",
+          explanation: built
+            ? `${candidate.ticker} was built by the OpenAI recommendation path.`
+            : `${candidate.ticker} was selected but not built by the OpenAI recommendation path.`,
+        });
+      });
+
+      selectedCandidateBuildDiagnostics = [
+        ...selectedCandidateBuildDiagnostics.filter(
+          (item) => !candidateTickersForOpenAI.includes(item.ticker),
+        ),
+        ...openAiBuildDiagnostics,
+      ];
+    }
+
+    const selectedToBuiltDropOff = summarizeSelectedCandidateBuildDiagnostics(
+      selectedCandidateBuildDiagnostics,
+      scannerCandidateRankingSummary.target_min,
+    );
+
     if (openAiRealityGuardSummary) {
       openAiRealityGuardSummary = finalizeOpenAiRecommendationRealityGuardSummary(
         openAiRealityGuardSummary,
@@ -3944,7 +4297,10 @@ export async function generateRecommendations({
     );
     logPipeline(
       "skipped_recommendation_reasons",
-      sanitizedRecommendations.skippedReasons,
+      [
+        ...sanitizedRecommendations.skippedReasons,
+        ...deterministicFallbackSkippedReasons,
+      ],
     );
     logPipeline(
       "openai_recommendation_reality_guard_final",
@@ -3988,6 +4344,7 @@ export async function generateRecommendations({
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason:
             sanitizedRecommendations.skippedReasons[0] ??
+            deterministicFallbackSkippedReasons[0] ??
             deterministicFallbackReason ??
             "Publishable candidates failed recommendation validation.",
           no_publish_reason: deterministicFallbackUsed
@@ -3997,10 +4354,19 @@ export async function generateRecommendations({
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
           deterministic_fallback_used: deterministicFallbackUsed,
+          deterministic_fallback_reference_block_count:
+            deterministicFallbackSkippedReasons.length,
+          deterministic_fallback_reference_block_reasons:
+            deterministicFallbackSkippedReasons,
+          reference_refresh: referenceRefreshDiagnostics,
+          selected_candidate_build_diagnostics:
+            selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
-            sanitizedRecommendations.skippedReasons.length,
+            sanitizedRecommendations.skippedReasons.length +
+            deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
@@ -4070,10 +4436,19 @@ export async function generateRecommendations({
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
           deterministic_fallback_used: deterministicFallbackUsed,
+          deterministic_fallback_reference_block_count:
+            deterministicFallbackSkippedReasons.length,
+          deterministic_fallback_reference_block_reasons:
+            deterministicFallbackSkippedReasons,
+          reference_refresh: referenceRefreshDiagnostics,
+          selected_candidate_build_diagnostics:
+            selectedCandidateBuildDiagnostics,
+          selected_to_built_drop_off: selectedToBuiltDropOff,
           candidates_scanned: scoredCandidates.length,
           skipped_tickers:
             candidatesRemovedByCooldown.length +
-            sanitizedRecommendations.skippedReasons.length,
+            sanitizedRecommendations.skippedReasons.length +
+            deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
@@ -4160,10 +4535,19 @@ export async function generateRecommendations({
         power_hour_publish_allowed: powerHourTrial,
         power_hour_publish_block_reason: null,
         deterministic_fallback_used: deterministicFallbackUsed,
+        deterministic_fallback_reference_block_count:
+          deterministicFallbackSkippedReasons.length,
+        deterministic_fallback_reference_block_reasons:
+          deterministicFallbackSkippedReasons,
+        reference_refresh: referenceRefreshDiagnostics,
+        selected_candidate_build_diagnostics:
+          selectedCandidateBuildDiagnostics,
+        selected_to_built_drop_off: selectedToBuiltDropOff,
         candidates_scanned: scoredCandidates.length,
         skipped_tickers:
           candidatesRemovedByCooldown.length +
-          sanitizedRecommendations.skippedReasons.length,
+          sanitizedRecommendations.skippedReasons.length +
+          deterministicFallbackSkippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
         dynamic_movers_discovery: dynamicMoversDiscovery,
         scanner_candidate_ranking: scannerCandidateRankingSummary,

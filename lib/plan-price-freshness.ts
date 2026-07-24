@@ -19,8 +19,6 @@ export type PlanPriceFreshnessDiagnostics = {
   reference_price_symbol: string | null;
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
-  plan_reference_metadata_status: PlanReferenceMetadataStatus;
-  plan_reference_metadata_missing_reason: string | null;
   first_available_candle_close: number | null;
   first_available_candle_timestamp: string | null;
   latest_provider_price_if_available: number | null;
@@ -30,6 +28,8 @@ export type PlanPriceFreshnessDiagnostics = {
   entry_distance_from_reference_price_pct: number | null;
   reference_to_first_candle_drift_pct: number | null;
   classification: PlanPriceFreshnessClassification;
+  plan_reference_metadata_status: PlanReferenceMetadataStatus;
+  plan_reference_metadata_missing_reason: string | null;
   warnings: string[];
 };
 
@@ -519,8 +519,6 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     reference_price_symbol: reference.symbol,
     reference_price_provider: reference.provider,
     reference_price_read_path: reference.readPath,
-    plan_reference_metadata_status: metadataStatus,
-    plan_reference_metadata_missing_reason: metadataMissingReason,
     first_available_candle_close: first.close,
     first_available_candle_timestamp: first.timestamp,
     latest_provider_price_if_available: latestPrice,
@@ -530,6 +528,8 @@ export function computePlanPriceFreshnessDiagnostics(input: {
     entry_distance_from_reference_price_pct: distancePct(entry, reference.value),
     reference_to_first_candle_drift_pct: distancePct(reference.value, first.close),
     classification,
+    plan_reference_metadata_status: metadataStatus,
+    plan_reference_metadata_missing_reason: metadataMissingReason,
     warnings,
   };
 }

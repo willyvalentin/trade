@@ -1,0 +1,81 @@
+Action: 774 - Apply Audit Table Migration Manually
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex under Willy Simonsson approval
+Command attempted: /opt/homebrew/bin/supabase db push --linked --workdir /private/tmp/trade-action-774-supabase-apply-49001 --yes
+CLI path: /opt/homebrew/bin/supabase
+CLI version: 2.107.0
+Linked project ref checked before apply: ekdyopdrrkphlrsilyoo
+Temporary workdir reason: the normal linked workdir dry-run would have applied eight additional unapproved pending local migrations before the two approved audit migrations. The temporary workdir contained only the two approved audit migration files and copied link metadata without printing connection-oriented file contents.
+Pre-apply selective dry run command: /opt/homebrew/bin/supabase db push --dry-run --linked --workdir /private/tmp/trade-action-774-supabase-apply-49001
+Pre-apply selective dry run output:
+
+Using workdir /private/tmp/trade-action-774-supabase-apply-49001
+Initialising login role...
+DRY RUN: migrations will *not* be pushed to the database.
+Connecting to remote database...
+Would push these migrations:
+ • 20260615000000_create_execution_record_audit_events.sql
+ • 20260615001000_enable_rls_execution_record_audit_events.sql
+Finished supabase db push.
+
+Apply command exit code: 1
+Apply command output:
+
+Using workdir /private/tmp/trade-action-774-supabase-apply-49001
+Initialising login role...
+Connecting to remote database...
+Do you want to push these migrations to the remote database?
+ • 20260615000000_create_execution_record_audit_events.sql
+ • 20260615001000_enable_rls_execution_record_audit_events.sql
+
+ [Y/n] y
+Applying migration 20260615000000_create_execution_record_audit_events.sql...
+NOTICE (42622): identifier "execution_record_audit_events_duplicate_prevention_key_non_empty_check" will be truncated to "execution_record_audit_events_duplicate_prevention_key_non_empt"
+ERROR: relation "public.execution_records" does not exist (SQLSTATE 42P01)
+At statement: 0
+create table if not exists public.execution_record_audit_events (
+  id uuid primary key default gen_random_uuid(),
+  execution_record_id uuid not null references public.execution_records(id) on delete restrict,
+  event_type text not null,
+  event_source text not null,
+  event_status text not null,
+  event_payload jsonb not null default '{}'::jsonb,
+  evidence_payload jsonb not null default '{}'::jsonb,
+  actor_type text null,
+  actor_id text null,
+  source_system text not null,
+  source_fingerprint text null,
+  idempotency_key text not null,
+  duplicate_prevention_key text null,
+  created_at timestamptz not null default now(),
+  occurred_at timestamptz null,
+  schema_version text not null default '1.0',
+  writer_version text null,
+  request_id text null,
+  trace_id text null,
+  metadata jsonb not null default '{}'::jsonb,
+  constraint execution_record_audit_events_event_type_non_empty_check
+    check (length(btrim(event_type)) > 0),
+  constraint execution_record_audit_events_event_source_non_empty_check
+    check (length(btrim(event_source)) > 0),
+  constraint execution_record_audit_events_event_status_check
+    check (event_status in ('attempted', 'succeeded', 'failed', 'blocked', 'duplicate', 'unknown')),
+  constraint execution_record_audit_events_source_system_non_empty_check
+    check (length(btrim(source_system)) > 0),
+  constraint execution_record_audit_events_idempotency_key_non_empty_check
+    check (length(btrim(idempotency_key)) > 0),
+  constraint execution_record_audit_events_duplicate_prevention_key_non_empty_check
+    check (duplicate_prevention_key is null or length(btrim(duplicate_prevention_key)) > 0),
+  constraint execution_record_audit_events_schema_version_non_empty_check
+    check (length(btrim(schema_version)) > 0)
+)
+Try rerunning the command with --debug to troubleshoot the error.
+
+Result:
+- Apply failed on the first approved audit migration.
+- Failure reason: remote `public.execution_records` table does not exist, so the audit table foreign key cannot be created.
+- The second approved RLS migration was not reached.
+- No type generation was run.
+- No generated type files were modified.
+- No runtime writer, route, route call, write path, service-role code, audit append implementation, Supabase/localStorage runtime write, stats/PnL update, trade mutation, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

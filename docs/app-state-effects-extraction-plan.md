@@ -722,3 +722,85 @@ Result:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Result
+
+Action 411 created
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Result:
+
+- Reassessed the live market trial runbook persistence boundary without moving
+  state, effects, calculations, localStorage access, Supabase behavior, or
+  execution behavior.
+- Confirmed the persistence path is safe to extract only as an exact wrapper
+  around default creation, normalization, read fallback, and write semantics.
+- Confirmed runbook UI state, hydration/write guards, live market workflow,
+  provider/data behavior, and cross-domain app state should remain
+  parent/module-owned.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## Action 412 Result
+
+Action 412 created
+`lib/persistence/live-market-trial-runbook-persistence.ts`.
+
+Result:
+
+- Moved only persistence helper code, not React state or effects.
+- `app/trade-app.tsx` still owns runbook state, setters, hydration/write-effect
+  guards, UI callbacks, summary composition, and live market workflow.
+- No app-wide calculations, Supabase behavior, trade mutations, execution
+  wiring, provider/data behavior, or cross-tab state moved.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- escalated `npm run test:e2e` passed: 64 tests after the default sandbox run
+  was blocked on port binding.
+
+Next recommended action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## Action 413 Result
+
+Action 413 created
+`docs/live-market-trial-runbook-persistence-post-extraction-reassessment.md`.
+
+Result:
+
+- Verified no additional state, effects, calculations, localStorage behavior,
+  Supabase behavior, trade mutations, or execution behavior moved after the
+  runbook persistence wrapper extraction.
+- Confirmed runbook UI state and hydration/write-effect guards remain in
+  `app/trade-app.tsx`.
+- Recommended moving from low-risk app-local localStorage wrappers to an
+  execution audit/event log persistence boundary reassessment.
+
+Next recommended action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
+
+## Action 414 Result
+
+Action 414 created
+`docs/execution-audit-event-log-persistence-boundary-reassessment.md`.
+
+Result:
+
+- Reassessed execution audit/event persistence without moving state, effects,
+  localStorage behavior, Supabase behavior, execution metadata, trade
+  mutations, or execution/orchestrator behavior.
+- Confirmed audit/event log extraction should wait because the remaining
+  append paths are coupled to execution handoff, timeline construction,
+  History displays, diagnostics, broker/result capture, and idempotency.
+- Recommended clarifying execution record creation next.
+
+Next recommended action:
+
+**Action 415 - Reassess Execution Record Creation Boundary**

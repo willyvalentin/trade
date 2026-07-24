@@ -31,6 +31,7 @@ import {
 } from "@/lib/intraday-scan-window";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
 import {
+  buildScheduledOfficialGateDiagnostics,
   buildDayTradeScanOrchestrationSummary,
   dayTradeScanWindowToIntradayScanWindow,
   HUMAN_CONFIRMED_EXECUTION_WARNING,
@@ -38,12 +39,19 @@ import {
   MARKET_CALENDAR_FALLBACK_SCAN_WARNING,
   POLYGON_CALENDAR_ENV_GUIDANCE,
   type DayTradeScanOrchestrationSummary,
+  type ScheduledOfficialGateDiagnostics,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import {
   buildRecommendationServingCadenceSummary,
   type RecommendationServingCadenceSummary,
 } from "@/lib/recommendation-serving-cadence";
+import {
+  buildScheduledScanAttemptFingerprint,
+  buildScheduledScanAttemptRecord,
+  buildEmptyScanReason,
+  buildScheduledScanRejectionSummary,
+} from "@/lib/scheduled-scan-attempts";
 import {
   buildRecommendationScanRun,
   persistRecommendationScanRun,
@@ -64,6 +72,7 @@ import {
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
 import {
   createActiveScanTrace,
   errorType,
@@ -80,6 +89,12 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
+import {
+  buildLearningAccelerationResearchSelection,
+  getLearningAccelerationConfig,
+  type LearningAccelerationModeEvaluation,
+  type LearningAccelerationResearchSample,
+} from "@/lib/learning-acceleration-mode";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -94,6 +109,7 @@ type AutomationRunRequestBody = {
   ignore_existing_run?: unknown;
   source?: unknown;
   scheduled_function_fired_at_utc?: unknown;
+  scheduled_scan_attempt_fingerprint?: unknown;
   max_tickers?: unknown;
   skip_openai?: unknown;
   timeout_ms?: unknown;
@@ -131,6 +147,14 @@ type AutomationRunDiagnostics = {
   orchestration_decision: DayTradeScanOrchestrationSummary["decision"];
   active_window: DayTradeScanOrchestrationSummary["active_window"];
   scan_window: IntradayScanWindow;
+  official_scan_window: string;
+  generation_window: IntradayScanWindow;
+  generation_block_reason: string | null;
+  official_window_detected: boolean;
+  scheduled_gate_window: string;
+  scheduled_gate_allowed: boolean;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
   grow_max_learning_mode?: boolean;
   grow_max_learning_mode_env_raw_present?: boolean;
   grow_max_learning_mode_env_raw_value_normalized?: boolean;
@@ -139,6 +163,17 @@ type AutomationRunDiagnostics = {
   grow_max_learning_mode_requested?: boolean;
   grow_max_learning_mode_blocked_reason?: string | null;
   grow_max_learning_mode_enabled_source?: string;
+  learning_acceleration_enabled?: boolean;
+  learning_acceleration_requested?: boolean;
+  learning_acceleration_enabled_source?: string;
+  learning_acceleration_env_raw_present?: boolean;
+  learning_acceleration_env_raw_value_category?: string;
+  learning_acceleration_env_raw_value_normalized?: boolean;
+  learning_acceleration_runtime_environment?: string;
+  learning_acceleration_mode?: string;
+  learning_acceleration_samples_collected?: number;
+  learning_acceleration_selected_below_threshold?: number;
+  learning_acceleration_research_only_persisted?: number;
   target_ideas_per_window?: number | null;
   same_window_limit_reached?: boolean;
   daily_learning_limit_reached?: boolean;
@@ -263,6 +298,9 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const growMaxLearningMode = evaluateGrowMaxLearningMode({
     providerPlanProfileMode: providerPlanProfile.effective_mode,
   });
+  const learningAccelerationMode = getLearningAccelerationConfig({
+    growMaxLearningModeEnabled: growMaxLearningMode.grow_max_learning_mode,
+  });
   const scheduledMaxTickers =
     routeMaxTickersOverride !== null
       ? routeMaxTickersOverride
@@ -293,9 +331,14 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   return {
     live_trial_fast_mode: liveTrialFastMode,
     ...growMaxLearningMode,
+    ...learningAccelerationMode,
     target_ideas_per_window: growMaxLearningMode.grow_max_learning_mode
       ? effectiveScanTickerCap
       : null,
+    learning_acceleration_target_samples_per_window:
+      learningAccelerationMode.learning_acceleration_enabled
+        ? Math.min(25, effectiveScanTickerCap)
+        : 0,
     provider_plan_mode: providerPlanProfile.mode,
     provider_plan_profile_mode: providerPlanProfile.effective_mode,
     provider_plan_profile_source: providerPlanProfile.source,
@@ -421,8 +464,7 @@ function parseIntradayScanWindow(value: unknown): IntradayScanWindow | null {
     : null;
 }
 
-function getScanWindowDueNow(): ScanWindow {
-  const now = new Date();
+function getScanWindowDueNow(now: Date): ScanWindow {
   const scanWindow = getIntradayScanWindow(now);
 
   return {
@@ -480,6 +522,12 @@ function isoTextOrNull(value: unknown) {
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
+function dateFromIsoOrNull(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
 function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
   return (
     scanWindow === "opening" ||
@@ -492,6 +540,23 @@ function isActiveAutomationWindow(scanWindow: IntradayScanWindow) {
 
 function isActiveDayTradeWindow(window: string | null | undefined) {
   return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+function scheduledSkipDecisionForOrchestration(
+  orchestration: DayTradeScanOrchestrationSummary,
+): AutomationScanDecision {
+  if (orchestration.decision === "market_closed") {
+    return "skipped_market_closed";
+  }
+
+  if (
+    orchestration.decision === "blocked_by_provider" ||
+    orchestration.calendar_confidence === "unknown"
+  ) {
+    return "skipped_provider_unavailable";
+  }
+
+  return "skipped_outside_window";
 }
 
 function scheduledScanDiagnosticEntry(
@@ -570,6 +635,8 @@ function buildAutomationRunDiagnostics({
   orchestration,
   decision,
   scanWindow,
+  generationBlockReason = null,
+  scheduledGateDiagnostics,
   scheduledRuntimeConfig,
   skippedReason,
   recentRecommendationScanRuns,
@@ -581,6 +648,8 @@ function buildAutomationRunDiagnostics({
   orchestration: DayTradeScanOrchestrationSummary;
   decision: AutomationScanDecision;
   scanWindow: IntradayScanWindow;
+  generationBlockReason?: string | null;
+  scheduledGateDiagnostics: ScheduledOfficialGateDiagnostics;
   scheduledRuntimeConfig?: ReturnType<typeof scheduledScanRuntimeConfig>;
   skippedReason?: string | null;
   recentRecommendationScanRuns: RecommendationScanRun[];
@@ -634,6 +703,10 @@ function buildAutomationRunDiagnostics({
     orchestration_decision: orchestration.decision,
     active_window: orchestration.active_window,
     scan_window: scanWindow,
+    official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+    generation_window: scanWindow,
+    generation_block_reason: generationBlockReason,
+    ...scheduledGateDiagnostics,
     grow_max_learning_mode:
       scheduledRuntimeConfig?.grow_max_learning_mode ?? false,
     grow_max_learning_mode_env_raw_present:
@@ -654,6 +727,34 @@ function buildAutomationRunDiagnostics({
       "env_flag_not_enabled",
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig?.grow_max_learning_mode_enabled_source ?? "none",
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig?.learning_acceleration_enabled ?? false,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig?.learning_acceleration_requested ?? false,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig?.learning_acceleration_enabled_source ?? "none",
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_present ?? false,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_value_category ??
+      "missing",
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig?.learning_acceleration_env_raw_value_normalized ??
+      false,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig?.learning_acceleration_runtime_environment ??
+      "missing",
+    learning_acceleration_mode:
+      scheduledRuntimeConfig?.learning_acceleration_mode ?? "disabled",
+    learning_acceleration_samples_collected:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_samples_collected_count ?? 0,
+    learning_acceleration_selected_below_threshold:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_selected_below_threshold_count ?? 0,
+    learning_acceleration_research_only_persisted:
+      currentScanLog?.active_scan_trace
+        ?.learning_acceleration_research_only_persisted_count ?? 0,
     target_ideas_per_window:
       scheduledRuntimeConfig?.target_ideas_per_window ?? null,
     same_window_limit_reached: decision === "skipped_recent_scan",
@@ -754,6 +855,8 @@ function finishActiveScanTrace(
     batchFingerprint = null,
     scanRunFingerprint = null,
     zeroReason = null,
+    selectedCandidateBuildDiagnostics = [],
+    selectedToBuiltDropOff = null,
     elapsedMilliseconds = null,
     timeoutWasReached = false,
   }: {
@@ -778,6 +881,10 @@ function finishActiveScanTrace(
     batchFingerprint?: string | null;
     scanRunFingerprint?: string | null;
     zeroReason?: string | null;
+    selectedCandidateBuildDiagnostics?: NonNullable<
+      RecommendationScanLogDetails["selected_candidate_build_diagnostics"]
+    >;
+    selectedToBuiltDropOff?: RecommendationScanLogDetails["selected_to_built_drop_off"];
     elapsedMilliseconds?: number | null;
     timeoutWasReached?: boolean;
   },
@@ -831,6 +938,8 @@ function finishActiveScanTrace(
       candidatesGenerated === 0 || recommendationsCreated === 0
         ? zeroReason ?? resolvedNoPublishReason ?? zeroCandidateReason(activeScanTrace.trace)
         : null,
+    selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
+    selected_to_built_drop_off: selectedToBuiltDropOff,
   });
   activeScanTrace.markStage("final", "completed");
 
@@ -991,7 +1100,8 @@ function latestScheduledScanForWindow({
         rowScanDate === scanDate &&
         rowSessionType === sessionType &&
         run.scanLog.scan_window === scanWindow &&
-        run.row.status === "completed"
+        run.row.status === "completed" &&
+        officialScanLogServesWindow(run.scanLog)
       );
     }) ?? null
   );
@@ -1151,6 +1261,130 @@ async function updateScheduledScanRun({
   }
 }
 
+async function recordScheduledScanAttempt({
+  attemptFingerprint,
+  source,
+  mode,
+  outcome,
+  allowed,
+  routeReceivedAtUtc,
+  scheduledFunctionFiredAtUtc,
+  scanDate,
+  scanWindow,
+  orchestration,
+  message,
+  skipReason = null,
+  httpStatus = null,
+  scanLog = null,
+  activeScanTrace = null,
+  scheduledScanRunId = null,
+}: {
+  attemptFingerprint: string;
+  source: string | null;
+  mode: "scheduled" | "manual" | "diagnostic";
+  outcome: "scheduled_function_fired" | "route_received" | "skipped" | "failed" | "scanned" | "request_failed";
+  allowed: boolean | null;
+  routeReceivedAtUtc: string;
+  scheduledFunctionFiredAtUtc: string | null;
+  scanDate: string;
+  scanWindow: IntradayScanWindow;
+  orchestration: DayTradeScanOrchestrationSummary;
+  message: string | null;
+  skipReason?: string | null;
+  httpStatus?: number | null;
+  scanLog?: ScanLogEntry | null;
+  activeScanTrace?: ActiveScanTrace | null;
+  scheduledScanRunId?: string | number | null;
+}) {
+  const rawCount =
+    activeScanTrace?.raw_candidates.raw_candidate_count ??
+    scanLog?.real_scanner_candidate_generation?.universe.candidates_generated ??
+    scanLog?.candidates_scanned ??
+    null;
+  const rankedCount =
+    activeScanTrace?.ranking.ranked_count ??
+    scanLog?.ranked_candidates_count ??
+    null;
+  const selectedCount =
+    activeScanTrace?.ranking.selected_count ??
+    scanLog?.scanner_candidate_ranking?.selected_count ??
+    null;
+  const builtCount =
+    activeScanTrace?.final.recommendations_built_count ??
+    scanLog?.recommendations_built_count ??
+    null;
+  const publishedCount =
+    activeScanTrace?.final.recommendations_published_count ??
+    scanLog?.recommendations_published_count ??
+    scanLog?.recommendations_created ??
+    null;
+  const record = buildScheduledScanAttemptRecord({
+    attempt_fingerprint: attemptFingerprint,
+    trading_date: scanDate,
+    source: source ?? "automation_route",
+    mode,
+    outcome,
+    allowed,
+    route_received_at: routeReceivedAtUtc,
+    scheduled_function_fired_at: scheduledFunctionFiredAtUtc,
+    utc_timestamp: routeReceivedAtUtc,
+    official_window: orchestration.active_window,
+    intraday_scan_window: scanWindow,
+    orchestration_decision: orchestration.decision,
+    skip_reason:
+      skipReason ??
+      (publishedCount === 0
+        ? buildEmptyScanReason(
+            activeScanTrace?.final.selected_to_built_drop_off ??
+              scanLog?.selected_to_built_drop_off ??
+              null,
+          )
+        : null),
+    message,
+    http_status: httpStatus,
+    raw_count: rawCount,
+    ranked_count: rankedCount,
+    selected_count: selectedCount,
+    built_count: builtCount,
+    published_count: publishedCount,
+    recommendations_created:
+      activeScanTrace?.final.recommendations_created ??
+      scanLog?.recommendations_created ??
+      null,
+    batch_fingerprint: activeScanTrace?.final.batch_fingerprint ?? null,
+    scan_run_fingerprint: activeScanTrace?.final.scan_run_fingerprint ?? null,
+    scheduled_scan_run_id:
+      scheduledScanRunId === null || scheduledScanRunId === undefined
+        ? null
+        : String(scheduledScanRunId),
+    payload_json: {
+      scan_log_result: scanLog?.result ?? null,
+      active_scan_trace: activeScanTrace,
+      selected_to_built_drop_off:
+        activeScanTrace?.final.selected_to_built_drop_off ??
+        scanLog?.selected_to_built_drop_off ??
+        null,
+      selected_candidate_build_diagnostics:
+        activeScanTrace?.final.selected_candidate_build_diagnostics ??
+        scanLog?.selected_candidate_build_diagnostics ??
+        [],
+      reference_refresh: scanLog?.reference_refresh ?? null,
+    },
+  });
+  const { error } = await supabase
+    .from("scheduled_scan_attempts")
+    .upsert(record, { onConflict: "attempt_fingerprint" });
+
+  if (error) {
+    console.error("[automation/run-scan] scheduled_scan_attempt_record_error", {
+      source: "supabase.scheduled_scan_attempts",
+      operation: "upsert_scheduled_scan_attempt",
+      attemptFingerprint,
+      error: normalizeUnknownError(error),
+    });
+  }
+}
+
 function marketStatusLabel(marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>) {
   if (marketStatus.dayType === "unknown") return "unknown";
   return isMarketOpenForIntradayTrading(marketStatus) ? "open" : "closed";
@@ -1254,10 +1488,25 @@ function createAutomationScanLog({
     pre_market_candidates: Array.isArray(details?.pre_market_candidates)
       ? (details.pre_market_candidates as ScanLogEntry["pre_market_candidates"])
       : null,
+    real_scanner_candidate_generation:
+      typeof details?.real_scanner_candidate_generation === "object" &&
+      details.real_scanner_candidate_generation !== null
+        ? (details.real_scanner_candidate_generation as ScanLogEntry["real_scanner_candidate_generation"])
+        : null,
     dynamic_movers_discovery:
       typeof details?.dynamic_movers_discovery === "object" &&
       details.dynamic_movers_discovery !== null
         ? (details.dynamic_movers_discovery as ScanLogEntry["dynamic_movers_discovery"])
+        : null,
+    scanner_candidate_ranking:
+      typeof details?.scanner_candidate_ranking === "object" &&
+      details.scanner_candidate_ranking !== null
+        ? (details.scanner_candidate_ranking as ScanLogEntry["scanner_candidate_ranking"])
+        : null,
+    openai_recommendation_reality_guard:
+      typeof details?.openai_recommendation_reality_guard === "object" &&
+      details.openai_recommendation_reality_guard !== null
+        ? (details.openai_recommendation_reality_guard as ScanLogEntry["openai_recommendation_reality_guard"])
         : null,
     day_trade_scan_orchestration:
       typeof details?.day_trade_scan_orchestration === "object" &&
@@ -1284,6 +1533,21 @@ function createAutomationScanLog({
     recommendations_built_count:
       typeof details?.recommendations_built_count === "number"
         ? details.recommendations_built_count
+        : null,
+    selected_candidate_build_diagnostics: Array.isArray(
+      details?.selected_candidate_build_diagnostics,
+    )
+      ? details.selected_candidate_build_diagnostics
+      : null,
+    selected_to_built_drop_off:
+      typeof details?.selected_to_built_drop_off === "object" &&
+      details.selected_to_built_drop_off !== null
+        ? (details.selected_to_built_drop_off as RecommendationScanLogDetails["selected_to_built_drop_off"])
+        : null,
+    reference_refresh:
+      typeof details?.reference_refresh === "object" &&
+      details.reference_refresh !== null
+        ? (details.reference_refresh as RecommendationScanLogDetails["reference_refresh"])
         : null,
     strong_count:
       typeof details?.strong_count === "number" ? details.strong_count : null,
@@ -1649,6 +1913,132 @@ function buildSnapshotFromRecommendation({
   });
 }
 
+function buildSnapshotFromResearchSample({
+  sample,
+  scanRunId,
+  scanWindow,
+  now,
+  marketSession,
+  scanObservability,
+  servingCadence,
+  providerPlanProfileMode,
+  batchFingerprint,
+}: {
+  sample: LearningAccelerationResearchSample;
+  scanRunId: string;
+  scanWindow: IntradayScanWindow;
+  now: Date;
+  marketSession: ReturnType<typeof buildMarketSessionEvaluation>;
+  scanObservability: ScanPipelineObservabilitySummary;
+  servingCadence: RecommendationServingCadenceSummary;
+  providerPlanProfileMode: string | null;
+  batchFingerprint: string | null;
+}) {
+  const riskPerShare = sample.entry - sample.stop;
+  const rewardPerShare = sample.target - sample.entry;
+  const researchBatchFingerprint =
+    batchFingerprint ?? `research_${scanRunId}_${scanWindow}`;
+  const explicitMetadataGaps = Array.from(
+    new Set([
+      ...sample.explicit_metadata_gaps,
+      ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
+    ]),
+  );
+
+  return buildRecommendationSnapshot({
+    recommendation_id: null,
+    scan_run_id: scanRunId,
+    ticker: sample.ticker,
+    company_name: sample.company_name,
+    recommended_at: now,
+    app_timestamp: now,
+    window: scanWindow,
+    market_session_phase: marketSession.phase,
+    market_session_risk: marketSession.risk_level,
+    market_session_source: marketSession.source,
+    source_mode: "research_only",
+    data_mode: "research_only",
+    is_visible: false,
+    is_real: true,
+    entry: sample.entry,
+    entry_low: sample.entry_low,
+    entry_high: sample.entry_high,
+    stop: sample.stop,
+    target: sample.target,
+    side: "long",
+    risk_per_share: riskPerShare > 0 ? riskPerShare : null,
+    reward_per_share: rewardPerShare > 0 ? rewardPerShare : null,
+    planned_risk_reward: sample.risk_reward,
+    confidence: sample.score,
+    score: sample.score,
+    rating: sample.tier,
+    label: "learning only",
+    type: "RESEARCH_SAMPLE",
+    rationale: sample.ranking_reason,
+    reason: sample.rejection_publish_reason,
+    catalyst: sample.ranking_reason,
+    primary_risk: sample.ranking_warnings[0] ?? sample.rejection_publish_reason,
+    freshness: sample.market_data_timestamp ? "fresh" : "unknown",
+    data_age_minutes: 0,
+    quality: {
+      scan_observability_summary: scanObservability,
+    },
+    payload: {
+      visibility_status: "research_only",
+      not_live_signal: true,
+      not_live_trade_signal: true,
+      visible_in_primary_recommendations: false,
+      learning_acceleration_sample: true,
+      research_only: true,
+      learning_scope: "research_only",
+      source_window: scanWindow,
+      scan_window: scanWindow,
+      scan_run_fingerprint: scanRunId,
+      batch_fingerprint: batchFingerprint,
+      research_batch_fingerprint: researchBatchFingerprint,
+      rejection_publish_reason: sample.rejection_publish_reason,
+      publish_decision: "research_only",
+      tier: sample.tier,
+      score: sample.score,
+      ranking_rank: sample.rank,
+      ranking_reason: sample.ranking_reason,
+      ranking_warnings: sample.ranking_warnings,
+      sample_quality: sample.sample_quality,
+      data_timestamp: sample.market_data_timestamp,
+      provider_source: sample.provider_source,
+      provider_status: sample.provider_source ? "observed" : "unavailable",
+      market_data_source: sample.market_data_source,
+      candle_timestamp: sample.market_data_timestamp,
+      provider_plan_profile_mode: providerPlanProfileMode,
+      build_marker: BUILD_MARKER,
+      recommendation_publish_policy_version:
+        RECOMMENDATION_PUBLISH_POLICY_VERSION,
+      explicit_metadata_gaps: explicitMetadataGaps,
+      side: "long",
+      direction: "long",
+      trade_direction: "long",
+      recommendation_side: "long",
+      action: "buy",
+      trade_plan: {
+        side: "long",
+        direction: "long",
+        action: "buy",
+        entry: sample.entry,
+        stop: sample.stop,
+        target: sample.target,
+        target_2: sample.target_2,
+      },
+      learning_acceleration: {
+        enabled: true,
+        mode: "research_only",
+        not_live_signal: true,
+      },
+      recommendation_serving_cadence: servingCadence,
+      market_session: marketSession,
+    },
+  });
+}
+
 async function persistAutomationArtifacts({
   scanDate,
   sessionType,
@@ -1662,6 +2052,9 @@ async function persistAutomationArtifacts({
   recommendations,
   activeScanTrace,
   providerPlanProfileMode,
+  learningAccelerationMode,
+  learningAccelerationTargetSamples,
+  learningAccelerationInput,
 }: {
   scanDate: string;
   sessionType: SessionType;
@@ -1675,6 +2068,17 @@ async function persistAutomationArtifacts({
   recommendations: RecommendationRow[];
   activeScanTrace?: ActiveScanTraceRecorder | null;
   providerPlanProfileMode: string | null;
+  learningAccelerationMode: LearningAccelerationModeEvaluation;
+  learningAccelerationTargetSamples: number;
+  learningAccelerationInput?: {
+    candidateGeneration?: RecommendationScanLogDetails["real_scanner_candidate_generation"] | null;
+    ranking?: RecommendationScanLogDetails["scanner_candidate_ranking"] | null;
+    selectedBuildDiagnostics?: RecommendationScanLogDetails["selected_candidate_build_diagnostics"];
+    selectedToBuiltDropOff?: RecommendationScanLogDetails["selected_to_built_drop_off"];
+    inputSource?: string | null;
+    callsiteName?: string | null;
+    expectedBelowThresholdFromTimeline?: number | null;
+  } | null;
 }) {
   activeScanTrace?.markStage("persistence", "started");
   const serverSupabase = getServerSupabaseClient();
@@ -1685,6 +2089,51 @@ async function persistAutomationArtifacts({
     marketSession,
     scanLog,
     recommendations,
+  });
+  const learningAccelerationCandidateGeneration =
+    learningAccelerationInput?.candidateGeneration ??
+    scanLog.real_scanner_candidate_generation ??
+    null;
+  const learningAccelerationRanking =
+    learningAccelerationInput?.ranking ?? scanLog.scanner_candidate_ranking ?? null;
+  const learningAccelerationSelectedBuildDiagnostics =
+    learningAccelerationInput?.selectedBuildDiagnostics ??
+    scanLog.selected_candidate_build_diagnostics ??
+    [];
+  const selectedToBuiltDropOff =
+    learningAccelerationInput?.selectedToBuiltDropOff ??
+    scanLog.selected_to_built_drop_off ??
+    null;
+  const learningAccelerationInputSource =
+    learningAccelerationInput?.inputSource ?? null;
+  const learningAccelerationCandidateUniverseCount =
+    learningAccelerationCandidateGeneration?.candidates.length ?? 0;
+  const learningAccelerationRankedCandidateCount =
+    learningAccelerationRanking?.candidates_ranked ??
+    scanLog.ranked_candidates_count ??
+    0;
+  const learningAccelerationDropOffBelowThresholdReceived =
+    selectedToBuiltDropOff?.rejection_counts.below_publish_threshold ?? 0;
+  const learningAccelerationDiagnosticBelowThresholdReceived =
+    learningAccelerationSelectedBuildDiagnostics.filter(
+      (diagnostic) =>
+        diagnostic.rejection_reason === "below_publish_threshold" &&
+        diagnostic.built !== true,
+    ).length;
+  const learningAccelerationBelowThresholdReceived = Math.max(
+    learningAccelerationDropOffBelowThresholdReceived,
+    learningAccelerationDiagnosticBelowThresholdReceived,
+  );
+  const learningAccelerationRejectionExamplesCount =
+    selectedToBuiltDropOff?.examples_by_reason.below_publish_threshold?.length ??
+    0;
+  const learningAccelerationExpectedBelowThreshold =
+    learningAccelerationInput?.expectedBelowThresholdFromTimeline ??
+    learningAccelerationBelowThresholdReceived;
+  const emptyScanReason = buildEmptyScanReason(selectedToBuiltDropOff);
+  const buildRejectionSummary = buildScheduledScanRejectionSummary({
+    dropOff: selectedToBuiltDropOff,
+    emptyScanReason,
   });
   const scanRun = buildRecommendationScanRun({
     trading_date: scanDate,
@@ -1706,6 +2155,7 @@ async function persistAutomationArtifacts({
     scheduled_scan_run_id: `${scanDate}:${sessionType}:${scanWindow}`,
     scanned_ticker_count: scanLog.candidates_scanned ?? null,
     raw_candidate_count:
+      learningAccelerationCandidateGeneration?.universe.candidates_generated ??
       scanLog.real_scanner_candidate_generation?.universe.candidates_generated ??
       scanLog.candidates_scanned ??
       null,
@@ -1726,9 +2176,35 @@ async function persistAutomationArtifacts({
         activeScanTrace?.trace.power_hour_publish_block_reason ?? null,
       power_hour_trial_copy: powerHourTrialCopyFields().power_hour_trial_copy,
       provider_source:
+        learningAccelerationCandidateGeneration?.provider_source ??
         scanLog.real_scanner_candidate_generation?.provider_source ??
         scanLog.indicator_source ??
         null,
+      selected_to_built_drop_off: selectedToBuiltDropOff,
+      selected_candidate_build_diagnostics:
+        learningAccelerationSelectedBuildDiagnostics,
+      reference_refresh: scanLog.reference_refresh ?? null,
+      empty_scan_reason: emptyScanReason,
+      build_rejection_diagnostics: {
+        selected_count:
+          selectedToBuiltDropOff?.selected_count ??
+          learningAccelerationRanking?.selected_count ??
+          scanLog.scanner_candidate_ranking?.selected_count ??
+          null,
+        built_count:
+          selectedToBuiltDropOff?.built_count ??
+          scanLog.recommendations_built_count ??
+          null,
+        published_count:
+          scanLog.recommendations_published_count ??
+          scanLog.recommendations_created ??
+          null,
+        selected_to_built_drop_off: selectedToBuiltDropOff,
+        selected_candidate_build_diagnostics:
+          learningAccelerationSelectedBuildDiagnostics,
+        rejection_summary: buildRejectionSummary,
+        learning_acceleration_input_source: learningAccelerationInputSource,
+      },
     },
   });
   const persistence = {
@@ -1738,6 +2214,9 @@ async function persistAutomationArtifacts({
       unavailableReason: serverSupabase.unavailable_reason,
     }),
     snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
+    research_snapshots: [] as Array<
+      Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+    >,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
   };
   const preliminarySnapshots = recommendations.map((recommendation) =>
@@ -1775,7 +2254,49 @@ async function persistAutomationArtifacts({
           market_session_phase: marketSession.phase,
         })
       : null;
+  const learningAccelerationCallsiteTrace = {
+    callsite_name:
+      learningAccelerationInput?.callsiteName ??
+      "automation_run_scan_success_persist_artifacts",
+    candidate_universe_count: learningAccelerationCandidateUniverseCount,
+    ranked_candidate_count: learningAccelerationRankedCandidateCount,
+    selected_build_diagnostics_count:
+      learningAccelerationSelectedBuildDiagnostics.length,
+    selected_to_built_drop_off_below_threshold_count:
+      learningAccelerationDropOffBelowThresholdReceived,
+    rejection_examples_count: learningAccelerationRejectionExamplesCount,
+    batch_fingerprint_present: anticipatedBatchFingerprint !== null,
+    scan_run_id_present: Boolean(scanRun.run_fingerprint),
+    persist_function_invoked: true,
+  };
+  activeScanTrace?.update({
+    learning_acceleration_callsite_trace: learningAccelerationCallsiteTrace,
+    learning_acceleration_callsite_mismatch:
+      learningAccelerationExpectedBelowThreshold > 0 &&
+      learningAccelerationBelowThresholdReceived === 0,
+    learning_acceleration_expected_below_threshold_from_timeline:
+      learningAccelerationExpectedBelowThreshold,
+    learning_acceleration_actual_below_threshold_received_by_persistence:
+      learningAccelerationBelowThresholdReceived,
+    learning_acceleration_candidate_universe_received_by_persistence:
+      learningAccelerationCandidateUniverseCount,
+  });
   const snapshots: RecommendationSnapshot[] = [];
+  const researchSelection = buildLearningAccelerationResearchSelection({
+    enabled: learningAccelerationMode.learning_acceleration_enabled,
+    candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
+    ranking: learningAccelerationRanking,
+    selectedBuildDiagnostics:
+      learningAccelerationSelectedBuildDiagnostics,
+    selectedToBuiltDropOff,
+    visibleTickers: recommendations
+      .map((recommendation) => recommendationTicker(recommendation))
+      .filter((ticker): ticker is string => ticker !== null),
+    scanWindow,
+    maxSamples: learningAccelerationTargetSamples,
+    inputSourceHint: learningAccelerationInputSource,
+  });
+  const researchSnapshots: RecommendationSnapshot[] = [];
 
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
@@ -1801,8 +2322,110 @@ async function persistAutomationArtifacts({
     );
   }
 
+  for (const sample of researchSelection.samples) {
+    const snapshot = buildSnapshotFromResearchSample({
+      sample,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
+    });
+
+    researchSnapshots.push(snapshot);
+    persistence.research_snapshots.push(
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
+    );
+  }
+
   const shadowSnapshotSummary =
-    summarizeRecommendationSnapshotShadowEntryTrialMetadata(snapshots);
+    summarizeRecommendationSnapshotShadowEntryTrialMetadata([
+      ...snapshots,
+      ...researchSnapshots,
+    ]);
+  const persistedResearchSnapshotCount =
+    persistence.research_snapshots.filter(
+      (snapshot) =>
+        snapshot.status === "saved" ||
+        snapshot.status === "duplicate",
+    ).length;
+  activeScanTrace?.update({
+    learning_acceleration_samples_collected_count:
+      researchSelection.samples_collected_count,
+    learning_acceleration_selected_below_threshold_count:
+      researchSelection.selected_below_threshold_count,
+    learning_acceleration_selected_below_threshold_readback_count:
+      researchSelection.selected_below_threshold_readback_count,
+    learning_acceleration_selected_below_threshold_passed_count:
+      researchSelection.selected_below_threshold_passed_count,
+    learning_acceleration_selected_below_threshold_matched_by_ticker_count:
+      researchSelection.selected_below_threshold_matched_by_ticker_count,
+    learning_acceleration_selected_below_threshold_unmatched_by_ticker_count:
+      researchSelection.selected_below_threshold_unmatched_by_ticker_count,
+    learning_acceleration_input_mismatch:
+      researchSelection.learning_acceleration_input_mismatch,
+    below_threshold_readback_count:
+      researchSelection.selected_below_threshold_readback_count,
+    below_threshold_runtime_input_count:
+      researchSelection.below_threshold_runtime_input_count,
+    below_threshold_examples_count:
+      researchSelection.below_threshold_examples_count,
+    research_candidates_after_ticker_match:
+      researchSelection.research_candidates_after_ticker_match_count,
+    research_persist_attempted:
+      researchSelection.research_persist_attempted_count,
+    research_persisted: persistedResearchSnapshotCount,
+    research_duplicates: researchSelection.research_duplicates_count,
+    research_skipped_invalid:
+      researchSelection.skipped_due_to_invalid_risk_count,
+    research_skipped_stale:
+      researchSelection.skipped_due_to_stale_reference_count,
+    research_skipped_budget:
+      researchSelection.skipped_due_to_budget_count,
+    research_skipped_missing_candidate_match:
+      researchSelection.research_skipped_missing_candidate_match_count,
+    learning_acceleration_candidate_universe_count:
+      researchSelection.candidate_universe_count,
+    learning_acceleration_candidate_universe_missing:
+      researchSelection.candidate_universe_missing,
+    learning_acceleration_ticker_matching_failed:
+      researchSelection.ticker_matching_failed,
+    learning_acceleration_input_source:
+      researchSelection.learning_acceleration_input_source,
+    learning_acceleration_research_only_persisted_count:
+      persistedResearchSnapshotCount,
+    learning_acceleration_skipped_due_to_budget_count:
+      researchSelection.skipped_due_to_budget_count,
+    learning_acceleration_skipped_due_to_invalid_risk_count:
+      researchSelection.skipped_due_to_invalid_risk_count,
+    learning_acceleration_skipped_due_to_stale_reference_count:
+      researchSelection.skipped_due_to_stale_reference_count,
+    learning_acceleration_research_hard_invalid_count:
+      researchSelection.research_hard_invalid_count,
+    learning_acceleration_research_soft_gaps_persisted_count:
+      researchSelection.research_soft_gaps_persisted_count,
+    learning_acceleration_research_stale_blocked_count:
+      researchSelection.research_stale_blocked_count,
+    learning_acceleration_research_skip_reason_counts:
+      researchSelection.research_skip_reason_counts,
+    learning_acceleration_research_soft_gap_reason_counts:
+      researchSelection.research_soft_gap_reason_counts,
+    learning_acceleration_research_top_skip_examples:
+      researchSelection.research_top_skip_examples,
+    learning_acceleration_research_top_soft_gap_examples:
+      researchSelection.research_top_soft_gap_examples,
+    learning_acceleration_top_research_sample_tickers:
+      researchSelection.top_research_sample_tickers,
+    learning_acceleration_sample_quality_summary:
+      researchSelection.sample_quality_summary,
+  });
   activeScanTrace?.updatePersistence({
     shadow_entry_trial_attached_count:
       shadowSnapshotSummary.shadow_snapshot_metadata_present_count,
@@ -1869,6 +2492,8 @@ async function persistAutomationArtifacts({
   return {
     scan_run: scanRun,
     snapshots,
+    research_snapshots: researchSnapshots,
+    learning_acceleration: researchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
@@ -1951,14 +2576,23 @@ export async function POST(request: Request) {
   const scheduledFunctionFiredAtUtc = isoTextOrNull(
     body.scheduled_function_fired_at_utc,
   );
+  const requestSource = textOrNull(body.source);
+  const scheduledScanAttemptFingerprint =
+    textOrNull(body.scheduled_scan_attempt_fingerprint) ??
+    buildScheduledScanAttemptFingerprint({
+      scheduledFunctionFiredAt: scheduledFunctionFiredAtUtc,
+      routeReceivedAt: new Date().toISOString(),
+      source: requestSource ?? (force ? "manual" : "automation_route"),
+    });
 
   console.log("[automation/run-scan] request body", {
     force,
     session_type,
     scan_window: requestedScanWindow,
     ignore_existing_run,
-    source: textOrNull(body.source),
+    source: requestSource,
     scheduled_function_fired_at_utc: scheduledFunctionFiredAtUtc,
+    scheduled_scan_attempt_fingerprint: scheduledScanAttemptFingerprint,
   });
 
   const routeStartedAtMs = Date.now();
@@ -1981,6 +2615,24 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig.learning_acceleration_enabled,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig.learning_acceleration_requested,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_category,
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig.learning_acceleration_runtime_environment,
+    learning_acceleration_mode:
+      scheduledRuntimeConfig.learning_acceleration_mode,
+    learning_acceleration_target_samples_per_window:
+      scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     provider_plan_mode: scheduledRuntimeConfig.provider_plan_mode,
     provider_plan_profile_mode:
@@ -2019,15 +2671,21 @@ export async function POST(request: Request) {
     ),
   });
 
-  const now = new Date();
-  const routeReceivedAtUtc = now.toISOString();
+  const routeReceivedAt = new Date();
+  const routeReceivedAtUtc = routeReceivedAt.toISOString();
+  const scanClock =
+    dateFromIsoOrNull(scheduledFunctionFiredAtUtc) ?? routeReceivedAt;
+  const now = scanClock;
   const marketStatus = await getUsMarketStatus();
-  const marketSession = buildMarketSessionEvaluation({ now, marketStatus });
+  const marketSession = buildMarketSessionEvaluation({
+    now: scanClock,
+    marketStatus,
+  });
   const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
     readRecentRecommendationScanRuns(),
     readRecentScheduledScanRuns(),
   ]);
-  let scanWindow = getScanWindowDueNow();
+  let scanWindow = getScanWindowDueNow(scanClock);
 
   if (force) {
     const forcedScanWindow = requestedScanWindow ?? getIntradayScanWindow(now);
@@ -2053,14 +2711,14 @@ export async function POST(request: Request) {
     }
 
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: forcedSessionType,
       scanWindow: forcedScanWindow,
     };
   }
 
   let dayTradeScanOrchestration = buildDayTradeScanOrchestrationSummary({
-    now,
+    now: scanClock,
     marketSession,
     marketStatus,
     scanRuns: recentRecommendationScanRuns,
@@ -2070,7 +2728,7 @@ export async function POST(request: Request) {
 
   if (!force && dayTradeScanOrchestration.active_window === "closed") {
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: getLegacySessionTypeForScanWindow("closed"),
       scanWindow: "closed",
     };
@@ -2084,7 +2742,7 @@ export async function POST(request: Request) {
     );
 
     scanWindow = {
-      scanDate: getNewYorkDateString(now),
+      scanDate: getNewYorkDateString(scanClock),
       sessionType: getLegacySessionTypeForScanWindow(orchestrationScanWindow),
       scanWindow: orchestrationScanWindow,
     };
@@ -2092,11 +2750,16 @@ export async function POST(request: Request) {
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
+  const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
+    orchestration: dayTradeScanOrchestration,
+    scanWindow: scanWindow.scanWindow,
+  });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
     scheduledFunctionFiredAtUtc,
     scanWindow: scanWindow.scanWindow,
   });
+  let generationBlockReason: string | null = null;
   let initialServingCadence = buildServingCadenceForAutomation({
     scanDate: scanWindow.scanDate || marketStatus.date,
     orchestration: dayTradeScanOrchestration,
@@ -2119,12 +2782,53 @@ export async function POST(request: Request) {
       orchestration: dayTradeScanOrchestration,
       decision,
       scanWindow: scanWindow.scanWindow,
+      generationBlockReason,
+      scheduledGateDiagnostics,
       scheduledRuntimeConfig,
       skippedReason,
       recentRecommendationScanRuns,
       recentScheduledScanRuns,
       currentScanLog,
     });
+  const attemptMode: "scheduled" | "manual" | "diagnostic" = force
+    ? "diagnostic"
+    : "scheduled";
+  const recordAttempt = (input: {
+    outcome: Parameters<typeof recordScheduledScanAttempt>[0]["outcome"];
+    allowed?: boolean | null;
+    message?: string | null;
+    skipReason?: string | null;
+    httpStatus?: number | null;
+    scanLog?: ScanLogEntry | null;
+    activeScanTrace?: ActiveScanTrace | null;
+    scheduledScanRunId?: string | number | null;
+  }) =>
+    recordScheduledScanAttempt({
+      attemptFingerprint: scheduledScanAttemptFingerprint,
+      source: requestSource ?? (force ? "manual" : "automation_route"),
+      mode: attemptMode,
+      outcome: input.outcome,
+      allowed:
+        input.allowed ??
+        scheduledGateDiagnostics.scheduled_gate_allowed,
+      routeReceivedAtUtc,
+      scheduledFunctionFiredAtUtc,
+      scanDate: scanWindow.scanDate || marketStatus.date,
+      scanWindow: scanWindow.scanWindow,
+      orchestration: dayTradeScanOrchestration,
+      message: input.message ?? null,
+      skipReason: input.skipReason ?? null,
+      httpStatus: input.httpStatus ?? null,
+      scanLog: input.scanLog ?? null,
+      activeScanTrace: input.activeScanTrace ?? null,
+      scheduledScanRunId: input.scheduledScanRunId ?? null,
+    });
+
+  await recordAttempt({
+    outcome: "route_received",
+    allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+    message: "Automation route received scheduled scan request.",
+  });
 
   activeScanTrace.updateProviderEnv();
   const schemaSupabase = getServerSupabaseClient();
@@ -2138,8 +2842,19 @@ export async function POST(request: Request) {
     market_status: marketStatusLabel(marketStatus),
     market_session: marketSession.phase,
     scan_window: scanWindow.scanWindow,
+    official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+    generation_window: scanWindow.scanWindow,
+    generation_block_reason: generationBlockReason,
     orchestration_decision: dayTradeScanOrchestration.decision,
     should_scan_now: dayTradeScanOrchestration.should_scan_now,
+    official_window_detected:
+      scheduledGateDiagnostics.official_window_detected,
+    scheduled_gate_window: scheduledGateDiagnostics.scheduled_gate_window,
+    scheduled_gate_allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+    scheduled_gate_block_reason:
+      scheduledGateDiagnostics.scheduled_gate_block_reason,
+    schedule_window_mismatch:
+      scheduledGateDiagnostics.schedule_window_mismatch,
     live_trial_fast_mode: scheduledRuntimeConfig.live_trial_fast_mode,
     grow_max_learning_mode: scheduledRuntimeConfig.grow_max_learning_mode,
     grow_max_learning_mode_env_raw_present:
@@ -2157,6 +2872,22 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.grow_max_learning_mode_blocked_reason,
     grow_max_learning_mode_enabled_source:
       scheduledRuntimeConfig.grow_max_learning_mode_enabled_source,
+    learning_acceleration_enabled:
+      scheduledRuntimeConfig.learning_acceleration_enabled,
+    learning_acceleration_requested:
+      scheduledRuntimeConfig.learning_acceleration_requested,
+    learning_acceleration_enabled_source:
+      scheduledRuntimeConfig.learning_acceleration_enabled_source,
+    learning_acceleration_env_raw_present:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_present,
+    learning_acceleration_env_raw_value_category:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_category,
+    learning_acceleration_env_raw_value_normalized:
+      scheduledRuntimeConfig.learning_acceleration_env_raw_value_normalized,
+    learning_acceleration_runtime_environment:
+      scheduledRuntimeConfig.learning_acceleration_runtime_environment,
+    learning_acceleration_mode:
+      scheduledRuntimeConfig.learning_acceleration_mode,
     target_ideas_per_window: scheduledRuntimeConfig.target_ideas_per_window,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
@@ -2309,6 +3040,15 @@ export async function POST(request: Request) {
       skipReason: message,
       zeroReason: "market_not_open_for_active_scan",
     });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: "market_not_open_for_active_scan",
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -2358,6 +3098,12 @@ export async function POST(request: Request) {
     scanWindow.scanWindow !== "pre_market" &&
     !disabledGenerationBypassAllowed
   ) {
+    generationBlockReason = "outside_generation_window";
+    activeScanTrace.update({
+      official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+      generation_window: scanWindow.scanWindow,
+      generation_block_reason: generationBlockReason,
+    });
     const discardReview =
       scanWindow.scanWindow === "closed"
         ? await runDiscardReviewIfDue({
@@ -2392,6 +3138,10 @@ export async function POST(request: Request) {
       recommendationsCreated: 0,
       details: {
         ...powerHourTrialGate,
+        scheduled_gate: scheduledGateDiagnostics,
+        official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
+        generation_window: scanWindow.scanWindow,
+        generation_block_reason: generationBlockReason,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -2401,7 +3151,16 @@ export async function POST(request: Request) {
       decision: "skipped_outside_window",
       status: "skipped",
       skipReason: message,
-      zeroReason: "outside_generation_window",
+      zeroReason: generationBlockReason,
+    });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: generationBlockReason,
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
     });
 
     return NextResponse.json({
@@ -2450,18 +3209,72 @@ export async function POST(request: Request) {
   let startedScheduledRunId: string | number | null = null;
 
   try {
-    if (!force && !isActiveAutomationWindow(scanWindow.scanWindow)) {
-      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped without recording a noisy empty run.`;
-      const decision =
-        dayTradeScanOrchestration.decision === "market_closed"
-          ? ("skipped_market_closed" satisfies AutomationScanDecision)
-          : ("skipped_outside_window" satisfies AutomationScanDecision);
+    if (!force && !scheduledGateDiagnostics.scheduled_gate_allowed) {
+      const decision = scheduledSkipDecisionForOrchestration(
+        dayTradeScanOrchestration,
+      );
+      const scheduledGateBlockReason =
+        scheduledGateDiagnostics.scheduled_gate_block_reason ??
+        "not_official_scan_window";
+      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped because official window decision is ${dayTradeScanOrchestration.decision}.`;
       const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
         decision,
         status: "skipped",
         skipReason: message,
-        zeroReason: "not_active_automation_window",
+        zeroReason: scheduledGateBlockReason,
       });
+      const scanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result:
+          decision === "skipped_market_closed"
+            ? "market_closed"
+            : decision === "skipped_provider_unavailable"
+              ? "provider_error"
+              : "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: scheduledGateBlockReason,
+          scheduled_gate: scheduledGateDiagnostics,
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+
+      let skippedRunId: string | number | null = null;
+      try {
+        skippedRunId = await recordScheduledScanRun({
+          scanDate,
+          sessionType,
+          status: "skipped",
+          recommendationsCreated: 0,
+          message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog,
+          ignoreExistingRun: ignore_existing_run,
+        });
+      } catch (recordError) {
+        console.error("[automation/run-scan] official_window_skip_record_error", {
+          scanDate,
+          sessionType,
+          scanWindow: scanWindow.scanWindow,
+          error: normalizeUnknownError(recordError),
+        });
+      }
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: false,
+        message,
+        skipReason: scheduledGateBlockReason,
+        httpStatus: 200,
+        scanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: skippedRunId,
+      });
+
       return NextResponse.json({
         ok: true,
         message,
@@ -2476,6 +3289,7 @@ export async function POST(request: Request) {
         automation_diagnostics: automationDiagnostics({
           decision,
           skippedReason: message,
+          currentScanLog: scanLog,
         }),
         forced: force,
         scan_date: scanDate,
@@ -2526,8 +3340,9 @@ export async function POST(request: Request) {
         },
       });
 
+      let providerSkipRunId: string | number | null = null;
       try {
-        await recordScheduledScanRun({
+        providerSkipRunId = await recordScheduledScanRun({
           scanDate,
           sessionType,
           status: "failed",
@@ -2544,6 +3359,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(recordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+        message,
+        skipReason: "provider_environment_missing",
+        httpStatus: 200,
+        scanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: providerSkipRunId,
+      });
 
       return NextResponse.json(
         {
@@ -2645,9 +3470,36 @@ export async function POST(request: Request) {
         candidatesGenerated,
         recommendationsServed: recommendationsCreated,
         recommendationsCreated,
-        zeroReason: "recent_same_window_scan_completed",
+        noPublishReason: "same_window_cooldown",
+        zeroReason: "same_window_cooldown",
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: false,
+      });
+      const cooldownScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "same_window_cooldown",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence:
+            latestSameWindowScan?.scanLog.recommendation_serving_cadence ??
+            initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: true,
+        message,
+        skipReason: "same_window_cooldown",
+        httpStatus: 200,
+        scanLog: cooldownScanLog,
+        activeScanTrace: activeScanTracePayload,
       });
 
       return NextResponse.json({
@@ -2719,6 +3571,30 @@ export async function POST(request: Request) {
         zeroReason: "scheduled_scan_in_progress",
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: false,
+      });
+      const inProgressScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "scheduled_scan_in_progress",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
+      await recordAttempt({
+        outcome: "skipped",
+        allowed: true,
+        message,
+        skipReason: "scheduled_scan_in_progress",
+        httpStatus: 200,
+        scanLog: inProgressScanLog,
+        activeScanTrace: activeScanTracePayload,
       });
 
       return NextResponse.json({
@@ -2818,6 +3694,21 @@ export async function POST(request: Request) {
         elapsedMilliseconds: elapsedMs(routeStartedAtMs),
         timeoutWasReached: true,
       });
+      const timeoutScanLog = createAutomationScanLog({
+        source: "scheduled",
+        scanWindow: scanWindow.scanWindow,
+        marketStatus,
+        result: "skipped",
+        message,
+        recommendationsCreated: 0,
+        details: {
+          ...powerHourTrialGate,
+          no_publish_reason: "timeout_budget_exceeded",
+          day_trade_scan_orchestration: dayTradeScanOrchestration,
+          recommendation_serving_cadence: initialServingCadence,
+          active_scan_trace: activeScanTracePayload,
+        },
+      });
 
       try {
         await updateScheduledScanRun({
@@ -2825,6 +3716,7 @@ export async function POST(request: Request) {
           status: "failed",
           recommendationsCreated: 0,
           message: `${message} scan_window=${scanWindow.scanWindow}`,
+          scanLog: timeoutScanLog,
         });
       } catch (timeoutRecordError) {
         console.error("[automation/run-scan] pre_generation_timeout_record_error", {
@@ -2834,6 +3726,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(timeoutRecordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: true,
+        message,
+        skipReason: "timeout_budget_exceeded",
+        httpStatus: 200,
+        scanLog: timeoutScanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: startedScheduledRunId,
+      });
 
       return NextResponse.json({
         ok: true,
@@ -2939,6 +3841,16 @@ export async function POST(request: Request) {
           error: normalizeUnknownError(timeoutRecordError),
         });
       }
+      await recordAttempt({
+        outcome: "failed",
+        allowed: true,
+        message,
+        skipReason: "timeout_budget_exceeded",
+        httpStatus: 200,
+        scanLog: timeoutScanLog,
+        activeScanTrace: activeScanTracePayload,
+        scheduledScanRunId: startedScheduledRunId,
+      });
 
       return NextResponse.json({
         ok: true,
@@ -3016,6 +3928,62 @@ export async function POST(request: Request) {
 
     let artifactResult: Awaited<ReturnType<typeof persistAutomationArtifacts>> | null =
       null;
+    const generationSelectedBuildDiagnostics =
+      generationScanLog?.selected_candidate_build_diagnostics ?? [];
+    const generationSelectedToBuiltDropOff =
+      generationScanLog?.selected_to_built_drop_off ?? null;
+    const generationDropOffBelowThresholdCount =
+      generationSelectedToBuiltDropOff?.rejection_counts
+        .below_publish_threshold ?? 0;
+    const generationDiagnosticBelowThresholdCount =
+      generationSelectedBuildDiagnostics.filter(
+        (diagnostic) =>
+          diagnostic.rejection_reason === "below_publish_threshold" &&
+          diagnostic.built !== true,
+      ).length;
+    const generationBelowThresholdCount = Math.max(
+      generationDropOffBelowThresholdCount,
+      generationDiagnosticBelowThresholdCount,
+    );
+    const generationRejectionExamplesCount =
+      generationSelectedToBuiltDropOff?.examples_by_reason.below_publish_threshold
+        ?.length ?? 0;
+    const generationCandidateUniverseCount =
+      generationScanLog?.real_scanner_candidate_generation?.candidates.length ?? 0;
+    const generationRankedCandidateCount =
+      generationScanLog?.scanner_candidate_ranking?.candidates_ranked ??
+      generationScanLog?.ranked_candidates_count ??
+      0;
+    const learningAccelerationInputSource =
+      generationSelectedBuildDiagnostics.some(
+        (diagnostic) =>
+          diagnostic.rejection_reason === "below_publish_threshold" &&
+          diagnostic.built !== true,
+      )
+        ? "selected_candidate_build_diagnostics"
+        : generationBelowThresholdCount > 0
+          ? "timeline_rejection_diagnostics"
+          : null;
+    activeScanTrace.update({
+      learning_acceleration_callsite_trace: {
+        callsite_name: "automation_run_scan_success_persist_artifacts",
+        candidate_universe_count: generationCandidateUniverseCount,
+        ranked_candidate_count: generationRankedCandidateCount,
+        selected_build_diagnostics_count:
+          generationSelectedBuildDiagnostics.length,
+        selected_to_built_drop_off_below_threshold_count:
+          generationDropOffBelowThresholdCount,
+        rejection_examples_count: generationRejectionExamplesCount,
+        batch_fingerprint_present: false,
+        scan_run_id_present: false,
+        persist_function_invoked: false,
+      },
+      learning_acceleration_expected_below_threshold_from_timeline:
+        generationBelowThresholdCount,
+      learning_acceleration_actual_below_threshold_received_by_persistence: 0,
+      learning_acceleration_candidate_universe_received_by_persistence: 0,
+      learning_acceleration_callsite_mismatch: generationBelowThresholdCount > 0,
+    });
 
     try {
       artifactResult = await persistAutomationArtifacts({
@@ -3032,6 +4000,19 @@ export async function POST(request: Request) {
         activeScanTrace,
         providerPlanProfileMode:
           scheduledRuntimeConfig.provider_plan_profile_mode,
+        learningAccelerationMode: scheduledRuntimeConfig,
+        learningAccelerationTargetSamples:
+          scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
+        learningAccelerationInput: {
+          candidateGeneration:
+            generationScanLog?.real_scanner_candidate_generation ?? null,
+          ranking: generationScanLog?.scanner_candidate_ranking ?? null,
+          selectedBuildDiagnostics: generationSelectedBuildDiagnostics,
+          selectedToBuiltDropOff: generationSelectedToBuiltDropOff,
+          inputSource: learningAccelerationInputSource,
+          callsiteName: "automation_run_scan_success_persist_artifacts",
+          expectedBelowThresholdFromTimeline: generationBelowThresholdCount,
+        },
       });
       activeScanTrace.updatePersistence({
         scan_run_persisted:
@@ -3108,6 +4089,10 @@ export async function POST(request: Request) {
         generationScanLog?.deterministic_fallback_used === true,
       batchFingerprint,
       scanRunFingerprint,
+      selectedCandidateBuildDiagnostics:
+        generationScanLog?.selected_candidate_build_diagnostics ?? [],
+      selectedToBuiltDropOff:
+        generationScanLog?.selected_to_built_drop_off ?? null,
       elapsedMilliseconds: elapsedMs(routeStartedAtMs),
       timeoutWasReached: timeoutReached(
         routeStartedAtMs,
@@ -3135,6 +4120,15 @@ export async function POST(request: Request) {
         ignoreExistingRun: ignore_existing_run,
       });
     }
+    await recordAttempt({
+      outcome: "scanned",
+      allowed: true,
+      message,
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+      scheduledScanRunId: startedScheduledRunId,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -3191,6 +4185,124 @@ export async function POST(request: Request) {
             snapshot.status === "saved" ||
             snapshot.status === "duplicate",
         ).length ?? 0,
+      research_snapshots_persisted_count:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
+      learning_acceleration_samples_collected:
+        artifactResult?.learning_acceleration.samples_collected_count ?? 0,
+      learning_acceleration_selected_below_threshold:
+        artifactResult?.learning_acceleration.selected_below_threshold_count ?? 0,
+      learning_acceleration_selected_below_threshold_readback:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_readback_count ?? 0,
+      learning_acceleration_selected_below_threshold_passed:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_passed_count ?? 0,
+      learning_acceleration_selected_below_threshold_matched_by_ticker:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_matched_by_ticker_count ?? 0,
+      learning_acceleration_selected_below_threshold_unmatched_by_ticker:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_unmatched_by_ticker_count ?? 0,
+      learning_acceleration_input_mismatch:
+        artifactResult?.learning_acceleration
+          .learning_acceleration_input_mismatch ?? false,
+      learning_acceleration_input_source:
+        artifactResult?.learning_acceleration
+          .learning_acceleration_input_source ?? "none",
+      below_threshold_readback_count:
+        artifactResult?.learning_acceleration
+          .selected_below_threshold_readback_count ?? 0,
+      below_threshold_runtime_input_count:
+        artifactResult?.learning_acceleration
+          .below_threshold_runtime_input_count ?? 0,
+      below_threshold_examples_count:
+        artifactResult?.learning_acceleration
+          .below_threshold_examples_count ?? 0,
+      research_candidates_after_ticker_match:
+        artifactResult?.learning_acceleration
+          .research_candidates_after_ticker_match_count ?? 0,
+      research_persist_attempted:
+        artifactResult?.learning_acceleration
+          .research_persist_attempted_count ?? 0,
+      research_persisted:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
+      research_duplicates:
+        artifactResult?.learning_acceleration.research_duplicates_count ?? 0,
+      research_skipped_invalid:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_invalid_risk_count ?? 0,
+      research_skipped_stale:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_stale_reference_count ?? 0,
+      research_skipped_budget:
+        artifactResult?.learning_acceleration.skipped_due_to_budget_count ?? 0,
+      research_skipped_missing_candidate_match:
+        artifactResult?.learning_acceleration
+          .research_skipped_missing_candidate_match_count ?? 0,
+      learning_acceleration_candidate_universe_count:
+        artifactResult?.learning_acceleration.candidate_universe_count ?? 0,
+      learning_acceleration_candidate_universe_missing:
+        artifactResult?.learning_acceleration.candidate_universe_missing ?? false,
+      learning_acceleration_ticker_matching_failed:
+        artifactResult?.learning_acceleration.ticker_matching_failed ?? false,
+      learning_acceleration_callsite_trace:
+        activeScanTracePayload.learning_acceleration_callsite_trace,
+      learning_acceleration_callsite_mismatch:
+        activeScanTracePayload.learning_acceleration_callsite_mismatch,
+      expected_below_threshold_from_timeline:
+        activeScanTracePayload
+          .learning_acceleration_expected_below_threshold_from_timeline,
+      actual_below_threshold_received_by_persistence:
+        activeScanTracePayload
+          .learning_acceleration_actual_below_threshold_received_by_persistence,
+      candidate_universe_received_by_persistence:
+        activeScanTracePayload
+          .learning_acceleration_candidate_universe_received_by_persistence,
+      learning_acceleration_research_only_persisted:
+        artifactResult?.persistence.research_snapshots.filter(
+          (snapshot) =>
+            snapshot.status === "saved" ||
+            snapshot.status === "duplicate",
+        ).length ?? 0,
+      learning_acceleration_sample_quality_summary:
+        artifactResult?.learning_acceleration.sample_quality_summary ?? {
+          good: 0,
+          usable: 0,
+        },
+      learning_acceleration_top_research_sample_tickers:
+        artifactResult?.learning_acceleration.top_research_sample_tickers ?? [],
+      learning_acceleration_skipped_due_to_budget:
+        artifactResult?.learning_acceleration.skipped_due_to_budget_count ?? 0,
+      learning_acceleration_skipped_due_to_invalid_risk:
+        artifactResult?.learning_acceleration.skipped_due_to_invalid_risk_count ?? 0,
+      learning_acceleration_skipped_due_to_stale_reference:
+        artifactResult?.learning_acceleration
+          .skipped_due_to_stale_reference_count ?? 0,
+      learning_acceleration_research_hard_invalid:
+        artifactResult?.learning_acceleration.research_hard_invalid_count ?? 0,
+      learning_acceleration_research_soft_gaps_persisted:
+        artifactResult?.learning_acceleration
+          .research_soft_gaps_persisted_count ?? 0,
+      learning_acceleration_research_stale_blocked:
+        artifactResult?.learning_acceleration.research_stale_blocked_count ?? 0,
+      learning_acceleration_research_skip_reason_counts:
+        artifactResult?.learning_acceleration.research_skip_reason_counts ?? {},
+      learning_acceleration_research_soft_gap_reason_counts:
+        artifactResult?.learning_acceleration.research_soft_gap_reason_counts ??
+        {},
+      learning_acceleration_research_top_skip_examples:
+        artifactResult?.learning_acceleration.research_top_skip_examples ?? [],
+      learning_acceleration_research_top_soft_gap_examples:
+        artifactResult?.learning_acceleration
+          .research_top_soft_gap_examples ?? [],
       shadow_entry_trial_attached_count:
         artifactResult?.shadow_snapshot_summary
           .shadow_snapshot_metadata_present_count ?? 0,
@@ -3214,6 +4326,7 @@ export async function POST(request: Request) {
       market_session: marketSession,
       day_trade_scan_orchestration: dayTradeScanOrchestration,
       recommendation_serving_cadence: servingCadence,
+      learning_acceleration: artifactResult?.learning_acceleration ?? null,
       persistence: artifactResult?.persistence ?? null,
     });
   } catch (error) {
@@ -3290,6 +4403,20 @@ export async function POST(request: Request) {
 
     const status =
       error instanceof RecommendationGenerationError ? error.status : 500;
+    await recordAttempt({
+      outcome: failureDecision === "failed" ? "failed" : "skipped",
+      allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+      message,
+      skipReason:
+        failureResult === "provider_error" ||
+        failureResult === "provider_rate_limited"
+          ? failureResult
+          : errorType(error),
+      httpStatus: status,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+      scheduledScanRunId: startedScheduledRunId,
+    });
 
     return NextResponse.json(
       {

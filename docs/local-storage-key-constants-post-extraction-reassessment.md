@@ -310,3 +310,22 @@ Boundary outcome:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Follow-Up
+
+Action 411 added
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Boundary outcome:
+
+- Confirmed the live market trial runbook key still uses the exact static
+  constant value `trade-live-market-trial-runbook-v1`.
+- Confirmed no additional key constants, read/write helpers, dynamic builders,
+  migrations, defaults, Supabase behavior, trade mutations, or execution
+  persistence moved.
+- Recommended extracting a dedicated runbook persistence wrapper next only if
+  it preserves the current typed/default and normalization contract exactly.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**

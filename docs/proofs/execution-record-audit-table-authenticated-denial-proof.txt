@@ -1,0 +1,55 @@
+Action 792 authenticated denial harness proof
+
+Status: audit_table_authenticated_denial_verified_manual_operator_proof
+
+Proof source:
+- Command was run manually by the operator in a VS Code terminal where the authenticated denial test environment was available.
+- Codex did not rerun the harness in this action.
+- Manual command: node scripts/verify-audit-table-authenticated-denial.mjs
+- Harness path: scripts/verify-audit-table-authenticated-denial.mjs
+- No secrets were included in the pasted manual output summary.
+
+Manual harness output summary:
+- Overall classification: denied
+- Auth mode: password
+- service_role_used: false
+- production_routes_called: false
+- app_runtime_mutated: false
+
+Authenticated SELECT result:
+- result: denied
+- error_code: null
+- rows_visible: 0
+
+Authenticated INSERT result:
+- result: denied
+- error_code: 42501
+- cleanup attempted: false
+- cleanup result: not_needed
+- cleanup error_code: null
+- may_have_persisted: false
+
+Not performed by Codex in Action 792:
+- no harness rerun
+- no migrations
+- no type generation
+- no generated type edits
+- no service-role code
+- no audit writer
+- no route calls
+- no runtime write path
+- no audit append implementation
+- no broker/Avanza behavior
+- no automatic mode
+
+Safety boundaries:
+- Authenticated denial proof is not generated types proof.
+- Authenticated denial proof is not writer implementation.
+- Authenticated denial proof is not write-path approval.
+- Authenticated denial proof is not audit append approval.
+- Authenticated denial proof is not server-only proof.
+- Authenticated denial proof is not route/auth proof.
+- Downstream behavior remains unauthorized.
+- Broker/Avanza/automatic behavior remains unauthorized.
+
+Recommended next action: Action 793 - Generate Audit Table Supabase Types

@@ -1,0 +1,48 @@
+Action: 839 - Controlled Execution Record FK Lookup For Audit Writer Live Smoke Insert
+Workspace: /Users/willysimonsson/Dev/trade
+Operator approval: Willy Simonsson
+Approval timestamp: 2026-06-26 03:38 CEST
+Project: Trade
+Project ref: ekdyopdrrkphlrsilyoo
+Environment: staging
+Target table: public.execution_records
+Allowed operation: read-only lookup
+Selected field: id
+Limit: 1
+
+Command summary:
+- A local Node/Supabase script loaded .env.local without printing values.
+- The script used the hosted staging Supabase client with service-role credentials kept in process memory only.
+- The script executed exactly one read-only lookup:
+  - table: public.execution_records
+  - selected fields: id
+  - row limit: 1
+
+Result:
+- status: no_execution_record_available
+- selected_execution_record_id: null
+- mutation_performed: false
+- insert_performed: false
+- secrets_printed: false
+
+Interpretation:
+- The one-row lookup succeeded without returning an execution record id.
+- No audit writer live smoke insert was attempted.
+- The previously approved single audit writer smoke insert remains unspent.
+- The audit writer live smoke insert remains blocked until a controlled public.execution_records row exists or an exact controlled execution_record_id is provided.
+
+Not performed:
+- no insert
+- no update/delete/upsert
+- no broad table dump
+- no trade/stats/PnL mutation
+- no UI/browser call
+- no market-loop invocation
+- no broker/Avanza behavior
+- no automatic mode
+- no production rollout
+- no .env.local changes
+- no migrations
+- no type generation
+- no generated type edits
+- no service-role value printing

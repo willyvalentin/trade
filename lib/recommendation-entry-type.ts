@@ -1,24 +1,26 @@
-import type {
-  RecommendationOutcome,
-  RecommendationOutcomeCandle,
-} from "@/lib/recommendation-outcome-tracker";
+export const ENTRY_TYPE_DISTANCE_THRESHOLD_PCT = 0.3;
 
-const ENTRY_TYPE_DISTANCE_THRESHOLD_PCT = 0.3;
+export const RECOMMENDATION_ENTRY_TYPES = [
+  "pullback_limit",
+  "breakout_stop",
+  "market_reference",
+  "range_reclaim",
+  "unknown",
+] as const;
 
-export type RecommendationEntryType =
-  | "pullback_limit"
-  | "breakout_stop"
-  | "market_reference"
-  | "range_reclaim"
-  | "unknown";
+export type RecommendationEntryType = (typeof RECOMMENDATION_ENTRY_TYPES)[number];
+
+export const RECOMMENDATION_ENTRY_TRIGGER_SEMANTICS = [
+  "long_low_touches_entry",
+  "long_high_crosses_entry",
+  "immediate_reference",
+  "short_high_touches_entry",
+  "short_low_crosses_entry",
+  "unknown",
+] as const;
 
 export type RecommendationEntryTriggerSemantics =
-  | "long_low_touches_entry"
-  | "long_high_crosses_entry"
-  | "short_high_touches_entry"
-  | "short_low_crosses_entry"
-  | "immediate_reference"
-  | "unknown";
+  (typeof RECOMMENDATION_ENTRY_TRIGGER_SEMANTICS)[number];
 
 export type RecommendationEntryTypeSource =
   | "deterministic_plan_builder"
@@ -33,203 +35,282 @@ export type RecommendationEntryTypeMetadata = {
   entry_trigger_semantics: RecommendationEntryTriggerSemantics;
   entry_type_source: RecommendationEntryTypeSource;
   entry_type_confidence: RecommendationEntryTypeConfidence;
-  entry_type_reference_price: number | null;
-  entry_type_reference_price_source: string | null;
-  entry_type_reference_price_read_path: string | null;
-  entry_type_entry_distance_from_reference_pct: number | null;
   entry_type_warnings: string[];
+  entry_type_reference_price: number | null;
+  entry_type_reference_source: string | null;
+  entry_type_reference_read_path: string | null;
+  entry_type_reference_distance_pct: number | null;
+  entry_type_requires_reference_price: boolean;
+  reference_price_missing_for_entry_type: boolean;
+  unknown_due_to_missing_reference: boolean;
+};
+
+export type EntryTypeAwareTriggerDiagnostics = {
+  official_trigger_semantics_used: string;
+  entry_type: RecommendationEntryType;
+  entry_type_source: RecommendationEntryTypeSource;
+  entry_type_confidence: RecommendationEntryTypeConfidence;
+  entry_type_warnings: string[];
+  entry_type_aware_trigger_semantics: RecommendationEntryTriggerSemantics;
+  entry_type_aware_entry_triggered: boolean | null;
+  entry_type_aware_entry_triggered_at: string | null;
+  entry_type_aware_status_if_applied: string | null;
+  legacy_range_touch_triggered: boolean | null;
+  legacy_range_touch_triggered_at: string | null;
+  entry_type_trigger_disagreement: boolean;
+  entry_type_trigger_disagreement_reason: string | null;
+  unknown_due_to_missing_reference: boolean;
+  reference_price_missing_for_entry_type: boolean;
+  entry_type_requires_reference_price: boolean;
+};
+
+export type EntryTypeTriggerSummary = {
+  total_outcomes: number;
+  known_entry_type_count: number;
+  unknown_entry_type_count: number;
+  by_entry_type: Record<string, number>;
+  by_trigger_semantics: Record<string, number>;
+  entry_type_triggered_count: number;
+  official_triggered_count: number;
+  legacy_range_touch_triggered_count: number;
+  current_route_triggered_count: number;
+  disagreement_count: number;
+  disagreement_rate: number;
+  top_disagreement_reasons: Record<string, number>;
+  tickers_with_disagreements: string[];
+  unknown_due_to_missing_reference_count: number;
 };
 
 export type EntryTypeSnapshotLike = {
   ticker?: string | null;
   entry?: number | null;
   side?: string | null;
-  direction?: string | null;
-  trade_direction?: string | null;
-  recommendation_side?: string | null;
   quote_price?: number | null;
   payload_json?: Record<string, unknown> | null;
 };
 
-export type EntryTypeCandleLike = Pick<
-  RecommendationOutcomeCandle,
-  "timestamp" | "high" | "low" | "close"
->;
-
-export type EntryTypeAwareTriggerDiagnostics = {
-  entry_type: RecommendationEntryType;
-  entry_trigger_semantics: RecommendationEntryTriggerSemantics;
-  entry_type_source: RecommendationEntryTypeSource;
-  entry_type_confidence: RecommendationEntryTypeConfidence;
-  reference_price: number | null;
-  reference_price_source: string | null;
-  reference_price_read_path: string | null;
-  official_triggered: boolean | null;
-  entry_type_aware_triggered: boolean | null;
-  official_triggered_at: string | null;
-  entry_type_aware_triggered_at: string | null;
-  official_status: RecommendationOutcome["status"] | null;
-  status_if_entry_type_applied: RecommendationOutcome["status"] | null;
-  trigger_disagreement: boolean;
-  disagreement_reason: string | null;
-  unknown_due_to_missing_reference: boolean;
-  candle_count: number;
+export type EntryTypeCandleLike = {
+  timestamp?: string | Date | number | null;
+  high?: number | null;
+  low?: number | null;
 };
 
-export type EntryTypeTriggerSummary = {
-  total_outcomes: number;
-  total_candidates: number;
-  known_entry_type_count: number;
-  unknown_entry_type_count: number;
-  unknown_due_to_missing_reference_count: number;
-  by_entry_type: Record<string, number>;
-  by_trigger_semantics: Record<string, number>;
-  by_source: Record<string, number>;
-  current_route_triggered_count: number;
-  official_triggered_count: number;
-  entry_type_triggered_count: number;
-  entry_type_aware_triggered_count: number;
-  disagreement_count: number;
-  disagreement_rate: number;
-  top_disagreement_reasons: Array<{ reason: string; count: number }>;
-  disagreement_reasons: Record<string, number>;
-  tickers_with_disagreements: string[];
-  disagreement_tickers: string[];
-};
-
-function finiteNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+function finiteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
-function textOrNull(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-function recordOrNull(value: unknown): Record<string, unknown> | null {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
+function objectOrNull(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
 }
 
-function normalizeSide(value: unknown) {
+function normalizeSide(value: unknown): "long" | "short" | "unknown" {
   const text = textOrNull(value)?.toLowerCase();
-  if (text === "short") return "short";
-  if (text === "long") return "long";
+  if (text === "short" || text === "sell") return "short";
+  if (text === "long" || text === "buy") return "long";
   return "unknown";
 }
 
 function normalizeEntryType(value: unknown): RecommendationEntryType | null {
-  if (
-    value === "pullback_limit" ||
-    value === "breakout_stop" ||
-    value === "market_reference" ||
-    value === "range_reclaim" ||
-    value === "unknown"
-  ) {
-    return value;
-  }
-  return null;
+  return RECOMMENDATION_ENTRY_TYPES.includes(value as RecommendationEntryType)
+    ? (value as RecommendationEntryType)
+    : null;
 }
 
-function normalizeTriggerSemantics(
+function normalizeSemantics(
   value: unknown,
 ): RecommendationEntryTriggerSemantics | null {
-  if (
-    value === "long_low_touches_entry" ||
-    value === "long_high_crosses_entry" ||
-    value === "short_high_touches_entry" ||
-    value === "short_low_crosses_entry" ||
-    value === "immediate_reference" ||
-    value === "unknown"
-  ) {
-    return value;
-  }
-  return null;
+  return RECOMMENDATION_ENTRY_TRIGGER_SEMANTICS.includes(
+    value as RecommendationEntryTriggerSemantics,
+  )
+    ? (value as RecommendationEntryTriggerSemantics)
+    : null;
 }
 
 function normalizeSource(value: unknown): RecommendationEntryTypeSource {
-  if (
-    value === "deterministic_plan_builder" ||
+  return value === "deterministic_plan_builder" ||
     value === "metadata_inference" ||
-    value === "fallback_inference" ||
-    value === "unknown"
+    value === "fallback_inference"
+    ? value
+    : "unknown";
+}
+
+function normalizeConfidence(value: unknown): RecommendationEntryTypeConfidence {
+  return value === "high" || value === "medium" || value === "low"
+    ? value
+    : "low";
+}
+
+function timestampIso(value: unknown): string | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value.toISOString();
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const normalized = value > 10_000_000_000 ? value : value * 1000;
+    const date = new Date(normalized);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : value.trim();
+  }
+  return null;
+}
+
+function roundPct(value: number | null): number | null {
+  return value === null ? null : Math.round(value * 1000) / 1000;
+}
+
+function distancePct(entry: number | null, reference: number | null) {
+  if (entry === null || reference === null || reference === 0) return null;
+  return roundPct(((entry - reference) / Math.abs(reference)) * 100);
+}
+
+function arrayOfStrings(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function semanticsFor(
+  side: "long" | "short" | "unknown",
+  entryType: RecommendationEntryType,
+): RecommendationEntryTriggerSemantics {
+  if (entryType === "market_reference") return "immediate_reference";
+  if (side === "long" && entryType === "pullback_limit") {
+    return "long_low_touches_entry";
+  }
+  if (
+    side === "long" &&
+    (entryType === "breakout_stop" || entryType === "range_reclaim")
   ) {
-    return value;
+    return "long_high_crosses_entry";
+  }
+  if (side === "short" && entryType === "pullback_limit") {
+    return "short_high_touches_entry";
+  }
+  if (
+    side === "short" &&
+    (entryType === "breakout_stop" || entryType === "range_reclaim")
+  ) {
+    return "short_low_crosses_entry";
   }
   return "unknown";
 }
 
-function normalizeConfidence(value: unknown): RecommendationEntryTypeConfidence {
-  if (value === "high" || value === "medium" || value === "low") {
-    return value;
-  }
-  return "low";
-}
-
-function normalizeWarnings(value: unknown) {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-    : [];
-}
-
-function distancePct(entry: number | null, referencePrice: number | null) {
-  if (entry === null || referencePrice === null || referencePrice <= 0) {
-    return null;
-  }
-  return Math.abs((entry - referencePrice) / referencePrice) * 100;
-}
-
-function metadataFromRecord(
-  value: Record<string, unknown> | null,
+function readExplicitMetadataFromRecord(
+  record: Record<string, unknown> | null,
 ): RecommendationEntryTypeMetadata | null {
-  if (!value) return null;
-
-  const nested = recordOrNull(value.entry_type_metadata);
-  const source = nested ?? value;
-  const entryType = normalizeEntryType(source.entry_type);
-
-  if (!entryType) {
-    return null;
-  }
+  if (!record) return null;
+  const entryType = normalizeEntryType(record.entry_type);
+  if (!entryType) return null;
 
   return {
     entry_type: entryType,
     entry_trigger_semantics:
-      normalizeTriggerSemantics(source.entry_trigger_semantics) ?? "unknown",
-    entry_type_source: normalizeSource(source.entry_type_source),
-    entry_type_confidence: normalizeConfidence(source.entry_type_confidence),
-    entry_type_reference_price: finiteNumber(source.entry_type_reference_price),
-    entry_type_reference_price_source: textOrNull(
-      source.entry_type_reference_price_source,
+      normalizeSemantics(record.entry_trigger_semantics) ?? "unknown",
+    entry_type_source: normalizeSource(record.entry_type_source),
+    entry_type_confidence: normalizeConfidence(record.entry_type_confidence),
+    entry_type_warnings: arrayOfStrings(record.entry_type_warnings),
+    entry_type_reference_price: finiteNumber(record.entry_type_reference_price),
+    entry_type_reference_source: textOrNull(record.entry_type_reference_source),
+    entry_type_reference_read_path: textOrNull(
+      record.entry_type_reference_read_path,
     ),
-    entry_type_reference_price_read_path: textOrNull(
-      source.entry_type_reference_price_read_path,
+    entry_type_reference_distance_pct: finiteNumber(
+      record.entry_type_reference_distance_pct,
     ),
-    entry_type_entry_distance_from_reference_pct: finiteNumber(
-      source.entry_type_entry_distance_from_reference_pct,
-    ),
-    entry_type_warnings: normalizeWarnings(source.entry_type_warnings),
+    entry_type_requires_reference_price:
+      record.entry_type_requires_reference_price !== false,
+    reference_price_missing_for_entry_type:
+      record.reference_price_missing_for_entry_type === true,
+    unknown_due_to_missing_reference:
+      record.unknown_due_to_missing_reference === true,
   };
 }
 
-function inferSemantics(
-  side: string,
-  entryType: RecommendationEntryType,
-): RecommendationEntryTriggerSemantics {
-  if (entryType === "market_reference") return "immediate_reference";
-  if (side === "short") {
-    if (entryType === "pullback_limit") return "short_high_touches_entry";
-    if (entryType === "breakout_stop" || entryType === "range_reclaim") {
-      return "short_low_crosses_entry";
+function readExplicitMetadata(
+  payload: Record<string, unknown> | null,
+): RecommendationEntryTypeMetadata | null {
+  return (
+    readExplicitMetadataFromRecord(payload) ??
+    readExplicitMetadataFromRecord(objectOrNull(payload?.entry_type_metadata)) ??
+    readExplicitMetadataFromRecord(objectOrNull(payload?.trade_plan)) ??
+    readExplicitMetadataFromRecord(objectOrNull(payload?.recommendation))
+  );
+}
+
+function readReferencePrice(snapshot: EntryTypeSnapshotLike | null) {
+  const payload = objectOrNull(snapshot?.payload_json);
+  const tradePlan = objectOrNull(payload?.trade_plan);
+  const recommendation = objectOrNull(payload?.recommendation);
+  const planReference = objectOrNull(payload?.plan_reference_price);
+  const candidates: Array<{
+    value: unknown;
+    source: unknown;
+    readPath: string;
+  }> = [
+    {
+      value: payload?.reference_price_used_for_plan,
+      source: payload?.reference_price_source,
+      readPath: "snapshot.payload_json.reference_price_used_for_plan",
+    },
+    {
+      value: planReference?.reference_price_used_for_plan,
+      source: planReference?.reference_price_source,
+      readPath:
+        "snapshot.payload_json.plan_reference_price.reference_price_used_for_plan",
+    },
+    {
+      value: tradePlan?.reference_price_used_for_plan,
+      source: tradePlan?.reference_price_source,
+      readPath: "snapshot.payload_json.trade_plan.reference_price_used_for_plan",
+    },
+    {
+      value: recommendation?.reference_price_used_for_plan,
+      source: recommendation?.reference_price_source,
+      readPath:
+        "snapshot.payload_json.recommendation.reference_price_used_for_plan",
+    },
+    {
+      value: snapshot?.quote_price,
+      source: "provider_quote_price",
+      readPath: "snapshot.quote_price",
+    },
+    {
+      value: payload?.quote_price,
+      source: "provider_quote_price",
+      readPath: "snapshot.payload_json.quote_price",
+    },
+    {
+      value: payload?.reference_price,
+      source: "snapshot_payload_price",
+      readPath: "snapshot.payload_json.reference_price",
+    },
+  ];
+
+  for (const candidate of candidates) {
+    const value = finiteNumber(candidate.value);
+    if (value !== null && value > 0) {
+      return {
+        value,
+        source: textOrNull(candidate.source) ?? "unknown",
+        readPath: candidate.readPath,
+      };
     }
   }
-  if (side === "long") {
-    if (entryType === "pullback_limit") return "long_low_touches_entry";
-    if (entryType === "breakout_stop" || entryType === "range_reclaim") {
-      return "long_high_crosses_entry";
-    }
-  }
-  return "unknown";
+
+  return { value: null, source: "unknown", readPath: null };
 }
 
 export function inferRecommendationEntryTypeMetadata(input: {
@@ -238,18 +319,11 @@ export function inferRecommendationEntryTypeMetadata(input: {
   referencePrice?: number | null;
   referencePriceSource?: string | null;
   referencePriceReadPath?: string | null;
-  source?: RecommendationEntryTypeSource | null;
-  existingMetadata?: Record<string, unknown> | null;
+  source?: RecommendationEntryTypeSource;
+  existingMetadata?: RecommendationEntryTypeMetadata | null;
 }): RecommendationEntryTypeMetadata {
-  const explicit = metadataFromRecord(input.existingMetadata ?? null);
-  if (explicit) {
-    return {
-      ...explicit,
-      entry_trigger_semantics:
-        explicit.entry_trigger_semantics === "unknown"
-          ? inferSemantics(normalizeSide(input.side), explicit.entry_type)
-          : explicit.entry_trigger_semantics,
-    };
+  if (input.existingMetadata) {
+    return input.existingMetadata;
   }
 
   const side = normalizeSide(input.side);
@@ -257,271 +331,370 @@ export function inferRecommendationEntryTypeMetadata(input: {
   const referencePrice = finiteNumber(input.referencePrice);
   const distance = distancePct(entry, referencePrice);
   const warnings: string[] = [];
-  let entryType: RecommendationEntryType = "unknown";
 
-  if (entry === null || entry <= 0) {
-    warnings.push("entry_unavailable");
-  }
-  if (referencePrice === null || referencePrice <= 0) {
-    warnings.push("reference_price_unavailable");
-  }
   if (side !== "long" && side !== "short") {
-    warnings.push("side_unavailable");
+    warnings.push("entry_type_side_missing");
+  }
+  if (entry === null) {
+    warnings.push("entry_type_entry_missing");
   }
 
-  if (entry !== null && referencePrice !== null && referencePrice > 0) {
-    if (distance !== null && distance <= ENTRY_TYPE_DISTANCE_THRESHOLD_PCT) {
+  if (referencePrice === null) {
+    return {
+      entry_type: "unknown",
+      entry_trigger_semantics: "unknown",
+      entry_type_source: input.source ?? "fallback_inference",
+      entry_type_confidence: "low",
+      entry_type_warnings: [
+        ...warnings,
+        "reference_price_missing_for_entry_type",
+        "unknown_due_to_missing_reference",
+      ],
+      entry_type_reference_price: null,
+      entry_type_reference_source: input.referencePriceSource ?? "unknown",
+      entry_type_reference_read_path: input.referencePriceReadPath ?? null,
+      entry_type_reference_distance_pct: null,
+      entry_type_requires_reference_price: true,
+      reference_price_missing_for_entry_type: true,
+      unknown_due_to_missing_reference: true,
+    };
+  }
+
+  let entryType: RecommendationEntryType = "unknown";
+  if (entry !== null && side !== "unknown" && distance !== null) {
+    if (Math.abs(distance) <= ENTRY_TYPE_DISTANCE_THRESHOLD_PCT) {
       entryType = "market_reference";
-    } else if (side === "short") {
-      entryType = entry > referencePrice ? "pullback_limit" : "breakout_stop";
     } else if (side === "long") {
-      entryType = entry < referencePrice ? "pullback_limit" : "breakout_stop";
+      entryType = distance < 0 ? "pullback_limit" : "breakout_stop";
+    } else {
+      entryType = distance > 0 ? "pullback_limit" : "breakout_stop";
     }
+  }
+
+  if (entryType === "unknown") {
+    warnings.push("entry_type_inference_ambiguous");
   }
 
   return {
     entry_type: entryType,
-    entry_trigger_semantics: inferSemantics(side, entryType),
-    entry_type_source: input.source ?? "unknown",
-    entry_type_confidence:
-      entryType === "unknown" ? "low" : distance === null ? "medium" : "high",
-    entry_type_reference_price: referencePrice,
-    entry_type_reference_price_source: textOrNull(input.referencePriceSource),
-    entry_type_reference_price_read_path: textOrNull(input.referencePriceReadPath),
-    entry_type_entry_distance_from_reference_pct:
-      distance === null ? null : Number(distance.toFixed(3)),
+    entry_trigger_semantics: semanticsFor(side, entryType),
+    entry_type_source: input.source ?? "metadata_inference",
+    entry_type_confidence: entryType === "unknown" ? "low" : "medium",
     entry_type_warnings: warnings,
+    entry_type_reference_price: referencePrice,
+    entry_type_reference_source: input.referencePriceSource ?? "unknown",
+    entry_type_reference_read_path: input.referencePriceReadPath ?? null,
+    entry_type_reference_distance_pct: distance,
+    entry_type_requires_reference_price: true,
+    reference_price_missing_for_entry_type: false,
+    unknown_due_to_missing_reference: false,
   };
 }
 
-function referenceFromPayload(payload: Record<string, unknown> | null) {
-  const planReference = recordOrNull(payload?.plan_reference_price);
-  const tradePlan = recordOrNull(payload?.trade_plan);
-  const recommendation = recordOrNull(payload?.recommendation);
-  const sources = [
-    { path: "payload.plan_reference_price", value: planReference },
-    { path: "payload", value: payload },
-    { path: "payload.trade_plan", value: tradePlan },
-    { path: "payload.recommendation", value: recommendation },
-  ];
-
-  for (const source of sources) {
-    const price = finiteNumber(source.value?.reference_price_used_for_plan);
-    if (price !== null && price > 0) {
-      return {
-        price,
-        source:
-          textOrNull(source.value?.reference_price_source) ??
-          textOrNull(source.value?.entry_type_reference_price_source),
-        readPath:
-          textOrNull(source.value?.reference_price_read_path) ??
-          `${source.path}.reference_price_used_for_plan`,
-      };
-    }
-  }
-
-  return { price: null, source: null, readPath: null };
-}
-
 export function entryTypeMetadataForSnapshot(
-  snapshot: EntryTypeSnapshotLike,
+  snapshot: EntryTypeSnapshotLike | null,
 ): RecommendationEntryTypeMetadata {
-  const payload = snapshot.payload_json ?? null;
-  const metadata =
-    metadataFromRecord(payload) ??
-    metadataFromRecord(recordOrNull(payload?.trade_plan)) ??
-    metadataFromRecord(recordOrNull(payload?.recommendation));
-  const reference = referenceFromPayload(payload);
-  const side =
-    snapshot.side ??
-    snapshot.direction ??
-    snapshot.trade_direction ??
-    snapshot.recommendation_side ??
-    null;
+  const payload = objectOrNull(snapshot?.payload_json);
+  const explicit = readExplicitMetadata(payload);
+  if (explicit) return explicit;
 
+  const reference = readReferencePrice(snapshot);
   return inferRecommendationEntryTypeMetadata({
-    side,
-    entry: finiteNumber(snapshot.entry),
-    referencePrice: reference.price ?? finiteNumber(snapshot.quote_price),
-    referencePriceSource:
-      reference.source ?? (finiteNumber(snapshot.quote_price) !== null ? "quote_price" : null),
-    referencePriceReadPath:
-      reference.readPath ?? (finiteNumber(snapshot.quote_price) !== null ? "snapshot.quote_price" : null),
-    source: metadata ? metadata.entry_type_source : "fallback_inference",
-    existingMetadata: metadata,
+    side: snapshot?.side ?? textOrNull(payload?.side),
+    entry: finiteNumber(snapshot?.entry),
+    referencePrice: reference.value,
+    referencePriceSource: reference.source,
+    referencePriceReadPath: reference.readPath,
+    source: "fallback_inference",
   });
 }
 
-function candleTriggers(
+function candleTriggered(
   candle: EntryTypeCandleLike,
-  semantics: RecommendationEntryTriggerSemantics,
   entry: number,
+  semantics: RecommendationEntryTriggerSemantics,
 ) {
-  if (semantics === "immediate_reference") return true;
   const high = finiteNumber(candle.high);
   const low = finiteNumber(candle.low);
-  if (high === null || low === null) return false;
 
-  if (semantics === "long_low_touches_entry") return low <= entry;
-  if (semantics === "long_high_crosses_entry") return high >= entry;
-  if (semantics === "short_high_touches_entry") return high >= entry;
-  if (semantics === "short_low_crosses_entry") return low <= entry;
+  if (semantics === "immediate_reference") return true;
+  if (semantics === "long_low_touches_entry") {
+    return low !== null && low <= entry;
+  }
+  if (semantics === "long_high_crosses_entry") {
+    return high !== null && high >= entry;
+  }
+  if (semantics === "short_high_touches_entry") {
+    return high !== null && high >= entry;
+  }
+  if (semantics === "short_low_crosses_entry") {
+    return low !== null && low <= entry;
+  }
   return false;
 }
 
-function candleTimestamp(value: EntryTypeCandleLike["timestamp"]) {
-  if (value instanceof Date) return value.toISOString();
-  if (typeof value === "number") {
-    return new Date(value > 10_000_000_000 ? value : value * 1000).toISOString();
+function rangeTouchTriggered(candle: EntryTypeCandleLike, entry: number) {
+  const high = finiteNumber(candle.high);
+  const low = finiteNumber(candle.low);
+  return high !== null && low !== null && low <= entry && high >= entry;
+}
+
+function targetTouched(
+  candle: EntryTypeCandleLike,
+  target: number,
+  side: "long" | "short",
+) {
+  const high = finiteNumber(candle.high);
+  const low = finiteNumber(candle.low);
+  return side === "short"
+    ? low !== null && low <= target
+    : high !== null && high >= target;
+}
+
+function stopTouched(
+  candle: EntryTypeCandleLike,
+  stop: number,
+  side: "long" | "short",
+) {
+  const high = finiteNumber(candle.high);
+  const low = finiteNumber(candle.low);
+  return side === "short"
+    ? high !== null && high >= stop
+    : low !== null && low <= stop;
+}
+
+function disagreementReason(input: {
+  side: "long" | "short" | "unknown";
+  entryType: RecommendationEntryType;
+  entryTypeAwareTriggered: boolean | null;
+  legacyRangeTouchTriggered: boolean | null;
+}) {
+  if (input.entryTypeAwareTriggered === input.legacyRangeTouchTriggered) {
+    return null;
   }
-  return typeof value === "string" && value.trim() ? value : null;
+  if (input.side === "long" && input.entryType === "breakout_stop") {
+    return input.entryTypeAwareTriggered
+      ? "long_breakout_high_crossed_but_current_route_not_triggered"
+      : "long_breakout_current_route_triggered_but_high_cross_not_confirmed";
+  }
+  if (input.side === "short" && input.entryType === "breakout_stop") {
+    return input.entryTypeAwareTriggered
+      ? "short_breakout_low_crossed_but_current_route_not_triggered"
+      : "short_breakout_current_route_triggered_but_low_cross_not_confirmed";
+  }
+  if (input.entryType === "market_reference") {
+    return input.entryTypeAwareTriggered
+      ? `${input.side}_market_reference_immediate_but_current_route_not_triggered`
+      : `${input.side}_market_reference_current_route_triggered_but_immediate_not_confirmed`;
+  }
+  return `${input.side}_${input.entryType}_trigger_disagreement`;
 }
 
 export function evaluateEntryTypeAwareTrigger(input: {
   metadata: RecommendationEntryTypeMetadata;
-  candles: EntryTypeCandleLike[];
+  side?: string | null;
   entry?: number | null;
-  officialTriggered?: boolean | null;
-  officialTriggeredAt?: string | null;
-  officialStatus?: RecommendationOutcome["status"] | null;
+  stop?: number | null;
+  target?: number | null;
+  candles?: EntryTypeCandleLike[] | null;
+  officialEntryTriggered?: boolean | null;
+  officialStatus?: string | null;
 }): EntryTypeAwareTriggerDiagnostics {
+  const side = normalizeSide(input.side);
   const entry = finiteNumber(input.entry);
-  const unknownDueToMissingReference =
-    input.metadata.entry_type === "unknown" &&
-    input.metadata.entry_type_warnings.includes("reference_price_unavailable");
+  const stop = finiteNumber(input.stop);
+  const target = finiteNumber(input.target);
+  const candles = input.candles ?? [];
+  const semantics = input.metadata.entry_trigger_semantics;
+  const officialSemantics =
+    input.metadata.entry_type === "market_reference" &&
+    semantics === "immediate_reference"
+      ? "immediate_reference"
+      : "current_candle_range_touches_entry";
   let triggered: boolean | null = null;
   let triggeredAt: string | null = null;
+  let legacyTriggered: boolean | null = null;
+  let legacyTriggeredAt: string | null = null;
+  let statusIfApplied: string | null = input.officialStatus ?? null;
 
-  if (entry !== null && input.metadata.entry_trigger_semantics !== "unknown") {
-    if (input.metadata.entry_trigger_semantics === "immediate_reference") {
-      triggered = true;
-      triggeredAt =
-        candleTimestamp(input.candles[0]?.timestamp) ??
-        input.officialTriggeredAt ??
-        null;
-    } else {
-      const index = input.candles.findIndex((candle) =>
-        candleTriggers(candle, input.metadata.entry_trigger_semantics, entry),
-      );
-      triggered = index >= 0;
-      triggeredAt =
-        index >= 0 ? candleTimestamp(input.candles[index].timestamp) : null;
-    }
+  if (entry !== null && side !== "unknown" && candles.length > 0) {
+    const legacyTriggerIndex = candles.findIndex((candle) =>
+      rangeTouchTriggered(candle, entry),
+    );
+    legacyTriggered = legacyTriggerIndex >= 0;
+    legacyTriggeredAt =
+      legacyTriggerIndex >= 0
+        ? timestampIso(candles[legacyTriggerIndex]?.timestamp)
+        : null;
   }
 
-  const officialTriggered = input.officialTriggered ?? null;
-  const triggerDisagreement =
+  if (
+    entry !== null &&
+    side !== "unknown" &&
+    semantics !== "unknown" &&
+    candles.length > 0
+  ) {
+    const triggerIndex =
+      semantics === "immediate_reference"
+        ? 0
+        : candles.findIndex((candle) => candleTriggered(candle, entry, semantics));
+    triggered = triggerIndex >= 0;
+    triggeredAt = triggerIndex >= 0 ? timestampIso(candles[triggerIndex]?.timestamp) : null;
+    statusIfApplied = triggered ? "entry_triggered" : "entry_not_triggered";
+
+    if (
+      triggered &&
+      triggerIndex >= 0 &&
+      stop !== null &&
+      target !== null &&
+      (side === "long" || side === "short")
+    ) {
+      for (let index = triggerIndex; index < candles.length; index += 1) {
+        const candle = candles[index];
+        const targetHit = targetTouched(candle, target, side);
+        const stopHit = stopTouched(candle, stop, side);
+        if (targetHit && stopHit) {
+          statusIfApplied = "unknown";
+          break;
+        }
+        if (targetHit) {
+          statusIfApplied =
+            semantics === "immediate_reference" ? "target_hit" : "target_before_stop";
+          break;
+        }
+        if (stopHit) {
+          statusIfApplied =
+            semantics === "immediate_reference" ? "stop_hit" : "stop_before_target";
+          break;
+        }
+        statusIfApplied = "neither_hit";
+      }
+    }
+  } else if (input.metadata.entry_type === "unknown") {
+    triggered = legacyTriggered ?? input.officialEntryTriggered ?? null;
+    statusIfApplied = input.officialStatus ?? null;
+  }
+
+  const disagreement =
     triggered !== null &&
-    officialTriggered !== null &&
-    triggered !== officialTriggered;
-  const statusIfApplied =
-    triggered === null
-      ? null
-      : triggered
-        ? input.officialStatus === "entry_not_triggered"
-          ? "entry_triggered"
-          : input.officialStatus ?? "entry_triggered"
-        : "entry_not_triggered";
+    legacyTriggered !== null &&
+    triggered !== legacyTriggered;
+  const reason = disagreement
+    ? disagreementReason({
+        side,
+        entryType: input.metadata.entry_type,
+        entryTypeAwareTriggered: triggered,
+        legacyRangeTouchTriggered: legacyTriggered,
+      })
+    : null;
 
   return {
+    official_trigger_semantics_used: officialSemantics,
     entry_type: input.metadata.entry_type,
-    entry_trigger_semantics: input.metadata.entry_trigger_semantics,
     entry_type_source: input.metadata.entry_type_source,
     entry_type_confidence: input.metadata.entry_type_confidence,
-    reference_price: input.metadata.entry_type_reference_price,
-    reference_price_source: input.metadata.entry_type_reference_price_source,
-    reference_price_read_path: input.metadata.entry_type_reference_price_read_path,
-    official_triggered: officialTriggered,
-    entry_type_aware_triggered: triggered,
-    official_triggered_at: input.officialTriggeredAt ?? null,
-    entry_type_aware_triggered_at: triggeredAt,
-    official_status: input.officialStatus ?? null,
-    status_if_entry_type_applied: statusIfApplied,
-    trigger_disagreement: triggerDisagreement,
-    disagreement_reason: triggerDisagreement
-      ? `${input.metadata.entry_trigger_semantics}_differs_from_official_range_touch`
-      : null,
-    unknown_due_to_missing_reference: unknownDueToMissingReference,
-    candle_count: input.candles.length,
+    entry_type_warnings: input.metadata.entry_type_warnings,
+    entry_type_aware_trigger_semantics: semantics,
+    entry_type_aware_entry_triggered: triggered,
+    entry_type_aware_entry_triggered_at: triggeredAt,
+    entry_type_aware_status_if_applied: statusIfApplied,
+    legacy_range_touch_triggered: legacyTriggered,
+    legacy_range_touch_triggered_at: legacyTriggeredAt,
+    entry_type_trigger_disagreement: disagreement,
+    entry_type_trigger_disagreement_reason: reason,
+    unknown_due_to_missing_reference:
+      input.metadata.unknown_due_to_missing_reference,
+    reference_price_missing_for_entry_type:
+      input.metadata.reference_price_missing_for_entry_type,
+    entry_type_requires_reference_price:
+      input.metadata.entry_type_requires_reference_price,
   };
 }
 
-function increment(map: Record<string, number>, key: string | null | undefined) {
-  const normalized = key && key.trim() ? key : "unknown";
-  map[normalized] = (map[normalized] ?? 0) + 1;
+function increment(record: Record<string, number>, key: string) {
+  record[key] = (record[key] ?? 0) + 1;
 }
 
 export function summarizeEntryTypeTriggerDiagnostics(
-  candidates: Array<{
+  items: Array<{
     ticker?: string | null;
-    entry_type_metadata?: RecommendationEntryTypeMetadata | null;
-    entry_type_aware_trigger?: EntryTypeAwareTriggerDiagnostics | null;
+    entryType?: RecommendationEntryTypeMetadata | null;
+    trigger?: EntryTypeAwareTriggerDiagnostics | null;
+    currentRouteTriggered?: boolean | null;
+    officialTriggered?: boolean | null;
   }>,
 ): EntryTypeTriggerSummary {
-  const byEntryType: Record<string, number> = {};
-  const byTriggerSemantics: Record<string, number> = {};
-  const bySource: Record<string, number> = {};
-  const disagreementReasons: Record<string, number> = {};
+  const summary: EntryTypeTriggerSummary = {
+    total_outcomes: items.length,
+    known_entry_type_count: 0,
+    unknown_entry_type_count: 0,
+    by_entry_type: {},
+    by_trigger_semantics: {},
+    entry_type_triggered_count: 0,
+    official_triggered_count: 0,
+    legacy_range_touch_triggered_count: 0,
+    current_route_triggered_count: 0,
+    disagreement_count: 0,
+    disagreement_rate: 0,
+    top_disagreement_reasons: {},
+    tickers_with_disagreements: [],
+    unknown_due_to_missing_reference_count: 0,
+  };
   const disagreementTickers = new Set<string>();
-  let knownEntryTypeCount = 0;
-  let unknownDueToMissingReferenceCount = 0;
-  let officialTriggeredCount = 0;
-  let entryTypeAwareTriggeredCount = 0;
-  let disagreementCount = 0;
 
-  for (const candidate of candidates) {
-    const metadata = candidate.entry_type_metadata;
-    const trigger = candidate.entry_type_aware_trigger;
-    increment(byEntryType, metadata?.entry_type ?? trigger?.entry_type);
-    increment(
-      byTriggerSemantics,
-      metadata?.entry_trigger_semantics ?? trigger?.entry_trigger_semantics,
-    );
-    increment(bySource, metadata?.entry_type_source ?? trigger?.entry_type_source);
+  for (const item of items) {
+    const metadata = item.entryType;
+    const trigger = item.trigger;
+    const entryType = metadata?.entry_type ?? trigger?.entry_type ?? "unknown";
+    const semantics =
+      trigger?.entry_type_aware_trigger_semantics ??
+      metadata?.entry_trigger_semantics ??
+      "unknown";
 
-    if (metadata && metadata.entry_type !== "unknown") {
-      knownEntryTypeCount += 1;
+    increment(summary.by_entry_type, entryType);
+    increment(summary.by_trigger_semantics, semantics);
+
+    if (entryType === "unknown") {
+      summary.unknown_entry_type_count += 1;
+    } else {
+      summary.known_entry_type_count += 1;
     }
-    if (trigger?.unknown_due_to_missing_reference) {
-      unknownDueToMissingReferenceCount += 1;
+
+    if (trigger?.entry_type_aware_entry_triggered === true) {
+      summary.entry_type_triggered_count += 1;
     }
-    if (trigger?.official_triggered === true) {
-      officialTriggeredCount += 1;
+    if (item.officialTriggered === true) {
+      summary.official_triggered_count += 1;
     }
-    if (trigger?.entry_type_aware_triggered === true) {
-      entryTypeAwareTriggeredCount += 1;
+    const legacyTriggered =
+      trigger?.legacy_range_touch_triggered ?? item.currentRouteTriggered ?? null;
+    if (legacyTriggered === true) {
+      summary.legacy_range_touch_triggered_count += 1;
+      summary.current_route_triggered_count += 1;
     }
-    if (trigger?.trigger_disagreement) {
-      disagreementCount += 1;
-      increment(disagreementReasons, trigger.disagreement_reason);
-      if (candidate.ticker) {
-        disagreementTickers.add(candidate.ticker);
+    if (
+      metadata?.unknown_due_to_missing_reference === true ||
+      trigger?.unknown_due_to_missing_reference === true
+    ) {
+      summary.unknown_due_to_missing_reference_count += 1;
+    }
+    if (trigger?.entry_type_trigger_disagreement) {
+      summary.disagreement_count += 1;
+      if (trigger.entry_type_trigger_disagreement_reason) {
+        increment(
+          summary.top_disagreement_reasons,
+          trigger.entry_type_trigger_disagreement_reason,
+        );
       }
+      if (item.ticker) disagreementTickers.add(item.ticker);
     }
   }
 
-  return {
-    total_outcomes: candidates.length,
-    total_candidates: candidates.length,
-    known_entry_type_count: knownEntryTypeCount,
-    unknown_entry_type_count: Math.max(0, candidates.length - knownEntryTypeCount),
-    unknown_due_to_missing_reference_count: unknownDueToMissingReferenceCount,
-    by_entry_type: byEntryType,
-    by_trigger_semantics: byTriggerSemantics,
-    by_source: bySource,
-    current_route_triggered_count: officialTriggeredCount,
-    official_triggered_count: officialTriggeredCount,
-    entry_type_triggered_count: entryTypeAwareTriggeredCount,
-    entry_type_aware_triggered_count: entryTypeAwareTriggeredCount,
-    disagreement_count: disagreementCount,
-    disagreement_rate:
-      candidates.length === 0 ? 0 : Number((disagreementCount / candidates.length).toFixed(3)),
-    top_disagreement_reasons: Object.entries(disagreementReasons)
-      .sort((first, second) => second[1] - first[1])
-      .slice(0, 5)
-      .map(([reason, count]) => ({ reason, count })),
-    disagreement_reasons: disagreementReasons,
-    tickers_with_disagreements: Array.from(disagreementTickers).sort(),
-    disagreement_tickers: Array.from(disagreementTickers).sort(),
-  };
+  summary.disagreement_rate =
+    summary.total_outcomes > 0
+      ? summary.disagreement_count / summary.total_outcomes
+      : 0;
+  summary.tickers_with_disagreements = Array.from(disagreementTickers).sort();
+
+  return summary;
 }

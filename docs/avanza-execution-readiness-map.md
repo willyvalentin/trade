@@ -1,0 +1,252 @@
+# Avanza Execution Readiness Map
+
+## Purpose
+
+This readiness map summarizes the Sharp Semi Auto Execution architecture as a pure fixture/model-only architecture checkpoint. It helps inspect which layers are complete, which are waiting for local-dev binding, which are forbidden, and which next actions are recommended before any future Trade UI or API route execution work.
+
+The current UI strategy is intentionally minimal. Recommendation cards stay
+visually simple while future Execution Agent data is modeled under the surface
+through hidden/headless contracts. Visual readiness badges remain
+optional/default-off/dev-QA only.
+
+## Map artifacts
+
+- Pure model: `lib/avanza-execution-architecture-readiness-map.ts`
+- Static fixtures: `lib/avanza-execution-architecture-readiness-map-fixtures.ts`
+- Isolated harness: `components/execution/AvanzaExecutionArchitectureReadinessMapHarness.tsx`
+- Dev QA route section: `app/dev/avanza-visual-qa/page.tsx`
+- Local-dev order/search page action binding: `lib/avanza-local-playwright-order-page-action-binding.ts`
+- Headless execution data contract: `lib/avanza-headless-execution-data-contract.ts`
+- Headless execution contract selector: `lib/avanza-headless-execution-contract-selector.ts`
+
+## Readiness areas
+
+- `login`: ready for local-dev binding.
+- `credential_security`: complete as model-only and credential-safe.
+- `settings_ui`: complete as model-only and passive.
+- `instrument_search`: waiting for local-dev binding.
+- `order_ticket`: ready for mock, not real fill.
+- `pre_submit_handoff`: ready for mock, still stops before final broker action.
+- `settlement_reconciliation`: ready for mock, no document read or reconciliation write.
+- `local_dev_execution`: waiting for real local-dev binding evidence.
+- `trade_ui_integration`: waiting for UI integration and not wired for execution.
+- `api_route_integration`: forbidden in this checkpoint.
+- `safety_governance`: complete as model-only.
+
+## Production readiness
+
+Production readiness is `not_ready`; the architecture is not production ready. The map does not claim execution readiness, production readiness, or broker readiness.
+
+## Safety flags
+
+The map is fixture/model-only. It cannot execute Avanza actions, navigate Avanza, fill order fields, click final KOP/SALJ, submit orders, read cookies, export sessions, automate BankID, expose credentials, write Supabase records, wire Trade UI execution, wire API route execution, or claim production readiness.
+
+The map requires user confirmation, keeps the final human click boundary, keeps controls disabled, and keeps the gate locked.
+
+## Next recommended actions
+
+1. Local-dev order chain smoke test harness.
+2. Settlement local-dev signal/document binding plan, not OCR yet.
+3. Ture Trade UI passive handoff preview integration.
+4. Later: guarded active local bridge/API route review.
+
+The local-dev order/search page action binding now exists as an injected Playwright-like dependency layer. It can supply future local-dev order executors, but it is not wired to Trade UI/API and does not include order submission or final KOP/SALJ click.
+
+The local-dev order chain executor now exists in `lib/avanza-instrument-to-order-local-dev-executor.ts`. It uses injected order/search page action dependencies to model search execution, instrument verification, order field preparation, and review-ready state. It is not wired to Trade UI/API and still cannot submit orders or click final KOP/SALJ.
+
+The Avanza order chain smoke test runner now exists in
+`lib/avanza-order-chain-smoke-test-runner.ts`. It is the order-side counterpart
+to the login smoke runner and models the local-dev order preparation smoke path
+through injected dependencies only. It remains disconnected from Trade UI/API
+and order submission, cannot click final KOP/SALJ, and keeps final human action
+required.
+
+## Non-goals
+
+This map does not add real execution, real navigation, form fill, final KOP/SALJ click, order submission, credential/session handling, BankID automation, document reading, OCR, value extraction, reconciliation writes, Trade UI execution wiring, API route wiring, or Supabase writes.
+## Local-Dev Execution Runbook
+
+The local-dev execution runbook now exists as the operator guide before any real
+local-dev order smoke script or Trade UI/API integration. It summarizes login
+smoke review, order-prep smoke review, review-ready stop, and safety boundaries
+while preserving no real execution, no app-runtime navigation, no
+cookies/session export, no BankID automation, no order submission, no final
+KOP/SALJ click, no Supabase write, and not production ready.
+
+The terminal-only Avanza order smoke script scaffold now exists at
+`scripts/avanza-order-chain-smoke-test.local.ts`. It is hard-gated, blocked in
+CI, default-safe, disconnected from Trade UI/API/order submission, and stops at
+review-ready/final human action.
+
+## Local Smoke Result Capture
+
+`docs/avanza-local-smoke-test-result-capture.md` now records the checklist/result capture model for safe login, order-prep, settlement, and full operator run evidence. It records outcomes without storing sensitive data and does not activate smoke tests, persist results, wire Trade UI, wire API routes, navigate from app runtime, handle cookies/session, automate BankID, submit orders, click final KOP/SALJ, write Supabase, or claim production readiness.
+
+## Passive Execution Readiness Preview
+
+`docs/avanza-passive-execution-readiness-preview.md` now records the passive Trade UI/readiness preview layer. It provides visibility before active integration and keeps no active handoff, no prepare action, no buy/sell CTA, no API call, no fetch/polling, no browser automation, no smoke test from UI, no credential access, no order submission, no final KOP/SALJ click, no Supabase write, and no production readiness claim.
+
+## Settings Passive Execution Readiness Panel
+
+`docs/avanza-settings-passive-execution-readiness-panel.md` now records that the readiness map is visible in app Settings as passive UI only. The Settings panel remains non-executing and separate from Trade UI order flow: no active handoff, prepare action, buy/sell CTA, API call, fetch/polling, browser automation, smoke test from UI, credential access, cookies/session handling, BankID automation, order submission, final KOP/SALJ click, Supabase write, or production readiness claim is added.
+## Recommendation/Live-Position Readiness Metadata
+
+The readiness map now includes a passive recommendation/live-position metadata layer through `lib/avanza-passive-trade-execution-readiness.ts`. It models entry BUY readiness, exit SELL readiness, and settlement readiness for future read-only visibility only; it does not activate execution.
+
+The card-level read-only adapter in `lib/avanza-trade-card-execution-readiness-adapter.ts` prepares future passive card visibility by converting readiness metadata into labels, badges, severity, tooltips, warnings, and blocked reasons without activating execution.
+
+## Headless Execution Data Contract
+
+`docs/avanza-headless-execution-data-contract.md` records the agent-readable,
+UI-hidden contract layer for future BUY/SELL preparation. It can describe
+source identity, intent, ticker/instrument identity, quantity, limit price,
+stop/target/risk context, human final confirmation requirements, forbidden
+actions, audit metadata, and settlement expectations while keeping
+`visibleInUi: false` and `canRenderVisualBadge: false`.
+
+The contract is not a handoff, not a prepare action, not visible card UI, and
+cannot call APIs, fetch, poll, control a browser, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, or write
+Supabase.
+
+## Headless Execution Contract Selector
+
+`docs/avanza-headless-execution-contract-selector.md` records the headless
+selection layer for future Execution Agent planning. It chooses the next
+agent-readable contract under the surface, with exits outranking entries,
+stop-loss exits outranking target exits, target exits outranking entries, and
+entry candidates sorted by confidence, reward:risk, then newness.
+
+The selector is not visible Trade UI, not a handoff, not a prepare action, and
+cannot call APIs, fetch, poll, control a browser, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, or write
+Supabase.
+
+In selector terms, exits outrank entries, stop-loss exits outrank target exits,
+and target exits outrank entries.
+
+## Headless Agent Plan Builder
+
+`docs/avanza-headless-agent-plan-builder.md` records the next under-the-surface
+layer after selection. The contract selector now feeds a headless agent plan
+builder that models future Avanza preparation steps without visual UI or
+execution. It is agent-readable but UI-hidden, keeps Ture UI minimal and simple,
+plans recommendation BUY and live-position SELL flows, stops before final
+confirmation, requires human final KOP/SALJ, and forbids active handoff,
+prepare actions, API calls, fetch/polling, browser automation now, credential
+access, cookies/session handling, BankID automation, order submission, final
+clicks, Supabase writes, and production-readiness claims.
+
+## Headless Execution Session State Machine
+
+`docs/avanza-headless-execution-session-state-machine.md` records the headless
+session lifecycle after plan creation. The headless execution session state
+machine is lifecycle metadata only: contract selector feeds plan builder, and
+plan builder now feeds session lifecycle without visual UI or execution. The
+session lifecycle is agent-readable but UI-hidden, reaches
+`waiting_for_manual_final_confirmation`, can model user final click observed,
+keeps agent final click forbidden, and models settlement reconciliation pending
+for the later avrakningsnota flow.
+
+## Headless Execution Orchestration Pipeline
+
+`docs/avanza-headless-execution-orchestration-pipeline.md` records the
+under-surface end-to-end orchestration layer. The headless execution
+orchestration pipeline connects contract to selector to plan to session, and
+future agent session behavior is modeled without visual UI or active broker
+behavior. It supports recommendation BUY orchestration, live-position SELL
+orchestration, exit priority, stop-loss priority, plan-ready session
+initialization, and next theoretical agent step reporting while keeping all
+execution gates locked.
+
+## Headless Execution Architecture Checkpoint
+
+`docs/avanza-headless-execution-architecture-checkpoint.md` records the full
+under-surface agent brain loop: contract -> selector -> plan -> session ->
+orchestration. Next work must pass through activation gates before any
+local-dev execution bridge or real browser run is attempted. Local-dev bridge
+gate is not open, Trade UI execution gate is locked, API route execution gate is
+locked, browser automation gate is locked, credential access gate is locked,
+cookies/session export is forbidden, BankID automation is forbidden, order
+submission is forbidden, final KOP/SALJ remains human-only, Supabase writes are
+locked, settlement writes are locked, and production readiness is blocked.
+
+## Local-Dev Bridge Contract
+
+`docs/avanza-local-dev-bridge-contract.md` adds the next locked bridge-contract
+layer from headless orchestration report to future terminal-only smoke request
+candidate. It is modeled but locked, and it is the next step before any actual
+bridge invocation. It does not run smoke tests, import terminal scripts, start
+browser automation, call APIs, access credentials, handle cookies/session,
+automate BankID, submit orders, click final KOP/SALJ, write Supabase, or claim
+production readiness.
+
+## Local-Dev Bridge Activation Checklist
+
+`docs/avanza-local-dev-bridge-activation-checklist.md` adds the readiness gate
+for disabled bridge runner design. It keeps bridge runtime locked, smoke runner
+invocation blocked, browser automation locked, credential access locked,
+cookies/session forbidden, BankID manual-only, final KOP/SALJ human-only, and
+Supabase writes locked. Runtime remains locked and real-run remains forbidden.
+
+## Disabled Local-Dev Bridge Runner Skeleton
+
+`docs/avanza-disabled-local-dev-bridge-runner.md` adds the next report-only
+readiness layer. Bridge contract plus activation checklist can produce a
+disabled runner report, but this is not runtime readiness. The runner skeleton
+cannot call APIs, fetch, poll, run terminal scripts, invoke smoke runners, start
+browser automation, access credentials, handle cookies/session, automate
+BankID, submit orders, click final KOP/SALJ, write Supabase, or claim
+production readiness.
+
+## Model-Only Local-Dev Bridge Dry Runner
+
+`docs/avanza-model-only-local-dev-bridge-dry-runner.md` adds the model-only
+dry-run layer after the disabled runner skeleton. It can simulate the path to
+the invocation boundary, including request summary preparation, but stops
+before smoke runner invocation. It does not open runtime, call APIs, fetch,
+poll, run terminal scripts, start browser automation, access credentials, handle
+cookies/session, automate BankID, submit orders, click final KOP/SALJ, write
+Supabase, or claim production readiness.
+
+## Local-Dev Bridge Readiness Checkpoint
+
+`docs/avanza-local-dev-bridge-readiness-checkpoint.md` adds the checkpoint at
+the invocation boundary. The readiness map now records what under-surface bridge
+layers are built, what can be simulated, where execution stops, and which gates
+remain locked. Future work must explicitly decide the next allowed design step.
+Runtime remains locked: smoke runner invocation, terminal script invocation,
+browser automation, credential access, cookies/session, BankID automation,
+order submission, final KOP/SALJ agent clicks, Supabase writes, Trade UI active
+handoff, API route activation, real execution, and production readiness remain
+blocked.
+
+## Manual Invocation Approval Runbook
+
+`docs/avanza-manual-local-dev-invocation-approval-runbook.md` now gates any
+future invocation adapter design. The readiness map remains model-only; the
+runbook is manual-review evidence only and runtime remains locked.
+
+## Disabled Invocation Adapter Contract
+
+`docs/avanza-disabled-local-dev-invocation-adapter-contract.md` now defines the
+future adapter shape only. The readiness map can point to it as design-only
+contract work, while runtime remains locked.
+
+## Disabled Invocation Adapter Payload Validator
+
+`docs/avanza-disabled-invocation-adapter-payload-validator.md` now validates
+disabled invocation adapter design-review payloads only. It rejects sensitive
+payload and runtime capabilities, and runtime remains locked.
+
+## Invocation Adapter Design Checkpoint
+
+`docs/avanza-invocation-adapter-design-checkpoint.md` now records the adapter
+design checkpoint in the readiness map. The checkpoint validates design review
+only, and runtime remains locked.
+
+## Sharp Semi Auto Execution Phase Checkpoint
+
+`docs/avanza-sharp-semi-auto-execution-phase-checkpoint.md` now closes the
+current design phase as complete. Future work must pick a separate workstream,
+and runtime remains locked.

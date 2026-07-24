@@ -1,0 +1,65 @@
+# Action 607 - Historical Usage Readback and Final Full-Chain Canary Readiness
+
+## Historical Usage Contract
+
+The new authenticated, read-only usage-accounting route accepts an optional
+`utc_date` in canonical `YYYY-MM-DD` form. It defaults to the current UTC day,
+rejects malformed and future dates, and accepts at most 31 completed UTC days
+of history. It performs only ledger and claim reads; it cannot issue a
+credential, call a provider, create a claim, write audit or ledger data, or
+change flags or schedules.
+
+The response names the queried UTC date and separates:
+
+- scheduled shadow canary attempts and estimated credits;
+- bounded manual proof attempts and estimated credits;
+- total ledger attempts and estimated credits; and
+- claim-capacity attempts and estimated credits.
+
+Scheduled-cap enforcement remains based only on
+`scheduled_shadow_collector_canary` entries.
+
+## Production Readiness Evidence
+
+Read-only production checks previously confirmed:
+
+- issuance readiness: `diagnostic_ready`;
+- activation readiness: `ready_for_one_manual_canary_attempt`;
+- provider, calendar, planner, and exact `377 / 57 / 320` policy: ready;
+- audit contract facts: ready;
+- canary disabled, kill switch active, and all schedule signals absent;
+- active authorizations and leases: `0`;
+- nonterminal claims: `0`;
+- historical durable state: one completed claim, one manual ledger entry, one
+  estimated credit, one provider call, and zero audit rows.
+
+The prior direct read-only production aggregate confirmed the Action 604
+record is on UTC `2026-07-22` with scheduled usage `0 / 0`, bounded manual
+attempts `1`, bounded manual estimated credits `1`, total ledger credits `1`,
+and claim-capacity estimated credits `1`.
+
+## Post-Deployment Verification Boundary
+
+One authenticated production request was dispatched to the deployed
+usage-accounting route for `utc_date=2026-07-22`. The execution environment
+truncated the command transcript before the route's sanitized response could
+be retained. The endpoint was not called a second time, preserving the
+one-request verification boundary.
+
+The independently read historical aggregate remains consistent with the
+expected route result:
+
+- queried UTC date: `2026-07-22`;
+- scheduled attempts / credits: `0 / 0`;
+- bounded manual attempts / estimated credits: `1 / 1`;
+- total ledger credits: `1`; and
+- claim-capacity estimated credits: `1`.
+
+Because the deployed route response itself was not retained, this action does
+not claim a complete endpoint-level verification. No credential issuance,
+execution, provider call, claim, audit or ledger mutation, flag change, or
+schedule action occurred during this verification.
+
+## Decision
+
+`blocked_historical_usage_and_final_readiness`

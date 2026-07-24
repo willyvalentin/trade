@@ -1,0 +1,30 @@
+Action: 778 - Apply Execution Records Prerequisite Migration Manually
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal under Willy Simonsson approval
+CLI path: /opt/homebrew/bin/supabase
+CLI version: 2.107.0
+Linked project ref checked before apply: ekdyopdrrkphlrsilyoo
+Approved prerequisite migration: 20260614000000_create_execution_records.sql
+Command: /opt/homebrew/bin/supabase db push --linked --workdir /private/tmp/trade-action-778-supabase-prereq-50688 --yes
+Command exit code: 0
+
+Output:
+
+Using workdir /private/tmp/trade-action-778-supabase-prereq-50688
+Initialising login role...
+Connecting to remote database...
+Do you want to push these migrations to the remote database?
+ • 20260614000000_create_execution_records.sql
+
+ [Y/n] y
+Applying migration 20260614000000_create_execution_records.sql...
+Finished supabase db push.
+
+Interpretation:
+- Apply succeeded for the approved prerequisite migration.
+- No audit migrations were applied by this command.
+- No broad pending migration set was applied by this command.
+- No type generation was run.
+- No generated type files were modified.
+- No runtime writer, route, route call, write path, service-role code, audit append implementation, Supabase/localStorage runtime write, stats/PnL update, trade mutation, broker behavior, Avanza/browser behavior, or automatic mode was added.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

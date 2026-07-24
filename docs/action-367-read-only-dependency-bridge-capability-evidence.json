@@ -1,0 +1,145 @@
+{
+  "evidence_schema_version": "1.0.0",
+  "capability_decision": "blocked",
+  "dependency_strategy": "trusted_local_installation_via_read_only_symlink_bridge",
+  "contexts": {
+    "original": {
+      "head_before_and_after": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+      "protected_from_sandbox_writes": true
+    },
+    "capability": {
+      "path_category": "disposable_private_tmp_local_clone",
+      "head": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+      "candidate_or_deploy_input": false,
+      "commit_created": false,
+      "tracked_setup_paths": [
+        "scripts/action-318-static-replay-batch-commit-readiness-verify.mjs",
+        "scripts/action-319-static-replay-batch-post-commit-verify.mjs",
+        "scripts/action-320-static-replay-branch-package-verify.mjs",
+        "scripts/action-366-corrected-immutable-preview-candidate-preparation-approval-gate-verify.mjs",
+        "tests/e2e/action-366-corrected-immutable-preview-candidate-preparation-approval-gate.spec.ts"
+      ],
+      "unexpected_tracked_drift": [],
+      "generated_ignored_outputs": [
+        ".next/",
+        "node_modules",
+        "test-results/"
+      ]
+    },
+    "failed_candidate": {
+      "sha": "8cfe239dc122d85770bfc86586f00716695915d1",
+      "clean_before_and_after": true,
+      "deployable": false,
+      "amended": false
+    }
+  },
+  "runtime": {
+    "node_executable": "/opt/homebrew/bin/node",
+    "node_version": "v26.3.1",
+    "npm_executable": "/opt/homebrew/bin/npm",
+    "npm_version": "11.16.0",
+    "package_manager": "npm",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "integrity": {
+    "package_json_sha256_source_and_context": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "package_lock_sha256_source_and_context": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "dependency_root_file_count_before_and_after": 23839,
+    "dependency_root_total_bytes_before_and_after": 447449795,
+    "dependency_root_metadata_sha256_before_and_after": "a9576999e30f6c5182cf26f68f38bb4803df27960dd09415e0975509bb88dd96",
+    "dependency_package_lock_sha256_before_and_after": "bdf96ee3a6c06e13434a631db7e920464f84ea2d0685d87ea753ab7acf8bbaf2",
+    "dependency_root_changed": false,
+    "package_json_changed": false,
+    "package_lock_changed": false
+  },
+  "dependency_source": {
+    "path_policy": "existing_workspace_node_modules_outside_capability_context",
+    "bridge_type": "git_ignored_symbolic_link",
+    "copied_into_context": false,
+    "included_in_git_or_deploy_input": false,
+    "sandbox_profile_sha256": "09bcb17b9717a3fd1808911537ceacd25a382141f84fb33ea711d9e71c572785",
+    "write_canary_denied": true,
+    "write_canary_created": false,
+    "read_only_enforced": true
+  },
+  "module_resolution": {
+    "next": "/Users/willysimonsson/Dev/trade/node_modules/next/dist/server/next.js",
+    "typescript": "/Users/willysimonsson/Dev/trade/node_modules/typescript/lib/typescript.js",
+    "eslint": "/Users/willysimonsson/Dev/trade/node_modules/eslint/lib/api.js",
+    "playwright_test": "/Users/willysimonsson/Dev/trade/node_modules/@playwright/test/index.js"
+  },
+  "binary_resolution": {
+    "next": "/Users/willysimonsson/Dev/trade/node_modules/next/dist/bin/next",
+    "typescript": "/Users/willysimonsson/Dev/trade/node_modules/typescript/bin/tsc",
+    "eslint": "/Users/willysimonsson/Dev/trade/node_modules/eslint/bin/eslint.js",
+    "playwright": "/Users/willysimonsson/Dev/trade/node_modules/@playwright/test/cli.js"
+  },
+  "package_versions": {
+    "next": "16.2.6",
+    "typescript": "5.9.3",
+    "eslint": "9.39.4",
+    "playwright_test": "1.60.0"
+  },
+  "registry_and_installation": {
+    "network_enforcement": "sandbox_profile_deny_network_all",
+    "registry_access_prevented": true,
+    "registry_access_not_observed": true,
+    "registry_access_cannot_be_ruled_out": false,
+    "installation_command_count": 0,
+    "automatic_install_fallback_observed": false,
+    "package_manager_cache_writes_denied": true,
+    "playwright_download_cache_writes_denied": true
+  },
+  "validation_capability": {
+    "module_resolution": "passed",
+    "binary_resolution": "passed",
+    "read_only_write_denial": "passed",
+    "next_typegen": "passed",
+    "typescript_no_emit": "passed",
+    "complete_build": "failed_dependency_bridge",
+    "complete_build_failure": "Turbopack rejects project node_modules symlink because it points outside the filesystem root",
+    "lint": "passed",
+    "golden_verifier": "passed",
+    "representative_verifiers": {
+      "passed": [
+        "Action 309",
+        "Action 338",
+        "Action 344",
+        "Action 350",
+        "Action 358",
+        "Action 359",
+        "Action 360",
+        "Action 362",
+        "Action 363",
+        "Action 364",
+        "Action 318",
+        "Action 319",
+        "Action 320"
+      ],
+      "failed_source_or_generated_evidence": [
+        "Action 361: complete build manifest and generated route evidence unavailable after bridge build failure"
+      ]
+    },
+    "focused_playwright_action_360": "runner_and_seven_static_tests_passed_two_localhost_tests_blocked_by_intentionally_absent_env_file",
+    "focused_playwright_action_366": "runner_and_ten_static_tests_passed_one_upstream_action_361_generated_evidence_test_failed",
+    "full_required_stack_executable": false
+  },
+  "safety": {
+    "corrected_candidate_created": false,
+    "failed_candidate_modified": false,
+    "runtime_route_modified": false,
+    "dependency_install_performed": false,
+    "dependency_copy_performed": false,
+    "lockfile_modified": false,
+    "package_json_modified": false,
+    "external_application_endpoint_contacted": false,
+    "provider_or_supabase_contacted": false,
+    "deployment_performed": false,
+    "push_performed": false,
+    "action_362_approval_preserved": true,
+    "preview_attempt_consumed": false,
+    "production_blocked": true,
+    "main_push_blocked": true
+  }
+}

@@ -1,0 +1,641 @@
+Action: 873 - Controlled Live Runtime Proof
+
+## Action 891 Project Handoff Summary Addendum
+
+Action 891 created
+docs/execution-record-audit-writer-runtime-persistence-project-handoff-summary.md
+as a documentation-only project handoff summary for the audit writer runtime
+persistence track.
+
+Status:
+audit_writer_runtime_persistence_project_handoff_summary_created
+
+No runtime code, rollout flag change, cleanup/backout, live proof, live insert,
+select/query/remote SQL, data mutation, or real service-role adapter call was
+performed by Action 891.
+
+## Action 890 Cleanup/Backout Decision Addendum
+
+Action 890 created
+docs/execution-record-audit-writer-runtime-persistence-cleanup-backout-decision.md
+as a documentation-only cleanup/backout decision record.
+
+Decision: no cleanup/backout now; retain proof/smoke rows as audit evidence;
+keep rollout state unchanged.
+
+Status:
+audit_writer_runtime_persistence_cleanup_backout_decision_retain_proof_rows
+
+No cleanup, backout, rollout flag change, select/query/remote SQL, row
+delete/update, live proof, live insert, data mutation, or real service-role
+adapter call was performed by Action 890.
+
+## Action 889 Cleanup/Backout Approval Request Addendum
+
+Action 889 created
+docs/execution-record-audit-writer-runtime-persistence-cleanup-backout-approval-request.md
+as a documentation-only cleanup/backout approval request.
+
+Status:
+audit_writer_runtime_persistence_cleanup_backout_approval_requested_blocked
+
+No cleanup, backout, rollout flag change, select/query/remote SQL, row
+delete/update, live proof, live insert, data mutation, or real service-role
+adapter call was performed by Action 889.
+
+## Action 888 Post-Rollout Monitoring Review Addendum
+
+Action 888 created
+docs/execution-record-audit-writer-runtime-persistence-post-rollout-monitoring-review.md
+as a documentation-only post-rollout monitoring review.
+
+Status:
+audit_writer_runtime_persistence_post_rollout_monitoring_review_created
+
+No live proof rerun, live insert, Supabase query, remote SQL, data mutation, or
+real service-role adapter call was performed by Action 888.
+
+## Action 887 Production Rollout Addendum
+
+Action 887 rolled out the verified server-only audit writer runtime persistence
+path within the explicitly approved server-only, audit-only, insert-only path.
+
+Status:
+audit_writer_runtime_persistence_production_rollout_completed_server_only_path
+
+Evidence:
+docs/execution-record-audit-writer-runtime-persistence-production-rollout.md
+
+No live proof rerun, live insert, Supabase query, remote SQL, data mutation, or
+real service-role value printing was performed by Action 887.
+
+## Action 886 Production Rollout Approval Request Addendum
+
+Action 886 created
+docs/execution-record-audit-writer-runtime-persistence-production-rollout-approval-request.md
+as a documentation-only approval request.
+
+Status:
+audit_writer_runtime_persistence_production_rollout_approval_requested_blocked
+
+No live proof rerun, live insert, Supabase query, remote SQL, data mutation, or
+real service-role adapter call was performed.
+
+## Action 885 Runtime Persistence Final Readiness Report Addendum
+
+Action 885 created
+docs/execution-record-audit-writer-runtime-persistence-final-readiness-report.md
+as a documentation-only final readiness report.
+
+Status:
+audit_writer_runtime_persistence_final_readiness_report_created
+
+No live proof rerun, live insert, Supabase query, remote SQL, data mutation, or
+real service-role adapter call was performed.
+
+## Action 884 Runtime Monitoring Regression Coverage Addendum
+
+Action 884 added tests/docs-only runtime monitoring regression coverage.
+
+Status:
+`audit_writer_runtime_monitoring_regression_tests_added`
+
+No live proof rerun, live insert, Supabase query, remote SQL, data mutation, or
+real service-role adapter call was performed.
+
+## Action 882 Runtime Monitoring Approval Request Addendum
+
+Action 882 created
+`docs/execution-record-audit-writer-runtime-monitoring-implementation-approval-request.md`
+as a documentation-only approval request. No runtime monitoring code, logging
+behavior, live proof, live insert, Supabase query, or data mutation was added.
+
+Status:
+`audit_writer_runtime_monitoring_implementation_approval_requested_blocked`
+
+Recommended next action: Action 883 - Provide Audit Writer Runtime Monitoring
+Implementation Approval.
+
+## Action 881 Runtime Persistence Completion Summary Addendum
+
+Action 881 created
+`docs/execution-record-audit-writer-runtime-persistence-completion-summary.md`
+as the documentation-only completion summary for the audit writer runtime
+persistence verification chain.
+
+The summary records the direct staging live smoke proof, Stage A in-memory
+proof, Stage B dry-run proof, Stage C controlled live runtime proof, and Action
+880 success regression coverage.
+
+Status:
+`audit_writer_runtime_persistence_completion_summary_created`
+
+Recommended next action: Action 882 - Create Audit Writer Runtime Monitoring
+Implementation Approval Request.
+
+## Action 880 Controlled Live Runtime Proof Success Regression Addendum
+
+Action 880 added regression coverage for the successful Action 879 controlled
+live runtime proof result.
+
+Created:
+
+- `tests/e2e/execution-record-audit-writer-controlled-live-runtime-proof-success-regression.spec.ts`
+- `docs/execution-record-audit-writer-controlled-live-runtime-proof-success-regression-tests.md`
+
+The regression coverage locks the Action 879 envelope shape:
+
+- `boundaryStatus: transition_completed`;
+- `writerStatus: success`;
+- `adapterStatus: success`;
+- `inserted: true`;
+- `auditEventId: unconfirmed_without_select`.
+
+It also locks the boundary conditions: no post-insert select, no broad table
+dump, boolean-only env readiness, no service-role value exposure, no retry
+loop, server-only boundary, insert-only/audit-only writer path, and no UI,
+market/scanner, broker/Avanza, automatic, or downstream mutation path.
+
+No new live proof, live insert, Supabase query, remote SQL, data mutation,
+service-role adapter call, `.env.local` change, migration, type generation, or
+generated type edit was performed.
+
+Status:
+`controlled_live_runtime_proof_success_regression_tests_added`
+
+Recommended next action: Action 881 - Create Audit Writer Runtime Persistence
+Completion Summary.
+
+## Action 879 Controlled Live Runtime Proof Final Retry Addendum
+
+Approval was provided by Willy Simonsson for Action 879 to run exactly one
+final controlled Stage C live runtime proof retry through the server-only
+lifecycle transition boundary.
+
+Approval timestamp recorded by Codex:
+`2026-06-26 21:38 CEST`
+
+Controlled FK target:
+`5d682086-4195-40ec-ba80-a0a1b39a6923`
+
+Before execution, Codex verified required Supabase/service-role env presence as
+booleans only:
+
+```json
+{
+  "nextPublicSupabaseUrlPresent": true,
+  "acceptedServiceRoleAliasPresent": true,
+  "serviceRoleValuePrinted": false,
+  "envSourceMode": ".env.local loaded into proof process"
+}
+```
+
+Exactly one proof invocation was run. No retry was performed.
+
+Sanitized Action 879 result:
+
+```json
+{
+  "proofStage": "stage_c_controlled_live_runtime_proof_final_retry",
+  "boundaryStatus": "transition_completed",
+  "boundaryOk": true,
+  "transitionOk": true,
+  "transitionFromState": "idle",
+  "transitionToState": "intent_created",
+  "lifecycleId": "action_879_controlled_live_runtime_proof_final_retry_2026-06-26T19_39_56_678Z",
+  "eventId": "execution_event_action_879_controlled_live_runtime_proof_final_retry_2026-06-26T19_39_56_678Z_001_create_intent",
+  "requestId": "action_879_controlled_live_runtime_proof_final_retry_request_2026-06-26T19_39_56_678Z",
+  "controlledExecutionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "auditCallerStatus": "completed",
+  "hookStatus": "completed",
+  "writePathStatus": "completed",
+  "writerStatus": "success",
+  "writerOk": true,
+  "dryRunStatus": "ready",
+  "adapterStatus": "success",
+  "inserted": true,
+  "auditEventId": "unconfirmed_without_select",
+  "errors": [],
+  "warnings": [
+    "audit_event_id_unconfirmed_without_select"
+  ],
+  "diagnosticsCategory": null,
+  "diagnosticsCode": null,
+  "serviceRoleValuePrinted": false,
+  "uiBrowserInvocationAllowed": false,
+  "scannerAutomationInvocationAllowed": false,
+  "brokerAvanzaBehaviorAllowed": false,
+  "automaticModeAllowed": false,
+  "downstreamMutationAllowed": false,
+  "retryLoopAllowed": false,
+  "broaderProductionRolloutAllowed": false
+}
+```
+
+Persistence result:
+
+- at most one insert-only audit append was attempted;
+- returned writer envelope indicates `inserted: true`;
+- adapter status was `success`;
+- no broad table dump or post-insert select was run;
+- audit event id remains `unconfirmed_without_select` by design;
+- no service-role value was printed.
+
+Safety result:
+
+- no UI/browser/client invocation;
+- no app-shell import;
+- no market-loop/scanner/automation invocation;
+- no broker/Avanza behavior;
+- no automatic mode;
+- no trade/stats/PnL mutation beyond existing transition semantics;
+- no update/delete/upsert/select;
+- no repeated insert/retry;
+- no production rollout beyond this single proof retry;
+- no service-role exposure;
+- no `.env.local` change;
+- no migration, type generation, or generated type edit.
+
+Action 879 status:
+`controlled_live_runtime_proof_final_retry_completed_success_inserted_no_select`
+
+Action 879 validation:
+
+- Runtime denial harness syntax/import checks passed.
+- UI/app-shell import/search for route invocation, lifecycle hook, lifecycle
+  caller, transition boundary, and proof harnesses returned no matches.
+- Market-loop/scanner import search returned no matches.
+- Source-only `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches.
+- Service-role leakage search returned only negative test assertions and
+  redaction fixtures; no service-role value was found or printed.
+- `git diff --check` passed.
+- Touched-file trailing whitespace scan returned no matches.
+- `find docs -type f -size 0` returned no output.
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+## Action 878 Final Retry Approval Request Addendum
+
+Action 878 created a documentation-only final retry approval request for one
+future controlled Stage C live runtime proof retry. The request requires
+boolean-only Supabase/service-role env-presence proof before execution and
+keeps approval absent by default.
+
+Status:
+`controlled_live_runtime_proof_final_retry_approval_requested_blocked`
+
+No retry proof was run. No live insert, Supabase query, remote SQL, data
+mutation, real service-role adapter call, service-role value printing,
+`.env.local` change, migration, type generation, or generated type edit was
+performed.
+
+Recommended next action: Action 879 - Provide Controlled Live Runtime Proof
+Final Retry Approval.
+Workspace: /Users/willysimonsson/Dev/trade
+Project: Trade
+Project ref: ekdyopdrrkphlrsilyoo
+Environment: staging
+Proof stage: Stage C - controlled live runtime proof
+Target table: public.execution_record_audit_events
+Controlled execution record id: 5d682086-4195-40ec-ba80-a0a1b39a6923
+Approval timestamp: 2026-06-26 20:42 CEST
+Run timestamp: 2026-06-26 20:44 CEST
+Operator: Willy Simonsson
+Command operator: Codex/local terminal
+Verification reviewer: Willy Simonsson
+
+## Action 877 Service Availability Resolution Addendum
+
+Action 877 analyzed the Action 876 `service_unavailable` result without running
+another proof retry and without performing a live insert.
+
+Root cause:
+
+- Action 876 reached the writer and adapter boundary with a dry-run-ready
+  payload.
+- `service_unavailable` is produced by
+  `insertExecutionRecordAuditEventWithServiceRole(...)` when the service-role
+  client factory returns `client: null`.
+- The Action 876 standalone proof process did not load `.env.local`, so the
+  likely unavailable source is missing Supabase/service-role env in that process.
+- The original Action 876 envelope did not include lower-level unavailable
+  diagnostics, so the exact unavailable reason was not recorded at run time.
+
+Local fix:
+
+- `lib/server/execution-record-audit-writer-service-role-adapter.ts` now returns
+  sanitized `service_unavailable` diagnostics when the service-role client is
+  unavailable before insert.
+- No availability check was bypassed.
+- No retry or insert was run.
+
+Resolution document:
+
+- `docs/execution-record-audit-writer-controlled-live-runtime-proof-service-availability-resolution.md`
+
+Status:
+`controlled_live_runtime_proof_service_availability_resolved_retry_blocked`
+
+Recommended next action: Action 878 - Create Controlled Live Runtime Proof Final
+Retry Approval Request.
+
+## Action 876 Controlled Live Runtime Proof Retry Addendum
+
+Action 876 was approved by Willy Simonsson for exactly one controlled Stage C
+live runtime proof retry after the Action 874 actor-id validation fix.
+
+Approval timestamp: 2026-06-26 21:08 CEST
+Run timestamp: 2026-06-26 21:08 CEST
+
+The proof retry used the approved server-only lifecycle transition boundary:
+
+1. `transitionExecutionLifecycleOnServer(...)`
+2. `transitionExecutionLifecycleAndAppendAuditEvent(...)`
+3. `appendExecutionLifecycleTransitionAuditEvent(...)`
+4. `appendExecutionRecordAuditEventFromProductionWritePath(...)`
+5. server-only writer validation and service-role adapter path if available
+
+The proof retry was limited to one invocation and at most one insert-only audit
+append to `public.execution_record_audit_events`. No route, UI/browser/client
+path, app-shell path, market/scanner/automation path, broker/Avanza behavior,
+automatic mode, broad select/table dump, update/delete/upsert/select, migration,
+type generation, generated type edit, or `.env.local` change was performed.
+
+Sanitized Action 876 result:
+
+```json
+{
+  "action": "876",
+  "proofStage": "stage_c_controlled_live_runtime_proof_retry",
+  "project": "Trade",
+  "projectRef": "ekdyopdrrkphlrsilyoo",
+  "environment": "staging",
+  "targetTable": "public.execution_record_audit_events",
+  "controlledExecutionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "status": "transition_completed",
+  "ok": false,
+  "lifecycleId": "action_876_controlled_live_runtime_proof_retry_2026_06_26T19_08_27_516Z",
+  "eventId": "execution_event_action_876_controlled_live_runtime_proof_retry_2026_06_26T19_08_27_516Z_001_create_intent_2026-06-26T19_08_27_518Z",
+  "requestId": "action_876_controlled_live_runtime_proof_retry_request_2026_06_26T19_08_27_516Z",
+  "transitionOk": true,
+  "transitionFromState": "idle",
+  "transitionToState": "intent_created",
+  "auditCallerStatus": "completed",
+  "hookStatus": "completed",
+  "productionWritePathStatus": "completed",
+  "writerStatus": "service_unavailable",
+  "writerOk": false,
+  "inserted": false,
+  "auditEventId": null,
+  "idempotencyKey": "execution-lifecycle:action_876_controlled_live_runtime_proof_retry_2026_06_26T19_08_27_516Z:execution_event_action_876_controlled_live_runtime_proof_ret:1iexz5c",
+  "adapterStatus": "service_unavailable",
+  "diagnostics": null,
+  "dryRun": {
+    "status": "ready",
+    "wouldWrite": false,
+    "wouldInsertEventStatus": "dry_run_ready",
+    "executionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+    "eventType": "execution_lifecycle_create_intent",
+    "actorType": "operator",
+    "actorId": null
+  },
+  "warnings": [],
+  "writerWarnings": [],
+  "errors": [],
+  "noRetry": true,
+  "retryCount": 0,
+  "maxInsertCount": 1,
+  "serviceRoleValuePrinted": false,
+  "uiBrowserInvocation": false,
+  "appShellImport": false,
+  "marketLoopInvocation": false,
+  "scannerAutomationInvocation": false,
+  "downstreamMutationPerformed": false,
+  "brokerAvanzaBehavior": false,
+  "automaticMode": false,
+  "broadTableDumpPerformed": false,
+  "selectPerformed": false
+}
+```
+
+Action 876 persistence result:
+
+- lifecycle transition completed from `idle` to `intent_created`;
+- audit caller, lifecycle hook, and production write-path envelopes were reached;
+- actor-id normalization worked: the dry-run insert summary recorded
+  `actorType: "operator"` and `actorId: null`;
+- writer dry-run status was `ready`;
+- writer returned `service_unavailable`;
+- adapter status was `service_unavailable`;
+- `inserted: false`;
+- `auditEventId: null`;
+- no broad select/table dump was performed;
+- no retry was performed.
+
+Action 876 status:
+`controlled_live_runtime_proof_retry_completed_service_unavailable_no_insert`
+
+Action 876 validation:
+
+- Runtime denial harness syntax/import checks passed.
+- Runtime reference scan returned expected server/proof harness references only.
+- UI/app-shell import search returned no matches.
+- Market-loop/scanner import search returned no matches.
+- Source-only `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches.
+- Documentation service-role/env/write scans returned guardrail and
+  validation-plan text only.
+- `git diff --check` passed.
+- Touched-file trailing whitespace scan returned no matches.
+- `find docs -type f -size 0` returned no output.
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+Recommended next action: Action 877 - Resolve Controlled Live Runtime Proof
+Service Availability.
+
+## Action 875 Retry Approval Request Addendum
+
+Action 875 created a documentation-only approval request for one controlled
+Stage C live runtime proof retry after the Action 874 actor-id validation fix.
+
+Retry approval status:
+`controlled_live_runtime_proof_retry_approval_requested_blocked`
+
+Approval request:
+
+- `docs/execution-record-audit-writer-controlled-live-runtime-proof-retry-approval-request.md`
+
+No retry, live insert, Supabase query, remote SQL, data mutation, service-role
+adapter call, UI/browser/client invocation, market/scanner invocation,
+broker/Avanza behavior, automatic mode, migration, type generation, generated
+type edit, or `.env.local` change was performed.
+
+## 1. Purpose
+
+Run one controlled live runtime proof through the approved server-only lifecycle
+audit chain:
+
+1. `transitionExecutionLifecycleOnServer(...)`
+2. `transitionExecutionLifecycleAndAppendAuditEvent(...)`
+3. `appendExecutionLifecycleTransitionAuditEvent(...)`
+4. `appendExecutionRecordAuditEventFromProductionWritePath(...)`
+5. server-only writer validation and, only if valid, the service-role adapter
+
+The proof was limited to the approved Stage C scope. It was not broad
+production rollout and did not add UI/browser/client invocation, app-shell
+imports, market-loop/scanner/automation invocation, broker/Avanza behavior,
+automatic mode, or downstream trade/stats/PnL mutation.
+
+## 2. Scope Used
+
+- Operation approved: at most one insert-only audit append.
+- Boundary used: `transitionExecutionLifecycleOnServer(...)`.
+- Controlled FK target:
+  `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Event type: `create_intent`.
+- Lifecycle transition: `idle` to `intent_created`.
+- Retry allowed: no.
+- Broad table dump/select allowed: no.
+- Service-role value printing allowed: no.
+
+## 3. Sanitized Result
+
+The single approved proof run completed the lifecycle transition but stopped at
+writer validation before the service-role adapter.
+
+```json
+{
+  "action": "873",
+  "proofStage": "stage_c_controlled_live_runtime_proof",
+  "project": "Trade",
+  "projectRef": "ekdyopdrrkphlrsilyoo",
+  "environment": "staging",
+  "targetTable": "public.execution_record_audit_events",
+  "controlledExecutionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "status": "transition_completed",
+  "ok": false,
+  "lifecycleId": "action_873_controlled_live_runtime_proof_2026_06_26T18_44_23_899Z",
+  "eventId": "action_873_controlled_live_runtime_proof_event_2026_06_26T18_44_23_899Z",
+  "requestId": "action_873_controlled_live_runtime_proof_request_2026_06_26T18_44_23_899Z",
+  "transitionOk": true,
+  "transitionFromState": "idle",
+  "transitionToState": "intent_created",
+  "auditCallerStatus": "completed",
+  "hookStatus": "completed",
+  "productionWritePathStatus": "completed",
+  "writerStatus": "validation_failed",
+  "writerOk": false,
+  "inserted": false,
+  "auditEventId": null,
+  "idempotencyKey": null,
+  "adapterStatus": null,
+  "diagnostics": null,
+  "dryRun": {
+    "status": "validation_failed",
+    "wouldWrite": false,
+    "wouldInsertEventStatus": null,
+    "executionRecordId": null,
+    "eventType": null
+  },
+  "noRetry": true,
+  "retryCount": 0,
+  "maxInsertCount": 1,
+  "serviceRoleValuePrinted": false,
+  "uiBrowserInvocation": false,
+  "appShellImport": false,
+  "marketLoopInvocation": false,
+  "scannerAutomationInvocation": false,
+  "downstreamMutationPerformed": false,
+  "brokerAvanzaBehavior": false,
+  "automaticMode": false,
+  "broadTableDumpPerformed": false,
+  "selectPerformed": false
+}
+```
+
+## 4. Persistence Result
+
+No audit row was inserted.
+
+The writer returned `validation_failed` before the service-role adapter was
+called. The sanitized envelope therefore records:
+
+- `inserted: false`;
+- `adapterStatus: null`;
+- `auditEventId: null`;
+- no post-insert select;
+- no broad table dump;
+- no retry.
+
+## 5. Safety Confirmation
+
+Confirmed:
+
+- exactly one approved proof run was attempted;
+- lifecycle transition completed through the server-only boundary;
+- writer validation failed before insert;
+- no service-role adapter call was made;
+- no service-role value was printed;
+- no insert/update/delete/upsert/select was performed;
+- no UI/browser/client invocation was added;
+- no app-shell import was added;
+- no market-loop/scanner/automation invocation was added;
+- no broker/Avanza behavior was added;
+- automatic mode was not enabled;
+- no trade/stats/PnL mutation beyond existing transition semantics occurred;
+- no `.env.local` change was made;
+- no migration, type generation, or generated type edit was performed.
+
+## 6. Result Status
+
+Status:
+`controlled_live_runtime_proof_completed_writer_validation_failed_no_insert`
+
+## 7. Validation
+
+Validation after recording the proof:
+
+- Runtime denial harness syntax/import checks passed.
+- Runtime import search returned expected server/test references only.
+- UI/app-shell import search returned no matches.
+- Market-loop/scanner import search returned no matches.
+- Route invocation search returned existing route/harness/test and unrelated
+  application route/fetch references only; no Action 873 route invocation was
+  added.
+- `NEXT_PUBLIC_*SERVICE*` exposure search returned no matches in source files.
+- Service-role leakage scan found documentation-only no-printing boundary
+  phrases and no service-role values.
+- `git diff --check` passed.
+- Touched-file trailing whitespace scan returned no matches.
+- `find docs -type f -size 0` returned no output.
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed with the existing Babel deopt note for large
+  `app/trade-app.tsx`.
+
+Recommended next action: Action 874 - Resolve Controlled Live Runtime Proof
+Validation Failure.
+
+## Action 874 Resolution Addendum
+
+Action 874 identified the root cause as writer validation rejecting
+`actor.actorId: "willy_simonsson"` with `actor_id_invalid_uuid`.
+
+The lifecycle hook now normalizes non-UUID actor ids to `null` while preserving
+the actor type. The writer validator remains strict and is not bypassed.
+
+Resolution status:
+`controlled_live_runtime_proof_validation_failure_resolved_retry_blocked`
+
+Resolution document:
+
+- `docs/execution-record-audit-writer-controlled-live-runtime-proof-validation-failure-resolution.md`
+
+No live retry, live insert, Supabase query, remote SQL, data mutation,
+service-role adapter call, UI/browser/client invocation, market-loop/scanner
+invocation, broker/Avanza behavior, automatic mode, migration, type generation,
+or generated type edit was performed.
+
+Recommended next action: Action 875 - Create Controlled Live Runtime Proof
+Retry Approval Request.

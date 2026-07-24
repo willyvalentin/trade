@@ -1,0 +1,302 @@
+{
+  "schema_version": "1.0.0",
+  "action": 376,
+  "capability_vocabulary": [
+    "capable",
+    "capable_with_conditions",
+    "blocked"
+  ],
+  "capability_decision": "capable_with_conditions",
+  "candidate": {
+    "path": "/private/tmp/ture-action-370-corrected-preview-candidate",
+    "candidate_sha": "b0bb5c4686d9cab3b682b3b06fadee4cf73cab07",
+    "baseline_sha": "51aced66782ec9a37cd358238f02b6f5c0ae97bd",
+    "route_sha256": "98c7de74c94364eed9a447469ef367f1f454b42ae17d3911b3ebfad6ed5213bb",
+    "manifest_sha256": "b7ac9ddaf40cc516bcdbdc7208dc6669f6b34a18a1810c0bde72209b25710892",
+    "before_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after_status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "drift_detected": false
+  },
+  "upstream_state": {
+    "action_362_approval_preserved": true,
+    "action_375_resolution": "resolved_with_conditions",
+    "preview_attempt_consumed": false,
+    "deployment_attempt_count": 0
+  },
+  "tooling_context": {
+    "path": "/private/tmp/ture-action-376-netlify-cli-tooling",
+    "classification": "disposable_isolated_nonproduction_untracked_sibling",
+    "inside_shared_worktree": false,
+    "inside_candidate": false,
+    "inside_git_controlled_directory": false,
+    "application_environment_files_copied": false,
+    "application_credentials_inherited": false,
+    "retention_status": "retained_disposable_pending_evidence_review",
+    "deployment_input_excluded": true
+  },
+  "environment": {
+    "package_manager": "npm",
+    "package_manager_executable": "/opt/homebrew/bin/npm",
+    "node_version": "v26.3.1",
+    "npm_version": "11.16.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "macos_version": "15.6"
+  },
+  "tooling_definition": {
+    "name": "ture-action-376-netlify-cli-tooling",
+    "private": true,
+    "dependency_count": 1,
+    "dependency": "netlify-cli",
+    "requested_version": "26.2.0",
+    "floating_version_used": false,
+    "package_json_sha256": "0f29e999e8930f4718361c55f855cac4be053839f0ed317e49e01a561fb9be27",
+    "package_lock_sha256": "c4debb7fd8121b93021194a5b6f76e62a7278f804e97ebdd8057f97981d78ef2",
+    "lockfile_version": 3,
+    "lock_package_entry_count": 1178,
+    "lock_resolved_url_count": 1176,
+    "lock_resolved_hosts": [
+      "registry.npmjs.org"
+    ],
+    "package_json_hash_unchanged_after_materialization_and_commands": true,
+    "package_lock_hash_unchanged_after_materialization_and_commands": true
+  },
+  "action_375_artifact": {
+    "package": "netlify-cli",
+    "version": "26.2.0",
+    "tarball_url": "https://registry.npmjs.org/netlify-cli/-/netlify-cli-26.2.0.tgz",
+    "registry_integrity": "sha512-3jQg9WQoa1H74478fHZisj3T8dLM67x4F4Sgi7kROBHzJD9NNCYYw99dKRYWJOtEa1dUNyZu2W4VTdPzA1kjiw==",
+    "tarball_sha256": "741d46f0f18df96a8d3ee27614f51bfa529d2f9937a1122976358e54e40f6747",
+    "package_manifest_sha256": "a145ebb0632b2fee19d5f1cce90812041541bfdaf59d5de6f39cb89be75b4887",
+    "inventory_sha256": "1654fff9d1c845e0b62070461e2b4575d78d5b9e0ac2eb5ae05b16cd21b1541a",
+    "executable_sha256": "e39432e46703049b6769e17c0a7a8f1748c345100a1f934d8a6c7076001d426c"
+  },
+  "materialization": {
+    "selected_package": "netlify-cli",
+    "selected_version": "26.2.0",
+    "resolved_tarball_url": "https://registry.npmjs.org/netlify-cli/-/netlify-cli-26.2.0.tgz",
+    "resolved_integrity": "sha512-3jQg9WQoa1H74478fHZisj3T8dLM67x4F4Sgi7kROBHzJD9NNCYYw99dKRYWJOtEa1dUNyZu2W4VTdPzA1kjiw==",
+    "installed_cli_manifest_sha256": "a145ebb0632b2fee19d5f1cce90812041541bfdaf59d5de6f39cb89be75b4887",
+    "cli_executable_path": "/private/tmp/ture-action-376-netlify-cli-tooling/node_modules/.bin/netlify",
+    "cli_executable_target": "../netlify-cli/bin/run.js",
+    "cli_executable_sha256": "e39432e46703049b6769e17c0a7a8f1748c345100a1f934d8a6c7076001d426c",
+    "cli_package_file_count": 1113,
+    "cli_package_normalized_inventory_algorithm": "sorted_relative_path_size_content_sha256_lines_with_terminal_newline",
+    "cli_package_normalized_inventory_digest": "7dc1e74e6e0bdc0d53f9442d452178c2dbe33065c2420010eb96d5b066578f2c",
+    "action_375_source_normalized_inventory_digest": "7dc1e74e6e0bdc0d53f9442d452178c2dbe33065c2420010eb96d5b066578f2c",
+    "normalized_inventory_exact_match": true,
+    "installed_dependency_count": 1106,
+    "installed_dependency_inventory_digest": "f2bd19d72c57071330fde99f9b7fa7198a374af596f761f9e5521508050167b3",
+    "symlink_count": 64,
+    "symlink_inventory_digest": "53307e2e6b311aa2ff60f3a43d3ef357d3ae25cc3fc2d33a0b8d959968379764",
+    "executable_file_count": 137,
+    "executable_inventory_digest": "7b0400b85baca03dd1e640f456bfbc8279425086e6965d322d510708570dbdd4",
+    "successful_install_command_count": 2,
+    "total_install_command_invocation_count": 3,
+    "initial_sandboxed_registry_attempt_failed_before_contact": true,
+    "version_substitution_occurred": false,
+    "package_fallback_occurred": false,
+    "global_installation_occurred": false
+  },
+  "materialization_policy": {
+    "lifecycle_scripts_disabled": true,
+    "lifecycle_script_execution_count": 0,
+    "postinstall_declared": "node ./scripts/postinstall.js",
+    "postinstall_executed": false,
+    "audit_disabled": true,
+    "funding_calls_disabled": true,
+    "package_manager_update_notices_disabled": true,
+    "sudo_used": false,
+    "shell_profile_changed": false
+  },
+  "registry_window": {
+    "status": "closed_before_cli_execution",
+    "allowed_host": "registry.npmjs.org",
+    "contacted_hosts": [
+      {
+        "host": "registry.npmjs.org",
+        "classification": "approved_official_npm_registry_metadata_and_tarballs",
+        "credential_sent": false
+      }
+    ],
+    "unapproved_host_contacted": false,
+    "netlify_application_api_contacted": false,
+    "application_endpoint_contacted": false
+  },
+  "isolation": {
+    "home": "/private/tmp/ture-action-376-netlify-cli-tooling/runtime-home",
+    "config": "/private/tmp/ture-action-376-netlify-cli-tooling/runtime-config",
+    "cache": "/private/tmp/ture-action-376-netlify-cli-tooling/runtime-cache",
+    "temp": "/private/tmp/ture-action-376-netlify-cli-tooling/runtime-tmp",
+    "materialization_cache": "/private/tmp/ture-action-376-netlify-cli-tooling/cache",
+    "runtime_directories_empty_before_commands": true,
+    "materialization_cache_file_count": 3853,
+    "materialization_cache_inventory_digest": "5ff6d277c670688d9b2f0985cf1e29a24403dfc594c47d7832e3541135102c50",
+    "real_user_home_used": false,
+    "real_user_config_used": false,
+    "real_user_cache_used": false,
+    "repository_environment_read": false,
+    "candidate_environment_read": false
+  },
+  "offline_commands": {
+    "allowlist": [
+      "netlify --version",
+      "netlify --help",
+      "netlify deploy --help"
+    ],
+    "executed": [
+      {
+        "command": "netlify --version",
+        "exit_code": 0,
+        "result": "netlify-cli/26.2.0 darwin-arm64 node-v26.3.1"
+      },
+      {
+        "command": "netlify --help",
+        "exit_code": 0,
+        "version_present": true,
+        "authentication_required": false
+      },
+      {
+        "command": "netlify deploy --help",
+        "exit_code": 0,
+        "help_only": true,
+        "deployment_executed": false
+      }
+    ],
+    "denylist": [
+      "login",
+      "logout",
+      "status",
+      "link",
+      "unlink",
+      "init",
+      "deploy",
+      "sites",
+      "env",
+      "functions",
+      "open",
+      "watch",
+      "dev",
+      "completion install",
+      "update",
+      "self-update"
+    ],
+    "denylisted_command_executed": false,
+    "npx_used": false,
+    "global_executable_used": false,
+    "repository_executable_used": false
+  },
+  "network_enforcement": {
+    "result": "outbound_access_prevented",
+    "mechanism": "macos_sandbox_exec_allow_default_deny_network_all",
+    "enforced_for_every_cli_command": true,
+    "dns_control_target": "registry.npmjs.org",
+    "dns_control_exit_code": 6,
+    "dns_control_blocked": true,
+    "direct_ip_control_target": "1.1.1.1:80",
+    "direct_ip_control_exit_code": 7,
+    "direct_ip_control_blocked": true,
+    "netlify_api_access_possible_during_commands": false,
+    "cli_commands_completed_with_network_denied": true
+  },
+  "command_capabilities": {
+    "exact_version_verified": true,
+    "general_help_verified": true,
+    "deploy_help_verified": true,
+    "draft_deploy_default_confirmed": true,
+    "deploy_preview_context_option_confirmed": true,
+    "explicit_site_targeting_confirmed": true,
+    "machine_readable_json_option_confirmed": true,
+    "production_flags_present_and_denylisted": [
+      "--prod",
+      "--prod-if-unlocked"
+    ],
+    "anonymous_site_creation_present_and_denylisted": true,
+    "site_name_creation_present_and_denylisted": true,
+    "authentication_site_binding_not_executed": true,
+    "authentication_site_binding_requires_separate_gate": true
+  },
+  "telemetry_and_update": {
+    "ci_mode_enabled": true,
+    "update_notifier_suppression_enabled": true,
+    "outbound_network_denied": true,
+    "telemetry_egress_possible": false,
+    "update_check_egress_possible": false,
+    "self_update_executed": false,
+    "isolated_config_created": true,
+    "isolated_config_relative_path": "runtime-home/Library/Preferences/netlify/config.json",
+    "isolated_config_sha256": "0bef236dad621b91f44c6e0b7fc2e22cdd8038d79a1223baba1ae553ffa7677d",
+    "isolated_config_size_bytes": 81,
+    "isolated_config_keys": [
+      "cliId",
+      "telemetryDisabled"
+    ],
+    "isolated_config_cli_id_present": true,
+    "isolated_config_cli_id_value_recorded": false,
+    "isolated_config_telemetry_disabled_value": false,
+    "auth_like_config_key_present": false
+  },
+  "filesystem_and_config": {
+    "runtime_home_before_file_count": 0,
+    "runtime_home_after_file_count": 1,
+    "runtime_home_after_inventory_digest": "d4ff83460bb6e4d772f4038904c453bab862c2d23e92536b8cbdb91e81518a3f",
+    "runtime_config_after_file_count": 0,
+    "runtime_cache_after_file_count": 0,
+    "runtime_temp_after_file_count": 0,
+    "created_files_classification": "one_recorded_nonsecret_cli_config_inside_disposable_home",
+    "shared_dot_netlify_present": false,
+    "candidate_dot_netlify_present": false,
+    "real_user_dot_netlify_present_before": false,
+    "real_user_dot_netlify_present_after": false,
+    "real_user_preferences_netlify_present_before": false,
+    "real_user_preferences_netlify_present_after": false,
+    "real_user_cache_netlify_present_before": false,
+    "real_user_cache_netlify_present_after": false,
+    "global_config_write_detected": false,
+    "real_user_home_write_detected": false,
+    "credential_file_created": false
+  },
+  "shared_worktree": {
+    "before_status_sha256": "1979f7b7d879492828a7e2987891293717747619c763da5691db234176b188e3",
+    "after_offline_commands_status_sha256": "1979f7b7d879492828a7e2987891293717747619c763da5691db234176b188e3",
+    "package_json_sha256_before": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "package_json_sha256_after": "7ff6ae8890b52d4879ce88248c22f152fffab327e8a5ef3a92eccccad217ef58",
+    "package_lock_sha256_before": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "package_lock_sha256_after": "859f498ee4d7d64259ad07d6117e25e284a29bd7d7169126100564fe90943657",
+    "materialization_or_cli_drift_detected": false,
+    "note": "status comparison was captured before adding the source-controlled Action 376 report evidence verifier and test"
+  },
+  "security_results": {
+    "credential_access_performed": false,
+    "authentication_performed": false,
+    "site_or_account_inspection_performed": false,
+    "site_linkage_created": false,
+    "netlify_authenticated_api_called": false,
+    "deployment_performed": false,
+    "preview_url_allocated": false,
+    "production_changed": false,
+    "main_changed": false,
+    "production_blocked": true,
+    "main_blocked": true
+  },
+  "cleanup": {
+    "policy": "retain_only_in_private_tmp_for_deterministic_local_review_then_delete_without_copying_into_git_or_deployment_input",
+    "status": "retained_disposable_pending_evidence_review",
+    "repository_cleanup_required": false,
+    "candidate_cleanup_required": false
+  },
+  "passed_conditions": [
+    "exact_package_and_lock_materialized",
+    "action_375_provenance_and_hashes_match",
+    "lifecycle_and_postinstall_not_executed",
+    "offline_allowlist_succeeded_under_enforced_network_denial",
+    "credentials_authentication_linkage_and_deployment_absent",
+    "shared_worktree_and_candidate_unchanged_by_materialization_and_cli",
+    "draft_site_json_and_production_flag_semantics_bounded"
+  ],
+  "failed_conditions": [],
+  "unresolved_conditions": [
+    "authentication_and_exact_nonproduction_site_binding_remain_for_separately_gated_actions_377_and_378"
+  ],
+  "recommended_next_action": "separate_authentication_and_nonproduction_site_binding_readiness_gate_without_deployment"
+}

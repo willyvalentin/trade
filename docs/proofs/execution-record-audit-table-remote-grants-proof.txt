@@ -1,0 +1,33 @@
+Action: 782 - Verify Audit Table Remote Schema And RLS
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+
+Command:
+/opt/homebrew/bin/supabase db query --linked -o table "select table_schema, table_name, grantee, privilege_type, is_grantable from information_schema.role_table_grants where table_schema = 'public' and table_name in ('execution_records', 'execution_record_audit_events') and grantee in ('anon', 'authenticated', 'public') order by table_name, grantee, privilege_type;"
+
+Command exit code: 0
+
+Output summary:
+
+- `anon` grants returned for `public.execution_record_audit_events`: DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE.
+- `authenticated` grants returned for `public.execution_record_audit_events`: DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE.
+- `anon` grants returned for `public.execution_records`: DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE.
+- `authenticated` grants returned for `public.execution_records`: DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE.
+- No `public` grantee rows were returned by this filtered query.
+
+Interpretation:
+
+- Broad anon/authenticated table grants are present.
+- `public.execution_record_audit_events` has RLS enabled and no policies, so client writes should still be blocked by RLS, but this artifact is not anon/client denial proof.
+- Because broad grants are present, policy/grant posture is recorded as unclear until explicit anon/client denial proof is captured.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.
+
+Action 783 update:
+
+- Grants were re-confirmed as part of the Action 783 policy/grant resolution attempt.
+- Broad `anon` grants remain present for `public.execution_record_audit_events`.
+- Broad `authenticated` grants remain present for `public.execution_record_audit_events`.
+- RLS is enabled and no policies exist, but explicit anon/client denial tests were not completed in Action 783.
+- Policy/grant posture therefore remains blocked pending safe denial proof.

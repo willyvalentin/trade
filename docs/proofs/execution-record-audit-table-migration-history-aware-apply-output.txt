@@ -1,0 +1,32 @@
+Action: 781 - Retry Audit Migration Apply With History-Aware Temp Workdir
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+Approved audit migrations:
+- 20260615000000_create_execution_record_audit_events.sql
+- 20260615001000_enable_rls_execution_record_audit_events.sql
+Temporary workdir path pattern: /private/tmp/trade-action-781-audit-history-aware-*
+Command: /opt/homebrew/bin/supabase db push --linked --workdir /private/tmp/trade-action-781-audit-history-aware-fRhwL
+Command exit code: 0
+
+Output:
+
+Using workdir /private/tmp/trade-action-781-audit-history-aware-fRhwL
+Initialising login role...
+Connecting to remote database...
+Do you want to push these migrations to the remote database?
+ • 20260615000000_create_execution_record_audit_events.sql
+ • 20260615001000_enable_rls_execution_record_audit_events.sql
+
+ [Y/n] 
+Applying migration 20260615000000_create_execution_record_audit_events.sql...
+NOTICE (42622): identifier "execution_record_audit_events_duplicate_prevention_key_non_empty_check" will be truncated to "execution_record_audit_events_duplicate_prevention_key_non_empt"
+Applying migration 20260615001000_enable_rls_execution_record_audit_events.sql...
+Finished supabase db push.
+
+Interpretation:
+- Apply command succeeded.
+- Apply output listed only the two approved audit migrations.
+- The PostgreSQL notice is an identifier truncation notice for a check constraint name, not an apply failure.
+- No unrelated pending migrations were applied by this scoped temp-workdir command.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

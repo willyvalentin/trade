@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
 
 export type RecommendationCardMetric = {
   label: string;
@@ -9,6 +10,7 @@ export type RecommendationCardProps = {
   addTradeDisabled: boolean;
   addTradeLabel: string;
   confidenceLabel: string;
+  confidenceProjectionPreview?: ConfidenceCalibrationProjectionPreviewResult | null;
   confidenceTone: string;
   detailsDialog?: ReactNode;
   discardDialog?: ReactNode;
@@ -18,9 +20,6 @@ export type RecommendationCardProps = {
   onAddTrade: () => void | Promise<void>;
   onOpenDetails: () => void;
   onOpenDiscard: () => void;
-  sourceBadge: ReactNode;
-  summary: string;
-  updatedAt: string;
 };
 
 function recommendationCardDisplayValue(value: unknown, fallback = "—") {
@@ -49,7 +48,38 @@ function RecommendationCardMetricGrid({
           </div>
         </div>
       ))}
+      {metrics.length % 3 === 2 && (
+        <div
+          className="trade-recommendation-metric-spacer"
+          aria-hidden="true"
+        />
+      )}
     </div>
+  );
+}
+
+function formatProjectionConfidence(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  const points = value / 100;
+  return Number.isInteger(points) ? `${points}` : points.toFixed(1);
+}
+
+function formatProjectionDelta(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  const points = value / 100;
+  const formatted = Number.isInteger(points) ? `${points}` : points.toFixed(1);
+  return `${points >= 0 ? "▲ +" : "▼ "}${formatted}`;
+}
+
+function isVisibleProjectionPreview(
+  preview: ConfidenceCalibrationProjectionPreviewResult | null | undefined,
+) {
+  return (
+    preview !== null &&
+    preview !== undefined &&
+    preview.status !== "preview_disabled" &&
+    preview.status !== "preview_unavailable" &&
+    preview.proposed_preview_confidence_basis_points !== null
   );
 }
 
@@ -57,6 +87,7 @@ export function RecommendationCard({
   addTradeDisabled,
   addTradeLabel,
   confidenceLabel,
+  confidenceProjectionPreview,
   confidenceTone,
   detailsDialog,
   discardDialog,
@@ -66,9 +97,6 @@ export function RecommendationCard({
   onAddTrade,
   onOpenDetails,
   onOpenDiscard,
-  sourceBadge,
-  summary,
-  updatedAt,
 }: RecommendationCardProps) {
   return (
     <article
@@ -84,25 +112,52 @@ export function RecommendationCard({
       className="trade-recommendation-card"
     >
       <div className="trade-recommendation-card__eyebrow">
-        TRADE RECOMMENDATION
+        <span>TRADE RECOMMENDATION</span>
+        <button
+          type="button"
+          aria-label="Dismiss recommendation"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenDiscard();
+          }}
+          disabled={discardDisabled}
+          className="trade-recommendation-card__dismiss"
+        >
+          ×
+        </button>
       </div>
-      <div className="mt-2">{sourceBadge}</div>
 
       <div className="trade-recommendation-card__header">
         {identity}
-        <span
-          className={`trade-recommendation-confidence-pill trade-recommendation-confidence-pill--${confidenceTone}`}
-        >
-          {confidenceLabel}
-        </span>
+        <div className="trade-recommendation-confidence-stack">
+          <span
+            className={`trade-recommendation-confidence-pill trade-recommendation-confidence-pill--${confidenceTone}`}
+          >
+            {confidenceLabel}
+          </span>
+          {isVisibleProjectionPreview(confidenceProjectionPreview) ? (
+            <div className="trade-recommendation-ai-projection">
+              <span className="trade-recommendation-ai-projection__label">
+                AI Projection
+              </span>
+              <span className="trade-recommendation-ai-projection__value">
+                {formatProjectionConfidence(
+                  confidenceProjectionPreview
+                    ?.proposed_preview_confidence_basis_points ?? null,
+                )}
+              </span>
+              <span className="trade-recommendation-ai-projection__delta">
+                {formatProjectionDelta(
+                  confidenceProjectionPreview
+                    ?.proposed_preview_delta_basis_points ?? null,
+                )}
+              </span>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <RecommendationCardMetricGrid metrics={metrics} />
-
-      <div className="trade-recommendation-guidance">
-        <p>{recommendationCardDisplayValue(summary)}</p>
-        <span>Updated {recommendationCardDisplayValue(updatedAt)}</span>
-      </div>
 
       <div className="trade-recommendation-card__footer">
         <button
@@ -115,17 +170,6 @@ export function RecommendationCard({
           className="trade-recommendation-action trade-recommendation-action--primary"
         >
           {addTradeLabel}
-        </button>
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenDiscard();
-          }}
-          disabled={discardDisabled}
-          className="trade-recommendation-action trade-recommendation-action--secondary"
-        >
-          Discard
         </button>
       </div>
 

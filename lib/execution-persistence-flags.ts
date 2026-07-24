@@ -24,6 +24,9 @@ export type ExecutionAuditPersistenceAllowedResult = {
   warnings: string[];
 };
 
+// These flags are audit-only persistence controls. They are false/locked by
+// default and do not grant broker authority, order submission authority, Trade
+// UI execution, or production execution persistence approval.
 const environments: ExecutionPersistenceEnvironment[] = [
   "local_dev",
   "staging",
@@ -93,25 +96,25 @@ export function assertExecutionAuditPersistenceAllowed(
 
   if (!persistenceEnabled) {
     errors.push(
-      "Execution audit Supabase persistence is disabled. Set EXECUTION_AUDIT_SUPABASE_PERSISTENCE_ENABLED=true to enable future writes.",
+      "Execution audit Supabase persistence is disabled. This is the default locked state and no production execution persistence or broker/order authority is granted.",
     );
   }
 
   if (writerEnabled && !persistenceEnabled) {
     warnings.push(
-      "Execution audit Supabase writer flag is enabled while persistence is disabled; writer will not be used.",
+      "Execution audit Supabase writer flag is enabled while persistence is disabled; writer will not be used and no Supabase execution write is allowed.",
     );
   }
 
   if (environment === "production" && !productionAllowed) {
     errors.push(
-      "Execution audit Supabase persistence is blocked in production unless EXECUTION_AUDIT_SUPABASE_ALLOW_PRODUCTION=true is also set.",
+      "Execution audit Supabase persistence is blocked in production unless a separate production gate is explicitly approved. No production execution persistence is allowed by default.",
     );
   }
 
   if (environment === "production" && productionAllowed) {
     warnings.push(
-      "Production audit persistence was explicitly allowed. This is not recommended until RLS and user_id ownership are finalized.",
+      "Production audit persistence was explicitly allowed. This remains audit-only and is not recommended until RLS, user_id ownership, and separate production execution-persistence approval are finalized.",
     );
   }
 

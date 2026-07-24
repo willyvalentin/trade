@@ -1,0 +1,49 @@
+Action: 782 - Verify Audit Table Remote Schema And RLS
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+CLI path: /opt/homebrew/bin/supabase
+CLI version checked: 2.107.0
+Linked project ref checked before verification: ekdyopdrrkphlrsilyoo
+Migration status proof checked: docs/proofs/execution-record-audit-table-migration-history-aware-status-after.txt
+
+Command:
+/opt/homebrew/bin/supabase db query --linked -o table "select table_name, column_name, ordinal_position, data_type, udt_name, is_nullable, column_default from information_schema.columns where table_schema = 'public' and table_name in ('execution_records', 'execution_record_audit_events') order by table_name, ordinal_position;"
+
+Command exit code: 0
+
+Output summary:
+
+- `public.execution_record_audit_events` exists.
+- `public.execution_records` exists.
+- `public.execution_record_audit_events` columns present:
+  - `id uuid not null default gen_random_uuid()`
+  - `execution_record_id uuid not null`
+  - `event_type text not null`
+  - `event_source text not null`
+  - `event_status text not null`
+  - `event_payload jsonb not null default '{}'::jsonb`
+  - `evidence_payload jsonb not null default '{}'::jsonb`
+  - `actor_type text null`
+  - `actor_id text null`
+  - `source_system text not null`
+  - `source_fingerprint text null`
+  - `idempotency_key text not null`
+  - `duplicate_prevention_key text null`
+  - `created_at timestamptz not null default now()`
+  - `occurred_at timestamptz null`
+  - `schema_version text not null default '1.0'::text`
+  - `writer_version text null`
+  - `request_id text null`
+  - `trace_id text null`
+  - `metadata jsonb not null default '{}'::jsonb`
+- `public.execution_records` columns were also returned, including `id uuid not null default gen_random_uuid()`.
+
+Interpretation:
+
+- Remote audit table existence: verified.
+- Remote execution-record prerequisite table existence: verified.
+- Expected audit columns: verified.
+- Expected JSONB/provenance/evidence columns: verified.
+- Expected timestamp columns: verified.
+- Constraint/index/FK proof is captured separately in `docs/proofs/execution-record-audit-table-remote-indexes-constraints-proof.txt`.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

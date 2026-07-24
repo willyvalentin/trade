@@ -1,0 +1,23 @@
+Action: 779 - Retry Audit Table Migration Apply
+Workspace: /Users/willysimonsson/Dev/trade
+Command operator: Codex/local terminal
+Approved audit migrations:
+- 20260615000000_create_execution_record_audit_events.sql
+- 20260615001000_enable_rls_execution_record_audit_events.sql
+
+Apply command status: not attempted.
+
+Reason:
+- The required dry run from the temporary workdir failed before listing migrations.
+- Failure reason: remote migration history contains 20260614000000, but the temporary workdir intentionally contained only the two approved audit migration files.
+- Because the dry run did not list exactly the two approved audit migrations, the apply step was blocked.
+
+Safety confirmation:
+- No audit migration apply was attempted.
+- No broad pending migration push was run.
+- No unrelated migrations were applied.
+- No remote SQL was run.
+- No type generation was run.
+- No generated type files were modified.
+- No service-role code, writer, route, route call, runtime write path, Supabase/localStorage runtime write, audit append implementation, stats/PnL update, trade mutation, broker/Avanza behavior, or automatic mode was added.
+- No token values, database passwords, service-role keys, or connection strings are included in this artifact.

@@ -1,0 +1,54 @@
+Action 795 audit table generated types verification
+
+Status: audit_table_generated_types_verified
+
+Generated type target:
+- path: lib/supabase-database.types.ts
+- file_exists: yes
+- non_empty: yes
+- byte_count: 37226
+
+Linked project:
+- expected_ref: ekdyopdrrkphlrsilyoo
+- linked_ref: ekdyopdrrkphlrsilyoo
+- matches_expected: yes
+
+Generated type shape:
+- export type Database present: yes
+- public.Tables.execution_records present: yes
+- public.Tables.execution_record_audit_events present: yes
+- execution_record_audit_events Row present: yes
+- execution_record_audit_events Insert present: yes
+- execution_record_audit_events Update present: yes
+
+Audit table relationship shape:
+- execution_record_audit_events execution_record_id FK reference to execution_records present: yes
+
+Secret scan:
+- generated output scanned for common secret/token/connection-string patterns: yes
+- matches found: no
+
+Not performed:
+- no migrations
+- no broad supabase db push
+- no service-role code
+- no audit writer
+- no audit route
+- no route calls
+- no runtime persistence/write path
+- no Supabase/localStorage write code
+- no audit append implementation
+- no broker/Avanza behavior
+- no automatic mode
+- no runtime client import changes
+
+Safety boundaries:
+- Generated types are not writer implementation.
+- Generated types are not write-path approval.
+- Generated types are not audit append approval.
+- Generated types are not server-only proof.
+- Generated types are not route/auth proof.
+- Downstream behavior remains unauthorized.
+- Broker/Avanza/automatic behavior remains unauthorized.
+
+Recommended next action: Action 796 - Prove Audit Writer Server-Only Service-Role Boundary

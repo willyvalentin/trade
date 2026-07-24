@@ -1,4 +1,12 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
+import type {
+  LearningAccelerationResearchSkipExample,
+  LearningAccelerationResearchSkipReason,
+} from "@/lib/learning-acceleration-mode";
+import type {
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 import {
   AUTOMATION_ROUTE_VERSION,
   BUILD_MARKER,
@@ -24,6 +32,18 @@ export type ActiveScanTraceStageStatus =
   | "skipped"
   | "failed";
 
+export type LearningAccelerationCallsiteTrace = {
+  callsite_name: string | null;
+  candidate_universe_count: number;
+  ranked_candidate_count: number;
+  selected_build_diagnostics_count: number;
+  selected_to_built_drop_off_below_threshold_count: number;
+  rejection_examples_count: number;
+  batch_fingerprint_present: boolean;
+  scan_run_id_present: boolean;
+  persist_function_invoked: boolean;
+};
+
 export type ActiveScanTrace = {
   trace_id: string;
   automation_route_version: string;
@@ -38,6 +58,14 @@ export type ActiveScanTrace = {
   scan_window: IntradayScanWindow | "unknown";
   orchestration_decision: string | null;
   should_scan_now: boolean | null;
+  official_scan_window: string | null;
+  generation_window: IntradayScanWindow | "unknown";
+  generation_block_reason: string | null;
+  official_window_detected: boolean;
+  scheduled_gate_window: string | null;
+  scheduled_gate_allowed: boolean | null;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
   skip_reason: string | null;
   diagnostic_mode: boolean;
   diagnostic_run_mode: string | null;
@@ -55,6 +83,62 @@ export type ActiveScanTrace = {
   grow_max_learning_mode_requested: boolean;
   grow_max_learning_mode_blocked_reason: string | null;
   grow_max_learning_mode_enabled_source: string;
+  learning_acceleration_enabled: boolean;
+  learning_acceleration_requested: boolean;
+  learning_acceleration_enabled_source: string;
+  learning_acceleration_env_raw_present: boolean;
+  learning_acceleration_env_raw_value_category: string;
+  learning_acceleration_env_raw_value_normalized: boolean;
+  learning_acceleration_runtime_environment: string;
+  learning_acceleration_mode: string;
+  learning_acceleration_samples_collected_count: number;
+  learning_acceleration_samples_evaluated_count: number;
+  learning_acceleration_selected_below_threshold_count: number;
+  learning_acceleration_selected_below_threshold_readback_count: number;
+  learning_acceleration_selected_below_threshold_passed_count: number;
+  learning_acceleration_selected_below_threshold_matched_by_ticker_count: number;
+  learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: number;
+  learning_acceleration_input_mismatch: boolean;
+  below_threshold_readback_count: number;
+  below_threshold_runtime_input_count: number;
+  below_threshold_examples_count: number;
+  research_candidates_after_ticker_match: number;
+  research_persist_attempted: number;
+  research_persisted: number;
+  research_duplicates: number;
+  research_skipped_invalid: number;
+  research_skipped_stale: number;
+  research_skipped_budget: number;
+  research_skipped_missing_candidate_match: number;
+  learning_acceleration_candidate_universe_count: number;
+  learning_acceleration_candidate_universe_missing: boolean;
+  learning_acceleration_ticker_matching_failed: boolean;
+  learning_acceleration_input_source: string;
+  learning_acceleration_callsite_trace: LearningAccelerationCallsiteTrace | null;
+  learning_acceleration_callsite_mismatch: boolean;
+  learning_acceleration_expected_below_threshold_from_timeline: number;
+  learning_acceleration_actual_below_threshold_received_by_persistence: number;
+  learning_acceleration_candidate_universe_received_by_persistence: number;
+  learning_acceleration_research_only_persisted_count: number;
+  learning_acceleration_skipped_due_to_budget_count: number;
+  learning_acceleration_skipped_due_to_invalid_risk_count: number;
+  learning_acceleration_skipped_due_to_stale_reference_count: number;
+  learning_acceleration_research_hard_invalid_count: number;
+  learning_acceleration_research_soft_gaps_persisted_count: number;
+  learning_acceleration_research_stale_blocked_count: number;
+  learning_acceleration_research_skip_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  learning_acceleration_research_soft_gap_reason_counts: Partial<
+    Record<LearningAccelerationResearchSkipReason, number>
+  >;
+  learning_acceleration_research_top_skip_examples: LearningAccelerationResearchSkipExample[];
+  learning_acceleration_research_top_soft_gap_examples: LearningAccelerationResearchSkipExample[];
+  learning_acceleration_top_research_sample_tickers: string[];
+  learning_acceleration_sample_quality_summary: {
+    good: number;
+    usable: number;
+  };
   target_ideas_per_window: number | null;
   provider_plan_profile_mode: string | null;
   provider_plan_profile_source: string | null;
@@ -158,6 +242,8 @@ export type ActiveScanTrace = {
     batch_fingerprint: string | null;
     scan_run_fingerprint: string | null;
     zero_candidate_reason: string | null;
+    selected_candidate_build_diagnostics: SelectedCandidateBuildDiagnostic[];
+    selected_to_built_drop_off: SelectedToBuiltDropOffSummary | null;
   };
 };
 
@@ -211,6 +297,14 @@ export function createActiveScanTrace({
     scan_window: scanWindow ?? "unknown",
     orchestration_decision: null,
     should_scan_now: null,
+    official_scan_window: null,
+    generation_window: scanWindow ?? "unknown",
+    generation_block_reason: null,
+    official_window_detected: false,
+    scheduled_gate_window: null,
+    scheduled_gate_allowed: null,
+    scheduled_gate_block_reason: null,
+    schedule_window_mismatch: false,
     skip_reason: null,
     diagnostic_mode: false,
     diagnostic_run_mode: null,
@@ -228,6 +322,55 @@ export function createActiveScanTrace({
     grow_max_learning_mode_requested: false,
     grow_max_learning_mode_blocked_reason: "env_flag_not_enabled",
     grow_max_learning_mode_enabled_source: "none",
+    learning_acceleration_enabled: false,
+    learning_acceleration_requested: false,
+    learning_acceleration_enabled_source: "none",
+    learning_acceleration_env_raw_present: false,
+    learning_acceleration_env_raw_value_category: "missing",
+    learning_acceleration_env_raw_value_normalized: false,
+    learning_acceleration_runtime_environment: "missing",
+    learning_acceleration_mode: "disabled",
+    learning_acceleration_samples_collected_count: 0,
+    learning_acceleration_samples_evaluated_count: 0,
+    learning_acceleration_selected_below_threshold_count: 0,
+    learning_acceleration_selected_below_threshold_readback_count: 0,
+    learning_acceleration_selected_below_threshold_passed_count: 0,
+    learning_acceleration_selected_below_threshold_matched_by_ticker_count: 0,
+    learning_acceleration_selected_below_threshold_unmatched_by_ticker_count: 0,
+    learning_acceleration_input_mismatch: false,
+    below_threshold_readback_count: 0,
+    below_threshold_runtime_input_count: 0,
+    below_threshold_examples_count: 0,
+    research_candidates_after_ticker_match: 0,
+    research_persist_attempted: 0,
+    research_persisted: 0,
+    research_duplicates: 0,
+    research_skipped_invalid: 0,
+    research_skipped_stale: 0,
+    research_skipped_budget: 0,
+    research_skipped_missing_candidate_match: 0,
+    learning_acceleration_candidate_universe_count: 0,
+    learning_acceleration_candidate_universe_missing: false,
+    learning_acceleration_ticker_matching_failed: false,
+    learning_acceleration_input_source: "none",
+    learning_acceleration_callsite_trace: null,
+    learning_acceleration_callsite_mismatch: false,
+    learning_acceleration_expected_below_threshold_from_timeline: 0,
+    learning_acceleration_actual_below_threshold_received_by_persistence: 0,
+    learning_acceleration_candidate_universe_received_by_persistence: 0,
+    learning_acceleration_research_only_persisted_count: 0,
+    learning_acceleration_skipped_due_to_budget_count: 0,
+    learning_acceleration_skipped_due_to_invalid_risk_count: 0,
+    learning_acceleration_skipped_due_to_stale_reference_count: 0,
+    learning_acceleration_research_hard_invalid_count: 0,
+    learning_acceleration_research_soft_gaps_persisted_count: 0,
+    learning_acceleration_research_stale_blocked_count: 0,
+    learning_acceleration_research_skip_reason_counts: {},
+    learning_acceleration_research_soft_gap_reason_counts: {},
+    learning_acceleration_research_top_skip_examples: [],
+    learning_acceleration_research_top_soft_gap_examples: [],
+    learning_acceleration_top_research_sample_tickers: [],
+    learning_acceleration_sample_quality_summary: { good: 0, usable: 0 },
     target_ideas_per_window: null,
     provider_plan_profile_mode: null,
     provider_plan_profile_source: null,
@@ -336,6 +479,8 @@ export function createActiveScanTrace({
       batch_fingerprint: null,
       scan_run_fingerprint: null,
       zero_candidate_reason: null,
+      selected_candidate_build_diagnostics: [],
+      selected_to_built_drop_off: null,
     },
   };
 

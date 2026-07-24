@@ -249,3 +249,21 @@ Result:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Follow-Up
+
+Action 411 added
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Result:
+
+- Confirmed EOD acknowledgement persistence remains unchanged.
+- Confirmed the live market trial runbook reassessment did not move EOD
+  acknowledgement keys, read/write behavior, UI state, EOD calculations,
+  close/sell behavior, Supabase behavior, or execution behavior.
+- Identified live market trial runbook persistence as the next safe wrapper
+  only if exact key/default/normalization/read/write behavior is preserved.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**

@@ -13,6 +13,12 @@ import type {
   ExecutionLifecycleEventType,
   ExecutionLifecycleSnapshot,
 } from "@/lib/execution-state-machine";
+import {
+  appendExecutionEventLogEntries,
+  clearExecutionEventLogEntries,
+  getBrowserExecutionLocalStorage,
+  readExecutionEventLogEntries,
+} from "@/lib/execution-local-storage-helpers";
 
 export type ExecutionAuditEventType =
   | "intent_created"
@@ -83,26 +89,6 @@ export type ExecutionEventLogReadResult = {
 export const EXECUTION_EVENT_LOG_STORAGE_KEY = "ture_execution_event_log_v1";
 export const MAX_EXECUTION_AUDIT_EVENTS = 1000;
 
-const auditEventTypes: ExecutionAuditEventType[] = [
-  "intent_created",
-  "candidate_selected",
-  "handoff_created",
-  "broker_preparation_started",
-  "waiting_for_manual_confirmation",
-  "broker_order_submitting",
-  "broker_result_captured",
-  "execution_completed",
-  "execution_failed",
-  "execution_cancelled",
-  "execution_unknown",
-  "stub_prepare_clicked",
-  "agent_progress_stub",
-  "localhost_bridge_run_stub",
-  "localhost_mock_agent_run_stub",
-  "dev_mock_broker_capture_stub",
-  "localhost_bridge_cancel_stub",
-];
-
 const handoffStatuses: AvanzaExecutionHandoffStatus[] = [
   "ready",
   "blocked",
@@ -125,25 +111,6 @@ const lifecycleAuditTypeMap: Record<
   cancel_execution: "execution_cancelled",
   mark_unknown: "execution_unknown",
 };
-
-function getStorage(): Storage | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
-function isExecutionAuditEventType(value: unknown): value is ExecutionAuditEventType {
-  return (
-    typeof value === "string" &&
-    auditEventTypes.includes(value as ExecutionAuditEventType)
-  );
-}
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
@@ -204,114 +171,8 @@ function getMetadataHandoffStatus(
   return isAvanzaExecutionHandoffStatus(value) ? value : undefined;
 }
 
-function normalizeExecutionAuditEvent(value: unknown): ExecutionAuditEvent | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const candidate = value as Partial<ExecutionAuditEvent>;
-  const eventId = optionalString(candidate.eventId);
-  const createdAt = optionalString(candidate.createdAt);
-
-  if (
-    !eventId ||
-    !isExecutionAuditEventType(candidate.type) ||
-    !createdAt ||
-    !Number.isFinite(Date.parse(createdAt))
-  ) {
-    return null;
-  }
-
-  return {
-    eventId,
-    type: candidate.type,
-    createdAt,
-    ...(optionalString(candidate.lifecycleId)
-      ? { lifecycleId: optionalString(candidate.lifecycleId) }
-      : {}),
-    ...(optionalString(candidate.intentId)
-      ? { intentId: optionalString(candidate.intentId) }
-      : {}),
-    ...(optionalString(candidate.recommendationId)
-      ? { recommendationId: optionalString(candidate.recommendationId) }
-      : {}),
-    ...(optionalString(candidate.positionId)
-      ? { positionId: optionalString(candidate.positionId) }
-      : {}),
-    ...(optionalString(candidate.ticker)
-      ? { ticker: optionalString(candidate.ticker) }
-      : {}),
-    ...(candidate.action ? { action: candidate.action } : {}),
-    ...(candidate.mode ? { mode: candidate.mode } : {}),
-    ...(candidate.triggerType ? { triggerType: candidate.triggerType } : {}),
-    ...(candidate.broker === "avanza" ? { broker: "avanza" } : {}),
-    ...(optionalString(candidate.handoffVersion)
-      ? { handoffVersion: optionalString(candidate.handoffVersion) }
-      : {}),
-    ...(candidate.handoffStatus ? { handoffStatus: candidate.handoffStatus } : {}),
-    ...(candidate.brokerStatus ? { brokerStatus: candidate.brokerStatus } : {}),
-    ...(optionalString(candidate.message)
-      ? { message: optionalString(candidate.message) }
-      : {}),
-    ...(optionalMetadata(candidate.metadata)
-      ? { metadata: optionalMetadata(candidate.metadata) }
-      : {}),
-  };
-}
-
 function readExecutionAuditEventLog(): ExecutionEventLogReadResult {
-  const storage = getStorage();
-
-  if (!storage) {
-    return {
-      events: [],
-      discardedCount: 0,
-      storageAvailable: false,
-      error: null,
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(
-      storage.getItem(EXECUTION_EVENT_LOG_STORAGE_KEY) ?? "[]",
-    );
-    const rawEvents = Array.isArray(parsed) ? parsed : [];
-    const events = rawEvents
-      .map(normalizeExecutionAuditEvent)
-      .filter((event): event is ExecutionAuditEvent => Boolean(event));
-
-    return {
-      events,
-      discardedCount: rawEvents.length - events.length,
-      storageAvailable: true,
-      error: null,
-    };
-  } catch (error) {
-    return {
-      events: [],
-      discardedCount: 0,
-      storageAvailable: true,
-      error: error instanceof Error ? error.message : "Malformed event log.",
-    };
-  }
-}
-
-function writeExecutionAuditEvents(events: ExecutionAuditEvent[]): boolean {
-  const storage = getStorage();
-
-  if (!storage) {
-    return false;
-  }
-
-  try {
-    storage.setItem(
-      EXECUTION_EVENT_LOG_STORAGE_KEY,
-      JSON.stringify(events.slice(-MAX_EXECUTION_AUDIT_EVENTS)),
-    );
-    return true;
-  } catch {
-    return false;
-  }
+  return readExecutionEventLogEntries(getBrowserExecutionLocalStorage());
 }
 
 export function createExecutionAuditEvent(
@@ -373,20 +234,11 @@ export function appendExecutionAuditEvent(
 export function appendExecutionAuditEvents(
   events: readonly ExecutionAuditEvent[],
 ): boolean {
-  const currentEvents = readExecutionAuditEvents();
-  const validEvents = events
-    .map(normalizeExecutionAuditEvent)
-    .filter((event): event is ExecutionAuditEvent => Boolean(event));
-
-  if (validEvents.length === 0) {
-    return false;
-  }
-
-  return writeExecutionAuditEvents([...currentEvents, ...validEvents]);
+  return appendExecutionEventLogEntries(getBrowserExecutionLocalStorage(), events);
 }
 
 export function clearExecutionAuditEvents(): boolean {
-  return writeExecutionAuditEvents([]);
+  return clearExecutionEventLogEntries(getBrowserExecutionLocalStorage());
 }
 
 export function getExecutionAuditEventsForIntent(intentId: string) {

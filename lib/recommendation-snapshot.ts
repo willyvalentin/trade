@@ -1,11 +1,12 @@
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
+import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 import {
   parseRecommendationConfidenceMetadata,
   planReferenceMetadataDiagnostics,
 } from "@/lib/recommendation-inline-metadata";
-import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
+import { buildConfidenceProjectionObservationSnapshotContract } from "@/lib/confidence-projection-observation-contract";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -591,24 +592,52 @@ export function buildRecommendationSnapshot(
       payload_json: payloadJsonRecord,
     },
   });
+  const snapshotContractBase = {
+    id: snapshotFingerprint,
+    snapshot_fingerprint: snapshotFingerprint,
+    recommendation_id: textOrNull(input.recommendation_id),
+    ticker: textOrNull(input.ticker)?.toUpperCase() ?? null,
+    side,
+    recommended_at: toIso(input.recommended_at),
+    window: normalizeWindow(input.window),
+    recommendation_tier: textOrNull(input.rating) ?? textOrNull(input.label),
+    setup_type: textOrNull(input.type),
+    entry,
+    stop,
+    target,
+    risk_per_share: riskPerShare,
+    reward_per_share: rewardPerShare,
+    planned_risk_reward: plannedRiskReward,
+    original_confidence:
+      finiteNumber(input.confidence) ??
+      finiteNumber(input.score) ??
+      textOrNull(String(input.confidence ?? "")) ??
+      textOrNull(String(input.score ?? "")),
+    captured_at: createdAt,
+  };
+  const confidenceProjectionObservationContract =
+    buildConfidenceProjectionObservationSnapshotContract(snapshotContractBase);
   const payloadJsonWithDiagnostics = {
-    ...payloadJsonRecord,
+    ...payloadJson,
+    confidence_projection_observation_contract:
+      confidenceProjectionObservationContract,
     ...entryTypeMetadata,
     entry_type_metadata: entryTypeMetadata,
     trade_plan: {
       ...(objectOrNull(payloadJsonRecord.trade_plan) ?? {}),
       ...entryTypeMetadata,
     },
-    ...(objectOrNull(payloadJsonRecord.recommendation)
-      ? {
-          recommendation: {
-            ...(objectOrNull(payloadJsonRecord.recommendation) ?? {}),
+    recommendation:
+      payloadJsonRecord.recommendation &&
+      typeof payloadJsonRecord.recommendation === "object" &&
+      !Array.isArray(payloadJsonRecord.recommendation)
+        ? {
+            ...(payloadJsonRecord.recommendation as Record<string, unknown>),
             ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
             ...planReferenceStatus,
             ...entryTypeMetadata,
-          },
-        }
-      : {}),
+          }
+        : payloadJsonRecord.recommendation,
     plan_price_freshness: planPriceFreshness,
   };
 

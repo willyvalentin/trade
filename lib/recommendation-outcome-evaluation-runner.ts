@@ -27,7 +27,6 @@ import {
 } from "@/lib/recommendation-entry-type";
 import {
   buildPlanReferenceMetadataTrace,
-  type PlanReferenceMetadataTraceItem,
   type PlanReferenceMetadataTraceSummary,
 } from "@/lib/plan-reference-metadata-trace";
 
@@ -107,19 +106,6 @@ export type RecommendationOutcomeEvaluationCandidate = {
   plan_price_freshness?: PlanPriceFreshnessDiagnostics | null;
   entry_type_metadata?: RecommendationEntryTypeMetadata | null;
   entry_type_aware_trigger?: EntryTypeAwareTriggerDiagnostics | null;
-  entry_type?: RecommendationEntryTypeMetadata["entry_type"] | null;
-  entry_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
-  entry_type_source?: RecommendationEntryTypeMetadata["entry_type_source"] | null;
-  entry_type_confidence?: RecommendationEntryTypeMetadata["entry_type_confidence"] | null;
-  entry_type_warnings?: string[];
-  official_trigger_semantics_used?: "current_candle_range_touches_entry";
-  entry_type_aware_trigger_semantics?: RecommendationEntryTypeMetadata["entry_trigger_semantics"] | null;
-  entry_type_aware_entry_triggered?: boolean | null;
-  entry_type_aware_entry_triggered_at?: string | null;
-  entry_type_aware_status_if_applied?: RecommendationOutcome["status"] | null;
-  entry_type_trigger_disagreement?: boolean | null;
-  entry_type_trigger_disagreement_reason?: string | null;
-  plan_reference_metadata_trace?: PlanReferenceMetadataTraceItem | null;
   warnings: string[];
   error: string | null;
 };
@@ -164,8 +150,8 @@ export type RecommendationOutcomeEvaluationRun = {
   shadow_entry_trial_count: number;
   shadow_entry_triggered_count: number;
   plan_price_freshness_summary: PlanPriceFreshnessSummary | null;
+  plan_reference_metadata_trace: PlanReferenceMetadataTraceSummary | null;
   entry_type_trigger_summary: EntryTypeTriggerSummary | null;
-  plan_reference_metadata_trace: PlanReferenceMetadataTraceSummary;
   candle_request_debug_sample: Record<string, unknown>[];
   candidates: RecommendationOutcomeEvaluationCandidate[];
   outcomes: RecommendationOutcome[];
@@ -182,6 +168,7 @@ export type RecommendationOutcomeEvaluationRunnerOptions = {
   provider?: string | null;
   maxSnapshots?: number;
   maxCandleRequests?: number | null;
+  snapshotOrder?: "newest_first" | "input";
   enrichCompletedOutcomes?: boolean;
   fetchCandles?: (
     request: RecommendationOutcomeCandleRequest,
@@ -328,8 +315,7 @@ function entryTypeMetadataFromOutcome(
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
-  const entryType = (value as Record<string, unknown>).entry_type;
-  if (typeof entryType !== "string") {
+  if (typeof (value as Record<string, unknown>).entry_type !== "string") {
     return null;
   }
   return value as RecommendationEntryTypeMetadata;
@@ -338,12 +324,14 @@ function entryTypeMetadataFromOutcome(
 function entryTypeTriggerFromOutcome(
   outcome: RecommendationOutcome | null | undefined,
 ): EntryTypeAwareTriggerDiagnostics | null {
-  const value = outcome?.payload_json.entry_type_aware_trigger;
+  const value = outcome?.payload_json.entry_type_trigger_diagnostics;
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
-  const entryType = (value as Record<string, unknown>).entry_type;
-  if (typeof entryType !== "string") {
+  if (
+    typeof (value as Record<string, unknown>)
+      .entry_type_aware_trigger_semantics !== "string"
+  ) {
     return null;
   }
   return value as EntryTypeAwareTriggerDiagnostics;
@@ -354,94 +342,23 @@ function entryTypeDiagnosticPayload(input: {
   outcome: RecommendationOutcome;
   candles: RecommendationOutcomeCandle[];
 }) {
-  const metadata =
-    entryTypeMetadataFromOutcome(input.outcome) ??
-    entryTypeMetadataForSnapshot(input.snapshot);
+  const metadata = entryTypeMetadataForSnapshot(input.snapshot);
   const trigger = evaluateEntryTypeAwareTrigger({
     metadata,
-    candles: input.candles,
+    side: input.outcome.side,
     entry: input.outcome.entry,
-    officialTriggered: input.outcome.entry_triggered,
-    officialTriggeredAt: input.outcome.entry_triggered_at,
+    stop: input.outcome.stop,
+    target: input.outcome.target,
+    candles: input.candles,
+    officialEntryTriggered: input.outcome.entry_triggered,
     officialStatus: input.outcome.status,
   });
 
   return {
-    entry_type_metadata: metadata,
-    entry_type_aware_trigger: trigger,
     ...metadata,
-  };
-}
-
-function retainedCandlesFromOutcome(
-  outcome: RecommendationOutcome | null | undefined,
-): RecommendationOutcomeCandle[] {
-  const rawCandles = outcome?.payload_json.counterfactual_candles;
-  if (!Array.isArray(rawCandles)) {
-    return [];
-  }
-
-  return rawCandles
-    .map((raw): RecommendationOutcomeCandle | null => {
-      if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-        return null;
-      }
-
-      const record = raw as Record<string, unknown>;
-      const timestamp = record.timestamp ?? record.time;
-      if (
-        typeof timestamp !== "string" &&
-        typeof timestamp !== "number" &&
-        !(timestamp instanceof Date)
-      ) {
-        return null;
-      }
-
-      const numberOrNull = (value: unknown) =>
-        typeof value === "number" && Number.isFinite(value) ? value : null;
-
-      return {
-        timestamp,
-        open: numberOrNull(record.open),
-        high: numberOrNull(record.high),
-        low: numberOrNull(record.low),
-        close: numberOrNull(record.close),
-        volume: numberOrNull(record.volume),
-      };
-    })
-    .filter((candle): candle is RecommendationOutcomeCandle => candle !== null);
-}
-
-function entryTypeCandidateFields(input: {
-  metadata?: RecommendationEntryTypeMetadata | null;
-  trigger?: EntryTypeAwareTriggerDiagnostics | null;
-}) {
-  const metadata = input.metadata ?? null;
-  const trigger = input.trigger ?? null;
-
-  return {
-    entry_type: metadata?.entry_type ?? trigger?.entry_type ?? null,
-    entry_trigger_semantics:
-      metadata?.entry_trigger_semantics ?? trigger?.entry_trigger_semantics ?? null,
-    entry_type_source:
-      metadata?.entry_type_source ?? trigger?.entry_type_source ?? null,
-    entry_type_confidence:
-      metadata?.entry_type_confidence ?? trigger?.entry_type_confidence ?? null,
-    entry_type_warnings: metadata?.entry_type_warnings ?? [],
-    official_trigger_semantics_used:
-      "current_candle_range_touches_entry" as const,
-    entry_type_aware_trigger_semantics:
-      trigger?.entry_trigger_semantics ??
-      metadata?.entry_trigger_semantics ??
-      null,
-    entry_type_aware_entry_triggered:
-      trigger?.entry_type_aware_triggered ?? null,
-    entry_type_aware_entry_triggered_at:
-      trigger?.entry_type_aware_triggered_at ?? null,
-    entry_type_aware_status_if_applied:
-      trigger?.status_if_entry_type_applied ?? null,
-    entry_type_trigger_disagreement: trigger?.trigger_disagreement ?? null,
-    entry_type_trigger_disagreement_reason: trigger?.disagreement_reason ?? null,
+    entry_type_metadata: metadata,
+    ...trigger,
+    entry_type_trigger_diagnostics: trigger,
   };
 }
 
@@ -480,6 +397,36 @@ function hasRetainedCounterfactualCandles(outcome: RecommendationOutcome | undef
     outcome.payload_json.counterfactual_ready === true ||
     (Array.isArray(outcome.payload_json.counterfactual_candles) &&
       outcome.payload_json.counterfactual_candles.length > 0)
+  );
+}
+
+function outcomeNeedsOfficialTriggerSemanticsRefresh(input: {
+  outcome: RecommendationOutcome | undefined;
+  snapshot: RecommendationSnapshot;
+}) {
+  if (!input.outcome) {
+    return false;
+  }
+
+  const metadata =
+    entryTypeMetadataFromOutcome(input.outcome) ??
+    entryTypeMetadataForSnapshot(input.snapshot);
+
+  if (
+    metadata.entry_type !== "market_reference" ||
+    metadata.entry_trigger_semantics !== "immediate_reference"
+  ) {
+    return false;
+  }
+
+  const trigger = entryTypeTriggerFromOutcome(input.outcome);
+
+  return (
+    input.outcome.payload_json.official_trigger_semantics_used !==
+      "immediate_reference" ||
+    trigger?.official_trigger_semantics_used !== "immediate_reference" ||
+    (input.outcome.entry_triggered === false &&
+      trigger?.entry_type_aware_entry_triggered === true)
   );
 }
 
@@ -771,14 +718,19 @@ export async function runRecommendationOutcomeEvaluation(
   const maxSnapshots = options.maxSnapshots ?? defaultMaxSnapshots;
   const fetchCandles = options.fetchCandles;
   const enrichmentMode = options.enrichCompletedOutcomes === true;
-  const sortedSnapshots = [...options.snapshots]
-    .filter((snapshot) => snapshot.is_visible !== false)
-    .sort((first, second) => {
-      const firstTime = toDate(first.recommended_at)?.getTime() ?? 0;
-      const secondTime = toDate(second.recommended_at)?.getTime() ?? 0;
-      return secondTime - firstTime;
-    })
-    .slice(0, maxSnapshots);
+  const visibleSnapshots = [...options.snapshots].filter(
+    (snapshot) => snapshot.is_visible !== false,
+  );
+  const sortedSnapshots =
+    options.snapshotOrder === "input"
+      ? visibleSnapshots.slice(0, maxSnapshots)
+      : visibleSnapshots
+          .sort((first, second) => {
+            const firstTime = toDate(first.recommended_at)?.getTime() ?? 0;
+            const secondTime = toDate(second.recommended_at)?.getTime() ?? 0;
+            return secondTime - firstTime;
+          })
+          .slice(0, maxSnapshots);
   const candidates: RecommendationOutcomeEvaluationCandidate[] = [];
   const outcomes: RecommendationOutcome[] = [];
   const warnings: RecommendationOutcomeEvaluationWarning[] = [];
@@ -823,8 +775,8 @@ export async function runRecommendationOutcomeEvaluation(
       shadow_entry_trial_count: 0,
       shadow_entry_triggered_count: 0,
       plan_price_freshness_summary: null,
-      entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
       plan_reference_metadata_trace: planReferenceMetadataTrace,
+      entry_type_trigger_summary: summarizeEntryTypeTriggerDiagnostics([]),
       candle_request_debug_sample: [],
       candidates,
       outcomes,
@@ -875,6 +827,12 @@ export async function runRecommendationOutcomeEvaluation(
       const existingOutcomeCompleted = !isOutcomePending(existingOutcome);
       const existingOutcomeNeedsEnrichment =
         existingOutcomeCompleted && !hasRetainedCounterfactualCandles(existingOutcome);
+      const existingOutcomeNeedsOfficialSemanticsRefresh =
+        existingOutcomeCompleted &&
+        outcomeNeedsOfficialTriggerSemanticsRefresh({
+          outcome: existingOutcome,
+          snapshot,
+        });
 
       if (existingOutcomeCompleted) {
         completedOutcomesSeenCount += 1;
@@ -883,31 +841,22 @@ export async function runRecommendationOutcomeEvaluation(
       if (
         existingOutcomeCompleted &&
         enrichmentMode &&
-        !existingOutcomeNeedsEnrichment
+        !existingOutcomeNeedsEnrichment &&
+        !existingOutcomeNeedsOfficialSemanticsRefresh
       ) {
         completedOutcomesSkippedAlreadyEnrichedCount += 1;
       }
 
       if (
         existingOutcomeCompleted &&
+        !existingOutcomeNeedsOfficialSemanticsRefresh &&
         (!enrichmentMode || !existingOutcomeNeedsEnrichment)
       ) {
         const existingEntryTypeMetadata =
           entryTypeMetadataFromOutcome(existingOutcome) ??
           entryTypeMetadataForSnapshot(snapshot);
-        const retainedCandles = retainedCandlesFromOutcome(existingOutcome);
         const existingEntryTypeTrigger =
-          entryTypeTriggerFromOutcome(existingOutcome) ??
-          (retainedCandles.length > 0 && existingOutcome
-            ? evaluateEntryTypeAwareTrigger({
-                metadata: existingEntryTypeMetadata,
-                candles: retainedCandles,
-                entry: existingOutcome.entry,
-                officialTriggered: existingOutcome.entry_triggered,
-                officialTriggeredAt: existingOutcome.entry_triggered_at,
-                officialStatus: existingOutcome.status,
-              })
-            : null);
+          entryTypeTriggerFromOutcome(existingOutcome);
         candidates.push({
           candidate_id: `${snapshot.snapshot_fingerprint}:${horizon}`,
           snapshot_id: snapshot.id,
@@ -921,13 +870,8 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: existingOutcome?.id ?? null,
           outcome_status: existingOutcome?.status ?? null,
           persistence_mode: "unknown",
-          plan_price_freshness: planPriceFreshnessFromOutcome(existingOutcome),
           entry_type_metadata: existingEntryTypeMetadata,
           entry_type_aware_trigger: existingEntryTypeTrigger,
-          ...entryTypeCandidateFields({
-            metadata: existingEntryTypeMetadata,
-            trigger: existingEntryTypeTrigger,
-          }),
           warnings: [
             enrichmentMode && !existingOutcomeNeedsEnrichment
               ? "Outcome already has retained candles for counterfactual simulation."
@@ -973,7 +917,6 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: outcome.id,
           outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
           entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
           entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
           warnings: outcome.warnings,
@@ -1034,7 +977,6 @@ export async function runRecommendationOutcomeEvaluation(
           outcome_id: outcome.id,
           outcome_status: outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
           entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
           entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
           warnings: outcome.warnings,
@@ -1207,7 +1149,6 @@ export async function runRecommendationOutcomeEvaluation(
             ? work.existingOutcome?.status ?? outcome.status
             : outcome.status,
           persistence_mode: persistence?.mode ?? "unknown",
-          plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
           entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
           entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
           warnings: shouldRetainExistingCompleted
@@ -1299,7 +1240,6 @@ export async function runRecommendationOutcomeEvaluation(
         outcome_id: outcome.id,
         outcome_status: outcome.status,
         persistence_mode: persistence?.mode ?? "unknown",
-        plan_price_freshness: planPriceFreshnessFromOutcome(outcome),
         entry_type_metadata: entryTypeMetadataFromOutcome(outcome),
         entry_type_aware_trigger: entryTypeTriggerFromOutcome(outcome),
         warnings: outcome.warnings,
@@ -1361,54 +1301,52 @@ export async function runRecommendationOutcomeEvaluation(
             ? "failed"
             : "partial";
   const outcomesById = new Map(outcomes.map((outcome) => [outcome.id, outcome]));
-  const candidatesWithDiagnostics = candidates.map((candidate) => {
-    const outcome = candidate.outcome_id
-      ? outcomesById.get(candidate.outcome_id)
-      : null;
-    const entryTypeMetadata =
-      candidate.entry_type_metadata ?? entryTypeMetadataFromOutcome(outcome);
-    const entryTypeTrigger =
-      candidate.entry_type_aware_trigger ?? entryTypeTriggerFromOutcome(outcome);
-    return {
-      ...candidate,
-      plan_price_freshness:
-        candidate.plan_price_freshness ?? planPriceFreshnessFromOutcome(outcome),
-      entry_type_metadata: entryTypeMetadata,
-      entry_type_aware_trigger: entryTypeTrigger,
-      ...entryTypeCandidateFields({
-        metadata: entryTypeMetadata,
-        trigger: entryTypeTrigger,
-      }),
-    };
-  });
+  const candidatesWithPlanFreshness = candidates.map((candidate) => ({
+    ...candidate,
+    plan_price_freshness:
+      candidate.plan_price_freshness ??
+      planPriceFreshnessFromOutcome(
+        candidate.outcome_id ? outcomesById.get(candidate.outcome_id) : null,
+      ),
+    entry_type_metadata:
+      candidate.entry_type_metadata ??
+      entryTypeMetadataFromOutcome(
+        candidate.outcome_id ? outcomesById.get(candidate.outcome_id) : null,
+      ),
+    entry_type_aware_trigger:
+      candidate.entry_type_aware_trigger ??
+      entryTypeTriggerFromOutcome(
+        candidate.outcome_id ? outcomesById.get(candidate.outcome_id) : null,
+      ),
+  }));
   const planPriceFreshnessSummary = summarizePlanPriceFreshness(
-    candidatesWithDiagnostics.map((candidate) => ({
+    candidatesWithPlanFreshness.map((candidate) => ({
       ticker: candidate.ticker,
       snapshot_fingerprint: candidate.snapshot_fingerprint,
       horizon: candidate.horizon,
       diagnostics: candidate.plan_price_freshness ?? null,
     })),
   );
-  const entryTypeTriggerSummary =
-    summarizeEntryTypeTriggerDiagnostics(candidatesWithDiagnostics);
+  const entryTypeTriggerSummary = summarizeEntryTypeTriggerDiagnostics(
+    candidatesWithPlanFreshness.map((candidate) => {
+      const outcome = candidate.outcome_id
+        ? outcomesById.get(candidate.outcome_id)
+        : undefined;
+
+      return {
+        ticker: candidate.ticker,
+        entryType: candidate.entry_type_metadata ?? null,
+        trigger: candidate.entry_type_aware_trigger ?? null,
+        currentRouteTriggered: outcome?.entry_triggered ?? null,
+        officialTriggered: outcome?.entry_triggered ?? null,
+      };
+    }),
+  );
   const planReferenceMetadataTrace = buildPlanReferenceMetadataTrace({
     snapshots: sortedSnapshots,
-    candidates: candidatesWithDiagnostics,
-    outcomes: [...existingOutcomes, ...outcomes],
+    candidates: candidatesWithPlanFreshness,
+    outcomes,
   });
-  const traceByCandidateKey = new Map(
-    planReferenceMetadataTrace.sample_traces.map((trace) => [
-      `${trace.snapshot_fingerprint ?? "unknown"}:${trace.horizon ?? "unknown"}`,
-      trace,
-    ]),
-  );
-  const candidatesWithTrace = candidatesWithDiagnostics.map((candidate) => ({
-    ...candidate,
-    plan_reference_metadata_trace:
-      traceByCandidateKey.get(
-        `${candidate.snapshot_fingerprint ?? "unknown"}:${candidate.horizon ?? "unknown"}`,
-      ) ?? null,
-  }));
   const completedRun = {
     run_id: createRunId(startedAt),
     run_version: "1.0" as const,
@@ -1447,10 +1385,10 @@ export async function runRecommendationOutcomeEvaluation(
     shadow_entry_trial_count: shadowEntryTrialCount,
     shadow_entry_triggered_count: shadowEntryTriggeredCount,
     plan_price_freshness_summary: planPriceFreshnessSummary,
-    entry_type_trigger_summary: entryTypeTriggerSummary,
     plan_reference_metadata_trace: planReferenceMetadataTrace,
+    entry_type_trigger_summary: entryTypeTriggerSummary,
     candle_request_debug_sample: candleRequestDebugSample,
-    candidates: candidatesWithTrace,
+    candidates: candidatesWithPlanFreshness,
     outcomes,
     warnings,
   };

@@ -2,7 +2,12 @@ import type { DayTradeScanOrchestrationSummary } from "@/lib/day-trade-scan-orch
 import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discovery";
 import type { LegacySessionType } from "@/lib/intraday-scan-window";
 import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
+import type {
+  SelectedCandidateBuildDiagnostic,
+  SelectedToBuiltDropOffSummary,
+} from "@/lib/recommendation-build-diagnostics";
 import type { RecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
+import type { ReferenceRefreshDiagnostics } from "@/lib/reference-refresh-diagnostics";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
@@ -90,8 +95,11 @@ export type ScanLogEntry = {
   strong_threshold?: number | null;
   publishable_threshold?: number | null;
   deterministic_fallback_used?: boolean | null;
+  reference_refresh?: ReferenceRefreshDiagnostics | null;
   recommendation_build_path?: string | null;
   recommendations_built_count?: number | null;
+  selected_candidate_build_diagnostics?: SelectedCandidateBuildDiagnostic[] | null;
+  selected_to_built_drop_off?: SelectedToBuiltDropOffSummary | null;
   automation_route_version?: string | null;
   recommendation_publish_policy_version?: string | null;
   build_marker?: string | null;

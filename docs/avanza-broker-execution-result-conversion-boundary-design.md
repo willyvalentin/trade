@@ -15,6 +15,117 @@ This is documentation only. It adds no conversion code, no Avanza automation,
 no selectors or URLs, no `BrokerExecutionResult`, no execution record, no
 Supabase write, and no trade mutation.
 
+## Action 448 Reassessment
+
+Action 448 created
+`docs/broker-execution-result-confirmation-path-reassessment.md`.
+
+Conversion boundary update:
+
+- Current BrokerExecutionResult eligibility remains an eligibility check only.
+- Current BrokerExecutionResult conversion output remains preview-only and
+  explicitly `notBrokerExecutionResult`.
+- No current conversion source is production-safe for persistence or trade
+  mutation.
+- Future conversion must wait for a concrete BrokerExecutionResult
+  confirmation requirements spec.
+
+Next recommended action:
+
+**Action 449 - Create BrokerExecutionResult Confirmation Requirements Spec**
+
+## Action 449 Requirements Spec
+
+Action 449 created
+`docs/broker-execution-result-confirmation-requirements-spec.md`.
+
+Conversion implications:
+
+- A production-safe `BrokerExecutionResult` requires explicit source
+  classification and broker-originating evidence.
+- Preview-only conversion output remains insufficient for persistence or trade
+  mutation.
+- Conversion must reject preview, dev fixture, mock broker, dry-run, and local
+  diagnostics sources.
+- Future conversion validation should build on broker result source
+  classification types.
+
+Next recommended action:
+
+**Action 450 - Create Broker Result Source Classification Types**
+
+## Action 450 Source Classification Types
+
+Action 450 created `lib/broker-result-source-classification.ts`.
+
+Conversion boundary update:
+
+- Future conversion work can reference contract-only source classifications
+  before implementing validators.
+- Preview-only conversion output remains blocked from persistence and trade
+  mutation by policy metadata.
+- `broker_confirmed` is not persistence-capable by itself.
+- No conversion logic, broker result creation, capture behavior, persistence,
+  or trade mutation was added.
+
+Next recommended action:
+
+**Action 451 - Reassess Broker Result Source Classification Types**
+
+## Action 451 Classification Reassessment
+
+Action 451 created
+`docs/broker-result-source-classification-types-reassessment.md`.
+
+Conversion boundary update:
+
+- The classification module remains type/constant-only and is not runtime
+  enforcement.
+- Preview/dev/mock/dry-run/local diagnostics remain blocked from persistence
+  and trade mutation.
+- Future conversion work should use a pure source classification validator
+  before any confirmation validator or BrokerExecutionResult creation path.
+
+Next recommended action:
+
+**Action 452 - Create Broker Result Source Classification Validator**
+
+## Action 415 Reassessment
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Boundary relationship:
+
+- Action 415 confirmed this conversion boundary remains preview/eligibility
+  only.
+- `BrokerExecutionResult`-shaped previews are still not real broker results and
+  must not create execution records.
+- execution record creation needs a separate contract design before any
+  creation helper, route, Supabase write, or trade mutation is added.
+
+Next recommended action:
+
+**Action 416 - Create Execution Record Creation Contract Design**
+
+## Action 416 Contract Design
+
+Action 416 created
+`docs/execution-record-creation-contract-design.md`.
+
+Boundary relationship:
+
+- confirmed broker execution result conversion remains separate from execution
+  record creation.
+- execution record creation must reject preview-only and
+  `notBrokerExecutionResult` data.
+- conversion previews remain non-persistent and non-mutating.
+- future record creation requires a separate contract/type/validator sequence.
+
+Next recommended action:
+
+**Action 417 - Create Execution Record Creation Contract Types**
+
 ## Boundary Principle
 
 Broker confirmation capture and broker execution-result conversion are separate
@@ -282,6 +393,150 @@ Safety result:
 - No trade state was mutated.
 - No Avanza automation, selector, URL, browser control, `Bekrafta`, or order
   submission was added.
+
+## Action 453 Follow-Up
+
+Action 453 created
+`docs/broker-result-source-classification-validator-reassessment.md`.
+
+Conversion-boundary impact:
+
+- Source classification validation is now reassessed as policy-only and
+  no-write.
+- It can inform future conversion gates, but it does not convert Avanza
+  evidence into a BrokerExecutionResult.
+- Future conversion work still needs an Avanza evidence contract and
+  confirmation validator before any production-safe result can exist.
+
+Next recommended action:
+
+**Action 454 - Create Avanza Broker Confirmation Evidence Contract**
+
+## Action 454 Follow-Up
+
+Action 454 created
+`docs/avanza-broker-confirmation-evidence-contract.md`.
+
+Conversion-boundary impact:
+
+- Avanza evidence requirements are now defined before conversion work.
+- Future conversion must consume evidence from final confirmation/readback or
+  account/order history, not forms/previews.
+- Future conversion must preserve provenance, source classification, handoff
+  matching, and partial-fill uncertainty.
+- No conversion implementation, BrokerExecutionResult creation, persistence,
+  Supabase write, audit append, trade mutation, browser, or Avanza behavior
+  was added.
+
+Next recommended action:
+
+**Action 455 - Create Avanza Broker Confirmation Evidence Types**
+
+## Action 455 Follow-Up
+
+Action 455 created
+`lib/avanza-broker-confirmation-evidence-contract.ts`.
+
+Conversion-boundary impact:
+
+- Future conversion can reference typed Avanza confirmation evidence contracts.
+- Evidence types model final confirmation/readback and account/order history
+  sources separately from form, preview, and manual-only sources.
+- Partial-fill ambiguity and privacy metadata remain explicit inputs to future
+  validation.
+- No conversion implementation, BrokerExecutionResult creation, persistence,
+  Supabase behavior, audit append, trade mutation, browser, or Avanza behavior
+  was added.
+
+Next recommended action:
+
+**Action 456 - Reassess Avanza Broker Confirmation Evidence Types**
+
+## Action 456 Follow-Up
+
+Action 456 created
+`docs/avanza-broker-confirmation-evidence-types-reassessment.md`.
+
+Conversion-boundary impact:
+
+- Evidence types are confirmed to be aligned with the contract but not
+  validated.
+- Typed evidence must not be converted to `BrokerExecutionResult` until a pure
+  evidence validator and confirmation validator exist.
+- No conversion, BrokerExecutionResult creation, persistence, Supabase, audit,
+  trade mutation, browser, or Avanza behavior was added.
+
+Next recommended action:
+
+**Action 457 - Create Avanza Broker Confirmation Evidence Validator**
+
+## Action 457 Follow-Up
+
+Action 457 created
+`lib/avanza-broker-confirmation-evidence-validator.ts`.
+
+Conversion-boundary impact:
+
+- Avanza evidence can now be checked by a pure validator before any future
+  conversion design consumes it.
+- The validator does not create or convert `BrokerExecutionResult` values.
+- Conversion remains blocked until the validator is reassessed and a
+  confirmation-validator/mapping design is created.
+
+Next recommended action:
+
+**Action 458 - Reassess Avanza Broker Confirmation Evidence Validator**
+
+## Action 458 Follow-Up
+
+Action 458 created
+`docs/avanza-broker-confirmation-evidence-validator-reassessment.md`.
+
+Conversion-boundary impact:
+
+- Validated evidence remains evidence-only and is not a BrokerExecutionResult.
+- The next boundary should define how evidence fields map to a future result
+  shape without implementing conversion.
+- Conversion, persistence, audit append, trade mutation, browser, and Avanza
+  behavior remain out of scope.
+
+Next recommended action:
+
+**Action 459 - Create Evidence-to-BrokerExecutionResult Mapping Design**
+
+## Action 459 Follow-Up
+
+Action 459 created
+`docs/avanza-evidence-to-broker-execution-result-mapping-design.md`.
+
+Conversion-boundary impact:
+
+- The boundary now has an evidence-first mapping design based on
+  `AvanzaConfirmationEvidence` and `validateAvanzaConfirmationEvidence(...)`.
+- Mapping remains future-only and design-only.
+- Conversion implementation, BrokerExecutionResult creation, persistence,
+  audit append, trade mutation, browser behavior, and Avanza behavior remain
+  out of scope.
+
+Next recommended action:
+
+**Action 460 - Create BrokerExecutionResult Confirmation Validator Design**
+
+## Action 460 Follow-Up
+
+Action 460 created
+`docs/broker-execution-result-confirmation-validator-design.md`.
+
+Conversion-boundary impact:
+
+- Conversion remains downstream of confirmation validation.
+- Mapper implementation must not run on rejected evidence.
+- Confirmed candidate output remains non-persistent and non-mutating.
+- No conversion implementation or BrokerExecutionResult creation was added.
+
+Next recommended action:
+
+**Action 461 - Create BrokerExecutionResult Confirmation Validator Contract Types**
 
 ## Action 309 - Conversion Preview Contract
 

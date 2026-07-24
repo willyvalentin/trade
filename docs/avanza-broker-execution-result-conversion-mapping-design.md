@@ -9,6 +9,108 @@ This is mapping design only. It does not implement conversion code, create a
 `BrokerExecutionResult`, create an execution record, write Supabase, mutate
 trade state, add Avanza automation, or add Avanza selectors/URLs.
 
+## Action 448 Reassessment
+
+Action 448 created
+`docs/broker-execution-result-confirmation-path-reassessment.md`.
+
+Mapping boundary update:
+
+- Current mapping output is still preview-shaped data only.
+- Preview metadata must continue to block persistence and trade mutation.
+- Real mapping to a production-safe BrokerExecutionResult requires a future
+  confirmation requirements spec and confirmed broker-originating evidence.
+- Dev/mock/dry-run/local diagnostic sources remain unsafe for persistence.
+
+Next recommended action:
+
+**Action 449 - Create BrokerExecutionResult Confirmation Requirements Spec**
+
+## Action 449 Requirements Spec
+
+Action 449 created
+`docs/broker-execution-result-confirmation-requirements-spec.md`.
+
+Mapping implications:
+
+- Mapping output must preserve explicit source classification and provenance.
+- Mapping from preview/dev/mock/dry-run/local diagnostic sources remains
+  disallowed for production-safe results.
+- Filled/executed evidence must be distinguished from placed, accepted, pending,
+  or partially filled evidence.
+- Future mapping types should depend on source classification types before a
+  confirmation validator is introduced.
+
+Next recommended action:
+
+**Action 450 - Create Broker Result Source Classification Types**
+
+## Action 450 Source Classification Types
+
+Action 450 created `lib/broker-result-source-classification.ts`.
+
+Mapping boundary update:
+
+- Mapping policy can now refer to contract-only source classes.
+- Preview/dev/mock/dry-run/local diagnostics remain blocked from persistence
+  and trade mutation.
+- The module adds no mapping implementation, validator, broker result creation,
+  Supabase behavior, or trade mutation.
+
+Next recommended action:
+
+**Action 451 - Reassess Broker Result Source Classification Types**
+
+## Action 451 Classification Reassessment
+
+Action 451 created
+`docs/broker-result-source-classification-types-reassessment.md`.
+
+Mapping boundary update:
+
+- Source classification types remain policy metadata only.
+- Future mapping must not treat policy constants as enforcement.
+- A pure source classification validator is the next safe step before mapping
+  or confirmation validation logic.
+
+Next recommended action:
+
+**Action 452 - Create Broker Result Source Classification Validator**
+
+## Action 415 Reassessment
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Mapping boundary update:
+
+- conversion preview mapping remains preview-only.
+- preview metadata must continue to report no execution record, no Supabase
+  write, and no trade mutation.
+- the next execution-record step should define a creation contract, not
+  implement mapping-to-record behavior.
+
+Next recommended action:
+
+**Action 416 - Create Execution Record Creation Contract Design**
+
+## Action 416 Contract Design
+
+Action 416 created
+`docs/execution-record-creation-contract-design.md`.
+
+Mapping relationship:
+
+- mapping preview output remains insufficient for record creation.
+- future record creation requires confirmed broker result evidence, a separate
+  idempotency key, unambiguous trade association, and rejection handling.
+- no mapping-to-record implementation, Supabase write, trade mutation, or
+  Avanza behavior was added.
+
+Next recommended action:
+
+**Action 417 - Create Execution Record Creation Contract Types**
+
 ## Source Requirements
 
 Mapping requires all of the following before a future conversion preview can be
@@ -340,3 +442,145 @@ The contract returns only eligibility metadata, blockers, warnings, labels, and
 a deterministic candidate fingerprint. It does not create a real
 `BrokerExecutionResult`, execution record, Supabase write, trade mutation,
 browser action, Avanza action, or order submission.
+
+## Action 453 Follow-Up
+
+Action 453 created
+`docs/broker-result-source-classification-validator-reassessment.md`.
+
+Mapping-design impact:
+
+- The source classification validator remains a pure policy gate only.
+- Preview/dev/mock/dry-run/local diagnostics remain blocked from persistence
+  and trade mutation.
+- Mapping output must still preserve provenance and should not be treated as
+  confirmed broker evidence without a future evidence contract and
+  confirmation validator.
+
+Next recommended action:
+
+**Action 454 - Create Avanza Broker Confirmation Evidence Contract**
+
+## Action 454 Follow-Up
+
+Action 454 created
+`docs/avanza-broker-confirmation-evidence-contract.md`.
+
+Mapping-design impact:
+
+- The mapping design now has a prerequisite evidence contract for Avanza
+  confirmation/readback fields.
+- Mapping should not treat order form, order preview, manual-only, dev, mock,
+  dry-run, or local diagnostic sources as confirmed execution evidence.
+- Mapping should preserve provenance, field confidence, broker references,
+  handoff fingerprint links, and partial-fill uncertainty for future
+  validators.
+- No mapping implementation, conversion, persistence, Supabase behavior, audit
+  append, trade mutation, browser, or Avanza behavior was added.
+
+Next recommended action:
+
+**Action 455 - Create Avanza Broker Confirmation Evidence Types**
+
+## Action 455 Follow-Up
+
+Action 455 created
+`lib/avanza-broker-confirmation-evidence-contract.ts`.
+
+Mapping-design impact:
+
+- Mapping can now target typed Avanza confirmation evidence before any
+  conversion implementation.
+- Source type, price field type, order status, provenance, confidence, privacy,
+  and partial-fill evidence are explicit type contracts.
+- The mapping still must not treat typed evidence as validated confirmation
+  without future validator work.
+
+Next recommended action:
+
+**Action 456 - Reassess Avanza Broker Confirmation Evidence Types**
+
+## Action 456 Follow-Up
+
+Action 456 created
+`docs/avanza-broker-confirmation-evidence-types-reassessment.md`.
+
+Mapping-design impact:
+
+- Evidence-to-result mapping remains blocked until evidence validation exists.
+- Typed source, provenance, privacy, confidence, and partial-fill fields are
+  available for future mapper design, but they are not proof of confirmation.
+- No mapping/conversion implementation or persistence/trade mutation behavior
+  was added.
+
+Next recommended action:
+
+**Action 457 - Create Avanza Broker Confirmation Evidence Validator**
+
+## Action 457 Follow-Up
+
+Action 457 created
+`lib/avanza-broker-confirmation-evidence-validator.ts`.
+
+Mapping-design impact:
+
+- Evidence-to-result mapping can now depend on a pure evidence validation
+  result in future design work.
+- The validator returns `valid`, `rejected`, and `needs_review`, but does not
+  map evidence to BrokerExecutionResult fields.
+- Mapping and conversion remain out of scope.
+
+Next recommended action:
+
+**Action 458 - Reassess Avanza Broker Confirmation Evidence Validator**
+
+## Action 458 Follow-Up
+
+Action 458 created
+`docs/avanza-broker-confirmation-evidence-validator-reassessment.md`.
+
+Mapping-design impact:
+
+- The current mapping design predates typed evidence validation.
+- A new evidence-to-BrokerExecutionResult mapping design should define how
+  validated evidence fields, source classification results, confidence, and
+  partial-fill uncertainty map to future BrokerExecutionResult preview/result
+  semantics.
+- No mapping implementation was added.
+
+Next recommended action:
+
+**Action 459 - Create Evidence-to-BrokerExecutionResult Mapping Design**
+
+## Action 459 Follow-Up
+
+Action 459 created
+`docs/avanza-evidence-to-broker-execution-result-mapping-design.md`.
+
+Mapping-design impact:
+
+- The newer Action 459 design supersedes this earlier preview-era mapping
+  design for validated Avanza evidence.
+- The Action 459 design maps typed evidence fields, validation statuses,
+  provenance, idempotency inputs, partial-fill states, and no-write boundaries.
+- No mapping implementation or BrokerExecutionResult creation was added.
+
+Next recommended action:
+
+**Action 460 - Create BrokerExecutionResult Confirmation Validator Design**
+
+## Action 460 Follow-Up
+
+Action 460 created
+`docs/broker-execution-result-confirmation-validator-design.md`.
+
+Mapping-design impact:
+
+- Future mapping must be gated by confirmation validator output.
+- Rejected or needs-review evidence should not produce persistence-safe result
+  candidates.
+- The next safe step is type-only confirmation validator contracts.
+
+Next recommended action:
+
+**Action 461 - Create BrokerExecutionResult Confirmation Validator Contract Types**

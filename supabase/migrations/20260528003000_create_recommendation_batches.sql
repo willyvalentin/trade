@@ -2,7 +2,7 @@ create table if not exists public.recommendation_batches (
   id text primary key,
   batch_fingerprint text not null unique,
   trading_date date null,
-  window text not null default 'unknown',
+  "window" text not null default 'unknown',
   batch_type text not null default 'unknown',
   status text not null default 'unknown',
   serving_decision text null,
@@ -30,7 +30,7 @@ create index if not exists recommendation_batches_trading_date_idx
   on public.recommendation_batches (trading_date desc);
 
 create index if not exists recommendation_batches_window_status_idx
-  on public.recommendation_batches (window, status);
+  on public.recommendation_batches ("window", status);
 
 create index if not exists recommendation_batches_published_at_idx
   on public.recommendation_batches (published_at desc);

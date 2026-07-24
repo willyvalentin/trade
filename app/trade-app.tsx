@@ -1,6 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,6 +20,15 @@ import {
   getRecommendationFreshness,
   isRecommendationExpired,
 } from "@/lib/recommendation-freshness";
+import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
+import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
+import {
+  buildConfidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
+  type ConfidenceProjectionCalibrationSignal,
+  type ConfidenceProjectionOutcomeReview,
+  type ConfidenceProjectionReviewGroup,
+} from "@/lib/confidence-projection-outcome-review";
 import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
@@ -116,6 +131,9 @@ import {
   type PreTradeRiskContextResult,
 } from "@/lib/pre-trade-risk-context";
 import {
+  buildAvanzaPassiveTradeExecutionReadiness,
+} from "@/lib/avanza-passive-trade-execution-readiness";
+import {
   buildTradeEligibility,
   type TradeEligibilityResult,
 } from "@/lib/trade-eligibility";
@@ -134,6 +152,11 @@ import {
   type ScanPipelineObservabilityStatus,
   type ScanPipelineObservabilitySummary,
 } from "@/lib/scan-pipeline-observability";
+import {
+  buildScheduledScanTimelineToday,
+  scheduledScanAttemptFromRow,
+  type ScheduledScanAttempt,
+} from "@/lib/scheduled-scan-attempts";
 import {
   buildRecommendationEmptyStateSummary,
   recommendationEmptyStateSummaryJson,
@@ -189,8 +212,12 @@ import {
   writeProviderPlanModeHint,
 } from "@/lib/persistence/dev-diagnostics-local-storage";
 import {
+  createDefaultLiveMarketTrialRunbookState,
+  readLiveMarketTrialRunbookState,
+  writeLiveMarketTrialRunbookState,
+} from "@/lib/persistence/live-market-trial-runbook-persistence";
+import {
   TRADE_DEMO_STORAGE_KEYS,
-  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY,
   TRADE_MANAGEMENT_EVENTS_STORAGE_KEY,
 } from "@/lib/persistence/local-storage-keys";
 import {
@@ -229,6 +256,16 @@ import {
   type RecommendationBatchTargetStatus,
 } from "@/lib/recommendation-batch-memory";
 import {
+  fetchChunkedRecommendationBatchBackfillRows,
+  RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
+  RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+} from "@/lib/recommendation-batch-backfill";
+import {
+  RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
+  RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
+  resolveRecentRecommendationReadbackFailure,
+} from "@/lib/recent-recommendation-readback";
+import {
   buildRecommendationBatchPerformanceSummary,
   recommendationBatchPerformanceSummaryJson,
   type RecommendationBatchPerformanceItem,
@@ -266,15 +303,20 @@ import {
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import {
   inferRecommendationEntryTypeMetadata,
+  summarizeEntryTypeTriggerDiagnostics,
+  type EntryTypeAwareTriggerDiagnostics,
   type EntryTypeTriggerSummary,
   type RecommendationEntryTypeMetadata,
 } from "@/lib/recommendation-entry-type";
+import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
+
 import {
   buildRecommendationPerformanceStatistics,
   recommendationPerformanceStatisticsJson,
   type RecommendationPerformanceBucket,
   type RecommendationPerformanceStatistics,
 } from "@/lib/recommendation-performance-statistics";
+
 import {
   buildRecommendationHistory,
   defaultRecommendationHistoryFilter,
@@ -290,8 +332,10 @@ import {
   type DayTradeWindowRecommendationTargetItem,
   type DayTradeWindowRecommendationTargetSummary,
 } from "@/lib/day-trade-window-recommendation-target";
-import type { PlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
-import type { PlanReferenceMetadataTraceSummary } from "@/lib/plan-reference-metadata-trace";
+import {
+  summarizePlanPriceFreshness,
+  type PlanPriceFreshnessDiagnostics,
+} from "@/lib/plan-price-freshness";
 import type { BatchCandidateAuditSummary } from "@/lib/batch-candidate-audit";
 import {
   buildRecommendationTierPerformanceSummary,
@@ -311,6 +355,15 @@ import {
   type RecommendationOutcomeLearningInsight,
   type RecommendationOutcomeLearningInsightsSummary,
 } from "@/lib/recommendation-outcome-learning-insights";
+import {
+  buildMondayLiveTrialReviewSummary,
+  mondayLiveTrialReviewSummaryJson,
+  type MondayLiveTrialReviewClassification,
+  type MondayLiveTrialReviewSummary,
+} from "@/lib/monday-live-trial-review";
+import {
+  buildDailyLearningReviewSummary,
+} from "@/lib/daily-learning-review";
 import {
   buildEntryTuningProposal,
   entryTuningProposalJson,
@@ -357,7 +410,26 @@ import {
   type ProviderBudgetGuardSummary,
   type ProviderBudgetStatus,
 } from "@/lib/provider-budget-guard";
-import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import {
+  buildProviderPlanProfile,
+} from "@/lib/provider-plan-profile";
+import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
+import { buildAuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
+import {
+  buildBoundedShadowCollectorExecutionProofDiagnostics,
+  buildBoundedShadowCollectorExecutionProofPreflightDiagnostics,
+} from "@/lib/bounded-shadow-collector-execution-proof";
+import { buildBoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
+import { buildBoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import { buildBoundedShadowCollectorProofAuditDiagnostics } from "@/lib/bounded-shadow-collector-proof-audit-contract";
+import { buildContinuousIntelligenceCreditLedgerDiagnostics } from "@/lib/continuous-intelligence-credit-ledger";
+import { buildContinuousIntelligenceShadowCanaryDiagnostics } from "@/lib/continuous-intelligence-shadow-collector-canary";
+import {
+  buildContinuousIntelligenceBudgetPlan,
+  continuousIntelligenceBudgetPlanJson,
+} from "@/lib/continuous-intelligence-budget-orchestrator";
+import { buildContinuousIntelligenceBudgetPlanInput } from "@/lib/continuous-intelligence-budget-plan-input";
+import type { LearningAccelerationModeEvaluation } from "@/lib/learning-acceleration-mode";
 import {
   buildLiveMarketTrialRunbookSummary,
   liveMarketTrialRunbookSummaryJson,
@@ -386,7 +458,9 @@ import {
   type RecommendationOutputEnrichmentItem,
   type RecommendationOutputEnrichmentMetadata,
 } from "@/lib/recommendation-output-enrichment";
-import { realScannerCandidateGenerationSummaryJson } from "@/lib/real-scanner-candidate-generation";
+import {
+  realScannerCandidateGenerationSummaryJson,
+} from "@/lib/real-scanner-candidate-generation";
 import {
   buildScannerOutputQaSummary,
   scannerOutputQaSummaryJson,
@@ -395,7 +469,9 @@ import {
 } from "@/lib/scanner-output-qa";
 import {
   buildDayTradeScanOrchestrationSummary,
+  classifyDayTradeScanWindow,
   dayTradeScanOrchestrationSummaryJson,
+  normalizeDayTradeScanWindow,
   type DayTradeScanOrchestrationDecision,
   type DayTradeScanOrchestrationSummary,
 } from "@/lib/day-trade-scan-orchestration";
@@ -547,72 +623,155 @@ import {
   type LiveSellAction,
 } from "@/lib/live-sell-guidance";
 import {
-  runExecutionOrchestrator,
-  type ExecutionOrchestratorResult,
-} from "@/lib/execution-orchestrator";
-import {
-  DEFAULT_EXECUTION_MODE,
-  EXECUTION_MODE_STORAGE_KEY,
   isAutomaticExecutionModeFeatureEnabled,
   isExecutionDevToolsEnabled,
-  normalizeExecutionMode,
-  type BrokerExecutionStatus,
   type ExecutionMode,
 } from "@/lib/execution";
 import {
-  buildExecutionUiStatusFromOrchestratorResult,
-  type ExecutionUiBadgeTone,
-  type ExecutionUiSeverity,
-  type ExecutionUiStatus,
-} from "@/lib/execution-ui-status";
-import {
-  getExecutionLifecycleDisplayLabel,
-  isManualConfirmationState,
-  transitionExecutionLifecycle,
-  type ExecutionLifecycleSnapshot,
-} from "@/lib/execution-state-machine";
-import {
-  appendExecutionAuditEvents,
-  buildExecutionAuditEventFromLifecycleEvent,
-  createExecutionAuditEvent,
-} from "@/lib/execution-event-log";
-import {
-  buildTureExecutionRecord,
-  type BrokerExecutionCaptureStatus,
-  type BrokerExecutionCaptureResult,
-} from "@/lib/broker-execution-capture";
-import { appendExecutionRecord } from "@/lib/execution-record-store";
-import {
-  buildAvanzaAgentRequest,
-  buildAvanzaAgentProgressEvent,
-  getAvanzaAgentProgressDisplayLabel,
-  mapAvanzaAgentProgressToLifecycleEventType,
-  validateAvanzaAgentRequest,
-  type AvanzaAgentProgressEventType,
-  type AvanzaAgentResult,
-} from "@/lib/avanza-agent-adapter";
+  getBrowserExecutionSettingsStorage,
+  readExecutionModePreference,
+} from "@/lib/execution-settings-persistence-helpers";
 import {
   Detail,
   EmptyState,
   TextBlock,
 } from "@/components/execution/handoff-modal-shared";
-import type { AgentProgressStubTimelineItem } from "@/components/execution/AgentProgressStubPanel";
-import { ExecutionHandoffModalComposition } from "@/components/execution/ExecutionHandoffModalComposition";
-import type { ExecutionSandboxQaOverallStatus } from "@/components/execution/ExecutionSandboxQaPanel";
-import { ExecutionHandoffModalShell } from "@/components/execution/ExecutionHandoffModalShell";
-import { ClosedTradeAuditTimelinePanel } from "@/components/history/ClosedTradeAuditTimelinePanel";
-import { ClosedTradeDetailsModal } from "@/components/history/ClosedTradeDetailsModal";
-import { ClosedTradePlanAdherencePanel } from "@/components/history/ClosedTradePlanAdherencePanel";
-import { HistoryTab } from "@/components/history/HistoryTab";
-import { buildClosedTradeDisplayProps } from "@/components/history/closed-trade-display-mapper";
-import { LiveDayTradeCardBody } from "@/components/live-day-trades/LiveDayTradeCardBody";
-import { LiveExecutionStatusSurface } from "@/components/live-day-trades/LiveExecutionStatusSurface";
-import { LiveDayTradesTab } from "@/components/live-day-trades/LiveDayTradesTab";
-import { LiveTradeDetailsModal } from "@/components/live-day-trades/LiveTradeDetailsModal";
-import { buildLiveDayTradeDisplayProps } from "@/components/live-day-trades/live-day-trade-display-mapper";
-import { RecommendationsTab } from "@/components/recommendations/RecommendationsTab";
-import { RecommendationCardContainer } from "@/components/recommendations/RecommendationCardContainer";
-import { RecommendationDetailsPill } from "@/components/recommendations/RecommendationDetailsModal";
+import {
+  ExecutionSandboxFixtureCard,
+  type ExecutionSandboxFixturePosition,
+} from "@/components/execution/execution-sandbox-fixture-card";
+import {
+  ExecutionHandoffPreviewModal,
+} from "@/components/execution/execution-handoff-preview-modal";
+import {
+  LivePositionHandoffControls,
+} from "@/components/execution/live-position-handoff-controls";
+import {
+  LivePositionExecutionStatusSurface,
+} from "@/components/execution/live-position-execution-status-surface";
+import {
+  AvanzaReadOnlyReadinessBadge,
+} from "@/components/execution/AvanzaReadOnlyReadinessBadge";
+import {
+  AvanzaTradeCardExecutionReadinessBadge,
+} from "@/components/execution/AvanzaTradeCardExecutionReadinessBadge";
+import {
+  AvanzaHandoffPackagePreviewCard,
+} from "@/components/execution/AvanzaHandoffPackagePreviewCard";
+import {
+  AvanzaPrepareHandoffPreviewShell,
+} from "@/components/execution/AvanzaPrepareHandoffPreviewShell";
+import {
+  AvanzaSelectedRecommendationPreviewStatePanel,
+} from "@/components/execution/AvanzaSelectedRecommendationPreviewStatePanel";
+import {
+  AvanzaTradeUiReadOnlySelectedRecommendationPreview,
+} from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview";
+import {
+  AvanzaTradeUiHandoffPreview,
+} from "@/components/execution/AvanzaTradeUiHandoffPreview";
+import {
+  AvanzaPassiveDisabledPrepareShell,
+} from "@/components/execution/AvanzaPassiveDisabledPrepareShell";
+import type {
+  AvanzaTradeUiHandoffPreviewModel,
+} from "@/lib/avanza-trade-ui-handoff-preview-fixtures";
+import {
+  useExecutionLivePositionHandoffState,
+} from "@/hooks/execution/useExecutionLivePositionHandoffState";
+import {
+  avanzaTradeReadOnlyReadinessSummaryFixture,
+} from "@/lib/avanza-read-only-readiness-fixtures";
+import {
+  avanzaPrepareHandoffPreviewModel,
+} from "@/lib/avanza-prepare-handoff-preview";
+import {
+  avanzaGameStopHandoffPackagePreviewFixture,
+  avanzaGameStopHandoffPreActivationGateFixture,
+  avanzaGameStopHandoffPreviewSourceModeFixture,
+  avanzaGameStopHandoffSafetyBoundarySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffContractFixture,
+} from "@/lib/avanza-handoff-package-preview-fixtures";
+import {
+  avanzaHandoffPreviewSourceModes,
+} from "@/lib/avanza-handoff-preview-source-mode";
+import {
+  buildAvanzaPreviewStateFromSelectedRecommendation,
+} from "@/lib/avanza-selected-recommendation-derived-preview-state";
+import {
+  buildAvanzaDevPreviewFlagConfig,
+  type AvanzaDevPreviewFlagConfig,
+} from "@/lib/avanza-dev-preview-flag-config";
+import {
+  buildAvanzaSelectedRecommendationPreviewIntegrationGuard,
+} from "@/lib/avanza-selected-recommendation-preview-integration-guard";
+import {
+  buildAvanzaHardDisabledSourceToPreviewIntegration,
+} from "@/lib/avanza-hard-disabled-source-to-preview-integration";
+import {
+  buildAvanzaRealSelectedRecommendationReadOnlyConnection,
+} from "@/lib/avanza-real-selected-recommendation-read-only-connection";
+import {
+  buildAvanzaTradeUiPrepareIntent,
+} from "@/lib/avanza-trade-ui-prepare-intent";
+import {
+  buildAvanzaDisabledInternalPrepareButtonShell,
+} from "@/lib/avanza-disabled-internal-prepare-button-shell";
+import {
+  buildAvanzaPassiveDisabledPrepareShellComponentModel,
+} from "@/lib/avanza-passive-disabled-prepare-shell-fixtures";
+import {
+  buildAvanzaExplicitInternalVisibleDisabledPrepareShell,
+} from "@/lib/avanza-explicit-internal-visible-disabled-prepare-shell";
+import {
+  buildAvanzaGuardedApiRouteCallIntent,
+} from "@/lib/avanza-guarded-api-route-call-intent";
+import {
+  buildAvanzaExplicitInternalDisabledActionShell,
+} from "@/lib/avanza-explicit-internal-disabled-action-shell";
+import {
+  buildAvanzaGuardedFetchIntent,
+} from "@/lib/avanza-guarded-fetch-intent";
+import {
+  buildAvanzaDisabledLocalOnlyManualTestPath,
+} from "@/lib/avanza-disabled-local-only-manual-test-path";
+import {
+  ClosedTradeAuditTimelinePanel,
+} from "@/components/history/ClosedTradeAuditTimelinePanel";
+import {
+  ClosedTradeDetailsModal,
+} from "@/components/history/ClosedTradeDetailsModal";
+import {
+  ClosedTradePlanAdherencePanel,
+} from "@/components/history/ClosedTradePlanAdherencePanel";
+import {
+  HistoryTab,
+} from "@/components/history/HistoryTab";
+import {
+  buildClosedTradeDisplayProps,
+} from "@/components/history/closed-trade-display-mapper";
+import {
+  LiveDayTradeCardBody,
+} from "@/components/live-day-trades/LiveDayTradeCardBody";
+import {
+  LiveDayTradesTab,
+} from "@/components/live-day-trades/LiveDayTradesTab";
+import {
+  LiveTradeDetailsModal,
+} from "@/components/live-day-trades/LiveTradeDetailsModal";
+import {
+  buildLiveDayTradeDisplayProps,
+} from "@/components/live-day-trades/live-day-trade-display-mapper";
+import {
+  RecommendationsTab,
+} from "@/components/recommendations/RecommendationsTab";
+import {
+  RecommendationCardContainer,
+} from "@/components/recommendations/RecommendationCardContainer";
+import {
+  RecommendationDetailsPill,
+} from "@/components/recommendations/RecommendationDetailsModal";
 import {
   recommendationDetailsCurrency,
   recommendationDetailsShares,
@@ -622,38 +781,22 @@ import {
   recommendationCardConfidenceLabel,
   recommendationCardConfidenceTone,
 } from "@/components/recommendations/recommendation-card-display-mapper";
-import { StatisticsDashboard as StatisticsDashboardShell } from "@/components/statistics/StatisticsDashboard";
-import { StatisticsMetricCard } from "@/components/statistics/StatisticsMetricCard";
-import { StatisticsSummaryGrid } from "@/components/statistics/StatisticsSummaryGrid";
 import {
-  buildAvanzaDryRunOrderInputFromExecutionIntent,
-} from "@/lib/execution-intent-to-avanza-dry-run";
+  StatisticsDashboard as StatisticsDashboardShell,
+} from "@/components/statistics/StatisticsDashboard";
 import {
-  createAvanzaAgentBridgeFromConfig,
-  createAvanzaAgentBridgeRunnerFromConfig,
-} from "@/lib/avanza-agent-bridge-factory";
-import { readAvanzaAgentBridgeConfig } from "@/lib/avanza-agent-bridge-config";
+  StatisticsMetricCard,
+} from "@/components/statistics/StatisticsMetricCard";
 import {
-  appendAvanzaAgentRun,
-  createStoredAvanzaAgentRun,
-} from "@/lib/avanza-agent-run-store";
-import { type ExecutionSandboxQaItem } from "@/lib/handoff-modal-data-mappers";
-import { useAvanzaReadinessState } from "@/hooks/execution/useAvanzaReadinessState";
-import { useEarlyPhasePreviewState } from "@/hooks/execution/useEarlyPhasePreviewState";
-import { useLatePhasePreviewState } from "@/hooks/execution/useLatePhasePreviewState";
-import { useLocalhostBridgeControlsState } from "@/hooks/execution/useLocalhostBridgeControlsState";
-import { useMiddlePhasePreviewState } from "@/hooks/execution/useMiddlePhasePreviewState";
+  StatisticsSummaryGrid,
+} from "@/components/statistics/StatisticsSummaryGrid";
 import {
   useTradeAppNavigationState,
   type TradeAppTab,
 } from "@/hooks/trade-app/useTradeAppNavigationState";
-import { useStatisticsRangeState } from "@/hooks/trade-app/useStatisticsRangeState";
 import {
-  buildAvanzaAgentBridgeEnvelope,
-  getAvanzaAgentBridgeTransportDisplayLabel,
-  isRealAvanzaAgentBridge,
-  validateAvanzaAgentBridgeEnvelope,
-} from "@/lib/avanza-agent-bridge";
+  useStatisticsRangeState,
+} from "@/hooks/trade-app/useStatisticsRangeState";
 import {
   buildPartialPositionState,
   normalizeExitFill,
@@ -746,8 +889,19 @@ import {
   normalizeSetupType,
   type SetupType,
 } from "@/lib/setup-types";
-import { supabase } from "@/lib/supabase";
-import { normalizeUnknownError } from "@/lib/error-logging";
+import {
+  supabase,
+} from "@/lib/supabase";
+import {
+  normalizeUnknownError,
+} from "@/lib/error-logging";
+import {
+  dedupeSymbols,
+  normalizeLogoUrl as normalizeSymbolMetadataLogoUrl,
+  normalizeSymbol,
+  symbolMetadataFromRow,
+  type SymbolMetadata,
+} from "@/lib/symbol-metadata-core";
 
 type Direction = "Long" | "Short";
 type RecommendationStatus =
@@ -810,6 +964,13 @@ type RecommendationRow = {
   session_type: string | null;
   ticker: string;
   company_name: string | null;
+  logo_url?: string | null;
+  logoUrl?: string | null;
+  company_logo?: string | null;
+  companyLogo?: string | null;
+  image?: string | null;
+  profileImage?: string | null;
+  companyProfile?: { logo?: string | null } | null;
   direction: string | null;
   setup_type: string | null;
   entry_low: number | string | null;
@@ -857,6 +1018,13 @@ type PositionRow = {
   recommendations?: { setup_type: string | null; invalidation?: string | null } | null;
   ticker: string;
   company_name: string | null;
+  logo_url?: string | null;
+  logoUrl?: string | null;
+  company_logo?: string | null;
+  companyLogo?: string | null;
+  image?: string | null;
+  profileImage?: string | null;
+  companyProfile?: { logo?: string | null } | null;
   direction?: string | null;
   entry_price: number | string | null;
   position_size: number | string | null;
@@ -1095,6 +1263,20 @@ type PlanReferencePriceMetadata = {
   reference_price_symbol: string | null;
   reference_price_provider: string | null;
   reference_price_read_path: string | null;
+  plan_reference_metadata_status?:
+    | "complete"
+    | "price_missing_timestamp"
+    | "price_missing_source"
+    | "price_missing_source_and_timestamp"
+    | "missing_price";
+  plan_reference_metadata_trace?: {
+    candidate_price_available_before_generation: boolean;
+    generated_recommendation_retained_reference_price: boolean | null;
+    price_read_path: string | null;
+    source_read_path: string | null;
+    timestamp_read_path: string | null;
+    provider_read_path: string | null;
+  };
 };
 
 type EntryTypeMetadata = RecommendationEntryTypeMetadata;
@@ -1105,6 +1287,7 @@ type Recommendation = {
   sessionLabel: string;
   ticker: string;
   companyName: string;
+  logoUrl?: string | null;
   direction: Direction;
   setupType: SetupType;
   entryZone: string;
@@ -1237,6 +1420,14 @@ type RecommendationOutcomeDedupeDiagnostics = {
   strategy: "best_status_then_latest";
 };
 
+function isSnapshotOnlyUnknownHorizonOutcome(outcome: RecommendationOutcome) {
+  return (
+    outcome.horizon === "unknown" &&
+    outcome.source === "snapshot_only" &&
+    outcome.data_completeness === "none"
+  );
+}
+
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
@@ -1248,6 +1439,14 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   eligibleLearningSnapshotCount: number;
   eligibleResearchOnlySnapshotCount: number;
   growMaxLearningSnapshotsIncludedCount: number;
+  learningAccelerationEnabled: boolean;
+  learningAccelerationEnabledSource: string | null;
+  learningAccelerationEnvRawPresent: boolean;
+  learningAccelerationEnvRawValueCategory: string | null;
+  learningAccelerationEnvRawValueNormalized: boolean;
+  learningAccelerationRuntimeEnvironment: string | null;
+  learningAccelerationMode: string | null;
+  learningAccelerationSamplesEvaluated: number;
   ineligibleSnapshotCount: number;
   ineligibleReasons: Record<string, number>;
   uniqueSnapshotFingerprintsCount: number;
@@ -1261,13 +1460,13 @@ type RecommendationOutcomeEvaluationDiagnostics = {
   visibleGridCount: number;
   gridCards: number;
   expectedOutcomeRowsFromEligibleSnapshots: number;
-  batchHealth: string | null;
   batchCandidateAudit: BatchCandidateAuditSummary | null;
   expectedSnapshotCountFromScan: number;
   actualSnapshotCountForBatch: number;
   missingSnapshotCount: number;
   missingSnapshotReasons: Record<string, number>;
   strictBatchFilterExcludedCount: number;
+  batchHealth: string | null;
   entryTypeTriggerSummary: EntryTypeTriggerSummary | null;
   planReferenceMetadataTrace: PlanReferenceMetadataTraceSummary | null;
   incompleteDueToMissingCandles: number;
@@ -1368,6 +1567,7 @@ type ActivePosition = {
   recommendationId: string | null;
   ticker: string;
   companyName: string;
+  logoUrl?: string | null;
   direction: Direction;
   entryPrice: string;
   entryPriceValue: number | null;
@@ -1515,8 +1715,39 @@ type PositionUpdateUrgency = {
   soundType: Exclude<NotificationSoundType, "recommendation">;
 };
 
-const primaryTabs: Tab[] = ["Recommendations", "Live Day Trades", "Stats Today"];
-const secondaryTabs: Tab[] = ["Market", "Statistics", "History"];
+type DashboardTab = Extract<
+  Tab,
+  "Recommendations" | "Live Day Trades" | "Stats Today"
+>;
+
+type DashboardTabItem = {
+  key: DashboardTab;
+  label: string;
+};
+
+type TopLevelNavKey = "dashboard" | "statistics" | "engine-insights";
+
+type SecondaryNavItem = {
+  key: TopLevelNavKey;
+  label: string;
+  tab: Tab;
+};
+
+const dashboardTabs: DashboardTabItem[] = [
+  { key: "Recommendations", label: "Recommendations" },
+  { key: "Live Day Trades", label: "Live Day Trades" },
+  { key: "Stats Today", label: "Statistics" },
+];
+const dotLottieWebComponentScriptId = "ture-dotlottie-wc-script";
+const dotLottieWebComponentScriptSrc =
+  "https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js";
+const autoAnalyzingLottieSrc =
+  "https://lottie.host/54d2e9ae-3009-4749-b7af-737aedba949d/3HJS06xm0k.lottie";
+const secondaryNavItems: SecondaryNavItem[] = [
+  { key: "dashboard", label: "Dashboard", tab: "Recommendations" },
+  { key: "statistics", label: "Statistics", tab: "Statistics" },
+  { key: "engine-insights", label: "Engine Insights", tab: "Market" },
+];
 const refreshIslandIds: RefreshIslandId[] = [
   "market_status",
   "recommendations",
@@ -1683,8 +1914,6 @@ function buildDevPreviewRecommendations(now = new Date()): Recommendation[] {
     },
   ];
 }
-const liveMarketTrialRunbookStorageKey =
-  TRADE_LIVE_MARKET_TRIAL_RUNBOOK_STORAGE_KEY;
 const liveTradesAutoRefreshIntervalMs = 5 * 60 * 1000;
 const liveTradesNearCloseAutoRefreshIntervalMs = 2 * 60 * 1000;
 
@@ -1705,93 +1934,59 @@ const text = (value: unknown, fallback = "") => {
 
 const displayValue = (value: unknown, fallback = "—") => text(value, fallback);
 
-function createDefaultLiveMarketTrialRunbookState(
-  now = new Date(),
-): LiveMarketTrialRunbookLocalState {
-  return {
-    trial_date: getNewYorkDateString(now),
-    selected_mode: "observation_only",
-    checklist_completion: {},
-    notes: "",
-    trial_outcome: "none",
-    ended_at: null,
-  };
-}
+type CompanyLogoSource = {
+  logoUrl?: unknown;
+  logo_url?: unknown;
+  companyLogo?: unknown;
+  company_logo?: unknown;
+  image?: unknown;
+  profileImage?: unknown;
+  companyProfile?: { logo?: unknown } | null;
+};
 
-function normalizeLiveMarketTrialRunbookMode(
-  value: unknown,
-): LiveMarketTrialRunbookMode {
-  if (
-    value === "observation_only" ||
-    value === "recommendation_logging" ||
-    value === "optional_manual_paper_tracking"
-  ) {
-    return value;
+const TURE_STOCK_FALLBACK_LOGO_SRC = "/images/ture-stock-fallback.png";
+
+function normalizeCompanyLogoUrl(value: unknown) {
+  const rawValue = text(value);
+
+  if (!rawValue) {
+    return null;
   }
 
-  return "observation_only";
-}
-
-function normalizeLiveMarketTrialRunbookOutcome(
-  value: unknown,
-): LiveMarketTrialRunbookOutcome {
-  if (
-    value === "no_trade_valid" ||
-    value === "recommendations_logged" ||
-    value === "paper_trade_completed" ||
-    value === "blocked" ||
-    value === "needs_review" ||
-    value === "none"
-  ) {
-    return value;
-  }
-
-  return "none";
-}
-
-function normalizeLiveMarketTrialRunbookState(
-  value: unknown,
-): LiveMarketTrialRunbookLocalState {
-  const fallback = createDefaultLiveMarketTrialRunbookState();
-
-  if (!value || typeof value !== "object") {
-    return fallback;
-  }
-
-  const record = value as Record<string, unknown>;
-  const completion =
-    record.checklist_completion && typeof record.checklist_completion === "object"
-      ? Object.fromEntries(
-          Object.entries(record.checklist_completion as Record<string, unknown>)
-            .filter(([key]) => key.trim().length > 0)
-            .map(([key, completed]) => [key, completed === true]),
-        )
-      : {};
-
-  return {
-    trial_date: text(record.trial_date, fallback.trial_date),
-    selected_mode: normalizeLiveMarketTrialRunbookMode(record.selected_mode),
-    checklist_completion: completion,
-    notes: text(record.notes).slice(0, 2000),
-    trial_outcome: normalizeLiveMarketTrialRunbookOutcome(record.trial_outcome),
-    ended_at: text(record.ended_at) || null,
-  };
-}
-
-function readLiveMarketTrialRunbookState(): LiveMarketTrialRunbookLocalState {
-  if (typeof window === "undefined") {
-    return createDefaultLiveMarketTrialRunbookState();
+  if (rawValue.startsWith("/") && !rawValue.startsWith("//")) {
+    return rawValue;
   }
 
   try {
-    const stored = window.localStorage.getItem(liveMarketTrialRunbookStorageKey);
-
-    return stored
-      ? normalizeLiveMarketTrialRunbookState(JSON.parse(stored))
-      : createDefaultLiveMarketTrialRunbookState();
+    const parsed = new URL(rawValue);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.toString()
+      : null;
   } catch {
-    return createDefaultLiveMarketTrialRunbookState();
+    return null;
   }
+}
+
+function resolveCompanyLogoUrl(source: CompanyLogoSource) {
+  const candidates = [
+    source.logoUrl,
+    source.logo_url,
+    source.companyLogo,
+    source.company_logo,
+    source.image,
+    source.profileImage,
+    source.companyProfile?.logo,
+  ];
+
+  for (const candidate of candidates) {
+    const logoUrl = normalizeCompanyLogoUrl(candidate);
+
+    if (logoUrl) {
+      return logoUrl;
+    }
+  }
+
+  return null;
 }
 
 function isDemoId(value: string | null | undefined) {
@@ -2360,6 +2555,37 @@ function getNewYorkDateFromIso(value: string | null) {
   return getNewYorkDateString(date);
 }
 
+function getNewYorkTimestampFromIso(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    timeZone: "America/New_York",
+  }).formatToParts(date);
+  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
+
+  return `${valueByType.get("year")}-${valueByType.get("month")}-${valueByType.get(
+    "day",
+  )} ${valueByType.get("hour")}:${valueByType.get("minute")}:${valueByType.get(
+    "second",
+  )} America/New_York`;
+}
+
 function timeToMinutes(value: string | null) {
   const match = value?.match(/^(\d{2}):(\d{2})$/);
 
@@ -2880,6 +3106,44 @@ function getInlineMetadataEnd(value: string, markerIndex: number) {
   return nextMarkerIndexes.length > 0 ? Math.min(...nextMarkerIndexes) : value.length;
 }
 
+function getInlineJsonObjectEnd(value: string, objectStart: number, hardEnd: number) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = objectStart; index < hardEnd; index += 1) {
+    const char = value[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return index + 1;
+      }
+    }
+  }
+
+  return hardEnd;
+}
+
 function parseInlineMetadata(value: string, prefix: string) {
   const markerIndex = value.lastIndexOf(prefix);
 
@@ -2888,12 +3152,15 @@ function parseInlineMetadata(value: string, prefix: string) {
   }
 
   const metadataEnd = getInlineMetadataEnd(value, markerIndex);
-  const metadataText = value
-    .slice(markerIndex + prefix.length, metadataEnd)
-    .trim();
-  const jsonText = metadataText.endsWith("]")
-    ? metadataText.slice(0, -1)
-    : metadataText;
+  const metadataStart = markerIndex + prefix.length;
+  const objectStart = value.indexOf("{", metadataStart);
+
+  if (objectStart === -1 || objectStart >= metadataEnd) {
+    return null;
+  }
+
+  const objectEnd = getInlineJsonObjectEnd(value, objectStart, metadataEnd);
+  const jsonText = value.slice(objectStart, objectEnd);
 
   try {
     return JSON.parse(jsonText) as Record<string, unknown>;
@@ -2963,6 +3230,84 @@ function tierFromSnapshotPayload(
   );
 }
 
+function enrichSnapshotWithVisibleRecommendationMetadata(
+  snapshot: RecommendationSnapshot,
+  recommendation: Recommendation | null | undefined,
+): RecommendationSnapshot {
+  if (!recommendation) {
+    return snapshot;
+  }
+
+  const recommendationTier = recommendation.recommendationTier ?? null;
+  const confidenceScore = recommendation.confidenceScore;
+  const payload = snapshot.payload_json;
+  const existingMetadata =
+    typeof payload.metadata === "object" &&
+    payload.metadata !== null &&
+    !Array.isArray(payload.metadata)
+      ? (payload.metadata as Record<string, unknown>)
+      : {};
+  const existingRecommendation =
+    typeof payload.recommendation === "object" &&
+    payload.recommendation !== null &&
+    !Array.isArray(payload.recommendation)
+      ? (payload.recommendation as Record<string, unknown>)
+      : {};
+  const existingRecommendationMetadata =
+    typeof existingRecommendation.metadata === "object" &&
+    existingRecommendation.metadata !== null &&
+    !Array.isArray(existingRecommendation.metadata)
+      ? (existingRecommendation.metadata as Record<string, unknown>)
+      : {};
+  const visibleRecommendationRowMetadata = {
+    source: "recommendation_row_metadata",
+    tier: recommendationTier,
+    recommendation_tier: recommendationTier,
+    confidence_score: confidenceScore,
+    confidence_label: recommendation.confidenceLabel,
+    confidence: recommendation.confidence,
+  };
+
+  return {
+    ...snapshot,
+    confidence:
+      snapshot.confidence ?? (confidenceScore !== null ? confidenceScore : null),
+    score: snapshot.score ?? (confidenceScore !== null ? confidenceScore : null),
+    payload_json: {
+      ...payload,
+      visible_recommendation_tier:
+        payload.visible_recommendation_tier ?? recommendationTier,
+      recommendation_tier: payload.recommendation_tier ?? recommendationTier,
+      tier: payload.tier ?? recommendationTier,
+      confidence_score: payload.confidence_score ?? confidenceScore,
+      metadata: {
+        ...existingMetadata,
+        tier: existingMetadata.tier ?? recommendationTier,
+        recommendation_tier:
+          existingMetadata.recommendation_tier ?? recommendationTier,
+        rating: existingMetadata.rating ?? recommendationTier,
+      },
+      recommendation: {
+        ...existingRecommendation,
+        tier: existingRecommendation.tier ?? recommendationTier,
+        recommendation_tier:
+          existingRecommendation.recommendation_tier ?? recommendationTier,
+        confidence_score:
+          existingRecommendation.confidence_score ?? confidenceScore,
+        metadata: {
+          ...existingRecommendationMetadata,
+          tier: existingRecommendationMetadata.tier ?? recommendationTier,
+          recommendation_tier:
+            existingRecommendationMetadata.recommendation_tier ??
+            recommendationTier,
+          rating: existingRecommendationMetadata.rating ?? recommendationTier,
+        },
+      },
+      visible_recommendation_row_metadata: visibleRecommendationRowMetadata,
+    },
+  };
+}
+
 function planPriceFreshnessFromSnapshotPayload(
   snapshot: RecommendationSnapshot | null | undefined,
 ): PlanPriceFreshnessDiagnostics | null {
@@ -2972,6 +3317,30 @@ function planPriceFreshnessFromSnapshotPayload(
     typeof diagnostics === "object" &&
     !Array.isArray(diagnostics)
     ? (diagnostics as PlanPriceFreshnessDiagnostics)
+    : null;
+}
+
+function planPriceFreshnessFromOutcomePayload(
+  outcome: RecommendationOutcome | null | undefined,
+): PlanPriceFreshnessDiagnostics | null {
+  const diagnostics = outcome?.payload_json.plan_price_freshness;
+
+  return diagnostics !== null &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as PlanPriceFreshnessDiagnostics)
+    : null;
+}
+
+function entryTypeTriggerFromOutcomePayload(
+  outcome: RecommendationOutcome | null | undefined,
+): EntryTypeAwareTriggerDiagnostics | null {
+  const diagnostics = outcome?.payload_json.entry_type_trigger_diagnostics;
+
+  return diagnostics !== null &&
+    typeof diagnostics === "object" &&
+    !Array.isArray(diagnostics)
+    ? (diagnostics as EntryTypeAwareTriggerDiagnostics)
     : null;
 }
 
@@ -3003,6 +3372,52 @@ function parsePlanReferencePriceMetadata(
   if (referencePrice === null && typeof source?.reference_price_source !== "string") {
     return null;
   }
+  const metadataStatus =
+    source?.plan_reference_metadata_status === "complete" ||
+    source?.plan_reference_metadata_status === "price_missing_timestamp" ||
+    source?.plan_reference_metadata_status === "price_missing_source" ||
+    source?.plan_reference_metadata_status ===
+      "price_missing_source_and_timestamp" ||
+    source?.plan_reference_metadata_status === "missing_price"
+      ? source.plan_reference_metadata_status
+      : undefined;
+  const traceSource =
+    typeof source?.plan_reference_metadata_trace === "object" &&
+    source.plan_reference_metadata_trace !== null &&
+    !Array.isArray(source.plan_reference_metadata_trace)
+      ? (source.plan_reference_metadata_trace as Record<string, unknown>)
+      : null;
+  const trace = traceSource
+    ? {
+        candidate_price_available_before_generation:
+          traceSource.candidate_price_available_before_generation === true,
+        generated_recommendation_retained_reference_price:
+          typeof traceSource.generated_recommendation_retained_reference_price ===
+          "boolean"
+            ? traceSource.generated_recommendation_retained_reference_price
+            : null,
+        price_read_path:
+          typeof traceSource.price_read_path === "string" &&
+          traceSource.price_read_path.trim()
+            ? traceSource.price_read_path.trim()
+            : null,
+        source_read_path:
+          typeof traceSource.source_read_path === "string" &&
+          traceSource.source_read_path.trim()
+            ? traceSource.source_read_path.trim()
+            : null,
+        timestamp_read_path:
+          typeof traceSource.timestamp_read_path === "string" &&
+          traceSource.timestamp_read_path.trim()
+            ? traceSource.timestamp_read_path.trim()
+            : null,
+        provider_read_path:
+          typeof traceSource.provider_read_path === "string" &&
+          traceSource.provider_read_path.trim()
+            ? traceSource.provider_read_path.trim()
+            : null,
+      }
+    : undefined;
 
   return {
     reference_price_used_for_plan: referencePrice,
@@ -3031,6 +3446,10 @@ function parsePlanReferencePriceMetadata(
       source.reference_price_read_path.trim()
         ? source.reference_price_read_path.trim()
         : null,
+    ...(metadataStatus
+      ? { plan_reference_metadata_status: metadataStatus }
+      : {}),
+    ...(trace ? { plan_reference_metadata_trace: trace } : {}),
   };
 }
 
@@ -3050,7 +3469,48 @@ function parseEntryTypeMetadata(
   }
 
   return inferRecommendationEntryTypeMetadata({
-    existingMetadata: source,
+    existingMetadata: {
+      entry_type: source.entry_type as EntryTypeMetadata["entry_type"],
+      entry_trigger_semantics:
+        typeof source.entry_trigger_semantics === "string"
+          ? (source.entry_trigger_semantics as EntryTypeMetadata["entry_trigger_semantics"])
+          : "unknown",
+      entry_type_source:
+        typeof source.entry_type_source === "string"
+          ? (source.entry_type_source as EntryTypeMetadata["entry_type_source"])
+          : "unknown",
+      entry_type_confidence:
+        source.entry_type_confidence === "high" ||
+        source.entry_type_confidence === "medium" ||
+        source.entry_type_confidence === "low"
+          ? source.entry_type_confidence
+          : "low",
+      entry_type_warnings: Array.isArray(source.entry_type_warnings)
+        ? source.entry_type_warnings.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : [],
+      entry_type_reference_price: parseNumber(
+        source.entry_type_reference_price,
+      ),
+      entry_type_reference_source:
+        typeof source.entry_type_reference_source === "string"
+          ? source.entry_type_reference_source
+          : null,
+      entry_type_reference_read_path:
+        typeof source.entry_type_reference_read_path === "string"
+          ? source.entry_type_reference_read_path
+          : null,
+      entry_type_reference_distance_pct: parseNumber(
+        source.entry_type_reference_distance_pct,
+      ),
+      entry_type_requires_reference_price:
+        source.entry_type_requires_reference_price !== false,
+      reference_price_missing_for_entry_type:
+        source.reference_price_missing_for_entry_type === true,
+      unknown_due_to_missing_reference:
+        source.unknown_due_to_missing_reference === true,
+    },
   });
 }
 
@@ -3242,9 +3702,9 @@ function buildConfidenceMetadata(recommendation: Recommendation) {
     intraday_indicators: recommendation.intradayIndicators,
     output_enrichment: recommendation.outputEnrichment,
     plan_reference_price: recommendation.planReferencePrice ?? null,
-    ...(recommendation.planReferencePrice ?? {}),
     entry_type_metadata: recommendation.entryTypeMetadata ?? null,
     ...(recommendation.entryTypeMetadata ?? {}),
+    ...(recommendation.planReferencePrice ?? {}),
     setup_type: recommendation.setupType,
   })}]`;
 }
@@ -4235,6 +4695,7 @@ function buildVisibleRecommendationSnapshotInput({
         outputEnrichment?.provider_plan_profile_mode ??
         recommendation.outputEnrichment?.provider_plan_profile_mode ??
         null,
+      plan_reference_price: planReferencePrice,
       ...planReferencePrice,
       ...entryTypeMetadata,
       entry_type_metadata: entryTypeMetadata,
@@ -4259,6 +4720,7 @@ function buildVisibleRecommendationSnapshotInput({
         entry,
         stop,
         target,
+        plan_reference_price: planReferencePrice,
         ...planReferencePrice,
         ...entryTypeMetadata,
       },
@@ -4286,6 +4748,7 @@ function buildVisibleRecommendationSnapshotInput({
         scan_window: recommendation.scanWindow,
         expires_at: recommendation.expiresAtRaw,
         created_at: recommendation.createdAtRaw,
+        plan_reference_price: planReferencePrice,
         ...planReferencePrice,
         ...entryTypeMetadata,
       },
@@ -4394,6 +4857,7 @@ function toRecommendation(row: RecommendationRow): Recommendation {
     sessionLabel: sessionLabel(recommendationSessionType),
     ticker: row.ticker,
     companyName: text(row.company_name),
+    logoUrl: resolveCompanyLogoUrl(row),
     direction: direction(row.direction),
     setupType:
       rowSetupType === "UNKNOWN" ? metadataSetupType : rowSetupType,
@@ -4480,6 +4944,7 @@ function toActivePosition(row: PositionRow): ActivePosition {
     recommendationId: row.recommendation_id ?? null,
     ticker: row.ticker,
     companyName: text(row.company_name),
+    logoUrl: resolveCompanyLogoUrl(row),
     direction: direction(row.direction),
     entryPrice: money(row.entry_price),
     entryPriceValue,
@@ -5924,6 +6389,13 @@ function isLiveRecommendationSnapshot(snapshot: RecommendationSnapshot) {
   );
 }
 
+function isIntelligenceEnrichmentSnapshot(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.source_mode !== "diagnostic" &&
+    snapshot.payload_json.diagnostic_mode !== true
+  );
+}
+
 function isLiveRecommendationBatch(batch: RecommendationBatch) {
   return (
     batch.batch_type !== "diagnostic" &&
@@ -6006,6 +6478,28 @@ function getSnapshotExplicitBatchFingerprints(snapshot: RecommendationSnapshot) 
   const fingerprints = [
     payload.batch_fingerprint,
     payload.recommendation_batch_fingerprint,
+    payload.research_batch_fingerprint,
+  ];
+
+  return Array.from(
+    new Set(
+      fingerprints
+        .filter(
+          (fingerprint): fingerprint is string =>
+            typeof fingerprint === "string" && fingerprint.trim().length > 0,
+        )
+        .map((fingerprint) => fingerprint.trim()),
+    ),
+  );
+}
+
+function getOutcomeScanRunFingerprints(outcome: RecommendationOutcome) {
+  const payload = outcome.payload_json;
+  const fingerprints = [
+    payload.scan_run_fingerprint,
+    payload.scan_run_id,
+    payload.run_fingerprint,
+    payload.runFingerprint,
   ];
 
   return Array.from(
@@ -7460,20 +7954,9 @@ function readRiskControlsSettingsForTradeApp(): RiskControlsSettings {
 }
 
 function readExecutionModePreferenceForTradeApp(): ExecutionMode {
-  if (typeof window === "undefined") {
-    return DEFAULT_EXECUTION_MODE;
-  }
-
-  try {
-    return normalizeExecutionMode(
-      window.localStorage.getItem(EXECUTION_MODE_STORAGE_KEY),
-      {
-        automaticEnabled: isAutomaticExecutionModeFeatureEnabled(),
-      },
-    );
-  } catch {
-    return DEFAULT_EXECUTION_MODE;
-  }
+  return readExecutionModePreference(getBrowserExecutionSettingsStorage(), {
+    automaticEnabled: isAutomaticExecutionModeFeatureEnabled(),
+  }).mode;
 }
 
 function readPaperSessionProtocolState(): PaperSessionProtocolLocalState {
@@ -7905,11 +8388,129 @@ function updateResultToLatestPositionUpdate(
   };
 }
 
-export function TradeApp() {
+function isDashboardTab(tab: Tab): tab is DashboardTab {
+  return dashboardTabs.some((item) => item.key === tab);
+}
+
+function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
+  if (item.key === "dashboard") {
+    return isDashboardTab(activeTab);
+  }
+
+  return activeTab === item.tab;
+}
+
+type TradeAppProps = {
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
+  learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
+  historicalCandleStorageDetection?: {
+    historical_candles_table_detected?: boolean | null;
+    historical_candle_fetch_runs_table_detected?: boolean | null;
+    expected_unique_key_detected?: boolean | null;
+    expected_indexes_detected?: boolean | null;
+    rls_enabled_detected?: boolean | null;
+    client_write_policies_detected?: boolean | null;
+    client_read_policies_detected?: boolean | null;
+    schema_readback_attempted?: boolean | null;
+    schema_readback_status?: "ok" | "partial" | "blocked" | "unavailable" | null;
+    schema_readback_missing_items?: string[] | null;
+    schema_readback_warnings?: string[] | null;
+    detection_source?: string | null;
+    checked_at?: string | null;
+    error_message?: string | null;
+  } | null;
+};
+
+const avanzaSelectedRecommendationPreviewDevConfig =
+  buildAvanzaDevPreviewFlagConfig({
+    environmentScope: "default",
+    explicitPreviewOnlyFlag: false,
+    source: "default_disabled",
+  });
+
+const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;
+const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;
+
+function buildRecommendationTradeCardExecutionReadiness(
+  recommendation: Recommendation,
+  positionSizing: PositionSizing,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: recommendation.companyName,
+    intent: "entry_buy",
+    limitPrice: getRecommendationEntryFallback(recommendation) ?? undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    profileReady: false,
+    quantity: positionSizing.suggestedShares ?? undefined,
+    recommendationId: recommendation.id,
+    settlementModeled: true,
+    side: "buy",
+    source: "recommendation",
+    ticker: recommendation.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
+
+function buildLivePositionTradeCardExecutionReadiness(
+  position: ActivePosition,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: position.companyName,
+    intent: "exit_sell",
+    limitPrice:
+      position.target1Value ??
+      position.target2Value ??
+      position.stopLossValue ??
+      undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    positionId: position.id,
+    profileReady: false,
+    quantity:
+      position.executionMetadata?.remaining_shares ??
+      position.positionSizeValue ??
+      undefined,
+    recommendationId: position.recommendationId ?? undefined,
+    settlementModeled: true,
+    side: "sell",
+    source: "live_position",
+    ticker: position.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
+
+export function TradeApp({
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
+    avanzaSelectedRecommendationPreviewDevConfig,
+  learningAccelerationServerConfig = null,
+  historicalCandleStorageDetection = null,
+}: TradeAppProps = {}) {
   const { activeTab, setActiveTab } = useTradeAppNavigationState();
   const { selectedStatisticsRange, setSelectedStatisticsRange } =
     useStatisticsRangeState();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [symbolMetadataBySymbol, setSymbolMetadataBySymbol] = useState<
+    Record<string, SymbolMetadata>
+  >({});
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [activePositions, setActivePositions] = useState<ActivePosition[]>([]);
   const [closedPositions, setClosedPositions] = useState<ClosedPosition[]>([]);
@@ -7990,6 +8591,9 @@ export function TradeApp() {
   const [message, setMessage] = useState("");
   const [lastDemoAction, setLastDemoAction] = useState("No demo action yet.");
   const [scanLogs, setScanLogs] = useState<ScanLogEntry[]>([]);
+  const [scheduledScanAttempts, setScheduledScanAttempts] = useState<
+    ScheduledScanAttempt[]
+  >([]);
   const [marketRegime, setMarketRegime] = useState<MarketRegime | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
   const [marketStatusError, setMarketStatusError] = useState("");
@@ -8102,6 +8706,14 @@ export function TradeApp() {
     eligibleLearningSnapshotCount: 0,
     eligibleResearchOnlySnapshotCount: 0,
     growMaxLearningSnapshotsIncludedCount: 0,
+    learningAccelerationEnabled: false,
+    learningAccelerationEnabledSource: null,
+    learningAccelerationEnvRawPresent: false,
+    learningAccelerationEnvRawValueCategory: null,
+    learningAccelerationEnvRawValueNormalized: false,
+    learningAccelerationRuntimeEnvironment: null,
+    learningAccelerationMode: null,
+    learningAccelerationSamplesEvaluated: 0,
     ineligibleSnapshotCount: 0,
     ineligibleReasons: {},
     uniqueSnapshotFingerprintsCount: 0,
@@ -8115,13 +8727,13 @@ export function TradeApp() {
     visibleGridCount: 0,
     gridCards: 0,
     expectedOutcomeRowsFromEligibleSnapshots: 0,
-    batchHealth: null,
     batchCandidateAudit: null,
     expectedSnapshotCountFromScan: 0,
     actualSnapshotCountForBatch: 0,
     missingSnapshotCount: 0,
     missingSnapshotReasons: {},
     strictBatchFilterExcludedCount: 0,
+    batchHealth: null,
     entryTypeTriggerSummary: null,
     planReferenceMetadataTrace: null,
     incompleteDueToMissingCandles: 0,
@@ -8197,6 +8809,7 @@ export function TradeApp() {
   >({});
   const isUpdatingPositionsRef = useRef(false);
   const dataRefreshInFlightRef = useRef(false);
+  const requestedSymbolMetadataRef = useRef<Set<string>>(new Set());
   const loadTradeDataRef = useRef<
     (options?: LoadTradeDataOptions) => Promise<void>
   >(async () => undefined);
@@ -8206,6 +8819,119 @@ export function TradeApp() {
   const updatePositionsRef = useRef<
     (source?: "manual" | "auto") => Promise<void>
   >(async () => undefined);
+
+  function logoUrlForCompanyIdentity(
+    ticker: string,
+    directLogoUrl?: string | null,
+  ) {
+    const normalizedDirectLogoUrl = normalizeCompanyLogoUrl(directLogoUrl);
+
+    if (normalizedDirectLogoUrl) {
+      return normalizedDirectLogoUrl;
+    }
+
+    const symbol = normalizeSymbol(ticker);
+    return symbol ? symbolMetadataBySymbol[symbol]?.logoUrl ?? null : null;
+  }
+
+  function withSymbolMetadataLogo<T extends { ticker: string; logoUrl?: string | null }>(
+    item: T,
+  ) {
+    const logoUrl = logoUrlForCompanyIdentity(item.ticker, item.logoUrl);
+
+    if ((item.logoUrl ?? null) === logoUrl) {
+      return item;
+    }
+
+    return {
+      ...item,
+      logoUrl,
+    };
+  }
+
+  async function hydrateSymbolMetadataForDisplay(
+    items: readonly { ticker?: string | null }[],
+  ) {
+    const symbols = dedupeSymbols(items.map((item) => item.ticker));
+    const symbolsToRequest = symbols.filter(
+      (symbol) => !requestedSymbolMetadataRef.current.has(symbol),
+    );
+
+    if (symbolsToRequest.length === 0) {
+      return;
+    }
+
+    for (const symbol of symbolsToRequest) {
+      requestedSymbolMetadataRef.current.add(symbol);
+    }
+
+    try {
+      const response = await fetch("/api/symbol-metadata", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          symbols: symbolsToRequest,
+          refresh: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Symbol metadata request failed: ${response.status}`);
+      }
+
+      const body = (await response.json()) as { metadata?: unknown };
+      const metadata = Array.isArray(body.metadata) ? body.metadata : [];
+      const nextMetadataBySymbol: Record<string, SymbolMetadata> = {};
+
+      for (const item of metadata) {
+        const row =
+          item && typeof item === "object"
+            ? (item as {
+                symbol?: unknown;
+                companyName?: unknown;
+                exchange?: unknown;
+                logoUrl?: unknown;
+                logoSource?: unknown;
+                logoUpdatedAt?: unknown;
+              })
+            : null;
+
+        if (!row) {
+          continue;
+        }
+
+        const normalizedMetadata = symbolMetadataFromRow({
+          symbol: row.symbol,
+          companyName: row.companyName,
+          exchange: row.exchange,
+          logoUrl: normalizeSymbolMetadataLogoUrl(row.logoUrl),
+          logoSource: row.logoSource,
+          logoUpdatedAt: row.logoUpdatedAt,
+        });
+
+        if (normalizedMetadata) {
+          nextMetadataBySymbol[normalizedMetadata.symbol] = normalizedMetadata;
+        }
+      }
+
+      if (Object.keys(nextMetadataBySymbol).length > 0) {
+        setSymbolMetadataBySymbol((current) => ({
+          ...current,
+          ...nextMetadataBySymbol,
+        }));
+      }
+    } catch (error) {
+      console.warn("[trade-app] symbol_metadata_hydration_failed", {
+        error: normalizeUnknownError(error),
+      });
+
+      for (const symbol of symbolsToRequest) {
+        requestedSymbolMetadataRef.current.delete(symbol);
+      }
+    }
+  }
 
   async function loadTradeData(options: LoadTradeDataOptions = {}) {
     await Promise.resolve();
@@ -8279,6 +9005,7 @@ export function TradeApp() {
         closedPositionsResult,
         positionUpdatesResult,
         scanLogsResult,
+        scheduledScanAttemptsResult,
         recommendationScanRunsResult,
         recommendationBatchesResult,
         recommendationSnapshotsResult,
@@ -8319,6 +9046,15 @@ export function TradeApp() {
             .order("created_at", { ascending: false })
             .limit(50),
           supabase
+            .from("scheduled_scan_attempts")
+            .select("*")
+            .gte(
+              "utc_timestamp",
+              new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+            )
+            .order("utc_timestamp", { ascending: false })
+            .limit(100),
+          supabase
             .from("recommendation_scan_runs")
             .select("*")
             .order("observed_at", { ascending: false })
@@ -8332,12 +9068,12 @@ export function TradeApp() {
             .from("recommendation_snapshots")
             .select("*")
             .order("created_at", { ascending: false })
-            .limit(1000),
+            .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
           supabase
             .from("recommendation_outcomes")
             .select("*")
             .order("evaluated_at", { ascending: false })
-            .limit(750),
+            .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
           supabase
             .from("market_regime_snapshots")
             .select("*")
@@ -8394,6 +9130,7 @@ export function TradeApp() {
           nextRecommendations.map((recommendation) => recommendation.id),
         );
         setRecommendations(nextRecommendations);
+        void hydrateSymbolMetadataForDisplay(nextRecommendations);
       }
 
       if (userSettingsResult.error) {
@@ -8422,16 +9159,20 @@ export function TradeApp() {
           nextActivePositions.map((position) => position.id),
         );
         setActivePositions(nextActivePositions);
+        void hydrateSymbolMetadataForDisplay(nextActivePositions);
       }
 
       if (closedPositionsResult.error) {
         noteIslandError("stats_today", closedPositionsResult.error);
         noteIslandError("history_statistics", closedPositionsResult.error);
       } else {
-        setClosedPositions([
+        const nextClosedPositions = [
           ...demoClosedPositions,
           ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
-        ]);
+        ];
+
+        setClosedPositions(nextClosedPositions);
+        void hydrateSymbolMetadataForDisplay(nextClosedPositions);
       }
 
       if (positionUpdatesResult.error) {
@@ -8467,6 +9208,27 @@ export function TradeApp() {
         ((scanLogsResult.data ?? []) as ScheduledScanRunRow[]).map(
           parseScanLogFromMessage,
         ),
+      );
+      }
+
+      if (scheduledScanAttemptsResult.error) {
+      console.info("[trade-app] scheduled_scan_attempts unavailable", {
+        source: "supabase.scheduled_scan_attempts",
+        operation: "select_recent_scheduled_scan_attempts",
+        error: normalizeUnknownError(scheduledScanAttemptsResult.error),
+      });
+        if (isInitialLoad) {
+          setScheduledScanAttempts([]);
+        }
+      } else {
+      setScheduledScanAttempts(
+        ((scheduledScanAttemptsResult.data ?? []) as Array<
+          Record<string, unknown>
+        >)
+          .map(scheduledScanAttemptFromRow)
+          .filter(
+            (attempt): attempt is ScheduledScanAttempt => attempt !== null,
+          ),
       );
       }
 
@@ -8533,18 +9295,21 @@ export function TradeApp() {
       }
 
       if (recommendationSnapshotsResult.error) {
-      console.error("[trade-app] dashboard_data_load_error", {
-        source: "supabase.recommendation_snapshots",
-        operation: "select_recent_recommendation_snapshots",
-        error: normalizeUnknownError(recommendationSnapshotsResult.error),
-      });
-        noteIslandError("market_diagnostics", recommendationSnapshotsResult.error);
-        noteIslandError("recommendations", recommendationSnapshotsResult.error);
-        if (isInitialLoad) {
-          loadedRecommendationSnapshotsForReadback =
-            readRecommendationSnapshotsFromLocalStorage();
-          setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
-        }
+        const fallback = resolveRecentRecommendationReadbackFailure({
+          isInitialLoad,
+          localItems: readRecommendationSnapshotsFromLocalStorage(),
+          previousItems: storedRecommendationSnapshots,
+        });
+        loadedRecommendationSnapshotsForReadback = fallback.items;
+        setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+        console.warn("[trade-app] recent_recommendation_readback_unavailable", {
+          source: "supabase.recommendation_snapshots",
+          operation: "select_recent_recommendation_snapshots",
+          fallbackSource: fallback.source,
+          fallbackCount: fallback.items.length,
+          readLimit: RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
+          error: normalizeUnknownError(recommendationSnapshotsResult.error),
+        });
       } else {
       const loadedSnapshots = ((recommendationSnapshotsResult.data ?? []) as Array<
         Record<string, unknown>
@@ -8565,23 +9330,27 @@ export function TradeApp() {
       }
 
       if (recommendationOutcomesResult.error) {
-      console.error("[trade-app] dashboard_data_load_error", {
-        source: "supabase.recommendation_outcomes",
-        operation: "select_recent_recommendation_outcomes",
-        error: normalizeUnknownError(recommendationOutcomesResult.error),
-      });
-        noteIslandError("market_diagnostics", recommendationOutcomesResult.error);
-        noteIslandError("history_statistics", recommendationOutcomesResult.error);
-        if (isInitialLoad) {
-          const dedupedLocalOutcomes = dedupeRecommendationOutcomesForReadback(
-            readRecommendationOutcomesFromLocalStorage(),
-          );
-          loadedRecommendationOutcomesForReadback = dedupedLocalOutcomes.outcomes;
-          setRecommendationOutcomeDedupeDiagnostics(
-            dedupedLocalOutcomes.diagnostics,
-          );
-          setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
-        }
+        const fallback = resolveRecentRecommendationReadbackFailure({
+          isInitialLoad,
+          localItems: readRecommendationOutcomesFromLocalStorage(),
+          previousItems: storedRecommendationOutcomes,
+        });
+        const dedupedFallbackOutcomes = dedupeRecommendationOutcomesForReadback(
+          fallback.items,
+        );
+        loadedRecommendationOutcomesForReadback = dedupedFallbackOutcomes.outcomes;
+        setRecommendationOutcomeDedupeDiagnostics(
+          dedupedFallbackOutcomes.diagnostics,
+        );
+        setStoredRecommendationOutcomes(loadedRecommendationOutcomesForReadback);
+        console.warn("[trade-app] recent_recommendation_readback_unavailable", {
+          source: "supabase.recommendation_outcomes",
+          operation: "select_recent_recommendation_outcomes",
+          fallbackSource: fallback.source,
+          fallbackCount: loadedRecommendationOutcomesForReadback.length,
+          readLimit: RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
+          error: normalizeUnknownError(recommendationOutcomesResult.error),
+        });
       } else {
       const loadedOutcomes = ((recommendationOutcomesResult.data ?? []) as Array<
         Record<string, unknown>
@@ -8603,7 +9372,7 @@ export function TradeApp() {
       if (loadedRecommendationOutcomesForReadback.length > 0) {
         const existingSnapshotFingerprints = new Set(
           loadedRecommendationSnapshotsForReadback
-            .filter(isLiveRecommendationSnapshot)
+            .filter(isIntelligenceEnrichmentSnapshot)
             .map((snapshot) => snapshot.snapshot_fingerprint),
         );
         const outcomeSnapshotFingerprints = Array.from(
@@ -8664,7 +9433,7 @@ export function TradeApp() {
               .map(recommendationSnapshotFromPersistenceRow)
               .filter(
                 (snapshot): snapshot is RecommendationSnapshot =>
-                  snapshot !== null && isLiveRecommendationSnapshot(snapshot),
+                  snapshot !== null && isIntelligenceEnrichmentSnapshot(snapshot),
               );
 
             outcomeSnapshotBackfillCount = backfilledSnapshots.length;
@@ -8679,6 +9448,97 @@ export function TradeApp() {
             );
             setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
             outcomeMatchingRecomputedAfterBackfill = true;
+          }
+        }
+
+        const existingScanRunSnapshotFingerprints = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .map((snapshot) => snapshot.snapshot_fingerprint),
+        );
+        const existingScanRunTickerKeys = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .flatMap((snapshot) =>
+              [snapshot.scan_run_id, snapshot.payload_json.scan_run_fingerprint]
+                .filter(
+                  (fingerprint): fingerprint is string =>
+                    typeof fingerprint === "string" &&
+                    fingerprint.trim().length > 0,
+                )
+                .map(
+                  (fingerprint) =>
+                    `${fingerprint.trim()}::${normalizeRecommendationTicker(snapshot.ticker) ?? "UNKNOWN"}`,
+                ),
+            ),
+        );
+        const missingOutcomeScanRunFingerprints = Array.from(
+          new Set(
+            loadedRecommendationOutcomesForReadback
+              .filter((outcome) => {
+                const ticker = normalizeRecommendationTicker(outcome.ticker);
+                if (ticker === null) return false;
+
+                return getOutcomeScanRunFingerprints(outcome).some(
+                  (fingerprint) =>
+                    !existingScanRunTickerKeys.has(`${fingerprint}::${ticker}`),
+                );
+              })
+              .flatMap(getOutcomeScanRunFingerprints),
+          ),
+        );
+
+        if (missingOutcomeScanRunFingerprints.length > 0) {
+          outcomeSnapshotBackfillAttempted = true;
+
+          const backfilledScanRunSnapshotsResult = await supabase
+            .from("recommendation_snapshots")
+            .select("*")
+            .in("scan_run_id", missingOutcomeScanRunFingerprints)
+            .limit(200);
+
+          if (backfilledScanRunSnapshotsResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledScanRunSnapshotsResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_snapshots",
+              operation: "select_outcome_scan_run_snapshot_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError(
+              "market_diagnostics",
+              backfilledScanRunSnapshotsResult.error,
+            );
+          } else {
+            const backfilledScanRunSnapshots = (
+              (backfilledScanRunSnapshotsResult.data ?? []) as Array<
+                Record<string, unknown>
+              >
+            )
+              .map(recommendationSnapshotFromPersistenceRow)
+              .filter(
+                (snapshot): snapshot is RecommendationSnapshot =>
+                  snapshot !== null &&
+                  isIntelligenceEnrichmentSnapshot(snapshot) &&
+                  !existingScanRunSnapshotFingerprints.has(
+                    snapshot.snapshot_fingerprint,
+                  ),
+              );
+
+            outcomeSnapshotBackfillCount += backfilledScanRunSnapshots.length;
+            loadedRecommendationSnapshotsForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledScanRunSnapshots,
+                  ...loadedRecommendationSnapshotsForReadback,
+                ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+              ).values(),
+            );
+            setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+            outcomeMatchingRecomputedAfterBackfill =
+              outcomeMatchingRecomputedAfterBackfill ||
+              backfilledScanRunSnapshots.length > 0;
           }
         }
 
@@ -8778,10 +9638,33 @@ export function TradeApp() {
         outcomeBatchFingerprintsRequestedCount += missingScanRunFingerprints.length;
 
         if (missingScanRunFingerprints.length > 0) {
-          const backfilledScanRunBatchesResult = await supabase
-            .from("recommendation_batches")
-            .select("*")
-            .in("scan_run_fingerprint", missingScanRunFingerprints);
+          const backfilledScanRunBatchesResult =
+            await fetchChunkedRecommendationBatchBackfillRows<
+              Record<string, unknown>
+            >(missingScanRunFingerprints, async (fingerprintChunk) => {
+              const result = await supabase
+                .from("recommendation_batches")
+                .select("*")
+                .in("scan_run_fingerprint", [...fingerprintChunk]);
+
+              return {
+                data: (result.data ?? []) as Array<Record<string, unknown>>,
+                error: result.error,
+              };
+            });
+
+          if (backfilledScanRunBatchesResult.fingerprintsCapped) {
+            console.warn("[trade-app] recommendation_batch_backfill_capped", {
+              operation: "select_outcome_scan_run_batch_backfill",
+              requestedFingerprintCount:
+                backfilledScanRunBatchesResult.requestedFingerprintCount,
+              cappedFingerprintCount:
+                backfilledScanRunBatchesResult.cappedFingerprintCount,
+              cap: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
+              chunkSize: RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+              backfillSkipped: backfilledScanRunBatchesResult.backfillSkipped,
+            });
+          }
 
           if (backfilledScanRunBatchesResult.error) {
             outcomeBackfillError = normalizeUnknownError(
@@ -8791,17 +9674,15 @@ export function TradeApp() {
               source: "supabase.recommendation_batches",
               operation: "select_outcome_scan_run_batch_backfill",
               error: outcomeBackfillError,
+              chunkSize: RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
+              cap: RECOMMENDATION_BATCH_BACKFILL_FINGERPRINT_CAP,
             });
             noteIslandError(
               "market_diagnostics",
               backfilledScanRunBatchesResult.error,
             );
           } else {
-            const backfilledScanRunBatches = (
-              (backfilledScanRunBatchesResult.data ?? []) as Array<
-                Record<string, unknown>
-              >
-            )
+            const backfilledScanRunBatches = backfilledScanRunBatchesResult.rows
               .map(recommendationBatchFromPersistenceRow)
               .filter(
                 (batch): batch is RecommendationBatch =>
@@ -8995,14 +9876,7 @@ export function TradeApp() {
       return;
     }
 
-    try {
-      window.localStorage.setItem(
-        liveMarketTrialRunbookStorageKey,
-        JSON.stringify(liveMarketTrialRunbookState),
-      );
-    } catch {
-      // Local trial runbook notes must never block the app.
-    }
+    writeLiveMarketTrialRunbookState(liveMarketTrialRunbookState);
   }, [liveMarketTrialRunbookState]);
 
   useEffect(() => {
@@ -9827,6 +10701,10 @@ export function TradeApp() {
         recommendationId: selectedRecommendation.id,
         ticker: selectedRecommendation.ticker,
         companyName: selectedRecommendation.companyName,
+        logoUrl: logoUrlForCompanyIdentity(
+          selectedRecommendation.ticker,
+          selectedRecommendation.logoUrl,
+        ),
         direction: selectedRecommendation.direction,
         entryPrice: money(actualEntryPrice),
         entryPriceValue: actualEntryPrice,
@@ -10370,15 +11248,31 @@ export function TradeApp() {
   const dailyScanLogs = scanLogs.filter(
     (scanLog) => getNewYorkDateFromIso(scanLog.created_at) === dailySessionDate,
   );
+  const dailyScheduledScanAttempts = scheduledScanAttempts.filter(
+    (attempt) =>
+      getNewYorkDateFromIso(attempt.utc_timestamp) === dailySessionDate ||
+      attempt.trading_date === dailySessionDate,
+  ).sort((first, second) =>
+    second.utc_timestamp.localeCompare(first.utc_timestamp),
+  );
   const marketClosedReadbackMode =
     getTopMarketStatus(marketStatus, currentTime) !== "open";
   const latestSuccessfulDailyScanLog =
     dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
     storedRecommendationSnapshots.filter(isLiveRecommendationSnapshot);
+  const intelligenceEnrichmentRecommendationSnapshots =
+    storedRecommendationSnapshots.filter(isIntelligenceEnrichmentSnapshot);
   const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
     (scanRun) => !hasDiagnosticPayload(scanRun.payload_json),
   );
+  const scheduledScanTimelineToday = buildScheduledScanTimelineToday({
+    attempts: dailyScheduledScanAttempts,
+    scanLogs: dailyScanLogs,
+    scanRuns: liveStoredRecommendationScanRuns,
+    tradingDate: dailySessionDate,
+    limit: 12,
+  });
   const liveStoredRecommendationBatches =
     storedRecommendationBatches.filter(isLiveRecommendationBatch);
   const successfulLiveRecommendationBatches =
@@ -11325,6 +12219,38 @@ export function TradeApp() {
         : useClosedMarketReviewReadback
           ? latestReviewBatchStoredOutcomes
           : [];
+  const retainedReviewPlanPriceFreshnessSummary =
+    outcomeDiagnosticsStoredOutcomes.length > 0
+      ? summarizePlanPriceFreshness(
+          outcomeDiagnosticsStoredOutcomes.map((outcome) => {
+            const snapshot =
+              outcome.snapshot_fingerprint !== null
+                ? snapshotByFingerprint.get(outcome.snapshot_fingerprint)
+                : undefined;
+
+            return {
+              ticker: outcome.ticker,
+              snapshot_fingerprint: outcome.snapshot_fingerprint,
+              horizon: outcome.horizon,
+              diagnostics:
+                planPriceFreshnessFromOutcomePayload(outcome) ??
+                planPriceFreshnessFromSnapshotPayload(snapshot),
+            };
+          }),
+        )
+      : null;
+  const retainedReviewEntryTypeTriggerSummary =
+    outcomeDiagnosticsStoredOutcomes.length > 0
+      ? summarizeEntryTypeTriggerDiagnostics(
+          outcomeDiagnosticsStoredOutcomes.map((outcome) => ({
+            ticker: outcome.ticker,
+            entryType: parseEntryTypeMetadata(outcome.payload_json),
+            trigger: entryTypeTriggerFromOutcomePayload(outcome),
+            currentRouteTriggered: outcome.entry_triggered,
+            officialTriggered: outcome.entry_triggered,
+          })),
+        )
+      : null;
   const outcomeDiagnosticsEvaluatedCount =
     latestEvaluatedBatchOutcomes.length > 0
       ? latestEvaluatedBatchCompletedOutcomeCount
@@ -12458,9 +13384,16 @@ export function TradeApp() {
         scanRun.trading_date === dailySessionDate ||
         getNewYorkDateFromIso(scanRun.observed_at) === dailySessionDate,
     ) ?? null;
+  const latestAttemptedScheduledScanTrace =
+    dailyScheduledScanAttempts.find(
+      (attempt) =>
+        typeof attempt.payload_json.active_scan_trace === "object" &&
+        attempt.payload_json.active_scan_trace !== null,
+    )?.payload_json.active_scan_trace as ActiveScanTrace | undefined;
   const latestAttemptedActiveScanTrace =
     dailyScanLogs.find((scanLog) => scanLog.active_scan_trace)
       ?.active_scan_trace ??
+    latestAttemptedScheduledScanTrace ??
     (latestAttemptedStoredRecommendationScanRun
       ? getStoredActiveScanTrace(latestAttemptedStoredRecommendationScanRun)
       : null);
@@ -12474,11 +13407,37 @@ export function TradeApp() {
       : null);
   const latestActiveScanTrace =
     latestSuccessfulActiveScanTrace ?? latestAttemptedActiveScanTrace;
+  const readbackTimingFields = ({
+    createdAt,
+    scanWindow,
+  }: {
+    createdAt: string | null;
+    scanWindow: string | null;
+  }) => {
+    const windowClassification = normalizeDayTradeScanWindow(scanWindow);
+    const timestampWindowClassification = createdAt
+      ? classifyDayTradeScanWindow({ now: createdAt })
+      : "unknown";
+
+    return {
+      created_at_ny: getNewYorkTimestampFromIso(createdAt),
+      window_classification: windowClassification,
+      created_at_window_classification: timestampWindowClassification,
+      produced_inside_official_window:
+        timestampWindowClassification === "morning" ||
+        timestampWindowClassification === "midday" ||
+        timestampWindowClassification === "power_hour",
+    };
+  };
   const latestSuccessfulReadbackScan = latestSuccessfulScanLog
     ? {
         result: latestSuccessfulScanLog.result,
         created_at: latestSuccessfulScanLog.created_at,
         scan_window: latestSuccessfulScanLog.scan_window,
+        ...readbackTimingFields({
+          createdAt: latestSuccessfulScanLog.created_at,
+          scanWindow: latestSuccessfulScanLog.scan_window,
+        }),
         visible_recommendation_count:
           latestSuccessfulScanLog.recommendations_published_count ??
           latestSuccessfulScanLog.recommendations_created ??
@@ -12489,11 +13448,34 @@ export function TradeApp() {
         message: latestSuccessfulScanLog.message,
         source: "scheduled_scan_runs",
       }
+    : latestSuccessfulStoredRecommendationBatch
+      ? {
+          result: "recommendation_created",
+          created_at: latestSuccessfulStoredRecommendationBatch.observed_at,
+          scan_window: latestSuccessfulStoredRecommendationBatch.window,
+          ...readbackTimingFields({
+            createdAt: latestSuccessfulStoredRecommendationBatch.observed_at,
+            scanWindow: latestSuccessfulStoredRecommendationBatch.window,
+          }),
+          visible_recommendation_count:
+            latestSuccessfulStoredRecommendationBatch.recommendation_count,
+          message:
+            marketClosedReadbackMode
+              ? "Market closed — latest official batch retained for review."
+              : null,
+          source: marketClosedReadbackMode
+            ? "recommendation_batches:retained_review"
+            : "recommendation_batches",
+        }
     : latestSuccessfulStoredRecommendationScanRun
       ? {
           result: "recommendation_created",
           created_at: latestSuccessfulStoredRecommendationScanRun.observed_at,
           scan_window: latestSuccessfulStoredRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestSuccessfulStoredRecommendationScanRun.observed_at,
+            scanWindow: latestSuccessfulStoredRecommendationScanRun.window,
+          }),
           visible_recommendation_count:
             latestSuccessfulStoredRecommendationScanRun.counts
               .visible_recommendation_count,
@@ -12506,12 +13488,16 @@ export function TradeApp() {
         }
       : marketClosedReadbackMode && latestReviewSuccessfulRecommendationScanRun
         ? {
-            result: "recommendation_created",
-            created_at: latestReviewSuccessfulRecommendationScanRun.observed_at,
-            scan_window: latestReviewSuccessfulRecommendationScanRun.window,
-            visible_recommendation_count:
-              latestReviewSuccessfulRecommendationScanRun.counts
-                .visible_recommendation_count,
+          result: "recommendation_created",
+          created_at: latestReviewSuccessfulRecommendationScanRun.observed_at,
+          scan_window: latestReviewSuccessfulRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestReviewSuccessfulRecommendationScanRun.observed_at,
+            scanWindow: latestReviewSuccessfulRecommendationScanRun.window,
+          }),
+          visible_recommendation_count:
+            latestReviewSuccessfulRecommendationScanRun.counts
+              .visible_recommendation_count,
             message:
               typeof latestReviewSuccessfulRecommendationScanRun.payload_json
                 .message === "string"
@@ -12520,22 +13506,70 @@ export function TradeApp() {
             source: "recommendation_scan_runs:closed_market_review",
           }
       : null;
-  const latestAttemptedReadbackScan = latestAttemptedScanLog
-    ? {
-        result: latestAttemptedScanLog.result,
-        created_at: latestAttemptedScanLog.created_at,
-        scan_window: latestAttemptedScanLog.scan_window,
-        visible_recommendation_count:
-          latestAttemptedScanLog.recommendations_published_count ??
-          latestAttemptedScanLog.recommendations_created ??
-          latestAttemptedScanLog.active_scan_trace?.final
-            .recommendations_published_count ??
-          latestAttemptedScanLog.active_scan_trace?.final.recommendations_created ??
-          null,
-        message: latestAttemptedScanLog.message,
-        source: "scheduled_scan_runs",
-      }
-    : latestAttemptedStoredRecommendationScanRun
+  type LatestAttemptedReadbackCandidate = {
+    result: string | null;
+    created_at: string | null;
+    created_at_ny: string | null;
+    scan_window: string | null;
+    window_classification: string;
+    created_at_window_classification: string;
+    produced_inside_official_window: boolean;
+    visible_recommendation_count: number | null;
+    message: string | null;
+    source: string | null;
+  };
+  const latestScheduledTimelineAttempt =
+    scheduledScanTimelineToday.find(
+      (entry) => entry.source_type !== "retained_readback",
+    ) ?? null;
+  const latestAttemptedReadbackCandidates = ([
+    latestScheduledTimelineAttempt
+      ? {
+          result:
+            latestScheduledTimelineAttempt.outcome === "scanned" &&
+            (latestScheduledTimelineAttempt.published_count ?? 0) > 0
+              ? "recommendation_created"
+              : latestScheduledTimelineAttempt.outcome,
+          created_at: latestScheduledTimelineAttempt.utc_timestamp,
+          scan_window:
+            latestScheduledTimelineAttempt.intraday_scan_window ??
+            String(latestScheduledTimelineAttempt.official_window),
+          ...readbackTimingFields({
+            createdAt: latestScheduledTimelineAttempt.utc_timestamp,
+            scanWindow:
+              latestScheduledTimelineAttempt.intraday_scan_window ??
+              String(latestScheduledTimelineAttempt.official_window),
+          }),
+          visible_recommendation_count:
+            latestScheduledTimelineAttempt.published_count ?? null,
+          message: latestScheduledTimelineAttempt.reason,
+          source: latestScheduledTimelineAttempt.source,
+        }
+      : null,
+    !latestScheduledTimelineAttempt && latestAttemptedScanLog
+      ? {
+          result: latestAttemptedScanLog.result,
+          created_at: latestAttemptedScanLog.created_at,
+          scan_window: latestAttemptedScanLog.scan_window,
+          ...readbackTimingFields({
+            createdAt: latestAttemptedScanLog.created_at,
+            scanWindow: latestAttemptedScanLog.scan_window,
+          }),
+          visible_recommendation_count:
+            latestAttemptedScanLog.recommendations_published_count ??
+            latestAttemptedScanLog.recommendations_created ??
+            latestAttemptedScanLog.active_scan_trace?.final
+              .recommendations_published_count ??
+            latestAttemptedScanLog.active_scan_trace?.final
+              .recommendations_created ??
+            null,
+          message: latestAttemptedScanLog.message,
+          source: "scheduled_scan_runs",
+        }
+      : null,
+    !latestScheduledTimelineAttempt &&
+    latestAttemptedStoredRecommendationScanRun &&
+    !isSuccessfulLiveRecommendationScanRun(latestAttemptedStoredRecommendationScanRun)
       ? {
           result:
             latestAttemptedStoredRecommendationScanRun.counts
@@ -12544,13 +13578,51 @@ export function TradeApp() {
               : latestAttemptedStoredRecommendationScanRun.status,
           created_at: latestAttemptedStoredRecommendationScanRun.observed_at,
           scan_window: latestAttemptedStoredRecommendationScanRun.window,
+          ...readbackTimingFields({
+            createdAt: latestAttemptedStoredRecommendationScanRun.observed_at,
+            scanWindow: latestAttemptedStoredRecommendationScanRun.window,
+          }),
           visible_recommendation_count:
             latestAttemptedStoredRecommendationScanRun.counts
               .visible_recommendation_count,
           message: null,
           source: "recommendation_scan_runs",
         }
-      : null;
+      : null,
+    !latestScheduledTimelineAttempt && dailyScheduledScanAttempts[0]
+      ? {
+          result:
+            dailyScheduledScanAttempts[0].outcome === "scanned" &&
+            (dailyScheduledScanAttempts[0].published_count ??
+              dailyScheduledScanAttempts[0].recommendations_created ??
+              0) > 0
+              ? "recommendation_created"
+              : dailyScheduledScanAttempts[0].outcome,
+          created_at: dailyScheduledScanAttempts[0].utc_timestamp,
+          scan_window:
+            dailyScheduledScanAttempts[0].intraday_scan_window ??
+            dailyScheduledScanAttempts[0].official_window,
+          ...readbackTimingFields({
+            createdAt: dailyScheduledScanAttempts[0].utc_timestamp,
+            scanWindow:
+              dailyScheduledScanAttempts[0].intraday_scan_window ??
+              dailyScheduledScanAttempts[0].official_window,
+          }),
+          visible_recommendation_count:
+            dailyScheduledScanAttempts[0].published_count ??
+            dailyScheduledScanAttempts[0].recommendations_created ??
+            null,
+          message:
+            dailyScheduledScanAttempts[0].skip_reason ??
+            dailyScheduledScanAttempts[0].message,
+          source: dailyScheduledScanAttempts[0].source,
+        }
+      : null,
+  ].filter(Boolean) as LatestAttemptedReadbackCandidate[]);
+  const latestAttemptedReadbackScan =
+    latestAttemptedReadbackCandidates.sort((first, second) =>
+      (second.created_at ?? "").localeCompare(first.created_at ?? ""),
+    )[0] ?? null;
   const recommendationServingCadenceSummary =
     buildRecommendationServingCadenceSummary({
       tradingDate: dailySessionDate,
@@ -13089,6 +14161,42 @@ export function TradeApp() {
     recommendationOutcomeLearningInsightsSummaryJson(
       recommendationOutcomeLearningInsightsSummary,
     );
+  const mondayLiveTrialReviewSummary = buildMondayLiveTrialReviewSummary({
+    batch: latestEvaluatedBatchGroup?.batch ?? null,
+    snapshots: latestEvaluatedBatchSnapshots,
+    outcomes: latestEvaluatedBatchOutcomes,
+    visibleRecommendationCount:
+      latestEvaluatedBatchGroup?.batch.recommendation_count ??
+      latestEvaluatedBatchSnapshots.length,
+  });
+  const mondayLiveTrialReviewSummaryJsonText =
+    mondayLiveTrialReviewSummaryJson(mondayLiveTrialReviewSummary);
+  const visibleRecommendationMetadataById = new Map(
+    primaryRecommendationReadbackSource.map((recommendation) => [
+      recommendation.id,
+      recommendation,
+    ]),
+  );
+  const dailyLearningReviewSnapshots =
+    intelligenceEnrichmentRecommendationSnapshots.map((snapshot) =>
+      enrichSnapshotWithVisibleRecommendationMetadata(
+        snapshot,
+        snapshot.recommendation_id === null
+          ? null
+          : visibleRecommendationMetadataById.get(snapshot.recommendation_id),
+      ),
+    );
+  const dailyLearningReviewSummary = buildDailyLearningReviewSummary({
+    trading_day: dailySessionDate,
+    latest_batch_fingerprint: latestEvaluatedBatchFingerprint,
+    batches: liveStoredRecommendationBatches,
+    snapshots: dailyLearningReviewSnapshots,
+    outcomes: storedRecommendationOutcomes,
+    configured_static_universe_count:
+      scannerUniverseCoverageSummary.total_universe_size,
+    dynamic_movers: dynamicMarketMoversSummary,
+    now: currentTime,
+  });
   const entryTuningProposal = buildEntryTuningProposal({
     learning_insights: recommendationOutcomeLearningInsightsSummary,
     evaluated_batch_count: outcomeBatchGroups.filter(
@@ -13144,6 +14252,16 @@ export function TradeApp() {
     confidenceCalibrationReadinessSummaryJson(
       confidenceCalibrationReadinessSummary,
     );
+  const confidenceProjectionPreviewEnabled =
+    isConfidenceCalibrationProjectionPreviewEnabled();
+  const confidenceProjectionOutcomeReview =
+    buildConfidenceProjectionOutcomeReview({
+      snapshots: recommendationPerformanceSnapshots,
+      outcomes: recommendationPerformanceOutcomes,
+      previewEnabled: confidenceProjectionPreviewEnabled,
+    });
+  const confidenceProjectionOutcomeReviewJsonText =
+    confidenceProjectionOutcomeReviewJson(confidenceProjectionOutcomeReview);
   const recommendationEngineImprovementBacklog =
     buildRecommendationEngineImprovementBacklog({
       performance: recommendationPerformanceStatistics,
@@ -13233,6 +14351,83 @@ export function TradeApp() {
   });
   const providerBudgetGuardSummaryJsonText =
     providerBudgetGuardSummaryJson(providerBudgetGuardSummary);
+  const continuousIntelligenceBudgetPlanInput =
+    buildContinuousIntelligenceBudgetPlanInput({
+      generated_at: currentTime.toISOString(),
+      market_phase: currentMarketSessionEvaluation.phase,
+      market_day_type: marketStatus?.dayType,
+      is_trading_day: currentMarketSessionEvaluation.is_trading_day,
+      provider_budget_status: providerBudgetGuardSummary.status,
+      active_position_symbols: activePositions
+        .filter((position) => !isDemoPosition(position))
+        .map((position) => position.ticker),
+      visible_recommendation_symbols: dailyRecommendations
+        .filter((recommendation) => !isDemoRecommendation(recommendation))
+        .map((recommendation) => recommendation.ticker),
+      scanner_selected_symbols:
+        scannerUniverseCoverageSummary.selected_ticker_symbols,
+      scanner_context_symbols:
+        scannerUniverseCoverageSummary.context_ticker_symbols,
+      dynamic_mover_symbols: dynamicMarketMoversSummary?.selected_tickers ?? [],
+      dynamic_movers_status: dynamicMarketMoversSummary?.status ?? null,
+      dynamic_movers_selected_count:
+        dynamicMarketMoversSummary?.selected_count ?? null,
+      outcome_symbols: [
+        ...recommendationPerformanceSnapshots.map((snapshot) => snapshot.ticker),
+        ...recommendationOutcomeEvaluationDiagnostics.tickersEvaluated,
+      ],
+      pending_outcomes:
+        recommendationPerformanceStatistics.summary.pending_outcomes,
+      missing_candles: recommendationOutcomeEvaluationDiagnostics.missingCandles,
+      provider_errors: recommendationOutcomeEvaluationDiagnostics.providerErrors,
+      skipped_due_to_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.skippedDueToBudgetCount,
+      pending_provider_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount,
+      legacy_constraints: {
+        grow_scan_ticker_cap: 25,
+        grow_background_scan_cadence_minutes: 10,
+        scanner_default_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.default_tickers_per_window,
+        scanner_max_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.max_tickers_per_window,
+        official_scan_windows_per_day:
+          providerBudgetGuardSummary.totals.official_scan_windows_per_day,
+        scheduled_scan_cron: "*/15 13-19 * * 1-5",
+        scheduled_scan_gate: `${dayTradeScanOrchestrationSummary.active_window}:${dayTradeScanOrchestrationSummary.decision}`,
+        outcome_max_batches: 5,
+        outcome_max_snapshots: 10,
+        market_data_fetch_mode: "direct Twelve Data fetches with cache:no-store",
+        shared_cache_status:
+          "partial intraday retention and historical candle storage; no complete shared cache yet",
+        dynamic_movers_status: dynamicMarketMoversSummary?.status ?? "unknown",
+      },
+    });
+  const continuousIntelligenceBudgetPlan = buildContinuousIntelligenceBudgetPlan(
+    continuousIntelligenceBudgetPlanInput,
+  );
+  const sharedCandleCacheRollingRestCollectorSummary =
+    buildRollingRestCollectorShadowSummary({
+      budget_plan: continuousIntelligenceBudgetPlan,
+      shadow_mode_enabled: null,
+      now: currentTime,
+    });
+  const authenticatedShadowCollectorDryRunDiagnostics =
+    buildAuthenticatedShadowCollectorDryRunDiagnostics();
+  const boundedShadowCollectorExecutionProofDiagnostics =
+    buildBoundedShadowCollectorExecutionProofDiagnostics();
+  const boundedShadowCollectorExecutionProofPreflightDiagnostics =
+    buildBoundedShadowCollectorExecutionProofPreflightDiagnostics();
+  const boundedShadowCollectorOperatorAuthorizationDiagnostics =
+    buildBoundedShadowCollectorOperatorAuthorizationDiagnostics();
+  const boundedShadowCollectorLiveProofReceiptDiagnostics =
+    buildBoundedShadowCollectorLiveProofReceiptDiagnostics();
+  const boundedShadowCollectorProofAuditDiagnostics =
+    buildBoundedShadowCollectorProofAuditDiagnostics();
+  const continuousIntelligenceCreditLedgerDiagnostics =
+    buildContinuousIntelligenceCreditLedgerDiagnostics();
+  const continuousIntelligenceShadowCanaryDiagnostics =
+    buildContinuousIntelligenceShadowCanaryDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -13338,12 +14533,33 @@ export function TradeApp() {
       scan_orchestration: dayTradeScanOrchestrationSummary,
       serving_cadence: recommendationServingCadenceSummary,
       provider_budget_guard: providerBudgetGuardSummary,
+      continuous_intelligence_budget_plan: continuousIntelligenceBudgetPlan,
+      shared_candle_cache_rolling_rest_collector:
+        sharedCandleCacheRollingRestCollectorSummary,
+      authenticated_shadow_collector_dry_run:
+        authenticatedShadowCollectorDryRunDiagnostics,
+      bounded_shadow_collector_execution_proof:
+        boundedShadowCollectorExecutionProofDiagnostics,
+      bounded_shadow_collector_execution_proof_preflight:
+        boundedShadowCollectorExecutionProofPreflightDiagnostics,
+      bounded_shadow_collector_operator_authorization:
+        boundedShadowCollectorOperatorAuthorizationDiagnostics,
+      bounded_shadow_collector_live_proof_receipt:
+        boundedShadowCollectorLiveProofReceiptDiagnostics,
+      bounded_shadow_collector_proof_audit:
+        boundedShadowCollectorProofAuditDiagnostics,
+      continuous_intelligence_credit_ledger:
+        continuousIntelligenceCreditLedgerDiagnostics,
+      continuous_intelligence_shadow_collector_canary:
+        continuousIntelligenceShadowCanaryDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
       dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
+      learning_acceleration_config: learningAccelerationServerConfig,
+      historical_candle_storage_detection: historicalCandleStorageDetection,
       ui_refresh: {
         active_tab: activeTab,
         islands: Object.fromEntries(
@@ -13421,6 +14637,28 @@ export function TradeApp() {
         grow_max_learning_snapshots_included_count:
           recommendationOutcomeEvaluationDiagnostics
             .growMaxLearningSnapshotsIncludedCount,
+        learning_acceleration_enabled:
+          recommendationOutcomeEvaluationDiagnostics.learningAccelerationEnabled,
+        learning_acceleration_enabled_source:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnabledSource,
+        learning_acceleration_env_raw_present:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawPresent,
+        learning_acceleration_env_raw_value_category:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawValueCategory,
+        learning_acceleration_env_raw_value_normalized:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationEnvRawValueNormalized,
+        learning_acceleration_runtime_environment:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationRuntimeEnvironment,
+        learning_acceleration_mode:
+          recommendationOutcomeEvaluationDiagnostics.learningAccelerationMode,
+        learning_acceleration_samples_evaluated:
+          recommendationOutcomeEvaluationDiagnostics
+            .learningAccelerationSamplesEvaluated,
         ineligible_snapshot_count:
           recommendationOutcomeEvaluationDiagnostics.ineligibleSnapshotCount,
         ineligible_reasons:
@@ -13645,17 +14883,21 @@ export function TradeApp() {
                 ? latestReviewBatchOutcomeTickers
                 : latestEvaluatedBatchTickerList,
         plan_price_freshness_summary:
-          recommendationOutcomeEvaluationRun?.plan_price_freshness_summary ?? null,
-        plan_reference_metadata_trace:
-          recommendationOutcomeEvaluationDiagnostics.planReferenceMetadataTrace ??
-          recommendationOutcomeEvaluationRun?.plan_reference_metadata_trace ??
-          null,
+          recommendationOutcomeEvaluationRun?.plan_price_freshness_summary
+            ?.evaluated_snapshots
+            ? recommendationOutcomeEvaluationRun.plan_price_freshness_summary
+            : retainedReviewPlanPriceFreshnessSummary,
         entry_type_trigger_summary:
-          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary ??
-          recommendationOutcomeEvaluationRun?.entry_type_trigger_summary ??
-          null,
+          recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary
+            ?.total_outcomes
+            ? recommendationOutcomeEvaluationDiagnostics.entryTypeTriggerSummary
+            : recommendationOutcomeEvaluationRun?.entry_type_trigger_summary
+                  ?.total_outcomes
+              ? recommendationOutcomeEvaluationRun.entry_type_trigger_summary
+              : retainedReviewEntryTypeTriggerSummary,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
+      daily_learning_review: dailyLearningReviewSummary,
       entry_tuning_proposal: entryTuningProposal,
       recommendation_output_enrichment: recommendationOutputEnrichmentSummary,
       metadata_coverage: {
@@ -13709,9 +14951,12 @@ export function TradeApp() {
         same_window_batch_blocked_count:
           latestAttemptedScanLog?.no_publish_reason ===
             "recent_same_window_scan_completed" ||
+          latestAttemptedScanLog?.no_publish_reason ===
+            "same_window_cooldown" ||
           latestAttemptedReadbackScan?.message
             ?.toLowerCase()
-            .includes("scan already completed")
+            .includes("scan already completed") ||
+          latestAttemptedReadbackScan?.message === "same_window_cooldown"
             ? 1
             : 0,
         daily_learning_limit_status: growMaxLearningModeEnabled
@@ -13768,6 +15013,7 @@ export function TradeApp() {
         hidden_reason_breakdown: latestLiveHiddenReasonBreakdown,
         latest_successful_scan: latestSuccessfulReadbackScan,
         latest_attempted_scan: latestAttemptedReadbackScan,
+        scheduled_scan_timeline_today: scheduledScanTimelineToday,
       },
       stats_today_readback: {
         stats_today_positions_considered:
@@ -14170,8 +15416,11 @@ export function TradeApp() {
 
     async function persistVisibleOutcomes() {
       let lastResult: RecommendationOutcomePersistenceResult | null = null;
+      const persistableOutcomes = pendingOutcomes.filter(
+        (outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome),
+      );
 
-      for (const outcome of pendingOutcomes) {
+      for (const outcome of persistableOutcomes) {
         lastResult = await persistRecommendationOutcome(outcome, {
           supabaseClient: supabase,
         });
@@ -14283,6 +15532,33 @@ export function TradeApp() {
       setRecommendationOutcomeEvaluationRun(run);
       const routeDiagnostics = run as RecommendationOutcomeEvaluationRun &
         Record<string, unknown>;
+      const positiveDiagnosticCount = (
+        routeValue: unknown,
+        runValue: unknown,
+      ) => {
+        const routeCount = Number(routeValue ?? 0);
+        if (Number.isFinite(routeCount) && routeCount > 0) {
+          return routeCount;
+        }
+
+        const runCount = Number(runValue ?? 0);
+        if (Number.isFinite(runCount) && runCount > 0) {
+          return runCount;
+        }
+
+        return Number.isFinite(routeCount) ? routeCount : 0;
+      };
+      const routeEntryTypeTriggerSummary =
+        typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
+        routeDiagnostics.entry_type_trigger_summary !== null &&
+        !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
+          ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
+          : null;
+      const entryTypeTriggerSummary =
+        routeEntryTypeTriggerSummary &&
+        routeEntryTypeTriggerSummary.total_outcomes > 0
+          ? routeEntryTypeTriggerSummary
+          : run.entry_type_trigger_summary ?? routeEntryTypeTriggerSummary;
       setRecommendationOutcomeEvaluationDiagnostics({
         status: run.status,
         eligibleSnapshots: run.eligible_snapshot_count,
@@ -14309,6 +15585,36 @@ export function TradeApp() {
         ),
         growMaxLearningSnapshotsIncludedCount: Number(
           routeDiagnostics.grow_max_learning_snapshots_included_count ?? 0,
+        ),
+        learningAccelerationEnabled:
+          routeDiagnostics.learning_acceleration_enabled === true,
+        learningAccelerationEnabledSource:
+          typeof routeDiagnostics.learning_acceleration_enabled_source ===
+          "string"
+            ? routeDiagnostics.learning_acceleration_enabled_source
+            : null,
+        learningAccelerationEnvRawPresent:
+          routeDiagnostics.learning_acceleration_env_raw_present === true,
+        learningAccelerationEnvRawValueCategory:
+          typeof routeDiagnostics
+            .learning_acceleration_env_raw_value_category === "string"
+            ? routeDiagnostics.learning_acceleration_env_raw_value_category
+            : null,
+        learningAccelerationEnvRawValueNormalized:
+          routeDiagnostics.learning_acceleration_env_raw_value_normalized === true,
+        learningAccelerationRuntimeEnvironment:
+          typeof routeDiagnostics.learning_acceleration_runtime_environment ===
+          "string"
+            ? routeDiagnostics.learning_acceleration_runtime_environment
+            : null,
+        learningAccelerationMode:
+          typeof routeDiagnostics.learning_acceleration_mode === "string"
+            ? routeDiagnostics.learning_acceleration_mode
+            : null,
+        learningAccelerationSamplesEvaluated: Number(
+          routeDiagnostics.learning_acceleration_samples_evaluated ??
+            routeDiagnostics.eligible_research_only_snapshot_count ??
+            0,
         ),
         ineligibleSnapshotCount: Number(
           routeDiagnostics.ineligible_snapshot_count ?? 0,
@@ -14400,18 +15706,6 @@ export function TradeApp() {
         strictBatchFilterExcludedCount: Number(
           routeDiagnostics.strict_batch_filter_excluded_count ?? 0,
         ),
-        entryTypeTriggerSummary:
-          typeof routeDiagnostics.entry_type_trigger_summary === "object" &&
-          routeDiagnostics.entry_type_trigger_summary !== null &&
-          !Array.isArray(routeDiagnostics.entry_type_trigger_summary)
-            ? (routeDiagnostics.entry_type_trigger_summary as EntryTypeTriggerSummary)
-            : run.entry_type_trigger_summary ?? null,
-        planReferenceMetadataTrace:
-          typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
-          routeDiagnostics.plan_reference_metadata_trace !== null &&
-          !Array.isArray(routeDiagnostics.plan_reference_metadata_trace)
-            ? (routeDiagnostics.plan_reference_metadata_trace as PlanReferenceMetadataTraceSummary)
-            : run.plan_reference_metadata_trace ?? null,
         batchHealth:
           typeof routeDiagnostics.batch_health === "string"
             ? routeDiagnostics.batch_health
@@ -14552,31 +15846,45 @@ export function TradeApp() {
             0,
         ),
         retainedCandlesAddedCount: Number(
-          routeDiagnostics.retained_candles_added_count ??
-            run.retained_candles_added_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.retained_candles_added_count,
+            run.retained_candles_added_count,
+          ),
         ),
         counterfactualReadyCount: Number(
-          routeDiagnostics.counterfactual_ready_count ??
-            run.counterfactual_ready_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.counterfactual_ready_count,
+            run.counterfactual_ready_count,
+          ),
         ),
         shadowEligibleSnapshotCount: Number(
-          routeDiagnostics.shadow_eligible_snapshot_count ?? 0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_eligible_snapshot_count,
+            null,
+          ),
         ),
         shadowMissingMetadataCount: Number(
           routeDiagnostics.shadow_missing_metadata_count ?? 0,
         ),
         shadowEntryTrialCount: Number(
-          routeDiagnostics.shadow_entry_trial_count ??
-            run.shadow_entry_trial_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_entry_trial_count,
+            run.shadow_entry_trial_count,
+          ),
         ),
         shadowEntryTriggeredCount: Number(
-          routeDiagnostics.shadow_entry_triggered_count ??
-            run.shadow_entry_triggered_count ??
-            0,
+          positiveDiagnosticCount(
+            routeDiagnostics.shadow_entry_triggered_count,
+            run.shadow_entry_triggered_count,
+          ),
         ),
+        entryTypeTriggerSummary,
+        planReferenceMetadataTrace:
+          typeof routeDiagnostics.plan_reference_metadata_trace === "object" &&
+          routeDiagnostics.plan_reference_metadata_trace !== null &&
+          !Array.isArray(routeDiagnostics.plan_reference_metadata_trace)
+            ? (routeDiagnostics.plan_reference_metadata_trace as PlanReferenceMetadataTraceSummary)
+            : null,
         outcomeProviderBudgetStatus:
           typeof routeDiagnostics.outcome_provider_budget_status === "string"
             ? routeDiagnostics.outcome_provider_budget_status
@@ -14616,6 +15924,160 @@ export function TradeApp() {
   );
   const selectedRecommendationPositionSizing = selectedRecommendation
     ? calculatePositionSizing(selectedRecommendation, userSettings)
+    : null;
+  const avanzaSelectedRecommendationPreviewIntegrationGuard =
+    buildAvanzaSelectedRecommendationPreviewIntegrationGuard(
+      testOnlyAvanzaSelectedRecommendationPreviewDevConfig,
+    );
+  const avanzaSelectedRecommendationPreviewState =
+    avanzaSelectedRecommendationPreviewIntegrationGuard.status ===
+      "preview_only_allowed" && selectedRecommendation
+      ? buildAvanzaPreviewStateFromSelectedRecommendation({
+          accountDisplayName: "Valentin Labs KF",
+          adapterOptions: {
+            positionSizing: selectedRecommendationPositionSizing,
+          },
+          orderMode: "Avancerad/Limit",
+          readinessSummary: avanzaTradeReadOnlyReadinessSummaryFixture,
+          selectedRecommendation,
+          sourceMode:
+            avanzaHandoffPreviewSourceModes.selected_recommendation_preview_only,
+        })
+      : null;
+  const avanzaSelectedRecommendationPreviewIntegrationStatus =
+    avanzaSelectedRecommendationPreviewState
+      ? [
+          "Avanza preview source: selectedRecommendation preview-only",
+          "Preview-only",
+          "Controls disabled",
+          "Gate locked",
+        ]
+      : [
+          "Avanza preview source: static fixture",
+          "selectedRecommendation preview: disabled",
+          "No bridge calls",
+          "No execution",
+        ];
+  const passiveReadOnlySelectedRecommendationPreview =
+    ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW
+      ? (() => {
+          const hardDisabledRealSourceConnection =
+            buildAvanzaRealSelectedRecommendationReadOnlyConnection({
+              allowPreviewModel: false,
+              connectionEnabled: false,
+              selectedRecommendationCandidate: selectedRecommendation,
+              sourceKind: "trade_ui_state",
+              sourceName:
+                "Trade UI hard-disabled real selectedRecommendation source branch",
+            });
+          const hardDisabledSourceToPreviewIntegration =
+            buildAvanzaHardDisabledSourceToPreviewIntegration({
+              integrationEnabled: false,
+              sourceKind: "static_fixture",
+              sourceName:
+                "Trade UI hard-disabled selectedRecommendation preview branch",
+            });
+
+          const hardDisabledPreviewModel =
+            hardDisabledRealSourceConnection.modelResult ??
+            hardDisabledSourceToPreviewIntegration.modelResult;
+          const hardDisabledHandoffPreviewModel: AvanzaTradeUiHandoffPreviewModel = {
+            blockedReasons: ["handoff preview disabled by default"],
+            canCallBridge: false,
+            canExecute: false,
+            canFetchLocalhost: false,
+            canPoll: false,
+            canPrepareFill: false,
+            canProceedToHandoff: false,
+            controlsEnabled: false,
+            gateLocked: true,
+            label: "Default-off handoff preview",
+            reason:
+              "Trade UI handoff preview branch is hard-disabled by default.",
+            status: "preview_disabled",
+            warnings: [],
+          };
+          const hardDisabledPrepareIntent = buildAvanzaTradeUiPrepareIntent({
+            mode: "disabled",
+            prepareEnabled: false,
+          });
+          const hardDisabledPrepareShell =
+            buildAvanzaDisabledInternalPrepareButtonShell({
+              mode: "hidden",
+              prepareIntent: hardDisabledPrepareIntent,
+              shellEnabled: false,
+            });
+          const hardDisabledPrepareShellComponent =
+            buildAvanzaPassiveDisabledPrepareShellComponentModel(
+              hardDisabledPrepareShell,
+            );
+          const hardDisabledVisiblePrepareShell =
+            buildAvanzaExplicitInternalVisibleDisabledPrepareShell({
+              baseShellModel: hardDisabledPrepareShell,
+              mode: "hidden",
+              passiveComponentModel: hardDisabledPrepareShellComponent,
+              visibleShellEnabled: false,
+            });
+          const hardDisabledApiRouteCallIntent =
+            buildAvanzaGuardedApiRouteCallIntent({
+              apiCallIntentEnabled: false,
+              mode: "disabled",
+              prepareIntentModel: hardDisabledPrepareIntent,
+              visibleShellModel: hardDisabledVisiblePrepareShell,
+            });
+          const hardDisabledActionShell =
+            buildAvanzaExplicitInternalDisabledActionShell({
+              actionShellEnabled: false,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              mode: "hidden",
+            });
+          const hardDisabledFetchIntent = buildAvanzaGuardedFetchIntent({
+            actionShellModel: hardDisabledActionShell,
+            apiCallIntent: hardDisabledApiRouteCallIntent,
+            fetchIntentEnabled: false,
+            mode: "hidden",
+          });
+          const hardDisabledManualTestPath =
+            buildAvanzaDisabledLocalOnlyManualTestPath({
+              actionShellModel: hardDisabledActionShell,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              fetchIntent: hardDisabledFetchIntent,
+              manualTestPathEnabled: false,
+              mode: "hidden",
+            });
+
+          void hardDisabledApiRouteCallIntent;
+          void hardDisabledActionShell;
+          void hardDisabledFetchIntent;
+          void hardDisabledManualTestPath;
+
+          return (
+            <>
+              {hardDisabledPreviewModel ? (
+                <AvanzaTradeUiReadOnlySelectedRecommendationPreview
+                  label="Default-off internal preview"
+                  modelResult={hardDisabledPreviewModel}
+                />
+              ) : null}
+              <AvanzaTradeUiHandoffPreview
+                label="Default-off handoff preview"
+                modelResult={hardDisabledHandoffPreviewModel}
+              />
+              {hardDisabledPrepareShellComponent.canRenderComponent ? (
+                <AvanzaPassiveDisabledPrepareShell
+                  label="Default-off prepare shell"
+                  modelResult={hardDisabledPrepareShellComponent}
+                />
+              ) : null}
+            </>
+          );
+        })()
+      : null;
+  const selectedRecommendationForDisplay = selectedRecommendation
+    ? withSymbolMetadataLogo(selectedRecommendation)
+    : null;
+  const selectedPositionForDisplay = selectedPosition
+    ? withSymbolMetadataLogo(selectedPosition)
     : null;
   const selectedRecommendationRiskControlsEvaluation =
     selectedRecommendation && selectedRecommendationPositionSizing
@@ -14661,6 +16123,60 @@ export function TradeApp() {
         now: currentTime,
       })
     : null;
+  const activeDashboardTab = isDashboardTab(activeTab) ? activeTab : null;
+  const dashboardStatusbar =
+    activeDashboardTab === "Recommendations" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Recommendations updated"
+        updatedAt={recommendationsStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["market_status", "recommendations"], "manual");
+        }}
+        isRefreshing={
+          islandRefreshState.market_status.isRefreshing ||
+          islandRefreshState.recommendations.isRefreshing
+        }
+        isDisabled={isLoading}
+        refreshError={
+          islandRefreshState.recommendations.error ??
+          islandRefreshState.market_status.error
+        }
+      />
+    ) : activeDashboardTab === "Live Day Trades" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Trades updated"
+        updatedAt={liveTradesStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["market_status", "live_trades"], "manual");
+        }}
+        isRefreshing={
+          isUpdatingPositions ||
+          islandRefreshState.market_status.isRefreshing ||
+          islandRefreshState.live_trades.isRefreshing
+        }
+        isDisabled={isLoading}
+        refreshError={
+          islandRefreshState.live_trades.error ??
+          islandRefreshState.market_status.error
+        }
+      />
+    ) : activeDashboardTab === "Stats Today" ? (
+      <TradePrimaryStatusbar
+        updateLabel="Stats updated"
+        updatedAt={statsTodayStatusUpdatedAt}
+        currentTime={currentTime}
+        scanWindowLabel={currentIntradayScanWindowLabel}
+        onRefresh={() => {
+          void refreshIslands(["stats_today"], "manual");
+        }}
+        isRefreshing={islandRefreshState.stats_today.isRefreshing}
+        refreshError={islandRefreshState.stats_today.error}
+      />
+    ) : null;
 
   return (
     <main className="trade-page">
@@ -14695,18 +16211,22 @@ export function TradeApp() {
           <span>{topMarketStatusLabel(topMarketStatus)}</span>
         </div>
         <nav className="trade-secondary-nav" aria-label="Secondary navigation">
-          {secondaryTabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`trade-topbar-link ${
-                activeTab === tab ? "trade-topbar-link--active" : ""
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          {secondaryNavItems.map((item) => {
+            const isActive = isSecondaryNavItemActive(item, activeTab);
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setActiveTab(item.tab)}
+                className={`trade-topbar-link ${
+                  isActive ? "trade-topbar-link--active" : ""
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
           <Link href="/settings" className="trade-topbar-link">
             Settings
           </Link>
@@ -14714,20 +16234,57 @@ export function TradeApp() {
       </header>
 
       <div className="trade-stage">
-        <nav className="trade-primary-tabs" aria-label="Primary navigation">
-          {primaryTabs.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`trade-primary-tab ${
-                activeTab === tab ? "trade-primary-tab--active" : ""
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </nav>
+        <DashboardNavigation
+          activeTab={activeDashboardTab}
+          onTabChange={setActiveTab}
+          statusbar={dashboardStatusbar}
+        />
+
+        {activeDashboardTab && (
+          <div className="trade-section grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+            <AvanzaReadOnlyReadinessBadge
+              summary={avanzaTradeReadOnlyReadinessSummaryFixture}
+            />
+            <div className="grid gap-3">
+              <div className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex flex-wrap gap-2">
+                  {avanzaSelectedRecommendationPreviewIntegrationStatus.map(
+                    (label) => (
+                      <span
+                        className="rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-zinc-300"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </div>
+              <AvanzaPrepareHandoffPreviewShell
+                model={avanzaPrepareHandoffPreviewModel}
+              />
+              {passiveReadOnlySelectedRecommendationPreview}
+              {avanzaSelectedRecommendationPreviewState ? (
+                <AvanzaSelectedRecommendationPreviewStatePanel
+                  previewState={avanzaSelectedRecommendationPreviewState}
+                />
+              ) : (
+                <AvanzaHandoffPackagePreviewCard
+                  contract={avanzaGameStopSelectedRecommendationHandoffContractFixture}
+                  eligibilitySummary={
+                    avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture
+                  }
+                  preActivationGate={avanzaGameStopHandoffPreActivationGateFixture}
+                  preview={avanzaGameStopHandoffPackagePreviewFixture}
+                  safetyBoundarySummary={
+                    avanzaGameStopHandoffSafetyBoundarySummaryFixture
+                  }
+                  sourceMode={avanzaGameStopHandoffPreviewSourceModeFixture}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         {activeTab === "Recommendations" && (
           <RecommendationsTab
@@ -14738,29 +16295,6 @@ export function TradeApp() {
             }}
             isLoading={isLoading}
             learningModeEnabled={growMaxLearningModeEnabled}
-            statusbar={
-              <TradePrimaryStatusbar
-                updateLabel="Recommendations updated"
-                updatedAt={recommendationsStatusUpdatedAt}
-                currentTime={currentTime}
-                scanWindowLabel={currentIntradayScanWindowLabel}
-                onRefresh={() => {
-                  void refreshIslands(
-                    ["market_status", "recommendations"],
-                    "manual",
-                  );
-                }}
-                isRefreshing={
-                  islandRefreshState.market_status.isRefreshing ||
-                  islandRefreshState.recommendations.isRefreshing
-                }
-                isDisabled={isLoading}
-                refreshError={
-                  islandRefreshState.recommendations.error ??
-                  islandRefreshState.market_status.error
-                }
-              />
-            }
           >
             {dailyRecommendations.map((recommendation) => {
               const calibrationGuardrails =
@@ -14787,37 +16321,67 @@ export function TradeApp() {
                 calibrationGuardrails,
                 preTradeRiskContext,
               });
+              const positionSizing = calculatePositionSizing(
+                recommendation,
+                userSettings,
+              );
+              const tradeCardExecutionReadiness =
+                buildRecommendationTradeCardExecutionReadiness(
+                  recommendation,
+                  positionSizing,
+                );
+              const confidenceCalibrationProjectionPreview =
+                buildConfidenceProjectionObservationPreview({
+                  previewEnabled: confidenceProjectionPreviewEnabled,
+                  confidenceScore: recommendation.confidenceScore,
+                  direction: recommendation.direction,
+                  setupType: recommendation.setupType,
+                  ticker: recommendation.ticker,
+                });
 
               return (
-                <RecommendationCardContainer
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  calibrationGuardrails={calibrationGuardrails}
-                  preTradeRiskContext={preTradeRiskContext}
-                  tradeEligibility={tradeEligibility}
-                  decisionStack={decisionStack}
-                  freshness={freshness}
-                  addTradeGate={addTradeGate}
-                  keyReasons={keyReasons}
-                  positionSizing={calculatePositionSizing(
-                    recommendation,
-                    userSettings,
-                  )}
-                  isDemoRecommendation={isDemoRecommendation(recommendation)}
-                  isSaving={isSaving}
-                  isValidating={validatingRecommendationId === recommendation.id}
-                  onTakeTrade={openTradeModal}
-                  onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
-                  renderIdentity={(item) => (
-                    <CompanyIdentity
-                      ticker={item.ticker}
-                      companyName={item.companyName}
-                      size="live"
+                <Fragment key={recommendation.id}>
+                  <RecommendationCardContainer
+                    recommendation={recommendation}
+                    calibrationGuardrails={calibrationGuardrails}
+                    preTradeRiskContext={preTradeRiskContext}
+                    tradeEligibility={tradeEligibility}
+                    confidenceCalibrationProjectionPreview={
+                      confidenceCalibrationProjectionPreview
+                    }
+                    decisionStack={decisionStack}
+                    freshness={freshness}
+                    addTradeGate={addTradeGate}
+                    keyReasons={keyReasons}
+                    positionSizing={positionSizing}
+                    isDemoRecommendation={isDemoRecommendation(recommendation)}
+                    isSaving={isSaving}
+                    isValidating={validatingRecommendationId === recommendation.id}
+                    onTakeTrade={openTradeModal}
+                    onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
+                    renderIdentity={(item) => (
+                      <CompanyIdentity
+                        ticker={item.ticker}
+                        companyName={item.companyName}
+                        logoUrl={logoUrlForCompanyIdentity(
+                          item.ticker,
+                          item.logoUrl,
+                        )}
+                        size="live"
+                      />
+                    )}
+                    renderSourceBadges={(badges) => (
+                      <DataModePillRow badges={badges} />
+                    )}
+                  />
+                  {tradeCardExecutionReadiness ? (
+                    <AvanzaTradeCardExecutionReadinessBadge
+                      compact
+                      className="trade-card-execution-readiness-badge"
+                      readinessModel={tradeCardExecutionReadiness}
                     />
-                  )}
-                  renderSourceBadge={(badge) => <DataModePill badge={badge} />}
-                  renderSourceBadges={(badges) => <DataModePillRow badges={badges} />}
-                />
+                  ) : null}
+                </Fragment>
               );
             })}
           </RecommendationsTab>
@@ -14825,27 +16389,6 @@ export function TradeApp() {
 
         {activeTab === "Live Day Trades" && (
           <LiveDayTradesTab
-            statusbar={
-              <TradePrimaryStatusbar
-                updateLabel="Trades updated"
-                updatedAt={liveTradesStatusUpdatedAt}
-                currentTime={currentTime}
-                scanWindowLabel={currentIntradayScanWindowLabel}
-                onRefresh={() => {
-                  void refreshIslands(["market_status", "live_trades"], "manual");
-                }}
-                isRefreshing={
-                  isUpdatingPositions ||
-                  islandRefreshState.market_status.isRefreshing ||
-                  islandRefreshState.live_trades.isRefreshing
-                }
-                isDisabled={isLoading}
-                refreshError={
-                  islandRefreshState.live_trades.error ??
-                  islandRefreshState.market_status.error
-                }
-              />
-            }
             fixturePanel={
               <ExecutionSandboxFixturePanel
                 executionMode={selectedExecutionMode}
@@ -14861,107 +16404,103 @@ export function TradeApp() {
             continuedItems={
               takeProfitLivePositionItems.length > 0 &&
               otherLivePositionItems.length > 0
-                ? otherLivePositionItems.map(({ position, latestUpdate }) => (
-                    <ActivePositionCard
-                      key={`${position.id}:${dailySessionDate}`}
-                      position={position}
-                      latestUpdate={latestUpdate}
-                      marketCloseWarning={marketCloseWarning}
-                      eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
-                      eodSafetyDate={dailySessionDate}
-                      isMarketOpen={topMarketStatus === "open"}
-                      currentTime={currentTime}
-                      executionMode={selectedExecutionMode}
-                      riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
-                        settings: riskControlsSettings,
-                        ticker: position.ticker,
-                        openPositionsCount: activePositions.length,
-                        closedTradesTodayCount: dailyClosedPositions.length,
-                        dailyRealizedPnl,
-                        dailyRealizedR,
-                        currentUnrealizedPnl: calculateUnrealizedPnl({
-                          entryPrice: position.entryPriceValue,
-                          currentPrice: latestUpdate?.currentPriceValue ?? null,
-                          shares: position.positionSizeValue,
-                          direction: position.direction,
-                        }).pnl,
-                        currentR:
-                          latestUpdate?.unrealizedRValue ??
-                          calculateCurrentR({
+                ? otherLivePositionItems.map(({ position, latestUpdate }) => {
+                    const positionForDisplay = withSymbolMetadataLogo(position);
+
+                    return (
+                      <ActivePositionCard
+                        key={`${position.id}:${dailySessionDate}`}
+                        position={positionForDisplay}
+                        latestUpdate={latestUpdate}
+                        marketCloseWarning={marketCloseWarning}
+                        eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
+                        eodSafetyDate={dailySessionDate}
+                        isMarketOpen={topMarketStatus === "open"}
+                        currentTime={currentTime}
+                        executionMode={selectedExecutionMode}
+                        riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
+                          settings: riskControlsSettings,
+                          ticker: position.ticker,
+                          openPositionsCount: activePositions.length,
+                          closedTradesTodayCount: dailyClosedPositions.length,
+                          dailyRealizedPnl,
+                          dailyRealizedR,
+                          currentUnrealizedPnl: calculateUnrealizedPnl({
                             entryPrice: position.entryPriceValue,
-                            stopLoss: position.stopLossValue,
                             currentPrice: latestUpdate?.currentPriceValue ?? null,
+                            shares: position.positionSizeValue,
                             direction: position.direction,
-                          }),
-                        lastLossClosedAt,
-                        now: currentTime,
-                      })}
-                      isSaving={isSaving}
-                      onClosePosition={openClosePositionModal}
-                    />
-                  ))
+                          }).pnl,
+                          currentR:
+                            latestUpdate?.unrealizedRValue ??
+                            calculateCurrentR({
+                              entryPrice: position.entryPriceValue,
+                              stopLoss: position.stopLossValue,
+                              currentPrice: latestUpdate?.currentPriceValue ?? null,
+                              direction: position.direction,
+                            }),
+                          lastLossClosedAt,
+                          now: currentTime,
+                        })}
+                        isSaving={isSaving}
+                        onClosePosition={openClosePositionModal}
+                      />
+                    );
+                  })
                 : null
             }
           >
             {(takeProfitLivePositionItems.length > 0
               ? takeProfitLivePositionItems
               : livePositionItems
-            ).map(({ position, latestUpdate }) => (
-              <ActivePositionCard
-                key={`${position.id}:${dailySessionDate}`}
-                position={position}
-                latestUpdate={latestUpdate}
-                marketCloseWarning={marketCloseWarning}
-                eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
-                eodSafetyDate={dailySessionDate}
-                isMarketOpen={topMarketStatus === "open"}
-                currentTime={currentTime}
-                executionMode={selectedExecutionMode}
-                riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
-                  settings: riskControlsSettings,
-                  ticker: position.ticker,
-                  openPositionsCount: activePositions.length,
-                  closedTradesTodayCount: dailyClosedPositions.length,
-                  dailyRealizedPnl,
-                  dailyRealizedR,
-                  currentUnrealizedPnl: calculateUnrealizedPnl({
-                    entryPrice: position.entryPriceValue,
-                    currentPrice: latestUpdate?.currentPriceValue ?? null,
-                    shares: position.positionSizeValue,
-                    direction: position.direction,
-                  }).pnl,
-                  currentR:
-                    latestUpdate?.unrealizedRValue ??
-                    calculateCurrentR({
+            ).map(({ position, latestUpdate }) => {
+              const positionForDisplay = withSymbolMetadataLogo(position);
+
+              return (
+                <ActivePositionCard
+                  key={`${position.id}:${dailySessionDate}`}
+                  position={positionForDisplay}
+                  latestUpdate={latestUpdate}
+                  marketCloseWarning={marketCloseWarning}
+                  eodSafetyStatus={eodSafetyStatusesByPositionId[position.id]}
+                  eodSafetyDate={dailySessionDate}
+                  isMarketOpen={topMarketStatus === "open"}
+                  currentTime={currentTime}
+                  executionMode={selectedExecutionMode}
+                  riskControlsEvaluation={evaluateRiskControlsForLiveTrade({
+                    settings: riskControlsSettings,
+                    ticker: position.ticker,
+                    openPositionsCount: activePositions.length,
+                    closedTradesTodayCount: dailyClosedPositions.length,
+                    dailyRealizedPnl,
+                    dailyRealizedR,
+                    currentUnrealizedPnl: calculateUnrealizedPnl({
                       entryPrice: position.entryPriceValue,
-                      stopLoss: position.stopLossValue,
                       currentPrice: latestUpdate?.currentPriceValue ?? null,
+                      shares: position.positionSizeValue,
                       direction: position.direction,
-                    }),
-                  lastLossClosedAt,
-                  now: currentTime,
-                })}
-                isSaving={isSaving}
-                onClosePosition={openClosePositionModal}
-              />
-            ))}
+                    }).pnl,
+                    currentR:
+                      latestUpdate?.unrealizedRValue ??
+                      calculateCurrentR({
+                        entryPrice: position.entryPriceValue,
+                        stopLoss: position.stopLossValue,
+                        currentPrice: latestUpdate?.currentPriceValue ?? null,
+                        direction: position.direction,
+                      }),
+                    lastLossClosedAt,
+                    now: currentTime,
+                  })}
+                  isSaving={isSaving}
+                  onClosePosition={openClosePositionModal}
+                />
+              );
+            })}
           </LiveDayTradesTab>
         )}
 
         {activeTab === "Stats Today" && (
           <section className="trade-stats-today">
-            <TradePrimaryStatusbar
-              updateLabel="Stats updated"
-              updatedAt={statsTodayStatusUpdatedAt}
-              currentTime={currentTime}
-              scanWindowLabel={currentIntradayScanWindowLabel}
-              onRefresh={() => {
-                void refreshIslands(["stats_today"], "manual");
-              }}
-              isRefreshing={islandRefreshState.stats_today.isRefreshing}
-              refreshError={islandRefreshState.stats_today.error}
-            />
-
             <StatsTodayPanel
               summary={statsTodaySummary}
               dailyTargets={dailyRecommendationTradeTargetsSummary}
@@ -15043,6 +16582,12 @@ export function TradeApp() {
               }
               confidenceCalibrationReadinessJson={
                 confidenceCalibrationReadinessSummaryJsonText
+              }
+              confidenceProjectionOutcomeReview={
+                confidenceProjectionOutcomeReview
+              }
+              confidenceProjectionOutcomeReviewJson={
+                confidenceProjectionOutcomeReviewJsonText
               }
               recommendationEngineImprovementBacklog={
                 recommendationEngineImprovementBacklog
@@ -15485,6 +17030,11 @@ export function TradeApp() {
                   createDefaultLiveMarketTrialRunbookState(currentTime),
                 )
               }
+            />
+
+            <MondayLiveTrialReviewPanel
+              summary={mondayLiveTrialReviewSummary}
+              summaryJson={mondayLiveTrialReviewSummaryJsonText}
             />
 
             <MarketDiagnosticsConsolePanel
@@ -15952,13 +17502,13 @@ export function TradeApp() {
         )}
       </div>
 
-      {selectedRecommendation && (
+      {selectedRecommendationForDisplay && (
         <TradeModal
-          key={selectedRecommendation.id}
-          recommendation={selectedRecommendation}
+          key={selectedRecommendationForDisplay.id}
+          recommendation={selectedRecommendationForDisplay}
           positionSizing={
             selectedRecommendationPositionSizing ??
-            calculatePositionSizing(selectedRecommendation, userSettings)
+            calculatePositionSizing(selectedRecommendationForDisplay, userSettings)
           }
           validation={selectedTradeValidation}
           validationMessage={selectedTradeValidationMessage}
@@ -15972,13 +17522,13 @@ export function TradeApp() {
         />
       )}
 
-      {selectedPosition && (
+      {selectedPositionForDisplay && (
         <ClosePositionModal
-          key={selectedPosition.id}
-          position={selectedPosition}
-          latestUpdate={latestPositionUpdates[selectedPosition.id]}
+          key={selectedPositionForDisplay.id}
+          position={selectedPositionForDisplay}
+          latestUpdate={latestPositionUpdates[selectedPositionForDisplay.id]}
           eodSafetyStatus={getEndOfDaySafetyStatus(
-            selectedPosition,
+            selectedPositionForDisplay,
             marketStatus,
             currentTime,
           )}
@@ -17621,6 +19171,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson,
   confidenceCalibrationReadiness,
   confidenceCalibrationReadinessJson,
+  confidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
   recommendationEngineImprovementBacklog,
   recommendationEngineImprovementBacklogJson,
   selectedRange,
@@ -17647,6 +19199,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson: string;
   confidenceCalibrationReadiness: ConfidenceCalibrationReadinessSummary;
   confidenceCalibrationReadinessJson: string;
+  confidenceProjectionOutcomeReview: ConfidenceProjectionOutcomeReview;
+  confidenceProjectionOutcomeReviewJson: string;
   recommendationEngineImprovementBacklog: RecommendationEngineImprovementBacklog;
   recommendationEngineImprovementBacklogJson: string;
   selectedRange: StatisticsTimeRange;
@@ -17834,6 +19388,17 @@ function StatisticsDashboardPanel({
                 label="Calibration"
                 value={confidenceCalibrationReadiness.status.replaceAll("_", " ")}
               />
+              <SummaryCard
+                label="Projection Review"
+                value={confidenceProjectionOutcomeReview.sample_quality.replaceAll(
+                  "_",
+                  " ",
+                )}
+              />
+              <SummaryCard
+                label="Projection Improved"
+                value={`${confidenceProjectionOutcomeReview.improved_count} / ${confidenceProjectionOutcomeReview.complete_count}`}
+              />
             </StatisticsSummaryGrid>
 
             <div className="mt-4">
@@ -17892,6 +19457,13 @@ function StatisticsDashboardPanel({
                 <ConfidenceCalibrationReadinessPanel
                   summary={confidenceCalibrationReadiness}
                   summaryJson={confidenceCalibrationReadinessJson}
+                />
+              </RecommendationAnalyticsDetails>
+
+              <RecommendationAnalyticsDetails title="Confidence Projection Review">
+                <ConfidenceProjectionOutcomeReviewPanel
+                  review={confidenceProjectionOutcomeReview}
+                  reviewJson={confidenceProjectionOutcomeReviewJson}
                 />
               </RecommendationAnalyticsDetails>
 
@@ -17981,6 +19553,543 @@ function RecommendationAnalyticsDetails({
       </summary>
       <div className="mt-4">{children}</div>
     </details>
+  );
+}
+
+function formatConfidenceReviewPoints(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)} pts`;
+}
+
+function bestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      return secondValue - firstValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function weakestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      return firstValue - secondValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function formatCalibrationSignalConfidence(
+  signal: ConfidenceProjectionCalibrationSignal,
+) {
+  return signal.confidence_in_conclusion.replaceAll("_", " ");
+}
+
+function formatUpwardProjectionCap(value: number | null) {
+  return value === null ? "Current" : value === 0 ? "No raise" : `+${value}`;
+}
+
+function ConfidenceProjectionOutcomeReviewPanel({
+  review,
+  reviewJson,
+}: {
+  review: ConfidenceProjectionOutcomeReview;
+  reviewJson: string;
+}) {
+  const deduplication = review.recommendation_level_deduplication;
+  const horizonGroups = review.horizon_level.horizon_groups.filter(
+    (group) => group.observed_count > 0,
+  );
+  const raisedRate = formatPercent(rateFromCounts(review.raised_count, review.complete_count));
+  const loweredRate = formatPercent(
+    rateFromCounts(review.lowered_count, review.complete_count),
+  );
+  const unchangedRate = formatPercent(
+    rateFromCounts(review.unchanged_count, review.complete_count),
+  );
+  const bestBands = bestProjectionReviewGroups(review.confidence_bands);
+  const weakAreas = weakestProjectionReviewGroups([
+    ...review.confidence_bands,
+    ...review.tiers,
+    ...review.windows,
+    ...review.explanation_categories,
+  ]).filter((group) => (group.net_error_improvement ?? 0) < 0);
+  const selectedSignal = review.first_observed_calibration_signal.selected_signal;
+  const completeness = review.observation_completeness;
+  const recommendationCompleteness =
+    review.recommendation_observation_completeness;
+  const upwardCapExperiment =
+    review.upward_projection_cap_shadow_experiment;
+  const upwardCapCandidate =
+    upwardCapExperiment.selected_provisional_candidate;
+  const currentProjectionVariant = upwardCapExperiment.variants.find(
+    (variant) => variant.variant === upwardCapExperiment.current_projection_variant,
+  );
+  const mainBlocker =
+    completeness.most_common_blocker?.reason.replaceAll("_", " ") ?? "none";
+  const signalDirection =
+    selectedSignal.direction === "helps"
+      ? "Projection helps"
+      : selectedSignal.direction === "hurts"
+        ? "Projection hurts"
+        : selectedSignal.direction === "neutral"
+          ? "Neutral"
+          : "Insufficient evidence";
+
+  return (
+    <section
+      className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4"
+      data-confidence-projection-review-status={review.status}
+      data-confidence-projection-observation-only="true"
+      data-confidence-projection-no-writes="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+            Confidence Projection Review
+          </p>
+          <h4 className="mt-2 text-base font-semibold text-white">
+            Recommendation-level calibration
+          </h4>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            Measures whether AI Projection better matched completed outcomes than
+            the original confidence. Evidence only; original confidence remains
+            authoritative.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {review.copy.data_source}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+          {review.sample_quality.replaceAll("_", " ")}
+        </span>
+      </div>
+
+      <StatisticsSummaryGrid className="mt-4">
+        <SummaryCard
+          label="Unique Recommendations"
+          value={String(review.observed_count)}
+        />
+        <SummaryCard
+          label="Complete"
+          value={String(review.complete_count)}
+        />
+        <SummaryCard
+          label="Improved"
+          value={`${review.improved_count} / ${formatPercent(review.improved_rate)}`}
+        />
+        <SummaryCard
+          label="Worsened"
+          value={`${review.worsened_count} / ${formatPercent(review.worsened_rate)}`}
+        />
+        <SummaryCard
+          label="Original Error"
+          value={formatConfidenceReviewPoints(review.mean_original_error)}
+        />
+        <SummaryCard
+          label="Projected Error"
+          value={formatConfidenceReviewPoints(review.mean_projected_error)}
+        />
+        <SummaryCard
+          label="Net Improvement"
+          value={formatConfidenceReviewPoints(review.net_error_improvement)}
+          tone={review.net_error_improvement}
+        />
+        <SummaryCard
+          label="Avg Delta"
+          value={formatConfidenceReviewPoints(review.average_delta)}
+          tone={review.average_delta}
+        />
+      </StatisticsSummaryGrid>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation-level selection
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Identities"
+            value={String(deduplication.unique_recommendation_identities)}
+          />
+          <SummaryCard
+            label="Selected 60m"
+            value={String(deduplication.selected_60m_count)}
+          />
+          <SummaryCard
+            label="Selected 30m"
+            value={String(deduplication.selected_30m_count)}
+          />
+          <SummaryCard
+            label="Selected 15m"
+            value={String(deduplication.selected_15m_count)}
+          />
+          <SummaryCard
+            label="Rows Deduped"
+            value={String(deduplication.deduplicated_outcome_row_count)}
+          />
+          <SummaryCard
+            label="Blocked Conflicts"
+            value={String(deduplication.identities_blocked_by_horizon_conflict)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {deduplication.copy.selection_policy}{" "}
+          {deduplication.copy.conflict_policy}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Calibration by horizon
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {horizonGroups.map((group) => (
+            <div
+              key={`horizon-calibration-${group.key}`}
+              className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+            >
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.12em] text-zinc-300">
+                {group.label}
+              </p>
+              <p className="mt-2 text-sm text-zinc-300">
+                {group.complete_count} complete · {group.improved_count} improved ·{" "}
+                {group.worsened_count} worsened
+              </p>
+              <p className="mt-1 font-mono text-xs text-zinc-500">
+                Net {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {review.horizon_level.copy.diagnostic_only}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete"
+            value={`${completeness.complete_observations} / ${completeness.eligible_observations}`}
+          />
+          <SummaryCard
+            label="Main Blocker"
+            value={mainBlocker}
+          />
+          <SummaryCard
+            label="Projection Derivable"
+            value={formatPercent(completeness.projection_derivable_rate)}
+          />
+          <SummaryCard
+            label="Join Success"
+            value={formatPercent(completeness.successful_join_rate)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Second blocker:{" "}
+          {completeness.second_most_common_blocker?.reason.replaceAll("_", " ") ??
+            "none"}{" "}
+          · Completed outcome rate:{" "}
+          {formatPercent(completeness.completed_outcome_rate)}
+          {" · "}Contract v1 snapshots/outcomes:{" "}
+          {
+            completeness.future_contract_coverage.snapshot_contract_count
+          } / {completeness.future_contract_coverage.outcome_contract_count}
+          {" · "}Migration required: no
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete Recs"
+            value={String(recommendationCompleteness.complete_recommendations)}
+          />
+          <SummaryCard
+            label="Explicit Horizons"
+            value={String(
+              recommendationCompleteness.identities_with_explicit_horizons,
+            )}
+          />
+          <SummaryCard
+            label="Missing Identity"
+            value={String(recommendationCompleteness.missing_identity_count)}
+          />
+          <SummaryCard
+            label="Missing Confidence"
+            value={String(recommendationCompleteness.missing_confidence_count)}
+          />
+          <SummaryCard
+            label="Missing Projection"
+            value={String(recommendationCompleteness.missing_projection_count)}
+          />
+          <SummaryCard
+            label="Optional Gaps"
+            value={String(recommendationCompleteness.optional_metadata_gap_count)}
+          />
+          <SummaryCard
+            label="Unrecoverable"
+            value={String(
+              recommendationCompleteness.unrecoverable_observations,
+            )}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {recommendationCompleteness.copy.summary}{" "}
+          {recommendationCompleteness.copy.optional_metadata_policy}{" "}
+          Recovered by identity/confidence/projection:{" "}
+          {recommendationCompleteness.recovered_by_identity_normalization} /{" "}
+          {recommendationCompleteness.recovered_by_confidence_lookup} /{" "}
+          {
+            recommendationCompleteness
+              .recovered_by_deterministic_projection_recomputation
+          }
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              First observed calibration signal
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {selectedSignal.subgroup_label}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              {selectedSignal.recommended_next_experiment}
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            {signalDirection}
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Subgroup"
+            value={selectedSignal.subgroup_type.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Sample Count"
+            value={String(selectedSignal.sample_count)}
+          />
+          <SummaryCard
+            label="Net Improvement"
+            value={formatConfidenceReviewPoints(
+              selectedSignal.net_error_improvement,
+            )}
+            tone={selectedSignal.net_error_improvement}
+          />
+          <SummaryCard
+            label="Conclusion"
+            value={formatCalibrationSignalConfidence(selectedSignal)}
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Recommended candidate:{" "}
+          {
+            review.first_observed_calibration_signal
+              .recommended_calibration_adjustment_candidate
+          }
+        </p>
+        <pre
+          id="confidence-projection-selected-calibration-signal-json"
+          className="sr-only"
+        >
+          {JSON.stringify(selectedSignal, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              Upward adjustment shadow experiment
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {upwardCapCandidate?.label ?? "Collect more capped observations"}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              Observation-only cap variants test smaller upward AI Projection
+              adjustments. Visible AI Projection and original confidence are
+              unchanged.
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            Observation only
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Current Result"
+            value={formatConfidenceReviewPoints(
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+                null,
+            )}
+            tone={
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+              null
+            }
+          />
+          <SummaryCard
+            label="Best Candidate"
+            value={upwardCapCandidate?.label ?? "None"}
+          />
+          <SummaryCard
+            label="Candidate Cap"
+            value={formatUpwardProjectionCap(upwardCapCandidate?.cap ?? null)}
+          />
+          <SummaryCard
+            label="Observations"
+            value={String(
+              upwardCapExperiment.eligible_recommendation_level_observations,
+            )}
+          />
+          <SummaryCard
+            label="Cap Applied"
+            value={String(upwardCapCandidate?.cap_applied_observations ?? 0)}
+          />
+          <SummaryCard
+            label="Vs Current"
+            value={formatConfidenceReviewPoints(
+              upwardCapCandidate?.improvement_vs_current_projection ?? null,
+            )}
+            tone={upwardCapCandidate?.improvement_vs_current_projection ?? null}
+          />
+          <SummaryCard
+            label="Evidence"
+            value={upwardCapExperiment.evidence_strength.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Persistence"
+            value={
+              upwardCapExperiment.persistence_created ? "created" : "none"
+            }
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {upwardCapExperiment.selection_policy}
+        </p>
+        <pre
+          id="upward-projection-cap-shadow-experiment-json"
+          className="sr-only"
+        >
+          {JSON.stringify(upwardCapExperiment, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Raised / Lowered
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Raised {review.raised_count} ({raisedRate}) · Lowered{" "}
+            {review.lowered_count} ({loweredRate}) · Unchanged{" "}
+            {review.unchanged_count} ({unchangedRate})
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Bias Signals
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Overestimated {review.overestimated_count} · Underestimated{" "}
+            {review.underestimated_count} · Insufficient{" "}
+            {review.insufficient_count}
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Formula
+          </p>
+          <p className="mt-2 text-sm leading-5 text-zinc-300">
+            {review.copy.formula}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <ProjectionReviewGroupList
+          title="Best Bands"
+          emptyMessage="No complete band evidence yet."
+          groups={bestBands}
+        />
+        <ProjectionReviewGroupList
+          title="Worsened Areas"
+          emptyMessage="No worsened areas observed yet."
+          groups={weakAreas}
+        />
+      </div>
+
+      <p className="mt-4 text-xs leading-5 text-zinc-500">
+        {review.copy.sample_quality} {review.copy.observation_only}
+      </p>
+      <pre id="confidence-projection-outcome-review-json" className="sr-only">
+        {reviewJson}
+      </pre>
+    </section>
+  );
+}
+
+function rateFromCounts(count: number, total: number) {
+  return total > 0 ? (count / total) * 100 : null;
+}
+
+function ProjectionReviewGroupList({
+  title,
+  groups,
+  emptyMessage,
+}: {
+  title: string;
+  groups: ConfidenceProjectionReviewGroup[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+        {title}
+      </p>
+      {groups.length === 0 ? (
+        <p className="mt-2 text-sm text-zinc-500">{emptyMessage}</p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          {groups.map((group) => (
+            <div
+              key={`${title}-${group.key}`}
+              className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2"
+            >
+              <div>
+                <p className="text-sm font-medium text-zinc-200">{group.label}</p>
+                <p className="text-xs text-zinc-500">
+                  {group.complete_count} complete · {formatPercent(group.improved_rate)} improved
+                </p>
+              </div>
+              <span className="font-mono text-xs font-bold text-zinc-200">
+                {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -19652,6 +21761,301 @@ function RecommendationOutcomeLearningInsightsPanel({
         }
       >
         {entryTuningProposalJson}
+      </pre>
+    </section>
+  );
+}
+
+function mondayLiveTrialReviewClassificationTone(
+  classification: MondayLiveTrialReviewClassification,
+) {
+  if (classification === "target_hit") {
+    return "border-[#00db94]/25 bg-[#00db94]/10 text-emerald-100";
+  }
+
+  if (
+    classification === "promising_but_target_too_far" ||
+    classification === "weak_followthrough" ||
+    classification === "flat_no_followthrough"
+  ) {
+    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+  }
+
+  if (
+    classification === "stop_hit" ||
+    classification === "adverse_move" ||
+    classification === "stale_plan_adverse_move"
+  ) {
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-zinc-400";
+}
+
+function compactReviewText(value: string | null | undefined) {
+  return value && value.trim().length > 0 ? value : "—";
+}
+
+function formatReviewPrice(value: number | null) {
+  return value === null || !Number.isFinite(value) ? "—" : formatCurrency(value);
+}
+
+function formatReviewBoolean(value: boolean | null) {
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  return "—";
+}
+
+function MondayLiveTrialReviewPanel({
+  summary,
+  summaryJson,
+}: {
+  summary: MondayLiveTrialReviewSummary;
+  summaryJson: string;
+}) {
+  const hasRows = summary.rows.length > 0;
+
+  return (
+    <section className="rounded-lg border border-[#00db94]/20 bg-[#00db94]/[0.035] p-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-100">
+            Monday Live Trial Review
+          </p>
+          <h3 className="mt-2 text-lg font-semibold text-white">
+            Latest evaluated batch{" "}
+            <span className="font-mono text-emerald-100">
+              {summary.batch_fingerprint ?? "none"}
+            </span>
+          </h3>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-zinc-300">
+            {summary.primary_note}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+          {summary.latest_evaluated_at
+            ? `Evaluated ${formatDate(summary.latest_evaluated_at)}`
+            : "No evaluation yet"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <Detail label="Batch" value={summary.batch_fingerprint ?? "—"} />
+        <Detail label="Scan run" value={summary.scan_run_fingerprint ?? "—"} />
+        <Detail label="Trading day" value={summary.trading_day ?? "—"} />
+        <Detail
+          label="Stored / time window"
+          value={`${compactReviewText(summary.stored_window)} / ${compactReviewText(summary.time_window)}`}
+        />
+        <Detail
+          label="Tickers"
+          value={summary.tickers.length > 0 ? summary.tickers.join(", ") : "—"}
+        />
+        <Detail
+          label="Visible recommendations"
+          value={String(summary.visible_recommendation_count)}
+        />
+        <Detail
+          label="Outcome rows evaluated"
+          value={String(summary.outcome_rows_evaluated)}
+        />
+        <Detail
+          label="Horizons"
+          value={
+            summary.horizons_covered.length > 0
+              ? summary.horizons_covered.join(", ")
+              : "—"
+          }
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <SummaryCard
+          label="Target Hit"
+          value={`${summary.aggregate.target_hit_count} / ${formatPercent(
+            summary.aggregate.target_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Stop Hit"
+          value={`${summary.aggregate.stop_hit_count} / ${formatPercent(
+            summary.aggregate.stop_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Neither Hit"
+          value={`${summary.aggregate.neither_hit_count} / ${formatPercent(
+            summary.aggregate.neither_hit_rate,
+          )}`}
+        />
+        <SummaryCard
+          label="Avg Best R"
+          value={formatRecommendationPerformanceR(summary.aggregate.average_best_r)}
+          tone={summary.aggregate.average_best_r}
+        />
+        <SummaryCard
+          label="Avg Worst R"
+          value={formatRecommendationPerformanceR(summary.aggregate.average_worst_r)}
+          tone={summary.aggregate.average_worst_r}
+        />
+        <SummaryCard
+          label="Median Best R"
+          value={formatRecommendationPerformanceR(summary.aggregate.median_best_r)}
+          tone={summary.aggregate.median_best_r}
+        />
+        <SummaryCard
+          label="Promising Too Far"
+          value={String(summary.aggregate.promising_but_target_too_far_count)}
+        />
+        <SummaryCard
+          label="Weak Followthrough"
+          value={String(summary.aggregate.weak_followthrough_count)}
+        />
+        <SummaryCard
+          label="Adverse Move"
+          value={String(summary.aggregate.adverse_move_count)}
+        />
+        <SummaryCard
+          label="Stale Adverse"
+          value={String(summary.aggregate.stale_plan_adverse_move_count)}
+        />
+        <SummaryCard
+          label="Avg Entry Drift"
+          value={formatSignedPercent(summary.aggregate.average_entry_drift_pct)}
+          tone={summary.aggregate.average_entry_drift_pct}
+        />
+        <SummaryCard
+          label="Worst Drift"
+          value={summary.aggregate.worst_entry_drift_ticker ?? "—"}
+        />
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-lg border border-white/10 bg-black/20">
+        <table className="min-w-[1480px] w-full border-collapse text-left">
+          <thead className="border-b border-white/10 bg-black/30">
+            <tr>
+              {[
+                "Ticker",
+                "Tier",
+                "Side",
+                "Entry",
+                "Stop",
+                "Target",
+                "Entry drift",
+                "Target distance",
+                "Freshness",
+                "Entry",
+                "Target",
+                "Stop",
+                "Best R",
+                "Worst R",
+                "Classification",
+                "Learning note",
+              ].map((label) => (
+                <th
+                  key={label}
+                  scope="col"
+                  className="px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500"
+                >
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {!hasRows ? (
+              <tr>
+                <td
+                  colSpan={16}
+                  className="px-3 py-6 text-center text-sm text-zinc-500"
+                >
+                  No evaluated recommendation outcomes are available yet.
+                </td>
+              </tr>
+            ) : (
+              summary.rows.map((row) => (
+                <tr
+                  key={`${row.ticker}:${row.horizons.join(",")}:${row.classification}`}
+                  className="border-b border-white/10 last:border-b-0"
+                >
+                  <td className="px-3 py-3 font-mono text-sm font-semibold text-white">
+                    {row.ticker}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.tier}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.side}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.entry)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.stop)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatReviewPrice(row.target)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatSignedPercent(row.entry_drift_pct)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatSignedPercent(row.target_distance_pct)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {row.plan_freshness_classification.replace(/_/g, " ")}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.entry_triggered)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.target_hit)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-zinc-300">
+                    {formatReviewBoolean(row.stop_hit)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatRecommendationPerformanceR(row.best_r)}
+                  </td>
+                  <td className="px-3 py-3 font-mono text-xs text-zinc-300">
+                    {formatRecommendationPerformanceR(row.worst_r)}
+                  </td>
+                  <td className="px-3 py-3">
+                    <span
+                      className={`inline-flex rounded-full border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${mondayLiveTrialReviewClassificationTone(
+                        row.classification,
+                      )}`}
+                    >
+                      {row.classification.replace(/_/g, " ")}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-xs leading-5 text-zinc-300">
+                    {row.learning_note}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <pre
+        id="monday-live-trial-review-json"
+        className="sr-only"
+        data-batch-fingerprint={summary.batch_fingerprint ?? ""}
+        data-visible-recommendation-count={summary.visible_recommendation_count}
+        data-outcome-rows-evaluated={summary.outcome_rows_evaluated}
+        data-horizons={summary.horizons_covered.join(",")}
+        data-target-hit-count={summary.aggregate.target_hit_count}
+        data-stop-hit-count={summary.aggregate.stop_hit_count}
+        data-promising-too-far-count={
+          summary.aggregate.promising_but_target_too_far_count
+        }
+        data-stale-plan-adverse-count={
+          summary.aggregate.stale_plan_adverse_move_count
+        }
+      >
+        {summaryJson}
       </pre>
     </section>
   );
@@ -25560,6 +27964,7 @@ function TradeModal({
             <CompanyIdentity
               ticker={recommendation.ticker}
               companyName={recommendation.companyName}
+              logoUrl={recommendation.logoUrl}
               size="live"
             />
             <span
@@ -29556,22 +31961,6 @@ function ClosedTradeKeyLearnings({
   );
 }
 
-type ExecutionSandboxFixturePosition = {
-  id: string;
-  recommendationId: string;
-  ticker: string;
-  instrumentName: string;
-  quantity: number;
-  currentPrice: number;
-  targetPrice: number;
-  stopLossPrice: number;
-  createdAt: string;
-  label: string;
-  title: string;
-  description: string;
-  tone: "danger" | "success";
-};
-
 const executionSandboxFixturePositions: readonly ExecutionSandboxFixturePosition[] =
   [
     {
@@ -29655,103 +32044,17 @@ function ExecutionSandboxFixturePanel({
             key={fixture.id}
             fixture={fixture}
             executionMode={executionMode}
+            renderHandoffPreviewModal={({ result, status, onClose }) => (
+              <ExecutionHandoffPreviewModal
+                result={result}
+                status={status}
+                onClose={onClose}
+              />
+            )}
           />
         ))}
       </div>
     </section>
-  );
-}
-
-function ExecutionSandboxFixtureCard({
-  fixture,
-  executionMode,
-}: {
-  fixture: ExecutionSandboxFixturePosition;
-  executionMode: ExecutionMode;
-}) {
-  const [isExecutionPreviewOpen, setIsExecutionPreviewOpen] = useState(false);
-  const orchestratorResult = runExecutionOrchestrator({
-    livePositions: [
-      {
-        positionId: fixture.id,
-        recommendationId: fixture.recommendationId,
-        ticker: fixture.ticker,
-        instrumentName: fixture.instrumentName,
-        quantity: fixture.quantity,
-        currentPrice: fixture.currentPrice,
-        targetPrice: fixture.targetPrice,
-        stopLossPrice: fixture.stopLossPrice,
-        mode: executionMode,
-        createdAt: fixture.createdAt,
-      },
-    ],
-    mode: executionMode,
-    createdAt: fixture.createdAt,
-  });
-  const uiStatus =
-    buildExecutionUiStatusFromOrchestratorResult(orchestratorResult);
-  const toneClassName =
-    fixture.tone === "danger"
-      ? "border-rose-300/25 bg-rose-300/[0.045]"
-      : "border-emerald-300/25 bg-emerald-300/[0.045]";
-
-  return (
-    <article className={`rounded-md border p-4 ${toneClassName}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-cyan-100">
-              DEV FIXTURE
-            </span>
-            <span className="rounded-full border border-white/10 bg-black/25 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-300">
-              Not a real trade
-            </span>
-          </div>
-          <h3 className="mt-3 text-base font-semibold text-zinc-100">
-            {fixture.title}
-          </h3>
-          <p className="mt-1 font-mono text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
-            {fixture.ticker} · {fixture.label}
-          </p>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {fixture.description}
-          </p>
-        </div>
-        <span className="w-fit rounded-full border border-white/10 bg-black/25 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-400">
-          Local only
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-2 text-xs leading-5 text-zinc-400 sm:grid-cols-4">
-        <Detail label="Current" value={formatCurrency(fixture.currentPrice)} />
-        <Detail label="Target" value={formatCurrency(fixture.targetPrice)} />
-        <Detail label="Stop" value={formatCurrency(fixture.stopLossPrice)} />
-        <Detail label="Quantity" value={formatShares(fixture.quantity)} />
-      </div>
-
-      <p className="mt-3 rounded-md border border-white/10 bg-black/20 p-3 text-xs leading-5 text-zinc-400">
-        This fixture uses the live-position exit monitor, execution
-        orchestrator, UI status adapter, and handoff preview modal. It is not
-        inserted into active positions and cannot be closed or saved as a trade.
-      </p>
-
-      {uiStatus.visible && (
-        <LiveExecutionStatusSurface
-          status={uiStatus}
-          onViewHandoff={() => setIsExecutionPreviewOpen(true)}
-        />
-      )}
-
-      {isExecutionPreviewOpen &&
-        uiStatus.visible &&
-        orchestratorResult.selectedIntent && (
-          <ExecutionHandoffPreviewModal
-            result={orchestratorResult}
-            status={uiStatus}
-            onClose={() => setIsExecutionPreviewOpen(false)}
-          />
-        )}
-    </article>
   );
 }
 
@@ -29860,7 +32163,6 @@ function ActivePositionCard({
     readEndOfDayAcknowledgement(position.id, eodSafetyDate),
   );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isExecutionPreviewOpen, setIsExecutionPreviewOpen] = useState(false);
   const liveActionPill = (
     <span className={`trade-live-action-pill ${liveDayTradeDisplay.actionPillClassName}`}>
       {liveSellGuidance.primary_label}
@@ -29869,37 +32171,28 @@ function ActivePositionCard({
   const liveExecutionTargetPrice = position.target1Value ?? position.target2Value;
   const liveExecutionQuantity =
     position.executionMetadata?.remaining_shares ?? position.positionSizeValue;
-  const liveExecutionOrchestratorResult =
-    position.direction === "Long" &&
-    !isDemoPosition(position) &&
-    !isMockPosition(position) &&
-    currentPriceValue !== null &&
-    liveExecutionQuantity !== null &&
-    (liveExecutionTargetPrice !== null || position.stopLossValue !== null)
-      ? runExecutionOrchestrator({
-          livePositions: [
-            {
-              positionId: position.id,
-              recommendationId: position.recommendationId,
-              ticker: position.ticker,
-              instrumentName: position.companyName,
-              quantity: liveExecutionQuantity,
-              currentPrice: currentPriceValue,
-              targetPrice: liveExecutionTargetPrice,
-              stopLossPrice: position.stopLossValue,
-              mode: executionMode,
-              createdAt: latestUpdate?.updatedAtRaw ?? undefined,
-            },
-          ],
-          mode: executionMode,
-          createdAt: latestUpdate?.updatedAtRaw ?? undefined,
-        })
-      : null;
-  const liveExecutionStatus = liveExecutionOrchestratorResult
-    ? buildExecutionUiStatusFromOrchestratorResult(
-        liveExecutionOrchestratorResult,
-      )
-    : null;
+  const tradeCardExecutionReadiness =
+    buildLivePositionTradeCardExecutionReadiness(position);
+  const {
+    closeExecutionPreviewModal,
+    executionPreviewModal,
+    liveExecutionStatus,
+    openExecutionPreviewModal,
+  } = useExecutionLivePositionHandoffState({
+    positionId: position.id,
+    recommendationId: position.recommendationId,
+    ticker: position.ticker,
+    instrumentName: position.companyName,
+    direction: position.direction,
+    isDemo: isDemoPosition(position),
+    isMock: isMockPosition(position),
+    currentPrice: currentPriceValue,
+    quantity: liveExecutionQuantity,
+    targetPrice: liveExecutionTargetPrice,
+    stopLossPrice: position.stopLossValue,
+    mode: executionMode,
+    createdAt: latestUpdate?.updatedAtRaw ?? null,
+  });
   const liveTradeRiskFlags = [
     eodSafetyStatus.severity !== "none" ? eodSafetyStatus.message : null,
     ...warnings,
@@ -30033,6 +32326,7 @@ function ActivePositionCard({
               <CompanyIdentity
                 ticker={position.ticker}
                 companyName={position.companyName}
+                logoUrl={position.logoUrl}
                 size="live"
               />
             }
@@ -30081,13 +32375,13 @@ function ActivePositionCard({
       }
       display={liveDayTradeDisplay}
       executionPreviewModal={
-        isExecutionPreviewOpen &&
+        executionPreviewModal.isOpen &&
         liveExecutionStatus?.visible &&
-        liveExecutionOrchestratorResult?.selectedIntent ? (
+        executionPreviewModal.selectedResult?.selectedIntent ? (
           <ExecutionHandoffPreviewModal
-            result={liveExecutionOrchestratorResult}
+            result={executionPreviewModal.selectedResult}
             status={liveExecutionStatus}
-            onClose={() => setIsExecutionPreviewOpen(false)}
+            onClose={closeExecutionPreviewModal}
           />
         ) : null
       }
@@ -30095,6 +32389,7 @@ function ActivePositionCard({
         <CompanyIdentity
           ticker={position.ticker}
           companyName={position.companyName}
+          logoUrl={position.logoUrl}
           size="live"
         />
       }
@@ -30115,11 +32410,26 @@ function ActivePositionCard({
         <DataModePillRow badges={liveDayTradeDisplay.realityBadges.slice(0, 1)} />
       }
       statusSurface={
-        liveExecutionStatus?.visible ? (
-          <LiveExecutionStatusSurface
-            status={liveExecutionStatus}
-            onViewHandoff={() => setIsExecutionPreviewOpen(true)}
-          />
+        tradeCardExecutionReadiness || liveExecutionStatus?.visible ? (
+          <div className="grid gap-3">
+            {tradeCardExecutionReadiness ? (
+              <AvanzaTradeCardExecutionReadinessBadge
+                compact
+                className="trade-card-execution-readiness-badge"
+                readinessModel={tradeCardExecutionReadiness}
+              />
+            ) : null}
+            {liveExecutionStatus?.visible ? (
+              <LivePositionExecutionStatusSurface
+                status={liveExecutionStatus}
+                footerAction={
+                  <LivePositionHandoffControls
+                    onViewHandoff={openExecutionPreviewModal}
+                  />
+                }
+              />
+            ) : null}
+          </div>
         ) : null
       }
     />
@@ -30192,2040 +32502,6 @@ function sellFormMappingConfidenceTone(confidence: SellFormMappingConfidence) {
   }
 
   return "border-white/10 bg-white/[0.035] text-zinc-400";
-}
-
-function executionUiStatusPanelClassName(severity: ExecutionUiSeverity) {
-  if (severity === "danger") {
-    return "border-rose-300/30 bg-rose-300/[0.08]";
-  }
-
-  if (severity === "success") {
-    return "border-emerald-300/25 bg-emerald-300/[0.08]";
-  }
-
-  if (severity === "warning") {
-    return "border-amber-300/25 bg-amber-300/[0.08]";
-  }
-
-  if (severity === "info") {
-    return "border-cyan-300/20 bg-cyan-300/[0.06]";
-  }
-
-  return "border-white/10 bg-white/[0.035]";
-}
-
-function executionUiStatusBadgeClassName(tone: ExecutionUiBadgeTone) {
-  if (tone === "danger") {
-    return "border-rose-300/40 bg-rose-300/15 text-rose-100";
-  }
-
-  if (tone === "success") {
-    return "border-emerald-300/35 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (tone === "warning") {
-    return "border-amber-300/35 bg-amber-300/10 text-amber-100";
-  }
-
-  if (tone === "info") {
-    return "border-cyan-300/30 bg-cyan-300/10 text-cyan-100";
-  }
-
-  return "border-white/10 bg-white/[0.04] text-zinc-300";
-}
-
-function executionHandoffStatusTone(status: "ready" | "blocked" | "invalid_intent") {
-  if (status === "ready") {
-    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "blocked") {
-    return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-  }
-
-  return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-}
-
-function avanzaAgentRequestValidationTone(
-  status: "ok" | "warning" | "invalid",
-) {
-  if (status === "ok") {
-    return "border-emerald-300/30 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "warning") {
-    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-  }
-
-  return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-}
-
-function executionSafetyCheckTone(status: "passed" | "warning" | "failed") {
-  if (status === "passed") {
-    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
-  }
-
-  if (status === "warning") {
-    return "border-amber-300/25 bg-amber-300/10 text-amber-100";
-  }
-
-  return "border-rose-300/30 bg-rose-300/10 text-rose-100";
-}
-
-function executionLifecycleStubTone(
-  state: ExecutionLifecycleSnapshot["currentState"],
-) {
-  if (isManualConfirmationState(state)) {
-    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
-  }
-
-  if (state === "broker_order_submitting") {
-    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
-  }
-
-  if (state === "broker_order_preparing") {
-    return "border-emerald-300/25 bg-emerald-300/10 text-emerald-100";
-  }
-
-  return "border-white/10 bg-white/[0.04] text-zinc-300";
-}
-
-function terminalExecutionEventForBrokerStatus(
-  status: BrokerExecutionStatus,
-  captureStatus: BrokerExecutionCaptureStatus,
-) {
-  if (
-    captureStatus === "captured" &&
-    (status === "submitted" ||
-      status === "filled" ||
-      status === "partially_filled")
-  ) {
-    return "complete_execution" as const;
-  }
-
-  if (status === "rejected") {
-    return "fail_execution" as const;
-  }
-
-  if (status === "cancelled") {
-    return "cancel_execution" as const;
-  }
-
-  if (status === "unknown") {
-    return "mark_unknown" as const;
-  }
-
-  return "fail_execution" as const;
-}
-
-function executionIntentReason(intent: ExecutionOrchestratorResult["selectedIntent"]) {
-  if (intent && "reason" in intent && typeof intent.reason === "string") {
-    return intent.reason;
-  }
-
-  return intent?.safety_warnings[0] ?? "Execution intent selected by Ture.";
-}
-
-function executionIntentIntendedPrice(
-  intent: ExecutionOrchestratorResult["selectedIntent"],
-) {
-  if (
-    intent &&
-    "intendedPrice" in intent &&
-    typeof intent.intendedPrice === "number"
-  ) {
-    return intent.intendedPrice;
-  }
-
-  return intent?.trading_package.limit_price ?? null;
-}
-
-const agentProgressStubEventTypes: AvanzaAgentProgressEventType[] = [
-  "agent_started",
-  "broker_session_check_started",
-  "broker_session_ready",
-  "broker_session_missing",
-  "instrument_search_started",
-  "instrument_selected",
-  "order_form_opened",
-  "order_form_filled",
-  "order_review_ready",
-  "waiting_for_manual_confirmation",
-  "automatic_submit_started",
-  "broker_confirmation_detected",
-  "broker_result_returned",
-  "agent_failed",
-  "agent_cancelled",
-];
-
-function ExecutionHandoffPreviewModal({
-  result,
-  status,
-  onClose,
-}: {
-  result: ExecutionOrchestratorResult;
-  status: ExecutionUiStatus;
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  const [localLifecycle, setLocalLifecycle] =
-    useState<ExecutionLifecycleSnapshot>(() => result.lifecycle);
-  const [captureBaseLifecycle, setCaptureBaseLifecycle] =
-    useState<ExecutionLifecycleSnapshot | null>(null);
-  const [preparationStubMessage, setPreparationStubMessage] = useState("");
-  const [preparationStubError, setPreparationStubError] = useState("");
-  const [isAgentRunnerRunning, setIsAgentRunnerRunning] = useState(false);
-  const [agentRunnerResult, setAgentRunnerResult] =
-    useState<AvanzaAgentResult | null>(null);
-  const [agentRunnerError, setAgentRunnerError] = useState("");
-  const [agentRunStoreMessage, setAgentRunStoreMessage] = useState("");
-  const [stubBrokerStatus, setStubBrokerStatus] =
-    useState<BrokerExecutionStatus>("submitted");
-  const [stubExecutedPrice, setStubExecutedPrice] = useState("");
-  const [stubOrderId, setStubOrderId] = useState("");
-  const [stubBrokerTimestamp, setStubBrokerTimestamp] = useState("");
-  const [stubCaptureResult, setStubCaptureResult] =
-    useState<BrokerExecutionCaptureResult | null>(null);
-  const [stubCaptureMessage, setStubCaptureMessage] = useState("");
-  const [stubCaptureError, setStubCaptureError] = useState("");
-  const [selectedAgentProgressType, setSelectedAgentProgressType] =
-    useState<AvanzaAgentProgressEventType>("agent_started");
-  const [agentProgressTimeline, setAgentProgressTimeline] = useState<
-    AgentProgressStubTimelineItem[]
-  >([]);
-  const [agentProgressStubMessage, setAgentProgressStubMessage] = useState("");
-  const [agentProgressStubError, setAgentProgressStubError] = useState("");
-  const intent = result.selectedIntent;
-  const handoff = result.handoff;
-  const avanzaAgentRequestPreview = useMemo(() => {
-    if (!result.handoff) {
-      return {
-        request: null,
-        validation: null,
-        error: "Future agent request preview requires an Avanza handoff.",
-      };
-    }
-
-    if (result.handoff.status !== "ready") {
-      return {
-        request: null,
-        validation: null,
-        error:
-          "Future agent request preview is unavailable until the handoff is ready.",
-      };
-    }
-
-    try {
-      const request = buildAvanzaAgentRequest(result.handoff, {
-        metadata: {
-          preview_only: true,
-          source: "execution_handoff_preview_modal",
-          broker_connected: false,
-          no_order_prepared: true,
-          no_order_submitted: true,
-        },
-      });
-
-      return {
-        request,
-        validation: validateAvanzaAgentRequest(request),
-        error: null,
-      };
-    } catch (error) {
-      return {
-        request: null,
-        validation: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Future agent request preview could not be built.",
-      };
-    }
-  }, [result.handoff]);
-  const avanzaAgentBridgeEnvelopePreview = useMemo(() => {
-    const request = avanzaAgentRequestPreview.request;
-
-    if (!isExecutionDevToolsEnabled()) {
-      return {
-        envelope: null,
-        validation: null,
-        error: "Bridge request envelope preview is hidden unless dev tools are enabled.",
-      };
-    }
-
-    if (!request) {
-      return {
-        envelope: null,
-        validation: null,
-        error:
-          avanzaAgentRequestPreview.error ??
-          "Bridge request envelope preview requires a valid future-agent request.",
-      };
-    }
-
-    try {
-      const envelope = buildAvanzaAgentBridgeEnvelope("request", request, {
-        requestId: request.requestId,
-        transport: "none",
-        metadata: {
-          preview_only: true,
-          source: "execution_handoff_preview_modal",
-          no_external_avanza_bridge_connected: true,
-          no_transport_connected: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-        },
-      });
-
-      return {
-        envelope,
-        validation: validateAvanzaAgentBridgeEnvelope(envelope),
-        error: null,
-      };
-    } catch (error) {
-      return {
-        envelope: null,
-        validation: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Bridge request envelope preview could not be built.",
-      };
-    }
-  }, [avanzaAgentRequestPreview]);
-  const avanzaDryRunRequestPreview = useMemo(() => {
-    if (!isExecutionDevToolsEnabled()) {
-      return null;
-    }
-
-    return buildAvanzaDryRunOrderInputFromExecutionIntent({
-      executionIntent: result.selectedIntent,
-      handoffPayload: result.handoff,
-      metadata: {
-        preview_only: true,
-        source: "execution_handoff_preview_modal",
-        no_browser_runner: true,
-        no_avanza_navigation: true,
-        no_order_submitted: true,
-        no_broker_result_created: true,
-      },
-    });
-  }, [result.handoff, result.selectedIntent]);
-  const executionDevToolsEnabled = isExecutionDevToolsEnabled();
-  const avanzaAgentRequest = avanzaAgentRequestPreview.request;
-  const avanzaAgentRequestValidation = avanzaAgentRequestPreview.validation;
-  const avanzaAgentRequestValidationStatus =
-    avanzaAgentRequestValidation?.ok === true
-      ? avanzaAgentRequestValidation.warnings.length > 0
-        ? "warning"
-        : "ok"
-      : "invalid";
-  const avanzaAgentBridgeEnvelope = avanzaAgentBridgeEnvelopePreview.envelope;
-  const avanzaAgentBridgeEnvelopeValidation =
-    avanzaAgentBridgeEnvelopePreview.validation;
-  const avanzaAgentBridgeEnvelopeValidationStatus =
-    avanzaAgentBridgeEnvelopeValidation?.ok === true
-      ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
-        ? "warning"
-        : "ok"
-      : "invalid";
-  const localhostBridgeControlsState = useLocalhostBridgeControlsState({
-    avanzaAgentBridgeEnvelope,
-    avanzaAgentBridgeEnvelopeValidation,
-    avanzaAgentRequest,
-    avanzaAgentRequestValidation,
-    avanzaDryRunRequestPreview,
-    executionDevToolsEnabled,
-    localLifecycle,
-    selectedHandoff: handoff,
-    selectedIntent: intent,
-    setAgentRunStoreMessage,
-  });
-  const {
-    canCancelLocalhostBridgeRun,
-    canCheckLocalhostBridgeSelfCheck,
-    canRunLocalhostBridgeDryRun,
-    canRunLocalhostMockAgent,
-    canTestLocalhostDryRunBridgeStub,
-    cancelLocalhostBridgeEcho,
-    checkLocalhostBridgeSelfCheck,
-    isLocalhostBridgeCancelRunning,
-    isLocalhostBridgeRunRunning,
-    isLocalhostBridgeSelfCheckRunning,
-    isLocalhostDryRunBridgeStubRunning,
-    isLocalhostMockAgentRunRunning,
-    localhostBridgeCancelMessage,
-    localhostBridgeCancelResult,
-    localhostBridgeRunMessage,
-    localhostBridgeRunResult,
-    localhostBridgeSelfCheckMessage,
-    localhostBridgeSelfCheckResult,
-    localhostDryRunBridgeStubMessage,
-    localhostDryRunBridgeStubResult,
-    localhostMockAgentRunMessage,
-    localhostMockAgentRunResult,
-    runLocalhostBridgeEcho,
-    runLocalhostMockAgent,
-    testLocalhostDryRunBridgeStub,
-  } = localhostBridgeControlsState;
-  const earlyPhasePreviewState = useEarlyPhasePreviewState({
-    avanzaDryRunRequestPreview,
-    executionDevToolsEnabled,
-    selectedIntent: intent,
-  });
-  const {
-    avanzaSearchOnlyExpectedInstrumentValid,
-    canCheckLocalhostInstrumentVerification,
-    canCheckLocalhostSearchOnly,
-    canCheckLocalhostSessionDetection,
-    checkLocalhostInstrumentVerificationStub,
-    checkLocalhostSearchOnlyStub,
-    checkLocalhostSessionDetectionStub,
-    isLocalhostInstrumentVerificationRunning,
-    isLocalhostSearchOnlyRunning,
-    isLocalhostSessionDetectionRunning,
-    localhostInstrumentAmbiguous,
-    localhostInstrumentBlocked,
-    localhostInstrumentNoAvanzaTouched,
-    localhostInstrumentNoBrokerSubmission,
-    localhostInstrumentNoBrowserActions,
-    localhostInstrumentNoFormFill,
-    localhostInstrumentNoOrderPageOpened,
-    localhostInstrumentRejected,
-    localhostInstrumentVerification,
-    localhostInstrumentVerificationMessage,
-    localhostInstrumentVerificationResult,
-    localhostInstrumentVerified,
-    localhostSearchOnly,
-    localhostSearchOnlyAmbiguous,
-    localhostSearchOnlyBlocked,
-    localhostSearchOnlyExactMatch,
-    localhostSearchOnlyMessage,
-    localhostSearchOnlyNoAvanzaTouched,
-    localhostSearchOnlyNoBrokerSubmission,
-    localhostSearchOnlyNoBrowserActions,
-    localhostSearchOnlyNoMatch,
-    localhostSearchOnlyNoOrderPageOpened,
-    localhostSearchOnlyResult,
-    localhostSessionDetection,
-    localhostSessionDetectionMessage,
-    localhostSessionDetectionNoAvanzaTouched,
-    localhostSessionDetectionNoBrowserActions,
-    localhostSessionDetectionReadyForSearchOnly,
-    localhostSessionDetectionResult,
-  } = earlyPhasePreviewState;
-  const middlePhasePreviewState = useMiddlePhasePreviewState({
-    avanzaDryRunRequestPreview,
-    executionDevToolsEnabled,
-    localhostInstrumentVerification,
-    localhostInstrumentVerified,
-    selectedIntent: intent,
-  });
-  const {
-    canCheckLocalhostAdvancedFormFill,
-    canCheckLocalhostInstrumentPage,
-    canCheckLocalhostOrderPageOpen,
-    canCheckLocalhostReviewClick,
-    checkLocalhostAdvancedFormFillStub,
-    checkLocalhostInstrumentPageStub,
-    checkLocalhostOrderPageOpenStub,
-    checkLocalhostReviewClickStub,
-    isLocalhostAdvancedFormFillRunning,
-    isLocalhostInstrumentPageRunning,
-    isLocalhostOrderPageOpenRunning,
-    isLocalhostReviewClickRunning,
-    localhostAdvancedFormBlocked,
-    localhostAdvancedFormFieldMismatch,
-    localhostAdvancedFormFill,
-    localhostAdvancedFormFilled,
-    localhostAdvancedFormFillMessage,
-    localhostAdvancedFormFillResult,
-    localhostAdvancedFormNoAvanzaTouched,
-    localhostAdvancedFormNoBrokerSubmission,
-    localhostAdvancedFormNoBrowserActions,
-    localhostAdvancedFormNoFinalConfirmClick,
-    localhostAdvancedFormNoRealFormFieldsFilled,
-    localhostAdvancedFormNoReviewClick,
-    localhostAdvancedFormUnsupportedMode,
-    localhostAdvancedFormValidationError,
-    localhostInstrumentPage,
-    localhostInstrumentPageBlocked,
-    localhostInstrumentPageIdentified,
-    localhostInstrumentPageMessage,
-    localhostInstrumentPageMismatch,
-    localhostInstrumentPageNoAvanzaTouched,
-    localhostInstrumentPageNoBrokerSubmission,
-    localhostInstrumentPageNoBrowserActions,
-    localhostInstrumentPageNoBuySellClick,
-    localhostInstrumentPageNoFormFill,
-    localhostInstrumentPageNoOrderPageOpened,
-    localhostInstrumentPageProhibitedControlsVisible,
-    localhostInstrumentPageResult,
-    localhostOrderPageBlocked,
-    localhostOrderPageMismatch,
-    localhostOrderPageNoAvanzaTouched,
-    localhostOrderPageNoBrokerSubmission,
-    localhostOrderPageNoBrowserActions,
-    localhostOrderPageNoFinalConfirmClick,
-    localhostOrderPageNoFormFill,
-    localhostOrderPageNoRealOrderPageOpened,
-    localhostOrderPageNoReviewClick,
-    localhostOrderPageOpen,
-    localhostOrderPageOpenMessage,
-    localhostOrderPageOpenResult,
-    localhostOrderPageOpened,
-    localhostOrderPageWrongAction,
-    localhostReviewClick,
-    localhostReviewClickBlocked,
-    localhostReviewClickConfirmationMismatch,
-    localhostReviewClickConfirmationReady,
-    localhostReviewClickFinalConfirmBlocked,
-    localhostReviewClickMessage,
-    localhostReviewClickNoAvanzaTouched,
-    localhostReviewClickNoBrokerResult,
-    localhostReviewClickNoBrowserActions,
-    localhostReviewClickNoFinalConfirmClick,
-    localhostReviewClickNoRealReviewClick,
-    localhostReviewClickNoTradeMutation,
-    localhostReviewClickResult,
-    localhostReviewClickValidationError,
-    localhostReviewClickWaitingForManualConfirmation,
-  } = middlePhasePreviewState;
-  const latePhasePreviewState = useLatePhasePreviewState({
-    avanzaDryRunRequestPreview,
-    executionDevToolsEnabled,
-    selectedIntent: intent,
-  });
-  const {
-    canCheckLocalhostBrokerConfirmationCapture,
-    canCheckLocalhostBrokerExecutionEligibility,
-    canCheckLocalhostBrokerExecutionPreview,
-    canCheckLocalhostExecutionRecordEligibility,
-    checkLocalhostBrokerConfirmationCaptureStub,
-    checkLocalhostBrokerExecutionEligibilityStub,
-    checkLocalhostBrokerExecutionPreviewStub,
-    checkLocalhostExecutionRecordEligibilityStub,
-    executionRecordEligibilityCandidate,
-    executionRecordEligibilityCandidateIsPreviewOnly,
-    isLocalhostBrokerConfirmationCaptureRunning,
-    isLocalhostBrokerExecutionEligibilityRunning,
-    isLocalhostBrokerExecutionPreviewRunning,
-    isLocalhostExecutionRecordEligibilityRunning,
-    localhostBrokerConfirmationBlocked,
-    localhostBrokerConfirmationCapture,
-    localhostBrokerConfirmationCaptured,
-    localhostBrokerConfirmationCaptureMessage,
-    localhostBrokerConfirmationCaptureResult,
-    localhostBrokerConfirmationMismatch,
-    localhostBrokerConfirmationNoAvanzaTouched,
-    localhostBrokerConfirmationNoBekrafta,
-    localhostBrokerConfirmationNoBrokerExecutionResult,
-    localhostBrokerConfirmationNoBrowserActions,
-    localhostBrokerConfirmationNoExecutionRecord,
-    localhostBrokerConfirmationNoSupabaseWrite,
-    localhostBrokerConfirmationNoTradeMutation,
-    localhostBrokerConfirmationPartial,
-    localhostBrokerConfirmationRejectedOrCancelled,
-    localhostBrokerExecutionDuplicateRisk,
-    localhostBrokerExecutionEligibility,
-    localhostBrokerExecutionEligibilityBlocked,
-    localhostBrokerExecutionEligibilityFailed,
-    localhostBrokerExecutionEligibilityMessage,
-    localhostBrokerExecutionEligibilityNoBrokerExecutionResult,
-    localhostBrokerExecutionEligibilityNoExecutionRecord,
-    localhostBrokerExecutionEligibilityNoSupabaseWrite,
-    localhostBrokerExecutionEligibilityNoTradeMutation,
-    localhostBrokerExecutionEligibilityResult,
-    localhostBrokerExecutionEligible,
-    localhostBrokerExecutionNotEligible,
-    localhostBrokerExecutionPartialOnly,
-    localhostBrokerExecutionPreviewMessage,
-    localhostBrokerExecutionPreviewNoExecutionRecord,
-    localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
-    localhostBrokerExecutionPreviewNoSupabaseWrite,
-    localhostBrokerExecutionPreviewNoTradeMutation,
-    localhostBrokerExecutionPreviewResult,
-    localhostExecutionRecordEligibilityMessage,
-    localhostExecutionRecordEligibilityResult,
-    localhostExecutionRecordNoBrokerExecutionResult,
-    localhostExecutionRecordNoExecutionRecord,
-    localhostExecutionRecordNoSupabaseWrite,
-    localhostExecutionRecordNoTradeMutation,
-  } = latePhasePreviewState;
-  const avanzaReadinessState = useAvanzaReadinessState({
-    avanzaDryRunRequestPreview,
-    earlyPhasePreviewState,
-    executionDevToolsEnabled,
-    latePhasePreviewState,
-    localhostBridgeControlsState,
-    middlePhasePreviewState,
-    selectedHandoff: handoff,
-    selectedIntent: intent,
-  });
-  const { panelProps: avanzaDryRunReadinessPanelProps } = avanzaReadinessState;
-
-  if (!status.visible || !intent || !handoff) {
-    return null;
-  }
-
-  const selectedIntent = intent;
-  const selectedHandoff = handoff;
-  const packageSnapshot = selectedIntent.trading_package;
-  const canRunPreparationStub =
-    executionDevToolsEnabled &&
-    selectedHandoff.status === "ready" &&
-    selectedHandoff.canPrepareOrder &&
-    !isAgentRunnerRunning &&
-    localLifecycle.currentState === "handoff_created";
-  const preparationStubReached =
-    isManualConfirmationState(localLifecycle.currentState) ||
-    localLifecycle.currentState === "broker_order_submitting" ||
-    captureBaseLifecycle !== null;
-  const captureStubVisible =
-    preparationStubReached ||
-    stubCaptureResult !== null ||
-    localLifecycle.currentState === "broker_result_captured" ||
-    localLifecycle.currentState === "completed" ||
-    localLifecycle.currentState === "failed" ||
-    localLifecycle.currentState === "cancelled" ||
-    localLifecycle.currentState === "unknown";
-  const devCaptureStubVisible = executionDevToolsEnabled && captureStubVisible;
-  const canRunCaptureStub =
-    executionDevToolsEnabled &&
-    preparationStubReached &&
-    stubCaptureResult === null &&
-    !isAgentRunnerRunning;
-  const authorityMessage =
-    selectedIntent.mode === "automatic"
-      ? "Automatic authority allows final submit when all checks are ready, but no broker connection or order execution is implemented here."
-      : "Semi-automatic mode may allow a future agent to prepare the Avanza order, but you must manually press final KÖP or SÄLJ.";
-  const avanzaAgentBridgeConfig = executionDevToolsEnabled
-    ? readAvanzaAgentBridgeConfig()
-    : null;
-  const avanzaAgentBridgeFactoryResult = executionDevToolsEnabled
-    ? createAvanzaAgentBridgeFromConfig({
-        selectedTransport: avanzaAgentBridgeConfig?.selectedTransport,
-        metadata: {
-          source: "execution_sandbox_qa_panel",
-          no_real_transport_connected: true,
-          no_broker_order_prepared: true,
-          no_broker_order_submitted: true,
-        },
-      })
-    : null;
-  const safetyCheckFailures = selectedHandoff.safetyChecks.filter(
-    (check) => check.status === "failed",
-  );
-  const safetyCheckWarnings = selectedHandoff.safetyChecks.filter(
-    (check) => check.status === "warning",
-  );
-  const requestValidationFailed =
-    avanzaAgentRequestValidation !== null &&
-    avanzaAgentRequestValidation.ok === false;
-  const envelopeValidationFailed =
-    avanzaAgentBridgeEnvelopeValidation !== null &&
-    avanzaAgentBridgeEnvelopeValidation.ok === false;
-  const sandboxCoreValid =
-    selectedHandoff.status === "ready" &&
-    safetyCheckFailures.length === 0 &&
-    avanzaAgentRequestValidation?.ok === true &&
-    avanzaAgentBridgeEnvelopeValidation?.ok === true;
-  const sandboxBlocked =
-    selectedHandoff.status === "blocked" ||
-    selectedHandoff.status === "invalid_intent" ||
-    safetyCheckFailures.length > 0 ||
-    requestValidationFailed ||
-    envelopeValidationFailed;
-  const sandboxOverallStatus: ExecutionSandboxQaOverallStatus = sandboxBlocked
-    ? "blocked"
-    : sandboxCoreValid
-      ? "ready"
-      : "incomplete";
-  const sandboxOverallMessage =
-    sandboxOverallStatus === "ready"
-      ? "Sandbox-ready means the local typed handoff chain is valid for diagnostics only. It does not mean broker execution is available."
-      : sandboxOverallStatus === "blocked"
-        ? selectedHandoff.blockedReason ??
-          avanzaAgentRequestValidation?.errors[0] ??
-          avanzaAgentBridgeEnvelopeValidation?.errors[0] ??
-          safetyCheckFailures[0]?.message ??
-          "The local execution sandbox chain is blocked by handoff or validation errors."
-        : "The local execution sandbox chain is incomplete until the typed request and bridge envelope are available.";
-  const executionSandboxQaItems: ExecutionSandboxQaItem[] = [
-    {
-      label: "Execution dev tools",
-      status: executionDevToolsEnabled ? "pass" : "fail",
-      message: executionDevToolsEnabled
-        ? "Enabled for this local diagnostics surface."
-        : "Disabled; sandbox diagnostics and runners stay hidden.",
-    },
-    {
-      label: "Selected intent",
-      status: selectedIntent ? "pass" : "fail",
-      message: selectedIntent
-        ? `${agentCommandValue(selectedIntent.action)} ${selectedIntent.trading_package.ticker} intent is selected.`
-        : "No execution intent is selected.",
-    },
-    {
-      label: "Handoff",
-      status: selectedHandoff ? "pass" : "fail",
-      message: selectedHandoff
-        ? `Handoff status is ${agentCommandValue(selectedHandoff.status)}.`
-        : "No Avanza handoff exists.",
-    },
-    {
-      label: "Handoff ready",
-      status: selectedHandoff.status === "ready" ? "pass" : "fail",
-      message:
-        selectedHandoff.status === "ready"
-          ? "Ready for local sandbox preparation preview."
-          : (selectedHandoff.blockedReason ??
-            `Handoff is ${selectedHandoff.status}.`),
-    },
-    {
-      label: "Safety checks",
-      status:
-        safetyCheckFailures.length > 0
-          ? "fail"
-          : safetyCheckWarnings.length > 0
-            ? "warn"
-            : "pass",
-      message:
-        safetyCheckFailures.length > 0
-          ? `${safetyCheckFailures.length} safety check failed.`
-          : safetyCheckWarnings.length > 0
-            ? `${safetyCheckWarnings.length} safety check warning.`
-            : "No failed safety checks.",
-    },
-    {
-      label: "Future agent request",
-      status: avanzaAgentRequest ? "pass" : "pending",
-      message: avanzaAgentRequest
-        ? `Request ${shortPayloadId(avanzaAgentRequest.requestId)} is built.`
-        : (avanzaAgentRequestPreview.error ??
-          "Future agent request has not been built."),
-    },
-    {
-      label: "Request validation",
-      status:
-        avanzaAgentRequestValidation?.ok === true
-          ? avanzaAgentRequestValidation.warnings.length > 0
-            ? "warn"
-            : "pass"
-          : "fail",
-      message:
-        avanzaAgentRequestValidation?.ok === true
-          ? avanzaAgentRequestValidation.warnings.length > 0
-            ? `${avanzaAgentRequestValidation.warnings.length} request validation warning.`
-            : "Future agent request is valid."
-          : (avanzaAgentRequestValidation?.errors[0] ??
-            "Future agent request validation is unavailable."),
-    },
-    {
-      label: "Bridge envelope",
-      status: avanzaAgentBridgeEnvelope ? "pass" : "pending",
-      message: avanzaAgentBridgeEnvelope
-        ? `Envelope ${shortPayloadId(avanzaAgentBridgeEnvelope.envelopeId)} is built.`
-        : (avanzaAgentBridgeEnvelopePreview.error ??
-          "Bridge envelope has not been built."),
-    },
-    {
-      label: "Envelope validation",
-      status:
-        avanzaAgentBridgeEnvelopeValidation?.ok === true
-          ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
-            ? "warn"
-            : "pass"
-          : "fail",
-      message:
-        avanzaAgentBridgeEnvelopeValidation?.ok === true
-          ? avanzaAgentBridgeEnvelopeValidation.warnings.length > 0
-            ? `${avanzaAgentBridgeEnvelopeValidation.warnings.length} envelope warning. Transport none is expected for this sandbox.`
-          : "Bridge envelope is valid."
-          : (avanzaAgentBridgeEnvelopeValidation?.errors[0] ??
-            "Bridge envelope validation is unavailable."),
-    },
-    {
-      label: "Bridge config loaded",
-      status: avanzaAgentBridgeConfig
-        ? avanzaAgentBridgeConfig.error
-          ? "warn"
-          : "pass"
-        : "pending",
-      message: avanzaAgentBridgeConfig
-        ? avanzaAgentBridgeConfig.error
-          ? `Config loaded with storage warning: ${avanzaAgentBridgeConfig.error}`
-          : "Bridge config loaded locally for diagnostics."
-        : "Bridge config is hidden because dev tools are disabled.",
-    },
-    {
-      label: "Selected bridge transport",
-      status:
-        avanzaAgentBridgeFactoryResult?.selectedTransport === "none"
-          ? "pass"
-          : "warn",
-      message: avanzaAgentBridgeFactoryResult
-        ? `Selected ${getAvanzaAgentBridgeTransportDisplayLabel(
-            avanzaAgentBridgeFactoryResult.selectedTransport,
-          )}.`
-        : "No bridge factory result available.",
-    },
-    {
-      label: "Resolved bridge transport",
-      status:
-        avanzaAgentBridgeFactoryResult?.resolvedTransport === "none"
-          ? "pass"
-          : "warn",
-      message: avanzaAgentBridgeFactoryResult
-        ? `Resolved ${getAvanzaAgentBridgeTransportDisplayLabel(
-            avanzaAgentBridgeFactoryResult.resolvedTransport,
-          )}. Runtime bridge remains local diagnostics only in this build.`
-        : "No bridge factory result available.",
-    },
-    {
-      label: "Factory fallback",
-      status: avanzaAgentBridgeFactoryResult?.fallbackUsed ? "warn" : "pass",
-      message: avanzaAgentBridgeFactoryResult
-        ? avanzaAgentBridgeFactoryResult.fallbackUsed
-          ? `${avanzaAgentBridgeFactoryResult.reason} ${avanzaAgentBridgeFactoryResult.warnings.join(" ")}`
-          : avanzaAgentBridgeFactoryResult.reason
-        : "No bridge factory result available.",
-    },
-    {
-      label: "Real broker automation",
-      status: avanzaAgentBridgeFactoryResult
-        ? isRealAvanzaAgentBridge(avanzaAgentBridgeFactoryResult.bridge)
-          ? "fail"
-          : "pass"
-        : "pending",
-      message: avanzaAgentBridgeFactoryResult
-        ? isRealAvanzaAgentBridge(avanzaAgentBridgeFactoryResult.bridge)
-          ? "Unexpected real broker automation support detected."
-          : "Real broker automation is false for this diagnostics bridge."
-        : "No bridge factory result available.",
-    },
-    {
-      label: "Lifecycle",
-      status: localLifecycle ? "pass" : "fail",
-      message: localLifecycle
-        ? `Lifecycle is ${getExecutionLifecycleDisplayLabel(localLifecycle.currentState)}.`
-        : "Lifecycle snapshot is missing.",
-    },
-    {
-      label: "Prepare stub / runner",
-      status: preparationStubReached || agentRunnerResult ? "pass" : "pending",
-      message:
-        preparationStubReached || agentRunnerResult
-          ? "Prepare stub or bridge-backed runner has been attempted locally."
-          : "Not attempted yet.",
-    },
-    {
-      label: "Runner result",
-      status: agentRunnerResult ? "pass" : "pending",
-      message: agentRunnerResult
-        ? `Runner result status is ${agentCommandValue(agentRunnerResult.status)}.`
-        : "No bridge-backed runner result yet.",
-    },
-    {
-      label: "Broker result",
-      status: agentRunnerResult
-        ? agentRunnerResult.brokerResult
-          ? "fail"
-          : "pass"
-        : "pending",
-      message: agentRunnerResult
-        ? agentRunnerResult.brokerResult
-          ? "Unexpected broker result is present."
-          : "Broker result is absent as expected for the diagnostics runner."
-        : "Pending until the bridge-backed diagnostics runner is attempted.",
-    },
-    {
-      label: "Stub capture record",
-      status: stubCaptureResult ? "pass" : "pending",
-      message: stubCaptureResult
-        ? `Dev capture status is ${agentCommandValue(stubCaptureResult.captureStatus)}.`
-        : "Optional dev capture stub has not been used.",
-    },
-  ];
-
-  function addAgentProgressStubEvent() {
-    setAgentProgressStubMessage("");
-    setAgentProgressStubError("");
-
-    if (!avanzaAgentRequest) {
-      setAgentProgressStubError(
-        "Agent progress stub requires a ready future-agent request preview.",
-      );
-      return;
-    }
-
-    const createdAt = new Date().toISOString();
-    const mappedLifecycleEventType = mapAvanzaAgentProgressToLifecycleEventType(
-      selectedAgentProgressType,
-    );
-    const progressEvent = buildAvanzaAgentProgressEvent({
-      requestId: avanzaAgentRequest.requestId,
-      createdAt,
-      type: selectedAgentProgressType,
-      message: `${getAvanzaAgentProgressDisplayLabel(
-        selectedAgentProgressType,
-      )} - local dev progress stub only. No Avanza agent is connected.`,
-      metadata: {
-        stub_only: true,
-        broker_connected: false,
-        no_order_prepared: true,
-        no_order_submitted: true,
-        no_broker_result_created: true,
-        handoff_status: selectedHandoff.status,
-      },
-    });
-    const progressAuditEvent = createExecutionAuditEvent({
-      type: "agent_progress_stub",
-      createdAt,
-      lifecycleId: localLifecycle.lifecycleId,
-      intentId: selectedIntent.intent_id,
-      recommendationId: selectedIntent.trading_package.recommendation_id,
-      positionId: selectedIntent.trading_package.live_position_id,
-      ticker: selectedIntent.trading_package.ticker,
-      action: selectedIntent.action,
-      mode: selectedIntent.mode,
-      triggerType: selectedIntent.trigger_type,
-      broker: "avanza",
-      handoffVersion: selectedHandoff.version,
-      handoffStatus: selectedHandoff.status,
-      message:
-        "Dev-only Avanza agent progress event stub recorded locally. No broker agent is connected and no order was prepared or submitted.",
-      metadata: {
-        stub_only: true,
-        broker_connected: false,
-        no_order_prepared: true,
-        no_order_submitted: true,
-        no_broker_result_created: true,
-        agent_request_id: avanzaAgentRequest.requestId,
-        agent_progress_event_id: progressEvent.eventId,
-        agent_progress_type: progressEvent.type,
-        mapped_lifecycle_event_type: mappedLifecycleEventType,
-      },
-    });
-
-    if (!mappedLifecycleEventType) {
-      appendExecutionAuditEvents([progressAuditEvent]);
-      setAgentProgressTimeline((current) => [
-        {
-          progressEvent,
-          mappedLifecycleEventType: null,
-          lifecycleTransitionStatus: "not_mapped",
-          lifecycleNote:
-            "No lifecycle transition is mapped for this progress event.",
-        },
-        ...current,
-      ]);
-      setAgentProgressStubMessage(
-        "Progress event added locally. It has no lifecycle mapping, so lifecycle state was unchanged.",
-      );
-      return;
-    }
-
-    const transition = transitionExecutionLifecycle(
-      localLifecycle,
-      mappedLifecycleEventType,
-      {
-        createdAt,
-        intentId: selectedIntent.intent_id,
-        handoffVersion: selectedHandoff.version,
-        mode: selectedIntent.mode,
-        action: selectedIntent.action,
-        triggerType: selectedIntent.trigger_type,
-        message:
-          "Local dev agent progress stub applied a mapped lifecycle transition. No broker agent is connected and no real order action occurred.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-          agent_request_id: avanzaAgentRequest.requestId,
-          agent_progress_event_id: progressEvent.eventId,
-          agent_progress_type: progressEvent.type,
-          handoff_status: selectedHandoff.status,
-        },
-      },
-    );
-
-    if (!transition.ok) {
-      appendExecutionAuditEvents([progressAuditEvent]);
-      setAgentProgressTimeline((current) => [
-        {
-          progressEvent,
-          mappedLifecycleEventType,
-          lifecycleTransitionStatus: "invalid",
-          lifecycleNote: transition.error,
-        },
-        ...current,
-      ]);
-      setAgentProgressStubError(
-        `Progress event added locally, but lifecycle transition was not applied: ${transition.error}`,
-      );
-      return;
-    }
-
-    appendExecutionAuditEvents([
-      progressAuditEvent,
-      buildExecutionAuditEventFromLifecycleEvent(
-        transition.event,
-        transition.snapshot,
-      ),
-    ]);
-    setLocalLifecycle(transition.snapshot);
-    setAgentProgressTimeline((current) => [
-      {
-        progressEvent,
-        mappedLifecycleEventType,
-        lifecycleTransitionStatus: "applied",
-        lifecycleNote: `${mappedLifecycleEventType} moved lifecycle to ${transition.snapshot.currentState}.`,
-      },
-      ...current,
-    ]);
-    setAgentProgressStubMessage(
-      "Progress event added locally and its mapped lifecycle transition was applied.",
-    );
-  }
-
-  async function runPreparationStub() {
-    setPreparationStubMessage("");
-    setPreparationStubError("");
-    setAgentRunnerResult(null);
-    setAgentRunnerError("");
-    setAgentRunStoreMessage("");
-
-    if (!executionDevToolsEnabled) {
-      setPreparationStubError(
-        "Avanza preparation is not connected in this build.",
-      );
-      return;
-    }
-
-    if (!canRunPreparationStub) {
-      setPreparationStubError(
-        "Preparation stub is unavailable because this handoff is not ready.",
-      );
-      return;
-    }
-
-    const createdAt = new Date().toISOString();
-    setCaptureBaseLifecycle(null);
-    const baseAuditFields = {
-      createdAt,
-      lifecycleId: localLifecycle.lifecycleId,
-      intentId: selectedIntent.intent_id,
-      recommendationId: selectedIntent.trading_package.recommendation_id,
-      positionId: selectedIntent.trading_package.live_position_id,
-      ticker: selectedIntent.trading_package.ticker,
-      action: selectedIntent.action,
-      mode: selectedIntent.mode,
-      triggerType: selectedIntent.trigger_type,
-      broker: "avanza" as const,
-      handoffVersion: selectedHandoff.version,
-      handoffStatus: selectedHandoff.status,
-    };
-    appendExecutionAuditEvents([
-      createExecutionAuditEvent({
-        ...baseAuditFields,
-        type: "stub_prepare_clicked",
-        message:
-          "Prepare in Avanza stub clicked. No broker is connected, Avanza was not opened, and no real order was prepared.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          handoff_status: selectedHandoff.status,
-          can_prepare_order: selectedHandoff.canPrepareOrder,
-          can_submit_final_order: selectedHandoff.canSubmitFinalOrder,
-        },
-      }),
-    ]);
-
-    const startPreparation = transitionExecutionLifecycle(
-      localLifecycle,
-      "start_broker_preparation",
-      {
-        createdAt,
-        intentId: selectedIntent.intent_id,
-        handoffVersion: selectedHandoff.version,
-        mode: selectedIntent.mode,
-        action: selectedIntent.action,
-        triggerType: selectedIntent.trigger_type,
-        message:
-          "Local UI stub started broker preparation placeholder. No broker is connected and no real order was prepared.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          can_prepare_order: selectedHandoff.canPrepareOrder,
-          can_submit_final_order: selectedHandoff.canSubmitFinalOrder,
-        },
-      },
-    );
-
-    if (!startPreparation.ok) {
-      setPreparationStubError(startPreparation.error);
-      return;
-    }
-
-    appendExecutionAuditEvents([
-      buildExecutionAuditEventFromLifecycleEvent(
-        startPreparation.event,
-        startPreparation.snapshot,
-      ),
-    ]);
-
-    const followUpEvent =
-      selectedIntent.mode === "automatic"
-        ? "submit_broker_order"
-        : "wait_for_manual_confirmation";
-    const followUpMessage =
-      selectedIntent.mode === "automatic"
-        ? "Local UI stub reached broker_order_submitting placeholder. No broker is connected and no order was submitted."
-        : "Local UI stub reached waiting_for_manual_confirmation placeholder. No broker is connected and no order was prepared.";
-    const followUp = transitionExecutionLifecycle(
-      startPreparation.snapshot,
-      followUpEvent,
-      {
-        createdAt,
-        intentId: selectedIntent.intent_id,
-        handoffVersion: selectedHandoff.version,
-        mode: selectedIntent.mode,
-        action: selectedIntent.action,
-        triggerType: selectedIntent.trigger_type,
-        message: followUpMessage,
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          handoff_status: selectedHandoff.status,
-        },
-      },
-    );
-
-    if (!followUp.ok) {
-      setLocalLifecycle(startPreparation.snapshot);
-      setPreparationStubError(followUp.error);
-      return;
-    }
-
-    appendExecutionAuditEvents([
-      buildExecutionAuditEventFromLifecycleEvent(
-        followUp.event,
-        followUp.snapshot,
-      ),
-    ]);
-
-    setLocalLifecycle(followUp.snapshot);
-    setCaptureBaseLifecycle(followUp.snapshot);
-    setPreparationStubMessage(
-      selectedIntent.mode === "automatic"
-        ? "Automatic preparation stub reached. The bridge-backed diagnostics runner can now test the future agent path, but no real Avanza bridge or broker is connected in this build."
-        : "Preparation stub reached. The bridge-backed diagnostics runner can now test the future agent path, but Avanza will not be opened and no order will be prepared.",
-    );
-
-    if (!avanzaAgentRequest) {
-      return;
-    }
-
-    setIsAgentRunnerRunning(true);
-
-    let runnerLifecycleSnapshot = followUp.snapshot;
-
-    try {
-      const bridgeConfig = readAvanzaAgentBridgeConfig();
-      const runnerFactoryResult = createAvanzaAgentBridgeRunnerFromConfig({
-        selectedTransport: bridgeConfig.selectedTransport,
-        allowUnavailableBridgeSend: true,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          runner_path: "bridge_backed_diagnostics_runner",
-          bridge_backed_runner: true,
-          no_external_avanza_bridge_connected: true,
-          no_browser_automation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-      const runner = runnerFactoryResult.runner;
-      const runnerResult = await runner.run(avanzaAgentRequest, {
-        metadata: {
-          source: "prepare_in_avanza_button",
-          stub_only: true,
-          runner_path: "bridge_backed_diagnostics_runner",
-          bridge_backed_runner: true,
-          bridge_factory_selected_transport: runnerFactoryResult.selectedTransport,
-          bridge_factory_resolved_transport: runnerFactoryResult.resolvedTransport,
-          bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
-          bridge_factory_reason: runnerFactoryResult.reason,
-          bridge_factory_warnings: runnerFactoryResult.warnings,
-          no_external_avanza_bridge_connected: true,
-          no_browser_automation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-        onProgress: async (progressEvent) => {
-          const mappedLifecycleEventType =
-            mapAvanzaAgentProgressToLifecycleEventType(progressEvent.type);
-          const progressAuditEvent = createExecutionAuditEvent({
-            type: "agent_progress_stub",
-            createdAt: progressEvent.createdAt,
-            lifecycleId: runnerLifecycleSnapshot.lifecycleId,
-            intentId: selectedIntent.intent_id,
-            recommendationId: selectedIntent.trading_package.recommendation_id,
-            positionId: selectedIntent.trading_package.live_position_id,
-            ticker: selectedIntent.trading_package.ticker,
-            action: selectedIntent.action,
-            mode: selectedIntent.mode,
-            triggerType: selectedIntent.trigger_type,
-            broker: "avanza",
-            handoffVersion: selectedHandoff.version,
-            handoffStatus: selectedHandoff.status,
-            message:
-              "Bridge-backed Avanza agent diagnostics runner progress event recorded locally. No real Avanza bridge is connected, Avanza was not opened, no order was prepared, no order was submitted, and no broker result was created.",
-            metadata: {
-              stub_only: true,
-              diagnostics_runner: true,
-              bridge_backed_runner: true,
-              bridge_factory_selected_transport:
-                runnerFactoryResult.selectedTransport,
-              bridge_factory_resolved_transport:
-                runnerFactoryResult.resolvedTransport,
-              bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
-              bridge_factory_reason: runnerFactoryResult.reason,
-              bridge_factory_warnings: runnerFactoryResult.warnings,
-              no_external_avanza_bridge_connected: true,
-              broker_connected: false,
-              no_browser_automation: true,
-              no_order_prepared: true,
-              no_order_submitted: true,
-              no_broker_result_created: true,
-              agent_request_id: avanzaAgentRequest.requestId,
-              agent_progress_event_id: progressEvent.eventId,
-              agent_progress_type: progressEvent.type,
-              mapped_lifecycle_event_type: mappedLifecycleEventType,
-            },
-          });
-
-          if (!mappedLifecycleEventType) {
-            appendExecutionAuditEvents([progressAuditEvent]);
-            setAgentProgressTimeline((current) => [
-              {
-                progressEvent,
-                mappedLifecycleEventType: null,
-                lifecycleTransitionStatus: "not_mapped",
-                lifecycleNote:
-                  "No lifecycle transition is mapped for this bridge-backed diagnostics runner progress event.",
-              },
-              ...current,
-            ]);
-            return;
-          }
-
-          const transition = transitionExecutionLifecycle(
-            runnerLifecycleSnapshot,
-            mappedLifecycleEventType,
-            {
-              createdAt: progressEvent.createdAt,
-              intentId: selectedIntent.intent_id,
-              handoffVersion: selectedHandoff.version,
-              mode: selectedIntent.mode,
-              action: selectedIntent.action,
-              triggerType: selectedIntent.trigger_type,
-              message:
-                "Bridge-backed Avanza agent diagnostics runner progress mapped to a local lifecycle transition. No real transport, browser, or broker action occurred.",
-              metadata: {
-                stub_only: true,
-                diagnostics_runner: true,
-                bridge_backed_runner: true,
-                bridge_factory_selected_transport:
-                  runnerFactoryResult.selectedTransport,
-                bridge_factory_resolved_transport:
-                  runnerFactoryResult.resolvedTransport,
-                bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
-                bridge_factory_reason: runnerFactoryResult.reason,
-                bridge_factory_warnings: runnerFactoryResult.warnings,
-                no_external_avanza_bridge_connected: true,
-                broker_connected: false,
-                no_browser_automation: true,
-                no_order_prepared: true,
-                no_order_submitted: true,
-                no_broker_result_created: true,
-                agent_request_id: avanzaAgentRequest.requestId,
-                agent_progress_event_id: progressEvent.eventId,
-                agent_progress_type: progressEvent.type,
-                handoff_status: selectedHandoff.status,
-              },
-            },
-          );
-
-          if (!transition.ok) {
-            appendExecutionAuditEvents([progressAuditEvent]);
-            setAgentProgressTimeline((current) => [
-              {
-                progressEvent,
-                mappedLifecycleEventType,
-                lifecycleTransitionStatus: "invalid",
-                lifecycleNote: transition.error,
-              },
-              ...current,
-            ]);
-            return;
-          }
-
-          appendExecutionAuditEvents([
-            progressAuditEvent,
-            buildExecutionAuditEventFromLifecycleEvent(
-              transition.event,
-              transition.snapshot,
-            ),
-          ]);
-          runnerLifecycleSnapshot = transition.snapshot;
-          setLocalLifecycle(transition.snapshot);
-          setAgentProgressTimeline((current) => [
-            {
-              progressEvent,
-              mappedLifecycleEventType,
-              lifecycleTransitionStatus: "applied",
-              lifecycleNote: `${mappedLifecycleEventType} moved lifecycle to ${transition.snapshot.currentState}.`,
-            },
-            ...current,
-          ]);
-        },
-      });
-
-      setAgentRunnerResult(runnerResult);
-      const storedRun = createStoredAvanzaAgentRun({
-        request: avanzaAgentRequest,
-        result: runnerResult,
-        runner,
-        metadata: {
-          source: "execution_handoff_preview_modal",
-          diagnostics_runner: true,
-          bridge_backed_runner: true,
-          runner_path: "bridge_backed_diagnostics_runner",
-          bridge_factory_selected_transport: runnerFactoryResult.selectedTransport,
-          bridge_factory_resolved_transport: runnerFactoryResult.resolvedTransport,
-          bridge_factory_fallback_used: runnerFactoryResult.fallbackUsed,
-          bridge_factory_reason: runnerFactoryResult.reason,
-          bridge_factory_warnings: runnerFactoryResult.warnings,
-          no_external_avanza_bridge_connected: true,
-          local_diagnostics_only: true,
-          no_browser_automation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          no_broker_result_created: true,
-        },
-      });
-      const runStored = appendAvanzaAgentRun(storedRun);
-      setAgentRunStoreMessage(
-        runStored
-          ? `Local agent run saved for diagnostics. Factory resolved ${runnerFactoryResult.selectedTransport} to ${runnerFactoryResult.resolvedTransport}. No real Avanza bridge is connected, no Avanza session was opened, and no broker order was created.`
-          : `Bridge-backed diagnostics runner finished, but the local agent run could not be saved. Factory resolved ${runnerFactoryResult.selectedTransport} to ${runnerFactoryResult.resolvedTransport}. No Avanza session was opened and no broker order was created.`,
-      );
-      setPreparationStubMessage(
-        `Bridge factory runner finished. ${runnerFactoryResult.reason} Avanza was not opened, no order was prepared or submitted, and no broker result was created.`,
-      );
-    } catch (error) {
-      setAgentRunnerError(
-        error instanceof Error
-          ? error.message
-          : "Bridge-backed diagnostics runner failed safely without broker action.",
-      );
-    } finally {
-      setIsAgentRunnerRunning(false);
-    }
-  }
-
-  function captureStubBrokerResult() {
-    setStubCaptureMessage("");
-    setStubCaptureError("");
-
-    if (!canRunCaptureStub) {
-      setStubCaptureError(
-        "Dev capture stub is available only after the preparation stub reaches its placeholder state.",
-      );
-      return;
-    }
-
-    const capturedAt = new Date().toISOString();
-    const lifecycleForCapture = captureBaseLifecycle ?? localLifecycle;
-    const brokerTimestamp = stubBrokerTimestamp.trim() || capturedAt;
-    const requestedPrice = executionIntentIntendedPrice(selectedIntent);
-    const executedPrice = stubExecutedPrice.trim()
-      ? Number(stubExecutedPrice.trim().replace(",", "."))
-      : null;
-    const brokerResult = {
-      broker: "avanza",
-      broker_hint: "AVANZA" as const,
-      mode: selectedIntent.mode,
-      action: selectedIntent.action,
-      ticker: selectedIntent.trading_package.ticker,
-      instrumentName:
-        "instrumentName" in selectedIntent &&
-        typeof selectedIntent.instrumentName === "string"
-          ? selectedIntent.instrumentName
-          : status.ticker,
-      quantity: selectedIntent.trading_package.quantity,
-      orderType: selectedIntent.trading_package.order_type,
-      requestedPrice,
-      executedPrice: Number.isFinite(executedPrice) ? executedPrice : null,
-      orderId: stubOrderId.trim() || null,
-      brokerTimestamp,
-      status: stubBrokerStatus,
-      captured_at: capturedAt,
-      submitted_at: brokerTimestamp,
-      filled_at:
-        stubBrokerStatus === "filled" ||
-        stubBrokerStatus === "partially_filled"
-          ? brokerTimestamp
-          : null,
-      filled_quantity:
-        stubBrokerStatus === "filled" ||
-        stubBrokerStatus === "partially_filled"
-          ? selectedIntent.trading_package.quantity
-          : null,
-      average_fill_price: Number.isFinite(executedPrice) ? executedPrice : null,
-      broker_order_id: stubOrderId.trim() || null,
-      rejection_reason:
-        stubBrokerStatus === "rejected"
-          ? "Local dev stub rejection. No real broker confirmation was received."
-          : null,
-      cancellation_reason:
-        stubBrokerStatus === "cancelled"
-          ? "Local dev stub cancellation. No real broker confirmation was received."
-          : null,
-      raw_status: `LOCAL_DEV_STUB_${stubBrokerStatus.toUpperCase()}`,
-      rawBrokerSummary:
-        "Local dev broker result capture stub only. This is not a real Avanza confirmation.",
-      notes: [
-        "LOCAL DEV STUB ONLY - not a real Avanza broker confirmation.",
-        "No Avanza browser automation ran and no real order was prepared or submitted.",
-      ],
-    };
-    const captureResult = buildTureExecutionRecord(selectedIntent, brokerResult, {
-      createdAt: capturedAt,
-    });
-    const recordStored = appendExecutionRecord(captureResult.record);
-    setStubCaptureResult(captureResult);
-
-    appendExecutionAuditEvents([
-      createExecutionAuditEvent({
-        type: "broker_result_captured",
-        createdAt: capturedAt,
-        lifecycleId: lifecycleForCapture.lifecycleId,
-        intentId: selectedIntent.intent_id,
-        recommendationId: selectedIntent.trading_package.recommendation_id,
-        positionId: selectedIntent.trading_package.live_position_id,
-        ticker: selectedIntent.trading_package.ticker,
-        action: selectedIntent.action,
-        mode: selectedIntent.mode,
-        triggerType: selectedIntent.trigger_type,
-        broker: "avanza",
-        handoffVersion: selectedHandoff.version,
-        handoffStatus: selectedHandoff.status,
-        brokerStatus: stubBrokerStatus,
-        message:
-          "Dev broker result capture stub recorded locally. No real broker confirmation was received and no Avanza order was executed.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_real_broker_confirmation: true,
-          no_order_prepared: true,
-          no_order_submitted: true,
-          capture_status: captureResult.captureStatus,
-          broker_status: stubBrokerStatus,
-          record_id: captureResult.record.recordId,
-          record_stored_locally: recordStored,
-        },
-      }),
-    ]);
-
-    const captureTransition = transitionExecutionLifecycle(
-      lifecycleForCapture,
-      "capture_broker_result",
-      {
-        createdAt: capturedAt,
-        intentId: selectedIntent.intent_id,
-        mode: selectedIntent.mode,
-        action: selectedIntent.action,
-        triggerType: selectedIntent.trigger_type,
-        brokerStatus: stubBrokerStatus,
-        message:
-          "Local dev stub captured a broker result placeholder. No real broker confirmation was received.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_real_broker_confirmation: true,
-          capture_status: captureResult.captureStatus,
-          broker_status: stubBrokerStatus,
-          record_id: captureResult.record.recordId,
-          record_stored_locally: recordStored,
-          handoff_status: selectedHandoff.status,
-        },
-      },
-    );
-
-    if (!captureTransition.ok) {
-      setStubCaptureError(captureTransition.error);
-      return;
-    }
-
-    appendExecutionAuditEvents([
-      buildExecutionAuditEventFromLifecycleEvent(
-        captureTransition.event,
-        captureTransition.snapshot,
-      ),
-    ]);
-
-    const terminalEvent = terminalExecutionEventForBrokerStatus(
-      stubBrokerStatus,
-      captureResult.captureStatus,
-    );
-    const terminalTransition = transitionExecutionLifecycle(
-      captureTransition.snapshot,
-      terminalEvent,
-      {
-        createdAt: capturedAt,
-        intentId: selectedIntent.intent_id,
-        mode: selectedIntent.mode,
-        action: selectedIntent.action,
-        triggerType: selectedIntent.trigger_type,
-        brokerStatus: stubBrokerStatus,
-        message:
-          "Local dev stub moved the execution lifecycle after broker result capture. No real broker action occurred.",
-        metadata: {
-          stub_only: true,
-          broker_connected: false,
-          no_real_broker_confirmation: true,
-          capture_status: captureResult.captureStatus,
-          broker_status: stubBrokerStatus,
-          record_id: captureResult.record.recordId,
-          record_stored_locally: recordStored,
-          handoff_status: selectedHandoff.status,
-        },
-      },
-    );
-
-    if (terminalTransition.ok) {
-      setLocalLifecycle(terminalTransition.snapshot);
-      setCaptureBaseLifecycle(null);
-      appendExecutionAuditEvents([
-        buildExecutionAuditEventFromLifecycleEvent(
-          terminalTransition.event,
-          terminalTransition.snapshot,
-        ),
-      ]);
-    } else {
-      setLocalLifecycle(captureTransition.snapshot);
-      setStubCaptureError(terminalTransition.error);
-    }
-
-    setStubCaptureMessage(
-      recordStored
-        ? "Dev broker result captured and stored locally. This local record was created by the dev capture stub. It is not a real Avanza confirmation and it does not update the trade."
-        : "Dev broker result captured in the modal, but could not be stored locally. This is not a real Avanza confirmation and it does not update the trade.",
-    );
-  }
-
-  return (
-    <ExecutionHandoffModalShell onClose={onClose}>
-      <ExecutionHandoffModalComposition
-        advancedFormFillPreviewProps={{
-          blocked: localhostAdvancedFormBlocked,
-          canCheck: canCheckLocalhostAdvancedFormFill,
-          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
-          fieldMismatch: localhostAdvancedFormFieldMismatch,
-          filled: localhostAdvancedFormFilled,
-          formFill: localhostAdvancedFormFill,
-          isRunning: isLocalhostAdvancedFormFillRunning,
-          message: localhostAdvancedFormFillMessage,
-          noAvanzaTouched: localhostAdvancedFormNoAvanzaTouched,
-          noBrokerSubmission: localhostAdvancedFormNoBrokerSubmission,
-          noBrowserActions: localhostAdvancedFormNoBrowserActions,
-          noFinalConfirmClick: localhostAdvancedFormNoFinalConfirmClick,
-          noRealFormFieldsFilled: localhostAdvancedFormNoRealFormFieldsFilled,
-          noReviewClick: localhostAdvancedFormNoReviewClick,
-          onCheck: () => void checkLocalhostAdvancedFormFillStub(),
-          orderPageOpened: localhostOrderPageOpened,
-          result: localhostAdvancedFormFillResult,
-          unsupportedMode: localhostAdvancedFormUnsupportedMode,
-          validationError: localhostAdvancedFormValidationError,
-        }}
-        agentProgressStubPanelProps={
-          avanzaAgentRequest
-            ? {
-                agentCommandValue,
-                currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
-                  localLifecycle.currentState,
-                ),
-                currentLifecycleToneClassName: executionLifecycleStubTone(
-                  localLifecycle.currentState,
-                ),
-                error: agentProgressStubError,
-                eventTypes: agentProgressStubEventTypes,
-                formatDate,
-                getProgressDisplayLabel: getAvanzaAgentProgressDisplayLabel,
-                message: agentProgressStubMessage,
-                onAddProgressEvent: addAgentProgressStubEvent,
-                onProgressTypeChange: setSelectedAgentProgressType,
-                requestId: avanzaAgentRequest.requestId,
-                selectedType: selectedAgentProgressType,
-                shortPayloadId,
-                timeline: agentProgressTimeline,
-              }
-            : null
-        }
-        avanzaDryRunReadinessPanelProps={avanzaDryRunReadinessPanelProps}
-        avanzaDryRunRequestPreviewProps={
-          avanzaDryRunRequestPreview
-            ? {
-                agentCommandValue,
-                formatCurrency,
-                formatShares,
-                preview: avanzaDryRunRequestPreview,
-                requestValidationTone: avanzaAgentRequestValidationTone,
-                shortPayloadId,
-              }
-            : null
-        }
-        bridgeRequestEnvelopePreviewProps={
-          avanzaAgentRequest
-            ? {
-                agentCommandValue,
-                envelope: avanzaAgentBridgeEnvelope,
-                envelopeValidation: avanzaAgentBridgeEnvelopeValidation,
-                envelopeValidationStatus:
-                  avanzaAgentBridgeEnvelopeValidationStatus,
-                getTransportDisplayLabel:
-                  getAvanzaAgentBridgeTransportDisplayLabel,
-                previewError: avanzaAgentBridgeEnvelopePreview.error,
-                request: avanzaAgentRequest,
-                requestValidationTone: avanzaAgentRequestValidationTone,
-                shortPayloadId,
-                ticker: packageSnapshot.ticker,
-              }
-            : null
-        }
-        brokerConfirmationCapturePreviewProps={{
-          blocked: localhostBrokerConfirmationBlocked,
-          canCheck: canCheckLocalhostBrokerConfirmationCapture,
-          capture: localhostBrokerConfirmationCapture,
-          captured: localhostBrokerConfirmationCaptured,
-          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
-          isRunning: isLocalhostBrokerConfirmationCaptureRunning,
-          message: localhostBrokerConfirmationCaptureMessage,
-          mismatch: localhostBrokerConfirmationMismatch,
-          noAvanzaTouched: localhostBrokerConfirmationNoAvanzaTouched,
-          noBekrafta: localhostBrokerConfirmationNoBekrafta,
-          noBrokerExecutionResult:
-            localhostBrokerConfirmationNoBrokerExecutionResult,
-          noBrowserActions: localhostBrokerConfirmationNoBrowserActions,
-          noExecutionRecord: localhostBrokerConfirmationNoExecutionRecord,
-          noSupabaseWrite: localhostBrokerConfirmationNoSupabaseWrite,
-          noTradeMutation: localhostBrokerConfirmationNoTradeMutation,
-          onCheck: () => void checkLocalhostBrokerConfirmationCaptureStub(),
-          partial: localhostBrokerConfirmationPartial,
-          rejectedOrCancelled: localhostBrokerConfirmationRejectedOrCancelled,
-          result: localhostBrokerConfirmationCaptureResult,
-        }}
-        brokerExecutionResultEligibilityPreviewProps={{
-          blocked: localhostBrokerExecutionEligibilityBlocked,
-          canCheck: canCheckLocalhostBrokerExecutionEligibility,
-          duplicateRisk: localhostBrokerExecutionDuplicateRisk,
-          eligible: localhostBrokerExecutionEligible,
-          eligibility: localhostBrokerExecutionEligibility,
-          failed: localhostBrokerExecutionEligibilityFailed,
-          hasCaptureEvidence: Boolean(localhostBrokerConfirmationCapture),
-          isRunning: isLocalhostBrokerExecutionEligibilityRunning,
-          message: localhostBrokerExecutionEligibilityMessage,
-          noBrokerExecutionResult:
-            localhostBrokerExecutionEligibilityNoBrokerExecutionResult,
-          noExecutionRecord: localhostBrokerExecutionEligibilityNoExecutionRecord,
-          noSupabaseWrite: localhostBrokerExecutionEligibilityNoSupabaseWrite,
-          noTradeMutation: localhostBrokerExecutionEligibilityNoTradeMutation,
-          notEligible: localhostBrokerExecutionNotEligible,
-          onCheck: () =>
-            void checkLocalhostBrokerExecutionEligibilityStub(),
-          partialOnly: localhostBrokerExecutionPartialOnly,
-          result: localhostBrokerExecutionEligibilityResult,
-        }}
-        brokerExecutionResultPreviewProps={{
-          canCheck: canCheckLocalhostBrokerExecutionPreview,
-          formatTimestamp: formatDate,
-          hasCaptureOrEligibilityEvidence: Boolean(
-            localhostBrokerConfirmationCapture ||
-              localhostBrokerExecutionEligibility,
-          ),
-          isRunning: isLocalhostBrokerExecutionPreviewRunning,
-          message: localhostBrokerExecutionPreviewMessage,
-          noExecutionRecord: localhostBrokerExecutionPreviewNoExecutionRecord,
-          noRealBrokerExecutionResult:
-            localhostBrokerExecutionPreviewNoRealBrokerExecutionResult,
-          noSupabaseWrite: localhostBrokerExecutionPreviewNoSupabaseWrite,
-          noTradeMutation: localhostBrokerExecutionPreviewNoTradeMutation,
-          onCheck: () => void checkLocalhostBrokerExecutionPreviewStub(),
-          result: localhostBrokerExecutionPreviewResult,
-        }}
-        coreSummaryProps={{
-          authorityMessage,
-          handoffStatusLabel: "Handoff " + agentCommandValue(handoff.status),
-          handoffStatusToneClassName: executionHandoffStatusTone(
-            handoff.status,
-          ),
-          identity: (
-            <CompanyIdentity
-              ticker={packageSnapshot.ticker}
-              companyName={status.ticker ?? packageSnapshot.ticker}
-              size="live"
-            />
-          ),
-          statusBadgeClassName: executionUiStatusBadgeClassName(
-            status.badgeTone,
-          ),
-          statusDescription: status.description,
-          statusLabel: status.label,
-          statusPanelClassName: executionUiStatusPanelClassName(
-            status.severity,
-          ),
-          statusTitle: status.title,
-        }}
-        executionBrokerCaptureStubPanelProps={
-          devCaptureStubVisible
-            ? {
-                agentCommandValue,
-                brokerStatus: stubBrokerStatus,
-                brokerTimestamp: stubBrokerTimestamp,
-                canRunCaptureStub,
-                captureResult: stubCaptureResult,
-                currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
-                  localLifecycle.currentState,
-                ),
-                currentLifecycleToneClassName: executionLifecycleStubTone(
-                  localLifecycle.currentState,
-                ),
-                error: stubCaptureError,
-                executedPrice: stubExecutedPrice,
-                formatCurrency,
-                formatShares,
-                message: stubCaptureMessage,
-                onBrokerStatusChange: setStubBrokerStatus,
-                onBrokerTimestampChange: setStubBrokerTimestamp,
-                onCaptureStubBrokerResult: captureStubBrokerResult,
-                onExecutedPriceChange: setStubExecutedPrice,
-                onOrderIdChange: setStubOrderId,
-                orderId: stubOrderId,
-                shortPayloadId,
-              }
-            : null
-        }
-        executionDevToolsEnabled={executionDevToolsEnabled}
-        executionLifecycleStatusPanelProps={{
-          agentCommandValue,
-          agentRunStoreMessage,
-          agentRunnerError,
-          agentRunnerResult,
-          canRunPreparationStub,
-          currentLifecycleLabel: getExecutionLifecycleDisplayLabel(
-            localLifecycle.currentState,
-          ),
-          currentLifecycleToneClassName: executionLifecycleStubTone(
-            localLifecycle.currentState,
-          ),
-          executionDevToolsEnabled,
-          onRunPreparationStub: runPreparationStub,
-          preparationButtonLabel: isAgentRunnerRunning
-            ? "Running bridge diagnostics"
-            : preparationStubReached
-              ? "Stub reached"
-              : executionDevToolsEnabled
-                ? "Prepare in Avanza"
-                : "Not connected",
-          preparationStatusMessage:
-            handoff.status === "ready"
-              ? executionDevToolsEnabled
-                ? "Ready handoff. The bridge-backed diagnostics runner tests where a future Avanza agent bridge would begin without opening Avanza."
-                : "Ready handoff. Avanza preparation is disabled because execution dev tools are off."
-              : "Preparation is disabled until the handoff is ready.",
-          preparationStubError,
-          preparationStubMessage,
-          shortPayloadId,
-        }}
-        executionRecordEligibilityPreviewProps={{
-          canCheck: canCheckLocalhostExecutionRecordEligibility,
-          candidateIsPreviewOnly: executionRecordEligibilityCandidateIsPreviewOnly,
-          hasPreviewCandidate: Boolean(executionRecordEligibilityCandidate),
-          isRunning: isLocalhostExecutionRecordEligibilityRunning,
-          message: localhostExecutionRecordEligibilityMessage,
-          noBrokerExecutionResult: localhostExecutionRecordNoBrokerExecutionResult,
-          noExecutionRecord: localhostExecutionRecordNoExecutionRecord,
-          noSupabaseWrite: localhostExecutionRecordNoSupabaseWrite,
-          noTradeMutation: localhostExecutionRecordNoTradeMutation,
-          onCheck: () => void checkLocalhostExecutionRecordEligibilityStub(),
-          result: localhostExecutionRecordEligibilityResult,
-        }}
-        executionSandboxQaPanelProps={{
-          items: executionSandboxQaItems,
-          overallMessage: sandboxOverallMessage,
-          overallStatus: sandboxOverallStatus,
-        }}
-        futureAgentRequestPreviewProps={{
-          agentCommandValue,
-          executionDevToolsEnabled,
-          formatShares,
-          previewError: avanzaAgentRequestPreview.error,
-          quantity: packageSnapshot.quantity,
-          request: avanzaAgentRequest,
-          requestValidation: avanzaAgentRequestValidation,
-          requestValidationStatus: avanzaAgentRequestValidationStatus,
-          requestValidationTone: avanzaAgentRequestValidationTone,
-          shortPayloadId,
-          ticker: packageSnapshot.ticker,
-        }}
-        instrumentPagePreviewProps={{
-          blocked: localhostInstrumentPageBlocked,
-          canCheck: canCheckLocalhostInstrumentPage,
-          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
-          identified: localhostInstrumentPageIdentified,
-          instrumentVerified: localhostInstrumentVerified,
-          isRunning: isLocalhostInstrumentPageRunning,
-          message: localhostInstrumentPageMessage,
-          mismatch: localhostInstrumentPageMismatch,
-          noAvanzaTouched: localhostInstrumentPageNoAvanzaTouched,
-          noBrokerSubmission: localhostInstrumentPageNoBrokerSubmission,
-          noBrowserActions: localhostInstrumentPageNoBrowserActions,
-          noBuySellClick: localhostInstrumentPageNoBuySellClick,
-          noFormFill: localhostInstrumentPageNoFormFill,
-          noOrderPageOpened: localhostInstrumentPageNoOrderPageOpened,
-          onCheck: () => void checkLocalhostInstrumentPageStub(),
-          page: localhostInstrumentPage,
-          prohibitedControlsVisible:
-            localhostInstrumentPageProhibitedControlsVisible,
-          result: localhostInstrumentPageResult,
-        }}
-        instrumentVerificationPreviewProps={{
-          ambiguous: localhostInstrumentAmbiguous,
-          blocked: localhostInstrumentBlocked,
-          canCheck: canCheckLocalhostInstrumentVerification,
-          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
-          isRunning: isLocalhostInstrumentVerificationRunning,
-          message: localhostInstrumentVerificationMessage,
-          noAvanzaTouched: localhostInstrumentNoAvanzaTouched,
-          noBrokerSubmission: localhostInstrumentNoBrokerSubmission,
-          noBrowserActions: localhostInstrumentNoBrowserActions,
-          noFormFill: localhostInstrumentNoFormFill,
-          noOrderPageOpened: localhostInstrumentNoOrderPageOpened,
-          onCheck: () => void checkLocalhostInstrumentVerificationStub(),
-          rejected: localhostInstrumentRejected,
-          result: localhostInstrumentVerificationResult,
-          searchOnlyExactMatch: localhostSearchOnlyExactMatch,
-          verification: localhostInstrumentVerification,
-          verified: localhostInstrumentVerified,
-        }}
-        orderPageOpenPreviewProps={{
-          blocked: localhostOrderPageBlocked,
-          canCheck: canCheckLocalhostOrderPageOpen,
-          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
-          instrumentPageIdentified: localhostInstrumentPageIdentified,
-          isRunning: isLocalhostOrderPageOpenRunning,
-          message: localhostOrderPageOpenMessage,
-          mismatch: localhostOrderPageMismatch,
-          noAvanzaTouched: localhostOrderPageNoAvanzaTouched,
-          noBrokerSubmission: localhostOrderPageNoBrokerSubmission,
-          noBrowserActions: localhostOrderPageNoBrowserActions,
-          noFinalConfirmClick: localhostOrderPageNoFinalConfirmClick,
-          noFormFill: localhostOrderPageNoFormFill,
-          noRealOrderPageOpened: localhostOrderPageNoRealOrderPageOpened,
-          noReviewClick: localhostOrderPageNoReviewClick,
-          onCheck: () => void checkLocalhostOrderPageOpenStub(),
-          opened: localhostOrderPageOpened,
-          orderPage: localhostOrderPageOpen,
-          result: localhostOrderPageOpenResult,
-          wrongAction: localhostOrderPageWrongAction,
-        }}
-        primaryLocalhostBridgeControlsProps={{
-          canCancelLocalhostBridgeRun,
-          canCheckLocalhostBridgeSelfCheck,
-          canRunLocalhostBridgeDryRun,
-          canRunLocalhostMockAgent,
-          canTestLocalhostDryRunBridgeStub,
-          dryRunRequestValid: avanzaDryRunRequestPreview?.ok === true,
-          isLocalhostBridgeCancelRunning,
-          isLocalhostBridgeRunRunning,
-          isLocalhostBridgeSelfCheckRunning,
-          isLocalhostDryRunBridgeStubRunning,
-          isLocalhostMockAgentRunRunning,
-          localhostBridgeCancelMessage,
-          localhostBridgeCancelResult,
-          localhostBridgeRunMessage,
-          localhostBridgeRunResult,
-          localhostBridgeSelfCheckMessage,
-          localhostBridgeSelfCheckResult,
-          localhostDryRunBridgeStubMessage,
-          localhostDryRunBridgeStubResult,
-          localhostMockAgentRunMessage,
-          localhostMockAgentRunResult,
-          onCancelLocalhostBridgeEcho: () => void cancelLocalhostBridgeEcho(),
-          onCheckLocalhostBridgeSelfCheck: () =>
-            void checkLocalhostBridgeSelfCheck(),
-          onRunLocalhostBridgeEcho: () => void runLocalhostBridgeEcho(),
-          onRunLocalhostMockAgent: () => void runLocalhostMockAgent(),
-          onTestLocalhostDryRunBridgeStub: () =>
-            void testLocalhostDryRunBridgeStub(),
-          showDryRunBridgePreview: executionDevToolsEnabled,
-          showLocalhostBridgeEchoControls: false,
-        }}
-        reviewClickPreviewProps={{
-          advancedFormFilled: localhostAdvancedFormFilled,
-          blocked: localhostReviewClickBlocked,
-          canCheck: canCheckLocalhostReviewClick,
-          confirmationMismatch: localhostReviewClickConfirmationMismatch,
-          confirmationReady: localhostReviewClickConfirmationReady,
-          dryRunRequestValid: Boolean(avanzaDryRunRequestPreview?.ok),
-          finalConfirmBlocked: localhostReviewClickFinalConfirmBlocked,
-          isRunning: isLocalhostReviewClickRunning,
-          message: localhostReviewClickMessage,
-          noAvanzaTouched: localhostReviewClickNoAvanzaTouched,
-          noBrokerResult: localhostReviewClickNoBrokerResult,
-          noBrowserActions: localhostReviewClickNoBrowserActions,
-          noFinalConfirmClick: localhostReviewClickNoFinalConfirmClick,
-          noRealReviewClick: localhostReviewClickNoRealReviewClick,
-          noTradeMutation: localhostReviewClickNoTradeMutation,
-          onCheck: () => void checkLocalhostReviewClickStub(),
-          result: localhostReviewClickResult,
-          reviewClick: localhostReviewClick,
-          validationError: localhostReviewClickValidationError,
-          waitingForManualConfirmation:
-            localhostReviewClickWaitingForManualConfirmation,
-        }}
-        searchOnlyPreviewProps={{
-          ambiguous: localhostSearchOnlyAmbiguous,
-          blocked: localhostSearchOnlyBlocked,
-          canCheck: canCheckLocalhostSearchOnly,
-          exactMatch: localhostSearchOnlyExactMatch,
-          expectedInstrumentValid: avanzaSearchOnlyExpectedInstrumentValid,
-          isRunning: isLocalhostSearchOnlyRunning,
-          message: localhostSearchOnlyMessage,
-          noAvanzaTouched: localhostSearchOnlyNoAvanzaTouched,
-          noBrokerSubmission: localhostSearchOnlyNoBrokerSubmission,
-          noBrowserActions: localhostSearchOnlyNoBrowserActions,
-          noMatch: localhostSearchOnlyNoMatch,
-          noOrderPageOpened: localhostSearchOnlyNoOrderPageOpened,
-          onCheck: () => void checkLocalhostSearchOnlyStub(),
-          result: localhostSearchOnlyResult,
-          searchOnly: localhostSearchOnly,
-        }}
-        secondaryLocalhostBridgeControlsProps={{
-          canCancelLocalhostBridgeRun,
-          canCheckLocalhostBridgeSelfCheck,
-          canRunLocalhostBridgeDryRun,
-          canRunLocalhostMockAgent,
-          canTestLocalhostDryRunBridgeStub,
-          dryRunRequestValid: avanzaDryRunRequestPreview?.ok === true,
-          isLocalhostBridgeCancelRunning,
-          isLocalhostBridgeRunRunning,
-          isLocalhostBridgeSelfCheckRunning,
-          isLocalhostDryRunBridgeStubRunning,
-          isLocalhostMockAgentRunRunning,
-          localhostBridgeCancelMessage,
-          localhostBridgeCancelResult,
-          localhostBridgeRunMessage,
-          localhostBridgeRunResult,
-          localhostBridgeSelfCheckMessage,
-          localhostBridgeSelfCheckResult,
-          localhostDryRunBridgeStubMessage,
-          localhostDryRunBridgeStubResult,
-          localhostMockAgentRunMessage,
-          localhostMockAgentRunResult,
-          onCancelLocalhostBridgeEcho: () => void cancelLocalhostBridgeEcho(),
-          onCheckLocalhostBridgeSelfCheck: () =>
-            void checkLocalhostBridgeSelfCheck(),
-          onRunLocalhostBridgeEcho: () => void runLocalhostBridgeEcho(),
-          onRunLocalhostMockAgent: () => void runLocalhostMockAgent(),
-          onTestLocalhostDryRunBridgeStub: () =>
-            void testLocalhostDryRunBridgeStub(),
-          showDryRunBridgePreview: false,
-          showLocalhostBridgeEchoControls:
-            executionDevToolsEnabled &&
-            Boolean(avanzaAgentRequest && avanzaAgentBridgeEnvelope),
-        }}
-        sessionDetectionPreviewProps={{
-          canCheck: canCheckLocalhostSessionDetection,
-          isRunning: isLocalhostSessionDetectionRunning,
-          message: localhostSessionDetectionMessage,
-          noAvanzaTouched: localhostSessionDetectionNoAvanzaTouched,
-          noBrowserActions: localhostSessionDetectionNoBrowserActions,
-          onCheck: () => void checkLocalhostSessionDetectionStub(),
-          readyForSearchOnly: localhostSessionDetectionReadyForSearchOnly,
-          result: localhostSessionDetectionResult,
-          sessionDetection: localhostSessionDetection,
-        }}
-        statusReadbacksProps={{
-          blockedReason: handoff.blockedReason,
-          details: [
-            { label: "Action", value: intent.action.toUpperCase() },
-            { label: "Ticker", value: packageSnapshot.ticker },
-            { label: "Quantity", value: formatShares(packageSnapshot.quantity) },
-            {
-              label: "Intended Price",
-              value: formatCurrency(executionIntentIntendedPrice(intent)),
-            },
-            {
-              label: "Target",
-              value: formatCurrency(packageSnapshot.target_price),
-            },
-            {
-              label: "Stop Loss",
-              value: formatCurrency(packageSnapshot.stop_loss),
-            },
-            { label: "Trigger", value: agentCommandValue(intent.trigger_type) },
-            { label: "Mode", value: agentCommandValue(intent.mode) },
-            { label: "Broker", value: "Avanza" },
-            {
-              label: "Can Prepare",
-              value: agentCommandValue(handoff.canPrepareOrder),
-            },
-            {
-              label: "Can Submit Final",
-              value: agentCommandValue(handoff.canSubmitFinalOrder),
-            },
-            { label: "Intent", value: shortPayloadId(intent.intent_id) },
-          ],
-          handoffStatusLabel: agentCommandValue(handoff.status),
-          handoffStatusToneClassName: executionHandoffStatusTone(
-            handoff.status,
-          ),
-          intentReason: executionIntentReason(intent),
-          onClose,
-          safetyChecks: handoff.safetyChecks.map((check) => ({
-            id: agentCommandValue(check.id),
-            message: check.message,
-            status: check.status,
-            toneClassName: executionSafetyCheckTone(check.status),
-          })),
-        }}
-      />
-    </ExecutionHandoffModalShell>
-  );
 }
 
 function SellHardStopContractPanel({
@@ -33492,6 +33768,7 @@ function ClosePositionModal({
             <CompanyIdentity
               ticker={position.ticker}
               companyName={position.companyName}
+              logoUrl={position.logoUrl}
               size="live"
             />
             <RecommendationDetailsPill label="Close Position" tone="danger" />
@@ -37059,6 +37336,12 @@ function MarketDiagnosticsConsolePanel({
   summaryJson: string;
 }) {
   const [copyStatus, setCopyStatus] = useState("");
+  const continuousIntelligenceBudgetPlanJsonText =
+    summary.continuous_intelligence_budget_plan
+      ? continuousIntelligenceBudgetPlanJson(
+          summary.continuous_intelligence_budget_plan,
+        )
+      : "";
   const preview = summary.copy_payloads.summary_text.content
     .split("\n")
     .slice(0, 36)
@@ -37248,6 +37531,126 @@ function MarketDiagnosticsConsolePanel({
         data-json-character-count={summary.copy_payloads.json.character_count}
       >
         {summaryJson}
+      </pre>
+      {summary.continuous_intelligence_budget_plan && (
+        <pre
+          id="trade-continuous-intelligence-budget-plan-json"
+          className="sr-only"
+          data-contract={summary.continuous_intelligence_budget_plan.contract}
+          data-status={summary.continuous_intelligence_budget_plan.status}
+          data-session={summary.continuous_intelligence_budget_plan.session}
+          data-allocated-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .allocated_credits
+          }
+          data-reserved-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .reserved_credits
+          }
+          data-websocket-slots={
+            summary.continuous_intelligence_budget_plan.websocket_hot_set
+              .assigned_count
+          }
+        >
+          {continuousIntelligenceBudgetPlanJsonText}
+        </pre>
+      )}
+      <pre
+        id="trade-shared-candle-cache-rolling-rest-collector-json"
+        className="sr-only"
+        data-shadow-mode-enabled={
+          summary.shared_candle_cache_rolling_rest_collector?.shadow_mode_enabled ??
+          false
+        }
+        data-collector-status={
+          summary.shared_candle_cache_rolling_rest_collector?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.shared_candle_cache_rolling_rest_collector ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-authenticated-shadow-collector-dry-run-json"
+        className="sr-only"
+        data-route-present={
+          summary.authenticated_shadow_collector_dry_run?.route_present ?? false
+        }
+        data-status={
+          summary.authenticated_shadow_collector_dry_run?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.authenticated_shadow_collector_dry_run ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-preflight-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof_preflight?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof_preflight?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof_preflight ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-operator-authorization-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_operator_authorization?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_operator_authorization?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_operator_authorization ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-live-proof-receipt-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_live_proof_receipt?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_live_proof_receipt?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_live_proof_receipt ?? null,
+          null,
+          2,
+        )}
       </pre>
     </section>
   );
@@ -39373,18 +39776,31 @@ function HistorySection({
 function CompanyIdentity({
   ticker,
   companyName,
+  logoUrl,
   size = "normal",
 }: {
   ticker: string;
   companyName?: string | null;
+  logoUrl?: string | null;
   size?: "normal" | "compact" | "live";
 }) {
   const safeTicker = text(ticker, "—").toUpperCase();
   const safeCompanyName = text(companyName, safeTicker);
   const initials = safeTicker.slice(0, 2) || "T";
+  const normalizedLogoUrl = normalizeCompanyLogoUrl(logoUrl);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
+  const shouldShowLogo =
+    size === "live" &&
+    Boolean(normalizedLogoUrl) &&
+    normalizedLogoUrl !== failedLogoUrl;
+  const shouldShowFallbackLogo = size === "live" && !shouldShowLogo;
   const avatarClassName =
     size === "live"
-      ? "trade-company-identity__avatar trade-company-identity__avatar--live"
+      ? `trade-company-identity__avatar trade-company-identity__avatar--live ${
+          shouldShowLogo || shouldShowFallbackLogo
+            ? "trade-company-identity__avatar--has-logo"
+            : ""
+        }`
       : `flex shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] font-mono font-bold uppercase tracking-[0.08em] text-zinc-200 ${
           size === "compact" ? "h-10 w-10 text-xs" : "h-12 w-12 text-sm"
         }`;
@@ -39402,10 +39818,30 @@ function CompanyIdentity({
   return (
     <div className="trade-company-identity flex min-w-0 items-center gap-3">
       <div
-        aria-hidden="true"
+        aria-hidden={shouldShowLogo ? undefined : true}
         className={avatarClassName}
       >
-        {initials}
+        {shouldShowLogo && normalizedLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={normalizedLogoUrl}
+            alt={`${safeCompanyName} logo`}
+            className="trade-company-identity__avatar-logo"
+            loading="lazy"
+            onError={() => setFailedLogoUrl(normalizedLogoUrl)}
+          />
+        ) : shouldShowFallbackLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={TURE_STOCK_FALLBACK_LOGO_SRC}
+            alt=""
+            aria-hidden="true"
+            className="trade-company-identity__avatar-logo trade-company-identity__avatar-logo--fallback"
+            loading="lazy"
+          />
+        ) : (
+          <span aria-hidden="true">{initials}</span>
+        )}
       </div>
       <div className="min-w-0">
         <div className={tickerClassName}>
@@ -39523,6 +39959,82 @@ function LiveMetricGrid({
   );
 }
 
+function DashboardNavigation({
+  activeTab,
+  onTabChange,
+  statusbar,
+}: {
+  activeTab: DashboardTab | null;
+  onTabChange: (tab: Tab) => void;
+  statusbar: React.ReactNode;
+}) {
+  return (
+    <section className="trade-dashboard-navigation">
+      <nav className="trade-primary-tabs" aria-label="Dashboard navigation">
+        {dashboardTabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => onTabChange(tab.key)}
+              aria-current={isActive ? "page" : undefined}
+              className={`trade-primary-tab ${
+                isActive ? "trade-primary-tab--active" : ""
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {statusbar}
+    </section>
+  );
+}
+
+function DashboardStatusLottieIcon() {
+  const containerRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!document.getElementById(dotLottieWebComponentScriptId)) {
+      const script = document.createElement("script");
+      script.id = dotLottieWebComponentScriptId;
+      script.src = dotLottieWebComponentScriptSrc;
+      script.type = "module";
+      document.head.appendChild(script);
+    }
+
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const lottieElement = document.createElement("dotlottie-wc");
+    lottieElement.setAttribute("src", autoAnalyzingLottieSrc);
+    lottieElement.setAttribute("autoplay", "");
+    lottieElement.setAttribute("loop", "");
+    lottieElement.setAttribute("aria-hidden", "true");
+    lottieElement.className = "trade-primary-statusbar__lottie-element";
+    container.appendChild(lottieElement);
+
+    return () => {
+      lottieElement.remove();
+    };
+  }, []);
+
+  return (
+    <span
+      ref={containerRef}
+      className="trade-primary-statusbar__lottie"
+      aria-hidden="true"
+    />
+  );
+}
+
 function TradePrimaryStatusbar({
   updateLabel,
   updatedAt,
@@ -39545,13 +40057,7 @@ function TradePrimaryStatusbar({
   return (
     <div className="trade-primary-statusbar">
       <div className="trade-primary-statusbar__analysis">
-        <Image
-          src="/trade-assets/ture-logo-mark.svg"
-          alt=""
-          aria-hidden="true"
-          width={20}
-          height={20}
-        />
+        <DashboardStatusLottieIcon />
         <span>Auto analyzing trades</span>
       </div>
 
@@ -39581,11 +40087,19 @@ function TradePrimaryStatusbar({
 
       <button
         type="button"
-        className="trade-primary-statusbar__refresh"
+        className={`trade-primary-statusbar__refresh ${
+          isRefreshing ? "trade-primary-statusbar__refresh--refreshing" : ""
+        }`}
+        aria-label={
+          isRefreshing
+            ? "Refreshing dashboard data"
+            : "Refresh dashboard data"
+        }
+        aria-busy={isRefreshing}
         onClick={onRefresh}
         disabled={isDisabled || isRefreshing}
       >
-        {isRefreshing ? "Refreshing" : "Refresh"}
+        {isRefreshing ? "REFRESHING" : "REFRESH"}
       </button>
     </div>
   );

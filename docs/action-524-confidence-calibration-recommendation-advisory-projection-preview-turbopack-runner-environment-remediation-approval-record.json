@@ -1,0 +1,205 @@
+{
+  "schema_version": "action_524_turbopack_runner_environment_remediation_approval_record_v1",
+  "source_action": 523,
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "change_candidate_hash": "bc43bd1fe8f61561ddededd2263d64f7d12f37db46d184e3bfd0ea55a8b538de",
+  "full_candidate_inventory_hash": "80620318166b0b9e1858cff3f12fc78d9ad77d9116655335e1c7fd7e566930b0",
+  "candidate_file_count": 32,
+  "remediated_route_path": "app/api/recommendations/evaluate-outcomes/route.ts",
+  "remediated_route_hash": "26407a8b78625a19a48a02ecf44e03db1642998da5f1d8acc5e8d47227773265",
+  "route_export_surface": [
+    "POST"
+  ],
+  "action_522_candidate_rehearsal_result": "full_candidate_rehearsal_failed",
+  "action_522_overall_readiness": "blocked",
+  "action_523_decision": "approved",
+  "action_523_remediation_readiness": "build_failure_remediation_ready",
+  "candidate_source_defect_proven": false,
+  "candidate_source_defect_status": "candidate_defect_not_proven",
+  "runtime_build_closure_reassessment": "candidate_runtime_build_closure_still_complete",
+  "active_worktree_build_evidence_role": "diagnostic_context_only",
+  "active_worktree_build_establishes_candidate_readiness": false,
+  "deployment_readiness": false,
+  "turbopack_blocker": "turbopack_process_resource_error",
+  "webpack_blocker": "webpack_runner_environment_error",
+  "combined_runner_blocker": "candidate_build_runner_environment_contract_incomplete",
+  "turbopack_resource_cause": "turbopack_process_resource_combination",
+  "turbopack_resource_evidence_basis": [
+    "action_523_authoritative_first_causal_error_mentions_app_globals_css",
+    "action_523_authoritative_first_causal_error_mentions_creating_new_process",
+    "action_523_authoritative_first_causal_error_mentions_binding_to_a_port"
+  ],
+  "webpack_environment_evidence_basis": [
+    "action_523_webpack_first_causal_error_mentions_collecting_page_data",
+    "action_523_webpack_first_causal_error_mentions_missing_next_public_supabase_url_or_anon_key"
+  ],
+  "environment_key_classification_policy": "static_source_reference_audit_without_value_readback",
+  "required_public_build_signals": [
+    {
+      "key_name": "NEXT_PUBLIC_SUPABASE_URL",
+      "classification": "required_public_build_signal",
+      "source_reference_locations": [
+        "lib/supabase.ts:3",
+        "lib/supabase.ts:8",
+        "lib/supabase-server.ts:10",
+        "lib/supabase-server.ts:48",
+        "app/trade-app.tsx:14318",
+        "app/api/historical-backfill/first-tiny-signal-package-discovery-readback/route.ts:203"
+      ],
+      "presence_classification": "requires_action_525_parent_environment_presence_check",
+      "value_shape_classification": "not_inspected_action_524_static_only_expected_absolute_public_supabase_url",
+      "needed_during_candidate_build": true
+    },
+    {
+      "key_name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "classification": "required_public_build_signal",
+      "source_reference_locations": [
+        "lib/supabase.ts:4",
+        "lib/supabase.ts:8",
+        "lib/supabase-server.ts:49",
+        "app/trade-app.tsx:14319"
+      ],
+      "presence_classification": "requires_action_525_parent_environment_presence_check",
+      "value_shape_classification": "not_inspected_action_524_static_only_expected_public_anon_key_like_string",
+      "needed_during_candidate_build": true
+    }
+  ],
+  "optional_public_build_signals": [
+    {
+      "key_name": "NEXT_PUBLIC_PROVIDER_BACKGROUND_SCANS_PER_DAY",
+      "classification": "optional_public_build_signal",
+      "source_reference_locations": [
+        "app/trade-app.tsx:14304"
+      ],
+      "presence_classification": "not_required_for_action_524_candidate_rehearsal_remediation",
+      "value_shape_classification": "not_inspected_action_524_static_only_optional_numeric_public_signal",
+      "needed_during_candidate_build": false
+    }
+  ],
+  "server_only_secret_classifications": [
+    {
+      "key_name": "SUPABASE_SERVICE_ROLE_KEY",
+      "classification": "server_only_secret_not_required_for_build",
+      "source_reference_locations": [
+        "lib/supabase-server.ts:12",
+        "app/api/historical-backfill/first-tiny-signal-package-discovery-readback/route.ts:214"
+      ],
+      "propagation_allowed": false,
+      "needed_during_candidate_build": false
+    },
+    {
+      "key_name": "SUPABASE_SERVICE_ROLE",
+      "classification": "server_only_secret_not_required_for_build",
+      "source_reference_locations": [
+        "lib/supabase-server.ts:13",
+        "app/api/historical-backfill/first-tiny-signal-package-discovery-readback/route.ts:215"
+      ],
+      "propagation_allowed": false,
+      "needed_during_candidate_build": false
+    },
+    {
+      "key_name": "SUPABASE_SERVICE_ROLE_SECRET",
+      "classification": "server_only_secret_not_required_for_build",
+      "source_reference_locations": [
+        "lib/supabase-server.ts:14",
+        "app/api/historical-backfill/first-tiny-signal-package-discovery-readback/route.ts:216"
+      ],
+      "propagation_allowed": false,
+      "needed_during_candidate_build": false
+    }
+  ],
+  "rejected_secret_key_classes": [
+    "service_role_keys",
+    "database_passwords",
+    "private_api_keys",
+    "provider_secrets",
+    "netlify_auth_tokens",
+    "cookies",
+    "access_tokens",
+    "refresh_tokens",
+    "connection_strings",
+    "private_signing_material"
+  ],
+  "server_only_secrets_required_for_build": false,
+  "public_build_environment_policy": "public_build_environment_allowlist",
+  "public_build_environment_allowlist": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  ],
+  "environment_propagation_policy": "ephemeral_allowlisted_build_environment_propagation",
+  "raw_environment_values_recorded": false,
+  "full_environment_enumerated": false,
+  "environment_persisted": false,
+  "environment_restored": true,
+  "presence_check_policy": {
+    "future_action": "action_525_candidate_build_runner_environment_precheck_completion_gate",
+    "required_presence_classifications": [
+      "present_in_parent_environment",
+      "absent_in_parent_environment",
+      "unavailable",
+      "invalid_shape",
+      "ambiguous"
+    ],
+    "abort_if_required_signal_absent": true,
+    "placeholder_values_allowed": false,
+    "fake_production_values_allowed": false,
+    "webpack_or_turbopack_allowed_before_required_presence_check": false
+  },
+  "sanitization_policy": {
+    "unsanitized_intermediate_log_allowed": false,
+    "redact_public_build_signal_values": true,
+    "redact_tokens": true,
+    "redact_urls_with_query_data": true,
+    "redact_auth_headers": true,
+    "redact_cookies": true,
+    "redact_credentials": true,
+    "redact_home_paths": true,
+    "redact_usernames": true,
+    "redact_absolute_machine_paths": true,
+    "redact_complete_environment_dumps": true
+  },
+  "required_runner_capability_prechecks": [
+    "child_process_spawn_precheck",
+    "local_loopback_availability_precheck",
+    "ephemeral_local_port_binding_precheck",
+    "local_socket_creation_precheck",
+    "temp_directory_read_write_precheck",
+    "build_output_directory_writability_precheck",
+    "file_descriptor_resource_availability_precheck"
+  ],
+  "runner_capability_expected_status": "runner_capability_ready_with_conditions",
+  "runner_policy": "authoritative_npm_run_build_with_process_scoped_runner_condition_prechecks_only",
+  "authoritative_build_command": "npm run build",
+  "authoritative_build_script_must_remain": "next build",
+  "webpack_comparison_policy": "diagnostic_only_after_authoritative_failure_same_approved_public_build_environment",
+  "webpack_can_establish_readiness": false,
+  "candidate_change_required": false,
+  "candidate_hash_change_required": false,
+  "package_or_config_change_required": false,
+  "package_script_change_required": false,
+  "next_config_change_required": false,
+  "build_authorized": false,
+  "rehearsal_authorized": false,
+  "deployment_authorized": false,
+  "activation_authorized": false,
+  "webpack_execution_authorized": false,
+  "candidate_reconstruction_authorized": false,
+  "network_authorized": false,
+  "install_authorized": false,
+  "provider_call_authorized": false,
+  "supabase_access_authorized": false,
+  "persistence_authorized": false,
+  "replay_authorized": false,
+  "confidence_application_authorized": false,
+  "feedback_authorized": false,
+  "downstream_behavior_change_authorized": false,
+  "remediation_readiness": "runner_environment_remediation_ready_with_conditions",
+  "approval_decision": "approved_with_conditions",
+  "unresolved_conditions": [
+    "required_public_build_signal_presence_and_shape_must_be_checked_without_value_retention",
+    "turbopack_child_process_and_local_port_resource_capability_must_be_prechecked",
+    "local_socket_temp_output_and_file_descriptor_capabilities_must_be_prechecked"
+  ],
+  "next_action": "action_525_candidate_build_runner_environment_precheck_completion_gate",
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs"
+}

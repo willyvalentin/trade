@@ -1,0 +1,147 @@
+Action: 846 - Controlled Audit Writer Live Smoke Insert Retry
+Workspace: /Users/willysimonsson/Dev/trade
+Project: Trade
+Project ref: ekdyopdrrkphlrsilyoo
+Environment: staging
+Target table: public.execution_record_audit_events
+Controlled execution record id: 5d682086-4195-40ec-ba80-a0a1b39a6923
+Approval timestamp: 2026-06-26 04:23 CEST
+Operator: Willy Simonsson
+Command operator: Codex/local terminal
+Verification reviewer: Willy Simonsson
+
+## 1. Purpose
+
+Run one controlled audit writer live smoke insert retry through the approved
+server-only production write path after Action 844 added diagnostic capture and
+mapped live insert `event_status` to `attempted`.
+
+This action is not production rollout, not UI/browser invocation, not
+market-loop/scanner/automation invocation, not broker/Avanza behavior, not
+automatic mode, and not downstream trade/stats/PnL mutation.
+
+## 2. Scope Used
+
+- Operation: one insert-only retry.
+- Runtime boundary used: `appendExecutionRecordAuditEventFromProductionWritePath(...)`.
+- Controlled FK target: `5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Live insert event status: `attempted`.
+- Dry-run metadata event status: `dry_run_ready`.
+- Idempotency key:
+  `action_846_live_smoke_insert_retry:idempotency:5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Duplicate prevention key:
+  `action_846_live_smoke_insert_retry:duplicate:5d682086-4195-40ec-ba80-a0a1b39a6923`.
+- Payload source: clearly marked smoke/test/proof payload.
+
+## 3. Preflight Runner Attempt
+
+One local temp-runner preflight failed before loading the writer because the
+temporary script was outside the repo and could not resolve the local
+`typescript` package. That failure did not reach the writer, did not create a
+Supabase client, and did not attempt an insert.
+
+The runner was corrected to resolve TypeScript from the repo-local
+`node_modules` directory, then the single approved live retry was run.
+
+## 4. Retry Result
+
+Sanitized result:
+
+```json
+{
+  "action": "846",
+  "status": "completed",
+  "ok": true,
+  "writePathVersion": "execution_record_audit_writer_production_write_path_v1",
+  "writerStatus": "success",
+  "writerOk": true,
+  "inserted": true,
+  "auditEventId": "unconfirmed_without_select",
+  "executionRecordId": "5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "idempotencyKey": "action_846_live_smoke_insert_retry:idempotency:5d682086-4195-40ec-ba80-a0a1b39a6923",
+  "adapterStatus": "success",
+  "diagnostics": null,
+  "writerErrors": [],
+  "writerWarnings": [
+    "audit_event_id_unconfirmed_without_select"
+  ],
+  "dryRun": {
+    "status": "ready",
+    "wouldWrite": false,
+    "wouldInsertEventStatus": "dry_run_ready"
+  },
+  "retryCount": 1,
+  "serviceRoleValuePrinted": false,
+  "uiBrowserInvocation": false,
+  "marketLoopInvocation": false,
+  "downstreamMutationPerformed": false,
+  "brokerAvanzaBehavior": false,
+  "automaticMode": false
+}
+```
+
+## 5. Persistence Confirmation
+
+The retry result returned `writerStatus: "success"` and `inserted: true`.
+Therefore the row is considered persisted by the insert-only Supabase response.
+
+No post-insert select was performed and no broad table dump was performed, so
+the generated audit event id remains `unconfirmed_without_select`.
+
+## 6. Safety Confirmation
+
+Confirmed:
+
+- one live retry reached the approved production write path;
+- no repeated retry;
+- no UI/browser/client invocation;
+- no market-loop/scanner/automation invocation;
+- no broker/Avanza behavior;
+- no automatic mode;
+- no trade/stats/PnL mutation;
+- no update/delete/upsert;
+- no broad select/table dump;
+- no production rollout;
+- no route/writer gate bypass;
+- no `.env.local` changes;
+- no migrations/typegen/generated type edits;
+- no service-role value printing.
+
+## 7. Result Status
+
+Status: `audit_writer_live_smoke_insert_retry_succeeded_inserted_true`.
+
+## 8. Recommended Next Action
+
+Action 847 - Add Live Smoke Insert Success Regression Proof.
+
+## 9. Action 847 Regression Proof Addendum
+
+Action 847 added regression proof for this successful retry without rerunning
+the live insert and without performing any post-insert select, broad table dump,
+remote SQL, migration, type generation, generated type edit, or `.env.local`
+change.
+
+Added proof document:
+
+- `docs/execution-record-audit-writer-live-smoke-insert-success-regression-proof.md`
+
+Added regression test:
+
+- `tests/e2e/execution-record-audit-writer-live-smoke-success-regression.spec.ts`
+
+The regression proof locks the successful envelope:
+
+- production write path `completed`;
+- writer `success`;
+- inserted `true`;
+- adapter `success`;
+- diagnostics `null`;
+- audit event id `unconfirmed_without_select`;
+- live insert event status `attempted`;
+- dry-run metadata may preserve `dry_run_ready`;
+- no select confirmation required by the success path.
+
+Status: `audit_writer_live_smoke_insert_success_regression_proof_added`.
+
+Recommended next action: Action 848 - Create Audit Writer Persistence Readiness Summary.

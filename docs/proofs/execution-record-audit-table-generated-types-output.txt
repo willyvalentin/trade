@@ -1,0 +1,21 @@
+Action 795 Supabase typegen command output proof
+
+Command:
+- supabase gen types typescript --linked --schema public > lib/supabase-database.types.ts
+
+Result:
+- exit_code: 0
+- linked_project_ref: ekdyopdrrkphlrsilyoo
+- target: lib/supabase-database.types.ts
+- typegen_run: yes
+- generated_file_written: yes
+- stderr_present: no
+
+Safety:
+- secrets_printed: no
+- connection_metadata_printed: no
+- migrations_run: no
+- broad_db_push_run: no
+- service_role_used: false
+- writer_or_route_added: false
+- runtime_write_path_added: false

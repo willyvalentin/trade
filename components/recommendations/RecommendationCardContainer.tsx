@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 
 import type { CalibrationGuardrailResult } from "@/lib/calibration-guardrails";
+import type { ConfidenceCalibrationProjectionPreviewResult } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview";
 import type { DataModeBadge } from "@/lib/data-mode-clarity";
 import type { PreTradeRiskContextResult } from "@/lib/pre-trade-risk-context";
 import type { RecommendationDecisionStackResult } from "@/lib/recommendation-decision-stack";
@@ -35,6 +36,9 @@ export type RecommendationCardContainerProps<
 > = {
   addTradeGate: RecommendationCardDisplayAddTradeGate;
   calibrationGuardrails: CalibrationGuardrailResult | null;
+  confidenceCalibrationProjectionPreview?:
+    | ConfidenceCalibrationProjectionPreviewResult
+    | null;
   decisionStack: RecommendationDecisionStackResult | null;
   freshness: RecommendationFreshness;
   isDemoRecommendation: boolean;
@@ -47,7 +51,6 @@ export type RecommendationCardContainerProps<
   preTradeRiskContext: PreTradeRiskContextResult | null;
   recommendation: TRecommendation;
   renderIdentity: (recommendation: TRecommendation) => ReactNode;
-  renderSourceBadge: (badge: DataModeBadge) => ReactNode;
   renderSourceBadges: (badges: DataModeBadge[]) => ReactNode;
   tradeEligibility: TradeEligibilityResult | null;
 };
@@ -57,6 +60,7 @@ export function RecommendationCardContainer<
 >({
   addTradeGate,
   calibrationGuardrails,
+  confidenceCalibrationProjectionPreview,
   decisionStack,
   freshness,
   isDemoRecommendation,
@@ -69,7 +73,6 @@ export function RecommendationCardContainer<
   preTradeRiskContext,
   recommendation,
   renderIdentity,
-  renderSourceBadge,
   renderSourceBadges,
   tradeEligibility,
 }: RecommendationCardContainerProps<TRecommendation>) {
@@ -92,6 +95,7 @@ export function RecommendationCardContainer<
       addTradeDisabled={displayProps.addTradeDisabled}
       addTradeLabel={displayProps.addTradeLabel}
       confidenceLabel={displayProps.confidenceLabel}
+      confidenceProjectionPreview={confidenceCalibrationProjectionPreview}
       confidenceTone={displayProps.confidenceTone}
       discardDisabled={displayProps.discardDisabled}
       identity={renderIdentity(recommendation)}
@@ -99,9 +103,6 @@ export function RecommendationCardContainer<
       onAddTrade={() => onTakeTrade(recommendation)}
       onOpenDetails={() => setIsDetailsOpen(true)}
       onOpenDiscard={() => setIsDiscardConfirmOpen(true)}
-      sourceBadge={renderSourceBadge(displayProps.recommendationSourceBadge)}
-      summary={displayProps.cardSummary}
-      updatedAt={recommendation.createdAt}
       discardDialog={
         isDiscardConfirmOpen ? (
           <DiscardRecommendationModal
@@ -134,6 +135,9 @@ export function RecommendationCardContainer<
             addTradeGateMessage={displayProps.addTradeGateMessage}
             confirmation={displayProps.confirmation}
             confidenceBreakdownItems={displayProps.confidenceBreakdownItems}
+            confidenceCalibrationProjectionPreview={
+              confidenceCalibrationProjectionPreview
+            }
             confidenceLabel={displayProps.confidenceLabel}
             confidenceTone={displayProps.confidenceTone}
             identity={renderIdentity(recommendation)}

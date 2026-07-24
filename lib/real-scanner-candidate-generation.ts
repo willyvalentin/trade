@@ -306,7 +306,7 @@ export function buildRealScannerCandidateGenerationSummary({
       stale_candidates: staleCandidates,
       missing_required_price_candidates: missingRequiredPriceCandidates,
     },
-    candidates: generatedCandidates.slice(0, 12),
+    candidates: generatedCandidates.slice(0, 25),
     scanner_candidate_ranking: scannerCandidateRanking,
     tier_counts: tierCounts,
     average_score: averageScore,

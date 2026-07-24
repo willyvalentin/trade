@@ -16,6 +16,44 @@ This is documentation only. It does not create a `BrokerExecutionResult`, create
 an execution record, write Supabase, mutate trades, add Avanza automation, add
 selectors/URLs, control a browser, or submit orders.
 
+## Action 415 Reassessment
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Updated finding:
+
+- broker-result eligibility and preview boundaries exist.
+- execution-record eligibility exists.
+- local/dev `TureExecutionRecord` creation exists only for explicit mock/stub
+  diagnostics paths.
+- no production-safe real execution record creation boundary exists yet.
+- no Supabase execution-record write path exists.
+- no trade mutation should be coupled to record creation.
+
+Next recommended action:
+
+**Action 416 - Create Execution Record Creation Contract Design**
+
+## Action 416 Contract Design
+
+Action 416 created
+`docs/execution-record-creation-contract-design.md`.
+
+Design update:
+
+- proposed `ExecutionRecordCreationInput`.
+- proposed `ExecutionRecordCreationResult`.
+- defined canonical execution record candidate fields.
+- defined validation and rejection reason requirements.
+- defined idempotency and audit requirements.
+- preserved this document's core separation: creation design still does not
+  write Supabase, mutate trades, create broker results, or automate Avanza.
+
+Next recommended action:
+
+**Action 417 - Create Execution Record Creation Contract Types**
+
 ## Boundary Principle
 
 A `BrokerExecutionResult` is not automatically an execution record.
@@ -350,3 +388,166 @@ no Supabase write, and no trade mutation.
 This remains UI diagnostics only. It does not create an execution record,
 persist anything, update History/Statistics, mutate trades, create a real
 `BrokerExecutionResult`, control a browser, touch Avanza, or submit orders.
+
+## Action 417 - Execution Record Creation Contract Types
+
+Action 417 added the first production-safe creation contract artifact:
+
+- `lib/execution-record-creation-contract.ts`
+
+The module is type/constant only. It defines the proposed creation input,
+creation result, canonical candidate, idempotency input, source broker result
+reference, audit metadata, statuses, rejection reason codes, and warning codes
+from the Action 416 design.
+
+No runtime creation path was introduced. The existing eligibility bridge,
+preview diagnostics, local/dev `TureExecutionRecord` paths, Supabase behavior,
+trade mutation behavior, audit/event persistence, broker result creation, and
+Avanza/browser behavior remain unchanged.
+
+Next recommended action:
+
+**Action 418 - Create Execution Record Creation Pure Validator**
+
+## Action 418 - Execution Record Creation Pure Validator
+
+Action 418 added the first pure validation artifact for the production-safe
+creation boundary:
+
+- `lib/execution-record-creation-validator.ts`
+
+The validator evaluates `ExecutionRecordCreationInput` and returns typed
+`ExecutionRecordCreationResult` metadata only. It rejects unsafe or incomplete
+inputs with explicit reason codes and can mark a complete input as eligible for
+future candidate building without constructing the candidate yet.
+
+No runtime creation path was introduced. The existing eligibility bridge,
+preview diagnostics, local/dev `TureExecutionRecord` paths, Supabase behavior,
+trade mutation behavior, audit/event persistence, broker result creation, UI
+wiring, bridge wiring, and Avanza/browser behavior remain unchanged.
+
+Next recommended action:
+
+**Action 419 - Create Execution Record Candidate Builder**
+
+## Action 419 - Execution Record Candidate Builder
+
+Action 419 added the pure candidate builder layer:
+
+- `lib/execution-record-candidate-builder.ts`
+
+The builder calls the pure validator first and only maps a candidate when the
+input is already eligible. It returns validator rejection/needs-review results
+unchanged for unsafe inputs and keeps `safeToPersist=false` because no
+persistence boundary exists yet.
+
+No runtime creation path was introduced. The existing eligibility bridge,
+preview diagnostics, local/dev `TureExecutionRecord` paths, Supabase behavior,
+trade mutation behavior, audit/event persistence, broker result creation, UI
+wiring, bridge wiring, and Avanza/browser behavior remain unchanged.
+
+Next recommended action:
+
+**Action 420 - Create Read-Only Execution Record Creation Preview UI**
+
+## Action 420 - Read-Only Execution Record Creation Preview UI
+
+Action 420 added the first read-only UI surface for the creation contract:
+
+- `components/execution/ExecutionRecordCreationPreview.tsx`
+
+The panel is presentational and dev-gated through the existing handoff modal
+composition. It displays the pure builder/validator result, including status,
+rejection reasons, warnings, idempotency/fingerprint metadata,
+`safeToPersist`, no-write/no-mutation metadata, and candidate fields when
+available.
+
+No creation action was introduced. There is no persist button, Supabase write,
+localStorage write, audit append, trade mutation, execution record storage,
+BrokerExecutionResult creation, bridge automation, Avanza/browser behavior, or
+automatic-mode behavior.
+
+Next recommended action:
+
+**Action 421 - Reassess Execution Record Creation Preview UI**
+
+## Action 421 - Preview UI Reassessment
+
+Action 421 created
+`docs/execution-record-creation-preview-ui-reassessment.md`.
+
+The reassessment verified that the Action 420 UI remains read-only, dev-gated,
+and disconnected from persistence, trade mutation, audit append,
+BrokerExecutionResult creation, bridge automation, and Avanza/browser behavior.
+It also documented that existing broker-result preview data is preview-only, so
+the creation preview should continue showing blocked/rejected metadata unless a
+separate dev/test fixture supplies an eligible creation result.
+
+Next recommended action:
+
+**Action 422 - Create Execution Record Creation Result Fixture/Dev Input**
+
+## Action 422 - Execution Record Creation Dev Fixture
+
+Action 422 added a controlled local/dev input fixture:
+
+- `lib/execution-record-creation-dev-fixture.ts`
+
+The fixture is for read-only UI coverage and candidate branch QA only. It uses
+local/dev source metadata, deterministic fixture ids/fingerprints, and the
+existing pure builder to produce an eligible candidate preview with
+`safeToPersist=false`.
+
+It does not represent real broker evidence, does not persist anything, and does
+not add Supabase writes, localStorage writes, audit append, trade mutation,
+execution record storage, BrokerExecutionResult creation, bridge automation,
+Avanza/browser behavior, or automatic-mode behavior.
+
+Next recommended action:
+
+**Action 423 - Reassess Execution Record Creation Dev Fixture**
+
+## Action 423 - Execution Record Creation Dev Fixture Reassessment
+
+Action 423 created
+`docs/execution-record-creation-dev-fixture-reassessment.md`.
+
+The reassessment verified that the Action 422 dev fixture remains a read-only
+preview aid, not production evidence. It is explicitly fixture-labeled,
+local/dev scoped, and gated through the existing execution-dev-tools handoff
+modal path. It keeps `safeToPersist=false`, and preview-only broker-result
+diagnostics still override the fixture and remain blocked/rejected.
+
+No persistence boundary was introduced. There are still no Supabase
+execution-record writes, localStorage execution-record writes, audit/event
+appends, trade mutations, execution record storage, BrokerExecutionResult
+creation flows, bridge automation, Avanza/browser behavior, or automatic-mode
+behavior.
+
+Next recommended action:
+
+**Action 424 - Create Execution Record Persistence Boundary Plan**
+
+## Action 424 - Execution Record Persistence Boundary Plan
+
+Action 424 created
+`docs/execution-record-persistence-boundary-plan.md`.
+
+The plan defines what must exist before execution-record persistence can be
+implemented: real confirmed broker evidence, schema and RLS design,
+idempotency and duplicate protection, audit ordering, rollback behavior,
+association confidence, and strict separation from trade mutation.
+
+It also defines safety gates that block preview-only data, dev fixture data,
+synthetic/mock data, ambiguous associations, missing idempotency, automatic
+mode without later review, and all candidates where `safeToPersist=false`.
+
+No runtime persistence behavior was added. There are still no Supabase
+execution-record writes, localStorage execution-record writes, audit/event
+appends, trade mutations, execution record storage, BrokerExecutionResult
+creation flows, bridge automation, Avanza/browser behavior, or automatic-mode
+behavior.
+
+Next recommended action:
+
+**Action 425 - Reassess Supabase Execution Record Schema Boundary**

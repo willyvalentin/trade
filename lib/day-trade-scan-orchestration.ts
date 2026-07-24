@@ -1,5 +1,11 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import {
+  classifyOfficialScanWindowAttempt,
+  officialScanRunEvidence,
+  officialScanRunServesWindow,
+  type OfficialScanWindowAttemptClassification,
+} from "@/lib/official-scan-window-completion";
+import {
   getNyMarketTime,
   getRegularMarketOpenClose,
   type MarketSessionEvaluation,
@@ -14,6 +20,11 @@ export type DayTradeScanWindow =
   | "closed"
   | "outside_window"
   | "unknown";
+
+export type OfficialDayTradeScanWindow = Exclude<
+  DayTradeScanWindow,
+  "closed" | "outside_window" | "unknown"
+>;
 
 export type DayTradeScanWindowStatus =
   | "active"
@@ -58,7 +69,7 @@ export type DayTradeScanOrchestrationNextAction = {
 };
 
 export type DayTradeScanWindowDefinition = {
-  window: Exclude<DayTradeScanWindow, "closed" | "outside_window" | "unknown">;
+  window: OfficialDayTradeScanWindow;
   label: string;
   start_time: string;
   end_time: string;
@@ -66,11 +77,26 @@ export type DayTradeScanWindowDefinition = {
   end_minutes: number;
 };
 
+export type DayTradeOfficialWindowStatus = {
+  window: OfficialDayTradeScanWindow;
+  label: string;
+  start_time: string;
+  end_time: string;
+  latest_scan_at: string | null;
+  latest_attempt_at: string | null;
+  latest_attempt_classification: OfficialScanWindowAttemptClassification | null;
+  attempted_today: boolean;
+  status: DayTradeScanWindowStatus;
+  explanation: string;
+};
+
 export type DayTradeScanOrchestrationSummary = {
   summary_id: string;
   summary_version: "1.0";
   summary_kind: "day_trade_scan_orchestration";
   generated_at: string;
+  current_utc_time: string;
+  current_ny_time: string;
   timezone: "America/New_York";
   trading_date: string;
   ny_time: string;
@@ -96,6 +122,8 @@ export type DayTradeScanOrchestrationSummary = {
   latest_scan_at: string | null;
   latest_scan_per_window: Partial<Record<DayTradeScanWindow, string>>;
   missed_windows: DayTradeScanWindow[];
+  official_scan_windows: DayTradeScanWindowDefinition[];
+  official_window_statuses: DayTradeOfficialWindowStatus[];
   scan_reason: string;
   current_data_mode: string;
   run_type: DayTradeScanRunType;
@@ -118,6 +146,14 @@ export type DayTradeScanOrchestrationInput = {
   currentDataMode?: string | null;
   runType?: DayTradeScanRunType | string | null;
   lastScanCooldownMinutes?: number;
+};
+
+export type ScheduledOfficialGateDiagnostics = {
+  official_window_detected: boolean;
+  scheduled_gate_window: string;
+  scheduled_gate_allowed: boolean;
+  scheduled_gate_block_reason: string | null;
+  schedule_window_mismatch: boolean;
 };
 
 const timezone = "America/New_York" as const;
@@ -253,6 +289,84 @@ function hasStandardFallbackCalendar(input: {
 
 function activeWindowAllowsFallbackCalendarScan(window: DayTradeScanWindow) {
   return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+export function isOfficialDayTradeScanWindow(
+  window: string | null | undefined,
+): window is OfficialDayTradeScanWindow {
+  return window === "morning" || window === "midday" || window === "power_hour";
+}
+
+export function shouldRunOfficialDayTradeScan(
+  summary: Pick<DayTradeScanOrchestrationSummary, "active_window" | "should_scan_now">,
+) {
+  return summary.should_scan_now && isOfficialDayTradeScanWindow(summary.active_window);
+}
+
+export function scheduledGateBlockReasonForOrchestration(
+  orchestration: Pick<
+    DayTradeScanOrchestrationSummary,
+    "decision" | "calendar_confidence"
+  >,
+) {
+  if (orchestration.decision === "scan_recently_completed") {
+    return "cadence_guard";
+  }
+
+  if (orchestration.decision === "market_closed") {
+    return "market_closed";
+  }
+
+  if (orchestration.decision === "blocked_by_provider") {
+    return "market_calendar_provider_unavailable";
+  }
+
+  if (orchestration.decision === "outside_scan_window") {
+    return "not_official_scan_window";
+  }
+
+  if (orchestration.decision === "should_wait_for_window") {
+    return "should_wait_for_window";
+  }
+
+  if (orchestration.decision === "unknown") {
+    return orchestration.calendar_confidence === "unknown"
+      ? "market_calendar_provider_unavailable"
+      : "unknown_orchestration_decision";
+  }
+
+  return "not_official_scan_window";
+}
+
+export function buildScheduledOfficialGateDiagnostics({
+  orchestration,
+  scanWindow,
+}: {
+  orchestration: DayTradeScanOrchestrationSummary;
+  scanWindow: IntradayScanWindow;
+}): ScheduledOfficialGateDiagnostics {
+  const officialWindowDetected = isOfficialDayTradeScanWindow(
+    orchestration.active_window,
+  );
+  const expectedScanWindow = dayTradeScanWindowToIntradayScanWindow(
+    orchestration.active_window,
+  );
+  const scheduleWindowMismatch =
+    officialWindowDetected && expectedScanWindow !== scanWindow;
+  const scheduledGateAllowed =
+    shouldRunOfficialDayTradeScan(orchestration) && !scheduleWindowMismatch;
+
+  return {
+    official_window_detected: officialWindowDetected,
+    scheduled_gate_window: orchestration.active_window,
+    scheduled_gate_allowed: scheduledGateAllowed,
+    scheduled_gate_block_reason: scheduledGateAllowed
+      ? null
+      : scheduleWindowMismatch
+        ? "schedule_window_mismatch"
+        : scheduledGateBlockReasonForOrchestration(orchestration),
+    schedule_window_mismatch: scheduleWindowMismatch,
+  };
 }
 
 function calendarConfidenceFor(input: {
@@ -397,19 +511,96 @@ function nextWindow(input: {
   };
 }
 
-function latestScanPerWindow(scanRuns: RecommendationScanRun[]) {
+function scanRunTradingDate(scanRun: RecommendationScanRun, observedAt: string) {
+  const explicitTradingDate = textOrNull(scanRun.trading_date);
+
+  if (explicitTradingDate) {
+    return explicitTradingDate;
+  }
+
+  const date = new Date(observedAt);
+
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+
+  return getNyMarketTime(date).ny_date;
+}
+
+function scanRunHasObservedAttempt(scanRun: RecommendationScanRun) {
+  const payload = scanRun.payload_json ?? {};
+  const activeTrace = payload.active_scan_trace;
+  const scanObservability = payload.scan_observability;
+
+  return (
+    scanRun.counts.visible_recommendation_count > 0 ||
+    (typeof activeTrace === "object" && activeTrace !== null) ||
+    (typeof scanObservability === "object" &&
+      scanObservability !== null &&
+      scanRun.source !== "mixed") ||
+    (scanRun.scanned_ticker_count ?? 0) > 0 ||
+    (scanRun.raw_candidate_count ?? 0) > 0
+  );
+}
+
+function latestScanPerWindow(scanRuns: RecommendationScanRun[], tradingDate: string) {
   const latest: Partial<Record<DayTradeScanWindow, string>> = {};
 
   for (const scanRun of scanRuns) {
     const window = normalizeDayTradeScanWindow(scanRun.window);
     const observedAt = textOrNull(scanRun.observed_at);
 
-    if (!observedAt || window === "unknown") {
+    if (
+      !observedAt ||
+      !isOfficialDayTradeScanWindow(window) ||
+      !officialScanRunServesWindow(scanRun) ||
+      scanRunTradingDate(scanRun, observedAt) !== tradingDate
+    ) {
       continue;
     }
 
     if (!latest[window] || observedAt > latest[window]) {
       latest[window] = observedAt;
+    }
+  }
+
+  return latest;
+}
+
+function latestAttemptPerWindow(
+  scanRuns: RecommendationScanRun[],
+  tradingDate: string,
+) {
+  const latest: Partial<
+    Record<
+      DayTradeScanWindow,
+      {
+        observed_at: string;
+        classification: OfficialScanWindowAttemptClassification;
+      }
+    >
+  > = {};
+
+  for (const scanRun of scanRuns) {
+    const window = normalizeDayTradeScanWindow(scanRun.window);
+    const observedAt = textOrNull(scanRun.observed_at);
+
+    if (
+      !observedAt ||
+      !isOfficialDayTradeScanWindow(window) ||
+      !scanRunHasObservedAttempt(scanRun) ||
+      scanRunTradingDate(scanRun, observedAt) !== tradingDate
+    ) {
+      continue;
+    }
+
+    if (!latest[window] || observedAt > latest[window].observed_at) {
+      latest[window] = {
+        observed_at: observedAt,
+        classification: classifyOfficialScanWindowAttempt(
+          officialScanRunEvidence(scanRun),
+        ),
+      };
     }
   }
 
@@ -428,7 +619,11 @@ function missedWindows(input: {
 
   const windowsWithRuns = new Set(
     input.scanRuns
-      .filter((scanRun) => scanRun.trading_date === input.tradingDate)
+      .filter(
+        (scanRun) =>
+          scanRun.trading_date === input.tradingDate &&
+          officialScanRunServesWindow(scanRun),
+      )
       .map((scanRun) => normalizeDayTradeScanWindow(scanRun.window)),
   );
 
@@ -436,6 +631,115 @@ function missedWindows(input: {
     .filter((item) => item.end_minutes <= input.minutesAfterMidnight)
     .map((item) => item.window)
     .filter((window) => !windowsWithRuns.has(window));
+}
+
+function officialWindowExplanation(input: {
+  definition: DayTradeScanWindowDefinition;
+  latestScanAt: string | null;
+  latestAttemptAt: string | null;
+  latestAttemptClassification: OfficialScanWindowAttemptClassification | null;
+  activeWindow: DayTradeScanWindow;
+  status: DayTradeScanWindowStatus;
+}) {
+  if (input.latestScanAt) {
+    return `${input.definition.label} completed at ${input.latestScanAt}.`;
+  }
+
+  if (
+    input.latestAttemptAt &&
+    input.latestAttemptClassification === "empty_initial_tick_retry_allowed"
+  ) {
+    if (input.status === "missed") {
+      return `${input.definition.label} ended without an official batch after the latest attempt was empty.`;
+    }
+
+    return `${input.definition.label} in progress - latest attempt empty; waiting for next scheduled tick.`;
+  }
+
+  if (input.status === "active") {
+    return `${input.definition.label} is active now and eligible for an official scan.`;
+  }
+
+  if (input.status === "missed") {
+    return `${input.definition.label} has no completed scan run recorded today.`;
+  }
+
+  if (input.status === "closed") {
+    return `${input.definition.label} is closed because the market is not in a tradable official scan session.`;
+  }
+
+  if (input.activeWindow === "outside_window") {
+    return `${input.definition.label} is waiting for its ${input.definition.start_time}-${input.definition.end_time} America/New_York window.`;
+  }
+
+  return `${input.definition.label} starts at ${input.definition.start_time} America/New_York.`;
+}
+
+function officialWindowStatuses(input: {
+  latestByWindow: Partial<Record<DayTradeScanWindow, string>>;
+  latestAttemptByWindow: Partial<
+    Record<
+      DayTradeScanWindow,
+      {
+        observed_at: string;
+        classification: OfficialScanWindowAttemptClassification;
+      }
+    >
+  >;
+  missed: DayTradeScanWindow[];
+  activeWindow: DayTradeScanWindow;
+  decision: DayTradeScanOrchestrationDecision;
+  minutesAfterMidnight: number;
+  tradingDay: boolean;
+}): DayTradeOfficialWindowStatus[] {
+  return dayTradeScanWindows.map((definition) => {
+    const latestScanAt = input.latestByWindow[definition.window] ?? null;
+    const latestAttempt = input.latestAttemptByWindow[definition.window] ?? null;
+    const attemptedToday = latestScanAt !== null || latestAttempt !== null;
+    let status: DayTradeScanWindowStatus = "unknown";
+
+    if (!input.tradingDay || input.activeWindow === "closed") {
+      status = "closed";
+    } else if (latestScanAt) {
+      status = "completed";
+    } else if (
+      input.activeWindow === definition.window &&
+      input.decision === "should_scan_now"
+    ) {
+      status = "active";
+    } else if (input.missed.includes(definition.window)) {
+      status = "missed";
+    } else if (input.minutesAfterMidnight < definition.start_minutes) {
+      status = "waiting";
+    } else if (
+      input.minutesAfterMidnight >= definition.start_minutes &&
+      input.minutesAfterMidnight < definition.end_minutes
+    ) {
+      status = "waiting";
+    } else {
+      status = "missed";
+    }
+
+    return {
+      window: definition.window,
+      label: definition.label,
+      start_time: definition.start_time,
+      end_time: definition.end_time,
+      latest_scan_at: latestScanAt,
+      latest_attempt_at: latestAttempt?.observed_at ?? null,
+      latest_attempt_classification: latestAttempt?.classification ?? null,
+      attempted_today: attemptedToday,
+      status,
+      explanation: officialWindowExplanation({
+        definition,
+        latestScanAt,
+        latestAttemptAt: latestAttempt?.observed_at ?? null,
+        latestAttemptClassification: latestAttempt?.classification ?? null,
+        activeWindow: input.activeWindow,
+        status,
+      }),
+    };
+  });
 }
 
 function recentlyCompleted(input: {
@@ -508,7 +812,23 @@ function statusForDecision(
 function actionForDecision(
   decision: DayTradeScanOrchestrationDecision,
   next: { window: DayTradeScanWindow; label: string },
+  activeWindowLatestAttempt:
+    | {
+        classification: OfficialScanWindowAttemptClassification;
+      }
+    | null,
 ) {
+  if (
+    decision === "should_scan_now" &&
+    activeWindowLatestAttempt?.classification === "empty_initial_tick_retry_allowed"
+  ) {
+    return nextAction(
+      "wait_for_next_official_tick",
+      "Wait for next scheduled tick",
+      "Latest official-window attempt was empty, so the window remains eligible for the next scheduled scan tick.",
+    );
+  }
+
   if (decision === "should_scan_now") {
     return nextAction(
       "scanner_ready",
@@ -581,7 +901,11 @@ export function buildDayTradeScanOrchestrationSummary(
       ? marketSession.market_is_open
       : activeWindow !== "closed";
   const tradingDay = isTradingDay({ marketSession, marketStatus });
-  const latestByWindow = latestScanPerWindow(input.scanRuns ?? []);
+  const latestByWindow = latestScanPerWindow(input.scanRuns ?? [], nyTime.ny_date);
+  const latestAttemptByWindow = latestAttemptPerWindow(
+    input.scanRuns ?? [],
+    nyTime.ny_date,
+  );
   const latestScanWindow =
     (Object.entries(latestByWindow).sort(([, first], [, second]) =>
       second.localeCompare(first),
@@ -596,6 +920,8 @@ export function buildDayTradeScanOrchestrationSummary(
   });
   const activeWindowLatestScanAt =
     activeWindow === "unknown" ? null : latestByWindow[activeWindow] ?? null;
+  const activeWindowLatestAttempt =
+    activeWindow === "unknown" ? null : latestAttemptByWindow[activeWindow] ?? null;
   const calendarConfidence = calendarConfidenceFor({ now, marketStatus });
   const providerCalendarAvailable = calendarConfidence === "provider_confirmed";
   const fallbackCalendarScanAllowed =
@@ -662,6 +988,15 @@ export function buildDayTradeScanOrchestrationSummary(
     minutesAfterMidnight: nyTime.minutes_after_midnight,
     marketOpen,
   });
+  const officialStatuses = officialWindowStatuses({
+    latestByWindow,
+    latestAttemptByWindow,
+    missed,
+    activeWindow,
+    decision,
+    minutesAfterMidnight: nyTime.minutes_after_midnight,
+    tradingDay,
+  });
 
   if (missed.length > 0) {
     warnings.push(
@@ -678,6 +1013,8 @@ export function buildDayTradeScanOrchestrationSummary(
     summary_version: "1.0",
     summary_kind: "day_trade_scan_orchestration",
     generated_at: now.toISOString(),
+    current_utc_time: now.toISOString(),
+    current_ny_time: `${nyTime.ny_date} ${nyTime.ny_time} America/New_York`,
     timezone,
     trading_date: nyTime.ny_date,
     ny_time: nyTime.ny_time,
@@ -705,6 +1042,8 @@ export function buildDayTradeScanOrchestrationSummary(
     latest_scan_at: latestScanAt,
     latest_scan_per_window: latestByWindow,
     missed_windows: missed,
+    official_scan_windows: dayTradeScanWindows.map((item) => ({ ...item })),
+    official_window_statuses: officialStatuses,
     scan_reason:
       decision === "should_scan_now" && fallbackCalendarScanAllowed
         ? `${activeWindow} day-trade window is active using NY-time fallback.`
@@ -722,7 +1061,7 @@ export function buildDayTradeScanOrchestrationSummary(
       typeof input.runType === "string" ? input.runType : null,
     ),
     warnings,
-    next_action: actionForDecision(decision, next),
+    next_action: actionForDecision(decision, next, activeWindowLatestAttempt),
     copy: {
       automatic_scans:
         "Ture scans automatically during defined day-trade windows.",

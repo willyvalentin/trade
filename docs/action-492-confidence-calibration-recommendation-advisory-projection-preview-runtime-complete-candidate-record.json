@@ -1,0 +1,335 @@
+{
+  "schema_version": "action_492_runtime_complete_candidate_record_v1",
+  "action_nature": "local_candidate_reconstruction_and_hash_freeze_only_no_rehearsal_no_deploy_no_activation",
+  "source_action": 491,
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "historical_change_candidate_hash": "7a11d9c6697a9d89ffb3e762dd15185fda225bc8e39c80a212cd3729d05857f6",
+  "historical_full_candidate_inventory_hash": "cc6a97c5797a1fa76a6bebe9be1497fe88819f1b73992b271c142ff61d3bc2f0",
+  "historical_candidate_file_count": 30,
+  "historical_candidate_status": "historical_candidate_runtime_incomplete",
+  "historical_overlay_source": "docs/action-473-confidence-calibration-recommendation-advisory-projection-preview-full-deployment-candidate-inventory.json",
+  "historical_overlay_result": "exact_30_file_overlay_applied",
+  "historical_overlay_count": 30,
+  "historical_overlay_missing_paths": [],
+  "historical_overlay_unexpected_paths": [],
+  "historical_overlay_hashes_exact": true,
+  "safe_reconstruction_boundary": {
+    "canonical_system_temp_root": true,
+    "action_specific_subtree_only": true,
+    "path_relative_containment": true,
+    "target_or_parent_symlink_detected": false,
+    "repository_home_config_or_app_data_location": false,
+    "target_absent_or_empty_before_reconstruction": true,
+    "bounded_cleanup": true,
+    "temp_path_value_recorded": false
+  },
+  "base_materialization_result": "clean_base_materialized_from_git_object_database_without_dirty_worktree",
+  "clean_base_identity_verified": true,
+  "added_runtime_path": "lib/pure-confidence-calibration.ts",
+  "added_runtime_path_hash": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+  "added_runtime_path_provenance": [
+    420,
+    423,
+    426
+  ],
+  "added_runtime_path_runtime_classification": "runtime_required_build_dependency",
+  "added_runtime_path_source_classification": "present_only_in_current_dirty_worktree",
+  "approved_by_action": 491,
+  "approved_missing_runtime_paths": [
+    "lib/pure-confidence-calibration.ts"
+  ],
+  "approved_runtime_dependency_binding": {
+    "exact_path": "lib/pure-confidence-calibration.ts",
+    "exact_sha256": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+    "action_491_approval": "approved",
+    "action_491_blocker_classification": "frozen_candidate_missing_runtime_dependency",
+    "action_492_candidate_completion_purpose": "complete_runtime_build_dependency_closure_for_preview_candidate"
+  },
+  "new_candidate_file_count": 31,
+  "new_change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+  "new_full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+  "new_changed_file_inventory": [
+    {
+      "path": "components/recommendations/ConfidenceCalibrationProjectionPreview.tsx",
+      "sha256": "d98db3ed746ce2a1929ed7e2029f2bfa7e70db99f15521445e5fb533cf66b7a5",
+      "classification": "runtime_preview_component",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "components/recommendations/RecommendationCardContainer.tsx",
+      "sha256": "8186b03dc7597595628a37db85e83bf4a28b018cf305d8a14ab08e1d254deda0",
+      "classification": "runtime_preview_type_carrier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "components/recommendations/RecommendationDetailsModal.tsx",
+      "sha256": "4bdc997057df677892aff016aafc28fb74b563871fbd6a5c0ef1f0b5238622f6",
+      "classification": "runtime_preview_disabled_consumer_call_site",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.md",
+      "sha256": "493574030dc3b5842e5a49749ca9c576faae19902a1f20f2ed8a779acbed4d00",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.md",
+      "sha256": "9d52a15cfeda4570cf1d2ef15e263087d3c09a0cc0dabca7bb59a4a0a353c9cb",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.md",
+      "sha256": "c77d5909d749612c7223c1a7ed20078a9ea46593a6ca2637710de397194552d2",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.md",
+      "sha256": "37d56be86a3dad04542b21d8cccfad40ae3c7040497a7a19249f9ca49de82d6e",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.md",
+      "sha256": "06d97e974b16e44e614f7223c404ac9da17e4fc357d3766a15e36d7cfd398ed1",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-464-confidence-calibration-recommendation-advisory-projection-operator-input-capture-and-preview-activation-approval-gate.md",
+      "sha256": "374ad171f5b2d01b6247c692772cb1b0461f1580a15d34698014503c6464bde3",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-inventory.json",
+      "sha256": null,
+      "classification": "static_inventory",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-isolation-and-operator-input-completion.md",
+      "sha256": "55695c62c2755804fcbec0e1c6852b37a89d84f54f39121c311e49a0043062cd",
+      "classification": "static_documentation",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "docs/action-465-confidence-calibration-recommendation-advisory-projection-preview-operator-input-record.json",
+      "sha256": "784d9cdfcce1c2a8432abb7c432eee04e53721f0f89101bcd6b470bafbd45678",
+      "classification": "static_operator_record",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "lib/confidence-calibration-advisory-adapter.ts",
+      "sha256": "3c1b2ed0be3f37d5fe0514eee5a6a3b590811721f0e53b3802080fe764cd8e0b",
+      "classification": "pure_runtime_helper",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "lib/confidence-calibration-recommendation-advisory-projection-preview-flag.ts",
+      "sha256": "7fab6acdd97d3811a2f7ed1bf95be34471f10b552c42f7781e125f88770bf716",
+      "classification": "disabled_preview_flag_helper",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "lib/confidence-calibration-recommendation-advisory-projection-preview.ts",
+      "sha256": "eb7e802e45021c05062bbeed8c69369a08bb6f928d3d8ef84a646e0d6ccf042b",
+      "classification": "pure_preview_projection_helper",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "lib/confidence-calibration-recommendation-advisory-projection.ts",
+      "sha256": "5b5a2eff5f98c45a40de21270f614c23cc0b78052d7c29bc52b8a580ebf12442",
+      "classification": "pure_projection_helper",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "lib/pure-confidence-calibration.ts",
+      "sha256": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+      "classification": "runtime_required_build_dependency",
+      "provenance": "action_420_action_423_action_426_action_491_approved_runtime_completion",
+      "source_classification": "present_only_in_current_dirty_worktree"
+    },
+    {
+      "path": "scripts/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate-verify.mjs",
+      "sha256": "9b9e6d442602c3b95d7db9536dedaac230e16cdb9c52aa3f3332dc347213fd69",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate-verify.mjs",
+      "sha256": "9176975b4e1f565d6753c4893e1c2716595f633459dc97758da186b3ae60c2ca",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation-verify.mjs",
+      "sha256": "07164bcdb210649e0c1332e6d7e486263c8061f96433c96f32e4f2adc590a419",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification-verify.mjs",
+      "sha256": "b1ba180b2442b2f1dc74592cfa19ccdbec213354b4f32afa2b371c0ecb0ed2bf",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate-verify.mjs",
+      "sha256": "ec7d8b556c2aab59adc0e9f53e417bf6c07d3c7b45d984ebbdf8acf383633765",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-464-confidence-calibration-recommendation-advisory-projection-operator-input-capture-and-preview-activation-approval-gate-verify.mjs",
+      "sha256": "a26319e56b09ff79656771d89b617b8f086e9b41115b94badf91de5f9bbb9592",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "scripts/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-isolation-and-operator-input-completion-verify.mjs",
+      "sha256": "3f44fa4af0eab9afca096dcf06c065bb5f71cfb8be5da6e2b37c19a0e9ec9bd7",
+      "classification": "static_verifier",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-459-static-confidence-calibration-recommendation-advisory-projection-shadow-release-gate.spec.ts",
+      "sha256": "94134bddc65468eb39c7d6881cdeac4013941c96c43cbe0b134bde9b01cf8976",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-460-confidence-calibration-recommendation-advisory-projection-runtime-preview-integration-contract-approval-gate.spec.ts",
+      "sha256": "0444f2498ae1ceac4fc0b2bc3f01ad450f6e782bfbb7ed8530dc25dcf1fa2f08",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-461-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-implementation.spec.ts",
+      "sha256": "71c5e0c0267771ace4b86c68e887b281c9e2ab39927926e303a66bcf5819e468",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-462-independent-confidence-calibration-recommendation-advisory-projection-runtime-preview-consumer-verification.spec.ts",
+      "sha256": "69bbec236b9d42bba202e64deecabb800ed11e7ffba9959624b9847ea2a51a81",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-463-confidence-calibration-recommendation-advisory-projection-preview-deployment-readiness-gate.spec.ts",
+      "sha256": "8abcb43b591ff325a513af930c95d43b59c8a83a0feb05c196c401d480401714",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-464-confidence-calibration-recommendation-advisory-projection-operator-input-capture-and-preview-activation-approval-gate.spec.ts",
+      "sha256": "d3e6fca26b2138d0756f475fb33593537f35b7060b969f624e20e08093b455ea",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    },
+    {
+      "path": "tests/e2e/action-465-confidence-calibration-recommendation-advisory-projection-preview-candidate-isolation-and-operator-input-completion.spec.ts",
+      "sha256": "b3ef932859f77e43f875353b3efa2f4f895394168066382328636540e4886055",
+      "classification": "static_test",
+      "provenance": "historical_30_file_overlay_action_473",
+      "source_classification": "historical_30_file_overlay"
+    }
+  ],
+  "full_candidate_hash_material": {
+    "approved_change_candidate_file_count": 31,
+    "approved_change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+    "candidate_classification": "runtime_complete_candidate_from_clean_base_historical_overlay_and_approved_runtime_dependency",
+    "full_candidate_build_result": "not_run_action_492_hash_freeze_only",
+    "full_candidate_test_result": "not_run_action_492_hash_freeze_only",
+    "preview_flag_state": "absent_or_disabled",
+    "repository_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+    "runtime_projection_call_site_count": 1,
+    "unexpected_changed_file_count": 0,
+    "unrelated_post_trade_changed_file_count": 0,
+    "environment_file_count": 0,
+    "secret_file_count": 0,
+    "merge_conflict_count": 0
+  },
+  "actual_delta_count": 31,
+  "expected_delta_count": 31,
+  "unexpected_delta_paths": [],
+  "missing_delta_paths": [],
+  "runtime_dependency_paths_missing": 0,
+  "runtime_dependency_missing_paths": [],
+  "runtime_dependency_closure_complete": true,
+  "runtime_preview_consumer_imports_resolvable": true,
+  "advisory_adapter_imports_resolvable": true,
+  "projection_imports_resolvable": true,
+  "type_only_build_imports_resolvable": true,
+  "control_only_artifacts_excluded": true,
+  "unrelated_dirty_files_included": false,
+  "control_only_artifacts_added": false,
+  "environment_or_credentials_included": false,
+  "node_modules_included": false,
+  "build_output_included": false,
+  "unclassified_files_included": false,
+  "candidate_reconstruction_result": "runtime_complete_candidate_reconstructed_and_frozen",
+  "old_candidate_execution_status": "historical_candidate_runtime_incomplete",
+  "old_deployment_approval_executable": false,
+  "new_candidate_status": "runtime_complete_candidate",
+  "new_candidate_authoritative_for_future_actions": true,
+  "rehearsal_performed": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "environment_modified": false,
+  "network_used": false,
+  "install_performed": false,
+  "netlify_operation_performed": false,
+  "provider_call_executed": false,
+  "supabase_read_executed": false,
+  "supabase_write_executed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "scanner_changed": false,
+  "ranking_changed": false,
+  "publication_changed": false,
+  "execution_changed": false,
+  "add_trade_changed": false,
+  "risk_sizing_changed": false,
+  "downstream_behavior_changed": false,
+  "cleanup_result": "temporary_candidate_removed",
+  "temporary_candidate_absent_after_cleanup": true,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "preview_flag_state": "absent_or_disabled",
+  "preview_flag_enabled": false,
+  "next_action": "action_493_runtime_complete_candidate_build_rehearsal_approval_gate"
+}

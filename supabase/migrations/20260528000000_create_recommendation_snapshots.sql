@@ -5,7 +5,7 @@ create table if not exists public.recommendation_snapshots (
   scan_run_id text null,
   ticker text null,
   recommended_at timestamptz null,
-  window text not null default 'unknown',
+  "window" text not null default 'unknown',
   status text not null default 'visible',
   source_mode text not null default 'unknown',
   data_mode text not null default 'unknown',

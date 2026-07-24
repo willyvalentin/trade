@@ -2,6 +2,8 @@
 
 import http from "node:http";
 import { randomUUID } from "node:crypto";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import {
   getAvanzaDryRunRunnerSkeletonCapability,
   getAvanzaDryRunRunnerSkeletonSelfCheck,
@@ -30,11 +32,57 @@ const AVANZA_MANUAL_CONFIRMATION_WAIT_CONTRACT_VERSION =
   "avanza_manual_confirmation_wait_v1";
 const AVANZA_BROKER_CONFIRMATION_CAPTURE_CONTRACT_VERSION =
   "avanza_broker_confirmation_capture_v1";
+const AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION =
+  "avanza_order_form_preflight_observation_v1";
 const DEFAULT_PORT = 47831;
 const HOST = "127.0.0.1";
 const MAX_BODY_BYTES = 1024 * 1024;
 const MOCK_ORDER_PAGE_TARGET_PATH = "/mock-broker/order";
 const DEFAULT_MOCK_PAGE_BASE_URL = "http://localhost:3000";
+const DEFAULT_MANUAL_OBSERVATION_CDP_URL = "http://127.0.0.1:9222";
+const MANUAL_OBSERVATION_MODE = "cdp_readonly";
+const ENABLE_LIVE_FILL_ONLY_RUNNER_VALUE = "true";
+const ENABLE_IN_PROCESS_TRIGGER_VALUE = "true";
+const FINAL_LIVE_EXECUTE_ATTEMPT_TRIGGER_PHRASE =
+  "FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER: I explicitly request the final live fill-only execute attempt trigger now, with the approved boundary, stopping before Granska köp and without order placement.";
+const QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH =
+  "tmp/avanza-fill-only-proof/latest-quantity-based-result.json";
+const LIVE_FILL_ONLY_STABLE_FIELD_RESOLVER_VERSION =
+  "stable_order_field_resolver_v1";
+const LIVE_FILL_ONLY_FILL_QUANTITY_IMPLEMENTATION_ID =
+  "stable_resolver_v1";
+const LIVE_FILL_ONLY_IN_PROCESS_QUANTITY_CALL_SITE =
+  "in_process_quantity_based_trigger";
+const APPROVED_LIVE_FILL_ONLY_VALUES = {
+  account: "Valentin Labs KF",
+  instrument: "GameStop",
+  side: "buy",
+  orderMode: "Avancerad/Limit",
+  amountSek: 427.26,
+  amountSekText: "427,26",
+  quantity: 1,
+  quantityText: "1",
+  priceUsd: 21.98,
+  priceUsdText: "21,98",
+  capSek: 1000,
+  approvedInputStrategy: "amount_based",
+};
+const AVANZA_LIVE_FILL_ONLY_SELECTORS = {
+  amount: ["input#inputAmount", 'input[data-e2e="inputAmount"]'],
+  quantity: [
+    "input#inputVolume",
+    'input[data-e2e="inputVolume"]',
+    'input[name="inputVolume"]',
+    'input[aria-label*="Antal" i]',
+    'input[placeholder*="Antal" i]',
+  ],
+  price: ["input#inputPrice", 'input[data-e2e="inputPrice"]'],
+  total: [
+    '[data-e2e="totalAmount"]',
+    '[data-e2e="orderTotalAmount"]',
+    '[data-e2e="estimatedTotalAmount"]',
+  ],
+};
 
 const MOCK_ORDER_PAGE_AGENT_SELECTORS = {
   ticker: {
@@ -4400,6 +4448,3377 @@ function buildHealthResponse() {
   };
 }
 
+function buildOrderFormPreflightCheck(name, ok, observed, expected, details) {
+  return {
+    name,
+    ok,
+    observed,
+    expected,
+    ...(details ? { details } : {}),
+  };
+}
+
+function createOrderFormPreflightResponse(status, options = {}) {
+  const checkedAt = options.checkedAt ?? now();
+  const checks = options.checks ?? [];
+  const ready = status === "ready";
+  const statusLabels = {
+    unavailable: ["Manual browser observation unavailable"],
+    browser_not_connected: ["Browser not connected"],
+    avanza_not_visible: ["Avanza not visible"],
+    ambiguous: ["Multiple Avanza pages visible"],
+    mismatch: ["Order-form preflight mismatch"],
+    blocked: ["Order-form preflight blocked"],
+    failed: ["Order-form preflight failed"],
+    ready: ["Order-form preflight ready"],
+  };
+
+  return {
+    version: CONTRACT_VERSION,
+    ok: ready,
+    bridgeVersion: CONTRACT_VERSION,
+    checkedAt,
+    preflight: {
+      version: AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION,
+      ok: ready,
+      status,
+      checkedAt,
+      expected: {
+        account: "Valentin Labs KF",
+        instrument: "GameStop",
+        side: "buy",
+        orderMode: "Avancerad/Limit",
+        stopBefore: "Granska köp",
+      },
+      checks,
+      labels: [
+        "Manual browser observation only",
+        "No browser launch",
+        "No field fill",
+        "No click",
+        "No review modal open",
+        "No final confirm",
+        "No order submission",
+        ...(statusLabels[status] ?? []),
+      ],
+      blockers: options.blockers ?? [],
+      warnings: options.warnings ?? [],
+      errors: options.errors ?? [],
+      ...(options.observation
+        ? {
+            observation: options.observation,
+          }
+        : {}),
+      metadata: {
+        contractVersion: AVANZA_ORDER_FORM_PREFLIGHT_CONTRACT_VERSION,
+        manualObservationOnly: true,
+        readonlyCdpObservation: options.readonlyCdpObservation === true,
+        noBrowserLaunch: true,
+        noBrowserControlActions: true,
+        noFieldFill: true,
+        noAmountFill: true,
+        noPriceFill: true,
+        noClick: true,
+        noReviewClick: true,
+        noFinalConfirmClick: true,
+        noBrokerSubmission: true,
+        noCredentialsHandling: true,
+        noBankIdHandling: true,
+        noCookiesRead: true,
+        noLocalStorageRead: true,
+        noSessionStorageRead: true,
+        noBrokerResultCreated: true,
+        noTradeMutation: true,
+        ...(options.metadata ?? {}),
+      },
+    },
+    message: ready
+      ? "Manual browser observation preflight passed. No fill, click, review, confirm, submit, or order placement occurred."
+      : "Manual browser observation preflight did not pass. No fill, click, review, confirm, submit, or order placement occurred.",
+    errors: options.errors ?? [],
+    warnings: [
+      "Preflight is observation-only. It must not be used as a fill/click/order trigger.",
+      ...(options.warnings ?? []),
+    ],
+    metadata: {
+      localhost_bridge_stub: true,
+      preflight_order_form_observation_only: true,
+      no_browser_launch: true,
+      no_fill: true,
+      no_click: true,
+      no_review_modal_opened: true,
+      no_submit: true,
+      no_order_placement: true,
+    },
+  };
+}
+
+function createOrderFormFieldDiscoveryResponse(status, options = {}) {
+  const checkedAt = options.checkedAt ?? now();
+  const ready = status === "ready";
+
+  return {
+    version: CONTRACT_VERSION,
+    ok: ready,
+    bridgeVersion: CONTRACT_VERSION,
+    checkedAt,
+    fieldDiscovery: {
+      version: "avanza_order_form_field_discovery_v1",
+      ok: ready,
+      status,
+      checkedAt,
+      fields: options.fields ?? {
+        amount: [],
+        quantity: [],
+        price: [],
+        total: [],
+        unknown: [],
+      },
+      counts: options.counts ?? {
+        amount: 0,
+        quantity: 0,
+        price: 0,
+        total: 0,
+        unknown: 0,
+      },
+      labels: [
+        "Manual browser observation only",
+        "Field discovery only",
+        "No browser launch",
+        "No field fill",
+        "No click",
+        "No review modal open",
+        "No final confirm",
+        "No order submission",
+      ],
+      blockers: options.blockers ?? [],
+      warnings: options.warnings ?? [],
+      errors: options.errors ?? [],
+      ...(options.observation
+        ? {
+            observation: options.observation,
+          }
+        : {}),
+      metadata: {
+        contractVersion: "avanza_order_form_field_discovery_v1",
+        manualObservationOnly: true,
+        fieldDiscoveryOnly: true,
+        readonlyCdpObservation: options.readonlyCdpObservation === true,
+        noBrowserLaunch: true,
+        noBrowserControlActions: true,
+        noFieldFill: true,
+        noAmountFill: true,
+        noQuantityFill: true,
+        noPriceFill: true,
+        noClick: true,
+        noReviewClick: true,
+        noFinalConfirmClick: true,
+        noBrokerSubmission: true,
+        noCredentialsHandling: true,
+        noBankIdHandling: true,
+        noCookiesRead: true,
+        noLocalStorageRead: true,
+        noSessionStorageRead: true,
+        noRawPageTextReturned: true,
+        noRawDomReturned: true,
+        noBrokerResultCreated: true,
+        noTradeMutation: true,
+        ...(options.metadata ?? {}),
+      },
+    },
+    message: ready
+      ? "Manual browser field discovery completed. No fill, click, review, confirm, submit, or order placement occurred."
+      : "Manual browser field discovery did not complete. No fill, click, review, confirm, submit, or order placement occurred.",
+    errors: options.errors ?? [],
+    warnings: [
+      "Field discovery is observation-only. It must not be used as a fill/click/order trigger.",
+      "Raw page text, raw DOM, cookies, localStorage, sessionStorage, credentials, and BankID data are not returned.",
+      ...(options.warnings ?? []),
+    ],
+    metadata: {
+      localhost_bridge_stub: true,
+      preflight_order_form_field_discovery_only: true,
+      no_browser_launch: true,
+      no_fill: true,
+      no_click: true,
+      no_review_modal_opened: true,
+      no_submit: true,
+      no_order_placement: true,
+    },
+  };
+}
+
+function manualObservationModeEnabled() {
+  return (
+    stringValue(process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE) ===
+    MANUAL_OBSERVATION_MODE
+  );
+}
+
+function normalizeManualObservationCdpUrl(value) {
+  const url = new URL(value ?? DEFAULT_MANUAL_OBSERVATION_CDP_URL);
+
+  if (!isLocalhostUrl(url)) {
+    throw new Error("Manual observation CDP URL must be localhost only.");
+  }
+
+  url.pathname = "";
+  url.search = "";
+  url.hash = "";
+
+  return url.toString().replace(/\/+$/, "");
+}
+
+function sanitizedUrlDetails(value) {
+  try {
+    const url = new URL(value);
+
+    return {
+      protocol: url.protocol,
+      host: url.host,
+      pathname: url.pathname,
+    };
+  } catch {
+    return {
+      protocol: "unknown",
+      host: "unknown",
+      pathname: "unknown",
+    };
+  }
+}
+
+function stringIncludesAvanza(value) {
+  return typeof value === "string" && /(^|\.)avanza\.se$/i.test(value);
+}
+
+async function listCdpTargets(cdpBaseUrl) {
+  const response = await fetch(`${cdpBaseUrl}/json/list`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`CDP target list returned HTTP ${response.status}.`);
+  }
+
+  const targets = await response.json();
+
+  return Array.isArray(targets) ? targets : [];
+}
+
+function cdpTargetIsAvanzaPage(target) {
+  if (!isObject(target) || target.type !== "page") {
+    return false;
+  }
+
+  try {
+    const targetUrl = new URL(String(target.url ?? ""));
+
+    return stringIncludesAvanza(targetUrl.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function sendReadonlyCdpCommand(webSocketDebuggerUrl, method, params = {}) {
+  return new Promise((resolve, reject) => {
+    if (typeof globalThis.WebSocket !== "function") {
+      reject(new Error("Node WebSocket support is not available."));
+      return;
+    }
+
+    const socket = new globalThis.WebSocket(webSocketDebuggerUrl);
+    const id = 1;
+    const timeout = setTimeout(() => {
+      try {
+        socket.close();
+      } catch {
+        // Ignore close errors during timeout cleanup.
+      }
+      reject(new Error("Readonly CDP observation timed out."));
+    }, 5000);
+
+    socket.addEventListener("open", () => {
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+
+    socket.addEventListener("message", (event) => {
+      let message;
+
+      try {
+        message = JSON.parse(String(event.data));
+      } catch {
+        return;
+      }
+
+      if (message.id !== id) {
+        return;
+      }
+
+      clearTimeout(timeout);
+
+      try {
+        socket.close();
+      } catch {
+        // Ignore close errors after a completed observation.
+      }
+
+      if (message.error) {
+        reject(
+          new Error(
+            typeof message.error.message === "string"
+              ? message.error.message
+              : "Readonly CDP command failed.",
+          ),
+        );
+        return;
+      }
+
+      resolve(message.result);
+    });
+
+    socket.addEventListener("error", () => {
+      clearTimeout(timeout);
+      reject(new Error("Readonly CDP WebSocket connection failed."));
+    });
+  });
+}
+
+function buildOrderFormObservationExpression() {
+  return `(async () => {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const visibleText = normalize(document.body ? document.body.innerText : "");
+    const visibleTextLower = lower(visibleText);
+    const controlText = Array.from(document.querySelectorAll("button,input,textarea,select,[role='button'],a,label"))
+      .filter(visible)
+      .map((element) => lower([
+        element.tagName,
+        element.getAttribute("type"),
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("name"),
+        element.getAttribute("id"),
+        element.getAttribute("title"),
+        element.innerText,
+        element.value,
+      ].filter(Boolean).join(" ")))
+      .join(" ");
+    const includesAny = (needles) => needles.some((needle) => visibleTextLower.includes(lower(needle)) || controlText.includes(lower(needle)));
+    const finalConfirmVisible = includesAny(["Bekräfta köp", "Bekrafta kop", "Bekräfta sälj", "Bekrafta salj"]);
+    return {
+      url: window.location.href,
+      title: document.title || "",
+      checks: {
+        avanzaPageVisible: /(^|\\.)avanza\\.se$/i.test(window.location.hostname) || includesAny(["Avanza"]),
+        accountVisible: includesAny(["Valentin Labs KF"]),
+        instrumentVisible: includesAny(["GameStop", "GME"]),
+        buySideVisible: includesAny(["Köp", "Kop", "Buy", "Granska köp", "Granska kop"]),
+        advancedLimitModeVisible: (includesAny(["Avancerad", "Advanced"]) && includesAny(["Limit", "Limitorder"])),
+        amountFieldVisible: includesAny(["Belopp", "Amount", "Summa", "427,26"]),
+        priceFieldVisible: includesAny(["Pris", "Price", "Limit", "21,98"]),
+        reviewButtonVisible: includesAny(["Granska köp", "Granska kop"]),
+        reviewModalOpen: finalConfirmVisible,
+        finalConfirmVisible,
+      },
+      metadata: {
+        visibleTextLength: visibleText.length,
+        observedControlTextLength: controlText.length,
+      },
+    };
+  })()`;
+}
+
+function buildOrderFormFieldDiscoveryExpression() {
+  return `(async () => {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const truncate = (value, limit = 80) => {
+      const normalized = normalize(value);
+      return normalized.length > limit ? normalized.slice(0, limit) : normalized;
+    };
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const safeAttribute = (element, name) => truncate(element.getAttribute(name) || "", 80);
+    const controlValue = (element) => {
+      if ("value" in element) return normalize(element.value);
+      return normalize(element.getAttribute("aria-valuetext") || element.getAttribute("aria-valuenow") || element.textContent || "");
+    };
+    const labelFor = (element) => {
+      const id = element.getAttribute("id");
+      const labels = [];
+      if (id) {
+        labels.push(...Array.from(document.querySelectorAll(\`label[for="\${CSS.escape(id)}"]\`)).map((label) => label.textContent));
+      }
+      if (element.labels) labels.push(...Array.from(element.labels).map((label) => label.textContent));
+      const ariaLabelledBy = element.getAttribute("aria-labelledby");
+      if (ariaLabelledBy) {
+        for (const item of ariaLabelledBy.split(/\\s+/)) {
+          const labelled = document.getElementById(item);
+          if (labelled) labels.push(labelled.textContent);
+        }
+      }
+      let cursor = element;
+      for (let depth = 0; depth < 4 && cursor; depth += 1) {
+        const scopedLabel = cursor.querySelector && cursor.querySelector("label");
+        if (scopedLabel) labels.push(scopedLabel.textContent);
+        cursor = cursor.parentElement;
+      }
+      return truncate(labels.filter(Boolean).join(" | "), 120);
+    };
+    const nearbyLabels = (element) => {
+      const values = [];
+      let cursor = element;
+      for (let depth = 0; depth < 4 && cursor; depth += 1) {
+        const text = Array.from(cursor.querySelectorAll("label,legend,span,div,p"))
+          .filter(visible)
+          .slice(0, 8)
+          .map((item) => item.textContent)
+          .filter(Boolean)
+          .join(" | ");
+        if (text) values.push(text);
+        cursor = cursor.parentElement;
+      }
+      return truncate(values.join(" | "), 180);
+    };
+    const nearbyButtons = (element) => {
+      const region = element.closest("form,[role='form'],section,main,div") || document.body;
+      return Array.from(region.querySelectorAll("button,[role='button']"))
+        .filter(visible)
+        .slice(0, 6)
+        .map((item) => truncate(item.textContent || item.getAttribute("aria-label") || "", 60))
+        .filter(Boolean);
+    };
+    const fieldGuess = (element, labelText) => {
+      const haystack = lower([
+        labelText,
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("name"),
+        element.getAttribute("id"),
+        element.getAttribute("title"),
+        element.getAttribute("data-testid"),
+        element.getAttribute("data-test-id"),
+      ].filter(Boolean).join(" "));
+      if (/\\b(antal|quantity|volym|volume)\\b/.test(haystack)) return "quantity";
+      if (/\\b(belopp|amount|summa)\\b/.test(haystack)) return "amount";
+      if (/\\b(kurs|price|pris|limit)\\b/.test(haystack)) return "price";
+      if (/\\b(total|totalt|inkl\\.? avgifter|avgift)\\b/.test(haystack)) return "total";
+      return "unknown";
+    };
+    const buySideRegion = (element) => {
+      const region = element.closest("form,[role='form'],section,main,div") || document.body;
+      const text = lower(region.textContent || "");
+      return text.includes("granska köp") || text.includes("granska kop") || text.includes("köp") || text.includes("kop");
+    };
+    const describeControl = (element, fallbackGroup) => {
+      const labelText = labelFor(element) || nearbyLabels(element);
+      const group = fallbackGroup || fieldGuess(element, labelText);
+      const value = controlValue(element);
+      return {
+        field_group_guess: group,
+        visible_label_nearby: truncate(labelText, 120),
+        placeholder: safeAttribute(element, "placeholder"),
+        aria_label: safeAttribute(element, "aria-label"),
+        name: safeAttribute(element, "name"),
+        id: safeAttribute(element, "id"),
+        type: safeAttribute(element, "type"),
+        role: safeAttribute(element, "role"),
+        autocomplete: safeAttribute(element, "autocomplete"),
+        inputmode: safeAttribute(element, "inputmode"),
+        pattern: safeAttribute(element, "pattern"),
+        disabled: Boolean(element.disabled || element.getAttribute("aria-disabled") === "true"),
+        readonly: Boolean(element.readOnly || element.getAttribute("aria-readonly") === "true"),
+        hidden: !visible(element),
+        visible_bounding_box_present: element.getClientRects().length > 0,
+        sanitized_value_length: value.length,
+        normalized_value: truncate(value, 32),
+        nearby_button_or_control_labels: nearbyButtons(element),
+        inside_buy_side_order_form_region: buySideRegion(element),
+      };
+    };
+    const controls = Array.from(document.querySelectorAll("input,textarea,select,[role='textbox'],[role='spinbutton'],[role='combobox']"))
+      .filter((element) => element instanceof HTMLElement)
+      .map((element) => describeControl(element));
+    const totalCandidates = Array.from(document.querySelectorAll("output,[aria-live],span,div,p"))
+      .filter((element) => visible(element) && /total|totalt|inkl\\.? avgifter|avgift/i.test(normalize(element.textContent)))
+      .slice(0, 12)
+      .map((element) => describeControl(element, "total"));
+    const grouped = { amount: [], quantity: [], price: [], total: [], unknown: [] };
+    for (const candidate of [...controls, ...totalCandidates]) {
+      grouped[candidate.field_group_guess] = grouped[candidate.field_group_guess] || [];
+      grouped[candidate.field_group_guess].push(candidate);
+    }
+    return {
+      url: window.location.href,
+      titleVisible: Boolean(document.title),
+      fields: grouped,
+      counts: Object.fromEntries(Object.entries(grouped).map(([key, value]) => [key, value.length])),
+      metadata: {
+        inspected_control_count: controls.length,
+        inspected_total_candidate_count: totalCandidates.length,
+        raw_text_returned: false,
+        raw_dom_returned: false,
+      },
+    };
+  })()`;
+}
+
+async function observeAvanzaOrderFormWithCdp() {
+  const cdpBaseUrl = normalizeManualObservationCdpUrl(
+    process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_CDP_URL,
+  );
+  const targets = await listCdpTargets(cdpBaseUrl);
+  const avanzaTargets = targets.filter(cdpTargetIsAvanzaPage);
+
+  if (avanzaTargets.length === 0) {
+    return createOrderFormPreflightResponse("avanza_not_visible", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["No Avanza page target was visible through the local CDP endpoint."],
+      errors: ["No Avanza page target was visible through the local CDP endpoint."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 0,
+      },
+    });
+  }
+
+  if (avanzaTargets.length > 1) {
+    return createOrderFormPreflightResponse("ambiguous", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: [
+        "Multiple Avanza page targets were visible. Keep exactly one Avanza order-form tab open for preflight.",
+      ],
+      errors: ["Multiple Avanza page targets were visible."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: avanzaTargets.length,
+      },
+    });
+  }
+
+  const target = avanzaTargets[0];
+
+  if (!stringValue(target.webSocketDebuggerUrl)) {
+    return createOrderFormPreflightResponse("browser_not_connected", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["The Avanza target did not expose a CDP WebSocket URL."],
+      errors: ["The Avanza target did not expose a CDP WebSocket URL."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 1,
+      },
+    });
+  }
+
+  const result = await sendReadonlyCdpCommand(
+    target.webSocketDebuggerUrl,
+    "Runtime.evaluate",
+    {
+      expression: buildOrderFormObservationExpression(),
+      returnByValue: true,
+      awaitPromise: true,
+      userGesture: false,
+    },
+  );
+  const observed = isObject(result?.result?.value) ? result.result.value : {};
+  const observedChecks = isObject(observed.checks) ? observed.checks : {};
+  const checks = [
+    buildOrderFormPreflightCheck(
+      "avanza_page_visible",
+      observedChecks.avanzaPageVisible === true,
+      observedChecks.avanzaPageVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "account_visible",
+      observedChecks.accountVisible === true,
+      observedChecks.accountVisible === true ? "Valentin Labs KF" : "not_visible",
+      "Valentin Labs KF",
+    ),
+    buildOrderFormPreflightCheck(
+      "instrument_visible",
+      observedChecks.instrumentVisible === true,
+      observedChecks.instrumentVisible === true ? "GameStop" : "not_visible",
+      "GameStop",
+    ),
+    buildOrderFormPreflightCheck(
+      "buy_side_order_form_visible",
+      observedChecks.buySideVisible === true,
+      observedChecks.buySideVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "order_mode_avancerad_limit_visible",
+      observedChecks.advancedLimitModeVisible === true,
+      observedChecks.advancedLimitModeVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "amount_field_visible",
+      observedChecks.amountFieldVisible === true,
+      observedChecks.amountFieldVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "price_field_visible",
+      observedChecks.priceFieldVisible === true,
+      observedChecks.priceFieldVisible === true,
+      true,
+    ),
+    buildOrderFormPreflightCheck(
+      "granska_kop_visible_not_clicked",
+      observedChecks.reviewButtonVisible === true,
+      observedChecks.reviewButtonVisible === true,
+      true,
+      "Visibility only; no click command exists in this endpoint.",
+    ),
+    buildOrderFormPreflightCheck(
+      "no_review_modal_open",
+      observedChecks.reviewModalOpen !== true,
+      observedChecks.reviewModalOpen === true ? "open" : "not_open",
+      "not_open",
+    ),
+    buildOrderFormPreflightCheck(
+      "no_bekrafta_kop_salj_visible",
+      observedChecks.finalConfirmVisible !== true,
+      observedChecks.finalConfirmVisible === true ? "visible" : "not_visible",
+      "not_visible",
+    ),
+  ];
+  const failedChecks = checks.filter((check) => check.ok !== true);
+  const targetUrl = sanitizedUrlDetails(observed.url ?? target.url);
+
+  return createOrderFormPreflightResponse(
+    failedChecks.length === 0 ? "ready" : "mismatch",
+    {
+      checkedAt: now(),
+      checks,
+      readonlyCdpObservation: true,
+      blockers: failedChecks.map((check) => `${check.name}:mismatch`),
+      warnings: [
+        "Observation used sanitized visible page text/control labels only; raw page text is not returned.",
+      ],
+      errors: failedChecks.map((check) => `${check.name}:mismatch`),
+      observation: {
+        url: targetUrl,
+        titleVisible: Boolean(stringValue(observed.title)),
+        avanzaTargetCount: 1,
+      },
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 1,
+        ...(isObject(observed.metadata)
+          ? {
+              visible_text_length: observed.metadata.visibleTextLength,
+              observed_control_text_length:
+                observed.metadata.observedControlTextLength,
+            }
+          : {}),
+      },
+    },
+  );
+}
+
+async function discoverAvanzaOrderFormFieldsWithCdp() {
+  const cdpBaseUrl = normalizeManualObservationCdpUrl(
+    process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_CDP_URL,
+  );
+  const targets = await listCdpTargets(cdpBaseUrl);
+  const avanzaTargets = targets.filter(cdpTargetIsAvanzaPage);
+
+  if (avanzaTargets.length === 0) {
+    return createOrderFormFieldDiscoveryResponse("avanza_not_visible", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["No Avanza page target was visible through the local CDP endpoint."],
+      errors: ["No Avanza page target was visible through the local CDP endpoint."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 0,
+      },
+    });
+  }
+
+  if (avanzaTargets.length > 1) {
+    return createOrderFormFieldDiscoveryResponse("ambiguous", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: [
+        "Multiple Avanza page targets were visible. Keep exactly one Avanza order-form tab open for field discovery.",
+      ],
+      errors: ["Multiple Avanza page targets were visible."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: avanzaTargets.length,
+      },
+    });
+  }
+
+  const target = avanzaTargets[0];
+
+  if (!stringValue(target.webSocketDebuggerUrl)) {
+    return createOrderFormFieldDiscoveryResponse("browser_not_connected", {
+      checkedAt: now(),
+      readonlyCdpObservation: true,
+      blockers: ["The Avanza target did not expose a CDP WebSocket URL."],
+      errors: ["The Avanza target did not expose a CDP WebSocket URL."],
+      metadata: {
+        cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+        avanza_target_count: 1,
+      },
+    });
+  }
+
+  const result = await sendReadonlyCdpCommand(
+    target.webSocketDebuggerUrl,
+    "Runtime.evaluate",
+    {
+      expression: buildOrderFormFieldDiscoveryExpression(),
+      returnByValue: true,
+      awaitPromise: true,
+      userGesture: false,
+    },
+  );
+  const observed = isObject(result?.result?.value) ? result.result.value : {};
+
+  return createOrderFormFieldDiscoveryResponse("ready", {
+    checkedAt: now(),
+    readonlyCdpObservation: true,
+    fields: isObject(observed.fields) ? observed.fields : undefined,
+    counts: isObject(observed.counts) ? observed.counts : undefined,
+    warnings: [
+      "Field discovery returns sanitized, bounded control metadata only; zero quantity candidates is diagnostic, not a preflight failure.",
+    ],
+    observation: {
+      url: sanitizedUrlDetails(observed.url ?? target.url),
+      titleVisible: observed.titleVisible === true,
+      avanzaTargetCount: 1,
+    },
+    metadata: {
+      cdp_base_host: sanitizedUrlDetails(cdpBaseUrl).host,
+      avanza_target_count: 1,
+      ...(isObject(observed.metadata) ? observed.metadata : {}),
+    },
+  });
+}
+
+async function buildOrderFormPreflightResponse() {
+  const checkedAt = now();
+
+  if (!manualObservationModeEnabled()) {
+    return createOrderFormPreflightResponse("unavailable", {
+      checkedAt,
+      blockers: [
+        `Manual observation mode must be explicitly enabled with AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=${MANUAL_OBSERVATION_MODE}.`,
+      ],
+      errors: ["Manual observation mode is not enabled."],
+      metadata: {
+        manual_observation_mode: "disabled",
+      },
+    });
+  }
+
+  try {
+    return await observeAvanzaOrderFormWithCdp();
+  } catch (error) {
+    return createOrderFormPreflightResponse("failed", {
+      checkedAt,
+      readonlyCdpObservation: true,
+      blockers: ["Manual browser observation failed before a safe preflight result could be produced."],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : "Unknown manual observation failure.",
+      ],
+      metadata: {
+        manual_observation_mode: MANUAL_OBSERVATION_MODE,
+      },
+    });
+  }
+}
+
+async function buildOrderFormFieldDiscoveryResponse() {
+  const checkedAt = now();
+
+  if (!manualObservationModeEnabled()) {
+    return createOrderFormFieldDiscoveryResponse("unavailable", {
+      checkedAt,
+      blockers: [
+        `Manual observation mode must be explicitly enabled with AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=${MANUAL_OBSERVATION_MODE}.`,
+      ],
+      errors: ["Manual observation mode is not enabled."],
+      metadata: {
+        manual_observation_mode: "disabled",
+      },
+    });
+  }
+
+  try {
+    return await discoverAvanzaOrderFormFieldsWithCdp();
+  } catch (error) {
+    return createOrderFormFieldDiscoveryResponse("failed", {
+      checkedAt,
+      readonlyCdpObservation: true,
+      blockers: ["Manual browser field discovery failed before a safe result could be produced."],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : "Unknown manual field discovery failure.",
+      ],
+      metadata: {
+        manual_observation_mode: MANUAL_OBSERVATION_MODE,
+      },
+    });
+  }
+}
+
+function liveFillOnlyRunnerEnabled() {
+  return (
+    manualObservationModeEnabled() &&
+    stringValue(process.env.AVANZA_LOCALHOST_BRIDGE_ENABLE_LIVE_FILL_ONLY_RUNNER) ===
+      ENABLE_LIVE_FILL_ONLY_RUNNER_VALUE
+  );
+}
+
+function inProcessLiveFillOnlyTriggerEnabled() {
+  return (
+    liveFillOnlyRunnerEnabled() &&
+    stringValue(process.env.AVANZA_LOCALHOST_BRIDGE_ENABLE_IN_PROCESS_TRIGGER) ===
+      ENABLE_IN_PROCESS_TRIGGER_VALUE
+  );
+}
+
+function createLiveFillOnlyRunnerResponse(action, status, options = {}) {
+  const checkedAt = options.checkedAt ?? now();
+  const ok = status === "ok";
+  const approvedInputStrategy = liveFillOnlyApprovedInputStrategy(
+    options.approvedInputStrategy ??
+      (action === "fillQuantityField" ? "quantity_based" : null),
+  );
+
+  return {
+    version: CONTRACT_VERSION,
+    ok,
+    status,
+    action,
+    checkedAt,
+    runnerResult: {
+      ok,
+      evidence_id: options.evidenceId ?? null,
+      observed_total_amount_sek: options.observedTotalAmountSek ?? null,
+      note: options.note ?? null,
+    },
+    report: {
+      verified_account: options.verifiedAccount ?? null,
+      verified_instrument: options.verifiedInstrument ?? null,
+      verified_side: options.verifiedSide ?? null,
+      verified_order_mode: options.verifiedOrderMode ?? null,
+      approved_input_strategy: approvedInputStrategy,
+      selected_primary_field:
+        options.selectedPrimaryField ??
+        liveFillOnlySelectedPrimaryField(approvedInputStrategy),
+      attempted_amount_fill: options.attemptedAmountFill === true,
+      amount_fill_verified: options.amountFillVerified === true,
+      attempted_quantity_fill: options.attemptedQuantityFill === true,
+      quantity_fill_verified: options.quantityFillVerified === true,
+      attempted_price_fill: options.attemptedPriceFill === true,
+      price_fill_verified: options.priceFillVerified === true,
+      amount_field_filled: options.amountFillVerified === true,
+      quantity_field_filled: options.quantityFillVerified === true,
+      price_field_filled: options.priceFillVerified === true,
+      total_amount_read: options.observedTotalAmountSek ?? null,
+      evidence_captured: Boolean(options.evidenceId),
+      stopped_before_granska_kop: options.stoppedBeforeReview === true,
+      no_review_modal_opened: options.noReviewModalOpened !== false,
+      no_final_confirmation_visible_or_clicked:
+        options.noFinalConfirmationVisibleOrClicked !== false,
+      no_order_placement: true,
+    },
+    blockers: options.blockers ?? [],
+    errors: options.errors ?? [],
+    warnings: [
+      "Live fill-only runner endpoint is restricted to approved fill-only methods and must be called only through the explicit trigger/wrapper boundary.",
+      ...(options.warnings ?? []),
+    ],
+    metadata: {
+      live_fill_only_runner: true,
+      disabled_by_default: true,
+      explicit_env_enablement_required: true,
+      manual_observation_mode_required: true,
+      no_browser_launch: true,
+      no_credentials_handling: true,
+      no_bankid_handling: true,
+      no_cookie_read: true,
+      no_local_storage_read: true,
+      no_session_storage_read: true,
+      no_review_click: true,
+      no_final_confirm_click: true,
+      no_submit_or_order_placement: true,
+      no_trade_mutation: true,
+      ...(options.metadata ?? {}),
+    },
+  };
+}
+
+function createLiveFillOnlyRunnerBlockedResponse(action, blocker) {
+  return createLiveFillOnlyRunnerResponse(action, "blocked", {
+    blockers: [blocker],
+    errors: [blocker],
+    note: blocker,
+    metadata: {
+      live_fill_only_runner_enabled: false,
+    },
+  });
+}
+
+function liveFillOnlyRunnerGate(action) {
+  if (liveFillOnlyRunnerEnabled()) {
+    return null;
+  }
+
+  return createLiveFillOnlyRunnerBlockedResponse(
+    action,
+    "Live fill-only runner requires AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=cdp_readonly and AVANZA_LOCALHOST_BRIDGE_ENABLE_LIVE_FILL_ONLY_RUNNER=true.",
+  );
+}
+
+function createInProcessLiveFillOnlyTriggerBlockedResponse(blockers, payload = {}) {
+  const blockerList = Array.isArray(blockers) ? blockers : [String(blockers)];
+
+  return {
+    version: CONTRACT_VERSION,
+    ok: false,
+    status: "blocked",
+    action: "runApprovedQuantityBasedFillOnlyTrigger",
+    proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+    exact_trigger_phrase_accepted:
+      payload.exact_trigger_phrase === FINAL_LIVE_EXECUTE_ATTEMPT_TRIGGER_PHRASE ||
+      payload.exactTriggerPhrase === FINAL_LIVE_EXECUTE_ATTEMPT_TRIGGER_PHRASE,
+    selected_input_strategy:
+      stringValue(payload.approved_input_strategy) ??
+      stringValue(payload.approvedInputStrategy) ??
+      null,
+    blockers: blockerList,
+    errors: blockerList,
+    warnings: [
+      "Bridge-hosted in-process trigger is disabled by default and requires explicit manual curl invocation.",
+      "No fill, click, review, final confirmation, submit, or order placement occurred.",
+    ],
+    metadata: {
+      in_process_live_fill_only_trigger: true,
+      disabled_by_default: true,
+      manual_observation_mode_required: true,
+      live_fill_only_runner_required: true,
+      explicit_in_process_trigger_env_required: true,
+      exact_trigger_phrase_required: true,
+      no_review_click: true,
+      no_final_confirm_click: true,
+      no_submit_or_order_placement: true,
+    },
+  };
+}
+
+function validateInProcessQuantityBasedTriggerPayload(payload) {
+  const blockers = [];
+  const exactTriggerPhrase =
+    stringValue(payload?.exact_trigger_phrase) ??
+    stringValue(payload?.exactTriggerPhrase);
+  const inputStrategy =
+    stringValue(payload?.approved_input_strategy) ??
+    stringValue(payload?.approvedInputStrategy);
+  const account =
+    stringValue(payload?.account) ??
+    stringValue(payload?.expected_account) ??
+    stringValue(payload?.expectedAccount);
+  const instrument =
+    stringValue(payload?.instrument) ??
+    stringValue(payload?.expected_instrument) ??
+    stringValue(payload?.expectedInstrument);
+  const side =
+    stringValue(payload?.side) ??
+    stringValue(payload?.expected_side) ??
+    stringValue(payload?.expectedSide);
+  const orderMode =
+    stringValue(payload?.order_mode) ??
+    stringValue(payload?.orderMode) ??
+    stringValue(payload?.expected_order_mode) ??
+    stringValue(payload?.expectedOrderMode);
+  const stopBefore =
+    stringValue(payload?.stop_before) ??
+    stringValue(payload?.stopBefore);
+  const quantity =
+    numberFromInput(
+      valueFromRecord(payload, ["quantity", "expected_quantity", "expectedQuantity"]),
+    );
+  const price =
+    numberFromInput(
+      valueFromRecord(payload, ["price_usd", "priceUsd", "expected_price_usd", "expectedPriceUsd"]),
+    );
+
+  if (!inProcessLiveFillOnlyTriggerEnabled()) {
+    blockers.push(
+      "in_process_trigger_env:not_enabled",
+      "requires:AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_MODE=cdp_readonly",
+      "requires:AVANZA_LOCALHOST_BRIDGE_ENABLE_LIVE_FILL_ONLY_RUNNER=true",
+      "requires:AVANZA_LOCALHOST_BRIDGE_ENABLE_IN_PROCESS_TRIGGER=true",
+    );
+  }
+
+  if (exactTriggerPhrase !== FINAL_LIVE_EXECUTE_ATTEMPT_TRIGGER_PHRASE) {
+    blockers.push("exact_trigger_phrase:missing_or_mismatched");
+  }
+
+  if (inputStrategy !== "quantity_based") {
+    blockers.push("input_strategy:not_quantity_based");
+  }
+
+  if (account !== APPROVED_LIVE_FILL_ONLY_VALUES.account) {
+    blockers.push("account:mismatch");
+  }
+
+  if (instrument !== APPROVED_LIVE_FILL_ONLY_VALUES.instrument) {
+    blockers.push("instrument:mismatch");
+  }
+
+  if (side !== "buy" && side !== "Buy-only") {
+    blockers.push("side:not_buy_only");
+  }
+
+  if (orderMode !== APPROVED_LIVE_FILL_ONLY_VALUES.orderMode) {
+    blockers.push("order_mode:not_avancerad_limit");
+  }
+
+  if (quantity !== APPROVED_LIVE_FILL_ONLY_VALUES.quantity) {
+    blockers.push("quantity:mismatch");
+  }
+
+  if (price !== APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd) {
+    blockers.push("price:mismatch");
+  }
+
+  if (stopBefore !== "Granska köp") {
+    blockers.push("stop_before:not_granska_kop");
+  }
+
+  return {
+    ok: blockers.length === 0,
+    blockers,
+    exactTriggerPhraseAccepted:
+      exactTriggerPhrase === FINAL_LIVE_EXECUTE_ATTEMPT_TRIGGER_PHRASE,
+  };
+}
+
+function parseAmountSek(value) {
+  const text = String(value ?? "")
+    .replace(/\s/g, "")
+    .replace(/[^\d,.-]/g, "")
+    .replace(",", ".");
+  const parsed = Number(text);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeLiveFillOnlyFieldValue(value) {
+  return String(value ?? "").replace(/\s+/g, "").replace(",", ".").trim();
+}
+
+function liveFillOnlyApprovedInputStrategy(strategy) {
+  return strategy === "quantity_based"
+    ? "quantity_based"
+    : APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy;
+}
+
+function liveFillOnlySelectedPrimaryField(strategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy) {
+  return liveFillOnlyApprovedInputStrategy(strategy) === "quantity_based"
+    ? "quantity"
+    : "amount";
+}
+
+function liveFillOnlyExpectedPrimaryValue(strategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy) {
+  return liveFillOnlySelectedPrimaryField(strategy) === "quantity"
+    ? APPROVED_LIVE_FILL_ONLY_VALUES.quantityText
+    : APPROVED_LIVE_FILL_ONLY_VALUES.amountSekText;
+}
+
+function liveFillOnlyFieldReadbackMetadata(
+  observed,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const amountObserved = normalizeLiveFillOnlyFieldValue(observed?.values?.amount);
+  const quantityObserved = normalizeLiveFillOnlyFieldValue(observed?.values?.quantity);
+  const priceObserved = normalizeLiveFillOnlyFieldValue(observed?.values?.price);
+  const amountExpected = normalizeLiveFillOnlyFieldValue(
+    APPROVED_LIVE_FILL_ONLY_VALUES.amountSekText,
+  );
+  const quantityExpected = normalizeLiveFillOnlyFieldValue(
+    APPROVED_LIVE_FILL_ONLY_VALUES.quantityText,
+  );
+  const priceExpected = normalizeLiveFillOnlyFieldValue(
+    APPROVED_LIVE_FILL_ONLY_VALUES.priceUsdText,
+  );
+  const selectedInputStrategy = liveFillOnlyApprovedInputStrategy(
+    approvedInputStrategy,
+  );
+  const selectedPrimaryField = liveFillOnlySelectedPrimaryField(selectedInputStrategy);
+  const amountFieldFound = observed?.checks?.amountFieldVisible === true;
+  const quantityFieldFound = observed?.checks?.quantityFieldVisible === true;
+  const priceFieldFound = observed?.checks?.priceFieldVisible === true;
+  const amountVerified =
+    amountFieldFound &&
+    amountObserved.length > 0 &&
+    parseAmountSek(amountObserved) === APPROVED_LIVE_FILL_ONLY_VALUES.amountSek;
+  const quantityVerified =
+    quantityFieldFound &&
+    quantityObserved.length > 0 &&
+    parseAmountSek(quantityObserved) === APPROVED_LIVE_FILL_ONLY_VALUES.quantity;
+  const priceVerified =
+    priceFieldFound &&
+    priceObserved.length > 0 &&
+    parseAmountSek(priceObserved) === APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd;
+  const primaryObserved =
+    selectedPrimaryField === "quantity" ? quantityObserved : amountObserved;
+  const primaryExpected = normalizeLiveFillOnlyFieldValue(
+    liveFillOnlyExpectedPrimaryValue(selectedInputStrategy),
+  );
+  const primaryVerified =
+    selectedPrimaryField === "quantity" ? quantityVerified : amountVerified;
+
+  return {
+    selected_input_strategy: selectedInputStrategy,
+    selected_primary_field: selectedPrimaryField,
+    primary_field_expected: primaryExpected,
+    primary_field_observed_normalized: primaryObserved,
+    primary_field_verified: primaryVerified,
+    amount_field_found: amountFieldFound,
+    amount_field_value_present: amountObserved.length > 0,
+    amount_expected: amountExpected,
+    amount_observed_normalized: amountObserved,
+    amount_verified: amountVerified,
+    quantity_field_found: quantityFieldFound,
+    quantity_field_value_present: quantityObserved.length > 0,
+    quantity_expected: quantityExpected,
+    quantity_observed_normalized: quantityObserved,
+    quantity_verified: quantityVerified,
+    price_field_found: priceFieldFound,
+    price_field_value_present: priceObserved.length > 0,
+    price_expected: priceExpected,
+    price_observed_normalized: priceObserved,
+    price_verified: priceVerified,
+  };
+}
+
+function liveFillOnlyTotalMetadata(
+  observed,
+  total,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+  totalDiscovery = null,
+) {
+  const totalText =
+    typeof totalDiscovery?.total_observed === "string"
+      ? totalDiscovery.total_observed.trim()
+      : typeof observed?.values?.totalText === "string"
+      ? observed.values.totalText.trim()
+      : "";
+  const fieldMetadata = liveFillOnlyFieldReadbackMetadata(
+    observed,
+    approvedInputStrategy,
+  );
+  const totalElementFound =
+    typeof totalDiscovery?.total_element_found === "boolean"
+      ? totalDiscovery.total_element_found
+      : observed?.values?.totalText !== null;
+  const totalTextPresent =
+    typeof totalDiscovery?.total_text_present === "boolean"
+      ? totalDiscovery.total_text_present
+      : totalText.length > 0;
+  const totalParseStatus =
+    typeof totalDiscovery?.total_parse_status === "string"
+      ? totalDiscovery.total_parse_status
+      : Number.isFinite(total)
+        ? "parsed"
+        : "unparsable";
+  const totalValid =
+    typeof totalDiscovery?.total_valid === "boolean"
+      ? totalDiscovery.total_valid
+      : Number.isFinite(total) && total > 0;
+
+  return {
+    ...fieldMetadata,
+    total_observed: totalText,
+    total_element_found: totalElementFound,
+    total_text_present: totalTextPresent,
+    total_text_length: totalText.length,
+    total_parse_status: totalParseStatus,
+    total_valid: totalValid,
+    total_candidate_count:
+      typeof totalDiscovery?.total_candidate_count === "number"
+        ? totalDiscovery.total_candidate_count
+        : 0,
+    total_candidate_count_before_scope_filter:
+      typeof totalDiscovery?.total_candidate_count_before_scope_filter ===
+      "number"
+        ? totalDiscovery.total_candidate_count_before_scope_filter
+        : 0,
+    rejected_global_candidate_count:
+      typeof totalDiscovery?.rejected_global_candidate_count === "number"
+        ? totalDiscovery.rejected_global_candidate_count
+        : 0,
+    rejected_available_buying_power_candidate_count:
+      typeof totalDiscovery?.rejected_available_buying_power_candidate_count ===
+      "number"
+        ? totalDiscovery.rejected_available_buying_power_candidate_count
+        : 0,
+    rejected_unscoped_candidate_count:
+      typeof totalDiscovery?.rejected_unscoped_candidate_count === "number"
+        ? totalDiscovery.rejected_unscoped_candidate_count
+        : 0,
+    selected_total_candidate_metadata:
+      totalDiscovery?.selected_total_candidate_metadata ?? null,
+    selected_total_candidate_is_order_scoped:
+      totalDiscovery?.selected_total_candidate_is_order_scoped ?? false,
+    selected_total_candidate_rejection_reason:
+      totalDiscovery?.selected_total_candidate_rejection_reason ?? null,
+    selected_total_candidate_distance_to_order_inputs:
+      totalDiscovery?.selected_total_candidate_distance_to_order_inputs ?? null,
+    selected_total_candidate_contains_global_terms:
+      totalDiscovery?.selected_total_candidate_contains_global_terms ?? false,
+    selected_total_candidate_contains_available_buying_power_terms:
+      totalDiscovery
+        ?.selected_total_candidate_contains_available_buying_power_terms ??
+      false,
+    selected_total_candidate_contains_order_terms:
+      totalDiscovery?.selected_total_candidate_contains_order_terms ?? false,
+    total_nearby_sanitized_labels:
+      totalDiscovery?.total_nearby_sanitized_labels ?? [],
+    rejected_total_candidates: totalDiscovery?.rejected_total_candidates ?? [],
+    total_normalized_text: totalDiscovery?.total_normalized_text ?? totalText,
+    total_parsed_sek: Number.isFinite(total) ? total : null,
+    total_retry_count:
+      typeof totalDiscovery?.total_retry_count === "number"
+        ? totalDiscovery.total_retry_count
+        : 0,
+    total_final_blocker_reason:
+      totalDiscovery?.total_final_blocker_reason ?? null,
+    total_reader_version: totalDiscovery?.total_reader_version ?? null,
+    total_positive_required:
+      APPROVED_LIVE_FILL_ONLY_VALUES.amountSek > 0,
+  };
+}
+
+function liveFillOnlyApprovedFieldsVerified(
+  observed,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const metadata = liveFillOnlyFieldReadbackMetadata(
+    observed,
+    approvedInputStrategy,
+  );
+
+  return (
+    metadata.primary_field_verified === true &&
+    metadata.price_verified === true
+  );
+}
+
+function liveFillOnlyFieldNotVerifiedBlocker(field) {
+  if (field === "price") {
+    return "price_fill_not_verified";
+  }
+
+  return "selected_input_fill_not_verified";
+}
+
+function liveFillOnlyTotalReadInvalid(observed, total) {
+  if (APPROVED_LIVE_FILL_ONLY_VALUES.amountSek <= 0) {
+    return false;
+  }
+
+  if (Number.isFinite(total) && total > 0) {
+    return false;
+  }
+
+  const totalText =
+    typeof observed?.values?.totalText === "string"
+      ? observed.values.totalText.trim()
+      : "";
+
+  return totalText.length === 0 || !Number.isFinite(total) || total <= 0;
+}
+
+function buildLiveFillOnlyObservationExpression() {
+  return `(async () => {
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const findFirstVisible = (selectors) => {
+      for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (visible(element)) return element;
+      }
+      return null;
+    };
+    const visibleText = normalize(document.body ? document.body.innerText : "");
+    const visibleTextLower = lower(visibleText);
+    const controlText = Array.from(document.querySelectorAll("button,input,textarea,select,[role='button'],a,label"))
+      .filter(visible)
+      .map((element) => lower([
+        element.tagName,
+        element.getAttribute("type"),
+        element.getAttribute("aria-label"),
+        element.getAttribute("placeholder"),
+        element.getAttribute("name"),
+        element.getAttribute("id"),
+        element.getAttribute("title"),
+        element.innerText,
+        element.value,
+      ].filter(Boolean).join(" ")))
+      .join(" ");
+    const includesAny = (needles) => needles.some((needle) => visibleTextLower.includes(lower(needle)) || controlText.includes(lower(needle)));
+    const finalConfirmVisible = includesAny(["Bekräfta köp", "Bekrafta kop", "Bekräfta sälj", "Bekrafta salj"]);
+    const amountField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.amount)});
+    const quantityField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.quantity)});
+    const priceField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.price)});
+    const totalField = findFirstVisible(${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.total)});
+    return {
+      url: window.location.href,
+      titlePresent: Boolean(document.title),
+      checks: {
+        avanzaPageVisible: /(^|\\.)avanza\\.se$/i.test(window.location.hostname) || includesAny(["Avanza"]),
+        accountVisible: includesAny(["${APPROVED_LIVE_FILL_ONLY_VALUES.account}"]),
+        instrumentVisible: includesAny(["${APPROVED_LIVE_FILL_ONLY_VALUES.instrument}", "GME"]),
+        buySideVisible: includesAny(["Köp", "Kop", "Buy", "Granska köp", "Granska kop"]),
+        advancedLimitModeVisible: (includesAny(["Avancerad", "Advanced"]) && includesAny(["Limit", "Limitorder"])),
+        amountFieldVisible: Boolean(amountField),
+        quantityFieldVisible: Boolean(quantityField),
+        priceFieldVisible: Boolean(priceField),
+        reviewButtonVisible: includesAny(["Granska köp", "Granska kop"]),
+        reviewModalOpen: finalConfirmVisible,
+        finalConfirmVisible,
+      },
+      values: {
+        amount: amountField && "value" in amountField ? amountField.value : null,
+        quantity: quantityField && "value" in quantityField ? quantityField.value : null,
+        price: priceField && "value" in priceField ? priceField.value : null,
+        totalText: totalField ? normalize(totalField.innerText || totalField.textContent || "") : null,
+      },
+    };
+  })()`;
+}
+
+function buildLiveFillOnlyTotalDiscoveryExpression() {
+  return `(async () => {
+    const selectors = ${JSON.stringify(AVANZA_LIVE_FILL_ONLY_SELECTORS.total)};
+    const TOTAL_READER_VERSION = "avanza_live_fill_only_total_reader_v4";
+    const GLOBAL_TOTAL_READER_TERMS = [
+      "omxs30",
+      "djus",
+      "börsen idag",
+      "borsen idag",
+      "logga ut",
+      "hoppa till huvudinnehållet",
+      "hoppa till huvudinnehalllet",
+      "spara & investera",
+      "bolån",
+      "bolan",
+      "pension",
+      "lär dig mer",
+      "lar dig mer",
+    ];
+    const ORDER_TOTAL_READER_TERMS = [
+      "totalt",
+      "total",
+      "totalt belopp",
+      "belopp",
+      "avgift",
+      "avgifter",
+      "courtage",
+      "valuta",
+      "sek",
+      "usd",
+      "inkl",
+    ];
+    const AVAILABLE_BUYING_POWER_TERMS = [
+      "tillg. för köp",
+      "tillgängligt för köp",
+      "tillgangligt for kop",
+      "tillg för köp",
+      "tillg for kop",
+      "på kontot",
+      "pa kontot",
+      "handla på konto",
+      "handla pa konto",
+      "köpkraft",
+      "kopkraft",
+      "köputrymme",
+      "koputrymme",
+      "kontosaldo",
+      "saldo",
+    ];
+    const MAX_ORDER_TOTAL_TEXT_LENGTH = 240;
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const lower = (value) => normalize(value).toLocaleLowerCase("sv-SE");
+    const truncate = (value, limit = 120) => {
+      const normalized = normalize(value);
+      return normalized.length > limit ? normalized.slice(0, limit) : normalized;
+    };
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const textOf = (element) => normalize(element?.innerText || element?.textContent || element?.value || "");
+    const normalizedTotalText = (value) => normalize(value).replace(/\\s*kr\\b/gi, " SEK");
+    const parseSek = (value) => {
+      const text = normalizedTotalText(value);
+      const numberMatches = Array.from(text.matchAll(/-?\\d+(?:[\\s.]\\d{3})*(?:[,.]\\d+)?|-?\\d+/g));
+      if (numberMatches.length === 0) return null;
+      const last = numberMatches[numberMatches.length - 1][0]
+        .replace(/\\s/g, "")
+        .replace(/\\.(?=\\d{3}(?:\\D|$))/g, "")
+        .replace(",", ".");
+      const parsed = Number(last);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const nearbyLabels = (element) => {
+      const values = [];
+      let cursor = element;
+      for (let depth = 0; depth < 3 && cursor; depth += 1) {
+        const labels = Array.from(cursor.querySelectorAll("label,legend,span,p,div"))
+          .filter(visible)
+          .slice(0, 6)
+          .map((item) => textOf(item))
+          .filter(Boolean);
+        values.push(...labels);
+        cursor = cursor.parentElement;
+      }
+      return Array.from(new Set(values.map((item) => truncate(item, 80)))).slice(0, 8);
+    };
+    const containsAnyTerm = (haystack, terms) =>
+      terms.some((term) => lower(haystack).includes(lower(term)));
+    const orderInputs = [
+      document.querySelector("input#inputVolume"),
+      document.querySelector("input#inputPrice"),
+      document.querySelector("input#inputAmount"),
+    ].filter(Boolean);
+    const findOrderPanel = () => {
+      const seed = document.querySelector("input#inputVolume") || document.querySelector("input#inputPrice") || document.querySelector("input#inputAmount");
+      let cursor = seed;
+      for (let depth = 0; depth < 8 && cursor; depth += 1) {
+        const text = lower(textOf(cursor));
+        const containsKnownInputs = orderInputs.every((input) => cursor.contains(input));
+        const hasOrderLanguage =
+          text.includes("granska köp") ||
+          text.includes("granska kop") ||
+          text.includes("antal") ||
+          text.includes("kurs") ||
+          text.includes("belopp");
+        const tooBroad =
+          cursor === document.body ||
+          cursor.tagName === "MAIN" ||
+          Boolean(cursor.querySelector("header,nav"));
+        if (containsKnownInputs && hasOrderLanguage && !tooBroad) {
+          return cursor;
+        }
+        cursor = cursor.parentElement;
+      }
+      return seed?.closest("form,[role='form'],section,aside,article,div") ?? null;
+    };
+    const orderPanel = findOrderPanel();
+    const scopedToOrderPanel = (element) => Boolean(orderPanel && orderPanel.contains(element));
+    const distanceToOrderInputs = (element) => {
+      if (!element || orderInputs.length === 0) return "order_inputs_missing";
+      if (orderInputs.some((input) => input === element)) return "same_element_as_order_input";
+      if (scopedToOrderPanel(element)) return "same_order_panel";
+      if (orderInputs.some((input) => element.contains(input) || input.contains(element))) return "ancestor_or_descendant_of_order_input";
+      return "outside_order_scope";
+    };
+    const candidateMeta = (element, index, selectorSource = null) => {
+      const text = textOf(element);
+      const labels = nearbyLabels(element);
+      const haystack = lower([text, ...labels].join(" "));
+      const parsed = parseSek(text);
+      const hasTotalLanguage =
+        /total|totalt|belopp|summa|avgift|avgifter|courtage|inkl/.test(haystack);
+      const hasCurrency = /\\bsek\\b|\\bkr\\b/.test(haystack);
+      const containsGlobalTerms = containsAnyTerm(haystack, GLOBAL_TOTAL_READER_TERMS);
+      const containsOrderTerms = containsAnyTerm(haystack, ORDER_TOTAL_READER_TERMS);
+      const containsAvailableBuyingPowerTerms =
+        containsAnyTerm(haystack, AVAILABLE_BUYING_POWER_TERMS);
+      const broadPageContainer =
+        element === document.body ||
+        element.tagName === "MAIN" ||
+        Boolean(element.querySelector("header,nav")) ||
+        text.length > MAX_ORDER_TOTAL_TEXT_LENGTH;
+      const isOrderScoped =
+        scopedToOrderPanel(element) &&
+        !containsGlobalTerms &&
+        !containsAvailableBuyingPowerTerms &&
+        !broadPageContainer &&
+        containsOrderTerms;
+      const rejectionReason = isOrderScoped
+        ? null
+        : containsGlobalTerms
+          ? "global_header_or_market_text"
+          : containsAvailableBuyingPowerTerms
+            ? "total_candidate_is_available_buying_power_not_order_total"
+          : broadPageContainer
+            ? "broad_page_container_or_text_too_large"
+            : !scopedToOrderPanel(element)
+              ? "outside_order_form_scope"
+              : !containsOrderTerms
+                ? "missing_order_total_terms"
+                : "not_order_scoped";
+      const parseStatus =
+        text.length === 0
+          ? "empty"
+          : !Number.isFinite(parsed)
+            ? "unparsable"
+            : parsed <= 0
+              ? "zero_or_negative"
+              : "parsed_positive";
+      const score =
+        (isOrderScoped ? 80 : -100) +
+        (selectorSource ? 30 : 0) +
+        (hasTotalLanguage ? 25 : 0) +
+        (hasCurrency ? 15 : 0) +
+        (Number.isFinite(parsed) && parsed > 0 ? 10 : 0);
+
+      return {
+        index,
+        selector_source: selectorSource,
+        field_group_guess: "total",
+        tag_name: element.tagName,
+        role: element.getAttribute("role") || null,
+        id_present: Boolean(element.getAttribute("id")),
+        class_present: Boolean(element.getAttribute("class")),
+        data_e2e_present: Boolean(element.getAttribute("data-e2e")),
+        hidden: visible(element) !== true,
+        visible_bounding_box_present: element.getClientRects().length > 0,
+        text_length: text.length,
+        normalized_total_text: truncate(normalizedTotalText(text), 120),
+        nearby_sanitized_labels: labels,
+        contains_global_terms: containsGlobalTerms,
+        contains_available_buying_power_terms: containsAvailableBuyingPowerTerms,
+        contains_order_terms: containsOrderTerms,
+        is_order_scoped: isOrderScoped,
+        rejection_reason: rejectionReason,
+        distance_to_order_inputs: distanceToOrderInputs(element),
+        broad_page_container_or_text_too_large: broadPageContainer,
+        parse_status: parseStatus,
+        parsed_sek_value: Number.isFinite(parsed) ? parsed : null,
+        score,
+      };
+    };
+    const uniqueElements = (items) => {
+      const seen = new Set();
+      return items.filter((item) => {
+        if (!item || seen.has(item)) return false;
+        seen.add(item);
+        return true;
+      });
+    };
+    const collectCandidates = () => {
+      const selectorMatches = selectors.flatMap((selector) =>
+        Array.from(document.querySelectorAll(selector)).map((element) => ({
+          element,
+          selector,
+        })),
+      );
+      const textMatches = Array.from(document.querySelectorAll("output,[aria-live],span,div,p,strong"))
+        .filter(visible)
+        .filter((element) => {
+          const haystack = lower(textOf(element));
+          return (/\\bsek\\b|\\bkr\\b/.test(haystack) &&
+            /total|totalt|belopp|summa|avgift|avgifter|courtage|inkl/.test(haystack));
+        })
+        .map((element) => ({ element, selector: null }));
+      const unique = uniqueElements([...selectorMatches, ...textMatches].map((item) => item.element));
+
+      return unique
+        .filter(visible)
+        .map((element, index) => {
+          const selectorMatch = selectorMatches.find((item) => item.element === element);
+          return candidateMeta(element, index, selectorMatch?.selector ?? null);
+        })
+        .sort((left, right) => right.score - left.score);
+    };
+    const snapshot = (attempt) => {
+      const allCandidates = collectCandidates();
+      const rejectedGlobalCandidates = allCandidates.filter((candidate) => candidate.contains_global_terms === true);
+      const rejectedAvailableBuyingPowerCandidates = allCandidates.filter((candidate) => candidate.contains_available_buying_power_terms === true);
+      const rejectedScopedCandidates = allCandidates.filter((candidate) => candidate.is_order_scoped !== true);
+      const candidates = allCandidates.filter((candidate) => candidate.is_order_scoped === true);
+      const selected =
+        candidates.find((candidate) => candidate.parse_status === "parsed_positive") ??
+        candidates[0] ??
+        null;
+      const parsed = selected?.parsed_sek_value ?? null;
+      const blocker =
+        candidates.length === 0
+          ? "total_element_not_found_or_not_order_scoped"
+          : selected.text_length === 0
+            ? "total_element_found_but_empty"
+            : selected.parse_status === "unparsable"
+              ? "total_text_unparsable"
+              : selected.parse_status === "zero_or_negative"
+                ? "total_parsed_zero_or_negative"
+                : null;
+
+      return {
+        total_reader_version: TOTAL_READER_VERSION,
+        total_retry_count: attempt,
+        total_candidate_count: candidates.length,
+        total_candidate_count_before_scope_filter: allCandidates.length,
+        rejected_global_candidate_count: rejectedGlobalCandidates.length,
+        rejected_available_buying_power_candidate_count: rejectedAvailableBuyingPowerCandidates.length,
+        rejected_unscoped_candidate_count: rejectedScopedCandidates.length,
+        total_element_found: candidates.length > 0,
+        total_text_present: Boolean(selected && selected.text_length > 0),
+        total_observed: selected?.normalized_total_text ?? "",
+        total_normalized_text: selected?.normalized_total_text ?? "",
+        total_parse_status: selected?.parse_status ?? "not_found",
+        total_valid: Number.isFinite(parsed) && parsed > 0,
+        parsed_total_amount_sek: Number.isFinite(parsed) ? parsed : null,
+        selected_total_candidate_metadata: selected,
+        selected_total_candidate_is_order_scoped: selected?.is_order_scoped === true,
+        selected_total_candidate_rejection_reason: selected?.rejection_reason ?? null,
+        selected_total_candidate_distance_to_order_inputs: selected?.distance_to_order_inputs ?? null,
+        selected_total_candidate_contains_global_terms: selected?.contains_global_terms === true,
+        selected_total_candidate_contains_available_buying_power_terms:
+          selected?.contains_available_buying_power_terms === true,
+        selected_total_candidate_contains_order_terms: selected?.contains_order_terms === true,
+        total_nearby_sanitized_labels: selected?.nearby_sanitized_labels ?? [],
+        total_candidates: candidates.slice(0, 8),
+        rejected_total_candidates: rejectedScopedCandidates.slice(0, 8),
+        total_final_blocker_reason: blocker,
+        safety: {
+          no_fill: true,
+          no_click: true,
+          no_review_click: true,
+          no_final_confirm_click: true,
+          no_submit_or_order_placement: true,
+          no_credentials_cookies_storage_or_session_data: true,
+          no_raw_page_text: true,
+          no_raw_dom: true,
+        },
+      };
+    };
+    let latest = snapshot(0);
+    for (let attempt = 1; attempt <= 4 && latest.total_valid !== true; attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 150));
+      latest = snapshot(attempt);
+    }
+    if (latest.total_final_blocker_reason === null && latest.total_valid !== true) {
+      latest.total_final_blocker_reason = "total_recalculation_delayed_or_uncertain";
+    }
+    return latest;
+  })()`;
+}
+
+function buildLiveFillOnlySetFieldExpression(field, value) {
+  const selectors = field === "amount"
+    ? AVANZA_LIVE_FILL_ONLY_SELECTORS.amount
+    : field === "quantity"
+      ? AVANZA_LIVE_FILL_ONLY_SELECTORS.quantity
+      : AVANZA_LIVE_FILL_ONLY_SELECTORS.price;
+
+  return `(async () => {
+    const selectors = ${JSON.stringify(selectors)};
+    const field = ${JSON.stringify(field)};
+    const value = ${JSON.stringify(value)};
+    const stableIdByField = {
+      amount: "inputAmount",
+      quantity: "inputVolume",
+      price: "inputPrice",
+    };
+    const stableSelectorByField = {
+      amount: "input#inputAmount",
+      quantity: "input#inputVolume",
+      price: "input#inputPrice",
+    };
+    const fieldGroupById = {
+      inputAmount: "amount",
+      inputVolume: "quantity",
+      inputPrice: "price",
+    };
+    const stableSelector =
+      stableSelectorByField[field] ||
+      \`input#\${CSS.escape(stableIdByField[field] || "")}\`;
+    const expectedNormalized = String(value || "").replace(/\\s+/g, "").replace(",", ".").trim();
+    const normalize = (candidate) => String(candidate || "").replace(/\\s+/g, " ").trim();
+    const normalizeValue = (candidate) => String(candidate || "").replace(/\\s+/g, "").replace(",", ".").trim();
+    const lower = (candidate) => normalize(candidate).toLocaleLowerCase("sv-SE");
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    const labelText = (element) => {
+      const labels = Array.from(element.labels || []).map((label) => label.innerText || label.textContent || "");
+      const id = element.getAttribute("id");
+      const forLabels = id
+        ? Array.from(document.querySelectorAll(\`label[for="\${CSS.escape(id)}"]\`)).map((label) => label.innerText || label.textContent || "")
+        : [];
+      const ariaLabelledBy = String(element.getAttribute("aria-labelledby") || "")
+        .split(/\\s+/)
+        .filter(Boolean)
+        .map((labelId) => document.getElementById(labelId))
+        .filter(Boolean)
+        .map((label) => label.innerText || label.textContent || "");
+      const parentText = element.parentElement ? element.parentElement.innerText || element.parentElement.textContent || "" : "";
+      return normalize([...labels, ...forLabels, ...ariaLabelledBy, parentText].join(" "));
+    };
+    const readValue = (element) => {
+      if (!element) {
+        return { source: "missing", value: "" };
+      }
+      if ("value" in element && String(element.value || "").length > 0) {
+        return { source: "input.value", value: element.value };
+      }
+      const ariaValue = element.getAttribute("aria-valuenow") || element.getAttribute("aria-valuetext");
+      if (ariaValue) {
+        return { source: "aria value", value: ariaValue };
+      }
+      const visibleText = normalize(element.innerText || element.textContent || "");
+      if (visibleText) {
+        return { source: "visible text", value: visibleText };
+      }
+      return { source: "input.value", value: "value" in element ? element.value : "" };
+    };
+    ${liveFillOnlyStableFieldResolverSource()}
+    const candidateMeta = (element, index, selectorSource = null) => {
+      const id = element.getAttribute("id") || "";
+      const name = element.getAttribute("name") || "";
+      const dataE2e = element.getAttribute("data-e2e") || "";
+      const ariaLabel = element.getAttribute("aria-label") || "";
+      const placeholder = element.getAttribute("placeholder") || "";
+      const label = labelText(element);
+      const haystack = lower([id, name, dataE2e, ariaLabel, placeholder, label].join(" "));
+      const stableFieldGroup = fieldGroupById[id] || null;
+      const antalLabelTied =
+        stableFieldGroup === "quantity" ||
+        haystack.includes("antal") ||
+        haystack.includes("inputvolume") ||
+        haystack.includes("volume");
+      const readback = readValue(element);
+
+      return {
+        index,
+        selector_source: selectorSource,
+        selected_selector: selectorSource,
+        selected_id: id || null,
+        selected_field_group: stableFieldGroup || field,
+        field_discovery_matched: stableFieldGroup === field,
+        tag_name: element.tagName,
+        type: element.getAttribute("type") || null,
+        id_present: id.length > 0,
+        name_present: name.length > 0,
+        data_e2e_present: dataE2e.length > 0,
+        aria_label_present: ariaLabel.length > 0,
+        placeholder_present: placeholder.length > 0,
+        label_text_present: label.length > 0,
+        tied_to_antal_label_or_volume: antalLabelTied,
+        visible: visible(element),
+        disabled: element.disabled === true || element.getAttribute("aria-disabled") === "true",
+        readonly: element.readOnly === true || element.getAttribute("readonly") !== null,
+        hidden: visible(element) !== true,
+        before_value_present: normalizeValue(readback.value).length > 0,
+        before_value_normalized: normalizeValue(readback.value),
+        readback_source: readback.source,
+      };
+    };
+    const uniqueElements = (items) => {
+      const seen = new Set();
+      return items.filter((item) => {
+        if (!item || seen.has(item)) return false;
+        seen.add(item);
+        return true;
+      });
+    };
+    const selectorCandidates = uniqueElements(
+      selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector))),
+    );
+    let stableResolved;
+    try {
+      stableResolved = resolveStableOrderField(field);
+    } catch (error) {
+      return {
+        ok: false,
+        reason: "stable_resolver_exception",
+        resolver_not_invoked: false,
+        shared_resolver_function_name: "resolveStableOrderField",
+        shared_resolver_invoked: false,
+        stable_field_resolver_version: STABLE_FIELD_RESOLVER_VERSION,
+        fill_used_shared_stable_resolver: false,
+        stable_selector: stableSelector,
+        stable_id: stableIdByField[field] ?? null,
+        stable_id_found: false,
+        stable_id_get_element_by_id_found: false,
+        stable_id_query_selector_found: false,
+        stable_id_accepted: false,
+        stable_id_blocker_reason: "stable_resolver_exception",
+        error_message: error instanceof Error ? error.message : "Unknown stable resolver exception.",
+      };
+    }
+    const stableIdElement = stableResolved.element;
+    const stableIdMeta = stableIdElement
+      ? {
+          ...candidateMeta(stableIdElement, 0, stableResolved.metadata.stable_selector),
+          selected_selector: stableResolved.metadata.stable_selector,
+          selected_id: stableResolved.metadata.stable_id,
+          selected_field_group: stableResolved.metadata.selected_field_group,
+          field_discovery_matched: stableResolved.metadata.field_discovery_matched,
+        }
+      : null;
+    const stableIdAccepted = stableResolved.metadata.accepted_by_fill_field === true;
+    const stableIdBlockerReason = stableResolved.metadata.blocker_reason;
+    const stableIdCandidate =
+      stableIdElement
+        ? [stableIdElement]
+        : [];
+    const broadQuantityCandidates =
+      field === "quantity" && stableIdAccepted
+        ? stableIdCandidate
+        : field === "quantity"
+        ? uniqueElements([
+            ...stableIdCandidate,
+            ...selectorCandidates,
+            ...Array.from(document.querySelectorAll("input,textarea,[role='spinbutton'],[contenteditable='true']"))
+              .filter((element) => {
+                const meta = candidateMeta(element, -1);
+                return meta.tied_to_antal_label_or_volume &&
+                  (meta.selected_id === null || meta.selected_field_group === "quantity");
+              }),
+          ])
+        : uniqueElements([...stableIdCandidate, ...selectorCandidates]);
+    const candidates = broadQuantityCandidates
+      .filter((element) => visible(element))
+      .map((element, index) => candidateMeta(element, index, selectors.find((selector) => {
+        try {
+          return element.matches(selector);
+        } catch {
+          return false;
+        }
+      }) || null));
+    const stableCandidate = stableIdAccepted
+      ? candidates.find((candidate) => candidate.field_discovery_matched === true && candidate.selected_id === stableIdMeta.selected_id) ?? stableIdMeta
+      : null;
+    const quantityClearCandidates =
+      field === "quantity"
+        ? (stableCandidate ? [stableCandidate] : candidates.filter((candidate) => candidate.tied_to_antal_label_or_volume && candidate.selected_field_group === "quantity"))
+        : candidates;
+    const selectedMeta =
+      stableCandidate ??
+      (quantityClearCandidates.length === 1 ? quantityClearCandidates[0] : null);
+    const element =
+      stableCandidate
+        ? stableResolved.element
+        : selectedMeta === null
+        ? null
+        : broadQuantityCandidates.filter((candidate) => visible(candidate))[selectedMeta.index];
+    const diagnostics = {
+      field,
+      selected_selector: selectedMeta?.selected_selector ?? stableSelector,
+      selected_id: selectedMeta?.selected_id ?? null,
+      selected_field_group: selectedMeta?.selected_field_group ?? field,
+      field_discovery_matched: selectedMeta?.field_discovery_matched === true,
+      expected_normalized: expectedNormalized,
+      antal_control_found: field === "quantity" ? quantityClearCandidates.length > 0 : undefined,
+      candidate_count: candidates.length,
+      quantity_candidate_count: field === "quantity" ? quantityClearCandidates.length : undefined,
+      selected_candidate: selectedMeta,
+      candidates: candidates.slice(0, 8),
+      stable_field_resolver_version: stableResolved.metadata.stable_field_resolver_version,
+      fill_used_shared_stable_resolver: stableResolved.metadata.fill_used_shared_stable_resolver,
+      stable_selector: stableResolved.metadata.stable_selector ?? stableSelector,
+      stable_id: stableResolved.metadata.stable_id ?? stableIdByField[field] ?? null,
+      stable_id_lookup_method: stableResolved.metadata.get_element_by_id_found ? "getElementById" : "querySelector",
+      stable_id_found: Boolean(stableIdElement),
+      stable_id_get_element_by_id_found: stableResolved.metadata.get_element_by_id_found,
+      stable_id_query_selector_found: stableResolved.metadata.query_selector_found,
+      stable_id_visible: stableResolved.metadata.hidden === false,
+      stable_id_disabled: stableResolved.metadata.disabled,
+      stable_id_readonly: stableResolved.metadata.readonly,
+      stable_id_hidden: stableResolved.metadata.hidden,
+      stable_id_type: stableResolved.metadata.type,
+      stable_id_inputmode: stableResolved.metadata.inputmode,
+      stable_id_field_group: stableResolved.metadata.selected_field_group,
+      stable_id_accepted: stableIdAccepted,
+      stable_id_blocker_reason: stableIdBlockerReason,
+      inside_buy_side_order_form_region_required:
+        stableResolved.metadata.inside_buy_side_order_form_region_required,
+      resolver_not_invoked: false,
+      shared_resolver_function_name: stableResolved.metadata.shared_resolver_function_name,
+      shared_resolver_invoked: stableResolved.metadata.shared_resolver_invoked,
+    };
+    if (field === "quantity" && stableIdElement && !stableIdAccepted) {
+      return {
+        ok: false,
+        reason: stableIdBlockerReason ?? "stable_id_found_but_rejected_by_scope",
+        ...diagnostics,
+        selected_candidate: stableIdMeta,
+      };
+    }
+    if (field === "quantity" && !stableIdElement) {
+      return {
+        ok: false,
+        reason: "stable_id_not_found",
+        ...diagnostics,
+      };
+    }
+    if (field === "quantity" && quantityClearCandidates.length !== 1) {
+      return {
+        ok: false,
+        reason: quantityClearCandidates.length === 0
+          ? "quantity_antal_control_not_found"
+          : "quantity_candidate_ambiguity",
+        ...diagnostics,
+      };
+    }
+    if (!element || !("value" in element)) {
+      return { ok: false, reason: "field_not_visible", ...diagnostics };
+    }
+    if (element.disabled === true || element.getAttribute("aria-disabled") === "true") {
+      return { ok: false, reason: "field_disabled", ...diagnostics };
+    }
+    if (element.readOnly === true || element.getAttribute("readonly") !== null) {
+      return { ok: false, reason: "field_readonly", ...diagnostics };
+    }
+    const before = readValue(element);
+    element.focus({ preventScroll: true });
+    const proto = Object.getPrototypeOf(element);
+    const descriptor = Object.getOwnPropertyDescriptor(proto, "value");
+    if (descriptor && typeof descriptor.set === "function") {
+      descriptor.set.call(element, "");
+    } else {
+      element.value = "";
+    }
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+    if (descriptor && typeof descriptor.set === "function") {
+      descriptor.set.call(element, value);
+    } else {
+      element.value = value;
+    }
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+    element.blur();
+    await new Promise((resolve) => window.setTimeout(resolve, 150));
+    const after = readValue(element);
+    const observedNormalized = normalizeValue(after.value);
+    const readbackMatched = observedNormalized === expectedNormalized;
+    return {
+      ok: readbackMatched,
+      reason: readbackMatched ? "readback_matched" : "readback_mismatch",
+      value: after.value,
+      observed_normalized: observedNormalized,
+      before_value: before.value,
+      after_value: after.value,
+      readback_source: after.source,
+      ...diagnostics,
+      stable_id_blocker_reason: readbackMatched
+        ? null
+        : "stable_id_found_and_accepted_but_set_failed",
+      selected_candidate: selectedMeta
+        ? {
+            ...selectedMeta,
+            before_value_normalized: normalizeValue(before.value),
+            after_value_normalized: observedNormalized,
+            readback_source_used: after.source,
+          }
+        : null,
+    };
+  })()`;
+}
+
+function liveFillOnlyStableFieldResolverSource() {
+  return `
+    const STABLE_FIELD_RESOLVER_VERSION = ${JSON.stringify(
+      LIVE_FILL_ONLY_STABLE_FIELD_RESOLVER_VERSION,
+    )};
+    const stableFieldDefinitions = {
+      amount: { field: "amount", id: "inputAmount", selector: "input#inputAmount", expectedInputmode: "decimal" },
+      quantity: { field: "quantity", id: "inputVolume", selector: "input#inputVolume", expectedInputmode: "numeric" },
+      price: { field: "price", id: "inputPrice", selector: "input#inputPrice", expectedInputmode: "decimal" },
+    };
+    const stableFieldGroupById = {
+      inputAmount: "amount",
+      inputVolume: "quantity",
+      inputPrice: "price",
+    };
+    const stableFieldBlockerReason = (field, element, expectedInputmode) => {
+      if (!element) return "stable_id_not_found";
+      if (!["INPUT", "TEXTAREA"].includes(element.tagName) && element.getAttribute("contenteditable") !== "true") {
+        return "stable_id_found_but_not_input";
+      }
+      if (!visible(element)) return "stable_id_found_but_hidden";
+      if (element.disabled === true || element.getAttribute("aria-disabled") === "true") {
+        return "stable_id_found_but_disabled";
+      }
+      if (element.readOnly === true || element.getAttribute("readonly") !== null) {
+        return "stable_id_found_but_readonly";
+      }
+      if (field === "quantity" && element.getAttribute("inputmode") !== expectedInputmode) {
+        return "stable_id_found_but_wrong_inputmode";
+      }
+      if (stableFieldGroupById[element.getAttribute("id") || ""] !== field) {
+        return "stable_id_found_but_rejected_by_scope";
+      }
+      return null;
+    };
+    const stableFieldValue = (element) => {
+      if (!element || !("value" in element)) return "";
+      return normalizeValue(element.value);
+    };
+    const resolveStableOrderField = (field) => {
+      const definition = stableFieldDefinitions[field];
+      const byId = definition ? document.getElementById(definition.id) : null;
+      const bySelector = definition ? document.querySelector(definition.selector) : null;
+      const element = byId ?? bySelector;
+      const reason = definition
+        ? stableFieldBlockerReason(field, element, definition.expectedInputmode)
+        : "stable_id_not_found";
+      const selectedFieldGroup = element
+        ? stableFieldGroupById[element.getAttribute("id") || ""] || field
+        : field;
+      const normalizedValue = stableFieldValue(element);
+
+      return {
+        element,
+        metadata: {
+          stable_field_resolver_version: STABLE_FIELD_RESOLVER_VERSION,
+          fill_used_shared_stable_resolver: true,
+          shared_resolver_function_name: "resolveStableOrderField",
+          shared_resolver_invoked: true,
+          stable_id: definition?.id ?? null,
+          stable_selector: definition?.selector ?? null,
+          get_element_by_id_found: Boolean(byId),
+          query_selector_found: Boolean(bySelector),
+          same_element_for_id_and_selector: Boolean(byId && bySelector && byId === bySelector),
+          tag_name: element?.tagName ?? null,
+          type: element?.getAttribute("type") || null,
+          inputmode: element?.getAttribute("inputmode") || null,
+          disabled: element ? element.disabled === true || element.getAttribute("aria-disabled") === "true" : null,
+          readonly: element ? element.readOnly === true || element.getAttribute("readonly") !== null : null,
+          hidden: element ? visible(element) !== true : null,
+          visible_bounding_box_present: element ? element.getClientRects().length > 0 : false,
+          normalized_value_length: normalizedValue.length,
+          normalized_value: normalizedValue,
+          accepted_by_fill_field: reason === null,
+          accepted_by_fill_quantity_field: field === "quantity" ? reason === null : null,
+          blocker_reason: reason,
+          selected_field_group: selectedFieldGroup,
+          field_discovery_matched: selectedFieldGroup === field,
+          inside_buy_side_order_form_region_required: false,
+        },
+      };
+    };
+  `;
+}
+
+function buildLiveFillOnlyStableFieldProbeExpression() {
+  return `(() => {
+    const normalizeValue = (candidate) => String(candidate || "").replace(/\\s+/g, "").replace(",", ".").trim();
+    const visible = (element) => {
+      if (!element) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (element.offsetWidth > 0 || element.offsetHeight > 0 || element.getClientRects().length > 0);
+    };
+    ${liveFillOnlyStableFieldResolverSource()}
+    const probe = (field) => {
+      const resolved = resolveStableOrderField(field);
+      const metadata = resolved.metadata;
+      return {
+        field,
+        stable_id: metadata.stable_id,
+        stable_selector: metadata.stable_selector,
+        get_element_by_id_found: metadata.get_element_by_id_found,
+        query_selector_found: metadata.query_selector_found,
+        same_element_for_id_and_selector: metadata.same_element_for_id_and_selector,
+        tag_name: metadata.tag_name,
+        type: metadata.type,
+        inputmode: metadata.inputmode,
+        disabled: metadata.disabled,
+        readonly: metadata.readonly,
+        hidden: metadata.hidden,
+        visible_bounding_box_present: metadata.visible_bounding_box_present,
+        normalized_value_length: metadata.normalized_value_length,
+        normalized_value: metadata.normalized_value,
+        accepted_by_fill_field: metadata.accepted_by_fill_field,
+        accepted_by_fill_quantity_field: metadata.accepted_by_fill_quantity_field,
+        blocker_reason: metadata.blocker_reason,
+        stable_field_resolver_version: metadata.stable_field_resolver_version,
+        fill_used_shared_stable_resolver: metadata.fill_used_shared_stable_resolver,
+        inside_buy_side_order_form_region_required:
+          metadata.inside_buy_side_order_form_region_required,
+      };
+    };
+    return {
+      ok: true,
+      action: "stableFieldProbe",
+      probe_version: "avanza_live_fill_only_stable_field_probe_v1",
+      same_target_resolver_as_fill_quantity_field: true,
+      stable_field_resolver_version: STABLE_FIELD_RESOLVER_VERSION,
+      fields: Object.fromEntries(["amount", "quantity", "price"].map((field) => [field, probe(field)])),
+      safety: {
+        no_fill: true,
+        no_click: true,
+        no_review_click: true,
+        no_final_confirm_click: true,
+        no_submit_or_order_placement: true,
+        no_credentials_cookies_storage_or_session_data: true,
+        no_raw_page_text: true,
+        no_raw_dom: true,
+      },
+    };
+  })()`;
+}
+
+async function getSingleAvanzaCdpTarget() {
+  const cdpBaseUrl = normalizeManualObservationCdpUrl(
+    process.env.AVANZA_LOCALHOST_BRIDGE_MANUAL_OBSERVATION_CDP_URL,
+  );
+  const targets = await listCdpTargets(cdpBaseUrl);
+  const avanzaTargets = targets.filter(cdpTargetIsAvanzaPage);
+
+  if (avanzaTargets.length !== 1) {
+    throw new Error(
+      avanzaTargets.length === 0
+        ? "No Avanza page target was visible through the local CDP endpoint."
+        : "Multiple Avanza page targets were visible through the local CDP endpoint.",
+    );
+  }
+
+  if (!stringValue(avanzaTargets[0].webSocketDebuggerUrl)) {
+    throw new Error("The Avanza target did not expose a CDP WebSocket URL.");
+  }
+
+  return avanzaTargets[0];
+}
+
+async function evaluateInSingleAvanzaTarget(expression) {
+  const target = await getSingleAvanzaCdpTarget();
+
+  const result = await sendReadonlyCdpCommand(
+    target.webSocketDebuggerUrl,
+    "Runtime.evaluate",
+    {
+      expression,
+      returnByValue: true,
+      awaitPromise: true,
+      userGesture: false,
+    },
+  );
+
+  return isObject(result?.result?.value) ? result.result.value : {};
+}
+
+function liveObservationPasses(
+  observed,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const checks = isObject(observed?.checks) ? observed.checks : {};
+  const selectedPrimaryField = liveFillOnlySelectedPrimaryField(
+    approvedInputStrategy,
+  );
+  const selectedPrimaryFieldVisible =
+    selectedPrimaryField === "quantity"
+      ? checks.quantityFieldVisible === true
+      : checks.amountFieldVisible === true;
+
+  return (
+    checks.avanzaPageVisible === true &&
+    checks.accountVisible === true &&
+    checks.instrumentVisible === true &&
+    checks.buySideVisible === true &&
+    checks.advancedLimitModeVisible === true &&
+    selectedPrimaryFieldVisible &&
+    checks.priceFieldVisible === true &&
+    checks.reviewButtonVisible === true &&
+    checks.reviewModalOpen !== true &&
+    checks.finalConfirmVisible !== true
+  );
+}
+
+function liveObservationBlockers(
+  observed,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const checks = isObject(observed?.checks) ? observed.checks : {};
+  const selectedPrimaryField = liveFillOnlySelectedPrimaryField(
+    approvedInputStrategy,
+  );
+  const pairs = [
+    ["account_visible", checks.accountVisible === true],
+    ["instrument_visible", checks.instrumentVisible === true],
+    ["buy_side_visible", checks.buySideVisible === true],
+    ["advanced_limit_mode_visible", checks.advancedLimitModeVisible === true],
+    [
+      `${selectedPrimaryField}_field_visible`,
+      selectedPrimaryField === "quantity"
+        ? checks.quantityFieldVisible === true
+        : checks.amountFieldVisible === true,
+    ],
+    ["price_field_visible", checks.priceFieldVisible === true],
+    ["granska_kop_visible", checks.reviewButtonVisible === true],
+    ["no_review_modal_open", checks.reviewModalOpen !== true],
+    ["no_final_confirm_visible", checks.finalConfirmVisible !== true],
+  ];
+
+  return pairs
+    .filter(([, ok]) => ok !== true)
+    .map(([name]) => `${name}:mismatch`);
+}
+
+function liveObservationReportOptions(
+  observed,
+  extra = {},
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const selectedInputStrategy = liveFillOnlyApprovedInputStrategy(
+    approvedInputStrategy,
+  );
+
+  return {
+    verifiedAccount: APPROVED_LIVE_FILL_ONLY_VALUES.account,
+    verifiedInstrument: APPROVED_LIVE_FILL_ONLY_VALUES.instrument,
+    verifiedSide: APPROVED_LIVE_FILL_ONLY_VALUES.side,
+    verifiedOrderMode: APPROVED_LIVE_FILL_ONLY_VALUES.orderMode,
+    approvedInputStrategy: selectedInputStrategy,
+    selectedPrimaryField: liveFillOnlySelectedPrimaryField(
+      selectedInputStrategy,
+    ),
+    noReviewModalOpened: observed?.checks?.reviewModalOpen !== true,
+    noFinalConfirmationVisibleOrClicked: observed?.checks?.finalConfirmVisible !== true,
+    ...extra,
+  };
+}
+
+async function verifyLiveFillOnlyVisibleState(
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse("verifyVisibleOrderFormState", "aborted", {
+      ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+      blockers: liveObservationBlockers(observed, approvedInputStrategy),
+      errors: liveObservationBlockers(observed, approvedInputStrategy),
+      note: "Visible order-form state did not match the approved fill-only preflight.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("verifyVisibleOrderFormState", "ok", {
+    ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+    evidenceId: `visible-state-${Date.now()}`,
+    note: "Approved visible order-form state verified.",
+  });
+}
+
+async function fillLiveFillOnlyField(
+  action,
+  field,
+  expectedNumericValue,
+  expectedTextValue,
+  options = {},
+) {
+  const approvedInputStrategy = liveFillOnlyApprovedInputStrategy(
+    options.approvedInputStrategy ??
+      (field === "quantity" ? "quantity_based" : null),
+  );
+  const fillQuantityCallSite =
+    typeof options.fillQuantityCallSite === "string"
+      ? options.fillQuantityCallSite
+      : null;
+  const before = await verifyLiveFillOnlyVisibleState(approvedInputStrategy);
+
+  if (before.ok !== true) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      approvedInputStrategy,
+      blockers: ["visible_state_mismatch_before_fill"],
+      errors: ["visible_state_mismatch_before_fill"],
+      note: "Aborted before fill because visible state verification failed.",
+    });
+  }
+
+  const result = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlySetFieldExpression(field, expectedTextValue),
+  );
+  const pageSideResolverReported =
+    result.shared_resolver_invoked === true ||
+    result.resolver_not_invoked === true ||
+    result.reason === "stable_resolver_exception";
+  const sharedStableResolverUsed =
+    result.fill_used_shared_stable_resolver === true &&
+    typeof result.stable_field_resolver_version === "string" &&
+    result.stable_field_resolver_version.length > 0;
+  const fillQuantityDiagnostics =
+    field === "quantity"
+      ? {
+          fill_quantity_implementation_id:
+            LIVE_FILL_ONLY_FILL_QUANTITY_IMPLEMENTATION_ID,
+          fill_quantity_call_site: fillQuantityCallSite,
+          shared_resolver_function_name:
+            result.shared_resolver_function_name ?? "resolveStableOrderField",
+          shared_resolver_invoked: pageSideResolverReported
+            ? result.shared_resolver_invoked === true
+            : null,
+          resolver_not_invoked:
+            result.resolver_not_invoked === true ? true : null,
+        }
+      : {};
+
+  if (field === "quantity" && !sharedStableResolverUsed) {
+    const blocker = "shared_stable_resolver_not_used";
+
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      approvedInputStrategy,
+      blockers: [blocker],
+      errors: [blocker],
+      metadata: {
+        ...fillQuantityDiagnostics,
+        exact_blocker_reason: blocker,
+        field_interaction_result: result,
+        [`${field}_stable_field_resolver_version`]:
+          result.stable_field_resolver_version ?? null,
+        [`${field}_fill_used_shared_stable_resolver`]:
+          result.fill_used_shared_stable_resolver === true,
+        [`${field}_shared_resolver_function_name`]:
+          result.shared_resolver_function_name ?? null,
+        [`${field}_shared_resolver_invoked`]:
+          pageSideResolverReported ? result.shared_resolver_invoked === true : null,
+        [`${field}_resolver_not_invoked`]:
+          result.resolver_not_invoked === true ? true : null,
+        [`${field}_stable_selector`]: result.stable_selector ?? null,
+        [`${field}_stable_id`]: result.stable_id ?? null,
+        [`${field}_stable_id_found`]: result.stable_id_found === true,
+        [`${field}_stable_id_get_element_by_id_found`]:
+          result.stable_id_get_element_by_id_found === true,
+        [`${field}_stable_id_query_selector_found`]:
+          result.stable_id_query_selector_found === true,
+        [`${field}_stable_id_accepted`]: result.stable_id_accepted === true,
+        [`${field}_candidate_count`]:
+          result.quantity_candidate_count ?? result.candidate_count ?? 0,
+      },
+      note: "Aborted because fillQuantityField did not report the shared stable field resolver metadata.",
+    });
+  }
+
+  if (result.ok !== true || result.value !== expectedTextValue) {
+    const blocker = result.reason || `${field}_field_fill_failed`;
+
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      approvedInputStrategy,
+      blockers: [blocker],
+      errors: [blocker],
+      metadata: {
+        ...fillQuantityDiagnostics,
+        exact_blocker_reason: blocker,
+        field_interaction_result: result,
+        [`${field}_selected_selector`]: result.selected_selector ?? null,
+        [`${field}_selected_id`]: result.selected_id ?? null,
+        [`${field}_selected_field_group`]: result.selected_field_group ?? field,
+        [`${field}_field_discovery_matched`]:
+          result.field_discovery_matched === true,
+        [`${field}_stable_selector`]: result.stable_selector ?? null,
+        [`${field}_stable_id`]: result.stable_id ?? null,
+        [`${field}_stable_field_resolver_version`]:
+          result.stable_field_resolver_version ?? null,
+        [`${field}_fill_used_shared_stable_resolver`]:
+          result.fill_used_shared_stable_resolver === true,
+        [`${field}_shared_resolver_function_name`]:
+          result.shared_resolver_function_name ?? null,
+        [`${field}_shared_resolver_invoked`]:
+          pageSideResolverReported ? result.shared_resolver_invoked === true : null,
+        [`${field}_resolver_not_invoked`]:
+          result.resolver_not_invoked === true ? true : null,
+        [`${field}_stable_id_lookup_method`]:
+          result.stable_id_lookup_method ?? null,
+        [`${field}_stable_id_found`]: result.stable_id_found === true,
+        [`${field}_stable_id_get_element_by_id_found`]:
+          result.stable_id_get_element_by_id_found === true,
+        [`${field}_stable_id_query_selector_found`]:
+          result.stable_id_query_selector_found === true,
+        [`${field}_stable_id_accepted`]: result.stable_id_accepted === true,
+        [`${field}_stable_id_blocker_reason`]:
+          result.stable_id_blocker_reason ?? null,
+        [`${field}_inside_buy_side_order_form_region_required`]:
+          result.inside_buy_side_order_form_region_required === true,
+        [`${field}_field_found`]:
+          field === "quantity"
+            ? result.antal_control_found === true
+            : result.candidate_count > 0,
+        [`${field}_candidate_count`]:
+          field === "quantity"
+            ? result.quantity_candidate_count ?? result.candidate_count ?? 0
+            : result.candidate_count ?? 0,
+        [`${field}_selected_candidate`]: result.selected_candidate ?? null,
+        [`${field}_candidate_disabled`]:
+          result.selected_candidate?.disabled ?? null,
+        [`${field}_candidate_readonly`]:
+          result.selected_candidate?.readonly ?? null,
+        [`${field}_candidate_hidden`]:
+          result.selected_candidate?.hidden ?? null,
+        [`${field}_before_value_normalized`]:
+          result.selected_candidate?.before_value_normalized ??
+          normalizeLiveFillOnlyFieldValue(result.before_value),
+        [`${field}_after_value_normalized`]:
+          result.selected_candidate?.after_value_normalized ??
+          result.observed_normalized ??
+          "",
+        [`${field}_readback_source_used`]:
+          result.selected_candidate?.readback_source_used ??
+          result.readback_source ??
+          null,
+        [`${field}_expected_normalized`]:
+          result.expected_normalized ??
+          normalizeLiveFillOnlyFieldValue(expectedTextValue),
+        [`${field}_observed_normalized`]: result.observed_normalized ?? "",
+        [`${field}_verified`]: result.observed_normalized ===
+          (result.expected_normalized ??
+            normalizeLiveFillOnlyFieldValue(expectedTextValue)),
+      },
+      note: `${field} field did not confirm the approved value. Blocker: ${blocker}.`,
+    });
+  }
+
+  const after = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+  const fieldMetadata = liveFillOnlyFieldReadbackMetadata(
+    after,
+    approvedInputStrategy,
+  );
+  const fieldVerified = {
+    amount: fieldMetadata.amount_verified === true,
+    quantity: fieldMetadata.quantity_verified === true,
+    price: fieldMetadata.price_verified === true,
+  }[field];
+
+  if (!liveObservationPasses(after, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      ...liveObservationReportOptions(after, {}, approvedInputStrategy),
+      attemptedAmountFill: field === "amount",
+      attemptedQuantityFill: field === "quantity",
+      attemptedPriceFill: field === "price",
+      blockers: liveObservationBlockers(after, approvedInputStrategy),
+      errors: liveObservationBlockers(after, approvedInputStrategy),
+      metadata: {
+        ...fillQuantityDiagnostics,
+        ...fieldMetadata,
+        [`${field}_selected_selector`]: result.selected_selector ?? null,
+        [`${field}_selected_id`]: result.selected_id ?? null,
+        [`${field}_selected_field_group`]: result.selected_field_group ?? field,
+        [`${field}_field_discovery_matched`]:
+          result.field_discovery_matched === true,
+        [`${field}_stable_selector`]: result.stable_selector ?? null,
+        [`${field}_stable_id`]: result.stable_id ?? null,
+        [`${field}_stable_field_resolver_version`]:
+          result.stable_field_resolver_version ?? null,
+        [`${field}_fill_used_shared_stable_resolver`]:
+          result.fill_used_shared_stable_resolver === true,
+        [`${field}_shared_resolver_function_name`]:
+          result.shared_resolver_function_name ?? null,
+        [`${field}_shared_resolver_invoked`]:
+          pageSideResolverReported ? result.shared_resolver_invoked === true : null,
+        [`${field}_resolver_not_invoked`]:
+          result.resolver_not_invoked === true ? true : null,
+        [`${field}_stable_id_lookup_method`]:
+          result.stable_id_lookup_method ?? null,
+        [`${field}_stable_id_found`]: result.stable_id_found === true,
+        [`${field}_stable_id_get_element_by_id_found`]:
+          result.stable_id_get_element_by_id_found === true,
+        [`${field}_stable_id_query_selector_found`]:
+          result.stable_id_query_selector_found === true,
+        [`${field}_stable_id_accepted`]: result.stable_id_accepted === true,
+        [`${field}_stable_id_blocker_reason`]:
+          result.stable_id_blocker_reason ?? null,
+        [`${field}_inside_buy_side_order_form_region_required`]:
+          result.inside_buy_side_order_form_region_required === true,
+      },
+      note: "Aborted after fill because visible state became unsafe.",
+    });
+  }
+
+  if (!fieldVerified) {
+    const blocker = liveFillOnlyFieldNotVerifiedBlocker(field);
+
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      ...liveObservationReportOptions(after, {
+        attemptedAmountFill: field === "amount",
+        amountFillVerified: fieldMetadata.amount_verified === true,
+        attemptedQuantityFill: field === "quantity",
+        quantityFillVerified: fieldMetadata.quantity_verified === true,
+        attemptedPriceFill: field === "price",
+        priceFillVerified: fieldMetadata.price_verified === true,
+      }, approvedInputStrategy),
+      blockers: [blocker],
+      errors: [blocker],
+      metadata: {
+        ...fillQuantityDiagnostics,
+        ...fieldMetadata,
+        [`${field}_selected_selector`]: result.selected_selector ?? null,
+        [`${field}_selected_id`]: result.selected_id ?? null,
+        [`${field}_selected_field_group`]: result.selected_field_group ?? field,
+        [`${field}_field_discovery_matched`]:
+          result.field_discovery_matched === true,
+        [`${field}_stable_selector`]: result.stable_selector ?? null,
+        [`${field}_stable_id`]: result.stable_id ?? null,
+        [`${field}_stable_field_resolver_version`]:
+          result.stable_field_resolver_version ?? null,
+        [`${field}_fill_used_shared_stable_resolver`]:
+          result.fill_used_shared_stable_resolver === true,
+        [`${field}_shared_resolver_function_name`]:
+          result.shared_resolver_function_name ?? null,
+        [`${field}_shared_resolver_invoked`]:
+          pageSideResolverReported ? result.shared_resolver_invoked === true : null,
+        [`${field}_resolver_not_invoked`]:
+          result.resolver_not_invoked === true ? true : null,
+        [`${field}_stable_id_lookup_method`]:
+          result.stable_id_lookup_method ?? null,
+        [`${field}_stable_id_found`]: result.stable_id_found === true,
+        [`${field}_stable_id_get_element_by_id_found`]:
+          result.stable_id_get_element_by_id_found === true,
+        [`${field}_stable_id_query_selector_found`]:
+          result.stable_id_query_selector_found === true,
+        [`${field}_stable_id_accepted`]: result.stable_id_accepted === true,
+        [`${field}_stable_id_blocker_reason`]:
+          result.stable_id_blocker_reason ?? null,
+        [`${field}_inside_buy_side_order_form_region_required`]:
+          result.inside_buy_side_order_form_region_required === true,
+      },
+      note: `${field} field fill was attempted but post-fill readback did not match the approved value.`,
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse(action, "ok", {
+    ...liveObservationReportOptions(after, {
+      attemptedAmountFill: field === "amount",
+      amountFillVerified: fieldMetadata.amount_verified === true,
+      attemptedQuantityFill: field === "quantity",
+      quantityFillVerified: fieldMetadata.quantity_verified === true,
+      attemptedPriceFill: field === "price",
+      priceFillVerified: fieldMetadata.price_verified === true,
+    }, approvedInputStrategy),
+    evidenceId: `${field}-filled-${Date.now()}`,
+    metadata: {
+      ...fillQuantityDiagnostics,
+      ...fieldMetadata,
+      [`${field}_selected_selector`]: result.selected_selector ?? null,
+      [`${field}_selected_id`]: result.selected_id ?? null,
+      [`${field}_selected_field_group`]: result.selected_field_group ?? field,
+      [`${field}_field_discovery_matched`]:
+        result.field_discovery_matched === true,
+      [`${field}_stable_selector`]: result.stable_selector ?? null,
+      [`${field}_stable_id`]: result.stable_id ?? null,
+      [`${field}_stable_field_resolver_version`]:
+        result.stable_field_resolver_version ?? null,
+      [`${field}_fill_used_shared_stable_resolver`]:
+        result.fill_used_shared_stable_resolver === true,
+      [`${field}_shared_resolver_function_name`]:
+        result.shared_resolver_function_name ?? null,
+        [`${field}_shared_resolver_invoked`]:
+        pageSideResolverReported ? result.shared_resolver_invoked === true : null,
+      [`${field}_resolver_not_invoked`]:
+        result.resolver_not_invoked === true ? true : null,
+      [`${field}_stable_id_lookup_method`]:
+        result.stable_id_lookup_method ?? null,
+      [`${field}_stable_id_found`]: result.stable_id_found === true,
+      [`${field}_stable_id_get_element_by_id_found`]:
+        result.stable_id_get_element_by_id_found === true,
+      [`${field}_stable_id_query_selector_found`]:
+        result.stable_id_query_selector_found === true,
+      [`${field}_stable_id_accepted`]: result.stable_id_accepted === true,
+      [`${field}_stable_id_blocker_reason`]:
+        result.stable_id_blocker_reason ?? null,
+      [`${field}_inside_buy_side_order_form_region_required`]:
+        result.inside_buy_side_order_form_region_required === true,
+    },
+    note: `${field} field filled with approved value ${expectedNumericValue}.`,
+  });
+}
+
+async function readLiveFillOnlyTotalAmount(
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+      blockers: liveObservationBlockers(observed, approvedInputStrategy),
+      errors: liveObservationBlockers(observed, approvedInputStrategy),
+      note: "Visible state was unsafe before total read.",
+    });
+  }
+
+  const fieldMetadata = liveFillOnlyFieldReadbackMetadata(
+    observed,
+    approvedInputStrategy,
+  );
+
+  if (!liveFillOnlyApprovedFieldsVerified(observed, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed, {
+        amountFillVerified: fieldMetadata.amount_verified === true,
+        quantityFillVerified: fieldMetadata.quantity_verified === true,
+        priceFillVerified: fieldMetadata.price_verified === true,
+      }, approvedInputStrategy),
+      blockers: ["field_readback_not_verified_before_total"],
+      errors: ["field_readback_not_verified_before_total"],
+      metadata: {
+        ...liveFillOnlyTotalMetadata(observed, null, approvedInputStrategy),
+        total_validation_blocked_before_cap_check: true,
+      },
+      note: "Total read and cap validation are blocked until the selected primary input and price readbacks both match approved values.",
+    });
+  }
+
+  const totalDiscovery = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyTotalDiscoveryExpression(),
+  );
+  const total = Number.isFinite(totalDiscovery?.parsed_total_amount_sek)
+    ? totalDiscovery.parsed_total_amount_sek
+    : parseAmountSek(totalDiscovery?.total_observed ?? observed?.values?.totalText);
+
+  if (liveFillOnlyTotalReadInvalid(observed, total)) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed, {
+        amountFillVerified: fieldMetadata.amount_verified === true,
+        quantityFillVerified: fieldMetadata.quantity_verified === true,
+        priceFillVerified: fieldMetadata.price_verified === true,
+      }, approvedInputStrategy),
+      blockers: ["total_read_invalid"],
+      errors: ["total_read_invalid"],
+      metadata: liveFillOnlyTotalMetadata(
+        observed,
+        total,
+        approvedInputStrategy,
+        totalDiscovery,
+      ),
+      note: "Total read is invalid or uncertain for a positive approved amount. Cap check did not pass.",
+    });
+  }
+
+  if (total > APPROVED_LIVE_FILL_ONLY_VALUES.capSek) {
+    return createLiveFillOnlyRunnerResponse("readTotalAmount", "aborted", {
+      ...liveObservationReportOptions(observed, {
+        amountFillVerified: fieldMetadata.amount_verified === true,
+        quantityFillVerified: fieldMetadata.quantity_verified === true,
+        priceFillVerified: fieldMetadata.price_verified === true,
+        observedTotalAmountSek: total,
+      }, approvedInputStrategy),
+      blockers: ["total_amount_above_cap"],
+      errors: ["total_amount_above_cap"],
+      metadata: liveFillOnlyTotalMetadata(
+        observed,
+        total,
+        approvedInputStrategy,
+        totalDiscovery,
+      ),
+      note: "Parsed total amount is above the approved cap.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("readTotalAmount", "ok", {
+    ...liveObservationReportOptions(observed, {
+      amountFillVerified: fieldMetadata.amount_verified === true,
+      quantityFillVerified: fieldMetadata.quantity_verified === true,
+      priceFillVerified: fieldMetadata.price_verified === true,
+      observedTotalAmountSek: total,
+    }, approvedInputStrategy),
+    evidenceId: `total-read-${Date.now()}`,
+    metadata: liveFillOnlyTotalMetadata(
+      observed,
+      total,
+      approvedInputStrategy,
+      totalDiscovery,
+    ),
+    note: "Total amount read and cap checked.",
+  });
+}
+
+async function captureLiveFillOnlyEvidence(
+  payload,
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+  const label = stringValue(payload?.label) ?? "live_fill_only_evidence";
+
+  if (!liveObservationPasses(observed, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse("captureEvidence", "aborted", {
+      ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+      blockers: liveObservationBlockers(observed, approvedInputStrategy),
+      errors: liveObservationBlockers(observed, approvedInputStrategy),
+      note: "Visible state was unsafe during evidence capture.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("captureEvidence", "ok", {
+    ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+    evidenceId: `${label}-${Date.now()}`,
+    note: "Sanitized visible-state evidence captured. No screenshot or raw text returned.",
+    metadata: {
+      evidence_label: label,
+      raw_text_returned: false,
+      screenshot_taken: false,
+    },
+  });
+}
+
+async function stopLiveFillOnlyBeforeReview(
+  approvedInputStrategy = APPROVED_LIVE_FILL_ONLY_VALUES.approvedInputStrategy,
+) {
+  const observed = await evaluateInSingleAvanzaTarget(
+    buildLiveFillOnlyObservationExpression(),
+  );
+
+  if (!liveObservationPasses(observed, approvedInputStrategy)) {
+    return createLiveFillOnlyRunnerResponse("stopBeforeReview", "aborted", {
+      ...liveObservationReportOptions(observed, {}, approvedInputStrategy),
+      blockers: liveObservationBlockers(observed, approvedInputStrategy),
+      errors: liveObservationBlockers(observed, approvedInputStrategy),
+      note: "Visible state was unsafe at stop-before-review.",
+    });
+  }
+
+  return createLiveFillOnlyRunnerResponse("stopBeforeReview", "ok", {
+    ...liveObservationReportOptions(observed, {
+      stoppedBeforeReview: true,
+    }, approvedInputStrategy),
+    evidenceId: `stopped-before-review-${Date.now()}`,
+    note: "Stopped before Granska köp. No review/final/submit/order action exists in this runner.",
+  });
+}
+
+async function buildLiveFillOnlyStableFieldProbeResponse() {
+  const gateResponse = liveFillOnlyRunnerGate("stableFieldProbe");
+
+  if (gateResponse) {
+    return {
+      ...gateResponse,
+      action: "stableFieldProbe",
+      metadata: {
+        ...(gateResponse.metadata ?? {}),
+        stable_field_probe: true,
+        no_fill: true,
+        no_click: true,
+      },
+    };
+  }
+
+  try {
+    const probe = await evaluateInSingleAvanzaTarget(
+      buildLiveFillOnlyStableFieldProbeExpression(),
+    );
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: probe?.ok === true,
+      status: probe?.ok === true ? "ready" : "blocked",
+      action: "stableFieldProbe",
+      probe,
+      metadata: {
+        live_fill_only_stable_field_probe: true,
+        same_target_resolver_as_fill_quantity_field: true,
+        manual_observation_mode_required: true,
+        live_fill_only_runner_required: true,
+        no_fill: true,
+        no_click: true,
+        no_review_click: true,
+        no_final_confirm_click: true,
+        no_submit_or_order_placement: true,
+        no_credentials_handling: true,
+        no_cookie_read: true,
+        no_local_storage_read: true,
+        no_session_storage_read: true,
+        no_raw_page_text: true,
+        no_raw_dom: true,
+      },
+      warnings: [
+        "Stable field probe is observation-only and must not be used as a fill/click/order trigger.",
+      ],
+    };
+  } catch (error) {
+    return createLiveFillOnlyRunnerResponse("stableFieldProbe", "aborted", {
+      blockers: ["stable_field_probe_failed"],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : "Unknown stable field probe failure.",
+      ],
+      note: "Stable field probe failed before a safe result could be produced.",
+      metadata: {
+        stable_field_probe: true,
+        no_fill: true,
+        no_click: true,
+        no_submit_or_order_placement: true,
+      },
+    });
+  }
+}
+
+function liveFillOnlyRunnerCallFromResponse(response) {
+  return {
+    method: response?.action ?? "unknown",
+    ok: response?.ok === true,
+    evidence_id: response?.runnerResult?.evidence_id ?? null,
+    observed_total_amount_sek:
+      typeof response?.runnerResult?.observed_total_amount_sek === "number"
+        ? response.runnerResult.observed_total_amount_sek
+        : null,
+    note: response?.runnerResult?.note ?? null,
+    diagnostics: {
+      bridge_action: response?.action ?? null,
+      bridge_status: response?.status ?? null,
+      runner_result: response?.runnerResult ?? null,
+      report: response?.report ?? null,
+      blockers: response?.blockers ?? [],
+      errors: response?.errors ?? [],
+      warnings: response?.warnings ?? [],
+      metadata: response?.metadata ?? null,
+    },
+  };
+}
+
+function firstRunnerCall(runnerCalls, method) {
+  return runnerCalls.find((call) => call.method === method) ?? null;
+}
+
+function runnerCallReport(call) {
+  return isObject(call?.diagnostics?.report) ? call.diagnostics.report : {};
+}
+
+function runnerCallMetadata(call) {
+  return isObject(call?.diagnostics?.metadata) ? call.diagnostics.metadata : {};
+}
+
+function quantityDiagnosticsFromInProcessRunnerCall(call) {
+  const metadata = runnerCallMetadata(call);
+
+  if (!metadata || Object.keys(metadata).length === 0) {
+    return null;
+  }
+
+  return {
+    quantity_candidate_count: metadata.quantity_candidate_count ?? null,
+    selected_selector: metadata.quantity_selected_selector ?? null,
+    selected_id: metadata.quantity_selected_id ?? null,
+    selected_field_group: metadata.quantity_selected_field_group ?? null,
+    field_discovery_matched:
+      metadata.quantity_field_discovery_matched ?? null,
+    stable_field_resolver_version:
+      metadata.quantity_stable_field_resolver_version ?? null,
+    fill_used_shared_stable_resolver:
+      metadata.quantity_fill_used_shared_stable_resolver ?? null,
+    fill_quantity_implementation_id:
+      metadata.fill_quantity_implementation_id ?? null,
+    fill_quantity_call_site:
+      metadata.fill_quantity_call_site ?? null,
+    shared_resolver_function_name:
+      metadata.quantity_shared_resolver_function_name ??
+      metadata.shared_resolver_function_name ??
+      null,
+    shared_resolver_invoked:
+      metadata.quantity_shared_resolver_invoked ??
+      metadata.shared_resolver_invoked ??
+      null,
+    stable_selector: metadata.quantity_stable_selector ?? null,
+    stable_id: metadata.quantity_stable_id ?? null,
+    stable_id_found: metadata.quantity_stable_id_found ?? null,
+    stable_id_accepted: metadata.quantity_stable_id_accepted ?? null,
+    inside_buy_side_order_form_region_required:
+      metadata.quantity_inside_buy_side_order_form_region_required ?? null,
+    selected_quantity_candidate_metadata:
+      metadata.quantity_selected_candidate ?? metadata.selected_candidate ?? null,
+    candidate_hidden: metadata.quantity_candidate_hidden ?? null,
+    candidate_disabled: metadata.quantity_candidate_disabled ?? null,
+    candidate_readonly: metadata.quantity_candidate_readonly ?? null,
+    before_value:
+      metadata.quantity_before_value_normalized ??
+      metadata.before_value_normalized ??
+      null,
+    after_attempted_value:
+      metadata.quantity_after_value_normalized ??
+      metadata.after_value_normalized ??
+      null,
+    readback_source:
+      metadata.quantity_readback_source_used ??
+      metadata.readback_source_used ??
+      null,
+    expected_normalized_value: metadata.quantity_expected_normalized ?? null,
+    observed_normalized_value: metadata.quantity_observed_normalized ?? null,
+    exact_internal_blocker_reason:
+      metadata.exact_blocker_reason ??
+      (Array.isArray(call?.diagnostics?.blockers)
+        ? call.diagnostics.blockers[0] ?? null
+        : null),
+  };
+}
+
+const proofSensitiveKeyPattern =
+  /(^|[_-])(cookie|cookies|localstorage|sessionstorage|bankid|credential|credentials|password|secret|token|auth|raw|html|dom|page_text|visible_text|raw_page_text)([_-]|$)/i;
+
+function sanitizeInProcessProofValue(value) {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return Number.isNaN(value) ? null : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeInProcessProofValue(item));
+  }
+
+  if (isObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        proofSensitiveKeyPattern.test(key)
+          ? "[omitted-sensitive-or-raw-observation]"
+          : sanitizeInProcessProofValue(nestedValue),
+      ]),
+    );
+  }
+
+  return String(value);
+}
+
+function writeInProcessLiveFillOnlyProofFile(result) {
+  const proofDocument = {
+    proof_version: "first_real_avanza_fill_only_poc_live_proof_v1",
+    timestamp: now(),
+    result_status: "quantity_based_live_fill_attempt_result_captured",
+    run_marked_successful:
+      result.status ===
+        "final_live_execute_attempt_explicit_invocation_trigger_plan_created" &&
+      result.errors_blockers_warnings?.blockers?.length === 0 &&
+      result.no_order_placement === true,
+    selected_input_strategy: "quantity_based",
+    proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+    structured_runner_result: sanitizeInProcessProofValue(result),
+    safety_confirmations: {
+      local_file_only: true,
+      no_avanza_access_from_external_runner: true,
+      no_credentials_cookies_storage_or_session_data: true,
+      no_raw_page_text: true,
+      no_review_or_final_or_submit: true,
+      no_order_placement: true,
+    },
+  };
+  const resolvedProofFilePath = resolve(
+    process.cwd(),
+    QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+  );
+
+  mkdirSync(dirname(resolvedProofFilePath), { recursive: true });
+  writeFileSync(
+    resolvedProofFilePath,
+    `${JSON.stringify(proofDocument, null, 2)}\n`,
+    "utf8",
+  );
+
+  return proofDocument;
+}
+
+function buildInProcessTriggerResult(status, runnerCalls, options = {}) {
+  const verifyCall = firstRunnerCall(runnerCalls, "verifyVisibleOrderFormState");
+  const quantityCall = firstRunnerCall(runnerCalls, "fillQuantityField");
+  const priceCall = firstRunnerCall(runnerCalls, "fillPriceField");
+  const totalCall = firstRunnerCall(runnerCalls, "readTotalAmount");
+  const evidenceCall = firstRunnerCall(runnerCalls, "captureEvidence");
+  const stopCall = firstRunnerCall(runnerCalls, "stopBeforeReview");
+  const quantityMetadata = runnerCallMetadata(quantityCall);
+  const priceMetadata = runnerCallMetadata(priceCall);
+  const totalMetadata = runnerCallMetadata(totalCall);
+  const blockers = runnerCalls.flatMap((call) =>
+    Array.isArray(call?.diagnostics?.blockers) ? call.diagnostics.blockers : [],
+  );
+  const errors = runnerCalls.flatMap((call) =>
+    Array.isArray(call?.diagnostics?.errors) ? call.diagnostics.errors : [],
+  );
+  const warnings = runnerCalls.flatMap((call) =>
+    Array.isArray(call?.diagnostics?.warnings) ? call.diagnostics.warnings : [],
+  );
+
+  return {
+    status,
+    trigger_plan_created:
+      status === "final_live_execute_attempt_explicit_invocation_trigger_plan_created",
+    exact_trigger_phrase_accepted: options.exactTriggerPhraseAccepted === true,
+    selected_input_strategy: "quantity_based",
+    preflight_or_visible_state_verification_result: {
+      ok: verifyCall?.ok === true,
+      diagnostics: verifyCall?.diagnostics ?? null,
+    },
+    quantity_fill_attempted: Boolean(quantityCall),
+    quantity_fill_verified: quantityCall?.ok === true,
+    quantity_candidate_diagnostics_if_failed:
+      quantityCall?.ok === true
+        ? null
+        : quantityDiagnosticsFromInProcessRunnerCall(quantityCall),
+    quantity_selected_selector: quantityMetadata.quantity_selected_selector ?? null,
+    quantity_selected_id: quantityMetadata.quantity_selected_id ?? null,
+    price_fill_attempted: Boolean(priceCall),
+    price_fill_verified: priceCall?.ok === true,
+    price_selected_selector: priceMetadata.price_selected_selector ?? null,
+    price_selected_id: priceMetadata.price_selected_id ?? null,
+    total_read: totalCall?.observed_total_amount_sek ?? null,
+    total_valid: totalCall?.ok === true && Number.isFinite(totalCall.observed_total_amount_sek),
+    total_observed: totalMetadata.total_observed ?? null,
+    evidence_ids: runnerCalls
+      .map((call) => call.evidence_id)
+      .filter((value) => typeof value === "string" && value.length > 0),
+    evidence_captured: evidenceCall?.ok === true,
+    stopped_before_granska_kop: stopCall?.ok === true,
+    no_review_modal:
+      runnerCallReport(stopCall).no_review_modal_opened ??
+      runnerCallReport(evidenceCall).no_review_modal_opened ??
+      runnerCallReport(totalCall).no_review_modal_opened ??
+      runnerCallReport(priceCall).no_review_modal_opened ??
+      runnerCallReport(quantityCall).no_review_modal_opened ??
+      runnerCallReport(verifyCall).no_review_modal_opened ??
+      true,
+    no_final_confirmation:
+      runnerCallReport(stopCall).no_final_confirmation_visible_or_clicked ??
+      runnerCallReport(evidenceCall).no_final_confirmation_visible_or_clicked ??
+      runnerCallReport(totalCall).no_final_confirmation_visible_or_clicked ??
+      runnerCallReport(priceCall).no_final_confirmation_visible_or_clicked ??
+      runnerCallReport(quantityCall).no_final_confirmation_visible_or_clicked ??
+      runnerCallReport(verifyCall).no_final_confirmation_visible_or_clicked ??
+      true,
+    no_order_placement: true,
+    runner_calls: runnerCalls,
+    bridge_runner_call_diagnostics: {
+      verifyVisibleOrderFormState: verifyCall?.diagnostics ?? null,
+      fillQuantityField: quantityCall?.diagnostics ?? null,
+      fillPriceField: priceCall?.diagnostics ?? null,
+      readTotalAmount: totalCall?.diagnostics ?? null,
+      captureEvidence: evidenceCall?.diagnostics ?? null,
+      stopBeforeReview: stopCall?.diagnostics ?? null,
+    },
+    errors_blockers_warnings: {
+      blockers,
+      errors,
+      warnings,
+    },
+  };
+}
+
+async function runInProcessApprovedQuantityBasedFillOnlyTrigger(payload) {
+  const validation = validateInProcessQuantityBasedTriggerPayload(payload);
+  const approvedInputStrategy = "quantity_based";
+
+  if (!validation.ok) {
+    return createInProcessLiveFillOnlyTriggerBlockedResponse(
+      validation.blockers,
+      payload,
+    );
+  }
+
+  const runnerCalls = [];
+  const pushResponse = (response) => {
+    const call = liveFillOnlyRunnerCallFromResponse(response);
+    runnerCalls.push(call);
+    return call;
+  };
+  const verifyCall = pushResponse(
+    await verifyLiveFillOnlyVisibleState(approvedInputStrategy),
+  );
+
+  if (!verifyCall.ok) {
+    const result = buildInProcessTriggerResult(
+      "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+      runnerCalls,
+      validation,
+    );
+    const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: false,
+      status: result.status,
+      action: "runApprovedQuantityBasedFillOnlyTrigger",
+      proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+      proof_result_status: proof.result_status,
+      result,
+    };
+  }
+
+  const quantityCall = pushResponse(
+    await fillLiveFillOnlyField(
+      "fillQuantityField",
+      "quantity",
+      APPROVED_LIVE_FILL_ONLY_VALUES.quantity,
+      APPROVED_LIVE_FILL_ONLY_VALUES.quantityText,
+      {
+        approvedInputStrategy,
+        fillQuantityCallSite: LIVE_FILL_ONLY_IN_PROCESS_QUANTITY_CALL_SITE,
+      },
+    ),
+  );
+
+  if (!quantityCall.ok) {
+    const result = buildInProcessTriggerResult(
+      "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+      runnerCalls,
+      validation,
+    );
+    const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: false,
+      status: result.status,
+      action: "runApprovedQuantityBasedFillOnlyTrigger",
+      proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+      proof_result_status: proof.result_status,
+      result,
+    };
+  }
+
+  const priceCall = pushResponse(
+    await fillLiveFillOnlyField(
+      "fillPriceField",
+      "price",
+      APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd,
+      APPROVED_LIVE_FILL_ONLY_VALUES.priceUsdText,
+      { approvedInputStrategy },
+    ),
+  );
+
+  if (!priceCall.ok) {
+    const result = buildInProcessTriggerResult(
+      "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+      runnerCalls,
+      validation,
+    );
+    const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: false,
+      status: result.status,
+      action: "runApprovedQuantityBasedFillOnlyTrigger",
+      proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+      proof_result_status: proof.result_status,
+      result,
+    };
+  }
+
+  const totalCall = pushResponse(
+    await readLiveFillOnlyTotalAmount(approvedInputStrategy),
+  );
+
+  if (!totalCall.ok) {
+    const result = buildInProcessTriggerResult(
+      "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+      runnerCalls,
+      validation,
+    );
+    const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: false,
+      status: result.status,
+      action: "runApprovedQuantityBasedFillOnlyTrigger",
+      proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+      proof_result_status: proof.result_status,
+      result,
+    };
+  }
+
+  const evidenceCall = pushResponse(
+    await captureLiveFillOnlyEvidence({
+      label: "final_live_execute_attempt_stop_before_review",
+    }, approvedInputStrategy),
+  );
+
+  if (!evidenceCall.ok) {
+    const result = buildInProcessTriggerResult(
+      "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+      runnerCalls,
+      validation,
+    );
+    const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+    return {
+      version: CONTRACT_VERSION,
+      ok: false,
+      status: result.status,
+      action: "runApprovedQuantityBasedFillOnlyTrigger",
+      proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+      proof_result_status: proof.result_status,
+      result,
+    };
+  }
+
+  const stopCall = pushResponse(
+    await stopLiveFillOnlyBeforeReview(approvedInputStrategy),
+  );
+  const result = buildInProcessTriggerResult(
+    stopCall.ok
+      ? "final_live_execute_attempt_explicit_invocation_trigger_plan_created"
+      : "final_live_execute_attempt_explicit_invocation_trigger_aborted",
+    runnerCalls,
+    validation,
+  );
+  const proof = writeInProcessLiveFillOnlyProofFile(result);
+
+  return {
+    version: CONTRACT_VERSION,
+    ok: stopCall.ok === true,
+    status: result.status,
+    action: "runApprovedQuantityBasedFillOnlyTrigger",
+    proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+    proof_result_status: proof.result_status,
+    result,
+  };
+}
+
+async function buildLiveFillOnlyRunnerEndpointResponse(action, payload = {}) {
+  const gateResponse = liveFillOnlyRunnerGate(action);
+
+  if (gateResponse) {
+    return gateResponse;
+  }
+
+  try {
+    if (action === "verifyVisibleOrderFormState") {
+      return await verifyLiveFillOnlyVisibleState();
+    }
+
+    if (action === "fillAmountField") {
+      const amount = numberFromInput(payload?.amountSek);
+
+      if (amount !== APPROVED_LIVE_FILL_ONLY_VALUES.amountSek) {
+        return createLiveFillOnlyRunnerResponse(action, "blocked", {
+          blockers: ["amount_mismatch"],
+          errors: ["amount_mismatch"],
+          note: "Only the approved amount may be filled.",
+        });
+      }
+
+      return await fillLiveFillOnlyField(
+        action,
+        "amount",
+        APPROVED_LIVE_FILL_ONLY_VALUES.amountSek,
+        APPROVED_LIVE_FILL_ONLY_VALUES.amountSekText,
+      );
+    }
+
+    if (action === "fillQuantityField") {
+      const quantity = numberFromInput(payload?.quantity);
+
+      if (quantity !== APPROVED_LIVE_FILL_ONLY_VALUES.quantity) {
+        return createLiveFillOnlyRunnerResponse(action, "blocked", {
+          blockers: ["quantity_mismatch"],
+          errors: ["quantity_mismatch"],
+          note: "Only the approved quantity may be filled.",
+        });
+      }
+
+      return await fillLiveFillOnlyField(
+        action,
+        "quantity",
+        APPROVED_LIVE_FILL_ONLY_VALUES.quantity,
+        APPROVED_LIVE_FILL_ONLY_VALUES.quantityText,
+      );
+    }
+
+    if (action === "fillPriceField") {
+      const price = numberFromInput(payload?.priceUsd);
+
+      if (price !== APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd) {
+        return createLiveFillOnlyRunnerResponse(action, "blocked", {
+          blockers: ["price_mismatch"],
+          errors: ["price_mismatch"],
+          note: "Only the approved price may be filled.",
+        });
+      }
+
+      return await fillLiveFillOnlyField(
+        action,
+        "price",
+        APPROVED_LIVE_FILL_ONLY_VALUES.priceUsd,
+        APPROVED_LIVE_FILL_ONLY_VALUES.priceUsdText,
+      );
+    }
+
+    if (action === "readTotalAmount") {
+      return await readLiveFillOnlyTotalAmount();
+    }
+
+    if (action === "captureEvidence") {
+      return await captureLiveFillOnlyEvidence(payload);
+    }
+
+    if (action === "stopBeforeReview") {
+      return await stopLiveFillOnlyBeforeReview();
+    }
+
+    return createLiveFillOnlyRunnerResponse(action, "blocked", {
+      blockers: ["unsupported_runner_method"],
+      errors: ["unsupported_runner_method"],
+      note: "Unsupported live fill-only runner action.",
+    });
+  } catch (error) {
+    return createLiveFillOnlyRunnerResponse(action, "aborted", {
+      blockers: ["runner_exception"],
+      errors: [
+        error instanceof Error ? error.message : "Unknown live fill-only runner error.",
+      ],
+      note: "Live fill-only runner aborted safely.",
+    });
+  }
+}
+
 function createReviewClickResult(status, dryRunOrderInput, options = {}) {
   const instrument = isObject(dryRunOrderInput?.instrument)
     ? dryRunOrderInput.instrument
@@ -8534,6 +11953,23 @@ function buildInfoResponse() {
     endpoints: {
       health: "/health",
       selfCheck: "/self-check",
+      avanzaOrderFormPreflight: "/preflight/avanza-order-form",
+      avanzaOrderFormFieldDiscovery:
+        "/preflight/avanza-order-form/field-discovery",
+      liveFillOnlyRunnerVerify:
+        "/live-fill-only-runner/verify-visible-order-form-state",
+      liveFillOnlyRunnerFillAmount: "/live-fill-only-runner/fill-amount",
+      liveFillOnlyRunnerFillQuantity: "/live-fill-only-runner/fill-quantity",
+      liveFillOnlyRunnerFillPrice: "/live-fill-only-runner/fill-price",
+      liveFillOnlyRunnerReadTotal: "/live-fill-only-runner/read-total",
+      liveFillOnlyRunnerCaptureEvidence:
+        "/live-fill-only-runner/capture-evidence",
+      liveFillOnlyRunnerStopBeforeReview:
+        "/live-fill-only-runner/stop-before-review",
+      liveFillOnlyRunnerStableFieldProbe:
+        "/live-fill-only-runner/debug/stable-field-probe",
+      liveFillOnlyRunnerInProcessQuantityBasedTrigger:
+        "/live-fill-only-runner/run-approved-quantity-based-fill-only-trigger",
       sessionDetection: "/session-detection",
       searchOnly: "/search-only",
       instrumentVerification: "/instrument-verification",
@@ -8551,7 +11987,7 @@ function buildInfoResponse() {
       cancel: "/cancel",
     },
     message:
-      "Local development stub only. No Avanza session opens, no real broker automation runs, and no broker result is created. /search-only, /instrument-verification, /instrument-page, /order-page-open, /advanced-form-fill, /review-click, /manual-confirmation-wait, /broker-confirmation-capture, /broker-execution-result-eligibility, /broker-execution-result-preview, /execution-record-eligibility, and /dry-run are contract validation stubs only; mock-page review runs only when explicitly requested.",
+      "Local development stub only. No Avanza session opens, no real broker automation runs by default, and no broker result is created. /preflight/avanza-order-form and /preflight/avanza-order-form/field-discovery are explicit manual browser observation only when enabled; /live-fill-only-runner/* is disabled unless the explicit live fill-only env gate is enabled and exposes no review/final/submit/order placement endpoints; /live-fill-only-runner/debug/stable-field-probe is observation-only and performs no fill/click/order action; the in-process quantity-based trigger additionally requires AVANZA_LOCALHOST_BRIDGE_ENABLE_IN_PROCESS_TRIGGER=true and the exact manual trigger phrase; /search-only, /instrument-verification, /instrument-page, /order-page-open, /advanced-form-fill, /review-click, /manual-confirmation-wait, /broker-confirmation-capture, /broker-execution-result-eligibility, /broker-execution-result-preview, /execution-record-eligibility, and /dry-run are contract validation stubs only; mock-page review runs only when explicitly requested.",
   };
 }
 
@@ -8873,6 +12309,209 @@ async function handleRequest(request, response) {
 
   if (request.method === "GET" && url.pathname === "/self-check") {
     writeJson(response, request, 200, buildRunnerSelfCheckResponse());
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    url.pathname === "/preflight/avanza-order-form/field-discovery"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildOrderFormFieldDiscoveryResponse(),
+    );
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    url.pathname === "/preflight/avanza-order-form"
+  ) {
+    writeJson(response, request, 200, await buildOrderFormPreflightResponse());
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/verify-visible-order-form-state"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse(
+        "verifyVisibleOrderFormState",
+      ),
+    );
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/fill-amount"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("fillAmountField", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "fillAmountField",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only amount request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/fill-price"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("fillPriceField", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "fillPriceField",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only price request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/fill-quantity"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("fillQuantityField", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "fillQuantityField",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only quantity request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/read-total"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse("readTotalAmount"),
+    );
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/capture-evidence"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await buildLiveFillOnlyRunnerEndpointResponse("captureEvidence", payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "captureEvidence",
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message: "Live fill-only evidence request could not be parsed.",
+      });
+    }
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/live-fill-only-runner/stop-before-review"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyRunnerEndpointResponse("stopBeforeReview"),
+    );
+    return;
+  }
+
+  if (
+    request.method === "GET" &&
+    url.pathname === "/live-fill-only-runner/debug/stable-field-probe"
+  ) {
+    writeJson(
+      response,
+      request,
+      200,
+      await buildLiveFillOnlyStableFieldProbeResponse(),
+    );
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname ===
+      "/live-fill-only-runner/run-approved-quantity-based-fill-only-trigger"
+  ) {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(
+        response,
+        request,
+        200,
+        await runInProcessApprovedQuantityBasedFillOnlyTrigger(payload),
+      );
+    } catch (error) {
+      writeJson(response, request, 400, {
+        version: CONTRACT_VERSION,
+        ok: false,
+        status: "blocked",
+        action: "runApprovedQuantityBasedFillOnlyTrigger",
+        proof_file_path: QUANTITY_BASED_LIVE_FILL_ONLY_PROOF_FILE_PATH,
+        errors: [error instanceof Error ? error.message : "Invalid request."],
+        message:
+          "In-process quantity-based fill-only trigger request could not be parsed. No fill, click, review, confirm, submit, or order placement occurred.",
+      });
+    }
     return;
   }
 

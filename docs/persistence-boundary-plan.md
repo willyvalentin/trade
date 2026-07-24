@@ -569,3 +569,673 @@ Result:
 Next recommended action:
 
 **Action 411 - Reassess Live Market Trial Runbook Persistence Wrapper**
+
+## Action 411 Result
+
+Action 411 added
+`docs/live-market-trial-runbook-persistence-wrapper-reassessment.md`.
+
+Result:
+
+- Inventoried live market trial runbook persistence in `app/trade-app.tsx`.
+- Confirmed the key remains `trade-live-market-trial-runbook-v1`.
+- Confirmed the inline read path falls back to a typed default on server,
+  missing storage, parse errors, invalid values, and localStorage errors.
+- Confirmed the write path persists the normalized state JSON after the
+  hydration guard and swallows localStorage errors.
+- Confirmed typed/default behavior is coupled enough that any runtime
+  extraction must move the exact default, normalization, read, and write
+  contract together.
+- Confirmed runbook UI state, live market workflow, Supabase/trade behavior,
+  and execution/orchestrator behavior should remain parent/module-owned.
+
+Next recommended action:
+
+**Action 412 - Extract Live Market Trial Runbook Persistence Wrapper**
+
+## Action 412 Result
+
+Action 412 created
+`lib/persistence/live-market-trial-runbook-persistence.ts`.
+
+Result:
+
+- Extracted the live market trial runbook default builder, normalizers, read
+  helper, and write helper into a tiny persistence wrapper.
+- Updated `app/trade-app.tsx` to import the wrapper helpers.
+- Preserved the exact key, typed/default behavior, normalization behavior,
+  read fallback behavior, JSON write behavior, server/no-window behavior, and
+  swallowed localStorage errors.
+- Kept runbook state, hydration/write-effect guards, UI callbacks, live market
+  workflow, provider/data behavior, Supabase/trade behavior, and
+  execution/orchestrator behavior parent/module-owned.
+
+Checks:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- default sandbox `npm run test:e2e` was blocked before app test logic by
+  `listen EPERM: operation not permitted 0.0.0.0:3010`.
+- escalated `npm run test:e2e` passed: 64 tests.
+
+Next recommended action:
+
+**Action 413 - Reassess Live Market Trial Runbook Persistence Wrapper Extraction**
+
+## Action 413 Result
+
+Action 413 added
+`docs/live-market-trial-runbook-persistence-post-extraction-reassessment.md`.
+
+Result:
+
+- Verified the Action 412 wrapper stayed within the intended runbook
+  persistence boundary.
+- Confirmed exact key, type shape, defaults, normalization, read fallback, JSON
+  write behavior, no-window behavior, and swallowed errors are preserved.
+- Confirmed runbook UI state, hydration/write-effect guards, live market
+  workflow, provider/data behavior, Supabase/trade behavior, and
+  execution/orchestrator behavior remain parent/module-owned.
+- Recorded Action 412 test status, including escalated e2e success.
+
+Next recommended action:
+
+**Action 414 - Reassess Execution Audit/Event Log Persistence Boundary**
+
+## Action 414 Result
+
+Action 414 added
+`docs/execution-audit-event-log-persistence-boundary-reassessment.md`.
+
+Result:
+
+- Inventoried `trade-management-events`, `lib/execution-timeline.ts`,
+  `lib/execution-event-log.ts`, and the execution audit persistence
+  contract/client/route/writer/Supabase modules.
+- Confirmed the low-risk localStorage wrapper phase should pause before
+  execution audit/event log persistence.
+- Concluded append event behavior, timeline derivation, Supabase audit writes,
+  execution metadata writes, broker/result persistence, execution records, and
+  trade mutations should not move yet.
+- Recommended reassessing execution record creation before any audit/event
+  persistence extraction.
+
+Next recommended action:
+
+**Action 415 - Reassess Execution Record Creation Boundary**
+
+## Action 415 Result
+
+Action 415 created
+`docs/execution-record-creation-boundary-reassessment.md`.
+
+Result:
+
+- Inventoried broker execution result eligibility/preview, execution record
+  eligibility, local execution-record store, local/dev `TureExecutionRecord`
+  creation paths, server capture stubs, audit/event modules, and Supabase audit
+  persistence modules.
+- Confirmed local/dev record creation exists only for explicit diagnostics
+  paths and is not a production-safe execution record creation boundary.
+- Confirmed no Supabase execution-record write path, production creation
+  contract, trade mutation path, or rollback/error policy exists.
+- Recommended a dedicated creation contract design before any new creation,
+  write, persistence, or trade mutation behavior.
+
+Next recommended action:
+
+**Action 416 - Create Execution Record Creation Contract Design**
+
+## Action 416 Result
+
+Action 416 created
+`docs/execution-record-creation-contract-design.md`.
+
+Result:
+
+- Defined the production-safe execution record creation contract before
+  runtime implementation.
+- Proposed creation input/output shapes, canonical record fields, validation
+  rules, rejection reason codes, idempotency rules, and audit requirements.
+- Confirmed this remains pre-persistence design only: no Supabase write,
+  localStorage write, trade mutation, audit/event movement, broker result
+  creation, or execution behavior changed.
+
+Next recommended action:
+
+**Action 417 - Create Execution Record Creation Contract Types**
+
+## Action 417 Result
+
+Action 417 created
+`lib/execution-record-creation-contract.ts`.
+
+Result:
+
+- Added contract-only TypeScript types/constants for future production-safe
+  execution record creation.
+- Modeled creation input/output contracts, canonical candidate fields,
+  idempotency input, audit metadata, source broker result references, status
+  codes, rejection reason codes, and warning codes.
+- Added no persistence behavior. There are still no Supabase execution-record
+  writes, localStorage execution-record writes, audit/event persistence moves,
+  trade mutations, or BrokerExecutionResult creation flows from this action.
+
+Next recommended action:
+
+**Action 418 - Create Execution Record Creation Pure Validator**
+
+## Action 418 Result
+
+Action 418 created
+`lib/execution-record-creation-validator.ts`.
+
+Result:
+
+- Added pure validation for the execution record creation contract.
+- The validator returns typed eligibility/rejection metadata only and does not
+  build records, write persistence, append audit events, mutate trades, create
+  BrokerExecutionResult values, wire UI/bridge flows, control a browser, or
+  touch Avanza.
+- Hard safety failures now produce explicit contract rejection reason codes.
+- Eligible validator results remain pre-persistence and pre-candidate-builder;
+  `safeToPersist` stays false until a later builder produces a canonical
+  candidate for a later persistence boundary.
+
+Next recommended action:
+
+**Action 419 - Create Execution Record Candidate Builder**
+
+## Action 419 Result
+
+Action 419 created
+`lib/execution-record-candidate-builder.ts`.
+
+Result:
+
+- Added pure candidate building on top of the Action 418 validator.
+- Eligible input can now map to an `ExecutionRecordCandidate`; unsafe input
+  returns no candidate.
+- Candidate fields include broker/instrument, side, quantity, price, currency,
+  broker references, recommendation/position references, execution mode/phase,
+  confirmation timestamp, idempotency/fingerprint fields, safety metadata,
+  audit metadata, planning snapshot references, and non-sensitive provenance
+  metadata.
+- The builder keeps `safeToPersist=false`; this is still pre-persistence and
+  pre-trade-mutation.
+- Added no Supabase writes, localStorage writes, audit/event appends, trade
+  mutations, BrokerExecutionResult creation, runtime UI/bridge wiring,
+  Avanza/browser behavior, or execution behavior.
+
+Next recommended action:
+
+**Action 420 - Create Read-Only Execution Record Creation Preview UI**
+
+## Action 420 Result
+
+Action 420 created
+`components/execution/ExecutionRecordCreationPreview.tsx`.
+
+Result:
+
+- Added a read-only creation preview panel for
+  `ExecutionRecordCreationResult`.
+- Wired it into the existing dev-gated handoff modal composition only.
+- Displayed validator/builder status, rejection reasons, warnings,
+  idempotency/fingerprint metadata, `safeToPersist=false`, no-write/
+  no-mutation metadata, and candidate fields when present.
+- Added no persistence behavior. There are still no Supabase execution-record
+  writes, localStorage execution-record writes, audit/event appends, trade
+  mutations, execution record storage, BrokerExecutionResult creation flows,
+  bridge automation, or Avanza/browser behavior from this action.
+
+Next recommended action:
+
+**Action 421 - Reassess Execution Record Creation Preview UI**
+
+## Action 421 Result
+
+Action 421 created
+`docs/execution-record-creation-preview-ui-reassessment.md`.
+
+Result:
+
+- Verified the Action 420 preview panel is read-only, dev-gated, and
+  display-only.
+- Verified it does not add Supabase writes, localStorage writes, execution
+  record storage, audit append, trade mutation, BrokerExecutionResult
+  creation, bridge automation, Avanza/browser behavior, or automatic-mode
+  behavior.
+- Confirmed `safeToPersist=false` remains visible.
+- Confirmed current broker-result preview data is preview-only and therefore
+  rejected by creation validation.
+- Recommended a dev/test fixture for eligible candidate preview before any
+  persistence boundary planning.
+
+Next recommended action:
+
+**Action 422 - Create Execution Record Creation Result Fixture/Dev Input**
+
+## Action 422 Result
+
+Action 422 created
+`lib/execution-record-creation-dev-fixture.ts`.
+
+Result:
+
+- Added a dev-only fixture input builder for read-only execution record
+  creation preview QA.
+- The fixture can produce an eligible `ExecutionRecordCandidate` through the
+  pure validator/builder and keeps `safeToPersist=false`.
+- The fixture is gated through the existing execution-dev-tools handoff modal
+  preview path.
+- Preview-only broker-result diagnostics remain blocked/rejected.
+- No persistence behavior was added. There are still no Supabase
+  execution-record writes, localStorage execution-record writes, audit/event
+  appends, trade mutations, execution record storage, BrokerExecutionResult
+  creation flows, bridge automation, or Avanza/browser behavior from this
+  action.
+
+Next recommended action:
+
+**Action 423 - Reassess Execution Record Creation Dev Fixture**
+
+## Action 423 Result
+
+Action 423 created
+`docs/execution-record-creation-dev-fixture-reassessment.md`.
+
+Result:
+
+- Verified the Action 422 dev fixture is an explicit local/dev, read-only
+  execution record creation input fixture.
+- Verified the fixture remains disconnected from persistence and production
+  trade behavior.
+- Verified the fixture keeps `safeToPersist=false` and does not create a
+  persistence-safe record.
+- Verified no Supabase writes, localStorage writes, audit/event appends, trade
+  mutations, execution record storage, BrokerExecutionResult creation,
+  bridge automation, Avanza/browser behavior, or automatic-mode behavior was
+  added.
+- Recommended a documentation-only persistence boundary plan before any
+  execution-record write path exists.
+
+Next recommended action:
+
+**Action 424 - Create Execution Record Persistence Boundary Plan**
+
+## Action 424 Result
+
+Action 424 created
+`docs/execution-record-persistence-boundary-plan.md`.
+
+Result:
+
+- Planned the future execution-record persistence boundary without adding any
+  runtime behavior.
+- Defined persistence prerequisites, future input/output concepts, Supabase
+  schema needs, idempotency/duplicate strategy, audit requirements, safety
+  gates, and trade mutation separation.
+- Explicitly blocked preview-only and dev fixture candidates from future
+  production persistence.
+- Confirmed no Supabase writes, localStorage writes, execution record storage,
+  audit/event appends, trade mutations, BrokerExecutionResult creation,
+  bridge automation, Avanza/browser behavior, or automatic-mode behavior was
+  added.
+
+Next recommended action:
+
+**Action 425 - Reassess Supabase Execution Record Schema Boundary**
+
+## Action 425 Result
+
+Action 425 created
+`docs/supabase-execution-record-schema-boundary-reassessment.md`.
+
+Result:
+
+- Inventoried current Supabase migrations and runtime table assumptions.
+- Confirmed no `execution_records` table exists in the actual migration set.
+- Confirmed previous `execution_records` content is proposal/review material,
+  not an applied schema or write path.
+- Proposed future schema requirements, idempotency/unique constraints,
+  RLS/security assumptions, migration requirements, and separation from trade
+  mutation and audit append.
+- Confirmed no database migration, Supabase write, Supabase client change,
+  execution record storage, audit append, trade mutation, broker result
+  creation, Avanza/browser behavior, or runtime behavior was added.
+
+Next recommended action:
+
+**Action 426 - Create Supabase Execution Record Schema Plan**
+
+## Action 426 Result
+
+Action 426 created
+`docs/supabase-execution-record-schema-plan.md`.
+
+Result:
+
+- Planned a future `public.execution_records` Supabase table.
+- Proposed columns, constraints, indexes, RLS/security posture, idempotency,
+  audit relationship, trade mutation separation, migration sequencing, and
+  open questions.
+- Confirmed no execution-record table exists yet and no write path was added.
+- Confirmed no database migration, Supabase write, Supabase client change,
+  execution record storage, audit append, trade mutation, broker result
+  creation, Avanza/browser behavior, or runtime behavior was added.
+
+Next recommended action:
+
+**Action 427 - Create Execution Record Persistence Contract Types**
+
+## Action 427 Result
+
+Action 427 created
+`lib/execution-record-persistence-contract.ts`.
+
+Result:
+
+- Added pure TypeScript contract types/constants for future execution-record
+  persistence.
+- Modeled statuses, rejection reasons, warnings, input, result, duplicate
+  matches, persisted references, audit metadata, user/account context, broker
+  confirmation metadata, association metadata, and safety checklist.
+- Confirmed no persistence logic, Supabase write, Supabase client change,
+  database migration, audit append, trade mutation, execution record storage,
+  broker result creation, Avanza/browser behavior, or runtime behavior was
+  added.
+
+Next recommended action:
+
+**Action 428 - Create Execution Record Persistence Eligibility Validator**
+
+## Action 428 Result
+
+Action 428 created
+`lib/execution-record-persistence-validator.ts`.
+
+Result:
+
+- Added pure validation for future execution-record persistence eligibility.
+- Added no side effects: no localStorage, Supabase, audit append, record
+  storage, trade mutation, browser/Avanza behavior, or UI/runtime wiring.
+- Duplicate input metadata can return `duplicate` without writes.
+- Hard safety failures return explicit rejection reasons.
+- Focused e2e/unit-style coverage was added to
+  `tests/e2e/execution-sandbox.spec.ts`.
+
+Next recommended action:
+
+**Action 429 - Reassess Execution Record Persistence Validator**
+
+## Action 429 Result
+
+Action 429 created
+`docs/execution-record-persistence-validator-reassessment.md`.
+
+Result:
+
+- Verified the Action 428 validator remains pure, conservative, and
+  disconnected from persistence.
+- Documented status outputs, rejection reasons, duplicate behavior,
+  needs-review behavior, focused coverage, and remaining gaps.
+- Recommended creating a Supabase execution-record migration draft as the next
+  safe schema step.
+- Confirmed no runtime code changes, Supabase write, Supabase client code,
+  migration, audit append, trade mutation, record storage, broker result
+  creation, UI wiring, Avanza/browser behavior, or runtime behavior was added.
+
+Next recommended action:
+
+**Action 430 - Create Supabase Execution Record Migration Draft**
+
+## Action 430 Result
+
+Action 430 created
+`supabase/migrations/20260614000000_create_execution_records.sql`.
+
+Result:
+
+- Added a draft SQL migration for `public.execution_records`.
+- The draft defines columns, constraints, unique idempotency/fingerprint
+  indexes, nullable-aware broker reference uniqueness, query indexes, JSONB
+  metadata, comments, and conservative RLS TODO comments.
+- The migration was not run or applied.
+- No Supabase write/read behavior, Supabase client change, record storage,
+  audit/event append, trade mutation, broker result creation, UI wiring,
+  Avanza/browser behavior, or runtime behavior was added.
+
+Next recommended action:
+
+**Action 431 - Reassess Supabase Execution Record Migration Draft**
+
+## Action 431 Result
+
+Action 431 created
+`docs/supabase-execution-record-migration-draft-reassessment.md`.
+
+Result:
+
+- Reassessed the Action 430 SQL draft and compared it to the schema plan.
+- Verified it is schema-only, unapplied, and has no runtime write/read
+  behavior.
+- Documented alignment with planned columns, constraints, indexes,
+  idempotency, broker uniqueness, JSONB metadata, timestamps, ownership fields,
+  and RLS/security comments.
+- Identified remaining ownership, RLS, partial-fill, rollback,
+  generated-types, and application-process questions.
+- Added no runtime code, Supabase client change, write/read behavior, audit
+  append, trade mutation, broker result creation, UI wiring, Avanza/browser
+  behavior, or migration application.
+
+Next recommended action:
+
+**Action 432 - Create Execution Record Persistence Insert Contract/Plan**
+
+## Action 432 Result
+
+Action 432 created
+`docs/execution-record-persistence-insert-contract-plan.md`.
+
+Result:
+
+- Added a documentation-only plan for the future execution-record insert
+  boundary.
+- Defined the insert input/output contract, server-only posture, validation
+  order, duplicate/idempotency behavior, error handling, audit relationship,
+  trade mutation separation, and implementation preconditions.
+- Confirmed no localStorage/Supabase behavior moved and no route, write/read,
+  migration application, audit append, trade mutation, broker result creation,
+  or Avanza/browser behavior was added.
+
+Next recommended action:
+
+**Action 433 - Reassess Execution Record Persistence Insert Contract Plan**
+
+## Action 433 Result
+
+Action 433 created
+`docs/execution-record-persistence-insert-contract-plan-reassessment.md`.
+
+Result:
+
+- Reassessed the insert contract plan and verified it remains server-only,
+  write-free, mutation-free, audit-free, route-free, and migration-application
+  free.
+- Confirmed alignment with persistence contract types, the pure persistence
+  validator, the schema plan, the migration draft, and the creation candidate
+  builder.
+- Identified remaining blockers before real insert and recommended a
+  documentation-only server route design next.
+
+Next recommended action:
+
+**Action 434 - Create Execution Record Insert Server Route Design**
+
+## Action 434 Result
+
+Action 434 created
+`docs/execution-record-insert-server-route-design.md`.
+
+Result:
+
+- Added a documentation-only design for a future
+  `POST /api/execution/records/insert` server route.
+- Defined route scope, request/response contract, server-only auth/security
+  posture, validation sequence, idempotency/duplicate handling, error
+  handling, audit separation, trade mutation separation, and preconditions.
+- Confirmed no localStorage/Supabase behavior moved and no route, write/read,
+  migration application, audit append, trade mutation, broker result creation,
+  or Avanza/browser behavior was added.
+
+Next recommended action:
+
+**Action 435 - Reassess Execution Record Insert Server Route Design**
+
+## Action 435 Result
+
+Action 435 created
+`docs/execution-record-insert-server-route-design-reassessment.md`.
+
+Result:
+
+- Reassessed the future execution-record insert server route design.
+- Verified it remains documentation-only, future-only, server-only,
+  write-free, route-free, audit-free, mutation-free, and migration-application
+  free.
+- Confirmed alignment with persistence contract types, the pure persistence
+  validator, insert contract plan, schema plan, migration draft, and creation
+  candidate builder.
+- Recommended route contract types as the next safe step.
+
+Next recommended action:
+
+**Action 436 - Create Execution Record Insert Route Contract Types**
+
+## Action 436 Result
+
+Action 436 created
+`lib/execution-record-insert-route-contract.ts`.
+
+Result:
+
+- Added pure TypeScript contract types/constants for a future
+  `POST /api/execution/records/insert` route.
+- Defined future route request, response, status, error, validation error,
+  duplicate payload, dry-run metadata, server context, and safety metadata
+  shapes.
+- Referenced persistence contracts safely with type-only imports.
+- Added no route/API implementation, client helper, Supabase write/read,
+  migration application, audit append, trade mutation, broker result creation,
+  or Avanza/browser behavior.
+
+Next recommended action:
+
+**Action 437 - Reassess Execution Record Insert Route Contract Types**
+
+## Action 437 Result
+
+Action 437 created
+`docs/execution-record-insert-route-contract-types-reassessment.md`.
+
+Result:
+
+- Reassessed the execution-record insert route contract types.
+- Verified the module remains type-only/constants-only with no runtime
+  imports, functions, route implementation, client helper, Supabase read/write,
+  migration application, audit append, trade mutation, broker result creation,
+  or Avanza/browser behavior.
+- Confirmed dry-run and safety metadata are explicit and do not imply completed
+  writes, audit append, or trade mutation.
+- Recommended a documentation-only dry-run stub design next.
+
+Next recommended action:
+
+**Action 438 - Create Execution Record Insert Route Dry-Run Stub Design**
+
+## Action 438 Follow-Up
+
+Action 438 created
+`docs/execution-record-insert-route-dry-run-stub-design.md`.
+
+Result:
+
+- Added a documentation-only dry-run stub design for the future execution
+  record insert route.
+- Preserved the persistence boundary: no route/API implementation, no client
+  helper, no Supabase read/write, no migration application, no audit append,
+  no trade mutation, no broker result creation, and no Avanza/browser
+  behavior.
+- Recommended reassessing the dry-run design before creating any callable
+  route surface.
+
+Next recommended action:
+
+**Action 439 - Reassess Insert Route Dry-Run Stub Design**
+
+## Action 439 Follow-Up
+
+Action 439 created
+`docs/execution-record-insert-route-dry-run-stub-design-reassessment.md`.
+
+Result:
+
+- Reassessed the dry-run insert route design and verified it remains
+  no-write, no-read, no-mutation, and no-audit.
+- Confirmed implementation is safe next only as a dry-run route stub with no
+  Supabase import, no client helper, no migration application, no duplicate
+  DB lookup, and no broker/browser behavior.
+- Recommended implementing the dry-run stub before migration checklist or
+  broker confirmation work.
+
+Next recommended action:
+
+**Action 440 - Implement Execution Record Insert Route Dry-Run Stub**
+
+## Action 440 Follow-Up
+
+Action 440 created
+`app/api/execution/records/insert/route.ts`.
+
+Result:
+
+- Implemented the first runtime route in the execution-record persistence
+  track, but only as a dry-run stub.
+- The route validates contract-shaped input and pure persistence eligibility,
+  then returns typed no-write responses.
+- Every response path includes no-write/no-mutation safety metadata.
+- No Supabase read/write, localStorage access, audit append, trade mutation,
+  migration application, broker result creation, or Avanza/browser behavior
+  was added.
+
+Verification:
+
+- `./node_modules/.bin/tsc --noEmit` passed.
+- `npm run lint` passed.
+- Default `npm run test:e2e` was sandbox-blocked on `0.0.0.0:3010` before app
+  logic.
+- Escalated `npm run test:e2e` passed: 70 tests.
+- `git diff --check` passed.
+
+Next recommended action:
+
+**Action 441 - Reassess Execution Record Insert Route Dry-Run Stub**
+
+## Action 441 Follow-Up
+
+Action 441 created
+`docs/execution-record-insert-route-dry-run-stub-reassessment.md`.
+
+Result:
+
+- Reassessed the first runtime execution-record persistence route.
+- Confirmed it remains dry-run-only, no-write, no-Supabase-read, no-audit,
+  no-trade-mutation, and disconnected from broker/Avanza/browser behavior.
+- Documented Action 440 verification: tsc passed, lint passed, default e2e
+  was sandbox-blocked on `0.0.0.0:3010`, escalated e2e passed with 70 tests,
+  and `git diff --check` passed.
+
+Next recommended action:
+
+**Action 442 - Create Dry-Run Route Client Helper**

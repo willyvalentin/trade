@@ -1,0 +1,32 @@
+{
+  "schema_version": "action_473_netlify_target_access_record_v1",
+  "target_name": "Netlify Preview Deployment – Ture Confidence Calibration Projection Preview",
+  "target_identifier": "ture-confidence-calibration-projection-preview",
+  "environment_classification": "non_production_preview",
+  "deployment_platform": "Netlify",
+  "site_association_known": false,
+  "site_reference_classification": null,
+  "non_secret_site_reference": null,
+  "production_alias_protected": null,
+  "preview_deploy_supported": null,
+  "initial_flag_can_remain_disabled": null,
+  "credential_available": false,
+  "authentication_method_classification": "not_verified_no_network_no_interactive_auth",
+  "credential_verification_result": "conditional_user_completion_required",
+  "netlify_target_access_decision": "netlify_target_access_ready_with_conditions",
+  "remaining_user_actions": [
+    "confirm_intended_existing_netlify_site_or_project_name",
+    "confirm_preview_or_deploy_preview_creation_is_supported",
+    "confirm_production_alias_remains_protected",
+    "authenticate_local_deployment_environment_through_supported_secure_mechanism",
+    "confirm_credential_availability_without_sharing_credential_value"
+  ],
+  "network_step_performed": false,
+  "authentication_performed": false,
+  "deployment_performed": false,
+  "credential_value_recorded": false,
+  "secret_url_recorded": false,
+  "environment_value_recorded": false,
+  "preview_activated": false,
+  "production_changed": false
+}

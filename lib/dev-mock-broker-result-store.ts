@@ -1,7 +1,10 @@
 import {
-  validateDevMockBrokerExecutionResult,
-  type DevMockBrokerExecutionResult,
-} from "@/lib/mock-broker-execution-result";
+  appendDevMockBrokerResultEntries,
+  clearDevMockBrokerResultEntries,
+  getBrowserExecutionLocalStorage,
+  readDevMockBrokerResultEntries,
+} from "@/lib/execution-local-storage-helpers";
+import type { DevMockBrokerExecutionResult } from "@/lib/mock-broker-execution-result";
 
 export const DEV_MOCK_BROKER_RESULT_STORAGE_KEY =
   "ture_dev_mock_broker_results_v1";
@@ -16,97 +19,12 @@ export type DevMockBrokerResultStoreReadResult = {
   error: string | null;
 };
 
-function getStorage(): Storage | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
 function optionalString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function normalizeStoredDevMockBrokerResult(
-  value: unknown,
-): StoredDevMockBrokerExecutionResult | null {
-  const validation = validateDevMockBrokerExecutionResult(
-    value as Partial<DevMockBrokerExecutionResult> | null | undefined,
-  );
-
-  if (!validation.ok) {
-    return null;
-  }
-
-  return value as StoredDevMockBrokerExecutionResult;
-}
-
 function readDevMockBrokerResultStore(): DevMockBrokerResultStoreReadResult {
-  const storage = getStorage();
-
-  if (!storage) {
-    return {
-      results: [],
-      discardedCount: 0,
-      storageAvailable: false,
-      error: null,
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(
-      storage.getItem(DEV_MOCK_BROKER_RESULT_STORAGE_KEY) ?? "[]",
-    );
-    const rawResults = Array.isArray(parsed) ? parsed : [];
-    const results = rawResults
-      .map(normalizeStoredDevMockBrokerResult)
-      .filter(
-        (result): result is StoredDevMockBrokerExecutionResult =>
-          Boolean(result),
-      );
-
-    return {
-      results,
-      discardedCount: rawResults.length - results.length,
-      storageAvailable: true,
-      error: null,
-    };
-  } catch (error) {
-    return {
-      results: [],
-      discardedCount: 0,
-      storageAvailable: true,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Malformed dev mock broker result store.",
-    };
-  }
-}
-
-function writeDevMockBrokerResults(
-  results: readonly StoredDevMockBrokerExecutionResult[],
-): boolean {
-  const storage = getStorage();
-
-  if (!storage) {
-    return false;
-  }
-
-  try {
-    storage.setItem(
-      DEV_MOCK_BROKER_RESULT_STORAGE_KEY,
-      JSON.stringify(results.slice(-MAX_STORED_DEV_MOCK_BROKER_RESULTS)),
-    );
-    return true;
-  } catch {
-    return false;
-  }
+  return readDevMockBrokerResultEntries(getBrowserExecutionLocalStorage());
 }
 
 export function readDevMockBrokerResults(): StoredDevMockBrokerExecutionResult[] {
@@ -126,34 +44,14 @@ export function appendDevMockBrokerResult(
 export function appendDevMockBrokerResults(
   results: readonly StoredDevMockBrokerExecutionResult[],
 ): boolean {
-  const currentResults = readDevMockBrokerResults();
-  const validResults = results
-    .map(normalizeStoredDevMockBrokerResult)
-    .filter(
-      (result): result is StoredDevMockBrokerExecutionResult =>
-        Boolean(result),
-    );
-
-  if (validResults.length === 0) {
-    return false;
-  }
-
-  return writeDevMockBrokerResults([...currentResults, ...validResults]);
+  return appendDevMockBrokerResultEntries(
+    getBrowserExecutionLocalStorage(),
+    results,
+  );
 }
 
 export function clearDevMockBrokerResults(): boolean {
-  const storage = getStorage();
-
-  if (!storage) {
-    return false;
-  }
-
-  try {
-    storage.removeItem(DEV_MOCK_BROKER_RESULT_STORAGE_KEY);
-    return true;
-  } catch {
-    return false;
-  }
+  return clearDevMockBrokerResultEntries(getBrowserExecutionLocalStorage());
 }
 
 export function getDevMockBrokerResultsForRequest(requestId: string) {
