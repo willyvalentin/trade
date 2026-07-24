@@ -8,7 +8,8 @@ import { continuousIntelligenceCreditLedgerTableName } from "@/lib/continuous-in
 import { continuousIntelligenceShadowCanaryClaimTableName } from "@/lib/continuous-intelligence-shadow-canary-claim-store";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
-const continuousIntelligenceHistoricalUsageReconciliationsTableName = "ci_hur_reconciliations";
+const continuousIntelligenceHistoricalUsageReconciliationReadRpcName =
+  "ci_hur_read_for_usage_accounting";
 
 export async function readContinuousIntelligenceShadowCanaryUsageAccounting(input: {
   utc_day: string;
@@ -28,10 +29,10 @@ export async function readContinuousIntelligenceShadowCanaryUsageAccounting(inpu
         .from(continuousIntelligenceShadowCanaryClaimTableName)
         .select("utc_day,estimated_credits,status")
         .eq("utc_day", input.utc_day),
-      supabase.client
-        .from(continuousIntelligenceHistoricalUsageReconciliationsTableName)
-        .select("reconciliation_identity,contract_version,operation_type,record_type,target_claim_id,source_execution_id,source_audit_id,authorization_id,usage_units,provider_request_count_for_reconciliation,reason_code,historical_utc_day")
-        .eq("historical_utc_day", input.utc_day),
+      supabase.client.rpc(
+        continuousIntelligenceHistoricalUsageReconciliationReadRpcName,
+        { p_historical_utc_day: input.utc_day },
+      ),
     ]);
     if (
       ledger.error ||
