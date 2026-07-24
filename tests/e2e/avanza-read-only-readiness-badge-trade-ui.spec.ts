@@ -21,7 +21,7 @@ const forbiddenTradeUiPatterns = [
 ] as const;
 
 test.describe("Avanza read-only readiness badge in Trade UI", () => {
-  test("renders the reusable badge in the dashboard as display-only context", () => {
+  test("renders the reusable badge with a neutral disconnected default", () => {
     const pageSource = readRepoFile("app/page.tsx");
     const fixtureSource = readRepoFile("lib/avanza-read-only-readiness-fixture.ts");
     const badgeSource = readRepoFile(
@@ -32,9 +32,21 @@ test.describe("Avanza read-only readiness badge in Trade UI", () => {
     expect(pageSource).toContain("tradeExecutionReadOnlySummaryFixture");
     expect(pageSource).toContain("Read-only observation context");
     expect(pageSource).toContain("max-w-xl");
-    expect(fixtureSource).toContain("Fixture/default summary only");
-    expect(fixtureSource).toContain("ready_for_read_only_observation");
-    expect(fixtureSource).toContain('severity: "warning"');
+    expect(fixtureSource).toContain('label: "Status not connected"');
+    expect(fixtureSource).toContain(
+      "Live Avanza readiness data is not connected.",
+    );
+    expect(fixtureSource).toContain("No current system status is available.");
+    expect(fixtureSource).toContain('status: "unknown"');
+    expect(fixtureSource).toContain('severity: "neutral"');
+    expect(fixtureSource).toContain("ready_count: 0");
+    expect(fixtureSource).toContain("blocked_count: 0");
+    expect(fixtureSource).toContain("unknown_count: 12");
+    expect(fixtureSource).not.toContain("Ready for read-only observation");
+    expect(fixtureSource).not.toContain("ready_count: 11");
+    expect(fixtureSource).not.toContain(
+      'status: "ready_for_read_only_observation"',
+    );
     expect(badgeSource).toContain(
       "Read-only observation, not execution readiness or an order action",
     );

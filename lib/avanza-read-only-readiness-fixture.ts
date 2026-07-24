@@ -1,12 +1,13 @@
 import type { AvanzaBridgeReadinessSummary } from "@/lib/avanza-bridge-readiness-checklist";
 
 export const tradeExecutionReadOnlySummaryFixture = {
-  advisory_count: 1,
+  advisory_count: 0,
   blocked_count: 0,
-  label: "Ready for read-only observation",
-  ready_count: 11,
-  severity: "warning",
-  shortCopy: "Fixture/default summary only for display-only context.",
-  status: "ready_for_read_only_observation",
-  unknown_count: 0,
+  label: "Status not connected",
+  ready_count: 0,
+  severity: "neutral",
+  shortCopy:
+    "Live Avanza readiness data is not connected. No current system status is available.",
+  status: "unknown",
+  unknown_count: 12,
 } satisfies AvanzaBridgeReadinessSummary;
