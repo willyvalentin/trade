@@ -4,6 +4,11 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import {
+  action643ScheduledDryRunBuilderContractVersion,
+  buildAction643ScheduledDryRunRequest,
+} from "./action-643-scheduled-dry-run-request-builder.mjs";
+
 const execFileAsync = promisify(execFile);
 
 export const action645ExpectedCommit = "c7fc1f06019f1afff58c9f146a1f0576ef6447dc";
@@ -21,7 +26,6 @@ export const action645ForbiddenMigrationVersions = Object.freeze([
 ]);
 export const action645RequiredMigrationVersion = "20260724001000";
 
-const builderPath = "/tmp/ture-action-643-build-request.cjs";
 const usagePath = "https://trade.valentinlabs.com/api/automation/continuous-intelligence/shadow-collector/canary/usage-accounting?utc_date=2026-07-24";
 
 function isCommit(value) {
@@ -170,19 +174,27 @@ async function run(command, args, { include_stderr = false } = {}) {
   return (include_stderr ? `${stdout}\n${stderr}` : stdout).trim();
 }
 
-async function readBuilder() {
-  try {
-    const source = await readFile(builderPath, "utf8");
-    const commits = [...new Set(source.match(/[0-9a-f]{40}/g) ?? [])];
-    return {
-      exists: true,
-      path: builderPath,
-      deployment_commit: commits.length === 1 ? commits[0] : null,
-      window_matches: source.includes(action645Action643Window.start) && source.includes(action645Action643Window.end) && source.includes(action645Action643Window.cadence),
-    };
-  } catch {
-    return { exists: false, path: builderPath, deployment_commit: null, window_matches: false };
-  }
+function inspectBuilder(expectedCommit) {
+  const built = buildAction643ScheduledDryRunRequest({
+    deployment_commit: expectedCommit,
+    expected_deployment_commit: expectedCommit,
+    market_date: action645Action643Window.market_date,
+    market_window: { start: action645Action643Window.start, end: action645Action643Window.end },
+    cadence_slot: action645Action643Window.cadence,
+    execution_mode: "dry_run",
+    now_utc: action645Action643Window.end,
+  });
+  return built.ok
+    ? {
+        exists: true,
+        path: "scripts/action-643-scheduled-dry-run-request-builder.mjs",
+        deployment_commit: built.payload.deployment_commit,
+        window_matches: built.payload.market_window.start === action645Action643Window.start && built.payload.market_window.end === action645Action643Window.end && built.payload.cadence_slot === action645Action643Window.cadence,
+        builder_contract_version: action643ScheduledDryRunBuilderContractVersion,
+        occurrence_id: built.occurrence_id,
+        request_fingerprint: built.request_fingerprint,
+      }
+    : { exists: false, path: "scripts/action-643-scheduled-dry-run-request-builder.mjs", deployment_commit: null, window_matches: false, builder_contract_version: null, occurrence_id: null, request_fingerprint: null };
 }
 
 async function readAutomationSecret() {
@@ -254,7 +266,7 @@ async function collectProductionState() {
     availability.usage = response.status === 200 && usage !== null;
   } catch { availability.usage = false; }
 
-  const builder = await readBuilder();
+  const builder = inspectBuilder(action645ExpectedCommit);
   availability.builder = true;
   return { availability, git, netlifyDeploy, deploymentAssertion, supabase, usage, builder };
 }

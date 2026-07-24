@@ -52,7 +52,7 @@ function validInput(overrides: Record<string, unknown> = {}) {
       durable_writes_executed: 0,
       schedule_changes: 0,
     },
-    builder: { exists: true, path: "/tmp/ture-action-643-build-request.cjs", deployment_commit: commit, window_matches: true },
+    builder: { exists: true, path: "scripts/action-643-scheduled-dry-run-request-builder.mjs", deployment_commit: commit, window_matches: true },
     ...overrides,
   };
 }
@@ -89,7 +89,9 @@ test("Action 645 blocks forbidden migration, unhealthy production deploy, secret
 
 test("Action 645 script is read-only and its report cannot contain credentials", () => {
   const source = readFileSync(scriptPath, "utf8");
-  for (const forbidden of ["env:set", "createSiteBuild", "db push", "--include-all", "ci_hur_issue", "ci_hur_reconcile", "scheduled-dry-run", "writeFile", "rm ", "git reset", "git merge"]) {
+  expect(source).toContain("buildAction643ScheduledDryRunRequest");
+  expect(source).not.toContain("/tmp/ture-action-643-build-request.cjs");
+  for (const forbidden of ["env:set", "createSiteBuild", "db push", "--include-all", "ci_hur_issue", "ci_hur_reconcile", "scheduled-dry-run/route", "writeFile", "rm ", "git reset", "git merge"]) {
     expect(source).not.toContain(forbidden);
   }
   const report = preflight.evaluateAction645Preflight(validInput());

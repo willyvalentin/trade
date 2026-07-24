@@ -18,7 +18,7 @@ The script emits structured JSON followed by one concise human-readable status l
 - Netlify read APIs and a read of the one public deployment-commit assertion;
 - Supabase linked schema lint and migration-history reads;
 - the authenticated read-only usage-accounting route; and
-- static inspection of `/tmp/ture-action-643-build-request.cjs`.
+- deterministic local construction and validation using the version-controlled Action 646 request-builder contract.
 
 It never executes the builder, sends a dry-run request, creates a claim, calls a provider, writes a durable row, changes an environment variable, triggers a deployment, applies a migration, or modifies Git or `deno.lock`.
 
@@ -30,7 +30,7 @@ The preflight requires all of these to agree:
 - a ready production/main Netlify deploy with successful plugins, no error, and zero normal or enhanced secret-scan matches;
 - linked Supabase lint success, Action 644 migration `20260724001000` applied, and no forbidden draft migration remotely;
 - clean UTC-day usage accounting across scheduled, manual, reconciliation, total-ledger, and claim-capacity scopes; and
-- a completed Action 643 window and a builder whose deployment identity and canonical window values match.
+- a completed Action 643 window and a locally validated version-controlled builder whose deployment identity and canonical window values match.
 
 The Action 643 window is fixed to `2026-07-24T13:30:00.000Z` through `2026-07-24T14:00:00.000Z`, cadence `regular_session_30m_1400Z`.
 
