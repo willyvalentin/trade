@@ -18,6 +18,10 @@ import { createScanLog, recordScanLog, type PreMarketCandidate } from "@/lib/sca
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
+import {
+  applicationSessionUnauthorizedResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 type GenerateRequestBody = {
   session_type?: unknown;
@@ -253,6 +257,9 @@ async function safelyRecordManualScanLog({
 }
 
 export async function POST(request: Request) {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+
   try {
     let body: GenerateRequestBody;
 

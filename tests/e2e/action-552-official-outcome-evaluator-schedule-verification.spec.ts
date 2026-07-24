@@ -75,14 +75,13 @@ test.describe("Action 552 official outcome evaluator schedule verification", () 
     );
   });
 
-  test("UI placeholder guard remains in place and is separate from official scheduled evaluation", () => {
+  test("UI placeholder state has no browser persistence path and remains separate from official scheduled evaluation", () => {
     const source = read(action550Path);
 
-    expect(source).toContain("function isSnapshotOnlyUnknownHorizonOutcome");
-    expect(source).toContain('outcome.horizon === "unknown"');
-    expect(source).toContain('outcome.source === "snapshot_only"');
-    expect(source).toContain('outcome.data_completeness === "none"');
-    expect(source).toContain("const persistableOutcomes = pendingOutcomes.filter");
+    expect(source).not.toContain('from "@/lib/supabase"');
+    expect(source).not.toContain("persistRecommendationOutcome(");
+    expect(source).not.toContain("readRecommendationOutcomesFromLocalStorage(");
+    expect(source).toContain('fetch("/api/recommendations/evaluate-outcomes"');
   });
 
   test("schedule fix has no ranking scanner execution provider or trade side effects", () => {

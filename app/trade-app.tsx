@@ -223,10 +223,8 @@ import {
 import {
   buildRecommendationSnapshot,
   markRecommendationSnapshotTaken,
-  persistRecommendationSnapshot,
   recommendationSnapshotFromPersistenceRow,
   recommendationSnapshotsJson,
-  readRecommendationSnapshotsFromLocalStorage,
   summarizeRecommendationSnapshotShadowEntryTrialMetadata,
   type RecommendationSnapshot,
   type RecommendationSnapshotInput,
@@ -235,9 +233,7 @@ import {
 } from "@/lib/recommendation-snapshot";
 import {
   buildRecommendationScanRun,
-  persistRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
-  readRecommendationScanRunsFromLocalStorage,
   recommendationScanRunsJson,
   type RecommendationScanRun,
   type RecommendationScanRunPersistenceResult,
@@ -245,8 +241,6 @@ import {
 import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
-  persistRecommendationBatch,
-  readRecommendationBatchesFromLocalStorage,
   recommendationBatchFromPersistenceRow,
   recommendationBatchesJson,
   type RecommendationBatch,
@@ -261,8 +255,6 @@ import {
   RECOMMENDATION_BATCH_BACKFILL_CHUNK_SIZE,
 } from "@/lib/recommendation-batch-backfill";
 import {
-  RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
-  RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
   resolveRecentRecommendationReadbackFailure,
 } from "@/lib/recent-recommendation-readback";
 import {
@@ -288,16 +280,13 @@ import {
 } from "@/lib/recommendation-scan-run-history";
 import {
   computeRecommendationOutcome,
-  persistRecommendationOutcome,
   recommendationOutcomeFromPersistenceRow,
   recommendationOutcomesJson,
-  readRecommendationOutcomesFromLocalStorage,
   type RecommendationOutcome,
   type RecommendationOutcomePersistenceResult,
 } from "@/lib/recommendation-outcome-tracker";
 import {
   recommendationOutcomeEvaluationRunJson,
-  writeRecommendationOutcomeEvaluationRunToLocalStorage,
   type RecommendationOutcomeEvaluationRun,
   type RecommendationOutcomeEvaluationRunStatus,
 } from "@/lib/recommendation-outcome-evaluation-runner";
@@ -890,9 +879,6 @@ import {
   type SetupType,
 } from "@/lib/setup-types";
 import {
-  supabase,
-} from "@/lib/supabase";
-import {
   normalizeUnknownError,
 } from "@/lib/error-logging";
 import {
@@ -1419,14 +1405,6 @@ type RecommendationOutcomeDedupeDiagnostics = {
   staleIncompleteIgnoredCount: number;
   strategy: "best_status_then_latest";
 };
-
-function isSnapshotOnlyUnknownHorizonOutcome(outcome: RecommendationOutcome) {
-  return (
-    outcome.horizon === "unknown" &&
-    outcome.source === "snapshot_only" &&
-    outcome.data_completeness === "none"
-  );
-}
 
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
@@ -2522,6 +2500,102 @@ async function fetchMarketStatusForUi() {
       error: "Market calendar status is unavailable right now.",
     };
   }
+}
+
+type ApplicationDashboardPayload = {
+  recommendations: unknown[];
+  user_settings: unknown | null;
+  open_positions: unknown[];
+  closed_positions: unknown[];
+  position_updates: unknown[];
+  scheduled_scan_runs: unknown[];
+  scheduled_scan_attempts: unknown[];
+  recommendation_scan_runs: unknown[];
+  recommendation_batches: unknown[];
+  recommendation_snapshots: unknown[];
+  recommendation_outcomes: unknown[];
+  market_regime: unknown | null;
+};
+
+async function fetchApplicationDashboard() {
+  const response = await fetch("/api/app/dashboard", { cache: "no-store" });
+  const payload = (await response.json().catch(() => null)) as
+    | ApplicationDashboardPayload
+    | { error?: string }
+    | null;
+
+  if (!response.ok || !payload || !("recommendations" in payload)) {
+    return {
+      data: null,
+      error: new Error(
+        payload && "error" in payload && typeof payload.error === "string"
+          ? payload.error
+          : "Dashboard data is unavailable.",
+      ),
+    };
+  }
+
+  return { data: payload, error: null };
+}
+
+type OutcomeBackfillOperation =
+  | "snapshots_by_fingerprint"
+  | "snapshots_by_scan_run"
+  | "batches_by_fingerprint"
+  | "batches_by_scan_run";
+
+async function fetchOutcomeBackfillRows(
+  operation: OutcomeBackfillOperation,
+  identifiers: string[],
+) {
+  const response = await fetch("/api/app/outcome-backfill", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ operation, identifiers }),
+  });
+  const payload = (await response.json().catch(() => null)) as {
+    rows?: Array<Record<string, unknown>>;
+    error?: string;
+  } | null;
+
+  return {
+    data: payload?.rows ?? [],
+    error: response.ok ? null : new Error(payload?.error ?? "Outcome backfill is unavailable."),
+  };
+}
+
+async function postApplicationPosition(position: Record<string, unknown>) {
+  const response = await fetch("/api/app/positions", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(position),
+  });
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  return { error: response.ok ? null : new Error(payload?.error ?? "Position could not be opened.") };
+}
+
+async function patchApplicationPosition(
+  positionId: string,
+  operation: "partial_close" | "close",
+  values: Record<string, unknown>,
+) {
+  const response = await fetch("/api/app/positions", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ position_id: positionId, operation, values }),
+  });
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  return { error: response.ok ? null : new Error(payload?.error ?? "Position update is unavailable.") };
+}
+
+async function patchRecommendationLifecycle(input: Record<string, unknown>) {
+  const response = await fetch("/api/app/recommendation-lifecycle", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  return { error: response.ok ? null : new Error(payload?.error ?? "Recommendation update is unavailable.") };
 }
 
 function getNewYorkTimeInMinutes(date = new Date()) {
@@ -8341,18 +8415,6 @@ function logBrokerExitConfirmationEvent(
   }
 }
 
-function isMissingExecutionMetadataColumn(error: unknown) {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const values = Object.values(error as Record<string, unknown>)
-    .filter((value): value is string => typeof value === "string")
-    .join(" ");
-
-  return values.includes("execution_metadata");
-}
-
 function getLatestValidationModalMessage(validation: AddTradeValidationResult) {
   if (validation.status === "warning") {
     return `Latest intraday validation is mixed. Review before entering. ${validation.reason}`;
@@ -8613,7 +8675,7 @@ export function TradeApp({
     useState<RecommendationBatch[]>([]);
   const [storedRecommendationOutcomes, setStoredRecommendationOutcomes] =
     useState<RecommendationOutcome[]>([]);
-  const [recommendationSnapshotDiagnostics, setRecommendationSnapshotDiagnostics] =
+  const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
       lastSnapshotTimestamp: null,
@@ -8622,7 +8684,7 @@ export function TradeApp({
       persistenceMode: "unknown",
       lastError: null,
     });
-  const [recommendationScanRunDiagnostics, setRecommendationScanRunDiagnostics] =
+  const [recommendationScanRunDiagnostics] =
     useState<RecommendationScanRunDiagnostics>({
       scanRunsStoredToday: 0,
       latestScanRunStatus: "idle",
@@ -8638,7 +8700,7 @@ export function TradeApp({
       lastRunTimestamp: null,
       lastError: null,
     });
-  const [recommendationBatchDiagnostics, setRecommendationBatchDiagnostics] =
+  const [recommendationBatchDiagnostics] =
     useState<RecommendationBatchDiagnostics>({
       batchesStoredToday: 0,
       latestBatchStatus: "idle",
@@ -8651,7 +8713,7 @@ export function TradeApp({
       lastBatchTimestamp: null,
       lastError: null,
     });
-  const [recommendationOutcomeDiagnostics, setRecommendationOutcomeDiagnostics] =
+  const [recommendationOutcomeDiagnostics] =
     useState<RecommendationOutcomeDiagnostics>({
       trackedSnapshotsCount: 0,
       pendingOutcomes: 0,
@@ -8791,16 +8853,6 @@ export function TradeApp({
   const hasLoadedProviderPlanModeHintRef = useRef(false);
   const hasLoadedDevPreviewPreferenceRef = useRef(false);
   const previousRecommendationIdsRef = useRef<Set<string>>(new Set());
-  const persistedRecommendationSnapshotFingerprintsRef = useRef<Set<string>>(
-    new Set(),
-  );
-  const persistedRecommendationScanRunFingerprintsRef = useRef<Set<string>>(
-    new Set(),
-  );
-  const persistedRecommendationBatchSignaturesRef = useRef<Map<string, number>>(
-    new Map(),
-  );
-  const persistedRecommendationOutcomeIdsRef = useRef<Set<string>>(new Set());
   const hasLoadedPositionUpdatesRef = useRef(false);
   const previousPositionUpdateSignaturesRef = useRef<Record<string, string>>({});
   const previousPositionUpdateActionsRef = useRef<Record<string, string>>({});
@@ -8998,90 +9050,60 @@ export function TradeApp({
     const demoClosedPositions = readDemoClosedPositions();
 
     try {
-      const [
-        recommendationsResult,
-        userSettingsResult,
-        positionsResult,
-        closedPositionsResult,
-        positionUpdatesResult,
-        scanLogsResult,
-        scheduledScanAttemptsResult,
-        recommendationScanRunsResult,
-        recommendationBatchesResult,
-        recommendationSnapshotsResult,
-        recommendationOutcomesResult,
-        marketRegimeResult,
-        marketStatusResult,
-      ] =
-        await Promise.all([
-          supabase.from("recommendations").select("*"),
-          supabase
-            .from("user_settings")
-            .select("portfolio_size, risk_per_trade_percent")
-            .order("created_at", { ascending: true })
-            .limit(1)
-            .maybeSingle(),
-          supabase
-            .from("positions")
-            .select("*, recommendations(setup_type,invalidation)")
-            .eq("status", "open"),
-          supabase
-            .from("positions")
-            .select("*, recommendations(setup_type)")
-            .eq("status", "closed")
-            .order("closed_at", { ascending: false }),
-          supabase
-            .from("position_updates")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("scheduled_scan_runs")
-            .select(
-              "id,created_at,scan_date,session_type,status,recommendations_created,message",
-            )
-            .gte(
-              "created_at",
-              new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            )
-            .order("created_at", { ascending: false })
-            .limit(50),
-          supabase
-            .from("scheduled_scan_attempts")
-            .select("*")
-            .gte(
-              "utc_timestamp",
-              new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-            )
-            .order("utc_timestamp", { ascending: false })
-            .limit(100),
-          supabase
-            .from("recommendation_scan_runs")
-            .select("*")
-            .order("observed_at", { ascending: false })
-            .limit(100),
-          supabase
-            .from("recommendation_batches")
-            .select("*")
-            .order("published_at", { ascending: false, nullsFirst: false })
-            .limit(100),
-          supabase
-            .from("recommendation_snapshots")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
-          supabase
-            .from("recommendation_outcomes")
-            .select("*")
-            .order("evaluated_at", { ascending: false })
-            .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
-          supabase
-            .from("market_regime_snapshots")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-          fetchMarketStatusForUi(),
-        ]);
+      const [dashboardResult, marketStatusResult] = await Promise.all([
+        fetchApplicationDashboard(),
+        fetchMarketStatusForUi(),
+      ]);
+      const dashboard = dashboardResult.data;
+      const dashboardError = dashboardResult.error;
+      const recommendationsResult = {
+        data: dashboard?.recommendations ?? [],
+        error: dashboardError,
+      };
+      const userSettingsResult = {
+        data: dashboard?.user_settings ?? null,
+        error: dashboardError,
+      };
+      const positionsResult = {
+        data: dashboard?.open_positions ?? [],
+        error: dashboardError,
+      };
+      const closedPositionsResult = {
+        data: dashboard?.closed_positions ?? [],
+        error: dashboardError,
+      };
+      const positionUpdatesResult = {
+        data: dashboard?.position_updates ?? [],
+        error: dashboardError,
+      };
+      const scanLogsResult = {
+        data: dashboard?.scheduled_scan_runs ?? [],
+        error: dashboardError,
+      };
+      const scheduledScanAttemptsResult = {
+        data: dashboard?.scheduled_scan_attempts ?? [],
+        error: dashboardError,
+      };
+      const recommendationScanRunsResult = {
+        data: dashboard?.recommendation_scan_runs ?? [],
+        error: dashboardError,
+      };
+      const recommendationBatchesResult = {
+        data: dashboard?.recommendation_batches ?? [],
+        error: dashboardError,
+      };
+      const recommendationSnapshotsResult = {
+        data: dashboard?.recommendation_snapshots ?? [],
+        error: dashboardError,
+      };
+      const recommendationOutcomesResult = {
+        data: dashboard?.recommendation_outcomes ?? [],
+        error: dashboardError,
+      };
+      const marketRegimeResult = {
+        data: dashboard?.market_regime ?? null,
+        error: dashboardError,
+      };
 
       let loadedRecommendationBatchesForReadback: RecommendationBatch[] = [];
       let loadedRecommendationSnapshotsForReadback: RecommendationSnapshot[] = [];
@@ -9240,7 +9262,7 @@ export function TradeApp({
       });
         noteIslandError("market_diagnostics", recommendationScanRunsResult.error);
         if (isInitialLoad) {
-          setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
+          setStoredRecommendationScanRuns([]);
         }
       } else {
       const loadedScanRuns = ((recommendationScanRunsResult.data ?? []) as Array<
@@ -9248,18 +9270,7 @@ export function TradeApp({
       >)
         .map(recommendationScanRunFromPersistenceRow)
         .filter((scanRun): scanRun is RecommendationScanRun => scanRun !== null);
-      const localScanRuns = readRecommendationScanRunsFromLocalStorage();
-
-      setStoredRecommendationScanRuns(
-        Array.from(
-          new Map(
-            [...loadedScanRuns, ...localScanRuns].map((scanRun) => [
-              scanRun.run_fingerprint,
-              scanRun,
-            ]),
-          ).values(),
-        ),
-      );
+      setStoredRecommendationScanRuns(loadedScanRuns);
       }
 
       if (recommendationBatchesResult.error) {
@@ -9271,9 +9282,8 @@ export function TradeApp({
         noteIslandError("market_diagnostics", recommendationBatchesResult.error);
         noteIslandError("recommendations", recommendationBatchesResult.error);
         if (isInitialLoad) {
-          loadedRecommendationBatchesForReadback =
-            readRecommendationBatchesFromLocalStorage();
-          setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
+          loadedRecommendationBatchesForReadback = [];
+          setStoredRecommendationBatches([]);
         }
       } else {
       const loadedBatches = ((recommendationBatchesResult.data ?? []) as Array<
@@ -9281,15 +9291,7 @@ export function TradeApp({
       >)
         .map(recommendationBatchFromPersistenceRow)
         .filter((batch): batch is RecommendationBatch => batch !== null);
-      const localBatches = readRecommendationBatchesFromLocalStorage();
-      loadedRecommendationBatchesForReadback = Array.from(
-        new Map(
-          [...loadedBatches, ...localBatches].map((batch) => [
-            batch.batch_fingerprint,
-            batch,
-          ]),
-        ).values(),
-      );
+      loadedRecommendationBatchesForReadback = loadedBatches;
 
       setStoredRecommendationBatches(loadedRecommendationBatchesForReadback);
       }
@@ -9297,7 +9299,7 @@ export function TradeApp({
       if (recommendationSnapshotsResult.error) {
         const fallback = resolveRecentRecommendationReadbackFailure({
           isInitialLoad,
-          localItems: readRecommendationSnapshotsFromLocalStorage(),
+          localItems: [],
           previousItems: storedRecommendationSnapshots,
         });
         loadedRecommendationSnapshotsForReadback = fallback.items;
@@ -9307,7 +9309,6 @@ export function TradeApp({
           operation: "select_recent_recommendation_snapshots",
           fallbackSource: fallback.source,
           fallbackCount: fallback.items.length,
-          readLimit: RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
           error: normalizeUnknownError(recommendationSnapshotsResult.error),
         });
       } else {
@@ -9316,15 +9317,7 @@ export function TradeApp({
       >)
         .map(recommendationSnapshotFromPersistenceRow)
         .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null);
-      const localSnapshots = readRecommendationSnapshotsFromLocalStorage();
-      loadedRecommendationSnapshotsForReadback = Array.from(
-        new Map(
-          [...loadedSnapshots, ...localSnapshots].map((snapshot) => [
-            snapshot.snapshot_fingerprint,
-            snapshot,
-          ]),
-        ).values(),
-      );
+      loadedRecommendationSnapshotsForReadback = loadedSnapshots;
 
       setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
       }
@@ -9332,7 +9325,7 @@ export function TradeApp({
       if (recommendationOutcomesResult.error) {
         const fallback = resolveRecentRecommendationReadbackFailure({
           isInitialLoad,
-          localItems: readRecommendationOutcomesFromLocalStorage(),
+          localItems: [],
           previousItems: storedRecommendationOutcomes,
         });
         const dedupedFallbackOutcomes = dedupeRecommendationOutcomesForReadback(
@@ -9348,7 +9341,6 @@ export function TradeApp({
           operation: "select_recent_recommendation_outcomes",
           fallbackSource: fallback.source,
           fallbackCount: loadedRecommendationOutcomesForReadback.length,
-          readLimit: RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
           error: normalizeUnknownError(recommendationOutcomesResult.error),
         });
       } else {
@@ -9357,9 +9349,8 @@ export function TradeApp({
       >)
         .map(recommendationOutcomeFromPersistenceRow)
         .filter((outcome): outcome is RecommendationOutcome => outcome !== null);
-      const localOutcomes = readRecommendationOutcomesFromLocalStorage();
       const dedupedReadbackOutcomes = dedupeRecommendationOutcomesForReadback(
-        [...loadedOutcomes, ...localOutcomes],
+        loadedOutcomes,
       );
       loadedRecommendationOutcomesForReadback = dedupedReadbackOutcomes.outcomes;
       setRecommendationOutcomeDedupeDiagnostics(
@@ -9411,10 +9402,10 @@ export function TradeApp({
         if (missingSnapshotFingerprints.length > 0) {
           outcomeSnapshotBackfillAttempted = true;
 
-          const backfilledSnapshotsResult = await supabase
-            .from("recommendation_snapshots")
-            .select("*")
-            .in("snapshot_fingerprint", missingSnapshotFingerprints);
+          const backfilledSnapshotsResult = await fetchOutcomeBackfillRows(
+            "snapshots_by_fingerprint",
+            missingSnapshotFingerprints,
+          );
 
           if (backfilledSnapshotsResult.error) {
             outcomeBackfillError = normalizeUnknownError(
@@ -9491,11 +9482,10 @@ export function TradeApp({
         if (missingOutcomeScanRunFingerprints.length > 0) {
           outcomeSnapshotBackfillAttempted = true;
 
-          const backfilledScanRunSnapshotsResult = await supabase
-            .from("recommendation_snapshots")
-            .select("*")
-            .in("scan_run_id", missingOutcomeScanRunFingerprints)
-            .limit(200);
+          const backfilledScanRunSnapshotsResult = await fetchOutcomeBackfillRows(
+            "snapshots_by_scan_run",
+            missingOutcomeScanRunFingerprints,
+          );
 
           if (backfilledScanRunSnapshotsResult.error) {
             outcomeBackfillError = normalizeUnknownError(
@@ -9564,10 +9554,10 @@ export function TradeApp({
         outcomeBatchFingerprintsRequestedCount += missingBatchFingerprints.length;
 
         if (missingBatchFingerprints.length > 0) {
-          const backfilledBatchesResult = await supabase
-            .from("recommendation_batches")
-            .select("*")
-            .in("batch_fingerprint", missingBatchFingerprints);
+          const backfilledBatchesResult = await fetchOutcomeBackfillRows(
+            "batches_by_fingerprint",
+            missingBatchFingerprints,
+          );
 
           if (backfilledBatchesResult.error) {
             outcomeBackfillError = normalizeUnknownError(
@@ -9642,10 +9632,10 @@ export function TradeApp({
             await fetchChunkedRecommendationBatchBackfillRows<
               Record<string, unknown>
             >(missingScanRunFingerprints, async (fingerprintChunk) => {
-              const result = await supabase
-                .from("recommendation_batches")
-                .select("*")
-                .in("scan_run_fingerprint", [...fingerprintChunk]);
+              const result = await fetchOutcomeBackfillRows(
+                "batches_by_scan_run",
+                [...fingerprintChunk],
+              );
 
               return {
                 data: (result.data ?? []) as Array<Record<string, unknown>>,
@@ -9828,14 +9818,19 @@ export function TradeApp({
       setDevPreviewRecommendationsHidden(readDevPreviewRecommendationsHidden());
       hasLoadedDevPreviewPreferenceRef.current = true;
       setLastDemoAction(readDemoLastAction());
-      setStoredRecommendationSnapshots(readRecommendationSnapshotsFromLocalStorage());
-      setStoredRecommendationScanRuns(readRecommendationScanRunsFromLocalStorage());
-      setStoredRecommendationBatches(readRecommendationBatchesFromLocalStorage());
-      const dedupedLocalOutcomes = dedupeRecommendationOutcomesForReadback(
-        readRecommendationOutcomesFromLocalStorage(),
+      setStoredRecommendationSnapshots([]);
+      setStoredRecommendationScanRuns([]);
+      setStoredRecommendationBatches([]);
+      setStoredRecommendationOutcomes([]);
+      setRecommendationOutcomeDedupeDiagnostics(
+        {
+          rawCount: 0,
+          dedupedCount: 0,
+          replacedByBetterCount: 0,
+          staleIncompleteIgnoredCount: 0,
+          strategy: "best_status_then_latest",
+        },
       );
-      setStoredRecommendationOutcomes(dedupedLocalOutcomes.outcomes);
-      setRecommendationOutcomeDedupeDiagnostics(dedupedLocalOutcomes.diagnostics);
       loadTradeDataRef.current({ mode: "initial", source: "initial" });
     }, 0);
 
@@ -10189,11 +10184,10 @@ export function TradeApp({
         }
       : { status: newStatus };
 
-    // TODO: Add discard review metadata fields or metadata JSON column.
-    const { error } = await supabase
-      .from("recommendations")
-      .update(updatePayload)
-      .eq("id", recommendation.id);
+    const { error } = await patchRecommendationLifecycle({
+      recommendation_id: recommendation.id,
+      ...updatePayload,
+    });
 
     if (error) {
       setMessage(error.message);
@@ -10791,50 +10785,13 @@ export function TradeApp({
       return;
     }
 
-    let { error: insertError } = await supabase
-      .from("positions")
-      .insert(positionInsert);
-
-    if (insertError && isMissingExecutionMetadataColumn(insertError)) {
-      const fallbackInsert = {
-        recommendation_id: positionInsert.recommendation_id,
-        ticker: positionInsert.ticker,
-        company_name: positionInsert.company_name,
-        entry_price: positionInsert.entry_price,
-        position_size: positionInsert.position_size,
-        current_stop: positionInsert.current_stop,
-        target_1: positionInsert.target_1,
-        target_2: positionInsert.target_2,
-        status: positionInsert.status,
-      };
-      const fallbackResult = await supabase.from("positions").insert(fallbackInsert);
-      insertError = fallbackResult.error;
-    }
+    const { error: insertError } = await postApplicationPosition(positionInsert);
 
     if (insertError) {
       setMessage(insertError.message);
       setIsSaving(false);
       return;
     }
-
-    const { error: updateError } = await supabase
-      .from("recommendations")
-      .update({ status: "taken" })
-      .eq("id", selectedRecommendation.id);
-
-    if (updateError) {
-      setMessage(updateError.message);
-      setIsSaving(false);
-      return;
-    }
-    void markRecommendationSnapshotTaken(
-      {
-        recommendation_id: selectedRecommendation.id,
-        linked_position_id: null,
-        taken_at: new Date().toISOString(),
-      },
-      { supabaseClient: supabase },
-    );
 
     if (brokerFill) {
       logLiveDayTradeCreatedAfterBrokerConfirmation(
@@ -11042,28 +10999,14 @@ export function TradeApp({
         return;
       }
 
-      let { error: partialUpdateError } = await supabase
-        .from("positions")
-        .update({
-          status: "open",
+      const { error: partialUpdateError } = await patchApplicationPosition(
+        selectedPosition.id,
+        "partial_close",
+        {
           position_size: partialState.remaining_shares,
           ...(exitMetadata ? { execution_metadata: exitMetadata } : {}),
-        })
-        .eq("id", selectedPosition.id);
-
-      if (
-        partialUpdateError &&
-        isMissingExecutionMetadataColumn(partialUpdateError)
-      ) {
-        const fallbackResult = await supabase
-          .from("positions")
-          .update({
-            status: "open",
-            position_size: partialState.remaining_shares,
-          })
-          .eq("id", selectedPosition.id);
-        partialUpdateError = fallbackResult.error;
-      }
+        },
+      );
 
       if (partialUpdateError) {
         setMessage(partialUpdateError.message);
@@ -11181,26 +11124,11 @@ export function TradeApp({
       return;
     }
 
-    let { error } = await supabase
-      .from("positions")
-      .update(updatePayload)
-      .eq("id", selectedPosition.id);
-
-    if (error && isMissingExecutionMetadataColumn(error)) {
-      const fallbackResult = await supabase
-        .from("positions")
-        .update({
-          status: updatePayload.status,
-          exit_price: updatePayload.exit_price,
-          closed_at: updatePayload.closed_at,
-          pnl: updatePayload.pnl,
-          pnl_percent: updatePayload.pnl_percent,
-          r_multiple: updatePayload.r_multiple,
-          exit_notes: updatePayload.exit_notes,
-        })
-        .eq("id", selectedPosition.id);
-      error = fallbackResult.error;
-    }
+    const { error } = await patchApplicationPosition(
+      selectedPosition.id,
+      "close",
+      updatePayload,
+    );
 
     if (error) {
       setMessage(error.message);
@@ -15113,376 +15041,6 @@ export function TradeApp({
           2,
         )
       : recommendationOutcomeEvaluationRunJson(recommendationOutcomeEvaluationRun);
-  const shouldPersistCurrentRecommendationScanRun =
-    currentRecommendationScanRun.counts.visible_recommendation_count > 0 ||
-    (dayTradeScanOrchestrationSummary.decision !== "market_closed" &&
-      dayTradeScanOrchestrationSummary.decision !== "outside_scan_window");
-
-  useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    if (!shouldPersistCurrentRecommendationScanRun) {
-      return;
-    }
-
-    if (
-      persistedRecommendationScanRunFingerprintsRef.current.has(
-        currentRecommendationScanRun.run_fingerprint,
-      )
-    ) {
-      return;
-    }
-
-    persistedRecommendationScanRunFingerprintsRef.current.add(
-      currentRecommendationScanRun.run_fingerprint,
-    );
-
-    let isCancelled = false;
-
-    async function persistCurrentRecommendationScanRun() {
-      const result = await persistRecommendationScanRun(currentRecommendationScanRun, {
-        supabaseClient: supabase,
-      });
-
-      if (isCancelled) {
-        return;
-      }
-
-      const storedScanRuns = readRecommendationScanRunsFromLocalStorage();
-      const today = getNewYorkDateString(currentTime);
-      const localScanRunsStoredToday = storedScanRuns.filter(
-        (scanRun) =>
-          scanRun.trading_date === today ||
-          getNewYorkDateFromIso(scanRun.observed_at) === today,
-      ).length;
-      const savedTodayCount =
-        result.status === "saved" || result.status === "updated" ? 1 : 0;
-
-      setStoredRecommendationScanRuns((current) => {
-        if (result.mode === "localStorage") {
-          return storedScanRuns;
-        }
-
-        return Array.from(
-          new Map(
-            [currentRecommendationScanRun, ...current, ...storedScanRuns].map(
-              (scanRun) => [scanRun.run_fingerprint, scanRun],
-            ),
-          ).values(),
-        );
-      });
-      setRecommendationScanRunDiagnostics((current) => ({
-        scanRunsStoredToday: Math.max(
-          localScanRunsStoredToday,
-          current.scanRunsStoredToday + savedTodayCount,
-        ),
-        latestScanRunStatus: currentRecommendationScanRun.status,
-        visibleRecommendationCount:
-          currentRecommendationScanRun.counts.visible_recommendation_count,
-        strongCount: currentRecommendationScanRun.counts.strong_count,
-        validCount: currentRecommendationScanRun.counts.valid_count,
-        experimentalCount: currentRecommendationScanRun.counts.experimental_count,
-        windowTargetStatus: currentRecommendationScanRun.window_target_status,
-        persistenceStatus: result.status,
-        persistenceMode: result.mode,
-        duplicateSkippedCount:
-          current.duplicateSkippedCount + (result.status === "duplicate" ? 1 : 0),
-        updatedCount:
-          current.updatedCount + (result.status === "updated" ? 1 : 0),
-        lastRunTimestamp: currentRecommendationScanRun.observed_at,
-        lastError: result.error,
-      }));
-    }
-
-    void persistCurrentRecommendationScanRun();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    currentRecommendationScanRun,
-    currentTime,
-    isLoading,
-    shouldPersistCurrentRecommendationScanRun,
-  ]);
-
-  useEffect(() => {
-    const shouldPersistCurrentRecommendationBatch =
-      !isLoading &&
-      currentRecommendationBatch.batch_type !== "diagnostic" &&
-      currentRecommendationBatch.batch_type !== "unknown" &&
-      (currentRecommendationBatch.recommendation_count > 0 ||
-        currentRecommendationBatch.status === "no_trade_valid");
-
-    if (!shouldPersistCurrentRecommendationBatch) {
-      return;
-    }
-
-    const previousMetadataScore =
-      persistedRecommendationBatchSignaturesRef.current.get(
-        currentRecommendationBatch.batch_fingerprint,
-      );
-
-    if (
-      previousMetadataScore !== undefined &&
-      previousMetadataScore >= currentRecommendationBatch.metadata_score
-    ) {
-      return;
-    }
-
-    persistedRecommendationBatchSignaturesRef.current.set(
-      currentRecommendationBatch.batch_fingerprint,
-      currentRecommendationBatch.metadata_score,
-    );
-
-    let isCancelled = false;
-
-    async function persistCurrentRecommendationBatch() {
-      const result = await persistRecommendationBatch(currentRecommendationBatch, {
-        supabaseClient: supabase,
-      });
-
-      if (isCancelled) {
-        return;
-      }
-
-      const storedBatches = readRecommendationBatchesFromLocalStorage();
-      const today = getNewYorkDateString(currentTime);
-      const localBatchesStoredToday = storedBatches.filter(
-        (batch) =>
-          batch.trading_date === today ||
-          getNewYorkDateFromIso(batch.observed_at) === today,
-      ).length;
-      const savedTodayCount =
-        result.status === "saved" || result.status === "updated" ? 1 : 0;
-
-      setStoredRecommendationBatches((current) => {
-        if (result.mode === "localStorage") {
-          return storedBatches;
-        }
-
-        return Array.from(
-          new Map(
-            [currentRecommendationBatch, ...current, ...storedBatches].map(
-              (batch) => [batch.batch_fingerprint, batch],
-            ),
-          ).values(),
-        );
-      });
-      setRecommendationBatchDiagnostics((current) => ({
-        batchesStoredToday: Math.max(
-          localBatchesStoredToday,
-          current.batchesStoredToday + savedTodayCount,
-        ),
-        latestBatchStatus: currentRecommendationBatch.status,
-        recommendationCount: currentRecommendationBatch.recommendation_count,
-        targetStatus: currentRecommendationBatch.target_status,
-        persistenceStatus: result.status,
-        persistenceMode: result.mode,
-        duplicateSkippedCount:
-          current.duplicateSkippedCount + (result.status === "duplicate" ? 1 : 0),
-        updatedCount:
-          current.updatedCount + (result.status === "updated" ? 1 : 0),
-        lastBatchTimestamp: currentRecommendationBatch.observed_at,
-        lastError: result.error,
-      }));
-    }
-
-    void persistCurrentRecommendationBatch();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [currentRecommendationBatch, currentTime, isLoading]);
-
-  useEffect(() => {
-    if (isLoading || visibleRecommendationSnapshots.length === 0) {
-      return;
-    }
-
-    const pendingSnapshots = visibleRecommendationSnapshots.filter((snapshot) => {
-      if (
-        persistedRecommendationSnapshotFingerprintsRef.current.has(
-          snapshot.snapshot_fingerprint,
-        )
-      ) {
-        return false;
-      }
-
-      persistedRecommendationSnapshotFingerprintsRef.current.add(
-        snapshot.snapshot_fingerprint,
-      );
-      return true;
-    });
-
-    if (pendingSnapshots.length === 0) {
-      return;
-    }
-
-    let isCancelled = false;
-
-    async function persistVisibleSnapshots() {
-      let savedCount = 0;
-      let duplicateCount = 0;
-      let failedCount = 0;
-      let lastResult: RecommendationSnapshotPersistenceResult | null = null;
-
-      for (const snapshot of pendingSnapshots) {
-        const result = await persistRecommendationSnapshot(snapshot, {
-          supabaseClient: supabase,
-        });
-        lastResult = result;
-
-        if (result.status === "saved") {
-          savedCount += 1;
-        } else if (result.status === "duplicate") {
-          duplicateCount += 1;
-        } else {
-          failedCount += 1;
-        }
-      }
-
-      if (isCancelled) {
-        return;
-      }
-
-      const storedSnapshots = readRecommendationSnapshotsFromLocalStorage();
-      const today = getNewYorkDateString(currentTime);
-      const localSnapshotsStoredToday = storedSnapshots.filter(
-        (snapshot) => getNewYorkDateFromIso(snapshot.created_at) === today,
-      ).length;
-      const lastSnapshotTimestamp =
-        pendingSnapshots[pendingSnapshots.length - 1]?.created_at ?? null;
-
-      setStoredRecommendationSnapshots((current) => {
-        if (lastResult?.mode === "localStorage") {
-          return storedSnapshots;
-        }
-
-        return Array.from(
-          new Map(
-            [...pendingSnapshots, ...current, ...storedSnapshots].map((snapshot) => [
-              snapshot.snapshot_fingerprint,
-              snapshot,
-            ]),
-          ).values(),
-        );
-      });
-      setRecommendationSnapshotDiagnostics((current) => ({
-        snapshotsStoredToday: Math.max(
-          localSnapshotsStoredToday,
-          current.snapshotsStoredToday + savedCount,
-        ),
-        lastSnapshotTimestamp:
-          lastSnapshotTimestamp ?? current.lastSnapshotTimestamp,
-        duplicateSkippedCount: current.duplicateSkippedCount + duplicateCount,
-        persistenceStatus:
-          failedCount > 0 && savedCount === 0
-            ? "failed"
-            : lastResult?.status ?? current.persistenceStatus,
-        persistenceMode: lastResult?.mode ?? current.persistenceMode,
-        lastError: lastResult?.error ?? null,
-      }));
-    }
-
-    void persistVisibleSnapshots();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [currentTime, isLoading, visibleRecommendationSnapshots]);
-
-  useEffect(() => {
-    if (isLoading || visibleRecommendationOutcomes.length === 0) {
-      return;
-    }
-
-    const pendingOutcomes = visibleRecommendationOutcomes.filter((outcome) => {
-      if (persistedRecommendationOutcomeIdsRef.current.has(outcome.id)) {
-        return false;
-      }
-
-      persistedRecommendationOutcomeIdsRef.current.add(outcome.id);
-      return true;
-    });
-
-    if (pendingOutcomes.length === 0) {
-      return;
-    }
-
-    let isCancelled = false;
-
-    async function persistVisibleOutcomes() {
-      let lastResult: RecommendationOutcomePersistenceResult | null = null;
-      const persistableOutcomes = pendingOutcomes.filter(
-        (outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome),
-      );
-
-      for (const outcome of persistableOutcomes) {
-        lastResult = await persistRecommendationOutcome(outcome, {
-          supabaseClient: supabase,
-        });
-      }
-
-      if (isCancelled) {
-        return;
-      }
-
-      const storedOutcomesReadback = dedupeRecommendationOutcomesForReadback(
-        readRecommendationOutcomesFromLocalStorage(),
-      );
-      const storedOutcomes = storedOutcomesReadback.outcomes;
-      setStoredRecommendationOutcomes(storedOutcomes);
-      setRecommendationOutcomeDedupeDiagnostics(
-        storedOutcomesReadback.diagnostics,
-      );
-      const diagnosticsOutcomes =
-        storedOutcomes.length > 0 ? storedOutcomes : visibleRecommendationOutcomes;
-      const completedStatuses = new Set([
-        "entry_not_triggered",
-        "target_hit",
-        "stop_hit",
-        "target_before_stop",
-        "stop_before_target",
-        "neither_hit",
-        "expired",
-      ]);
-      const lastOutcomeEvaluationTimestamp =
-        pendingOutcomes[pendingOutcomes.length - 1]?.evaluated_at ?? null;
-
-      setRecommendationOutcomeDiagnostics({
-        trackedSnapshotsCount: new Set(
-          diagnosticsOutcomes.map((outcome) => outcome.snapshot_fingerprint),
-        ).size,
-        pendingOutcomes: diagnosticsOutcomes.filter(
-          (outcome) => outcome.status === "pending",
-        ).length,
-        completedOutcomes: diagnosticsOutcomes.filter((outcome) =>
-          completedStatuses.has(outcome.status),
-        ).length,
-        incompleteOutcomes: diagnosticsOutcomes.filter(
-          (outcome) =>
-            outcome.status === "incomplete" || outcome.status === "invalid",
-        ).length,
-        unknownOutcomes: diagnosticsOutcomes.filter(
-          (outcome) => outcome.status === "unknown",
-        ).length,
-        lastOutcomeEvaluationTimestamp,
-        persistenceStatus: lastResult?.status ?? "idle",
-        persistenceMode: lastResult?.mode ?? "unknown",
-        lastError: lastResult?.error ?? null,
-      });
-    }
-
-    void persistVisibleOutcomes();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isLoading, visibleRecommendationOutcomes]);
-
   async function evaluateRecentRecommendationOutcomes() {
     if (isEvaluatingRecommendationOutcomes) {
       return;
@@ -15501,10 +15059,7 @@ export function TradeApp({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           snapshots: visibleRecommendationSnapshots,
-          existing_outcomes: [
-            ...readRecommendationOutcomesFromLocalStorage(),
-            ...visibleRecommendationOutcomes,
-          ],
+          existing_outcomes: visibleRecommendationOutcomes,
           horizons: ["15m", "30m", "60m"],
           max_snapshots: 6,
         }),
@@ -15517,18 +15072,13 @@ export function TradeApp({
         throw new Error("Outcome evaluation runner returned an invalid response.");
       }
 
-      for (const outcome of run.outcomes) {
-        await persistRecommendationOutcome(outcome);
-      }
-
       const storedOutcomesReadback = dedupeRecommendationOutcomesForReadback(
-        readRecommendationOutcomesFromLocalStorage(),
+        run.outcomes,
       );
       setStoredRecommendationOutcomes(storedOutcomesReadback.outcomes);
       setRecommendationOutcomeDedupeDiagnostics(
         storedOutcomesReadback.diagnostics,
       );
-      writeRecommendationOutcomeEvaluationRunToLocalStorage(run);
       setRecommendationOutcomeEvaluationRun(run);
       const routeDiagnostics = run as RecommendationOutcomeEvaluationRun &
         Record<string, unknown>;

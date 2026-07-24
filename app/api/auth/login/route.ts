@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getTradeAuthToken, TRADE_AUTH_COOKIE } from "@/lib/trade-auth";
+import {
+  applicationSessionCookieOptions,
+  createApplicationSession,
+  TRADE_AUTH_COOKIE,
+} from "@/lib/trade-auth";
 
 export async function POST(request: Request) {
   const appPassword = process.env.TRADE_APP_PASSWORD;
@@ -20,14 +24,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
+  const session = await createApplicationSession();
+
+  if (!session) {
+    return NextResponse.json(
+      { error: "Application session is unavailable" },
+      { status: 503 },
+    );
+  }
+
   const response = NextResponse.json({ ok: true });
   response.cookies.set({
     name: TRADE_AUTH_COOKIE,
-    value: await getTradeAuthToken(appPassword),
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    value: session,
+    ...applicationSessionCookieOptions(),
   });
 
   return response;

@@ -7,6 +7,10 @@ import {
   type SymbolMetadata,
 } from "@/lib/symbol-metadata-core";
 import { ensureSymbolMetadata } from "@/lib/symbol-metadata";
+import {
+  applicationSessionUnauthorizedResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +35,9 @@ function serializeMetadata(metadata: SymbolMetadata) {
 }
 
 export async function POST(request: Request) {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+
   let body: unknown = null;
 
   try {

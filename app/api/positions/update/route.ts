@@ -10,6 +10,10 @@ import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getQuote } from "@/lib/market-data";
 import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import {
+  applicationSessionUnauthorizedResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 type PositionRow = {
   id: string;
@@ -521,6 +525,9 @@ async function monitorPosition(
 }
 
 export async function POST() {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+
   try {
     const { data, error } = await supabase
       .from("positions")
