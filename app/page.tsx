@@ -1,4 +1,6 @@
 import { TradeApp } from "./trade-app";
+import { AvanzaReadOnlyReadinessBadge } from "@/components/execution/AvanzaReadOnlyReadinessBadge";
+import { tradeExecutionReadOnlySummaryFixture } from "@/lib/avanza-read-only-readiness-fixture";
 import { connection } from "next/server";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
@@ -29,6 +31,16 @@ export default async function Home() {
       <div data-deploy-marker="action_307f_deploy_marker" hidden>
         action_307f_deploy_marker
       </div>
+      <section
+        aria-label="Read-only observation context"
+        className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8"
+      >
+        <div className="max-w-xl">
+          <AvanzaReadOnlyReadinessBadge
+            summary={tradeExecutionReadOnlySummaryFixture}
+          />
+        </div>
+      </section>
       <TradeApp
         learningAccelerationServerConfig={learningAccelerationConfig}
         historicalCandleStorageDetection={historicalCandleStorageDetection}

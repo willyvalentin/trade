@@ -5,6 +5,7 @@ import { join } from "node:path";
 const repoRoot = process.cwd();
 
 const uiFacingFiles = [
+  "app/page.tsx",
   "app/dev/avanza-visual-qa/page.tsx",
   "app/settings/page.tsx",
   "components/execution/AvanzaBridgeStatusPanel.tsx",
@@ -238,6 +239,7 @@ const uiFacingFiles = [
   "lib/avanza-bridge-readiness-checklist.ts",
   "lib/avanza-local-bridge-readonly-fetcher.ts",
   "lib/avanza-local-bridge-status.ts",
+  "lib/avanza-read-only-readiness-fixture.ts",
 ] as const;
 
 const allowedReadOnlyEndpointPaths = [
@@ -246,13 +248,24 @@ const allowedReadOnlyEndpointPaths = [
   "/preflight/avanza-order-form",
 ] as const;
 
+const liveInvocationUppercaseFragment = [
+  "FINAL LIVE EXECUTE ATTEMPT",
+  "EXPLICIT INVOCATION",
+  "TRIGGER",
+].join(" ");
+const liveInvocationNaturalLanguageFragment = [
+  "I explicitly request the final live",
+  "fill-only execute attempt",
+  "trigger now",
+].join(" ");
+
 const forbiddenLiteralFragments = [
   "/live-fill-only-runner/run-approved-quantity-based-fill-only-trigger",
   "/live-fill-only-runner/fill-quantity",
   "/live-fill-only-runner/fill-price",
   "/live-fill-only-runner/fill-amount",
-  "FINAL LIVE EXECUTE ATTEMPT EXPLICIT INVOCATION TRIGGER",
-  "I explicitly request the final live fill-only execute attempt trigger now",
+  liveInvocationUppercaseFragment,
+  liveInvocationNaturalLanguageFragment,
   "Bekräfta köp/sälj",
 ] as const;
 
