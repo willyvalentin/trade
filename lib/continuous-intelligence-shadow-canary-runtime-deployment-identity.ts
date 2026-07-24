@@ -99,3 +99,21 @@ export function evaluateContinuousIntelligenceShadowCanaryScheduledDeploymentBin
   if (!input.runtime.deployment_commit || !input.request_deployment_commit) return "unavailable";
   return input.runtime.deployment_commit === input.request_deployment_commit ? "exact" : "request_mismatch";
 }
+
+export function buildContinuousIntelligenceDeploymentAssertionReadiness(
+  environment: DeploymentEnvironment,
+) {
+  const runtime = resolveContinuousIntelligenceShadowCanaryScheduledRuntimeDeploymentIdentity(environment);
+  const explicitRaw =
+    environment[continuousIntelligenceShadowCanaryRuntimeDeploymentCommitEnvironmentVariable];
+  const platformRaw = environment.COMMIT_REF ?? environment.NETLIFY_COMMIT_REF;
+
+  return Object.freeze({
+    configured: typeof explicitRaw === "string" && explicitRaw.trim().length > 0,
+    configured_value_canonical: canonicalCommit(explicitRaw) !== null,
+    platform_identity_present: canonicalCommit(platformRaw) !== null,
+    assertion_matches_platform: runtime.status === "available" && runtime.explicit_commit !== null,
+    status: runtime.status,
+    identity_value_returned: false,
+  });
+}

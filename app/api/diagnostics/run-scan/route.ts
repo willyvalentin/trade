@@ -17,7 +17,7 @@ import {
   createScanLog,
   type ScanLogEntry,
   type ScanLogResult,
-} from "@/lib/scan-logs";
+} from "@/lib/scan-log-core";
 import { getUsMarketStatus } from "@/lib/market-calendar";
 import {
   getIntradayScanPolicy,

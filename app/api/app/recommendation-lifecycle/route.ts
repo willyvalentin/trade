@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { updateRecommendationLifecycle } from "@/lib/server/application-data-access";
-import { applicationSessionUnauthorizedResponse, requireApplicationSession } from "@/lib/server/application-session";
+import { applicationMutationForbiddenResponse, applicationSessionUnauthorizedResponse, requireApplicationSession } from "@/lib/server/application-session";
 
 export async function PATCH(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.recommendation_id !== "string" || typeof body.status !== "string") {

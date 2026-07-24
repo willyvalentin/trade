@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { TRADE_AUTH_COOKIE, verifyApplicationSession } from "@/lib/trade-auth";
+import { evaluateApplicationMutationOrigin } from "@/lib/application-mutation-guard-core";
 
 export const GLOBAL_API_BOUNDARY_MARKER =
   "action_307k_proxy_runtime_crash_isolation";
@@ -92,6 +93,18 @@ function apiSessionRequiredResponse() {
   );
 }
 
+function apiMutationOriginResponse(request: NextRequest) {
+  const result = evaluateApplicationMutationOrigin(request);
+  if (result.status === "allowed") return null;
+  return NextResponse.json(
+    { error: "Mutation request origin is not permitted.", code: result.code },
+    {
+      status: result.status === "unavailable" ? 503 : 403,
+      headers: noStoreHeaders,
+    },
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -112,9 +125,12 @@ export async function proxy(request: NextRequest) {
       request.cookies.get(TRADE_AUTH_COOKIE)?.value,
     );
 
-    return session.status === "authenticated"
-      ? nextWithProxyMarker()
-      : withProxyMarker(apiSessionRequiredResponse());
+    if (session.status !== "authenticated") {
+      return withProxyMarker(apiSessionRequiredResponse());
+    }
+
+    const originResponse = apiMutationOriginResponse(request);
+    return originResponse ? withProxyMarker(originResponse) : nextWithProxyMarker();
   }
 
   if (pathname.startsWith("/api")) {

@@ -5,8 +5,8 @@ import {
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getIntradayCandles } from "@/lib/market-data";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type IntradayIndicatorCacheSource =
   | "cache"
@@ -61,6 +61,12 @@ export const MAX_FRESH_INDICATOR_FETCHES_PER_RUN = 3;
 // best-effort fallback when scanner_cache.raw cannot be used.
 // TODO: Persist intraday indicator cache in Supabase for serverless reliability.
 const memoryCache = new Map<string, MemoryCacheEntry>();
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) throw new Error(`server_supabase_unavailable:${unavailable_reason}`);
+  return client;
+}
 
 function normalizeTicker(ticker: string) {
   return ticker.trim().toUpperCase();
@@ -161,7 +167,7 @@ function getNewYorkTradingDayWindow() {
 }
 
 async function getScannerCacheRaw(ticker: string) {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("scanner_cache")
     .select("raw")
     .eq("ticker", ticker)
@@ -264,7 +270,7 @@ export async function setCachedIntradayIndicators(
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await serverSupabase()
       .from("scanner_cache")
       .update({
         raw: {

@@ -10,7 +10,7 @@ import {
   type DiscardReviewStatus,
 } from "@/lib/discard-review-types";
 import { normalizeSetupType } from "@/lib/setup-types";
-import { supabase } from "@/lib/supabase";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type DiscardReviewCandidate = {
   id?: string | null;
@@ -46,6 +46,12 @@ const reviewWindowMs = 24 * 60 * 60 * 1000;
 const discardMetadataPrefix = "\n\n[discard_meta:";
 const confidenceMetadataPrefix = "\n\n[confidence_meta:";
 export const MAX_DISCARD_REVIEWS_PER_RUN = 3;
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) throw new Error(`server_supabase_unavailable:${unavailable_reason}`);
+  return client;
+}
 
 function hasNumber(value: unknown) {
   const parsed = Number(value);
@@ -382,7 +388,7 @@ export async function saveDiscardReviewResult(
   const existingMetadata = parseDiscardMetadata(reasonToAvoid);
 
   // TODO: Add discard review metadata fields or metadata JSON column.
-  const { error } = await supabase
+  const { error } = await serverSupabase()
     .from("recommendations")
     .update({
       reason_to_avoid: `${stripExistingDiscardMetadata(reasonToAvoid)}${buildDiscardMetadata(
@@ -463,7 +469,7 @@ export async function getPendingDiscardedRecommendationsForReview(now = new Date
   const since = new Date(now.getTime() - reviewWindowMs).toISOString();
 
   // TODO: Add discard review metadata fields or metadata JSON column.
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("recommendations")
     .select("*")
     .in("status", ["ignored", "discarded", "rejected"])

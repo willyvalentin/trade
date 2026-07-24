@@ -9,6 +9,7 @@ import {
   verifyApplicationSession,
   type ApplicationSessionVerification,
 } from "@/lib/application-session-core";
+import { evaluateApplicationMutationOrigin } from "@/lib/application-mutation-guard-core";
 
 export { TRADE_AUTH_COOKIE } from "@/lib/application-session-core";
 
@@ -51,6 +52,22 @@ export function applicationSessionUnauthorizedResponse(
     },
     {
       status: 401,
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
+}
+
+export function applicationMutationForbiddenResponse(request: Request) {
+  const result = evaluateApplicationMutationOrigin(request);
+  if (result.status === "allowed") return null;
+
+  return NextResponse.json(
+    {
+      error: "Mutation request origin is not permitted.",
+      code: result.code,
+    },
+    {
+      status: result.status === "unavailable" ? 503 : 403,
       headers: { "Cache-Control": "no-store" },
     },
   );

@@ -8,6 +8,32 @@ async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
 }
 
+function localModules(from: string, specifier: string) {
+  if (!specifier.startsWith("@/") && !specifier.startsWith(".")) return [];
+  const unresolved = specifier.startsWith("@/")
+    ? specifier.slice(2)
+    : path.normalize(path.join(path.dirname(from), specifier));
+  return [`${unresolved}.ts`, `${unresolved}.tsx`, `${unresolved}/index.ts`, `${unresolved}/index.tsx`];
+}
+
+async function reachableRuntimeModules(entry: string, seen = new Set<string>()) {
+  if (seen.has(entry)) return seen;
+  seen.add(entry);
+  const contents = await source(entry);
+  const imports = contents.matchAll(/import(?!\s+type)\s+(?:[^"']+?\s+from\s+)?["']([^"']+)["']/g);
+  for (const match of imports) {
+    for (const target of localModules(entry, match[1]!)) {
+      try {
+        await reachableRuntimeModules(target, seen);
+        break;
+      } catch {
+        // Try the next TypeScript resolution candidate.
+      }
+    }
+  }
+  return seen;
+}
+
 test("TradeApp has no direct Supabase persistence for contained recommendation data", async () => {
   const tradeApp = await source("app/trade-app.tsx");
 
@@ -21,6 +47,21 @@ test("TradeApp has no direct Supabase persistence for contained recommendation d
   expect(tradeApp).not.toContain("readRecommendationBatchesFromLocalStorage(");
   expect(tradeApp).not.toContain("readRecommendationSnapshotsFromLocalStorage(");
   expect(tradeApp).not.toContain("readRecommendationOutcomesFromLocalStorage(");
+});
+
+test("browser runtime dependency graph cannot reach Supabase or server persistence", async () => {
+  const graph = await reachableRuntimeModules("app/trade-app.tsx");
+  await reachableRuntimeModules("app/settings/page.tsx", graph);
+  const prohibited = Array.from(graph).filter(
+    (module) =>
+      module === "lib/supabase.ts" ||
+      module.startsWith("lib/server/") ||
+      module.includes("persistence"),
+  );
+
+  expect(prohibited).toEqual([]);
+  expect(graph).toContain("lib/scan-log-core.ts");
+  expect(graph).not.toContain("lib/scan-logs.ts");
 });
 
 test("scheduled server workflows remain the authoritative publication owners", async () => {

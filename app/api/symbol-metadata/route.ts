@@ -9,6 +9,7 @@ import {
 import { ensureSymbolMetadata } from "@/lib/symbol-metadata";
 import {
   applicationSessionUnauthorizedResponse,
+  applicationMutationForbiddenResponse,
   requireApplicationSession,
 } from "@/lib/server/application-session";
 
@@ -37,6 +38,8 @@ function serializeMetadata(metadata: SymbolMetadata) {
 export async function POST(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   let body: unknown = null;
 

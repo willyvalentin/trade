@@ -190,6 +190,59 @@ session/API tests and scheduled outcome regressions. This is local evidence
 only: authenticated browser smoke against a deployed environment and production
 catalog verification remain explicit rollout gates.
 
+### Action 652F Containment Remediation
+
+Action 652E found that several server and scheduled modules still imported the
+browser Supabase client. Action 652F removes that compatibility path. Every
+contained-table server path now acquires the explicit server-only service-role
+client and treats missing credentials as unavailable; `getServerSupabaseReadClient`
+is retained only as a compatibility name and no longer downgrades to `anon`.
+
+| Former path | Replacement boundary |
+| --- | --- |
+| scheduled scan runs, attempts, recommendation archival | automation route + service role |
+| manual generation and position monitoring | application session route + service role |
+| scanner, intraday indicator, calendar, symbol metadata caches | server-only service role |
+| discard review and outcome snapshot fallback | server-only service role |
+| scan-log parsing | pure `scan-log-core` module |
+| scan-log persistence | server-only `scan-log-persistence` module |
+
+The browser graph test now recursively follows runtime imports from
+`app/trade-app.tsx`; a transitive import of the browser client, a server module,
+or a persistence helper is a test failure. Parsing scan-log messages is pure and
+cannot write data.
+
+Session-authenticated mutations have a shared Origin guard. Unsafe methods must
+present an exact same-origin `Origin`; production requires the deployment-owned
+`TURE_APPLICATION_ORIGIN` and fails closed when that configuration is absent.
+Automation-secret and scheduled routes retain their separate authorization
+models.
+
+### Action 652G Shared Abuse Control And Origin Readiness
+
+Production login now reserves every attempt through two service-role-only
+PostgreSQL RPCs backed by a digest-only bucket table. One coarse global bucket
+and one SHA-256 client bucket share a fixed fifteen-minute window. A successful
+login finalizes one reservation; failed attempts retain it. Production login
+fails closed if the shared store is unavailable. Process-local protection is
+development-only defense in depth and is never the production primary control.
+
+The trusted production identity source is Netlify's
+`x-nf-client-connection-ip`; `X-Forwarded-For` is never trusted. If the trusted
+identity is missing, the global bucket still applies while no per-client bucket
+is created. No raw address, password, token, cookie, or session is persisted.
+
+`TURE_APPLICATION_ORIGIN` is required for production unsafe session requests.
+It must be one exact canonical HTTPS origin with no credentials, path, query, or
+fragment. A missing or malformed value fails closed. The safe origin readiness
+helper exposes only configured/valid/expected-host-match booleans.
+
+No new position uniqueness index is added. The schema permits historical closed
+positions and does not prove that one position ever per recommendation is a
+valid invariant. The bounded RPC remains the sole supported open-position
+writer; a database-wide uniqueness rule is deferred until reopen semantics are
+explicitly defined.
+
 ## Action 650 Dependency And Rollout
 
 Action 650 must **not** be applied while a production browser flow still needs

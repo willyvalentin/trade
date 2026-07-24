@@ -14,7 +14,7 @@ import {
   type ScanLogEntry,
   type ScanLogRunRow,
   type ScanLogResult,
-} from "@/lib/scan-logs";
+} from "@/lib/scan-log-core";
 import {
   MAX_DISCARD_REVIEWS_PER_RUN,
   reviewPendingDiscardedRecommendations,
@@ -70,7 +70,6 @@ import {
   persistRecommendationBatch,
 } from "@/lib/recommendation-batch-memory";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
 import {
@@ -123,6 +122,17 @@ type AutomationScanDecision =
   | "skipped_in_progress"
   | "skipped_provider_unavailable"
   | "failed";
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) {
+    throw new RecommendationGenerationError(
+      `Server persistence unavailable: ${unavailable_reason ?? "unknown"}`,
+      503,
+    );
+  }
+  return client;
+}
 
 type ScheduledScanRunSummary = {
   row: ScanLogRunRow;
@@ -1039,7 +1049,7 @@ function calendarFields(
 }
 
 async function readRecentRecommendationScanRuns() {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("recommendation_scan_runs")
     .select("*")
     .order("observed_at", { ascending: false })
@@ -1060,7 +1070,7 @@ async function readRecentRecommendationScanRuns() {
 }
 
 async function readRecentScheduledScanRuns() {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("scheduled_scan_runs")
     .select("id,created_at,scan_date,session_type,status,recommendations_created,message")
     .order("created_at", { ascending: false })
@@ -1159,7 +1169,7 @@ function shouldSkipForRecentScan({
 }
 
 async function archiveExpiredRecommendations() {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("recommendations")
     .update({ archived: true })
     .or("status.eq.new,status.is.null")
@@ -1198,7 +1208,7 @@ async function recordScheduledScanRun({
   ignoreExistingRun?: boolean;
   scanLog?: ScanLogEntry;
 }) {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("scheduled_scan_runs")
     .insert({
       scan_date: scanDate,
@@ -1244,7 +1254,7 @@ async function updateScheduledScanRun({
 }) {
   if (runId === null || runId === undefined) return;
 
-  const { error } = await supabase
+  const { error } = await serverSupabase()
     .from("scheduled_scan_runs")
     .update({
       status,

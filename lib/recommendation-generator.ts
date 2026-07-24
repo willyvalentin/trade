@@ -63,10 +63,7 @@ import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
-import {
-  getServerSupabaseClient,
-  getServerSupabaseReadClient,
-} from "@/lib/supabase-server";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
   inferRecommendationEntryTypeMetadata,
   type RecommendationEntryTypeConfidence,
@@ -3218,9 +3215,7 @@ export async function generateRecommendations({
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
-    const serverSupabase = diagnosticMode
-      ? getServerSupabaseReadClient()
-      : getServerSupabaseClient();
+    const serverSupabase = getServerSupabaseClient();
     const db = serverSupabase.client;
 
     if (!db) {

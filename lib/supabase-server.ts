@@ -37,28 +37,3 @@ export function getServerSupabaseClient() {
     unavailable_reason: null,
   };
 }
-
-export function getServerSupabaseReadClient() {
-  const serviceRoleClient = getServerSupabaseClient();
-
-  if (serviceRoleClient.client) {
-    return serviceRoleClient;
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !anonKey) {
-    return serviceRoleClient;
-  }
-
-  return {
-    client: createClient(supabaseUrl, anonKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    }),
-    unavailable_reason: serviceRoleClient.unavailable_reason,
-  };
-}

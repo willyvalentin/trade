@@ -8,6 +8,7 @@ import {
 } from "@/lib/server/application-data-access";
 import {
   applicationSessionUnauthorizedResponse,
+  applicationMutationForbiddenResponse,
   requireApplicationSession,
 } from "@/lib/server/application-session";
 
@@ -90,6 +91,8 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   const body = objectBody(await request.json().catch(() => null));
   const settings = body ? allowedSettings(body) : null;
@@ -108,6 +111,8 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   const body = objectBody(await request.json().catch(() => null));
   const id = body?.id;

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { openApplicationPosition, updateApplicationPosition } from "@/lib/server/application-data-access";
-import { applicationSessionUnauthorizedResponse, requireApplicationSession } from "@/lib/server/application-session";
+import { applicationMutationForbiddenResponse, applicationSessionUnauthorizedResponse, requireApplicationSession } from "@/lib/server/application-session";
 
 export async function POST(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "Invalid position input." }, { status: 400 });
@@ -21,6 +23,8 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
 
   const body = (await request.json().catch(() => null)) as {
     position_id?: unknown;

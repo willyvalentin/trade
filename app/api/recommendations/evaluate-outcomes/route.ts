@@ -23,7 +23,6 @@ import {
   recommendationSnapshotFromPersistenceRow,
   summarizeRecommendationSnapshotShadowEntryTrialMetadata,
 } from "@/lib/recommendation-snapshot";
-import { supabase } from "@/lib/supabase";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
@@ -335,7 +334,9 @@ function parseHorizons(value: unknown): RecommendationOutcomeHorizon[] {
 
 async function loadRecentSupabaseSnapshots() {
   try {
-    const { data, error } = await supabase
+    const { client } = getServerSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client
       .from("recommendation_snapshots")
       .select("*")
       .order("created_at", { ascending: false })

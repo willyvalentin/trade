@@ -872,7 +872,7 @@ import {
   type ScanLogEntry,
   type ScanLogResult,
   type ScanLogRunRow,
-} from "@/lib/scan-logs";
+} from "@/lib/scan-log-core";
 import {
   getSetupTypeLabel,
   normalizeSetupType,
