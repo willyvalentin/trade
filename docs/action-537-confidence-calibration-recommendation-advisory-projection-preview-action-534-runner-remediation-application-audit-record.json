@@ -1,0 +1,119 @@
+{
+  "schema_version": "action_537_action_534_runner_remediation_application_audit_record_v1",
+  "source_action": 536,
+  "action_537_nature": "static_action_534_runner_version_and_code_path_audit_only",
+  "observed_result_classification": "action_536_remediation_not_reflected_in_operator_executed_action_534_behavior",
+  "observed_operator_reported_result": {
+    "operator_rehearsal_attempt_number": 1,
+    "authoritative_build_attempt_count": 0,
+    "action_518_candidate_internal": true,
+    "action_532_candidate_internal": true,
+    "external_control_result_section_present": false,
+    "build_started": false
+  },
+  "current_local_result_classification": "unfingerprinted_action_536_style_attempt_3_result_observed_locally",
+  "current_local_result_summary": {
+    "operator_rehearsal_attempt_number": 3,
+    "historical_operator_attempt_count": 2,
+    "authoritative_build_attempt_count": 1,
+    "authoritative_build_result": "failed",
+    "webpack_diagnostic_attempt_count": 1,
+    "webpack_diagnostic_result": "passed",
+    "external_control_result_section_present": true
+  },
+  "current_runner_script_sha256": "85233263aa79afd1a3b1cf29f8d30e9ba0f54a13a4dddfb07e074cdb68bc6554",
+  "runner_contract_version": "action_537_action_534_runner_contract_v1",
+  "legacy_candidate_internal_control_invocations_found": true,
+  "legacy_candidate_internal_control_invocations_found_in_operator_report": true,
+  "legacy_candidate_internal_control_invocations_found_in_current_runner": false,
+  "duplicate_command_inventory_found": false,
+  "hardcoded_attempt_number_found": false,
+  "stale_result_merge_found": false,
+  "result_freshness_classification": "result_freshness_ambiguous",
+  "root_cause_classification": "operator_executed_unfingerprinted_or_stale_action_534_runner_before_action_537_contract_binding",
+  "source_of_truth_inventory": [
+    {
+      "behavior": "candidate_internal_prebuild_commands",
+      "source": "runSerialCommands",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "candidate_internal_prebuild_command_reference",
+      "source": "commandInventory.candidateInternalPrebuild",
+      "classification": "result_schema_fixture"
+    },
+    {
+      "behavior": "external_controls",
+      "source": "runExternalControlCommands",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "external_control_command_reference",
+      "source": "commandInventory.externalControlsAfterCleanup",
+      "classification": "result_schema_fixture"
+    },
+    {
+      "behavior": "authoritative_build_transition",
+      "source": "runSerialCommands",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "operator_attempt_number",
+      "source": "deriveAttemptMetadata",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "prior_attempt_metadata",
+      "source": "deriveAttemptMetadata",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "result_file_initialization",
+      "source": "fresh started object in main",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "result_file_overwrite",
+      "source": "writeResult temporary sibling rename",
+      "classification": "active_runtime_source"
+    },
+    {
+      "behavior": "next_action_mapping",
+      "source": "main success/failure/catch result branches",
+      "classification": "active_runtime_source"
+    }
+  ],
+  "active_runtime_command_source_count": 1,
+  "active_attempt_accounting_source_count": 1,
+  "atomic_result_replacement_enabled": true,
+  "fresh_result_object_required": true,
+  "prior_command_results_reused": false,
+  "action_518_control_boundary": "external_after_cleanup",
+  "action_532_control_boundary": "external_after_cleanup",
+  "action_533_control_boundary": "external_after_cleanup",
+  "action_535_control_boundary": "external_after_cleanup",
+  "action_536_control_boundary": "external_after_cleanup",
+  "candidate_change_required": false,
+  "candidate_hash_change_required": false,
+  "historical_operator_attempt_count": 3,
+  "operator_invocation_count": 3,
+  "valid_runner_attempt_count": 2,
+  "next_operator_attempt_number": 4,
+  "operator_retry_authorized": true,
+  "operator_retry_limit": 1,
+  "operator_retry_command": "node scripts/action-534-confidence-calibration-recommendation-advisory-projection-preview-external-terminal-candidate-rehearsal.mjs",
+  "build_performed": false,
+  "rehearsal_performed": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "provider_called": false,
+  "supabase_accessed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "remediation_result": "action_534_runner_remediation_application_completed",
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_534_external_terminal_candidate_rehearsal_operator_retry_after_runner_remediation_application_audit"
+}

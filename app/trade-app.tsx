@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   FormEvent,
   useEffect,
   useRef,
@@ -19,6 +20,15 @@ import {
   getRecommendationFreshness,
   isRecommendationExpired,
 } from "@/lib/recommendation-freshness";
+import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
+import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
+import {
+  buildConfidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
+  type ConfidenceProjectionCalibrationSignal,
+  type ConfidenceProjectionOutcomeReview,
+  type ConfidenceProjectionReviewGroup,
+} from "@/lib/confidence-projection-outcome-review";
 import {
   BUILD_MARKER,
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
@@ -120,6 +130,9 @@ import {
   buildPreTradeRiskContext,
   type PreTradeRiskContextResult,
 } from "@/lib/pre-trade-risk-context";
+import {
+  buildAvanzaPassiveTradeExecutionReadiness,
+} from "@/lib/avanza-passive-trade-execution-readiness";
 import {
   buildTradeEligibility,
   type TradeEligibilityResult,
@@ -349,6 +362,9 @@ import {
   type MondayLiveTrialReviewSummary,
 } from "@/lib/monday-live-trial-review";
 import {
+  buildDailyLearningReviewSummary,
+} from "@/lib/daily-learning-review";
+import {
   buildEntryTuningProposal,
   entryTuningProposalJson,
   type EntryTuningProposal,
@@ -397,6 +413,22 @@ import {
 import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
+import { buildRollingRestCollectorShadowSummary } from "@/lib/rolling-rest-collector";
+import { buildAuthenticatedShadowCollectorDryRunDiagnostics } from "@/lib/authenticated-shadow-collector-dry-run";
+import {
+  buildBoundedShadowCollectorExecutionProofDiagnostics,
+  buildBoundedShadowCollectorExecutionProofPreflightDiagnostics,
+} from "@/lib/bounded-shadow-collector-execution-proof";
+import { buildBoundedShadowCollectorOperatorAuthorizationDiagnostics } from "@/lib/bounded-shadow-collector-operator-authorization";
+import { buildBoundedShadowCollectorLiveProofReceiptDiagnostics } from "@/lib/bounded-shadow-collector-live-proof-receipt";
+import { buildBoundedShadowCollectorProofAuditDiagnostics } from "@/lib/bounded-shadow-collector-proof-audit-contract";
+import { buildContinuousIntelligenceCreditLedgerDiagnostics } from "@/lib/continuous-intelligence-credit-ledger";
+import { buildContinuousIntelligenceShadowCanaryDiagnostics } from "@/lib/continuous-intelligence-shadow-collector-canary";
+import {
+  buildContinuousIntelligenceBudgetPlan,
+  continuousIntelligenceBudgetPlanJson,
+} from "@/lib/continuous-intelligence-budget-orchestrator";
+import { buildContinuousIntelligenceBudgetPlanInput } from "@/lib/continuous-intelligence-budget-plan-input";
 import type { LearningAccelerationModeEvaluation } from "@/lib/learning-acceleration-mode";
 import {
   buildLiveMarketTrialRunbookSummary,
@@ -621,11 +653,89 @@ import {
   AvanzaReadOnlyReadinessBadge,
 } from "@/components/execution/AvanzaReadOnlyReadinessBadge";
 import {
+  AvanzaTradeCardExecutionReadinessBadge,
+} from "@/components/execution/AvanzaTradeCardExecutionReadinessBadge";
+import {
+  AvanzaHandoffPackagePreviewCard,
+} from "@/components/execution/AvanzaHandoffPackagePreviewCard";
+import {
+  AvanzaPrepareHandoffPreviewShell,
+} from "@/components/execution/AvanzaPrepareHandoffPreviewShell";
+import {
+  AvanzaSelectedRecommendationPreviewStatePanel,
+} from "@/components/execution/AvanzaSelectedRecommendationPreviewStatePanel";
+import {
+  AvanzaTradeUiReadOnlySelectedRecommendationPreview,
+} from "@/components/execution/AvanzaTradeUiReadOnlySelectedRecommendationPreview";
+import {
+  AvanzaTradeUiHandoffPreview,
+} from "@/components/execution/AvanzaTradeUiHandoffPreview";
+import {
+  AvanzaPassiveDisabledPrepareShell,
+} from "@/components/execution/AvanzaPassiveDisabledPrepareShell";
+import type {
+  AvanzaTradeUiHandoffPreviewModel,
+} from "@/lib/avanza-trade-ui-handoff-preview-fixtures";
+import {
   useExecutionLivePositionHandoffState,
 } from "@/hooks/execution/useExecutionLivePositionHandoffState";
-import type {
-  AvanzaBridgeReadinessSummary,
-} from "@/lib/avanza-bridge-readiness-checklist";
+import {
+  avanzaTradeReadOnlyReadinessSummaryFixture,
+} from "@/lib/avanza-read-only-readiness-fixtures";
+import {
+  avanzaPrepareHandoffPreviewModel,
+} from "@/lib/avanza-prepare-handoff-preview";
+import {
+  avanzaGameStopHandoffPackagePreviewFixture,
+  avanzaGameStopHandoffPreActivationGateFixture,
+  avanzaGameStopHandoffPreviewSourceModeFixture,
+  avanzaGameStopHandoffSafetyBoundarySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture,
+  avanzaGameStopSelectedRecommendationHandoffContractFixture,
+} from "@/lib/avanza-handoff-package-preview-fixtures";
+import {
+  avanzaHandoffPreviewSourceModes,
+} from "@/lib/avanza-handoff-preview-source-mode";
+import {
+  buildAvanzaPreviewStateFromSelectedRecommendation,
+} from "@/lib/avanza-selected-recommendation-derived-preview-state";
+import {
+  buildAvanzaDevPreviewFlagConfig,
+  type AvanzaDevPreviewFlagConfig,
+} from "@/lib/avanza-dev-preview-flag-config";
+import {
+  buildAvanzaSelectedRecommendationPreviewIntegrationGuard,
+} from "@/lib/avanza-selected-recommendation-preview-integration-guard";
+import {
+  buildAvanzaHardDisabledSourceToPreviewIntegration,
+} from "@/lib/avanza-hard-disabled-source-to-preview-integration";
+import {
+  buildAvanzaRealSelectedRecommendationReadOnlyConnection,
+} from "@/lib/avanza-real-selected-recommendation-read-only-connection";
+import {
+  buildAvanzaTradeUiPrepareIntent,
+} from "@/lib/avanza-trade-ui-prepare-intent";
+import {
+  buildAvanzaDisabledInternalPrepareButtonShell,
+} from "@/lib/avanza-disabled-internal-prepare-button-shell";
+import {
+  buildAvanzaPassiveDisabledPrepareShellComponentModel,
+} from "@/lib/avanza-passive-disabled-prepare-shell-fixtures";
+import {
+  buildAvanzaExplicitInternalVisibleDisabledPrepareShell,
+} from "@/lib/avanza-explicit-internal-visible-disabled-prepare-shell";
+import {
+  buildAvanzaGuardedApiRouteCallIntent,
+} from "@/lib/avanza-guarded-api-route-call-intent";
+import {
+  buildAvanzaExplicitInternalDisabledActionShell,
+} from "@/lib/avanza-explicit-internal-disabled-action-shell";
+import {
+  buildAvanzaGuardedFetchIntent,
+} from "@/lib/avanza-guarded-fetch-intent";
+import {
+  buildAvanzaDisabledLocalOnlyManualTestPath,
+} from "@/lib/avanza-disabled-local-only-manual-test-path";
 import {
   ClosedTradeAuditTimelinePanel,
 } from "@/components/history/ClosedTradeAuditTimelinePanel";
@@ -1310,6 +1420,14 @@ type RecommendationOutcomeDedupeDiagnostics = {
   strategy: "best_status_then_latest";
 };
 
+function isSnapshotOnlyUnknownHorizonOutcome(outcome: RecommendationOutcome) {
+  return (
+    outcome.horizon === "unknown" &&
+    outcome.source === "snapshot_only" &&
+    outcome.data_completeness === "none"
+  );
+}
+
 type RecommendationOutcomeEvaluationDiagnostics = {
   status: RecommendationOutcomeEvaluationRunStatus | "idle";
   eligibleSnapshots: number;
@@ -1630,17 +1748,6 @@ const secondaryNavItems: SecondaryNavItem[] = [
   { key: "statistics", label: "Statistics", tab: "Statistics" },
   { key: "engine-insights", label: "Engine Insights", tab: "Market" },
 ];
-const avanzaTradeReadOnlyReadinessSummaryFixture: AvanzaBridgeReadinessSummary = {
-  advisory_count: 1,
-  blocked_count: 0,
-  label: "Ready for read-only observation",
-  ready_count: 11,
-  severity: "warning",
-  shortCopy:
-    "Avanza fill-and-stop POC is proven as display-only context. Total-read remains advisory and this is not execution readiness.",
-  status: "ready_for_read_only_observation",
-  unknown_count: 0,
-};
 const refreshIslandIds: RefreshIslandId[] = [
   "market_status",
   "recommendations",
@@ -3121,6 +3228,84 @@ function tierFromSnapshotPayload(
       recommendation?.tier ??
       contract?.tier,
   );
+}
+
+function enrichSnapshotWithVisibleRecommendationMetadata(
+  snapshot: RecommendationSnapshot,
+  recommendation: Recommendation | null | undefined,
+): RecommendationSnapshot {
+  if (!recommendation) {
+    return snapshot;
+  }
+
+  const recommendationTier = recommendation.recommendationTier ?? null;
+  const confidenceScore = recommendation.confidenceScore;
+  const payload = snapshot.payload_json;
+  const existingMetadata =
+    typeof payload.metadata === "object" &&
+    payload.metadata !== null &&
+    !Array.isArray(payload.metadata)
+      ? (payload.metadata as Record<string, unknown>)
+      : {};
+  const existingRecommendation =
+    typeof payload.recommendation === "object" &&
+    payload.recommendation !== null &&
+    !Array.isArray(payload.recommendation)
+      ? (payload.recommendation as Record<string, unknown>)
+      : {};
+  const existingRecommendationMetadata =
+    typeof existingRecommendation.metadata === "object" &&
+    existingRecommendation.metadata !== null &&
+    !Array.isArray(existingRecommendation.metadata)
+      ? (existingRecommendation.metadata as Record<string, unknown>)
+      : {};
+  const visibleRecommendationRowMetadata = {
+    source: "recommendation_row_metadata",
+    tier: recommendationTier,
+    recommendation_tier: recommendationTier,
+    confidence_score: confidenceScore,
+    confidence_label: recommendation.confidenceLabel,
+    confidence: recommendation.confidence,
+  };
+
+  return {
+    ...snapshot,
+    confidence:
+      snapshot.confidence ?? (confidenceScore !== null ? confidenceScore : null),
+    score: snapshot.score ?? (confidenceScore !== null ? confidenceScore : null),
+    payload_json: {
+      ...payload,
+      visible_recommendation_tier:
+        payload.visible_recommendation_tier ?? recommendationTier,
+      recommendation_tier: payload.recommendation_tier ?? recommendationTier,
+      tier: payload.tier ?? recommendationTier,
+      confidence_score: payload.confidence_score ?? confidenceScore,
+      metadata: {
+        ...existingMetadata,
+        tier: existingMetadata.tier ?? recommendationTier,
+        recommendation_tier:
+          existingMetadata.recommendation_tier ?? recommendationTier,
+        rating: existingMetadata.rating ?? recommendationTier,
+      },
+      recommendation: {
+        ...existingRecommendation,
+        tier: existingRecommendation.tier ?? recommendationTier,
+        recommendation_tier:
+          existingRecommendation.recommendation_tier ?? recommendationTier,
+        confidence_score:
+          existingRecommendation.confidence_score ?? confidenceScore,
+        metadata: {
+          ...existingRecommendationMetadata,
+          tier: existingRecommendationMetadata.tier ?? recommendationTier,
+          recommendation_tier:
+            existingRecommendationMetadata.recommendation_tier ??
+            recommendationTier,
+          rating: existingRecommendationMetadata.rating ?? recommendationTier,
+        },
+      },
+      visible_recommendation_row_metadata: visibleRecommendationRowMetadata,
+    },
+  };
 }
 
 function planPriceFreshnessFromSnapshotPayload(
@@ -6204,6 +6389,13 @@ function isLiveRecommendationSnapshot(snapshot: RecommendationSnapshot) {
   );
 }
 
+function isIntelligenceEnrichmentSnapshot(snapshot: RecommendationSnapshot) {
+  return (
+    snapshot.source_mode !== "diagnostic" &&
+    snapshot.payload_json.diagnostic_mode !== true
+  );
+}
+
 function isLiveRecommendationBatch(batch: RecommendationBatch) {
   return (
     batch.batch_type !== "diagnostic" &&
@@ -6286,6 +6478,28 @@ function getSnapshotExplicitBatchFingerprints(snapshot: RecommendationSnapshot) 
   const fingerprints = [
     payload.batch_fingerprint,
     payload.recommendation_batch_fingerprint,
+    payload.research_batch_fingerprint,
+  ];
+
+  return Array.from(
+    new Set(
+      fingerprints
+        .filter(
+          (fingerprint): fingerprint is string =>
+            typeof fingerprint === "string" && fingerprint.trim().length > 0,
+        )
+        .map((fingerprint) => fingerprint.trim()),
+    ),
+  );
+}
+
+function getOutcomeScanRunFingerprints(outcome: RecommendationOutcome) {
+  const payload = outcome.payload_json;
+  const fingerprints = [
+    payload.scan_run_fingerprint,
+    payload.scan_run_id,
+    payload.run_fingerprint,
+    payload.runFingerprint,
   ];
 
   return Array.from(
@@ -8187,11 +8401,108 @@ function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
 }
 
 type TradeAppProps = {
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
   learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
+  historicalCandleStorageDetection?: {
+    historical_candles_table_detected?: boolean | null;
+    historical_candle_fetch_runs_table_detected?: boolean | null;
+    expected_unique_key_detected?: boolean | null;
+    expected_indexes_detected?: boolean | null;
+    rls_enabled_detected?: boolean | null;
+    client_write_policies_detected?: boolean | null;
+    client_read_policies_detected?: boolean | null;
+    schema_readback_attempted?: boolean | null;
+    schema_readback_status?: "ok" | "partial" | "blocked" | "unavailable" | null;
+    schema_readback_missing_items?: string[] | null;
+    schema_readback_warnings?: string[] | null;
+    detection_source?: string | null;
+    checked_at?: string | null;
+    error_message?: string | null;
+  } | null;
 };
 
+const avanzaSelectedRecommendationPreviewDevConfig =
+  buildAvanzaDevPreviewFlagConfig({
+    environmentScope: "default",
+    explicitPreviewOnlyFlag: false,
+    source: "default_disabled",
+  });
+
+const ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW = false;
+const ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE = false;
+
+function buildRecommendationTradeCardExecutionReadiness(
+  recommendation: Recommendation,
+  positionSizing: PositionSizing,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: recommendation.companyName,
+    intent: "entry_buy",
+    limitPrice: getRecommendationEntryFallback(recommendation) ?? undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    profileReady: false,
+    quantity: positionSizing.suggestedShares ?? undefined,
+    recommendationId: recommendation.id,
+    settlementModeled: true,
+    side: "buy",
+    source: "recommendation",
+    ticker: recommendation.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
+
+function buildLivePositionTradeCardExecutionReadiness(
+  position: ActivePosition,
+) {
+  if (!ENABLE_PASSIVE_TRADE_CARD_EXECUTION_READINESS_BADGE) {
+    return null;
+  }
+
+  return buildAvanzaPassiveTradeExecutionReadiness({
+    instrumentName: position.companyName,
+    intent: "exit_sell",
+    limitPrice:
+      position.target1Value ??
+      position.target2Value ??
+      position.stopLossValue ??
+      undefined,
+    loginModeled: true,
+    orderPrepModeled: true,
+    orderType: "limit",
+    positionId: position.id,
+    profileReady: false,
+    quantity:
+      position.executionMetadata?.remaining_shares ??
+      position.positionSizeValue ??
+      undefined,
+    recommendationId: position.recommendationId ?? undefined,
+    settlementModeled: true,
+    side: "sell",
+    source: "live_position",
+    ticker: position.ticker,
+    instrumentSearchModeled: true,
+    warnings: [
+      "Read-only Trade card readiness badge is feature-flagged and passive.",
+      "Final KÖP/SÄLJ remains human-only.",
+    ],
+  });
+}
+
 export function TradeApp({
+  testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
+    avanzaSelectedRecommendationPreviewDevConfig,
   learningAccelerationServerConfig = null,
+  historicalCandleStorageDetection = null,
 }: TradeAppProps = {}) {
   const { activeTab, setActiveTab } = useTradeAppNavigationState();
   const { selectedStatisticsRange, setSelectedStatisticsRange } =
@@ -9061,7 +9372,7 @@ export function TradeApp({
       if (loadedRecommendationOutcomesForReadback.length > 0) {
         const existingSnapshotFingerprints = new Set(
           loadedRecommendationSnapshotsForReadback
-            .filter(isLiveRecommendationSnapshot)
+            .filter(isIntelligenceEnrichmentSnapshot)
             .map((snapshot) => snapshot.snapshot_fingerprint),
         );
         const outcomeSnapshotFingerprints = Array.from(
@@ -9122,7 +9433,7 @@ export function TradeApp({
               .map(recommendationSnapshotFromPersistenceRow)
               .filter(
                 (snapshot): snapshot is RecommendationSnapshot =>
-                  snapshot !== null && isLiveRecommendationSnapshot(snapshot),
+                  snapshot !== null && isIntelligenceEnrichmentSnapshot(snapshot),
               );
 
             outcomeSnapshotBackfillCount = backfilledSnapshots.length;
@@ -9137,6 +9448,97 @@ export function TradeApp({
             );
             setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
             outcomeMatchingRecomputedAfterBackfill = true;
+          }
+        }
+
+        const existingScanRunSnapshotFingerprints = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .map((snapshot) => snapshot.snapshot_fingerprint),
+        );
+        const existingScanRunTickerKeys = new Set(
+          loadedRecommendationSnapshotsForReadback
+            .filter(isIntelligenceEnrichmentSnapshot)
+            .flatMap((snapshot) =>
+              [snapshot.scan_run_id, snapshot.payload_json.scan_run_fingerprint]
+                .filter(
+                  (fingerprint): fingerprint is string =>
+                    typeof fingerprint === "string" &&
+                    fingerprint.trim().length > 0,
+                )
+                .map(
+                  (fingerprint) =>
+                    `${fingerprint.trim()}::${normalizeRecommendationTicker(snapshot.ticker) ?? "UNKNOWN"}`,
+                ),
+            ),
+        );
+        const missingOutcomeScanRunFingerprints = Array.from(
+          new Set(
+            loadedRecommendationOutcomesForReadback
+              .filter((outcome) => {
+                const ticker = normalizeRecommendationTicker(outcome.ticker);
+                if (ticker === null) return false;
+
+                return getOutcomeScanRunFingerprints(outcome).some(
+                  (fingerprint) =>
+                    !existingScanRunTickerKeys.has(`${fingerprint}::${ticker}`),
+                );
+              })
+              .flatMap(getOutcomeScanRunFingerprints),
+          ),
+        );
+
+        if (missingOutcomeScanRunFingerprints.length > 0) {
+          outcomeSnapshotBackfillAttempted = true;
+
+          const backfilledScanRunSnapshotsResult = await supabase
+            .from("recommendation_snapshots")
+            .select("*")
+            .in("scan_run_id", missingOutcomeScanRunFingerprints)
+            .limit(200);
+
+          if (backfilledScanRunSnapshotsResult.error) {
+            outcomeBackfillError = normalizeUnknownError(
+              backfilledScanRunSnapshotsResult.error,
+            ).message;
+            console.error("[trade-app] dashboard_data_load_error", {
+              source: "supabase.recommendation_snapshots",
+              operation: "select_outcome_scan_run_snapshot_backfill",
+              error: outcomeBackfillError,
+            });
+            noteIslandError(
+              "market_diagnostics",
+              backfilledScanRunSnapshotsResult.error,
+            );
+          } else {
+            const backfilledScanRunSnapshots = (
+              (backfilledScanRunSnapshotsResult.data ?? []) as Array<
+                Record<string, unknown>
+              >
+            )
+              .map(recommendationSnapshotFromPersistenceRow)
+              .filter(
+                (snapshot): snapshot is RecommendationSnapshot =>
+                  snapshot !== null &&
+                  isIntelligenceEnrichmentSnapshot(snapshot) &&
+                  !existingScanRunSnapshotFingerprints.has(
+                    snapshot.snapshot_fingerprint,
+                  ),
+              );
+
+            outcomeSnapshotBackfillCount += backfilledScanRunSnapshots.length;
+            loadedRecommendationSnapshotsForReadback = Array.from(
+              new Map(
+                [
+                  ...backfilledScanRunSnapshots,
+                  ...loadedRecommendationSnapshotsForReadback,
+                ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+              ).values(),
+            );
+            setStoredRecommendationSnapshots(loadedRecommendationSnapshotsForReadback);
+            outcomeMatchingRecomputedAfterBackfill =
+              outcomeMatchingRecomputedAfterBackfill ||
+              backfilledScanRunSnapshots.length > 0;
           }
         }
 
@@ -10859,6 +11261,8 @@ export function TradeApp({
     dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
     storedRecommendationSnapshots.filter(isLiveRecommendationSnapshot);
+  const intelligenceEnrichmentRecommendationSnapshots =
+    storedRecommendationSnapshots.filter(isIntelligenceEnrichmentSnapshot);
   const liveStoredRecommendationScanRuns = storedRecommendationScanRuns.filter(
     (scanRun) => !hasDiagnosticPayload(scanRun.payload_json),
   );
@@ -13767,6 +14171,32 @@ export function TradeApp({
   });
   const mondayLiveTrialReviewSummaryJsonText =
     mondayLiveTrialReviewSummaryJson(mondayLiveTrialReviewSummary);
+  const visibleRecommendationMetadataById = new Map(
+    primaryRecommendationReadbackSource.map((recommendation) => [
+      recommendation.id,
+      recommendation,
+    ]),
+  );
+  const dailyLearningReviewSnapshots =
+    intelligenceEnrichmentRecommendationSnapshots.map((snapshot) =>
+      enrichSnapshotWithVisibleRecommendationMetadata(
+        snapshot,
+        snapshot.recommendation_id === null
+          ? null
+          : visibleRecommendationMetadataById.get(snapshot.recommendation_id),
+      ),
+    );
+  const dailyLearningReviewSummary = buildDailyLearningReviewSummary({
+    trading_day: dailySessionDate,
+    latest_batch_fingerprint: latestEvaluatedBatchFingerprint,
+    batches: liveStoredRecommendationBatches,
+    snapshots: dailyLearningReviewSnapshots,
+    outcomes: storedRecommendationOutcomes,
+    configured_static_universe_count:
+      scannerUniverseCoverageSummary.total_universe_size,
+    dynamic_movers: dynamicMarketMoversSummary,
+    now: currentTime,
+  });
   const entryTuningProposal = buildEntryTuningProposal({
     learning_insights: recommendationOutcomeLearningInsightsSummary,
     evaluated_batch_count: outcomeBatchGroups.filter(
@@ -13822,6 +14252,16 @@ export function TradeApp({
     confidenceCalibrationReadinessSummaryJson(
       confidenceCalibrationReadinessSummary,
     );
+  const confidenceProjectionPreviewEnabled =
+    isConfidenceCalibrationProjectionPreviewEnabled();
+  const confidenceProjectionOutcomeReview =
+    buildConfidenceProjectionOutcomeReview({
+      snapshots: recommendationPerformanceSnapshots,
+      outcomes: recommendationPerformanceOutcomes,
+      previewEnabled: confidenceProjectionPreviewEnabled,
+    });
+  const confidenceProjectionOutcomeReviewJsonText =
+    confidenceProjectionOutcomeReviewJson(confidenceProjectionOutcomeReview);
   const recommendationEngineImprovementBacklog =
     buildRecommendationEngineImprovementBacklog({
       performance: recommendationPerformanceStatistics,
@@ -13911,6 +14351,83 @@ export function TradeApp({
   });
   const providerBudgetGuardSummaryJsonText =
     providerBudgetGuardSummaryJson(providerBudgetGuardSummary);
+  const continuousIntelligenceBudgetPlanInput =
+    buildContinuousIntelligenceBudgetPlanInput({
+      generated_at: currentTime.toISOString(),
+      market_phase: currentMarketSessionEvaluation.phase,
+      market_day_type: marketStatus?.dayType,
+      is_trading_day: currentMarketSessionEvaluation.is_trading_day,
+      provider_budget_status: providerBudgetGuardSummary.status,
+      active_position_symbols: activePositions
+        .filter((position) => !isDemoPosition(position))
+        .map((position) => position.ticker),
+      visible_recommendation_symbols: dailyRecommendations
+        .filter((recommendation) => !isDemoRecommendation(recommendation))
+        .map((recommendation) => recommendation.ticker),
+      scanner_selected_symbols:
+        scannerUniverseCoverageSummary.selected_ticker_symbols,
+      scanner_context_symbols:
+        scannerUniverseCoverageSummary.context_ticker_symbols,
+      dynamic_mover_symbols: dynamicMarketMoversSummary?.selected_tickers ?? [],
+      dynamic_movers_status: dynamicMarketMoversSummary?.status ?? null,
+      dynamic_movers_selected_count:
+        dynamicMarketMoversSummary?.selected_count ?? null,
+      outcome_symbols: [
+        ...recommendationPerformanceSnapshots.map((snapshot) => snapshot.ticker),
+        ...recommendationOutcomeEvaluationDiagnostics.tickersEvaluated,
+      ],
+      pending_outcomes:
+        recommendationPerformanceStatistics.summary.pending_outcomes,
+      missing_candles: recommendationOutcomeEvaluationDiagnostics.missingCandles,
+      provider_errors: recommendationOutcomeEvaluationDiagnostics.providerErrors,
+      skipped_due_to_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.skippedDueToBudgetCount,
+      pending_provider_budget_count:
+        recommendationOutcomeEvaluationDiagnostics.pendingProviderBudgetCount,
+      legacy_constraints: {
+        grow_scan_ticker_cap: 25,
+        grow_background_scan_cadence_minutes: 10,
+        scanner_default_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.default_tickers_per_window,
+        scanner_max_scan_budget:
+          scannerUniverseCoverageSummary.scan_budget.max_tickers_per_window,
+        official_scan_windows_per_day:
+          providerBudgetGuardSummary.totals.official_scan_windows_per_day,
+        scheduled_scan_cron: "*/15 13-19 * * 1-5",
+        scheduled_scan_gate: `${dayTradeScanOrchestrationSummary.active_window}:${dayTradeScanOrchestrationSummary.decision}`,
+        outcome_max_batches: 5,
+        outcome_max_snapshots: 10,
+        market_data_fetch_mode: "direct Twelve Data fetches with cache:no-store",
+        shared_cache_status:
+          "partial intraday retention and historical candle storage; no complete shared cache yet",
+        dynamic_movers_status: dynamicMarketMoversSummary?.status ?? "unknown",
+      },
+    });
+  const continuousIntelligenceBudgetPlan = buildContinuousIntelligenceBudgetPlan(
+    continuousIntelligenceBudgetPlanInput,
+  );
+  const sharedCandleCacheRollingRestCollectorSummary =
+    buildRollingRestCollectorShadowSummary({
+      budget_plan: continuousIntelligenceBudgetPlan,
+      shadow_mode_enabled: null,
+      now: currentTime,
+    });
+  const authenticatedShadowCollectorDryRunDiagnostics =
+    buildAuthenticatedShadowCollectorDryRunDiagnostics();
+  const boundedShadowCollectorExecutionProofDiagnostics =
+    buildBoundedShadowCollectorExecutionProofDiagnostics();
+  const boundedShadowCollectorExecutionProofPreflightDiagnostics =
+    buildBoundedShadowCollectorExecutionProofPreflightDiagnostics();
+  const boundedShadowCollectorOperatorAuthorizationDiagnostics =
+    buildBoundedShadowCollectorOperatorAuthorizationDiagnostics();
+  const boundedShadowCollectorLiveProofReceiptDiagnostics =
+    buildBoundedShadowCollectorLiveProofReceiptDiagnostics();
+  const boundedShadowCollectorProofAuditDiagnostics =
+    buildBoundedShadowCollectorProofAuditDiagnostics();
+  const continuousIntelligenceCreditLedgerDiagnostics =
+    buildContinuousIntelligenceCreditLedgerDiagnostics();
+  const continuousIntelligenceShadowCanaryDiagnostics =
+    buildContinuousIntelligenceShadowCanaryDiagnostics();
   const latestActiveAutomationScan =
     latestSuccessfulScanLog ?? scanLogs.find(isActiveAutomationScanLog) ?? null;
   const latestSkippedAutomationScan =
@@ -14016,6 +14533,25 @@ export function TradeApp({
       scan_orchestration: dayTradeScanOrchestrationSummary,
       serving_cadence: recommendationServingCadenceSummary,
       provider_budget_guard: providerBudgetGuardSummary,
+      continuous_intelligence_budget_plan: continuousIntelligenceBudgetPlan,
+      shared_candle_cache_rolling_rest_collector:
+        sharedCandleCacheRollingRestCollectorSummary,
+      authenticated_shadow_collector_dry_run:
+        authenticatedShadowCollectorDryRunDiagnostics,
+      bounded_shadow_collector_execution_proof:
+        boundedShadowCollectorExecutionProofDiagnostics,
+      bounded_shadow_collector_execution_proof_preflight:
+        boundedShadowCollectorExecutionProofPreflightDiagnostics,
+      bounded_shadow_collector_operator_authorization:
+        boundedShadowCollectorOperatorAuthorizationDiagnostics,
+      bounded_shadow_collector_live_proof_receipt:
+        boundedShadowCollectorLiveProofReceiptDiagnostics,
+      bounded_shadow_collector_proof_audit:
+        boundedShadowCollectorProofAuditDiagnostics,
+      continuous_intelligence_credit_ledger:
+        continuousIntelligenceCreditLedgerDiagnostics,
+      continuous_intelligence_shadow_collector_canary:
+        continuousIntelligenceShadowCanaryDiagnostics,
       provider_plan_profile: providerPlanProfileSummary,
       scanner_universe: scannerUniverseCoverageSummary,
       dynamic_movers: dynamicMarketMoversSummary,
@@ -14023,6 +14559,7 @@ export function TradeApp({
       scanner_ranking: scannerCandidateRankingSummary,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
+      historical_candle_storage_detection: historicalCandleStorageDetection,
       ui_refresh: {
         active_tab: activeTab,
         islands: Object.fromEntries(
@@ -14360,6 +14897,7 @@ export function TradeApp({
               : retainedReviewEntryTypeTriggerSummary,
       },
       outcome_learning: recommendationOutcomeLearningInsightsSummary,
+      daily_learning_review: dailyLearningReviewSummary,
       entry_tuning_proposal: entryTuningProposal,
       recommendation_output_enrichment: recommendationOutputEnrichmentSummary,
       metadata_coverage: {
@@ -14878,8 +15416,11 @@ export function TradeApp({
 
     async function persistVisibleOutcomes() {
       let lastResult: RecommendationOutcomePersistenceResult | null = null;
+      const persistableOutcomes = pendingOutcomes.filter(
+        (outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome),
+      );
 
-      for (const outcome of pendingOutcomes) {
+      for (const outcome of persistableOutcomes) {
         lastResult = await persistRecommendationOutcome(outcome, {
           supabaseClient: supabase,
         });
@@ -15384,6 +15925,154 @@ export function TradeApp({
   const selectedRecommendationPositionSizing = selectedRecommendation
     ? calculatePositionSizing(selectedRecommendation, userSettings)
     : null;
+  const avanzaSelectedRecommendationPreviewIntegrationGuard =
+    buildAvanzaSelectedRecommendationPreviewIntegrationGuard(
+      testOnlyAvanzaSelectedRecommendationPreviewDevConfig,
+    );
+  const avanzaSelectedRecommendationPreviewState =
+    avanzaSelectedRecommendationPreviewIntegrationGuard.status ===
+      "preview_only_allowed" && selectedRecommendation
+      ? buildAvanzaPreviewStateFromSelectedRecommendation({
+          accountDisplayName: "Valentin Labs KF",
+          adapterOptions: {
+            positionSizing: selectedRecommendationPositionSizing,
+          },
+          orderMode: "Avancerad/Limit",
+          readinessSummary: avanzaTradeReadOnlyReadinessSummaryFixture,
+          selectedRecommendation,
+          sourceMode:
+            avanzaHandoffPreviewSourceModes.selected_recommendation_preview_only,
+        })
+      : null;
+  const avanzaSelectedRecommendationPreviewIntegrationStatus =
+    avanzaSelectedRecommendationPreviewState
+      ? [
+          "Avanza preview source: selectedRecommendation preview-only",
+          "Preview-only",
+          "Controls disabled",
+          "Gate locked",
+        ]
+      : [
+          "Avanza preview source: static fixture",
+          "selectedRecommendation preview: disabled",
+          "No bridge calls",
+          "No execution",
+        ];
+  const passiveReadOnlySelectedRecommendationPreview =
+    ENABLE_READ_ONLY_SELECTED_RECOMMENDATION_PREVIEW
+      ? (() => {
+          const hardDisabledRealSourceConnection =
+            buildAvanzaRealSelectedRecommendationReadOnlyConnection({
+              allowPreviewModel: false,
+              connectionEnabled: false,
+              selectedRecommendationCandidate: selectedRecommendation,
+              sourceKind: "trade_ui_state",
+              sourceName:
+                "Trade UI hard-disabled real selectedRecommendation source branch",
+            });
+          const hardDisabledSourceToPreviewIntegration =
+            buildAvanzaHardDisabledSourceToPreviewIntegration({
+              integrationEnabled: false,
+              sourceKind: "static_fixture",
+              sourceName:
+                "Trade UI hard-disabled selectedRecommendation preview branch",
+            });
+
+          const hardDisabledPreviewModel =
+            hardDisabledRealSourceConnection.modelResult ??
+            hardDisabledSourceToPreviewIntegration.modelResult;
+          const hardDisabledHandoffPreviewModel: AvanzaTradeUiHandoffPreviewModel = {
+            blockedReasons: ["handoff preview disabled by default"],
+            canCallBridge: false,
+            canExecute: false,
+            canFetchLocalhost: false,
+            canPoll: false,
+            canPrepareFill: false,
+            canProceedToHandoff: false,
+            controlsEnabled: false,
+            gateLocked: true,
+            label: "Default-off handoff preview",
+            reason:
+              "Trade UI handoff preview branch is hard-disabled by default.",
+            status: "preview_disabled",
+            warnings: [],
+          };
+          const hardDisabledPrepareIntent = buildAvanzaTradeUiPrepareIntent({
+            mode: "disabled",
+            prepareEnabled: false,
+          });
+          const hardDisabledPrepareShell =
+            buildAvanzaDisabledInternalPrepareButtonShell({
+              mode: "hidden",
+              prepareIntent: hardDisabledPrepareIntent,
+              shellEnabled: false,
+            });
+          const hardDisabledPrepareShellComponent =
+            buildAvanzaPassiveDisabledPrepareShellComponentModel(
+              hardDisabledPrepareShell,
+            );
+          const hardDisabledVisiblePrepareShell =
+            buildAvanzaExplicitInternalVisibleDisabledPrepareShell({
+              baseShellModel: hardDisabledPrepareShell,
+              mode: "hidden",
+              passiveComponentModel: hardDisabledPrepareShellComponent,
+              visibleShellEnabled: false,
+            });
+          const hardDisabledApiRouteCallIntent =
+            buildAvanzaGuardedApiRouteCallIntent({
+              apiCallIntentEnabled: false,
+              mode: "disabled",
+              prepareIntentModel: hardDisabledPrepareIntent,
+              visibleShellModel: hardDisabledVisiblePrepareShell,
+            });
+          const hardDisabledActionShell =
+            buildAvanzaExplicitInternalDisabledActionShell({
+              actionShellEnabled: false,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              mode: "hidden",
+            });
+          const hardDisabledFetchIntent = buildAvanzaGuardedFetchIntent({
+            actionShellModel: hardDisabledActionShell,
+            apiCallIntent: hardDisabledApiRouteCallIntent,
+            fetchIntentEnabled: false,
+            mode: "hidden",
+          });
+          const hardDisabledManualTestPath =
+            buildAvanzaDisabledLocalOnlyManualTestPath({
+              actionShellModel: hardDisabledActionShell,
+              apiCallIntent: hardDisabledApiRouteCallIntent,
+              fetchIntent: hardDisabledFetchIntent,
+              manualTestPathEnabled: false,
+              mode: "hidden",
+            });
+
+          void hardDisabledApiRouteCallIntent;
+          void hardDisabledActionShell;
+          void hardDisabledFetchIntent;
+          void hardDisabledManualTestPath;
+
+          return (
+            <>
+              {hardDisabledPreviewModel ? (
+                <AvanzaTradeUiReadOnlySelectedRecommendationPreview
+                  label="Default-off internal preview"
+                  modelResult={hardDisabledPreviewModel}
+                />
+              ) : null}
+              <AvanzaTradeUiHandoffPreview
+                label="Default-off handoff preview"
+                modelResult={hardDisabledHandoffPreviewModel}
+              />
+              {hardDisabledPrepareShellComponent.canRenderComponent ? (
+                <AvanzaPassiveDisabledPrepareShell
+                  label="Default-off prepare shell"
+                  modelResult={hardDisabledPrepareShellComponent}
+                />
+              ) : null}
+            </>
+          );
+        })()
+      : null;
   const selectedRecommendationForDisplay = selectedRecommendation
     ? withSymbolMetadataLogo(selectedRecommendation)
     : null;
@@ -15552,10 +16241,48 @@ export function TradeApp({
         />
 
         {activeDashboardTab && (
-          <div className="trade-section">
+          <div className="trade-section grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
             <AvanzaReadOnlyReadinessBadge
               summary={avanzaTradeReadOnlyReadinessSummaryFixture}
             />
+            <div className="grid gap-3">
+              <div className="rounded-md border border-white/10 bg-black/20 p-3">
+                <div className="flex flex-wrap gap-2">
+                  {avanzaSelectedRecommendationPreviewIntegrationStatus.map(
+                    (label) => (
+                      <span
+                        className="rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-xs font-semibold text-zinc-300"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </div>
+              <AvanzaPrepareHandoffPreviewShell
+                model={avanzaPrepareHandoffPreviewModel}
+              />
+              {passiveReadOnlySelectedRecommendationPreview}
+              {avanzaSelectedRecommendationPreviewState ? (
+                <AvanzaSelectedRecommendationPreviewStatePanel
+                  previewState={avanzaSelectedRecommendationPreviewState}
+                />
+              ) : (
+                <AvanzaHandoffPackagePreviewCard
+                  contract={avanzaGameStopSelectedRecommendationHandoffContractFixture}
+                  eligibilitySummary={
+                    avanzaGameStopSelectedRecommendationHandoffEligibilitySummaryFixture
+                  }
+                  preActivationGate={avanzaGameStopHandoffPreActivationGateFixture}
+                  preview={avanzaGameStopHandoffPackagePreviewFixture}
+                  safetyBoundarySummary={
+                    avanzaGameStopHandoffSafetyBoundarySummaryFixture
+                  }
+                  sourceMode={avanzaGameStopHandoffPreviewSourceModeFixture}
+                />
+              )}
+            </div>
           </div>
         )}
 
@@ -15594,37 +16321,67 @@ export function TradeApp({
                 calibrationGuardrails,
                 preTradeRiskContext,
               });
+              const positionSizing = calculatePositionSizing(
+                recommendation,
+                userSettings,
+              );
+              const tradeCardExecutionReadiness =
+                buildRecommendationTradeCardExecutionReadiness(
+                  recommendation,
+                  positionSizing,
+                );
+              const confidenceCalibrationProjectionPreview =
+                buildConfidenceProjectionObservationPreview({
+                  previewEnabled: confidenceProjectionPreviewEnabled,
+                  confidenceScore: recommendation.confidenceScore,
+                  direction: recommendation.direction,
+                  setupType: recommendation.setupType,
+                  ticker: recommendation.ticker,
+                });
 
               return (
-                <RecommendationCardContainer
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  calibrationGuardrails={calibrationGuardrails}
-                  preTradeRiskContext={preTradeRiskContext}
-                  tradeEligibility={tradeEligibility}
-                  decisionStack={decisionStack}
-                  freshness={freshness}
-                  addTradeGate={addTradeGate}
-                  keyReasons={keyReasons}
-                  positionSizing={calculatePositionSizing(
-                    recommendation,
-                    userSettings,
-                  )}
-                  isDemoRecommendation={isDemoRecommendation(recommendation)}
-                  isSaving={isSaving}
-                  isValidating={validatingRecommendationId === recommendation.id}
-                  onTakeTrade={openTradeModal}
-                  onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
-                  renderIdentity={(item) => (
-                    <CompanyIdentity
-                      ticker={item.ticker}
-                      companyName={item.companyName}
-                      logoUrl={logoUrlForCompanyIdentity(item.ticker, item.logoUrl)}
-                      size="live"
+                <Fragment key={recommendation.id}>
+                  <RecommendationCardContainer
+                    recommendation={recommendation}
+                    calibrationGuardrails={calibrationGuardrails}
+                    preTradeRiskContext={preTradeRiskContext}
+                    tradeEligibility={tradeEligibility}
+                    confidenceCalibrationProjectionPreview={
+                      confidenceCalibrationProjectionPreview
+                    }
+                    decisionStack={decisionStack}
+                    freshness={freshness}
+                    addTradeGate={addTradeGate}
+                    keyReasons={keyReasons}
+                    positionSizing={positionSizing}
+                    isDemoRecommendation={isDemoRecommendation(recommendation)}
+                    isSaving={isSaving}
+                    isValidating={validatingRecommendationId === recommendation.id}
+                    onTakeTrade={openTradeModal}
+                    onIgnore={(item) => updateRecommendationStatus(item, "ignored")}
+                    renderIdentity={(item) => (
+                      <CompanyIdentity
+                        ticker={item.ticker}
+                        companyName={item.companyName}
+                        logoUrl={logoUrlForCompanyIdentity(
+                          item.ticker,
+                          item.logoUrl,
+                        )}
+                        size="live"
+                      />
+                    )}
+                    renderSourceBadges={(badges) => (
+                      <DataModePillRow badges={badges} />
+                    )}
+                  />
+                  {tradeCardExecutionReadiness ? (
+                    <AvanzaTradeCardExecutionReadinessBadge
+                      compact
+                      className="trade-card-execution-readiness-badge"
+                      readinessModel={tradeCardExecutionReadiness}
                     />
-                  )}
-                  renderSourceBadges={(badges) => <DataModePillRow badges={badges} />}
-                />
+                  ) : null}
+                </Fragment>
               );
             })}
           </RecommendationsTab>
@@ -15825,6 +16582,12 @@ export function TradeApp({
               }
               confidenceCalibrationReadinessJson={
                 confidenceCalibrationReadinessSummaryJsonText
+              }
+              confidenceProjectionOutcomeReview={
+                confidenceProjectionOutcomeReview
+              }
+              confidenceProjectionOutcomeReviewJson={
+                confidenceProjectionOutcomeReviewJsonText
               }
               recommendationEngineImprovementBacklog={
                 recommendationEngineImprovementBacklog
@@ -18408,6 +19171,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson,
   confidenceCalibrationReadiness,
   confidenceCalibrationReadinessJson,
+  confidenceProjectionOutcomeReview,
+  confidenceProjectionOutcomeReviewJson,
   recommendationEngineImprovementBacklog,
   recommendationEngineImprovementBacklogJson,
   selectedRange,
@@ -18434,6 +19199,8 @@ function StatisticsDashboardPanel({
   recommendationSampleQualityJson: string;
   confidenceCalibrationReadiness: ConfidenceCalibrationReadinessSummary;
   confidenceCalibrationReadinessJson: string;
+  confidenceProjectionOutcomeReview: ConfidenceProjectionOutcomeReview;
+  confidenceProjectionOutcomeReviewJson: string;
   recommendationEngineImprovementBacklog: RecommendationEngineImprovementBacklog;
   recommendationEngineImprovementBacklogJson: string;
   selectedRange: StatisticsTimeRange;
@@ -18621,6 +19388,17 @@ function StatisticsDashboardPanel({
                 label="Calibration"
                 value={confidenceCalibrationReadiness.status.replaceAll("_", " ")}
               />
+              <SummaryCard
+                label="Projection Review"
+                value={confidenceProjectionOutcomeReview.sample_quality.replaceAll(
+                  "_",
+                  " ",
+                )}
+              />
+              <SummaryCard
+                label="Projection Improved"
+                value={`${confidenceProjectionOutcomeReview.improved_count} / ${confidenceProjectionOutcomeReview.complete_count}`}
+              />
             </StatisticsSummaryGrid>
 
             <div className="mt-4">
@@ -18679,6 +19457,13 @@ function StatisticsDashboardPanel({
                 <ConfidenceCalibrationReadinessPanel
                   summary={confidenceCalibrationReadiness}
                   summaryJson={confidenceCalibrationReadinessJson}
+                />
+              </RecommendationAnalyticsDetails>
+
+              <RecommendationAnalyticsDetails title="Confidence Projection Review">
+                <ConfidenceProjectionOutcomeReviewPanel
+                  review={confidenceProjectionOutcomeReview}
+                  reviewJson={confidenceProjectionOutcomeReviewJson}
                 />
               </RecommendationAnalyticsDetails>
 
@@ -18768,6 +19553,543 @@ function RecommendationAnalyticsDetails({
       </summary>
       <div className="mt-4">{children}</div>
     </details>
+  );
+}
+
+function formatConfidenceReviewPoints(value: number | null) {
+  if (value === null || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)} pts`;
+}
+
+function bestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.NEGATIVE_INFINITY;
+      return secondValue - firstValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function weakestProjectionReviewGroups(groups: ConfidenceProjectionReviewGroup[]) {
+  return [...groups]
+    .filter((group) => group.complete_count > 0 && group.net_error_improvement !== null)
+    .sort((first, second) => {
+      const firstValue = first.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      const secondValue = second.net_error_improvement ?? Number.POSITIVE_INFINITY;
+      return firstValue - secondValue || second.complete_count - first.complete_count;
+    })
+    .slice(0, 3);
+}
+
+function formatCalibrationSignalConfidence(
+  signal: ConfidenceProjectionCalibrationSignal,
+) {
+  return signal.confidence_in_conclusion.replaceAll("_", " ");
+}
+
+function formatUpwardProjectionCap(value: number | null) {
+  return value === null ? "Current" : value === 0 ? "No raise" : `+${value}`;
+}
+
+function ConfidenceProjectionOutcomeReviewPanel({
+  review,
+  reviewJson,
+}: {
+  review: ConfidenceProjectionOutcomeReview;
+  reviewJson: string;
+}) {
+  const deduplication = review.recommendation_level_deduplication;
+  const horizonGroups = review.horizon_level.horizon_groups.filter(
+    (group) => group.observed_count > 0,
+  );
+  const raisedRate = formatPercent(rateFromCounts(review.raised_count, review.complete_count));
+  const loweredRate = formatPercent(
+    rateFromCounts(review.lowered_count, review.complete_count),
+  );
+  const unchangedRate = formatPercent(
+    rateFromCounts(review.unchanged_count, review.complete_count),
+  );
+  const bestBands = bestProjectionReviewGroups(review.confidence_bands);
+  const weakAreas = weakestProjectionReviewGroups([
+    ...review.confidence_bands,
+    ...review.tiers,
+    ...review.windows,
+    ...review.explanation_categories,
+  ]).filter((group) => (group.net_error_improvement ?? 0) < 0);
+  const selectedSignal = review.first_observed_calibration_signal.selected_signal;
+  const completeness = review.observation_completeness;
+  const recommendationCompleteness =
+    review.recommendation_observation_completeness;
+  const upwardCapExperiment =
+    review.upward_projection_cap_shadow_experiment;
+  const upwardCapCandidate =
+    upwardCapExperiment.selected_provisional_candidate;
+  const currentProjectionVariant = upwardCapExperiment.variants.find(
+    (variant) => variant.variant === upwardCapExperiment.current_projection_variant,
+  );
+  const mainBlocker =
+    completeness.most_common_blocker?.reason.replaceAll("_", " ") ?? "none";
+  const signalDirection =
+    selectedSignal.direction === "helps"
+      ? "Projection helps"
+      : selectedSignal.direction === "hurts"
+        ? "Projection hurts"
+        : selectedSignal.direction === "neutral"
+          ? "Neutral"
+          : "Insufficient evidence";
+
+  return (
+    <section
+      className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.035] p-4"
+      data-confidence-projection-review-status={review.status}
+      data-confidence-projection-observation-only="true"
+      data-confidence-projection-no-writes="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-100">
+            Confidence Projection Review
+          </p>
+          <h4 className="mt-2 text-base font-semibold text-white">
+            Recommendation-level calibration
+          </h4>
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
+            Measures whether AI Projection better matched completed outcomes than
+            the original confidence. Evidence only; original confidence remains
+            authoritative.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {review.copy.data_source}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-cyan-300/20 bg-black/20 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+          {review.sample_quality.replaceAll("_", " ")}
+        </span>
+      </div>
+
+      <StatisticsSummaryGrid className="mt-4">
+        <SummaryCard
+          label="Unique Recommendations"
+          value={String(review.observed_count)}
+        />
+        <SummaryCard
+          label="Complete"
+          value={String(review.complete_count)}
+        />
+        <SummaryCard
+          label="Improved"
+          value={`${review.improved_count} / ${formatPercent(review.improved_rate)}`}
+        />
+        <SummaryCard
+          label="Worsened"
+          value={`${review.worsened_count} / ${formatPercent(review.worsened_rate)}`}
+        />
+        <SummaryCard
+          label="Original Error"
+          value={formatConfidenceReviewPoints(review.mean_original_error)}
+        />
+        <SummaryCard
+          label="Projected Error"
+          value={formatConfidenceReviewPoints(review.mean_projected_error)}
+        />
+        <SummaryCard
+          label="Net Improvement"
+          value={formatConfidenceReviewPoints(review.net_error_improvement)}
+          tone={review.net_error_improvement}
+        />
+        <SummaryCard
+          label="Avg Delta"
+          value={formatConfidenceReviewPoints(review.average_delta)}
+          tone={review.average_delta}
+        />
+      </StatisticsSummaryGrid>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation-level selection
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Identities"
+            value={String(deduplication.unique_recommendation_identities)}
+          />
+          <SummaryCard
+            label="Selected 60m"
+            value={String(deduplication.selected_60m_count)}
+          />
+          <SummaryCard
+            label="Selected 30m"
+            value={String(deduplication.selected_30m_count)}
+          />
+          <SummaryCard
+            label="Selected 15m"
+            value={String(deduplication.selected_15m_count)}
+          />
+          <SummaryCard
+            label="Rows Deduped"
+            value={String(deduplication.deduplicated_outcome_row_count)}
+          />
+          <SummaryCard
+            label="Blocked Conflicts"
+            value={String(deduplication.identities_blocked_by_horizon_conflict)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {deduplication.copy.selection_policy}{" "}
+          {deduplication.copy.conflict_policy}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Calibration by horizon
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {horizonGroups.map((group) => (
+            <div
+              key={`horizon-calibration-${group.key}`}
+              className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+            >
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.12em] text-zinc-300">
+                {group.label}
+              </p>
+              <p className="mt-2 text-sm text-zinc-300">
+                {group.complete_count} complete · {group.improved_count} improved ·{" "}
+                {group.worsened_count} worsened
+              </p>
+              <p className="mt-1 font-mono text-xs text-zinc-500">
+                Net {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {review.horizon_level.copy.diagnostic_only}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete"
+            value={`${completeness.complete_observations} / ${completeness.eligible_observations}`}
+          />
+          <SummaryCard
+            label="Main Blocker"
+            value={mainBlocker}
+          />
+          <SummaryCard
+            label="Projection Derivable"
+            value={formatPercent(completeness.projection_derivable_rate)}
+          />
+          <SummaryCard
+            label="Join Success"
+            value={formatPercent(completeness.successful_join_rate)}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Second blocker:{" "}
+          {completeness.second_most_common_blocker?.reason.replaceAll("_", " ") ??
+            "none"}{" "}
+          · Completed outcome rate:{" "}
+          {formatPercent(completeness.completed_outcome_rate)}
+          {" · "}Contract v1 snapshots/outcomes:{" "}
+          {
+            completeness.future_contract_coverage.snapshot_contract_count
+          } / {completeness.future_contract_coverage.outcome_contract_count}
+          {" · "}Migration required: no
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+          Recommendation observation completeness
+        </p>
+        <StatisticsSummaryGrid className="mt-3">
+          <SummaryCard
+            label="Complete Recs"
+            value={String(recommendationCompleteness.complete_recommendations)}
+          />
+          <SummaryCard
+            label="Explicit Horizons"
+            value={String(
+              recommendationCompleteness.identities_with_explicit_horizons,
+            )}
+          />
+          <SummaryCard
+            label="Missing Identity"
+            value={String(recommendationCompleteness.missing_identity_count)}
+          />
+          <SummaryCard
+            label="Missing Confidence"
+            value={String(recommendationCompleteness.missing_confidence_count)}
+          />
+          <SummaryCard
+            label="Missing Projection"
+            value={String(recommendationCompleteness.missing_projection_count)}
+          />
+          <SummaryCard
+            label="Optional Gaps"
+            value={String(recommendationCompleteness.optional_metadata_gap_count)}
+          />
+          <SummaryCard
+            label="Unrecoverable"
+            value={String(
+              recommendationCompleteness.unrecoverable_observations,
+            )}
+          />
+        </StatisticsSummaryGrid>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {recommendationCompleteness.copy.summary}{" "}
+          {recommendationCompleteness.copy.optional_metadata_policy}{" "}
+          Recovered by identity/confidence/projection:{" "}
+          {recommendationCompleteness.recovered_by_identity_normalization} /{" "}
+          {recommendationCompleteness.recovered_by_confidence_lookup} /{" "}
+          {
+            recommendationCompleteness
+              .recovered_by_deterministic_projection_recomputation
+          }
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              First observed calibration signal
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {selectedSignal.subgroup_label}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              {selectedSignal.recommended_next_experiment}
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            {signalDirection}
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Subgroup"
+            value={selectedSignal.subgroup_type.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Sample Count"
+            value={String(selectedSignal.sample_count)}
+          />
+          <SummaryCard
+            label="Net Improvement"
+            value={formatConfidenceReviewPoints(
+              selectedSignal.net_error_improvement,
+            )}
+            tone={selectedSignal.net_error_improvement}
+          />
+          <SummaryCard
+            label="Conclusion"
+            value={formatCalibrationSignalConfidence(selectedSignal)}
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          Recommended candidate:{" "}
+          {
+            review.first_observed_calibration_signal
+              .recommended_calibration_adjustment_candidate
+          }
+        </p>
+        <pre
+          id="confidence-projection-selected-calibration-signal-json"
+          className="sr-only"
+        >
+          {JSON.stringify(selectedSignal, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-cyan-300/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100">
+              Upward adjustment shadow experiment
+            </p>
+            <h4 className="mt-2 text-base font-semibold text-white">
+              {upwardCapCandidate?.label ?? "Collect more capped observations"}
+            </h4>
+            <p className="mt-1 text-sm leading-6 text-zinc-400">
+              Observation-only cap variants test smaller upward AI Projection
+              adjustments. Visible AI Projection and original confidence are
+              unchanged.
+            </p>
+          </div>
+          <span className="w-fit rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300">
+            Observation only
+          </span>
+        </div>
+
+        <StatisticsSummaryGrid className="mt-4">
+          <SummaryCard
+            label="Current Result"
+            value={formatConfidenceReviewPoints(
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+                null,
+            )}
+            tone={
+              currentProjectionVariant?.net_improvement_vs_original_confidence ??
+              null
+            }
+          />
+          <SummaryCard
+            label="Best Candidate"
+            value={upwardCapCandidate?.label ?? "None"}
+          />
+          <SummaryCard
+            label="Candidate Cap"
+            value={formatUpwardProjectionCap(upwardCapCandidate?.cap ?? null)}
+          />
+          <SummaryCard
+            label="Observations"
+            value={String(
+              upwardCapExperiment.eligible_recommendation_level_observations,
+            )}
+          />
+          <SummaryCard
+            label="Cap Applied"
+            value={String(upwardCapCandidate?.cap_applied_observations ?? 0)}
+          />
+          <SummaryCard
+            label="Vs Current"
+            value={formatConfidenceReviewPoints(
+              upwardCapCandidate?.improvement_vs_current_projection ?? null,
+            )}
+            tone={upwardCapCandidate?.improvement_vs_current_projection ?? null}
+          />
+          <SummaryCard
+            label="Evidence"
+            value={upwardCapExperiment.evidence_strength.replaceAll("_", " ")}
+          />
+          <SummaryCard
+            label="Persistence"
+            value={
+              upwardCapExperiment.persistence_created ? "created" : "none"
+            }
+          />
+        </StatisticsSummaryGrid>
+
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          {upwardCapExperiment.selection_policy}
+        </p>
+        <pre
+          id="upward-projection-cap-shadow-experiment-json"
+          className="sr-only"
+        >
+          {JSON.stringify(upwardCapExperiment, null, 2)}
+        </pre>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Raised / Lowered
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Raised {review.raised_count} ({raisedRate}) · Lowered{" "}
+            {review.lowered_count} ({loweredRate}) · Unchanged{" "}
+            {review.unchanged_count} ({unchangedRate})
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Bias Signals
+          </p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Overestimated {review.overestimated_count} · Underestimated{" "}
+            {review.underestimated_count} · Insufficient{" "}
+            {review.insufficient_count}
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            Formula
+          </p>
+          <p className="mt-2 text-sm leading-5 text-zinc-300">
+            {review.copy.formula}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <ProjectionReviewGroupList
+          title="Best Bands"
+          emptyMessage="No complete band evidence yet."
+          groups={bestBands}
+        />
+        <ProjectionReviewGroupList
+          title="Worsened Areas"
+          emptyMessage="No worsened areas observed yet."
+          groups={weakAreas}
+        />
+      </div>
+
+      <p className="mt-4 text-xs leading-5 text-zinc-500">
+        {review.copy.sample_quality} {review.copy.observation_only}
+      </p>
+      <pre id="confidence-projection-outcome-review-json" className="sr-only">
+        {reviewJson}
+      </pre>
+    </section>
+  );
+}
+
+function rateFromCounts(count: number, total: number) {
+  return total > 0 ? (count / total) * 100 : null;
+}
+
+function ProjectionReviewGroupList({
+  title,
+  groups,
+  emptyMessage,
+}: {
+  title: string;
+  groups: ConfidenceProjectionReviewGroup[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+        {title}
+      </p>
+      {groups.length === 0 ? (
+        <p className="mt-2 text-sm text-zinc-500">{emptyMessage}</p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          {groups.map((group) => (
+            <div
+              key={`${title}-${group.key}`}
+              className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-white/[0.025] px-3 py-2"
+            >
+              <div>
+                <p className="text-sm font-medium text-zinc-200">{group.label}</p>
+                <p className="text-xs text-zinc-500">
+                  {group.complete_count} complete · {formatPercent(group.improved_rate)} improved
+                </p>
+              </div>
+              <span className="font-mono text-xs font-bold text-zinc-200">
+                {formatConfidenceReviewPoints(group.net_error_improvement)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -30849,6 +32171,8 @@ function ActivePositionCard({
   const liveExecutionTargetPrice = position.target1Value ?? position.target2Value;
   const liveExecutionQuantity =
     position.executionMetadata?.remaining_shares ?? position.positionSizeValue;
+  const tradeCardExecutionReadiness =
+    buildLivePositionTradeCardExecutionReadiness(position);
   const {
     closeExecutionPreviewModal,
     executionPreviewModal,
@@ -31086,15 +32410,26 @@ function ActivePositionCard({
         <DataModePillRow badges={liveDayTradeDisplay.realityBadges.slice(0, 1)} />
       }
       statusSurface={
-        liveExecutionStatus?.visible ? (
-          <LivePositionExecutionStatusSurface
-            status={liveExecutionStatus}
-            footerAction={
-              <LivePositionHandoffControls
-                onViewHandoff={openExecutionPreviewModal}
+        tradeCardExecutionReadiness || liveExecutionStatus?.visible ? (
+          <div className="grid gap-3">
+            {tradeCardExecutionReadiness ? (
+              <AvanzaTradeCardExecutionReadinessBadge
+                compact
+                className="trade-card-execution-readiness-badge"
+                readinessModel={tradeCardExecutionReadiness}
               />
-            }
-          />
+            ) : null}
+            {liveExecutionStatus?.visible ? (
+              <LivePositionExecutionStatusSurface
+                status={liveExecutionStatus}
+                footerAction={
+                  <LivePositionHandoffControls
+                    onViewHandoff={openExecutionPreviewModal}
+                  />
+                }
+              />
+            ) : null}
+          </div>
         ) : null
       }
     />
@@ -36001,6 +37336,12 @@ function MarketDiagnosticsConsolePanel({
   summaryJson: string;
 }) {
   const [copyStatus, setCopyStatus] = useState("");
+  const continuousIntelligenceBudgetPlanJsonText =
+    summary.continuous_intelligence_budget_plan
+      ? continuousIntelligenceBudgetPlanJson(
+          summary.continuous_intelligence_budget_plan,
+        )
+      : "";
   const preview = summary.copy_payloads.summary_text.content
     .split("\n")
     .slice(0, 36)
@@ -36190,6 +37531,126 @@ function MarketDiagnosticsConsolePanel({
         data-json-character-count={summary.copy_payloads.json.character_count}
       >
         {summaryJson}
+      </pre>
+      {summary.continuous_intelligence_budget_plan && (
+        <pre
+          id="trade-continuous-intelligence-budget-plan-json"
+          className="sr-only"
+          data-contract={summary.continuous_intelligence_budget_plan.contract}
+          data-status={summary.continuous_intelligence_budget_plan.status}
+          data-session={summary.continuous_intelligence_budget_plan.session}
+          data-allocated-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .allocated_credits
+          }
+          data-reserved-credits={
+            summary.continuous_intelligence_budget_plan.allocation
+              .reserved_credits
+          }
+          data-websocket-slots={
+            summary.continuous_intelligence_budget_plan.websocket_hot_set
+              .assigned_count
+          }
+        >
+          {continuousIntelligenceBudgetPlanJsonText}
+        </pre>
+      )}
+      <pre
+        id="trade-shared-candle-cache-rolling-rest-collector-json"
+        className="sr-only"
+        data-shadow-mode-enabled={
+          summary.shared_candle_cache_rolling_rest_collector?.shadow_mode_enabled ??
+          false
+        }
+        data-collector-status={
+          summary.shared_candle_cache_rolling_rest_collector?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.shared_candle_cache_rolling_rest_collector ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-authenticated-shadow-collector-dry-run-json"
+        className="sr-only"
+        data-route-present={
+          summary.authenticated_shadow_collector_dry_run?.route_present ?? false
+        }
+        data-status={
+          summary.authenticated_shadow_collector_dry_run?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.authenticated_shadow_collector_dry_run ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-execution-proof-preflight-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_execution_proof_preflight?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_execution_proof_preflight?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_execution_proof_preflight ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-operator-authorization-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_operator_authorization?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_operator_authorization?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_operator_authorization ?? null,
+          null,
+          2,
+        )}
+      </pre>
+      <pre
+        id="trade-bounded-shadow-collector-live-proof-receipt-json"
+        className="sr-only"
+        data-route-present={
+          summary.bounded_shadow_collector_live_proof_receipt?.route_present ?? false
+        }
+        data-status={
+          summary.bounded_shadow_collector_live_proof_receipt?.status ?? "unavailable"
+        }
+      >
+        {JSON.stringify(
+          summary.bounded_shadow_collector_live_proof_receipt ?? null,
+          null,
+          2,
+        )}
       </pre>
     </section>
   );

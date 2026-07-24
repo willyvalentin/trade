@@ -126,6 +126,12 @@ import {
   ExecutionSettingsPanel,
 } from "@/components/execution/execution-settings-panel";
 import {
+  AvanzaExecutionSettingsProfilePanel,
+} from "@/components/execution/AvanzaExecutionSettingsProfilePanel";
+import {
+  AvanzaSettingsPassiveExecutionReadinessPanel,
+} from "@/components/execution/AvanzaSettingsPassiveExecutionReadinessPanel";
+import {
   AvanzaBridgeStatusPanel,
   type AvanzaBridgeRefreshMetadata,
 } from "@/components/execution/AvanzaBridgeStatusPanel";
@@ -2353,6 +2359,14 @@ export default function SettingsPage() {
               executionModeMessage={executionModeMessage}
               onSelectExecutionMode={updateExecutionModePreference}
             />
+
+            <div className="mt-4">
+              <AvanzaExecutionSettingsProfilePanel />
+            </div>
+
+            <div className="mt-4">
+              <AvanzaSettingsPassiveExecutionReadinessPanel />
+            </div>
 
             <div className="mt-4">
               <AvanzaBridgeStatusPanel

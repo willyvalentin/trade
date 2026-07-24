@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "marker": "action_307i_static_public_asset_probe",
+  "purpose": "netlify_static_asset_boundary_probe",
+  "provider_call_executed": false,
+  "replay_executed": false,
+  "synthetic_outcomes_persisted": false,
+  "supabase_write_executed": false,
+  "scanner_behavior_changed": false,
+  "live_ranking_changed": false
+}

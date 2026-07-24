@@ -1,0 +1,29 @@
+import "server-only";
+
+export {
+  POST_TRADE_CANONICAL_STAGING_EXECUTION_AUTHORIZATION_ARTIFACT,
+  POST_TRADE_CANONICAL_STAGING_EXECUTION_AUTHORIZATION_ARTIFACT_CORE,
+  POST_TRADE_FINAL_GATE_IDENTITY,
+  POST_TRADE_STAGING_EXECUTION_ATTEMPT_ID,
+  POST_TRADE_STAGING_EXECUTION_AUTHORIZATION_ARTIFACT_ID,
+  POST_TRADE_STAGING_EXECUTION_AUTHORIZATION_ARTIFACT_VERSION,
+  POST_TRADE_STAGING_EXECUTION_AUTHORIZATION_SOURCE_ACTION,
+  POST_TRADE_STAGING_EXECUTION_AUTHORIZATION_TYPE,
+  POST_TRADE_STAGING_EXECUTION_FUNCTION_IDENTITY,
+  POST_TRADE_STAGING_EXECUTION_PLAN_ID,
+  buildFinalGateApprovalFromStagingExecutionAuthorizationArtifact,
+  buildPostTradeStagingExecutionAuthorizationArtifactFingerprint,
+  evaluatePostTradeStagingExecutionAuthorizationArtifact,
+} from "@/lib/post-trade-staging-execution-authorization-artifact-core";
+
+export type {
+  PostTradeStagingExecutionAuthorizationArtifact,
+  PostTradeStagingExecutionAuthorizationArtifactCore,
+  PostTradeStagingExecutionAuthorizationCapabilities,
+  PostTradeStagingExecutionAuthorizationEvaluation,
+  PostTradeStagingExecutionAuthorizationFunctionIdentity,
+  PostTradeStagingExecutionAuthorizationGateCompatibility,
+  PostTradeStagingExecutionAuthorizationGateIdentity,
+  PostTradeStagingExecutionAuthorizationPlan,
+  PostTradeStagingExecutionAuthorizationState,
+} from "@/lib/post-trade-staging-execution-authorization-artifact-core";

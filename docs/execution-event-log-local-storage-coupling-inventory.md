@@ -291,3 +291,24 @@ complete.
 
 Action 918 closed the dedicated local persistence refactor summary and
 identified execution settings persistence as the next inventory seam.
+
+## Task 341 Terminology Checkpoint Update
+
+Task 341 created `docs/local-diagnostic-execution-records-checkpoint.md` to
+make the local-only status of these stores explicit. The existing storage keys
+and type names remain unchanged:
+
+- `ture_execution_event_log_v1`
+- `ture_execution_records_v1`
+- `ture_dev_mock_broker_results_v1`
+- `trade-management-events`
+
+These stores should be described as local diagnostic execution records,
+dev-only execution audit entries, non-authoritative broker-result models, or
+manual-confirmation evidence placeholders. They are not production execution
+persistence, not Supabase execution writes, not broker-confirmed executions,
+and not evidence of actual BUY/SELL order submission.
+
+No storage key migration, runtime behavior change, API route activation,
+Supabase write, Trade UI behavior change, or execution gate change was made by
+Task 341.

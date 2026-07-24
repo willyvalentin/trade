@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "marker": "action_307l_runtime_boundary_status_static",
+  "static_assets_work": true,
+  "proxy_runs": true,
+  "next_runtime_routes_failing_after_proxy": true,
+  "provider_call_executed": false,
+  "replay_executed": false,
+  "synthetic_outcomes_persisted": false,
+  "supabase_write_executed": false,
+  "scanner_behavior_changed": false,
+  "live_ranking_changed": false
+}

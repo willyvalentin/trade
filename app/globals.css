@@ -960,6 +960,56 @@ main {
   color: #d84646;
 }
 
+.trade-recommendation-confidence-stack {
+  display: grid;
+  flex-shrink: 0;
+  gap: 8px;
+  justify-items: end;
+}
+
+.trade-recommendation-ai-projection {
+  display: grid;
+  min-width: 126px;
+  grid-template-columns: auto auto;
+  gap: 2px 8px;
+  align-items: baseline;
+  justify-content: end;
+  border: 1px solid rgb(0 184 153 / 0.28);
+  border-radius: 8px;
+  background: rgb(0 184 153 / 0.07);
+  padding: 8px 10px;
+}
+
+.trade-recommendation-ai-projection__label {
+  grid-column: 1 / -1;
+  color: #9aa3aa;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.trade-recommendation-ai-projection__value {
+  color: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.trade-recommendation-ai-projection__delta {
+  color: #00b899;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
 .trade-recommendation-metrics,
 .trade-live-metrics {
   display: grid;
@@ -3227,6 +3277,10 @@ main {
 
   .trade-recommendation-confidence-pill {
     min-height: 38px;
+  }
+
+  .trade-recommendation-confidence-stack {
+    justify-items: start;
   }
 
   .trade-recommendation-metrics {

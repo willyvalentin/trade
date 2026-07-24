@@ -1,0 +1,348 @@
+{
+  "schema_version": "action_510_webpack_build_failure_bounded_diagnostic_capture_approval_record_v1",
+  "source_action": 509,
+  "action_509_decision": "blocked",
+  "action_509_webpack_classification": "webpack_failure_evidence_insufficient",
+  "action_509_implicated_paths_resolved": false,
+  "action_509_candidate_defect_status": "candidate_defect_status_unresolved",
+  "action_509_candidate_hash_impact": "candidate_hash_impact_unresolved",
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+  "full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+  "candidate_file_count": 31,
+  "added_runtime_path": "lib/pure-confidence-calibration.ts",
+  "added_runtime_path_hash": "bd913c95d04fc450f4499b18c01744da04a148e8d18cb4d9113d990ee8deaa70",
+  "canonical_preview_flag": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+  "preview_flag_required_state": "absent_or_disabled",
+  "raw_preview_flag_value_recorded": false,
+  "diagnostic_classification": "bounded_webpack_build_failure_diagnostic_capture",
+  "prior_webpack_result": "failed",
+  "prior_webpack_phase": "build_bundling",
+  "prior_webpack_error_class": "type_or_compile_error",
+  "prior_first_causal_error_retained": false,
+  "prior_implicated_paths_retained": false,
+  "diagnostic_completion_required": true,
+  "diagnostic_command": "next build --webpack",
+  "diagnostic_attempt_limit": 1,
+  "diagnostic_retry_allowed": false,
+  "diagnostic_is_comparison_only": true,
+  "diagnostic_is_full_rehearsal": false,
+  "authoritative_build_performed": false,
+  "authoritative_build_authorized_for_action_511": false,
+  "deployment_readiness_can_be_established": false,
+  "candidate_reconstruction_requirements": {
+    "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+    "change_candidate_hash": "c005946d3a21df32730306687d125ef1ba4439500da7ec22288ec92d802d667c",
+    "full_candidate_inventory_hash": "d96af34b0c488ef16f614b2be731052c2099e0b6efde57f76115eb8d5c779a0f",
+    "candidate_file_count": 31,
+    "unrelated_dirty_files_allowed": false,
+    "control_only_additions_allowed": false,
+    "env_files_allowed": false,
+    "netlify_files_allowed": false,
+    "credentials_allowed": false,
+    "copied_build_output_allowed": false,
+    "node_modules_before_approved_dependency_materialization_allowed": false
+  },
+  "prerequisite_gate_inventory": [
+    {
+      "gate": "safe_canonical_temp_path",
+      "required_status": "passed"
+    },
+    {
+      "gate": "exact_candidate_reconstruction",
+      "required_status": "passed"
+    },
+    {
+      "gate": "runtime_dependency_closure",
+      "required_status": "passed"
+    },
+    {
+      "gate": "source_inventory",
+      "required_status": "passed"
+    },
+    {
+      "gate": "source_integrity",
+      "required_status": "passed"
+    },
+    {
+      "gate": "source_safety",
+      "required_status": "passed"
+    },
+    {
+      "gate": "strict_wrong_hash_matrix",
+      "required_status": "passed"
+    },
+    {
+      "gate": "semantic_preview_flag",
+      "required_status": "preview_flag_disabled_verified"
+    },
+    {
+      "gate": "alternate_activation",
+      "required_status": false
+    },
+    {
+      "gate": "dependency_materialization",
+      "required_status": "passed"
+    },
+    {
+      "gate": "five_extraneous_packages",
+      "required_status": "excluded"
+    },
+    {
+      "gate": "no_network_install_update",
+      "required_status": true
+    }
+  ],
+  "prerequisite_failure_result": "webpack_diagnostic_aborted",
+  "command_policy": {
+    "exact_command": "next build --webpack",
+    "locally_installed_next_tooling_required": true,
+    "verified_by_action_507": true,
+    "package_json_modification_allowed": false,
+    "new_package_script_allowed": false,
+    "debug_package_allowed": false,
+    "next_config_modification_allowed": false,
+    "arbitrary_environment_values_allowed": false,
+    "different_next_version_allowed": false,
+    "deployment_tooling_allowed": false
+  },
+  "sanitization_policy": [
+    "redact_absolute_repository_paths",
+    "redact_system_temp_paths",
+    "redact_home_paths",
+    "redact_usernames",
+    "redact_tokens",
+    "redact_cookies",
+    "redact_authorization_headers",
+    "redact_bearer_values",
+    "redact_query_bearing_urls",
+    "redact_environment_values",
+    "redact_env_file_contents",
+    "redact_netlify_credentials",
+    "redact_supabase_keys",
+    "redact_provider_keys",
+    "redact_connection_strings",
+    "redact_private_key_material",
+    "redact_high_confidence_secret_like_values"
+  ],
+  "allowed_retained_path_format": "repository_relative_only",
+  "allowed_environment_information": {
+    "preview_flag_classification": "absent_or_disabled",
+    "raw_value_recorded": false
+  },
+  "unsanitized_log_file_allowed": false,
+  "retained_evidence_limits": {
+    "first_causal_error_objects": 1,
+    "sanitized_diagnostic_lines": 12,
+    "implicated_repository_relative_paths": 10,
+    "sanitized_stack_classifications": 5,
+    "bounded_module_import_references": 5,
+    "exit_classifications": 1,
+    "signal_timeout_classifications": 1
+  },
+  "first_causal_error_extraction_policy": {
+    "prefer_earliest_specific_diagnostic": true,
+    "generic_summaries_disfavored": [
+      "compilation failed",
+      "build failed",
+      "exited with code 1"
+    ],
+    "required_shape": {
+      "summary": "sanitized_paraphrase",
+      "webpack_subsystem": "vocabulary_value",
+      "error_class": "vocabulary_value",
+      "repository_relative_path": "string_or_null",
+      "line": "integer_or_null",
+      "column": "integer_or_null",
+      "module_reference": "string_or_null"
+    },
+    "source_excerpts_retained": false
+  },
+  "webpack_subsystem_vocabulary": [
+    "webpack_typescript_validation",
+    "webpack_javascript_compilation",
+    "webpack_css_processing",
+    "webpack_postcss_processing",
+    "webpack_module_resolution",
+    "webpack_loader_execution",
+    "webpack_server_client_boundary",
+    "webpack_static_rendering",
+    "webpack_route_collection",
+    "webpack_generated_artifact_processing",
+    "webpack_dependency_compilation",
+    "webpack_configuration_loading",
+    "webpack_process_resource_operation",
+    "webpack_internal_framework",
+    "webpack_subsystem_unknown"
+  ],
+  "webpack_error_class_vocabulary": [
+    "webpack_candidate_typescript_error",
+    "webpack_candidate_module_resolution_error",
+    "webpack_candidate_css_or_loader_error",
+    "webpack_server_client_boundary_error",
+    "webpack_candidate_syntax_or_transform_error",
+    "webpack_generated_artifact_error",
+    "webpack_configuration_error",
+    "webpack_dependency_compile_error",
+    "webpack_process_resource_error",
+    "webpack_runner_environment_error",
+    "webpack_internal_framework_error",
+    "webpack_unknown_build_error"
+  ],
+  "path_classification_vocabulary": [
+    "runtime_candidate_file",
+    "clean_base_file",
+    "31_file_overlay_file",
+    "added_runtime_file",
+    "configuration_file",
+    "generated_build_output",
+    "dependency_file",
+    "framework_internal",
+    "rehearsal_runner_file",
+    "unrelated_dirty_worktree_file",
+    "unknown"
+  ],
+  "path_record_required_fields": [
+    "repository_relative_path",
+    "candidate_membership",
+    "hash_bound_status",
+    "role",
+    "imported_by_relation"
+  ],
+  "path_role_vocabulary": [
+    "direct",
+    "transitive",
+    "generated",
+    "contextual"
+  ],
+  "dirty_worktree_path_result": {
+    "rehearsal_boundary_contamination_suspected": true
+  },
+  "candidate_versus_runner_vocabulary": [
+    "candidate_source_build_defect",
+    "candidate_build_configuration_defect",
+    "candidate_dependency_materialization_defect",
+    "candidate_missing_build_required_artifact",
+    "candidate_build_environment_contract_defect",
+    "webpack_comparison_invocation_defect",
+    "rehearsal_build_runner_defect",
+    "unrelated_source_contamination_detected",
+    "webpack_failure_not_reproduced",
+    "webpack_failure_evidence_still_insufficient",
+    "webpack_failure_classification_ambiguous"
+  ],
+  "dual_failure_relationship_vocabulary": [
+    "independent_build_engine_failures",
+    "shared_candidate_trigger_with_distinct_engine_failures",
+    "shared_environment_contract_failure",
+    "turbopack_specific_failure_plus_candidate_compile_failure",
+    "comparison_failure_caused_by_comparison_invocation",
+    "dual_failure_relationship_ambiguous"
+  ],
+  "dual_failure_relationship_rule": "do_not_infer_shared_causality_from_matching_build_phase_only",
+  "candidate_defect_status_vocabulary": [
+    "candidate_defect_proven",
+    "candidate_defect_not_proven",
+    "candidate_defect_suspected",
+    "candidate_defect_status_unresolved"
+  ],
+  "candidate_defect_proven_rule": "bounded_webpack_evidence_identifies_candidate_source_or_configuration_problem",
+  "candidate_hash_impact_vocabulary": [
+    "candidate_hash_change_required",
+    "candidate_hash_change_not_required",
+    "candidate_hash_impact_unresolved"
+  ],
+  "candidate_hash_impact_rules": {
+    "required_only_for_exact_candidate_source_or_configuration_change": true,
+    "not_required_for_runner_changes": true,
+    "not_required_for_comparison_wrapper_corrections": true,
+    "not_required_for_dependency_copy_mechanics": true,
+    "not_required_for_diagnostic_capture_improvements": true,
+    "not_required_for_framework_strategy_decisions_without_candidate_mutation": true
+  },
+  "diagnostic_result_vocabulary": [
+    "webpack_diagnostic_failure_captured",
+    "webpack_diagnostic_passed_unexpectedly",
+    "webpack_diagnostic_aborted",
+    "webpack_diagnostic_capture_failed"
+  ],
+  "diagnostic_result_rules": {
+    "webpack_diagnostic_failure_captured": [
+      "webpack_fails",
+      "evidence_is_sanitized",
+      "first_causal_error_captured_or_explicitly_unavailable",
+      "implicated_paths_captured_or_explicitly_unresolved",
+      "cleanup_passes"
+    ],
+    "webpack_diagnostic_passed_unexpectedly": [
+      "webpack_passes",
+      "no_forbidden_effects",
+      "cleanup_passes"
+    ],
+    "webpack_diagnostic_aborted": [
+      "prerequisite_fails",
+      "candidate_differs",
+      "preview_enabled",
+      "dependencies_cannot_be_materialized_safely"
+    ],
+    "webpack_diagnostic_capture_failed": [
+      "sanitization_fails",
+      "raw_material_retained",
+      "cleanup_fails_after_build_starts",
+      "evidence_cannot_be_safely_bounded"
+    ]
+  },
+  "next_action_mapping": {
+    "candidate_source_build_defect": "action_512_candidate_build_source_remediation",
+    "candidate_build_configuration_defect": "action_512_candidate_build_configuration_remediation",
+    "candidate_dependency_materialization_defect": "action_512_candidate_dependency_materialization_remediation_gate",
+    "candidate_build_environment_contract_defect": "action_512_candidate_build_runner_environment_remediation_gate",
+    "rehearsal_build_runner_defect": "action_512_candidate_build_runner_environment_remediation_gate",
+    "webpack_comparison_invocation_defect": "action_512_webpack_comparison_invocation_remediation_gate",
+    "webpack_failure_not_reproduced": "action_512_dual_build_failure_nondeterminism_assessment_gate",
+    "webpack_failure_evidence_still_insufficient": "action_512_webpack_diagnostic_strategy_remediation_gate",
+    "webpack_failure_classification_ambiguous": "action_512_webpack_diagnostic_strategy_remediation_gate"
+  },
+  "approval_vocabulary": [
+    "approved",
+    "approved_with_conditions",
+    "blocked"
+  ],
+  "approval_decision": "approved",
+  "approval_rationale": "exact one-attempt command, reconstruction gates, sanitizer policy, evidence limits, vocabularies, cleanup and next-action mapping are frozen",
+  "unresolved_conditions": [],
+  "future_diagnostic_execution_authorized": true,
+  "diagnostic_execution_authorized": false,
+  "diagnostic_execution_performed": false,
+  "build_performed": false,
+  "comparison_performed": false,
+  "rehearsal_performed": false,
+  "authoritative_build_executed": false,
+  "webpack_build_executed": false,
+  "candidate_modified": false,
+  "package_modified": false,
+  "lockfile_modified": false,
+  "configuration_modified": false,
+  "environment_modified": false,
+  "network_used": false,
+  "install_performed": false,
+  "netlify_operation_performed": false,
+  "provider_called": false,
+  "supabase_accessed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "feedback_created": false,
+  "confidence_applied": false,
+  "downstream_behavior_changed": false,
+  "raw_logs_retained": false,
+  "raw_environment_values_recorded": false,
+  "credential_values_recorded": false,
+  "source_contents_recorded": false,
+  "recommendation_or_projection_data_recorded": false,
+  "deployment_authorized": false,
+  "activation_authorized": false,
+  "deployment_performed": false,
+  "preview_activated": false,
+  "runtime_preview_state": "runtime_preview_waiting_for_operator_inputs",
+  "next_action": "action_511_webpack_build_failure_bounded_diagnostic_capture"
+}

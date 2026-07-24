@@ -268,15 +268,20 @@ function expectTypedEnvelope(body: unknown) {
       serverOnly: true,
       authGateRequired: true,
       devGateRequired: true,
-      routeCallAllowed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
       uiWiringAdded: false,
       browserClientInvocationAllowed: false,
       scheduledInvocationAllowed: false,
+      productionExecutionPersistenceBlocked: true,
+      supabaseExecutionRecordsWriteAllowed: false,
       productionWritePathApproved: false,
       liveSmokeInsertApproved: false,
       updateDeleteUpsertSelectAllowed: false,
       tradeStatsPnlMutationAllowed: false,
       externalOrderBrowserAllowed: false,
+      externalOrderSubmissionAllowed: false,
+      finalBuySellClickAllowed: false,
       autonomousModeAllowed: false,
     },
   });
@@ -335,7 +340,7 @@ test("missing dev-tools gate blocks before auth json parse or writer call", asyn
   });
 });
 
-test("missing or invalid auth cookie blocks before json parse or writer call", async () => {
+test("hard-disabled boundary blocks before auth cookie json parse or writer call", async () => {
   for (const cookie of [null, "trade_auth=wrong-token", "other=expected-token"]) {
     const seenWriterInputs: unknown[] = [];
     const authTokenCalls: unknown[] = [];
@@ -349,8 +354,8 @@ test("missing or invalid auth cookie blocks before json parse or writer call", a
     });
     const result = await runtimeRoute.POST(blockedRequest.request);
 
-    expect(result.init.status).toBe(401);
-    expect(authTokenCalls).toEqual(["test-password"]);
+    expect(result.init.status).toBe(403);
+    expect(authTokenCalls).toEqual([]);
     expect(blockedRequest.jsonCallCount()).toBe(0);
     expect(seenWriterInputs).toEqual([]);
     expectTypedEnvelope(result.body);
@@ -360,6 +365,8 @@ test("missing or invalid auth cookie blocks before json parse or writer call", a
       safety: {
         devGatePassed: true,
         authGatePassed: false,
+        hardDisabled: true,
+        routeCallAllowed: false,
       },
     });
   }
@@ -379,7 +386,7 @@ test("missing auth env fails closed before json parse or writer call", async () 
   });
   const result = await runtimeRoute.POST(blockedRequest.request);
 
-  expect(result.init.status).toBe(401);
+  expect(result.init.status).toBe(403);
   expect(authTokenCalls).toEqual([]);
   expect(blockedRequest.jsonCallCount()).toBe(0);
   expect(seenWriterInputs).toEqual([]);
@@ -390,11 +397,13 @@ test("missing auth env fails closed before json parse or writer call", async () 
     safety: {
       authGatePassed: false,
       devGatePassed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
     },
   });
 });
 
-test("malformed json blocks writer call after dev and auth gates", async () => {
+test("malformed json is not parsed while hard-disabled boundary is active", async () => {
   const seenWriterInputs: unknown[] = [];
   const runtimeRoute = loadRouteModule({ seenWriterInputs });
   const malformedRequest = request({
@@ -404,26 +413,23 @@ test("malformed json blocks writer call after dev and auth gates", async () => {
   });
   const result = await runtimeRoute.POST(malformedRequest.request);
 
-  expect(result.init.status).toBe(400);
-  expect(malformedRequest.jsonCallCount()).toBe(1);
+  expect(result.init.status).toBe(403);
+  expect(malformedRequest.jsonCallCount()).toBe(0);
   expect(seenWriterInputs).toEqual([]);
   expectTypedEnvelope(result.body);
   expect(result.body).toMatchObject({
-    status: "validation_failed",
+    status: "blocked",
     writerResult: null,
-    validationErrors: [
-      expect.objectContaining({
-        code: "invalid_json",
-      }),
-    ],
     safety: {
-      authGatePassed: true,
+      authGatePassed: false,
       devGatePassed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
     },
   });
 });
 
-test("invalid request shape route metadata and writer metadata block writer call", async () => {
+test("invalid request shape is not parsed while hard-disabled boundary is active", async () => {
   const invalidBodies = [
     {
       body: null,
@@ -461,33 +467,24 @@ test("invalid request shape route metadata and writer metadata block writer call
     });
     const result = await runtimeRoute.POST(invalidRequest.request);
 
-    expect(result.init.status).toBe(400);
-    expect(invalidRequest.jsonCallCount()).toBe(1);
+    expect(result.init.status).toBe(403);
+    expect(invalidRequest.jsonCallCount()).toBe(0);
     expect(seenWriterInputs).toEqual([]);
     expectTypedEnvelope(result.body);
     expect(result.body).toMatchObject({
-      status: "validation_failed",
+      status: "blocked",
       writerResult: null,
       safety: {
-        authGatePassed: true,
+        authGatePassed: false,
         devGatePassed: true,
+        hardDisabled: true,
+        routeCallAllowed: false,
       },
     });
-
-    if (invalidBody.fieldPath) {
-      expect(
-        (result.body as { validationErrors: { fieldPath?: string }[] })
-          .validationErrors,
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ fieldPath: invalidBody.fieldPath }),
-        ]),
-      );
-    }
   }
 });
 
-test("valid fixture request reaches mocked writer only after gates pass", async () => {
+test("valid fixture request remains blocked by hard-disabled boundary", async () => {
   const seenWriterInputs: unknown[] = [];
   const runtimeRoute = loadRouteModule({ seenWriterInputs });
   const validRequest = request({
@@ -497,27 +494,25 @@ test("valid fixture request reaches mocked writer only after gates pass", async 
   });
   const result = await runtimeRoute.POST(validRequest.request);
 
-  expect(result.init.status).toBe(201);
-  expect(validRequest.jsonCallCount()).toBe(1);
-  expect(seenWriterInputs).toEqual([validInput]);
+  expect(result.init.status).toBe(403);
+  expect(validRequest.jsonCallCount()).toBe(0);
+  expect(seenWriterInputs).toEqual([]);
   expectTypedEnvelope(result.body);
   expect(result.body).toMatchObject({
-    status: "accepted",
-    validationErrors: [],
-    writerResult: {
-      status: "success",
-      inserted: true,
-    },
+    status: "blocked",
+    writerResult: null,
     safety: {
-      authGatePassed: true,
+      authGatePassed: false,
       devGatePassed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
       productionWritePathApproved: false,
       liveSmokeInsertApproved: false,
     },
   });
 });
 
-test("writer failures preserve typed envelope without route gate bypass", async () => {
+test("writer failures cannot be reached while hard-disabled boundary is active", async () => {
   const runtimeRoute = loadRouteModule({
     writerResult: {
       status: "service_unavailable",
@@ -542,13 +537,16 @@ test("writer failures preserve typed envelope without route gate bypass", async 
     }).request,
   );
 
-  expect(result.init.status).toBe(200);
+  expect(result.init.status).toBe(403);
   expectTypedEnvelope(result.body);
   expect(result.body).toMatchObject({
-    status: "service_unavailable",
+    status: "blocked",
+    writerResult: null,
     safety: {
-      authGatePassed: true,
+      authGatePassed: false,
       devGatePassed: true,
+      hardDisabled: true,
+      routeCallAllowed: false,
       productionWritePathApproved: false,
       liveSmokeInsertApproved: false,
     },

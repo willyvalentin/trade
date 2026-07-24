@@ -1,0 +1,162 @@
+{
+  "schema_version": "action_488_source_safety_marker_remediation_approval_record_v1",
+  "source_action": 487,
+  "action_nature": "static_approval_gate_only_no_rehearsal_no_deploy_no_activation",
+  "action_487_rehearsal_result": "full_candidate_rehearsal_aborted",
+  "action_487_abort_reason": "source_safety_marker_detected",
+  "root_cause_classification": "source_safety_marker_filename_false_positive_for_bounded_inventory_artifact",
+  "candidate_defective": false,
+  "clean_base_identifier": "15f9923c24ed1f3cf82d34656eeacbfd98a0d347",
+  "approved_change_candidate_hash": "7a11d9c6697a9d89ffb3e762dd15185fda225bc8e39c80a212cd3729d05857f6",
+  "full_candidate_inventory_hash": "cc6a97c5797a1fa76a6bebe9be1497fe88819f1b73992b271c142ff61d3bc2f0",
+  "candidate_file_count": 30,
+  "path_safety_result": "passed",
+  "source_candidate_reconstruction_result": "passed",
+  "source_inventory_result": "passed_bounded_git_head_plus_exact_overlay_inventory",
+  "missing_source_file_count": 0,
+  "unexpected_source_file_count": 0,
+  "dependency_materialization_started": false,
+  "commands_started_count": 0,
+  "safety_classification_model": {
+    "ordered_phases": [
+      "phase_a_exact_prohibited_files",
+      "phase_b_approved_bounded_artifacts",
+      "phase_c_unknown_sensitive_looking_files"
+    ],
+    "filename_indicators_are_advisory_only": true,
+    "exact_prohibited_path_type_indicators_authoritative": true,
+    "content_or_schema_contradictions_blocking": true,
+    "unknown_sensitive_files_fail_closed": true
+  },
+  "prohibited_path_policy": {
+    "reject_env_files": true,
+    "reject_env_wildcards": true,
+    "reject_npmrc_in_candidate": true,
+    "reject_credential_files": true,
+    "reject_private_key_files": true,
+    "reject_pem_or_key_stores": true,
+    "reject_netlify_auth_or_config_credential_stores": true,
+    "reject_secret_bearing_deployment_files": true,
+    "reject_files_with_approved_bounded_secret_detection": true
+  },
+  "approved_bounded_artifact_policy": {
+    "exact_path_required": true,
+    "exact_action_provenance_required": true,
+    "exact_classification_required": true,
+    "expected_content_hash_required_when_frozen": true,
+    "approved_bounded_schema_required_when_hash_not_frozen": true,
+    "allowed_classifications": [
+      "documentation_artifact",
+      "verification_artifact",
+      "test_artifact",
+      "static_release_artifact",
+      "bounded_inventory_record_artifact"
+    ],
+    "filename_words_not_sufficient_to_reject": [
+      "secret",
+      "credential",
+      "token",
+      "environment",
+      "auth"
+    ],
+    "wildcard_sensitive_filename_allowlist_allowed": false,
+    "directory_wide_docs_allowlist_allowed": false,
+    "arbitrary_json_allowlist_allowed": false,
+    "home_or_config_artifact_allowed": false,
+    "netlify_metadata_artifact_allowed": false
+  },
+  "schema_content_boundary_policy": {
+    "valid_json_required_where_expected": true,
+    "expected_top_level_schema_fields_required": true,
+    "credential_value_recorded_false_required_when_present": true,
+    "environment_value_payload_allowed": false,
+    "token_password_private_key_field_allowed": false,
+    "raw_secret_values_recorded": false,
+    "full_file_contents_recorded": false,
+    "external_credential_store_scanned": false,
+    "netlify_global_auth_file_inspected": false
+  },
+  "unknown_file_policy": {
+    "unknown_sensitive_filename_rejected": true,
+    "newly_discovered_similarly_named_file_rejected": true,
+    "approved_path_wrong_hash_rejected": true,
+    "approved_schema_secret_field_rejected": true,
+    "sensitive_looking_file_outside_inventory_rejected": true
+  },
+  "source_safety_result_vocabulary": [
+    "source_safety_passed",
+    "source_safety_aborted_secret_detected",
+    "source_safety_aborted_unknown_sensitive_file",
+    "source_safety_aborted_artifact_mismatch",
+    "source_safety_failed"
+  ],
+  "test_matrix": {
+    "approved_exact_bounded_artifacts": [
+      "documentation_describing_secrets",
+      "credential_policy_approval_record",
+      "environment_prohibition_documentation",
+      "test_file_named_around_token_rejection",
+      "bounded_json_with_credential_value_recorded_false"
+    ],
+    "rejected": [
+      "dot_env",
+      "dot_env_local",
+      "dot_npmrc",
+      "unknown_credential_json",
+      "private_key_extensions",
+      "pem_content_classification",
+      "token_file",
+      "unknown_sensitive_filename",
+      "approved_path_wrong_hash",
+      "approved_schema_secret_value_field",
+      "newly_added_sensitive_looking_artifact_not_in_inventory"
+    ],
+    "additional_assertions": [
+      "filename_only_false_positive_no_longer_aborts",
+      "actual_content_based_secret_detection_still_aborts",
+      "no_raw_value_appears_in_records",
+      "unknown_file_remains_fail_closed"
+    ]
+  },
+  "candidate_policy_unchanged": true,
+  "integrity_strategy": "baseline_plus_overlay_manifest_integrity",
+  "dependency_materialization_method": "temporary_verified_node_modules_copy",
+  "action_486_temp_path_procedure_unchanged": true,
+  "action_482_dependency_procedure_unchanged": true,
+  "rehearsal_policy_unchanged": true,
+  "rehearsal_performed": false,
+  "network_used": false,
+  "install_performed": false,
+  "dependency_update_performed": false,
+  "deployment_authorized": false,
+  "deployment_performed": false,
+  "activation_authorized": false,
+  "preview_activated": false,
+  "environment_modified": false,
+  "netlify_operation_performed": false,
+  "provider_call_executed": false,
+  "supabase_access_created": false,
+  "supabase_write_executed": false,
+  "persistence_created": false,
+  "replay_created": false,
+  "confidence_applied": false,
+  "feedback_created": false,
+  "downstream_behavior_changed": false,
+  "scanner_changed": false,
+  "ranking_changed": false,
+  "publication_changed": false,
+  "execution_changed": false,
+  "add_trade_changed": false,
+  "risk_sizing_changed": false,
+  "preview_flag_name": "CONFIDENCE_CALIBRATION_PROJECTION_PREVIEW_ENABLED",
+  "preview_flag_enabled": false,
+  "approval_vocabulary": [
+    "approved",
+    "approved_with_conditions",
+    "blocked"
+  ],
+  "approval_decision": "approved",
+  "unresolved_conditions": [],
+  "next_action": "action_489_full_candidate_build_rehearsal_retry_after_source_safety_remediation",
+  "current_runtime_preview_state": "runtime_preview_waiting_for_operator_inputs"
+}

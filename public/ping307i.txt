@@ -1,0 +1,7 @@
+action_307i_static_public_asset_probe
+production static asset reachable
+no provider call
+no replay
+no write
+no synthetic outcomes
+no scanner/ranking effects
