@@ -13,6 +13,10 @@ import {
 } from "@/lib/execution-state-machine";
 import type { ExecutionIntent, ExecutionMode } from "@/lib/execution";
 import {
+  createExecutionRuntimeIdentityContextAtBoundary,
+  type ExecutionRuntimeIdentityContext,
+} from "@/lib/execution-runtime-identity";
+import {
   buildSellExecutionIntentsForLivePositions,
   type LivePositionExitMonitorInput,
   type LivePositionSellExecutionIntent,
@@ -30,6 +34,7 @@ export type ExecutionOrchestratorInput = {
   candidateIntents?: readonly ExecutionIntent[];
   mode?: ExecutionMode | null;
   createdAt?: string | null;
+  runtimeIdentity?: ExecutionRuntimeIdentityContext | null;
 };
 
 export type ExecutionOrchestratorResult = {
@@ -42,14 +47,6 @@ export type ExecutionOrchestratorResult = {
   lifecycle: ExecutionLifecycleSnapshot;
   transitionErrors: string[];
 };
-
-function normalizeCreatedAt(value: string | null | undefined) {
-  return typeof value === "string" &&
-    value.trim() &&
-    Number.isFinite(Date.parse(value))
-    ? value.trim()
-    : new Date().toISOString();
-}
 
 function livePositionsWithDefaults(input: ExecutionOrchestratorInput) {
   return (input.livePositions ?? []).map((position) => ({
@@ -80,10 +77,12 @@ function statusFromHandoff(
 function createLifecycleForSelectedIntent(
   selectedIntent: ExecutionIntent,
   handoff: AvanzaExecutionHandoff,
-  createdAt: string,
+  identity: ExecutionRuntimeIdentityContext,
 ) {
+  const createdAt = identity.now;
   const transitionErrors: string[] = [];
   let lifecycle = createExecutionLifecycleSnapshot({
+    lifecycleId: identity.lifecycleId,
     createdAt,
     mode: selectedIntent.mode,
     action: selectedIntent.action,
@@ -94,6 +93,7 @@ function createLifecycleForSelectedIntent(
   });
 
   const createIntent = transitionExecutionLifecycle(lifecycle, "create_intent", {
+    eventId: identity.lifecycleEventId({ eventType: "create_intent", eventIndex: 0 }),
     createdAt,
     intentId: selectedIntent.intent_id,
     recommendationId: selectedIntent.trading_package.recommendation_id,
@@ -114,6 +114,7 @@ function createLifecycleForSelectedIntent(
     lifecycle,
     "select_candidate",
     {
+      eventId: identity.lifecycleEventId({ eventType: "select_candidate", eventIndex: 1 }),
       createdAt,
       intentId: selectedIntent.intent_id,
       message: "Execution candidate selected.",
@@ -127,6 +128,7 @@ function createLifecycleForSelectedIntent(
   }
 
   const createHandoff = transitionExecutionLifecycle(lifecycle, "create_handoff", {
+    eventId: identity.lifecycleEventId({ eventType: "create_handoff", eventIndex: 2 }),
     createdAt,
     intentId: selectedIntent.intent_id,
     handoffVersion: handoff.version,
@@ -147,10 +149,12 @@ function createLifecycleForSelectedIntent(
   return { lifecycle, transitionErrors };
 }
 
-export function runExecutionOrchestrator(
-  input: ExecutionOrchestratorInput = {},
+/** Core orchestrator. Its time and execution identity must be supplied. */
+export function runExecutionOrchestratorWithIdentity(
+  input: ExecutionOrchestratorInput,
+  identity: ExecutionRuntimeIdentityContext,
 ): ExecutionOrchestratorResult {
-  const createdAt = normalizeCreatedAt(input.createdAt);
+  const createdAt = identity.now;
   const liveExitIntents = buildSellExecutionIntentsForLivePositions(
     livePositionsWithDefaults(input),
   );
@@ -170,6 +174,7 @@ export function runExecutionOrchestrator(
       pickerResult,
       handoff: null,
       lifecycle: createExecutionLifecycleSnapshot({
+        lifecycleId: identity.lifecycleId,
         createdAt,
         mode: input.mode,
       }),
@@ -181,7 +186,7 @@ export function runExecutionOrchestrator(
   const { lifecycle, transitionErrors } = createLifecycleForSelectedIntent(
     selectedIntent,
     handoff,
-    createdAt,
+    identity,
   );
 
   return {
@@ -194,6 +199,23 @@ export function runExecutionOrchestrator(
     lifecycle,
     transitionErrors,
   };
+}
+
+/**
+ * Compatibility boundary for UI callers. It creates one context and delegates
+ * to the deterministic core; production execution code should call the core
+ * with an explicit context.
+ */
+export function runExecutionOrchestrator(
+  input: ExecutionOrchestratorInput = {},
+): ExecutionOrchestratorResult {
+  const identity =
+    input.runtimeIdentity ??
+    createExecutionRuntimeIdentityContextAtBoundary({
+      now: input.createdAt ?? undefined,
+    });
+
+  return runExecutionOrchestratorWithIdentity(input, identity);
 }
 
 export function hasExecutableHandoff(result: ExecutionOrchestratorResult) {

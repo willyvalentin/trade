@@ -1759,6 +1759,7 @@ export function ExecutionHandoffPreviewModal({
     };
     const captureResult = buildTureExecutionRecord(selectedIntent, brokerResult, {
       createdAt: capturedAt,
+      recordId: `local_dev_record_${lifecycleForCapture.lifecycleId}_${Date.parse(capturedAt)}`,
     });
     const recordStored = appendExecutionRecord(captureResult.record);
     setStubCaptureResult(captureResult);

@@ -8,6 +8,7 @@ import {
 
 export type BrokerExecutionCaptureStatus =
   | "captured"
+  | "identity_context_missing"
   | "invalid_intent"
   | "invalid_result"
   | "intent_result_mismatch"
@@ -126,7 +127,7 @@ function normalizeCreatedAt(value: string | null | undefined) {
 
   return createdAt && Number.isFinite(Date.parse(createdAt))
     ? createdAt
-    : new Date().toISOString();
+    : null;
 }
 
 function normalizeBroker(value: unknown) {
@@ -147,10 +148,6 @@ function normalizeStatus(value: unknown): BrokerExecutionStatus | null {
 
 function normalizeTicker(value: unknown) {
   return nullableString(value)?.toUpperCase() ?? null;
-}
-
-function normalizeRecordIdPart(value: string | null | undefined) {
-  return value?.trim().replace(/[^a-zA-Z0-9_-]+/g, "_") || "unknown";
 }
 
 function normalizeResult(result: BrokerExecutionCaptureBrokerResult | null | undefined) {
@@ -212,22 +209,6 @@ function instrumentNameFromIntent(
   return nullableString(intent?.instrumentName) ?? nullableString(intent?.instrument_name);
 }
 
-function createRecordId(
-  intent: Partial<ExecutionIntent> | null | undefined,
-  result: BrokerExecutionCaptureBrokerResult | null | undefined,
-  createdAt: string,
-) {
-  const intentId = normalizeRecordIdPart(intent?.intent_id);
-  const orderId = normalizeRecordIdPart(
-    nullableString(result?.orderId) ??
-      nullableString(result?.order_id) ??
-      nullableString(result?.broker_order_id),
-  );
-  const timestamp = normalizeRecordIdPart(createdAt);
-
-  return `ture_execution_${intentId}_${orderId}_${timestamp}`;
-}
-
 function statusReason(status: BrokerExecutionCaptureStatus) {
   if (status === "captured") {
     return "Broker execution result was captured.";
@@ -243,6 +224,10 @@ function statusReason(status: BrokerExecutionCaptureStatus) {
 
   if (status === "broker_unknown") {
     return "Broker execution status is unknown.";
+  }
+
+  if (status === "identity_context_missing") {
+    return "Execution runtime identity context is required.";
   }
 
   return "Broker execution result could not be captured.";
@@ -397,7 +382,10 @@ export function buildTureExecutionRecord(
   const intentValidation = validateExecutionIntent(input.intent);
   const resultErrors = validateBrokerExecutionResult(input.result);
   const match = doesBrokerResultMatchIntent(input.intent, input.result);
-  const captureStatus = getBrokerExecutionCaptureStatus(
+  const recordId = nullableString(input.recordId);
+  const captureStatus = !createdAt || !recordId
+    ? "identity_context_missing"
+    : getBrokerExecutionCaptureStatus(
     input.intent,
     input.result,
   );
@@ -412,9 +400,8 @@ export function buildTureExecutionRecord(
           : statusReason(captureStatus);
   const record: TureExecutionRecord = {
     recordId:
-      nullableString(input.recordId) ??
-      createRecordId(input.intent, input.result, createdAt),
-    createdAt,
+      recordId ?? "",
+    createdAt: createdAt ?? "",
     broker: "avanza",
     mode: input.intent?.mode ?? null,
     action: normalizeAction(input.intent?.action) ?? normalizedResult.action,

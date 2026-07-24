@@ -159,41 +159,20 @@ function nullableString(value: string | null | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function normalizeTimestamp(value: string | null | undefined) {
+function requiredTimestamp(value: string | null | undefined) {
   const timestamp = nullableString(value);
 
-  return timestamp && Number.isFinite(Date.parse(timestamp))
-    ? timestamp
-    : new Date().toISOString();
+  return timestamp && Number.isFinite(Date.parse(timestamp)) ? timestamp : null;
 }
 
-function sanitizeIdPart(value: string | null | undefined) {
-  return value?.trim().replace(/[^a-zA-Z0-9_-]+/g, "_") || "unknown";
-}
-
-function createLifecycleId(createdAt: string, random = Math.random()) {
-  const timestamp = sanitizeIdPart(createdAt);
-  const suffix = Math.floor(Math.abs(random) * 0xffffff)
-    .toString(36)
-    .padStart(4, "0")
-    .slice(0, 6);
-
-  return `execution_lifecycle_${timestamp}_${suffix}`;
-}
-
-function createEventId(
+function deterministicEventId(
   lifecycleId: string,
   eventType: ExecutionLifecycleEventType,
-  createdAt: string,
   eventIndex: number,
 ) {
-  return [
-    "execution_event",
-    sanitizeIdPart(lifecycleId),
-    String(eventIndex + 1).padStart(3, "0"),
-    eventType,
-    sanitizeIdPart(createdAt),
-  ].join("_");
+  const identity = lifecycleId.replace(/[^a-zA-Z0-9_-]+/g, "_");
+
+  return `execution_event_${identity}_${String(eventIndex + 1).padStart(3, "0")}_${eventType}`;
 }
 
 function withOptionalSnapshotFields(
@@ -220,11 +199,15 @@ function withOptionalSnapshotFields(
 export function createExecutionLifecycleSnapshot(
   input: CreateExecutionLifecycleSnapshotInput = {},
 ): ExecutionLifecycleSnapshot {
-  const createdAt = normalizeTimestamp(input.createdAt);
+  const createdAt = requiredTimestamp(input.createdAt);
+  const lifecycleId = nullableString(input.lifecycleId);
+
+  if (!createdAt || !lifecycleId) {
+    throw new Error("Execution lifecycle identity context is required.");
+  }
 
   return {
-    lifecycleId:
-      nullableString(input.lifecycleId) ?? createLifecycleId(createdAt),
+    lifecycleId,
     currentState: input.initialState ?? "idle",
     createdAt,
     updatedAt: createdAt,
@@ -308,11 +291,21 @@ export function transitionExecutionLifecycle(
     };
   }
 
-  const createdAt = normalizeTimestamp(options.createdAt);
+  const createdAt = requiredTimestamp(options.createdAt);
+  const eventId =
+    nullableString(options.eventId) ??
+    deterministicEventId(snapshot.lifecycleId, eventType, snapshot.events.length);
+
+  if (!createdAt) {
+    return {
+      ok: false,
+      snapshot,
+      error: "Execution lifecycle event identity context is required.",
+    };
+  }
+
   const event: ExecutionLifecycleEvent = {
-    eventId:
-      nullableString(options.eventId) ??
-      createEventId(snapshot.lifecycleId, eventType, createdAt, snapshot.events.length),
+    eventId,
     type: eventType,
     createdAt,
     fromState: snapshot.currentState,

@@ -66,7 +66,7 @@ function normalizeCreatedAt(value: string | null | undefined) {
     value.trim() &&
     Number.isFinite(Date.parse(value))
     ? value.trim()
-    : new Date().toISOString();
+    : null;
 }
 
 function safetyCheck(
@@ -157,18 +157,23 @@ export function buildAvanzaExecutionHandoff(
   options: BuildAvanzaExecutionHandoffOptions = {},
 ): AvanzaExecutionHandoff {
   const validation = validateExecutionIntent(intent);
+  const createdAt = normalizeCreatedAt(options.createdAt);
   const safetyChecks = [
     ...buildDefaultExecutionSafetyChecks(intent),
     ...(options.safetyChecks ?? []),
   ];
   const safetyChecksFailed = hasFailedExecutionSafetyChecks(safetyChecks);
-  const status: AvanzaExecutionHandoffStatus = !validation.valid
+  const status: AvanzaExecutionHandoffStatus = !createdAt
+    ? "blocked"
+    : !validation.valid
     ? "invalid_intent"
     : safetyChecksFailed
       ? "blocked"
       : "ready";
   const blockedReason =
-    status === "invalid_intent"
+    !createdAt
+      ? "Execution runtime identity context is required."
+      : status === "invalid_intent"
       ? validation.errors.join(" ")
       : status === "blocked"
         ? failedSafetyCheckReason(safetyChecks)
@@ -176,7 +181,7 @@ export function buildAvanzaExecutionHandoff(
 
   return {
     version: "avanza_execution_handoff_v2",
-    createdAt: normalizeCreatedAt(options.createdAt),
+    createdAt: createdAt ?? "",
     broker: "avanza",
     status,
     mode: intent?.mode ?? null,
