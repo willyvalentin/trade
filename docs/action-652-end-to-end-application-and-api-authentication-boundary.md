@@ -258,6 +258,30 @@ the public Supabase client. The safe sequence is:
 Rollback is a forward fix through the authenticated server contract. Anonymous
 database access must not be restored as a compatibility shortcut.
 
+### Action 652L Browser And Build Remediation
+
+Action 652K identified four recommendation modules whose pure browser exports
+shared files with Supabase writers. Action 652L moves those writers into
+explicit server-only snapshot, scan-run, batch, and outcome persistence modules.
+The browser keeps only computation, row parsing, shared types, JSON/read-model
+helpers, and bounded local UI-state helpers.
+
+The dependency test now follows runtime imports, re-exports, and dynamic imports
+and rejects contained-table operations, Supabase clients, server modules,
+server-only markers, and service-role environment reads anywhere in the
+production browser graph. Browser diagnostics no longer read server environment
+metadata.
+
+Two stale route references now use the canonical fail-closed service-role
+boundary. Origin tests inject environment classification rather than mutating
+readonly Node globals. The official `server-only` marker is declared in the
+clean-install dependency contract, and route tests preserve executable
+session/proxy coverage without loading server-only modules through a
+client-oriented test transform.
+
+The detailed export inventory and validation record is in
+[`action-652l-browser-boundary-split-and-clean-build-repair.md`](./action-652l-browser-boundary-split-and-clean-build-repair.md).
+
 ## No-Effect Boundaries
 
 This Action adds only the bounded local/forward transactional migration. It does

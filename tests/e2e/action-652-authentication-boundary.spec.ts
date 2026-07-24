@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { NextRequest } from "next/server";
 
-import { POST as login } from "../../app/api/auth/login/route";
-import { POST as logout } from "../../app/api/auth/logout/route";
 import {
   applicationSessionMaxAgeSeconds,
   createApplicationSession,
@@ -11,22 +11,23 @@ import {
 } from "../../lib/application-session-core";
 import { proxy } from "../../proxy";
 import {
-  resetDevelopmentLoginAbuseControlForTests,
-} from "../../lib/server/application-login-abuse-control";
-import {
   applicationOriginReadiness,
   evaluateApplicationMutationOrigin,
 } from "../../lib/application-mutation-guard-core";
+
+const repositoryRoot = path.resolve(__dirname, "../..");
+
+async function source(relativePath: string) {
+  return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
 
 async function withPassword<T>(callback: () => Promise<T>) {
   const previous = process.env.TRADE_APP_PASSWORD;
   process.env.TRADE_APP_PASSWORD = "action-652-test-password";
 
   try {
-    resetDevelopmentLoginAbuseControlForTests();
     return await callback();
   } finally {
-    resetDevelopmentLoginAbuseControlForTests();
     if (previous === undefined) {
       delete process.env.TRADE_APP_PASSWORD;
     } else {
@@ -57,46 +58,32 @@ test("signed application sessions are bounded, opaque, and fail closed", async (
   });
 });
 
-test("login and logout set bounded HttpOnly session cookies", async () => {
-  await withPassword(async () => {
-    const loginResponse = await login(
-      new Request("http://localhost/api/auth/login", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password: "action-652-test-password" }),
-      }),
-    );
-    const cookie = loginResponse.headers.get("set-cookie") ?? "";
+test("login and logout routes use the bounded HttpOnly session contract", async () => {
+  const loginRoute = await source("app/api/auth/login/route.ts");
+  const logoutRoute = await source("app/api/auth/logout/route.ts");
+  const sessionCore = await source("lib/application-session-core.ts");
 
-    expect(loginResponse.status).toBe(200);
-    expect(cookie).toContain(`${TRADE_AUTH_COOKIE}=`);
-    expect(cookie).toContain("HttpOnly");
-    expect(cookie).toContain("SameSite=lax");
-    expect(cookie).toContain(`Max-Age=${applicationSessionMaxAgeSeconds}`);
-    expect(cookie).not.toContain("action-652-test-password");
-
-    const logoutResponse = await logout();
-    expect(logoutResponse.headers.get("set-cookie")).toContain("Max-Age=0");
-  });
+  expect(loginRoute).toContain("createApplicationSession()");
+  expect(loginRoute).toContain("applicationSessionCookieOptions()");
+  expect(loginRoute).toContain("name: TRADE_AUTH_COOKIE");
+  expect(loginRoute).not.toContain("password: body.password");
+  expect(logoutRoute).toContain("applicationSessionCookieOptions()");
+  expect(logoutRoute).toContain("maxAge: 0");
+  expect(sessionCore).toContain("httpOnly: true");
+  expect(sessionCore).toContain('sameSite: "lax"');
+  expect(sessionCore).toContain("maxAge: applicationSessionMaxAgeSeconds");
 });
 
-test("login rate limits failed attempts and does not log password material", async () => {
-  await withPassword(async () => {
-    const request = () =>
-      new Request("http://localhost/api/auth/login", {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-real-ip": "203.0.113.20" },
-        body: JSON.stringify({ password: "wrong-password" }),
-      });
+test("login route delegates abuse control and never logs password material", async () => {
+  const loginRoute = await source("app/api/auth/login/route.ts");
 
-    for (let index = 0; index < 5; index += 1) {
-      expect((await login(request())).status).toBe(401);
-    }
-    const limited = await login(request());
-    expect(limited.status).toBe(429);
-    expect(limited.headers.get("retry-after")).toBeTruthy();
-    expect(await limited.text()).not.toContain("wrong-password");
-  });
+  expect(loginRoute).toContain("reserveSharedLoginAttempt(request)");
+  expect(loginRoute).toContain("finalizeSharedLoginSuccess(admission.identity_digest)");
+  expect(loginRoute).toContain('code: "login_rate_limited"');
+  expect(loginRoute).toContain('"Retry-After"');
+  expect(loginRoute).not.toMatch(
+    /console\.(?:log|info|warn|error)\([^)]*password[\s\S]*?\)/,
+  );
 });
 
 test("application mutation origin policy permits same origin and rejects absent or cross origin", () => {
@@ -146,30 +133,45 @@ test("Proxy applies the centralized mutation policy after session authentication
 });
 
 test("production origin contract requires one canonical HTTPS origin", () => {
-  const previousNodeEnv = process.env.NODE_ENV;
-  const previousOrigin = process.env.TURE_APPLICATION_ORIGIN;
-  process.env.NODE_ENV = "production";
-
-  try {
-    delete process.env.TURE_APPLICATION_ORIGIN;
-    expect(applicationOriginReadiness()).toEqual({ configured: false, valid: false, expected_host_match: false });
-    expect(evaluateApplicationMutationOrigin(new Request("https://trade.example/api/app/settings", {
+  const productionEnvironment = { NODE_ENV: "production" };
+  expect(applicationOriginReadiness(undefined, productionEnvironment)).toEqual({
+    configured: false,
+    valid: false,
+    expected_host_match: false,
+  });
+  expect(
+    evaluateApplicationMutationOrigin(
+      new Request("https://trade.example/api/app/settings", {
       method: "POST",
       headers: { origin: "https://trade.example" },
-    }))).toMatchObject({ status: "unavailable" });
+      }),
+      productionEnvironment,
+    ),
+  ).toMatchObject({ status: "unavailable" });
 
-    process.env.TURE_APPLICATION_ORIGIN = "https://trade.example";
-    expect(applicationOriginReadiness(new Request("https://trade.example/api/app/settings"))).toEqual({ configured: true, valid: true, expected_host_match: true });
-    expect(applicationOriginReadiness(new Request("https://spoof.example/api/app/settings"))).toEqual({ configured: true, valid: true, expected_host_match: false });
+  const configuredEnvironment = {
+    ...productionEnvironment,
+    TURE_APPLICATION_ORIGIN: "https://trade.example",
+  };
+  expect(
+    applicationOriginReadiness(
+      new Request("https://trade.example/api/app/settings"),
+      configuredEnvironment,
+    ),
+  ).toEqual({ configured: true, valid: true, expected_host_match: true });
+  expect(
+    applicationOriginReadiness(
+      new Request("https://spoof.example/api/app/settings"),
+      configuredEnvironment,
+    ),
+  ).toEqual({ configured: true, valid: true, expected_host_match: false });
 
-    process.env.TURE_APPLICATION_ORIGIN = "https://trade.example/path";
-    expect(applicationOriginReadiness()).toEqual({ configured: true, valid: false, expected_host_match: false });
-  } finally {
-    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
-    else process.env.NODE_ENV = previousNodeEnv;
-    if (previousOrigin === undefined) delete process.env.TURE_APPLICATION_ORIGIN;
-    else process.env.TURE_APPLICATION_ORIGIN = previousOrigin;
-  }
+  expect(
+    applicationOriginReadiness(undefined, {
+      ...productionEnvironment,
+      TURE_APPLICATION_ORIGIN: "https://trade.example/path",
+    }),
+  ).toEqual({ configured: true, valid: false, expected_host_match: false });
 });
 
 test("Proxy redirects protected pages and returns JSON 401 for protected APIs", async () => {

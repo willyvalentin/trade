@@ -6,11 +6,11 @@ import {
   TRADE_AUTH_COOKIE,
 } from "@/lib/trade-auth";
 import {
-  buildApplicationLoginRuntimeProof,
   finalizeSharedLoginSuccess,
   passwordsMatch,
   reserveSharedLoginAttempt,
 } from "@/lib/server/application-login-abuse-control";
+import { buildApplicationLoginRuntimeProof } from "@/lib/application-login-runtime-proof";
 import { evaluateApplicationAuthenticationOrigin } from "@/lib/application-mutation-guard-core";
 
 export async function POST(request: Request) {

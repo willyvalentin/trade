@@ -23,8 +23,10 @@ function normalizedOrigin(value: string | null | undefined) {
   }
 }
 
-export function configuredApplicationOrigin() {
-  const value = process.env.TURE_APPLICATION_ORIGIN;
+export function configuredApplicationOrigin(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const value = environment.TURE_APPLICATION_ORIGIN;
   if (typeof value !== "string" || value.length === 0 || value.length > 300 || value !== value.trim()) {
     return null;
   }
@@ -57,16 +59,19 @@ export function applicationDeploymentContext(
   return "production_context_unobserved" as const;
 }
 
-export function evaluateApplicationAuthenticationOrigin(request: Request): ApplicationMutationOriginResult {
-  if (process.env.NODE_ENV !== "production") return { status: "allowed" };
-  if (restrictedNetlifyContexts.has(process.env.CONTEXT ?? "")) {
+export function evaluateApplicationAuthenticationOrigin(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+): ApplicationMutationOriginResult {
+  if (environment.NODE_ENV !== "production") return { status: "allowed" };
+  if (restrictedNetlifyContexts.has(environment.CONTEXT ?? "")) {
     return {
       status: "forbidden",
       code: "application_authentication_deploy_context_forbidden",
     };
   }
 
-  const configuredOrigin = configuredApplicationOrigin();
+  const configuredOrigin = configuredApplicationOrigin(environment);
   if (!configuredOrigin) {
     return {
       status: "unavailable",
@@ -79,9 +84,14 @@ export function evaluateApplicationAuthenticationOrigin(request: Request): Appli
     : { status: "forbidden", code: "application_mutation_origin_invalid" };
 }
 
-export function applicationOriginReadiness(request?: Request) {
-  const configured = typeof process.env.TURE_APPLICATION_ORIGIN === "string" && process.env.TURE_APPLICATION_ORIGIN.length > 0;
-  const origin = configuredApplicationOrigin();
+export function applicationOriginReadiness(
+  request?: Request,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const configured =
+    typeof environment.TURE_APPLICATION_ORIGIN === "string" &&
+    environment.TURE_APPLICATION_ORIGIN.length > 0;
+  const origin = configuredApplicationOrigin(environment);
   const requestOrigin = request ? normalizedOrigin(request.url) : null;
   return {
     configured,
@@ -90,7 +100,10 @@ export function applicationOriginReadiness(request?: Request) {
   };
 }
 
-export function evaluateApplicationMutationOrigin(request: Request): ApplicationMutationOriginResult {
+export function evaluateApplicationMutationOrigin(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+): ApplicationMutationOriginResult {
   if (!unsafeMethods.has(request.method.toUpperCase())) return { status: "allowed" };
 
   const requestOrigin = normalizedOrigin(request.url);
@@ -99,20 +112,20 @@ export function evaluateApplicationMutationOrigin(request: Request): Application
     return { status: "forbidden", code: "application_mutation_origin_required" };
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (environment.NODE_ENV !== "production") {
     return requestOrigin && suppliedOrigin === requestOrigin
       ? { status: "allowed" }
       : { status: "forbidden", code: "application_mutation_origin_invalid" };
   }
 
-  if (restrictedNetlifyContexts.has(process.env.CONTEXT ?? "")) {
+  if (restrictedNetlifyContexts.has(environment.CONTEXT ?? "")) {
     return {
       status: "forbidden",
       code: "application_mutation_deploy_context_forbidden",
     };
   }
 
-  const configuredOrigin = configuredApplicationOrigin();
+  const configuredOrigin = configuredApplicationOrigin(environment);
   if (!configuredOrigin) {
     return {
       status: "unavailable",

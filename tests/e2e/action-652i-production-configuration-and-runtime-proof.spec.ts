@@ -14,7 +14,7 @@ import {
 } from "../../lib/application-mutation-guard-core";
 import {
   buildApplicationLoginRuntimeProof,
-} from "../../lib/server/application-login-abuse-control";
+} from "../../lib/application-login-runtime-proof";
 import {
   buildContinuousIntelligenceDeploymentAssertionReadiness,
 } from "../../lib/continuous-intelligence-shadow-canary-runtime-deployment-identity";
@@ -237,7 +237,7 @@ test("deployment assertion readiness reports mismatch without returning identity
 test("runtime proof remains disabled by default and login source never logs header values", async () => {
   const login = await source("app/api/auth/login/route.ts");
   const control = await source(
-    "lib/server/application-login-abuse-control.ts",
+    "lib/application-login-runtime-proof.ts",
   );
 
   expect(control).toContain(

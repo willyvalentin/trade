@@ -24,10 +24,11 @@ test("shared limiter migration is service-role-only and digest-only", async () =
 
 test("production shared limiter fails closed and ignores spoofable forwarded identity", async () => {
   const control = await source("lib/server/application-login-abuse-control.ts");
+  const identity = await source("lib/application-login-runtime-proof.ts");
   const loginRoute = await source("app/api/auth/login/route.ts");
 
-  expect(control).toContain('request.headers.get("x-nf-client-connection-ip")');
-  expect(control).not.toContain('request.headers.get("x-forwarded-for")');
+  expect(identity).toContain('request.headers.get("x-nf-client-connection-ip")');
+  expect(identity).not.toContain('request.headers.get("x-forwarded-for")');
   expect(control).toContain('process.env.NODE_ENV === "production"');
   expect(control).toContain('{ status: "unavailable" }');
   expect(loginRoute).toContain("reserveSharedLoginAttempt");

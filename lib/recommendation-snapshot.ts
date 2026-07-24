@@ -1,5 +1,3 @@
-import { normalizeUnknownError } from "@/lib/error-logging";
-import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
 import { computePlanPriceFreshnessDiagnostics } from "@/lib/plan-price-freshness";
 import { entryTypeMetadataForSnapshot } from "@/lib/recommendation-entry-type";
 import {
@@ -170,24 +168,6 @@ export type RecommendationSnapshotShadowEntryTrialSummary = {
   shadow_snapshot_variant_counts: Record<string, number>;
   shadow_snapshot_source_counts: Record<string, number>;
   shadow_snapshot_not_live_signal_count: number;
-};
-
-type SupabaseMutationResult = {
-  error?: { message?: string } | null;
-};
-
-type SupabaseQueryBuilder = {
-  upsert?: (
-    value: Record<string, unknown>,
-    options?: Record<string, unknown>,
-  ) => PromiseLike<SupabaseMutationResult>;
-  update?: (value: Record<string, unknown>) => {
-    eq: (column: string, value: string) => PromiseLike<SupabaseMutationResult>;
-  };
-};
-
-export type RecommendationSnapshotSupabaseClient = {
-  from: (table: string) => SupabaseQueryBuilder;
 };
 
 export const recommendationSnapshotLocalStorageKey =
@@ -918,116 +898,6 @@ export function persistRecommendationSnapshotToLocalStorage(
   }
 }
 
-function toSupabaseRow(snapshot: RecommendationSnapshot) {
-  return {
-    id: snapshot.id,
-    snapshot_fingerprint: snapshot.snapshot_fingerprint,
-    recommendation_id: snapshot.recommendation_id,
-    scan_run_id: snapshot.scan_run_id,
-    ticker: snapshot.ticker,
-    recommended_at: snapshot.recommended_at,
-    window: snapshot.window,
-    status: snapshot.status,
-    source_mode: snapshot.source_mode,
-    data_mode: snapshot.data_mode,
-    market_session_phase: snapshot.market_session_phase,
-    entry: snapshot.entry,
-    stop: snapshot.stop,
-    target: snapshot.target,
-    confidence: finiteNumber(snapshot.confidence),
-    score: finiteNumber(snapshot.score),
-    risk_reward: snapshot.planned_risk_reward,
-    rationale: snapshot.rationale,
-    payload_json: snapshot.payload_json,
-    intake_quality_json: snapshot.intake_quality_json,
-    scan_observability_json: snapshot.scan_observability_json,
-    was_taken: snapshot.was_taken,
-    linked_position_id: snapshot.linked_position_id,
-    created_at: snapshot.created_at,
-    updated_at: snapshot.updated_at,
-  };
-}
-
-export async function persistRecommendationSnapshot(
-  snapshot: RecommendationSnapshot,
-  options: {
-    supabaseClient?: RecommendationSnapshotSupabaseClient | null;
-    storage?: Storage;
-    server?: boolean;
-    unavailableReason?: string | null;
-  } = {},
-): Promise<RecommendationSnapshotPersistenceResult> {
-  if (options.supabaseClient?.from) {
-    try {
-      const result = await options.supabaseClient
-        .from("recommendation_snapshots")
-        .upsert?.(toSupabaseRow(snapshot), {
-          onConflict: "snapshot_fingerprint",
-          ignoreDuplicates: true,
-        });
-
-      if (!result?.error) {
-        return {
-          status: "saved",
-          mode: "supabase",
-          snapshot,
-          error: null,
-        };
-      }
-
-      console.error("[recommendation-snapshot] supabase_persistence_error", {
-        source: "supabase.recommendation_snapshots",
-        operation: "upsert_snapshot",
-        snapshotFingerprint: snapshot.snapshot_fingerprint,
-        recommendationId: snapshot.recommendation_id,
-        error: normalizeUnknownError(result.error),
-      });
-      return {
-        status: "failed",
-        mode: "supabase",
-        snapshot,
-        error:
-          `${classifySupabasePersistenceError(result.error)}:${
-            result.error.message ??
-            "Unknown Supabase recommendation snapshot persistence error."
-          }`,
-      };
-    } catch (error) {
-      console.error("[recommendation-snapshot] supabase_persistence_exception", {
-        source: "supabase.recommendation_snapshots",
-        operation: "upsert_snapshot",
-        snapshotFingerprint: snapshot.snapshot_fingerprint,
-        recommendationId: snapshot.recommendation_id,
-        error: normalizeUnknownError(error),
-      });
-      return {
-        status: "failed",
-        mode: "supabase",
-        snapshot,
-        error:
-          `${classifySupabasePersistenceError(error)}:${
-            error instanceof Error
-              ? error.message
-              : "Unknown Supabase recommendation snapshot persistence error."
-          }`,
-      };
-    }
-  }
-
-  if (options.server) {
-    return {
-      status: "failed",
-      mode: "none",
-      snapshot,
-      error: options.unavailableReason
-        ? `server_persistence_unavailable:${options.unavailableReason}`
-        : "server_persistence_unavailable",
-    };
-  }
-
-  return persistRecommendationSnapshotToLocalStorage(snapshot, options.storage);
-}
-
 export async function markRecommendationSnapshotTaken(
   input: {
     snapshot_fingerprint?: string | null;
@@ -1036,7 +906,6 @@ export async function markRecommendationSnapshotTaken(
     taken_at?: string | Date | null;
   },
   options: {
-    supabaseClient?: RecommendationSnapshotSupabaseClient | null;
     storage?: Storage;
   } = {},
 ): Promise<RecommendationSnapshotPersistenceResult | null> {
@@ -1044,39 +913,6 @@ export async function markRecommendationSnapshotTaken(
   const fingerprint = textOrNull(input.snapshot_fingerprint);
   const recommendationId = textOrNull(input.recommendation_id);
   const linkedPositionId = textOrNull(input.linked_position_id);
-
-  if (options.supabaseClient?.from && (fingerprint || recommendationId)) {
-    try {
-      const builder = options.supabaseClient.from("recommendation_snapshots");
-      const update = builder.update?.({
-        status: "taken",
-        was_taken: true,
-        linked_position_id: linkedPositionId,
-        updated_at: updatedAt,
-      });
-      const result = fingerprint
-        ? await update?.eq("snapshot_fingerprint", fingerprint)
-        : recommendationId
-          ? await update?.eq("recommendation_id", recommendationId)
-          : null;
-
-      if (!result?.error && fingerprint) {
-        return {
-          status: "saved",
-          mode: "supabase",
-          snapshot: buildRecommendationSnapshot({
-            recommendation_id: recommendationId,
-            linked_position_id: linkedPositionId,
-            app_timestamp: updatedAt,
-            was_taken: true,
-          }),
-          error: null,
-        };
-      }
-    } catch {
-      // Fall through to localStorage. Taken marking is best-effort metadata only.
-    }
-  }
 
   const snapshots = readRecommendationSnapshotsFromLocalStorage(options.storage);
   const nextSnapshots = snapshots.map((snapshot) => {

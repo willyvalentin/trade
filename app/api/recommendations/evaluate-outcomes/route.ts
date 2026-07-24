@@ -3,7 +3,6 @@ import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
-  persistRecommendationOutcome,
   recommendationOutcomeFromPersistenceRow,
   readRecommendationOutcomesFromLocalStorage,
   resolveRecommendationOutcomeSide,
@@ -11,6 +10,7 @@ import {
   type RecommendationOutcomeHorizon,
   type RecommendationOutcomePersistenceResult,
 } from "@/lib/recommendation-outcome-tracker";
+import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import {
   runRecommendationOutcomeEvaluation,
   type RecommendationOutcomeCandleRequest,
@@ -1999,7 +1999,11 @@ export async function POST(request: Request) {
             return result;
           }
         : (outcome) =>
-            persistRecommendationOutcome(outcome, { supabaseClient: supabase }),
+            persistRecommendationOutcome(outcome, {
+              supabaseClient: serverSupabase?.client,
+              server: true,
+              unavailableReason: serverSupabase?.unavailable_reason,
+            }),
   });
 
   const evaluatedSnapshotFingerprints = new Set(

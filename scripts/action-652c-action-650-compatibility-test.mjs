@@ -13,6 +13,10 @@ const action652Migration = readFileSync(
   new URL("../supabase/migrations/20260724001500_create_transactional_open_position_command.sql", import.meta.url),
   "utf8",
 );
+const action652LoginAbuseMigration = readFileSync(
+  new URL("../supabase/migrations/20260724001600_create_shared_login_abuse_control.sql", import.meta.url),
+  "utf8",
+);
 
 function command(binary, args) {
   return execFileSync(binary, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
@@ -65,6 +69,7 @@ try {
     ${tablesSql}
   `);
   apply(action652Migration);
+  apply(action652LoginAbuseMigration);
   apply(action650Migration);
   apply(`
     do $$ declare t text; begin
@@ -90,7 +95,7 @@ try {
     exception when insufficient_privilege then null;
     end $$;
   `);
-  console.log("Action 652C -> Action 650 synthetic migration replay passed.");
+  console.log("Action 652 01500 -> 01600 -> Action 650 02000 synthetic migration replay passed.");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(temporarySql, { force: true });

@@ -54,21 +54,21 @@ import {
 } from "@/lib/scheduled-scan-attempts";
 import {
   buildRecommendationScanRun,
-  persistRecommendationScanRun,
   recommendationScanRunFromPersistenceRow,
   type RecommendationScanRun,
 } from "@/lib/recommendation-scan-run";
 import {
   buildRecommendationSnapshot,
-  persistRecommendationSnapshot,
   summarizeRecommendationSnapshotShadowEntryTrialMetadata,
   type RecommendationSnapshot,
 } from "@/lib/recommendation-snapshot";
 import {
   buildRecommendationBatch,
   buildRecommendationBatchFingerprint,
-  persistRecommendationBatch,
 } from "@/lib/recommendation-batch-memory";
+import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
+import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
+import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
@@ -1381,7 +1381,7 @@ async function recordScheduledScanAttempt({
       reference_refresh: scanLog?.reference_refresh ?? null,
     },
   });
-  const { error } = await supabase
+  const { error } = await serverSupabase()
     .from("scheduled_scan_attempts")
     .upsert(record, { onConflict: "attempt_fingerprint" });
 

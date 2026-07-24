@@ -1,5 +1,9 @@
 import "server-only";
 
+import {
+  RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
+  RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
+} from "@/lib/recent-recommendation-readback";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type ApplicationDataAccessResult<T> =
@@ -80,12 +84,12 @@ export async function readApplicationDashboardData() {
       .from("recommendation_snapshots")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(400),
+      .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
     client
       .from("recommendation_outcomes")
       .select("*")
       .order("evaluated_at", { ascending: false })
-      .limit(1200),
+      .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
     client
       .from("market_regime_snapshots")
       .select("*")

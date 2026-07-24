@@ -27,7 +27,10 @@ test("contained server paths use only fail-closed service-role clients", async (
   }
   const clientFactory = await source("lib/supabase-server.ts");
   expect(clientFactory).not.toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  expect(clientFactory).toContain("return getServerSupabaseClient()");
+  expect(clientFactory).toContain('import "server-only"');
+  expect(clientFactory).toContain("supabase_service_role_missing");
+  expect(clientFactory).toContain("client: null");
+  expect(clientFactory).toContain("persistSession: false");
 });
 
 test("scan-log parsing is pure and persistence is server-only", async () => {

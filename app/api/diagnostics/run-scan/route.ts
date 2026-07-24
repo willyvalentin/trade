@@ -34,18 +34,18 @@ import { buildMarketSessionEvaluation } from "@/lib/market-session";
 import { buildRecommendationServingCadenceSummary } from "@/lib/recommendation-serving-cadence";
 import {
   buildRecommendationScanRun,
-  persistRecommendationScanRun,
   type RecommendationScanRun,
 } from "@/lib/recommendation-scan-run";
 import {
   buildRecommendationSnapshot,
-  persistRecommendationSnapshot,
   type RecommendationSnapshot,
 } from "@/lib/recommendation-snapshot";
 import {
   buildRecommendationBatch,
-  persistRecommendationBatch,
 } from "@/lib/recommendation-batch-memory";
+import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
+import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
+import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
 import {
   createActiveScanTrace,
   providerEnvSnapshot,
