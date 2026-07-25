@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Local-only Action 654 SQL Editor bundle and failure-safety validation. */
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
