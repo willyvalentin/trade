@@ -37,6 +37,13 @@ const forbiddenMigrations = [
   "20260710000000_create_execution_authorization_consumptions.sql",
 ];
 
+function containsExecutableMutation(sql: string) {
+  const withoutQuotedLiterals = sql.replace(/'(?:''|[^'])*'/g, "");
+  return /\b(insert|update|delete|truncate|alter|drop|create|grant|revoke)\b/iu.test(
+    withoutQuotedLiterals,
+  );
+}
+
 test("Action 650 contains every exposed trading table behind a server-only boundary", () => {
   for (const table of tables) {
     expect(migration).toContain(`'${table}'`);
@@ -69,7 +76,8 @@ test("Action 650 structurally enforces append-only execution event tables", () =
 
 test("the disposable local behavior harness uses only the intended migration subset", () => {
   expect(localRoleTest).toContain('"postgres:16-alpine"');
-  expect(localRoleTest).toContain("has_table_privilege('anon'");
+  expect(localRoleTest).toContain("has_table_privilege(current_user");
+  expect(localRoleTest).toContain("for (const role of containedRoles)");
   expect(localRoleTest).toContain('"truncate", "references", "trigger"');
   expect(localRoleTest).toContain("acl.grantee = 0");
   expect(localRoleTest).toContain("catalog_checks");
@@ -98,7 +106,7 @@ test("the production inventory query is catalog-only and contains no data mutati
   expect(catalogInspection).toContain("has_table_privilege");
   expect(catalogInspection).toContain("'TRUNCATE'");
   expect(catalogInspection).toContain("acl.grantee = 0");
-  expect(catalogInspection).not.toMatch(/\b(insert|update|delete|alter|create|drop|grant|revoke)\b/iu);
+  expect(containsExecutableMutation(catalogInspection)).toBe(false);
 });
 
 test("the reviewed SQL Editor bundle is one-time, transactional, and fail-closed", () => {
@@ -118,5 +126,5 @@ test("the post-apply readback is catalog-only and verifies the full contract", (
   expect(postApplyReadback).toContain("'references'");
   expect(postApplyReadback).toContain("'trigger'");
   expect(postApplyReadback).toContain("cardinality(statements) = 6");
-  expect(postApplyReadback).not.toMatch(/\b(insert|update|delete|alter|create|drop|grant|revoke)\b/iu);
+  expect(containsExecutableMutation(postApplyReadback)).toBe(false);
 });
