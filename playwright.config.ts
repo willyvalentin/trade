@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 const port = process.env.PLAYWRIGHT_PORT ?? "3010";
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${port}`;
-const shouldStartWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER !== "true";
+// Static containment suites inspect source only. They opt out of Next startup
+// explicitly and therefore never need browser Supabase configuration.
+const isStaticContainmentMode = process.env.PLAYWRIGHT_SKIP_WEB_SERVER === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -18,7 +20,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
-  webServer: shouldStartWebServer
+  webServer: !isStaticContainmentMode
     ? {
         command: `npm run dev -- --port ${port}`,
         env: {

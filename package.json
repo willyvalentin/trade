@@ -13,6 +13,7 @@
     "mock-agent:run": "node scripts/mock-order-page-agent-runner.mjs",
     "mock-agent:run:headed": "node scripts/mock-order-page-agent-runner.mjs --headed",
     "test:e2e": "playwright test",
+    "test:e2e:static": "node scripts/action-654-run-static-playwright.mjs",
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {

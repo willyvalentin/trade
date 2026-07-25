@@ -75,6 +75,15 @@ RLS regression, incorrect history count, and a forced postcondition rollback.
 Each rejected bundle case checks that history was not inserted and containment
 state did not partially change.
 
+## Static Playwright mode
+
+`npm run test:e2e:static` is the repository-owned static containment runner.
+It sets `PLAYWRIGHT_SKIP_WEB_SERVER=true` in a cross-platform Node runner and
+runs only the Action 650, 652B, 652C, and 652F source-contract suites. In this
+mode `playwright.config.ts` omits `webServer`, so Next is not started and no
+public Supabase configuration, local environment file, or network destination
+is needed. Ordinary `npm run test:e2e` behavior is unchanged.
+
 ## Production gates
 
 Production application remains separately approved work. Before an operator can
