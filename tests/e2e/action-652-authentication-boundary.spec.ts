@@ -133,10 +133,12 @@ test("Proxy applies the centralized mutation policy after session authentication
 });
 
 test("production origin contract requires one canonical HTTPS origin", () => {
-  const productionEnvironment = { NODE_ENV: "production", CONTEXT: "production" };
+  const productionEnvironment = { NODE_ENV: "production" };
   expect(applicationOriginReadiness(undefined, productionEnvironment)).toEqual({
     configured: false,
     valid: false,
+    runtime_url_valid: false,
+    runtime_matches_configured: false,
     expected_host_match: false,
   });
   expect(
@@ -151,27 +153,28 @@ test("production origin contract requires one canonical HTTPS origin", () => {
 
   const configuredEnvironment = {
     ...productionEnvironment,
-    TURE_APPLICATION_ORIGIN: "https://trade.example",
+    TURE_APPLICATION_ORIGIN: "https://trade.valentinlabs.com",
+    URL: "https://trade.valentinlabs.com",
   };
   expect(
     applicationOriginReadiness(
-      new Request("https://trade.example/api/app/settings"),
+      new Request("https://trade.valentinlabs.com/api/app/settings"),
       configuredEnvironment,
     ),
-  ).toEqual({ configured: true, valid: true, expected_host_match: true });
+  ).toEqual({ configured: true, valid: true, runtime_url_valid: true, runtime_matches_configured: true, expected_host_match: true });
   expect(
     applicationOriginReadiness(
       new Request("https://spoof.example/api/app/settings"),
       configuredEnvironment,
     ),
-  ).toEqual({ configured: true, valid: true, expected_host_match: false });
+  ).toEqual({ configured: true, valid: true, runtime_url_valid: true, runtime_matches_configured: true, expected_host_match: false });
 
   expect(
     applicationOriginReadiness(undefined, {
       ...productionEnvironment,
-      TURE_APPLICATION_ORIGIN: "https://trade.example/path",
+      TURE_APPLICATION_ORIGIN: "https://trade.valentinlabs.com/path",
     }),
-  ).toEqual({ configured: true, valid: false, expected_host_match: false });
+  ).toEqual({ configured: true, valid: true, runtime_url_valid: false, runtime_matches_configured: false, expected_host_match: false });
 });
 
 test("Proxy redirects protected pages and returns JSON 401 for protected APIs", async () => {

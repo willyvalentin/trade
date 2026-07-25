@@ -13,8 +13,8 @@ const productionOrigin = "https://trade.valentinlabs.com";
 
 const productionEnvironment = {
   NODE_ENV: "production",
-  CONTEXT: "production",
   TURE_APPLICATION_ORIGIN: productionOrigin,
+  URL: productionOrigin,
 };
 
 function request(origin: string | undefined, url = `${productionOrigin}/api/auth/login`) {
@@ -33,10 +33,19 @@ test("authentication origin guard has one strict production contract", async () 
     evaluateApplicationAuthenticationOrigin(request(productionOrigin), productionEnvironment),
   ).toEqual({ status: "allowed", category: "allowed" });
 
-  for (const origin of [undefined, "null", "https://trade.valentinlabs.com/", "https://trade.valentinlabs.com/path", "https://trade.valentinlabs.com, https://example.invalid"]) {
+  for (const origin of [undefined, "null", "https://trade.valentinlabs.com, https://example.invalid"]) {
     const result = evaluateApplicationAuthenticationOrigin(request(origin), productionEnvironment);
     expect(result.status).toBe("forbidden");
     expect(result).not.toMatchObject({ category: "allowed" });
+  }
+
+  for (const origin of [
+    "https://trade.valentinlabs.com/",
+    "https://trade.valentinlabs.com/path?ignored=true#fragment",
+  ]) {
+    expect(
+      evaluateApplicationAuthenticationOrigin(request(origin), productionEnvironment),
+    ).toEqual({ status: "allowed", category: "allowed" });
   }
 
   for (const origin of [
@@ -56,13 +65,13 @@ test("authentication origin guard has one strict production contract", async () 
     }),
   ).toEqual({ status: "unavailable", category: "origin_configuration_unavailable" });
 
-  for (const context of ["deploy-preview", "branch-deploy", undefined]) {
+  for (const runtimeUrl of ["https://trade-vl.netlify.app", "https://deploy-preview-46--trade-vl.netlify.app", undefined]) {
     expect(
       evaluateApplicationAuthenticationOrigin(request(productionOrigin), {
         ...productionEnvironment,
-        CONTEXT: context,
+        URL: runtimeUrl,
       }),
-    ).toEqual({ status: "forbidden", category: "non_production_context_denied" });
+    ).toMatchObject({ status: "forbidden" });
   }
 
   const failure = authenticationOriginFailureResponse(

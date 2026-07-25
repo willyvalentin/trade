@@ -57,7 +57,7 @@ test("production origin is canonical while preview and branch authentication sta
   const productionEnvironment = {
     NODE_ENV: "production",
     TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
-    CONTEXT: "production",
+    URL: applicationCanonicalProductionOrigin,
   };
   const request = new Request(
     `${applicationCanonicalProductionOrigin}/api/auth/login`,
@@ -79,12 +79,14 @@ test("production origin is canonical while preview and branch authentication sta
     ),
   ).toEqual({ status: "allowed" });
 
-  for (const context of ["deploy-preview", "branch-deploy"]) {
+  for (const runtimeUrl of [
+    "https://trade-vl.netlify.app",
+    "https://deploy-preview-46--trade-vl.netlify.app",
+  ]) {
     const previewEnvironment = {
       NODE_ENV: "production",
-      TURE_APPLICATION_ORIGIN:
-        "https://deploy-preview-46--trade-vl.netlify.app",
-      CONTEXT: context,
+      TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
+      URL: runtimeUrl,
     };
     const previewRequest = new Request(
       "https://deploy-preview-46--trade-vl.netlify.app/api/auth/login",
@@ -95,7 +97,7 @@ test("production origin is canonical while preview and branch authentication sta
     );
     expect(
       evaluateApplicationAuthenticationOrigin(previewRequest, previewEnvironment),
-    ).toEqual({ status: "forbidden", category: "non_production_context_denied" });
+    ).toEqual({ status: "forbidden", category: "runtime_url_mismatch" });
   }
 
   expect(applicationEnvironmentScopeContract.deploy_preview.secret_source).toBe(
@@ -132,8 +134,8 @@ test("environment metadata evaluator detects preview credential exposure without
 test("temporary login runtime proof is production-only, authorized by successful login, and boolean-only", async () => {
   const enabledProductionEnvironment = {
     NODE_ENV: "production",
-    CONTEXT: "production",
     TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
+    URL: applicationCanonicalProductionOrigin,
     TURE_LOGIN_RUNTIME_PROOF_ENABLED: "true",
   };
   const request = new Request(

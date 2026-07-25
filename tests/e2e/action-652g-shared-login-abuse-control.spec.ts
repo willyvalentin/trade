@@ -36,10 +36,12 @@ test("production shared limiter fails closed and ignores spoofable forwarded ide
   expect(loginRoute).toContain("login_protection_unavailable");
 });
 
-test("origin contract rejects noncanonical production values", async () => {
+test("origin contract anchors production identity without trusting URL decoration", async () => {
   const guard = await source("lib/application-mutation-guard-core.ts");
   expect(guard).toContain('parsed.protocol !== "https:"');
   expect(guard).toContain("parsed.username");
-  expect(guard).toContain("parsed.pathname !== \"/\"");
+  expect(guard).toContain("applicationCanonicalProductionOrigin");
+  expect(guard).toContain("runtimeApplicationUrl");
+  expect(guard).not.toContain("environment.CONTEXT");
   expect(guard).toContain("applicationOriginReadiness");
 });
