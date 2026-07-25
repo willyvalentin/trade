@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Disposable PostgreSQL behavior test for Action 650.
+ * Disposable effective-role validation for Action 650.
  *
- * It starts a local Docker PostgreSQL instance, applies only the migration
- * subset that owns the contained tables, then proves actual role behavior.
- * It has no Supabase, network, provider, broker, or production code path.
+ * The harness uses only a local Docker PostgreSQL instance. It deliberately
+ * checks the full table ACL matrix rather than relying on a successful
+ * migration replay as evidence of browser-role containment.
  */
 import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -37,7 +37,9 @@ const tables = [
   "execution_agent_progress_events", "execution_lifecycle_events",
   "execution_record_audit_events",
 ];
-
+const privileges = ["select", "insert", "update", "delete", "truncate", "references", "trigger"];
+const containedRoles = ["anon", "authenticated"];
+const serviceRolePrivileges = new Set(["select", "insert", "update", "delete"]);
 const container = `ture-action-650-${randomUUID().slice(0, 12)}`;
 
 function run(command, args, options = {}) {
@@ -48,73 +50,117 @@ function run(command, args, options = {}) {
   return result.stdout;
 }
 
-function sql(statement) {
-  return run("docker", ["exec", "-i", container, "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-c", statement]);
+function sql(statement, allowFailure = false) {
+  const result = spawnSync(
+    "docker",
+    ["exec", "-i", container, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-qAt", "-c", statement],
+    { encoding: "utf8" },
+  );
+  if (!allowFailure && result.status !== 0) {
+    throw new Error(`SQL failed: ${(result.stderr || result.stdout || "unknown error").trim()}`);
+  }
+  return result;
 }
 
 function apply(file) {
   const path = resolve(root, "supabase/migrations", file);
   if (!existsSync(path)) throw new Error(`missing migration ${file}`);
-  run("docker", ["exec", "-i", container, "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], { input: readFileSync(path, "utf8") });
+  run(
+    "docker",
+    ["exec", "-i", container, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
+    { input: readFileSync(path, "utf8") },
+  );
 }
 
-function expectDenied(statement, label) {
-  const result = spawnSync("docker", ["exec", "-i", container, "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-c", statement], { encoding: "utf8" });
-  if (result.status === 0) throw new Error(`${label} unexpectedly succeeded`);
+function assertEqual(actual, expected, label) {
+  if (actual !== expected) throw new Error(`${label}: expected ${expected}, received ${actual}`);
+}
+
+function assertDenied(statement, label) {
+  if (sql(statement, true).status === 0) throw new Error(`${label} unexpectedly succeeded`);
 }
 
 try {
   run("docker", ["run", "-d", "--rm", "--name", container, "-e", "POSTGRES_PASSWORD=postgres", "postgres:16-alpine"]);
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    const ready = spawnSync("docker", ["exec", container, "pg_isready", "-U", "postgres"], { encoding: "utf8" });
-    if (ready.status === 0) break;
-    if (attempt === 29) throw new Error("local PostgreSQL did not become ready");
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    if (sql("select 1;", true).status === 0) {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+      if (sql("select 1;", true).status === 0) break;
+    }
+    if (attempt === 39) throw new Error("local PostgreSQL did not become ready");
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
   }
 
   sql("create extension if not exists pgcrypto; create role anon login; create role authenticated login; create role service_role login bypassrls;");
   for (const file of migrations) apply(file);
-  run(
-    "docker",
-    ["exec", "-i", container, "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
-    { input: readFileSync(resolve(root, "scripts/action-650-production-catalog-readonly.sql"), "utf8") },
-  );
 
+  let catalogChecks = 0;
+  let effectiveChecks = 0;
   for (const table of tables) {
-    const privileges = sql(`
-      select
-        has_table_privilege('anon', 'public.${table}', 'select'),
-        has_table_privilege('authenticated', 'public.${table}', 'insert'),
-        not exists (
+    const relation = `public.${table}`;
+    assertEqual(sql(`select relrowsecurity::text from pg_class where oid = '${relation}'::regclass;`).stdout.trim(), "true", `RLS ${table}`);
+    catalogChecks += 1;
+
+    for (const privilege of privileges) {
+      const publicGrant = sql(`
+        select exists (
           select 1
-          from pg_class c
-          cross join lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) acl
-          where c.oid = 'public.${table}'::regclass
+          from pg_class classes
+          cross join lateral aclexplode(coalesce(classes.relacl, acldefault('r', classes.relowner))) acl
+          where classes.oid = '${relation}'::regclass
             and acl.grantee = 0
-        ),
-        has_table_privilege('service_role', 'public.${table}', 'select');
-    `);
-    if (!/f\s*\|\s*f\s*\|\s*t\s*\|\s*t/u.test(privileges)) {
-      throw new Error(`unexpected effective privilege matrix for ${table}`);
+            and acl.privilege_type = upper('${privilege}')
+        )::text;
+      `).stdout.trim();
+      assertEqual(publicGrant, "false", `PUBLIC ${privilege} ${table}`);
+      catalogChecks += 1;
+
+      for (const role of containedRoles) {
+        assertEqual(sql(`select has_table_privilege('${role}', '${relation}', '${privilege}')::text;`).stdout.trim(), "false", `${role} ${privilege} ${table}`);
+        assertEqual(sql(`set local role ${role}; select has_table_privilege(current_user, '${relation}', '${privilege}')::text;`).stdout.trim(), "false", `effective ${role} ${privilege} ${table}`);
+        catalogChecks += 1;
+        effectiveChecks += 1;
+      }
+
+      const expectedService = serviceRolePrivileges.has(privilege) ? "true" : "false";
+      assertEqual(sql(`select has_table_privilege('service_role', '${relation}', '${privilege}')::text;`).stdout.trim(), expectedService, `service_role ${privilege} ${table}`);
+      assertEqual(sql(`set local role service_role; select has_table_privilege(current_user, '${relation}', '${privilege}')::text;`).stdout.trim(), expectedService, `effective service_role ${privilege} ${table}`);
+      catalogChecks += 1;
+      effectiveChecks += 1;
     }
-    const rls = sql(`select relrowsecurity from pg_class where oid = 'public.${table}'::regclass;`);
-    if (!/t/u.test(rls)) throw new Error(`RLS not enabled for ${table}`);
-    expectDenied(`set role anon; select 1 from public.${table} limit 1;`, `anon select ${table}`);
-    expectDenied(`set role anon; insert into public.${table} default values;`, `anon insert ${table}`);
-    expectDenied(`set role anon; update public.${table} set created_at = created_at;`, `anon update ${table}`);
-    expectDenied(`set role anon; delete from public.${table};`, `anon delete ${table}`);
-    expectDenied(`set role authenticated; select 1 from public.${table} limit 1;`, `authenticated select ${table}`);
-    expectDenied(`set role authenticated; insert into public.${table} default values;`, `authenticated insert ${table}`);
-    expectDenied(`set role authenticated; update public.${table} set created_at = created_at;`, `authenticated update ${table}`);
-    expectDenied(`set role authenticated; delete from public.${table};`, `authenticated delete ${table}`);
+
+    assertEqual(sql(`select count(*)::text from pg_policies where schemaname = 'public' and tablename = '${table}';`).stdout.trim(), "0", `policies ${table}`);
+    catalogChecks += 1;
+    for (const statement of [
+      `set role anon; select 1 from ${relation} limit 1;`,
+      `set role anon; insert into ${relation} default values;`,
+      `set role anon; update ${relation} set created_at = created_at;`,
+      `set role anon; delete from ${relation};`,
+      `set role authenticated; select 1 from ${relation} limit 1;`,
+      `set role authenticated; insert into ${relation} default values;`,
+      `set role authenticated; update ${relation} set created_at = created_at;`,
+      `set role authenticated; delete from ${relation};`,
+    ]) {
+      assertDenied(statement, `DML containment ${table}`);
+      effectiveChecks += 1;
+    }
   }
 
   sql("set role service_role; select 1 from public.recommendations limit 1;");
   sql("set role service_role; insert into public.execution_lifecycle_events (event_type) values ('action_650_test'); insert into public.execution_agent_progress_events (event_type) values ('action_650_test');");
-  expectDenied("set role service_role; update public.execution_lifecycle_events set message = 'mutated';", "append-only lifecycle update");
-  expectDenied("set role service_role; delete from public.execution_agent_progress_events;", "append-only progress delete");
+  assertDenied("set role service_role; update public.execution_lifecycle_events set message = 'mutated';", "append-only lifecycle update");
+  assertDenied("set role service_role; delete from public.execution_agent_progress_events;", "append-only progress delete");
 
-  console.log(JSON.stringify({ status: "passed", tables_tested: tables.length, production_interaction: false }));
+  console.log(JSON.stringify({
+    status: "passed",
+    tables_tested: tables.length,
+    roles_tested: 4,
+    privileges_tested: privileges.length,
+    catalog_checks: catalogChecks,
+    effective_checks: effectiveChecks,
+    skipped_checks: 0,
+    production_interaction: false,
+  }));
 } finally {
   spawnSync("docker", ["rm", "-f", container], { encoding: "utf8" });
 }

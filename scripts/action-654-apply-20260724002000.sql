@@ -1,3 +1,13 @@
+-- Action 654 reviewed SQL Editor bundle for Action 650.
+-- One-time, transaction-scoped execution only. No psql commands, placeholders,
+-- connection strings, or secrets are present in this bundle.
+
+begin;
+select pg_advisory_xact_lock(65420260724002000);
+
+do $action_650_bundle$
+declare
+  statement_1 text := $action_650_statement_1$
 -- Action 650: emergency containment for production trading and execution data.
 --
 -- This is deliberately server-only until Action 651 establishes a reviewed
@@ -101,7 +111,8 @@ begin
   end loop;
 end
 $$;
-
+$action_650_statement_1$;
+  statement_2 text := $action_650_statement_2$
 do $$
 declare
   target_table text;
@@ -154,7 +165,8 @@ begin
   end loop;
 end
 $$;
-
+$action_650_statement_2$;
+  statement_3 text := $action_650_statement_3$
 -- These tables represent immutable execution evidence. Reject UPDATE and
 -- DELETE even from the service writer so an audit event cannot be rewritten.
 create function public.action_650_reject_execution_audit_mutation()
@@ -168,10 +180,14 @@ begin
     using errcode = '55000';
 end;
 $$;
-
+$action_650_statement_3$;
+  statement_4 text := $action_650_statement_4$
 revoke all on function public.action_650_reject_execution_audit_mutation() from public, anon, authenticated;
+$action_650_statement_4$;
+  statement_5 text := $action_650_statement_5$
 grant execute on function public.action_650_reject_execution_audit_mutation() to service_role;
-
+$action_650_statement_5$;
+  statement_6 text := $action_650_statement_6$
 do $$
 declare
   audit_table text;
@@ -189,3 +205,61 @@ begin
   end loop;
 end
 $$;
+$action_650_statement_6$;
+  target_table text;
+  target_tables constant text[] := array[
+    'recommendations', 'positions', 'position_updates', 'user_settings',
+    'scanner_cache', 'market_calendar_cache', 'market_regime_snapshots',
+    'recommendation_batches', 'recommendation_outcomes', 'recommendation_scan_runs',
+    'recommendation_snapshots', 'scheduled_scan_runs', 'scheduled_scan_attempts',
+    'symbol_metadata', 'execution_records', 'execution_agent_runs',
+    'execution_agent_progress_events', 'execution_lifecycle_events',
+    'execution_record_audit_events'
+  ];
+begin
+  if to_regclass('supabase_migrations.schema_migrations') is null then
+    raise exception 'Action 654 migration history table is unavailable';
+  end if;
+  if exists (
+    select 1 from supabase_migrations.schema_migrations
+    where version = '20260724002000'
+  ) then
+    raise exception 'Action 650 migration history already contains version 20260724002000';
+  end if;
+  if exists (
+    select 1 from supabase_migrations.schema_migrations
+    where version in ('20260708000000', '20260708001000', '20260710000000')
+  ) then
+    raise exception 'Action 654 forbidden migration history is present';
+  end if;
+  if not exists (select 1 from supabase_migrations.schema_migrations where version = '20260724001500')
+    or not exists (select 1 from supabase_migrations.schema_migrations where version = '20260724001600') then
+    raise exception 'Action 654 requires Action 652 migrations 01500 and 01600';
+  end if;
+  execute statement_1;
+  execute statement_2;
+  execute statement_3;
+  execute statement_4;
+  execute statement_5;
+  execute statement_6;
+  foreach target_table in array target_tables loop
+    if not exists (
+      select 1 from pg_class classes
+      where classes.oid = format('public.%I', target_table)::regclass
+        and classes.relrowsecurity
+    ) then
+      raise exception 'Action 654 postcondition RLS failed for public.%', target_table;
+    end if;
+    if exists (
+      select 1 from pg_policies
+      where schemaname = 'public' and tablename = target_table
+    ) then
+      raise exception 'Action 654 postcondition policy removal failed for public.%', target_table;
+    end if;
+  end loop;
+  insert into supabase_migrations.schema_migrations(version, statements, name)
+  values ('20260724002000', array[statement_1, statement_2, statement_3, statement_4, statement_5, statement_6], 'contain_production_trading_data_access');
+end
+$action_650_bundle$;
+
+commit;

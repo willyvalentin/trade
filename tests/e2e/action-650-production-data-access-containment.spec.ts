@@ -14,6 +14,14 @@ const catalogInspection = readFileSync(
   resolve(process.cwd(), "scripts/action-650-production-catalog-readonly.sql"),
   "utf8",
 );
+const reviewedBundle = readFileSync(
+  resolve(process.cwd(), "scripts/action-654-apply-20260724002000.sql"),
+  "utf8",
+);
+const postApplyReadback = readFileSync(
+  resolve(process.cwd(), "scripts/action-654-production-containment-readback.sql"),
+  "utf8",
+);
 const tables = [
   "recommendations", "positions", "position_updates", "user_settings",
   "scanner_cache", "market_calendar_cache", "market_regime_snapshots",
@@ -33,7 +41,8 @@ test("Action 650 contains every exposed trading table behind a server-only bound
   for (const table of tables) {
     expect(migration).toContain(`'${table}'`);
     expect(migration).toContain("revoke all privileges on table public.%I from public, anon, authenticated");
-    expect(migration).toContain("grant all privileges on table public.%I to service_role");
+    expect(migration).toContain("revoke all privileges on table public.%I from service_role");
+    expect(migration).toContain("grant select, insert, update, delete on table public.%I to service_role");
     expect(migration).toContain("alter table public.%I enable row level security");
   }
   expect(migration).toContain("drop policy %I on public.%I");
@@ -52,11 +61,19 @@ test("Action 650 structurally enforces append-only execution event tables", () =
   expect(migration).toContain("before update or delete");
   expect(migration).toContain("security invoker");
   expect(migration).toContain("set search_path = pg_catalog");
+  expect(migration).not.toContain("create or replace function");
+  expect(migration).not.toContain("drop trigger if exists");
+  expect(migration).toContain("conflicting function public.action_650_reject_execution_audit_mutation");
+  expect(migration).toContain("conflicting trigger public.%.action_650_append_only");
 });
 
 test("the disposable local behavior harness uses only the intended migration subset", () => {
   expect(localRoleTest).toContain('"postgres:16-alpine"');
   expect(localRoleTest).toContain("has_table_privilege('anon'");
+  expect(localRoleTest).toContain('"truncate", "references", "trigger"');
+  expect(localRoleTest).toContain("acl.grantee = 0");
+  expect(localRoleTest).toContain("catalog_checks");
+  expect(localRoleTest).toContain("effective_checks");
   expect(localRoleTest).toContain("set role anon");
   expect(localRoleTest).toContain("set role authenticated");
   expect(localRoleTest).toContain("set role service_role");
@@ -79,5 +96,27 @@ test("the production inventory query is catalog-only and contains no data mutati
   expect(catalogInspection).toContain("pg_class");
   expect(catalogInspection).toContain("pg_policies");
   expect(catalogInspection).toContain("has_table_privilege");
+  expect(catalogInspection).toContain("'TRUNCATE'");
+  expect(catalogInspection).toContain("acl.grantee = 0");
   expect(catalogInspection).not.toMatch(/\b(insert|update|delete|alter|create|drop|grant|revoke)\b/iu);
+});
+
+test("the reviewed SQL Editor bundle is one-time, transactional, and fail-closed", () => {
+  expect(reviewedBundle).toContain("begin;");
+  expect(reviewedBundle).toContain("pg_advisory_xact_lock(65420260724002000)");
+  expect(reviewedBundle).toContain("migration history already contains version 20260724002000");
+  expect(reviewedBundle).toContain("forbidden migration history is present");
+  expect(reviewedBundle).toContain("requires Action 652 migrations 01500 and 01600");
+  expect(reviewedBundle).toContain("array[statement_1, statement_2, statement_3, statement_4, statement_5, statement_6]");
+  expect(reviewedBundle).toContain("commit;");
+  expect(reviewedBundle).not.toMatch(/\\[ic]|postgres(ql)?:\/\//iu);
+});
+
+test("the post-apply readback is catalog-only and verifies the full contract", () => {
+  expect(postApplyReadback).toContain("action_650_containment_verified");
+  expect(postApplyReadback).toContain("'truncate'");
+  expect(postApplyReadback).toContain("'references'");
+  expect(postApplyReadback).toContain("'trigger'");
+  expect(postApplyReadback).toContain("cardinality(statements) = 6");
+  expect(postApplyReadback).not.toMatch(/\b(insert|update|delete|alter|create|drop|grant|revoke)\b/iu);
 });

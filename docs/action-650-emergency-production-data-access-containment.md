@@ -49,7 +49,8 @@ reason to defer containment.
 The migration applies the same baseline to all 19 identified tables:
 
 1. revoke all table privileges from `PUBLIC`, `anon`, and `authenticated`;
-2. grant required access only to `service_role`;
+2. revoke legacy `service_role` grants, then grant only runtime DML
+   (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) to `service_role`;
 3. enable RLS;
 4. remove every existing table policy rather than retaining legacy permissive
    policies;
@@ -68,7 +69,9 @@ Before rollout, production catalog inspection must capture (without row data):
 - table owner, `relrowsecurity`, and `relforcerowsecurity`;
 - grants for `PUBLIC`, `anon`, `authenticated`, and `service_role`;
 - all policies with command and expressions;
-- role behavior for select/insert/update/delete.
+- the full `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES`,
+  and `TRIGGER` matrix for `PUBLIC`, `anon`, `authenticated`, and
+  `service_role`.
 
 `scripts/action-650-production-catalog-readonly.sql` is the exact catalog-only
 matrix query for the first four items. It deliberately returns no table rows or
@@ -77,8 +80,8 @@ window using a disposable verification identity; it is not attempted by this
 Action.
 
 After the migration, every listed table must have RLS enabled; `PUBLIC`, `anon`,
-and `authenticated` must have no table privileges and no policies; `service_role`
-must retain required server/scheduled access. The migration deliberately does not
+and `authenticated` must have none of the seven table privileges and no policies;
+`service_role` retains runtime DML only. The migration deliberately does not
 force RLS because the reviewed Supabase service-role operational model bypasses
 RLS. A later ownership design may choose `FORCE RLS` with explicit server policies.
 
@@ -106,8 +109,8 @@ for compatibility.
 
 `scripts/action-650-local-db-security-test.mjs` starts an isolated local
 PostgreSQL container and applies only the subset of migrations that owns these
-tables plus Action 650. It proves effective `anon`, `authenticated`, `PUBLIC`,
-and `service_role` privileges, RLS state, and append-only behavior. It excludes
+tables plus Action 650. It proves all 19 x 4 x 7 catalog/effective-role checks,
+RLS state, and append-only behavior. It excludes
 the three prohibited local-only migrations and never contacts Supabase or
 production.
 
