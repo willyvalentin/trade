@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isExecutionDevToolsEnabled } from "@/lib/execution";
-import { getTradeAuthToken, TRADE_AUTH_COOKIE } from "@/lib/trade-auth";
+import { TRADE_AUTH_COOKIE, verifyApplicationSession } from "@/lib/trade-auth";
 import {
   appendExecutionRecordAuditEvent,
   type ExecutionRecordAuditWriterResultWithDryRun,
@@ -148,16 +148,8 @@ function cookieValue(cookieHeader: string | null, name: string): string | null {
 }
 
 async function isAuthenticated(request: Request): Promise<boolean> {
-  const appPassword = process.env.TRADE_APP_PASSWORD;
-
-  if (!appPassword) {
-    return false;
-  }
-
-  const expectedToken = await getTradeAuthToken(appPassword);
   const actualToken = cookieValue(request.headers.get("cookie"), TRADE_AUTH_COOKIE);
-
-  return actualToken === expectedToken;
+  return (await verifyApplicationSession(actualToken ?? undefined)).status === "authenticated";
 }
 
 function validateRequestShape(body: unknown): {

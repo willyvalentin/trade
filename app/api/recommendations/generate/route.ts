@@ -14,10 +14,16 @@ import {
   type IntradayScanWindow,
 } from "@/lib/intraday-scan-window";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
-import { createScanLog, recordScanLog, type PreMarketCandidate } from "@/lib/scan-logs";
-import { supabase } from "@/lib/supabase";
+import { createScanLog, type PreMarketCandidate } from "@/lib/scan-log-core";
+import { recordScanLog } from "@/lib/server/scan-log-persistence";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import type { OpenAiRecommendationRealityGuardSummary } from "@/lib/openai-recommendation-reality-guard";
+import {
+  applicationSessionUnauthorizedResponse,
+  applicationMutationForbiddenResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 type GenerateRequestBody = {
   session_type?: unknown;
@@ -34,6 +40,17 @@ const intradayScanWindows: IntradayScanWindow[] = [
   "power_hour",
   "closed",
 ];
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) {
+    throw new RecommendationGenerationError(
+      `Server persistence unavailable: ${unavailable_reason ?? "unknown"}`,
+      503,
+    );
+  }
+  return client;
+}
 
 function parseTargetCount(value: unknown) {
   if (value === undefined) {
@@ -56,7 +73,7 @@ function parseTargetCount(value: unknown) {
 }
 
 async function archiveExpiredRecommendations() {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("recommendations")
     .update({ archived: true })
     .or("status.eq.new,status.is.null")
@@ -253,6 +270,11 @@ async function safelyRecordManualScanLog({
 }
 
 export async function POST(request: Request) {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
+
   try {
     let body: GenerateRequestBody;
 

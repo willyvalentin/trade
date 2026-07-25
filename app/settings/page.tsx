@@ -120,7 +120,6 @@ import {
   checkLocalhostBridgeHealth,
   type LocalhostBridgeClientHealthCheckResult,
 } from "@/lib/avanza-localhost-bridge-client";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import {
   ExecutionSettingsPanel,
@@ -558,30 +557,46 @@ function validateSettings(form: SettingsForm) {
 }
 
 async function fetchFirstSettingsRow() {
-  return supabase
-    .from("user_settings")
-    .select("*")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const response = await fetch("/api/app/settings", { cache: "no-store" });
+  const body = (await response.json().catch(() => null)) as {
+    settings?: UserSettingsRow | null;
+    error?: string;
+  } | null;
+
+  return {
+    data: body?.settings ?? null,
+    error: response.ok ? null : new Error(body?.error ?? "Settings are unavailable."),
+  };
 }
 
 async function createDefaultSettingsRow() {
-  return supabase
-    .from("user_settings")
-    .insert(defaultSettingsRow)
-    .select("*")
-    .single();
+  const response = await fetch("/api/app/settings", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(defaultSettingsRow),
+  });
+  const body = (await response.json().catch(() => null)) as {
+    settings?: UserSettingsRow | null;
+    error?: string;
+  } | null;
+
+  return {
+    data: body?.settings ?? null,
+    error: response.ok ? null : new Error(body?.error ?? "Settings could not be created."),
+  };
 }
 
 async function fetchRecentScheduledScanRuns() {
-  return supabase
-    .from("scheduled_scan_runs")
-    .select(
-      "id,created_at,scan_date,session_type,status,recommendations_created,message",
-    )
-    .order("created_at", { ascending: false })
-    .limit(20);
+  const response = await fetch("/api/app/settings", { cache: "no-store" });
+  const body = (await response.json().catch(() => null)) as {
+    scheduled_scan_runs?: unknown[];
+    error?: string;
+  } | null;
+
+  return {
+    data: body?.scheduled_scan_runs ?? [],
+    error: response.ok ? null : new Error(body?.error ?? "Scheduled scan runs are unavailable."),
+  };
 }
 
 async function fetchMarketStatusForUi() {
@@ -1750,22 +1765,28 @@ export default function SettingsPage() {
     setMessage("");
     setSuccessMessage("");
 
-    const { data, error } = await supabase
-      .from("user_settings")
-      .update({
+    const response = await fetch("/api/app/settings", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: settingsId,
         portfolio_size: Number(form.portfolioSize),
         risk_per_trade_percent: Number(form.riskPerTradePercent),
-        max_recommendations_per_session: Number(
-          form.maxRecommendationsPerSession,
-        ),
+        max_recommendations_per_session: Number(form.maxRecommendationsPerSession),
         max_open_positions: Number(form.maxOpenPositions),
         preferred_timeframe: form.preferredTimeframe.trim(),
         long_only: form.longOnly,
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", settingsId)
-      .select("*")
-      .maybeSingle();
+      }),
+    });
+    const body = (await response.json().catch(() => null)) as {
+      settings?: UserSettingsRow | null;
+      error?: string;
+    } | null;
+    const data = body?.settings ?? null;
+    const error = response.ok
+      ? null
+      : new Error(body?.error ?? "Settings could not be saved.");
 
     if (error) {
       setMessage(error.message);

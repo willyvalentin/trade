@@ -31,20 +31,25 @@ function extractErrorBlock(source: string, operation: string) {
   return source.slice(blockStart, blockEnd);
 }
 
-test("recent recommendation readback limits are capped at 100", () => {
-  expect(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT).toBe(100);
-  expect(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT).toBe(100);
+test("recent recommendation readback limits are owned by the authenticated server model", () => {
+  expect(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT).toBe(400);
+  expect(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT).toBe(1200);
 
-  const source = read(tradeAppPath);
+  const browserSource = read(tradeAppPath);
+  const serverSource = read(
+    join(root, "lib/server/application-data-access.ts"),
+  );
 
-  expect(source).toContain(
+  expect(serverSource).toContain(
     ".limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT)",
   );
-  expect(source).toContain(
+  expect(serverSource).toContain(
     ".limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT)",
   );
-  expect(source).not.toContain(".limit(1000)");
-  expect(source).not.toContain(".limit(750)");
+  expect(serverSource).toContain('import "server-only"');
+  expect(browserSource).toContain('fetch("/api/app/dashboard"');
+  expect(browserSource).not.toContain('from "@/lib/supabase"');
+  expect(browserSource).not.toMatch(/supabase\s*\.\s*from\(/);
 });
 
 test("recent recommendation readback failures choose local fallback on initial load", () => {

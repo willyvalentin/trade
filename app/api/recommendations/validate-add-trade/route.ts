@@ -9,6 +9,11 @@ import {
   getRecommendationFreshness,
   type RecommendationFreshness,
 } from "@/lib/recommendation-freshness";
+import {
+  applicationSessionUnauthorizedResponse,
+  applicationMutationForbiddenResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 type ValidateAddTradeRequest = {
   id?: unknown;
@@ -231,6 +236,11 @@ function buildResponse({
 }
 
 export async function POST(request: Request) {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
+
   const body = (await request.json().catch(() => null)) as
     | ValidateAddTradeRequest
     | null;

@@ -3,7 +3,6 @@ import { summarizeEntryTypeTriggerDiagnostics } from "@/lib/recommendation-entry
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 import {
-  persistRecommendationOutcome,
   recommendationOutcomeFromPersistenceRow,
   readRecommendationOutcomesFromLocalStorage,
   resolveRecommendationOutcomeSide,
@@ -11,6 +10,7 @@ import {
   type RecommendationOutcomeHorizon,
   type RecommendationOutcomePersistenceResult,
 } from "@/lib/recommendation-outcome-tracker";
+import { persistRecommendationOutcome } from "@/lib/server/recommendation-outcome-persistence";
 import {
   runRecommendationOutcomeEvaluation,
   type RecommendationOutcomeCandleRequest,
@@ -23,7 +23,6 @@ import {
   recommendationSnapshotFromPersistenceRow,
   summarizeRecommendationSnapshotShadowEntryTrialMetadata,
 } from "@/lib/recommendation-snapshot";
-import { supabase } from "@/lib/supabase";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
@@ -335,7 +334,9 @@ function parseHorizons(value: unknown): RecommendationOutcomeHorizon[] {
 
 async function loadRecentSupabaseSnapshots() {
   try {
-    const { data, error } = await supabase
+    const { client } = getServerSupabaseClient();
+    if (!client) return [];
+    const { data, error } = await client
       .from("recommendation_snapshots")
       .select("*")
       .order("created_at", { ascending: false })
@@ -1998,7 +1999,11 @@ export async function POST(request: Request) {
             return result;
           }
         : (outcome) =>
-            persistRecommendationOutcome(outcome, { supabaseClient: supabase }),
+            persistRecommendationOutcome(outcome, {
+              supabaseClient: serverSupabase?.client,
+              server: true,
+              unavailableReason: serverSupabase?.unavailable_reason,
+            }),
   });
 
   const evaluatedSnapshotFingerprints = new Set(

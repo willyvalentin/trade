@@ -1,5 +1,5 @@
-export const RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT = 100;
-export const RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT = 100;
+export const RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT = 400;
+export const RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT = 1200;
 
 export type RecentRecommendationReadbackFallbackSource =
   | "local_storage"

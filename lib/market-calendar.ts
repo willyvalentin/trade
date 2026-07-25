@@ -1,7 +1,7 @@
 import "server-only";
 
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const POLYGON_BASE_URL = "https://api.polygon.io";
 const NEW_YORK_TIME_ZONE = "America/New_York";
@@ -73,6 +73,12 @@ type PolygonFetchResult<T> = {
   providerCode: unknown;
   providerMessage: unknown;
 };
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) throw new Error(`server_supabase_unavailable:${unavailable_reason}`);
+  return client;
+}
 
 type ProviderLogDetails = {
   provider: string;
@@ -173,7 +179,7 @@ function cacheRowToStatus(row: MarketCalendarCacheRow): MarketStatus | null {
 }
 
 async function getFreshCachedStatus(cacheDate: string) {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("market_calendar_cache")
     .select(
       "updated_at,cache_date,provider,is_open_day,reason,day_type,market_open_time,market_close_time,raw",
@@ -596,7 +602,7 @@ function getProviderErrorDetails(error: unknown): ProviderLogDetails {
 }
 
 async function upsertCachedStatus(status: MarketStatus, raw: unknown) {
-  const { error } = await supabase.from("market_calendar_cache").upsert(
+  const { error } = await serverSupabase().from("market_calendar_cache").upsert(
     {
       cache_date: status.date,
       provider: status.provider,

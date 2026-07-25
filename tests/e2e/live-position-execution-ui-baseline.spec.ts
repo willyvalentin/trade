@@ -477,7 +477,11 @@ test.describe("live position execution UI baseline", () => {
     expect(submitCloseSource).toContain("buildPartialPositionState");
     expect(submitCloseSource).toContain("writeDemoActivePositions");
     expect(submitCloseSource).toContain("writeDemoClosedPositions");
-    expect(submitCloseSource).toContain('supabase\n        .from("positions")\n        .update');
+    expect(submitCloseSource).toContain(
+      'patchApplicationPosition(\n      selectedPosition.id,\n      "close"',
+    );
+    expect(submitCloseSource).not.toContain('.from("positions")');
+    expect(submitCloseSource).not.toContain(".update(");
     expect(submitCloseSource).toContain('["live_trades", "stats_today", "history_statistics"]');
     expect(submitCloseSource).toContain("logBrokerExitConfirmationEvent");
   });

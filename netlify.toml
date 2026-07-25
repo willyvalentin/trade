@@ -1,2 +1,8 @@
 [functions]
   directory = "netlify/functions"
+
+[[redirects]]
+  from = "https://trade-vl.netlify.app/*"
+  to = "https://trade.valentinlabs.com/:splat"
+  status = 301
+  force = true

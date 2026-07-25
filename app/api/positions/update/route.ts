@@ -8,8 +8,13 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getQuote } from "@/lib/market-data";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  applicationSessionUnauthorizedResponse,
+  applicationMutationForbiddenResponse,
+  requireApplicationSession,
+} from "@/lib/server/application-session";
 
 type PositionRow = {
   id: string;
@@ -32,6 +37,12 @@ type PositionAction =
   | "TAKE_PARTIAL_PROFIT"
   | "MOVE_STOP_TO_BREAKEVEN"
   | "HOLD";
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) throw new Error(`server_supabase_unavailable:${unavailable_reason}`);
+  return client;
+}
 
 type PositionUpdateResult = {
   position_id: string;
@@ -479,7 +490,7 @@ async function monitorPosition(
     timestamp: new Date().toISOString(),
   });
 
-  const { error: insertError } = await supabase.from("position_updates").insert({
+  const { error: insertError } = await serverSupabase().from("position_updates").insert({
     position_id: position.id,
     action,
     recommendation,
@@ -492,7 +503,7 @@ async function monitorPosition(
   }
 
   if (action === "MOVE_STOP_TO_BREAKEVEN") {
-    const { error: updateError } = await supabase
+    const { error: updateError } = await serverSupabase()
       .from("positions")
       .update({ current_stop: entryPrice })
       .eq("id", position.id);
@@ -520,15 +531,20 @@ async function monitorPosition(
   };
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  const session = await requireApplicationSession();
+  if (!session) return applicationSessionUnauthorizedResponse();
+  const originError = applicationMutationForbiddenResponse(request);
+  if (originError) return originError;
+
   try {
-    const { data, error } = await supabase
+    const { data, error } = await serverSupabase()
       .from("positions")
       .select("*, recommendations(setup_type,invalidation)")
       .eq("status", "open");
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: "Position data is unavailable." }, { status: 503 });
     }
 
     const positions = (data || []) as PositionRow[];
@@ -547,11 +563,10 @@ export async function POST() {
         }
         updates.push(update);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
         errors.push({
           position_id: position.id,
           ticker: position.ticker,
-          error: message,
+          error: "Position update unavailable.",
         });
       }
     }
@@ -561,12 +576,10 @@ export async function POST() {
       errors,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-
     console.error("[positions/update] request_error", {
       error: normalizeUnknownError(error),
     });
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Position update is unavailable." }, { status: 503 });
   }
 }

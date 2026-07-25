@@ -81,24 +81,16 @@ function savedResult(outcome: RecommendationOutcome): RecommendationOutcomePersi
 }
 
 test.describe("Action 550 outcome completion path root-cause investigation", () => {
-  test("source guard prevents durable persistence of UI snapshot-only unknown-horizon placeholders", () => {
+  test("UI snapshot-only unknown-horizon placeholders have no browser durable persistence path", () => {
     const source = readFileSync(
       resolve(process.cwd(), "app/trade-app.tsx"),
       "utf8",
     );
 
-    expect(source).toContain("function isSnapshotOnlyUnknownHorizonOutcome");
-    expect(source).toContain('outcome.horizon === "unknown"');
-    expect(source).toContain('outcome.source === "snapshot_only"');
-    expect(source).toContain('outcome.data_completeness === "none"');
-    expect(source).toContain("const persistableOutcomes = pendingOutcomes.filter");
-    expect(source).toContain(
-      "(outcome) => !isSnapshotOnlyUnknownHorizonOutcome(outcome)",
-    );
-    expect(source).toContain("for (const outcome of persistableOutcomes)");
-    expect(source).not.toContain(
-      "for (const outcome of pendingOutcomes) {\n        lastResult = await persistRecommendationOutcome(outcome",
-    );
+    expect(source).not.toContain('from "@/lib/supabase"');
+    expect(source).not.toContain("persistRecommendationOutcome(");
+    expect(source).not.toContain("readRecommendationOutcomesFromLocalStorage(");
+    expect(source).toContain('fetch("/api/recommendations/evaluate-outcomes"');
   });
 
   test("reproduces the production placeholder signature without candle evaluation", () => {

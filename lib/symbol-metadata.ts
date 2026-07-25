@@ -12,10 +12,7 @@ import {
   type SymbolMetadata,
   type SymbolMetadataRow,
 } from "@/lib/symbol-metadata-core";
-import {
-  getServerSupabaseClient,
-  getServerSupabaseReadClient,
-} from "@/lib/supabase-server";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 const symbolMetadataSelect =
   "symbol,company_name,exchange,logo_url,logo_source,logo_updated_at";
@@ -102,7 +99,7 @@ export async function getCachedSymbolMetadata(symbols: readonly unknown[]) {
     return metadataBySymbol;
   }
 
-  const { client, unavailable_reason } = getServerSupabaseReadClient();
+  const { client, unavailable_reason } = getServerSupabaseClient();
 
   if (!client) {
     console.info("[symbol-metadata] supabase_read_unavailable", {
@@ -214,6 +211,9 @@ export async function ensureSymbolMetadata(
     refreshStale?: boolean;
   } = {},
 ) {
+  if (!getServerSupabaseClient().client) {
+    return new Map<string, SymbolMetadata>();
+  }
   const normalizedSymbols = dedupeSymbols(
     symbols,
     options.maxBatchSize ?? SYMBOL_METADATA_MAX_BATCH_SIZE,

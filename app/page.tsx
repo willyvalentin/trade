@@ -9,10 +9,12 @@ import {
   historicalCandleStorageReadbackToDetection,
   readHistoricalCandleStorageSchema,
 } from "@/lib/historical-candle-storage-readback";
+import { requireApplicationPageSession } from "@/lib/server/application-session";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  await requireApplicationPageSession();
   const providerPlanProfile = buildProviderPlanProfile();
   const growMaxLearningMode = evaluateGrowMaxLearningMode({
     providerPlanProfileMode: providerPlanProfile.effective_mode,

@@ -7,9 +7,9 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
-import { supabase } from "@/lib/supabase";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
+import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -79,6 +79,12 @@ type ScannerCacheRow = {
   volume_context: string | null;
   raw: unknown;
 };
+
+function serverSupabase() {
+  const { client, unavailable_reason } = getServerSupabaseClient();
+  if (!client) throw new Error(`server_supabase_unavailable:${unavailable_reason}`);
+  return client;
+}
 
 type ScannerValues = {
   latest_close: number;
@@ -541,7 +547,7 @@ function buildCandidate(
 }
 
 async function getCachedRows(tickers: string[]): Promise<Map<string, ScannerCacheRow>> {
-  const { data, error } = await supabase
+  const { data, error } = await serverSupabase()
     .from("scanner_cache")
     .select(
       [
@@ -595,7 +601,7 @@ async function upsertCachedValues(
   baseCandidate: ScannerCandidate,
   scannerValues: ScannerValues,
 ) {
-  const { error } = await supabase.from("scanner_cache").upsert(
+  const { error } = await serverSupabase().from("scanner_cache").upsert(
     {
       ticker: baseCandidate.ticker,
       updated_at: new Date().toISOString(),

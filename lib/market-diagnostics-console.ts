@@ -6,7 +6,7 @@ import type { DynamicMoversDiscoverySummary } from "@/lib/dynamic-movers-discove
 import { buildDynamicMoversReadiness } from "@/lib/dynamic-movers-readiness";
 import { buildDynamicMoversShadowAudit } from "@/lib/dynamic-movers-shadow-fixture";
 import type { DynamicMarketMoversSummary } from "@/lib/dynamic-market-movers";
-import { buildEnvironmentBoundaryAudit } from "@/lib/environment-boundary-audit";
+import { buildBrowserEnvironmentBoundaryAudit } from "@/lib/environment-boundary-audit-browser";
 import type { MarketSessionEvaluation, MarketSessionStatus } from "@/lib/market-session";
 import type { ProviderBudgetGuardSummary } from "@/lib/provider-budget-guard";
 import type { ProviderPlanProfile } from "@/lib/provider-plan-profile";
@@ -2842,7 +2842,7 @@ function buildSections(
     input.outcome_evaluation?.entry_type_trigger_summary ?? null;
   const strongCandidateGate = input.day_window_target.strong_candidate_gate;
   const dynamicMoversDiscovery = input.dynamic_movers_discovery ?? null;
-  const environmentBoundaryAudit = buildEnvironmentBoundaryAudit();
+  const environmentBoundaryAudit = buildBrowserEnvironmentBoundaryAudit();
   const scannerUniverseAny = input.scanner_universe as unknown as {
     selected_ticker_symbols?: string[] | null;
     context_ticker_symbols?: string[] | null;
