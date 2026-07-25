@@ -11,22 +11,11 @@ import {
   reserveSharedLoginAttempt,
 } from "@/lib/server/application-login-abuse-control";
 import { buildApplicationLoginRuntimeProof } from "@/lib/application-login-runtime-proof";
-import { evaluateApplicationAuthenticationOrigin } from "@/lib/application-mutation-guard-core";
+import { authenticationOriginFailureResponse } from "@/lib/application-mutation-guard-core";
 
 export async function POST(request: Request) {
-  const authenticationOrigin = evaluateApplicationAuthenticationOrigin(request);
-  if (authenticationOrigin.status !== "allowed") {
-    return NextResponse.json(
-      {
-        error: "Application authentication is unavailable for this deployment origin.",
-        code: authenticationOrigin.code,
-      },
-      {
-        status: authenticationOrigin.status === "unavailable" ? 503 : 403,
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  }
+  const originError = authenticationOriginFailureResponse(request);
+  if (originError) return originError;
 
   const appPassword = process.env.TRADE_APP_PASSWORD;
 

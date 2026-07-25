@@ -10,8 +10,19 @@ export type ApplicationMutationOriginResult =
     }
   | { status: "unavailable"; code: "application_mutation_origin_configuration_unavailable" };
 
+export type ApplicationAuthenticationOriginResult =
+  | { status: "allowed"; category: "allowed" }
+  | {
+      status: "forbidden";
+      category:
+        | "missing_origin"
+        | "malformed_origin"
+        | "origin_mismatch"
+        | "non_production_context_denied";
+    }
+  | { status: "unavailable"; category: "origin_configuration_unavailable" };
+
 const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-const restrictedNetlifyContexts = new Set(["deploy-preview", "branch-deploy"]);
 
 function normalizedOrigin(value: string | null | undefined) {
   if (!value || value.length > 300) return null;
@@ -20,6 +31,33 @@ function normalizedOrigin(value: string | null | undefined) {
     return origin === "null" ? null : origin;
   } catch {
     return null;
+  }
+}
+
+function suppliedBrowserOrigin(value: string | null) {
+  if (value === null || value.length === 0 || value !== value.trim()) {
+    return { status: "missing" as const };
+  }
+  if (value.length > 300 || value === "null" || value.includes(",")) {
+    return { status: "malformed" as const };
+  }
+
+  try {
+    const parsed = new URL(value);
+    if (
+      parsed.origin === "null" ||
+      parsed.origin !== value ||
+      parsed.username ||
+      parsed.password ||
+      parsed.pathname !== "/" ||
+      parsed.search ||
+      parsed.hash
+    ) {
+      return { status: "malformed" as const };
+    }
+    return { status: "valid" as const, origin: parsed.origin };
+  } catch {
+    return { status: "malformed" as const };
   }
 }
 
@@ -62,26 +100,70 @@ export function applicationDeploymentContext(
 export function evaluateApplicationAuthenticationOrigin(
   request: Request,
   environment: Record<string, string | undefined> = process.env,
-): ApplicationMutationOriginResult {
-  if (environment.NODE_ENV !== "production") return { status: "allowed" };
-  if (restrictedNetlifyContexts.has(environment.CONTEXT ?? "")) {
-    return {
-      status: "forbidden",
-      code: "application_authentication_deploy_context_forbidden",
-    };
+): ApplicationAuthenticationOriginResult {
+  const suppliedOrigin = suppliedBrowserOrigin(request.headers.get("origin"));
+
+  if (environment.NODE_ENV === "production") {
+    if (environment.CONTEXT !== "production") {
+      return { status: "forbidden", category: "non_production_context_denied" };
+    }
+
+    const configuredOrigin = configuredApplicationOrigin(environment);
+    if (!configuredOrigin) {
+      return { status: "unavailable", category: "origin_configuration_unavailable" };
+    }
+
+    if (suppliedOrigin.status === "missing") {
+      return { status: "forbidden", category: "missing_origin" };
+    }
+    if (suppliedOrigin.status === "malformed") {
+      return { status: "forbidden", category: "malformed_origin" };
+    }
+    return suppliedOrigin.origin === configuredOrigin
+      ? { status: "allowed", category: "allowed" }
+      : { status: "forbidden", category: "origin_mismatch" };
   }
 
-  const configuredOrigin = configuredApplicationOrigin(environment);
-  if (!configuredOrigin) {
-    return {
-      status: "unavailable",
-      code: "application_mutation_origin_configuration_unavailable",
-    };
+  const requestOrigin = normalizedOrigin(request.url);
+  if (suppliedOrigin.status === "missing") {
+    return { status: "forbidden", category: "missing_origin" };
   }
+  if (suppliedOrigin.status === "malformed") {
+    return { status: "forbidden", category: "malformed_origin" };
+  }
+  return requestOrigin && suppliedOrigin.origin === requestOrigin
+    ? { status: "allowed", category: "allowed" }
+    : { status: "forbidden", category: "origin_mismatch" };
+}
 
-  return normalizedOrigin(request.url) === configuredOrigin
-    ? { status: "allowed" }
-    : { status: "forbidden", code: "application_mutation_origin_invalid" };
+export function authenticationOriginFailureResponse(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const result = evaluateApplicationAuthenticationOrigin(request, environment);
+  if (result.status === "allowed") return null;
+
+  const code = {
+    missing_origin: "application_authentication_origin_required",
+    malformed_origin: "application_authentication_origin_malformed",
+    origin_mismatch: "application_authentication_origin_invalid",
+    origin_configuration_unavailable:
+      "application_mutation_origin_configuration_unavailable",
+    non_production_context_denied:
+      "application_authentication_deploy_context_forbidden",
+  }[result.category];
+
+  return Response.json(
+    {
+      error: "Application authentication origin is not permitted.",
+      code,
+      origin_category: result.category,
+    },
+    {
+      status: result.status === "unavailable" ? 503 : 403,
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 }
 
 export function applicationOriginReadiness(
@@ -107,18 +189,21 @@ export function evaluateApplicationMutationOrigin(
   if (!unsafeMethods.has(request.method.toUpperCase())) return { status: "allowed" };
 
   const requestOrigin = normalizedOrigin(request.url);
-  const suppliedOrigin = normalizedOrigin(request.headers.get("origin"));
-  if (!suppliedOrigin) {
+  const suppliedOrigin = suppliedBrowserOrigin(request.headers.get("origin"));
+  if (suppliedOrigin.status === "missing") {
     return { status: "forbidden", code: "application_mutation_origin_required" };
+  }
+  if (suppliedOrigin.status === "malformed") {
+    return { status: "forbidden", code: "application_mutation_origin_invalid" };
   }
 
   if (environment.NODE_ENV !== "production") {
-    return requestOrigin && suppliedOrigin === requestOrigin
+    return requestOrigin && suppliedOrigin.origin === requestOrigin
       ? { status: "allowed" }
       : { status: "forbidden", code: "application_mutation_origin_invalid" };
   }
 
-  if (restrictedNetlifyContexts.has(environment.CONTEXT ?? "")) {
+  if (environment.CONTEXT !== "production") {
     return {
       status: "forbidden",
       code: "application_mutation_deploy_context_forbidden",
@@ -133,7 +218,7 @@ export function evaluateApplicationMutationOrigin(
     };
   }
 
-  return requestOrigin === configuredOrigin && suppliedOrigin === configuredOrigin
+  return requestOrigin === configuredOrigin && suppliedOrigin.origin === configuredOrigin
     ? { status: "allowed" }
     : { status: "forbidden", code: "application_mutation_origin_invalid" };
 }

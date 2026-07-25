@@ -133,7 +133,7 @@ test("Proxy applies the centralized mutation policy after session authentication
 });
 
 test("production origin contract requires one canonical HTTPS origin", () => {
-  const productionEnvironment = { NODE_ENV: "production" };
+  const productionEnvironment = { NODE_ENV: "production", CONTEXT: "production" };
   expect(applicationOriginReadiness(undefined, productionEnvironment)).toEqual({
     configured: false,
     valid: false,

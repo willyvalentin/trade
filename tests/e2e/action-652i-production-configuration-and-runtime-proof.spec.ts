@@ -25,27 +25,6 @@ async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
 }
 
-async function withEnvironment(
-  values: Record<string, string | undefined>,
-  callback: () => Promise<void> | void,
-) {
-  const previous = Object.fromEntries(
-    Object.keys(values).map((key) => [key, process.env[key]]),
-  );
-  try {
-    for (const [key, value] of Object.entries(values)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-    await callback();
-  } finally {
-    for (const [key, value] of Object.entries(previous)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-  }
-}
-
 test("default Netlify host redirects permanently without affecting canonical or preview hosts", async () => {
   const config = await source("netlify.toml");
   expect(config).toContain(
@@ -74,51 +53,49 @@ test("default Netlify host redirects permanently without affecting canonical or 
   ).toBeNull();
 });
 
-test("production origin is canonical while preview and branch authentication stay disabled", async () => {
-  await withEnvironment(
+test("production origin is canonical while preview and branch authentication stay disabled", () => {
+  const productionEnvironment = {
+    NODE_ENV: "production",
+    TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
+    CONTEXT: "production",
+  };
+  const request = new Request(
+    `${applicationCanonicalProductionOrigin}/api/auth/login`,
     {
-      NODE_ENV: "production",
-      TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
-      CONTEXT: "production",
-    },
-    () => {
-      const request = new Request(
-        `${applicationCanonicalProductionOrigin}/api/auth/login`,
-        { method: "POST" },
-      );
-      expect(evaluateApplicationAuthenticationOrigin(request)).toEqual({
-        status: "allowed",
-      });
-      expect(
-        evaluateApplicationMutationOrigin(
-          new Request(`${applicationCanonicalProductionOrigin}/api/app/settings`, {
-            method: "POST",
-            headers: { origin: applicationCanonicalProductionOrigin },
-          }),
-        ),
-      ).toEqual({ status: "allowed" });
+      method: "POST",
+      headers: { origin: applicationCanonicalProductionOrigin },
     },
   );
+  expect(
+    evaluateApplicationAuthenticationOrigin(request, productionEnvironment),
+  ).toEqual({ status: "allowed", category: "allowed" });
+  expect(
+    evaluateApplicationMutationOrigin(
+      new Request(`${applicationCanonicalProductionOrigin}/api/app/settings`, {
+        method: "POST",
+        headers: { origin: applicationCanonicalProductionOrigin },
+      }),
+      productionEnvironment,
+    ),
+  ).toEqual({ status: "allowed" });
 
   for (const context of ["deploy-preview", "branch-deploy"]) {
-    await withEnvironment(
+    const previewEnvironment = {
+      NODE_ENV: "production",
+      TURE_APPLICATION_ORIGIN:
+        "https://deploy-preview-46--trade-vl.netlify.app",
+      CONTEXT: context,
+    };
+    const previewRequest = new Request(
+      "https://deploy-preview-46--trade-vl.netlify.app/api/auth/login",
       {
-        NODE_ENV: "production",
-        TURE_APPLICATION_ORIGIN:
-          "https://deploy-preview-46--trade-vl.netlify.app",
-        CONTEXT: context,
-      },
-      () => {
-        const request = new Request(
-          "https://deploy-preview-46--trade-vl.netlify.app/api/auth/login",
-          { method: "POST" },
-        );
-        expect(evaluateApplicationAuthenticationOrigin(request)).toMatchObject({
-          status: "forbidden",
-          code: "application_authentication_deploy_context_forbidden",
-        });
+        method: "POST",
+        headers: { origin: "https://deploy-preview-46--trade-vl.netlify.app" },
       },
     );
+    expect(
+      evaluateApplicationAuthenticationOrigin(previewRequest, previewEnvironment),
+    ).toEqual({ status: "forbidden", category: "non_production_context_denied" });
   }
 
   expect(applicationEnvironmentScopeContract.deploy_preview.secret_source).toBe(
@@ -153,64 +130,62 @@ test("environment metadata evaluator detects preview credential exposure without
 });
 
 test("temporary login runtime proof is production-only, authorized by successful login, and boolean-only", async () => {
-  await withEnvironment(
+  const enabledProductionEnvironment = {
+    NODE_ENV: "production",
+    CONTEXT: "production",
+    TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
+    TURE_LOGIN_RUNTIME_PROOF_ENABLED: "true",
+  };
+  const request = new Request(
+    `${applicationCanonicalProductionOrigin}/api/auth/login`,
     {
-      NODE_ENV: "production",
-      CONTEXT: "production",
-      TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
-      TURE_LOGIN_RUNTIME_PROOF_ENABLED: "true",
-    },
-    async () => {
-      const request = new Request(
-        `${applicationCanonicalProductionOrigin}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "x-nf-client-connection-ip": "203.0.113.10",
-            "x-forwarded-for": "198.51.100.20",
-          },
-        },
-      );
-      const proof = await buildApplicationLoginRuntimeProof(request);
-      expect(proof).toMatchObject({
-        trusted_header_present: true,
-        trusted_identity_valid: true,
-        runtime_type: "next_node_route_handler",
-        header_value_returned: false,
-        client_identity_returned: false,
-      });
-      const serialized = JSON.stringify(proof);
-      expect(serialized).not.toContain("203.0.113.10");
-      expect(serialized).not.toContain("198.51.100.20");
-
-      const spoofOnly = await buildApplicationLoginRuntimeProof(
-        new Request(`${applicationCanonicalProductionOrigin}/api/auth/login`, {
-          method: "POST",
-          headers: { "x-forwarded-for": "198.51.100.20" },
-        }),
-      );
-      expect(spoofOnly).toMatchObject({
-        trusted_header_present: false,
-        trusted_identity_valid: false,
-      });
+      method: "POST",
+      headers: {
+        origin: applicationCanonicalProductionOrigin,
+        "x-nf-client-connection-ip": "203.0.113.10",
+        "x-forwarded-for": "198.51.100.20",
+      },
     },
   );
-
-  await withEnvironment(
-    {
-      NODE_ENV: "production",
-      CONTEXT: "production",
-      TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
-      TURE_LOGIN_RUNTIME_PROOF_ENABLED: undefined,
-    },
-    async () => {
-      await expect(
-        buildApplicationLoginRuntimeProof(
-          new Request(`${applicationCanonicalProductionOrigin}/api/auth/login`),
-        ),
-      ).resolves.toBeNull();
-    },
+  const proof = await buildApplicationLoginRuntimeProof(
+    request,
+    enabledProductionEnvironment,
   );
+  expect(proof).toMatchObject({
+    trusted_header_present: true,
+    trusted_identity_valid: true,
+    runtime_type: "next_node_route_handler",
+    header_value_returned: false,
+    client_identity_returned: false,
+  });
+  const serialized = JSON.stringify(proof);
+  expect(serialized).not.toContain("203.0.113.10");
+  expect(serialized).not.toContain("198.51.100.20");
+
+  const spoofOnly = await buildApplicationLoginRuntimeProof(
+    new Request(`${applicationCanonicalProductionOrigin}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        origin: applicationCanonicalProductionOrigin,
+        "x-forwarded-for": "198.51.100.20",
+      },
+    }),
+    enabledProductionEnvironment,
+  );
+  expect(spoofOnly).toMatchObject({
+    trusted_header_present: false,
+    trusted_identity_valid: false,
+  });
+
+  await expect(
+    buildApplicationLoginRuntimeProof(
+      new Request(`${applicationCanonicalProductionOrigin}/api/auth/login`),
+      {
+        ...enabledProductionEnvironment,
+        TURE_LOGIN_RUNTIME_PROOF_ENABLED: undefined,
+      },
+    ),
+  ).resolves.toBeNull();
 });
 
 test("deployment assertion readiness reports mismatch without returning identity values", () => {
@@ -241,7 +216,7 @@ test("runtime proof remains disabled by default and login source never logs head
   );
 
   expect(control).toContain(
-    'process.env.TURE_LOGIN_RUNTIME_PROOF_ENABLED !== "true"',
+    'environment.TURE_LOGIN_RUNTIME_PROOF_ENABLED !== "true"',
   );
   expect(login).toContain("buildApplicationLoginRuntimeProof");
   expect(

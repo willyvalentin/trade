@@ -15,8 +15,11 @@ function normalizedIp(value: string | null) {
   return candidate.toLowerCase();
 }
 
-export async function resolveTrustedLoginIdentity(request: Request) {
-  const production = process.env.NODE_ENV === "production";
+export async function resolveTrustedLoginIdentity(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const production = environment.NODE_ENV === "production";
   const platformIdentity = normalizedIp(
     request.headers.get("x-nf-client-connection-ip"),
   );
@@ -27,16 +30,19 @@ export async function resolveTrustedLoginIdentity(request: Request) {
   return platformIdentity ?? normalizedIp(request.headers.get("x-real-ip"));
 }
 
-export async function buildApplicationLoginRuntimeProof(request: Request) {
+export async function buildApplicationLoginRuntimeProof(
+  request: Request,
+  environment: Record<string, string | undefined> = process.env,
+) {
   if (
-    process.env.TURE_LOGIN_RUNTIME_PROOF_ENABLED !== "true" ||
-    process.env.NODE_ENV !== "production" ||
-    evaluateApplicationAuthenticationOrigin(request).status !== "allowed"
+    environment.TURE_LOGIN_RUNTIME_PROOF_ENABLED !== "true" ||
+    environment.NODE_ENV !== "production" ||
+    evaluateApplicationAuthenticationOrigin(request, environment).status !== "allowed"
   ) {
     return null;
   }
 
-  const identity = await resolveTrustedLoginIdentity(request);
+  const identity = await resolveTrustedLoginIdentity(request, environment);
   return Object.freeze({
     contract_version: "application_login_runtime_proof_v1",
     trusted_header_present: request.headers.has("x-nf-client-connection-ip"),

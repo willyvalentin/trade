@@ -38,7 +38,7 @@ contracts; an application cookie never authorizes them.
 
 | Surface | Classification | Boundary |
 | --- | --- | --- |
-| `/login`, `/api/auth/login`, `/api/auth/logout` | public by design | login creates or clears only the application session |
+| `/login`, `/api/auth/login`, `/api/auth/logout` | public by design | login creates or clears only the application session; auth-route POSTs require the canonical origin guard |
 | `/` and TradeApp history/statistics/live-trade surfaces | requires application session | Proxy optimistic redirect plus server page guard |
 | `/settings` | requires application session | protected server layout and authenticated first-party settings API |
 | `/mock-broker/*`, `/sandbox-broker`, `/dev/*` | requires application session | protected server layouts; still local/mock capability only |
@@ -52,6 +52,17 @@ contracts; an application cookie never authorizes them.
 Unknown or unclassified API paths fail closed at Proxy unless explicitly
 listed as public or automation/service-role paths. Static assets remain outside
 the Proxy matcher.
+
+### Action 652N Authentication Route Origin Boundary
+
+The Proxy keeps login and logout session-exempt because login has no existing
+session and logout must safely handle expired sessions. That exemption does not
+exempt their POST mutations from CSRF protection. Both routes call the shared
+authentication-origin guard before password, limiter, or cookie work. In
+production the supplied `Origin` must be one strict absolute origin exactly
+equal to the canonical `TURE_APPLICATION_ORIGIN`; missing, malformed, preview,
+branch, and mismatched requests fail closed with redacted deterministic JSON.
+Local development requires the supplied origin to match the request URL origin.
 
 ## Browser-To-Server Migration
 
