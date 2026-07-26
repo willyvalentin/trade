@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "action": "664D",
+  "baseline_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "migration_version": "20260726001000",
+  "migration_sha256": "212296f6cd3c22bf775fc969ee569c359bf80b32bb9aac78ec1592ba6d7bbcd1",
+  "scenarios_passed": 13,
+  "scenarios_failed": 0,
+  "matrix": [
+    {
+      "name": "canonical_origin_main_baseline",
+      "status": "passed",
+      "baseline_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+      "migrations_applied": 34
+    },
+    {
+      "name": "action_664d_migration_applied_locally",
+      "status": "passed",
+      "migration_version": "20260726001000",
+      "migration_sha256": "212296f6cd3c22bf775fc969ee569c359bf80b32bb9aac78ec1592ba6d7bbcd1"
+    },
+    {
+      "name": "exact_schema_owner_rls_and_column_acl",
+      "status": "passed"
+    },
+    {
+      "name": "table_acl_contract",
+      "status": "passed",
+      "service_role_privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "browser_role_privileges": [],
+      "public_privileges": []
+    },
+    {
+      "name": "constraints_and_indexes",
+      "status": "passed",
+      "constraints": 21,
+      "indexes": 12
+    },
+    {
+      "name": "six_sample_types_service_role_insert_read",
+      "status": "passed",
+      "rows_inserted": 6
+    },
+    {
+      "name": "actual_browser_role_denial",
+      "status": "passed",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "operations": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ]
+    },
+    {
+      "name": "idempotent_retry_no_effect",
+      "status": "passed",
+      "rows_before": 1,
+      "rows_after": 1
+    },
+    {
+      "name": "semantic_collision_rejected_without_overwrite",
+      "status": "passed"
+    },
+    {
+      "name": "invalid_payload_constraints",
+      "status": "passed",
+      "rejected": [
+        "invalid_confidence",
+        "invalid_sample_type",
+        "missing_versions",
+        "broken_lineage",
+        "tampered_envelope"
+      ]
+    },
+    {
+      "name": "append_only_update_delete_denial",
+      "status": "passed"
+    },
+    {
+      "name": "transaction_rollback_no_partial_row",
+      "status": "passed"
+    },
+    {
+      "name": "legacy_catalog_no_effect",
+      "status": "passed",
+      "writer_default_state": "feature_flag_disabled"
+    }
+  ],
+  "production_interaction": false,
+  "external_database_interaction": false
+}

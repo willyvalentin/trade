@@ -1,0 +1,189 @@
+{
+  "contract_version": "canonical_evaluation_persistence_v1",
+  "fixture_only": true,
+  "production_rows_read": 0,
+  "production_rows_written": 0,
+  "totals": {
+    "total": 14,
+    "ready": 7,
+    "conflicting": 2,
+    "unmappable": 4,
+    "incomplete_but_preservable": 1
+  },
+  "by_source": {
+    "historical_replay": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "recommendation_batch": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "recommendation_outcome_bundle": {
+      "total": 4,
+      "ready": 2,
+      "conflicting": 1,
+      "unmappable": 1,
+      "incomplete_but_preservable": 0
+    },
+    "recommendation_snapshot": {
+      "total": 6,
+      "ready": 1,
+      "conflicting": 1,
+      "unmappable": 3,
+      "incomplete_but_preservable": 1
+    },
+    "scanner_candidate": {
+      "total": 2,
+      "ready": 2,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    }
+  },
+  "by_sample_type": {
+    "historical_synthetic": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "no_trade": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "rejected_candidate": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "research_only": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "shadow": {
+      "total": 1,
+      "ready": 1,
+      "conflicting": 0,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "unknown": {
+      "total": 1,
+      "ready": 0,
+      "conflicting": 1,
+      "unmappable": 0,
+      "incomplete_but_preservable": 0
+    },
+    "visible": {
+      "total": 8,
+      "ready": 2,
+      "conflicting": 1,
+      "unmappable": 4,
+      "incomplete_but_preservable": 1
+    }
+  },
+  "reason_code_counts": {
+    "conflicting_sample_type": 1,
+    "counterfactual_not_evaluable": 1,
+    "duplicate_60m_outcome": 1,
+    "invalid_provider_contract_version": 2,
+    "legacy_quality_fields_incomplete": 1,
+    "legacy_raw_audit_preservation_only": 1,
+    "missing_batch_lineage": 1,
+    "missing_producer_decision_id": 1,
+    "no_trade_counterfactual_not_evaluable": 1,
+    "numeric_confidence_not_probability": 1,
+    "projection_conflicting": 2,
+    "projection_unmappable": 4,
+    "provider_gap": 1,
+    "reproducible_outcome": 2
+  },
+  "fixtures": [
+    {
+      "fixture_id": "01_visible_complete_round_trip",
+      "status": "ready",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "02_research_only",
+      "status": "ready",
+      "sample_type": "research_only"
+    },
+    {
+      "fixture_id": "03_shadow",
+      "status": "ready",
+      "sample_type": "shadow"
+    },
+    {
+      "fixture_id": "04_historical_synthetic",
+      "status": "ready",
+      "sample_type": "historical_synthetic"
+    },
+    {
+      "fixture_id": "05_rejected_candidate",
+      "status": "ready",
+      "sample_type": "rejected_candidate"
+    },
+    {
+      "fixture_id": "06_no_trade",
+      "status": "ready",
+      "sample_type": "no_trade"
+    },
+    {
+      "fixture_id": "07_missing_decision_id",
+      "status": "unmappable",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "08_sample_type_conflict",
+      "status": "conflicting",
+      "sample_type": "unknown"
+    },
+    {
+      "fixture_id": "09_confidence_outside_probability",
+      "status": "unmappable",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "10_incomplete_versions",
+      "status": "unmappable",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "11_broken_lineage",
+      "status": "unmappable",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "12_provider_gap",
+      "status": "ready",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "13_duplicate_horizon",
+      "status": "conflicting",
+      "sample_type": "visible"
+    },
+    {
+      "fixture_id": "14_legacy_preservable_not_quality_usable",
+      "status": "incomplete_but_preservable",
+      "sample_type": "visible"
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "action": "664E",
+  "status": "passed",
+  "baseline_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "migration_version": "20260726001000",
+  "production_interaction": false,
+  "staging_interaction": false,
+  "external_database_interaction": false,
+  "orchestrator_scenarios": {
+    "passed": 16,
+    "failed": 0,
+    "items": [
+      {
+        "scenario": "visible_completed_bundle_preparation",
+        "status": "would_insert"
+      },
+      {
+        "scenario": "research_only_completed_bundle_preparation",
+        "status": "would_insert"
+      },
+      {
+        "scenario": "incomplete_provider_coverage",
+        "status": "incomplete_not_quality_eligible"
+      },
+      {
+        "scenario": "missing_producer_decision_id",
+        "status": "unmappable"
+      },
+      {
+        "scenario": "sample_type_conflict",
+        "status": "conflicting"
+      },
+      {
+        "scenario": "duplicate_horizon",
+        "status": "conflicting"
+      },
+      {
+        "scenario": "broken_lineage",
+        "status": "unmappable"
+      },
+      {
+        "scenario": "default_off",
+        "status": "disabled",
+        "client_constructions": 0,
+        "reads": 0,
+        "writes": 0
+      },
+      {
+        "scenario": "kill_switch",
+        "status": "kill_switch_engaged",
+        "client_constructions": 0,
+        "reads": 0,
+        "writes": 0
+      },
+      {
+        "scenario": "diagnostic_mode",
+        "status": "would_insert",
+        "client_constructions": 0,
+        "reads": 0,
+        "writes": 0
+      },
+      {
+        "scenario": "visible_capture_and_readback",
+        "status": "inserted",
+        "parity": "matched"
+      },
+      {
+        "scenario": "research_only_capture_and_readback",
+        "status": "inserted",
+        "parity": "matched"
+      },
+      {
+        "scenario": "idempotent_retry",
+        "status": "idempotent_no_effect",
+        "stored_rows": 1,
+        "parity": "matched"
+      },
+      {
+        "scenario": "semantic_collision",
+        "status": "semantic_conflict",
+        "insert_attempts": 0,
+        "overwritten": false
+      },
+      {
+        "scenario": "tampered_prepared_envelope",
+        "status": "conflicting",
+        "client_constructions": 0,
+        "reads": 0,
+        "writes": 0
+      },
+      {
+        "scenario": "tampered_stored_envelope",
+        "status": "conflicting",
+        "parity": "conflicting"
+      }
+    ]
+  },
+  "disposable_postgres_matrix": {
+    "passed": 1,
+    "failed": 0,
+    "canonical_main_migrations_replayed": 34,
+    "action_664d_migration_applied": true,
+    "visible_status": "inserted",
+    "visible_parity": "matched",
+    "retry_status": "idempotent_no_effect",
+    "semantic_collision_status": "semantic_conflict",
+    "research_only_status": "inserted",
+    "research_only_parity": "matched",
+    "final_rows": 2
+  }
+}
