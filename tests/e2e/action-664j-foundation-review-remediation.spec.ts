@@ -15,7 +15,9 @@ import {
   compareCanonicalQualityScorecards,
   deriveCanonicalPairBoundComparabilityEvidence,
   evaluateCanonicalShadowModelChangeGates,
+  verifyCanonicalPairBoundComparabilityEvidence,
   verifyCanonicalQualityVersionComparisonDigest,
+  type CanonicalQualityVersionComparison,
   type CanonicalScorecardVersions,
 } from "@/lib/canonical-quality-scorecard";
 import {
@@ -267,22 +269,43 @@ function counterfactualFixture(input: {
   });
 }
 
-test("Major 4: no-trade opportunity cost passes only through the pair-bound main gate", () => {
+function counterfactualComparison(input: {
+  baselineVersions?: CanonicalScorecardVersions;
+  candidateVersions?: CanonicalScorecardVersions;
+}) {
   const baseline = counterfactualFixture({
-    versions: action664hBaselineVersions,
+    versions: input.baselineVersions ?? action664hBaselineVersions,
     opportunityCost: 1,
   });
   const candidate = counterfactualFixture({
-    versions: action664hCandidateVersions,
+    versions: input.candidateVersions ?? action664hCandidateVersions,
     opportunityCost: 0.8,
   });
   expect(baseline.status).toBe("assembled");
   expect(candidate.status).toBe("assembled");
-  const comparison = compareCanonicalQualityScorecards({
+  return compareCanonicalQualityScorecards({
     baseline: baseline.scorecard,
     candidate: candidate.scorecard,
     bootstrap_seed: action664hBootstrapSeed,
   });
+}
+
+function resignComparison(
+  comparison: CanonicalQualityVersionComparison,
+) {
+  const payload = structuredClone(comparison) as Omit<
+    CanonicalQualityVersionComparison,
+    "semantic_digest"
+  > & { semantic_digest?: string };
+  delete payload.semantic_digest;
+  return {
+    ...payload,
+    semantic_digest: canonicalQualitySemanticDigest(payload),
+  } as CanonicalQualityVersionComparison;
+}
+
+test("Major 4: no-trade opportunity cost passes only through the pair-bound main gate", () => {
+  const comparison = counterfactualComparison({});
   expect(comparison.comparability_status).toBe("comparable");
   expect(comparison.deltas.opportunity_cost_r.delta).toBe(-0.2);
 
@@ -328,6 +351,166 @@ test("Major 4: a no-trade contract mismatch is not evaluable, never an advisory 
     )?.status,
   ).toBe("not_evaluable");
   expect(advice.status).not.toBe("advisory_pass");
+});
+
+test("Action 664N.1: valid primary and no-trade comparisons bind the same model transition", () => {
+  const noTradeComparison = counterfactualComparison({});
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: action664hComparableImprovement,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: noTradeComparison,
+  });
+
+  expect(
+    verifyCanonicalPairBoundComparabilityEvidence(
+      action664hComparableImprovement.comparison_evidence,
+    ),
+  ).toBe(true);
+  expect(
+    action664hComparableImprovement.comparison_evidence
+      .model_version_transition,
+  ).toMatchObject({
+    baseline: {
+      engine: action664hBaselineVersions.engine,
+      scoring: action664hBaselineVersions.scoring,
+      ranking: action664hBaselineVersions.ranking,
+    },
+    candidate: {
+      engine: action664hCandidateVersions.engine,
+      scoring: action664hCandidateVersions.scoring,
+      ranking: action664hCandidateVersions.ranking,
+    },
+  });
+  expect(
+    advice.gates.find(
+      (gate) => gate.gate === "primary_pair_bound_comparison",
+    )?.status,
+  ).toBe("pass");
+  expect(
+    advice.gates.find(
+      (gate) => gate.gate === "candidate_scorecard_pair_binding",
+    )?.status,
+  ).toBe("pass");
+  expect(
+    advice.gates.find(
+      (gate) => gate.gate === "no_trade_pair_bound_comparison",
+    )?.status,
+  ).toBe("pass");
+  expect(advice.automatic_promotion_executed).toBe(false);
+});
+
+test("Action 664N.1: a manipulated primary comparison digest is rejected", () => {
+  const tampered = structuredClone(action664hComparableImprovement);
+  tampered.semantic_digest = "0".repeat(64);
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: tampered,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: counterfactualComparison({}),
+  });
+
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "primary_comparison_digest_or_pair_binding_invalid",
+  );
+  expect(advice.automatic_promotion_executed).toBe(false);
+});
+
+test("Action 664N.1: a candidate scorecard whose digest no longer recomputes is rejected", () => {
+  const tamperedCandidate = structuredClone(
+    action664hCandidateImprovementAssembly.scorecard,
+  );
+  tamperedCandidate.versions.engine = "tampered-candidate-engine";
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: action664hComparableImprovement,
+    candidate_scorecard: tamperedCandidate,
+    no_trade_comparison: counterfactualComparison({}),
+  });
+
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "candidate_scorecard_digest_invalid",
+  );
+});
+
+test("Action 664N.1: a comparison with the wrong baseline pair is rejected even when re-signed", () => {
+  const wrongPair = structuredClone(action664hComparableImprovement);
+  wrongPair.baseline_scorecard_digest =
+    action664hCandidateImprovementAssembly.scorecard.semantic_digest;
+  const resigned = resignComparison(wrongPair);
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: resigned,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: counterfactualComparison({}),
+  });
+
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "primary_baseline_scorecard_digest_mismatch",
+  );
+});
+
+test("Action 664N.1: no-trade with a different candidate model version is rejected", () => {
+  const noTradeComparison = counterfactualComparison({
+    candidateVersions: {
+      ...action664hCandidateVersions,
+      engine: "engine-shadow-c-v1",
+    },
+  });
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: action664hComparableImprovement,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: noTradeComparison,
+  });
+
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "no_trade_candidate_engine_version_mismatch",
+  );
+});
+
+test("Action 664N.1: no-trade with a different baseline model version is rejected", () => {
+  const noTradeComparison = counterfactualComparison({
+    baselineVersions: {
+      ...action664hBaselineVersions,
+      ranking: "ranking-shadow-legacy-v1",
+    },
+  });
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: action664hComparableImprovement,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: noTradeComparison,
+  });
+
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "no_trade_baseline_ranking_version_mismatch",
+  );
+});
+
+test("Action 664N.1: tampered pair-bound evidence is rejected even when the outer comparison is re-signed", () => {
+  const tampered = structuredClone(action664hComparableImprovement);
+  tampered.comparison_evidence.denominator_sha256 = "0".repeat(64);
+  const resigned = resignComparison(tampered);
+  const advice = evaluateCanonicalShadowModelChangeGates({
+    comparison: resigned,
+    candidate_scorecard:
+      action664hCandidateImprovementAssembly.scorecard,
+    no_trade_comparison: counterfactualComparison({}),
+  });
+
+  expect(
+    verifyCanonicalQualityVersionComparisonDigest(resigned),
+  ).toBe(false);
+  expect(advice.status).toBe("advisory_reject");
+  expect(advice.reason_codes).toContain(
+    "primary_pair_bound_evidence_invalid",
+  );
+  expect(advice.automatic_promotion_executed).toBe(false);
 });
 
 test("Major 5: the versioned standard command owns the react-server condition", () => {

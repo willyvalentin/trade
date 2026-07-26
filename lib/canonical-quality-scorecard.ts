@@ -142,6 +142,18 @@ export type CanonicalVersionComparisonClassification =
   | "non_inferior"
   | "regression";
 
+export type CanonicalModelVersionIdentity = Pick<
+  CanonicalScorecardVersions,
+  "engine" | "scoring" | "ranking"
+>;
+
+export type CanonicalModelVersionTransitionEvidence = {
+  method: "sha256_engine_scoring_ranking_transition_v1";
+  baseline: CanonicalModelVersionIdentity;
+  candidate: CanonicalModelVersionIdentity;
+  semantic_digest: string;
+};
+
 export type CanonicalPairBoundComparabilityEvidence = {
   evidence_version: "canonical_pair_bound_comparability_evidence_v1";
   baseline_scorecard_digest: string;
@@ -156,6 +168,7 @@ export type CanonicalPairBoundComparabilityEvidence = {
   evaluator_contract: string | null;
   provider_contract: string | null;
   coverage_reproducibility_sha256: string | null;
+  model_version_transition: CanonicalModelVersionTransitionEvidence;
   status: CanonicalScorecardComparabilityStatus;
   reason_codes: string[];
   semantic_digest_algorithm: "sha256_canonical_json_v1";
@@ -301,6 +314,76 @@ export function verifyCanonicalQualityScorecardDigest(
     canonicalQualitySemanticDigest(scorecardSemanticPayload(payload)) ===
       semanticDigest
   );
+}
+
+function modelVersionIdentity(
+  versions: CanonicalScorecardVersions,
+): CanonicalModelVersionIdentity {
+  return {
+    engine: versions.engine,
+    scoring: versions.scoring,
+    ranking: versions.ranking,
+  };
+}
+
+function modelVersionTransitionEvidence(
+  baseline: CanonicalScorecardVersions,
+  candidate: CanonicalScorecardVersions,
+): CanonicalModelVersionTransitionEvidence {
+  const payload = {
+    method: "sha256_engine_scoring_ranking_transition_v1" as const,
+    baseline: modelVersionIdentity(baseline),
+    candidate: modelVersionIdentity(candidate),
+  };
+  return {
+    ...payload,
+    semantic_digest: canonicalQualitySemanticDigest(payload),
+  };
+}
+
+function verifyCanonicalModelVersionTransitionEvidence(
+  evidence: CanonicalModelVersionTransitionEvidence,
+) {
+  try {
+    const { semantic_digest: semanticDigest, ...payload } = evidence;
+    const versionsComplete = (
+      ["baseline", "candidate"] as const
+    ).every((side) =>
+      (["engine", "scoring", "ranking"] as const).every(
+        (field) =>
+          typeof evidence[side][field] === "string" &&
+          evidence[side][field].trim().length > 0,
+      ),
+    );
+    return (
+      evidence.method ===
+        "sha256_engine_scoring_ranking_transition_v1" &&
+      versionsComplete &&
+      fullShaPattern.test(semanticDigest) &&
+      canonicalQualitySemanticDigest(payload) === semanticDigest
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function verifyCanonicalPairBoundComparabilityEvidence(
+  evidence: CanonicalPairBoundComparabilityEvidence,
+) {
+  try {
+    const { semantic_digest: semanticDigest, ...payload } = evidence;
+    return (
+      fullShaPattern.test(semanticDigest) &&
+      fullShaPattern.test(evidence.baseline_scorecard_digest) &&
+      fullShaPattern.test(evidence.candidate_scorecard_digest) &&
+      verifyCanonicalModelVersionTransitionEvidence(
+        evidence.model_version_transition,
+      ) &&
+      canonicalQualitySemanticDigest(payload) === semanticDigest
+    );
+  } catch {
+    return false;
+  }
 }
 
 function validInstant(value: string) {
@@ -731,6 +814,10 @@ export function deriveCanonicalPairBoundComparabilityEvidence(input: {
         reproducibility_rate: candidate.coverage.reproducibility_rate,
       },
     }),
+    model_version_transition: modelVersionTransitionEvidence(
+      baseline.versions,
+      candidate.versions,
+    ),
   };
   const payload: Omit<
     CanonicalPairBoundComparabilityEvidence,
@@ -972,12 +1059,25 @@ function comparisonSemanticPayload(
 export function verifyCanonicalQualityVersionComparisonDigest(
   comparison: CanonicalQualityVersionComparison,
 ) {
-  const { semantic_digest: semanticDigest, ...payload } = comparison;
-  return (
-    fullShaPattern.test(semanticDigest) &&
-    canonicalQualitySemanticDigest(comparisonSemanticPayload(payload)) ===
-      semanticDigest
-  );
+  try {
+    const { semantic_digest: semanticDigest, ...payload } = comparison;
+    return (
+      fullShaPattern.test(semanticDigest) &&
+      verifyCanonicalPairBoundComparabilityEvidence(
+        comparison.comparison_evidence,
+      ) &&
+      comparison.baseline_scorecard_digest ===
+        comparison.comparison_evidence.baseline_scorecard_digest &&
+      comparison.candidate_scorecard_digest ===
+        comparison.comparison_evidence.candidate_scorecard_digest &&
+      comparison.comparability_status ===
+        comparison.comparison_evidence.status &&
+      canonicalQualitySemanticDigest(comparisonSemanticPayload(payload)) ===
+        semanticDigest
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function compareCanonicalQualityScorecards(input: {
@@ -1279,40 +1379,295 @@ function numericGate(
   };
 }
 
+function structuralGate(
+  gate: string,
+  reasonCodes: string[],
+  missingReason?: string,
+): CanonicalShadowGateResult {
+  if (missingReason) {
+    return {
+      gate,
+      status: "not_evaluable",
+      observed: null,
+      threshold: null,
+      reason_codes: [missingReason],
+    };
+  }
+  return {
+    gate,
+    status: reasonCodes.length === 0 ? "pass" : "fail",
+    observed: null,
+    threshold: null,
+    reason_codes: uniqueSorted(reasonCodes),
+  };
+}
+
+function advisoryComparisonBindingReasons(
+  comparison: CanonicalQualityVersionComparison,
+  prefix: "primary" | "no_trade",
+) {
+  const reasons: string[] = [];
+  const evidence = comparison?.comparison_evidence;
+
+  if (!evidence) {
+    return [
+      `${prefix}_comparison_digest_or_pair_binding_invalid`,
+      `${prefix}_pair_bound_evidence_missing`,
+    ];
+  }
+
+  if (!verifyCanonicalQualityVersionComparisonDigest(comparison)) {
+    reasons.push(`${prefix}_comparison_digest_or_pair_binding_invalid`);
+  }
+  if (!verifyCanonicalPairBoundComparabilityEvidence(evidence)) {
+    reasons.push(`${prefix}_pair_bound_evidence_invalid`);
+  }
+  if (
+    comparison.baseline_scorecard_digest !==
+    evidence.baseline_scorecard_digest
+  ) {
+    reasons.push(`${prefix}_baseline_scorecard_digest_mismatch`);
+  }
+  if (
+    comparison.candidate_scorecard_digest !==
+    evidence.candidate_scorecard_digest
+  ) {
+    reasons.push(`${prefix}_candidate_scorecard_digest_mismatch`);
+  }
+  if (
+    comparison.comparability_status !== "comparable" ||
+    evidence.status !== "comparable"
+  ) {
+    reasons.push(`${prefix}_comparison_not_comparable`);
+  }
+  if (!evidence.cohort) reasons.push(`${prefix}_cohort_binding_missing`);
+  if (
+    evidence.metrics_policy_version !==
+    CANONICAL_QUALITY_METRICS_POLICY_VERSION
+  ) {
+    reasons.push(`${prefix}_metrics_policy_binding_invalid`);
+  }
+  for (const [field, value] of [
+    ["period", evidence.period_sha256],
+    ["denominator", evidence.denominator_sha256],
+    ["opportunity_set", evidence.opportunity_set_sha256],
+    ["coverage_reproducibility", evidence.coverage_reproducibility_sha256],
+  ] as const) {
+    if (!value || !fullShaPattern.test(value)) {
+      reasons.push(`${prefix}_${field}_binding_missing`);
+    }
+  }
+  if (!evidence.evaluator_contract?.trim()) {
+    reasons.push(`${prefix}_evaluator_contract_binding_missing`);
+  }
+  if (!evidence.provider_contract?.trim()) {
+    reasons.push(`${prefix}_provider_contract_binding_missing`);
+  }
+  if (
+    !verifyCanonicalModelVersionTransitionEvidence(
+      evidence.model_version_transition,
+    )
+  ) {
+    reasons.push(`${prefix}_model_version_transition_invalid`);
+  }
+
+  return uniqueSorted(reasons);
+}
+
+function candidateScorecardBindingReasons(
+  scorecard: CanonicalQualityScorecard,
+  comparison: CanonicalQualityVersionComparison,
+) {
+  const reasons: string[] = [];
+  const evidence = comparison?.comparison_evidence;
+  if (!evidence) {
+    return [
+      "candidate_scorecard_comparison_digest_mismatch",
+      "candidate_scorecard_pair_bound_evidence_missing",
+    ];
+  }
+  const transition = evidence.model_version_transition;
+
+  if (!verifyCanonicalQualityScorecardDigest(scorecard)) {
+    reasons.push("candidate_scorecard_digest_invalid");
+  }
+  if (
+    scorecard.semantic_digest !== comparison.candidate_scorecard_digest ||
+    scorecard.semantic_digest !== evidence.candidate_scorecard_digest
+  ) {
+    reasons.push("candidate_scorecard_comparison_digest_mismatch");
+  }
+  if (scorecard.cohort !== evidence.cohort) {
+    reasons.push("candidate_scorecard_cohort_mismatch");
+  }
+  if (scorecard.metrics_policy_version !== evidence.metrics_policy_version) {
+    reasons.push("candidate_scorecard_metrics_policy_mismatch");
+  }
+  if (
+    canonicalQualitySemanticDigest(scorecard.period) !==
+    evidence.period_sha256
+  ) {
+    reasons.push("candidate_scorecard_period_mismatch");
+  }
+  if (
+    scorecard.denominator_identity.canonical_identity_set_sha256 !==
+    evidence.denominator_sha256
+  ) {
+    reasons.push("candidate_scorecard_denominator_mismatch");
+  }
+  if (
+    scorecard.denominator_identity.opportunity_set_sha256 !==
+    evidence.opportunity_set_sha256
+  ) {
+    reasons.push("candidate_scorecard_opportunity_set_mismatch");
+  }
+  if (scorecard.versions.evaluator !== evidence.evaluator_contract) {
+    reasons.push("candidate_scorecard_evaluator_contract_mismatch");
+  }
+  if (scorecard.versions.provider !== evidence.provider_contract) {
+    reasons.push("candidate_scorecard_provider_contract_mismatch");
+  }
+  if (!verifyCanonicalModelVersionTransitionEvidence(transition)) {
+    reasons.push("candidate_scorecard_model_version_transition_invalid");
+  } else if (
+    canonicalQualitySemanticDigest(modelVersionIdentity(scorecard.versions)) !==
+    canonicalQualitySemanticDigest(transition.candidate)
+  ) {
+    reasons.push("candidate_scorecard_model_version_mismatch");
+  }
+  if (scorecard.automatic_promotion_allowed !== false) {
+    reasons.push("candidate_scorecard_automatic_promotion_forbidden");
+  }
+
+  return uniqueSorted(reasons);
+}
+
+function noTradeTransitionBindingReasons(
+  primary: CanonicalQualityVersionComparison,
+  noTrade: CanonicalQualityVersionComparison,
+) {
+  const reasons: string[] = [];
+  const primaryEvidence = primary?.comparison_evidence;
+  const noTradeEvidence = noTrade?.comparison_evidence;
+  if (!primaryEvidence || !noTradeEvidence) {
+    return ["no_trade_pair_bound_evidence_missing"];
+  }
+  const primaryTransition =
+    primaryEvidence.model_version_transition;
+  const noTradeTransition =
+    noTradeEvidence.model_version_transition;
+
+  if (
+    !verifyCanonicalModelVersionTransitionEvidence(primaryTransition) ||
+    !verifyCanonicalModelVersionTransitionEvidence(noTradeTransition)
+  ) {
+    return ["no_trade_model_version_transition_invalid"];
+  }
+
+  for (const side of ["baseline", "candidate"] as const) {
+    for (const field of ["engine", "scoring", "ranking"] as const) {
+      if (
+        primaryTransition[side][field] !==
+        noTradeTransition[side][field]
+      ) {
+        reasons.push(`no_trade_${side}_${field}_version_mismatch`);
+      }
+    }
+  }
+  if (
+    noTradeEvidence.cohort !== "no_trade_counterfactual"
+  ) {
+    reasons.push("no_trade_comparison_cohort_invalid");
+  }
+
+  return uniqueSorted(reasons);
+}
+
 export function evaluateCanonicalShadowModelChangeGates(input: {
   comparison: CanonicalQualityVersionComparison;
   candidate_scorecard: CanonicalQualityScorecard;
   no_trade_comparison?: CanonicalQualityVersionComparison;
 }): CanonicalShadowModelChangeAdvice {
   const scorecard = input.candidate_scorecard;
-  const evidence =
-    scorecard.metrics.comparison_evidence.eligible_identity_observations;
-  const denominator = scorecard.coverage.expected_identity_count;
-  const expectancyLower =
-    input.comparison.deltas.expectancy_r.confidence_interval?.lower ?? null;
-  const winRateLower =
-    input.comparison.deltas.win_rate.confidence_interval?.lower ?? null;
-  const brierUpper =
-    input.comparison.deltas.brier_score.confidence_interval?.upper ?? null;
-  const eceUpper =
-    input.comparison.deltas.expected_calibration_error.confidence_interval
-      ?.upper ?? null;
-  const precisionFiveLower =
-    input.comparison.deltas.precision_at_k["5"]?.confidence_interval?.lower ??
-    null;
+  const primaryBindingReasons = advisoryComparisonBindingReasons(
+    input.comparison,
+    "primary",
+  );
+  const candidateBindingReasons = candidateScorecardBindingReasons(
+    scorecard,
+    input.comparison,
+  );
+  const primaryBindingValid =
+    primaryBindingReasons.length === 0 &&
+    candidateBindingReasons.length === 0;
   const noTradeComparison = input.no_trade_comparison;
+  const noTradeBindingReasons = noTradeComparison
+    ? [
+        ...advisoryComparisonBindingReasons(
+          noTradeComparison,
+          "no_trade",
+        ),
+        ...noTradeTransitionBindingReasons(
+          input.comparison,
+          noTradeComparison,
+        ),
+      ]
+    : [];
+  const noTradeBindingValid =
+    Boolean(noTradeComparison) && noTradeBindingReasons.length === 0;
+  const evidence =
+    primaryBindingValid
+      ? scorecard.metrics.comparison_evidence.eligible_identity_observations
+      : [];
+  const denominator = primaryBindingValid
+    ? scorecard.coverage.expected_identity_count
+    : 0;
+  const expectancyLower =
+    primaryBindingValid
+      ? input.comparison.deltas.expectancy_r.confidence_interval?.lower ?? null
+      : null;
+  const winRateLower =
+    primaryBindingValid
+      ? input.comparison.deltas.win_rate.confidence_interval?.lower ?? null
+      : null;
+  const brierUpper =
+    primaryBindingValid
+      ? input.comparison.deltas.brier_score.confidence_interval?.upper ?? null
+      : null;
+  const eceUpper =
+    primaryBindingValid
+      ? input.comparison.deltas.expected_calibration_error.confidence_interval
+          ?.upper ?? null
+      : null;
+  const precisionFiveLower =
+    primaryBindingValid
+      ? input.comparison.deltas.precision_at_k["5"]?.confidence_interval
+          ?.lower ?? null
+      : null;
   const noTradeOpportunityCostUpper =
-    noTradeComparison?.comparability_status === "comparable" &&
-    noTradeComparison.comparison_evidence.cohort ===
-      "no_trade_counterfactual" &&
-    verifyCanonicalQualityVersionComparisonDigest(noTradeComparison)
+    noTradeBindingValid && noTradeComparison
       ? noTradeComparison.deltas.opportunity_cost_r.confidence_interval
           ?.upper ?? null
       : null;
   const gates = [
+    structuralGate(
+      "primary_pair_bound_comparison",
+      primaryBindingReasons,
+    ),
+    structuralGate(
+      "candidate_scorecard_pair_binding",
+      candidateBindingReasons,
+    ),
+    structuralGate(
+      "no_trade_pair_bound_comparison",
+      noTradeBindingReasons,
+      noTradeComparison ? undefined : "no_trade_comparison_missing",
+    ),
     numericGate(
       "minimum_identities",
-      scorecard.denominator_identity.canonical_identity_count,
+      primaryBindingValid
+        ? scorecard.denominator_identity.canonical_identity_count
+        : null,
       canonicalShadowModelChangePolicy.minimum_identities,
       (observed, threshold) => observed >= threshold,
     ),
@@ -1409,9 +1764,6 @@ export function evaluateCanonicalShadowModelChangeGates(input: {
     gates,
     reason_codes: uniqueSorted([
       ...gates.flatMap((gate) => gate.reason_codes),
-      ...(input.comparison.comparability_status !== "comparable"
-        ? ["primary_comparison_not_comparable"]
-        : []),
       "shadow_only_advisory_gate",
       "automatic_promotion_forbidden",
     ]),

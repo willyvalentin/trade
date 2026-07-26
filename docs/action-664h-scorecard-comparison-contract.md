@@ -121,11 +121,23 @@ Gate outputs are `pass`, `fail`, or `not_evaluable`. The overall result is
 `advisory_pass`, `advisory_hold`, or `advisory_reject`. None of these states
 activates, promotes, deploys, or writes a model version.
 
+Before numeric gates are evaluated, the advisory gate recomputes the candidate
+scorecard digest and verifies the primary comparison plus its
+`canonical_pair_bound_comparability_evidence_v1` digest. The evidence binds
+the baseline and candidate scorecard digests, cohort, period, metrics policy,
+denominator, opportunity set, evaluator/provider contracts, coverage,
+reproducibility, and a content-addressed engine/scoring/ranking model-version
+transition. Any missing, tampered, non-comparable, or cross-pair evidence is an
+explicit structural failure and returns `advisory_reject`.
+
 The no-trade gate accepts only a full, digest-verified comparison produced by
 the same pair-bound main comparability gate. Period, policy, denominator,
 opportunity set, evaluator, provider, coverage, and reproducibility must all
-pass. A mismatch is `not_evaluable`, never an advisory pass or an inferred
-zero.
+pass within that separately named cohort. Its baseline and candidate
+engine/scoring/ranking versions must exactly match the primary comparison's
+model transition even though the no-trade cohort and denominator are
+different. A supplied mismatch is an explicit advisory rejection; absent
+no-trade evidence remains `not_evaluable`, never an inferred zero.
 
 ## Rollback metadata
 
