@@ -1,0 +1,337 @@
+{
+  "report_version": "market_context_threshold_sensitivity_study_v1",
+  "context_version": "market_context_intelligence_v1",
+  "threshold_version": "market_context_intelligence_thresholds_2026_07_26_v1",
+  "generated_from_fixture_timestamp": "2026-07-24T20:00:00.000Z",
+  "deterministic_generation": true,
+  "production_or_historical_data_used": false,
+  "threshold_count": 21,
+  "boundary_case_count": 63,
+  "sweep_count": 10,
+  "threshold_local_churn": [
+    {
+      "threshold_id": "freshness_minutes.intraday",
+      "observable_transition_count": 0,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0,
+      "assessment": "no_observable_contract_effect"
+    },
+    {
+      "threshold_id": "freshness_minutes.multi_day",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 1,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "freshness_minutes.breadth",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "freshness_minutes.sector_short",
+      "observable_transition_count": 0,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0,
+      "assessment": "no_observable_contract_effect"
+    },
+    {
+      "threshold_id": "freshness_minutes.sector_medium",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 1,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "minimum_coverage.essential_index",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 1,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "minimum_coverage.breadth",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 1,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "minimum_coverage.sector",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 1,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "trend.strong_return_pct",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "trend.directional_return_pct",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "trend.strong_momentum_pct",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "trend.directional_momentum_pct",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "trend.directional_slope_pct",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "volatility_pct.low_upper_bound",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "volatility_pct.normal_upper_bound",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "volatility_pct.elevated_upper_bound",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "breadth.broad_lower_bound",
+      "observable_transition_count": 1,
+      "classification_transition_count": 1,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "breadth.weak_upper_bound",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "sector_relative_return_pct.short_directional",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "sector_relative_return_pct.medium_directional",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    },
+    {
+      "threshold_id": "sector_relative_return_pct.acceleration_delta",
+      "observable_transition_count": 1,
+      "classification_transition_count": 0,
+      "evidence_transition_count": 0,
+      "rankability_transition_count": 0,
+      "local_churn_ratio": 0.5,
+      "assessment": "bounded_boundary_transition"
+    }
+  ],
+  "sweeps": [
+    {
+      "sweep_id": "trend_signed_evidence_sweep",
+      "point_count": 9,
+      "classification_transition_count": 2,
+      "observable_transition_count": 4,
+      "classification_churn_ratio": 0.25,
+      "observable_churn_ratio": 0.5
+    },
+    {
+      "sweep_id": "risk_state_scenarios",
+      "point_count": 5,
+      "classification_transition_count": 4,
+      "observable_transition_count": 4,
+      "classification_churn_ratio": 1,
+      "observable_churn_ratio": 1
+    },
+    {
+      "sweep_id": "volatility_threshold_sweep",
+      "point_count": 8,
+      "classification_transition_count": 1,
+      "observable_transition_count": 3,
+      "classification_churn_ratio": 0.142857,
+      "observable_churn_ratio": 0.428571
+    },
+    {
+      "sweep_id": "breadth_participation_sweep",
+      "point_count": 8,
+      "classification_transition_count": 1,
+      "observable_transition_count": 2,
+      "classification_churn_ratio": 0.142857,
+      "observable_churn_ratio": 0.285714
+    },
+    {
+      "sweep_id": "spy_qqq_agreement_sweep",
+      "point_count": 3,
+      "classification_transition_count": 1,
+      "observable_transition_count": 1,
+      "classification_churn_ratio": 0.5,
+      "observable_churn_ratio": 0.5
+    },
+    {
+      "sweep_id": "intraday_multi_day_agreement_sweep",
+      "point_count": 3,
+      "classification_transition_count": 1,
+      "observable_transition_count": 2,
+      "classification_churn_ratio": 0.5,
+      "observable_churn_ratio": 1
+    },
+    {
+      "sweep_id": "sector_relative_strength_sweep",
+      "point_count": 9,
+      "classification_transition_count": 0,
+      "observable_transition_count": 6,
+      "classification_churn_ratio": 0,
+      "observable_churn_ratio": 0.75
+    },
+    {
+      "sweep_id": "sector_acceleration_sweep",
+      "point_count": 7,
+      "classification_transition_count": 0,
+      "observable_transition_count": 2,
+      "classification_churn_ratio": 0,
+      "observable_churn_ratio": 0.333333
+    },
+    {
+      "sweep_id": "essential_index_freshness_sweep",
+      "point_count": 8,
+      "classification_transition_count": 1,
+      "observable_transition_count": 1,
+      "classification_churn_ratio": 0.142857,
+      "observable_churn_ratio": 0.142857
+    },
+    {
+      "sweep_id": "essential_index_coverage_sweep",
+      "point_count": 7,
+      "classification_transition_count": 1,
+      "observable_transition_count": 1,
+      "classification_churn_ratio": 0.166667,
+      "observable_churn_ratio": 0.166667
+    }
+  ],
+  "invariants": {
+    "passed": 6,
+    "failed": 0,
+    "deterministic_permutation_count": 32,
+    "ids": [
+      "quality_degradation_never_increases_evidence",
+      "future_data_never_changes_classification",
+      "incomplete_sector_universe_never_rankable",
+      "input_order_never_changes_output",
+      "conflict_never_silently_becomes_neutral",
+      "stronger_positive_evidence_never_degrades_trend"
+    ]
+  },
+  "timestamp_study": {
+    "timezone_equivalence_pairs": 3,
+    "dst_boundaries": 2,
+    "duplicate_timestamp_cases": 2,
+    "out_of_order_cases": 1,
+    "future_or_invalid_timestamp_cases": 2,
+    "passed": true
+  },
+  "numeric_edge_study": {
+    "zero": "passed",
+    "tiny_differences": "passed",
+    "negative_returns": "passed",
+    "large_finite_moves": "passed",
+    "nan_rejected": true,
+    "infinity_rejected": true
+  },
+  "findings": {
+    "excessive_local_churn_thresholds": [],
+    "unclear_semantics_thresholds": [
+      "freshness_minutes.intraday",
+      "freshness_minutes.sector_short"
+    ],
+    "threshold_version_change_recommended": false,
+    "recommendation": "Keep v1 thresholds unchanged. Review no-effect freshness semantics before historical shadow evaluation."
+  },
+  "canonical_binding_readiness": {
+    "status": "not_ready",
+    "passed_gates": 5,
+    "pending_gates": [
+      "track_2_adapter_compatibility_review",
+      "approved_shadow_comparison"
+    ]
+  },
+  "evidence_digest": {
+    "algorithm": "sha256",
+    "canonicalization": "JSON.stringify_in_declared_property_order",
+    "value": "64c636219a3f204e7b9f2dc73b221ba345f127370134afdf51512e42191487ef"
+  },
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

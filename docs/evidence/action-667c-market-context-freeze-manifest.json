@@ -1,0 +1,89 @@
+{
+  "manifest_version": "action_667c_market_context_freeze_manifest_v1",
+  "review_date": "2026-07-26",
+  "worktree": "/private/tmp/trade-action-667a",
+  "branch": "codex/action-667a-market-context-intelligence-lab",
+  "start_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "freeze_scope": "action_667a_and_667b",
+  "artifact_count": 9,
+  "contract_version": "market_context_intelligence_v1",
+  "threshold_version": "market_context_intelligence_thresholds_2026_07_26_v1",
+  "shadow_adapter_version": "market_context_shadow_evaluation_adapter_v1",
+  "sensitivity_study_version": "market_context_threshold_sensitivity_study_v1",
+  "sensitivity_evidence_digest": {
+    "algorithm": "sha256",
+    "canonicalization": "JSON.stringify_in_declared_property_order",
+    "value": "64c636219a3f204e7b9f2dc73b221ba345f127370134afdf51512e42191487ef"
+  },
+  "manifest_digest_canonicalization": {
+    "algorithm": "sha256",
+    "payload": "JSON.stringify(artifacts) with the listed array order and object key order path, artifact_type, sha256, git_status",
+    "before_regression": "eb0ef9eff3318b540ffc060d52d7ba118dfe98bf7303068ab01474fb92168250",
+    "expected_after_regression": "eb0ef9eff3318b540ffc060d52d7ba118dfe98bf7303068ab01474fb92168250"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-667a-market-context-intelligence-shadow-lab.md",
+      "artifact_type": "specification_document",
+      "sha256": "d65567642070ee5965c283fef1d01878fba2ddf7bc6e05ebeaeb87674cf6413b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-667b-threshold-sensitivity-and-contract-stability-study.md",
+      "artifact_type": "study_document",
+      "sha256": "5c4ac10ee437aedc9ae0806a24b15856ecbb2229abfbc4d3c5c67cf02dce6856",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667b-market-context-sensitivity-report.json",
+      "artifact_type": "evidence_report",
+      "sha256": "6e1cd5a462f4ec834ab508a0c41c4146b0dbf537ca020d32dd0fbcbb804e6aa6",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/contract-v1.ts",
+      "artifact_type": "contract_implementation",
+      "sha256": "6840e6d5a0933e50b1dab44c0c3f6ebcca5ff416f07dadbcd0eb43fe6cf4b474",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/golden-fixtures-v1.ts",
+      "artifact_type": "golden_fixture_set",
+      "sha256": "7a11d64eeb26a4a72d85f5800683a29ef43b90244e68a713d04c6192fff2aa2e",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/sensitivity-study-v1.ts",
+      "artifact_type": "sensitivity_implementation",
+      "sha256": "36f87509a9891cb09221159d602deb83ae53f2be90a8012ea4025080ed625211",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/shadow-evaluation-adapter-v1.ts",
+      "artifact_type": "inactive_shadow_adapter",
+      "sha256": "970f7bbc2f882a692b79f1fc82852e3d05e0c0339a24bf0d1d4a8bc566853bc4",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/market-context-intelligence-v1.spec.ts",
+      "artifact_type": "golden_contract_test",
+      "sha256": "7d074da3c597f0dfa436046c008db5dc2b5ca5f9ba1055f900ce0be6a384acd7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/market-context-threshold-sensitivity-v1.spec.ts",
+      "artifact_type": "stability_test",
+      "sha256": "906b17a330995c1ce096fdc8b31d7b1e35058f112cf9402f84bbc4b82de5802b",
+      "git_status": "untracked"
+    }
+  ],
+  "freeze_rules": {
+    "frozen_artifacts_must_match_sha256": true,
+    "threshold_changes_allowed": false,
+    "feature_changes_allowed": false,
+    "live_integration_allowed": false,
+    "canonical_binding_allowed": false,
+    "capture_allowed": false,
+    "persistence_allowed": false
+  }
+}
