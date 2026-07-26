@@ -1,4 +1,4 @@
--- Action 659B read-only precondition and postcondition inspection.
+-- Action 661B incident-only readback for the 19 Action 650 containment targets.
 with target_tables(table_name) as (
   values
     ('recommendations'), ('positions'), ('position_updates'), ('user_settings'),
@@ -9,9 +9,6 @@ with target_tables(table_name) as (
     ('execution_records'), ('execution_agent_runs'),
     ('execution_agent_progress_events'), ('execution_lifecycle_events'),
     ('execution_record_audit_events')
-), allowed_public_tables(table_name) as (
-  select table_name from target_tables
-  union all select 'application_login_abuse_buckets'
 ), required_privileges(privilege_name) as (
   values ('select'), ('insert'), ('update'), ('delete')
 ), denied_privileges(privilege_name) as (
@@ -28,20 +25,12 @@ with target_tables(table_name) as (
     and bool_and((select relkind from pg_class where oid = format('public.%I', table_name)::regclass) = 'r')
     and bool_and((select pg_get_userbyid(relowner) from pg_class where oid = format('public.%I', table_name)::regclass) = 'postgres')
   as ok from target_tables
-), relation_scope_state as (
-  select not exists (
-    select 1 from pg_class classes join pg_namespace namespaces on namespaces.oid = classes.relnamespace
-    where namespaces.nspname = 'public'
-      and classes.relkind in ('r', 'p')
-      and classes.relname not in (select table_name from allowed_public_tables)
-  ) and exists (
-    select 1 from pg_class classes join pg_namespace namespaces on namespaces.oid = classes.relnamespace
-    where namespaces.nspname = 'public'
-      and classes.relname = 'application_login_abuse_buckets'
-      and classes.relkind = 'r'
-      and pg_get_userbyid(classes.relowner) = 'postgres'
-      and classes.relrowsecurity
-  ) as ok
+), target_relation_scope_state as (
+  select count(*) = 19
+    and bool_and(to_regclass(format('public.%I', table_name)) is not null)
+    and bool_and((select relkind from pg_class where oid = format('public.%I', table_name)::regclass) = 'r')
+    and bool_and((select pg_get_userbyid(relowner) from pg_class where oid = format('public.%I', table_name)::regclass) = 'postgres')
+  as ok from target_tables
 ), unknown_acl_state as (
   select not exists (
     select 1
@@ -62,11 +51,28 @@ with target_tables(table_name) as (
       and acl.grantee <> 0
       and acl.grantee <> classes.relowner
       and acl.grantee not in (select role_oid from runtime_roles)
-    union all
+  ) as ok
+), platform_membership_state as (
+  select not exists (
     select 1
     from pg_auth_members memberships
+    join pg_roles member_role on member_role.oid = memberships.member
+    join pg_roles runtime_role on runtime_role.oid = memberships.roleid
     where memberships.roleid in (select role_oid from runtime_roles)
-      and memberships.member not in (select role_oid from runtime_roles)
+      and not (
+        member_role.rolname = 'authenticator'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and not memberships.inherit_option
+        and memberships.set_option
+        and not memberships.admin_option
+      )
+      and not (
+        member_role.rolname = 'postgres'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and memberships.inherit_option
+        and memberships.set_option
+        and memberships.admin_option
+      )
   ) as ok
 ), direct_column_acl_state as (
   select not exists (
@@ -128,8 +134,9 @@ $action_650_body$)
 select case
   when not (select containment from history_state) then 'blocked_by_containment_history'
   when not (select ok from table_state) then 'blocked_by_unknown_table_state'
-  when not (select ok from relation_scope_state) then 'blocked_by_relation_scope'
+  when not (select ok from target_relation_scope_state) then 'blocked_by_target_relation_scope'
   when not (select ok from unknown_acl_state) then 'blocked_by_unknown_acl_grantee'
+  when not (select ok from platform_membership_state) then 'blocked_by_platform_membership'
   when not (select ok from direct_column_acl_state) then 'blocked_by_direct_column_acl'
   when not (select ok from policies_state) then 'blocked_by_policy_drift'
   when not (select ok from append_only_function_state) then 'blocked_by_append_only_function_drift'

@@ -1,4 +1,4 @@
--- Action 659B reviewed SQL Editor bundle.
+-- Incident recovery 20260724003000 reviewed SQL Editor bundle.
 -- Execute only after separate operator authorization for a documented ACL/RLS drift.
 begin;
 select pg_advisory_xact_lock(65920260724003000);
@@ -15,16 +15,6 @@ declare
     'execution_records', 'execution_agent_runs',
     'execution_agent_progress_events', 'execution_lifecycle_events',
     'execution_record_audit_events'
-  ];
-  allowed_public_tables constant text[] := array[
-    'recommendations', 'positions', 'position_updates', 'user_settings',
-    'scanner_cache', 'market_calendar_cache', 'market_regime_snapshots',
-    'recommendation_batches', 'recommendation_outcomes',
-    'recommendation_scan_runs', 'recommendation_snapshots',
-    'scheduled_scan_runs', 'scheduled_scan_attempts', 'symbol_metadata',
-    'execution_records', 'execution_agent_runs',
-    'execution_agent_progress_events', 'execution_lifecycle_events',
-    'execution_record_audit_events', 'application_login_abuse_buckets'
   ];
   audit_tables constant text[] := array[
     'execution_record_audit_events', 'execution_lifecycle_events',
@@ -53,12 +43,6 @@ begin
   if exists (select 1 from supabase_migrations.schema_migrations where version in ('20260708000000', '20260708001000', '20260710000000')) then
     raise exception 'Action 659B forbidden migration history is present';
   end if;
-  if exists (select 1 from pg_class classes join pg_namespace namespaces on namespaces.oid = classes.relnamespace where namespaces.nspname = 'public' and classes.relkind in ('r', 'p') and classes.relname <> all(allowed_public_tables)) then
-    raise exception 'Action 659B rejects unknown public table scope';
-  end if;
-  if not exists (select 1 from pg_class classes join pg_namespace namespaces on namespaces.oid = classes.relnamespace where namespaces.nspname = 'public' and classes.relname = 'application_login_abuse_buckets' and classes.relkind = 'r' and pg_get_userbyid(classes.relowner) = 'postgres' and classes.relrowsecurity) then
-    raise exception 'Action 659B rejects Action 652 login limiter table state';
-  end if;
 
   foreach target_table in array target_tables loop
     if not exists (select 1 from pg_class classes where classes.oid = to_regclass(format('public.%I', target_table)) and classes.relkind = 'r' and pg_get_userbyid(classes.relowner) = 'postgres') then
@@ -83,7 +67,27 @@ begin
     end loop;
     if exists (select 1 from pg_class classes cross join lateral aclexplode(coalesce(classes.relacl, acldefault('r', classes.relowner))) acl where classes.oid = format('public.%I', target_table)::regclass and acl.grantee = 0) then repair_required := true; end if;
   end loop;
-  if exists (select 1 from pg_auth_members memberships where memberships.roleid = any(permitted_role_oids) and memberships.member <> all(permitted_role_oids)) then raise exception 'Action 659B rejects unknown membership in a runtime role'; end if;
+  if exists (
+    select 1
+    from pg_auth_members memberships
+    join pg_roles member_role on member_role.oid = memberships.member
+    join pg_roles runtime_role on runtime_role.oid = memberships.roleid
+    where memberships.roleid = any(permitted_role_oids)
+      and not (
+        member_role.rolname = 'authenticator'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and not memberships.inherit_option
+        and memberships.set_option
+        and not memberships.admin_option
+      )
+      and not (
+        member_role.rolname = 'postgres'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and memberships.inherit_option
+        and memberships.set_option
+        and memberships.admin_option
+      )
+  ) then raise exception 'Action 661B rejects unallowlisted platform membership into a runtime role'; end if;
 
   if not exists (select 1 from pg_proc procs join pg_namespace namespaces on namespaces.oid = procs.pronamespace where procs.oid = to_regprocedure('public.action_650_reject_execution_audit_mutation()') and namespaces.nspname = 'public' and pg_get_function_identity_arguments(procs.oid) = '' and pg_get_userbyid(procs.proowner) = 'postgres' and procs.prolang = (select oid from pg_language where lanname = 'plpgsql') and procs.prorettype = 'trigger'::regtype and not procs.prosecdef and procs.provolatile = 'v' and not procs.proisstrict and procs.proparallel = 'u' and procs.proconfig = array['search_path=pg_catalog'] and regexp_replace(procs.prosrc, '[[:space:]]+', '', 'g') = regexp_replace(expected_append_only_body, '[[:space:]]+', '', 'g') and has_function_privilege('service_role', procs.oid, 'execute') and not exists (select 1 from aclexplode(coalesce(procs.proacl, acldefault('f', procs.proowner))) acl where acl.grantee = 0 or (acl.grantee <> procs.proowner and acl.grantee <> (select oid from pg_roles where rolname = 'service_role')) or acl.privilege_type <> 'EXECUTE'))
     or exists (select 1 from pg_proc procs join pg_namespace namespaces on namespaces.oid = procs.pronamespace where namespaces.nspname = 'public' and procs.proname = 'action_650_reject_execution_audit_mutation' and procs.oid <> to_regprocedure('public.action_650_reject_execution_audit_mutation()')) then

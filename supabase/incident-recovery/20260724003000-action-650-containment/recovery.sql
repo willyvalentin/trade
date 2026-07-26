@@ -1,4 +1,4 @@
--- Action 659B: narrowly repair known post-02000 ACL/RLS drift.
+-- Incident recovery 20260724003000: narrowly repair known post-02000 ACL/RLS drift.
 --
 -- This is forward recovery, not rollback. It never recreates browser grants or
 -- policies, rewrites migration history, or replaces a function or trigger.
@@ -18,16 +18,6 @@ declare
     'execution_records', 'execution_agent_runs',
     'execution_agent_progress_events', 'execution_lifecycle_events',
     'execution_record_audit_events'
-  ];
-  allowed_public_tables constant text[] := array[
-    'recommendations', 'positions', 'position_updates', 'user_settings',
-    'scanner_cache', 'market_calendar_cache', 'market_regime_snapshots',
-    'recommendation_batches', 'recommendation_outcomes',
-    'recommendation_scan_runs', 'recommendation_snapshots',
-    'scheduled_scan_runs', 'scheduled_scan_attempts', 'symbol_metadata',
-    'execution_records', 'execution_agent_runs',
-    'execution_agent_progress_events', 'execution_lifecycle_events',
-    'execution_record_audit_events', 'application_login_abuse_buckets'
   ];
   audit_tables constant text[] := array[
     'execution_record_audit_events', 'execution_lifecycle_events',
@@ -78,30 +68,6 @@ begin
     where version in ('20260708000000', '20260708001000', '20260710000000')
   ) then
     raise exception 'Action 659B forbidden migration history is present';
-  end if;
-
-  if exists (
-    select 1
-    from pg_class classes
-    join pg_namespace namespaces on namespaces.oid = classes.relnamespace
-    where namespaces.nspname = 'public'
-      and classes.relkind in ('r', 'p')
-      and classes.relname <> all(allowed_public_tables)
-  ) then
-    raise exception 'Action 659B rejects unknown public table scope';
-  end if;
-
-  if not exists (
-    select 1
-    from pg_class classes
-    join pg_namespace namespaces on namespaces.oid = classes.relnamespace
-    where namespaces.nspname = 'public'
-      and classes.relname = 'application_login_abuse_buckets'
-      and classes.relkind = 'r'
-      and pg_get_userbyid(classes.relowner) = 'postgres'
-      and classes.relrowsecurity
-  ) then
-    raise exception 'Action 659B rejects Action 652 login limiter table state';
   end if;
 
   foreach target_table in array target_tables loop
@@ -189,10 +155,25 @@ begin
   if exists (
     select 1
     from pg_auth_members memberships
+    join pg_roles member_role on member_role.oid = memberships.member
+    join pg_roles runtime_role on runtime_role.oid = memberships.roleid
     where memberships.roleid = any(permitted_role_oids)
-      and memberships.member <> all(permitted_role_oids)
+      and not (
+        member_role.rolname = 'authenticator'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and not memberships.inherit_option
+        and memberships.set_option
+        and not memberships.admin_option
+      )
+      and not (
+        member_role.rolname = 'postgres'
+        and runtime_role.rolname in ('anon', 'authenticated', 'service_role')
+        and memberships.inherit_option
+        and memberships.set_option
+        and memberships.admin_option
+      )
   ) then
-    raise exception 'Action 659B rejects unknown membership in a runtime role';
+    raise exception 'Action 661B rejects unallowlisted platform membership into a runtime role';
   end if;
 
   if not exists (

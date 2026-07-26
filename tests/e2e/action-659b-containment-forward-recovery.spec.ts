@@ -1,11 +1,22 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test, expect } from "@playwright/test";
 
 const root = process.cwd();
-const source = readFileSync(resolve(root, "supabase/migrations/20260724003000_repair_contained_trading_data_access_acl_rls.sql"), "utf8");
-const bundle = readFileSync(resolve(root, "scripts/action-659b-apply-20260724003000.sql"), "utf8");
-const readback = readFileSync(resolve(root, "scripts/action-659b-production-recovery-readback.sql"), "utf8");
+const incidentRoot = resolve(root, "supabase/incident-recovery/20260724003000-action-650-containment");
+const source = readFileSync(resolve(incidentRoot, "recovery.sql"), "utf8");
+const bundle = readFileSync(resolve(incidentRoot, "sql-editor-bundle.sql"), "utf8");
+const readback = readFileSync(resolve(incidentRoot, "readback.sql"), "utf8");
+const manifest = JSON.parse(readFileSync(resolve(incidentRoot, "manifest.json"), "utf8")) as {
+  normal_migration_discovery: boolean;
+  recovery_version: string;
+};
+
+test("Action 661B keeps 03000 out of normal migration discovery", () => {
+  expect(existsSync(resolve(root, "supabase/migrations/20260724003000_repair_contained_trading_data_access_acl_rls.sql"))).toBeFalsy();
+  expect(manifest.normal_migration_discovery).toBeFalsy();
+  expect(manifest.recovery_version).toBe("20260724003000");
+});
 
 test("Action 659B recovery is transaction-scoped and requires containment history", () => {
   for (const artifact of [source, bundle]) {
@@ -31,11 +42,11 @@ test("Action 659B can only repair the contained server-only ACL/RLS contract", (
   }
 });
 
-test("Action 659B uses exact relation, function, trigger, and ACL allowlists before repair", () => {
+test("Action 661B uses target-scoped relation, function, trigger, ACL, and platform-membership allowlists before repair", () => {
   for (const artifact of [source, bundle]) {
-    expect(artifact).toContain("allowed_public_tables");
-    expect(artifact).toContain("application_login_abuse_buckets");
-    expect(artifact).toContain("rejects unknown public table scope");
+    expect(artifact).toContain("target_tables constant text[]");
+    expect(artifact).not.toContain("allowed_public_tables");
+    expect(artifact).not.toContain("rejects unknown public table scope");
     expect(artifact).toContain("rejects policy drift");
     expect(artifact).toContain("rejects unknown Action 650 function state");
     expect(artifact).toContain("rejects unknown Action 650 trigger state");
@@ -48,10 +59,13 @@ test("Action 659B uses exact relation, function, trigger, and ACL allowlists bef
     expect(artifact).toContain("rejects direct column ACL state");
     expect(artifact).toContain("attributes.attacl");
     expect(artifact).toContain("pg_auth_members");
+    expect(artifact).toContain("authenticator");
+    expect(artifact).toContain("unallowlisted platform membership");
   }
   expect(readback).toContain("blocked_by_policy_drift");
-  expect(readback).toContain("blocked_by_relation_scope");
+  expect(readback).toContain("blocked_by_target_relation_scope");
   expect(readback).toContain("blocked_by_unknown_acl_grantee");
+  expect(readback).toContain("blocked_by_platform_membership");
   expect(readback).toContain("blocked_by_direct_column_acl");
   expect(readback).toContain("runtime_roles");
   expect(readback).toContain("blocked_by_append_only_function_drift");
