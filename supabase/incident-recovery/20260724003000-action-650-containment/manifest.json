@@ -1,0 +1,23 @@
+{
+  "artifact_kind": "incident_only_forward_recovery",
+  "recovery_version": "20260724003000",
+  "normal_migration_discovery": false,
+  "requires_explicit_incident_authorization": true,
+  "requires_history_version": "20260724002000",
+  "history_entry_name": "repair_contained_trading_data_access_acl_rls",
+  "source": "recovery.sql",
+  "sql_editor_bundle": "sql-editor-bundle.sql",
+  "readback": "readback.sql",
+  "sha256": {
+    "recovery.sql": "6acc1d44fc588f2d8d1e3fa631e83f1233994a7821c15cff92aa0efe40e10ac6",
+    "sql-editor-bundle.sql": "f996ec6a12b0a0f8956218dd473049a4746419afc6b7aff549d57ee588f34675",
+    "readback.sql": "6edc4a6b169b04e8d65b6bb4a227a7ec5c5c2f96724c7aa45c126f08da95046d"
+  },
+  "repair_scope": {
+    "schema": "public",
+    "target_relation_count": 19,
+    "target_relkind": "r",
+    "target_owner": "postgres",
+    "out_of_scope": "All public relations other than the 19 Action 650 targets are not inspected, repaired, or represented as contained by this incident package."
+  }
+}

@@ -49,16 +49,15 @@ this first module. They need separately named recovery modules and review.
 
 ## Execution authority
 
-Only a separately authorized production recovery action may use
-`scripts/action-659b-apply-20260724003000.sql`. That action must first capture
-the read-only result from
-`scripts/action-659b-production-recovery-readback.sql`, confirm the exact
-documented drift, and stop after one transaction and its readback.
+Only a separately authorized production recovery action may use the reviewed
+SQL Editor bundle. That action must first capture the read-only result from the
+incident package readback, confirm the exact documented drift, and stop after
+one transaction and its readback.
 
-The migration source is
-`supabase/migrations/20260724003000_repair_contained_trading_data_access_acl_rls.sql`.
-The SQL Editor bundle, rather than a general migration command, is the reviewed
-production execution path.
+The source, SQL Editor bundle, and readback are incident-only artifacts under
+`supabase/incident-recovery/20260724003000-action-650-containment/`. They are
+not part of normal migration discovery. The SQL Editor bundle, rather than a
+general migration command, is the reviewed production execution path.
 
 ## Post-recovery evidence
 
@@ -76,10 +75,10 @@ append-only function, or an additional non-internal audit trigger.
 
 The revised pre-mutation contract now:
 
-- permits exactly the 19 containment tables plus the explicit Action 652G
-  `application_login_abuse_buckets` exception among `public` ordinary or
-  partitioned tables; unrelated schemas, system relations, extensions, views,
-  and sequences are out of scope;
+- verifies exactly the 19 containment targets and does not inventory or repair
+  unrelated `public` relations; unrelated schemas, system relations,
+  extensions, views, sequences, continuous-intelligence, and historical-data
+  relations are out of scope;
 - verifies the append-only function's schema, zero-argument identity, owner,
   language, return type, invoker mode, volatility, strictness, parallel state,
   exact `search_path`, normalized body, and execute ACL; and
@@ -92,7 +91,8 @@ the three former gaps, plus no-false-positive cases for another schema,
 whitespace-only function formatting, internal constraint triggers, and a
 combined canonical ACL/RLS repair.
 
-The Action 659B.2 artifacts are frozen at:
+The following Action 659B.2 values are historical and superseded by the
+incident-only Action 661B package:
 
 - recovery source: `bde7343841dddc2f36ebd9fe017422c9803ff594a310920b3235e42bc4c00229`
 - SQL Editor bundle: `6de0fd3c18ebe3dd38fb7ae6a373436c3ba371b6e262c59767122649899742e2`
@@ -126,3 +126,17 @@ The revised local-only artifacts are frozen at:
 
 Action 659C must rerun its complete recovery round-trip and failure matrix
 against these revised artifacts before any execution review.
+
+## Action 661B incident-package amendment
+
+Action 661B re-homed recovery `03000` outside normal migration discovery and
+replaced the global `public`-relation inventory with strict inspection of only
+the 19 Action 650 targets. The current local artifact digests are:
+
+- recovery source: `6acc1d44fc588f2d8d1e3fa631e83f1233994a7821c15cff92aa0efe40e10ac6`
+- SQL Editor bundle: `f996ec6a12b0a0f8956218dd473049a4746419afc6b7aff549d57ee588f34675`
+- readback: `6edc4a6b169b04e8d65b6bb4a227a7ec5c5c2f96724c7aa45c126f08da95046d`
+
+The package accepts only the documented production platform memberships into
+the three runtime roles and fails closed for every other membership. It neither
+inspects nor repairs unrelated continuous-intelligence or historical relations.

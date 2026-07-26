@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const path = process.argv[2];
 if (!new Set(["source", "bundle"]).has(path)) throw new Error("path must be source or bundle");
 const start = Number.parseInt(process.argv[3] ?? "0", 10);
-const count = Number.parseInt(process.argv[4] ?? "36", 10);
+const count = Number.parseInt(process.argv[4] ?? "39", 10);
 
 const scenarios = [
   ["supported", "missing_service_role_dml"], ["supported", "broad_service_role_access"],
@@ -19,20 +19,24 @@ const scenarios = [
   ["supported", "combined_acl_rls_drift"],
   ["failures", "missing_02000_history"], ["failures", "03000_history_present"],
   ["failures", "forbidden_history"], ["failures", "recovery_not_required"],
-  ["failures", "missing_target_table"], ["failures", "extra_partitioned_public_table"],
+  ["failures", "missing_target_table"], ["failures", "renamed_target_table"],
   ["failures", "owner_drift"], ["failures", "policy_drift"],
   ["failures", "missing_append_only_function"], ["failures", "missing_append_only_trigger"],
   ["failures", "altered_append_only_trigger"], ["failures", "action_652_rpc_drift"],
   ["failures", "forced_postcondition_failure"], ["failures", "forced_bundle_pre_history_failure"],
-  ["unknown", "extra_scope_table"], ["unknown", "altered_append_only_function"],
+  ["unknown", "verified_platform_memberships"], ["unknown", "production_shaped_intelligence_tables"],
+  ["unknown", "altered_append_only_function"],
   ["unknown", "unknown_append_only_trigger"], ["unknown", "unknown_role_select_bundle"],
   ["unknown", "unknown_role_dml"], ["unknown", "unknown_role_column_privilege"],
   ["unknown", "known_role_column_privilege"], ["unknown", "unknown_runtime_membership"],
+  ["unknown", "unknown_runtime_membership_noinherit"], ["unknown", "unknown_runtime_membership_inherit"],
   ["unknown", "unknown_role_without_privileges"], ["unknown", "table_owner_column_privilege"],
   ["unknown", "irrelevant_schema_table"], ["unknown", "whitespace_equivalent_append_only_function"],
   ["unknown", "internal_constraint_trigger"], ["unknown", "public_view_sequence_extension"],
   ["unknown", "documented_login_limiter_exception"],
 ];
+const scenarioIds = scenarios.map(([, id]) => id);
+if (new Set(scenarioIds).size !== scenarioIds.length) throw new Error("matrix contains duplicate scenario IDs");
 const harness = fileURLToPath(new URL("./action-659c-local-recovery-validation.mjs", import.meta.url));
 const results = [];
 const selected = scenarios.slice(start, start + count);
@@ -56,7 +60,7 @@ for (let index = 0; index < selected.length; index += 2) {
   if (batch.some((result) => result.status !== "passed")) break;
 }
 const digest = createHash("sha256").update(JSON.stringify(results)).digest("hex");
-const report = { path, start, total: selected.length, executed: results.length, passed: results.filter((result) => result.status === "passed").length, failed: results.filter((result) => result.status !== "passed").length, result_set_digest: digest, results };
+const report = { path, start, total: selected.length, expected_ids: selected.map(([, id]) => id), executed: results.length, passed: results.filter((result) => result.status === "passed").length, failed: results.filter((result) => result.status !== "passed").length, skipped: selected.slice(results.length).map(([, id]) => id), result_set_digest: digest, results };
 const reportPath = join(tmpdir(), `action-659c-${path}-${start}-${count}.json`);
 writeFileSync(reportPath, JSON.stringify(report), "utf8");
 console.log(JSON.stringify({ ...report, report_path: reportPath }));
