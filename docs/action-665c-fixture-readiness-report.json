@@ -1,0 +1,37 @@
+{
+  "builder_version": "complete_opportunity_set_evidence_builder_v1",
+  "evidence_class": "synthetic_fixture_only",
+  "performance_values_included": false,
+  "total": 18,
+  "status_counts": {
+    "ready": 8,
+    "incomplete_membership": 1,
+    "rank_conflict": 3,
+    "identity_conflict": 1,
+    "version_conflict": 1,
+    "reason_code_conflict": 1,
+    "not_point_in_time_safe": 1,
+    "provider_coverage_incomplete": 1,
+    "no_trade_evidence_missing": 1
+  },
+  "round_trip_mapped": 8,
+  "full_ranking_preserved": 8,
+  "reason_counts": {
+    "candidate_identity_duplicate": 1,
+    "candidate_membership_truncated_or_partial": 1,
+    "candidate_source_after_cutoff": 1,
+    "canonical_rejection_reason_missing": 1,
+    "explicit_tie_break_missing": 1,
+    "free_text_reason_without_canonical_code": 1,
+    "full_membership_not_declared": 1,
+    "mixed_candidate_versions": 1,
+    "no_trade_and_fallback_are_mutually_exclusive": 1,
+    "original_rank_missing_or_invalid": 1,
+    "pre_truncation_membership_evidence_conflict": 1,
+    "provider_coverage_not_complete": 1,
+    "provider_coverage_reason_present": 1,
+    "rank_sequence_gap": 2,
+    "rank_tie_without_unique_tie_break": 1,
+    "tie_break_not_unique": 1
+  }
+}
