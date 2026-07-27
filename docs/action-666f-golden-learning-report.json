@@ -1,0 +1,71 @@
+{
+  "report_version": "action_666f_golden_learning_report_v1",
+  "evidence_class": "synthetic_fixture_only",
+  "not_ture_performance": true,
+  "not_publishable": true,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "automatic_promotion_allowed": false,
+  "causal_improvement_claimed": false,
+  "policy_versions": {
+    "engine": "canonical_offline_learning_engine_v1",
+    "dataset": "canonical_training_dataset_v1",
+    "feature_schema": "canonical_point_in_time_feature_schema_v1",
+    "label": "canonical_learning_label_policy_v1",
+    "split": "canonical_trading_day_walk_forward_v1",
+    "standardization": "training_window_zscore_population_v1",
+    "training": "deterministic_gradient_descent_v1",
+    "artifact": "canonical_candidate_model_artifact_v1",
+    "attribution": "canonical_predictive_attribution_v1",
+    "calibration": "canonical_offline_calibration_evidence_v1",
+    "shadow_binding": "canonical_learning_shadow_binding_v1",
+    "trusted_feature_context_registry": "canonical_trusted_feature_context_registry_v1",
+    "trusted_training_input_manifest": "canonical_frozen_training_input_manifest_v1",
+    "trusted_training_input_registry": "canonical_frozen_training_input_registry_v1",
+    "overlap_graph": "canonical_learning_overlap_graph_v1",
+    "correlation_diagnostic": "canonical_training_window_correlation_diagnostic_v1"
+  },
+  "fixture_status_counts": {
+    "trainable": 2,
+    "not_trainable": 2,
+    "conflicting": 5,
+    "non_reproducible": 1
+  },
+  "trainable_reference": {
+    "identities": 72,
+    "trading_days": 18,
+    "tickers": 8,
+    "regimes": 2,
+    "walk_forward_splits": 5,
+    "model_families": 2,
+    "out_of_sample_predictions": 80,
+    "dataset_digest": "b6dca12644f91554bbb4e82a2d1bfd3989e53ae5f2286f0d073ed247d41c4de0",
+    "split_digest": "a55c5973da06721501d7889d0b98b7b5522e2f9dcb25952601dfb058c0a6e8a0",
+    "model_artifact_digest": "ee7a3d5ad90636714774a72018cf3e244689dbf4e8c8489fc075d7000cdbcd53",
+    "result_digest": "50eb3f878acf13a69d8c2a4c80d769d3d1b439e46396b1cff203dce693008a6e",
+    "shadow_binding_digest": "0d55820c84defeab433213934b2f48318bf83d2e50690013a72d34e11762c316",
+    "candidate_model_identities": [
+      "canonical-candidate-model:regularized_linear_canonical_r:e1d2ab789695af5c2bba1359ceffc43bf79d29bc04b5408c99ad537dc8cb088c",
+      "canonical-candidate-model:regularized_logistic_target_before_stop:692929a8509e918012d3ca7129f407943b61c027dedcc5acc6d4e306afb99f0e"
+    ],
+    "candidate_model_artifact_digests": [
+      "e1d2ab789695af5c2bba1359ceffc43bf79d29bc04b5408c99ad537dc8cb088c",
+      "692929a8509e918012d3ca7129f407943b61c027dedcc5acc6d4e306afb99f0e"
+    ],
+    "synthetic_brier_score": 0.19157298515
+  },
+  "golden_assertions": [
+    "one_identity_one_training_sample",
+    "diagnostic_horizons_do_not_inflate",
+    "point_in_time_allowlist_fail_closed",
+    "cohorts_are_explicit_and_isolated",
+    "chronological_walk_forward_only",
+    "purge_and_embargo_are_explicit",
+    "preprocessing_fits_training_window_only",
+    "input_order_independent",
+    "byte_identical_retry",
+    "candidate_model_tampering_detected",
+    "predictive_attribution_is_not_causal",
+    "no_automatic_promotion"
+  ]
+}
