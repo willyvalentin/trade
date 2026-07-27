@@ -1,0 +1,132 @@
+{
+  "manifest_version": "action_665e_counterfactual_foundation_refreeze_v1",
+  "track": "SPÅR 2",
+  "created_at": "2026-07-26T22:54:53Z",
+  "branch": "codex/action-665a-counterfactual-opportunity-set-contract",
+  "stacked_base": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "head_at_freeze": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "artifact_count": 17,
+  "aggregate_digest_algorithm": "sha256(path + NUL + sha256 + LF), paths sorted bytewise",
+  "aggregate_digest_before_rereview": "e513c7bafc6848312a3111d4287d4ec11f65e566238bc578a7da732ad40ba34a",
+  "artifacts": [
+    {
+      "path": "docs/action-665a-counterfactual-opportunity-set-contract.md",
+      "action_owner": "665A/665E",
+      "artifact_type": "contract_document",
+      "sha256": "a141f922ab28bae7321bd3a705448604db07989616dbcd18f8498db09ec7451b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-completed-scanner-bundle-adapter.md",
+      "action_owner": "665B/665E",
+      "artifact_type": "adapter_document",
+      "sha256": "edb9cad7e3a7fe77bc1ad66d9eee804a98a8850ef94c648afcbde3cdc8c4814a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-fixture-coverage-report.json",
+      "action_owner": "665B/665E",
+      "artifact_type": "fixture_coverage_report",
+      "sha256": "165cb77545d31c05c5c5f4a03050c40f7b7b8dfd9c09b704d9ad434820a41179",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-complete-opportunity-set-evidence-builder.md",
+      "action_owner": "665C/665E",
+      "artifact_type": "builder_document",
+      "sha256": "bb23afb3c9b26843b48aa3bcf3ab8884a146c4f7a23199a1d791cab0ca826497",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-fixture-readiness-report.json",
+      "action_owner": "665C/665E",
+      "artifact_type": "fixture_readiness_report",
+      "sha256": "81ef957cd0a8cf9d098627296665ca7efb5d381ebdf7952177147951618f90c3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665e-counterfactual-foundation-remediation.md",
+      "action_owner": "665E",
+      "artifact_type": "finding_remediation_document",
+      "sha256": "014d10f8264fdd1164901586979fe66e333158e354495afd49240333e0b543e1",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set-fixtures.ts",
+      "action_owner": "665A/665E",
+      "artifact_type": "golden_fixtures",
+      "sha256": "f59a3316cca21b792bd808ac3480b54300207301609a57fd965b81b813be3625",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set.ts",
+      "action_owner": "665A/665E",
+      "artifact_type": "identity_lineage_and_readiness_contract",
+      "sha256": "d0b2b56aacb86eeedf12bad6b909272668fb9e3370ca9ddfa5a35c818c9fe479",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/completed-scanner-bundle-opportunity-set-fixtures.ts",
+      "action_owner": "665B/665E",
+      "artifact_type": "adapter_golden_fixtures",
+      "sha256": "e4f4aef623c10f505b2c30dfa06b47a75c645d64cce1aa025817397399599ec7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/pre-truncation-candidate-capture-evidence.ts",
+      "action_owner": "665E",
+      "artifact_type": "authoritative_capture_evidence_contract",
+      "sha256": "bd6104866674506847e000f3997280d51f1c7df7f2354644eff9d95741bdebca",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder-fixtures.ts",
+      "action_owner": "665C/665E",
+      "artifact_type": "builder_golden_fixtures",
+      "sha256": "c344830531dab2606ac466a793ff64213040295b5e614b24025111ae24ca4ad3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder.ts",
+      "action_owner": "665C/665E",
+      "artifact_type": "default_off_server_builder",
+      "sha256": "3654903c15f0b889561baab1645dcc80917757a38ab8f7fbf197d634ab1c8da6",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-scanner-bundle-opportunity-set-adapter.ts",
+      "action_owner": "665B/665E",
+      "artifact_type": "server_only_projection_adapter",
+      "sha256": "6a93cbe71fa40ca7ec0fb12c14e0315f9c1f95730c12c91d2b4b414c919f0914",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665a-counterfactual-opportunity-set-contract.spec.ts",
+      "action_owner": "665A",
+      "artifact_type": "contract_tests",
+      "sha256": "258587fcbe5515e72efef64b07654c60454910e2076326e2e0e7674b0df1c15a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665b-completed-scanner-bundle-adapter.spec.ts",
+      "action_owner": "665B/665E",
+      "artifact_type": "adapter_tests",
+      "sha256": "308065292093113b72c017297cbedb9bf1e0f228403b8d8f9f9d9ce6e46c8597",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665c-complete-opportunity-set-evidence-builder.spec.ts",
+      "action_owner": "665C/665E",
+      "artifact_type": "builder_tests",
+      "sha256": "3671c029276da6c5b337fff41c3177a2ad35f7f4d29a41e42fb70b8619434128",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665e-counterfactual-foundation-remediation.spec.ts",
+      "action_owner": "665E",
+      "artifact_type": "finding_remediation_tests",
+      "sha256": "055f704e3f80d494fcdcc975c4c6784c09cdea3a6a6ce6fbb41c07da83922ef7",
+      "git_status": "untracked"
+    }
+  ]
+}
