@@ -1,0 +1,215 @@
+{
+  "matrix_version": "action_666g_offline_learning_threat_finding_matrix_v1",
+  "review_scope": {
+    "expected_base_sha": "c6e69fea3976e4ec0573b51b3494968c30401cbf",
+    "frozen_artifact_count": 5,
+    "canonical_freeze_digest": "66a99bd4320266f40f8012b1ca142da9a04ecce9dfb5bcaae4566a07cbd7267d",
+    "evidence_class": "synthetic_contract_evidence_only",
+    "production_performance_claimed": false
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 3,
+    "minor": 3,
+    "nit": 1
+  },
+  "findings": [
+    {
+      "id": "666G-MAJOR-001",
+      "severity": "major",
+      "area": "leakage_and_point_in_time",
+      "title": "Feature and decision-context provenance is caller-self-attested",
+      "status": "open",
+      "evidence": [
+        "The request supplies the feature schema under a constant schema version.",
+        "Feature source, availability and observed_at are supplied in the same untrusted row as the value.",
+        "The name denylist can reject explicit outcome/future tokens but cannot prove the semantics of an innocently renamed future-derived feature.",
+        "Regime is accepted as a string, sector is omitted from the training row, and provider binding checks a contract-version string plus coarse freshness rather than immutable decision-time source evidence.",
+        "A consistently supplied but invalid cohort/sample pairing is not checked against a closed cohort-to-sample mapping."
+      ],
+      "impact": "Leakage or context relabeling can enter a self-consistent dataset and produce a trainable artifact while retaining canonical-looking digests.",
+      "required_remediation": "Use a separately trusted, versioned feature registry and bind every feature/context value to immutable decision-time capture evidence, source timestamp, producer version and cohort/sample policy."
+    },
+    {
+      "id": "666G-MAJOR-002",
+      "severity": "major",
+      "area": "split_contamination",
+      "title": "Walk-forward isolation does not bind scan, opportunity-set or outcome-overlap groups",
+      "status": "open",
+      "evidence": [
+        "Split construction groups rows by decision_day and checks canonical decision identity disjointness only.",
+        "The same opportunity-set identity and digest can be present on both sides of a split if its rows carry different days.",
+        "No scan identity, evaluator-input identity, outcome completion timestamp or overlap-group identity participates in the split gate.",
+        "Caller-supplied purge_days and embargo_days are not derived from or checked against actual outcome intervals and trading-session timestamps."
+      ],
+      "impact": "Related candidates or overlapping labels can cross the train/test boundary and inflate out-of-sample evidence.",
+      "required_remediation": "Introduce canonical split-group and outcome-interval evidence, keep complete scan/opportunity groups together, and derive purge/embargo eligibility from actual timestamped horizons."
+    },
+    {
+      "id": "666G-MAJOR-003",
+      "severity": "major",
+      "area": "digest_and_trust_boundary",
+      "title": "Deterministic rebuild has no trusted input anchor",
+      "status": "open",
+      "evidence": [
+        "Result verification recomputes the expected result from the caller-supplied request.",
+        "There is no frozen training-input manifest, registry/root digest or upstream canonical evidence digest verified outside that request.",
+        "A caller can change features, labels, lineage or versions and then recompute every internal dataset/model/result digest; verification accepts the new self-consistent pair."
+      ],
+      "impact": "The implementation detects result-only tampering but cannot detect self-consistent substitution of the training evidence.",
+      "required_remediation": "Bind training to an external trusted dataset manifest/root derived from frozen Action 664–666 evidence and require that anchor before dataset construction and result verification."
+    },
+    {
+      "id": "666G-MINOR-001",
+      "severity": "minor",
+      "area": "model_mathematics",
+      "title": "Extreme finite inputs can escape the structured status contract",
+      "status": "open",
+      "evidence": [
+        "Input validation accepts every finite number, including values large enough to overflow sums, variances or gradients.",
+        "The rounding guard throws on a non-finite intermediate instead of returning non_reproducible."
+      ],
+      "impact": "A fixture run can terminate with an exception instead of one of the four documented result statuses.",
+      "required_remediation": "Add bounded numeric-domain contracts and convert all numerical failures into deterministic non_reproducible diagnostics."
+    },
+    {
+      "id": "666G-MINOR-002",
+      "severity": "minor",
+      "area": "default_off_boundary",
+      "title": "Disabled mode still clones the complete request",
+      "status": "open",
+      "evidence": [
+        "The disabled path avoids the injected trainer but performs structuredClone(request) and reads request.rows.length."
+      ],
+      "impact": "Default-off prevents training but does not literally perform zero input processing and can pay memory cost for a large fixture.",
+      "required_remediation": "Return a fixed disabled result before cloning or traversing the request."
+    },
+    {
+      "id": "666G-MINOR-003",
+      "severity": "minor",
+      "area": "feature_attribution",
+      "title": "Logistic local contributions are not explicitly typed as log-odds",
+      "status": "open",
+      "evidence": [
+        "Logistic contributions are coefficient times standardized feature and reconstruct the linear predictor correctly.",
+        "The output names the reconstructed value prediction_scale_value without a versioned log_odds scale discriminator."
+      ],
+      "impact": "A downstream offline consumer could misread additive log-odds contributions as additive probability changes.",
+      "required_remediation": "Add an explicit attribution scale contract distinguishing logistic log_odds from linear canonical_r."
+    },
+    {
+      "id": "666G-NIT-001",
+      "severity": "nit",
+      "area": "feature_attribution",
+      "title": "Correlated-feature attribution caveat is implicit rather than explicit",
+      "status": "open",
+      "evidence": [
+        "Documentation rejects causal interpretation and mentions confounding and regime drift, but does not explicitly state coefficient and ablation instability under correlated features."
+      ],
+      "impact": "Interpretation guidance is slightly less precise for multicollinear inputs.",
+      "required_remediation": "Name correlated-feature attribution instability explicitly in the contract documentation."
+    }
+  ],
+  "threat_matrix": [
+    {
+      "threat": "Explicit outcome/future feature name",
+      "classification": "mitigated",
+      "evidence": "Closed syntax plus forbidden-token check and negative fixtures."
+    },
+    {
+      "threat": "Future-derived feature renamed to an allowed neutral name",
+      "classification": "not_mitigated",
+      "finding": "666G-MAJOR-001"
+    },
+    {
+      "threat": "Falsified feature timestamp/source/availability",
+      "classification": "not_mitigated",
+      "finding": "666G-MAJOR-001"
+    },
+    {
+      "threat": "Regime, sector, provider or cohort semantic relabeling",
+      "classification": "not_mitigated",
+      "finding": "666G-MAJOR-001"
+    },
+    {
+      "threat": "Preprocessing fitted on test rows",
+      "classification": "mitigated",
+      "evidence": "Each split fits means and scales from training_identities only."
+    },
+    {
+      "threat": "Diagnostic horizons inflate training samples",
+      "classification": "mitigated",
+      "evidence": "Diagnostics are omitted from dataset semantics and parity-tested."
+    },
+    {
+      "threat": "Duplicate canonical decision identity",
+      "classification": "mitigated",
+      "evidence": "Global duplicate identity checks fail closed before training."
+    },
+    {
+      "threat": "Same scan/opportunity or overlapping outcome crosses a split",
+      "classification": "not_mitigated",
+      "finding": "666G-MAJOR-002"
+    },
+    {
+      "threat": "Trading-day rows are split within a day",
+      "classification": "mitigated",
+      "evidence": "Split membership is assigned by the complete decision_day group."
+    },
+    {
+      "threat": "Input ordering changes split or model",
+      "classification": "mitigated",
+      "evidence": "Canonical sorting and byte-identical reordered fixture tests pass."
+    },
+    {
+      "threat": "Minimum evidence inflated by duplicate identities, days or tickers",
+      "classification": "mitigated",
+      "evidence": "Duplicate identities conflict and day/ticker/regime counts use unique sets."
+    },
+    {
+      "threat": "Finite numeric extremity overflows an intermediate",
+      "classification": "partially_mitigated",
+      "finding": "666G-MINOR-001"
+    },
+    {
+      "threat": "Model version, seed or hyperparameter substitution",
+      "classification": "mitigated",
+      "evidence": "The artifact and result digests change under all tested substitutions."
+    },
+    {
+      "threat": "Result-only model, prediction or attribution tampering",
+      "classification": "mitigated",
+      "evidence": "Full deterministic rebuild and exact comparison reject altered results."
+    },
+    {
+      "threat": "Self-consistent training request and result substitution",
+      "classification": "not_mitigated",
+      "finding": "666G-MAJOR-003"
+    },
+    {
+      "threat": "Disabled engine invokes model training",
+      "classification": "mitigated",
+      "evidence": "Injected trainer call count remains zero."
+    },
+    {
+      "threat": "Disabled engine performs any request traversal",
+      "classification": "partially_mitigated",
+      "finding": "666G-MINOR-002"
+    },
+    {
+      "threat": "Logistic log-odds contribution interpreted as probability delta",
+      "classification": "partially_mitigated",
+      "finding": "666G-MINOR-003"
+    },
+    {
+      "threat": "Attribution presented as causal or used for promotion",
+      "classification": "mitigated",
+      "evidence": "Every result is shadow-only, not publishable, non-causal and automatic promotion is false."
+    },
+    {
+      "threat": "Live import, database, provider, migration or external AI access",
+      "classification": "mitigated",
+      "evidence": "Server-only source plus scope searches show no call-site or external boundary."
+    }
+  ]
+}

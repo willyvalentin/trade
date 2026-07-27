@@ -1,0 +1,51 @@
+{
+  "manifest_version": "action_666g_offline_learning_foundation_freeze_manifest_v1",
+  "evidence_class": "synthetic_contract_evidence_only",
+  "expected_base_sha": "c6e69fea3976e4ec0573b51b3494968c30401cbf",
+  "observed_head_sha": "c6e69fea3976e4ec0573b51b3494968c30401cbf",
+  "branch": "codex/action-666f-offline-learning-engine",
+  "scope_contract": {
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_digest_before_regression": "66a99bd4320266f40f8012b1ca142da9a04ecce9dfb5bcaae4566a07cbd7267d",
+    "aggregate_digest_after_regression": "66a99bd4320266f40f8012b1ca142da9a04ecce9dfb5bcaae4566a07cbd7267d",
+    "aggregate_digest_after_review": "66a99bd4320266f40f8012b1ca142da9a04ecce9dfb5bcaae4566a07cbd7267d"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666f-golden-learning-report.json",
+      "artifact_type": "machine_readable_synthetic_golden_evidence",
+      "sha256": "6007fd4800609bb696688234c6f2133fc84f21fea7ababcd709f65dc482bb862",
+      "git_status": "untracked",
+      "normative_version": "action_666f_golden_learning_report_v1"
+    },
+    {
+      "path": "docs/action-666f-offline-learning-engine.md",
+      "artifact_type": "offline_learning_contract_documentation",
+      "sha256": "445fa453ea53a6a43260bb71dbfd028c9c70e2026a58835b202108cf4b047922",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-engine-fixtures.ts",
+      "artifact_type": "synthetic_golden_fixture_factory",
+      "sha256": "f4885ab119e00da16caa658b6037d88c619dac13e6bd5ff64403dd64c38baa76",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-engine.ts",
+      "artifact_type": "server_only_offline_learning_contract",
+      "sha256": "5479e88abfb3c64daf0731d8a7b396ec0acda0c033ca721e9a5a0c1a59e1a3f3",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "tests/e2e/action-666f-offline-learning-engine.spec.ts",
+      "artifact_type": "offline_learning_golden_contract_tests",
+      "sha256": "27dce98ca100d1fbc78efc9357c729212eb0faf6dc7a7c8bdfd690e03a897eb5",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    }
+  ]
+}

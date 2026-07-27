@@ -1,0 +1,114 @@
+{
+  "manifest_version": "action_666h_offline_learning_foundation_refreeze_manifest_v1",
+  "evidence_class": "synthetic_contract_evidence_only",
+  "expected_base_sha": "c6e69fea3976e4ec0573b51b3494968c30401cbf",
+  "observed_head_sha": "c6e69fea3976e4ec0573b51b3494968c30401cbf",
+  "branch": "codex/action-666f-offline-learning-engine",
+  "historical_action_666g_freeze_digest": "66a99bd4320266f40f8012b1ca142da9a04ecce9dfb5bcaae4566a07cbd7267d",
+  "scope_contract": {
+    "artifact_count": 12,
+    "normative_or_remediation_artifact_count": 9,
+    "historical_review_evidence_count": 3,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_digest_at_refreeze": "fd95585a2d0072331399966527d65ae18b9cc7255b063a82155446b297efbb8f",
+    "expected_aggregate_digest_after_rereview": "fd95585a2d0072331399966527d65ae18b9cc7255b063a82155446b297efbb8f"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666f-golden-learning-report.json",
+      "action_owner": "666F/666H",
+      "artifact_type": "machine_readable_synthetic_golden_evidence",
+      "sha256": "525a9fe7347f6ad1dc5c9230afe3e2bf9a3fc5db8f8e467bd7c91742057a4216",
+      "git_status": "untracked",
+      "normative_version": "action_666f_golden_learning_report_v1"
+    },
+    {
+      "path": "docs/action-666f-offline-learning-engine.md",
+      "action_owner": "666F",
+      "artifact_type": "offline_learning_contract_documentation",
+      "sha256": "445fa453ea53a6a43260bb71dbfd028c9c70e2026a58835b202108cf4b047922",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "docs/action-666g-offline-learning-foundation-freeze-manifest.json",
+      "action_owner": "666G",
+      "artifact_type": "historical_rejected_freeze_manifest",
+      "sha256": "5faea19199ab385f39cf6d3ee6f652a628fa9cdc18d548c6ccaf12c408e5f1b7",
+      "git_status": "untracked",
+      "normative_version": "action_666g_offline_learning_foundation_freeze_manifest_v1"
+    },
+    {
+      "path": "docs/action-666g-offline-learning-independent-review.md",
+      "action_owner": "666G",
+      "artifact_type": "historical_rejected_independent_review",
+      "sha256": "c5b2faf3708c213c095469363ac1b3ab2923e84de5d7422c71b47461c7496a5e",
+      "git_status": "untracked",
+      "normative_version": "action_666g_independent_review_v1"
+    },
+    {
+      "path": "docs/action-666g-offline-learning-threat-finding-matrix.json",
+      "action_owner": "666G",
+      "artifact_type": "historical_open_finding_matrix",
+      "sha256": "567d833997f020947616191dcdf9eaa57ae3d5de6af202f274eb2cf5af3e7e7d",
+      "git_status": "untracked",
+      "normative_version": "action_666g_offline_learning_threat_finding_matrix_v1"
+    },
+    {
+      "path": "docs/action-666h-learning-trust-split-numeric-remediation.md",
+      "action_owner": "666H",
+      "artifact_type": "remediation_contract_documentation",
+      "sha256": "b34079bb86c8dfee54916da28c9dc4f5c14682b1ebb2e23f5fdb09efd6fe6660",
+      "git_status": "untracked",
+      "normative_version": "action_666h_learning_trust_split_numeric_remediation_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-engine-fixtures.ts",
+      "action_owner": "666F/666H",
+      "artifact_type": "trusted_synthetic_fixture_factory",
+      "sha256": "fb68b6a41244f774afd5b5efc6e1995935c6bf20828570a0eebcb208f3bba1f6",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-engine.ts",
+      "action_owner": "666F/666H",
+      "artifact_type": "server_only_offline_learning_contract",
+      "sha256": "bfd29661bbd6591502d831fcf45717c9a381c390a191a81720f7009fcd808cb9",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-remediation-fixtures.ts",
+      "action_owner": "666H",
+      "artifact_type": "remediation_attack_fixture_factory",
+      "sha256": "5caa23e7a2a7815ce1ba456323d8b85295540af2a2d2eac4d7fee6e5c53d8615",
+      "git_status": "untracked",
+      "normative_version": "action_666h_trusted_synthetic_fixture_registry_v1"
+    },
+    {
+      "path": "lib/server/canonical-offline-learning-trust-registry.ts",
+      "action_owner": "666H",
+      "artifact_type": "external_trust_registry_contract",
+      "sha256": "622b7fb29c72a00d5c39e915e8289d535afc0bec7b97268d2c15face02533149",
+      "git_status": "untracked",
+      "normative_version": "canonical_trusted_feature_context_registry_v1"
+    },
+    {
+      "path": "tests/e2e/action-666f-offline-learning-engine.spec.ts",
+      "action_owner": "666F/666H",
+      "artifact_type": "offline_learning_golden_contract_tests",
+      "sha256": "29006798de9fd842fe7eee02e805770441546e512f215e3f3e61ac5eb908da03",
+      "git_status": "untracked",
+      "normative_version": "canonical_offline_learning_engine_v1"
+    },
+    {
+      "path": "tests/e2e/action-666h-offline-learning-remediation.spec.ts",
+      "action_owner": "666H",
+      "artifact_type": "trust_split_numeric_remediation_tests",
+      "sha256": "fb869ddff832b2f729e1c853066adf7100c8d0aacc9b9da7a28a7fe748515afc",
+      "git_status": "untracked",
+      "normative_version": "action_666h_learning_trust_split_numeric_remediation_v1"
+    }
+  ]
+}
