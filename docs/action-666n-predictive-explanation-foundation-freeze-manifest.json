@@ -1,0 +1,72 @@
+{
+  "manifest_version": "action_666n_predictive_explanation_foundation_freeze_manifest_v1",
+  "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+  "branch": "codex/action-666m-predictive-outcome-explanation",
+  "contract_version": "canonical_predictive_outcome_explanation_v1",
+  "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+  "sensitivity_version": "canonical_predictive_sensitivity_v1",
+  "artifact_count": 5,
+  "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+  "canonical_freeze_digest": {
+    "pre_regression_observed": "aa2b12143bee72ae2f48382470e05c0a963f5642c0f89ad832f9bc8427c5d1c8",
+    "post_regression_observed": "aa2b12143bee72ae2f48382470e05c0a963f5642c0f89ad832f9bc8427c5d1c8",
+    "post_review_observed": "aa2b12143bee72ae2f48382470e05c0a963f5642c0f89ad832f9bc8427c5d1c8"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666m-golden-predictive-explanation-report.json",
+      "artifact_type": "machine_readable_synthetic_golden_explanation_evidence",
+      "contract_version": "canonical_predictive_outcome_explanation_v1",
+      "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+      "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+      "sha256": "63c09ce957333495881cbb62ee73e79c830127d5fe8efb1d4dcd7e91c895a873",
+      "git_status": "untracked",
+      "classification": "normative"
+    },
+    {
+      "path": "docs/action-666m-predictive-outcome-explanation.md",
+      "artifact_type": "contract_and_causal_boundary_documentation",
+      "contract_version": "canonical_predictive_outcome_explanation_v1",
+      "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+      "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+      "sha256": "017a74472ea4d73c3032181bdef27a52412729d7c83fe15fa656343a18073c6f",
+      "git_status": "untracked",
+      "classification": "normative"
+    },
+    {
+      "path": "lib/server/canonical-predictive-outcome-explanation-fixtures.ts",
+      "artifact_type": "synthetic_fixture_factory",
+      "contract_version": "canonical_predictive_outcome_explanation_v1",
+      "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+      "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+      "sha256": "e9bab26bf06765f66995e67b54b499f695af6f887936fb59560db35e1599ef46",
+      "git_status": "untracked",
+      "classification": "normative"
+    },
+    {
+      "path": "lib/server/canonical-predictive-outcome-explanation.ts",
+      "artifact_type": "server_only_predictive_explanation_and_sensitivity_contract",
+      "contract_version": "canonical_predictive_outcome_explanation_v1",
+      "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+      "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+      "sha256": "c1bf88e455c3fee927cbc0a0ae8c3dc19dd8f771a26880efbd75dd1eab20eb0d",
+      "git_status": "untracked",
+      "classification": "normative"
+    },
+    {
+      "path": "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
+      "artifact_type": "focused_contract_golden_and_tampering_tests",
+      "contract_version": "canonical_predictive_outcome_explanation_v1",
+      "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+      "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+      "sha256": "74241a622418574b7142bedd5c7b237b04f3e484973bbe1cf125a536e0b6bb7b",
+      "git_status": "untracked",
+      "classification": "normative"
+    }
+  ],
+  "scope_contract": {
+    "normative_artifact_count": 5,
+    "review_evidence_excluded_from_freeze_digest": true,
+    "no_commit_push_pr_provider_database_migration_or_live_integration": true
+  }
+}

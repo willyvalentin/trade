@@ -1,0 +1,86 @@
+{
+  "manifest_version": "action_666o_predictive_explanation_refreeze_manifest_v1",
+  "base_sha": "e8c233bdd7f57623ec1c5f6f99b70588ff2524fd",
+  "branch": "codex/action-666m-predictive-outcome-explanation",
+  "contract_version": "canonical_predictive_outcome_explanation_v1",
+  "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+  "primary_classification_policy_version": "canonical_predictive_primary_classification_policy_v1",
+  "trusted_input_registry_version": "canonical_explanation_trusted_input_registry_v1",
+  "artifact_count": 7,
+  "normative_artifact_count": 5,
+  "historical_review_artifact_count": 2,
+  "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+  "digests": {
+    "normative_foundation_digest": "a8089cf2a4d3f305ea2505977aff28a7ef375de6ac9c9e22cbd28590ea9fbe83",
+    "historical_review_evidence_digest": "607a23bceabd9286e4e2faa4bdfebd602812e114f6ac0ec542db2570805d78f0",
+    "combined_refreeze_digest": "f2a2049e883c3f1dedafcc9108fb38d07ee2b9fa0a2cd47bad50e5b5990540d3",
+    "pre_regression_observed": "f2a2049e883c3f1dedafcc9108fb38d07ee2b9fa0a2cd47bad50e5b5990540d3",
+    "post_regression_observed": "f2a2049e883c3f1dedafcc9108fb38d07ee2b9fa0a2cd47bad50e5b5990540d3",
+    "post_review_observed": "f2a2049e883c3f1dedafcc9108fb38d07ee2b9fa0a2cd47bad50e5b5990540d3"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666m-golden-predictive-explanation-report.json",
+      "action_owner": "666M/O",
+      "artifact_type": "synthetic_golden_byte_parity_report",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "9acadd247b4026e28c526c1616074e21cd2284eb7d86df56d635e36d7714a389"
+    },
+    {
+      "path": "docs/action-666m-predictive-outcome-explanation.md",
+      "action_owner": "666M/O",
+      "artifact_type": "contract_and_trust_boundary_documentation",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "fa78d1af80fa7f6091b7009fecf79075a3ec303510979392e3aeb3c4f3e339e6"
+    },
+    {
+      "path": "docs/action-666n-predictive-explanation-foundation-freeze-manifest.json",
+      "action_owner": "666N",
+      "artifact_type": "historical_rejected_freeze_manifest",
+      "classification": "historical_review_evidence",
+      "git_status": "untracked",
+      "sha256": "1a9bdd9a773e816df63ee42c7d5785272160a4803d40e70fcc619c081155ca4e"
+    },
+    {
+      "path": "docs/action-666n-predictive-explanation-independent-review.md",
+      "action_owner": "666N",
+      "artifact_type": "historical_finding_review",
+      "classification": "historical_review_evidence",
+      "git_status": "untracked",
+      "sha256": "a6d191ea0baa007c2b8b0439867d8d2ffaa2f8ef78b0c8d04c8b665d063ee6f3"
+    },
+    {
+      "path": "lib/server/canonical-predictive-outcome-explanation-fixtures.ts",
+      "action_owner": "666M/O",
+      "artifact_type": "trusted_synthetic_registry_and_fixture_factory",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "dcc2e61dd051567c7f953c759cdefce3c4c4eeb0389eeb9f7af3dec8d1c4178e"
+    },
+    {
+      "path": "lib/server/canonical-predictive-outcome-explanation.ts",
+      "action_owner": "666M/O",
+      "artifact_type": "server_only_default_off_explanation_contract",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "9909f6e062d70bbd17abb9f95180d009ab2e52d97ca565c99bcfa29f43e5bf37"
+    },
+    {
+      "path": "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
+      "action_owner": "666M/O",
+      "artifact_type": "finding_remediation_golden_and_negative_tests",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "a99139eb96257c4b5a0619f17d9193c9b1ad88b855cc00504595ded21837035a"
+    }
+  ],
+  "finding_scope": {
+    "majors_remediated": 5,
+    "minors_remediated": 3,
+    "nits_remediated": 1,
+    "no_live_integration_added": true,
+    "no_commit_push_pr_provider_database_or_model_promotion": true
+  }
+}
