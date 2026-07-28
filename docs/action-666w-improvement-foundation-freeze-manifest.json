@@ -1,0 +1,61 @@
+{
+  "manifest_version": "action_666w_improvement_foundation_freeze_manifest_v1",
+  "base_sha": "3618a051c07c419bbac2b2cd2719964777c40a4c",
+  "artifact_count": 5,
+  "contract_version": "canonical_model_improvement_proposal_v1",
+  "policy_version": "canonical_model_improvement_policy_v1",
+  "expected_artifact_digest": "62f29e5ff9366b9c4877964deb47b679f07953130eb8487e3b276a19777af6a2",
+  "canonical_freeze_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "freeze_digests": {
+    "pre_regression": "62f29e5ff9366b9c4877964deb47b679f07953130eb8487e3b276a19777af6a2",
+    "post_regression": "62f29e5ff9366b9c4877964deb47b679f07953130eb8487e3b276a19777af6a2",
+    "post_review": "62f29e5ff9366b9c4877964deb47b679f07953130eb8487e3b276a19777af6a2"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666v-golden-model-improvement-proposal-report.json",
+      "artifact_type": "machine_readable_golden_evidence",
+      "contract_policy_version": "canonical_model_improvement_proposal_v1/canonical_model_improvement_policy_v1",
+      "sha256": "0c7d25e62a5d2e982e4f445a4ed5e5e34c5030028d6b3ff48757fb053be97881",
+      "git_status": "untracked",
+      "normative_classification": "normative_synthetic_golden_evidence"
+    },
+    {
+      "path": "docs/action-666v-governed-model-improvement-proposal-contract.md",
+      "artifact_type": "contract_documentation",
+      "contract_policy_version": "canonical_model_improvement_proposal_v1/canonical_model_improvement_policy_v1",
+      "sha256": "17d90a98a49452d66a3321e5161bfda19177a66c0f8436d5c90ee8bfb1fe4503",
+      "git_status": "untracked",
+      "normative_classification": "normative_contract_documentation"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-proposal-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "contract_policy_version": "canonical_model_improvement_proposal_v1/canonical_model_improvement_policy_v1",
+      "sha256": "0fadc96ddf4eeb19540a2005e46ab60a5e47eb7f8fe4d0ea43f319ebaf454ec1",
+      "git_status": "untracked",
+      "normative_classification": "normative_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-proposal.ts",
+      "artifact_type": "server_only_contract_implementation",
+      "contract_policy_version": "canonical_model_improvement_proposal_v1/canonical_model_improvement_policy_v1",
+      "sha256": "555d9747343b37a25d95da3006fb4a7d7c4509535a184233b6d34cddea09395e",
+      "git_status": "untracked",
+      "normative_classification": "normative_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts",
+      "artifact_type": "deterministic_contract_tests",
+      "contract_policy_version": "canonical_model_improvement_proposal_v1/canonical_model_improvement_policy_v1",
+      "sha256": "68e5b0e13f1b94d02e79e0f35f8538dc041780dee7dada5af6cffe2203694817",
+      "git_status": "untracked",
+      "normative_classification": "normative_verification"
+    }
+  ],
+  "review_evidence_paths": [
+    "docs/action-666w-improvement-foundation-independent-review.md",
+    "docs/action-666w-improvement-foundation-threat-matrix.json"
+  ],
+  "review_evidence_is_outside_normative_freeze": true
+}

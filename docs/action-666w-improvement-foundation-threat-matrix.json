@@ -1,0 +1,136 @@
+{
+  "matrix_version": "action_666w_improvement_foundation_threat_matrix_v1",
+  "reviewed_contract_version": "canonical_model_improvement_proposal_v1",
+  "reviewed_policy_version": "canonical_model_improvement_policy_v1",
+  "reviewed_freeze_digest": "62f29e5ff9366b9c4877964deb47b679f07953130eb8487e3b276a19777af6a2",
+  "summary": {
+    "blocker": 0,
+    "major": 7,
+    "minor": 2,
+    "nit": 1,
+    "independent_review_approved": false,
+    "local_checkpoint_ready": false
+  },
+  "threat_cases": [
+    {
+      "case": "caller_replaces_trust_root",
+      "result": "finding",
+      "finding_ids": ["666W-M1"],
+      "evidence": "The enabled factory receives registry bytes and all expected roots in one caller-supplied trust_boundary."
+    },
+    {
+      "case": "in_sample_only_improvement",
+      "result": "pass_for_registered_post",
+      "finding_ids": ["666W-M2"],
+      "evidence": "The direct boolean gate returns research_only, but the OOS/in-sample assertion is not rebuilt from the frozen learning result."
+    },
+    {
+      "case": "missing_rejected_or_no_trade_outcome",
+      "result": "pass_for_registered_post",
+      "finding_ids": ["666W-M2"],
+      "evidence": "The fixture flag is fail-closed, but complete lineage is represented by counts and booleans rather than a verified Action 665 graph."
+    },
+    {
+      "case": "cohort_or_period_drift",
+      "result": "partial",
+      "finding_ids": ["666W-M2", "666W-M3"],
+      "evidence": "Plan equality catches one-sided drift; a self-consistent alternative post can replace both asserted evidence and plan."
+    },
+    {
+      "case": "opportunity_membership_drift",
+      "result": "finding",
+      "finding_ids": ["666W-M2"],
+      "evidence": "The proposal layer does not replay the Action 665 opportunity-set contract or its candidate membership."
+    },
+    {
+      "case": "primary_metric_changed_after_result",
+      "result": "partial",
+      "finding_ids": ["666W-M1", "666W-M3"],
+      "evidence": "One-sided digest tampering fails; a replacement trusted registry can authorize a self-consistent alternative primary metric."
+    },
+    {
+      "case": "sample_minimum_changed",
+      "result": "finding",
+      "finding_ids": ["666W-M4"],
+      "evidence": "Sample minimum changes the semantic digest but not plan_identity and there is no previous-binding lookup."
+    },
+    {
+      "case": "protected_metric_removed",
+      "result": "finding",
+      "finding_ids": ["666W-M3"],
+      "evidence": "Validation checks only that every remaining plan metric exists in evidence; it does not require equality with the complete protected set."
+    },
+    {
+      "case": "non_inferiority_floor_manipulated",
+      "result": "partial",
+      "finding_ids": ["666W-M1", "666W-M3"],
+      "evidence": "One-sided mismatch fails, but both evidence and plan floors can be replaced under a self-authorized registry."
+    },
+    {
+      "case": "candidate_baseline_reversal",
+      "result": "finding",
+      "finding_ids": ["666W-M2"],
+      "evidence": "The layer compares two asserted tuples but does not verify arm roles against the paired Action 666 evaluation."
+    },
+    {
+      "case": "multiple_testing_policy_removed",
+      "result": "pass_for_missing_policy",
+      "finding_ids": ["666W-M5"],
+      "evidence": "A missing/none method remains research_only, but adjusted values and the selected hypothesis family are not recomputed."
+    },
+    {
+      "case": "digests_recomputed_after_alternative_plan",
+      "result": "finding",
+      "finding_ids": ["666W-M1", "666W-M4"],
+      "evidence": "All canonical post and registry builders are public and the factory accepts the replacement registry/root tuple."
+    },
+    {
+      "case": "duplicate_proposal_or_experiment_identity",
+      "result": "partial",
+      "finding_ids": ["666W-M4"],
+      "evidence": "Duplicates inside one post fail, but duplicate proposal/plan identities across distinct registry posts are not checked."
+    },
+    {
+      "case": "automatic_promotion_or_parameter_change",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "All output safety flags are hard-coded false and no live call-site exists."
+    },
+    {
+      "case": "research_hypothesis_upgraded_without_gates",
+      "result": "pass_for_direct_class_upgrade",
+      "finding_ids": ["666W-M1", "666W-M2"],
+      "evidence": "Caller-supplied approved_experiment_candidate items are rejected, but self-authorized upstream evidence can still satisfy the derived gate."
+    },
+    {
+      "case": "no_change_with_weak_selection_evidence",
+      "result": "finding",
+      "finding_ids": ["666W-M6"],
+      "evidence": "no_change returns before split stability, in_sample_only, data-quality-rate and multiple-testing gates."
+    },
+    {
+      "case": "fabricated_split_stability",
+      "result": "finding",
+      "finding_ids": ["666W-M7"],
+      "evidence": "Stable count derives from a caller-authored direction string, not the signed effect value or a verified OOS split result."
+    },
+    {
+      "case": "malformed_period_or_point_in_time_evidence",
+      "result": "finding",
+      "finding_ids": ["666W-m1"],
+      "evidence": "Period and point-in-time checks rely on lexical strings and asserted booleans without timestamp parsing or interval verification."
+    },
+    {
+      "case": "evidence_item_source_substitution",
+      "result": "finding",
+      "finding_ids": ["666W-m2"],
+      "evidence": "Evidence item source digests are format-bound but not checked against the corresponding canonical section digest inventory."
+    },
+    {
+      "case": "negative_test_claims_self_consistent_root_attack",
+      "result": "finding",
+      "finding_ids": ["666W-n1"],
+      "evidence": "The named test changes expected_registry_root_digest only; it does not rebuild registry and expected root together."
+    }
+  ]
+}

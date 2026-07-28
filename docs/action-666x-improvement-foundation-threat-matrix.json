@@ -1,0 +1,148 @@
+{
+  "matrix_version": "action_666x_improvement_foundation_threat_matrix_v1",
+  "reviewed_contract_version": "canonical_model_improvement_proposal_v1",
+  "reviewed_policy_version": "canonical_model_improvement_policy_v1",
+  "reviewed_normative_freeze_digest": "aa8c47473899f6e28d368db9224673938dddc0f58b9e223e2488ce6e4573a436",
+  "summary": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true
+  },
+  "finding_closure": [
+    {
+      "finding_id": "666W-M1",
+      "result": "closed",
+      "evidence": "External frozen proposal-registry authority rejects a self-consistent alternate registry/root replacement."
+    },
+    {
+      "finding_id": "666W-M2",
+      "result": "closed",
+      "evidence": "Versioned adapters replay Action 664 quality, Action 665 opportunity lineage, and Action 666 shadow, learning, and explanation evidence."
+    },
+    {
+      "finding_id": "666W-M3",
+      "result": "closed",
+      "evidence": "Metric taxonomy/inventory enforces exact primary, secondary, protected, and verified-result set equality."
+    },
+    {
+      "finding_id": "666W-M4",
+      "result": "closed",
+      "evidence": "Full preregistration identity, mandatory previous-binding lookup, and registry-wide proposal/experiment uniqueness fail closed."
+    },
+    {
+      "finding_id": "666W-M5",
+      "result": "closed",
+      "evidence": "Canonical hypotheses and single/Holm/BH adjusted values are deterministically recomputed."
+    },
+    {
+      "finding_id": "666W-M6",
+      "result": "closed",
+      "evidence": "Versioned no-change policy applies all canonical evidence, stability, quality, and selection gates."
+    },
+    {
+      "finding_id": "666W-M7",
+      "result": "closed",
+      "evidence": "Split direction, uncertainty, stability, and diversity are derived from unique canonical row evidence."
+    },
+    {
+      "finding_id": "666W-m1",
+      "result": "closed",
+      "evidence": "Explicit instants enforce period, cutoff, completion, offset parity, and nanosecond ordering."
+    },
+    {
+      "finding_id": "666W-m2",
+      "result": "closed",
+      "evidence": "Evidence source digests are exactly namespace-bound to verified section digests."
+    },
+    {
+      "finding_id": "666W-n1",
+      "result": "closed",
+      "evidence": "The negative test now performs and names a full self-consistent alternate registry/root replacement."
+    }
+  ],
+  "threat_cases": [
+    {
+      "case": "caller_replaces_trust_root",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "canonical_upstream_payload_recomputed",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "protected_metric_removed_or_duplicated",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "primary_metric_swapped",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "experiment_plan_changed_at_same_identity",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "previous_binding_semantic_collision",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "cross_post_duplicate_identity",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "incorrect_holm_or_bh_adjustment",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "hypothesis_inventory_drift",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "no_change_with_instability_or_selection_risk",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "split_direction_or_diversity_inflation",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "duplicate_or_cross_split_canonical_row",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "future_or_malformed_temporal_evidence",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "evidence_namespace_substitution",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "automatic_training_parameter_change_or_promotion",
+      "result": "pass",
+      "finding_ids": []
+    },
+    {
+      "case": "live_import_or_persistence_activation",
+      "result": "pass",
+      "finding_ids": []
+    }
+  ]
+}
