@@ -39,6 +39,8 @@ export const CANONICAL_EXPLANATION_CALIBRATION_EVIDENCE_VERSION =
   "canonical_explanation_calibration_evidence_v1" as const;
 export const CANONICAL_EXPLANATION_THRESHOLD_POLICY_VERSION =
   "canonical_explanation_threshold_policy_v1" as const;
+export const CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION =
+  "canonical_predictive_research_hypothesis_v1" as const;
 
 export const CANONICAL_PREDICTIVE_PRIMARY_TAXONOMY = [
   "correct_positive_trade",
@@ -214,6 +216,14 @@ export type CanonicalPredictiveCorrelationDiagnostic = {
   reason_code: "strong_training_window_feature_correlation";
 };
 
+export type CanonicalPredictiveResearchHypothesis = {
+  hypothesis_version:
+    typeof CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION;
+  hypothesis_identity: string;
+  statement: string;
+  semantic_digest: string;
+};
+
 export type CanonicalPredictiveModelResultPost = {
   post_version: typeof CANONICAL_EXPLANATION_MODEL_RESULT_POST_VERSION;
   result_identity: string;
@@ -258,7 +268,7 @@ export type CanonicalPredictiveTrustedInputPayload = {
   outcome_evidence: CanonicalPredictiveOutcomeEvidence;
   cost_evidence: CanonicalPredictiveCostEvidence;
   entry_timing_sensitive: boolean;
-  research_hypotheses: string[];
+  research_hypotheses: CanonicalPredictiveResearchHypothesis[];
 };
 
 export type CanonicalPredictiveTrustedInputPost = {
@@ -439,6 +449,51 @@ export function canonicalPredictiveOutcomeExplanationDigest(value: unknown) {
     .digest("hex");
 }
 
+function researchHypothesisIdentityPayload(input: {
+  canonical_decision_identity: string;
+  explained_candidate_identity: string;
+  opportunity_set_identity: string;
+  statement: string;
+}) {
+  return {
+    hypothesis_version: CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
+    canonical_decision_identity: input.canonical_decision_identity,
+    explained_candidate_identity: input.explained_candidate_identity,
+    opportunity_set_identity: input.opportunity_set_identity,
+    statement: input.statement,
+  };
+}
+
+export function canonicalPredictiveResearchHypothesisIdentity(input: {
+  canonical_decision_identity: string;
+  explained_candidate_identity: string;
+  opportunity_set_identity: string;
+  statement: string;
+}) {
+  return `canonical-predictive-research-hypothesis:${canonicalPredictiveOutcomeExplanationDigest(
+    researchHypothesisIdentityPayload(input),
+  )}`;
+}
+
+export function createCanonicalPredictiveResearchHypothesis(input: {
+  canonical_decision_identity: string;
+  explained_candidate_identity: string;
+  opportunity_set_identity: string;
+  statement: string;
+}) {
+  const payload = {
+    hypothesis_version: CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
+    hypothesis_identity:
+      canonicalPredictiveResearchHypothesisIdentity(input),
+    statement: input.statement,
+  };
+  return deepFreeze({
+    ...payload,
+    semantic_digest:
+      canonicalPredictiveOutcomeExplanationDigest(payload),
+  });
+}
+
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === "object" && !Object.isFrozen(value)) {
     Object.freeze(value);
@@ -468,6 +523,27 @@ function unique<T>(values: T[]) {
 
 function uniqueSorted<T extends string>(values: T[]) {
   return [...new Set(values)].sort() as T[];
+}
+
+function researchHypothesisSortKey(value: unknown) {
+  const identity =
+    value &&
+    typeof value === "object" &&
+    typeof (value as { hypothesis_identity?: unknown })
+      .hypothesis_identity === "string"
+      ? (value as { hypothesis_identity: string }).hypothesis_identity
+      : "";
+  return `${identity}:${canonicalPredictiveOutcomeExplanationDigest(value)}`;
+}
+
+function canonicalResearchHypothesisOrder(
+  values: CanonicalPredictiveResearchHypothesis[],
+) {
+  return [...values].sort((first, second) =>
+    researchHypothesisSortKey(first).localeCompare(
+      researchHypothesisSortKey(second),
+    ),
+  );
 }
 
 function sigmoid(value: number) {
@@ -531,10 +607,16 @@ export function createCanonicalPredictiveTrustedInputPost(input: {
   trusted_input_identity: string;
   payload: CanonicalPredictiveTrustedInputPayload;
 }) {
+  const payload = structuredClone(input.payload);
+  if (Array.isArray(payload.research_hypotheses)) {
+    payload.research_hypotheses = canonicalResearchHypothesisOrder(
+      payload.research_hypotheses,
+    );
+  }
   const postPayload = {
     post_version: CANONICAL_EXPLANATION_TRUSTED_INPUT_POST_VERSION,
     trusted_input_identity: input.trusted_input_identity,
-    payload: structuredClone(input.payload),
+    payload,
   };
   return deepFreeze({
     ...postPayload,
@@ -641,6 +723,65 @@ function validateRegistry(
     reasons.push("trusted_explanation_registry_digest_conflicting");
   }
   return reasons;
+}
+
+function validateResearchHypotheses(
+  payload: CanonicalPredictiveTrustedInputPayload,
+) {
+  const reasons: string[] = [];
+  const hypotheses = (
+    payload as { research_hypotheses?: unknown }
+  ).research_hypotheses;
+  if (!Array.isArray(hypotheses)) {
+    return ["research_hypothesis_malformed"];
+  }
+  const byIdentity = new Map<string, unknown>();
+  for (const value of hypotheses) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      reasons.push("research_hypothesis_malformed");
+      continue;
+    }
+    const hypothesis =
+      value as Partial<CanonicalPredictiveResearchHypothesis>;
+    if (
+      hypothesis.hypothesis_version !==
+        CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION ||
+      typeof hypothesis.hypothesis_identity !== "string" ||
+      !hypothesis.hypothesis_identity.trim() ||
+      typeof hypothesis.statement !== "string" ||
+      !hypothesis.statement.trim() ||
+      hypothesis.statement.trim() !== hypothesis.statement ||
+      typeof hypothesis.semantic_digest !== "string" ||
+      !shaPattern.test(hypothesis.semantic_digest)
+    ) {
+      reasons.push("research_hypothesis_malformed");
+      continue;
+    }
+    const expected = createCanonicalPredictiveResearchHypothesis({
+      canonical_decision_identity: payload.canonical_decision_identity,
+      explained_candidate_identity: payload.explained_candidate_identity,
+      opportunity_set_identity:
+        payload.opportunity_set.opportunity_set_identity,
+      statement: hypothesis.statement,
+    });
+    if (hypothesis.hypothesis_identity !== expected.hypothesis_identity) {
+      reasons.push("research_hypothesis_identity_conflicting");
+    }
+    if (hypothesis.semantic_digest !== expected.semantic_digest) {
+      reasons.push("research_hypothesis_semantic_digest_conflicting");
+    }
+    const previous = byIdentity.get(hypothesis.hypothesis_identity);
+    if (previous) {
+      reasons.push(
+        exact(previous, hypothesis)
+          ? "duplicate_research_hypothesis_identity"
+          : "conflicting_research_hypothesis_identity",
+      );
+    } else {
+      byIdentity.set(hypothesis.hypothesis_identity, hypothesis);
+    }
+  }
+  return uniqueSorted(reasons);
 }
 
 function predictionPayload(prediction: CanonicalLearningPrediction) {
@@ -1353,6 +1494,7 @@ function buildFromTrustedPost(input: {
   ) {
     reasons.push("context_not_point_in_time_safe");
   }
+  reasons.push(...validateResearchHypotheses(payload));
   reasons.push(...validateModelResult(payload.model_result, payload));
   reasons.push(...validateTemporalEvidence(payload));
   reasons.push(
@@ -1417,6 +1559,8 @@ function buildFromTrustedPost(input: {
           ...correlatedFeatures,
         ].sort().join(", ")}; individual coefficients and one-feature ablations may be unstable even when joint prediction is stable.`
       : "";
+  const canonicalResearchHypotheses =
+    canonicalResearchHypothesisOrder(payload.research_hypotheses);
   const evidence: CanonicalPredictiveEvidenceItem[] = [
     evidenceItem(
       "observed_fact",
@@ -1460,13 +1604,12 @@ function buildFromTrustedPost(input: {
       "Sensitivity reports bounded model-derived threshold, feature, cost and neighboring-horizon alternatives without identifying a true cause.",
       sensitivityResult,
     ),
-    ...payload.research_hypotheses
-      .sort()
+    ...canonicalResearchHypotheses
       .map((hypothesis) =>
         evidenceItem(
           "research_hypothesis",
-          "non_canonical_research_hypothesis",
-          hypothesis,
+          `non_canonical_research_hypothesis:${hypothesis.hypothesis_identity}`,
+          hypothesis.statement,
           hypothesis,
         ),
       ),

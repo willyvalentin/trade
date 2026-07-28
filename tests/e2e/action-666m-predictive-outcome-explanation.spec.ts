@@ -22,14 +22,18 @@ import {
   CANONICAL_PREDICTIVE_OUTCOME_EXPLANATION_VERSION,
   CANONICAL_PREDICTIVE_OUTCOME_TAXONOMY,
   CANONICAL_PREDICTIVE_PRIMARY_CLASSIFICATION_POLICY_VERSION,
+  CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
   CANONICAL_PREDICTIVE_SENSITIVITY_VERSION,
   canonicalPredictiveOutcomeExplanationDigest,
   createCanonicalPredictiveExplanationEngine,
+  createCanonicalPredictiveResearchHypothesis,
   createCanonicalPredictiveTrustedInputPost,
   createCanonicalPredictiveTrustedInputRegistry,
   verifyCanonicalPredictiveOutcomeExplanation,
   type CanonicalPredictiveExplanationExecutionCounters,
   type CanonicalPredictiveOutcomeExplanationResult,
+  type CanonicalPredictiveResearchHypothesis,
+  type CanonicalPredictiveTrustedInputPayload,
 } from "@/lib/server/canonical-predictive-outcome-explanation";
 
 type Fixture = (typeof action666mFixtureCases)[number];
@@ -83,6 +87,31 @@ function counters(): CanonicalPredictiveExplanationExecutionCounters {
   };
 }
 
+function researchHypothesis(
+  payload: CanonicalPredictiveTrustedInputPayload,
+  statement: string,
+) {
+  return createCanonicalPredictiveResearchHypothesis({
+    canonical_decision_identity: payload.canonical_decision_identity,
+    explained_candidate_identity: payload.explained_candidate_identity,
+    opportunity_set_identity:
+      payload.opportunity_set.opportunity_set_identity,
+    statement,
+  });
+}
+
+function explanationFromPayload(
+  name: string,
+  payload: CanonicalPredictiveTrustedInputPayload,
+) {
+  const fixture = action666oFixtureFromPayload({ name, payload });
+  if (!fixture.engine.explain) throw new Error("fixture_engine_disabled");
+  return {
+    fixture,
+    result: fixture.engine.explain(fixture.request),
+  };
+}
+
 test.describe("Action 666M/O predictive outcome explanation", () => {
   test("fixture matrix is fail-closed with expected statuses", () => {
     for (const fixture of action666mFixtureCases) {
@@ -94,6 +123,10 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
 
   test("golden report has byte-level digest parity for every successful scenario", () => {
     expect(goldenReport).toMatchObject({
+      report_version:
+        "action_666t_golden_predictive_explanation_report_v1",
+      research_hypothesis_version:
+        CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
       synthetic_evidence: true,
       not_ture_performance: true,
       not_publishable: true,
@@ -614,6 +647,209 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
         "research_hypothesis",
       ]),
     );
+  });
+
+  test("Action 666T: two deep-frozen hypotheses canonicalize without mutation or order drift", () => {
+    const firstPayload = action666oCreateBasePayload();
+    const first = researchHypothesis(
+      firstPayload,
+      "Research-only: validate sector stability in a separately frozen OOS cohort.",
+    );
+    const second = researchHypothesis(
+      firstPayload,
+      "Research-only: validate regime stability in a separately frozen OOS cohort.",
+    );
+    firstPayload.research_hypotheses = [first, second];
+    const firstFixture = action666oFixtureFromPayload({
+      name: "two-frozen-hypotheses",
+      payload: firstPayload,
+    });
+    expect(Object.isFrozen(firstFixture.post.payload.research_hypotheses)).toBe(
+      true,
+    );
+    expect(
+      firstFixture.post.payload.research_hypotheses.every(Object.isFrozen),
+    ).toBe(true);
+    const before = JSON.stringify(firstFixture.post.payload);
+    const firstResult = firstFixture.engine.explain!(firstFixture.request);
+    expect(firstResult.status).toBe("explainable");
+    expect(JSON.stringify(firstFixture.post.payload)).toBe(before);
+
+    const reorderedPayload = action666oCreateBasePayload();
+    reorderedPayload.research_hypotheses = [second, first];
+    const reordered = explanationFromPayload(
+      "two-frozen-hypotheses",
+      reorderedPayload,
+    ).result;
+    expect(JSON.stringify(reordered)).toBe(JSON.stringify(firstResult));
+  });
+
+  test("Action 666T: many unique hypotheses retain stable identities and research-only semantics", () => {
+    const payload = action666oCreateBasePayload();
+    payload.research_hypotheses = Array.from({ length: 12 }, (_, index) =>
+      researchHypothesis(
+        payload,
+        `Research-only: frozen follow-up hypothesis ${String(index).padStart(2, "0")}.`,
+      ),
+    ).reverse();
+    const { result } = explanationFromPayload("many-hypotheses", payload);
+    expect(result.status).toBe("explainable");
+    const hypothesisEvidence = result.explanation!.evidence.filter(
+      (item) => item.evidence_kind === "research_hypothesis",
+    );
+    expect(hypothesisEvidence).toHaveLength(12);
+    expect(
+      hypothesisEvidence.map((item) => item.evidence_code),
+    ).toEqual(
+      [...hypothesisEvidence]
+        .map((item) => item.evidence_code)
+        .sort((first, second) => first.localeCompare(second)),
+    );
+    expect(result).toMatchObject({
+      research_hypotheses_affect_ranking: false,
+      live_ranking_effect: false,
+      automatic_promotion_allowed: false,
+      causal_claimed: false,
+    });
+  });
+
+  test("Action 666T: duplicate hypothesis identities fail closed for identical and conflicting bytes", () => {
+    const identicalPayload = action666oCreateBasePayload();
+    const hypothesis = researchHypothesis(
+      identicalPayload,
+      "Research-only: duplicate identity probe.",
+    );
+    identicalPayload.research_hypotheses = [hypothesis, hypothesis];
+    const identical = explanationFromPayload(
+      "duplicate-identical-hypothesis",
+      identicalPayload,
+    ).result;
+    expect(identical).toMatchObject({
+      status: "conflicting",
+      reason_codes: ["duplicate_research_hypothesis_identity"],
+    });
+
+    const conflictingPayload = action666oCreateBasePayload();
+    const original = researchHypothesis(
+      conflictingPayload,
+      "Research-only: original identity-bound statement.",
+    );
+    const conflictingStatement =
+      "Research-only: conflicting bytes under the original identity.";
+    const conflicting: CanonicalPredictiveResearchHypothesis = {
+      hypothesis_version:
+        CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
+      hypothesis_identity: original.hypothesis_identity,
+      statement: conflictingStatement,
+      semantic_digest: canonicalPredictiveOutcomeExplanationDigest({
+        hypothesis_version:
+          CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
+        hypothesis_identity: original.hypothesis_identity,
+        statement: conflictingStatement,
+      }),
+    };
+    conflictingPayload.research_hypotheses = [original, conflicting];
+    const conflictResult = explanationFromPayload(
+      "duplicate-conflicting-hypothesis",
+      conflictingPayload,
+    ).result;
+    expect(conflictResult.status).toBe("conflicting");
+    expect(conflictResult.reason_codes).toEqual(
+      expect.arrayContaining([
+        "conflicting_research_hypothesis_identity",
+        "research_hypothesis_identity_conflicting",
+      ]),
+    );
+  });
+
+  test("Action 666T: malformed hypotheses fail closed while an empty list is valid", () => {
+    const malformedPayload = action666oCreateBasePayload();
+    malformedPayload.research_hypotheses = [
+      {
+        hypothesis_version:
+          CANONICAL_PREDICTIVE_RESEARCH_HYPOTHESIS_VERSION,
+        hypothesis_identity: "",
+        statement: "Research-only: malformed identity.",
+        semantic_digest: "not-a-sha",
+      },
+    ];
+    expect(
+      explanationFromPayload("malformed-hypothesis", malformedPayload).result,
+    ).toMatchObject({
+      status: "conflicting",
+      reason_codes: ["research_hypothesis_malformed"],
+    });
+
+    const emptyPayload = action666oCreateBasePayload();
+    emptyPayload.research_hypotheses = [];
+    const empty = explanationFromPayload("empty-hypotheses", emptyPayload)
+      .result;
+    expect(empty.status).toBe("explainable");
+    expect(
+      empty.explanation!.evidence.filter(
+        (item) => item.evidence_kind === "research_hypothesis",
+      ),
+    ).toHaveLength(0);
+  });
+
+  test("Action 666T: semantic hypothesis changes alter the canonical explanation digest", () => {
+    const firstPayload = action666oCreateBasePayload();
+    firstPayload.research_hypotheses = [
+      researchHypothesis(
+        firstPayload,
+        "Research-only: first semantic hypothesis.",
+      ),
+    ];
+    const secondPayload = action666oCreateBasePayload();
+    secondPayload.research_hypotheses = [
+      researchHypothesis(
+        secondPayload,
+        "Research-only: semantically changed hypothesis.",
+      ),
+    ];
+    const first = explanationFromPayload(
+      "hypothesis-semantic-change-a",
+      firstPayload,
+    ).result;
+    const second = explanationFromPayload(
+      "hypothesis-semantic-change-b",
+      secondPayload,
+    ).result;
+    expect(first.status).toBe("explainable");
+    expect(second.status).toBe("explainable");
+    expect(first.explanation!.primary_classification).toBe(
+      second.explanation!.primary_classification,
+    );
+    expect(first.explanation!.canonical_explanation_digest).not.toBe(
+      second.explanation!.canonical_explanation_digest,
+    );
+  });
+
+  test("Action 666T: disabled factory does not read or canonicalize hypotheses", () => {
+    let trustReads = 0;
+    const inaccessibleTrustBoundary = new Proxy(
+      action666mSuccessfulTradeTrustBoundary,
+      {
+        get() {
+          trustReads += 1;
+          throw new Error("disabled_engine_touched_trust_boundary");
+        },
+      },
+    );
+    const executionCounters = counters();
+    const engine = createCanonicalPredictiveExplanationEngine({
+      enabled: false,
+      kill_switch: false,
+      trust_boundary: inaccessibleTrustBoundary,
+      counters: executionCounters,
+    });
+    expect(engine).toMatchObject({
+      enabled: false,
+      build: null,
+      explain: null,
+      counters: counters(),
+    });
+    expect(trustReads).toBe(0);
   });
 
   test("output tampering and byte-level replay verification fail closed", () => {

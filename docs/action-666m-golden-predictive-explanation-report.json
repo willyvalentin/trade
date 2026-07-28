@@ -1,10 +1,11 @@
 {
-  "report_version": "action_666o_golden_predictive_explanation_report_v1",
+  "report_version": "action_666t_golden_predictive_explanation_report_v1",
   "contract_version": "canonical_predictive_outcome_explanation_v1",
   "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
   "sensitivity_version": "canonical_predictive_sensitivity_v1",
   "primary_classification_policy_version": "canonical_predictive_primary_classification_policy_v1",
   "trusted_input_registry_version": "canonical_explanation_trusted_input_registry_v1",
+  "research_hypothesis_version": "canonical_predictive_research_hypothesis_v1",
   "evidence_class": "synthetic_fixture_only",
   "synthetic_evidence": true,
   "not_ture_performance": true,
@@ -23,50 +24,50 @@
     {
       "name": "successful_trade",
       "status": "explainable",
-      "canonical_explanation_digest": "72e5dacfc655a5ff3ca1618808723a31553b93ca6dedb00a130523ee246d8790",
-      "canonical_result_bytes_sha256": "f9b75ca893eddd2fd5b106016ffe417101190b248f8d8f0302ef7a61b8fb8e47"
+      "canonical_explanation_digest": "c8e285c6a78fd5fc57125fe4fa63715f8533fd4550a7ff649706a5eb9db167d7",
+      "canonical_result_bytes_sha256": "0dd290d950245b88ccd7c83e650683bbd827d522a483cb7628d9148fbf29fea0"
     },
     {
       "name": "false_positive",
       "status": "explainable",
-      "canonical_explanation_digest": "6da92dd4bda5e22cc26ea435e55519a1d1c1bd5b59ff4841d70514b0b4f3c682",
-      "canonical_result_bytes_sha256": "c5878dd061472002e5dfd40e10db0938c6fbb359ad66b03716ee495e0ea3675c"
+      "canonical_explanation_digest": "f3257c3d5729058a78d1b66018228e69f48f915a4afb2d9b084d9f3b8c7d7c41",
+      "canonical_result_bytes_sha256": "60080c1c02ad735dfff62117c21c5c328c3339209a50ca67c7b8ff0c523a9b59"
     },
     {
       "name": "false_negative",
       "status": "explainable",
-      "canonical_explanation_digest": "1e4bc3ae12dffabf25174c81258b8026c1ff91f01a90298a479d2f97ac82d239",
-      "canonical_result_bytes_sha256": "19b4ced81559dabb394c0be3cd110f327f04a57e3dc44121b4b2c5e172d6304c"
+      "canonical_explanation_digest": "267aa6e6a122bd83ae4178eab75ec73811f2d9f81e86d6c516b94e82709ad797",
+      "canonical_result_bytes_sha256": "9d42eaf484258d480e7672d1168a032701ae83a282c3e4c438e61e175bc49477"
     },
     {
       "name": "correct_rejection",
       "status": "explainable",
-      "canonical_explanation_digest": "13aa74e45206ba522d37692a77f5a07d97af4d34a855b4802609d6f8b0fcc7f3",
-      "canonical_result_bytes_sha256": "bdba53cf379d8b30d0982787fe2ac9e652bb1b1e3c481ae8786722582432a81d"
+      "canonical_explanation_digest": "a26851d1c3dda2caaf60debeb000391ba82851d3a2dbd659047e372849f0521b",
+      "canonical_result_bytes_sha256": "a72cbe57212b8154da9e01ef9bd71b510030265fc17a61bfcfbdee615f1d7cd4"
     },
     {
       "name": "explicit_no_trade",
       "status": "explainable",
-      "canonical_explanation_digest": "0e50a64dac58233e2e7a26512419ac73f6c75545188d2abc336ade09c95fb2dd",
-      "canonical_result_bytes_sha256": "c619f817391d68c9aaa7a90fc47270aae06b7fdda7b12c07f140996f22c2face"
+      "canonical_explanation_digest": "956845e7b391ff1c35b87ad0a515a4c0a8b596b7e358cfb50cd4d56dfc0cdc4c",
+      "canonical_result_bytes_sha256": "2a5534b74dc999b0cb1d30dc8fe9d4671b846d541f20aff251d461bb2b4b9e63"
     },
     {
       "name": "cost_reversal",
       "status": "explainable",
-      "canonical_explanation_digest": "8f8405e4a09c569e6646bef2b989ff7ae015840ef62bb0cc2302dbcfa586abc3",
-      "canonical_result_bytes_sha256": "725e26612d3f3ed56498bbebe19a49a34b10f4a1b6b153c17688d0fce8ad0c0e"
+      "canonical_explanation_digest": "a47d076072ce0d27b8cc3a5b29353c04382dfe7a9a347f4c3dcd1db3df9df2e6",
+      "canonical_result_bytes_sha256": "88ffb4ca7b4582263f86be771ec0d20df4acf763febeec9d4331bb8ad1b92321"
     },
     {
       "name": "association",
       "status": "explainable",
-      "canonical_explanation_digest": "77ebd06970655168a0af7afe686d1a9a4ca4653b80a8b5880f9f0ed46b393089",
-      "canonical_result_bytes_sha256": "90bcf8fc1062d6dc5690ae5f6f522228ff766c41997086bf46ce5043c0000641"
+      "canonical_explanation_digest": "4c3583a1e0910a3c4eb1eea181f2b36591cd7aefdf154e55ffe418e47d54751b",
+      "canonical_result_bytes_sha256": "f5eaecf6e8c6abb3f6ac1aef5b0c0ffb79134595ecdce7c6ae757fe21c0cdd28"
     },
     {
       "name": "overconfidence",
       "status": "explainable",
-      "canonical_explanation_digest": "2f643cf82dacf1cb8dfe919ef77a13f5e715f493bbc2fbd5b8dea2b78ce77f0a",
-      "canonical_result_bytes_sha256": "8cdf6684743c2391d27046aed478124c16f2d8ee9715c6b985299bc4c97b9169"
+      "canonical_explanation_digest": "66bb4e7d70d740b70c3e9950056798d9b34e5963d311db5220205b5d63d1707c",
+      "canonical_result_bytes_sha256": "a2616e466d811daca3f6819d38af45076b5131b30ee31039ec78d394a05dcd2c"
     }
   ],
   "scenarios": [

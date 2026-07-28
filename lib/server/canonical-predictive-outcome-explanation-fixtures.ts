@@ -22,6 +22,7 @@ import {
   CANONICAL_EXPLANATION_OUTCOME_EVIDENCE_VERSION,
   CANONICAL_EXPLANATION_THRESHOLD_POLICY_VERSION,
   canonicalPredictiveOutcomeExplanationDigest,
+  createCanonicalPredictiveResearchHypothesis,
   createCanonicalPredictiveExplanationEngine,
   createCanonicalPredictiveTrustedInputPost,
   createCanonicalPredictiveTrustedInputRegistry,
@@ -492,7 +493,14 @@ function basePayload(input: {
     cost_evidence: cost,
     entry_timing_sensitive: false,
     research_hypotheses: [
-      "Research-only: test whether the observed regime association persists in a separately frozen OOS sample.",
+      createCanonicalPredictiveResearchHypothesis({
+        canonical_decision_identity:
+          candidate.lineage.recommendation_decision_identity as string,
+        explained_candidate_identity: candidate.canonical_candidate_identity,
+        opportunity_set_identity: opportunitySet.opportunity_set_identity,
+        statement:
+          "Research-only: test whether the observed regime association persists in a separately frozen OOS sample.",
+      }),
     ],
   };
 }

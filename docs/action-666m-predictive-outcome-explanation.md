@@ -142,6 +142,27 @@ Evidence is emitted in five non-interchangeable classes:
 Regime, sector, volatility and liquidity are association-only. Predictive
 attribution is not a causal effect.
 
+### Canonical research-hypothesis ordering
+
+Research hypotheses use
+`canonical_predictive_research_hypothesis_v1`. Each hypothesis has a stable
+identity derived from the canonical decision identity, explained candidate
+identity, opportunity-set identity and its exact statement. Array position is
+never identity.
+
+Trusted posts clone the caller payload and sort a new defensive copy by
+canonical hypothesis identity and semantic digest. The caller array and its
+members are never sorted or mutated, including when they are deep-frozen.
+Empty lists are valid. Two or more unique hypotheses therefore replay
+deterministically regardless of input order. A malformed hypothesis, an
+identical duplicate identity, or conflicting bytes under one identity is
+rejected with an explicit structured reason code before evidence is built.
+
+These records remain `research_hypothesis` evidence only. They cannot become
+observed or canonical-derived facts, do not affect classification or ranking,
+and retain `causal_claimed:false` and
+`research_hypotheses_affect_ranking:false`.
+
 ## Model-derived sensitivity and correlation
 
 `canonical_predictive_sensitivity_v1` uses only the verified candidate model’s
