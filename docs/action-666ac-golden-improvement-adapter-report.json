@@ -1,0 +1,124 @@
+{
+  "report_version": "action_666ae_golden_improvement_adapter_report_v2",
+  "adapter_version": "canonical_completed_improvement_evidence_adapter_v2",
+  "replay_version": "canonical_improvement_proposal_replay_v2",
+  "evidence_class": "synthetic_fixture_only",
+  "synthetic_evidence": true,
+  "not_publishable": true,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "automatic_training_allowed": false,
+  "automatic_parameter_change_allowed": false,
+  "automatic_threshold_change_allowed": false,
+  "automatic_model_change_allowed": false,
+  "automatic_promotion_allowed": false,
+  "causal_improvement_claimed": false,
+  "scenarios": [
+    {
+      "name": "complete_mapped",
+      "mapping_status": "mapped",
+      "proposal_status": "proposal_ready",
+      "reason_codes": [],
+      "bundle_digest": "c419528c574c6b4806449530283a19fb02c52c79d8b46aa2e58c2a967e4d4ee5",
+      "mapping_digest": "105aec51c23a0c4a2084c6697e929b5e1d6a9bac046842863c0b4b8480f1798a"
+    },
+    {
+      "name": "explicit_no_change",
+      "mapping_status": "mapped",
+      "proposal_status": "no_change",
+      "reason_codes": [],
+      "bundle_digest": "5b95f6bd8a1d747320f9c12e7438f81db3ee907d94fee0f8af1a7080822eeff6",
+      "mapping_digest": "dff468935c9c13108eec5bfedb67cd91d77c3342f1c87dd64df4a8e3035e8b52"
+    },
+    {
+      "name": "missing_opportunity_membership",
+      "mapping_status": "unmappable",
+      "proposal_status": null,
+      "reason_codes": [
+        "opportunity_membership_incomplete"
+      ],
+      "bundle_digest": "422973c6f92f2dbc0b72fc87c3ae97b0e567467ac5a3654d050f1fa5e83e7fa6",
+      "mapping_digest": null
+    },
+    {
+      "name": "outcome_lineage_conflict",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "completed_bundle_trusted_post_semantic_conflict"
+      ],
+      "bundle_digest": "7479f19bad352bafc033d026996ea3c72aa4b16e86bc64d6a888c536bdca29db",
+      "mapping_digest": null
+    },
+    {
+      "name": "metric_inventory_drift",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "completed_producer_binding_conflicting"
+      ],
+      "bundle_digest": "dc634b8dedfa7be7a0f240dac424f9d3d092ca55b73676599b8e7fe179c0268c",
+      "mapping_digest": null
+    },
+    {
+      "name": "model_version_drift",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "completed_producer_binding_conflicting"
+      ],
+      "bundle_digest": "abb0d33594842538fece6f41581077ae6c5bc9ae365c83ecce4c046ae8a3f833",
+      "mapping_digest": null
+    },
+    {
+      "name": "point_in_time_violation",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "completed_evidence_precedes_canonical_period_end"
+      ],
+      "bundle_digest": "1d3b0f8a7c74ac626b6d26f19d0f02089f6f461b34ec861b8a40099f36fcb940",
+      "mapping_digest": null
+    },
+    {
+      "name": "trust_root_substitution",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "external_proposal_registry_authority_conflicting"
+      ],
+      "bundle_digest": "0e83db26e73f5adc232f06fdeb3bc800912307839c97ed958fc81e1b36a5e1b4",
+      "mapping_digest": null
+    },
+    {
+      "name": "previous_binding_collision",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "previous_experiment_binding_semantic_conflict",
+        "previous_proposal_binding_semantic_conflict"
+      ],
+      "bundle_digest": "c419528c574c6b4806449530283a19fb02c52c79d8b46aa2e58c2a967e4d4ee5",
+      "mapping_digest": null
+    },
+    {
+      "name": "duplicate_experiment_identity",
+      "mapping_status": "conflicting",
+      "proposal_status": null,
+      "reason_codes": [
+        "completed_producer_binding_conflicting",
+        "duplicate_experiment_identity"
+      ],
+      "bundle_digest": "c914edad2e586f631ff650ed33d95ed02ebff1b0cf76432e5092f361151bbd16",
+      "mapping_digest": null
+    },
+    {
+      "name": "insufficient_diversity",
+      "mapping_status": "mapped",
+      "proposal_status": "insufficient_evidence",
+      "reason_codes": [],
+      "bundle_digest": "af3dcdaff6596f9ef33789e228d8ac5cc3a00038786379d45bb0bf7a775efad1",
+      "mapping_digest": "600ba417cccf0e3c726c23bd66516b18d3f3601db710505ff1fdff4c5f1edfe3"
+    }
+  ]
+}
