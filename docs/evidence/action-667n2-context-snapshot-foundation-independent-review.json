@@ -1,0 +1,241 @@
+{
+  "artifact_version": "action_667n2_context_snapshot_foundation_independent_review_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "review_evidence_digest": "7ac402599e5615d84738da08383409bc8189cddc11de0d04d0eeb15bc019f0b5",
+  "review_material": {
+    "action": "667N.2",
+    "reviewed_contract": "market_context_diagnostic_decision_time_context_feature_snapshot_v1",
+    "reviewed_freeze_digest": "c56c1cfabb66b3768a450804d7ab551fd4ee1d253908076098ab5d82acf38cd4",
+    "freeze_manifest_sha256": "261f48472b20781c3f941b8bf08298909ba6fcad8d3386283207179e1de7efc5",
+    "snapshot_result_digest": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+    "action_667n1_evidence_digest": "5e607b07eda340d4253f424e64534f6639dbb2150ff764fa23ec5b0fa2e906c5",
+    "clean_room": {
+      "base_sha": "ae13c8fbb0e3791edf1a4be1ba7f15aa9ddf7b51",
+      "frozen_artifact_count": 6,
+      "frozen_artifact_hashes_matched": true,
+      "relevant_playwright_tests": {
+        "passed": 248,
+        "failed": 0
+      },
+      "action_667n1_focused_tests": {
+        "passed": 14,
+        "failed": 0
+      },
+      "cross_timezone_matrix": [
+        {
+          "timezone": "UTC",
+          "input_order": "normal",
+          "passed": true
+        },
+        {
+          "timezone": "UTC",
+          "input_order": "normal_second_run",
+          "passed": true
+        },
+        {
+          "timezone": "Europe/Stockholm",
+          "input_order": "reversed",
+          "passed": true
+        },
+        {
+          "timezone": "America/New_York",
+          "input_order": "normal",
+          "passed": true
+        }
+      ],
+      "typescript_passed": true,
+      "scoped_eslint_passed": true,
+      "json_and_evidence_parity_passed": true,
+      "diff_check_passed": true,
+      "frozen_artifacts_mutated": false
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "directories_mode": "0700",
+        "files_mode": "0600",
+        "verified_read_only": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "directories_mode": "0700",
+        "files_mode": "0600",
+        "verified_read_only": true
+      }
+    },
+    "review_dimensions": [
+      {
+        "dimension": "external_decision_identity",
+        "status": "pass_with_major_finding",
+        "finding": "N2-001"
+      },
+      {
+        "dimension": "external_trust_root_authority",
+        "status": "major_finding",
+        "finding": "N2-002"
+      },
+      {
+        "dimension": "lossless_decision_nanoseconds",
+        "status": "pass"
+      },
+      {
+        "dimension": "exact_point_in_time_cutoff",
+        "status": "major_finding",
+        "finding": "N2-003"
+      },
+      {
+        "dimension": "candle_finalization",
+        "status": "major_finding",
+        "finding": "N2-003"
+      },
+      {
+        "dimension": "provider_timestamp_cutoff",
+        "status": "pass"
+      },
+      {
+        "dimension": "session_calendar_binding",
+        "status": "pass_with_major_finding",
+        "finding": "N2-002"
+      },
+      {
+        "dimension": "later_session_exclusion",
+        "status": "pass"
+      },
+      {
+        "dimension": "intraday_full_day_isolation",
+        "status": "pass"
+      },
+      {
+        "dimension": "gap_and_pending_bucket_semantics",
+        "status": "pass"
+      },
+      {
+        "dimension": "coverage_and_quality_flags",
+        "status": "pass"
+      },
+      {
+        "dimension": "normalized_replay_digest_binding",
+        "status": "pass_with_major_finding",
+        "finding": "N2-002"
+      },
+      {
+        "dimension": "cross_timezone_and_input_order",
+        "status": "pass"
+      },
+      {
+        "dimension": "closed_output_taxonomy",
+        "status": "pass"
+      },
+      {
+        "dimension": "duplicate_and_collision_boundary",
+        "status": "pass_with_major_finding",
+        "finding": "N2-001"
+      },
+      {
+        "dimension": "self_consistent_snapshot_tampering",
+        "status": "pass"
+      },
+      {
+        "dimension": "caller_asserted_claim_prohibition",
+        "status": "major_finding",
+        "finding": "N2-001"
+      },
+      {
+        "dimension": "diagnostic_fixture_semantics",
+        "status": "pass"
+      },
+      {
+        "dimension": "outcome_and_causal_claim_isolation",
+        "status": "pass"
+      },
+      {
+        "dimension": "automatic_model_input_prohibition",
+        "status": "pass"
+      },
+      {
+        "dimension": "action_665_666_and_live_provider_db_isolation",
+        "status": "pass"
+      }
+    ],
+    "threat_probes": {
+      "temporary_clean_room_probe_count": 3,
+      "current_behavior_reproduced_count": 3,
+      "temporary_probe_retained": false,
+      "frozen_artifacts_modified": false
+    },
+    "findings": {
+      "blocker": [],
+      "major": [
+        {
+          "id": "N2-001",
+          "title": "Nested caller safety and canonical claims bypass the input boundary",
+          "evidence": [
+            "diagnostic-context-feature-snapshot-v1.ts:264-274 checks forbidden caller keys only at the input root",
+            "diagnostic-context-feature-snapshot-v1.ts:281-298 accepts decision_identity objects containing undeclared nested keys",
+            "diagnostic-context-feature-snapshot-v1.ts:647 preserves the widened decision_identity with structuredClone",
+            "A clean-room probe added decision_identity.canonical=true and received taxonomy=mapped with the field preserved"
+          ],
+          "impact": "A caller can assert a prohibited safety or canonical claim inside an accepted nested object, so the contract does not enforce the caller-claim prohibition as a closed recursive boundary.",
+          "required_follow_up": "Add strict closed schemas or recursive forbidden-key rejection for every caller-controlled object, add collision tests, then create a successor freeze and independent re-review.",
+          "remediated_in_action_667n2": false
+        },
+        {
+          "id": "N2-002",
+          "title": "The public core contract permits caller-self-authorized trust-root substitution",
+          "evidence": [
+            "diagnostic-context-feature-snapshot-v1.ts:244-262 exports a trust-root derivation over caller-supplied normalized, replay, calendar, decision-source and source-decision identities",
+            "diagnostic-context-feature-snapshot-v1.ts:470-477 checks only internal consistency with that caller-derivable root",
+            "A clean-room probe substituted normalized/replay/calendar roots, recomputed the exported trust root, and received taxonomy=mapped"
+          ],
+          "impact": "The core contract proves internal consistency but not external authority. A self-consistent substituted source bundle can be represented as mapped unless every caller uses the fixture adapter's separately pinned roots.",
+          "required_follow_up": "Require a verifier-supplied trusted root or allowlist outside the untrusted input, separate trust-root construction from verification, add substitution tests, then refreeze and re-review.",
+          "remediated_in_action_667n2": false
+        },
+        {
+          "id": "N2-003",
+          "title": "Observation timestamps are not bounded by the latest finalized bucket",
+          "evidence": [
+            "diagnostic-context-feature-snapshot-v1.ts:439-453 validates provider and observation timestamps only against the decision instant",
+            "diagnostic-context-feature-snapshot-v1.ts:589-593 derives latest_finalized_bucket_unix_ns but does not use it as an observation cutoff",
+            "A clean-room probe placed an observation at decision minus one second while the two-second watermark made the latest finalized bucket decision minus two seconds; taxonomy remained mapped"
+          ],
+          "impact": "A mapped snapshot can bind observation evidence from an unfinalized interval even though it reports an earlier latest finalized bucket, weakening the exact point-in-time and candle-finalization guarantee.",
+          "required_follow_up": "Validate applicable observation and bucket timestamps against the derived finalized cutoff, distinguish provider receipt timestamps from bucket observations, add ±1 ns boundary tests, then refreeze and re-review.",
+          "remediated_in_action_667n2": false
+        }
+      ],
+      "minor": [],
+      "nit": []
+    },
+    "finding_counts": {
+      "blocker": 0,
+      "major": 3,
+      "minor": 0,
+      "nit": 0
+    },
+    "mandatory_boundary": {
+      "diagnostic_only": true,
+      "official_ohlcv": false,
+      "canonical_performance_eligible": false,
+      "causal_claimed": false,
+      "outcome_explanation_claimed": false,
+      "live_ranking_effect": false,
+      "automatic_model_input_allowed": false
+    },
+    "decisions": {
+      "action_667n2_context_snapshot_foundation_frozen": true,
+      "action_667n2_external_roots_verified": true,
+      "action_667n2_independent_review_approved": false,
+      "action_667n2_local_checkpoint_ready": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    },
+    "next_action": {
+      "identifier": "Action 667N.2A",
+      "purpose": "Remediate N2-001 through N2-003 in separately versioned successor artifacts and perform a fresh freeze/re-review before defining any outcome join.",
+      "outcome_join_allowed_next": false
+    }
+  }
+}

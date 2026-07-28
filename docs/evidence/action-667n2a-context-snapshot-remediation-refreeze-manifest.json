@@ -1,0 +1,110 @@
+{
+  "manifest_version": "action_667n2a_context_snapshot_remediation_refreeze_manifest_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "freeze_digest_scope": "successor_normative_artifacts_only",
+  "freeze_digest": "8397e8b590a16e7a64babc21df67816718a7605fb27504aada8168f6b590c133",
+  "artifact_count": 7,
+  "base_sha": "ae13c8fbb0e3791edf1a4be1ba7f15aa9ddf7b51",
+  "branch": "codex/action-667n-diagnostic-context-feature-snapshots",
+  "predecessor": {
+    "freeze_digest": "c56c1cfabb66b3768a450804d7ab551fd4ee1d253908076098ab5d82acf38cd4",
+    "freeze_manifest_sha256": "261f48472b20781c3f941b8bf08298909ba6fcad8d3386283207179e1de7efc5",
+    "historical_review_file_sha256": "79cebd8c6ce7c2d76de0f3bfef9004886fe9a4964a62c4ce425099d3daefda0f",
+    "historical_review_evidence_digest": "7ac402599e5615d84738da08383409bc8189cddc11de0d04d0eeb15bc019f0b5",
+    "byte_identical": true
+  },
+  "successor": {
+    "contract_version": "market_context_diagnostic_decision_time_context_feature_snapshot_v2",
+    "result_version": "market_context_diagnostic_decision_time_context_feature_result_v2",
+    "registry_version": "market_context_diagnostic_trusted_source_registry_v1",
+    "finalization_policy_version": "market_context_diagnostic_context_finalized_bucket_policy_v2",
+    "canonical_result_digest": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+    "implementation_evidence_digest": "4ff969d4e0616d06e913bf681ac4251d052698c6ed4ab8a158c63ac7b1a67b19"
+  },
+  "self_excluded_paths": [
+    "docs/evidence/action-667n2a-context-snapshot-remediation-refreeze-manifest.json",
+    "docs/evidence/action-667n2a-context-snapshot-remediation-independent-rereview.json"
+  ],
+  "frozen_artifacts": [
+    {
+      "path": "docs/action-667n2a-context-snapshot-trust-finalization-remediation.md",
+      "artifact_type": "documentation",
+      "version": "action_667n2a_context_snapshot_trust_finalization_remediation_v1",
+      "sha256": "f9c12713160ad9aa6feb1f698594e926141a13b606b9eb052be4849ed45bec08",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667n2a-context-snapshot-trust-finalization-remediation.json",
+      "artifact_type": "machine_readable_evidence",
+      "version": "action_667n2a_context_snapshot_trust_finalization_remediation_evidence_v1",
+      "sha256": "41892bba7468b7a82d10927bcc35316b1d7a8cc15f70cd4914e6edb0fcf4096f",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/diagnostic-context-feature-snapshot-fixtures-v2.ts",
+      "artifact_type": "fixture_adapter",
+      "version": "market_context_diagnostic_context_fixture_adapter_v2",
+      "sha256": "b1510824926f6b3ae77fa063ac53019b5c286235be622e268268a0b2a9cfe5f6",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/diagnostic-context-feature-snapshot-v2.ts",
+      "artifact_type": "normative_contract",
+      "version": "market_context_diagnostic_decision_time_context_feature_snapshot_v2",
+      "sha256": "4af7a99a3d759421de681cdaa80719735cd9994fb170f16f26e85939a0747d40",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/diagnostic-context-trusted-source-registry-v1.ts",
+      "artifact_type": "trusted_source_registry_contract",
+      "version": "market_context_diagnostic_trusted_source_registry_v1",
+      "sha256": "aa610ab26a75803ec56d4d8be631d2468335cc81c1a869823d12c9ca49930499",
+      "git_status": "untracked"
+    },
+    {
+      "path": "scripts/market_context_diagnostic_context_snapshots_v2.ts",
+      "artifact_type": "read_only_runner",
+      "version": "market_context_diagnostic_context_snapshot_runner_v2",
+      "sha256": "92d280dce0db3e09d503ff67b207dc9119fa2d06ed9b4609b129ec308f1eddd7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-667n2a-context-snapshot-remediation.spec.ts",
+      "artifact_type": "fixture_test",
+      "version": "action_667n2a_context_snapshot_remediation_tests_v1",
+      "sha256": "0db682deaf4f7e1e0d2d27062cf2f96aa16f472e62e7fa7af9b9566480c22ea1",
+      "git_status": "untracked"
+    }
+  ],
+  "digest_checkpoints": {
+    "before_regression": "8397e8b590a16e7a64babc21df67816718a7605fb27504aada8168f6b590c133",
+    "after_regression": "8397e8b590a16e7a64babc21df67816718a7605fb27504aada8168f6b590c133",
+    "after_rereview": "8397e8b590a16e7a64babc21df67816718a7605fb27504aada8168f6b590c133"
+  },
+  "regression": {
+    "relevant_playwright_passed": 266,
+    "relevant_playwright_failed": 0,
+    "action_667n1_focused_passed": 14,
+    "action_667n2a_focused_passed": 18,
+    "typescript_passed": true,
+    "scoped_eslint_passed": true,
+    "json_parity_passed": true,
+    "diff_check_passed": true
+  },
+  "external_roots": {
+    "normalized_artifact_count": 303,
+    "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+    "replay_artifact_count": 84,
+    "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+    "directories_mode": "0700",
+    "files_mode": "0600",
+    "verified_read_only": true
+  },
+  "authority_boundary": {
+    "outcome_join_authorized": false,
+    "normalization_authorized": false,
+    "replay_authorized": false,
+    "canonical_binding_ready": false,
+    "live_ranking_effect": false
+  }
+}

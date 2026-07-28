@@ -1,0 +1,200 @@
+{
+  "artifact_version": "action_667n2a_context_snapshot_remediation_independent_rereview_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "review_evidence_digest": "1bd06ed9ef4b9fb8969f04956d96c736472570dc6aadf7c92ea90fe1eea094a1",
+  "review_material": {
+    "action": "667N.2A",
+    "reviewed_contract": "market_context_diagnostic_decision_time_context_feature_snapshot_v2",
+    "reviewed_freeze_digest": "8397e8b590a16e7a64babc21df67816718a7605fb27504aada8168f6b590c133",
+    "refreeze_manifest_sha256": "7d60a1f8a7a9c6b5e31e61f6b5c02bd7381e04a95a0f63bd993620c4760ef643",
+    "implementation_evidence_digest": "4ff969d4e0616d06e913bf681ac4251d052698c6ed4ab8a158c63ac7b1a67b19",
+    "canonical_result_digest": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+    "predecessor": {
+      "freeze_digest": "c56c1cfabb66b3768a450804d7ab551fd4ee1d253908076098ab5d82acf38cd4",
+      "freeze_manifest_sha256": "261f48472b20781c3f941b8bf08298909ba6fcad8d3386283207179e1de7efc5",
+      "historical_review_file_sha256": "79cebd8c6ce7c2d76de0f3bfef9004886fe9a4964a62c4ce425099d3daefda0f",
+      "historical_review_evidence_digest": "7ac402599e5615d84738da08383409bc8189cddc11de0d04d0eeb15bc019f0b5",
+      "byte_identical": true
+    },
+    "clean_room": {
+      "base_sha": "ae13c8fbb0e3791edf1a4be1ba7f15aa9ddf7b51",
+      "successor_normative_artifact_count": 7,
+      "successor_artifact_hashes_matched": true,
+      "relevant_playwright_tests": {
+        "passed": 266,
+        "failed": 0
+      },
+      "action_667n1_focused_tests": {
+        "passed": 14,
+        "failed": 0
+      },
+      "action_667n2a_focused_tests": {
+        "passed": 18,
+        "failed": 0
+      },
+      "independent_temporary_threat_probes": {
+        "passed": 4,
+        "failed": 0,
+        "retained": false
+      },
+      "typescript_passed": true,
+      "scoped_eslint_passed": true,
+      "json_parity_passed": true,
+      "diff_check_passed": true,
+      "frozen_artifacts_mutated_during_review": false
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "bad_directory_mode_count": 0,
+        "bad_file_mode_count": 0,
+        "verified_read_only": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "bad_directory_mode_count": 0,
+        "bad_file_mode_count": 0,
+        "verified_read_only": true
+      }
+    },
+    "review_dimensions": [
+      {
+        "dimension": "nested_forbidden_claims_objects_arrays_and_depth",
+        "verdict": "approved",
+        "evidence": "Recursive claim scan runs before closed-schema validation and rejects every declared authority-claim key without stripping it."
+      },
+      {
+        "dimension": "closed_nested_request_schemas",
+        "verdict": "approved",
+        "evidence": "Root, identity, decision source, normalized, replay, calendar and policy objects reject missing and unknown fields."
+      },
+      {
+        "dimension": "public_request_authority_separation",
+        "verdict": "approved",
+        "evidence": "The request has source references but no expected registry anchor and no trusted source-decision payload."
+      },
+      {
+        "dimension": "dependency_injected_registry_anchor",
+        "verdict": "approved",
+        "evidence": "Loaded registry schema, self-digest and identity/version/digest anchor are independently verified before decision lookup."
+      },
+      {
+        "dimension": "default_off_before_registry_reads",
+        "verdict": "approved",
+        "evidence": "A clean-room counter probe observed zero registry and decision reads while disabled."
+      },
+      {
+        "dimension": "caller_self_authorized_source_substitution",
+        "verdict": "approved",
+        "evidence": "Self-consistent normalized, replay and calendar substitutions fail with trusted_source_bundle_mismatch."
+      },
+      {
+        "dimension": "authority_exception_sanitation",
+        "verdict": "approved",
+        "evidence": "Thrown lookups and uncloneable getter/proxy responses produce fixed sanitized reason codes without exception text."
+      },
+      {
+        "dimension": "registry_and_decision_content_binding",
+        "verdict": "approved",
+        "evidence": "Decision identity and content digest must match both registry inventory and independently resolved source bytes."
+      },
+      {
+        "dimension": "lossless_decision_nanoseconds",
+        "verdict": "approved",
+        "evidence": "Decision and source instants retain exact integer nanoseconds and explicit-instant equality."
+      },
+      {
+        "dimension": "finalized_bucket_boundary_minus_exact_plus_one",
+        "verdict": "approved",
+        "evidence": "Boundary minus one and exact are accepted; plus one nanosecond is not_point_in_time_safe."
+      },
+      {
+        "dimension": "watermark_registry_binding",
+        "verdict": "approved",
+        "evidence": "Schedule watermark must equal the externally registered explicit watermark value before the cutoff is derived."
+      },
+      {
+        "dimension": "provider_bucket_and_finalization_timestamp_separation",
+        "verdict": "approved",
+        "evidence": "Provider source/receive timestamps use decision cutoff; bucket end uses finalized cutoff; derived finalization uses decision cutoff."
+      },
+      {
+        "dimension": "session_calendar_and_later_session_boundary",
+        "verdict": "approved",
+        "evidence": "Trusted schedule identity/session must match the request and the calendar root is registry-bound."
+      },
+      {
+        "dimension": "pending_gap_and_full_day_semantics",
+        "verdict": "approved",
+        "evidence": "Pending buckets remain distinct from missing, forward fill remains false and current-session full-day aggregation remains prohibited."
+      },
+      {
+        "dimension": "closed_taxonomy_and_snapshot_tampering",
+        "verdict": "approved",
+        "evidence": "The four-state taxonomy is retained and recomputed self-consistent output tampering fails trusted verification."
+      },
+      {
+        "dimension": "sixty_snapshot_parity_and_determinism",
+        "verdict": "approved",
+        "evidence": "All 60 decisions reconcile with 31 mapped, 7 insufficient and 22 conflicting under one byte-identical cross-TZ digest."
+      },
+      {
+        "dimension": "version_and_compatibility_semantics",
+        "verdict": "approved",
+        "evidence": "Contract/result/registry/finalization versions are explicit and predecessor snapshots are explicitly not implicitly remediated."
+      },
+      {
+        "dimension": "diagnostic_claim_boundary",
+        "verdict": "approved",
+        "evidence": "Diagnostic-only, non-official, non-causal, non-performance, non-live and automatic-model-input prohibitions remain bound."
+      },
+      {
+        "dimension": "action_665_666_provider_db_and_live_isolation",
+        "verdict": "approved",
+        "evidence": "No Action 665/666, provider, database, persistence, scanner, recommendation, publication or outcome-join import exists."
+      }
+    ],
+    "historical_findings": {
+      "N2-001": "remediated_and_reverified",
+      "N2-002": "remediated_and_reverified",
+      "N2-003": "remediated_and_reverified"
+    },
+    "findings": {
+      "blocker": [],
+      "major": [],
+      "minor": [],
+      "nit": []
+    },
+    "finding_counts": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    },
+    "mandatory_boundary": {
+      "diagnostic_only": true,
+      "official_ohlcv": false,
+      "canonical_performance_eligible": false,
+      "causal_claimed": false,
+      "outcome_explanation_claimed": false,
+      "live_ranking_effect": false,
+      "automatic_model_input_allowed": false
+    },
+    "decisions": {
+      "action_667n2a_nested_claim_boundary_remediated": true,
+      "action_667n2a_external_source_authority_remediated": true,
+      "action_667n2a_finalized_bucket_boundary_remediated": true,
+      "action_667n2a_refreeze_complete": true,
+      "action_667n2a_independent_rereview_approved": true,
+      "action_667n2a_local_checkpoint_ready": true,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    },
+    "next_action_boundary": {
+      "outcome_join_started": false,
+      "outcome_join_requires_separate_action": true
+    }
+  }
+}
