@@ -60,11 +60,19 @@ function sourceFiles(root: string): string[] {
   });
 }
 
-test("freeze manifest hashes and untracked statuses match all nine Action 667A-B artifacts", () => {
+function expectPortableCurrentStatus(
+  path: string,
+  porcelain: string,
+) {
+  expect(["", `?? ${path}`, `A  ${path}`]).toContain(porcelain);
+}
+
+test("freeze manifest preserves historical status while current bytes and portable status remain valid", () => {
   expect(manifest.artifact_count).toBe(9);
   expect(manifest.artifacts).toHaveLength(9);
 
   for (const artifact of manifest.artifacts) {
+    expect(artifact.git_status).toBe("untracked");
     const absolutePath = resolve(repositoryRoot, artifact.path);
     expect(sha256(readFileSync(absolutePath))).toBe(artifact.sha256);
 
@@ -73,9 +81,7 @@ test("freeze manifest hashes and untracked statuses match all nine Action 667A-B
       ["status", "--porcelain", "--untracked-files=all", "--", artifact.path],
       { cwd: repositoryRoot, encoding: "utf8" },
     ).trim();
-    expect(porcelain).toBe(
-      artifact.git_status === "untracked" ? `?? ${artifact.path}` : "",
-    );
+    expectPortableCurrentStatus(artifact.path, porcelain);
   }
 });
 
