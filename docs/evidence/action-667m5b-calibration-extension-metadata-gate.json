@@ -1,0 +1,447 @@
+{
+  "action": "667M.5B",
+  "evidence_version": "market_context_action_667m5b_calibration_extension_metadata_gate_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "7e6a22ba285bb48c02f4de300137b8651ea791d56fd11ac7d3965a396f6faf6b",
+  "scope_digest_algorithm": "sha256(canonical_json(decision_material.scope))",
+  "scope_digest": "a06af7191b00fc024f0b11757894764995f1e76d8aa82a31bc9cf9b2a06b1c20",
+  "quote_digest_algorithm": "sha256(canonical_json(decision_material.provider_metadata_snapshot))",
+  "quote_digest": "7afc4ee2400f2448996ba623fc4805cf210ff9a03c17dfacb77fca49e4ca4eab",
+  "decision_material": {
+    "versions": {
+      "metadata_gate": "market_context_action_667m5b_databento_metadata_gate_v1",
+      "calendar": "market_context_xnys_calibration_calendar_2026_v1",
+      "databento_sdk": "0.82.0",
+      "databento_decoder": "0.63.0",
+      "python": "3.10.7",
+      "source_adjustment_state": "raw_unadjusted"
+    },
+    "predecessor_evidence": {
+      "m3d_license_evidence_path": "docs/evidence/action-667m3d-provider-verbatim-license-evidence.json",
+      "m3d_license_evidence_file_sha256": "544aff46b9ed2e804972894f320e100c0567da09b0a07554f3b93106bf4120d1",
+      "m3d_license_evidence_digest": "09bc39116d3f6f87d030ff74686eeb67cbd7833597e2b62b34b5923c5e893694",
+      "m5a_raw_admission_path": "docs/evidence/action-667m5a-raw-dataset-admission.json",
+      "m5a_raw_admission_file_sha256": "2e135a421bce8843e7e9b339b450d269f9229d657c32cfa0d61c1558f53d17a1",
+      "m5a_raw_admission_evidence_digest": "954d68fd88133eb939b62aad2a359b0f6e57df503ba6cb4295af41379b2e2d37"
+    },
+    "scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id": 95,
+      "symbols": [
+        "QQQ",
+        "SPY",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "start": "2026-06-26T00:00:00Z",
+      "end_exclusive": "2026-07-20T00:00:00Z",
+      "expected_session_count": 15,
+      "adjustment_state": "raw_unadjusted",
+      "corporate_actions_included": false,
+      "intended_use": "private_internal_non_display_receive_lag_calibration_only"
+    },
+    "official_calendar": {
+      "path": "docs/evidence/market-context-xnys-calibration-calendar-2026-v1.json",
+      "file_sha256": "64df5a436c0d58eda9e69b8b4a0d80a4ef0af515427ef3f6f3be97f02fd98ad2",
+      "canonical_json_sha256": "b6f673bbee883282e54933d38e475dd9fef28d7daa5827c2c3fd1e90a4001808",
+      "session_count": 15,
+      "all_regular_full_sessions": true,
+      "independence_day_observed": {
+        "date": "2026-07-03",
+        "market_closed": true,
+        "included_as_session": false
+      },
+      "sources": [
+        {
+          "authority": "NYSE",
+          "url": "https://www.nyse.com/publicdocs/nyse/ICE_NYSE_2026_Yearly_Trading_Calendar.pdf",
+          "content_sha256": "70f5577eb43e60a9dbbecaae3cec23d0f02028c05c7f175013bb3e97816d394f"
+        },
+        {
+          "authority": "NYSE",
+          "url": "https://www.nyse.com/trade/hours-calendars",
+          "content_sha256": "c466a9cb0377a8028046cd581e782f2695d01e2d06570a8f68d048681c0f2ebe"
+        }
+      ],
+      "retrieved_on": "2026-07-27",
+      "session_inventory": [
+        "2026-06-26",
+        "2026-06-29",
+        "2026-06-30",
+        "2026-07-01",
+        "2026-07-02",
+        "2026-07-06",
+        "2026-07-07",
+        "2026-07-08",
+        "2026-07-09",
+        "2026-07-10",
+        "2026-07-13",
+        "2026-07-14",
+        "2026-07-15",
+        "2026-07-16",
+        "2026-07-17"
+      ]
+    },
+    "provider_metadata_snapshot": {
+      "started_at": "2026-07-27T18:40:52.059769Z",
+      "completed_at": "2026-07-27T18:43:08.977939Z",
+      "sanitized_runtime_result_digest": "cd224648aefb3ab8e42981ba84126750a03b2cf8fca03fd8cb1da3771b6f09e4",
+      "dataset_discovery": {
+        "method": "range_less_metadata.list_datasets",
+        "dataset_count": 29,
+        "sorted_catalog_sha256": "8163a0ea289713a94756ea7ff7e191b340e6bf6d5f185e81eebf12032c52bbe8",
+        "exact_ascii_membership": true,
+        "duplicate_dataset_ids": false,
+        "full_catalog_persisted": false
+      },
+      "entitlement_range": {
+        "start": "2023-03-28T00:00:00.000000000Z",
+        "end_exclusive": "2026-07-27T04:00:00.000000000Z",
+        "candidate_scope_covered": true
+      },
+      "schema": {
+        "exact_trades_membership": true,
+        "schema_count": 10,
+        "sorted_schema_catalog_sha256": "c54abecb73c44eb3e6c93cccd369c48c58fc6a525ee2bc2bcef53ad52410efe7",
+        "full_catalog_persisted": false
+      },
+      "publisher": {
+        "publisher_id": 95,
+        "dataset": "EQUS.MINI",
+        "venue": "EQUS",
+        "description": "Databento US Equities Mini",
+        "exact_dataset_publisher_match": true
+      },
+      "symbology": {
+        "resolved_symbol_count": 13,
+        "partial_symbol_count": 0,
+        "not_found_symbol_count": 0,
+        "exact_13_of_13": true,
+        "one_mapping_interval_per_symbol": true,
+        "provider_instrument_ids_persisted": false
+      },
+      "conditions": {
+        "requested_session_count": 15,
+        "available_session_count": 15,
+        "degraded_session_count": 0,
+        "partial_session_count": 0,
+        "missing_or_unknown_session_count": 0,
+        "all_sessions_available": true,
+        "non_session_provider_condition_note": "The provider reports 2026-07-03 as dataset condition available; the authoritative NYSE calendar excludes it as a trading session, so it is not counted toward the fifteen-session inventory.",
+        "session_conditions": [
+          {
+            "date": "2026-06-26",
+            "condition": "available"
+          },
+          {
+            "date": "2026-06-29",
+            "condition": "available"
+          },
+          {
+            "date": "2026-06-30",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-01",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-02",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-06",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-07",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-08",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-09",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-10",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-13",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-14",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-15",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-16",
+            "condition": "available"
+          },
+          {
+            "date": "2026-07-17",
+            "condition": "available"
+          }
+        ]
+      },
+      "aggregate_quote": {
+        "estimated_records": 1903887,
+        "billable_dbn_bytes": 91386576,
+        "billable_dbn_mib": 87.15303039550781,
+        "estimated_cost_usd": 0.510662287474,
+        "declared_compressed_transfer_bytes": null,
+        "compressed_transfer_status": "not_exposed_by_metadata_endpoints",
+        "quote_expiration": "not_exposed_refresh_required_before_submission"
+      },
+      "per_session_quote": [
+        {
+          "date": "2026-06-26",
+          "estimated_records": 151216,
+          "billable_dbn_bytes": 7258368,
+          "estimated_cost_usd": 0.04055929184
+        },
+        {
+          "date": "2026-06-29",
+          "estimated_records": 126882,
+          "billable_dbn_bytes": 6090336,
+          "estimated_cost_usd": 0.034032404423
+        },
+        {
+          "date": "2026-06-30",
+          "estimated_records": 116284,
+          "billable_dbn_bytes": 5581632,
+          "estimated_cost_usd": 0.031189799309
+        },
+        {
+          "date": "2026-07-01",
+          "estimated_records": 122290,
+          "billable_dbn_bytes": 5869920,
+          "estimated_cost_usd": 0.032800734043
+        },
+        {
+          "date": "2026-07-02",
+          "estimated_records": 150760,
+          "billable_dbn_bytes": 7236480,
+          "estimated_cost_usd": 0.040436983109
+        },
+        {
+          "date": "2026-07-06",
+          "estimated_records": 126813,
+          "billable_dbn_bytes": 6087024,
+          "estimated_cost_usd": 0.034013897181
+        },
+        {
+          "date": "2026-07-07",
+          "estimated_records": 129608,
+          "billable_dbn_bytes": 6221184,
+          "estimated_cost_usd": 0.0347635746
+        },
+        {
+          "date": "2026-07-08",
+          "estimated_records": 125351,
+          "billable_dbn_bytes": 6016848,
+          "estimated_cost_usd": 0.033621758223
+        },
+        {
+          "date": "2026-07-09",
+          "estimated_records": 111580,
+          "billable_dbn_bytes": 5355840,
+          "estimated_cost_usd": 0.029928088188
+        },
+        {
+          "date": "2026-07-10",
+          "estimated_records": 98971,
+          "billable_dbn_bytes": 4750608,
+          "estimated_cost_usd": 0.026546090841
+        },
+        {
+          "date": "2026-07-13",
+          "estimated_records": 126428,
+          "billable_dbn_bytes": 6068544,
+          "estimated_cost_usd": 0.033910632133
+        },
+        {
+          "date": "2026-07-14",
+          "estimated_records": 117005,
+          "billable_dbn_bytes": 5616240,
+          "estimated_cost_usd": 0.031383186579
+        },
+        {
+          "date": "2026-07-15",
+          "estimated_records": 134822,
+          "billable_dbn_bytes": 6471456,
+          "estimated_cost_usd": 0.036162078381
+        },
+        {
+          "date": "2026-07-16",
+          "estimated_records": 125705,
+          "billable_dbn_bytes": 6033840,
+          "estimated_cost_usd": 0.033716708422
+        },
+        {
+          "date": "2026-07-17",
+          "estimated_records": 140172,
+          "billable_dbn_bytes": 6728256,
+          "estimated_cost_usd": 0.037597060204
+        }
+      ],
+      "daily_to_aggregate_reconciliation": {
+        "record_sum": 1903887,
+        "record_sum_matches": true,
+        "billable_byte_sum": 91386576,
+        "billable_byte_sum_matches": true,
+        "cost_sum_usd": 0.5106622874760001,
+        "aggregate_cost_usd": 0.510662287474,
+        "absolute_cost_rounding_difference_usd": 2.0000667788622195e-12,
+        "cost_reconciled_with_provider_rounding": true
+      }
+    },
+    "pilot_comparison": {
+      "pilot_scope": {
+        "session_count": 5,
+        "actual_records": 516162,
+        "actual_billable_bytes": 24775776,
+        "actual_cost_usd": 0.1384454369545,
+        "publisher_id": 95,
+        "symbol_count": 13,
+        "all_sessions_available": true
+      },
+      "candidate_scope": {
+        "session_count": 15,
+        "estimated_records": 1903887,
+        "estimated_billable_bytes": 91386576,
+        "estimated_cost_usd": 0.510662287474,
+        "publisher_id": 95,
+        "symbol_count": 13,
+        "all_sessions_available": true
+      },
+      "per_session_means": {
+        "pilot_records": 103232.4,
+        "candidate_records": 126925.8,
+        "pilot_billable_bytes": 4955155.2,
+        "candidate_billable_bytes": 6092438.4,
+        "pilot_cost_usd": 0.0276890873909,
+        "candidate_cost_usd": 0.0340441524984,
+        "candidate_to_pilot_ratio": 1.22951515222
+      },
+      "candidate_extremes": {
+        "highest_record_session": {
+          "date": "2026-06-26",
+          "estimated_records": 151216,
+          "billable_dbn_bytes": 7258368,
+          "estimated_cost_usd": 0.04055929184
+        },
+        "second_high_record_session": {
+          "date": "2026-07-02",
+          "estimated_records": 150760,
+          "billable_dbn_bytes": 7236480,
+          "estimated_cost_usd": 0.040436983109
+        },
+        "lowest_record_session": {
+          "date": "2026-07-10",
+          "estimated_records": 98971,
+          "billable_dbn_bytes": 4750608,
+          "estimated_cost_usd": 0.026546090841
+        },
+        "classification": "no_cap_breach_extremes_are_relative_within_candidate_only"
+      },
+      "parity": {
+        "symbols_identical": true,
+        "publisher_identical": true,
+        "dataset_schema_encoding_identical": true,
+        "adjustment_state_identical": true
+      }
+    },
+    "future_submission_caps": {
+      "all_in_cost_usd": 0.75,
+      "billable_dbn_bytes": 134217728,
+      "declared_compressed_transfer_bytes": 67108864,
+      "local_total_requirement_bytes": 2147483648,
+      "estimated_cost_within_cap": true,
+      "billable_bytes_within_cap": true,
+      "compressed_transfer_within_cap": "not_testable_before_batch_manifest",
+      "local_total_within_cap": "not_testable_before_batch_manifest",
+      "caps_are_stop_limits_not_provider_estimates": true
+    },
+    "license_and_usage": {
+      "license_sufficient": true,
+      "raw_retention_allowed": true,
+      "encrypted_backup_allowed": true,
+      "retention_after_account_closure_allowed": true,
+      "organization_wide_internal_use_allowed": true,
+      "derived_evidence_retention_allowed": true,
+      "offline_replay_allowed": true,
+      "redistribution_allowed": false,
+      "corporate_actions_included": false,
+      "source": "M.3D frozen provider-verbatim evidence",
+      "new_legal_inference_made": false
+    },
+    "future_m5c_preconditions": {
+      "separate_operator_authorization_required": true,
+      "fresh_quote_and_entitlement_max_age_seconds": 900,
+      "range_less_exact_ascii_membership_required": true,
+      "exact_scope_required": true,
+      "all_fifteen_sessions_available_required": true,
+      "no_degraded_partial_missing_or_unknown_sessions": true,
+      "cost_and_billable_caps_rechecked_at_submission": true,
+      "post_submission_transfer_and_local_caps_required_before_download": true,
+      "no_automatic_retry_or_resubmission": true,
+      "support_files_only_until_post_submission_admission": true,
+      "market_data_download_requires_separate_authorization": true
+    },
+    "inactive_m5c_authorization_phrase": "SPÅR 3 — Action 667M.5C: Jag godkänner exakt en Databento batch submission, men ingen market-data-download, för `EQUS.MINI` / `trades` / `dbn` + `zstd`, publisher `95`, exakt symbolerna `SPY,QQQ,XLB,XLC,XLE,XLF,XLI,XLK,XLP,XLRE,XLU,XLV,XLY` och intervallet `[2026-06-26T00:00:00Z, 2026-07-20T00:00:00Z)`. Kör först en ny fail-closed pre-submission-admission med range-less exact ASCII membership, högst 900 sekunder gammal quote och entitlement, exakt 13/13 symbology, exakt de 15 frysta XNYS-sessionerna och `available` för samtliga. Stoppa utan submission eller retry om priset överstiger USD `0.75` eller billable DBN överstiger `128 MiB`, om scope eller licens driftar, eller om någon session är degraded, partial, missing eller unknown. Om alla gates passerar får exakt ett batchjobb skapas. Ingen market-datafil får laddas ned. Efter terminal status får endast jobmetadata, list_files och supportfilerna `condition.json`, `manifest.json` och `metadata.json` hämtas för en separat post-submission/pre-download-admission. Stoppa före market-data-download om deklarerad komprimerad transfer överstiger `64 MiB` eller lokalt totalbehov överstiger `2 GiB`. Ingen normalization, replay, databas, canonical binding, commit, push, PR, deploy eller liveintegration är godkänd.",
+    "execution": {
+      "authenticated_metadata_calls": 54,
+      "metadata_list_datasets_calls": 1,
+      "metadata_list_schemas_calls": 1,
+      "metadata_list_publishers_calls": 1,
+      "metadata_get_dataset_range_calls": 1,
+      "metadata_get_dataset_condition_calls": 1,
+      "symbology_calls": 1,
+      "metadata_record_count_calls": 16,
+      "metadata_billable_size_calls": 16,
+      "metadata_cost_calls": 16,
+      "batch_submissions": 0,
+      "timeseries_record_requests": 0,
+      "downloads": 0,
+      "purchases": 0,
+      "automatic_retries_requested": 0,
+      "credential_value_logged_or_persisted": false,
+      "account_billing_request_or_job_identifiers_persisted": false,
+      "raw_records_received": 0
+    },
+    "statuses": {
+      "action_667m5b_metadata_gate_completed": true,
+      "action_667m5b_entitlement_verified": true,
+      "action_667m5b_exactly_fifteen_sessions_verified": true,
+      "action_667m5b_all_sessions_available": true,
+      "action_667m5b_exact_quote_available": true,
+      "action_667m5c_calibration_batch_submission_ready": true,
+      "batch_submission_authorized": false,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false
+    }
+  }
+}

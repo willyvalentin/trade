@@ -1,0 +1,179 @@
+{
+  "action": "667M.5C.1",
+  "evidence_version": "market_context_action_667m5c1_nanosecond_parser_remediation_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "db2142ea0e78c7580fb7319063d32402ff9e5a9ae37b0dd6f7982342ddcd6a32",
+  "decision_material": {
+    "contract": {
+      "parser_version": "databento_explicit_nanosecond_instant_parser_v1",
+      "canonical_representation": "signed_unix_nanosecond_decimal_string",
+      "minimum_year": 1970,
+      "maximum_year": 9999,
+      "fractional_digits_minimum": 0,
+      "fractional_digits_maximum": 9,
+      "explicit_utc_z_allowed": true,
+      "explicit_offset_allowed": true,
+      "maximum_absolute_offset_minutes": 840,
+      "lowercase_z_allowed": false,
+      "leap_second_supported": false,
+      "floating_point_conversion_allowed": false,
+      "host_timezone_used": false,
+      "interval_semantics": "inclusive_start_exclusive_end",
+      "freshness_maximum_nanoseconds": "900000000000"
+    },
+    "artifacts": [
+      {
+        "path": "lib/market-context-intelligence-lab/databento-explicit-nanosecond-instant-v1.ts",
+        "artifact_type": "typescript_normative_contract",
+        "sha256": "c7d4c8daf5c919b8dc8d1124d5486599831c258e1d423efacad9c8d79d9e5ce8"
+      },
+      {
+        "path": "scripts/databento_explicit_nanosecond_instant_v1.py",
+        "artifact_type": "python_normative_contract",
+        "sha256": "85aca9a5bbdacd7617312f6963133801649300e8a6a11df18396150d11cd6bd7"
+      },
+      {
+        "path": "tests/e2e/action-667m5c1-databento-nanosecond-instant-parser.spec.ts",
+        "artifact_type": "typescript_contract_test",
+        "sha256": "d5ed4c325960377e55dc969188b6fb740ea6be40c3485e0f0ba1df94e544de61"
+      },
+      {
+        "path": "tests/python/test_action_667m5c1_databento_nanosecond_instant.py",
+        "artifact_type": "python_contract_test",
+        "sha256": "dcdc96270386cd68a7b201f35d6c68a1125bcc548c63a05214808d82d8b4ecd2"
+      },
+      {
+        "path": "/private/tmp/action667m5c_submit_once.py",
+        "artifact_type": "inactive_future_submission_harness_integration",
+        "sha256": "10abd2650b9d50b0b6e2377c2c143c4f566a6104b8ecae7d05297a81ab3cf21f",
+        "executed_in_this_action": false
+      }
+    ],
+    "predecessor_integrity": {
+      "action_667m5c_fail_closed_evidence_path": "docs/evidence/action-667m5c-calibration-batch-submission.json",
+      "action_667m5c_fail_closed_evidence_file_sha256_before": "8cb7f4e0a91f085f63a005e3d5abd4d551015546253bed92201e447d6346b2fd",
+      "action_667m5c_fail_closed_evidence_file_sha256_after": "8cb7f4e0a91f085f63a005e3d5abd4d551015546253bed92201e447d6346b2fd",
+      "action_667m5c_fail_closed_evidence_digest": "22b3735acd6073f772e2e88bb056d3ba6a8473a52d59be3b7d3cd85f21335992",
+      "action_667a_through_667e_regression_passed": true,
+      "action_667k_through_667m5c_regression_passed": true,
+      "predecessor_freeze_bytes_unchanged": true
+    },
+    "coverage": {
+      "accepted_fractional_digit_counts": [
+        0,
+        1,
+        3,
+        6,
+        8,
+        9
+      ],
+      "databento_observed_entitlement_format_supported": true,
+      "one_nanosecond_ordering_verified": true,
+      "second_minute_hour_day_rollovers_verified": true,
+      "leap_year_verified": true,
+      "offset_equivalence_verified": true,
+      "freshness_900_seconds_exact_verified": true,
+      "freshness_900_seconds_minus_one_nanosecond_verified": true,
+      "freshness_900_seconds_plus_one_nanosecond_verified": true,
+      "future_observation_rejected_as_fresh": true,
+      "entitlement_range_comparison_verified": true,
+      "quote_provider_timestamp_comparison_verified": true,
+      "interval_membership_verified": true
+    },
+    "rejections": {
+      "naive_timestamp": true,
+      "lowercase_z": true,
+      "invalid_calendar_date": true,
+      "invalid_offset_minute": true,
+      "offset_above_fourteen_hours": true,
+      "more_than_nine_fractional_digits": true,
+      "leap_second": true,
+      "leading_or_trailing_whitespace": true,
+      "trailing_data": true,
+      "nan_or_infinity_like_value": true,
+      "year_outside_policy": true,
+      "non_string_runtime_value": true,
+      "structured_fail_closed_without_contract_escape": true
+    },
+    "m5c_integration": {
+      "sole_instant_parser_path": "parse_databento_explicit_nanosecond_instant_v1",
+      "entitlement_start_and_end_use_parser": true,
+      "provider_job_scope_instants_use_parser": true,
+      "quote_and_submission_freshness_use_parser": true,
+      "freshness_comparison_uses_integer_nanoseconds": true,
+      "no_fromisoformat": true,
+      "no_timestamp_total_seconds": true,
+      "no_float_timestamp_conversion": true,
+      "harness_executed": false,
+      "submission_resume_requires_separate_operator_authorization": true
+    },
+    "verification": {
+      "typescript_contract_tests_passed": 11,
+      "python_contract_tests_passed": 4,
+      "action_667k_through_667m5c1_tests_passed": 187,
+      "action_667a_through_667e_tests_passed": 49,
+      "typescript_passed": true,
+      "scoped_eslint_passed": true,
+      "python_compile_passed": true,
+      "json_parity_passed": true,
+      "git_diff_check_passed": true,
+      "dependency_files_unchanged": true,
+      "deno_lock_unchanged": true,
+      "cross_timezone_zones": [
+        "UTC",
+        "Europe/Stockholm",
+        "America/New_York"
+      ],
+      "cross_timezone_digest": "a97887a9aecf69683928ce713d1d68c9e956f32549b2104aa0bfdce98d67fac1",
+      "cross_timezone_byte_identical": true
+    },
+    "independent_review": {
+      "review_scope": [
+        "strict_format_and_range_boundaries",
+        "integer_only_nanosecond_normalization",
+        "typescript_python_semantic_parity",
+        "timezone_independence",
+        "m5c_single_parser_integration",
+        "freshness_and_interval_boundaries",
+        "predecessor_freeze_integrity",
+        "no_external_or_live_effect"
+      ],
+      "blockers": 0,
+      "majors": 0,
+      "minors": 0,
+      "nits": 0,
+      "approved": true
+    },
+    "external_effects": {
+      "credential_reads": 0,
+      "provider_calls": 0,
+      "metadata_calls": 0,
+      "quote_calls": 0,
+      "job_catalog_calls": 0,
+      "batch_submission_calls": 0,
+      "downloads": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_calls": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_requests": 0,
+      "deploys": 0
+    },
+    "statuses": {
+      "action_667m5c1_nanosecond_parser_implemented": true,
+      "action_667m5c1_entitlement_timestamp_supported": true,
+      "action_667m5c1_freshness_boundaries_verified": true,
+      "action_667m5c1_cross_timezone_determinism_passed": true,
+      "action_667m5c1_independent_review_approved": true,
+      "action_667m5c2_submission_resume_ready": true,
+      "batch_submission_authorized": false,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

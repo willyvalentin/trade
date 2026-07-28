@@ -1,0 +1,444 @@
+{
+  "action": "667M.2",
+  "evidence_version": "market_context_historical_dataset_source_decision_v1",
+  "research_timestamp": "2026-07-27T00:13:16+02:00",
+  "dataset_contract_version": "market_context_historical_dataset_v1",
+  "acquisition_specification_version": "market_context_historical_dataset_acquisition_spec_v1",
+  "action_667m2_dataset_source_decision_ready": true,
+  "acquisition_ready": false,
+  "recommended_source_direction": "databento_equs_mini_trades",
+  "recommended_package_id": "recommended_statistically_useful_replay",
+  "current_contract_can_be_fulfilled_without_guessing": false,
+  "current_contract_blocker": "The candle-row normalizer requires independent explicit provider-source and receive semantics. Twelve Data and Norgate do not document both; Databento trades contain both but require a new versioned trade-to-candle preparation boundary before M.1.",
+  "local_account_evidence": {
+    "twelve_data_api_key_present": false,
+    "twelve_data_account_plan_present": false,
+    "repository_plan_mode_is_account_evidence": false,
+    "actual_plan": "operator_evidence_required",
+    "actual_entitlements": "operator_evidence_required",
+    "actual_incremental_cost": "operator_evidence_required",
+    "credentials_printed": false,
+    "authenticated_account_endpoint_called": false
+  },
+  "common_universe": {
+    "benchmarks": [
+      "SPY",
+      "QQQ"
+    ],
+    "sector_benchmarks": [
+      "XLB",
+      "XLC",
+      "XLE",
+      "XLF",
+      "XLI",
+      "XLK",
+      "XLP",
+      "XLRE",
+      "XLU",
+      "XLV",
+      "XLY"
+    ],
+    "industry_benchmarks": [],
+    "breadth": {
+      "method": "fixed_sector_etf_universe",
+      "expected_constituents": 11,
+      "outputs": [
+        "advancing_fraction",
+        "above_short_average_fraction"
+      ],
+      "semantic_limit": "sector_etf_participation_not_sp500_constituent_or_whole_market_breadth"
+    },
+    "session_calendar": "XNYS_regular_session_holiday_and_early_close_aware",
+    "exchange_timezone": "America/New_York",
+    "canonical_timestamp_timezone": "UTC"
+  },
+  "sources": [
+    {
+      "source_id": "twelve_data",
+      "review_order": 1,
+      "classification": [
+        "not_viable",
+        "license_confirmation_required"
+      ],
+      "official_links": [
+        "https://twelvedata.com/pricing",
+        "https://twelvedata.com/terms",
+        "https://twelvedata.com/docs/market-data/time-series",
+        "https://support.twelvedata.com/en/articles/5745849-timezones",
+        "https://support.twelvedata.com/en/articles/5549842-twelve-data-quality-standards",
+        "https://support.twelvedata.com/en/articles/5615854-credits",
+        "https://support.twelvedata.com/en/articles/5203360-batch-api-requests",
+        "https://support.twelvedata.com/en/articles/5335783-trial",
+        "https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage"
+      ],
+      "verified": {
+        "spy_qqq_supported_as_us_etfs": true,
+        "intraday_history_documented_from": "2020",
+        "intraday_intervals": [
+          "1min",
+          "5min"
+        ],
+        "maximum_records_per_call": 5000,
+        "time_series_credit_per_symbol": 1,
+        "batch_preserves_per_symbol_credits": true,
+        "exchange_timezone_documented": true,
+        "adjust_modes": [
+          "all",
+          "splits",
+          "dividends",
+          "none"
+        ],
+        "default_adjust_mode": "splits",
+        "individual_internal_use": true,
+        "individual_redistribution": false,
+        "published_starting_monthly_usd": {
+          "basic": 0,
+          "grow": 29,
+          "pro": 99,
+          "ultra": 329
+        }
+      },
+      "gaps": [
+        "no_documented_independent_provider_source_timestamp_for_historical_bar",
+        "no_documented_historical_receive_timestamp_for_historical_bar",
+        "no_verified_historical_breadth_endpoint",
+        "no_verified_point_in_time_constituent_history",
+        "adjustment_availability_lineage_not_documented",
+        "account_specific_history_entitlement_unknown",
+        "retention_and_replay_terms_require_confirmation"
+      ],
+      "contract_fit_without_guessing": false
+    },
+    {
+      "source_id": "databento",
+      "review_order": 2,
+      "classification": [
+        "recommended",
+        "viable_with_gaps",
+        "license_confirmation_required",
+        "cost_confirmation_required"
+      ],
+      "official_links": [
+        "https://databento.com/equities",
+        "https://databento.com/docs/venues-and-datasets/equs-mini",
+        "https://databento.com/docs/standards-and-conventions/common-fields-enums-types",
+        "https://databento.com/docs/knowledge-base/new-users/fields-by-schema/imbalance-imbalance",
+        "https://databento.com/pricing",
+        "https://databento.com/docs/portal",
+        "https://databento.com/corporate-actions"
+      ],
+      "verified": {
+        "dataset": "EQUS.MINI",
+        "historical_start": "2023-03-28",
+        "spy_qqq_listed": true,
+        "us_exchange_listed_symbol_coverage_claimed": true,
+        "trade_ts_event": true,
+        "trade_ts_recv": true,
+        "ohlcv_preserves_both_timestamps": false,
+        "supported_intervals": [
+          "1s",
+          "1min",
+          "1h",
+          "1day"
+        ],
+        "historical_billing_model": "usage_based_usd_per_gb",
+        "advertised_historical_floor_usd_per_gb": 0.4,
+        "historical_api_credit_model": false,
+        "equs_mini_exchange_license_fee_usd": 0,
+        "point_in_time_corporate_actions": true,
+        "corporate_action_current_exact_price_published": false
+      },
+      "required_preparation_contract": {
+        "version_proposal": "market_context_historical_trade_to_candle_preparation_v1",
+        "observation_timestamp": "explicit_utc_bar_start",
+        "provider_source_timestamp": "max_contributing_trade_ts_event",
+        "received_timestamp": "max_contributing_trade_ts_recv",
+        "empty_interval_policy": "explicit_missingness_no_fabricated_candle",
+        "raw_bytes_immutable": true,
+        "implemented": false,
+        "approved": false
+      },
+      "gaps": [
+        "current_m1_normalizer_does_not_accept_trades",
+        "exact_13_symbol_catalog_coverage_not_frozen",
+        "exact_usage_quote_not_obtained",
+        "retention_and_internal_replay_rights_not_captured",
+        "corporate_action_price_and_policy_not_selected"
+      ],
+      "contract_fit_without_guessing": false
+    },
+    {
+      "source_id": "norgate_data",
+      "review_order": 3,
+      "classification": [
+        "not_viable"
+      ],
+      "official_links": [
+        "https://norgatedata.com/",
+        "https://norgatedata.com/data-content-tables.php",
+        "https://norgatedata.com/prices.php",
+        "https://norgatedata.com/subscribe/eula.php"
+      ],
+      "verified": {
+        "frequency": "daily_end_of_day_only",
+        "historical_market_breadth": true,
+        "historical_index_constituents": true,
+        "platinum_required_for_us_historical_constituents": true,
+        "subscription_terms_months": [
+          6,
+          12
+        ],
+        "individual_personal_use_only": true,
+        "redistribution_allowed": false,
+        "data_and_derived_data_deletion_on_lapse": true,
+        "per_row_provider_source_timestamp_documented": false,
+        "per_row_receive_timestamp_documented": false
+      },
+      "gaps": [
+        "no_intraday_history",
+        "no_required_per_row_timestamp_semantics",
+        "durable_evidence_retention_forbidden_after_lapse",
+        "selected_package_price_not_published_without_calculator_inputs"
+      ],
+      "contract_fit_without_guessing": false
+    }
+  ],
+  "packages": [
+    {
+      "package_id": "minimum_viable_diagnostic_replay",
+      "source": "twelve_data",
+      "statuses": [
+        "not_viable",
+        "license_confirmation_required"
+      ],
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "candle_interval": "5min",
+      "date_range": {
+        "start": "operator_cutoff_minus_20_completed_xnys_sessions",
+        "end": "operator_supplied_cutoff_exclusive",
+        "expected_trading_days": 20
+      },
+      "expected_regular_session_rows": {
+        "candles": 20280,
+        "breadth": 1560,
+        "total_normalized_domain_rows": 21840,
+        "early_close_adjustment_required": true
+      },
+      "provider_usage": {
+        "expected_http_transports": 1,
+        "credits": 13,
+        "records_per_symbol": 1560,
+        "response_cap_per_call": 5000
+      },
+      "cost": {
+        "incremental_usd_if_existing_entitlement_suffices": 0,
+        "published_relevant_paid_tier_floor_usd_per_month": 29,
+        "actual_usd": "operator_evidence_required",
+        "recurring": "only_if_plan_upgrade_required"
+      },
+      "storage": {
+        "method": "measure_raw_provider_json_and_canonical_ndjson",
+        "pre_acquisition_bytes": "not_published"
+      },
+      "corporate_actions": {
+        "provider_adjust_modes_available": true,
+        "point_in_time_adjustment_lineage_verified": false
+      },
+      "known_gaps": [
+        "provider_source_timestamp",
+        "received_timestamp",
+        "historical_point_in_time_breadth",
+        "point_in_time_adjustment_lineage"
+      ],
+      "contract_fit_without_guessing": false
+    },
+    {
+      "package_id": "recommended_statistically_useful_replay",
+      "source": "databento",
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "statuses": [
+        "recommended",
+        "viable_with_gaps",
+        "license_confirmation_required",
+        "cost_confirmation_required"
+      ],
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "target_candle_interval": "1min",
+      "date_range": {
+        "start": "operator_cutoff_minus_252_completed_xnys_sessions",
+        "end": "operator_supplied_cutoff_exclusive",
+        "expected_trading_days": 252
+      },
+      "expected_regular_session_rows": {
+        "candles": 1277640,
+        "breadth": 98280,
+        "total_normalized_domain_rows": 1375920,
+        "early_close_and_no_trade_adjustment_required": true
+      },
+      "provider_usage": {
+        "raw_trade_rows": "T252_measured_by_nonbinding_quote_before_acquisition",
+        "expected_timeseries_requests": 1,
+        "expected_symbology_requests": 1,
+        "optional_corporate_action_requests": 1,
+        "api_credits": "not_applicable_historical_usage_billed_by_volume"
+      },
+      "cost": {
+        "advertised_usage_floor_formula_usd": "0.40 * billable_gb",
+        "exact_market_data_usd": "cost_confirmation_required",
+        "exact_corporate_action_usd": "cost_confirmation_required_if_selected",
+        "subscription_required_for_historical_usage": false,
+        "tax_and_currency": "operator_evidence_required"
+      },
+      "storage": {
+        "raw_dbn_formula_bytes": "48 * T252 + dbn_metadata",
+        "target_ohlcv_structural_lower_bound_bytes": 71547840,
+        "breadth_lineage_metadata_and_encoding_excluded_from_lower_bound": true,
+        "exact_local_bytes": "cost_quote_then_measure"
+      },
+      "corporate_actions": {
+        "recommended": true,
+        "point_in_time_product_available": true,
+        "exact_price_published": false,
+        "raw_only_alternative": "viable_with_documented_split_return_distortion_gap"
+      },
+      "known_gaps": [
+        "trade_to_candle_preparation_contract_not_implemented",
+        "exact_license_retention_terms_not_captured",
+        "exact_usage_quote_not_obtained",
+        "corporate_action_policy_not_selected"
+      ],
+      "contract_fit_without_guessing": false
+    },
+    {
+      "package_id": "optional_extended_regime_diversity_replay",
+      "source": "databento",
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "statuses": [
+        "viable_with_gaps",
+        "license_confirmation_required",
+        "cost_confirmation_required"
+      ],
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "target_candle_interval": "1min",
+      "date_range": {
+        "start": "2023-03-28T00:00:00Z",
+        "end": "operator_supplied_cutoff_exclusive",
+        "expected_trading_days_at_research_date_range": "approximately_835_to_845",
+        "planning_example_days": 840
+      },
+      "row_formula": {
+        "candles": "D * 390 * 13",
+        "breadth": "D * 390",
+        "total_normalized_domain_rows": "D * 390 * 14",
+        "early_close_and_no_trade_adjustment_required": true
+      },
+      "planning_example_at_840_days": {
+        "candles": 4258800,
+        "breadth": 327600,
+        "total_normalized_domain_rows": 4586400
+      },
+      "provider_usage": {
+        "raw_trade_rows": "Textended_measured_by_nonbinding_quote_before_acquisition",
+        "expected_timeseries_requests": 1,
+        "expected_symbology_requests": 1,
+        "optional_corporate_action_requests": 1,
+        "api_credits": "not_applicable_historical_usage_billed_by_volume"
+      },
+      "cost": {
+        "advertised_usage_floor_formula_usd": "0.40 * billable_gb",
+        "exact_market_data_usd": "cost_confirmation_required",
+        "exact_corporate_action_usd": "cost_confirmation_required_if_selected",
+        "tax_and_currency": "operator_evidence_required"
+      },
+      "storage": {
+        "raw_dbn_formula_bytes": "48 * Textended + dbn_metadata",
+        "target_ohlcv_structural_lower_bound_bytes_at_840_days": 238492800,
+        "breadth_lineage_metadata_and_encoding_excluded_from_lower_bound": true,
+        "exact_local_bytes": "cost_quote_then_measure"
+      },
+      "known_gaps": [
+        "same_trade_to_candle_contract_gap_as_recommended_package",
+        "exact_calendar_count_not_frozen",
+        "exact_license_retention_terms_not_captured",
+        "exact_usage_quote_not_obtained",
+        "corporate_action_policy_not_selected"
+      ],
+      "contract_fit_without_guessing": false
+    }
+  ],
+  "operator_decisions_required": [
+    "approve_or_reject_databento_equs_mini_direction",
+    "separately_approve_versioned_trade_to_candle_preparation_contract",
+    "select_252_session_or_extended_scope",
+    "freeze_explicit_utc_cutoff_and_exact_xnys_sessions",
+    "confirm_exact_13_symbol_catalog_coverage",
+    "capture_license_and_retention_evidence",
+    "select_point_in_time_corporate_actions_or_raw_only_gap",
+    "obtain_nonbinding_exact_provider_quote",
+    "set_all_in_usd_cost_ceiling",
+    "set_local_storage_ceiling_and_exact_non_repository_paths",
+    "separately_authorize_acquisition_only"
+  ],
+  "future_authorization_phrase_template": "SPÅR 3 — Action 667M.3: Jag godkänner en engångsanskaffning av Databento EQUS.MINI `trades` för exakt symbolerna `SPY,QQQ,XLB,XLC,XLE,XLF,XLI,XLK,XLP,XLRE,XLU,XLV,XLY`, för de frysta XNYS-sessionerna `[START_UTC, END_UTC)`, med point-in-time corporate actions `[INCLUDED|EXCLUDED_RAW_ONLY]`, högst `[USD_COST_CEILING]` USD totalt och högst `[LOCAL_STORAGE_CEILING]` lokalt. Licensbevis `[LICENSE_EVIDENCE_REFERENCE]` tillåter lokal raw-retention, intern offline research/replay och retention av normalized/derived evidence under `[RETENTION_TERM]`. Kör endast de förhandsgranskade provideranropen och spara till exakt `[LOCAL_RAW_PATH]`; ingen normalization, replay, databas, repository-commit, push eller liveintegration är godkänd.",
+  "activity_attestation": {
+    "authenticated_provider_api_calls": 0,
+    "quote_or_usage_api_calls": 0,
+    "provider_downloads": 0,
+    "purchases_or_subscription_changes": 0,
+    "credential_values_read_or_printed": 0,
+    "production_or_historical_provider_rows_acquired": 0,
+    "normalization_runs": 0,
+    "replay_runs": 0,
+    "database_connections": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_requests": 0
+  },
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

@@ -1,0 +1,120 @@
+{
+  "action": "667M.5C.3",
+  "evidence_version": "market_context_action_667m5c3_existing_job_terminal_reconciliation_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "1892b1991917249915da45a66a31e936574c8e88ddd4ae500a226490f9d9a61e",
+  "decision_material": {
+    "predecessor_bindings": {
+      "m5c2_evidence_digest": "a5fa94a2edbf6c9161034c54f3f45e39bc85288df28846818498a7eb2fa1de1d",
+      "m5c2_scope_digest": "a06af7191b00fc024f0b11757894764995f1e76d8aa82a31bc9cf9b2a06b1c20",
+      "m5c2_estimated_records": 1903887,
+      "m5c2_estimated_billable_bytes": 91386576,
+      "m5c2_estimated_cost_usd": "0.510662287474",
+      "poller_sha256": "1ab50867cc4741f1cc6e87ff6bfc228c76c17ac5ec1481c49c966b929d0a74a9",
+      "sanitized_runtime_result_digest": "bccb412935ad2cf461c3d0c32ebe567f87b1b46d7174d9b1dcfb41fa7c1e395a"
+    },
+    "control_admission": {
+      "control_version": "market_context_action_667m5c2_job_control_v1",
+      "control_file_exists": true,
+      "control_file_symlink": false,
+      "control_file_owner_current_user": true,
+      "control_file_mode": "0600",
+      "calibration_root_mode": "0700",
+      "raw_directory_mode": "0700",
+      "control_directory_mode": "0700",
+      "schema_exact": true,
+      "scope_digest_exact": true,
+      "submission_state": "submitted_scope_verified",
+      "job_identity_loaded_only_to_process_memory": true,
+      "job_identity_logged_or_persisted_in_evidence": false,
+      "control_file_modified": false
+    },
+    "scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id_bound_by_m5c2_preflight": 95,
+      "symbol_count": 13,
+      "start": "2026-06-26T00:00:00Z",
+      "end_exclusive": "2026-07-20T00:00:00Z",
+      "provider_job_scope_exact": true
+    },
+    "provider_activity": {
+      "get_job_details_calls": 1,
+      "poll_interval_seconds": 20,
+      "maximum_poll_seconds": 600,
+      "http_timeout_seconds": 50,
+      "new_batch_submissions": 0,
+      "retries": 0,
+      "resubmissions": 0,
+      "cancellations": 0,
+      "metadata_estimate_calls": 0,
+      "list_jobs_calls": 0,
+      "list_files_calls": 0,
+      "download_endpoint_calls": 0
+    },
+    "terminal_reconciliation": {
+      "provider_state": "done",
+      "terminal_status_reconciled": true,
+      "still_pending": false,
+      "sanitized_reason_code": null,
+      "actual_records": 1903887,
+      "estimated_records": 1903887,
+      "record_count_matches_estimate": true,
+      "actual_billable_bytes": 91386576,
+      "estimated_billable_bytes": 91386576,
+      "billable_bytes_match_estimate": true,
+      "actual_cost_usd": "0.51066228747368",
+      "estimated_cost_usd": "0.510662287474",
+      "actual_minus_estimated_cost_usd": "-0.00000000000032",
+      "actual_size_bytes": 91386576,
+      "package_size_bytes": 28231043,
+      "terminal_timestamp": "2026-07-27T22:10:21.039461000Z",
+      "terminal_timestamp_unix_nanoseconds": "1785190221039461000",
+      "terminal_timestamp_parser": "databento_explicit_nanosecond_instant_parser_v1"
+    },
+    "caps": {
+      "cost_cap_usd": "0.75",
+      "actual_cost_within_cap": true,
+      "billable_cap_bytes": 134217728,
+      "actual_billable_within_cap": true,
+      "future_compressed_transfer_cap_bytes": 67108864,
+      "package_size_within_future_compressed_transfer_cap": true,
+      "package_size_is_not_yet_a_verified_file_inventory": true
+    },
+    "external_effects": {
+      "support_files_downloaded": 0,
+      "market_data_files_downloaded": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_calls": 0,
+      "canonical_bindings": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_requests": 0,
+      "deploys": 0,
+      "live_effects": 0
+    },
+    "security": {
+      "credential_value_logged_or_persisted": false,
+      "provider_job_identity_logged_or_persisted": false,
+      "account_billing_or_request_identifiers_persisted": false
+    },
+    "statuses": {
+      "action_667m5c3_existing_job_reused": true,
+      "action_667m5c3_terminal_status_reconciled": true,
+      "action_667m5c3_batch_terminal_ready": true,
+      "action_667m5c3_actual_cost_within_cap": true,
+      "action_667m5d_support_file_gate_ready": true,
+      "new_batch_submissions": 0,
+      "support_files_downloaded": 0,
+      "market_data_files_downloaded": 0,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false
+    }
+  }
+}

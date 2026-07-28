@@ -1,0 +1,228 @@
+{
+  "action": "667M.5E",
+  "evidence_version": "market_context_action_667m5e_calibration_raw_integrity_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "8fd4d8b0fb6d2d99cb29f5c75d3ff0e74ff8d618cca5354951ef1a1e66ebf9f4",
+  "decision_material": {
+    "predecessor_bindings": {
+      "m5d_evidence_digest": "37635791f5c67bccaf79c5882c47c0ef48fe5b1ed2a1cda28b98e0de8bc6abe6",
+      "m5d_post_submission_admission_digest": "0b52275d0b76076c09954c18d7cb131dda3218a37aeb2d24bf2ac49927827b23",
+      "scope_digest": "a06af7191b00fc024f0b11757894764995f1e76d8aa82a31bc9cf9b2a06b1c20",
+      "download_harness_sha256": "0bfc5ee42ded8070c255df8063dba00e5a360ed6bc2d73a08435afa92eb63752",
+      "sanitized_runtime_result_digest": "185a1e98ab82187459284f263be90c2177351616b5baadd7f59a6aa63b2e28f0",
+      "sanitized_runtime_file_sha256": "b5d09a2e490e5c6cdeaa5daf7cc5c2353712bc0d9386797565475e4d4efca4f6"
+    },
+    "scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id": 95,
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "start": "2026-06-26T00:00:00Z",
+      "end_exclusive": "2026-07-20T00:00:00Z",
+      "session_dates": [
+        "2026-06-26",
+        "2026-06-29",
+        "2026-06-30",
+        "2026-07-01",
+        "2026-07-02",
+        "2026-07-06",
+        "2026-07-07",
+        "2026-07-08",
+        "2026-07-09",
+        "2026-07-10",
+        "2026-07-13",
+        "2026-07-14",
+        "2026-07-15",
+        "2026-07-16",
+        "2026-07-17"
+      ],
+      "non_session_2026_07_03_market_file_present": false,
+      "adjustment_state": "raw_unadjusted",
+      "corporate_actions_included": false
+    },
+    "pre_download_admission": {
+      "existing_terminal_job_reused": true,
+      "control_file_mode": "0600",
+      "control_file_owner_current_user": true,
+      "control_scope_exact": true,
+      "support_files_reverified": true,
+      "support_file_sha256": {
+        "condition.json": "d711471388ad6e841c412edebe62722bdd0676a6b468853bcd450afee718c988",
+        "manifest.json": "5536e9ebc701ad93d665a77f33c09fd6d00ba1766d5e54d1bfd40975f83929df",
+        "metadata.json": "896115b7ab76025854afcf66eef4f594eaf7727a46a190ce9e9b2a10072dd03f"
+      },
+      "m5d_post_submission_admission_reexecuted": true,
+      "manifest_inventory_exact": true,
+      "official_session_count": 15,
+      "filevault": true,
+      "same_encrypted_volume_for_staging_and_final": true,
+      "minimum_free_space_policy": "at_least_twice_calculated_local_requirement_v1",
+      "hard_caps_passed": true
+    },
+    "terminal_and_caps": {
+      "terminal_status": "done",
+      "record_count": 1903887,
+      "billable_bytes": 91386576,
+      "actual_cost_usd": "0.51066228747368",
+      "market_data_transfer_bytes": 28219780,
+      "support_transfer_bytes": 11263,
+      "total_package_bytes": 28231043,
+      "local_requirement_bytes": 56462086,
+      "cost_cap_usd": "0.75",
+      "billable_cap_bytes": 134217728,
+      "market_data_transfer_cap_bytes": 67108864,
+      "local_total_cap_bytes": 2147483648
+    },
+    "raw_files": [
+      {
+        "filename": "equs-mini-20260626.trades.dbn.zst",
+        "session_date": "2026-06-26",
+        "size_bytes": 2241835,
+        "sha256": "37e9e783f3fcce76afa470764d6132854f4f764bdf0fbfe438d5989d1082f037"
+      },
+      {
+        "filename": "equs-mini-20260629.trades.dbn.zst",
+        "session_date": "2026-06-29",
+        "size_bytes": 1883106,
+        "sha256": "2422996f9235052dee1fa28b4927174913c6ac1a148af57fda06f389241dc2ef"
+      },
+      {
+        "filename": "equs-mini-20260630.trades.dbn.zst",
+        "session_date": "2026-06-30",
+        "size_bytes": 1708919,
+        "sha256": "db32a57da01676c33a5f8abcb800ce4f322a5af223f73b64c2228b5b8d3e17b5"
+      },
+      {
+        "filename": "equs-mini-20260701.trades.dbn.zst",
+        "session_date": "2026-07-01",
+        "size_bytes": 1797180,
+        "sha256": "309088e5a512f440bf9c5d0bb385b0261d972afe3661057f9156feacd51b5f41"
+      },
+      {
+        "filename": "equs-mini-20260702.trades.dbn.zst",
+        "session_date": "2026-07-02",
+        "size_bytes": 2226099,
+        "sha256": "d742414474ab11d54157ce6d809712a6236cd4eb86bc252229ab691201ea4267"
+      },
+      {
+        "filename": "equs-mini-20260706.trades.dbn.zst",
+        "session_date": "2026-07-06",
+        "size_bytes": 1861324,
+        "sha256": "040bc82b79e60d05a1cc5923c3fb547f37a6c5a2ca4958d4a04dac7b456c6d26"
+      },
+      {
+        "filename": "equs-mini-20260707.trades.dbn.zst",
+        "session_date": "2026-07-07",
+        "size_bytes": 1908430,
+        "sha256": "9acdb377afdde764cf8b9ebab282a4cfc67bb9d9cfedcb0ea2f3f8c1c816ec94"
+      },
+      {
+        "filename": "equs-mini-20260708.trades.dbn.zst",
+        "session_date": "2026-07-08",
+        "size_bytes": 1868032,
+        "sha256": "79b1007bce6d2ec66b797ea827759177a823f2554af88f348c602790a413691e"
+      },
+      {
+        "filename": "equs-mini-20260709.trades.dbn.zst",
+        "session_date": "2026-07-09",
+        "size_bytes": 1637055,
+        "sha256": "c8cc32720568bd9974059cf19f20137b48422048a04cb38551a9360472cea02c"
+      },
+      {
+        "filename": "equs-mini-20260710.trades.dbn.zst",
+        "session_date": "2026-07-10",
+        "size_bytes": 1469533,
+        "sha256": "40371acce88fe9d41492dcd76b188a82570412e1fadca726090d1d0284c4ef82"
+      },
+      {
+        "filename": "equs-mini-20260713.trades.dbn.zst",
+        "session_date": "2026-07-13",
+        "size_bytes": 1887540,
+        "sha256": "94bdd614cb8e8cb62ff3c6a52a3a4c0c64fe95261cb00ba7e4589085971dd8a8"
+      },
+      {
+        "filename": "equs-mini-20260714.trades.dbn.zst",
+        "session_date": "2026-07-14",
+        "size_bytes": 1740403,
+        "sha256": "16d09b5eda4cdd7047746414ba65fd9f9d3131b32eda5f81ad73a0d2900bb6d5"
+      },
+      {
+        "filename": "equs-mini-20260715.trades.dbn.zst",
+        "session_date": "2026-07-15",
+        "size_bytes": 2016819,
+        "sha256": "4fa0eb725c2a792481018d93a8501bd0e7ac42bfa47736d8ab5debebf4e78179"
+      },
+      {
+        "filename": "equs-mini-20260716.trades.dbn.zst",
+        "session_date": "2026-07-16",
+        "size_bytes": 1892177,
+        "sha256": "22332fae374d7f041d85373d5a94cf5709a87042af6c8d67f93e2b60ebd96a6b"
+      },
+      {
+        "filename": "equs-mini-20260717.trades.dbn.zst",
+        "session_date": "2026-07-17",
+        "size_bytes": 2081328,
+        "sha256": "219a6a7aa6c27acb269550009cdbbc14fb391912f6e246cad6463a7b6c1e6385"
+      }
+    ],
+    "raw_integrity": {
+      "file_count": 15,
+      "total_compressed_bytes": 28219780,
+      "raw_integrity_digest": "7f539ff24f709cb21098558e0531a3f6526438b932f111e5ce7aa1f333af1a7a",
+      "provider_and_local_sha256_match_for_all_files": true,
+      "two_pass_pre_promotion_verification": true,
+      "post_promotion_verification": true,
+      "raw_files_unchanged_after_verification": true,
+      "partial_or_temporary_files_in_final": 0
+    },
+    "provider_activity": {
+      "manifest_bound_market_file_gets": 15,
+      "new_batch_submissions": 0,
+      "support_file_downloads": 0,
+      "metadata_or_inventory_calls": 0,
+      "automatic_retries_or_resubmissions": 0,
+      "redirects_followed": 0
+    },
+    "processing_and_security": {
+      "dbn_records_decoded": 0,
+      "decompression_performed": false,
+      "normalization_performed": false,
+      "replay_performed": false,
+      "credential_logged_or_persisted": false,
+      "provider_job_identity_logged_or_persisted": false,
+      "account_billing_or_request_identifiers_persisted": false,
+      "final_directory_mode": "0700",
+      "final_file_mode": "0600",
+      "atomic_directory_promotion": true
+    },
+    "statuses": {
+      "action_667m5e_existing_job_reused": true,
+      "action_667m5e_market_data_downloaded": true,
+      "action_667m5e_raw_file_inventory_verified": true,
+      "action_667m5e_provider_hashes_verified": true,
+      "action_667m5e_post_download_integrity_passed": true,
+      "new_batch_submissions": 0,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

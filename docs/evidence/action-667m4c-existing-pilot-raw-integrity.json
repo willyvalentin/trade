@@ -1,0 +1,156 @@
+{
+  "action": "667M.4C",
+  "evidence_version": "market_context_action_667m4c_existing_pilot_raw_integrity_evidence_v1",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "34bf7087d6e6a2c11c9883622541d60a227283ddce7d0c31736f057a6c52105e",
+  "decision_material": {
+    "scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id": 95,
+      "symbol_count": 13,
+      "symbols_sha256": "ed237631db20ea6e80a5aee418134e6a1005bf218b931cdadfbe63c72700afe2",
+      "start": "2026-07-20T00:00:00Z",
+      "end_exclusive": "2026-07-25T00:00:00Z",
+      "scope_digest": "7e6d210d9565660b15776a47d87c1418076c683a3fd23a32e6133af563c109d4"
+    },
+    "pre_download_gate": {
+      "control_owner_current_user": true,
+      "control_mode": "0600",
+      "control_identity_matches_support_files": true,
+      "support_hashes_reverified": true,
+      "m4b3_post_submission_admission_passed": true,
+      "m4b3_market_data_download_ready": true,
+      "m4b3_evidence_digest": "48117bab927e72e7b744672d0c5a2fabb20d7c8f614ccb605625f95cf047f5e2",
+      "actual_cost_usd": 0.1384454369545,
+      "cost_cap_usd": 0.25,
+      "billable_bytes": 24775776,
+      "billable_cap_bytes": 33554432,
+      "declared_market_data_transfer_bytes": 7729852,
+      "market_data_transfer_cap_bytes": 33554432,
+      "calculated_local_total_requirement_bytes": 15469608,
+      "local_total_cap_bytes": 1073741824,
+      "at_least_double_local_requirement_free": true,
+      "underlying_volume": "internal_apfs_filevault",
+      "underlying_volume_encrypted": true
+    },
+    "support_files": [
+      {
+        "filename": "condition.json",
+        "size_bytes": 602,
+        "sha256": "4117c91b85dc1aac7a4e00c6a03f9eb3458f8ce6cd549c8762c55ad66c3fd22c"
+      },
+      {
+        "filename": "manifest.json",
+        "size_bytes": 3433,
+        "sha256": "bfcda9afd11db4054d83daf1ef8f456fac10ac0de21d2b6fa9bb7383dd37c454"
+      },
+      {
+        "filename": "metadata.json",
+        "size_bytes": 917,
+        "sha256": "5f6c56edbb2b9c17e0188b0c0ae09a793c3b4a612eb84fe7752e636ae224e105"
+      }
+    ],
+    "raw_files": [
+      {
+        "filename": "equs-mini-20260720.trades.dbn.zst",
+        "size_bytes": 1507782,
+        "provider_sha256": "d1a291e27b85bb7fcb84ef3c641740e305007954851a619d1dab6a01d8e7bcaa",
+        "local_sha256": "d1a291e27b85bb7fcb84ef3c641740e305007954851a619d1dab6a01d8e7bcaa",
+        "immutable_file_identity": "sha256:d1a291e27b85bb7fcb84ef3c641740e305007954851a619d1dab6a01d8e7bcaa;bytes:1507782",
+        "size_matches": true,
+        "sha256_matches": true,
+        "mode": "0600"
+      },
+      {
+        "filename": "equs-mini-20260721.trades.dbn.zst",
+        "size_bytes": 1370766,
+        "provider_sha256": "406a28eabd8069fdaf52e48324ea76bbe47521e95a0413703c6413348522b260",
+        "local_sha256": "406a28eabd8069fdaf52e48324ea76bbe47521e95a0413703c6413348522b260",
+        "immutable_file_identity": "sha256:406a28eabd8069fdaf52e48324ea76bbe47521e95a0413703c6413348522b260;bytes:1370766",
+        "size_matches": true,
+        "sha256_matches": true,
+        "mode": "0600"
+      },
+      {
+        "filename": "equs-mini-20260722.trades.dbn.zst",
+        "size_bytes": 1284129,
+        "provider_sha256": "161129cd3370a80cd5f6e57974795627a472588ac434859914e5cc7a0f03f18d",
+        "local_sha256": "161129cd3370a80cd5f6e57974795627a472588ac434859914e5cc7a0f03f18d",
+        "immutable_file_identity": "sha256:161129cd3370a80cd5f6e57974795627a472588ac434859914e5cc7a0f03f18d;bytes:1284129",
+        "size_matches": true,
+        "sha256_matches": true,
+        "mode": "0600"
+      },
+      {
+        "filename": "equs-mini-20260723.trades.dbn.zst",
+        "size_bytes": 1837789,
+        "provider_sha256": "0c6ffefd008a79147e481bd563b93b29528cc7345d120bfebdf3aefd3b6195dc",
+        "local_sha256": "0c6ffefd008a79147e481bd563b93b29528cc7345d120bfebdf3aefd3b6195dc",
+        "immutable_file_identity": "sha256:0c6ffefd008a79147e481bd563b93b29528cc7345d120bfebdf3aefd3b6195dc;bytes:1837789",
+        "size_matches": true,
+        "sha256_matches": true,
+        "mode": "0600"
+      },
+      {
+        "filename": "equs-mini-20260724.trades.dbn.zst",
+        "size_bytes": 1729386,
+        "provider_sha256": "6ac904b839ec8b06d2c02e94ed3520d91776ad0aebe97acc35d8a7d6535102f3",
+        "local_sha256": "6ac904b839ec8b06d2c02e94ed3520d91776ad0aebe97acc35d8a7d6535102f3",
+        "immutable_file_identity": "sha256:6ac904b839ec8b06d2c02e94ed3520d91776ad0aebe97acc35d8a7d6535102f3;bytes:1729386",
+        "size_matches": true,
+        "sha256_matches": true,
+        "mode": "0600"
+      }
+    ],
+    "post_download_integrity": {
+      "raw_file_count": 5,
+      "actual_total_compressed_bytes": 7729852,
+      "provider_inventory_exact": true,
+      "provider_hashes_verified": true,
+      "local_hashes_verified": true,
+      "path_traversal_or_symlink_count": 0,
+      "duplicate_filename_count": 0,
+      "unexpected_file_count": 0,
+      "partial_or_temporary_file_count": 0,
+      "support_and_market_data_separated": true,
+      "staging_directory_mode": "0700",
+      "final_directory_mode": "0700",
+      "atomic_promotion_completed": true,
+      "final_relative_directory": "raw/market-data/action-667m4b2",
+      "raw_integrity_digest": "de2ff953e4b0fc882ad40ffca910c8614b89d59f2410e23cc93f6855e6b12714"
+    },
+    "execution_boundary": {
+      "existing_job_reused": true,
+      "new_batch_submissions": 0,
+      "download_attempts": 5,
+      "automatic_retries": 0,
+      "redirects_followed": 0,
+      "dbn_records_decoded": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_writes": 0,
+      "canonical_bindings": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0,
+      "additional_or_repeat_download_authorized": false
+    },
+    "statuses": {
+      "action_667m4c_existing_job_reused": true,
+      "action_667m4c_market_data_downloaded": true,
+      "action_667m4c_raw_file_inventory_verified": true,
+      "action_667m4c_provider_hashes_verified": true,
+      "action_667m4c_post_download_integrity_passed": true,
+      "new_batch_submissions": 0,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

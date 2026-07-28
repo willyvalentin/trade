@@ -1,0 +1,165 @@
+{
+  "action": "667M.3A",
+  "evidence_version": "market_context_action_667m3a_evidence_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count_excluding_this_evidence": 6,
+  "artifacts": [
+    {
+      "path": "docs/action-667m3a-databento-license-inquiry-draft.md",
+      "artifact_type": "license_inquiry_draft",
+      "version": "market_context_databento_license_inquiry_draft_v1",
+      "sha256": "d780e00f1c240355715387478bc7283c5968831c553c5b3ace34f82112013f95"
+    },
+    {
+      "path": "docs/action-667m3a-nanosecond-receiver-and-pilot-admission.md",
+      "artifact_type": "contract_documentation",
+      "version": "market_context_action_667m3a_contract_documentation_v1",
+      "sha256": "3d3e9b0f1dfbda75bfbba7f96b0692469ea0dd3ab9bfcbff906e8edb91a6dfef"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/action-667m3a-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixtures",
+      "version": "market_context_action_667m3a_synthetic_fixtures_v1",
+      "sha256": "f9aad22b98aa478bef2556d86cc5f755e6f9cbddbe72730ad6e3bf61d2432f73"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/five-session-pilot-admission-v1.ts",
+      "artifact_type": "pilot_admission_contract",
+      "version": "market_context_five_session_pilot_admission_v1",
+      "sha256": "18a25379abc5c875c57f11f1726551279c74a7131261d5f0ab5c705156a39d07"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/historical-dataset-nanosecond-receiver-v1.ts",
+      "artifact_type": "nanosecond_receiver",
+      "version": "market_context_historical_dataset_nanosecond_receiver_v1",
+      "sha256": "2cc0ac90a3c5ae2fb3b5e1f68e6031e3e6acbc2ef485c0440cc8d43e39adc933"
+    },
+    {
+      "path": "tests/e2e/action-667m3a-nanosecond-receiver-pilot-admission.spec.ts",
+      "artifact_type": "test_suite",
+      "version": "market_context_action_667m3a_tests_v1",
+      "sha256": "782ad3c6eca2b43f565730dffdc4ad0889450fe19ca9bbcfff3c5d94d85c6381"
+    }
+  ],
+  "artifact_digest_algorithm": "sha256(concat(sort_by_path(path + NUL + artifact_type + NUL + version + NUL + sha256 + LF)))",
+  "artifact_digest": "0a61bbe1bad00077386ebc3abfaa5ebd3759b1b0f523ee679475ef90df12b030",
+  "contracts": {
+    "receiver": "market_context_historical_dataset_nanosecond_receiver_v1",
+    "m1_extension": "market_context_historical_dataset_nanosecond_extension_v1",
+    "canonicalization": "market_context_historical_dataset_nanosecond_canonical_json_v1",
+    "dbn_extraction_lineage": "market_context_databento_dbn_extraction_lineage_v1",
+    "pilot_admission": "market_context_five_session_pilot_admission_v1",
+    "pilot_policy": "market_context_five_session_pilot_policy_2026_07_27_v1"
+  },
+  "pilot": {
+    "dataset": "EQUS.MINI",
+    "schema": "trades",
+    "encoding": "dbn",
+    "compression": "zstd",
+    "publisher_id": 95,
+    "symbol_count": 13,
+    "start": "2026-07-20T00:00:00Z",
+    "end_exclusive": "2026-07-25T00:00:00Z",
+    "adjustment_state": "raw_unadjusted",
+    "degraded_session_policy": "reject",
+    "quote_max_age_seconds": 900,
+    "cost_cap_usd": 0.25,
+    "billable_cap_bytes": 33554432,
+    "transfer_cap_bytes": 33554432,
+    "local_cap_bytes": 1073741824,
+    "admission_stages": [
+      "pre_download",
+      "post_download_verification"
+    ]
+  },
+  "regression": {
+    "relevant_k_through_m3a": {
+      "tests": 93,
+      "passed": 93,
+      "failed": 0
+    },
+    "m3a_scoped": {
+      "tests": 15,
+      "passed": 15,
+      "failed": 0
+    },
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_byte_identical": true,
+    "receiver_digest": "8512480fd9120a091ae481be761d46d783c4b4aa2aaf6c1cc73817698aa13824",
+    "pilot_admission_digest": "1791747fb28be6e5b44c1d740e265cddc9de4527028d450a27539a334db9b9fa",
+    "typescript": "passed",
+    "scoped_eslint": "passed",
+    "git_diff_check": "passed",
+    "provider_database_replay_live_imports": 0,
+    "dependency_changes": 0,
+    "deno_lock_changes": 0
+  },
+  "frozen_predecessors": {
+    "m2a_v1_after_digest": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+    "m2c_v2_after_digest": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f",
+    "byte_identical": true
+  },
+  "decisions": {
+    "action_667m3a_nanosecond_receiver_ready": true,
+    "action_667m3a_pilot_admission_contract_ready": true,
+    "action_667m3a_license_inquiry_ready": true,
+    "action_667m4_dataset_acquisition_ready": false
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 3,
+    "nit": 0
+  },
+  "minor_findings": [
+    {
+      "id": "M3A-001",
+      "finding": "The two-second watermark remains empirically unvalidated and uncalibrated.",
+      "disposition": "transparent_external_evidence_gate"
+    },
+    {
+      "id": "M3A-002",
+      "finding": "Real publisher action, flag, condition and stable tie-break semantics still require provider evidence.",
+      "disposition": "fail_closed_external_metadata_gate"
+    },
+    {
+      "id": "M3A-003",
+      "finding": "Source-file byte verification and DBN decoder build evidence can only be completed after a separately authorized acquisition.",
+      "disposition": "post_download_verification_gate"
+    }
+  ],
+  "external_gates": [
+    "fresh exact quote and entitlement evidence",
+    "all five dates confirmed available",
+    "written license reference covering every inquiry topic",
+    "provider build, encoder build and dataset revision evidence",
+    "stable tie-break and publisher semantics evidence",
+    "approved immutable XNYS calendar evidence",
+    "explicit corporate-action status",
+    "encrypted external destination attestation",
+    "separate operator acquisition authorization"
+  ],
+  "security_attestation": {
+    "databento_credential_read_printed_or_used": false,
+    "authenticated_provider_requests": 0,
+    "provider_downloads": 0,
+    "purchases": 0,
+    "real_data_normalizations": 0,
+    "historical_replays": 0,
+    "database_connections": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  },
+  "canonical_binding_performed": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}
