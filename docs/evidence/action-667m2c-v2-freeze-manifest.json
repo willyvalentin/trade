@@ -1,0 +1,129 @@
+{
+  "action": "667M.2C",
+  "manifest_version": "market_context_historical_trade_to_candle_v2_freeze_manifest_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "head": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count": 6,
+  "artifacts": [
+    {
+      "path": "docs/action-667m2c-nanosecond-trade-preparation-remediation.md",
+      "artifact_type": "contract_documentation",
+      "version": "market_context_historical_trade_to_candle_preparation_v2",
+      "sha256": "e0b252c0586f5c11e57bf893a9c587b0023e790571ff9aebd9129a07e2a7ad77",
+      "pre_regression_sha256": "e0b252c0586f5c11e57bf893a9c587b0023e790571ff9aebd9129a07e2a7ad77",
+      "post_regression_sha256": "e0b252c0586f5c11e57bf893a9c587b0023e790571ff9aebd9129a07e2a7ad77",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667m2c-nanosecond-remediation-evidence.json",
+      "artifact_type": "machine_readable_evidence",
+      "version": "market_context_historical_trade_nanosecond_remediation_evidence_v1",
+      "sha256": "c14467b990f2b71ba844aa26da2169e7c1515bd0ffb2468bd27c67e2158640e4",
+      "pre_regression_sha256": "c14467b990f2b71ba844aa26da2169e7c1515bd0ffb2468bd27c67e2158640e4",
+      "post_regression_sha256": "c14467b990f2b71ba844aa26da2169e7c1515bd0ffb2468bd27c67e2158640e4",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-m1-binding-v2.ts",
+      "artifact_type": "m1_binding_adapter",
+      "version": "market_context_historical_trade_m1_binding_adapter_v2",
+      "sha256": "dbddd6c631b07b68b0697dce7487bffa5dbc8f81c004733cc99aaeb40a462f58",
+      "pre_regression_sha256": "dbddd6c631b07b68b0697dce7487bffa5dbc8f81c004733cc99aaeb40a462f58",
+      "post_regression_sha256": "dbddd6c631b07b68b0697dce7487bffa5dbc8f81c004733cc99aaeb40a462f58",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-fixtures-v2.ts",
+      "artifact_type": "synthetic_fixtures",
+      "version": "market_context_historical_trade_to_candle_synthetic_fixtures_v2",
+      "sha256": "9403500b765fa321ec1140c7a5304baacbf5e39f21ec7889cf849ad6083d0fcb",
+      "pre_regression_sha256": "9403500b765fa321ec1140c7a5304baacbf5e39f21ec7889cf849ad6083d0fcb",
+      "post_regression_sha256": "9403500b765fa321ec1140c7a5304baacbf5e39f21ec7889cf849ad6083d0fcb",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-v2.ts",
+      "artifact_type": "implementation",
+      "version": "market_context_historical_trade_to_candle_preparation_v2",
+      "sha256": "a8ffb6a15c4b1f161fa6285d9908bad46d5bc4d30fdfb8ac4b462c46b223ec1b",
+      "pre_regression_sha256": "a8ffb6a15c4b1f161fa6285d9908bad46d5bc4d30fdfb8ac4b462c46b223ec1b",
+      "post_regression_sha256": "a8ffb6a15c4b1f161fa6285d9908bad46d5bc4d30fdfb8ac4b462c46b223ec1b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-667m2c-nanosecond-trade-preparation.spec.ts",
+      "artifact_type": "test_suite",
+      "version": "market_context_historical_trade_to_candle_preparation_tests_v2",
+      "sha256": "a8b36a043aff6d0083c35403e528c5a373688bfa753cbe51444cfee7703bc906",
+      "pre_regression_sha256": "a8b36a043aff6d0083c35403e528c5a373688bfa753cbe51444cfee7703bc906",
+      "post_regression_sha256": "a8b36a043aff6d0083c35403e528c5a373688bfa753cbe51444cfee7703bc906",
+      "git_status": "untracked"
+    }
+  ],
+  "freeze_digest_algorithm": "sha256(concat(sort_by_path(path + NUL + artifact_type + NUL + version + NUL + sha256 + LF)))",
+  "v2_freeze_digest": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f",
+  "v1_after_digest": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+  "v1_frozen_bytes_unchanged": true,
+  "v2_frozen_bytes_unchanged_during_regression": true,
+  "regression": {
+    "m2c_scoped": {
+      "tests": 22,
+      "passed": 22,
+      "failed": 0
+    },
+    "semantic_a_through_m2c": {
+      "tests": 110,
+      "passed": 110,
+      "failed": 0
+    },
+    "full_including_historical_git_status_assertions": {
+      "tests": 112,
+      "passed": 110,
+      "failed": 2,
+      "non_product_failures": [
+        "action_667c_expected_pre_commit_untracked_status",
+        "action_667e_expected_pre_commit_untracked_status"
+      ]
+    },
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_digest": "99eaa771ccf73b61e0f66e8df8db304fc90ce38ec65eb5785c225e11ea73b076",
+    "typescript": "passed",
+    "scoped_eslint": "passed",
+    "git_diff_check": "passed",
+    "provider_database_replay_live_imports": 0,
+    "dependency_changes": 0,
+    "deno_lock_changes": 0
+  },
+  "decisions": {
+    "action_667m2c_nanosecond_remediated": true,
+    "action_667m2c_tiebreak_and_asof_remediated": true,
+    "action_667m2c_m1_binding_adapter_ready": true,
+    "action_667m2c_refreeze_complete": true,
+    "action_667m2c_independent_review_approved": true,
+    "action_667m3_dataset_acquisition_ready": false
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 3,
+    "nit": 1
+  },
+  "security_attestation": {
+    "env_local_contents_read": false,
+    "env_local_git_ignored": true,
+    "env_local_git_tracked": false,
+    "databento_credential_read_printed_validated_or_used": false,
+    "netlify_environment_inspected": false,
+    "authenticated_provider_requests": 0,
+    "provider_downloads": 0
+  },
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

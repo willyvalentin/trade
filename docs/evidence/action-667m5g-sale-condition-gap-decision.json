@@ -1,0 +1,210 @@
+{
+  "action": "667M.5G",
+  "evidence_version": "market_context_action_667m5g_sale_condition_gap_decision_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "aba25a4bdc5f1844678b40172e0f7caede1c4dae94625981ef2eae05b6c5dfd4",
+  "decision_material": {
+    "versions": {
+      "policy": "market_context_diagnostic_all_reported_trades_candle_policy_v1",
+      "decision": "market_context_sale_condition_gap_decision_2026_07_28_v1",
+      "gate": "market_context_diagnostic_normalization_gate_v1",
+      "namespace": "shadow.diagnostic.all_reported_trades.candles.v1",
+      "watermark": "market_context_provisional_diagnostic_watermark_2s_v1",
+      "lineage": "market_context_diagnostic_raw_record_bucket_lineage_v1",
+      "fixtures": "market_context_action_667m5g_synthetic_fixtures_v1"
+    },
+    "artifact_bindings": {
+      "policy_path": "lib/market-context-intelligence-lab/diagnostic-all-reported-trades-candle-policy-v1.ts",
+      "policy_sha256": "108b7caabcc4d3d6216a96a8f3ae2c0d50cd0a05d32e33e55bae0b5db063a9d7",
+      "fixtures_path": "lib/market-context-intelligence-lab/diagnostic-all-reported-trades-candle-fixtures-v1.ts",
+      "fixtures_sha256": "35c5eedbe394af042e2d70a04717a076d6a6f04674d2f14290d2c9e8e18c2c77",
+      "tests_path": "tests/e2e/action-667m5g-sale-condition-gap-decision.spec.ts",
+      "tests_sha256": "ebef4e73756dbb797a85cf8af87c0121e395217c90a4245591e19813ac158344"
+    },
+    "predecessor_evidence": {
+      "m5f_evidence_digest": "169ea4defec513ea2c661f14408974ab5632be106d4727911a8e1ddc5cd282db",
+      "m5f_report_digest": "f89ba8123f48c0553e3aa03a361edde1c5f593c8a953d44e385983ca7dc5abe4",
+      "m5f_raw_file_digest_root": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "combined_calendar_digest": "1858e43c4e1992cb68c840209e0c2f5a098ab3a01798b85ab3b3bbef587df109",
+      "session_count": 20,
+      "record_count": 2420049,
+      "records_with_receive_lag_over_250ms": 0,
+      "records_after_candle_end_plus_2s": 0,
+      "watermark_recommendation": "insufficient_evidence",
+      "unresolved_reason": "sale_condition_semantics_not_exposed_by_dbn_trades"
+    },
+    "sale_condition_gap_decision": {
+      "classification": "diagnostic_only_with_explicit_non_official_semantics",
+      "sale_condition_semantics_available": false,
+      "eligibility_mapping_inferred": false,
+      "diagnostic_all_reported_trades_allowed_for_future_separate_authorization": true,
+      "provider_official_or_eligibility_filtered_claim_allowed": false,
+      "canonical_performance_or_evaluation_allowed": false,
+      "live_ranking_input_allowed": false,
+      "decision_result_digest": "4632c09a9baaef0252b25b699bf029e1cde965b38d2f985d503144283b7b6f47"
+    },
+    "usage_classes": {
+      "provider_official_or_eligibility_filtered_candles": {
+        "status": "not_ready",
+        "official_ohlcv_claimed": false,
+        "blocker": "sale_condition_or_eligibility_evidence_required"
+      },
+      "diagnostic_all_reported_trades_candles": {
+        "status": "diagnostic_normalization_ready",
+        "namespace": "shadow.diagnostic.all_reported_trades.candles.v1",
+        "claim": "diagnostic_all_reported_trades_not_official_ohlcv",
+        "normalization_authorized": false
+      },
+      "canonical_performance_or_evaluation_candles": {
+        "status": "not_ready",
+        "canonical_performance_eligible": false,
+        "blocker": "canonical_eligibility_and_adjustment_evidence_required"
+      },
+      "live_ranking_inputs": {
+        "status": "not_ready",
+        "live_ranking_effect": false,
+        "blocker": "live_use_forbidden"
+      }
+    },
+    "diagnostic_contract": {
+      "source": {
+        "provider": "Databento",
+        "dataset": "EQUS.MINI",
+        "schema": "trades",
+        "publisher_id": 95,
+        "encoding": "dbn",
+        "compression": "zstd"
+      },
+      "raw_file_digest_root_required": true,
+      "exact_twenty_session_calendar_required": true,
+      "exact_action_and_flag_inventory_required": true,
+      "sale_condition_semantics_available": false,
+      "official_ohlcv_claimed": false,
+      "canonical_performance_eligible": false,
+      "live_ranking_effect": false,
+      "nanosecond_event_and_receive_time_required": true,
+      "record_tiebreak": "source_file_sha256_plus_zero_based_record_ordinal",
+      "raw_record_bucket_lineage_required": true,
+      "interval": "1min",
+      "event_time_bucketing": true,
+      "no_forward_fill": true,
+      "explicit_gaps": true,
+      "raw_unadjusted": true,
+      "corporate_actions_available": false,
+      "corporate_actions_included": false,
+      "adjustment_inference_allowed": false,
+      "purpose": "offline_diagnostic_only",
+      "canonical_export_allowed": false,
+      "live_export_allowed": false
+    },
+    "watermark": {
+      "value_ns": "2000000000",
+      "identity": "market_context_provisional_diagnostic_watermark_2s_v1",
+      "status": "empirically_unvalidated",
+      "twenty_session_receive_lag_gate_passed": true,
+      "sale_condition_gap_resolved": false,
+      "provider_certified": false,
+      "production_ready": false,
+      "threshold_changed": false
+    },
+    "fail_closed_matrix": [
+      {
+        "condition": "unknown action",
+        "gate_result": "not_ready",
+        "reason_code": "unknown_or_unsupported_action"
+      },
+      {
+        "condition": "unknown or unsafe flag",
+        "gate_result": "not_ready",
+        "reason_code": "unknown_or_unsafe_flag"
+      },
+      {
+        "condition": "publisher drift",
+        "gate_result": "not_ready",
+        "reason_code": "publisher_drift"
+      },
+      {
+        "condition": "raw digest drift",
+        "gate_result": "not_ready",
+        "reason_code": "raw_digest_drift"
+      },
+      {
+        "condition": "missing session or calendar mismatch",
+        "gate_result": "not_ready",
+        "reason_code": "session_calendar_missing_or_invalid"
+      },
+      {
+        "condition": "missing or colliding record tiebreak",
+        "gate_result": "not_ready",
+        "reason_code": "raw_record_bucket_lineage_or_tiebreak_missing"
+      },
+      {
+        "condition": "negative receive lag",
+        "gate_result": "not_ready",
+        "reason_code": "negative_receive_lag"
+      },
+      {
+        "condition": "event or receive timestamp after as-of",
+        "gate_result": "not_ready",
+        "reason_code": "point_in_time_as_of_violation"
+      },
+      {
+        "condition": "sale-condition data appears without frozen mapping",
+        "gate_result": "conflicting",
+        "reason_code": "sale_condition_data_present_without_frozen_mapping"
+      },
+      {
+        "condition": "diagnostic output labeled official, canonical or live",
+        "gate_result": "conflicting",
+        "reason_code": "diagnostic_output_mislabeling_attempted"
+      },
+      {
+        "condition": "corporate-action or adjustment inference",
+        "gate_result": "conflicting",
+        "reason_code": "corporate_action_or_adjustment_inference_attempted"
+      }
+    ],
+    "independent_review": {
+      "review_version": "market_context_action_667m5g_independent_review_v1",
+      "approved": true,
+      "blocker_findings": 0,
+      "major_findings": 0,
+      "minor_findings": 0,
+      "nit_findings": 0,
+      "semantic_honesty": "approved_diagnostic_outputs_cannot_claim_official_ohlcv",
+      "incorrect_ohlc_claim_risk": "controlled_by_negative_claim_attestations_and_conflicting_status",
+      "point_in_time_safety": "approved_exact_as_of_and_future_counts_required",
+      "watermark_boundary": "approved_provisional_only_empirically_unvalidated",
+      "raw_lineage": "approved_digest_record_tiebreak_and_bucket_identity_required",
+      "performance_leakage": "controlled_canonical_performance_usage_forbidden",
+      "live_and_canonical_isolation": "approved_both_always_not_ready",
+      "remaining_explicit_limitation": "sale_condition_semantics_unavailable"
+    },
+    "execution_boundary": {
+      "provider_activity": 0,
+      "downloads": 0,
+      "raw_records_decoded": 0,
+      "candles_normalized": 0,
+      "replays": 0,
+      "database_writes": 0,
+      "canonical_bindings": 0,
+      "live_consumer_changes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0
+    },
+    "statuses": {
+      "action_667m5g_sale_condition_gap_classified": true,
+      "action_667m5g_diagnostic_candle_policy_ready": true,
+      "action_667m5g_official_ohlcv_claim_prevented": true,
+      "action_667m5g_independent_review_approved": true,
+      "action_667m5h_diagnostic_normalization_ready": true,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

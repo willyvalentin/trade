@@ -1,0 +1,112 @@
+{
+  "action": "667M.2B",
+  "manifest_version": "market_context_trade_to_candle_freeze_manifest_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "head": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "path": "docs/action-667m2a-deterministic-trade-to-candle-preparation-contract.md",
+      "artifact_type": "contract_documentation",
+      "version": "market_context_historical_trade_to_candle_preparation_v1",
+      "sha256": "4e466995d517d3ccf0b646ecfde40ccce54337bf3fa1125c4ebf01043b7e5247",
+      "pre_regression_sha256": "4e466995d517d3ccf0b646ecfde40ccce54337bf3fa1125c4ebf01043b7e5247",
+      "post_regression_sha256": "4e466995d517d3ccf0b646ecfde40ccce54337bf3fa1125c4ebf01043b7e5247",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667m2a-trade-to-candle-preparation-evidence.json",
+      "artifact_type": "machine_readable_evidence",
+      "version": "market_context_historical_trade_to_candle_preparation_evidence_v1",
+      "sha256": "cbb24280fc43ade0fd322a1821e0beecdf216d6157ae0843d7c9a5b0eda4113b",
+      "pre_regression_sha256": "cbb24280fc43ade0fd322a1821e0beecdf216d6157ae0843d7c9a5b0eda4113b",
+      "post_regression_sha256": "cbb24280fc43ade0fd322a1821e0beecdf216d6157ae0843d7c9a5b0eda4113b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixtures",
+      "version": "market_context_historical_trade_to_candle_synthetic_fixtures_v1",
+      "sha256": "ad6db4ac85226629d067dc39950440eb77f9a4b50816fa0d94b308be21069635",
+      "pre_regression_sha256": "ad6db4ac85226629d067dc39950440eb77f9a4b50816fa0d94b308be21069635",
+      "post_regression_sha256": "ad6db4ac85226629d067dc39950440eb77f9a4b50816fa0d94b308be21069635",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-v1.ts",
+      "artifact_type": "implementation",
+      "version": "market_context_historical_trade_to_candle_preparation_v1",
+      "sha256": "b7aa7ab03fa005b44310fc00d8c07fafaed24999ad3c662967e535860af00a30",
+      "pre_regression_sha256": "b7aa7ab03fa005b44310fc00d8c07fafaed24999ad3c662967e535860af00a30",
+      "post_regression_sha256": "b7aa7ab03fa005b44310fc00d8c07fafaed24999ad3c662967e535860af00a30",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-667m2a-trade-to-candle-preparation.spec.ts",
+      "artifact_type": "test_suite",
+      "version": "market_context_historical_trade_to_candle_preparation_tests_v1",
+      "sha256": "54527aacdc8f112ef8714ca8ebf196c329cc8c3a1d14a932d32c77505168c645",
+      "pre_regression_sha256": "54527aacdc8f112ef8714ca8ebf196c329cc8c3a1d14a932d32c77505168c645",
+      "post_regression_sha256": "54527aacdc8f112ef8714ca8ebf196c329cc8c3a1d14a932d32c77505168c645",
+      "git_status": "untracked"
+    }
+  ],
+  "freeze_digest_algorithm": "sha256(concat(sort_by_path(path + NUL + artifact_type + NUL + version + NUL + sha256 + LF)))",
+  "freeze_digest": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+  "frozen_bytes_unchanged_during_regression": true,
+  "regression": {
+    "playwright": {
+      "tests": 22,
+      "passed": 22,
+      "failed": 0
+    },
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_byte_identical": true,
+    "cross_timezone_digest": "0b2df5ba6e6b29d97afe91d304ece0094c9fdfebee3e72b4b4ce4177b331044f",
+    "typescript": "passed",
+    "scoped_eslint": "passed",
+    "git_diff_check": "passed",
+    "evidence_json_parity": "passed",
+    "provider_database_replay_live_imports": 0,
+    "dependency_changes": 0,
+    "deno_lock_changes": 0
+  },
+  "decisions": {
+    "action_667m2b_trade_to_candle_frozen": true,
+    "action_667m2b_independent_review_approved": false,
+    "action_667m3_dataset_acquisition_ready": false
+  },
+  "finding_counts": {
+    "blocker": 1,
+    "major": 3,
+    "minor": 3,
+    "nit": 1
+  },
+  "security_attestation": {
+    "credentials_read_printed_validated_or_inspected": false,
+    "authenticated_provider_requests": 0,
+    "provider_quote_metadata_entitlement_or_cost_requests": 0,
+    "provider_downloads": 0
+  },
+  "external_activity": {
+    "real_data_normalizations": 0,
+    "replay_runs": 0,
+    "database_connections": 0,
+    "canonical_bindings": 0,
+    "persistence_or_capture": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  },
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "next_action": "667M.3_metadata_only_databento_quote_entitlement_and_license_gate"
+}

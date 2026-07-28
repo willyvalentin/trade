@@ -1,0 +1,69 @@
+{
+  "review_version": "market_context_action_667m3d1_whitespace_portability_independent_review_v1",
+  "reviewed_on": "2026-07-28",
+  "review_mode": "independent_read_only_after_implementation_freeze",
+  "review_material": {
+    "original_freeze_manifest": {
+      "path": "docs/evidence/action-667m3d-provider-verbatim-license-freeze-manifest.json",
+      "sha256": "5c86da3a491e2fd95a0343da7ee043571a6a15828a300f432cc2bb3b05d856a0",
+      "artifact_digest": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c"
+    },
+    "portability_successor_manifest": {
+      "path": "docs/evidence/action-667m3d1-whitespace-portability-refreeze-manifest.json",
+      "sha256": "ec52f739165a5bbadf9d557d06a197af9415df1c3d13ab3da340ddb58d1c2c3d"
+    },
+    "regression_test": {
+      "path": "tests/e2e/action-667m3d1-whitespace-portability-refreeze.spec.ts",
+      "sha256": "02ef41944226ce8bd161bbf841040c09129d3728fc343182d80169726758c81b",
+      "result": "5_passed"
+    },
+    "review_document": {
+      "path": "docs/action-667m3d1-whitespace-portability-refreeze-review.md",
+      "sha256": "5cdd5f6df47a6e404cf1f52fca4bf5dbedca894de266b72d98cd6e7488fcc7c6"
+    },
+    "historical_document_sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+    "successor_document_sha256": "1ee0c890d0a96cd31b352ddf199eec68ec4d6591ca4cdcc5c3385c7b34c537f7",
+    "non_whitespace_sha256": "64975c8ca2ee61591d403841a007637d088fc5910b52c470ac084419577ce625",
+    "successor_artifact_digest": "0d48f9a04b3bfd5bbf9d6259fff5ba277eedba00539f914883d7d4f1ed5689e7"
+  },
+  "review_checks": {
+    "original_freeze_byte_identical": true,
+    "historical_artifact_hashes_preserved": true,
+    "exact_three_occurrence_transformation": true,
+    "non_whitespace_digest_identical": true,
+    "provider_transcription_reinterpreted": false,
+    "license_rights_reinterpreted": false,
+    "readiness_fields_changed": false,
+    "canonical_evidence_changed": false,
+    "historical_provenance_lossless": true,
+    "successor_relation_lossless": true,
+    "tampering_fail_closed": true,
+    "review_step_remediation_performed": false
+  },
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "decisions": {
+    "action_667m3d1_portability_refreeze_complete": true,
+    "action_667m3d1_historical_freeze_preserved": true,
+    "action_667m3d1_semantic_equivalence_verified": true,
+    "action_667m3d1_independent_review_approved": true,
+    "staging_performed": false,
+    "commit_performed": false
+  },
+  "review_evidence_digest_algorithm": "sha256(canonical_json(review_material + review_checks + findings + finding_counts + decisions))",
+  "review_evidence_digest": "88d79d41e1f06dd370898a03acfaf01a57e7548ce4143f4d2f9e8b5443668655",
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m3d1-whitespace-portability-refreeze-review.json",
+    "reason": "The review evidence excludes its own bytes to avoid a recursive digest."
+  }
+}
