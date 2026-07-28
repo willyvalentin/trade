@@ -1,0 +1,105 @@
+{
+  "artifact_version": "action_667n2a_context_snapshot_trust_finalization_remediation_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest": "4ff969d4e0616d06e913bf681ac4251d052698c6ed4ab8a158c63ac7b1a67b19",
+  "decision_material": {
+    "action": "667N.2A",
+    "versions": {
+      "contract": "market_context_diagnostic_decision_time_context_feature_snapshot_v2",
+      "result": "market_context_diagnostic_decision_time_context_feature_result_v2",
+      "envelope": "market_context_diagnostic_context_feature_envelope_v2",
+      "registry": "market_context_diagnostic_trusted_source_registry_v1",
+      "authority": "market_context_diagnostic_trusted_source_authority_v1",
+      "finalization_policy": "market_context_diagnostic_context_finalized_bucket_policy_v2"
+    },
+    "predecessor": {
+      "freeze_digest": "c56c1cfabb66b3768a450804d7ab551fd4ee1d253908076098ab5d82acf38cd4",
+      "historical_review_evidence_digest": "7ac402599e5615d84738da08383409bc8189cddc11de0d04d0eeb15bc019f0b5",
+      "snapshot_result_digest": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "action_667n1_evidence_digest": "5e607b07eda340d4253f424e64534f6639dbb2150ff764fa23ec5b0fa2e906c5",
+      "predecessor_bytes_changed": false,
+      "predecessor_snapshots_implicitly_remediated": false
+    },
+    "result": {
+      "decision_count": 60,
+      "taxonomy_counts": {
+        "mapped": 31,
+        "insufficient_data": 7,
+        "conflicting": 22,
+        "not_point_in_time_safe": 0
+      },
+      "canonical_result_digest": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+      "source_inventory_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555"
+    },
+    "trusted_source_registry": {
+      "registry_identity": "market_context_diagnostic_2026_20_sessions_trusted_source_registry_v1",
+      "registry_version": "market_context_diagnostic_trusted_source_registry_v1",
+      "registry_digest": "cc7f4eadf56c6e91e1c0bb3ff6ad237111202012c4a05395888ec5f151f406da",
+      "decision_inventory_digest": "e68883c3e84b59b983cab5aede48dbe9f9f57524e2c8239c030401c29cb2840e",
+      "decision_count": 60,
+      "caller_supplies_expected_authority_root": false,
+      "default_off_before_registry_read": true,
+      "lookup_exceptions_sanitized": true
+    },
+    "remediation": {
+      "N2-001": {
+        "status": "remediated",
+        "closed_nested_schemas": true,
+        "unknown_fields_rejected": true,
+        "recursive_forbidden_claim_scan": true,
+        "objects_arrays_and_deep_nesting_tested": true
+      },
+      "N2-002": {
+        "status": "remediated",
+        "external_dependency_injected_anchor": true,
+        "caller_self_authorization_rejected": true,
+        "registry_and_source_decision_independently_resolved": true,
+        "registry_identity_version_digest_bound_in_result": true
+      },
+      "N2-003": {
+        "status": "remediated",
+        "observation_bounded_by_latest_finalized_bucket": true,
+        "minus_one_nanosecond_tested": true,
+        "exact_boundary_tested": true,
+        "plus_one_nanosecond_rejected": true,
+        "watermark_value_bound_to_external_registry": true,
+        "provider_bucket_and_finalization_timestamps_separate": true,
+        "pending_buckets_counted_as_missing": false
+      }
+    },
+    "determinism": {
+      "utc_run_a": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+      "utc_run_b": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+      "stockholm_reverse": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+      "new_york": "1daf257e2549564a09cad1095a86333f6fb7aa70d27708408171ffa8f276cbc0",
+      "byte_identical": true
+    },
+    "boundary": {
+      "diagnostic_only": true,
+      "official_ohlcv": false,
+      "canonical_performance_eligible": false,
+      "causal_claimed": false,
+      "outcome_explanation_claimed": false,
+      "live_ranking_effect": false,
+      "automatic_model_input_allowed": false
+    },
+    "statuses": {
+      "action_667n2a_nested_claim_boundary_remediated": true,
+      "action_667n2a_external_source_authority_remediated": true,
+      "action_667n2a_finalized_bucket_boundary_remediated": true,
+      "action_667n2a_sixty_snapshots_reconciled": true,
+      "action_667n2a_cross_timezone_determinism_passed": true,
+      "outcome_join_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    },
+    "external_activity": {
+      "provider_calls": 0,
+      "normalization_runs": 0,
+      "replay_runs": 0,
+      "outcome_joins": 0,
+      "database_writes": 0,
+      "live_consumer_changes": 0
+    }
+  }
+}
