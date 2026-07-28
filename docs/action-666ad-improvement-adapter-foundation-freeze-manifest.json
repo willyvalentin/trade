@@ -1,0 +1,71 @@
+{
+  "manifest_version": "action_666ad_improvement_adapter_foundation_freeze_manifest_v1",
+  "base_sha": "3a76459d1caff06193f8f2d97602cecf156f2b12",
+  "branch": "codex/action-666ac-governed-improvement-input-adapter",
+  "contract_versions": [
+    "canonical_completed_improvement_evidence_adapter_v1",
+    "canonical_improvement_proposal_replay_v1"
+  ],
+  "canonical_freeze_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "253863ccb5ae9d6a1abf8729a29e1b61f4ed3c6991831b1f549846025293098e",
+  "freeze_digests": {
+    "pre_regression": "253863ccb5ae9d6a1abf8729a29e1b61f4ed3c6991831b1f549846025293098e",
+    "post_regression": "253863ccb5ae9d6a1abf8729a29e1b61f4ed3c6991831b1f549846025293098e",
+    "post_review": "253863ccb5ae9d6a1abf8729a29e1b61f4ed3c6991831b1f549846025293098e"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666ac-completed-improvement-evidence-adapter.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "18c8178b25b2ec34b994308e64b4bf01e7c58bb1f9db8f930ed4ddd48d4871e9",
+      "git_status": "untracked",
+      "classification": "normative_contract_documentation"
+    },
+    {
+      "path": "docs/action-666ac-golden-improvement-adapter-report.json",
+      "artifact_type": "machine_readable_golden_evidence",
+      "sha256": "f3fa4c0ac7468409e0c129c7129ba57542f9d701d7cecefe65b1c615fbc4bfa6",
+      "git_status": "untracked",
+      "classification": "normative_synthetic_golden_evidence"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-input-adapter-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "sha256": "1bc228df668777fbf8d34dc966f472d518dd0cf4db73570ca7bc46bbf898071e",
+      "git_status": "untracked",
+      "classification": "normative_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-input-adapter.ts",
+      "artifact_type": "server_only_adapter_and_replay_harness",
+      "sha256": "ca26f3fbe1afac0dbeccdc60b326a2d4d0a40ea2ca5acd455f1001cb2d09f022",
+      "git_status": "untracked",
+      "classification": "normative_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts",
+      "artifact_type": "deterministic_contract_tests",
+      "sha256": "2fe0c20a077dbdb15e963c492f5cdc8926eafb572bccac32337aaaad9fe6dedb",
+      "git_status": "untracked",
+      "classification": "normative_verification"
+    }
+  ],
+  "review_evidence_paths": [
+    "docs/action-666ad-independent-review.md"
+  ],
+  "review_evidence_sha256": "5aba4c23943e7817cb18f1d12e13e6980cd31cfcdc460234109ae12baa5f92a9",
+  "review_evidence_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "review_evidence_digest": "c3cd9fb83760b3a0b6a66563c58d92d06ecd9f2df9fa4244ec504c8ed890cf2b",
+  "freeze_manifest_is_outside_normative_digest": true,
+  "review_evidence_is_outside_normative_digest": true,
+  "verification_status": "review_complete_with_findings",
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 1,
+    "nit": 0
+  },
+  "independent_review_approved": false,
+  "local_checkpoint_ready": false
+}

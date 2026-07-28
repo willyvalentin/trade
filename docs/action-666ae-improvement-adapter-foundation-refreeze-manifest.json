@@ -1,0 +1,89 @@
+{
+  "manifest_version": "action_666ae_improvement_adapter_foundation_refreeze_manifest_v1",
+  "base_sha": "3a76459d1caff06193f8f2d97602cecf156f2b12",
+  "branch": "codex/action-666ac-governed-improvement-input-adapter",
+  "contract_versions": [
+    "canonical_completed_improvement_evidence_adapter_v2",
+    "canonical_improvement_proposal_replay_v2",
+    "canonical_improvement_replay_input_projection_v1",
+    "canonical_previous_binding_request_identity_v1"
+  ],
+  "canonical_freeze_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "predecessor_normative_freeze_digest": "253863ccb5ae9d6a1abf8729a29e1b61f4ed3c6991831b1f549846025293098e",
+  "historical_review_evidence_digest": "c3cd9fb83760b3a0b6a66563c58d92d06ecd9f2df9fa4244ec504c8ed890cf2b",
+  "historical_evidence": [
+    {
+      "path": "docs/action-666ad-improvement-adapter-foundation-freeze-manifest.json",
+      "sha256": "a111095ae9a64666269b02e6ef24e466c01499e18e6fec224b589fa54c60c76d",
+      "classification": "historical_predecessor_freeze_evidence",
+      "byte_preserved": true
+    },
+    {
+      "path": "docs/action-666ad-independent-review.md",
+      "sha256": "5aba4c23943e7817cb18f1d12e13e6980cd31cfcdc460234109ae12baa5f92a9",
+      "classification": "historical_rejected_review_evidence",
+      "byte_preserved": true
+    }
+  ],
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "4677687062d546633c201c72120e7c5fecbb99310e79d0df4e0162e5c2f653c1",
+  "freeze_digests": {
+    "pre_regression": "4677687062d546633c201c72120e7c5fecbb99310e79d0df4e0162e5c2f653c1",
+    "post_regression": "4677687062d546633c201c72120e7c5fecbb99310e79d0df4e0162e5c2f653c1",
+    "post_review": "4677687062d546633c201c72120e7c5fecbb99310e79d0df4e0162e5c2f653c1"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666ac-completed-improvement-evidence-adapter.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "c7b320205cd46e942eb1bab8456294d9b37f3a422378b1ecbb0f1ed710a1f246",
+      "git_status": "untracked",
+      "classification": "normative_remediated_contract_documentation"
+    },
+    {
+      "path": "docs/action-666ac-golden-improvement-adapter-report.json",
+      "artifact_type": "machine_readable_golden_evidence",
+      "sha256": "0788a3a40b516d4ef9d90778806e1bae6c774014a1b8c26bcd76dbbe403a2861",
+      "git_status": "untracked",
+      "classification": "normative_remediated_synthetic_golden_evidence"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-input-adapter-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "sha256": "1bc228df668777fbf8d34dc966f472d518dd0cf4db73570ca7bc46bbf898071e",
+      "git_status": "untracked",
+      "classification": "normative_preserved_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-model-improvement-input-adapter.ts",
+      "artifact_type": "server_only_adapter_and_replay_harness",
+      "sha256": "fe291b1f9b85fa4420d3dfbcec9d0ee6535be987f740d870db5afae5be9a0715",
+      "git_status": "untracked",
+      "classification": "normative_remediated_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts",
+      "artifact_type": "deterministic_contract_tests",
+      "sha256": "0dfab906237f25f83a452304d8dac68fc072211bc1d15c00ee287611b871ccc8",
+      "git_status": "untracked",
+      "classification": "normative_remediated_verification"
+    }
+  ],
+  "final_review_evidence_paths": [
+    "docs/action-666ae-improvement-adapter-independent-rereview.md"
+  ],
+  "final_review_evidence_sha256": "49fd80a53d610959249a535622a5bd9ffc80b6e3c25fc739bd67b73ccb169162",
+  "final_review_evidence_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "final_review_evidence_digest": "f236eb2145eb62553955963c98f877a2faf2ca3d118543fd27e111de09824b76",
+  "refreeze_manifest_is_outside_normative_digest": true,
+  "review_evidence_is_outside_normative_digest": true,
+  "verification_status": "refreeze_and_rereview_complete",
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "independent_rereview_approved": true,
+  "local_checkpoint_ready": true
+}
