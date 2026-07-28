@@ -1,0 +1,147 @@
+{
+  "manifest_version": "action_666ar_governed_improvement_end_to_end_replay_freeze_manifest_v1",
+  "review_date": "2026-07-28",
+  "branch": "codex/action-666aq-governed-improvement-end-to-end-replay",
+  "base_sha": "aec3bd76c8376ce2c3ce02e8052b44e907c30abd",
+  "head_sha": "aec3bd76c8376ce2c3ce02e8052b44e907c30abd",
+  "canonical_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "a3f67e692aea5c1db0770d803a78337114a53d464e614b69930ad2a1d9e26d68",
+  "freeze_digests": {
+    "pre_regression": "a3f67e692aea5c1db0770d803a78337114a53d464e614b69930ad2a1d9e26d68",
+    "post_regression": "a3f67e692aea5c1db0770d803a78337114a53d464e614b69930ad2a1d9e26d68",
+    "post_review": "a3f67e692aea5c1db0770d803a78337114a53d464e614b69930ad2a1d9e26d68"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666aq-golden-governed-improvement-end-to-end-report.json",
+      "artifact_type": "machine_readable_synthetic_golden_evidence",
+      "size_bytes": 3202,
+      "sha256": "3c5a84320c586922429ac654bb58534868e49ed3d76b013062671d6e92efd86b",
+      "git_status": "untracked",
+      "classification": "normative_synthetic_not_publishable"
+    },
+    {
+      "path": "docs/action-666aq-governed-improvement-end-to-end-replay.md",
+      "artifact_type": "contract_documentation",
+      "size_bytes": 4760,
+      "sha256": "2b9f8d786b939352d8a8240f20c1f0ca134457a66972a3d6b74159fdcac3dd81",
+      "git_status": "untracked",
+      "classification": "normative_contract_documentation"
+    },
+    {
+      "path": "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "size_bytes": 11241,
+      "sha256": "b28e281bbeb5ff96728b00c2d69607574af343ec954bc56dcfdbb73691e3c590",
+      "git_status": "untracked",
+      "classification": "normative_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
+      "artifact_type": "server_only_default_off_end_to_end_replay_contract",
+      "size_bytes": 39413,
+      "sha256": "9030236f066a960d754fced5431c0e99b239ad7a4ad084da7e677b87632e787e",
+      "git_status": "untracked",
+      "classification": "normative_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666aq-governed-improvement-end-to-end-replay.spec.ts",
+      "artifact_type": "deterministic_contract_and_threat_tests",
+      "size_bytes": 19609,
+      "sha256": "ffd5b589d80fe09e3b8182b8786a9845b9167fb0154b3ae49c8d861f4c1468d8",
+      "git_status": "untracked",
+      "classification": "normative_verification"
+    }
+  ],
+  "predecessor_action_666_trust_roots": {
+    "governed_proposal_foundation_digest": {
+      "value": "aa8c47473899f6e28d368db9224673938dddc0f58b9e223e2488ce6e4573a436",
+      "evidence_path": "docs/action-666x-improvement-foundation-refreeze-manifest.json"
+    },
+    "completed_adapter_foundation_digest": {
+      "value": "4677687062d546633c201c72120e7c5fecbb99310e79d0df4e0162e5c2f653c1",
+      "evidence_path": "docs/action-666ae-improvement-adapter-foundation-refreeze-manifest.json"
+    },
+    "completed_capture_foundation_digest": {
+      "value": "bb80f737a4910807cd01d16a3f5e0af84300482622c1f98eaf6f0a420a72b4f0",
+      "evidence_path": "docs/action-666al-completed-evidence-capture-foundation-refreeze-manifest.json"
+    },
+    "proposal_registry_manifest_digest": {
+      "value": "3d8713736e37dc288f9e6ff6991f3306b6a3230cfa01c6273c041f1b3c07e5be",
+      "evidence_path": "lib/server/canonical-model-improvement-proposal.ts"
+    }
+  },
+  "contract_versions": [
+    "canonical_governed_improvement_end_to_end_replay_v1",
+    "canonical_governed_improvement_end_to_end_request_v1",
+    "canonical_governed_improvement_end_to_end_lineage_v1",
+    "canonical_governed_improvement_end_to_end_stage_v1",
+    "canonical_governed_improvement_stage_lookup_observation_v1"
+  ],
+  "evidence_boundary": {
+    "classification": "synthetic_fixture_only",
+    "shadow_only": true,
+    "not_publishable": true,
+    "real_ture_performance_claimed": false,
+    "probability_claimed": false,
+    "profitability_claimed": false,
+    "causal_claimed": false
+  },
+  "safety_boundary": {
+    "default_enabled": false,
+    "default_kill_switch_engaged": true,
+    "live_ranking_effect": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_effective_canonical_truth_authority": false,
+    "external_ai_terminal_metadata_declared": false,
+    "external_ai_terminal_metadata_finding": "666AR-m1"
+  },
+  "verification": {
+    "focused_action_666aq": "20/20",
+    "relevant_action_665_666": "260/260",
+    "action_664_foundation": "163/163",
+    "separate_postgresql_matrix": "13/13",
+    "typescript": "passed",
+    "scoped_eslint": "passed_zero_warnings",
+    "json_parity": "passed",
+    "production_build": "passed",
+    "git_diff_check": "passed",
+    "security_scope_checks": "passed",
+    "clean_room_checkout_removed": true
+  },
+  "review_evidence": {
+    "path": "docs/action-666ar-governed-improvement-end-to-end-replay-independent-review.md",
+    "size_bytes": 11472,
+    "sha256": "a94661f708b7fa22c2d2ed86d2a547454ef7bd686f0b2cb0e4c99c78925817d6",
+    "canonical_review_evidence_digest_algorithm": "sha256_over_recursively_key_sorted_json_utf8_v1",
+    "canonical_review_evidence_digest": "64a552bd764d001d91c3ba59ba0f59bc8055a5501390e2bd50c003d8d5f5db88"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 1,
+    "nit": 0
+  },
+  "finding_ids": [
+    "666AR-m1"
+  ],
+  "binary_decisions": {
+    "foundation_frozen": true,
+    "stage_authority_verified": true,
+    "transitive_lineage_verified": true,
+    "failure_identity_verified": true,
+    "default_off_boundary_verified": true,
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true
+  },
+  "self_exclusion": {
+    "manifest_outside_normative_digest": true,
+    "review_report_outside_normative_digest": true
+  }
+}
