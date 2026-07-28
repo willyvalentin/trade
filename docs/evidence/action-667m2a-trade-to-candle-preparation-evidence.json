@@ -1,0 +1,181 @@
+{
+  "action": "667M.2A",
+  "evidence_version": "market_context_historical_trade_to_candle_preparation_evidence_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "action_667m2a_trade_to_candle_contract_implemented": true,
+  "versions": {
+    "contract": "market_context_historical_trade_to_candle_preparation_v1",
+    "preparation_policy": "market_context_historical_trade_to_candle_policy_2026_07_27_v1",
+    "watermark_policy": "market_context_historical_trade_watermark_2s_v1",
+    "eligibility_policy": "market_context_historical_trade_eligibility_strict_v1",
+    "session_policy": "market_context_xnys_explicit_session_calendar_v1",
+    "canonicalization": "market_context_historical_trade_canonical_json_v1",
+    "sector_breadth": "market_context_sector_etf_breadth_v1",
+    "fixtures": "market_context_historical_trade_to_candle_synthetic_fixtures_v1"
+  },
+  "official_schema_evidence": {
+    "provider": "Databento",
+    "dataset": "EQUS.MINI",
+    "schema": "trades",
+    "facts": {
+      "event_timestamp": "ts_event",
+      "receive_timestamp": "ts_recv",
+      "price": "int64_scaled_1e9",
+      "size": "uint32",
+      "sequence": "uint32",
+      "trades_action": "T",
+      "equs_mini_sequence": "always_zero",
+      "flags": "uint8_bit_field",
+      "sale_condition_field_verified": false
+    },
+    "official_urls": [
+      "https://databento.com/docs/schemas-and-data-formats/trades",
+      "https://databento.com/docs/standards-and-conventions/common-fields-enums-types",
+      "https://databento.com/docs/venues-and-datasets/equs-mini"
+    ],
+    "authenticated_provider_calls": 0
+  },
+  "policies": {
+    "bucket_basis": "exchange_event_timestamp",
+    "interval": "1min",
+    "stable_order": [
+      "event_timestamp",
+      "sequence",
+      "tie_break_id",
+      "raw_record_id"
+    ],
+    "max_lateness_ms": 2000,
+    "late_trade_policy": "exclude_and_count",
+    "unfinalized_bucket_policy": "omit_and_report_gap",
+    "future_event_or_receive_policy": "reject_dataset",
+    "duplicate_policy": "reject_dataset",
+    "unsupported_action_policy": "reject_dataset",
+    "conditions_policy": "empty_only_fail_closed",
+    "outside_session_policy": "exclude_and_count",
+    "missing_minute_policy": "preserve_gap_no_forward_fill",
+    "input_array_order": "unordered_transport_source_position_is_authoritative",
+    "raw_bytes_mutated": false
+  },
+  "allowed_semantics": {
+    "action": [
+      "T"
+    ],
+    "flags": [
+      "F_LAST",
+      "reserved_safe_to_ignore_bit"
+    ]
+  },
+  "unsupported_provider_semantics": [
+    {
+      "semantic": "correction_cancel_modify_or_non_trade_action",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "F_BAD_TS_RECV",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "F_MAYBE_BAD_BOOK",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "F_PUBLISHER_SPECIFIC",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "snapshot_mbp_or_tob_flags_in_trades_input",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "non_empty_sale_or_provider_conditions",
+      "handling": "reject_dataset"
+    },
+    {
+      "semantic": "provider_revision_identity_not_supplied",
+      "handling": "not_acquirable"
+    }
+  ],
+  "output_preservation": {
+    "ohlcv_from_eligible_only": true,
+    "first_last_event_timestamp": true,
+    "first_last_receive_timestamp": true,
+    "trade_count": true,
+    "excluded_count_and_reason_codes": true,
+    "source_record_digest": true,
+    "raw_to_candle_lineage": true,
+    "raw_record_dispositions": true,
+    "normalized_digest": true,
+    "gaps_explicit": true,
+    "forward_fill": false
+  },
+  "fixture_results": {
+    "preparation_fixture_count": 18,
+    "prepared_fixture_count": 12,
+    "rejected_fixture_count": 6,
+    "test_count": 22,
+    "passed": 22,
+    "failed": 0,
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_byte_identical": true,
+    "cross_timezone_output_sha256": "0b2df5ba6e6b29d97afe91d304ece0094c9fdfebee3e72b4b4ce4177b331044f",
+    "input_array_order_byte_identical": true,
+    "input_immutable": true,
+    "naive_timestamp_rejection": true,
+    "future_timestamp_rejection": true,
+    "tampered_digest_rejection": true,
+    "dst_explicit_session_test": true,
+    "half_day_boundary_test": true,
+    "missing_minute_gap_test": true,
+    "spy_qqq_sector_parallel_test": true
+  },
+  "sector_breadth_result": {
+    "expected_constituents": 11,
+    "observed_constituents": 11,
+    "advancing_count": 7,
+    "above_short_average_count": 6,
+    "advancing_fraction": 0.636364,
+    "above_short_average_fraction": 0.545455,
+    "classification": "declared_eleven_sector_etf_participation",
+    "not_full_market_breadth": true
+  },
+  "remaining_operator_decisions": [
+    "exact_source_product_and_symbol_entitlement",
+    "written_license_and_retention_rights",
+    "exact_quote_and_cost_ceiling",
+    "corporate_action_product_and_policy",
+    "explicit_utc_range_and_xnys_calendar",
+    "non_repository_storage_paths",
+    "provider_dataset_build_and_revision_metadata",
+    "independent_m2a_freeze_review",
+    "separate_acquisition_authorization"
+  ],
+  "verification": {
+    "playwright": "22_passed",
+    "typescript": "passed",
+    "eslint": "passed",
+    "git_diff_check": "passed",
+    "provider_or_live_imports": false,
+    "deno_lock_changed": false
+  },
+  "activity_attestation": {
+    "authenticated_provider_calls": 0,
+    "provider_data_rows_acquired": 0,
+    "downloads": 0,
+    "purchases_or_plan_changes": 0,
+    "real_data_normalizations": 0,
+    "replay_runs": 0,
+    "database_connections": 0,
+    "persistence_or_capture": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_requests": 0
+  },
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "recommended_next_action": "667M.2B_independent_trade_to_candle_contract_freeze_and_review"
+}
