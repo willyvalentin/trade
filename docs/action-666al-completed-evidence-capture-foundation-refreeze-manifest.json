@@ -1,0 +1,91 @@
+{
+  "manifest_version": "action_666al_completed_evidence_capture_foundation_refreeze_manifest_v1",
+  "base_sha": "e87bb62198b54143ea9d3456a1d7872dc81d8871",
+  "branch": "codex/action-666aj-completed-improvement-evidence-capture",
+  "contract_versions": [
+    "canonical_completed_improvement_evidence_capture_v2",
+    "canonical_completed_improvement_evidence_capture_request_v1",
+    "canonical_completed_improvement_evidence_capture_authority_v1",
+    "canonical_completed_improvement_evidence_capture_binding_v1",
+    "canonical_completed_improvement_lookup_observation_v1",
+    "canonical_completed_improvement_terminal_result_v1"
+  ],
+  "canonical_freeze_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "predecessor_normative_freeze_digest": "e724666d1576a2b3208344f6b6ce4f7d6cee7c93c55284d279e64f3eaacbd550",
+  "historical_review_evidence_digest": "2e419b577ca767b9d9d5146ff2154008999d8af88ead0b4d38c471bd943ea25b",
+  "historical_evidence": [
+    {
+      "path": "docs/action-666ak-completed-evidence-capture-foundation-freeze-manifest.json",
+      "sha256": "0353901c32373d03d683b1faf65101c19499614decdee90b9fc92aaab7757c5a",
+      "classification": "historical_predecessor_freeze_evidence",
+      "byte_preserved": true
+    },
+    {
+      "path": "docs/action-666ak-completed-evidence-capture-independent-review.md",
+      "sha256": "7c4701bbe70ecb64cbc635c29a317a9b096f17bb674ebb93f754c1bae5fe8c6c",
+      "classification": "historical_rejected_review_evidence",
+      "byte_preserved": true
+    }
+  ],
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "bb80f737a4910807cd01d16a3f5e0af84300482622c1f98eaf6f0a420a72b4f0",
+  "freeze_digests": {
+    "pre_regression": "bb80f737a4910807cd01d16a3f5e0af84300482622c1f98eaf6f0a420a72b4f0",
+    "post_regression": "bb80f737a4910807cd01d16a3f5e0af84300482622c1f98eaf6f0a420a72b4f0",
+    "post_review": "bb80f737a4910807cd01d16a3f5e0af84300482622c1f98eaf6f0a420a72b4f0"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666aj-completed-improvement-evidence-capture.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "bbe351fffc1ece785b5ef76a7f33dba6233c568ff7e4c4c29d56e46aa700a3df",
+      "git_status": "untracked",
+      "classification": "normative_remediated_contract_documentation"
+    },
+    {
+      "path": "docs/action-666aj-golden-completed-improvement-capture-report.json",
+      "artifact_type": "machine_readable_golden_evidence",
+      "sha256": "9f65ad9f14cb65c02344ec48a81632fe86073bef422ec08d758d52b5d634bc30",
+      "git_status": "untracked",
+      "classification": "normative_remediated_synthetic_golden_evidence"
+    },
+    {
+      "path": "lib/server/canonical-completed-improvement-evidence-capture-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "sha256": "8dd0321139ba7a2c7dd25a7c7efcd8f5f99b91aaa3418762af92ca627cf322ce",
+      "git_status": "untracked",
+      "classification": "normative_preserved_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-completed-improvement-evidence-capture.ts",
+      "artifact_type": "server_only_capture_contract_and_default_off_harness",
+      "sha256": "fc040978aba01587013f776b3c28498b0041898f4d6123eaa97dc12d99883c4f",
+      "git_status": "untracked",
+      "classification": "normative_remediated_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666aj-completed-improvement-evidence-capture.spec.ts",
+      "artifact_type": "deterministic_contract_and_interop_tests",
+      "sha256": "c3a0c95a997f61b2d8131a239cf64fbc5d0a8f4d5a054e45e8a7d706d44a1488",
+      "git_status": "untracked",
+      "classification": "normative_remediated_verification"
+    }
+  ],
+  "final_review_evidence_paths": [
+    "docs/action-666al-completed-evidence-capture-independent-rereview.md"
+  ],
+  "final_review_evidence_sha256": "a758386729cec48d3d3ca2c168307edef4ed0a68ade39f53f0f726371aecf54d",
+  "final_review_evidence_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "final_review_evidence_digest": "a4d944447297bbcdb900cf070f3a2b2531e207fccf4c37bab7c3ca1795d3b30b",
+  "refreeze_manifest_is_outside_normative_digest": true,
+  "review_evidence_is_outside_normative_digest": true,
+  "verification_status": "refreeze_and_rereview_complete",
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "independent_rereview_approved": true,
+  "local_checkpoint_ready": true
+}

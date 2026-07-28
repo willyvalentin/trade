@@ -1,0 +1,73 @@
+{
+  "manifest_version": "action_666ak_completed_evidence_capture_foundation_freeze_manifest_v1",
+  "base_sha": "e87bb62198b54143ea9d3456a1d7872dc81d8871",
+  "branch": "codex/action-666aj-completed-improvement-evidence-capture",
+  "contract_versions": [
+    "canonical_completed_improvement_evidence_capture_v1",
+    "canonical_completed_improvement_evidence_capture_request_v1",
+    "canonical_completed_improvement_evidence_capture_authority_v1",
+    "canonical_completed_improvement_evidence_capture_binding_v1"
+  ],
+  "canonical_freeze_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "e724666d1576a2b3208344f6b6ce4f7d6cee7c93c55284d279e64f3eaacbd550",
+  "freeze_digests": {
+    "pre_regression": "e724666d1576a2b3208344f6b6ce4f7d6cee7c93c55284d279e64f3eaacbd550",
+    "post_regression": "e724666d1576a2b3208344f6b6ce4f7d6cee7c93c55284d279e64f3eaacbd550",
+    "post_review": "e724666d1576a2b3208344f6b6ce4f7d6cee7c93c55284d279e64f3eaacbd550"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666aj-completed-improvement-evidence-capture.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "52957d4314ad040abe24f82bc5d7444fb2620bfb189aae572ae45d1b11f12bbc",
+      "git_status": "untracked",
+      "classification": "normative_contract_documentation"
+    },
+    {
+      "path": "docs/action-666aj-golden-completed-improvement-capture-report.json",
+      "artifact_type": "machine_readable_golden_evidence",
+      "sha256": "ab9790d5231547487b31d8309a72fd0ff44ddb53c86727740708c89523629ec2",
+      "git_status": "untracked",
+      "classification": "normative_synthetic_golden_evidence"
+    },
+    {
+      "path": "lib/server/canonical-completed-improvement-evidence-capture-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "sha256": "8dd0321139ba7a2c7dd25a7c7efcd8f5f99b91aaa3418762af92ca627cf322ce",
+      "git_status": "untracked",
+      "classification": "normative_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-completed-improvement-evidence-capture.ts",
+      "artifact_type": "server_only_capture_contract_and_default_off_harness",
+      "sha256": "681112df8585340fd08af793fd9181830b94992e1ea53e56b023cb084ef102a9",
+      "git_status": "untracked",
+      "classification": "normative_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666aj-completed-improvement-evidence-capture.spec.ts",
+      "artifact_type": "deterministic_contract_and_interop_tests",
+      "sha256": "d3f1316e597cf57a6a3abbcbf1fa14af9f99eb9d4ddd8e36a24cbeac39ebe5fb",
+      "git_status": "untracked",
+      "classification": "normative_verification"
+    }
+  ],
+  "review_evidence_paths": [
+    "docs/action-666ak-completed-evidence-capture-independent-review.md"
+  ],
+  "review_evidence_sha256": "7c4701bbe70ecb64cbc635c29a317a9b096f17bb674ebb93f754c1bae5fe8c6c",
+  "review_evidence_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "review_evidence_digest": "2e419b577ca767b9d9d5146ff2154008999d8af88ead0b4d38c471bd943ea25b",
+  "freeze_manifest_is_outside_normative_digest": true,
+  "review_evidence_is_outside_normative_digest": true,
+  "verification_status": "review_complete_with_findings",
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "independent_review_approved": false,
+  "local_checkpoint_ready": false
+}
