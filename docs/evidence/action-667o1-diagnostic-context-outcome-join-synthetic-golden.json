@@ -1,0 +1,171 @@
+{
+  "evidence_version": "action_667o1_diagnostic_context_outcome_join_synthetic_golden_v1",
+  "contract_version": "market_context_diagnostic_context_outcome_join_v1",
+  "synthetic_golden_matrix": {
+    "fixture_version": "market_context_diagnostic_context_outcome_synthetic_fixtures_v1",
+    "case_count": 16,
+    "cases": [
+      {
+        "id": "valid_joined_row",
+        "taxonomy": "joined",
+        "reason_codes": [
+          "diagnostic_context_outcome_association_joined"
+        ],
+        "result_digest": "4aa1f240ead901fa2042ebab6bf5d0b45524a94ae9a774ba12c7bdfbdbc126f4"
+      },
+      {
+        "id": "insufficient_context_snapshot",
+        "taxonomy": "insufficient_context",
+        "reason_codes": [
+          "context_snapshot_insufficient"
+        ],
+        "result_digest": "67063aa4da6f9f9f9837f9e5e896629cb32357fc8386c885b5f9f203a0383574"
+      },
+      {
+        "id": "conflicting_context_snapshot",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "context_snapshot_conflicting"
+        ],
+        "result_digest": "c6e189ee1616807503b04ae9b1b219da2d453ee5d41dd3eb8f0428507cf4420e"
+      },
+      {
+        "id": "incomplete_outcome",
+        "taxonomy": "incomplete_outcome",
+        "reason_codes": [
+          "outcome_window_not_completed"
+        ],
+        "result_digest": "85877c37839afe74dcf2d2eb755282d7dfd248b48aa289637f227fa63630c2ea"
+      },
+      {
+        "id": "outcome_not_yet_complete",
+        "taxonomy": "incomplete_outcome",
+        "reason_codes": [
+          "outcome_window_not_completed"
+        ],
+        "result_digest": "85877c37839afe74dcf2d2eb755282d7dfd248b48aa289637f227fa63630c2ea"
+      },
+      {
+        "id": "future_context_observation",
+        "taxonomy": "not_point_in_time_safe",
+        "reason_codes": [
+          "context_latest_finalized_bucket_after_decision"
+        ],
+        "result_digest": "87720d1e9588c8907ab577b381ce7f6519934ed15e0bfc96375dc74abd2191b3"
+      },
+      {
+        "id": "unfinalized_context_bucket",
+        "taxonomy": "not_point_in_time_safe",
+        "reason_codes": [
+          "context_point_in_time_or_finalization_counter_invalid"
+        ],
+        "result_digest": "4f4d53c9e4b028d30211225bfe0e8fadb5c98ecf766827dc0d3cc22ab84884ea"
+      },
+      {
+        "id": "decision_opportunity_identity_mismatch",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "opportunity_set_identity_mismatch"
+        ],
+        "result_digest": "2c99fa1c927d7ee9578bff37a7a5f8849682d519743bf541d4a4c403b29e68b1"
+      },
+      {
+        "id": "outcome_evaluator_lineage_mismatch",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "outcome_evaluator_lineage_mismatch"
+        ],
+        "result_digest": "e552d4a0261b620db5a3ce25509914cf32258168e57d0d8786557f78b1389317"
+      },
+      {
+        "id": "registry_root_substitution",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "external_join_registry_anchor_mismatch"
+        ],
+        "result_digest": "a74eec0386bf242c86160bba1b1bd094188f4a110caefc2feb300fc0725a456e"
+      },
+      {
+        "id": "self_consistently_recomputed_tampering",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "outcome_bundle_digest_or_version_mismatch"
+        ],
+        "result_digest": "ff558f5c81a9e48c5855c20239ecb3d428e66f990fef603748b29903ff92d1e2"
+      },
+      {
+        "id": "malformed_or_ambiguous_timestamp",
+        "taxonomy": "not_point_in_time_safe",
+        "reason_codes": [
+          "explicit_instant_invalid:outcome_window.start_timestamp"
+        ],
+        "result_digest": "f2bd584f859a0db2b9400c4c431e87fd4860654830cdf92511c3b12049b80214"
+      },
+      {
+        "id": "unmappable_outcome_reference",
+        "taxonomy": "unmappable",
+        "reason_codes": [
+          "outcome_reference_not_registered"
+        ],
+        "result_digest": "4c8704d96ea8f542829ceb23066325483c8a74547f821c22eecef35cec416043"
+      },
+      {
+        "id": "default_off",
+        "taxonomy": "insufficient_context",
+        "reason_codes": [
+          "join_default_off"
+        ],
+        "result_digest": "da9e46087a549cb4aa52de09d7bbb800e1160df1c9ba24418fd7110d068b7dac"
+      },
+      {
+        "id": "kill_switch",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "join_kill_switch_active"
+        ],
+        "result_digest": "ed05f593a708e2064a005a18fa435dda092579106c9df8d40a860c4bdc17bdcd"
+      },
+      {
+        "id": "duplicate_join_identity",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "duplicate_join_identity"
+        ],
+        "result_digest": "118dd116499f7211e4eee5aa678c2aec841288f0a4012402a84325c612945c13"
+      }
+    ],
+    "matrix_digest": "4cb74d43c787a989af1ec4faf6838f8546075c6c20f3524b2aae9d5e97fb2473"
+  },
+  "real_outcome_join_performed": false,
+  "external_activity": {
+    "provider_calls": 0,
+    "database_calls": 0,
+    "persistence_writes": 0,
+    "real_outcome_joins": 0,
+    "normalization_runs": 0,
+    "replay_runs": 0
+  },
+  "boundary": {
+    "diagnostic_only": true,
+    "shadow_only": true,
+    "official_ohlcv": false,
+    "canonical_performance_eligible": false,
+    "automatic_model_input_allowed": false,
+    "automatic_training_allowed": false,
+    "automatic_promotion_allowed": false,
+    "causal_claimed": false,
+    "live_ranking_effect": false
+  },
+  "statuses": {
+    "action_667o1_context_outcome_join_contract_implemented": true,
+    "action_667o1_external_authority_boundary_ready": true,
+    "action_667o1_temporal_separation_verified": true,
+    "action_667o1_join_identity_ready": true,
+    "action_667o1_default_off_zero_work_verified": true,
+    "action_667o1_synthetic_golden_matrix_passed": true,
+    "action_667o1_real_outcome_join_performed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  }
+}
