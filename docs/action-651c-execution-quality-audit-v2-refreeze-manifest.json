@@ -1,0 +1,64 @@
+{
+  "schema_version": "action_651c_execution_quality_audit_v2_refreeze_v1",
+  "base_commit": "ff34b3884ee84777af44e380c0fb7e66bc99e9e1",
+  "branch": "codex/action-651a-diagnostic-execution-quality-audit",
+  "normative_path_count": 5,
+  "normative_paths": [
+    {
+      "path": "docs/action-651c-execution-quality-audit-v2-golden-report.json",
+      "sha256": "6da3be90a4ba077ca951b572b0e11f61926eaddee39a0f4a95995586f1a2602c"
+    },
+    {
+      "path": "docs/action-651c-execution-quality-audit-v2.md",
+      "sha256": "4a2552295bd64fb1970644d2cba828e97478188381653495e557d90a89517259"
+    },
+    {
+      "path": "lib/action-651c-execution-quality-audit-v2.ts",
+      "sha256": "d04202e9fd9585934ecf164e48925ad46207366af2f251e869cc33532bf610f3"
+    },
+    {
+      "path": "tests/e2e/action-651c-execution-quality-audit-v2.spec.ts",
+      "sha256": "d678176b61c65ceef50a5f7071b85edb5589acd81e1308b49ffe39cb559ab186"
+    },
+    {
+      "path": "tests/fixtures/action-651c-execution-quality-audit-v2-fixtures.ts",
+      "sha256": "96ca678f71d470b00668574ac0789f5a400ef1ecb8b53bc32898afa16265ea2a"
+    }
+  ],
+  "combined_digest_method": "sha256(sorted lines of '<sha256><two spaces><path>\\n')",
+  "combined_normative_digest": "0849c5426999496bab2e4689f946f97d074928626b09f2a1dc6cdcbf4641c5dd",
+  "golden_audit_digest": "action_651c_audit_a04bb12e1055df7650e3ff2f505d491d3b22d2e6bd19ed195ee199971a16a929",
+  "predecessor_golden_audit_digest": "action_651a_audit_1edeb10da455650c79b1b1a37c19fea96103ae909c64e31ecd8ec679ce80c1ee",
+  "historical_651a_normative_digest": "29ab1879041034f8ccaf9a49dd2272c5b05ff1f42c3941e0914503b37fc518f3",
+  "self_excluded_review_paths": [
+    "docs/action-651c-execution-quality-audit-v2-refreeze-manifest.json",
+    "docs/action-651c-execution-quality-audit-v2-independent-rereview.md",
+    "tests/e2e/action-651c-execution-quality-audit-v2-independent-rereview.spec.ts"
+  ],
+  "normative_bytes_may_change_after_refreeze": false,
+  "findings_closed": [
+    "651B-M1",
+    "651B-M2"
+  ],
+  "baseline": {
+    "broad": {
+      "passed": 3451,
+      "failed": 13,
+      "base_successor_equivalent": true
+    },
+    "restricted": {
+      "passed": 22,
+      "failed": 5,
+      "base_successor_equivalent": true
+    },
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
