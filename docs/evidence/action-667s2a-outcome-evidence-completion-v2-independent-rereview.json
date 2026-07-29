@@ -1,0 +1,142 @@
+{
+  "action": "667S.2A",
+  "review_version": "repository_owned_outcome_evidence_completion_v2_independent_rereview_v1",
+  "review_mode": "separate_clean_room_no_remediation",
+  "base_commit": "7642cbb0c5bd1b43ff558303e1259e82f2516837",
+  "predecessor_evidence": {
+    "normative_inventory_digest": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+    "freeze_digest": "2c12653bfc3a40cf6aff3e95e11014fef1351067f6b20c84b9888a4fb988ec55",
+    "review_evidence_digest": "e8f93db596e7503f7665ca19a33647e8d80c0eb9992232ecea5cce8db6929bc6",
+    "historical_finding_counts": {
+      "blocker": 0,
+      "major": 3,
+      "minor": 1,
+      "nit": 0
+    },
+    "preserved_byte_identically": true
+  },
+  "successor_freeze": {
+    "manifest_path": "docs/evidence/action-667s2a-outcome-evidence-completion-v2-refreeze-manifest.json",
+    "normative_artifact_count": 5,
+    "normative_digest_before_regression": "d1ffb54d3179fd3213fdbe023d537681eeace72c06fb390784748d271fd69bc0",
+    "normative_digest_after_regression": "d1ffb54d3179fd3213fdbe023d537681eeace72c06fb390784748d271fd69bc0",
+    "normative_digest_after_review": "d1ffb54d3179fd3213fdbe023d537681eeace72c06fb390784748d271fd69bc0",
+    "freeze_digest": "28f439b0365d1a694ea0169cecbef64a1da111d9f0c901125f634e3d994bb532",
+    "golden_matrix_digest": "1a295e2aac7534fc6a22eccb9511f6a11ea76d7887f8ab07311b1d3b252922f7",
+    "self_excluded": true
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [],
+  "historical_finding_reproduction_and_closure": [
+    {
+      "id": "S2-001",
+      "v1_reproduction": "mutable pre-read authority anchor can be repaired by callback and hostile anchor proxy can throw",
+      "v2_control": "closed descriptors plus bounded plain-data anchor snapshot are captured before the single external callback; downstream uses only the frozen snapshot",
+      "result": "closed"
+    },
+    {
+      "id": "S2-002",
+      "v1_reproduction": "25000-level caller structure raises recursive exception",
+      "v2_control": "iterative worklist with fixed depth, node, key, array and aggregate string budgets returns deterministic sanitized rejection",
+      "result": "closed"
+    },
+    {
+      "id": "S2-003",
+      "v1_reproduction": "canonical and reversed closure arrays both complete with different result digests",
+      "v2_control": "closed five-field validation, uniqueness and lexical set sorting precede canonical serialization",
+      "result": "closed"
+    },
+    {
+      "id": "S2-004",
+      "v1_reproduction": "early registry rejection labels nested observed row and bundle absent",
+      "v2_control": "actual sanitized row and bundle are present_rejected with independent observed digests",
+      "result": "closed"
+    }
+  ],
+  "verified_boundaries": {
+    "authority_anchor_snapshotted_before_callback": true,
+    "single_external_authority_callback": true,
+    "authority_snapshot_plain_data_and_deep_frozen": true,
+    "only_authority_snapshot_bytes_used_downstream": true,
+    "authority_proxy_accessor_and_callback_failure_sanitized": true,
+    "iterative_non_recursive_validation": true,
+    "fixed_depth_node_key_array_string_budgets": true,
+    "cycles_accessors_proxies_and_extreme_inputs_fail_closed": true,
+    "gap_closure_schema_closed": true,
+    "gap_closure_set_unique_and_sorted": true,
+    "reordered_semantic_closures_byte_identical": true,
+    "actual_rejected_row_bundle_and_evidence_bound": true,
+    "different_rejected_inputs_have_unique_failure_identities": true,
+    "self_consistent_terminal_tampering_rejected_by_independent_rebuild": true,
+    "v2_completed_r2_bindable_q1_ready_p2a_captured_o2a_joined": true,
+    "default_off_and_kill_switch_zero_work": true,
+    "real_source_provider_db_writer_and_live_paths_absent": true
+  },
+  "regression": {
+    "s1_focused": "20/20 passed inside full relevant regression",
+    "s2_historical_adversarial": "10/10 passed with all four historical findings reproduced",
+    "s2a_focused_and_cross_timezone": "20/20 passed",
+    "s2a_independent_review": "9/9 passed",
+    "relevant_667": "423/423 passed",
+    "cross_timezone": "UTC A/B, Europe/Stockholm reverse and America/New_York byte-identical at 1a295e2aac7534fc6a22eccb9511f6a11ea76d7887f8ab07311b1d3b252922f7",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "git_diff_check": "passed",
+    "security_import_dependency_secret_scans": "passed",
+    "production_compilation": "webpack production compilation succeeded before the unchanged route-export type baseline",
+    "production_build_environment_note": "default Turbopack cannot follow the worktree node_modules symlink outside its filesystem root; webpack compilation was used for scope verification",
+    "production_build_baseline": {
+      "classification": "scope_external_preexisting_baseline",
+      "path": "app/api/hb307c/ping/route.ts",
+      "current_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "historical_base_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "error": "hb307cCanaryRouteBuildMarker is not a valid Route export field",
+      "inside_s2a_scope": false
+    }
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    }
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "approval_rule": "zero blockers and zero majors",
+    "remediation_performed_during_rereview": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "e5941fbdd617a5f80e6c636f9896f57b12b92b89df6d50c1ca04e5660ec010e4"
+}

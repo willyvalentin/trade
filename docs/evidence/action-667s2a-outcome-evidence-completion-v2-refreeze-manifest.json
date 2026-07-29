@@ -1,0 +1,97 @@
+{
+  "action": "667S.2A",
+  "manifest_version": "repository_owned_outcome_evidence_completion_v2_refreeze_manifest_v1",
+  "base_commit": "7642cbb0c5bd1b43ff558303e1259e82f2516837",
+  "branch": "codex/action-667s-recommendation-outcome-evidence-completion",
+  "predecessor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+    "normative_inventory_digest": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+    "freeze_digest": "2c12653bfc3a40cf6aff3e95e11014fef1351067f6b20c84b9888a4fb988ec55",
+    "review_evidence_digest": "e8f93db596e7503f7665ca19a33647e8d80c0eb9992232ecea5cce8db6929bc6",
+    "preserved_byte_identically": true,
+    "classification": "historical_predecessor_retained"
+  },
+  "successor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_completion_v2",
+    "authority_version": "repository_owned_recommendation_outcome_evidence_authority_v2",
+    "snapshot_version": "repository_owned_recommendation_outcome_evidence_authority_snapshot_v2",
+    "validator_version": "repository_owned_recommendation_outcome_evidence_bounded_validator_v2",
+    "provenance_version": "repository_owned_recommendation_outcome_evidence_provenance_v2",
+    "normative_artifact_count": 5,
+    "normative_inventory_digest": "d1ffb54d3179fd3213fdbe023d537681eeace72c06fb390784748d271fd69bc0",
+    "golden_matrix_digest": "1a295e2aac7534fc6a22eccb9511f6a11ea76d7887f8ab07311b1d3b252922f7",
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667s2a-outcome-completion-authority-canonicalization-remediation.md",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_completion_v2",
+        "sha256": "b1243e108b7c1274e1ccf0eb322acafd6ab285b9718ac23c287eebb5145a07c3",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "docs/evidence/action-667s2a-outcome-evidence-completion-v2-synthetic-golden.json",
+        "classification": "normative_current",
+        "version": "action_667s2a_outcome_evidence_completion_v2_synthetic_golden_v1",
+        "sha256": "15a1ba0ad0fd040244812d861b1f59b5a094d9a1142a65eea34d2e7c4cfb8a09",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-completion-fixtures-v2.ts",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_completion_fixtures_v2",
+        "sha256": "f83bc92952537530451d47151080c806f7891e5774dfdd44e47e5d66c54c6e3c",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-completion-v2.ts",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_completion_v2",
+        "sha256": "0a5cf255ec1a36f5aaee4292ce3cd53d01efee244d9cbee65a2d35dfd60794e6",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "tests/e2e/action-667s2a-outcome-evidence-completion-remediation.spec.ts",
+        "classification": "normative_current",
+        "version": "action_667s2a_outcome_evidence_completion_remediation_tests_v1",
+        "sha256": "3e67fd850439cb32ba9aa58f345910a98eac74f740f16a2aef55cc817b2749ce",
+        "git_status_at_refreeze": "untracked"
+      }
+    ]
+  },
+  "finding_closure": {
+    "S2-001": "pre_callback_bounded_deep_frozen_authority_snapshot",
+    "S2-002": "iterative_fixed_budget_plain_data_validation",
+    "S2-003": "closed_unique_sorted_gap_closure_set",
+    "S2-004": "actual_present_rejected_row_and_bundle_provenance"
+  },
+  "bounded_validator": {
+    "max_depth": 64,
+    "max_nodes": 20000,
+    "max_total_keys": 50000,
+    "max_array_length": 4096,
+    "max_string_bytes": 1048576
+  },
+  "interop": "V2 completed -> R.2 bindable -> Q.1 ready -> P.2A captured -> O.2A joined",
+  "external_roots": {
+    "normalized_artifact_count": 303,
+    "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+    "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+    "replay_artifact_count": 84,
+    "replay_manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+    "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1"
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667s2a-outcome-evidence-completion-v2-refreeze-manifest.json",
+    "docs/evidence/action-667s2a-outcome-evidence-completion-v2-independent-rereview.json",
+    "tests/e2e/action-667s2a-outcome-evidence-completion-independent-review.spec.ts"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "28f439b0365d1a694ea0169cecbef64a1da111d9f0c901125f634e3d994bb532"
+}
