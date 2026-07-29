@@ -1,0 +1,276 @@
+{
+  "review_version": "action_667q2_outcome_source_admission_foundation_independent_review_v1",
+  "review_material": {
+    "action": "667Q.2",
+    "review_mode": "independent_read_only_no_remediation",
+    "baseline": {
+      "branch": "codex/action-667q-diagnostic-outcome-source-admission",
+      "head": "23a393f18ed2f90e980bb3a9b5b5eb4ecbf8b53d",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "0709390a3f064272bacdd753e99a0eb7a59ed9a15c285d99d43b9b4281097fc0",
+      "q1_result_digest": "c0cc040db36e9800a0200c2ae0fe5288de2696b924a212d024703f66fe33e4cd",
+      "freeze_manifest_version": "action_667q2_outcome_source_admission_foundation_freeze_manifest_v1",
+      "freeze_digest": "6a7b3f06634da198fabe40c4600ef91dfea80395bc92941e781befbd9df78db8"
+    },
+    "digest_checkpoints": {
+      "before_regression": "0709390a3f064272bacdd753e99a0eb7a59ed9a15c285d99d43b9b4281097fc0",
+      "after_regression": "0709390a3f064272bacdd753e99a0eb7a59ed9a15c285d99d43b9b4281097fc0",
+      "after_independent_review": "0709390a3f064272bacdd753e99a0eb7a59ed9a15c285d99d43b9b4281097fc0"
+    },
+    "review_dimensions": [
+      {
+        "dimension": "externally_owned_registry_authority",
+        "status": "verified",
+        "evidence": "The closed public request has no authority root, trusted payload, observed digest or verifier outcome. The dependency-injected registry anchor is canonicalized once and its exact identity, version and digest gate the separately observed material."
+      },
+      {
+        "dimension": "authority_callback_and_snapshot_immutability",
+        "status": "verified",
+        "evidence": "Each enabled admission reads the material callback once. Canonical plain-data cloning and deep freezing occur before semantic use; the raw authority object is not reused and post-verification mutation cannot change the frozen result."
+      },
+      {
+        "dimension": "source_producer_schema_and_contract_binding",
+        "status": "verified",
+        "evidence": "Externally anchored registry bytes bind producer identity/version, source identity, schema, contract, verifier identity/version, payload digest, trust root and validity interval."
+      },
+      {
+        "dimension": "decision_opportunity_outcome_lineage",
+        "status": "verified",
+        "evidence": "Decision and instrument identity, complete sorted opportunity membership, outcome/evaluator identity and versions, provider lineage and evaluator/outcome lineage are independently reconciled against the immutable P.2A authority snapshot."
+      },
+      {
+        "dimension": "duplicate_and_collision_boundary",
+        "status": "verified",
+        "evidence": "Duplicate admission and outcome identities are terminal conflicts. Since one externally anchored Q authority admits one immutable source payload, duplicate source/opportunity observations share the bound outcome identity and are rejected by the batch collision gate."
+      },
+      {
+        "dimension": "nanosecond_temporal_finality",
+        "status": "verified",
+        "evidence": "Canonical integer nanoseconds enforce decision < outcome start <= outcome end <= finalization <= capture <= cutoff and registry validity. P.2A explicit instants must match the Q projection exactly."
+      },
+      {
+        "dimension": "predictor_outcome_separation",
+        "status": "verified",
+        "evidence": "Predictor cutoff equals decision time, outcome visibility is false, decision/provider source timestamps are separately bounded and O.2A independently retains split predictor and label digests. Outcome values never enter the Q predictor projection."
+      },
+      {
+        "dimension": "failure_input_provenance",
+        "status": "verified",
+        "evidence": "Request, material, registry and payload sections carry canonical observed digests, dispositions, expected bindings, verifier versions and sorted reasons. Nested decision/context/outcome changes are transitively bound by the source-payload and immutable P.2A material digests."
+      },
+      {
+        "dimension": "failure_identity_and_independent_rebuild",
+        "status": "verified",
+        "evidence": "Failure identity binds taxonomy, request, observed provenance, expected registry and reasons. A fresh authority read and deterministic admission rebuild rejects self-consistently recalculated status, reason and terminal-digest tampering."
+      },
+      {
+        "dimension": "error_sanitation",
+        "status": "verified",
+        "evidence": "Authority lookup and runtime introspection failures expose only versioned sanitized reason codes and projections; exception messages, stacks and backend details are not emitted."
+      },
+      {
+        "dimension": "p2a_o2a_direct_interoperability",
+        "status": "verified",
+        "evidence": "The single ready synthetic Q handoff reaches P.2A captured and O.2A joined without a special adapter. Predictor and label digests remain distinct."
+      },
+      {
+        "dimension": "default_off_kill_switch_and_effect",
+        "status": "verified",
+        "evidence": "Disabled and kill-switch paths return frozen precomputed sentinels before request inspection, authority reads, source reads, verification or per-call digest work. No provider, database, writer, persistence, canonical, model-input or live path exists."
+      },
+      {
+        "dimension": "synthetic_only_claim_boundary",
+        "status": "verified",
+        "evidence": "All twelve cases and the interop handoff are synthetic. No real source access, capture, join, performance, probability or causal claim occurred."
+      }
+    ],
+    "closed_threat_matrix": [
+      {
+        "threat_id": "Q2-T001",
+        "threat": "Caller injects an expected authority root, trusted payload, safety status or observed digest",
+        "expected": "fail_closed_before_authority_read",
+        "observed": "closed_request_schema_rejection_and_zero_authority_reads",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T002",
+        "threat": "Self-consistent registry and payload replacement is presented under the certified external anchor",
+        "expected": "external_registry_anchor_mismatch",
+        "observed": "external_registry_anchor_mismatch",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T003",
+        "threat": "Observed authority material mutates after the callback returns",
+        "expected": "frozen_canonical_result_unchanged",
+        "observed": "one_read_plain_data_snapshot_isolated_from_later_mutation",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T004",
+        "threat": "Producer, schema, contract or verifier identity drifts",
+        "expected": "conflicting",
+        "observed": "producer_or_verifier_or_payload_binding_conflict",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T005",
+        "threat": "Opportunity membership is incomplete or its digest drifts",
+        "expected": "incomplete_or_conflicting_without_handoff",
+        "observed": "incomplete_or_decision_opportunity_outcome_identity_drift",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T006",
+        "threat": "Evaluator, outcome or provider lineage is substituted",
+        "expected": "conflicting_without_handoff",
+        "observed": "evaluator_outcome_lineage_drift",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T007",
+        "threat": "Outcome starts at decision minus one nanosecond, at the decision boundary or one nanosecond after it",
+        "expected": "reject_minus_one_and_exact_accept_plus_one_when_all_other_evidence_matches",
+        "observed": "nanosecond_exact_boundary_enforced",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T008",
+        "threat": "Outcome is pending, future relative to cutoff, rolled back or finalized after capture",
+        "expected": "incomplete_or_not_point_in_time_safe",
+        "observed": "incomplete_or_not_point_in_time_safe_without_handoff",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T009",
+        "threat": "Different invalid nested outcome inputs have the same taxonomy and reasons",
+        "expected": "distinct_failure_and_terminal_digests",
+        "observed": "distinct_failure_and_terminal_digests",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T010",
+        "threat": "Status, reasons and digests are tampered and self-consistently recalculated",
+        "expected": "independent_rebuild_rejects",
+        "observed": "independent_rebuild_rejected",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T011",
+        "threat": "Duplicate admission, source, opportunity or outcome scope is admitted in one batch",
+        "expected": "conflicting",
+        "observed": "duplicate_outcome_identity_conflict_for_the_single_anchored_source_payload",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T012",
+        "threat": "Disabled or kill-switch input attempts request, authority, source or digest work",
+        "expected": "zero_work_frozen_sentinel",
+        "observed": "zero_work_frozen_sentinel",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T013",
+        "threat": "Timezone or input ordering changes canonical output",
+        "expected": "byte_identical",
+        "observed": "utc_ab_stockholm_reverse_and_new_york_byte_identical",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T014",
+        "threat": "Provider, database, persistence, writer, Action 665/666 or live dependency is introduced",
+        "expected": "absent",
+        "observed": "absent",
+        "status": "passed"
+      },
+      {
+        "threat_id": "Q2-T015",
+        "threat": "Lookup exception exposes message, stack or backend detail",
+        "expected": "sanitized_reason_only",
+        "observed": "sanitized_reason_only",
+        "status": "passed"
+      }
+    ],
+    "findings": {
+      "blocker": [],
+      "major": [],
+      "minor": [],
+      "nit": []
+    },
+    "regression": {
+      "q1_focused": {
+        "passed": 17,
+        "failed": 0
+      },
+      "relevant_c_e_k_through_q1": {
+        "passed": 376,
+        "failed": 0
+      },
+      "independent_clean_room_threat_probes": {
+        "passed": 1,
+        "failed": 0,
+        "assertions": [
+          "authority_callback_once",
+          "post_verification_mutation_isolated",
+          "self_consistent_registry_substitution_rejected",
+          "nested_failure_collision_closed",
+          "self_consistent_terminal_tampering_rejected",
+          "duplicate_source_opportunity_scope_rejected"
+        ]
+      },
+      "cross_timezone_and_reverse_order": "passed",
+      "typescript": "passed",
+      "scoped_eslint": {
+        "status": "passed",
+        "warnings": 0
+      },
+      "json_evidence_parity": "passed",
+      "git_diff_check": "passed",
+      "security_import_dependency_secret_scan": "passed",
+      "production_compilation": {
+        "q1_webpack_compilation": "passed",
+        "full_build": "failed_on_preexisting_out_of_scope_route_export",
+        "out_of_scope_path": "app/api/hb307c/ping/route.ts",
+        "reason": "hb307cCanaryRouteBuildMarker is not a valid Next.js Route export",
+        "route_bytes_changed_by_q1_or_q2": false,
+        "exact_base_reproduction": "same_compilation_success_then_same_route_export_failure",
+        "q1_or_q2_scope_caused_failure": false
+      }
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "verified_unchanged": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "verified_unchanged": true
+      }
+    },
+    "decisions": {
+      "action_667q2_outcome_source_admission_foundation_frozen": true,
+      "action_667q2_external_source_authority_verified": true,
+      "action_667q2_temporal_finality_verified": true,
+      "action_667q2_failure_identity_verified": true,
+      "action_667q2_p2a_o2a_interop_verified": true,
+      "action_667q2_external_roots_verified": true,
+      "action_667q2_independent_review_approved": true,
+      "action_667q2_local_checkpoint_ready": true,
+      "action_667q2_real_outcome_source_accessed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "review_evidence_digest": "60b94ccb63aaa622f52eac5da0f93f1d704478b6bb35d0900127f9d85ecac934"
+}
