@@ -1,0 +1,98 @@
+{
+  "manifest_version": "action_667p2a_immutable_registry_snapshot_refreeze_manifest_v1",
+  "freeze_material": {
+    "action": "667P.2A",
+    "baseline": {
+      "branch": "codex/action-667p-diagnostic-outcome-handoff-capture",
+      "head": "c2eeb9ef249a274e1cc8a7f92c9a5894c2951436",
+      "predecessor_normative_digest": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c",
+      "predecessor_freeze_digest": "041a1739c84a3ef6ee4ab7e7fb587229162eaf5f0b82c5d964a922589a7f6ffe",
+      "predecessor_review_evidence_digest": "6f55d2d68a89a7392128a5d1068a228871b21bd04896022afbe73dd909f754c3",
+      "successor_normative_artifact_count": 5,
+      "successor_normative_combined_digest": "4e8dcc8bd317ff11e62589ce2940f59de816648b5e98221722f3069ae1dc9d3c"
+    },
+    "digest_policy": {
+      "individual_algorithm": "sha256(raw_file_bytes)",
+      "combined_algorithm": "sha256(JSON.stringify(path_sorted_array_of_path_and_sha256))",
+      "freeze_algorithm": "sha256(canonical_key_sorted_json(freeze_material))",
+      "digest_checkpoints": [
+        "before_regression",
+        "after_regression",
+        "after_independent_rereview"
+      ]
+    },
+    "compatibility": {
+      "predecessor_contract": "diagnostic_decision_outcome_handoff_capture_v1",
+      "successor_contract": "diagnostic_decision_outcome_handoff_capture_v2",
+      "predecessor_implicitly_remediated": false,
+      "successor_requires_verified_snapshot_binding": true,
+      "o2a_handoff_contract_unchanged": "market_context_diagnostic_outcome_bundle_handoff_v1"
+    },
+    "successor_normative_artifacts": [
+      {
+        "path": "docs/action-667p2a-immutable-registry-snapshot-remediation.md",
+        "artifact_type": "contract_documentation",
+        "version": "action_667p2a_immutable_registry_snapshot_remediation_v1",
+        "sha256": "7b59ee2e9ae5be6c5ec2b89cb3231cc79c1b0664abbc3df3e7536e41e8f3c0e6",
+        "git_status_at_refreeze": "untracked",
+        "classification": "normative_successor"
+      },
+      {
+        "path": "docs/evidence/action-667p2a-immutable-registry-snapshot-synthetic-golden.json",
+        "artifact_type": "synthetic_golden_evidence",
+        "version": "action_667p2a_immutable_registry_snapshot_synthetic_golden_v1",
+        "sha256": "cbad2e3984b279138577dff42c426513c1018fc862fbb0985c5bd1e402f481c6",
+        "git_status_at_refreeze": "untracked",
+        "classification": "normative_successor"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-decision-outcome-handoff-capture-fixtures-v2.ts",
+        "artifact_type": "synthetic_fixtures",
+        "version": "diagnostic_decision_outcome_capture_synthetic_fixtures_v2",
+        "sha256": "3100abda5a2f15f70bb4197d8e6514397bbb4ecfa50ac65dabd05ffeed74287d",
+        "git_status_at_refreeze": "untracked",
+        "classification": "normative_successor"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-decision-outcome-handoff-capture-v2.ts",
+        "artifact_type": "contract_implementation",
+        "version": "diagnostic_decision_outcome_handoff_capture_v2",
+        "sha256": "ac2f2808e3c981674039cf55231e613ded888f55920add7b4cb0951234f42fab",
+        "git_status_at_refreeze": "untracked",
+        "classification": "normative_successor"
+      },
+      {
+        "path": "tests/e2e/action-667p2a-immutable-registry-snapshot.spec.ts",
+        "artifact_type": "focused_regression_and_threat_tests",
+        "version": "action_667p2a_focused_regression_v1",
+        "sha256": "8a887919b7d6c2e6126eddb787308bfa69b212980bc4d52ad8fdda8f2943fae9",
+        "git_status_at_refreeze": "untracked",
+        "classification": "normative_successor"
+      }
+    ],
+    "predecessor_bytes": {
+      "p1_normative_artifact_count": 5,
+      "p1_normative_digest_verified": true,
+      "p2_freeze_file_sha256": "b7f3bcf857779961dc5762c6bb76d4232ad2962e8829e9d8f36709ff883e9da2",
+      "p2_review_file_sha256": "217b17f04cc47bc679eb256c748273d39f528735070737f6b6c5920917b56c18",
+      "byte_identical_after_remediation": true
+    },
+    "self_excluded_artifacts": [
+      "docs/evidence/action-667p2a-immutable-registry-snapshot-refreeze-manifest.json",
+      "docs/evidence/action-667p2a-immutable-registry-snapshot-independent-rereview.json"
+    ],
+    "freeze_policy": {
+      "authority_callback_count_per_evaluation": 1,
+      "callback_after_snapshot_allowed": false,
+      "async_authority_supported": false,
+      "raw_authority_object_retained_downstream": false,
+      "real_outcome_capture_performed": false,
+      "provider_or_database_activity_performed": false,
+      "persistence_or_deploy_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "freeze_digest": "b5b64e3a4aaaa257eea5366b72691a403e03464f929968d1c50a7cc8bcfbb54f"
+}

@@ -1,0 +1,246 @@
+{
+  "review_version": "action_667p2a_immutable_registry_snapshot_independent_rereview_v1",
+  "review_material": {
+    "action": "667P.2A",
+    "review_mode": "independent_clean_room_no_remediation",
+    "baseline": {
+      "branch": "codex/action-667p-diagnostic-outcome-handoff-capture",
+      "head": "c2eeb9ef249a274e1cc8a7f92c9a5894c2951436",
+      "predecessor_normative_digest": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c",
+      "predecessor_freeze_digest": "041a1739c84a3ef6ee4ab7e7fb587229162eaf5f0b82c5d964a922589a7f6ffe",
+      "predecessor_review_evidence_digest": "6f55d2d68a89a7392128a5d1068a228871b21bd04896022afbe73dd909f754c3",
+      "successor_normative_artifact_count": 5,
+      "successor_normative_combined_digest": "4e8dcc8bd317ff11e62589ce2940f59de816648b5e98221722f3069ae1dc9d3c",
+      "successor_refreeze_digest": "b5b64e3a4aaaa257eea5366b72691a403e03464f929968d1c50a7cc8bcfbb54f"
+    },
+    "digest_checkpoints": {
+      "before_regression": "4e8dcc8bd317ff11e62589ce2940f59de816648b5e98221722f3069ae1dc9d3c",
+      "after_regression": "4e8dcc8bd317ff11e62589ce2940f59de816648b5e98221722f3069ae1dc9d3c",
+      "after_independent_rereview": "4e8dcc8bd317ff11e62589ce2940f59de816648b5e98221722f3069ae1dc9d3c"
+    },
+    "former_collision_reproduction": {
+      "finding_id": "P2-001",
+      "predecessor_contract": "diagnostic_decision_outcome_handoff_capture_v1",
+      "attack": "first source callback mutates the already validated registry and supplies matching mutated source payloads",
+      "predecessor_observed_taxonomy": "captured",
+      "predecessor_mutated_instrument_accepted": "QQQ",
+      "predecessor_original_registry_digest_retained": true,
+      "successor_contract": "diagnostic_decision_outcome_handoff_capture_v2",
+      "successor_observed_taxonomy": "conflicting",
+      "successor_reason_codes": [
+        "source_registry_anchor_mismatch"
+      ],
+      "collision_closed": true
+    },
+    "review_dimensions": [
+      {
+        "dimension": "authority_callback_sequence",
+        "status": "verified",
+        "evidence": "Each enabled evaluation reads a dependency-injected anchor into a canonical frozen local value, invokes read_capture_material exactly once, and invokes no source or verifier callback afterward."
+      },
+      {
+        "dimension": "closed_plain_data_snapshot",
+        "status": "verified",
+        "evidence": "Descriptor-based canonicalization rejects accessors without invoking them and rejects symbols, functions, bigint, non-finite values, cycles, sparse arrays, unexpected prototypes and sanitized introspection failures."
+      },
+      {
+        "dimension": "raw_object_isolation",
+        "status": "verified",
+        "evidence": "The registry and five payloads are copied into a new canonical tree and deep-frozen; downstream schema, digest, temporal and bundle logic receives only the frozen snapshot."
+      },
+      {
+        "dimension": "external_root_authority",
+        "status": "verified",
+        "evidence": "The expected registry anchor is copied and frozen before the authority callback. Callback mutation of the original anchor cannot authorize changed material."
+      },
+      {
+        "dimension": "registry_and_source_digest_binding",
+        "status": "verified",
+        "evidence": "The result binds registry version/identity, registry snapshot digest, whole authority-material digest, expected external root, disposition and all five exact source entry digests."
+      },
+      {
+        "dimension": "mutation_and_replacement_resistance",
+        "status": "verified",
+        "evidence": "Top-level, nested, array, payload-digest, verifier, source-identity, original-object replacement, callback side-effect and frozen-write probes either fail closed or leave captured bytes unchanged."
+      },
+      {
+        "dimension": "nanosecond_temporal_and_lineage_semantics",
+        "status": "verified",
+        "evidence": "The V2 pure snapshot consumer preserves V1 nanosecond ordering, completion, finalized-boundary, opportunity membership, evaluator/provider/cost lineage and closed terminal taxonomy."
+      },
+      {
+        "dimension": "o2a_interoperability",
+        "status": "verified",
+        "evidence": "A valid synthetic V2 capture yields the unchanged outcome handoff contract and exactly one O.2A joined result with separate predictor and label digests; rejected captures have no bundle."
+      },
+      {
+        "dimension": "default_off_and_kill_switch",
+        "status": "verified",
+        "evidence": "Precomputed frozen sentinels return before request inspection, anchor reads, authority callbacks, cloning, verification, construction or per-call digest work."
+      },
+      {
+        "dimension": "cross_environment_determinism",
+        "status": "verified",
+        "evidence": "UTC A/B, Stockholm reverse order and New York produce the same canonical matrix digest 797a6fcfdda943be45b9f85fbc9d95bfb7238fab1be408be1abdfb4e8964dacb."
+      },
+      {
+        "dimension": "diagnostic_and_external_activity_boundary",
+        "status": "verified",
+        "evidence": "All outputs prohibit canonical performance, automatic model/training/promotion, causality and live ranking. Evidence is synthetic and no provider, database, persistence, deploy or real outcome capture occurred."
+      }
+    ],
+    "closed_threat_matrix": [
+      {
+        "threat_id": "P2A-T001",
+        "threat": "P2-001 registry mutation during later source callback",
+        "expected": "no_later_callback_and_external_root_mismatch",
+        "observed": "source_registry_anchor_mismatch",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T002",
+        "threat": "Authority callback mutates the original expected anchor and material self-consistently",
+        "expected": "pre_callback_frozen_anchor_wins",
+        "observed": "source_registry_anchor_mismatch",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T003",
+        "threat": "Top-level or nested raw object changes after callback return",
+        "expected": "captured_snapshot_unchanged",
+        "observed": "byte_identical_result",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T004",
+        "threat": "Array reorder, insertion, removal or digest-changing source mutation",
+        "expected": "payload_or_registry_root_mismatch",
+        "observed": "fail_closed_or_canonical_identity",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T005",
+        "threat": "Getter or accessor attempts mutation during snapshot",
+        "expected": "accessor_not_invoked_and_rejected",
+        "observed": "accessor_not_invoked_and_rejected",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T006",
+        "threat": "Unexpected prototype, function, symbol, bigint, non-finite, cyclic or revoked runtime object",
+        "expected": "structured_sanitized_rejection",
+        "observed": "structured_sanitized_rejection",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T007",
+        "threat": "Attempted mutation of the canonical frozen snapshot",
+        "expected": "runtime_write_rejected",
+        "observed": "runtime_write_rejected",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T008",
+        "threat": "Multiple or later authority/source/verifier callbacks",
+        "expected": "exactly_one_atomic_authority_callback",
+        "observed": "exactly_one_atomic_authority_callback",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T009",
+        "threat": "Async authority creates an interleaving window",
+        "expected": "unsupported_by_closed_sync_contract",
+        "observed": "unsupported_by_closed_sync_contract",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T010",
+        "threat": "Self-consistent terminal or snapshot digest tampering",
+        "expected": "independent_rebuild_rejects",
+        "observed": "independent_rebuild_rejects",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T011",
+        "threat": "Default-off or kill switch attempts request or authority reads",
+        "expected": "zero_work",
+        "observed": "zero_work",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2A-T012",
+        "threat": "Provider, DB, persistence, live or Action 665/666 implementation coupling",
+        "expected": "absent",
+        "observed": "absent",
+        "status": "passed"
+      }
+    ],
+    "findings": {
+      "blocker": [],
+      "major": [],
+      "minor": [],
+      "nit": []
+    },
+    "regression": {
+      "p2a_focused": {
+        "passed": 16,
+        "failed": 0
+      },
+      "relevant_c_e_k_through_p2a": {
+        "passed": 331,
+        "failed": 0
+      },
+      "cross_timezone_and_reverse_order": "passed",
+      "typescript": {
+        "p2a_scope_errors": 0,
+        "project_check": "blocked_only_by_preexisting_out_of_scope_route_export"
+      },
+      "scoped_eslint": {
+        "status": "passed",
+        "warnings": 0
+      },
+      "json_evidence_parity": "passed",
+      "git_diff_check": "passed",
+      "security_import_dependency_scan": "passed",
+      "production_compilation": {
+        "webpack_compilation": "passed",
+        "full_build": "failed_on_preexisting_out_of_scope_route_export",
+        "out_of_scope_path": "app/api/hb307c/ping/route.ts",
+        "reason": "hb307cCanaryRouteBuildMarker is not a valid Next.js Route export",
+        "p2a_scope_caused_failure": false
+      }
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "verified_unchanged": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "verified_unchanged": true
+      }
+    },
+    "decisions": {
+      "action_667p2a_immutable_registry_snapshot_remediated": true,
+      "action_667p2a_toctou_collision_closed": true,
+      "action_667p2a_refreeze_complete": true,
+      "action_667p2a_independent_rereview_approved": true,
+      "action_667p2a_local_checkpoint_ready": true,
+      "action_667p2_real_outcome_capture_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "review_evidence_digest": "956266f0d8fe5360d94487969b8271afb49a153f4acee5c3fd869f4af2bf4ef2"
+}
