@@ -1,0 +1,200 @@
+{
+  "review_version": "action_667o2a_failure_input_provenance_independent_rereview_v1",
+  "review_material": {
+    "freeze_binding": {
+      "manifest_path": "docs/evidence/action-667o2a-failure-input-provenance-refreeze-manifest.json",
+      "manifest_sha256": "f3ed88486a3476e2293c7e6ebcc605ebd17ee0359042fc964aec190cc1fbbd74",
+      "successor_freeze_digest": "ad33c7047c94cf13816ee9d83781cd7338131575a874de2fdba39e70c2cc1d37",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "58b062ea4978d20389ba4ea25d77d88b0ee0b8c4ea8ca43bfd68a182289990b5"
+    },
+    "predecessor_binding": {
+      "o1_normative_digest": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+      "o2_freeze_digest": "1d0566d17b4682108ec1697e6ad7c0b8953a1c001b74da4bf801705cef72734f",
+      "o2_review_evidence_digest": "e408b01bec81208eb29588abaa0da6b542dffffdadf2b65e85e037ffee0e0814",
+      "preserved_byte_identically": true
+    },
+    "former_collision_reproduction": {
+      "historical_finding": "O2-001",
+      "predecessor_behavior_reproduced": true,
+      "predecessor_distinct_rejected_inputs_can_share_failure_identity": true,
+      "successor_proofs": [
+        {
+          "section": "registry_payload",
+          "same_terminal_reason": true,
+          "different_sanitized_observed_digest": true,
+          "different_failure_identity_digest": true,
+          "different_terminal_result_digest": true,
+          "verdict": "collision_closed"
+        },
+        {
+          "section": "context_handoff_payload",
+          "same_terminal_reason": true,
+          "different_sanitized_observed_digest": true,
+          "different_failure_identity_digest": true,
+          "different_terminal_result_digest": true,
+          "verdict": "collision_closed"
+        },
+        {
+          "section": "outcome_payload",
+          "same_terminal_reason": true,
+          "different_sanitized_observed_digest": true,
+          "different_failure_identity_digest": true,
+          "different_terminal_result_digest": true,
+          "verdict": "collision_closed"
+        }
+      ]
+    },
+    "independent_review": [
+      {
+        "dimension": "actual_observed_failure_inputs_bound",
+        "verdict": "approved",
+        "evidence": "Every terminal V2 result binds canonical sanitized projections and recomputed digests for registry, context, outcome and decision/opportunity/evaluator sections; absent sections bind namespace-specific sentinels."
+      },
+      {
+        "dimension": "closed_section_schema_and_dispositions",
+        "verdict": "approved",
+        "evidence": "The provenance schema closes section namespaces and dispositions to absent, malformed, verified or rejected and binds readable schema versions, expected roots, verifier versions and sorted reason codes."
+      },
+      {
+        "dimension": "caller_cannot_assert_provenance",
+        "verdict": "approved",
+        "evidence": "The V1 closed request parser rejects digest, disposition and verifier-outcome additions before any authority read; V2 accepts no caller provenance object."
+      },
+      {
+        "dimension": "sanitized_fail_closed_projection",
+        "verdict": "approved",
+        "evidence": "Observed keys and scalar values are represented only by typed SHA-256 fingerprints; accessors are not invoked, unsupported/cyclic values are deterministic, and caught lookup errors expose only fixed sanitized operation sentinels."
+      },
+      {
+        "dimension": "independent_rebuild",
+        "verdict": "approved",
+        "evidence": "The closed verifier invokes the versioned V2 factory against independently supplied authority dependencies and compares the complete canonical output; no caller-injected replay or rebuild function exists."
+      },
+      {
+        "dimension": "self_consistent_tampering_rejected",
+        "verdict": "approved",
+        "evidence": "Threat probes recompute provenance, failure and terminal digests after mutation; independent reconstruction still rejects the candidate because observed source bytes differ from the candidate projection."
+      },
+      {
+        "dimension": "failure_identity_collision_resistance",
+        "verdict": "approved",
+        "evidence": "Registry, context and outcome collision pairs share taxonomy and terminal reason while producing distinct observed-input, failure-identity and terminal-result digests."
+      },
+      {
+        "dimension": "successful_join_semantics_unchanged",
+        "verdict": "approved",
+        "evidence": "The successful V2 result preserves the exact V1 predictor, label and association projections and their separate digests; the successor adds only provenance and successor identity material."
+      },
+      {
+        "dimension": "temporal_separation_unchanged",
+        "verdict": "approved",
+        "evidence": "V2 delegates the closed nanosecond temporal and eligibility decision to the frozen V1 contract and does not change predictor or label projection rules."
+      },
+      {
+        "dimension": "default_off_and_kill_switch_zero_work",
+        "verdict": "approved",
+        "evidence": "V2 enters the V1 default-off or kill-switch branch before reading the request or registry and builds only fixed absent sentinels; proxy/counter tests prove zero reads."
+      },
+      {
+        "dimension": "determinism_and_input_immutability",
+        "verdict": "approved",
+        "evidence": "Deep-frozen fixtures, reversed insertion order and UTC/Stockholm/New York runs produce byte-identical canonical results."
+      },
+      {
+        "dimension": "diagnostic_boundary_preserved",
+        "verdict": "approved",
+        "evidence": "All terminal outputs remain diagnostic-only, shadow-only, non-official, non-canonical, non-model, non-training, non-promotion, non-causal and no-live-effect."
+      },
+      {
+        "dimension": "external_activity_and_import_isolation",
+        "verdict": "approved",
+        "evidence": "Repository scans show the V2 implementation is imported only by its synthetic fixture and test, with no provider, DB, persistence, migration, dependency, lockfile or live consumer changes."
+      }
+    ],
+    "regression": {
+      "o1_o2a_focused": {
+        "passed": 32,
+        "total": 32
+      },
+      "relevant_667c_e_k_through_o2a": {
+        "passed": 298,
+        "total": 298
+      },
+      "cross_timezone_o2a": {
+        "UTC": "15/15",
+        "Europe/Stockholm": "15/15",
+        "America/New_York": "15/15",
+        "reversed_input_order_tested": true,
+        "byte_deterministic": true
+      },
+      "typescript": "passed",
+      "scoped_eslint_zero_warnings": "passed",
+      "json_evidence_parity": "passed",
+      "git_diff_check": "passed",
+      "security_import_dependency_scans": "passed",
+      "production_build": {
+        "o2a_compilation": "passed",
+        "terminal_status": "tracked_baseline_route_validation_failure",
+        "tracked_base_failure": "app/api/hb307c/ping/route.ts exports hb307cCanaryRouteBuildMarker, which Next.js 16.2.6 rejects as an invalid Route export",
+        "o2a_scope_caused_or_changed_failure": false
+      }
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "permission_drift_count": 0,
+        "symlink_count": 0,
+        "unchanged": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "permission_drift_count": 0,
+        "symlink_count": 0,
+        "unchanged": true
+      }
+    },
+    "finding_matrix": {
+      "taxonomy": [
+        "blocker",
+        "major",
+        "minor",
+        "nit"
+      ],
+      "counts": {
+        "blocker": 0,
+        "major": 0,
+        "minor": 0,
+        "nit": 0
+      },
+      "findings": [],
+      "closed_matrix": true
+    },
+    "decisions": {
+      "action_667o2a_observed_failure_inputs_bound": true,
+      "action_667o2a_failure_collision_remediated": true,
+      "action_667o2a_independent_failure_rebuild_verified": true,
+      "action_667o2a_default_off_zero_work_preserved": true,
+      "action_667o2a_refreeze_complete": true,
+      "action_667o2a_independent_rereview_approved": true,
+      "action_667o2a_local_checkpoint_ready": true,
+      "action_667o2_failure_identity_verified": true,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    },
+    "activity_boundary": {
+      "real_outcome_join_performed": false,
+      "provider_calls": 0,
+      "database_calls": 0,
+      "persistence_writes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_requests": 0,
+      "deploys": 0
+    }
+  },
+  "review_evidence_digest": "95939a2c73bcdb79f246425ea6773655d7f5e35aa859ac6065e8dcae4ab541fb"
+}

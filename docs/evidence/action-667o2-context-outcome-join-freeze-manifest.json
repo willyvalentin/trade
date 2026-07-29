@@ -1,0 +1,59 @@
+{
+  "manifest_version": "action_667o2_context_outcome_join_freeze_manifest_v1",
+  "freeze_material": {
+    "branch": "codex/action-667o-diagnostic-context-outcome-join",
+    "base_head": "d4c70b06e942621bffcb1247a35e8e9d8f42968c",
+    "normative_artifact_count": 5,
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667o1-diagnostic-context-outcome-join-contract.md",
+        "artifact_type": "contract_documentation",
+        "version": "market_context_diagnostic_context_outcome_join_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "94364387a7b0eadca131d04333e213aa59fa929aac856219a423bfc21b9e44b7"
+      },
+      {
+        "path": "docs/evidence/action-667o1-diagnostic-context-outcome-join-synthetic-golden.json",
+        "artifact_type": "synthetic_golden_evidence",
+        "version": "action_667o1_diagnostic_context_outcome_join_synthetic_golden_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "f7dbaba3d183f62199d748e984be19c6d38ac410d30ddbf66f48ca11d8ecd59d"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-context-outcome-join-fixtures-v1.ts",
+        "artifact_type": "synthetic_fixture_factory",
+        "version": "market_context_diagnostic_context_outcome_synthetic_fixtures_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "8b53153f6592fb0e41cde774005f3804400c79e1253dc708c06610dc6d78bb62"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-context-outcome-join-v1.ts",
+        "artifact_type": "normative_contract_implementation",
+        "version": "market_context_diagnostic_context_outcome_join_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "6ba1e9ef671d520fadc3871c78479098ecbc0fc179a40ee0ff8ed43918c02078"
+      },
+      {
+        "path": "tests/e2e/action-667o1-diagnostic-context-outcome-join.spec.ts",
+        "artifact_type": "focused_contract_regression",
+        "version": "action_667o1_diagnostic_context_outcome_join_tests_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "1c29d044f1f452a6fd41227b582b9c0c5e800284f0455cdf7d2c51c1cbe81f6a"
+      }
+    ],
+    "normative_combined_digest": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+    "synthetic_golden_matrix_digest": "4cb74d43c787a989af1ec4faf6838f8546075c6c20f3524b2aae9d5e97fb2473",
+    "freeze_policy": {
+      "manifest_self_excluded_from_normative_digest": true,
+      "review_evidence_self_excluded_from_normative_digest": true,
+      "missing_artifact_allowed": false,
+      "unexpected_normative_artifact_allowed": false,
+      "path_or_sha_drift_allowed": false,
+      "historical_git_status_is_provenance": true,
+      "real_outcome_join_performed": false,
+      "remediation_performed": false,
+      "external_activity_performed": false
+    }
+  },
+  "freeze_digest": "1d0566d17b4682108ec1697e6ad7c0b8953a1c001b74da4bf801705cef72734f"
+}
