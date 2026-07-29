@@ -1,0 +1,112 @@
+{
+  "matrix_version": "action_666be_binding_backed_replay_threat_finding_matrix_v1",
+  "base_commit": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+  "normative_digest": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757",
+  "evidence_classification": "synthetic_fixture_only",
+  "performance_claimed": false,
+  "review_approved": false,
+  "local_checkpoint_ready": false,
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "finding_id": "666BE-M1",
+      "severity": "major",
+      "boundary": "external_snapshot_plain_data_validation",
+      "status": "open",
+      "evidence": {
+        "scenario": "twenty_thousand_level_plain_object_branch",
+        "observed_result": "RangeError: Maximum call stack size exceeded",
+        "expected_result": "sanitized_digest_bound_terminal_failure",
+        "source": "plainDataReasons recursive visit"
+      },
+      "impact": [
+        "unstructured exception crosses the replay contract boundary",
+        "failure result cannot be independently rebuilt",
+        "explicitly enabled offline replay is exposed to resource exhaustion"
+      ],
+      "remediated_in_action": false
+    }
+  ],
+  "threats": [
+    {
+      "threat": "caller_replaces_authority_root_and_snapshot_consistently",
+      "result": "pass",
+      "evidence": "rejected against frozen proposal-registry capture authority"
+    },
+    {
+      "threat": "authority_callback_mutates_returned_object",
+      "result": "pass",
+      "evidence": "authority recognized once and frozen; mutation does not change admitted bytes"
+    },
+    {
+      "threat": "snapshot_mutated_after_authority_read",
+      "result": "pass",
+      "evidence": "authority/snapshot identity and digest mismatch fails closed"
+    },
+    {
+      "threat": "getter_or_custom_prototype_payload",
+      "result": "pass",
+      "evidence": "accessor is not invoked and payload is unmappable"
+    },
+    {
+      "threat": "excessively_deep_plain_snapshot_payload",
+      "result": "finding",
+      "finding_id": "666BE-M1"
+    },
+    {
+      "threat": "duplicate_or_cross_type_entry_identity",
+      "result": "pass",
+      "evidence": "closed inventory validation rejects duplicate and cross-type identities"
+    },
+    {
+      "threat": "future_or_rollback_snapshot",
+      "result": "pass",
+      "evidence": "nanosecond instant, epoch, sequence and predecessor checks fail closed"
+    },
+    {
+      "threat": "caller_asserts_lookup_result",
+      "result": "pass",
+      "evidence": "AJ/AC/V/AQ receive lookup adapters built from the verified AX store"
+    },
+    {
+      "threat": "tampered_stage_or_terminal_result",
+      "result": "pass",
+      "evidence": "independent admission, store and AQ rebuild verification"
+    },
+    {
+      "threat": "different_collision_inputs_share_forensic_identity",
+      "result": "pass",
+      "evidence": "observed snapshot and terminal digests differ across collision fixtures"
+    },
+    {
+      "threat": "disabled_or_killed_harness_performs_work",
+      "result": "pass",
+      "evidence": "all work counters remain zero"
+    },
+    {
+      "threat": "live_import_or_hidden_write_path",
+      "result": "pass",
+      "evidence": "security/import/write/persistence/provider/DB scans found none"
+    }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}

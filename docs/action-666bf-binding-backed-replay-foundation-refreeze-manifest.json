@@ -1,0 +1,160 @@
+{
+  "manifest_version": "action_666bf_binding_backed_replay_foundation_refreeze_manifest_v1",
+  "action": "666BF",
+  "finding_remediated": "666BE-M1",
+  "base_commit": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+  "head_at_refreeze": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+  "branch": "codex/action-666bd-governed-binding-snapshot-admission",
+  "normative_artifact_count": 5,
+  "normative_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "predecessor_normative_digest": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757",
+  "combined_normative_digest": "9d667a7a76bcad15f68bf3069cdc87558d6763f6c212ca36a57c9ec2613b7ac4",
+  "digest_checkpoints": {
+    "pre_regression": "9d667a7a76bcad15f68bf3069cdc87558d6763f6c212ca36a57c9ec2613b7ac4",
+    "post_regression": "9d667a7a76bcad15f68bf3069cdc87558d6763f6c212ca36a57c9ec2613b7ac4",
+    "pre_independent_rereview": "9d667a7a76bcad15f68bf3069cdc87558d6763f6c212ca36a57c9ec2613b7ac4",
+    "post_independent_rereview": "9d667a7a76bcad15f68bf3069cdc87558d6763f6c212ca36a57c9ec2613b7ac4"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
+      "action_owner": "666BD/666BF",
+      "artifact_type": "synthetic_golden_report",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "0e7d5358bdb48e8e00c56e1868e5fbe793cddd110a67a0ab6598bf5560e6a135",
+      "bytes": 5343
+    },
+    {
+      "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
+      "action_owner": "666BD/666BF",
+      "artifact_type": "contract_documentation",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "df0d83842878294ab7762e5a4804b03f8e3dcbc9b64dd778ad6fffcdefcabb4b",
+      "bytes": 6132
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
+      "action_owner": "666BD",
+      "artifact_type": "synthetic_fixture_library",
+      "classification": "normative_preserved",
+      "git_status": "untracked",
+      "sha256": "bfc9342d63628697cf88e886350a8ab37b9f84482308d927ad37cfeec3e9018c",
+      "bytes": 19077
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
+      "action_owner": "666BD/666BF",
+      "artifact_type": "server_only_contract_implementation",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "d0b6b869ee8356a453ad7c0fdaa29c756ce36558c983dd2e2a0717231c54b3fa",
+      "bytes": 71178
+    },
+    {
+      "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
+      "action_owner": "666BD/666BF",
+      "artifact_type": "focused_contract_test_suite",
+      "classification": "normative_remediated",
+      "git_status": "untracked",
+      "sha256": "9bd3bf68884208befebaa17f22d91af774c0a5cc32bbaf46b5592cd0245c6954",
+      "bytes": 37230
+    }
+  ],
+  "validator_contract": {
+    "validator_version": "canonical_bounded_snapshot_validator_v1",
+    "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
+    "budget_policy_digest": "45893a4b77972300747ee814146e6a05c943266d00a6475bd14d8293ed3aa532",
+    "budgets": {
+      "max_depth": 128,
+      "max_nodes": 131072,
+      "max_keys_per_container": 4096,
+      "max_array_length": 2048,
+      "max_string_bytes": 65536,
+      "max_total_string_bytes": 8388608
+    },
+    "caller_configurable": false,
+    "traversal": "explicit_iterative_stack",
+    "runs_before": [
+      "deep_clone",
+      "deep_freeze",
+      "canonical_full_payload_serialization",
+      "full_snapshot_digest",
+      "ax_store_construction"
+    ],
+    "bounded_failure_reason": "snapshot_validation_budget_exceeded",
+    "full_snapshot_digest_on_bounded_failure": null,
+    "independent_failure_rebuild_required": true
+  },
+  "negative_matrix": [
+    "twenty_thousand_levels",
+    "exact_max_depth",
+    "max_depth_plus_one",
+    "exact_max_nodes",
+    "max_nodes_plus_one",
+    "wide_object",
+    "large_array",
+    "oversized_string_value",
+    "oversized_string_key",
+    "total_string_budget",
+    "cycle",
+    "accessor",
+    "throwing_proxy",
+    "non_plain_prototype",
+    "symbol_key",
+    "unsupported_value",
+    "self_consistent_failure_digest_tampering",
+    "changed_budget_policy",
+    "changed_rejection_path",
+    "changed_counters"
+  ],
+  "historical_evidence": {
+    "predecessor_manifest_path": "docs/action-666be-binding-backed-replay-foundation-freeze-manifest.json",
+    "predecessor_manifest_sha256": "12ade50d6dd6752b5d10e8149b8c417027c48bce127d7c035fe9199cacf75ac0",
+    "predecessor_review_path": "docs/action-666be-binding-backed-replay-independent-review.md",
+    "predecessor_review_sha256": "a585309afc223895c2742a22046388a363a95e7513bf1b8dcc5ec29c044ee93b",
+    "predecessor_threat_matrix_path": "docs/action-666be-binding-backed-replay-threat-finding-matrix.json",
+    "predecessor_threat_matrix_sha256": "84cede89a9580f7a0807d9c5424145275c657cf3adbd5733f92f53f8c975d5f0",
+    "byte_identical": true
+  },
+  "regression": {
+    "action_666bd_bf_focused": "27/27 passed",
+    "relevant_action_665_666": "304/304 passed",
+    "action_664_foundation": "163/163 passed",
+    "postgresql_matrix": "13/13 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed in independent focused and full-suite processes",
+    "production_build": "passed",
+    "git_diff_check": "passed",
+    "independent_stage_and_terminal_rebuild": "passed",
+    "default_off_zero_work": "passed",
+    "security_scope_scans": "passed"
+  },
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "self_exclusion": {
+    "normative_digest_excludes": [
+      "docs/action-666be-binding-backed-replay-foundation-freeze-manifest.json",
+      "docs/action-666be-binding-backed-replay-independent-review.md",
+      "docs/action-666be-binding-backed-replay-threat-finding-matrix.json",
+      "docs/action-666bf-binding-backed-replay-foundation-refreeze-manifest.json",
+      "docs/action-666bf-binding-backed-replay-independent-rereview.md"
+    ],
+    "reason": "preserve additive review evidence and avoid self-reference"
+  }
+}

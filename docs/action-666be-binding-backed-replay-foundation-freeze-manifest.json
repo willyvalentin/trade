@@ -1,0 +1,183 @@
+{
+  "manifest_version": "action_666be_binding_backed_replay_foundation_freeze_manifest_v1",
+  "action": "666BE",
+  "base_commit": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+  "head_at_freeze": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+  "branch": "codex/action-666bd-governed-binding-snapshot-admission",
+  "normative_artifact_count": 5,
+  "normative_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "combined_normative_digest": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757",
+  "digest_checkpoints": {
+    "pre_regression": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757",
+    "post_regression": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757",
+    "post_review": "5d6fbd664cb5718b38ec0709bb6ed7089843a3200ddbad89b954b7ee67ad1757"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
+      "action_owner": "666BD",
+      "artifact_type": "synthetic_golden_report",
+      "classification": "normative",
+      "git_status": "untracked",
+      "sha256": "e4c116f46ef9bfab76ccfe6617a48d6447c085481599b708d2398bd4768b2d9a",
+      "bytes": 4832
+    },
+    {
+      "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
+      "action_owner": "666BD",
+      "artifact_type": "contract_documentation",
+      "classification": "normative",
+      "git_status": "untracked",
+      "sha256": "0137bed428aa8bb42a18fbf827ee18ad16aa43b883b0c7f4c51ad9e6427a72f1",
+      "bytes": 4585
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
+      "action_owner": "666BD",
+      "artifact_type": "synthetic_fixture_library",
+      "classification": "normative",
+      "git_status": "untracked",
+      "sha256": "bfc9342d63628697cf88e886350a8ab37b9f84482308d927ad37cfeec3e9018c",
+      "bytes": 19077
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
+      "action_owner": "666BD",
+      "artifact_type": "server_only_contract_implementation",
+      "classification": "normative",
+      "git_status": "untracked",
+      "sha256": "488a462f00d0dc8b317fd78d31bc344c0ead7d32f435f402e74b0ebd79c5f1e5",
+      "bytes": 56073
+    },
+    {
+      "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
+      "action_owner": "666BD",
+      "artifact_type": "focused_contract_test_suite",
+      "classification": "normative",
+      "git_status": "untracked",
+      "sha256": "b717f6d9c2e3f3e3266358a5bedb1dcef66faeb8f8eacff238b8d905f1532596",
+      "bytes": 20869
+    }
+  ],
+  "contract_versions": {
+    "snapshot_admission": "canonical_improvement_binding_snapshot_admission_v1",
+    "binding_backed_replay": "canonical_binding_backed_improvement_replay_v1",
+    "external_snapshot": "canonical_external_improvement_binding_snapshot_v1",
+    "external_entry": "canonical_external_improvement_binding_entry_v1",
+    "admission_authority": "canonical_binding_snapshot_admission_authority_v1",
+    "admission_owner_boundary": "canonical_binding_snapshot_admission_owner_boundary_v1",
+    "replay_request": "canonical_binding_backed_improvement_replay_request_v1",
+    "ax_snapshot": "canonical_improvement_binding_snapshot_v1",
+    "ax_store": "canonical_improvement_binding_store_v1",
+    "aj_capture": "canonical_completed_improvement_evidence_capture_v2",
+    "ac_adapter": "canonical_completed_improvement_evidence_adapter_v2",
+    "v_proposal": "canonical_model_improvement_proposal_v1",
+    "aq_replay": "canonical_governed_improvement_end_to_end_replay_v1",
+    "aq_lineage": "canonical_governed_improvement_end_to_end_lineage_v1",
+    "aq_stage": "canonical_governed_improvement_end_to_end_stage_v1"
+  },
+  "fixture_identities": {
+    "snapshot_admission_identity": "admission:action-666aj:producer:stable_improvement_across_splits",
+    "external_snapshot_identity": "external-binding-snapshot:owner-authority:governed-binding-admission:1:1",
+    "ax_store_snapshot_identity": "binding-snapshot:owner-authority:governed-binding-admission:1:1",
+    "owner_boundary_identity": "owner-boundary:governed-binding-admission",
+    "admission_authority_identity": "authority:governed-binding-admission"
+  },
+  "lineage": {
+    "ordered_stages": [
+      "external_owner_authority",
+      "external_snapshot_admission",
+      "ax_read_only_store",
+      "action_666aj_capture",
+      "action_666ac_adapter",
+      "action_666v_proposal",
+      "action_666aq_replay",
+      "binding_backed_terminal_replay"
+    ],
+    "source_stack_base": "371d60c25f56b8053bb669fef37d2c9787aa428a",
+    "stage_and_terminal_rebuild_required": true
+  },
+  "golden_scenario_inventory": [
+    "proposal_ready",
+    "no_change",
+    "research_only",
+    "insufficient_evidence",
+    "previous_binding_collision",
+    "capture_binding_collision",
+    "incomplete_snapshot",
+    "authority_conflict",
+    "point_in_time_violation"
+  ],
+  "default_off": {
+    "enabled_default": false,
+    "kill_switch_default_engaged": true,
+    "zero_work_counters": [
+      "request_reads",
+      "snapshot_reads",
+      "clones",
+      "authority_reads",
+      "authority_verifications",
+      "digest_operations",
+      "admission_rebuilds",
+      "store_constructions",
+      "store_rebuilds",
+      "lookup_adapter_constructions",
+      "end_to_end_executions",
+      "end_to_end_rebuilds"
+    ]
+  },
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "regression": {
+    "action_666bd_focused": "21/21 passed",
+    "relevant_action_665_666": "298/298 passed",
+    "action_664_foundation": "163/163 passed",
+    "postgresql_matrix": "13/13 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "production_build": "passed",
+    "git_diff_check": "passed",
+    "cross_process_determinism": "passed",
+    "cross_process_golden_projection_sha256": "e085d14c63e89c7c65649e6b5dfd5d32239177b695dd8c4fe5d3cc835d53e887",
+    "security_scope_scans": "passed"
+  },
+  "review": {
+    "independent_review_approved": false,
+    "local_checkpoint_ready": false,
+    "finding_counts": {
+      "blocker": 0,
+      "major": 1,
+      "minor": 0,
+      "nit": 0
+    },
+    "review_evidence_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+    "review_evidence_digest_scope": [
+      "docs/action-666be-binding-backed-replay-independent-review.md",
+      "docs/action-666be-binding-backed-replay-threat-finding-matrix.json"
+    ],
+    "review_evidence_digest": "63e3ad47d90f732b8cbdba874c30de8dd667a3c22577a7e881cf8f7c20fe17ad"
+  },
+  "self_exclusion": {
+    "normative_digest_excludes": [
+      "docs/action-666be-binding-backed-replay-foundation-freeze-manifest.json",
+      "docs/action-666be-binding-backed-replay-independent-review.md",
+      "docs/action-666be-binding-backed-replay-threat-finding-matrix.json"
+    ],
+    "manifest_excluded_from_review_evidence_digest": true,
+    "reason": "avoid self-reference and keep review evidence additive"
+  }
+}
