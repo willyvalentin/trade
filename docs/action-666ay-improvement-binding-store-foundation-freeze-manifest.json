@@ -1,0 +1,130 @@
+{
+  "manifest_version": "action_666ay_improvement_binding_store_foundation_freeze_manifest_v1",
+  "review_date": "2026-07-29",
+  "branch": "codex/action-666ax-frozen-improvement-binding-store",
+  "base_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+  "head_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+  "canonical_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "normative_artifact_count": 5,
+  "normative_foundation_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+  "freeze_digests": {
+    "pre_regression": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+    "post_regression": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+    "post_review": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666ax-golden-improvement-binding-store-report.json",
+      "artifact_type": "machine_readable_synthetic_golden_evidence",
+      "size_bytes": 1862,
+      "sha256": "b0fc88dcc5ab3cf8e29978169a0f74127cad87c23e71a7b1f8584732725adf07",
+      "git_status": "untracked",
+      "classification": "normative_synthetic_not_publishable"
+    },
+    {
+      "path": "docs/action-666ax-improvement-binding-store-contract.md",
+      "artifact_type": "contract_documentation",
+      "size_bytes": 5571,
+      "sha256": "5fa23690be9358a8b29f07355dc1ca931e7071c67c88242b4093620ea64994da",
+      "git_status": "untracked",
+      "classification": "normative_contract_documentation"
+    },
+    {
+      "path": "lib/server/canonical-improvement-binding-store-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "size_bytes": 14793,
+      "sha256": "58371d546018b3c31bb54a4acc80b4312b1ea72fc8515454004756c4f3be24c3",
+      "git_status": "untracked",
+      "classification": "normative_fixture_contract"
+    },
+    {
+      "path": "lib/server/canonical-improvement-binding-store.ts",
+      "artifact_type": "server_only_immutable_snapshot_and_read_only_store_contract",
+      "size_bytes": 42569,
+      "sha256": "59d951c973bc922a174b0571ffe62a35815f911308568b9422c1eaea039ec579",
+      "git_status": "untracked",
+      "classification": "normative_implementation"
+    },
+    {
+      "path": "tests/e2e/action-666ax-improvement-binding-store.spec.ts",
+      "artifact_type": "deterministic_contract_interop_and_threat_tests",
+      "size_bytes": 16574,
+      "sha256": "aad9c26dfd2c7f0b34add7c3feee28d6e1f12d8f69344e4277f2b7f02ee77b42",
+      "git_status": "untracked",
+      "classification": "normative_verification"
+    }
+  ],
+  "contract_versions": [
+    "canonical_improvement_binding_snapshot_v1",
+    "canonical_improvement_binding_entry_v1",
+    "canonical_improvement_binding_store_v1",
+    "canonical_improvement_binding_snapshot_authority_v1",
+    "canonical_improvement_binding_owner_boundary_v1",
+    "canonical_improvement_binding_lookup_result_v1"
+  ],
+  "upstream_lineage": {
+    "action_666aj_capture_base": "aec3bd76c8376ce2c3ce02e8052b44e907c30abd",
+    "action_666ac_adapter_base": "e87bb62198b54143ea9d3456a1d7872dc81d8871",
+    "action_666aq_replay_base": "3f61c4c8a9f2215e687a94c0744f925117580286"
+  },
+  "evidence_boundary": {
+    "classification": "synthetic_fixture_only",
+    "shadow_only": true,
+    "not_publishable": true,
+    "real_ture_performance_claimed": false,
+    "causal_claimed": false
+  },
+  "safety_boundary": {
+    "default_enabled": false,
+    "default_kill_switch_engaged": true,
+    "live_ranking_effect": false,
+    "automatic_training_allowed": false,
+    "automatic_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false
+  },
+  "verification": {
+    "focused_action_666ax": "15/15",
+    "relevant_action_665_666": "277/277",
+    "action_664_foundation": "163/163",
+    "separate_postgresql_matrix": "13/13",
+    "typescript": "passed",
+    "scoped_eslint": "passed_zero_warnings",
+    "json_parity": "passed",
+    "production_build": "passed",
+    "git_diff_check": "passed",
+    "security_scope_checks": "passed",
+    "clean_room_checkout_removed": true
+  },
+  "review_evidence": {
+    "review_path": "docs/action-666ay-improvement-binding-store-independent-review.md",
+    "review_size_bytes": 7918,
+    "review_sha256": "6d0d8178952c0ea8dfaa9c1b13a1ceb3d7a0b26fe253bc75c64ab18bfe7e7adb",
+    "threat_matrix_path": "docs/action-666ay-improvement-binding-store-threat-finding-matrix.json",
+    "threat_matrix_size_bytes": 8146,
+    "threat_matrix_sha256": "82f52cb7dd4eb7bc91c69e83dd1ecc89701b8f6dd40e2822452ca00fe53cbebc",
+    "canonical_review_evidence_digest_algorithm": "sha256_over_recursively_key_sorted_json_utf8_v1",
+    "canonical_review_evidence_digest": "fdab04e4c5452fb387154b7f753ae4c758be765ba83cf4810b2a7a54eea7674e"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "finding_ids": [],
+  "binary_decisions": {
+    "foundation_frozen": true,
+    "external_authority_verified": true,
+    "read_only_boundary_verified": true,
+    "point_in_time_rollback_verified": true,
+    "interop_verified": true,
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true
+  },
+  "self_exclusion": {
+    "manifest_outside_normative_digest": true,
+    "review_report_outside_normative_digest": true,
+    "threat_matrix_outside_normative_digest": true
+  }
+}

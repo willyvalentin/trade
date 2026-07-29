@@ -1,0 +1,178 @@
+{
+  "manifest_version": "action_666az1_improvement_binding_store_portability_refreeze_manifest_v1",
+  "review_date": "2026-07-29",
+  "branch": "codex/action-666ax-frozen-improvement-binding-store",
+  "base_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+  "head_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+  "canonical_digest_algorithm": "sha256_over_lexicographically_sorted_path_nul_sha256_lf_v1",
+  "normative_artifact_count": 5,
+  "predecessor_normative_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+  "normative_foundation_digest": "b52db0a40ffd92d7e8395c9005b6f869e56ebecd1980b97b87f77087df2a38a5",
+  "freeze_digests": {
+    "pre_regression": "b52db0a40ffd92d7e8395c9005b6f869e56ebecd1980b97b87f77087df2a38a5",
+    "post_regression": "b52db0a40ffd92d7e8395c9005b6f869e56ebecd1980b97b87f77087df2a38a5",
+    "post_rereview": "b52db0a40ffd92d7e8395c9005b6f869e56ebecd1980b97b87f77087df2a38a5"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666ax-golden-improvement-binding-store-report.json",
+      "artifact_type": "machine_readable_synthetic_golden_evidence",
+      "size_bytes": 1862,
+      "sha256": "b0fc88dcc5ab3cf8e29978169a0f74127cad87c23e71a7b1f8584732725adf07",
+      "git_status": "untracked",
+      "classification": "normative_synthetic_not_publishable",
+      "portability_change": "unchanged"
+    },
+    {
+      "path": "docs/action-666ax-improvement-binding-store-contract.md",
+      "artifact_type": "contract_documentation",
+      "size_bytes": 5570,
+      "sha256": "8e6c5991fca61ebf39dc0e072254a7b81f49bab20e8a64292f046080afaa1fb4",
+      "git_status": "untracked",
+      "classification": "normative_contract_documentation",
+      "portability_change": "one_terminal_LF_removed",
+      "preimage_size_bytes": 5571,
+      "preimage_sha256": "5fa23690be9358a8b29f07355dc1ca931e7071c67c88242b4093620ea64994da",
+      "preimage_reconstruction": "append_exactly_one_0x0a_byte_to_current_bytes",
+      "non_whitespace_semantic_content_equal": true
+    },
+    {
+      "path": "lib/server/canonical-improvement-binding-store-fixtures.ts",
+      "artifact_type": "server_only_synthetic_fixtures",
+      "size_bytes": 14792,
+      "sha256": "9cbb84039ccf7f82f474a4dc66be0d14d977be1536ea9fc25920174b73bdb503",
+      "git_status": "untracked",
+      "classification": "normative_fixture_contract",
+      "portability_change": "one_terminal_LF_removed",
+      "preimage_size_bytes": 14793,
+      "preimage_sha256": "58371d546018b3c31bb54a4acc80b4312b1ea72fc8515454004756c4f3be24c3",
+      "preimage_reconstruction": "append_exactly_one_0x0a_byte_to_current_bytes",
+      "non_whitespace_semantic_content_equal": true
+    },
+    {
+      "path": "lib/server/canonical-improvement-binding-store.ts",
+      "artifact_type": "server_only_immutable_snapshot_and_read_only_store_contract",
+      "size_bytes": 42569,
+      "sha256": "59d951c973bc922a174b0571ffe62a35815f911308568b9422c1eaea039ec579",
+      "git_status": "untracked",
+      "classification": "normative_implementation",
+      "portability_change": "unchanged"
+    },
+    {
+      "path": "tests/e2e/action-666ax-improvement-binding-store.spec.ts",
+      "artifact_type": "deterministic_contract_interop_and_threat_tests",
+      "size_bytes": 16574,
+      "sha256": "aad9c26dfd2c7f0b34add7c3feee28d6e1f12d8f69344e4277f2b7f02ee77b42",
+      "git_status": "untracked",
+      "classification": "normative_verification",
+      "portability_change": "unchanged"
+    }
+  ],
+  "historical_ay_evidence": {
+    "normative_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+    "review_evidence_digest": "fdab04e4c5452fb387154b7f753ae4c758be765ba83cf4810b2a7a54eea7674e",
+    "manifest": {
+      "path": "docs/action-666ay-improvement-binding-store-foundation-freeze-manifest.json",
+      "sha256": "4cbc3cd2a45433ece42e62cfc240ca906734aa97d602bb801a2dee12682ed100"
+    },
+    "review": {
+      "path": "docs/action-666ay-improvement-binding-store-independent-review.md",
+      "sha256": "6d0d8178952c0ea8dfaa9c1b13a1ceb3d7a0b26fe253bc75c64ab18bfe7e7adb"
+    },
+    "threat_matrix": {
+      "path": "docs/action-666ay-improvement-binding-store-threat-finding-matrix.json",
+      "sha256": "82f52cb7dd4eb7bc91c69e83dd1ecc89701b8f6dd40e2822452ca00fe53cbebc"
+    },
+    "preserved_byte_identical": true
+  },
+  "semantic_preservation": {
+    "authorized_changed_path_count": 2,
+    "transformation": "remove_exactly_one_terminal_blank_line_from_each_authorized_path",
+    "preimages_reconstructible": true,
+    "typescript_tokens_changed": false,
+    "documentation_non_whitespace_content_changed": false,
+    "contract_versions_changed": false,
+    "golden_bytes_changed": false
+  },
+  "verification": {
+    "focused_action_666ax": "15/15",
+    "relevant_action_665_666": "277/277",
+    "action_664_foundation": "163/163",
+    "separate_postgresql_matrix": "13/13",
+    "typescript": "passed",
+    "scoped_eslint": "passed_zero_warnings",
+    "json_parity": "passed",
+    "production_build": "passed",
+    "git_diff_check": "passed_including_explicit_untracked_eof_check",
+    "security_scope_checks": "passed"
+  },
+  "rereview_evidence": {
+    "path": "docs/action-666az1-improvement-binding-store-independent-portability-rereview.md",
+    "size_bytes": 4584,
+    "sha256": "a922d5f9fd0c1d081de345d54b7e92547afeb2ec25ba5594cace465ba9ee094c",
+    "canonical_review_evidence_digest_algorithm": "sha256_over_recursively_key_sorted_json_utf8_v1",
+    "canonical_review_evidence_digest": "f039ebbbfa54c8cbd61e0fddb05737df3f9b0ac8ac23557aa512aeed104b8777"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "binary_decisions": {
+    "eof_whitespace_remediated": true,
+    "semantic_bytes_preserved": true,
+    "refreeze_complete": true,
+    "independent_rereview_approved": true,
+    "updated_checkpoint_scope_ready": true
+  },
+  "checkpoint_scope": {
+    "foundation_commit_path_count": 5,
+    "review_evidence_commit_path_count": 5,
+    "total_unique_path_count": 10
+  },
+  "self_exclusion": {
+    "refreeze_manifest_outside_normative_digest": true,
+    "portability_rereview_outside_normative_digest": true
+  },
+  "review_evidence_projection": {
+    "review_contract_version": "action_666az1_improvement_binding_store_portability_rereview_v1",
+    "base_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+    "predecessor_normative_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+    "normative_digest": "b52db0a40ffd92d7e8395c9005b6f869e56ebecd1980b97b87f77087df2a38a5",
+    "authorized_changed_paths": [
+      "docs/action-666ax-improvement-binding-store-contract.md",
+      "lib/server/canonical-improvement-binding-store-fixtures.ts"
+    ],
+    "finding_counts": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    },
+    "verification": {
+      "focused_action_666ax": "15/15",
+      "relevant_action_665_666": "277/277",
+      "action_664_foundation": "163/163",
+      "separate_postgresql_matrix": "13/13",
+      "typescript": "passed",
+      "scoped_eslint": "passed_zero_warnings",
+      "json_parity": "passed",
+      "production_build": "passed",
+      "git_diff_check": "passed_including_explicit_untracked_eof_check",
+      "security_scope_checks": "passed"
+    },
+    "binary_decisions": {
+      "eof_whitespace_remediated": true,
+      "semantic_bytes_preserved": true,
+      "refreeze_complete": true,
+      "independent_rereview_approved": true,
+      "updated_checkpoint_scope_ready": true
+    },
+    "checkpoint_scope": {
+      "foundation_commit_path_count": 5,
+      "review_evidence_commit_path_count": 5,
+      "total_unique_path_count": 10
+    }
+  }
+}

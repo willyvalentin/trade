@@ -1,0 +1,178 @@
+{
+  "matrix_version": "action_666ay_improvement_binding_store_threat_finding_matrix_v1",
+  "reviewed_contract_versions": [
+    "canonical_improvement_binding_snapshot_v1",
+    "canonical_improvement_binding_entry_v1",
+    "canonical_improvement_binding_store_v1",
+    "canonical_improvement_binding_snapshot_authority_v1",
+    "canonical_improvement_binding_owner_boundary_v1",
+    "canonical_improvement_binding_lookup_result_v1"
+  ],
+  "reviewed_base_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+  "reviewed_freeze_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+  "summary": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true
+  },
+  "threat_cases": [
+    {
+      "case": "caller_supplies_snapshot_root_or_owner_approval",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Both lookup request schemas require exact keys and classify any caller-supplied root, payload, status, digest or approval field as lookup_request_schema_invalid."
+    },
+    {
+      "case": "self_consistent_caller_root_replacement",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The lookup caller has no snapshot or authority field. Expected authority and verified bytes enter only through canonical_improvement_binding_owner_boundary_v1; replacing lookup request bytes cannot replace that owner-controlled dependency."
+    },
+    {
+      "case": "snapshot_root_or_authority_substitution",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Snapshot identity, digest, owner, sequence, epoch, predecessor digest and external root are compared with the independently read authority and produce invalid_snapshot on drift."
+    },
+    {
+      "case": "snapshot_rollback_to_older_epoch",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The expected authority pins snapshot bytes, publication sequence and epoch. The synthetic rollback pair is rejected with snapshot_authority_binding_mismatch."
+    },
+    {
+      "case": "invalid_genesis_or_predecessor_chain",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Genesis is restricted to sequence/epoch 1/1 and null predecessor fields; linked snapshots require the immediately prior sequence, an earlier epoch and a full predecessor digest."
+    },
+    {
+      "case": "future_snapshot_or_entry",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "A snapshot or entry effective after as_of returns not_effective. A future entry can be bound into forensic result evidence but cannot become found or a semantic adapter value."
+    },
+    {
+      "case": "naive_malformed_or_unsupported_timestamp",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The project strict explicit-instant parser rejects unsupported timestamps; lookup returns not_effective with lookup_as_of_not_explicit_instant."
+    },
+    {
+      "case": "offset_or_nanosecond_drift",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Instants are canonicalized from epoch nanoseconds to UTC with exactly nine fractional digits. Offset-equivalent inputs produce byte-identical lookup results."
+    },
+    {
+      "case": "duplicate_or_conflicting_entry_identity",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Duplicate entry identities and typed lookup keys, including conflicting bytes, invalidate the complete snapshot without deduplication."
+    },
+    {
+      "case": "cross_type_identity_collision",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Reuse of a bound identity across previous_binding and capture_binding is classified as snapshot_cross_type_identity_collision."
+    },
+    {
+      "case": "unknown_entry_type_or_wrong_namespace",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Entry type and source namespace inventories are closed and versioned; unknown types and namespace/type mismatches invalidate the snapshot."
+    },
+    {
+      "case": "hidden_writer_or_persistence_surface",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The store exposes only lookup_previous_binding and lookup_capture_binding. Compatibility adapters expose only the three predecessor lookup methods; static scans found no mutation, filesystem, provider or database path."
+    },
+    {
+      "case": "previous_binding_semantic_collision",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The observed digest is returned only from a found store result and AJ/AC/AQ classify a mismatch against their independently derived expected digest as an explicit semantic collision."
+    },
+    {
+      "case": "capture_binding_semantic_collision",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Capture identity and observed snapshot/entry digests remain bound; matching and conflicting capture observations produce distinct downstream evidence."
+    },
+    {
+      "case": "different_collision_inputs_collapse",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Snapshot, entry and observed binding digests are part of each result digest. Distinct collision bytes therefore produce distinct forensic store and downstream result identities."
+    },
+    {
+      "case": "caller_flags_bypass_interop_verification",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "AJ, AC and AQ receive only the exact read adapters. Their existing canonical verifiers rebuild lookup observations; no caller status or trust boolean is accepted."
+    },
+    {
+      "case": "disabled_or_kill_switch_performs_work",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Both gates return before the owner dependency getter. Instrumented counters remain zero for request, snapshot, clone, authority, entry, digest and downstream work."
+    },
+    {
+      "case": "safety_metadata_removed_or_elevated",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Store, harness and lookup results bind literal shadow-only, no-live, no-automatic-change, no-promotion, no-external-AI-authority and synthetic/not-publishable metadata."
+    },
+    {
+      "case": "golden_evidence_misrepresented_as_performance",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "Golden JSON is fixture-only, performance_claimed:false and publishable:false; documentation explicitly forbids real Ture performance interpretation."
+    },
+    {
+      "case": "live_import_or_hidden_activation",
+      "result": "pass",
+      "finding_ids": [],
+      "evidence": "The implementation imports server-only. Repository and build scans found no app, component, page, route, provider, database, writer or persistence consumer."
+    }
+  ],
+  "review_evidence_projection": {
+    "review_contract_version": "action_666ay_independent_review_v1",
+    "base_sha": "3f61c4c8a9f2215e687a94c0744f925117580286",
+    "normative_digest": "e0e2e623c999cd6844d01e6553ab83bf512f4bdd15849822d176fba3b578057e",
+    "finding_counts": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    },
+    "verification": {
+      "focused_action_666ax": "15/15",
+      "relevant_action_665_666": "277/277",
+      "action_664_foundation": "163/163",
+      "separate_postgresql_matrix": "13/13",
+      "typescript": "passed",
+      "scoped_eslint": "passed_zero_warnings",
+      "json_parity": "passed",
+      "production_build": "passed",
+      "git_diff_check": "passed",
+      "security_scope_checks": "passed",
+      "clean_room_checkout_removed": true
+    },
+    "binary_decisions": {
+      "foundation_frozen": true,
+      "external_authority_verified": true,
+      "read_only_boundary_verified": true,
+      "point_in_time_rollback_verified": true,
+      "interop_verified": true,
+      "independent_review_approved": true,
+      "local_checkpoint_ready": true
+    }
+  },
+  "review_evidence_digest_algorithm": "sha256_over_recursively_key_sorted_json_utf8_v1",
+  "review_evidence_digest": "fdab04e4c5452fb387154b7f753ae4c758be765ba83cf4810b2a7a54eea7674e"
+}
