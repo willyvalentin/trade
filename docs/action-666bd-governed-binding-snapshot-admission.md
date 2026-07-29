@@ -1,0 +1,169 @@
+# Action 666BD — Governed Binding Snapshot Admission
+
+## Status and scope
+
+`canonical_improvement_binding_snapshot_admission_v1` and
+`canonical_binding_backed_improvement_replay_v1` are server-only,
+default-off, synthetic-fixture contracts. They do not introduce a
+writer, persistence, a database relation, a provider call, a real
+snapshot source, or a live call-site.
+
+The inactive chain is:
+
+```text
+externally owned frozen snapshot
+→ canonical admission
+→ Action 666AX read-only store
+→ Action 666AJ capture
+→ Action 666AC adapter
+→ Action 666V proposal
+→ Action 666AQ replay
+```
+
+## Authority and admission boundary
+
+The replay request contains no snapshot bytes, expected authority root,
+trusted registry payload, lookup result, approval flag, or terminal
+claim. Two separately injected owner dependencies expose:
+
+- the expected immutable admission authority;
+- the untrusted external snapshot candidate.
+
+The authority is read exactly once. It binds owner and registry
+identities, frozen manifest and root digests, snapshot identity and
+digest, publication sequence/epoch, and predecessor digest. The
+admission layer also requires the root, manifest, and registry identity
+to match the already recognized Action 666AJ capture authority.
+Consequently, a caller cannot replace both snapshot and authority with
+a self-consistent alternative root.
+
+Before cloning or hashing a snapshot,
+`canonical_bounded_snapshot_validator_v1` walks the candidate with an
+explicit iterative stack. It never recursively traverses caller-owned
+data. The source-controlled
+`canonical_bounded_snapshot_budget_policy_v1` is:
+
+```text
+max_depth:             128
+max_nodes:             131072
+max_keys_per_container: 4096
+max_array_length:       2048
+max_string_bytes:      65536
+max_total_string_bytes: 8388608
+```
+
+The immutable policy and its canonical digest are bound to every
+admission result. The limits exceed the synthetic golden snapshot
+inventory with substantial margin: the ordinary snapshot currently
+uses depth 2 and 35 observed nodes.
+
+The validator reads descriptors without evaluating property values.
+UTF-8 accounting includes both property keys and string values.
+Oversized keys use a bounded index/byte-count path label so failure
+reporting cannot reproduce attacker-sized key bytes.
+Accessors, symbols, cycles, custom prototypes, unsupported primitives,
+descriptor/proxy failures, unknown fields, malformed closed schemas,
+duplicate identities, cross-type collisions, and contradictory
+observed/expected digests fail closed. A candidate is cloned only after
+the bounded traversal succeeds; clone failures are sanitized too.
+
+Budget exhaustion returns `snapshot_validation_budget_exceeded` with
+the first rejected path, exact budget kind, bounded traversal counters,
+policy version/digest, request identity, expected authority/root
+identity, and:
+
+```text
+full_snapshot_digest_computed: false
+full_snapshot_digest: null
+```
+
+Its `bounded_observation_digest` covers only this closed bounded
+projection. It is explicitly not represented as a full payload digest.
+Admission, lineage, and terminal digests bind it, and independent replay
+rebuild recomputes it from the original candidate and external
+authority. No exception text, stack trace, proxy error, or accessor
+value enters canonical output.
+
+## Point-in-time and rollback policy
+
+All instants use the canonical explicit-instant parser and nanosecond
+precision. Admission requires:
+
+- canonical explicit capture, evidence-cutoff, effective, entry, and
+  lookup instants;
+- evidence cutoff and effective instant no later than capture;
+- every entry effective no later than the evidence cutoff;
+- capture no later than lookup `as_of`;
+- deterministic genesis or linked-predecessor semantics;
+- exact externally expected sequence, epoch, and predecessor digest.
+
+Future snapshots, evidence after cutoff, epoch rollback, and predecessor
+drift are never repaired or inferred.
+
+## Immutable AX projection
+
+An admitted source snapshot is cloned once into canonical plain data,
+deep-frozen, and deterministically projected into an AX snapshot. The
+AX snapshot and projection digest are embedded in the admission result.
+The AX store is constructed only from those frozen bytes and exposes
+only `previous_binding` and `capture_binding` lookups. A second store is
+built from the same projection and its closed observation is compared
+before downstream execution.
+
+## End-to-end replay and rebuild
+
+The AX lookup adapters are the actual binding source for all four AQ
+dependencies:
+
+- AJ previous-binding lookup;
+- AJ capture-binding lookup;
+- AC previous-binding lookup;
+- V proposal/experiment previous-binding lookup.
+
+AQ canonically runs and verifies AJ, AC, and V. BD additionally rebuilds
+admission, the AX store observation, and the AQ terminal result. The
+terminal lineage binds the request, source and AX snapshot identities
+and digests, authority/root, store observation, AQ digest, proposal
+status, and rebuild decisions.
+
+The closed terminal taxonomy is:
+
+```text
+admitted
+incomplete
+conflicting
+not_point_in_time_safe
+unmappable
+```
+
+`admitted` can carry `proposal_ready`, `no_change`, `research_only`, or
+`insufficient_evidence`. It never means operational approval,
+promotion, training, or activation.
+
+## Default-off and interpretation safety
+
+The feature flag defaults to false and the kill switch defaults to
+engaged. Either gate returns before dependency access, request reads,
+snapshot reads, cloning, authority verification, hashing, store
+construction, lookups, or AJ/AC/V/AQ work.
+
+Every result declares:
+
+```text
+shadow_only: true
+live_ranking_effect: false
+live_impact: false
+persistence_performed: false
+automatic_training_allowed: false
+automatic_parameter_change_allowed: false
+automatic_threshold_change_allowed: false
+automatic_model_change_allowed: false
+automatic_promotion_allowed: false
+external_ai_canonical_truth_authority: false
+causal_improvement_claimed: false
+synthetic_evidence: true
+not_publishable: true
+```
+
+The golden report is test evidence only. It is not Ture performance and
+must not be published as a production scorecard.
