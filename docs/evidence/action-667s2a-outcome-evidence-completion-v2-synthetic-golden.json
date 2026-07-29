@@ -1,0 +1,37 @@
+{
+  "action": "667S.2A",
+  "artifact_version": "action_667s2a_outcome_evidence_completion_v2_synthetic_golden_v1",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_completion_v2",
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_completion_fixtures_v2",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "scenario_count": 26,
+  "closed_gap_count": 18,
+  "taxonomy_counts": {
+    "completed": 2,
+    "conflicting": 2,
+    "incomplete": 22
+  },
+  "matrix_digest": "1a295e2aac7534fc6a22eccb9511f6a11ea76d7887f8ab07311b1d3b252922f7",
+  "completed_canonical_digest": "d4b6531ef96f2e9b2b1abedc25bb15c6e2cafb39a863a4a759c62b820194d6cd",
+  "completed_reordered_digest": "d4b6531ef96f2e9b2b1abedc25bb15c6e2cafb39a863a4a759c62b820194d6cd",
+  "historical_findings": {
+    "S2-001": "closed_by_pre_callback_authority_snapshot",
+    "S2-002": "closed_by_iterative_bounded_plain_data_validation",
+    "S2-003": "closed_by_set_canonical_gap_closure_order",
+    "S2-004": "closed_by_present_rejected_observed_material_provenance"
+  },
+  "interop": {
+    "v2_completion": "completed",
+    "r2_projection": "bindable",
+    "q1_admission": "ready",
+    "p2a_capture": "captured",
+    "o2a_join": "joined"
+  },
+  "safety": {
+    "diagnostic_only": true,
+    "canonical_performance_eligible": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  }
+}
