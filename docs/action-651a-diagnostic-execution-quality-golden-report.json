@@ -1,0 +1,105 @@
+{
+  "contract_version": "action_651a_diagnostic_execution_quality_golden_report_v1",
+  "base_commit": "ff34b3884ee84777af44e380c0fb7e66bc99e9e1",
+  "diagnostic_only": true,
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_audit_evidence_digest": "action_651a_audit_1edeb10da455650c79b1b1a37c19fea96103ae909c64e31ecd8ec679ce80c1ee"
+  },
+  "expected": {
+    "audit_status": "audited",
+    "lineage": {
+      "execution_identity": "action-651a-execution",
+      "lifecycle_identity": "action_650s_lifecycle_3ff960fba5c94129663c2b00",
+      "runtime_identity_context_digest": "action_650s_runtime_9f89506bc08e210fef8c78958a0bd582d6ce6655fb08f0cc2c16d33495b598b1",
+      "handoff_identity": "action_650s_handoff_f076805c43f2dc2f3993d437",
+      "handoff_digest": "action_650s_handoff_digest_38130ccdeddfbff827991b26b56e6d7279ca7a06ae91e431d373a99b90825bed",
+      "canonical_order_payload_digest": "action_650s_payload_2aa7f14862836f0dc97c5b1f170a4d8ebffe0296f82cac049f0edb9d0685866c",
+      "confirmation_request_digest": "action_650u_confirmation_request_c36e484e79745f3e96b7948fa127ca4a637dc7f76abe26516ec7ddc4e21619ef",
+      "confirmation_capability_digest": "action_650u_manual_confirmation_a531557e440262deab9255ea15d18691a030b6149ac096697d8df1b5bed022de",
+      "confirmation_receipt_digest": "action_650u_confirmation_receipt_b7712fafc9bba3de7f25fc2358929762ec0969f04ef15e740057395242fc6549",
+      "session_identity": "action-651a-confirmation-session",
+      "idempotency_identity": "action_650s_idempotency_f076805c43f2dc2f3993d43720d070d68be4966e074d94847fa67bb2f6ea2655",
+      "correlation_identity": "action_650s_correlation_f076805c43f2dc2f3993d437",
+      "confirmed_replay_trace_identity": "action_650u_confirmed_replay_bdab2f44758350453c0e0d6c414052a5e52693c4676f58994cf532b7d831d274",
+      "confirmed_replay_evidence_digest": "action_650u_audit_result_evidence_3b7d5dada75463b0bb70989c679b5d47e6bb296ade52df9a334441a60ce01139",
+      "terminal_digest": "action_651a_terminal_7c002a1d2e45977343890ef4512ef68a39ecec0e400082cd59d8164ddada3479",
+      "lineage_digest": "action_651a_lineage_da55be0968fa7565c94b4e5192552d86d59e2c52fbb25cc0e00e352892291555"
+    },
+    "timing_projection": {
+      "precision": "nanoseconds",
+      "planned_at": "2026-07-29T10:00:00.000000000Z",
+      "waiting_for_manual_confirmation_at": "2026-07-29T10:00:00.000000000Z",
+      "confirmed_at": "2026-07-29T10:00:01.000000000Z",
+      "simulated_submission_at": "2026-07-29T10:00:02.000000000Z",
+      "simulated_terminal_at": "2026-07-29T10:00:03.000000000Z",
+      "planned_to_waiting_nanoseconds": "0",
+      "waiting_to_confirmation_nanoseconds": "1000000000",
+      "confirmation_to_simulated_submission_nanoseconds": "1000000000",
+      "simulated_submission_to_simulated_terminal_nanoseconds": "1000000000",
+      "projection_digest": "action_651a_timing_ed2dde1d554829f1f7e9a2a85e7915788c599d15022d360fc3c1dfc7f5b19fd4"
+    },
+    "planned_price_projection": {
+      "source": "verified_execution_preparation",
+      "ticker": "AAPL",
+      "side": "SELL",
+      "quantity": "5",
+      "order_type": "STOP_LIMIT",
+      "planned_limit_price": "179",
+      "planned_stop_price": "180",
+      "canonical_order_payload_digest": "action_650s_payload_2aa7f14862836f0dc97c5b1f170a4d8ebffe0296f82cac049f0edb9d0685866c",
+      "projection_digest": "action_651a_planned_price_77c5b09bd60dd47caf93411e087cf1da794e45a6d20e4f2682e2dba6bc7337e3"
+    },
+    "confirmed_price_projection": {
+      "source": "synthetic_manual_confirmation_fixture",
+      "price_micros": "179250000",
+      "observed_at": "2026-07-29T10:00:01.000000000Z",
+      "confirmation_capability_digest": "action_650u_manual_confirmation_a531557e440262deab9255ea15d18691a030b6149ac096697d8df1b5bed022de",
+      "point_in_time_safe": true,
+      "projection_digest": "action_651a_confirmed_price_d9f1621a34112265a1c7f26e10f13435a964e4abc18b4024df1ecb32eedf588f"
+    },
+    "synthetic_fill_projection": {
+      "source": "synthetic_replay_fixture",
+      "price_micros": "179100000",
+      "quantity": "5",
+      "observed_at": "2026-07-29T10:00:03.000000000Z",
+      "terminal_digest": "action_651a_terminal_7c002a1d2e45977343890ef4512ef68a39ecec0e400082cd59d8164ddada3479",
+      "signed_slippage_vs_confirmed_micros": "-150000",
+      "adverse_slippage_vs_confirmed_micros": "150000",
+      "calculation": "synthetic_confirmed_minus_synthetic_fill",
+      "projection_digest": "action_651a_synthetic_fill_23efcf1347a64fbc0f1b3cc5379d82348d26a7ee344ce043ce7ca256c1856be7"
+    },
+    "failure_provenance": {
+      "failure_kind": "none",
+      "source_reason": null,
+      "evidence_digest": "action_651a_failure_1e429f5b0d3b21ec878dfd8d797c790ccd73453dae98fd35178c4c5805f6c450"
+    },
+    "safety": {
+      "diagnostic_only": true,
+      "real_broker_evidence": false,
+      "performance_eligible": false,
+      "automatic_execution_allowed": false,
+      "real_broker_submission": false,
+      "avanza_live_access": false,
+      "credential_access": false,
+      "automatic_execution": false,
+      "trade_mutation": false,
+      "production_write": false
+    },
+    "effects": {
+      "audit_records_persisted": 0,
+      "provider_calls": 0,
+      "database_writes": 0,
+      "order_mutations": 0,
+      "trade_mutations": 0,
+      "position_mutations": 0,
+      "process_spawns": 0
+    }
+  }
+}
