@@ -1,0 +1,86 @@
+{
+  "action": "667P.2A",
+  "evidence_version": "action_667p2a_immutable_registry_snapshot_synthetic_golden_v1",
+  "generated_from": "synthetic fixtures only",
+  "real_outcome_capture_performed": false,
+  "authority_model": {
+    "callback_count_per_evaluation": 1,
+    "callback_contract": "atomic registry plus five source payloads",
+    "canonical_plain_data_snapshot": true,
+    "deep_frozen_before_verification": true,
+    "callbacks_after_snapshot": 0,
+    "async_authority_supported": false
+  },
+  "golden_matrix": {
+    "fixture_version": "diagnostic_decision_outcome_capture_synthetic_fixtures_v2",
+    "case_count": 5,
+    "cases": [
+      {
+        "id": "future_capture",
+        "taxonomy": "not_point_in_time_safe",
+        "reason_codes": [
+          "capture_source_or_finalization_after_boundary",
+          "capture_temporal_order_invalid"
+        ],
+        "registry_snapshot_digest": "45be9ad8bd74f092d6e368213e935532879786c19f70fd8c2619f00ca4917d83",
+        "authority_material_digest": "4f1b90cadc166b235f1a6f36359ad8449d6bd3e601afa0d2e21b63d4a5760558",
+        "terminal_capture_digest": "5f839185bb3a9aed2f00661d142e8c05d39ad53c35647ba2fbbb740a88a6d8b9"
+      },
+      {
+        "id": "incomplete_membership",
+        "taxonomy": "incomplete",
+        "reason_codes": [
+          "opportunity_membership_incomplete"
+        ],
+        "registry_snapshot_digest": "0376201cb615ab90a9387da68ccc881401241fb5b0131cff7477aa999bd2a2ee",
+        "authority_material_digest": "5aa326aac41c7dbd5af6e3721daaab647a67b34874718375e287294a861bd82a",
+        "terminal_capture_digest": "ba8a6c4d644ae4d7001fe62156b99909faf302c41974c8a1577e1f54352aa2f3"
+      },
+      {
+        "id": "registry_root_substitution",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "source_registry_anchor_mismatch"
+        ],
+        "registry_snapshot_digest": "d507ab2de1edd3f715ba67ef97d33913a892bbfb637860df11adaf031bada48d",
+        "authority_material_digest": "8a4b1870e4a9d764febefb4907b58d3984ce812e5ccf03c0209d6bd476ca11cc",
+        "terminal_capture_digest": "c695a90be2ff4394f75d1a66609a8db74f7350df5045036dcab8e4f10d9b518e"
+      },
+      {
+        "id": "self_consistent_source_mutation",
+        "taxonomy": "conflicting",
+        "reason_codes": [
+          "source_registry_anchor_mismatch"
+        ],
+        "registry_snapshot_digest": "462c1ff721e6e4828091db597a14fc83fc7428501ac35c8909c5c9bd28ba7207",
+        "authority_material_digest": "b9e94ff7d6b79c6d16b147e2de2f3988dfe99ca1f248179b1992c44bef2c8d3a",
+        "terminal_capture_digest": "0769d17018509dbc0c3eb29b70458f84cdc6ee96c6dd395d54529bd2638f9be1"
+      },
+      {
+        "id": "valid_captured_bundle",
+        "taxonomy": "captured",
+        "reason_codes": [
+          "diagnostic_outcome_handoff_captured"
+        ],
+        "registry_snapshot_digest": "d507ab2de1edd3f715ba67ef97d33913a892bbfb637860df11adaf031bada48d",
+        "authority_material_digest": "8a4b1870e4a9d764febefb4907b58d3984ce812e5ccf03c0209d6bd476ca11cc",
+        "terminal_capture_digest": "b807e65278f608ad4ae0993d7031274cc5edfcbf5cf13162d2c1fb5e5983f742"
+      }
+    ],
+    "o2a_interop": {
+      "capture_taxonomy": "captured",
+      "join_taxonomy": "joined",
+      "predictor_digest": "b52fabb77a3bc6d495bce3956e83b532092eb72ef36c526540b740d47d701843",
+      "label_digest": "497305162f351e925b16a03b8f86d0d5ff55b5cea8826622f4141363480997eb"
+    },
+    "matrix_digest": "797a6fcfdda943be45b9f85fbc9d95bfb7238fab1be408be1abdfb4e8964dacb"
+  },
+  "boundaries": {
+    "provider_calls": 0,
+    "database_calls": 0,
+    "persistence_writes": 0,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  }
+}

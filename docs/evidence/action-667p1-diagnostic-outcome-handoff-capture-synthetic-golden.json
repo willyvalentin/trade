@@ -1,0 +1,131 @@
+{
+  "evidence_version": "action_667p1_diagnostic_outcome_handoff_capture_synthetic_golden_v1",
+  "golden_matrix": {
+    "fixture_version": "diagnostic_decision_outcome_capture_synthetic_fixtures_v1",
+    "case_count": 15,
+    "cases": [
+      {
+        "id": "default_off_zero_work",
+        "taxonomy": "incomplete",
+        "reason_codes": ["capture_default_off"],
+        "terminal_capture_digest": "d59cfb679af158f6ac8912cd72fa4fb86a5992093c40ef398a3fb1ae93f21020",
+        "failure_identity_digest": "d59cfb679af158f6ac8912cd72fa4fb86a5992093c40ef398a3fb1ae93f21020"
+      },
+      {
+        "id": "duplicate_capture",
+        "taxonomy": "conflicting",
+        "reason_codes": ["diagnostic_outcome_handoff_captured", "duplicate_capture_identity"],
+        "terminal_capture_digest": "d419d6fe359c2b7f2e314de1df12dcd079be405b300f5c87a61c15b702fa5b81",
+        "failure_identity_digest": "cb9b8febb813afc65a870cfec8523ec61374f4a6539a3d0c5227433245a020d5"
+      },
+      {
+        "id": "duplicate_decision",
+        "taxonomy": "conflicting",
+        "reason_codes": ["diagnostic_outcome_handoff_captured", "duplicate_decision_identity"],
+        "terminal_capture_digest": "93f86b47fa596ecf48ceb49e0e9ac94d7c3de95a2ccf8feb7daec4625022d308",
+        "failure_identity_digest": "9401725195a3d40cf461bf59bd549e1bb00493d9fbc6f32efebd09f572cea8f2"
+      },
+      {
+        "id": "evaluator_mismatch",
+        "taxonomy": "conflicting",
+        "reason_codes": ["evaluator_identity_or_version_mismatch"],
+        "terminal_capture_digest": "f45ce1d05fe543c8e3d860e7be5e1d2c76b6303310e7d72d11b85cd5e840b5d6",
+        "failure_identity_digest": "b7d46505cfa8881d9e32b7ca9d4d1cf12f7e8671e4c03f32f154bf84004c4f9f"
+      },
+      {
+        "id": "future_capture",
+        "taxonomy": "not_point_in_time_safe",
+        "reason_codes": ["capture_source_or_finalization_after_boundary", "capture_temporal_order_invalid"],
+        "terminal_capture_digest": "f62057dca29d89c98dbcbfb8ae8d16750b9794a111ad3faa6a6d465446864f48",
+        "failure_identity_digest": "ce1ab35a2ed4f45e4b30fea3bb15fe786e551c3f83a4f61d445ebd9d28b2297f"
+      },
+      {
+        "id": "incomplete_membership",
+        "taxonomy": "incomplete",
+        "reason_codes": ["opportunity_membership_incomplete"],
+        "terminal_capture_digest": "fe400f62a2022ea7a8fc926d5f28d910538ff9e37a888948eae7975d6a8477ee",
+        "failure_identity_digest": "5f8ac12dd9c4d737b9eccaa8eb64e03ce79a459640c11b49be7748ce66ef1b85"
+      },
+      {
+        "id": "invalid_payload_alpha",
+        "taxonomy": "conflicting",
+        "reason_codes": ["source_payload_digest_mismatch:decision_source"],
+        "terminal_capture_digest": "4b5df7c28dc2196079343aa5ed1f18d3d587581aaf0e4a2475868af5dad816cd",
+        "failure_identity_digest": "9a30dcad90e2a449ff06c212fd2235dcd9751df5c513e8cafa24597521af1dbf"
+      },
+      {
+        "id": "invalid_payload_beta",
+        "taxonomy": "conflicting",
+        "reason_codes": ["source_payload_digest_mismatch:decision_source"],
+        "terminal_capture_digest": "ed97cc0f79a9c13d25cca5bb96244217a231506629e77d5d4df6920b00106e60",
+        "failure_identity_digest": "a7d7eff29d962e957ff8772f94dedaced344eecd31e4fe00b99f08256583341e"
+      },
+      {
+        "id": "kill_switch_zero_work",
+        "taxonomy": "conflicting",
+        "reason_codes": ["capture_kill_switch_active"],
+        "terminal_capture_digest": "76d528b8858f51b4af6f53dff65065210b344a03ad03d89944039e1f5f51dfcf",
+        "failure_identity_digest": "76d528b8858f51b4af6f53dff65065210b344a03ad03d89944039e1f5f51dfcf"
+      },
+      {
+        "id": "missing_outcome_completion",
+        "taxonomy": "incomplete",
+        "reason_codes": ["outcome_completion_missing"],
+        "terminal_capture_digest": "586160d11bbbdfdc02cf6c1b13e4059455dc932e33fd9ef389b31a71b9152b1b",
+        "failure_identity_digest": "68082b3d50139da6867dd5239961ae84ad8139cb401802d3598bbf9a6f06fd09"
+      },
+      {
+        "id": "missing_outcome_source",
+        "taxonomy": "incomplete",
+        "reason_codes": ["source_payload_absent:evaluator_outcome_source"],
+        "terminal_capture_digest": "f71073c3f4b306fa637b591808e399787fd3fdcc159ed2dd4c16fa1811c3dc8e",
+        "failure_identity_digest": "0f9309ae27416abbd532893518905bdae627ea5e0f88c34e8848561ad4869b5a"
+      },
+      {
+        "id": "registry_substitution",
+        "taxonomy": "conflicting",
+        "reason_codes": ["source_registry_anchor_mismatch"],
+        "terminal_capture_digest": "19e6a99abf58faad997af9249172b43d4da232cf1ed41b51bb5e4df0d4eb9201",
+        "failure_identity_digest": "679a215d3c5ab9a0ff764b684aa7e956e42161f04223c6362bcf94f0bb7a798f"
+      },
+      {
+        "id": "self_consistent_capture_collision",
+        "taxonomy": "conflicting",
+        "reason_codes": ["capture_identity_conflicting_bytes", "diagnostic_outcome_handoff_captured"],
+        "terminal_capture_digest": "a2bc246a4cdd8b0b57da22992dc5e0472c533c6e8efc03311ca96cf2365b6593",
+        "failure_identity_digest": "33035be1fe5126633bdffaba412c436843c493fecd0badeef900849f05a4340f"
+      },
+      {
+        "id": "unmappable_source_identity",
+        "taxonomy": "unmappable",
+        "reason_codes": ["source_identity_not_registered:decision_source"],
+        "terminal_capture_digest": "cc1eb50e325f1828289f8d1a8c9770b7ed2e0cd01bffcf42fcd96f403489693a",
+        "failure_identity_digest": "073a1d7cde36f59472f3467bad825b0675d497fc7e25077bb9fd17f3703d890b"
+      },
+      {
+        "id": "valid_captured_bundle",
+        "taxonomy": "captured",
+        "reason_codes": ["diagnostic_outcome_handoff_captured"],
+        "terminal_capture_digest": "157fcba64e094f4eaae63e5899676388f1bbbfcdb7508e451546bc01491758e0",
+        "failure_identity_digest": null
+      }
+    ],
+    "o2a_interop": {
+      "capture_taxonomy": "captured",
+      "join_taxonomy": "joined",
+      "predictor_digest": "b52fabb77a3bc6d495bce3956e83b532092eb72ef36c526540b740d47d701843",
+      "label_digest": "497305162f351e925b16a03b8f86d0d5ff55b5cea8826622f4141363480997eb",
+      "rejected_capture_join_taxonomy": "unmappable"
+    },
+    "matrix_digest": "a4db8170e48ab23c2ff3bce1f7cbd62ab49d817d64d91b6e72c15b927867ee56"
+  },
+  "boundaries": {
+    "real_outcome_capture_performed": false,
+    "provider_calls": 0,
+    "database_calls": 0,
+    "persistence_writes": 0,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  }
+}
