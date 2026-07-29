@@ -1,0 +1,64 @@
+{
+  "action": "667R.2",
+  "contract_version": "repository_owned_recommendation_outcome_projection_successor_v1",
+  "fixture_version": "repository_owned_recommendation_outcome_projection_fixtures_v1",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "real_outcome_capture_performed": false,
+  "real_outcome_join_performed": false,
+  "case_count": 24,
+  "matrix_digest": "9b36a215ffbeb302663c585c749d4a70422e8629c745fdb45678bd241451e4c4",
+  "taxonomy_counts": {
+    "bindable": 1,
+    "not_bindable": 20,
+    "conflicting": 1,
+    "not_point_in_time_safe": 1,
+    "unmappable": 1
+  },
+  "current_repository_shape": {
+    "taxonomy": "not_bindable",
+    "reason_codes": [
+      "completeness_proof_missing",
+      "cryptographic_lineage_missing",
+      "evaluator_identity_version_missing",
+      "external_authority_root_missing",
+      "finality_proof_missing",
+      "immutable_membership_missing",
+      "nanosecond_capture_instant_missing",
+      "nanosecond_decision_instant_missing",
+      "nanosecond_evidence_cutoff_missing",
+      "nanosecond_outcome_finalization_instant_missing",
+      "nanosecond_outcome_interval_missing",
+      "predictor_point_in_time_binding_missing",
+      "producer_owner_missing",
+      "q1_interop_material_missing",
+      "read_only_projection_missing",
+      "recommendation_decision_identity_missing",
+      "source_contract_version_missing",
+      "source_snapshot_identity_digest_missing"
+    ]
+  },
+  "interop": {
+    "projection_taxonomy": "bindable",
+    "q1_admission_taxonomy": "ready",
+    "p2a_capture_taxonomy": "captured",
+    "o2a_join_taxonomy": "joined"
+  },
+  "determinism": {
+    "utc_run_a": "9b36a215ffbeb302663c585c749d4a70422e8629c745fdb45678bd241451e4c4",
+    "utc_run_b": "9b36a215ffbeb302663c585c749d4a70422e8629c745fdb45678bd241451e4c4",
+    "stockholm_reverse_input": "9b36a215ffbeb302663c585c749d4a70422e8629c745fdb45678bd241451e4c4",
+    "new_york": "9b36a215ffbeb302663c585c749d4a70422e8629c745fdb45678bd241451e4c4"
+  },
+  "boundaries": {
+    "diagnostic_only": true,
+    "shadow_only": true,
+    "read_only": true,
+    "canonical_performance_eligible": false,
+    "automatic_model_input_allowed": false,
+    "automatic_training_allowed": false,
+    "automatic_promotion_allowed": false,
+    "causal_claimed": false,
+    "live_ranking_effect": false
+  }
+}
