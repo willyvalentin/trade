@@ -1,0 +1,123 @@
+{
+  "manifest_version": "action_661j5r2_runtime_certification_rebuild_manifest_v1",
+  "generated_on": "2026-07-30",
+  "base_commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "branch": "codex/action-661j5r2-runtime-certification-rebuild",
+  "durable_worktree": "/Users/willysimonsson/Dev/trade-action-661j5r2-runtime-certification-rebuild",
+  "version_family": "action_661j5r2_runtime_certification_rebuild_v1",
+  "fixture_progress": "14/28",
+  "docker_executed": false,
+  "production_or_external_access": false,
+  "historical_recovery": {
+    "loss_manifest_path": "docs/recovery/action-661j5r1/loss-reconstruction-manifest.json",
+    "loss_manifest_sha256": "06efa3ca53af693e8478a068f4e2202c942300346d208511d921b0eec2993aeb",
+    "exact_recovered_file_count": 42,
+    "lost_file_count": 129,
+    "lost_bytes_claimed_recovered": false,
+    "recovered_authority_classification": "historical_recovered_reference",
+    "historical_sha_values_are_commitments_only": true,
+    "compatibility_claim_against_lost_scope": false
+  },
+  "authorities": {
+    "snapshot_contract": "action_661j5r2_metadata_first_snapshot_rebuild_v1",
+    "snapshot_schema": "action_661j5r2_nine_domain_v2",
+    "policy_registry": {
+      "version": "action_661j5r2_atomic_policy_registry_rebuild_v1",
+      "digest": "eac1ba29ce6d86260c06503a02057a718d3e1117e1ebbaa941ca2b4cc8a0ea62"
+    },
+    "runtime_registry": {
+      "version": "action_661j5r2_runtime_scenario_registry_rebuild_v1",
+      "digest": "68ef6bb328f969cecece0032ecd767cdb64d7a64d65b51df62126b400ac4f587"
+    },
+    "runner": {
+      "version": "action_661j5r2_runtime_runner_rebuild_v1",
+      "module_sha256": "86a9d80db6ae5999e3ba04fee3b8aed9b245f9ede9b391c3144eb51443b1a472",
+      "authority_version": "action_661j5r2_runtime_runner_authority_rebuild_v1",
+      "authority_module_sha256": "85df7655b08ef0e7a4ca38ac1daa0cb646e4b6b25763c66c2405ef5bc53e87e1",
+      "identity_digest": "76e4804def6411adaba50f4588248e8beaac88c63e1d6029850410b6c84bd2f7"
+    },
+    "result_protocol": "action_661j5r2_runtime_result_protocol_rebuild_v1",
+    "aggregate_protocol": "action_661j5r2_mixed_ab_aggregate_rebuild_v1"
+  },
+  "snapshot_goldens": {
+    "forbidden_history_combined_digest": "6f8154c7e71fc3268950941be584ae91fa7dd44ed62477b9bdbfb813fa552215",
+    "missing_target_combined_digest": "15811b18d78a76f6bc51f7550986ceb9e7bf4dcacb83670b3ba39d45ac7babf7"
+  },
+  "protocol_goldens": {
+    "forbidden_history": {
+      "evidence": "601a562a925c9154c8e6d00c1c25adeb76af36ecaf776d95bc09e5bf64f7b2cf",
+      "run_a_record": "8a7e40e23ba8462748ac9dde201addc54d92775c4447fefffd639cc2e23d89a5",
+      "run_a_shard": "3ac2963ca02c707964942b694dda3ab72efa1d49551c7c73d522e0757cb375dd",
+      "run_a_file": "b4305646e6e11d4a700117f4f37d61c11a31c72fd3d0cae2c90021fc94a9b311",
+      "run_b_record": "33543c5e82674ce3634f13904e7ad5e298d9ff9b1c5f48f5e1f7d3c4490b5398",
+      "run_b_shard": "a429f843868b0579a58a237d3bc6a39c2f2dfba959c57f73af11191bcb409e08",
+      "run_b_file": "1bc3bc8911245af053cb8dac2d591e66987aa0d89366e073afb6d49de5d824e9"
+    },
+    "missing_target": {
+      "evidence": "bbb311f6f0591524739b2a0ee860a99f9d983d0fa778737645432e5fad6a9398",
+      "run_a_record": "ac988607c5cbd8eadf2bb5aea71eae5f302e0cac0ee7bc85fb45a485d658bc98",
+      "run_a_shard": "4d5c34d71b75b28e12342f2857897a815b66cb453f7f3d6798cb3e841f6597b6",
+      "run_a_file": "4721d648ecbdf82a619d514ab766c4cd94d41d9cf57f633778bd79a511873659",
+      "run_b_record": "3ce999bd073fafca98cb3b7298fcee464ce0691b5aedca364e5eacda6ebaa97d",
+      "run_b_shard": "03938fb59e43b3c48844aeef2db68323dbd173d98d5ce8ca20b0e4b906e4244d",
+      "run_b_file": "a362b98192f71b2a14d9b533553c2b0a1142a616342569900954f8aaf2500472"
+    },
+    "mixed_ab_aggregate": "ccfc73e5da7fb221cfbce880678f1501686f6f9a7919aa6aa292edd5145eb26a"
+  },
+  "certification": {
+    "focused_positive_and_tampering_tests": 10,
+    "repository_static_regression_tests": 16,
+    "cross_process_timezones": [
+      "UTC",
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "typescript": "passed",
+    "scoped_eslint_zero_warnings": "passed",
+    "git_diff_check": "passed",
+    "deno_lock": "absent_at_base_and_after_rebuild"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-661j5r2-runtime-certification-rebuild-v1.md",
+      "sha256": "d3b69fda8b2f3720e9f923f158306111a59c27b0a06ee5ab2739d2bdaf38efc4"
+    },
+    {
+      "path": "docs/recovery/action-661j5r1/loss-reconstruction-manifest.json",
+      "sha256": "06efa3ca53af693e8478a068f4e2202c942300346d208511d921b0eec2993aeb"
+    },
+    {
+      "path": "lib/action-661j5r2-mixed-ab-aggregate-rebuild-v1.mjs",
+      "sha256": "8563bcf67d9e1186a9230fc1f6f2df307f8be4e88fb772823c61289cb257cd69"
+    },
+    {
+      "path": "lib/action-661j5r2-runtime-contracts-rebuild-v1.mjs",
+      "sha256": "6601b3480cbf5d3d6db393b6f6ac25fd541ce97e1893871ee586bec9dc84d032"
+    },
+    {
+      "path": "lib/action-661j5r2-runtime-result-protocol-rebuild-v1.mjs",
+      "sha256": "1fcefc35413f2d1e41db74424f155d384863b4220066487a94b38cfa93f139ae"
+    },
+    {
+      "path": "lib/action-661j5r2-runtime-runner-authority-rebuild-v1.mjs",
+      "sha256": "85df7655b08ef0e7a4ca38ac1daa0cb646e4b6b25763c66c2405ef5bc53e87e1"
+    },
+    {
+      "path": "lib/action-661j5r2-runtime-runner-rebuild-v1.mjs",
+      "sha256": "86a9d80db6ae5999e3ba04fee3b8aed9b245f9ede9b391c3144eb51443b1a472"
+    },
+    {
+      "path": "tests/e2e/action-661j5r2-runtime-certification-rebuild.spec.ts",
+      "sha256": "62f6961e2a8b9366a2898eba556cae673e68983dd8ea1adbaf484e6cdafca716"
+    },
+    {
+      "path": "tests/e2e/action-661j5r2-runtime-golden-oracle.mjs",
+      "sha256": "b597f7d57f2bd34769879e3d801da783636a4943f880b8ad18b05eb2404c30af"
+    },
+    {
+      "path": "tests/e2e/action-661j5r2-runtime-literal-fixture.mjs",
+      "sha256": "907175290d20f9ffa9925742df7caa618c6ce36693d25ddcd82605883228eced"
+    }
+  ]
+}
