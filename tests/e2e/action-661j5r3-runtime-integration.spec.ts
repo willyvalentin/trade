@@ -98,8 +98,17 @@ test("runtime orchestrator fixes four runs and diagnostic-before-policy order", 
   );
   expect(source).toContain("docker\", [\"rm\", \"-f\", container]");
   expect(source).toContain("output_already_exists");
-  expect(source).toContain("readinessCount >= 2");
+  expect(source).toContain("waitForStablePostgresReadiness");
+  expect(source).toContain('"pg_isready"');
   expect(source).toContain('"select 1"');
+  const runOneSource = source.slice(source.indexOf("async function runOne"));
+  expect(runOneSource.indexOf("waitReady(container, runDirectory)")).toBeLessThan(
+    runOneSource.indexOf("captureRuntimeIdentity(container, inspectedImage)"),
+  );
+  expect(runOneSource.indexOf("captureRuntimeIdentity")).toBeLessThan(
+    runOneSource.indexOf("establishBaseline"),
+  );
+  expect(source).toContain("readiness-diagnostic.json");
 });
 
 test("failed runtime audit preserves only independently verified Run A", () => {

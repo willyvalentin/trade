@@ -32,6 +32,12 @@ import {
   RUNTIME_COLLECTOR_VERSION,
   collectRuntimeSnapshotRebuildV1,
 } from "../lib/action-661j5r3-postgres-runtime-collector-rebuild-v1.mjs";
+import {
+  POSTGRES_READINESS_POLICY,
+  POSTGRES_READINESS_POLICY_DIGEST,
+  PostgresReadinessError,
+  waitForStablePostgresReadiness,
+} from "../lib/action-661j5r3a-postgres-readiness-rebuild-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const image = "postgres:16-alpine";
@@ -41,7 +47,7 @@ const baselineManifestPath =
   "scripts/action-661j5r3-runtime-baseline-rebuild-v1.json";
 const outputRoot = resolve(
   process.argv[process.argv.indexOf("--output") + 1] ??
-    "docs/recovery/action-661j5r3/runtime-evidence",
+    "docs/recovery/action-661j5r3a/runtime-evidence",
 );
 
 const plans = [
@@ -121,40 +127,91 @@ function queryJson(container, sql) {
   }
 }
 
-function waitReady(container) {
-  for (let attempt = 1; attempt <= 80; attempt += 1) {
-    const logs = spawnSync("docker", ["logs", container], {
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
+function sanitizeReadinessText(value) {
+  return String(value ?? "")
+    .replaceAll(/\b(?:postgres(?:ql)?:\/\/|password=|user=)\S+/gi, "[redacted]")
+    .replaceAll(/\s+/g, " ")
+    .trim()
+    .slice(0, 4096);
+}
+
+function waitReady(container, runDirectory) {
+  try {
+    return waitForStablePostgresReadiness({
+      inspect_container: () =>
+        spawnSync(
+          "docker",
+          ["inspect", "--format", "{{.State.Running}}", container],
+          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+        ).stdout.trim() === "true",
+      now: () => Date.now(),
+      probe_pg_isready: () =>
+        spawnSync(
+          "docker",
+          [
+            "exec",
+            container,
+            "pg_isready",
+            "-q",
+            "-U",
+            "postgres",
+            "-d",
+            "postgres",
+          ],
+          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+        ).status === 0,
+      probe_sql_select_1: () => {
+        const result = spawnSync(
+          "docker",
+          [
+            "exec",
+            "-e",
+            "PGPASSWORD=postgres",
+            container,
+            "psql",
+            "-X",
+            "-qAt",
+            "-U",
+            "postgres",
+            "-d",
+            "postgres",
+            "-c",
+            "select 1",
+          ],
+          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+        );
+        return result.status === 0 && result.stdout.trim() === "1";
+      },
+      sleep: (milliseconds) =>
+        Atomics.wait(
+          new Int32Array(new SharedArrayBuffer(4)),
+          0,
+          0,
+          milliseconds,
+        ),
     });
-    const readinessCount = `${logs.stdout ?? ""}\n${logs.stderr ?? ""}`.match(
-      /database system is ready to accept connections/g,
-    )?.length ?? 0;
-    const result = spawnSync(
-      "docker",
-      [
-        "exec",
-        "-e",
-        "PGPASSWORD=postgres",
-        container,
-        "psql",
-        "-X",
-        "-qAt",
-        "-U",
-        "postgres",
-        "-d",
-        "postgres",
-        "-c",
-        "select 1",
-      ],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-    );
-    if (readinessCount >= 2 && result.status === 0 && result.stdout.trim() === "1") {
-      return;
+  } catch (error) {
+    if (error instanceof PostgresReadinessError) {
+      const logs = spawnSync("docker", ["logs", container], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      const diagnostic = {
+        diagnostic_version:
+          "action_661j5r3a_postgres_readiness_diagnostic_rebuild_v1",
+        diagnostic_sanitized: true,
+        readiness_receipt: error.receipt,
+        sanitized_container_logs: sanitizeReadinessText(
+          `${logs.stdout ?? ""}\n${logs.stderr ?? ""}`,
+        ),
+      };
+      atomicWrite(
+        join(runDirectory, "readiness-diagnostic.json"),
+        `${canonicalJson(diagnostic)}\n`,
+      );
     }
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    throw error;
   }
-  throw new Error("action_661j5r3.postgres_readiness_failed");
 }
 
 function verifyBaselineManifest() {
@@ -378,7 +435,7 @@ async function runOne(plan, manifest, inspectedImage) {
       "POSTGRES_PASSWORD=postgres",
       image,
     ]);
-    waitReady(container);
+    const readinessReceipt = waitReady(container, runDirectory);
     const runtimeIdentity = captureRuntimeIdentity(container, inspectedImage);
     establishBaseline(container, manifest);
     establishScenarioPrecondition(container, plan.scenario_id);
@@ -434,6 +491,7 @@ async function runOne(plan, manifest, inspectedImage) {
       container,
       run_directory: runDirectory,
       attempt_count: attemptCount,
+      readiness_receipt: readinessReceipt,
       evidence: result.evidence,
       record: result.record,
       shard: result.shard,
@@ -512,6 +570,8 @@ async function main() {
     report_version: "action_661j5r3_runtime_certification_report_v1",
     foundation_commit: "a3914ab82faad49d19366d7a6f93334c6448944f",
     runtime_migration_sha256: preflightResult.runtime_migration_sha256,
+    readiness_policy: POSTGRES_READINESS_POLICY,
+    readiness_policy_digest: POSTGRES_READINESS_POLICY_DIGEST,
     image_identity: {
       architecture: preflightResult.image.Architecture,
       image_id: preflightResult.image.Id,
@@ -521,6 +581,10 @@ async function main() {
     },
     runs: runs.map((entry) => ({
       attempt_count: entry.attempt_count,
+      readiness_attempt_count: entry.readiness_receipt.attempt_count,
+      readiness_receipt_digest:
+        entry.readiness_receipt.readiness_receipt_digest,
+      readiness_terminal_reason: entry.readiness_receipt.terminal_reason,
       evidence_digest: entry.evidence.evidence_digest,
       file_digest: entry.file.canonical_file_digest,
       record_digest: entry.record.record_digest,
