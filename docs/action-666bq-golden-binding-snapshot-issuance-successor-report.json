@@ -1,0 +1,36 @@
+{
+  "report_version": "action_666bq_synthetic_issuance_golden_v1",
+  "contract_version": "canonical_governed_binding_snapshot_issuance_successor_v3",
+  "evidence_class": "synthetic_fixture_only",
+  "not_publishable": true,
+  "lost_historical_commitments": {
+    "recovery_claimed": false,
+    "bk_bl_bm_bo_bytes_available": false,
+    "note": "Earlier BK/BL/BM/BO hashes are historical commitments only; this report describes a newly rebuilt successor."
+  },
+  "scenarios": [
+    { "name": "issued_empty_store", "expected_status": "issued" },
+    { "name": "issued_matching_previous_bindings", "expected_status": "issued" },
+    { "name": "binding_collision", "expected_status": "conflicting" },
+    { "name": "rollback_rejected", "expected_status": "rollback_rejected" },
+    { "name": "not_point_in_time_safe", "expected_status": "not_point_in_time_safe" },
+    { "name": "authority_root_substitution", "expected_status": "conflicting" },
+    { "name": "malformed_request", "expected_status": "incomplete" },
+    { "name": "reordered_input", "expected_status": "issued" }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}
