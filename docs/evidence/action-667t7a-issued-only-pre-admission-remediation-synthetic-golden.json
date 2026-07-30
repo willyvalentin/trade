@@ -1,0 +1,160 @@
+{
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v3",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v3",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "scenario_count": 12,
+  "scenarios": [
+    {
+      "id": "bundle_extra_field",
+      "taxonomy": "unmappable",
+      "reason_codes": ["evidence_bundle:closed_schema_violation"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "9ca452f838d169f2ef0443469f77ebe5621fdc22e5aa08e0453612a84140a4b7",
+      "result_digest": "4b0a3032851cc7b85cc5ce126ff8cbfb7b7d13ca0566dfb06032235b727cbe7f"
+    },
+    {
+      "id": "closure_duplicate",
+      "taxonomy": "conflicting",
+      "reason_codes": ["pre_downstream_gap_closure_set_digest_mismatch"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "01e6c4a9680114cb359ebd3754eb7f058f729017e63214af3a017977df7b450c",
+      "result_digest": "b6ee21a781eefb40e29b6a093bdb786748d14ea18e0c1540783ff370ce440470"
+    },
+    {
+      "id": "closure_missing",
+      "taxonomy": "incomplete",
+      "reason_codes": ["all_eighteen_gap_closures_required"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "5f4c66e5d3ee2b8f1a708fc52de5ac05aff024d0f604a1c4cb58b21826dec485",
+      "result_digest": "a17d7ed3dbbee8a1a49d066c7a1353d086c60b6535d52cb2cb97b3c110483ca2"
+    },
+    {
+      "id": "closure_substitution",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "s2a_request_constructed": true,
+      "s2a_called": true,
+      "downstream_digest_work": true,
+      "downstream_steps": [
+        "s2a_request_constructed",
+        "s2a_called",
+        "s2a_result_digest_bound"
+      ],
+      "failure_identity_digest": null,
+      "result_digest": "37f34879a6b36f27f3832eaa496d935f70c40fcf1019e00983c11c5ba61fbf89"
+    },
+    {
+      "id": "completion_field_stripped",
+      "taxonomy": "unmappable",
+      "reason_codes": ["completion_material:closed_schema_violation"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "36daca5b144db3c6bf1efd1418bbcf98d59bfbda0a8556dd7768adefcb7be17d",
+      "result_digest": "cd323ecd074568bdccbb94037bf3b2f1ba3eae884fd9e09fe1fdf3faf2068cd8"
+    },
+    {
+      "id": "default_off",
+      "taxonomy": "incomplete",
+      "reason_codes": ["issuance_v3_default_off"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "b739d065de3dcdfcb164e09deb57d8792fe2f01fd04ab3d7cbddc25ec09c8723",
+      "result_digest": "d40ebe918abd15397fd7cbe70e6c7b060433237b056137aa5e3dd33bf40119ff"
+    },
+    {
+      "id": "issued_valid",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "s2a_request_constructed": true,
+      "s2a_called": true,
+      "downstream_digest_work": true,
+      "downstream_steps": [
+        "s2a_request_constructed",
+        "s2a_called",
+        "s2a_result_digest_bound"
+      ],
+      "failure_identity_digest": null,
+      "result_digest": "7fefa76480a280046321a97ded13f9fcf2423e625d9504c4996122346a2779f5"
+    },
+    {
+      "id": "kill_switch",
+      "taxonomy": "incomplete",
+      "reason_codes": ["issuance_v3_kill_switch_active"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "4c964fb65f39af2f17b2ee5c7aad02abce10303d4fa55ff7114e5dddb802b816",
+      "result_digest": "fcb7800e994da5a0b561d558ab9a6613d5877ea69c67e1998b487c405d72fe8f"
+    },
+    {
+      "id": "membership_substitution",
+      "taxonomy": "conflicting",
+      "reason_codes": ["completed_projection_membership_binding_mismatch"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "e1b3dd2ffd0d44aff80bcdb2e4f105d05e2cf2c59c445c78dbc51827cdce3dd5",
+      "result_digest": "8d6632b510d6fd11cfc4c657e7ce69447ba5a35e3753b0a20911d803b181a57b"
+    },
+    {
+      "id": "t7_001_self_consistent_extra_field",
+      "taxonomy": "unmappable",
+      "reason_codes": ["completion_material:closed_schema_violation"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "56bcb3a2178030d03e9db34928e2a50be0f9a7ff0f790b58bd2dfa14107427cf",
+      "result_digest": "65524eefd0cad51c58f388a1195d0bf8e29ba691a88bdef534ec6d6be845ebc1"
+    },
+    {
+      "id": "temporal_finality_violation",
+      "taxonomy": "not_point_in_time_safe",
+      "reason_codes": ["completion_evidence_temporal_order_invalid"],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "c6fc81f9fa8ccd3360247cd9efd3e72190851168b487c749f71139c1e0421473",
+      "result_digest": "98393a7d809a4eb5cb911aa0cdf269933ff0dd3d885573748ae56f60674e8493"
+    },
+    {
+      "id": "trust_root_substitution",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "bundle_trust_root_mismatch",
+        "completed_projection_source_or_decision_binding_mismatch",
+        "completion_trust_root_mismatch"
+      ],
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "5530e61a91770768819c3ed27259001e2078eceaa0e74b96dc0f9def2fef069c",
+      "result_digest": "17d0f12efb0e9cb731416e8a997eb6de8a051802c277804a8676a35ade3cd8b2"
+    }
+  ],
+  "t7_001_predecessor_reproduction": {
+    "predecessor_version": "repository_owned_recommendation_outcome_evidence_issuance_v2",
+    "downstream_steps": ["s2a_request_constructed", "s2a_called"],
+    "sanitized_error": "issued_pre_downstream_admission_diverged_from_s2a_sanitized"
+  },
+  "valid_classifier_admission_digest": "96549ba78744c9c4db44264466b468d09637d1b769efc6766c009d84c62a314e",
+  "result_digest": "bc30538f0ce41d0dcc050c1d4718a6378b0186b7b665b080a6f0da800dfba3e8"
+}
