@@ -1,0 +1,78 @@
+{
+  "schema_version": "action_652c_non_forgeable_risk_authority_refreeze_v1",
+  "action": "652C",
+  "refrozen_at": "2026-07-30T10:51:28Z",
+  "base_sha": "7120c0cc9467a0106c4c9da84312b7f4d7ef4774",
+  "branch": "codex/action-652a-execution-risk-envelope-admission",
+  "finding_closed": "652B-M1",
+  "scope_policy": {
+    "normative_paths": 5,
+    "predecessor_bytes_retained": true,
+    "refreeze_manifest_self_excluded": true,
+    "independent_rereview_self_excluded": true,
+    "normative_bytes_may_change_after_refreeze": false
+  },
+  "predecessor_bindings": {
+    "action_652a_normative_digest": "0b227fe371b5ce9059635ed05df5b345f8da6121eac95313323ba36a3a085d6f",
+    "action_652b_freeze_manifest_sha256": "2106fe67b04cec14ba0d2bfb39169949b1b5c717aad75e8a2a07bb34a5c685a4",
+    "action_652b_independent_review_sha256": "85481bdcf5f89151146b413bcf98e56635ddb5c85db0db4246e54dff24cc07d9",
+    "action_652b_adversarial_suite_sha256": "77af29659ea22f78b8b0174a9989fc60b247b688a05bc4e3efe8b0ea52066416"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-652c-non-forgeable-risk-authority-golden-report.json",
+      "sha256": "48a3bfac9a5283cb38a5645fd3dd9487a6a41db16518ea44338b7041a60f9888"
+    },
+    {
+      "path": "docs/action-652c-non-forgeable-risk-authority.md",
+      "sha256": "95c4e3d30db6477f8c93de2cdd186af0bb8c4fc890387989229d45ab731c72c8"
+    },
+    {
+      "path": "lib/action-652c-non-forgeable-risk-authority.ts",
+      "sha256": "a70e2b201e16a23a30788cf16b777e7affdc2af12dcab4569e89fa7a2059fbdf"
+    },
+    {
+      "path": "tests/e2e/action-652c-non-forgeable-risk-authority.spec.ts",
+      "sha256": "91beab8e08fb0a3dc3bfd4c2b234ec8ae9e8292ab9ce21b0c03cd336b19ef2ce"
+    },
+    {
+      "path": "tests/fixtures/action-652c-non-forgeable-risk-authority-fixtures.ts",
+      "sha256": "d208e73eaca57f989ccd245af4d7564edb138f9a6c124b81eac1ee818823adee"
+    }
+  ],
+  "combined_digest": {
+    "algorithm": "sha256",
+    "method": "Sort normative paths bytewise; emit '<sha256><two spaces><path>\\n' for each path; SHA-256 the concatenated UTF-8 bytes.",
+    "value": "778f4ff560e83ed99dba0831c8a73b6f08500415316dfbfdb05db0bf8bb2520d"
+  },
+  "golden_bindings": {
+    "terminal_digest": "action_652c_admission_terminal_0043b1b76ded738671cd7a0c6afa16dc9242f89676df0bebbd11c2ce745af660",
+    "private_capability_digest": "action_652c_private_authority_capability_0191022af9faf6c5bd1848ed5445fe4dc120914d8063652e05652066244c2a25"
+  },
+  "validation": {
+    "action_652a_focused": "12/12 passed",
+    "action_652b_independent_review": "6/6 passed with 1 expected V1 finding reproduction",
+    "action_652c_focused": "12/12 passed",
+    "action_650s_650u_security_union": "66/66 passed",
+    "action_651a_651c_rereview_union": "34/34 passed",
+    "actions_519_533_content_addressed": "1802/1802 preserved",
+    "actions_519_533_direct_filename_baseline": "114/139 passed; 25 baseline-identical failures",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "broad_base": "3451/3464 passed; 13 known failures",
+    "broad_successor": "3451/3464 passed; identical 13 known failures",
+    "restricted_base": "22/27 passed; 5 known failures",
+    "restricted_successor": "22/27 passed; identical 5 known failures",
+    "baseline_failure_identity_order_message_equal": true,
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
