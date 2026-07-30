@@ -1,0 +1,158 @@
+{
+  "action": "667T.7B",
+  "review_version": "repository_owned_recommendation_outcome_evidence_issuance_v3_independent_rereview_v1",
+  "review_mode": "separate_clean_room_no_remediation",
+  "baseline": {
+    "base_commit": "e1269cbd77eb29bc4bf5c4e79f97be6326a7f0ae",
+    "preservation_commit": "44697313bbc897f79e17c0a4cf6433e18f936c1e",
+    "preserved_tree": "e7ef4c070921aefc6e9da96e49f7bd0bbef0a432",
+    "normative_digest": "6c1a3606285fb1c2e000407686d8d9c0a5c58e8dcebba7ed562d4852c4e9ca0d",
+    "golden_result_digest": "bc30538f0ce41d0dcc050c1d4718a6378b0186b7b665b080a6f0da800dfba3e8",
+    "freeze_digest": "b9186d0d258f6d2e14f37784128808f83c6b2abffdd054afa10f3c29ec5f1b81"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "finding_id": "T7B-001",
+      "severity": "major",
+      "title": "Issued handoff rereads caller-owned authority after the verified V3 snapshot",
+      "evidence": [
+        "classifyRecommendationOutcomeEvidencePreAdmissionV3 snapshots expected_issuer_anchor before invoking read_issuance_material",
+        "issueRecommendationOutcomeEvidenceV3 later constructs the V2 authority from dependencies.authority.expected_issuer_anchor instead of the verified snapshot",
+        "a read_issuance_material callback that mutates the original trust_root_digest after snapshotting is locally classified issued, reaches S.2A, and throws v3_pre_admission_diverged_from_s2a_sanitized"
+      ],
+      "impact": "The V3 pre-admission decision and the S.2A invocation do not share one immutable authority handoff. A caller-owned post-snapshot mutation can create locally-issued/S.2A-rejected divergence, so full admission parity, authority binding and issued interoperability are not proven.",
+      "required_future_remediation": "Carry a deep-frozen verified request and authority snapshot across the issued handoff and pass only those bytes to V2; never reread requestValue or dependencies.authority after pre-admission. Add the exact mutation probe to the normative differential matrix.",
+      "remediated_in_action": false
+    }
+  ],
+  "review_dimensions": [
+    {
+      "dimension": "exact_t7_001_attack",
+      "status": "verified",
+      "evidence": "The self-consistent completion extra-field payload is rejected locally before S.2A request construction, calls or digest work."
+    },
+    {
+      "dimension": "locally_issued_s2a_rejected_differential_matrix",
+      "status": "incomplete",
+      "evidence": "The frozen matrix has no false-issued result for its listed payloads, but the independent post-snapshot authority-mutation probe produces a locally-issued/S.2A-rejected divergence."
+    },
+    {
+      "dimension": "non_issued_zero_work",
+      "status": "verified",
+      "evidence": "All frozen incomplete, conflicting, not_point_in_time_safe and unmappable scenarios show zero S.2A request construction, zero calls and zero downstream digest work."
+    },
+    {
+      "dimension": "s2a_admission_parity",
+      "status": "failed",
+      "evidence": "Parity fails under caller-owned authority mutation after the local snapshot because the issued path rereads the mutable original anchor."
+    },
+    {
+      "dimension": "failure_identity",
+      "status": "verified",
+      "evidence": "Distinct rejected observed sections retain distinct failure identities with sorted reason codes."
+    },
+    {
+      "dimension": "temporal_and_membership_binding",
+      "status": "verified",
+      "evidence": "The frozen classifier checks nanosecond temporal finality and immutable opportunity membership before issued classification."
+    },
+    {
+      "dimension": "authority_binding",
+      "status": "failed",
+      "evidence": "The locally verified authority snapshot is not the authority object used for the V2 issued handoff."
+    },
+    {
+      "dimension": "issued_full_interop",
+      "status": "failed",
+      "evidence": "The static synthetic issued fixture completes the S.2A-to-O.2A chain, but issued interoperability is not invariant under the independently reproduced authority TOCTOU attack."
+    },
+    {
+      "dimension": "default_off_zero_work",
+      "status": "verified",
+      "evidence": "Disabled and kill-switch paths return before request inspection, authority reads, cloning, classification or downstream work."
+    },
+    {
+      "dimension": "predecessor_and_pr71_preservation",
+      "status": "verified",
+      "evidence": "The predecessor tree remains 6ae8fb710eceb8c37824e04360f5a7602d0d4e64 and PR #71 remains open/draft/unmerged at e1269cbd77eb29bc4bf5c4e79f97be6326a7f0ae."
+    },
+    {
+      "dimension": "cross_timezone_and_input_order",
+      "status": "verified",
+      "evidence": "The frozen 16-case suite passes in UTC, Europe/Stockholm and America/New_York, and its canonical golden result is stable under reversed case order."
+    },
+    {
+      "dimension": "external_roots_and_side_effect_isolation",
+      "status": "verified",
+      "evidence": "Normalized 303-artifact and replay 84-artifact roots retain their digests, 0700/0600 permissions and zero symlinks; no real outcome source was accessed."
+    }
+  ],
+  "closed_threat_matrix": [
+    {
+      "threat_id": "T7B-T001",
+      "threat": "Exact T7-001 self-consistent extra completion field",
+      "expected": "non_issued_and_zero_s2a_work",
+      "observed": "unmappable_and_zero_s2a_work",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7B-T002",
+      "threat": "Field stripping, extra fields, closure substitution or ordering drift",
+      "expected": "fail_closed_before_s2a",
+      "observed": "fail_closed_before_s2a",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7B-T003",
+      "threat": "Temporal, finality, trust-root or membership drift in frozen material",
+      "expected": "fail_closed_before_s2a",
+      "observed": "fail_closed_before_s2a",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7B-T004",
+      "threat": "Getter, proxy, cycle or depth-budget attack",
+      "expected": "sanitized_fail_closed",
+      "observed": "sanitized_fail_closed",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7B-T005",
+      "threat": "Post-snapshot mutation of caller-owned authority anchor during material callback",
+      "expected": "one_immutable_authority_handoff",
+      "observed": "local_issued_then_s2a_rejected_with_sanitized_divergence",
+      "status": "failed",
+      "finding_id": "T7B-001"
+    }
+  ],
+  "regression": {
+    "t7a_focused_across_timezones": "16/16 passed in each of UTC, Europe/Stockholm and America/New_York",
+    "relevant_667": "501 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_classification": "not_success_and_not_t_scope_regression",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "diff_check": "passed",
+    "external_roots": "303 normalized / 84 replay; digest and permission safe"
+  },
+  "decision": {
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false,
+    "approval_rule": "zero blockers and zero majors",
+    "remediation_performed_during_rereview": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "5d57bf12f123f5b84e23962a73aa7e7ff0345174148b7f053f0b0ee57ef74f89"
+}

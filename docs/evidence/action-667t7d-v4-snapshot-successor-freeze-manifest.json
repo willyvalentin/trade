@@ -1,0 +1,109 @@
+{
+  "action": "667T.7D",
+  "manifest_version": "repository_owned_recommendation_outcome_evidence_issuance_v4_snapshot_successor_refreeze_manifest_v1",
+  "authority": {
+    "base_ref": "refs/codex-preservation/action-667t7c-immutable-snapshot-use",
+    "preservation_commit": "d51a4c73f18da84d58c22668da4d8e42372a3e0e",
+    "preservation_tree": "2218d6b3f66524d06a06e6d7b7b6121856e8914b",
+    "preservation_parent": "04c756a5c1faf82296d06324f3bf943011264df1",
+    "byte_authority": "preservation_commit_tree"
+  },
+  "successor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v4",
+    "verified_snapshot_version": "repository_owned_recommendation_outcome_evidence_verified_snapshot_v4",
+    "snapshot_audit_version": "repository_owned_recommendation_outcome_evidence_verified_snapshot_audit_v4",
+    "normative_artifact_count": 5,
+    "normative_inventory_digest_algorithm": "sha256(JSON.stringify(path_sorted_array_of_path_and_sha256))",
+    "normative_inventory_digest": "eeb9d80531b9a9dfb7092cc03fbdb49a2e058986a1add09c1cca12d0a44302a8",
+    "synthetic_golden_result_digest": "9bb04da67d29229dabdd49b0f181cea0900924e560fc266b2620d5e30af9ce7d",
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667t7c-immutable-verified-snapshot-use.md",
+        "classification": "normative_current",
+        "sha256": "3fb444bfbb3f5f65641792c86f797be43204c0921bd16721d9e56247a7cdb9c5"
+      },
+      {
+        "path": "docs/evidence/action-667t7c-immutable-verified-snapshot-use-synthetic-golden.json",
+        "classification": "normative_current",
+        "sha256": "2f2564e416f5badebcd1b7153ae01dacf0761a872ee94276119be85faf85b1ce"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-fixtures-v4.ts",
+        "classification": "normative_current",
+        "sha256": "6d9c16ef5c6d2d233b68957e1f7ea09ca862962e581ff07a902955f4284660e4"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-v4.ts",
+        "classification": "normative_current",
+        "sha256": "1c81c9c90999c39db5dc1548ef7f5aba50c0403477f0ba0648e144d3e2e2e61e"
+      },
+      {
+        "path": "tests/e2e/action-667t7c-immutable-verified-snapshot-use.spec.ts",
+        "classification": "normative_current",
+        "sha256": "c5e448c5a39ab41d49d90a66f206f798fa5abf0a33be7e7d41aeff8e284ba4f8"
+      }
+    ]
+  },
+  "normative_digest_checkpoints": {
+    "before_regression": "eeb9d80531b9a9dfb7092cc03fbdb49a2e058986a1add09c1cca12d0a44302a8",
+    "after_regression": "eeb9d80531b9a9dfb7092cc03fbdb49a2e058986a1add09c1cca12d0a44302a8",
+    "after_independent_review": "eeb9d80531b9a9dfb7092cc03fbdb49a2e058986a1add09c1cca12d0a44302a8",
+    "byte_identical": true
+  },
+  "regression": {
+    "v4_focused_utc": "16/16 passed",
+    "v4_focused_europe_stockholm": "16/16 passed",
+    "v4_focused_america_new_york": "16/16 passed",
+    "relevant_667": "517 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_unavailable": [
+      "M.5C harness uses only the v1 parser for instant parsing",
+      "machine-readable evidence digest and readable status stay in parity"
+    ],
+    "unavailable_classification": [
+      "historical_external_fixture_unavailable",
+      "not_success",
+      "not_t_scope_regression"
+    ],
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "temporary_index_diff_check": "passed",
+    "ordinary_staging_unchanged": true
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0
+    }
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667t7d-v4-snapshot-successor-freeze-manifest.json",
+    "docs/evidence/action-667t7d-v4-snapshot-successor-independent-rereview.json"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "0a949549ad03228c4edba888fd23f872f973117ecf02ab475f8c0e6a91bb138d"
+}

@@ -1,0 +1,122 @@
+{
+  "action": "667T.7B",
+  "manifest_version": "repository_owned_recommendation_outcome_evidence_issuance_v3_refreeze_manifest_v1",
+  "authority": {
+    "base_commit": "e1269cbd77eb29bc4bf5c4e79f97be6326a7f0ae",
+    "base_tree": "6ae8fb710eceb8c37824e04360f5a7602d0d4e64",
+    "preservation_ref": "refs/codex-preservation/action-667t7a-issued-only-remediation",
+    "preservation_commit": "44697313bbc897f79e17c0a4cf6433e18f936c1e",
+    "preserved_tree": "e7ef4c070921aefc6e9da96e49f7bd0bbef0a432",
+    "preservation_parent": "e1269cbd77eb29bc4bf5c4e79f97be6326a7f0ae",
+    "byte_authority": "preservation_commit_tree"
+  },
+  "successor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v3",
+    "classifier_version": "repository_owned_recommendation_outcome_evidence_pre_admission_classifier_v3",
+    "fixture_version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v3",
+    "normative_artifact_count": 5,
+    "normative_inventory_digest": "6c1a3606285fb1c2e000407686d8d9c0a5c58e8dcebba7ed562d4852c4e9ca0d",
+    "synthetic_golden_result_digest": "bc30538f0ce41d0dcc050c1d4718a6378b0186b7b665b080a6f0da800dfba3e8",
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667t7a-issued-only-pre-admission-remediation.md",
+        "classification": "normative_current",
+        "sha256": "763cbc253f4d0539b64af08cb16209c1e2e469589d81ed6177c14979cd3699d5"
+      },
+      {
+        "path": "docs/evidence/action-667t7a-issued-only-pre-admission-remediation-synthetic-golden.json",
+        "classification": "normative_current",
+        "sha256": "68a680eb18a65310211f4a86fc9e32bc01c0e710899340a19af2fed6aafc99fc"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-fixtures-v3.ts",
+        "classification": "normative_current",
+        "sha256": "ae047c50f54ef6352d2444d72c1ff4627321aabe4cef2801214c9d7662b9a77c"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-v3.ts",
+        "classification": "normative_current",
+        "sha256": "cb26c00411af8e5e08eaa90a578ccc03cd59ee68f7f2bdd0e7799d9a9dbddcdb"
+      },
+      {
+        "path": "tests/e2e/action-667t7a-issued-only-pre-admission-remediation.spec.ts",
+        "classification": "normative_current",
+        "sha256": "a49b0848d821c4004d51dbc895e0b9b8c431f4ccd9838ea86e104b1550557f8f"
+      }
+    ]
+  },
+  "normative_digest_checkpoints": {
+    "before_regression": "6c1a3606285fb1c2e000407686d8d9c0a5c58e8dcebba7ed562d4852c4e9ca0d",
+    "after_regression": "6c1a3606285fb1c2e000407686d8d9c0a5c58e8dcebba7ed562d4852c4e9ca0d",
+    "after_independent_review": "6c1a3606285fb1c2e000407686d8d9c0a5c58e8dcebba7ed562d4852c4e9ca0d",
+    "byte_identical": true
+  },
+  "predecessor_and_pr71": {
+    "predecessor_bytes_unchanged": true,
+    "pr_number": 71,
+    "pr_state": "open",
+    "pr_draft": true,
+    "pr_merged": false,
+    "pr_mergeable": true,
+    "pr_head_sha": "e1269cbd77eb29bc4bf5c4e79f97be6326a7f0ae",
+    "pr_base_sha": "49801613eba3f4ef850d7eae89b1e2cf48d8bd0d",
+    "pr_commit_count": 2,
+    "pr_changed_path_count": 15
+  },
+  "regression": {
+    "t7a_focused_utc": "16/16 passed",
+    "t7a_focused_europe_stockholm": "16/16 passed",
+    "t7a_focused_america_new_york": "16/16 passed",
+    "relevant_667": "501 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_unavailable": [
+      "M.5C harness uses only the v1 parser for instant parsing",
+      "machine-readable evidence digest and readable status stay in parity"
+    ],
+    "unavailable_classification": [
+      "historical_external_fixture_unavailable",
+      "not_success",
+      "not_t_scope_regression"
+    ],
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "temporary_index_diff_check": "passed",
+    "ordinary_staging_unchanged": true
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0
+    }
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667t7b-v3-remediation-freeze-manifest.json",
+    "docs/evidence/action-667t7b-v3-remediation-independent-rereview.json"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "b9186d0d258f6d2e14f37784128808f83c6b2abffdd054afa10f3c29ec5f1b81"
+}
