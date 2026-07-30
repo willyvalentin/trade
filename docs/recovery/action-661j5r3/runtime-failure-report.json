@@ -1,0 +1,41 @@
+{
+  "report_version": "action_661j5r3_runtime_failure_report_v1",
+  "foundation_commit": "a3914ab82faad49d19366d7a6f93334c6448944f",
+  "runtime_adapter_commit": "14cb1fd",
+  "failure_classification": "postgres_temporary_init_server_readiness_race",
+  "retry_performed": false,
+  "additional_containers_started_after_failure": false,
+  "containers_started": 2,
+  "containers_remaining": 0,
+  "completed_runs": [
+    {
+      "scenario_id": "forbidden_history",
+      "run_id": "run-a",
+      "attempt_count": 1,
+      "diagnostic_digest": "9f69a99a0411606bd1fa71c8046fbc4533bef730d952c333e694c2a5855ae6be",
+      "runtime_identity_digest": "a10acad44e91e781f0afdac2fb9d5d6568890061b80274d54f4996e833e98fa8",
+      "runtime_capture_digest": "8386f6516f9721e6273113fcf7363f2ca9d75b0888c2d00b72a39c803b5e3f7d",
+      "snapshot_combined_digest": "09c481c6ce3e32bae9a35121c4a82eeb5e0798a7b3e7d0d703ac3a7c536c3194",
+      "evidence_digest": "5565b441cfa9daf413bc304115dffcb6ffcff7f48968dd3d06eea93f94680cbb",
+      "record_digest": "64fe5c8b257c8f6cf4e395f91bfb1ca9eb8228229a5404a71f04b34ff1197d8b",
+      "shard_digest": "f115c50ed853061863ff8833ee5a9c9ea47b80c454ef7f2e5197b9cb8a740407",
+      "file_digest": "a85ac66c5fb79ba4187f4b77f591638dc65cab705fd19bd1a87b977a20c2be2d",
+      "canonical_file_sha256": "35b44ab25f3f5ffecb9a254514f10f2bddbdaf76b658353b57224b6de0831dcb",
+      "terminal_reason": "Action 661J refuses forbidden migration history",
+      "terminal_sqlstate": null,
+      "atomicity_verified": true,
+      "readback_verified": true,
+      "idempotency_verified": true
+    }
+  ],
+  "failed_run": {
+    "scenario_id": "forbidden_history",
+    "run_id": "run-b",
+    "migration_attempted": false,
+    "failure_boundary": "runtime_identity_capture_after_transient_pg_isready_success",
+    "sanitized_error": "PostgreSQL socket unavailable between temporary initialization server shutdown and final server startup"
+  },
+  "certification_decision": "not_certified",
+  "fixture_progress": "14/28",
+  "safe_followup": "Run a new Action with four entirely fresh containers using the two-phase readiness gate; do not reuse this partial evidence."
+}

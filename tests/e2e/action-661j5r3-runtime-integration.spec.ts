@@ -9,6 +9,7 @@ import {
   RUNTIME_COLLECTOR_PATH,
   RUNTIME_COLLECTOR_VERSION,
 } from "../../lib/action-661j5r3-postgres-runtime-collector-rebuild-v1.mjs";
+import { parsePersistedFileRebuildV1 } from "../../lib/action-661j5r2-runtime-result-protocol-rebuild-v1.mjs";
 
 const root = process.cwd();
 
@@ -97,4 +98,45 @@ test("runtime orchestrator fixes four runs and diagnostic-before-policy order", 
   );
   expect(source).toContain("docker\", [\"rm\", \"-f\", container]");
   expect(source).toContain("output_already_exists");
+  expect(source).toContain("readinessCount >= 2");
+  expect(source).toContain('"select 1"');
+});
+
+test("failed runtime audit preserves only independently verified Run A", () => {
+  const failure = JSON.parse(
+    readFileSync(
+      join(root, "docs/recovery/action-661j5r3/runtime-failure-report.json"),
+      "utf8",
+    ),
+  ) as {
+    certification_decision: string;
+    completed_runs: Array<{
+      evidence_digest: string;
+      file_digest: string;
+      record_digest: string;
+      shard_digest: string;
+    }>;
+    containers_remaining: number;
+    retry_performed: boolean;
+  };
+  expect(failure.certification_decision).toBe("not_certified");
+  expect(failure.retry_performed).toBe(false);
+  expect(failure.containers_remaining).toBe(0);
+  expect(failure.completed_runs).toHaveLength(1);
+  const bytes = readFileSync(
+    join(
+      root,
+      "docs/recovery/action-661j5r3/runtime-evidence/forbidden_history-run-a/run-a.forbidden-history-a.forbidden_history.rebuild-v1.json",
+    ),
+    "utf8",
+  );
+  const file = parsePersistedFileRebuildV1(bytes);
+  expect(file.record.evidence.evidence_digest).toBe(
+    failure.completed_runs[0].evidence_digest,
+  );
+  expect(file.record_digest).toBe(failure.completed_runs[0].record_digest);
+  expect(file.shard_digest).toBe(failure.completed_runs[0].shard_digest);
+  expect(file.canonical_file_digest).toBe(
+    failure.completed_runs[0].file_digest,
+  );
 });

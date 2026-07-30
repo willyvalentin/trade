@@ -123,12 +123,35 @@ function queryJson(container, sql) {
 
 function waitReady(container) {
   for (let attempt = 1; attempt <= 80; attempt += 1) {
+    const logs = spawnSync("docker", ["logs", container], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const readinessCount = `${logs.stdout ?? ""}\n${logs.stderr ?? ""}`.match(
+      /database system is ready to accept connections/g,
+    )?.length ?? 0;
     const result = spawnSync(
       "docker",
-      ["exec", container, "pg_isready", "-U", "postgres", "-d", "postgres"],
+      [
+        "exec",
+        "-e",
+        "PGPASSWORD=postgres",
+        container,
+        "psql",
+        "-X",
+        "-qAt",
+        "-U",
+        "postgres",
+        "-d",
+        "postgres",
+        "-c",
+        "select 1",
+      ],
       { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
     );
-    if (result.status === 0) return;
+    if (readinessCount >= 2 && result.status === 0 && result.stdout.trim() === "1") {
+      return;
+    }
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
   }
   throw new Error("action_661j5r3.postgres_readiness_failed");
