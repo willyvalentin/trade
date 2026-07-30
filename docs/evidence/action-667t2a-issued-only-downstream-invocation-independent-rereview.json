@@ -1,0 +1,232 @@
+{
+  "action": "667T.2A",
+  "review_version": "repository_owned_recommendation_outcome_evidence_issuance_v2_independent_rereview_v1",
+  "review_mode": "separate_clean_room_no_remediation",
+  "baseline": {
+    "base_commit": "49801613eba3f4ef850d7eae89b1e2cf48d8bd0d",
+    "branch": "codex/action-667t-recommendation-outcome-evidence-issuance",
+    "predecessor_normative_digest": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "predecessor_freeze_digest": "fab388916f6960d66a75c12f60d87b57ea2fcb60e336bfbeaf9270497c434822",
+    "predecessor_review_evidence_digest": "c4b4fe3ada4f8ab83a4ac98a83629f4148223906c18836266ef2f04796912330",
+    "successor_normative_digest": "a2e808b94b54cbec2002e39e4ef130652df2b48388832f0884b6f7892bc364a3",
+    "successor_golden_digest": "deacc459b2672d76ad9e8f55ab873c933ad6c919737094f7ad4df34a2ef39e80",
+    "successor_freeze_digest": "e952ce45d6fa9ec8c600c27e999f4c80469187d5a09ba0f6b488191a4251f6b6"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [],
+  "finding_closure": {
+    "T2-001": {
+      "historical_reproduced": true,
+      "v1_observed_taxonomy": "incomplete",
+      "v1_s2a_result_digest_exposed": true,
+      "v2_non_issued_s2a_request_construction_count": 0,
+      "v2_non_issued_s2a_call_count": 0,
+      "v2_non_issued_s2a_result_digest_work_count": 0,
+      "v2_non_issued_s2a_result_field_present": false,
+      "status": "closed"
+    }
+  },
+  "review_dimensions": [
+    {
+      "dimension": "status_before_downstream",
+      "status": "verified",
+      "evidence": "The V2 T-native pre-downstream admission selects the closed issuance taxonomy before the first S.2A request-construction statement."
+    },
+    {
+      "dimension": "non_issued_s2a_calls",
+      "status": "verified",
+      "evidence": "Instrumented incomplete, conflicting, not_point_in_time_safe and unmappable paths each record zero S.2A calls."
+    },
+    {
+      "dimension": "non_issued_request_construction",
+      "status": "verified",
+      "evidence": "All four non-issued taxonomies record zero request-construction events and return before the S.2A request object exists."
+    },
+    {
+      "dimension": "non_issued_digest_work",
+      "status": "verified",
+      "evidence": "All non-issued results record zero S.2A result-digest work and omit the s2a_completion_result_digest property."
+    },
+    {
+      "dimension": "external_authority_and_pre_admission",
+      "status": "verified",
+      "evidence": "The external authority snapshot pins registry, issuer, epoch, predecessor and trust root; the registry-bound pre-admission pins canonical completion material, the sorted 18-gap set and expected completed S.2A taxonomy."
+    },
+    {
+      "dimension": "failure_provenance",
+      "status": "verified",
+      "evidence": "Rejected registry, material, row and bundle observations remain digest-bound. Distinct malformed materials and distinct conflicting rows produce distinct failure and result digests without downstream evidence."
+    },
+    {
+      "dimension": "temporal_finality_membership_and_lineage",
+      "status": "verified",
+      "evidence": "Nanosecond temporal ordering is checked before S.2A, while the externally anchored completion material retains finality, completeness, immutable opportunity membership and model/evaluator/outcome/explanation lineage."
+    },
+    {
+      "dimension": "issued_downstream_exactly_once",
+      "status": "verified",
+      "evidence": "An issued result records exactly one request construction, one S.2A invocation and one S.2A result-digest binding in the required order."
+    },
+    {
+      "dimension": "full_synthetic_interoperability",
+      "status": "verified",
+      "evidence": "The V2 issued completion-material digest equals the predecessor verified payload and traverses S.2A completed, R.2 bindable, Q.1 ready, P.2A captured and O.2A joined without special cases."
+    },
+    {
+      "dimension": "default_off_and_kill_switch_zero_work",
+      "status": "verified",
+      "evidence": "Proxy request and throwing authority getters prove both modes return before request inspection, authority reads, cloning, pre-admission or downstream work."
+    },
+    {
+      "dimension": "canonical_determinism",
+      "status": "verified",
+      "evidence": "Reordered closure input, reversed scenario construction and UTC/Europe-Stockholm/America-New-York runs reproduce golden digest deacc459b2672d76ad9e8f55ab873c933ad6c919737094f7ad4df34a2ef39e80."
+    },
+    {
+      "dimension": "historical_preservation",
+      "status": "verified",
+      "evidence": "All five T.1 normative files and both T.2 freeze/review files retain their exact historical SHA-256 bytes and findings."
+    },
+    {
+      "dimension": "external_root_and_side_effect_isolation",
+      "status": "verified",
+      "evidence": "The normalized 303-artifact and replay 84-artifact roots remain unchanged with 0700/0600 permissions and no symlinks. No provider, database, writer, persistence, credential or live import is present."
+    }
+  ],
+  "closed_threat_matrix": [
+    {
+      "threat_id": "T2A-T001",
+      "threat": "Missing closure reaches S.2A before T taxonomy",
+      "expected": "incomplete_and_zero_downstream",
+      "observed": "incomplete_and_zero_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T002",
+      "threat": "Conflicting registry reaches S.2A",
+      "expected": "conflicting_and_zero_downstream",
+      "observed": "conflicting_and_zero_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T003",
+      "threat": "Unsafe temporal evidence reaches S.2A",
+      "expected": "not_point_in_time_safe_and_zero_downstream",
+      "observed": "not_point_in_time_safe_and_zero_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T004",
+      "threat": "Malformed material reaches S.2A",
+      "expected": "unmappable_and_zero_downstream",
+      "observed": "unmappable_and_zero_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T005",
+      "threat": "Caller tampers with the pre-downstream admission",
+      "expected": "conflicting_before_downstream",
+      "observed": "conflicting_before_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T006",
+      "threat": "Different rejected material collapses to one failure identity",
+      "expected": "distinct_failure_identities",
+      "observed": "distinct_failure_identities",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T007",
+      "threat": "Caller injects authority, finality or trust claims",
+      "expected": "unmappable_before_authority_read",
+      "observed": "unmappable_before_authority_read",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T008",
+      "threat": "Disabled or killed invocation performs any work",
+      "expected": "zero_work",
+      "observed": "zero_work",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T009",
+      "threat": "Self-consistent result or envelope tampering",
+      "expected": "independent_verification_rejection",
+      "observed": "independent_verification_rejection",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2A-T010",
+      "threat": "Timezone or input order changes canonical output",
+      "expected": "byte_identical",
+      "observed": "byte_identical",
+      "status": "passed"
+    }
+  ],
+  "regression": {
+    "t2a_focused": "23/23 passed",
+    "independent_rereview": "8/8 passed",
+    "relevant_667": "477/477 passed",
+    "cross_timezone": "UTC, Europe/Stockholm reverse and America/New_York byte-identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "git_diff_check": "passed",
+    "security_import_dependency_secret_scans": "passed",
+    "production_compilation": "webpack production compilation succeeded before the unchanged route-export type baseline",
+    "production_build_baseline": {
+      "classification": "scope_external_preexisting_baseline",
+      "path": "app/api/hb307c/ping/route.ts",
+      "current_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "base_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "error": "hb307cCanaryRouteBuildMarker is not a valid Route export field",
+      "inside_t2a_scope": false
+    }
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    }
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "approval_rule": "zero blockers and zero majors",
+    "remediation_performed_during_rereview": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "92c977b2c426b14d4383dcced28f67d11bcab2e17f798d050386c8ad2b1b980e"
+}

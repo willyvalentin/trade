@@ -1,0 +1,251 @@
+{
+  "action": "667T.2",
+  "review_version": "repository_owned_recommendation_outcome_evidence_issuance_independent_review_v1",
+  "review_mode": "separate_clean_room_no_remediation",
+  "baseline": {
+    "base_commit": "49801613eba3f4ef850d7eae89b1e2cf48d8bd0d",
+    "branch": "codex/action-667t-recommendation-outcome-evidence-issuance",
+    "normative_artifact_count": 5,
+    "normative_inventory_digest": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "golden_matrix_digest": "1d087e920af0b0bf141fc3aeddbe488956d72fa3e30b53f6519439b99cf9ce9a",
+    "freeze_manifest_version": "repository_owned_recommendation_outcome_evidence_issuance_freeze_manifest_v1",
+    "freeze_digest": "fab388916f6960d66a75c12f60d87b57ea2fcb60e336bfbeaf9270497c434822"
+  },
+  "digest_checkpoints": {
+    "before_regression": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "after_regression": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "after_independent_review": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "id": "T2-001",
+      "severity": "major",
+      "title": "Non-issued material reaches S.2A before the issuance gate closes",
+      "requirement": "Only an issued T.1 envelope may reach S.2A.",
+      "evidence": [
+        "issueRecommendationOutcomeEvidenceV1 invokes completeRepositoryOwnedRecommendationOutcomeEvidenceV2 before it selects the terminal T.1 taxonomy.",
+        "The incomplete_missing_closure scenario terminates T.1 as incomplete while retaining a non-null s2a_completion_result_digest.",
+        "The focused test missing closure evidence remains incomplete and cannot expose an envelope explicitly requires that non-null S.2A result digest."
+      ],
+      "impact": "The external handoff boundary is inverted: rejected or incomplete issuance material is executed by S.2A even though no issued envelope exists. The output adapter prevents downstream exposure, but it does not satisfy the zero-entry boundary required at the S.2A call itself.",
+      "required_future_remediation": "Make T.1 determine issuance eligibility without executing S.2A, emit an immutable issued envelope only after all issuance checks pass, and exercise S.2A only through the issued-envelope adapter. Add a zero-S.2A-call assertion for every non-issued taxonomy.",
+      "remediated_in_this_action": false
+    }
+  ],
+  "review_dimensions": [
+    {
+      "dimension": "atomic_external_issuer_authority_read",
+      "status": "verified",
+      "evidence": "Closed property descriptors and the bounded plain-data canonicalizer snapshot the external anchor before the single material callback; callback mutation cannot alter the snapshot."
+    },
+    {
+      "dimension": "immutable_plain_data_authority_snapshot",
+      "status": "verified",
+      "evidence": "The canonical anchor projection is plain data, the result snapshot is deeply frozen, and only snapshot values are used in registry comparisons."
+    },
+    {
+      "dimension": "issuer_epoch_predecessor_and_anchor",
+      "status": "verified",
+      "evidence": "Issuer identity/version, authority anchor, trust root, unsigned epoch minimum and exact predecessor digest are externally anchored and fail closed on drift or rollback."
+    },
+    {
+      "dimension": "repository_row_identity_and_observed_digest",
+      "status": "verified",
+      "evidence": "Request, issuer registry, completion registry and canonical observed row independently bind the row identity and digest."
+    },
+    {
+      "dimension": "nanosecond_temporal_finality_membership_and_lineage",
+      "status": "verified",
+      "evidence": "The S.2A V2 validation path enforces integer-nanosecond source, receive, finalization and evaluation ordering, immutable opportunity membership, model/evaluator/outcome/explanation lineage, completeness and finality."
+    },
+    {
+      "dimension": "source_bundle_and_trust_root_digests",
+      "status": "verified",
+      "evidence": "Issuer registry, completion registry and evidence bundle bind source, bundle and trust-root digests without caller authority fields."
+    },
+    {
+      "dimension": "all_eighteen_gap_evidence_records",
+      "status": "verified",
+      "evidence": "The issued fixture contains the closed eighteen-code set; duplicate, missing, extra or conflicting closures fail closed and reordered equivalent closures canonicalize identically."
+    },
+    {
+      "dimension": "only_issued_reaches_s2a",
+      "status": "failed",
+      "finding_id": "T2-001",
+      "evidence": "A missing-closure input invokes S.2A and records its result digest before T.1 returns incomplete."
+    },
+    {
+      "dimension": "failure_observed_input_binding_and_collision_resistance",
+      "status": "verified",
+      "evidence": "Five canonical observed-input namespaces, request digest, authority snapshot and sorted reasons bind failures; distinct rejected rows produce distinct failure and terminal digests."
+    },
+    {
+      "dimension": "caller_claim_and_hostile_runtime_rejection",
+      "status": "verified",
+      "evidence": "Closed request/authority/material schemas reject caller authority, finality and trust-root claims; accessors, proxies, cycles and budget-extreme values return sanitized fail-closed terminals."
+    },
+    {
+      "dimension": "post_verification_mutation",
+      "status": "verified",
+      "evidence": "Authority snapshots, issuance envelopes, nested completion material and terminal results are deeply frozen."
+    },
+    {
+      "dimension": "default_off_and_kill_switch_zero_work",
+      "status": "verified",
+      "evidence": "Disabled and killed paths return before request or authority inspection, callback, cloning, S.2A execution or input-dependent digest work."
+    },
+    {
+      "dimension": "full_synthetic_interoperability",
+      "status": "verified_with_boundary_finding",
+      "evidence": "The positive synthetic path reaches issued, completed, bindable, ready, captured and joined; T2-001 remains because negative inputs can also execute S.2A."
+    },
+    {
+      "dimension": "cross_timezone_and_input_order_determinism",
+      "status": "verified",
+      "evidence": "UTC A/B, Europe/Stockholm reversed input order and America/New_York reproduce golden digest 1d087e920af0b0bf141fc3aeddbe488956d72fa3e30b53f6519439b99cf9ce9a."
+    },
+    {
+      "dimension": "external_root_and_offline_isolation",
+      "status": "verified",
+      "evidence": "Normalized 303-artifact and replay 84-artifact roots are unchanged, permission-safe and outside Git; no provider, database, writer, persistence or live import exists in T.1 scope."
+    }
+  ],
+  "closed_threat_matrix": [
+    {
+      "threat_id": "T2-T001",
+      "threat": "Authority callback mutates the external anchor",
+      "expected": "pre_callback_snapshot_remains_authoritative",
+      "observed": "pre_callback_snapshot_remains_authoritative",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T002",
+      "threat": "Issuer epoch rolls back or predecessor is substituted",
+      "expected": "conflicting",
+      "observed": "conflicting",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T003",
+      "threat": "Caller supplies authority, finality or trust-root claims",
+      "expected": "unmappable_before_authority_read",
+      "observed": "unmappable_before_authority_read",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T004",
+      "threat": "One or more of eighteen closure records is invalid",
+      "expected": "non_issued_and_no_s2a_execution",
+      "observed": "non_issued_but_s2a_executed",
+      "status": "failed",
+      "finding_id": "T2-001"
+    },
+    {
+      "threat_id": "T2-T005",
+      "threat": "Different rejected observed rows share taxonomy and reasons",
+      "expected": "distinct_failure_identities",
+      "observed": "distinct_failure_identities",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T006",
+      "threat": "Material contains accessors, proxies, cycles or extreme structures",
+      "expected": "sanitized_bounded_rejection",
+      "observed": "sanitized_bounded_rejection",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T007",
+      "threat": "Verified material or terminal output is mutated",
+      "expected": "deep_frozen_or_digest_rebuild_rejection",
+      "observed": "deep_frozen_or_digest_rebuild_rejection",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T008",
+      "threat": "Disabled or kill-switch call attempts request, authority, clone, digest or S.2A work",
+      "expected": "zero_work_terminal",
+      "observed": "zero_work_terminal",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T009",
+      "threat": "Timezone or scenario ordering changes canonical evidence",
+      "expected": "byte_identical",
+      "observed": "byte_identical",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T2-T010",
+      "threat": "Provider, database, writer, dependency or live path enters scope",
+      "expected": "absent",
+      "observed": "absent",
+      "status": "passed"
+    }
+  ],
+  "regression": {
+    "t1_focused": "22/22 passed",
+    "relevant_667": "446/446 passed",
+    "cross_timezone": "UTC A/B, Europe/Stockholm reverse and America/New_York byte-identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "git_diff_check": "passed",
+    "security_import_dependency_secret_scans": "passed",
+    "production_compilation": "webpack production compilation succeeded before the unchanged route-export type baseline",
+    "production_build_environment_note": "default Turbopack cannot follow the worktree node_modules symlink outside its filesystem root; webpack compilation is used for scope verification",
+    "production_build_baseline": {
+      "classification": "scope_external_preexisting_baseline",
+      "path": "app/api/hb307c/ping/route.ts",
+      "current_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "base_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "error": "hb307cCanaryRouteBuildMarker is not a valid Route export field",
+      "inside_t2_scope": false
+    }
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "directories_mode": "0700",
+      "files_mode": "0600",
+      "permission_drift_count": 0,
+      "symlinks": 0,
+      "verified": true
+    }
+  },
+  "decision": {
+    "independent_review_approved": false,
+    "local_checkpoint_ready": false,
+    "approval_rule": "zero blockers and zero majors",
+    "remediation_performed_during_review": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "c4b4fe3ada4f8ab83a4ac98a83629f4148223906c18836266ef2f04796912330"
+}
