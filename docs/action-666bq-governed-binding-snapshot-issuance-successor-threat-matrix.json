@@ -1,0 +1,95 @@
+{
+  "matrix_version": "action_666bq_governed_issuance_successor_threat_matrix_v1",
+  "contract_version": "canonical_governed_binding_snapshot_issuance_successor_v3",
+  "base_commit": "5ea5de5167c716b1a66e542085a0e4b71edc67dd",
+  "normative_digest": "c15ddadc52bb5a29858acd9b50e7249a05936440c0ecb8bcfdc87cad5137bbbd",
+  "historical_commitments": {
+    "original_bytes_available": false,
+    "recovery_claimed": false,
+    "classification": "lost_historical_commitments_only"
+  },
+  "cases": [
+    {
+      "threat": "caller substitutes a self-consistent issuer authority and root",
+      "expected": "conflicting",
+      "verified": true
+    },
+    {
+      "threat": "authority mutates after its single callback",
+      "expected": "verified plain-data copy remains immutable",
+      "verified": true
+    },
+    {
+      "threat": "epoch, predecessor, or rollback drift",
+      "expected": "rollback_rejected",
+      "verified": true
+    },
+    {
+      "threat": "future or non-explicit issuance/effective instant",
+      "expected": "not_point_in_time_safe",
+      "verified": true
+    },
+    {
+      "threat": "semantic membership or upstream lineage changes under an authorized request identity",
+      "expected": "conflicting",
+      "verified": true
+    },
+    {
+      "threat": "twenty-thousand-level nested request",
+      "expected": "sanitized bounded validation failure without recursion or RangeError",
+      "verified": true
+    },
+    {
+      "threat": "depth, node, key, array, single-string, or total-string budget exceeded",
+      "expected": "deterministic budget-specific failure evidence",
+      "verified": true
+    },
+    {
+      "threat": "cycle, accessor, throwing proxy, symbol key, or non-plain prototype",
+      "expected": "sanitized fail-closed result before clone or digest",
+      "verified": true
+    },
+    {
+      "threat": "two invalid requests share a terminal classification",
+      "expected": "distinct failure identities when bounded observations differ",
+      "verified": true
+    },
+    {
+      "threat": "self-consistent failure-result or budget-policy tampering",
+      "expected": "independent rebuild mismatch",
+      "verified": true
+    },
+    {
+      "threat": "previous-binding or capture-binding collision",
+      "expected": "conflicting with actual AX observation bound",
+      "verified": true
+    },
+    {
+      "threat": "intermediate BD, AJ, AC, V, or AQ result substitution",
+      "expected": "independent stage or terminal rebuild mismatch",
+      "verified": true
+    },
+    {
+      "threat": "unexpected, missing, renamed, duplicated, or role-swapped artifact",
+      "expected": "closed role-manifest rejection",
+      "verified": true
+    },
+    {
+      "threat": "disabled or kill-switch execution",
+      "expected": "zero request, authority, validation, lookup, stage, and digest work",
+      "verified": true
+    },
+    {
+      "threat": "synthetic result presented as production performance or used for automatic change",
+      "expected": "not_publishable and all automatic/live authority flags false",
+      "verified": true
+    }
+  ],
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": true
+}

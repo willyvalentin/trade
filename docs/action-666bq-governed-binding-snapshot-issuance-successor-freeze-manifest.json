@@ -1,0 +1,95 @@
+{
+  "manifest_version": "action_666bq_governed_issuance_successor_freeze_manifest_v1",
+  "base_commit": "5ea5de5167c716b1a66e542085a0e4b71edc67dd",
+  "branch": "codex/action-666bq-governed-binding-snapshot-issuance-rebuild",
+  "normative_contract_version": "canonical_governed_binding_snapshot_issuance_successor_v3",
+  "normative_artifact_count": 5,
+  "combined_digest_algorithm": "sha256(sorted(path + NUL + sha256 + LF))",
+  "canonical_normative_digest": "c15ddadc52bb5a29858acd9b50e7249a05936440c0ecb8bcfdc87cad5137bbbd",
+  "self_excluded_paths": [
+    "docs/action-666bq-governed-binding-snapshot-issuance-successor-freeze-manifest.json",
+    "docs/action-666bq-governed-binding-snapshot-issuance-successor-independent-review.md",
+    "docs/action-666bq-governed-binding-snapshot-issuance-successor-threat-matrix.json"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/action-666bq-golden-binding-snapshot-issuance-successor-report.json",
+      "role": "synthetic_golden_report",
+      "sha256": "83c45f8bfaa9dc34e551624fcad7e1f77a496d8df5054da10f845975289bcd52",
+      "git_status": "untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666bq-governed-binding-snapshot-issuance-successor.md",
+      "role": "contract_documentation",
+      "sha256": "730cd725f704844739e05985933db609f38f6f1d07559eb820374250faa3f9a4",
+      "git_status": "untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-issuance-successor-fixtures.ts",
+      "role": "synthetic_fixtures",
+      "sha256": "e0e3e41fe731f9d0927f4d2c35362a9d96919cb8bb283b0d0a9373f671ca4837",
+      "git_status": "untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
+      "role": "implementation",
+      "sha256": "a7fd77396ef0c2f75253222d8166cc1d9e459dcc925114c7d8428d41fa7954d2",
+      "git_status": "untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
+      "role": "focused_tests",
+      "sha256": "163329485fe92007ad33a831879f7a2f26a4485a09300de11442865654f68bdc",
+      "git_status": "untracked",
+      "normative": true
+    }
+  ],
+  "lineage": {
+    "ax_store_version": "canonical_improvement_binding_store_v1",
+    "bd_admission_version": "canonical_improvement_binding_snapshot_admission_v1",
+    "aj_capture_version": "canonical_completed_improvement_evidence_capture_v1",
+    "ac_adapter_version": "canonical_completed_improvement_evidence_adapter_v1",
+    "v_proposal_version": "canonical_model_improvement_proposal_v1",
+    "aq_replay_version": "canonical_governed_improvement_end_to_end_replay_v1"
+  },
+  "lost_historical_commitments": {
+    "bytes_claimed_recovered": false,
+    "bk_predecessor_digest": "e11016eae92035dfc1c2474e4d163bc868a6613cf7162edb18657a1d9dc74491",
+    "bm_v2_pre_bo_digest": "3253469c33a3339161d46a8b648e57d8f2ffef531fd3e10ce2ef4c9470151ee3",
+    "bm_v2_post_bo_digest": "9eac476f13d27d0d9e0d910746da6c30afb53e91f778fc60ab79f0a3e4d9db66",
+    "classification": "historical_commitments_only"
+  },
+  "regression": {
+    "focused": "21/21",
+    "action_665_666": "325/325",
+    "action_664_db_free": "161/161",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint_zero_warnings": "passed",
+    "json_semantic_parity": "passed",
+    "production_build": "passed",
+    "diff_check": "passed"
+  },
+  "digest_checkpoints": {
+    "pre_regression": "c15ddadc52bb5a29858acd9b50e7249a05936440c0ecb8bcfdc87cad5137bbbd",
+    "post_regression": "c15ddadc52bb5a29858acd9b50e7249a05936440c0ecb8bcfdc87cad5137bbbd",
+    "post_review": "c15ddadc52bb5a29858acd9b50e7249a05936440c0ecb8bcfdc87cad5137bbbd"
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work": true,
+    "server_only": true,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}
