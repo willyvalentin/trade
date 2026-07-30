@@ -47,7 +47,11 @@ import {
 } from "../lib/action-661j5r3a-postgres-readiness-rebuild-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const image = "postgres:16-alpine";
+const image =
+  "sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777";
+const imageTag = "postgres:16-alpine";
+const imageRepositoryDigest =
+  "postgres@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777";
 const runtimeMigrationPath =
   "scripts/action-661j5r3-runtime-migration-rebuild-v1.sql";
 const baselineManifestPath =
@@ -56,9 +60,11 @@ const expectedRuntimeIdentityDigest =
   "a10acad44e91e781f0afdac2fb9d5d6568890061b80274d54f4996e833e98fa8";
 const expectedReadinessPolicyDigest =
   "3e0f527c72f7d1707d984aee97399369bef14a20c133617fb4e75ec28d11b639";
+const outputArgumentIndex = process.argv.indexOf("--output");
 const outputRoot = resolve(
-  process.argv[process.argv.indexOf("--output") + 1] ??
-    "docs/recovery/action-661j5r5/runtime-evidence",
+  outputArgumentIndex === -1
+    ? "docs/recovery/action-661j5r5/runtime-evidence"
+    : process.argv[outputArgumentIndex + 1],
 );
 
 const plans = [
@@ -337,7 +343,8 @@ function inspectImage() {
     inspected.Os !== "linux" ||
     !["arm64", "amd64"].includes(inspected.Architecture) ||
     typeof inspected.Id !== "string" ||
-    !inspected.Id.startsWith("sha256:")
+    inspected.Id !== image ||
+    !inspected.RepoDigests.includes(imageRepositoryDigest)
   ) {
     throw new Error("action_661j5r3.image_identity_invalid");
   }
@@ -643,7 +650,7 @@ async function main() {
       image_id: preflightResult.image.Id,
       platform: preflightResult.image.Os,
       repository_digests: preflightResult.image.RepoDigests,
-      tag: image,
+      tag: imageTag,
     },
     runs: runs.map((entry) => ({
       attempt_count: entry.attempt_count,
