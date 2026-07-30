@@ -459,7 +459,7 @@ function preflight() {
 
 async function main() {
   const preflightResult = preflight();
-  mkdirSync(outputRoot, { recursive: false });
+  mkdirSync(outputRoot, { recursive: true });
   const runs = [];
   for (const plan of plans) {
     runs.push(
