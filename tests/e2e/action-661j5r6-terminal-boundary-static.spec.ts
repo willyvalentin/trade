@@ -92,7 +92,18 @@ function snapshotInputFor(
   );
   input.domains.table_acl = structuredClone(
     overrides.tableAcl ??
-      (scenarioId === "unknown_acl_state" ? [UNKNOWN_TABLE_ACL] : []),
+      (scenarioId === "unknown_acl_state"
+        ? [
+            {
+              grantable: false,
+              grantee: "postgres",
+              grantor: "postgres",
+              privilege: "SELECT",
+              relation: "public.historical_candles",
+            },
+            UNKNOWN_TABLE_ACL,
+          ]
+        : []),
   );
   input.domains.column_acl = structuredClone(overrides.columnAcl ?? []);
   return input;
