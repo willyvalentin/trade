@@ -44,6 +44,19 @@ import { ACTION_661J5R6_TERMINAL_LITERAL_FIXTURES } from "./action-661j5r6-termi
 
 type ScenarioId = "duplicate_containment_history" | "unknown_acl_state";
 
+interface AclProjection {
+  grantable: boolean;
+  grantee: string;
+  grantor: string;
+  privilege: string;
+  relation: string;
+}
+
+interface AclDomain {
+  domain_id: string;
+  value: AclProjection[];
+}
+
 interface HistoryEntry {
   name: string;
   statement_count: number;
@@ -301,6 +314,18 @@ test("exact policy matrix rejects history, ACL, relation, and carrier substituti
     expectCaptureRejected("unknown_acl_state", { tableAcl: [changed] });
   }
   expectCaptureRejected("unknown_acl_state", {
+    tableAcl: [UNKNOWN_TABLE_ACL, UNKNOWN_TABLE_ACL],
+  });
+  expectCaptureRejected("unknown_acl_state", {
+    tableAcl: [
+      UNKNOWN_TABLE_ACL,
+      {
+        ...UNKNOWN_TABLE_ACL,
+        grantee: "action_661j5_second_unknown_acl",
+      },
+    ],
+  });
+  expectCaptureRejected("unknown_acl_state", {
     columnAcl: [
       {
         column: "id",
@@ -326,6 +351,54 @@ test("exact policy matrix rejects history, ACL, relation, and carrier substituti
       shard_id: "duplicate-containment-history-a",
     }),
   ).toThrow("rebuild_v1.diagnostic_mismatch");
+});
+
+test("full ACL domain preserves owner rows and ordering drift stays semantic", () => {
+  const capture = captureFor("unknown_acl_state");
+  const chain = buildTerminalResultChainRebuildV1({
+    capture,
+    run_id: "run-a",
+    scenario_id: "unknown_acl_state",
+    shard_id: "unknown-acl-state-a",
+  });
+  const tableAcl = chain.evidence.prestate.domains.find(
+    (domain: AclDomain) => domain.domain_id === "table_acl",
+  )?.value;
+  expect(tableAcl).toContainEqual({
+    grantable: false,
+    grantee: "postgres",
+    grantor: "postgres",
+    privilege: "SELECT",
+    relation: "public.historical_candles",
+  });
+  expect(tableAcl).toContainEqual(UNKNOWN_TABLE_ACL);
+
+  const reversed = captureFor("unknown_acl_state", {
+    tableAcl: [...(tableAcl ?? [])].reverse(),
+  });
+  const reordered = buildTerminalResultChainRebuildV1({
+    capture: reversed,
+    run_id: "run-b",
+    scenario_id: "unknown_acl_state",
+    shard_id: "unknown-acl-state-b",
+  });
+  expect(reordered.evidence.evidence_digest).not.toBe(
+    chain.evidence.evidence_digest,
+  );
+  const terminalFiles = chains().map((entry) => entry.file);
+  expect(() =>
+    buildSixteenShardAggregateRebuildV1({
+      historical_files: historicalFiles(),
+      history_files: historyFiles(),
+      relation_state_files: relationStateFiles(),
+      terminal_files: [
+        terminalFiles[0],
+        terminalFiles[1],
+        chain.file,
+        reordered.file,
+      ],
+    }),
+  ).toThrow("rebuild_v1.semantic_determinism_mismatch:unknown_acl_state");
 });
 
 test("runner authority binds exact bytes and closed capability matrix", () => {
@@ -451,6 +524,29 @@ test("runtime script fixes four no-retry runs and diagnostic-first policy", () =
   expect(runOne.indexOf("waitReady(container, runDirectory)")).toBeLessThan(
     runOne.indexOf("captureRuntimeIdentity(container, inspectedImage)"),
   );
+});
+
+test("bounded R6A runner schedules only fresh ACL A/B and reuses duplicate bytes", () => {
+  const source = readFileSync(
+    join(
+      root,
+      "scripts/action-661j5r6a-acl-runtime-certify-rebuild-v1.mjs",
+    ),
+    "utf8",
+  );
+  const plans = source.slice(
+    source.indexOf("const plans ="),
+    source.indexOf("const duplicateResultPaths"),
+  );
+  expect(plans.match(/scenario_id: "unknown_acl_state"/g)).toHaveLength(2);
+  expect(plans).not.toContain('scenario_id: "duplicate_containment_history"');
+  expect(source).toContain(
+    "accd4c9c089d41a0945d72c4c06d326b8948c7ef4557cc8e31d4b6ef14c1e55a",
+  );
+  expect(source).toContain(
+    "37f074286777209739be188237ec09b5a036eab10576b63335550a0c1e7e0964",
+  );
+  expect(source).toContain("buildSixteenShardAggregateRebuildV1");
 });
 
 test("authority projections are stable across process timezones", () => {
