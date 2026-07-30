@@ -1,0 +1,144 @@
+{
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v1",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "scenario_count": 12,
+  "taxonomy_counts": {
+    "issued": 2,
+    "incomplete": 3,
+    "conflicting": 5,
+    "not_point_in_time_safe": 1,
+    "unmappable": 1
+  },
+  "scenarios": [
+    {
+      "id": "conflicting_epoch_rollback",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "issuer_epoch_rollback_detected"
+      ],
+      "failure_identity_digest": "e5d4936d686d0d2f3ed4b43a4eb02e9aceb15cef2f0c7ac30fce8ac1dc190bf1",
+      "issuance_digest": null,
+      "result_digest": "d986ff09216c5b7f8849aa4da2865c53fac84906bffb8533f3f14becdb299ed8"
+    },
+    {
+      "id": "conflicting_issuer_registry",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "issuer_identity_mismatch",
+        "issuer_registry_digest_mismatch"
+      ],
+      "failure_identity_digest": "3d07f45b7602bf93699638b8443058485e6511cc778f5dfaf336ca7278edfa15",
+      "issuance_digest": null,
+      "result_digest": "3950bedd1dbe161bdb775baa0916d5bc51465b116099f3e1529fa51b8b6578b2"
+    },
+    {
+      "id": "conflicting_predecessor",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "predecessor_issuance_digest_mismatch"
+      ],
+      "failure_identity_digest": "8259611d6dbda24879f5b93150e20e612f3353459dff48b4520a1da0c2f9f69f",
+      "issuance_digest": null,
+      "result_digest": "e610730ba21937b20499f00e15e11928a45b3294a4160488f0f2e290624449f7"
+    },
+    {
+      "id": "disabled_zero_work",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "issuance_default_off"
+      ],
+      "failure_identity_digest": "56ae869df7eaacd2ae445181ac3b16e6777b57dcc5cab90026f525cf4cefd13a",
+      "issuance_digest": null,
+      "result_digest": "a9de5369cb83c6cba0259939bf187752868489edca999cdd363d0d2d0c9d8f75"
+    },
+    {
+      "id": "failure_collision_a",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "issuer_identity_mismatch",
+        "issuer_registry_digest_mismatch"
+      ],
+      "failure_identity_digest": "56eb86f5d15d4b42bd5cd23224b50e92d55083bd9bb57415036ff55e17ad65d1",
+      "issuance_digest": null,
+      "result_digest": "e8738bb183d6bad792b79c05830cbf8d465c45c36e000f3b0d219377ebf3b609"
+    },
+    {
+      "id": "failure_collision_b",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "issuer_identity_mismatch",
+        "issuer_registry_digest_mismatch"
+      ],
+      "failure_identity_digest": "4f4eca4484c1c8d097f470e9414d0e30a954bafdfdc61a0cd5811fcffccd8db7",
+      "issuance_digest": null,
+      "result_digest": "a914d7491b34692fa06851087be95b04df22627ff0be36c4abb0fca579769ca9"
+    },
+    {
+      "id": "incomplete_missing_closure",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "v2_all_eighteen_unique_gap_closures_required"
+      ],
+      "failure_identity_digest": "0405986c28b10c82cb450981ffb4f5cedca51dbbcce481b3f4cb8122dd134fe3",
+      "issuance_digest": null,
+      "result_digest": "379148e0d88bea0fb20383873121ccacf157c1a31e5b07b0c482bfecd62c6a5c"
+    },
+    {
+      "id": "issued_all_eighteen_gap_evidence",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "failure_identity_digest": null,
+      "issuance_digest": "936e2e20aaa6c027c31f837354c425ffeb206fa59cb70eaa13728403e6406add",
+      "result_digest": "2aa250435dd7a777548a556ba5601e50e51c51a03a8ecac34553ac17c1955718"
+    },
+    {
+      "id": "issued_reordered_closure_set",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "failure_identity_digest": null,
+      "issuance_digest": "936e2e20aaa6c027c31f837354c425ffeb206fa59cb70eaa13728403e6406add",
+      "result_digest": "2aa250435dd7a777548a556ba5601e50e51c51a03a8ecac34553ac17c1955718"
+    },
+    {
+      "id": "kill_switch_zero_work",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "issuance_kill_switch_active"
+      ],
+      "failure_identity_digest": "664ca61a3e377d182c4d66b212c724a9db4f8efb52aefc26523e08c70440581e",
+      "issuance_digest": null,
+      "result_digest": "145c4c707ccfbf54f109d96f40229440a48a1d12392e1d91464e4dcf5780c367"
+    },
+    {
+      "id": "not_point_in_time_safe",
+      "taxonomy": "not_point_in_time_safe",
+      "reason_codes": [
+        "v1_core:completion_evidence_temporal_order_invalid"
+      ],
+      "failure_identity_digest": "a023397724b6513b40d0e9c145827fc8d16b22c57bdf8386aa15a42ac879b41c",
+      "issuance_digest": null,
+      "result_digest": "284558658d7f08a497d3de29dca5be36b57f39a37debdd8de80b66f919cdb7aa"
+    },
+    {
+      "id": "unmappable_material",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "issuance_material_malformed"
+      ],
+      "failure_identity_digest": "5df94232566e8d83326ce07d08d2b0027ca8ad1f33a59a4855940381fc5c9a9f",
+      "issuance_digest": null,
+      "result_digest": "49ec5f7f6e21f30a8a6d2cf119e39c59a86257036fdaec1a6590f68c429630f3"
+    }
+  ],
+  "interop": {
+    "issuance_taxonomy": "issued",
+    "completion_taxonomy": "completed",
+    "projection_taxonomy": "bindable",
+    "q1_admission_taxonomy": "ready",
+    "p2a_capture_taxonomy": "captured",
+    "o2a_join_taxonomy": "joined"
+  },
+  "result_digest": "1d087e920af0b0bf141fc3aeddbe488956d72fa3e30b53f6519439b99cf9ce9a"
+}
