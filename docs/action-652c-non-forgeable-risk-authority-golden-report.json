@@ -1,0 +1,40 @@
+{
+  "schema_version": "action_652c_non_forgeable_risk_authority_golden_v1",
+  "contract_version": "action_652c_non_forgeable_risk_authority_v2",
+  "private_registry_runtime_version": "action_652c_private_external_registry_runtime_v1",
+  "capability_version": "action_652c_private_risk_authority_capability_v1",
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_status": "admitted",
+    "common_terminal_digest": "action_652c_admission_terminal_0043b1b76ded738671cd7a0c6afa16dc9242f89676df0bebbd11c2ce745af660",
+    "common_capability_digest": "action_652c_private_authority_capability_0191022af9faf6c5bd1848ed5445fe4dc120914d8063652e05652066244c2a25"
+  },
+  "m1_matrix": {
+    "v1_caller_permissive_issuer": "attack_reproduced",
+    "v2_caller_permissive_issuer": "caller_authority_surface_rejected",
+    "copied_handle": "caller_authority_surface_rejected",
+    "cross_session": "private_authority_membership_mismatch",
+    "cross_execution": "private_authority_membership_mismatch",
+    "expiry_minus_one_nanosecond": "admitted",
+    "expiry_boundary": "private_authority_capability_expired",
+    "expiry_plus_one_nanosecond": "private_authority_capability_expired",
+    "forged_provenance_or_digest": "caller_authority_surface_rejected",
+    "post_verification_mutation": "isolated"
+  },
+  "safety": {
+    "synthetic_only": true,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}

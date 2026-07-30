@@ -1,0 +1,40 @@
+{
+  "schema_version": "action_652a_execution_risk_envelope_admission_golden_v1",
+  "contract_version": "action_652a_execution_risk_envelope_admission_v1",
+  "external_authority_policy_version": "action_652a_external_read_only_risk_authority_v1",
+  "snapshot_policy_version": "action_652a_bounded_single_read_snapshot_v1",
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_status": "admitted"
+  },
+  "admission_terminal_digest": "action_652a_admission_terminal_f3772927e73872f5277b336ae0823e0e2f35aa1509de7465cc2dc3d51f767053",
+  "action_651c_audit_evidence_digest": "action_651c_audit_a04bb12e1055df7650e3ff2f505d491d3b22d2e6bd19ed195ee199971a16a929",
+  "boundary_matrix": {
+    "quantity_at_limit": "admitted",
+    "quantity_limit_minus_one": "quantity_limit_exceeded",
+    "notional_at_limit": "admitted",
+    "notional_limit_minus_one": "notional_limit_exceeded",
+    "intent_expiry_minus_one_nanosecond": "admitted",
+    "intent_expiry": "intent_expired",
+    "intent_expiry_plus_one_nanosecond": "intent_expired",
+    "snapshot_age_at_limit": "admitted",
+    "snapshot_age_plus_one_nanosecond": "snapshot_too_old"
+  },
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
