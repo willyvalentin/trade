@@ -1,0 +1,61 @@
+{
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 3694,
+      "path": "docs/action-661j5n1-default-off-runtime-certification-consumer.md",
+      "sha256": "c75122681cc20a6df79dbdd4cd539bdb2c0c7481ae31aa57f1c0924a3d634d11"
+    },
+    {
+      "byte_length": 2398,
+      "path": "docs/action-661j5n1-runtime-certification-consumer-golden-report.json",
+      "sha256": "c4a86a7a69aaba3abfe5ee12d293d40b78248627c763a0b398e7681763149ab4"
+    },
+    {
+      "byte_length": 41704,
+      "path": "lib/action-661j5n1-runtime-certification-consumer.mjs",
+      "sha256": "1c727c973d04f094bec3527e278eec00746be636f3c28f800725529bc0706a21"
+    },
+    {
+      "byte_length": 3952,
+      "path": "tests/e2e/action-661j5n1-runtime-certification-consumer-fixtures.mjs",
+      "sha256": "340da479567f9782b77a7677cf8584e745d4740b4cc8d505c9a1fe4d91549a79"
+    },
+    {
+      "byte_length": 9349,
+      "path": "tests/e2e/action-661j5n1-runtime-certification-consumer.spec.ts",
+      "sha256": "8ffea81c2bd63155eadcb764250a2d688118ec23a3352321d9231721ff1122c0"
+    }
+  ],
+  "digest_exclusions": [
+    "freeze_manifest_digest"
+  ],
+  "freeze_contract": "action_661j5n2_certification_consumer_freeze_manifest_v1",
+  "freeze_manifest_digest": "75d75f387b2248579530fca64d65e7bde3f4365cd247fb6564aec973ed957edb",
+  "normative_digest_algorithm": "sha256(canonical_json({artifact_count,artifacts,preservation_commit}))",
+  "normative_digest_observations": {
+    "after_regression": "6cc8178c10da177ce9adbc197a88933e99e664ea87bedfd2a86b00e95b2fa6c9",
+    "after_review": "6cc8178c10da177ce9adbc197a88933e99e664ea87bedfd2a86b00e95b2fa6c9",
+    "before_regression": "6cc8178c10da177ce9adbc197a88933e99e664ea87bedfd2a86b00e95b2fa6c9"
+  },
+  "normative_files_modified": false,
+  "preservation_commit": "a4d59fb11a3860715e3824cc36d2e01c078ced53",
+  "preservation_ref": "refs/preservation/action-661j5n1-default-off-runtime-certification-consumer",
+  "review_suite": {
+    "path": "tests/e2e/action-661j5n2-certification-consumer-adversarial-review.spec.ts",
+    "sha256": "217e155c4f8128504ef879303d7e436ae31e96b7608f3cd21cdbbdffe6594916"
+  },
+  "underlying_authority": {
+    "delivery_digest": "80024a817857603d508d094e2e53616dfab48ba60ac661211ff3fa2672ad5d0e",
+    "fixture_progress": "28/28",
+    "final_aggregate_digest": "98064a290926d7b2ade45965eec3a21b41819763cb667a3a0c54f618600fe99d",
+    "final_freeze_manifest_digest": "9e6f8237a5f760c0ef34b2783eca69d7d1496a935d984bc8f07a92493982a4a6"
+  },
+  "verification": {
+    "eslint_zero_warnings": true,
+    "full_relevant_regression": "126/126",
+    "json_parity": true,
+    "normative_worktree_preservation_parity": true,
+    "typescript": true
+  }
+}

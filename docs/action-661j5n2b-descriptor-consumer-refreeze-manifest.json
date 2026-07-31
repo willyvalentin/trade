@@ -1,0 +1,63 @@
+{
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 4014,
+      "path": "docs/action-661j5n2a-descriptor-bound-consumer-v2.md",
+      "sha256": "51900f8c9bf91f2a6568ac6f96a403d91ab9b1d99b1137811bdffc05b1e1edf3"
+    },
+    {
+      "byte_length": 3054,
+      "path": "docs/action-661j5n2a-runtime-certification-consumer-v2-golden-report.json",
+      "sha256": "28d1078ce48a723d5f6f59575f43bdb9b38501fd30b07371c32fe95c14b56a5b"
+    },
+    {
+      "byte_length": 24551,
+      "path": "lib/action-661j5n2a-runtime-certification-consumer-v2.mjs",
+      "sha256": "110a919401aee396508ba6d393132ed41e400343ea209559cdc1003eba4f69c5"
+    },
+    {
+      "byte_length": 4911,
+      "path": "tests/e2e/action-661j5n2a-descriptor-provider-fixtures.mjs",
+      "sha256": "1d06418b0b966e4fea73b257702db5c2370201acb635c78d5653e1ff224ba43d"
+    },
+    {
+      "byte_length": 12876,
+      "path": "tests/e2e/action-661j5n2a-runtime-certification-consumer-v2.spec.ts",
+      "sha256": "e59a7f4a6c0ec78d984bca924672b1042444a036992d0a287b6e55d8ea99d03b"
+    }
+  ],
+  "digest_exclusions": [
+    "refreeze_manifest_digest"
+  ],
+  "historical_findings": {
+    "N2-M1": "closed_and_independently_reverified",
+    "N2-m1": "closed_and_independently_reverified",
+    "N2-m2": "closed_and_independently_reverified"
+  },
+  "normative_digest_algorithm": "sha256(canonical_json({artifact_count,artifacts,preservation_commit}))",
+  "normative_digest_observations": {
+    "after_regression": "2793ec54bfdbc15eae21dc587c970e23ac1b5f7f1439a7efed6e6b32055c1636",
+    "after_review": "2793ec54bfdbc15eae21dc587c970e23ac1b5f7f1439a7efed6e6b32055c1636",
+    "before_regression": "2793ec54bfdbc15eae21dc587c970e23ac1b5f7f1439a7efed6e6b32055c1636"
+  },
+  "normative_files_modified": false,
+  "predecessor_bytes_unchanged": true,
+  "preservation_commit": "ff1fa24abd69efaa754d3f396cdce798962c3044",
+  "preservation_ref": "refs/preservation/action-661j5n2a-descriptor-bound-certification-consumer",
+  "refreeze_contract": "action_661j5n2b_descriptor_consumer_refreeze_manifest_v1",
+  "refreeze_manifest_digest": "97df94da590f397f83db68b19d25f8525f4127a8789259fc4e31e5521c79cd27",
+  "review_suite": {
+    "path": "tests/e2e/action-661j5n2b-descriptor-consumer-independent-review.spec.ts",
+    "sha256": "9f67f61c328f76e1fb1507a8367a52dffad6d0ecda09af3fce5274557b4f12c5",
+    "tests_passed": "11/11"
+  },
+  "verification": {
+    "cross_process_timezone_determinism": true,
+    "eslint_zero_warnings": true,
+    "full_relevant_regression": "150/150",
+    "json_parity": true,
+    "normative_worktree_preservation_parity": true,
+    "typescript": true
+  }
+}
