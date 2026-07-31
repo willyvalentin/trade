@@ -1,0 +1,151 @@
+{
+  "action": "667U.2B",
+  "review_version": "recommendation_outcome_evidence_admission_lossless_malformed_identity_independent_rereview_v1",
+  "review_mode": "separate_adversarial_no_remediation",
+  "normative_artifact_count": 5,
+  "normative_digest_before_regression": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+  "normative_digest_after_regression": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+  "normative_digest_after_review": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+  "golden_result_digest": "c16ed6b8a0003eb1eb13e6715497c2c5377b802578f58918cb0bb69efe4fe2db",
+  "refreeze": {
+    "manifest_path": "docs/evidence/action-667u2b-lossless-malformed-input-identity-refreeze-manifest.json",
+    "freeze_digest": "39deb227e97ccb27b53fa6525725f8dc457c3271c7d33c486b6611c7a79d1fc7",
+    "normative_bytes_preserved": true,
+    "predecessor_bytes_preserved": true,
+    "self_excluded": true
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [],
+  "closed_review_matrix": [
+    {
+      "review_id": "U2B-R001",
+      "boundary": "U2-001 historical reproduction",
+      "observed": "candidate_and_authority_collisions_reproduce_only_against_u1",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R002",
+      "boundary": "canonical-null failure identity",
+      "observed": "malformed_strings_bind_non_null_role_specific_observations",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R003",
+      "boundary": "candidate and authority domains",
+      "observed": "identical_bytes_share_exact_hash_but_not_observation_digest",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R004",
+      "boundary": "lossless observed string identity",
+      "observed": "type_code_units_utf8_length_utf8_sha_and_code_unit_sha_bound",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R005",
+      "boundary": "malformed candidate collision resistance",
+      "observed": "all_candidate_pair_observation_failure_and_result_digests_distinct",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R006",
+      "boundary": "malformed authority collision resistance",
+      "observed": "all_authority_pair_observation_failure_and_result_digests_distinct",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R007",
+      "boundary": "invalid schema Unicode NUL and surrogate inputs",
+      "observed": "closed_fail_closed_matrix_with_lossless_distinctions",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R008",
+      "boundary": "byte string and parse budgets",
+      "observed": "candidate_and_authority_minus_equal_plus_one_and_depth_exhaustion_passed",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R009",
+      "boundary": "parser message sanitation",
+      "observed": "fixed_reason_only_no_raw_text_exception_or_stack",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R010",
+      "boundary": "accessor proxy coercion callback execution",
+      "observed": "zero_executions_for_candidate_and_authority",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R011",
+      "boundary": "independent digest rebuild",
+      "observed": "observation_failure_and_terminal_result_rebuilt",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R012",
+      "boundary": "single-read immutable snapshots",
+      "observed": "candidate_one_authority_one_reread_zero_deep_frozen",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R013",
+      "boundary": "non-issued downstream isolation",
+      "observed": "authority_zero_when_not_needed_request_zero_t_rebuild_zero_downstream_digest_zero",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R014",
+      "boundary": "full synthetic interoperability",
+      "observed": "admitted_completed_bindable_ready_captured_joined",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R015",
+      "boundary": "determinism",
+      "observed": "cross_process_utc_stockholm_new_york_reverse_order_byte_identical",
+      "status": "passed"
+    },
+    {
+      "review_id": "U2B-R016",
+      "boundary": "external roots and read-only containment",
+      "observed": "303_84_permissions_digests_symlinks_and_no_external_activity_verified",
+      "status": "passed"
+    }
+  ],
+  "regression": {
+    "u2a_focused": "20/20 passed",
+    "u2b_adversarial_independent_rereview": "15/15 passed",
+    "relevant_667": "578 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_classification": "not_success_and_not_u_scope_regression",
+    "cross_timezone_and_reverse_order": "passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed_with_zero_warnings",
+    "json_evidence_parity": "passed",
+    "git_diff_check": "passed",
+    "security_import_dependency_identity_scan": "passed",
+    "external_roots": "303_normalized_84_replay_permissions_and_manifest_digests_verified"
+  },
+  "decision": {
+    "foundation_frozen": true,
+    "refreeze_complete": true,
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true,
+    "approval_rule": "zero_blockers_and_zero_majors",
+    "remediation_performed_during_review": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "6d8ba2eb447c473c52a145a92ade5d4bdc2220f30b5c1d55669ad1c91099a029"
+}

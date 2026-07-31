@@ -1,0 +1,135 @@
+{
+  "action": "667U.2B",
+  "freeze_version": "recommendation_outcome_evidence_admission_lossless_malformed_identity_refreeze_v1",
+  "base_commit": "ba6f5ecaa501175862cda556dd34ddddfe8c26b4",
+  "normative_authority": {
+    "preservation_ref": "refs/codex-preservation/action-667u2a-20260731T094224Z",
+    "preservation_commit": "0c9e1f33569083ca3096b59c2dec8f18abb8f69b",
+    "preservation_tree": "7883103f53cd37b64d86d37ce68904b908f0add4",
+    "artifact_count": 5,
+    "normative_digest_before_regression": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+    "normative_digest_after_regression": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+    "normative_digest_after_review": "afbf7ab65e7ee35d3ca8097427ff2f15a717caec2662a929915690d42e611e98",
+    "golden_result_digest": "c16ed6b8a0003eb1eb13e6715497c2c5377b802578f58918cb0bb69efe4fe2db",
+    "artifacts": [
+      {
+        "path": "docs/action-667u2a-lossless-malformed-input-failure-identity-successor.md",
+        "classification": "normative_current_contract_documentation",
+        "sha256": "b50bef594dec132d743500607048bf1e6f573348f391b15f93d00c7ac8af77e3"
+      },
+      {
+        "path": "docs/evidence/action-667u2a-lossless-malformed-input-failure-identity-synthetic-golden.json",
+        "classification": "normative_current_synthetic_golden",
+        "sha256": "a3851c909b76611081ce365187254f2c890b96650e3601e5820cad1dc1989bbb"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-admission-fixtures-v2.ts",
+        "classification": "normative_current_synthetic_fixtures",
+        "sha256": "3de269a235a268b2fb5d3389e511a439cdd097b85c36b412d2b9851e391d9c19"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-admission-v2.ts",
+        "classification": "normative_current_implementation",
+        "sha256": "3de4fb65ff22baa14524a26bea9bb33eefca74672b86695ac38bb9581a96d6d0"
+      },
+      {
+        "path": "tests/e2e/action-667u2a-lossless-malformed-input-failure-identity.spec.ts",
+        "classification": "normative_current_focused_tests",
+        "sha256": "4e341a410fc46fd0bc0d0611be399a201f2d964a49f09326b9e9649ce247e093"
+      }
+    ]
+  },
+  "predecessor_evidence": {
+    "u1_normative_digest": "d32e110db2d82997dca0cd9c7d974affb570fbc11342ae7c495f72e9ed55ac2b",
+    "u1_golden_digest": "de833b06bfcb99f055abf91f82be844da6443585413f29744fa345b395c56a1d",
+    "u2_freeze_digest": "5a429586d2545fdbaf4e40fdfe54d89667a74deeeaff62f7880039aa277d004d",
+    "u2_review_evidence_digest": "8d9f72e9ad569408afd05f13408c64e8e1923dcf99b8cb4eeebf66796153741a",
+    "u2_001_historical_status": "reproduced_against_u1_and_closed_by_u2a",
+    "u1_u2_bytes_unchanged": true
+  },
+  "versions": {
+    "contract": "repository_owned_recommendation_outcome_evidence_admission_v2",
+    "observation": "repository_owned_recommendation_outcome_evidence_admission_observation_v2",
+    "failure_identity": "repository_owned_recommendation_outcome_evidence_admission_failure_identity_v2",
+    "verifier": "repository_owned_recommendation_outcome_evidence_admission_verifier_v2",
+    "fixtures": "repository_owned_recommendation_outcome_evidence_admission_fixtures_v2"
+  },
+  "verified_boundaries": {
+    "u2_001_reproduced_against_u1": true,
+    "canonical_null_failure_identity_eliminated": true,
+    "candidate_authority_domain_separated": true,
+    "exact_utf8_length_and_digest_bound": true,
+    "exact_code_unit_digest_bound_for_invalid_surrogates": true,
+    "malformed_candidate_collision_matrix_passed": true,
+    "malformed_authority_collision_matrix_passed": true,
+    "invalid_json_schema_unicode_nul_surrogate_matrix_passed": true,
+    "candidate_and_authority_budget_boundaries_passed": true,
+    "bounded_iterative_parse_validation_passed": true,
+    "parser_and_caller_messages_sanitized": true,
+    "accessor_proxy_coercion_callback_execution_zero": true,
+    "independent_observation_failure_result_digest_rebuild": true,
+    "single_read_immutable_snapshot": true,
+    "non_issued_downstream_zero_work": true,
+    "full_t_v4_s2a_r2_q1_p2a_o2a_interop": true,
+    "cross_process_timezone_and_reverse_order_determinism": true,
+    "real_outcome_source_accessed": false
+  },
+  "regression": {
+    "u2a_focused": "20/20 passed",
+    "u2b_adversarial_independent_rereview": "15/15 passed",
+    "relevant_667": "578 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_classification": "not_success_and_not_u_scope_regression",
+    "cross_timezone": "UTC_Europe_Stockholm_America_New_York_byte_identical",
+    "reverse_order": "byte_identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed_with_zero_warnings",
+    "json_evidence_parity": "passed",
+    "git_diff_check": "passed",
+    "security_import_dependency_scan": "passed"
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "symlink_count": 0,
+      "unchanged": true
+    },
+    "replay": {
+      "artifact_count": 84,
+      "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "symlink_count": 0,
+      "unchanged": true
+    }
+  },
+  "self_excluded_review_artifacts": [
+    {
+      "path": "tests/e2e/action-667u2b-lossless-malformed-input-independent-rereview.spec.ts",
+      "classification": "adversarial_review_evidence",
+      "sha256": "c6481854a8dc129d3da57e9571f81d9524d325e9ff0ba996f5667a60c88a1a5d"
+    },
+    {
+      "path": "docs/evidence/action-667u2b-lossless-malformed-input-identity-refreeze-manifest.json",
+      "classification": "self_excluded_refreeze_manifest"
+    },
+    {
+      "path": "docs/evidence/action-667u2b-lossless-malformed-input-independent-rereview.json",
+      "classification": "self_excluded_independent_review"
+    }
+  ],
+  "safety": {
+    "diagnostic_only": true,
+    "read_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "39deb227e97ccb27b53fa6525725f8dc457c3271c7d33c486b6611c7a79d1fc7"
+}
