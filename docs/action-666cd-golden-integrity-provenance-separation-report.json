@@ -1,0 +1,31 @@
+{
+  "report_version": "action_666cd_golden_integrity_provenance_separation_report_v1",
+  "separation_contract_version": "canonical_integrity_provenance_separation_v2",
+  "runtime_evidence_version": "canonical_runtime_provenance_evidence_v2",
+  "integrity_envelope_version": "canonical_integrity_only_observation_envelope_v2",
+  "readback_version": "canonical_integrity_only_observation_readback_v2",
+  "scenario_count": 11,
+  "scenario_digest": "d78b57d65980a30174ff1149cfb797938c00f4545f4664b38ae7e3855a471425",
+  "serialized_status_inventory": [
+    "integrity_only"
+  ],
+  "all_serialized_integrity_verified": true,
+  "all_serialized_provenance_false": true,
+  "all_serialized_untrusted": true,
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "performance_claims": []
+}

@@ -1,0 +1,33 @@
+{
+  "report_version": "action_666ch_golden_lossless_immutable_byte_snapshot_report_v1",
+  "snapshot_contract_version": "canonical_lossless_immutable_byte_snapshot_v1",
+  "raw_byte_observation_version": "canonical_raw_byte_observation_v1",
+  "readback_version": "canonical_immutable_byte_readback_v1",
+  "scenario_count": 9,
+  "scenario_digest": "91159ce6aa91fe8ffa535c637fd8c12586c01ada453f49da20afe44b1e469c2e",
+  "status_inventory": [
+    "digest_mismatch",
+    "integrity_only",
+    "malformed",
+    "non_canonical"
+  ],
+  "invalid_utf8_observations_distinct": true,
+  "all_provenance_false": true,
+  "all_untrusted": true,
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "performance_claims": []
+}

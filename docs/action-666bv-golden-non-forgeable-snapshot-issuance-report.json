@@ -1,0 +1,69 @@
+{
+  "report_version": "action_666bv_synthetic_non_forgeable_issuance_report_v1",
+  "contract_version": "canonical_non_forgeable_binding_snapshot_issuance_v2",
+  "evidence_class": "synthetic_fixture_only",
+  "performance_claimed": false,
+  "authority_payload_digest": "64dfa56d2af459823e65a80e79a63c69ab294c506ab157f1543c9dd79e15e5c7",
+  "scenarios": [
+    {
+      "name": "issued",
+      "status": "issued",
+      "reason_codes": [],
+      "request_digest": "8f9339a7932fafe76c653b6ef1447c6d870762d40484eea50cfeb1b436f39673",
+      "observation_digest": null,
+      "issuance_digest": "19921c0bd3603092dc966e09de2c539982f20bdad00120a03adbce53335900b7"
+    },
+    {
+      "name": "alternative_root",
+      "status": "conflicting",
+      "reason_codes": [
+        "external_authority_pin_mismatch"
+      ],
+      "request_digest": "8f9339a7932fafe76c653b6ef1447c6d870762d40484eea50cfeb1b436f39673",
+      "observation_digest": "5cacc73e1863692879f42840b9cc9ccff365d12658dd443267c98ae79160bd76",
+      "issuance_digest": "b2909bf3074b376f99bf5503c8df16dd2667ecb67474d6a9c8c77d393223e435"
+    },
+    {
+      "name": "cross_session",
+      "status": "conflicting",
+      "reason_codes": [
+        "external_authority_schema_invalid"
+      ],
+      "request_digest": "8f9339a7932fafe76c653b6ef1447c6d870762d40484eea50cfeb1b436f39673",
+      "observation_digest": "e6d9c9c45750fb625d15d93e8c5182385fea2cdc53b695bd93235bb8c4de8f53",
+      "issuance_digest": "989b830bdef846eca67357cea24e96dda7610803d80085dd89a49b3b64d52f3e"
+    },
+    {
+      "name": "nested_schema_missing",
+      "status": "incomplete",
+      "reason_codes": [
+        "nested_request_closed_schema_mismatch"
+      ],
+      "request_digest": "e50473a29141bcdf5a266abc495de22d9c994cd4a57a31d19f0fa63cd5306051",
+      "observation_digest": "d60f2c323262e239e98728828b52fe0d7808b7a639ed6bb7eaf965852cfb84f3",
+      "issuance_digest": "de9e2dbb2ef42048378e1587314603845e43d6e355dec5fee44b36d2e75a81db"
+    },
+    {
+      "name": "nested_semantic_drift",
+      "status": "incomplete",
+      "reason_codes": [
+        "nested_request_semantic_scope_mismatch"
+      ],
+      "request_digest": "577dda6ef0d5311f6c81fad089d3fdc3e1b4a9822fcc09def10a9b7ce2d4bbfc",
+      "observation_digest": "e6cdc1ff33c95d0e23f4500942f04a22c53b3a4cc57b3c9bbed6f3882ddf0b5a",
+      "issuance_digest": "5aa57d35adfbc26fe7e862fac639de3f80c3705bef93ef1a322aab9c1700bfd5"
+    }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "report_version": "action_666cf_golden_callback_free_atomic_observation_report_v1",
+  "boundary_version": "canonical_callback_free_atomic_observation_v1",
+  "readback_version": "canonical_callback_free_integrity_readback_v1",
+  "scenario_count": 6,
+  "scenario_digest": "e85cf87ca3536929d51b2e012fd595597a8a5e1007431df033536f444eed1592",
+  "status_inventory": [
+    "digest_mismatch",
+    "integrity_only",
+    "malformed",
+    "non_canonical"
+  ],
+  "all_provenance_false": true,
+  "all_untrusted": true,
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "performance_claims": []
+}
