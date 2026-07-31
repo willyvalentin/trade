@@ -1,0 +1,198 @@
+{
+  "manifest_version": "action_661j5r3_runtime_baseline_rebuild_v1",
+  "base_commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "historical_requirement_source": {
+    "path": "docs/recovery/action-661j5r1/loss-reconstruction-manifest.json",
+    "classification": "historical_recovered_reference",
+    "used_as_byte_authority": false
+  },
+  "stop_before_version": "20260726000000",
+  "migrations": [
+    {
+      "version": "20260519000000",
+      "path": "supabase/migrations/20260519000000_create_legacy_baseline_schema_draft.sql",
+      "history_statement_count": 1,
+      "sha256": "873ec389129264a247bcc2974e306fbb4096c8c6c8499dae67bdb48498fa3ae1"
+    },
+    {
+      "version": "20260520000000",
+      "path": "supabase/migrations/20260520000000_add_execution_metadata_to_positions.sql",
+      "history_statement_count": 1,
+      "sha256": "adf2fd9e557bad1c4da5c8f22a011c5ea49180562565f5c04b0fd88b17fdb84c"
+    },
+    {
+      "version": "20260528000000",
+      "path": "supabase/migrations/20260528000000_create_recommendation_snapshots.sql",
+      "history_statement_count": 1,
+      "sha256": "9ff03eea8475bbc76d08244f484c6d49e1fab866cfdd2f6254614f636c5c1e89"
+    },
+    {
+      "version": "20260528001000",
+      "path": "supabase/migrations/20260528001000_create_recommendation_outcomes.sql",
+      "history_statement_count": 1,
+      "sha256": "c7fd73b900e0e11e8577235c8cb96d06250bf31eee2fa721f431c73e4259ce67"
+    },
+    {
+      "version": "20260528002000",
+      "path": "supabase/migrations/20260528002000_create_recommendation_scan_runs.sql",
+      "history_statement_count": 1,
+      "sha256": "16985b0976dd576a2833e0cc4fa8ecd172908d8e858888c9d08be8182fc563f7"
+    },
+    {
+      "version": "20260528003000",
+      "path": "supabase/migrations/20260528003000_create_recommendation_batches.sql",
+      "history_statement_count": 1,
+      "sha256": "d97b069a01f571d0953ac400ccc80762c443bdbd4537d7e14942d9705b2b4e0b"
+    },
+    {
+      "version": "20260605000000",
+      "path": "supabase/migrations/20260605000000_add_recommendation_outcomes_snapshot_horizon_unique_index.sql",
+      "history_statement_count": 1,
+      "sha256": "b45c48c592c00d84339de78157aa369f946498e0401a6f070553a657bd47d2d6"
+    },
+    {
+      "version": "20260610000000",
+      "path": "supabase/migrations/20260610000000_execution_audit_foundation.sql",
+      "history_statement_count": 1,
+      "sha256": "3495d9c01a76bdf9a7ca08e529bbde423e5a8f80306e819bcc613aec87ecef54"
+    },
+    {
+      "version": "20260614000000",
+      "path": "supabase/migrations/20260614000000_create_execution_records.sql",
+      "history_statement_count": 1,
+      "sha256": "7dc38623cbdddb74bb8e46b014a1ac34d3f062a19e71aa15bb0f361fcb8f3870"
+    },
+    {
+      "version": "20260615000000",
+      "path": "supabase/migrations/20260615000000_create_execution_record_audit_events.sql",
+      "history_statement_count": 1,
+      "sha256": "35ec779ee6cdbfd6dfb4bfeaf8083a3db0b093234685e32af653564487950b10"
+    },
+    {
+      "version": "20260615001000",
+      "path": "supabase/migrations/20260615001000_enable_rls_execution_record_audit_events.sql",
+      "history_statement_count": 1,
+      "sha256": "67e724f69c7820d9b4b599eb85ca2411b0376e4857a4915bde3fa01e3b6409bf"
+    },
+    {
+      "version": "20260625000000",
+      "path": "supabase/migrations/20260625000000_create_scheduled_scan_attempts.sql",
+      "history_statement_count": 1,
+      "sha256": "a6eaf5ad3cf1287bcd01aacab84a311f7307487af748faa93f796efc7a38ee35"
+    },
+    {
+      "version": "20260702000000",
+      "path": "supabase/migrations/20260702000000_create_symbol_metadata.sql",
+      "history_statement_count": 1,
+      "sha256": "20d10171a526bf905a6ce8e4acbd0eebbba0735e492aff16b116fa2fc1464a58"
+    },
+    {
+      "version": "20260709000000",
+      "path": "supabase/migrations/20260709000000_create_historical_candle_storage.sql",
+      "history_statement_count": 1,
+      "sha256": "42c6903d431eb2a0748dc6af51c97a9a20d9b9d43cbac761f3a86ea1eb48a6a5"
+    },
+    {
+      "version": "20260721000000",
+      "path": "supabase/migrations/20260721000000_create_bounded_shadow_collector_proof_audits.sql",
+      "history_statement_count": 1,
+      "sha256": "41c28175025da6203ef543e2ea9deb3e5e8eb184550839b5fb7a6c66489be61b"
+    },
+    {
+      "version": "20260721001000",
+      "path": "supabase/migrations/20260721001000_create_continuous_intelligence_credit_ledger.sql",
+      "history_statement_count": 1,
+      "sha256": "a80d81cdfa92432792f35100c93017934956d33eb43c2c4fadb7baa32a0858a2"
+    },
+    {
+      "version": "20260721002000",
+      "path": "supabase/migrations/20260721002000_create_continuous_intelligence_shadow_canary_daily_claims.sql",
+      "history_statement_count": 1,
+      "sha256": "91ced3871cfc9f4c8523e4c913aa0cce246ad641c9da95508352ae5514576d62"
+    },
+    {
+      "version": "20260722000000",
+      "path": "supabase/migrations/20260722000000_create_continuous_intelligence_shadow_canary_readiness_probe.sql",
+      "history_statement_count": 1,
+      "sha256": "714aca68ceb65cfd25d99c3ad04d6d7e4ef7b38bdd1ffce5162974571e09cde4"
+    },
+    {
+      "version": "20260722001000",
+      "path": "supabase/migrations/20260722001000_create_continuous_intelligence_shadow_canary_manual_authorizations.sql",
+      "history_statement_count": 1,
+      "sha256": "7d8680becd153d3fcb9dac874197189f0f93016aad8d2fbde4c9ce3a21a7064d"
+    },
+    {
+      "version": "20260722002000",
+      "path": "supabase/migrations/20260722002000_admit_continuous_intelligence_shadow_canary_manual_execution.sql",
+      "history_statement_count": 1,
+      "sha256": "cb4bb30fd4a847e56c18f293be5413de0ea6634a75796ba5d95b3a27841057e9"
+    },
+    {
+      "version": "20260722003000",
+      "path": "supabase/migrations/20260722003000_create_continuous_intelligence_shadow_canary_manual_execution_leases.sql",
+      "history_statement_count": 1,
+      "sha256": "0d895dc8d9697ce7bc671e20213837a45d282c128817066300f29ecc13d36840"
+    },
+    {
+      "version": "20260722004000",
+      "path": "supabase/migrations/20260722004000_create_continuous_intelligence_shadow_canary_manual_issuance_readiness_probe.sql",
+      "history_statement_count": 1,
+      "sha256": "e1eede09d3c74273325a383cd3c52a82b3f9ee62ad5db1d7e5a0e856a1cde6ba"
+    },
+    {
+      "version": "20260722005000",
+      "path": "supabase/migrations/20260722005000_stabilize_continuous_intelligence_shadow_canary_rpc_names.sql",
+      "history_statement_count": 1,
+      "sha256": "8aebd35c7aa39e21f39bd32809a975337a6f75e8455d7953cff67ecc47713666"
+    },
+    {
+      "version": "20260723001000",
+      "path": "supabase/migrations/20260723001000_allow_bounded_manual_proof_claim_linkage.sql",
+      "history_statement_count": 1,
+      "sha256": "737f4b05f33ac3bf92d89347705a193f3e6da0f69a2c4255fd4144d2238ceaba"
+    },
+    {
+      "version": "20260723002000",
+      "path": "supabase/migrations/20260723002000_create_historical_usage_reconciliation_persistence.sql",
+      "history_statement_count": 1,
+      "sha256": "5bf92dbb4686852f45293ae507f74ead4f340e967e917f187b97b0ecbf8b912a"
+    },
+    {
+      "version": "20260723003000",
+      "path": "supabase/migrations/20260723003000_allow_explicit_legacy_action_609_historical_usage_reconciliation.sql",
+      "history_statement_count": 1,
+      "sha256": "77f60e7f3f432213d1651a72559c7a15e0769fd7a03a9f0a2d6e38f2115694ce"
+    },
+    {
+      "version": "20260724000000",
+      "path": "supabase/migrations/20260724000000_add_historical_usage_reconciliation_read_rpc.sql",
+      "history_statement_count": 1,
+      "sha256": "0c5cf6b646a3a01fe3207109b9fb766b0af66c3fdf3d67405bcfe8f8ccaa4388"
+    },
+    {
+      "version": "20260724001000",
+      "path": "supabase/migrations/20260724001000_fix_continuous_intelligence_manual_canary_function_lint.sql",
+      "history_statement_count": 1,
+      "sha256": "58c90522971c2b95da5f686bfbee9d5786d48322c16776454a94d2890604613e"
+    },
+    {
+      "version": "20260724001500",
+      "path": "supabase/migrations/20260724001500_create_transactional_open_position_command.sql",
+      "history_statement_count": 4,
+      "sha256": "b9547df1cd7ce2334f3df9adf277ce7b4b3d1f3ce2aa687c11045008420a1b92"
+    },
+    {
+      "version": "20260724001600",
+      "path": "supabase/migrations/20260724001600_create_shared_login_abuse_control.sql",
+      "history_statement_count": 12,
+      "sha256": "120c9f2a903aec9ad1703850ccf87a4a71854faf59cfa8ca29e17347092e05fe"
+    },
+    {
+      "version": "20260724002000",
+      "path": "supabase/migrations/20260724002000_contain_production_trading_data_access.sql",
+      "history_statement_count": 6,
+      "sha256": "5fa6ba977db3767d4ff1b35685fa8851222ba6db65b1cd96e8a2cf2bef5a0973"
+    }
+  ]
+}

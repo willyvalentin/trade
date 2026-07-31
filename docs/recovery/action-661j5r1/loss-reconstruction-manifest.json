@@ -1,0 +1,3167 @@
+{
+  "manifest_version": "action_661j5r1_loss_reconstruction_manifest_v1",
+  "generated_at": "2026-07-30T13:06:38.325Z",
+  "decision": "complete_certified_scope_not_recovered",
+  "source_worktree": {
+    "path": "/private/tmp/trade-action-661b",
+    "status": "missing_prunable_metadata_retained",
+    "head": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+    "branch": "refs/heads/codex/action-661j-intelligence-data-containment",
+    "metadata_path": ".git/worktrees/trade-action-661b",
+    "metadata_pruned": false
+  },
+  "durable_git_base": {
+    "commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+    "classification": "last_durable_merged_base_before_uncommitted_661J.5 runtime scope"
+  },
+  "audit": {
+    "git_unreachable": {
+      "blob": 2390,
+      "tree": 3358,
+      "commit": 7,
+      "matching_complete_scope_objects": 0
+    },
+    "worktree_index_bytes": 494300,
+    "index_contains_661j5_paths": false,
+    "reflog_contains_runtime_scope_commit": false,
+    "stash_contains_runtime_scope": false,
+    "editor_history_matches": 0,
+    "editor_backup_matches": 0,
+    "local_snapshot_matches": 0,
+    "codex_session_log": "/Users/willysimonsson/.codex/sessions/2026/06/30/rollout-2026-06-30T03-33-12-019f1628-ad6e-73a3-9ba0-98abd768c4d5.jsonl",
+    "codex_transcript_unique_paths": 171,
+    "known_final_file_sha_commitments": 52,
+    "transcript_replay_first_unresolved_intermediate": {
+      "path": "lib/action-661j5-evidence-contracts.mjs",
+      "observed_at": "2026-07-27T17:23:28.258Z",
+      "reason": "next successful patch requires formatted intermediate bytes absent from the preceding patch result and durable Git objects"
+    },
+    "exact_sha256_matched_partial_files": 42,
+    "complete_scope_recovered": false,
+    "partial_recovery_promoted": false,
+    "git_all_objects": {
+      "objects_scanned": 16533,
+      "blobs_sha256_scanned": 9810,
+      "historical_lost_file_sha256_targets": 52,
+      "exact_matches": 0
+    }
+  },
+  "classification_rules": {
+    "exact_recovery_requires_full_sha256_match": true,
+    "partial_recovery_promoted": false,
+    "historical_hashes_are_commitments_not_bytes": true
+  },
+  "historical_contract_commitments": {
+    "v3_nested_contract_evidence_digest": "feff76dda9f4d7f06ac4818d01579e03a5ef14ec20e03401d6de71aead779385",
+    "v3_scenario_record_digest": "bac87e4023c9ccf68d9d0c69331cf11ad2b6cb2afc3417bf721596fa5aace752",
+    "v4_forbidden_history": {
+      "evidence": "77c781859476d07f23329e572235fe4b4da8b23916429cc8773fac7b5250d235",
+      "record": "d71f3ec5eb78102eedeca5e1f78cc5ed279b395e8ad09b1e74dd07e800ae3fbc",
+      "shard": "46ee4ec802d7b297de6cef9f949f2ce4db053f602c6718e178ee0a75fffe94c1",
+      "file": "f6c342418fc6155bf2c186999f3f142ebf090da7929c0877758b83cf864ba32a"
+    },
+    "v4_missing_target": {
+      "evidence": "0ea50034edbd412482eb549a22ff950a6ac86f8941ce4808d05b7300c5cfa512",
+      "record": "8f8791d4b77f8ca9c57f9cb558e86429c2af31caf7818aa63b76b6540663f859",
+      "shard": "df2ebb94e56784caaaf0fb597c2204f245a127a983729e5bae30746b7f9acb5a",
+      "file": "e5f65d692edaefff151e3e6eef693391b8e57876b5184894d098f27e401af820"
+    },
+    "v5_native_missing": {
+      "evidence": "44a7affb92a23e6ca690a65340e8606eed99ed7d813bff25d8b16f66a15b112a",
+      "record": "cc84235b9ca80f5bc6ec11fd525cc7e6d7b3f87927154fdf02f2efb8ac6d5439",
+      "shard": "363bb219cc8e3a71928455d8dabb92066bcc992bb656715c263ac8378f7a3422",
+      "file": "e245b486807961c5ba0f7cb98a5953bae9888dfd1d1e56ba1832c7ec103b4ca6"
+    },
+    "registry_v3_digest": "ba5cb1a1ee024bc1363083e3b8e0d4c0ad2bdfb7b91d18b1ce47a474a410dc75",
+    "runner_v3_identity_digest": "c05b5db236313f6e8ab5f7ed4df25d4d9d9bbfbd33743b1c4220e41d290fd9a1"
+  },
+  "lost_artifacts": [
+    {
+      "path": "docs/action-661j-six-table-intelligence-containment.md",
+      "first_observed_at": "2026-07-26T13:00:50.603Z",
+      "last_observed_at": "2026-07-26T15:04:56.855Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5-v3-core-contract.md",
+      "first_observed_at": "2026-07-28T15:32:42.577Z",
+      "last_observed_at": "2026-07-28T15:42:38.838Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5f1a-snapshot-serializer.md",
+      "first_observed_at": "2026-07-26T19:22:29.562Z",
+      "last_observed_at": "2026-07-26T19:22:29.562Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5f1a"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2a2a-source-transition-reference-contract.md",
+      "first_observed_at": "2026-07-27T18:01:50.134Z",
+      "last_observed_at": "2026-07-27T18:01:50.134Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2a2a"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2a2b1-source-transition-result-adapter.md",
+      "first_observed_at": "2026-07-27T18:39:13.133Z",
+      "last_observed_at": "2026-07-27T18:39:13.133Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2a2b1"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2a2d1-postgresql-runtime-identity-contract.md",
+      "first_observed_at": "2026-07-27T22:00:06.898Z",
+      "last_observed_at": "2026-07-27T22:00:06.898Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2a2d1"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2a2d2a-runtime-bound-v2.md",
+      "first_observed_at": "2026-07-27T22:22:12.252Z",
+      "last_observed_at": "2026-07-27T22:22:12.252Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2c1-unrelated-data-determinism.md",
+      "first_observed_at": "2026-07-28T16:55:55.775Z",
+      "last_observed_at": "2026-07-28T16:55:55.775Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2c1"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2d-atomic-rejection-v2.md",
+      "first_observed_at": "2026-07-28T17:44:23.632Z",
+      "last_observed_at": "2026-07-28T17:44:23.632Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2e1-snapshot-v2-contract.md",
+      "first_observed_at": "2026-07-28T18:46:17.719Z",
+      "last_observed_at": "2026-07-28T18:46:17.719Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2e1b-snapshot-v2-component-precondition-authority.md",
+      "first_observed_at": "2026-07-28T20:37:22.211Z",
+      "last_observed_at": "2026-07-28T20:37:22.211Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2e2a-snapshot-v2-runtime-collector.md",
+      "first_observed_at": "2026-07-28T20:52:34.247Z",
+      "last_observed_at": "2026-07-28T20:52:34.247Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2f1h-snapshot-v2-v4-protocol.md",
+      "first_observed_at": "2026-07-29T12:03:38.381Z",
+      "last_observed_at": "2026-07-29T12:03:38.381Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g1a3f-v5-native-missing-literal-fixture.md",
+      "first_observed_at": "2026-07-29T19:40:59.993Z",
+      "last_observed_at": "2026-07-29T19:46:58.338Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g1c-native-missing-v5-evidence-contract.md",
+      "first_observed_at": "2026-07-29T20:28:37.845Z",
+      "last_observed_at": "2026-07-29T20:28:37.845Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g1d2-historical-predecessor-binding-disclosure.md",
+      "first_observed_at": "2026-07-29T21:16:32.287Z",
+      "last_observed_at": "2026-07-29T21:31:59.885Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2g1d2"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g1e-native-missing-v5-protocol.md",
+      "first_observed_at": "2026-07-29T22:22:38.211Z",
+      "last_observed_at": "2026-07-29T22:22:38.211Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g2-mixed-v4-v5-aggregate.md",
+      "first_observed_at": "2026-07-29T22:41:40.727Z",
+      "last_observed_at": "2026-07-29T22:41:40.727Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g3-runtime-v6.md",
+      "first_observed_at": "2026-07-29T23:48:44.762Z",
+      "last_observed_at": "2026-07-29T23:48:44.762Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v6"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g3b-runtime-runner.md",
+      "first_observed_at": "2026-07-30T10:22:23.019Z",
+      "last_observed_at": "2026-07-30T10:22:23.019Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2g3b"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g3d-identity-bound-runtime.md",
+      "first_observed_at": "2026-07-30T10:41:24.863Z",
+      "last_observed_at": "2026-07-30T10:41:24.863Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5l2g3d"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "docs/action-661j5l2g3f-registry-bound-runtime-v8.md",
+      "first_observed_at": "2026-07-30T11:13:09.390Z",
+      "last_observed_at": "2026-07-30T11:27:23.804Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "d17bff0462276a8c6290b837f39bd95a160fb9710b8c11874554339f1f2ef6ae",
+      "known_sha_observed_at": "2026-07-30T11:13:56.796Z",
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "docs/action-661j5m1e-native-missing-terminal-policy.md",
+      "first_observed_at": "2026-07-29T12:59:01.322Z",
+      "last_observed_at": "2026-07-29T12:59:01.322Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5m1e"
+      ],
+      "contract_role": "contract_or_certification_documentation",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-aggregation-contracts.mjs",
+      "first_observed_at": "2026-07-28T11:09:50.254Z",
+      "last_observed_at": "2026-07-28T11:09:50.254Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-atomic-rejection-v2.mjs",
+      "first_observed_at": "2026-07-28T17:43:00.947Z",
+      "last_observed_at": "2026-07-28T17:47:17.809Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "a5ed60c2b15e612adff6268a03ba65d76a9a3e740efc2a02d1e686919cc3f7c4",
+      "known_sha_observed_at": "2026-07-28T20:43:09.287Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-atomic-rejection-v2.mjs"
+    },
+    {
+      "path": "lib/action-661j5-data-preservation-projection.mjs",
+      "first_observed_at": "2026-07-28T11:59:08.730Z",
+      "last_observed_at": "2026-07-28T11:59:08.730Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-evidence-contracts.mjs",
+      "first_observed_at": "2026-07-27T16:02:06.046Z",
+      "last_observed_at": "2026-07-28T17:45:14.420Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "082d3786bbba584318e77cae80302550371aa50379f236eb95975593074ae708",
+      "known_sha_observed_at": "2026-07-27T20:41:41.285Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "lib/action-661j5-mixed-v4-v5-aggregate.mjs",
+      "first_observed_at": "2026-07-29T22:41:40.727Z",
+      "last_observed_at": "2026-07-29T22:44:35.081Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-mixed-v4-v6-runtime-aggregate.mjs",
+      "first_observed_at": "2026-07-29T23:46:00.967Z",
+      "last_observed_at": "2026-07-29T23:46:00.967Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-mixed-v4-v7-runtime-aggregate.mjs",
+      "first_observed_at": "2026-07-30T10:39:50.028Z",
+      "last_observed_at": "2026-07-30T10:39:50.028Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "8d1f117d829de5ce2c30d6e802857cbd7135e1ba083fb4e59a7b996bc7d0e124",
+      "known_sha_observed_at": "2026-07-30T11:13:24.973Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-mixed-v4-v7-runtime-aggregate.mjs"
+    },
+    {
+      "path": "lib/action-661j5-mixed-v4-v8-runtime-aggregate.mjs",
+      "first_observed_at": "2026-07-30T11:09:40.550Z",
+      "last_observed_at": "2026-07-30T11:11:39.262Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "3aab05e6a816a1aa6acb1980ea58423a6201bec33f7dd3e6a1526ed1590fb157",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-mixed-v4-v8-runtime-aggregate.mjs"
+    },
+    {
+      "path": "lib/action-661j5-native-missing-result-protocol-v5.mjs",
+      "first_observed_at": "2026-07-29T13:24:36.303Z",
+      "last_observed_at": "2026-07-29T22:21:34.329Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-native-missing-runtime-result-protocol-v6.mjs",
+      "first_observed_at": "2026-07-29T23:43:22.711Z",
+      "last_observed_at": "2026-07-29T23:43:22.711Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "473de6c7fda01e69e3d41d64fa75987b98fd594eea38b3ff2401fbf5b91aebeb",
+      "known_sha_observed_at": "2026-07-30T10:41:54.466Z",
+      "version_or_action_hint": [
+        "v6"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-native-missing-runtime-result-protocol-v6.mjs"
+    },
+    {
+      "path": "lib/action-661j5-native-missing-runtime-result-protocol-v7.mjs",
+      "first_observed_at": "2026-07-30T10:37:58.988Z",
+      "last_observed_at": "2026-07-30T10:39:19.583Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "56b71b336185425aef90eadfd32a0496905f310f938ae9fc3303b2b2b066c0d5",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v7"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-native-missing-runtime-result-protocol-v7.mjs"
+    },
+    {
+      "path": "lib/action-661j5-native-missing-terminal-policy.mjs",
+      "first_observed_at": "2026-07-29T12:59:01.322Z",
+      "last_observed_at": "2026-07-29T12:59:01.322Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-nine-domain-snapshot-v2.mjs",
+      "first_observed_at": "2026-07-28T18:46:17.719Z",
+      "last_observed_at": "2026-07-28T19:28:24.314Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "26f198749474fc68c89234a2ea3a9c58be9880f19037dca77914b818354b1b35",
+      "known_sha_observed_at": "2026-07-28T20:43:09.287Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-nine-domain-snapshot-v2.mjs"
+    },
+    {
+      "path": "lib/action-661j5-postgres-readiness.mjs",
+      "first_observed_at": "2026-07-26T21:36:48.978Z",
+      "last_observed_at": "2026-07-26T22:26:25.599Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "8d8e4140dc924885fc2c6a9a6564075bb94459d00ea5b845297d1245debff788",
+      "known_sha_observed_at": "2026-07-26T22:26:58.253Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-postgres-readiness.mjs"
+    },
+    {
+      "path": "lib/action-661j5-postgresql-runtime-identity-collector.mjs",
+      "first_observed_at": "2026-07-27T22:40:08.546Z",
+      "last_observed_at": "2026-07-27T22:53:17.074Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "4ece41f1de37341b4edacdfe510bde9a4e0d3b52d3c3022f5c9f60d3caaabd62",
+      "known_sha_observed_at": "2026-07-28T20:43:09.287Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runtime_identity_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-postgresql-runtime-identity-collector.mjs"
+    },
+    {
+      "path": "lib/action-661j5-postgresql-runtime-identity.mjs",
+      "first_observed_at": "2026-07-27T22:00:06.898Z",
+      "last_observed_at": "2026-07-27T22:00:06.898Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "887176e2cb36069ffbe18d141d726101adea68b66f42f6b4eb02a2f4e8886827",
+      "known_sha_observed_at": "2026-07-28T20:43:09.287Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runtime_identity_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-postgresql-runtime-identity.mjs"
+    },
+    {
+      "path": "lib/action-661j5-registry-bound-runtime-result-protocol-v8.mjs",
+      "first_observed_at": "2026-07-30T11:08:50.176Z",
+      "last_observed_at": "2026-07-30T11:08:50.176Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "38d49a8a9ad246307486b38537a3b8164f56d5d0a0c0179905b8c4b9e25a44aa",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "runtime_or_contract_registry_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-registry-bound-runtime-result-protocol-v8.mjs"
+    },
+    {
+      "path": "lib/action-661j5-result-protocol-v2.mjs",
+      "first_observed_at": "2026-07-27T22:22:12.252Z",
+      "last_observed_at": "2026-07-27T23:17:36.319Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "e58b88d697d42d6b3fabdc643814d0e0e7f97577faf6a3ec99a7bc0ba0ae5629",
+      "known_sha_observed_at": "2026-07-27T22:22:55.254Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "lib/action-661j5-result-protocol-v3-shard.mjs",
+      "first_observed_at": "2026-07-28T15:40:29.013Z",
+      "last_observed_at": "2026-07-28T17:45:14.420Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-result-protocol-v3.mjs",
+      "first_observed_at": "2026-07-28T12:47:12.126Z",
+      "last_observed_at": "2026-07-28T17:47:17.809Z",
+      "transcript_change_events": 16,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "1d1c60bbdbf4ecacde727aacd4512430aec2ae4c21e3b1eeb16231ace655288d",
+      "known_sha_observed_at": "2026-07-28T15:25:02.796Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "lib/action-661j5-result-protocol.mjs",
+      "first_observed_at": "2026-07-27T10:52:50.519Z",
+      "last_observed_at": "2026-07-27T15:54:51.572Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "39a57141ef2917194b5cec46843983ccf21a19839114479a287064498c19741b",
+      "known_sha_observed_at": "2026-07-27T11:00:48.851Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "lib/action-661j5-runtime-fixtures.mjs",
+      "first_observed_at": "2026-07-27T11:19:28.295Z",
+      "last_observed_at": "2026-07-27T11:52:45.042Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-runtime-runner-v2-authority.mjs",
+      "first_observed_at": "2026-07-30T10:21:19.028Z",
+      "last_observed_at": "2026-07-30T10:21:32.734Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "b1195ef2b6e3099d5e847f6f721d37a36363504982708ea22594ac28066004bb",
+      "known_sha_observed_at": "2026-07-30T10:41:54.466Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "runtime_runner_or_authority_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-runner-v2-authority.mjs"
+    },
+    {
+      "path": "lib/action-661j5-runtime-runner-v2.mjs",
+      "first_observed_at": "2026-07-30T10:21:19.028Z",
+      "last_observed_at": "2026-07-30T10:21:19.028Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "43f0ba1e1ffe26716f4ea45ac76b9b03d7d6ec0ca8a85f605037919020e05445",
+      "known_sha_observed_at": "2026-07-30T10:41:54.466Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "runtime_runner_or_authority_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-runner-v2.mjs"
+    },
+    {
+      "path": "lib/action-661j5-runtime-runner-v3-authority.mjs",
+      "first_observed_at": "2026-07-30T10:37:58.988Z",
+      "last_observed_at": "2026-07-30T10:39:08.923Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "49b6f6ffca693a071c0cf0fc666d9c8e154318ed05582ae0617aa3b847814846",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "runtime_runner_or_authority_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-runner-v3-authority.mjs"
+    },
+    {
+      "path": "lib/action-661j5-runtime-runner-v3.mjs",
+      "first_observed_at": "2026-07-30T10:38:33.344Z",
+      "last_observed_at": "2026-07-30T10:38:33.344Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "ef5094b3e9d9bbce08aa53ee422d2c16f35a73a9f014cfd5668fc1aa61d547d2",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "runtime_runner_or_authority_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-runner-v3.mjs"
+    },
+    {
+      "path": "lib/action-661j5-runtime-scenario-registry-v2.mjs",
+      "first_observed_at": "2026-07-29T23:43:22.711Z",
+      "last_observed_at": "2026-07-29T23:43:22.711Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "635f3583bde9fcb262ec2c3efce4dc0845af1bcc6e2f2007e823737b2243ba9a",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "runtime_or_contract_registry_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-scenario-registry-v2.mjs"
+    },
+    {
+      "path": "lib/action-661j5-runtime-scenario-registry-v3.mjs",
+      "first_observed_at": "2026-07-30T10:37:58.988Z",
+      "last_observed_at": "2026-07-30T10:37:58.988Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "b5170e378f6a31c6a96a1c76b85400229ccee0e5a0a262af65f277bc3a6157e1",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "runtime_or_contract_registry_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-runtime-scenario-registry-v3.mjs"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-collector-adapter.mjs",
+      "first_observed_at": "2026-07-26T19:37:30.043Z",
+      "last_observed_at": "2026-07-27T15:44:20.756Z",
+      "transcript_change_events": 7,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-serializer.mjs",
+      "first_observed_at": "2026-07-26T19:22:29.562Z",
+      "last_observed_at": "2026-07-26T19:22:29.562Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-component-binding.mjs",
+      "first_observed_at": "2026-07-28T19:56:40.062Z",
+      "last_observed_at": "2026-07-28T20:41:53.642Z",
+      "transcript_change_events": 7,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "9afe67021da4f67997e4134837dccec6e0b40fb20c3c894cc70d106a6fe46a3c",
+      "known_sha_observed_at": "2026-07-28T20:43:09.287Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-snapshot-v2-component-binding.mjs"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-component-manifest.mjs",
+      "first_observed_at": "2026-07-28T20:37:22.211Z",
+      "last_observed_at": "2026-07-28T20:42:07.115Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-result-protocol-v4.mjs",
+      "first_observed_at": "2026-07-28T21:03:12.682Z",
+      "last_observed_at": "2026-07-29T12:01:10.835Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "4791d3a56a07390291ea6a656967b0807fac66f1488fd5f7662e5a7c1e7b00d2",
+      "known_sha_observed_at": "2026-07-29T13:02:20.993Z",
+      "version_or_action_hint": [
+        "v2",
+        "v4"
+      ],
+      "contract_role": "result_protocol_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-snapshot-v2-result-protocol-v4.mjs"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-runtime-collector-manifest.mjs",
+      "first_observed_at": "2026-07-28T20:48:26.004Z",
+      "last_observed_at": "2026-07-28T20:48:44.267Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-runtime-collector.mjs",
+      "first_observed_at": "2026-07-28T20:47:32.555Z",
+      "last_observed_at": "2026-07-28T20:47:32.555Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "d2e66ccebed9ebd88353beb227be9b0cc702d11e38e2b9b5c9f180734a2240e8",
+      "known_sha_observed_at": "2026-07-28T20:54:05.232Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-snapshot-v2-runtime-collector.mjs"
+    },
+    {
+      "path": "lib/action-661j5-snapshot-v2-runtime-successor-binding.mjs",
+      "first_observed_at": "2026-07-28T20:48:26.004Z",
+      "last_observed_at": "2026-07-28T20:49:49.351Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "6432803e4fb19720baeee2cc7375637175a5608fc9ba400eb9a2e123d7ce04ec",
+      "known_sha_observed_at": "2026-07-28T20:54:05.232Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "snapshot_contract_or_adapter_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-snapshot-v2-runtime-successor-binding.mjs"
+    },
+    {
+      "path": "lib/action-661j5-source-transition-reference-comparator.mjs",
+      "first_observed_at": "2026-07-27T21:24:44.528Z",
+      "last_observed_at": "2026-07-27T21:24:44.528Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "ae87172da26ac1c56a5461d77435e6ba2d9291b4f973f0939e2f8d507c7400fa",
+      "known_sha_observed_at": "2026-07-27T21:26:15.435Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-source-transition-reference-comparator.mjs"
+    },
+    {
+      "path": "lib/action-661j5-source-transition-reference-v2.mjs",
+      "first_observed_at": "2026-07-27T22:22:12.252Z",
+      "last_observed_at": "2026-07-27T22:22:12.252Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "c75b16c8d2c2c735064c96a8ec9c0b29f37acd97f33c0488cb8c7ba5486552d6",
+      "known_sha_observed_at": "2026-07-27T22:22:55.254Z",
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-source-transition-reference-v2.mjs"
+    },
+    {
+      "path": "lib/action-661j5-source-transition-reference.mjs",
+      "first_observed_at": "2026-07-27T18:01:50.134Z",
+      "last_observed_at": "2026-07-27T18:01:50.134Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "b4dc54dab79e776d5c4d7d06d810c29fc53092d619d9a83e60f416eaf3b948c6",
+      "known_sha_observed_at": "2026-07-27T20:43:29.427Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-source-transition-reference.mjs"
+    },
+    {
+      "path": "lib/action-661j5-source-transition-result-adapter.mjs",
+      "first_observed_at": "2026-07-27T18:39:13.133Z",
+      "last_observed_at": "2026-07-27T20:42:06.507Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "aa2c738cbcf0ae24d1a9101908e3bfeaf15a3a6676b9360d41924feca61068ce",
+      "known_sha_observed_at": "2026-07-27T20:43:29.427Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/lib/action-661j5-source-transition-result-adapter.mjs"
+    },
+    {
+      "path": "lib/action-661j5-v3-atomic-rejection-aggregate.mjs",
+      "first_observed_at": "2026-07-28T16:23:52.064Z",
+      "last_observed_at": "2026-07-28T16:23:52.064Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-v3-persisted-result.mjs",
+      "first_observed_at": "2026-07-28T15:47:22.169Z",
+      "last_observed_at": "2026-07-28T15:47:22.169Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-v3-semantic-comparison.mjs",
+      "first_observed_at": "2026-07-28T16:43:41.017Z",
+      "last_observed_at": "2026-07-28T16:46:22.368Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-v3-unrelated-aggregate.mjs",
+      "first_observed_at": "2026-07-28T15:59:53.607Z",
+      "last_observed_at": "2026-07-28T16:01:28.631Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-v4-atomic-aggregate.mjs",
+      "first_observed_at": "2026-07-29T12:18:33.748Z",
+      "last_observed_at": "2026-07-29T12:18:33.748Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "aggregate_protocol_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "lib/action-661j5-v4-migration-diagnostic.mjs",
+      "first_observed_at": "2026-07-29T12:31:28.993Z",
+      "last_observed_at": "2026-07-29T12:31:28.993Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "library_contract_module",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j-apply-20260726000000.sql",
+      "first_observed_at": "2026-07-26T13:00:50.603Z",
+      "last_observed_at": "2026-07-26T13:04:30.762Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "5102a179243cf8fa29bc56d072798c52f344bb7d548e29f6ea08e1dd45edf349",
+      "known_sha_observed_at": "2026-07-30T11:14:07.549Z",
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "sql_bundle_collector_or_readback",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "scripts/action-661j-build-sql-editor-bundle.mjs",
+      "first_observed_at": "2026-07-26T13:04:30.762Z",
+      "last_observed_at": "2026-07-26T13:04:57.370Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j-canonical-baseline-builder.mjs",
+      "first_observed_at": "2026-07-26T13:35:36.657Z",
+      "last_observed_at": "2026-07-26T15:06:05.197Z",
+      "transcript_change_events": 9,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "f7f46164636ec919f380d9ae3c37a355429b0407fc4144e51516d7d334c03900",
+      "known_sha_observed_at": "2026-07-26T14:43:51.136Z",
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "scripts/action-661j-canonical-baseline-manifest.json",
+      "first_observed_at": "2026-07-26T13:35:36.657Z",
+      "last_observed_at": "2026-07-26T13:35:36.657Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "79a549f66906860cac8b6ea3195c4111bc0e18ae3e0a051142bad1ca1e6396c2",
+      "known_sha_observed_at": "2026-07-26T14:43:51.136Z",
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j-canonical-baseline-manifest.json"
+    },
+    {
+      "path": "scripts/action-661j-production-readback.sql",
+      "first_observed_at": "2026-07-26T13:00:50.603Z",
+      "last_observed_at": "2026-07-26T13:57:13.255Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "abe0743e1d8b43efd1c516247f3aefdd0fd97297967efa52d07b6cdd6b0293f0",
+      "known_sha_observed_at": "2026-07-30T11:14:07.549Z",
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "sql_bundle_collector_or_readback",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j-production-readback.sql"
+    },
+    {
+      "path": "scripts/action-661j4b-production-rpc-catalog-readback.sql",
+      "first_observed_at": "2026-07-26T13:43:20.859Z",
+      "last_observed_at": "2026-07-26T13:49:11.089Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "98ce4dde2922250df5a95bc3eb32fd3708072b1c88c3203de460af39967fcdf8",
+      "known_sha_observed_at": "2026-07-26T13:49:23.513Z",
+      "version_or_action_hint": [
+        "661j4b"
+      ],
+      "contract_role": "sql_bundle_collector_or_readback",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j4b-production-rpc-catalog-readback.sql"
+    },
+    {
+      "path": "scripts/action-661j5-aggregate-v3-duplicate-26000.mjs",
+      "first_observed_at": "2026-07-28T16:23:52.064Z",
+      "last_observed_at": "2026-07-28T16:23:52.064Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5-aggregate-v3-unrelated-data.mjs",
+      "first_observed_at": "2026-07-28T15:59:53.607Z",
+      "last_observed_at": "2026-07-28T15:59:53.607Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5-aggregate.mjs",
+      "first_observed_at": "2026-07-26T17:50:23.127Z",
+      "last_observed_at": "2026-07-27T11:51:06.752Z",
+      "transcript_change_events": 7,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "c10f3f582cdf68562e303d37a8d2dfa1af50c878b118771ab8e27ee59bc8b8fc",
+      "known_sha_observed_at": "2026-07-27T11:00:48.851Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "scripts/action-661j5-build-source-transition-reference.mjs",
+      "first_observed_at": "2026-07-27T20:42:50.210Z",
+      "last_observed_at": "2026-07-27T20:45:09.737Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "8c5c6401b6f95502fc5d29219db369bdcb204b16a08fdef7d8988e8e327dbba4",
+      "known_sha_observed_at": "2026-07-27T20:46:40.083Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j5-build-source-transition-reference.mjs"
+    },
+    {
+      "path": "scripts/action-661j5-contract-aware-aggregate.mjs",
+      "first_observed_at": "2026-07-28T11:09:50.254Z",
+      "last_observed_at": "2026-07-28T11:59:19.746Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5-run-v4-atomic.mjs",
+      "first_observed_at": "2026-07-29T12:18:33.748Z",
+      "last_observed_at": "2026-07-29T12:31:28.993Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "4e412026d8fede5189fea5a41e0db3447d73fac3f86364c86cdb42cd365b4466",
+      "known_sha_observed_at": "2026-07-30T09:57:04.090Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j5-run-v4-atomic.mjs"
+    },
+    {
+      "path": "scripts/action-661j5-runtime-matrix.mjs",
+      "first_observed_at": "2026-07-26T16:06:29.624Z",
+      "last_observed_at": "2026-07-28T16:49:16.706Z",
+      "transcript_change_events": 52,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5-scenario-registry.mjs",
+      "first_observed_at": "2026-07-26T17:50:23.127Z",
+      "last_observed_at": "2026-07-28T17:45:14.420Z",
+      "transcript_change_events": 11,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5-shard-driver.mjs",
+      "first_observed_at": "2026-07-27T10:52:50.519Z",
+      "last_observed_at": "2026-07-27T10:54:37.176Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "47a38991e6eb70b21382ef02f4f1450dcf0a60594c508d2e4c27b31328ce5065",
+      "known_sha_observed_at": "2026-07-27T11:00:48.851Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j5-shard-driver.mjs"
+    },
+    {
+      "path": "scripts/action-661j5-snapshot-v2-five-state-probe.mjs",
+      "first_observed_at": "2026-07-28T20:50:48.671Z",
+      "last_observed_at": "2026-07-28T20:53:06.469Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "scripts/action-661j5f3a1-nine-domain-snapshot-collector.sql",
+      "first_observed_at": "2026-07-26T19:59:47.653Z",
+      "last_observed_at": "2026-07-27T13:21:27.204Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "0ad90ad043634e84f4d8d9b4c2dd47ed1f32f174fae456391378731eb9a076a5",
+      "known_sha_observed_at": "2026-07-27T20:43:29.427Z",
+      "version_or_action_hint": [
+        "661j5f3a1"
+      ],
+      "contract_role": "sql_bundle_collector_or_readback",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/scripts/action-661j5f3a1-nine-domain-snapshot-collector.sql"
+    },
+    {
+      "path": "scripts/action-661j5f3d-compare-runs.mjs",
+      "first_observed_at": "2026-07-26T20:53:04.668Z",
+      "last_observed_at": "2026-07-27T10:57:39.780Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "724ea4af11f3eb323b45c7c8b856ca3111cea42deae04d969c886a0207675a9e",
+      "known_sha_observed_at": "2026-07-27T10:50:50.427Z",
+      "version_or_action_hint": [
+        "661j5f3d"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "scripts/action-661j5g-compare-runtime-runs.mjs",
+      "first_observed_at": "2026-07-27T11:29:31.265Z",
+      "last_observed_at": "2026-07-27T11:29:31.265Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5g"
+      ],
+      "contract_role": "runner_cli_collector_or_validation_script",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "supabase/migrations/20260726000000_contain_continuous_intelligence_data_access.sql",
+      "first_observed_at": "2026-07-26T13:00:50.603Z",
+      "last_observed_at": "2026-07-26T13:53:46.277Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "73a0b4b75e57c4e76c58bc774f8bde9bd2010ba0740c6a0b10d424c5c49c9abd",
+      "known_sha_observed_at": "2026-07-30T11:14:07.549Z",
+      "version_or_action_hint": null,
+      "contract_role": "frozen_migration_or_incident_artifact",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/supabase/migrations/20260726000000_contain_continuous_intelligence_data_access.sql"
+    },
+    {
+      "path": "tests/e2e/action-661j-canonical-baseline-builder.spec.ts",
+      "first_observed_at": "2026-07-26T13:35:36.657Z",
+      "last_observed_at": "2026-07-26T15:06:05.197Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j-intelligence-containment.spec.ts",
+      "first_observed_at": "2026-07-26T13:00:50.603Z",
+      "last_observed_at": "2026-07-26T13:57:13.255Z",
+      "transcript_change_events": 10,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j4b-rpc-catalog-readback.spec.ts",
+      "first_observed_at": "2026-07-26T13:43:20.859Z",
+      "last_observed_at": "2026-07-26T13:49:11.089Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j4b"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-atomic-rejection-v2.spec.ts",
+      "first_observed_at": "2026-07-28T17:44:23.632Z",
+      "last_observed_at": "2026-07-28T17:48:07.598Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-build-source-transition-reference.spec.ts",
+      "first_observed_at": "2026-07-27T20:42:50.210Z",
+      "last_observed_at": "2026-07-27T20:46:13.082Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-contract-aware-aggregate.spec.ts",
+      "first_observed_at": "2026-07-28T11:09:50.254Z",
+      "last_observed_at": "2026-07-28T11:09:50.254Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-data-preservation-projection.spec.ts",
+      "first_observed_at": "2026-07-28T11:59:08.730Z",
+      "last_observed_at": "2026-07-28T11:59:08.730Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-evidence-contracts.spec.ts",
+      "first_observed_at": "2026-07-27T17:23:28.258Z",
+      "last_observed_at": "2026-07-27T18:41:17.191Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-historical-predecessor-binding-disclosure-subprocess.mjs",
+      "first_observed_at": "2026-07-29T21:28:40.351Z",
+      "last_observed_at": "2026-07-29T21:28:40.351Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "cross_process_determinism_helper",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-historical-predecessor-binding-disclosure.mjs",
+      "first_observed_at": "2026-07-29T21:16:32.287Z",
+      "last_observed_at": "2026-07-29T21:16:32.287Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "5bdeaaac0666e35def72554be3d6257e36a3b370c9a164faf85ae43dba38d876",
+      "known_sha_observed_at": "2026-07-29T22:48:22.247Z",
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-historical-predecessor-binding-disclosure.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-historical-predecessor-binding-disclosure.spec.ts",
+      "first_observed_at": "2026-07-29T21:16:32.287Z",
+      "last_observed_at": "2026-07-29T21:33:02.017Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-mixed-v4-v5-aggregate.spec.ts",
+      "first_observed_at": "2026-07-29T22:42:29.939Z",
+      "last_observed_at": "2026-07-29T22:47:47.634Z",
+      "transcript_change_events": 7,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-mixed-v4-v6-runtime-aggregate.spec.ts",
+      "first_observed_at": "2026-07-29T23:46:56.519Z",
+      "last_observed_at": "2026-07-29T23:48:28.383Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-mixed-v4-v7-runtime-aggregate.spec.ts",
+      "first_observed_at": "2026-07-30T10:40:52.384Z",
+      "last_observed_at": "2026-07-30T10:40:52.384Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-mixed-v4-v8-runtime-aggregate.spec.ts",
+      "first_observed_at": "2026-07-30T11:11:39.262Z",
+      "last_observed_at": "2026-07-30T11:12:31.160Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-native-missing-result-protocol-v5-final.spec.ts",
+      "first_observed_at": "2026-07-29T22:22:38.211Z",
+      "last_observed_at": "2026-07-29T22:23:56.472Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-native-missing-result-protocol-v5.spec.ts",
+      "first_observed_at": "2026-07-29T20:26:48.016Z",
+      "last_observed_at": "2026-07-29T20:28:04.638Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-native-missing-runtime-v6.spec.ts",
+      "first_observed_at": "2026-07-29T23:46:56.519Z",
+      "last_observed_at": "2026-07-29T23:47:54.214Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v6"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-native-missing-runtime-v7.spec.ts",
+      "first_observed_at": "2026-07-30T10:40:52.384Z",
+      "last_observed_at": "2026-07-30T10:40:52.384Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v7"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-native-missing-terminal-policy.spec.ts",
+      "first_observed_at": "2026-07-29T12:59:01.322Z",
+      "last_observed_at": "2026-07-29T12:59:01.322Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-nine-domain-snapshot-v2-golden-fixture.mjs",
+      "first_observed_at": "2026-07-28T19:27:07.051Z",
+      "last_observed_at": "2026-07-28T19:39:01.927Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-nine-domain-snapshot-v2-golden.spec.ts",
+      "first_observed_at": "2026-07-28T19:27:07.051Z",
+      "last_observed_at": "2026-07-28T19:39:01.927Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-nine-domain-snapshot-v2.spec.ts",
+      "first_observed_at": "2026-07-28T18:46:17.719Z",
+      "last_observed_at": "2026-07-28T19:18:24.995Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-postgres-readiness.spec.ts",
+      "first_observed_at": "2026-07-26T21:58:14.460Z",
+      "last_observed_at": "2026-07-27T11:23:08.017Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-postgresql-runtime-identity-collector.spec.ts",
+      "first_observed_at": "2026-07-27T22:40:08.546Z",
+      "last_observed_at": "2026-07-27T22:40:45.450Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-postgresql-runtime-identity.spec.ts",
+      "first_observed_at": "2026-07-27T22:00:06.898Z",
+      "last_observed_at": "2026-07-27T22:00:06.898Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-registry-bound-runtime-v8.spec.ts",
+      "first_observed_at": "2026-07-30T11:09:40.550Z",
+      "last_observed_at": "2026-07-30T11:26:38.909Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-registry-bound-v8-golden-oracle.mjs",
+      "first_observed_at": "2026-07-30T11:24:27.030Z",
+      "last_observed_at": "2026-07-30T11:24:45.484Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "6961b3d22bd4edbcf765cfe35d6538f5cbe863f748d1aac1cf5ccda260955837",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-registry-bound-v8-golden-oracle.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-registry-bound-v8-golden-subprocess.mjs",
+      "first_observed_at": "2026-07-30T11:25:34.565Z",
+      "last_observed_at": "2026-07-30T11:25:34.565Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-registry-bound-v8-golden.spec.ts",
+      "first_observed_at": "2026-07-30T11:25:34.565Z",
+      "last_observed_at": "2026-07-30T11:26:38.909Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-registry-bound-v8-literal-fixture.mjs",
+      "first_observed_at": "2026-07-30T11:23:19.659Z",
+      "last_observed_at": "2026-07-30T11:23:19.659Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": "49091479029e63ef5d54d8842a5f4fdeebe0e7b64acf2847d0e1d33e284f0136",
+      "known_sha_observed_at": "2026-07-30T11:27:59.346Z",
+      "version_or_action_hint": [
+        "v8"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-registry-bound-v8-literal-fixture.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-result-protocol-v3-shard.spec.ts",
+      "first_observed_at": "2026-07-28T15:41:43.754Z",
+      "last_observed_at": "2026-07-28T15:41:43.754Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-result-protocol-v3-tampering.spec.ts",
+      "first_observed_at": "2026-07-28T15:30:56.706Z",
+      "last_observed_at": "2026-07-28T15:34:04.880Z",
+      "transcript_change_events": 6,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-result-protocol-v3.spec.ts",
+      "first_observed_at": "2026-07-28T12:47:12.126Z",
+      "last_observed_at": "2026-07-28T13:50:57.930Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-result-protocol.spec.ts",
+      "first_observed_at": "2026-07-27T10:52:50.519Z",
+      "last_observed_at": "2026-07-27T11:01:04.278Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-runtime-bound-v2.spec.ts",
+      "first_observed_at": "2026-07-27T22:22:12.252Z",
+      "last_observed_at": "2026-07-27T22:22:12.252Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-runtime-fixtures.spec.ts",
+      "first_observed_at": "2026-07-27T11:22:37.634Z",
+      "last_observed_at": "2026-07-27T11:23:08.017Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-runtime-runner-v2.spec.ts",
+      "first_observed_at": "2026-07-30T10:22:23.019Z",
+      "last_observed_at": "2026-07-30T10:22:23.019Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-collector-adapter.spec.ts",
+      "first_observed_at": "2026-07-26T19:37:30.043Z",
+      "last_observed_at": "2026-07-26T19:49:10.164Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-serializer.spec.ts",
+      "first_observed_at": "2026-07-26T19:22:29.562Z",
+      "last_observed_at": "2026-07-26T19:22:29.562Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-v2-component-binding.spec.ts",
+      "first_observed_at": "2026-07-28T19:56:56.658Z",
+      "last_observed_at": "2026-07-28T20:42:32.418Z",
+      "transcript_change_events": 9,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-v2-five-state-probe.spec.ts",
+      "first_observed_at": "2026-07-28T20:50:48.671Z",
+      "last_observed_at": "2026-07-28T20:50:48.671Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-v2-result-protocol-v4.spec.ts",
+      "first_observed_at": "2026-07-28T21:03:12.682Z",
+      "last_observed_at": "2026-07-29T12:09:29.546Z",
+      "transcript_change_events": 16,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2",
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-v2-runtime-collector.spec.ts",
+      "first_observed_at": "2026-07-28T20:47:32.555Z",
+      "last_observed_at": "2026-07-28T20:53:22.530Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-snapshot-v2-runtime-successor-binding.spec.ts",
+      "first_observed_at": "2026-07-28T20:48:26.004Z",
+      "last_observed_at": "2026-07-28T20:48:26.004Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v2"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-source-transition-reference-comparator.spec.ts",
+      "first_observed_at": "2026-07-27T21:24:44.528Z",
+      "last_observed_at": "2026-07-27T21:25:50.736Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-source-transition-reference.spec.ts",
+      "first_observed_at": "2026-07-27T18:01:50.134Z",
+      "last_observed_at": "2026-07-27T18:01:50.134Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-source-transition-result-adapter.spec.ts",
+      "first_observed_at": "2026-07-27T18:39:13.133Z",
+      "last_observed_at": "2026-07-27T18:42:15.743Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-atomic-rejection.spec.ts",
+      "first_observed_at": "2026-07-28T16:25:17.451Z",
+      "last_observed_at": "2026-07-28T16:27:47.351Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-foundation-fixture.mjs",
+      "first_observed_at": "2026-07-28T15:12:56.915Z",
+      "last_observed_at": "2026-07-28T15:14:52.842Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "b95b552bddb3f8f9e755df0252ddddf31145fa67ef05b13931107222259808f2",
+      "known_sha_observed_at": "2026-07-29T21:33:52.059Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v3-foundation-fixture.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-foundation-fixture.spec.ts",
+      "first_observed_at": "2026-07-28T15:15:11.336Z",
+      "last_observed_at": "2026-07-28T15:15:30.077Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-golden-fixture.mjs",
+      "first_observed_at": "2026-07-28T15:21:55.274Z",
+      "last_observed_at": "2026-07-28T15:25:16.595Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "312ffccc098a27dcc5412be30c9cd9be619cc070977735d7f0db5fa2ae1383b3",
+      "known_sha_observed_at": "2026-07-28T15:25:02.796Z",
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "historical_sha256_commitment_with_partial_transcript_material"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-golden-fixture.spec.ts",
+      "first_observed_at": "2026-07-28T15:24:01.400Z",
+      "last_observed_at": "2026-07-28T15:24:01.400Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-persisted-result.spec.ts",
+      "first_observed_at": "2026-07-28T15:49:00.274Z",
+      "last_observed_at": "2026-07-28T15:51:52.843Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-runner-contract.spec.ts",
+      "first_observed_at": "2026-07-28T15:51:52.843Z",
+      "last_observed_at": "2026-07-28T16:54:29.974Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-shard-golden-fixture.mjs",
+      "first_observed_at": "2026-07-28T15:40:50.694Z",
+      "last_observed_at": "2026-07-28T15:41:43.754Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-unrelated-aggregate-cli.spec.ts",
+      "first_observed_at": "2026-07-28T16:01:28.631Z",
+      "last_observed_at": "2026-07-28T16:01:28.631Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v3-unrelated-aggregate.spec.ts",
+      "first_observed_at": "2026-07-28T15:59:53.607Z",
+      "last_observed_at": "2026-07-28T16:02:27.424Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v3"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-atomic-evidence-parity.spec.ts",
+      "first_observed_at": "2026-07-29T11:26:52.264Z",
+      "last_observed_at": "2026-07-29T11:27:44.007Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-forbidden-history-literal-fixture.mjs",
+      "first_observed_at": "2026-07-28T22:21:57.614Z",
+      "last_observed_at": "2026-07-29T11:26:26.549Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "d63c62b5f6efe861f8685269ebf405dfc2355c359743e62d9d60a1c108b357ee",
+      "known_sha_observed_at": "2026-07-29T22:24:36.535Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v4-forbidden-history-literal-fixture.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-forbidden-history-literal-fixture.spec.ts",
+      "first_observed_at": "2026-07-28T22:21:57.614Z",
+      "last_observed_at": "2026-07-28T22:23:23.278Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-literal-golden-oracle.mjs",
+      "first_observed_at": "2026-07-29T11:19:37.543Z",
+      "last_observed_at": "2026-07-29T11:45:28.152Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "5448efd5f5d4219684d8a450295042ab5deec8c5ad6d88b05b5efd5d68506f5c",
+      "known_sha_observed_at": "2026-07-29T22:48:22.247Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v4-literal-golden-oracle.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-literal-golden-oracle.spec.ts",
+      "first_observed_at": "2026-07-29T11:19:37.543Z",
+      "last_observed_at": "2026-07-29T11:46:57.248Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-migration-diagnostic.spec.ts",
+      "first_observed_at": "2026-07-29T12:31:28.993Z",
+      "last_observed_at": "2026-07-29T12:32:04.295Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-missing-target-literal-fixture.mjs",
+      "first_observed_at": "2026-07-29T09:50:04.360Z",
+      "last_observed_at": "2026-07-29T11:26:26.549Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "93aa647bcfe9a15cf54a7d7962c8ea1f227af1960055495e1826df8dd04e6e31",
+      "known_sha_observed_at": "2026-07-29T22:24:36.535Z",
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v4-missing-target-literal-fixture.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v4-missing-target-literal-fixture.spec.ts",
+      "first_observed_at": "2026-07-29T09:50:04.360Z",
+      "last_observed_at": "2026-07-29T11:14:58.896Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v4"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-external-attestation-oracle.mjs",
+      "first_observed_at": "2026-07-29T16:00:34.875Z",
+      "last_observed_at": "2026-07-29T19:28:48.558Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "a4722ce257cb93859c1147641d43bfa51741fdadfc70cb38b39c75b7db4a4d3b",
+      "known_sha_observed_at": "2026-07-29T22:48:22.247Z",
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v5-native-missing-external-attestation-oracle.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-external-attestation-positive.spec.ts",
+      "first_observed_at": "2026-07-29T17:44:37.767Z",
+      "last_observed_at": "2026-07-29T19:29:20.721Z",
+      "transcript_change_events": 7,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-external-attestation-subprocess.mjs",
+      "first_observed_at": "2026-07-29T19:28:48.558Z",
+      "last_observed_at": "2026-07-29T19:28:48.558Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "cross_process_determinism_helper",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-golden-oracle.mjs",
+      "first_observed_at": "2026-07-29T21:52:36.292Z",
+      "last_observed_at": "2026-07-29T21:53:04.388Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "ded364c1c0d45ce414464806545f5f86ef233fb7a78ed1e05d7a511a34c0c5e3",
+      "known_sha_observed_at": "2026-07-29T22:48:22.247Z",
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v5-native-missing-golden-oracle.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-golden-oracle.spec.ts",
+      "first_observed_at": "2026-07-29T21:54:10.767Z",
+      "last_observed_at": "2026-07-29T21:56:43.335Z",
+      "transcript_change_events": 5,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-golden-subprocess.mjs",
+      "first_observed_at": "2026-07-29T21:54:10.767Z",
+      "last_observed_at": "2026-07-29T21:54:10.767Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "independent_or_golden_oracle_test_artifact",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-literal-fixture.mjs",
+      "first_observed_at": "2026-07-29T13:29:31.700Z",
+      "last_observed_at": "2026-07-29T15:05:59.637Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": "871375cb5636061290e3c7ba396d2836d08f41f498e4dd7ed0e7bef392e046a4",
+      "known_sha_observed_at": "2026-07-29T22:48:22.247Z",
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": true,
+      "recovery_classification": "exact_sha256_matched_partial_recovery_not_certified_as_complete_foundation",
+      "durable_recovery_path": "docs/recovery/action-661j5r1/exact-recovered/tests/e2e/action-661j5-v5-native-missing-literal-fixture.mjs"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-literal-fixture.spec.ts",
+      "first_observed_at": "2026-07-29T13:44:14.602Z",
+      "last_observed_at": "2026-07-29T14:05:09.131Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "literal_or_foundation_fixture",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-negative-matrix.spec.ts",
+      "first_observed_at": "2026-07-29T19:40:59.993Z",
+      "last_observed_at": "2026-07-29T19:49:03.065Z",
+      "transcript_change_events": 8,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5-v5-native-missing-negative-validator.mjs",
+      "first_observed_at": "2026-07-29T19:40:59.993Z",
+      "last_observed_at": "2026-07-29T19:48:36.666Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "v5"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5f3a1-nine-domain-snapshot-collector.spec.ts",
+      "first_observed_at": "2026-07-26T19:59:47.653Z",
+      "last_observed_at": "2026-07-27T13:21:27.204Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5f3a1"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5f3d-compare-runs.spec.ts",
+      "first_observed_at": "2026-07-26T20:53:04.668Z",
+      "last_observed_at": "2026-07-26T20:54:22.816Z",
+      "transcript_change_events": 4,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5f3d"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5g-compare-runtime-runs.spec.ts",
+      "first_observed_at": "2026-07-27T11:29:31.265Z",
+      "last_observed_at": "2026-07-27T11:30:01.720Z",
+      "transcript_change_events": 2,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5g"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5h-workflows.spec.ts",
+      "first_observed_at": "2026-07-27T11:52:45.042Z",
+      "last_observed_at": "2026-07-27T11:52:45.042Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5h"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5i-historical-workflows.spec.ts",
+      "first_observed_at": "2026-07-27T12:05:11.105Z",
+      "last_observed_at": "2026-07-27T12:05:11.105Z",
+      "transcript_change_events": 1,
+      "change_types": [
+        "add"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5i"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    },
+    {
+      "path": "tests/e2e/action-661j5j-claim-authorization-workflows.spec.ts",
+      "first_observed_at": "2026-07-27T12:24:27.933Z",
+      "last_observed_at": "2026-07-27T12:37:32.444Z",
+      "transcript_change_events": 3,
+      "change_types": [
+        "add",
+        "update"
+      ],
+      "known_certified_sha256": null,
+      "known_sha_observed_at": null,
+      "version_or_action_hint": [
+        "661j5j"
+      ],
+      "contract_role": "verification_or_tampering_test",
+      "exact_bytes_recovered": false,
+      "recovery_classification": "partial_transcript_material_without_durable_final_sha256"
+    }
+  ],
+  "reconstruction_plan": {
+    "plan_version": "action_661j5r1_consolidated_reconstruction_plan_v1",
+    "base_commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+    "historical_commitments_use": "regression witnesses only; never expected reconstructed bytes",
+    "new_version_series": {
+      "runtime_runner": "V4",
+      "runner_authority": "V4",
+      "runtime_scenario_registry": "V4",
+      "native_missing_runtime_protocol": "V9",
+      "mixed_runtime_aggregate": "V4/V9 successor",
+      "reconstruction_manifest": "v1"
+    },
+    "steps": [
+      "Create a new durable branch/worktree from the durable Git base.",
+      "Re-derive closed authorities from committed source and independently pinned manifests.",
+      "Reimplement the consolidated snapshot/runtime/protocol chain under the new version series.",
+      "Create new zero-import literal fixtures and independent oracles; do not copy historical expected bytes from digests.",
+      "Freeze new module and protocol digests only after independent parity, tampering, persistence, and cross-process matrices pass.",
+      "Run full V1/V2/V3 compatibility regression and fresh Docker A/B only in separately authorized actions.",
+      "Create a preservation ref only after the rebuilt scope is committed and fully certified."
+    ],
+    "forbidden": [
+      "hash-preimage guessing",
+      "claiming transcript patches are certified final bytes",
+      "reusing historical digests as rebuilt expected values",
+      "pruning stale worktree metadata before recovery evidence is preserved"
+    ]
+  },
+  "partial_recovery": {
+    "exact_file_count": 42,
+    "scope_file_count": 171,
+    "promoted_to_certified_foundation": false,
+    "index_path": "docs/recovery/action-661j5r1/exact-recovered-index.json"
+  }
+}
