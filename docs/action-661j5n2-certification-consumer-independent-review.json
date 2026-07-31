@@ -1,0 +1,80 @@
+{
+  "approved": false,
+  "checkpoint_ready": false,
+  "findings": {
+    "blocker": [],
+    "major": [
+      {
+        "code": "path_read_toctou_scope_escape",
+        "description": "Each path component is checked with lstat, but the subsequent path-based read is not descriptor-bound. A component can be replaced by a symlink after inventory and before read, causing a read outside the approved repository root before digest rejection.",
+        "evidence": [
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:381",
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:412",
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:415",
+          "tests/e2e/action-661j5n2-certification-consumer-adversarial-review.spec.ts"
+        ],
+        "remediation_performed": false
+      }
+    ],
+    "minor": [
+      {
+        "code": "failure_provenance_identity_collision",
+        "description": "Distinct provider failures at the same stage produce identical sanitized provenance and no cryptographic failure identity, so collision-resistant failure provenance is not established.",
+        "evidence": [
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:914",
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:1012",
+          "tests/e2e/action-661j5n2-certification-consumer-adversarial-review.spec.ts"
+        ],
+        "remediation_performed": false
+      },
+      {
+        "code": "explicit_per_file_byte_budget_absent",
+        "description": "The total 16 MiB budget implicitly bounds a single read, but the contract exposes no separate max_file_bytes authority or per-file rejection reason as required by the review gate.",
+        "evidence": [
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:43",
+          "lib/action-661j5n1-runtime-certification-consumer.mjs:423",
+          "tests/e2e/action-661j5n2-certification-consumer-adversarial-review.spec.ts"
+        ],
+        "remediation_performed": false
+      }
+    ],
+    "nit": []
+  },
+  "freeze_manifest_path": "docs/action-661j5n2-certification-consumer-freeze-manifest.json",
+  "independence": {
+    "docker_started": false,
+    "network_accessed": false,
+    "normative_consumer_bytes_modified": false,
+    "production_accessed": false,
+    "remediation_performed": false,
+    "runtime_executed": false
+  },
+  "review_contract": "action_661j5n2_certification_consumer_independent_review_v1",
+  "review_digest": "36a778ecc66de26e1345483fd30d245c5a4a26bfccd2274ca838426ac0050ff1",
+  "review_digest_exclusions": [
+    "review_digest"
+  ],
+  "review_suite": {
+    "path": "tests/e2e/action-661j5n2-certification-consumer-adversarial-review.spec.ts",
+    "sha256": "217e155c4f8128504ef879303d7e436ae31e96b7608f3cd21cdbbdffe6594916",
+    "tests_passed": "10/10"
+  },
+  "verified_gates": {
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "enablement_closed_and_explicit": true,
+    "failure_and_success_atomicity": true,
+    "final_freeze_and_recovery_authority": true,
+    "full_chain_independent_rebuild": true,
+    "inner_and_outer_digest_tampering": true,
+    "live_capabilities_absent": true,
+    "missing_extra_renamed_duplicate_reordered_matrix": true,
+    "normative_five_path_freeze": true,
+    "twenty_eight_fixture_and_shard_inventory": true
+  },
+  "unverified_gates": {
+    "collision_resistant_failure_identity": "failure_provenance_identity_collision",
+    "explicit_per_file_byte_budget": "explicit_per_file_byte_budget_absent",
+    "symlink_replacement_read_scope": "path_read_toctou_scope_escape"
+  }
+}

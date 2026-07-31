@@ -1,0 +1,66 @@
+{
+  "approved": true,
+  "checkpoint_ready": true,
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "historical_findings": {
+    "N2-M1": {
+      "n1_reproduced": true,
+      "n2a_closure_verified": true,
+      "result": "descriptor_bound_toctou_escape_closed"
+    },
+    "N2-m1": {
+      "n1_reproduced": true,
+      "n2a_closure_verified": true,
+      "result": "cryptographic_failure_identity_separated"
+    },
+    "N2-m2": {
+      "n1_reproduced": true,
+      "n2a_closure_verified": true,
+      "result": "explicit_max_file_bytes_bound"
+    }
+  },
+  "independence": {
+    "docker_started": false,
+    "network_accessed": false,
+    "normative_consumer_bytes_modified": false,
+    "production_accessed": false,
+    "remediation_performed": false,
+    "runtime_executed": false,
+    "subprocesses_used_only_for_deterministic_read_only_checks": true
+  },
+  "refreeze_manifest_digest": "97df94da590f397f83db68b19d25f8525f4127a8789259fc4e31e5521c79cd27",
+  "refreeze_manifest_path": "docs/action-661j5n2b-descriptor-consumer-refreeze-manifest.json",
+  "review_contract": "action_661j5n2b_descriptor_consumer_independent_review_v1",
+  "review_digest": "dce53703543870a91eaa076467e4183fd76911dc017a3ad89a42b5aea95490bd",
+  "review_digest_exclusions": [
+    "review_digest"
+  ],
+  "review_suite": {
+    "path": "tests/e2e/action-661j5n2b-descriptor-consumer-independent-review.spec.ts",
+    "sha256": "9f67f61c328f76e1fb1507a8367a52dffad6d0ecda09af3fce5274557b4f12c5",
+    "tests_passed": "11/11"
+  },
+  "verified_gates": {
+    "complete_twenty_eight_fixture_chain": true,
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "descriptor_identity_before_read": true,
+    "descriptor_lifecycle_exact": true,
+    "explicit_file_and_total_budgets": true,
+    "failure_identity_independent_rebuild": true,
+    "failure_identity_stage_and_code_separation": true,
+    "live_capabilities_absent": true,
+    "normative_five_path_refreeze": true,
+    "outside_root_bytes_read_zero": true,
+    "path_based_filesystem_reads_zero": true,
+    "post_read_mutation_detection": true,
+    "predecessor_bytes_unchanged": true,
+    "provider_failure_sanitization": true,
+    "symlink_ancestor_and_inode_substitution_matrix": true
+  }
+}
