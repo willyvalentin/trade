@@ -1,0 +1,65 @@
+{
+  "contract_version": "action_654a_transport_inert_dispatch_readiness_v1",
+  "report_version": "action_654a_dispatch_readiness_golden_report_v1",
+  "cases": [
+    {
+      "name": "utc_a",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "readiness_identity": "action_654a_readiness_identity_94369de41d3bb19be3fb48430b9d91893c5f6c3131c14a1e4cbf6684c685650f",
+      "readiness_digest": "action_654a_dispatch_readiness_envelope_8d64bd38e15fd9643329f25ad74e7458cd820eb25854b6fba7ae14af7bec34fd",
+      "instruction_identity": "action_653s_broker_neutral_instruction_9597e92f24a6b3db384c3df2ca09fd21d0c15da3099f2d3a660455b08ecb2f24",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_7f8c4d2475fd26bd052e4449687cff7c3e017ebe0757b0f2d6c24b63e7a6de40"
+    },
+    {
+      "name": "utc_b",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "readiness_identity": "action_654a_readiness_identity_b0840753b9050e22836df6625c31bbb8bb405fb7c39db43604c7d138ecf8df82",
+      "readiness_digest": "action_654a_dispatch_readiness_envelope_ca6e59678ddb1e9dca49b5dab0638ae8a63d893ddb7636ce66df9747065e8676",
+      "instruction_identity": "action_653s_broker_neutral_instruction_36d22bfd9bd9e3564ab3594fd3fa6e9b821e6a4a8208e09281d98e4bebecc893",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf4333553d615a3124218517d5a71cb9158159f7b8744ee8b3f5e7c29f8899c2"
+    },
+    {
+      "name": "stockholm",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "readiness_identity": "action_654a_readiness_identity_56d8a3712418a41b910bd6154e2cf038c6dfcc2be26438e78f13cfe73abe6eb5",
+      "readiness_digest": "action_654a_dispatch_readiness_envelope_5d842edba09ebce99da16955fd2b806e5d8f675de94acbf813ae22e7ed56cb6d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_a0657ca35aa5943de09f1970d2309e9d46adaa1060ab89d43ecae79b3f1caa76",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_c318208d6a518f80c5916c647aecaece20c22ad49b5864541553414c866c913c"
+    },
+    {
+      "name": "new_york",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "readiness_identity": "action_654a_readiness_identity_1e6d5e6a36eba5d405d89877c9ca93f9528ede5393014b8d2fb16235f3f5b21e",
+      "readiness_digest": "action_654a_dispatch_readiness_envelope_c3a1e9c652f0db17ccf2525c018a1ab9f5c3c8f81fcc59cfaa9f651765c160ed",
+      "instruction_identity": "action_653s_broker_neutral_instruction_d86e656fde8a447e61e118004b579ac2a859b9cfe4679f19084ed5210bfbee68",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_b0fd0092fbc99c9bbda3bfe08d90787756e36c69877071387811d5fa47036802"
+    },
+    {
+      "name": "reverse_input_order",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "readiness_identity": "action_654a_readiness_identity_9b00f21bd05d7ba7af7eff1252532b4f51359c82c8013d5e2dba3483223f9929",
+      "readiness_digest": "action_654a_dispatch_readiness_envelope_ea5f081354930b488698e3841a0e6323c3225da10d79a89aabdee5c5b8f8745d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_085098e54533d30dc35b71a266a948cdedb43a46fce3740f62c5755cf8058f75",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_6139de1ea1161e48425daf4a9c74604a4321e1e024b642a57cd64adccdf0c180"
+    }
+  ],
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "transport_attached": false,
+    "dispatch_permitted": false,
+    "broker_submission_allowed": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
