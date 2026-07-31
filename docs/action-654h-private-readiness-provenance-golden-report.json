@@ -1,0 +1,70 @@
+{
+  "contract_version": "action_654h_private_non_reconstituting_readiness_v2",
+  "report_version": "action_654h_private_readiness_golden_report_v1",
+  "cases": [
+    {
+      "name": "utc_a",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_8a94ad1af19854c1b8bdb584d6197d2dd00aa7526ed6ad864f02f092d3063b25",
+      "readiness_identity": "action_654h_private_readiness_identity_e16f0eebdc121c78cf6d0a80462ff15e3c4b47f67883f0bd139689c8233812e5",
+      "readiness_digest": "action_654h_private_readiness_envelope_13101f5bfdf630c647916e388c219f6d28477e5737b05ad9cd86d7ca87418a8d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_382b50ff0d555bf93225bea73e315078413bc78ff4e2898a9ba1de9346405f53",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf717341fcca0e288def032dea6256c5f1d9939b5ff56ba3e7487d0576ab1108"
+    },
+    {
+      "name": "utc_b",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_8a94ad1af19854c1b8bdb584d6197d2dd00aa7526ed6ad864f02f092d3063b25",
+      "readiness_identity": "action_654h_private_readiness_identity_e16f0eebdc121c78cf6d0a80462ff15e3c4b47f67883f0bd139689c8233812e5",
+      "readiness_digest": "action_654h_private_readiness_envelope_13101f5bfdf630c647916e388c219f6d28477e5737b05ad9cd86d7ca87418a8d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_382b50ff0d555bf93225bea73e315078413bc78ff4e2898a9ba1de9346405f53",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf717341fcca0e288def032dea6256c5f1d9939b5ff56ba3e7487d0576ab1108"
+    },
+    {
+      "name": "stockholm",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_8a94ad1af19854c1b8bdb584d6197d2dd00aa7526ed6ad864f02f092d3063b25",
+      "readiness_identity": "action_654h_private_readiness_identity_e16f0eebdc121c78cf6d0a80462ff15e3c4b47f67883f0bd139689c8233812e5",
+      "readiness_digest": "action_654h_private_readiness_envelope_13101f5bfdf630c647916e388c219f6d28477e5737b05ad9cd86d7ca87418a8d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_382b50ff0d555bf93225bea73e315078413bc78ff4e2898a9ba1de9346405f53",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf717341fcca0e288def032dea6256c5f1d9939b5ff56ba3e7487d0576ab1108"
+    },
+    {
+      "name": "new_york",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_8a94ad1af19854c1b8bdb584d6197d2dd00aa7526ed6ad864f02f092d3063b25",
+      "readiness_identity": "action_654h_private_readiness_identity_e16f0eebdc121c78cf6d0a80462ff15e3c4b47f67883f0bd139689c8233812e5",
+      "readiness_digest": "action_654h_private_readiness_envelope_13101f5bfdf630c647916e388c219f6d28477e5737b05ad9cd86d7ca87418a8d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_382b50ff0d555bf93225bea73e315078413bc78ff4e2898a9ba1de9346405f53",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf717341fcca0e288def032dea6256c5f1d9939b5ff56ba3e7487d0576ab1108"
+    },
+    {
+      "name": "reverse_input_order",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_8a94ad1af19854c1b8bdb584d6197d2dd00aa7526ed6ad864f02f092d3063b25",
+      "readiness_identity": "action_654h_private_readiness_identity_e16f0eebdc121c78cf6d0a80462ff15e3c4b47f67883f0bd139689c8233812e5",
+      "readiness_digest": "action_654h_private_readiness_envelope_13101f5bfdf630c647916e388c219f6d28477e5737b05ad9cd86d7ca87418a8d",
+      "instruction_identity": "action_653s_broker_neutral_instruction_382b50ff0d555bf93225bea73e315078413bc78ff4e2898a9ba1de9346405f53",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_bf717341fcca0e288def032dea6256c5f1d9939b5ff56ba3e7487d0576ab1108"
+    }
+  ],
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "transport_attached": false,
+    "dispatch_permitted": false,
+    "broker_submission_allowed": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
