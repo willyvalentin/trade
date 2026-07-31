@@ -1,0 +1,104 @@
+{
+  "manifest_version": "action_666cg_callback_free_successor_freeze_manifest_v1",
+  "action": "666CG",
+  "review_started_at": "2026-07-31T15:46:02+02:00",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cf",
+  "normative_preservation_object": "f3979a8ac43197f4a76531f50081d0b8f8b37654",
+  "normative_parent": "f4453f5fc9b224a7a3c807785e06002d66f03043",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "callback_free_boundary": "canonical_callback_free_atomic_observation_v1",
+    "callback_free_readback": "canonical_callback_free_integrity_readback_v1",
+    "integrity_provenance_separation": "canonical_integrity_provenance_separation_v2",
+    "integrity_only_envelope": "canonical_integrity_only_observation_envelope_v2"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666cf-callback-free-atomic-observation.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "50f1b4149fcde4b3f75646e81e86c0393f2635b05a3c95a63fa33a5853378a3e",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666cf-golden-callback-free-atomic-observation-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "29aeaa140884e4305d17fd2a49b26d04f55ab5298240d71587ef3f534df1c850",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-callback-free-atomic-observation-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "1ed4b9087df1fce9543d342455a834b1f30cd61727c6ce65d3af04f274eadc22",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-callback-free-atomic-observation.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "a81dbb516d7aada9c065249cf8dd2d01395301bd55093066d89380d282369eb3",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666cf-callback-free-atomic-observation.spec.ts",
+      "artifact_type": "focused_adversarial_tests",
+      "sha256": "25c934cf692b54354c8dda123b8a761ccaabfe2ae5c1f7b47bdaec357b5ec413",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "7cb74c1e85e290f903c4d44b942949a19935780d025cdfde50bbbd740d315e00",
+  "digest_checkpoints": {
+    "before_regression": "7cb74c1e85e290f903c4d44b942949a19935780d025cdfde50bbbd740d315e00",
+    "after_regression": "7cb74c1e85e290f903c4d44b942949a19935780d025cdfde50bbbd740d315e00",
+    "after_independent_review": "7cb74c1e85e290f903c4d44b942949a19935780d025cdfde50bbbd740d315e00"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666cf_focused": "15/15 passed",
+    "relevant_action_665_666_including_cf": "419/419 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed after excluding generated .next build output",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed in UTC and Europe/Stockholm",
+    "independent_adversarial_probes": "3/3 reproduced expected predecessor/finding evidence"
+  },
+  "build_applicability": {
+    "classification": "scope_external_pre_existing_failure",
+    "success": false,
+    "exact_base": "f4453f5fc9b224a7a3c807785e06002d66f03043",
+    "builder": "next build --webpack",
+    "compilation": "passed",
+    "type_check": "failed",
+    "failure": "app/api/hb307c/ping/route.ts exports hb307cCanaryRouteBuildMarker, which is not a valid Next.js route export",
+    "same_failure_reproduced_on_cf_scope": true
+  },
+  "review": {
+    "blocker": 0,
+    "major": 2,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666cg-callback-free-successor-freeze-manifest.json",
+    "docs/action-666cg-callback-free-successor-independent-review.md",
+    "docs/action-666cg-callback-free-successor-threat-matrix.json"
+  ]
+}

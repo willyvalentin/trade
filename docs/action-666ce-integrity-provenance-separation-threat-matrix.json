@@ -1,0 +1,89 @@
+{
+  "matrix_version": "action_666ce_integrity_provenance_separation_threat_matrix_v1",
+  "action": "666CE",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cd",
+  "normative_preservation_object": "130b06e3db6284151f2d40fc605bfffb48c93306",
+  "canonical_normative_digest": "5fae52c1f0ad833c21585a58ad113c9ab1d7961dab4fb82c82028277ef8e198f",
+  "threats": [
+    {
+      "id": "666CC-M1-self-consistent-readback-forgery",
+      "result": "closed",
+      "evidence": "CB accepts the historical attack; CD returns only integrity_only with provenance, trust and admission false"
+    },
+    {
+      "id": "caller-provenance-field-substitution",
+      "result": "closed",
+      "evidence": "closed envelope schema requires provenance_verified false and authority_status integrity_only"
+    },
+    {
+      "id": "previously-issued-digest-equality-upgrade",
+      "result": "closed",
+      "evidence": "byte-identical canonical issuance envelopes still read back as integrity_only and untrusted"
+    },
+    {
+      "id": "recomputed-public-digest-semantic-tampering",
+      "result": "closed",
+      "evidence": "fully recomputed semantic replacement changes observed and terminal identity but remains integrity-only"
+    },
+    {
+      "id": "integrity-only-to-verified-admitted-trusted",
+      "result": "closed",
+      "evidence": "every integrity-only readback fixes provenance_verified, trusted and admitted to false"
+    },
+    {
+      "id": "exported-caller-callback",
+      "result": "open_major",
+      "finding": "666CE-M1",
+      "evidence": "public read_request function executes once on enabled path and its caller-controlled exception escapes unsanitized"
+    },
+    {
+      "id": "exported-mint-factory-or-trust-upgrade-name",
+      "result": "closed",
+      "evidence": "runtime and source export inventories contain no named mint, factory or trust-upgrade operation; callback finding is tracked separately"
+    },
+    {
+      "id": "clone-substitution-replay-cross-module-container",
+      "result": "closed",
+      "evidence": "readback accepts only string or genuine Uint8Array inputs and never object evidence containers"
+    },
+    {
+      "id": "proxy-accessor-coercion-hooks",
+      "result": "closed_for_readback_objects",
+      "evidence": "unknown object hook probes remain zero; explicit caller callback execution is finding 666CE-M1"
+    },
+    {
+      "id": "classification-or-failure-identity-collision",
+      "result": "closed",
+      "evidence": "malformed, noncanonical, digest mismatch and integrity-only statuses are distinct and observed safe bytes bind identities"
+    },
+    {
+      "id": "private-runtime-capsule-forgery",
+      "result": "closed",
+      "evidence": "CB capsule mint and WeakMap provenance remain private and capsule bytes are never exposed"
+    },
+    {
+      "id": "lossless-primitive-or-interop-regression",
+      "result": "closed",
+      "evidence": "lossless primitive matrix and CB/BV/BX/BZ interoperability pass"
+    },
+    {
+      "id": "cross-process-or-timezone-drift",
+      "result": "closed",
+      "evidence": "UTC and Europe/Stockholm processes reproduce the same golden scenario digest"
+    },
+    {
+      "id": "default-off-db-provider-write-or-live-impact",
+      "result": "closed",
+      "evidence": "disabled and kill-switch request-reader counters remain zero and no DB, provider, write, persistence or live consumer exists"
+    }
+  ],
+  "findings": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false,
+  "live_impact": false
+}

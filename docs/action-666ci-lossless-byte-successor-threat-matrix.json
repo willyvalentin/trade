@@ -1,0 +1,103 @@
+{
+  "matrix_version": "action_666ci_lossless_byte_successor_threat_matrix_v1",
+  "action": "666CI",
+  "normative_preservation_ref": "refs/codex-preservation/action-666ch",
+  "normative_preservation_object": "ab86dff75c6a1b0e31e535dac3b4888af03fc376",
+  "canonical_normative_digest": "81bb1730ba3e96c61057a9314fe84cb9b9e434b55d63abffae395e577852141e",
+  "threats": [
+    {
+      "id": "666CG-M1-invalid-utf8-byte-collision",
+      "result": "closed",
+      "evidence": "CF reproduces the 0xff/0xfe collision; CH binds exact raw bytes before decoding and all observation, failure, terminal, and readback digests differ"
+    },
+    {
+      "id": "raw-byte-length-or-digest-tampering",
+      "result": "closed",
+      "evidence": "exact length, raw SHA-256, and canonical observation digest rebuild independently from the module-owned snapshot"
+    },
+    {
+      "id": "666CG-M2-shared-memory-concurrent-mutation",
+      "result": "closed",
+      "evidence": "the CF worker probe produces multiple results while CH rejects SharedArrayBuffer backing before byte read, copy, decode, hash, or request digest work"
+    },
+    {
+      "id": "growable-shared-or-resizable-array-buffer",
+      "result": "closed",
+      "evidence": "SharedArrayBuffer and supported growable variants fail at the captured ordinary-ArrayBuffer brand boundary; resizable ordinary buffers fail the captured resizable check"
+    },
+    {
+      "id": "typed-array-subclass-proxy-or-cross-realm-substitution",
+      "result": "closed",
+      "evidence": "exact captured intrinsic brands and prototypes reject substitutions without executing caller traps or hooks"
+    },
+    {
+      "id": "detached-array-buffer",
+      "result": "closed",
+      "evidence": "captured DataView and byteLength intrinsics reject detached backing with a closed sanitized reason"
+    },
+    {
+      "id": "offset-view-membership-drift",
+      "result": "closed",
+      "evidence": "only the exact visible view length and bytes are copied and bound"
+    },
+    {
+      "id": "caller-mutation-after-entry",
+      "result": "closed",
+      "evidence": "one synchronous copy into a private fixed ordinary ArrayBuffer precedes every downstream operation"
+    },
+    {
+      "id": "getter-iterator-coercion-callback-execution",
+      "result": "closed",
+      "evidence": "focused Proxy, accessor, iterator, toJSON, valueOf, symbol, and function probes record zero caller hooks"
+    },
+    {
+      "id": "utf8-parser-or-caller-message-leak",
+      "result": "closed",
+      "evidence": "fatal UTF-8 and JSON failures expose only closed reason codes and digest-bound observations"
+    },
+    {
+      "id": "failure-result-self-consistent-tampering",
+      "result": "closed",
+      "evidence": "independent rebuild binds raw observation, terminal identity, failure identity, and readback digest"
+    },
+    {
+      "id": "serialized-integrity-to-provenance-upgrade",
+      "result": "closed",
+      "evidence": "serialized evidence fixes provenance, trust, and admission false and exposes no trust-upgrade surface"
+    },
+    {
+      "id": "default-off-or-kill-switch-work",
+      "result": "closed",
+      "evidence": "all boundary, snapshot, copy, read, hash, decode, parse, and digest counters remain zero"
+    },
+    {
+      "id": "cross-process-or-timezone-drift",
+      "result": "closed",
+      "evidence": "fresh UTC and Europe/Stockholm processes reproduce identical golden evidence"
+    },
+    {
+      "id": "bv-bx-bz-cd-cf-interop-regression",
+      "result": "closed",
+      "evidence": "focused interop and the full relevant Action 665/666 regression pass"
+    },
+    {
+      "id": "db-provider-persistence-write-or-live-effect",
+      "result": "closed",
+      "evidence": "static scans, imports, and regression show no such capability or consumer"
+    },
+    {
+      "id": "production-build-applicability",
+      "result": "scope_external_pre_existing_failure",
+      "evidence": "the exact base compiles then fails the pre-existing hb307c invalid route-export type check; the failure is not success"
+    }
+  ],
+  "findings": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": true,
+  "local_checkpoint_ready": true,
+  "live_impact": false
+}

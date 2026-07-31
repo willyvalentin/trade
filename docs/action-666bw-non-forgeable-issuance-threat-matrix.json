@@ -1,0 +1,81 @@
+{
+  "matrix_version": "action_666bw_non_forgeable_issuance_threat_matrix_v1",
+  "action": "666BW",
+  "normative_digest": "19779280218a4d108c18606b66246fc98ccd96d6d870d5a770b9af9e52b93386",
+  "no_remediation_performed": true,
+  "scenarios": [
+    {
+      "id": "666BU-M1-predecessor-self-mint",
+      "expected": "predecessor attack reproduced and V2 rejects alternative pinned root before downstream execution",
+      "observed": "passed"
+    },
+    {
+      "id": "666BU-M2-predecessor-nested-request",
+      "expected": "V2 returns structured incomplete result without exception",
+      "observed": "passed"
+    },
+    {
+      "id": "alternative-root-callback-mutation-cross-session",
+      "expected": "alternative and cross-session authority rejected; post-callback mutation cannot affect frozen verified bytes",
+      "observed": "passed"
+    },
+    {
+      "id": "nested-closed-schema",
+      "expected": "missing, extra, and renamed nested fields reject deterministically",
+      "observed": "passed"
+    },
+    {
+      "id": "bounded-traversal",
+      "expected": "depth, node, key, array, and string budgets reject without unsanitized exception",
+      "observed": "passed"
+    },
+    {
+      "id": "cycle-accessor-proxy",
+      "expected": "cycle, accessor, and throwing proxy reject without getter execution or error leakage",
+      "observed": "passed"
+    },
+    {
+      "id": "golden-invalid-request-collision-matrix",
+      "expected": "different malformed nested requests with the same reason retain distinct request, observation, and terminal digests",
+      "observed": "passed"
+    },
+    {
+      "id": "unsupported-scalar-collision",
+      "expected": "different observed unsupported scalar values have distinct forensic observation and terminal identities",
+      "observed": "failed",
+      "finding": "666BW-M1",
+      "severity": "major",
+      "evidence": {
+        "input_a": "bigint:1",
+        "input_b": "bigint:2",
+        "shared_bounded_prefix_digest": "3d57b666ba1149c1216e9afa6575088f6df2d700d6bff7630666d8117a1a03c2",
+        "shared_observation_digest": "73b1ddadb69da0e8100170cfcbb696e9253ad3c63b0a9c29559c22d82295658a",
+        "shared_terminal_digest": "38e3d98623b3888ac9ecb02abbbc22d512ca714a554092ab872b8107dc3080d8"
+      }
+    },
+    {
+      "id": "verified-snapshot-downstream",
+      "expected": "only signature-verified runtime-provenance snapshot reaches predecessor and full BD/AX/AJ/AC/V/AQ interop",
+      "observed": "passed"
+    },
+    {
+      "id": "default-off-kill-switch",
+      "expected": "zero request, authority, clone, validation, predecessor, and digest work",
+      "observed": "passed"
+    },
+    {
+      "id": "db-prohibition",
+      "expected": "no PostgreSQL, provider, persistence, or write activity",
+      "observed": "passed",
+      "postgresql_classification": "not_applicable_db_forbidden_action"
+    }
+  ],
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false
+}

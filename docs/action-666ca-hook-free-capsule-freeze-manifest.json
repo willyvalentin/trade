@@ -1,0 +1,96 @@
+{
+  "manifest_version": "action_666ca_hook_free_capsule_freeze_manifest_v1",
+  "action": "666CA",
+  "review_started_at": "2026-07-30T00:00:00+02:00",
+  "normative_preservation_ref": "refs/codex-preservation/action-666bz",
+  "normative_preservation_object": "0dbcb4d2404e383a08c4764097c52881fcc4f15b",
+  "normative_parent": "576210322e560a97d5c678a8c7156c5af14f4156",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "capsule": "canonical_provenance_bound_observation_capsule_v1",
+    "verification": "canonical_provenance_bound_observation_verification_v1",
+    "result": "canonical_provenance_bound_observation_result_v1",
+    "primitive_observation": "canonical_lossless_primitive_observation_v1"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666bz-golden-provenance-bound-observation-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "08eef64afcf7e7cfd864470f028746ed566625bb38ed92e7066726135b762090",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666bz-provenance-bound-observation-verification.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "140487d7ab09a9b44167b7a1ce8739d89c8d1dfbe2cdfef965e444e86cb740a7",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "1ecc208c668ba3890e765425fe7882c4b535c9c479a97b4ca08c55678927b6e2",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-provenance-bound-observation-verification.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "699bec27e4337e1e25fe6be923782a91543e4e8e418c2094b3d57089e82ed5ec",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666bz-provenance-bound-observation-verification.spec.ts",
+      "artifact_type": "focused_tests",
+      "sha256": "2b2ead3c3f165590bd2606687cffca273ec3f734a9ca1adcf15a2a09b4182e5d",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "360457eec36ad87deb55643c10a3de15942798606dfa93f062736d8ac29bb94e",
+  "digest_checkpoints": {
+    "before_regression": "360457eec36ad87deb55643c10a3de15942798606dfa93f062736d8ac29bb94e",
+    "after_regression": "360457eec36ad87deb55643c10a3de15942798606dfa93f062736d8ac29bb94e",
+    "after_independent_review": "360457eec36ad87deb55643c10a3de15942798606dfa93f062736d8ac29bb94e"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666bz_focused": "15/15 passed",
+    "relevant_action_665_666_including_bz": "373/373 passed",
+    "relevant_action_665_666_predecessor": "358/358 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed in UTC and Europe/Stockholm"
+  },
+  "review": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work": true,
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666ca-hook-free-capsule-freeze-manifest.json",
+    "docs/action-666ca-hook-free-capsule-independent-rereview.md",
+    "docs/action-666ca-hook-free-capsule-threat-finding-matrix.json"
+  ]
+}

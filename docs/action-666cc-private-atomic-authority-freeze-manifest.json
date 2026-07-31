@@ -1,0 +1,97 @@
+{
+  "manifest_version": "action_666cc_private_atomic_authority_freeze_manifest_v1",
+  "action": "666CC",
+  "review_started_at": "2026-07-31T00:00:00+02:00",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cb",
+  "normative_preservation_object": "4145dd4282428101ae41162fc583867e7b91503e",
+  "normative_parent": "96523fba4cd3c0d58894bf98c846a75c1ae09a8e",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "authority": "canonical_private_atomic_observation_authority_v1",
+    "evidence": "canonical_private_atomic_observation_evidence_v1",
+    "result": "canonical_private_atomic_observation_result_v1",
+    "readback": "canonical_private_atomic_observation_readback_v1",
+    "primitive_observation": "canonical_lossless_primitive_observation_v1"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666cb-golden-private-atomic-observation-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "cb7bdee4d405e71b08b87757f54890cde75c4bde47fc56a53d9547fe254c85a3",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666cb-private-atomic-observation-authority.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "fca074404a862150fe8ba098890d98b519b7cf000aceea48531fe47eef48c02b",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-private-atomic-observation-authority-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "43a2ffc773c6572038a59f636d1faa2fa56de76bb2ba82a5d895386c984e3ad8",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-private-atomic-observation-authority.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "ab40982c6102f670473b88bc23878ee1ad2f2a3a53a9be2aa1db7e2429da01a7",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666cb-private-atomic-observation-authority.spec.ts",
+      "artifact_type": "focused_tests",
+      "sha256": "9ba1564a8729910230c2aad8cca97fc472bbdca0a9c8312cb29fcaac544c803d",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "0ffadc6d2f4400d1722fb1d6ee5b01b7c1f4e194403fc7349ed7db05acf27c50",
+  "digest_checkpoints": {
+    "before_regression": "0ffadc6d2f4400d1722fb1d6ee5b01b7c1f4e194403fc7349ed7db05acf27c50",
+    "after_regression": "0ffadc6d2f4400d1722fb1d6ee5b01b7c1f4e194403fc7349ed7db05acf27c50",
+    "after_independent_review": "0ffadc6d2f4400d1722fb1d6ee5b01b7c1f4e194403fc7349ed7db05acf27c50"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666cb_focused": "16/16 passed",
+    "relevant_action_665_666_including_cb": "389/389 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed in UTC and Europe/Stockholm",
+    "adversarial_self_consistent_readback_probe": "1/1 reproduced finding 666CC-M1"
+  },
+  "review": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work": true,
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666cc-private-atomic-authority-freeze-manifest.json",
+    "docs/action-666cc-private-atomic-authority-independent-rereview.md",
+    "docs/action-666cc-private-atomic-authority-threat-matrix.json"
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "manifest_version": "action_666ce_integrity_provenance_separation_freeze_manifest_v1",
+  "action": "666CE",
+  "review_started_at": "2026-07-31T00:00:00+02:00",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cd",
+  "normative_preservation_object": "130b06e3db6284151f2d40fc605bfffb48c93306",
+  "normative_parent": "090e3dfea58a1e5594268573e3c8c409394e9362",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "separation": "canonical_integrity_provenance_separation_v2",
+    "runtime_evidence": "canonical_runtime_provenance_evidence_v2",
+    "integrity_envelope": "canonical_integrity_only_observation_envelope_v2",
+    "readback": "canonical_integrity_only_observation_readback_v2",
+    "primitive_observation": "canonical_lossless_primitive_observation_v1"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666cd-golden-integrity-provenance-separation-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "eaaac82958caa598dc1fc9f0e73eeaa8e7f0c8bb4d3ba8ba992361831b1a6573",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666cd-integrity-provenance-separated-observation-authority.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "dd462e8dd476dbf0497e1e5efc62a71497b18917c9d672e57fa290a7f8009bf1",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "f09f4fe7680ba19b53d8d9b65f2387676c43dc116f6edba3f29d2c9838e3535d",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "d940ac2060525af7f146da14613c7197633aac9416132cc3982f24ec2a2c31f8",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666cd-integrity-provenance-separated-observation-authority.spec.ts",
+      "artifact_type": "focused_adversarial_tests",
+      "sha256": "1e255a2eff895c4b133e15d5a3c1c69e33b9dea06debdda8d448fd1f847f5220",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "5fae52c1f0ad833c21585a58ad113c9ab1d7961dab4fb82c82028277ef8e198f",
+  "digest_checkpoints": {
+    "before_regression": "5fae52c1f0ad833c21585a58ad113c9ab1d7961dab4fb82c82028277ef8e198f",
+    "after_regression": "5fae52c1f0ad833c21585a58ad113c9ab1d7961dab4fb82c82028277ef8e198f",
+    "after_independent_review": "5fae52c1f0ad833c21585a58ad113c9ab1d7961dab4fb82c82028277ef8e198f"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666cd_focused": "15/15 passed",
+    "relevant_action_665_666_including_cd": "404/404 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed in UTC and Europe/Stockholm",
+    "adversarial_exported_callback_probe": "1/1 reproduced finding 666CE-M1"
+  },
+  "review": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work_for_request_reader": true,
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666ce-integrity-provenance-separation-freeze-manifest.json",
+    "docs/action-666ce-integrity-provenance-separation-independent-rereview.md",
+    "docs/action-666ce-integrity-provenance-separation-threat-matrix.json"
+  ]
+}

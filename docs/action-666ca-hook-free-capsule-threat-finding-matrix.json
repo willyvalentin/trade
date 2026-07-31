@@ -1,0 +1,79 @@
+{
+  "matrix_version": "action_666ca_hook_free_capsule_threat_finding_matrix_v1",
+  "action": "666CA",
+  "normative_preservation_ref": "refs/codex-preservation/action-666bz",
+  "normative_preservation_object": "0dbcb4d2404e383a08c4764097c52881fcc4f15b",
+  "canonical_normative_digest": "360457eec36ad87deb55643c10a3de15942798606dfa93f062736d8ac29bb94e",
+  "threats": [
+    {
+      "id": "BY-M1-own-keys",
+      "result": "closed",
+      "evidence": "predecessor hook executes; BZ unknown Proxy ownKeys counter remains zero"
+    },
+    {
+      "id": "BY-M1-accessor",
+      "result": "closed",
+      "evidence": "predecessor accessor executes; BZ unknown accessor counter remains zero"
+    },
+    {
+      "id": "proxy-descriptor-prototype-get-iterator",
+      "result": "closed",
+      "evidence": "all unknown Proxy hook probes remain zero before sanitized rejection"
+    },
+    {
+      "id": "caller-message-leakage",
+      "result": "closed",
+      "evidence": "canonical output contains only untrusted_observation_container"
+    },
+    {
+      "id": "clone-or-proxy-substitution",
+      "result": "closed",
+      "evidence": "private WeakMap provenance is identity-bound and is not inherited"
+    },
+    {
+      "id": "recognized-capsule-private-byte-tampering",
+      "result": "closed",
+      "evidence": "capsule and observation are frozen and verified against private canonical bytes and digests"
+    },
+    {
+      "id": "caller-self-mint",
+      "result": "open_major",
+      "finding": "666CA-M1",
+      "evidence": "exported generic mint inserts caller-selected supported primitives into the private provenance WeakMap"
+    },
+    {
+      "id": "bigint-and-number-collision",
+      "result": "closed",
+      "evidence": "lossless primitive value, observation, capsule, verification, and result digests remain distinct"
+    },
+    {
+      "id": "unknown-container-false-content-identity",
+      "result": "closed",
+      "evidence": "unknown rejection sets content_identity_claimed false and all content digests null"
+    },
+    {
+      "id": "cross-process-or-timezone-drift",
+      "result": "closed",
+      "evidence": "UTC and Europe/Stockholm deterministic retry and golden parity passed"
+    },
+    {
+      "id": "default-off-work",
+      "result": "closed",
+      "evidence": "disabled and kill-switch modes report zero request, mint, provenance, property, rebuild, and digest counters"
+    },
+    {
+      "id": "database-or-live-impact",
+      "result": "closed",
+      "evidence": "server-only fixture foundation adds no DB, provider, persistence, writer, or live consumer"
+    }
+  ],
+  "findings": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false,
+  "live_impact": false
+}

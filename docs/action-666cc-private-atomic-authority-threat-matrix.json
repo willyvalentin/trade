@@ -1,0 +1,79 @@
+{
+  "matrix_version": "action_666cc_private_atomic_authority_threat_matrix_v1",
+  "action": "666CC",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cb",
+  "normative_preservation_object": "4145dd4282428101ae41162fc583867e7b91503e",
+  "canonical_normative_digest": "0ffadc6d2f4400d1722fb1d6ee5b01b7c1f4e194403fc7349ed7db05acf27c50",
+  "threats": [
+    {
+      "id": "CA-M1-public-capsule-mint",
+      "result": "closed",
+      "evidence": "historical predecessor mint remains reproducible; CB runtime and source export inventories contain no mint or generic capsule factory"
+    },
+    {
+      "id": "capsule-or-provenance-exposure",
+      "result": "closed",
+      "evidence": "public atomic operation returns deep-frozen plain evidence and never returns a capsule or WeakMap provenance object"
+    },
+    {
+      "id": "self-minted-cloned-substituted-cross-module-container",
+      "result": "closed",
+      "evidence": "arbitrary object readback rejects before object enumeration and no public CB operation accepts capsules"
+    },
+    {
+      "id": "unknown-proxy-or-accessor-hooks",
+      "result": "closed",
+      "evidence": "ownKeys, descriptor, prototype, get, iterator, and accessor counters remain zero with sanitized rejection"
+    },
+    {
+      "id": "genuine-canonical-string-and-uint8array-readback",
+      "result": "closed",
+      "evidence": "canonical string and genuine Uint8Array rebuild byte-identical evidence and readback digest"
+    },
+    {
+      "id": "self-consistent-canonical-readback-provenance-forgery",
+      "result": "open_major",
+      "finding": "666CC-M1",
+      "evidence": "attacker-selected capsule and primitive digest fields with a recomputed public evidence digest are accepted as verified provenance"
+    },
+    {
+      "id": "closed-schema-or-canonical-order-bypass",
+      "result": "closed",
+      "evidence": "missing, extra, malformed, noncanonical, and stale-digest payloads are rejected; finding 666CC-M1 is limited to self-consistent semantic replacement"
+    },
+    {
+      "id": "malformed-input-failure-collision",
+      "result": "closed",
+      "evidence": "different canonical input strings bind different observed-input and readback digests"
+    },
+    {
+      "id": "lossless-primitive-collision",
+      "result": "closed",
+      "evidence": "signed BigInt, 0/-0, NaN, and infinities retain distinct primitive observation and terminal digests"
+    },
+    {
+      "id": "cross-process-or-timezone-drift",
+      "result": "closed",
+      "evidence": "UTC and Europe/Stockholm deterministic retry and golden parity passed"
+    },
+    {
+      "id": "default-off-or-kill-switch-work",
+      "result": "closed",
+      "evidence": "disabled and kill-switch modes report zero request, mint, provenance, readback, parse, and digest counters"
+    },
+    {
+      "id": "database-provider-write-or-live-impact",
+      "result": "closed",
+      "evidence": "server-only fixture foundation adds no DB, provider, persistence, writer, or live consumer"
+    }
+  ],
+  "findings": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false,
+  "live_impact": false
+}

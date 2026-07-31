@@ -1,0 +1,105 @@
+{
+  "manifest_version": "action_666ci_lossless_byte_successor_freeze_manifest_v1",
+  "action": "666CI",
+  "review_started_at": "2026-07-31T17:47:15+02:00",
+  "normative_preservation_ref": "refs/codex-preservation/action-666ch",
+  "normative_preservation_object": "ab86dff75c6a1b0e31e535dac3b4888af03fc376",
+  "normative_parent": "2698971164bca458fcc6b8cb908cae3a140fb8d5",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "immutable_byte_snapshot": "canonical_lossless_immutable_byte_snapshot_v1",
+    "raw_byte_observation": "canonical_raw_byte_observation_v1",
+    "immutable_byte_readback": "canonical_immutable_byte_readback_v1",
+    "integrity_provenance_separation": "canonical_integrity_provenance_separation_v2"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666ch-golden-lossless-immutable-byte-snapshot-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "dcd07148b3209a3befcf458d27107e431370b2c7516eda9b05d9856cd4df446f",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666ch-lossless-immutable-byte-snapshot.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "a62d2e3ea871764828a141e63349523eacbe6829c5414ced8e48e4fd104e235a",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-lossless-immutable-byte-snapshot-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "7e518a0a88ef03205071497aa05767115c5ad825289207fea17d29304eeb650a",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-lossless-immutable-byte-snapshot.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "88e0d55a8363ac3928f9373e1b22c8551d8d8fc7c060ef76d550bfc53eae950a",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666ch-lossless-immutable-byte-snapshot.spec.ts",
+      "artifact_type": "focused_adversarial_tests",
+      "sha256": "8dc04b6d289dfcc2426a4ca03017b658a4ee790685e6bdb952620a1e43108188",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "81bb1730ba3e96c61057a9314fe84cb9b9e434b55d63abffae395e577852141e",
+  "digest_checkpoints": {
+    "before_regression": "81bb1730ba3e96c61057a9314fe84cb9b9e434b55d63abffae395e577852141e",
+    "after_regression": "81bb1730ba3e96c61057a9314fe84cb9b9e434b55d63abffae395e577852141e",
+    "after_independent_review": "81bb1730ba3e96c61057a9314fe84cb9b9e434b55d63abffae395e577852141e"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "full_predecessor_and_successor_tree": "13/13",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666ch_focused": "16/16 passed",
+    "relevant_action_665_666_including_ch": "435/435 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed in separate UTC and Europe/Stockholm processes",
+    "independent_adversarial_review": "CG-M1 and CG-M2 reproduced against CF and verified closed in CH"
+  },
+  "build_applicability": {
+    "classification": "scope_external_pre_existing_failure",
+    "success": false,
+    "exact_base": "f4453f5fc9b224a7a3c807785e06002d66f03043",
+    "builder": "next build --webpack",
+    "compilation": "passed",
+    "type_check": "failed",
+    "failure": "app/api/hb307c/ping/route.ts exports hb307cCanaryRouteBuildMarker, which is not a valid Next.js route export",
+    "same_failure_precedes_ch": true
+  },
+  "review": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0,
+    "approved": true,
+    "local_checkpoint_ready": true
+  },
+  "safety": {
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666ci-lossless-byte-successor-freeze-manifest.json",
+    "docs/action-666ci-lossless-byte-successor-independent-review.md",
+    "docs/action-666ci-lossless-byte-successor-threat-matrix.json"
+  ]
+}

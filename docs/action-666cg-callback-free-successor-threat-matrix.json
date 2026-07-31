@@ -1,0 +1,105 @@
+{
+  "matrix_version": "action_666cg_callback_free_successor_threat_matrix_v1",
+  "action": "666CG",
+  "normative_preservation_ref": "refs/codex-preservation/action-666cf",
+  "normative_preservation_object": "f3979a8ac43197f4a76531f50081d0b8f8b37654",
+  "canonical_normative_digest": "7cb74c1e85e290f903c4d44b942949a19935780d025cdfde50bbbd740d315e00",
+  "threats": [
+    {
+      "id": "666CE-M1-exported-request-reader",
+      "result": "closed",
+      "evidence": "CD executes and leaks the historical callback; CF exposes no reader or function-valued public input and executes the direct function probe zero times"
+    },
+    {
+      "id": "source-declaration-runtime-callback-surface",
+      "result": "closed",
+      "evidence": "all three inventories expose only constants, artifact roles, types and the direct string-or-Uint8Array operation"
+    },
+    {
+      "id": "nested-function-container",
+      "result": "closed",
+      "evidence": "arbitrary containers fail before enumeration, so nested functions at every position remain unreachable"
+    },
+    {
+      "id": "proxy-accessor-iterator-tojson-valueof-symbol-hooks",
+      "result": "closed",
+      "evidence": "focused probes record zero caller hooks and sanitized closed reasons"
+    },
+    {
+      "id": "uint8array-subclass-or-detached-buffer",
+      "result": "closed",
+      "evidence": "subclasses are rejected before subclass hooks; detached buffers fail without exception detail"
+    },
+    {
+      "id": "ordinary-buffer-post-return-mutation",
+      "result": "closed",
+      "evidence": "the completed deep-frozen result remains byte-identical after caller buffer mutation"
+    },
+    {
+      "id": "shared-buffer-after-entry-mutation",
+      "result": "open_major",
+      "finding": "666CG-M2",
+      "evidence": "an exact SharedArrayBuffer-backed Uint8Array is accepted and concurrent mutation produces multiple captured snapshots/results"
+    },
+    {
+      "id": "caller-or-parser-exception-message-leak",
+      "result": "closed",
+      "evidence": "no callback executes and malformed/internal parsing failures expose only closed reasons"
+    },
+    {
+      "id": "serialized-integrity-to-provenance-upgrade",
+      "result": "closed",
+      "evidence": "serialized evidence fixes provenance, trust and admission false even after fully recomputed public digests"
+    },
+    {
+      "id": "mint-trust-upgrade-or-private-authority-escape",
+      "result": "closed",
+      "evidence": "source, declaration and runtime exports expose no mint, factory, trust callback or private capsule"
+    },
+    {
+      "id": "malformed-noncanonical-mismatch-identity-separation",
+      "result": "closed",
+      "evidence": "safely captured canonical strings bind distinct terminal and failure identities"
+    },
+    {
+      "id": "invalid-utf8-byte-identity-separation",
+      "result": "open_major",
+      "finding": "666CG-M1",
+      "evidence": "0xff and 0xfe byte inputs are both fully observed but collapse to identical null-observation failure identities"
+    },
+    {
+      "id": "default-off-or-kill-switch-work",
+      "result": "closed",
+      "evidence": "snapshot, byte-read, parse and digest counters remain zero"
+    },
+    {
+      "id": "cross-process-or-timezone-drift",
+      "result": "closed",
+      "evidence": "fresh UTC and Europe/Stockholm processes reproduce the golden evidence"
+    },
+    {
+      "id": "bv-bx-bz-cd-interop-regression",
+      "result": "closed",
+      "evidence": "predecessor private authority and lossless primitive fixtures retain expected terminals"
+    },
+    {
+      "id": "db-provider-persistence-write-or-live-effect",
+      "result": "closed",
+      "evidence": "static scan and regression show no such capability or consumer"
+    },
+    {
+      "id": "production-build-applicability",
+      "result": "scope_external_pre_existing_failure",
+      "evidence": "exact base and CF both compile then fail the same hb307c invalid route-export type check; failure is not classified as success"
+    }
+  ],
+  "findings": {
+    "blocker": 0,
+    "major": 2,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false,
+  "live_impact": false
+}

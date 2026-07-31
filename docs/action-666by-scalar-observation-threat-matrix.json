@@ -1,0 +1,108 @@
+{
+  "matrix_version": "action_666by_scalar_observation_threat_matrix_v1",
+  "action": "666BY",
+  "normative_digest": "e470de83ddea47fa527aa2096c29401ab641d0483a9d6d170fdbcc92166b24b6",
+  "cases": [
+    {
+      "id": "bw_m1_bigint_collision",
+      "expected": "predecessor collision reproduced and BX identities differ",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "signed_bigint_matrix",
+      "expected": "positive, negative, and zero values remain distinct",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "ieee754_edge_matrix",
+      "expected": "0, -0, finite, fractional, NaN, and infinities remain distinct",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "string_boolean_null_undefined_matrix",
+      "expected": "closed tags and canonical representations remain distinct",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "same_text_type_substitution",
+      "expected": "type substitution changes value and observation identity",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "bounded_and_nonrepresentable_identity",
+      "expected": "bounded evidence never claims unavailable full content identity",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "creation_path_caller_hooks",
+      "expected": "toJSON getter and coercion replacement execute zero times",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "verification_proxy_own_keys",
+      "expected": "fail closed without hook execution or leaked exception",
+      "observed": "Proxy ownKeys executed once and caller message escaped",
+      "finding": "666BY-M1"
+    },
+    {
+      "id": "verification_accessor",
+      "expected": "fail closed without getter execution or leaked exception",
+      "observed": "canonical_value getter executed once and caller message escaped",
+      "finding": "666BY-M1"
+    },
+    {
+      "id": "terminal_failure_rebuild",
+      "expected": "observation, predecessor, failure, and terminal evidence independently rebuild",
+      "observed": "passed for canonical plain frozen results",
+      "finding": null
+    },
+    {
+      "id": "cross_process_cross_timezone",
+      "expected": "identical golden scenario bytes",
+      "observed": "UTC and Europe/Stockholm digests matched",
+      "finding": null
+    },
+    {
+      "id": "bv_authority_schema_replay",
+      "expected": "BV authority, nested schema, and replay boundaries remain intact",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "default_off_zero_work",
+      "expected": "zero request, observation, predecessor, and digest work",
+      "observed": "passed",
+      "finding": null
+    },
+    {
+      "id": "database_and_live_scope",
+      "expected": "no database, provider, writer, persistence, or live import",
+      "observed": "passed",
+      "finding": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "666BY-M1",
+      "severity": "major",
+      "title": "Untrusted observation verifier executes caller hooks and leaks exceptions",
+      "status": "open",
+      "remediated_in_review": false
+    }
+  ],
+  "counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "approved": false,
+  "local_checkpoint_ready": false
+}

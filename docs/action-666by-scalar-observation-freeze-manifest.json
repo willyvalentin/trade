@@ -1,0 +1,95 @@
+{
+  "manifest_version": "action_666by_scalar_observation_freeze_manifest_v1",
+  "action": "666BY",
+  "review_started_at": "2026-07-30T00:00:00+02:00",
+  "predecessor_preservation_ref": "refs/codex-preservation/action-666bx",
+  "predecessor_preservation_object": "22ff041c8703ebd11f9023f7d21546b69d79e814",
+  "predecessor_parent": "02e714e2cc20ab2b9d37e5e2311bf78342210b88",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "issuance": "canonical_lossless_invalid_scalar_observation_issuance_v3",
+    "primitive_observation": "canonical_lossless_primitive_observation_v1",
+    "primitive_value_digest": "canonical_lossless_primitive_value_digest_v1",
+    "failure_identity": "canonical_lossless_invalid_scalar_failure_identity_v1"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666bx-golden-lossless-invalid-scalar-observation-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "abf61e72174ded0fc7ea4e0ad7fdbc4ac87dc2128352604146360426267eddc5",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666bx-lossless-invalid-scalar-observation.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "3ad263557f92203f0af463435eeec1f7e137903572f85b7453488c1c1441a4ca",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "a008da5c2831ac8ddcf657eaef404f708f32b5929a3c43b32f4dcb966b65d1b8",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "396f38863a8b507ad0f72af3e100835846f0d7db7484575eac7a412e97e1a97f",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666bx-lossless-invalid-scalar-observation.spec.ts",
+      "artifact_type": "focused_tests",
+      "sha256": "c0a63439928bde6f5c98bf1dda053d56c12276597ce2a7627d560e0bcc0c70fe",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "e470de83ddea47fa527aa2096c29401ab641d0483a9d6d170fdbcc92166b24b6",
+  "digest_checkpoints": {
+    "before_regression": "e470de83ddea47fa527aa2096c29401ab641d0483a9d6d170fdbcc92166b24b6",
+    "after_regression": "e470de83ddea47fa527aa2096c29401ab641d0483a9d6d170fdbcc92166b24b6",
+    "after_independent_review": "e470de83ddea47fa527aa2096c29401ab641d0483a9d6d170fdbcc92166b24b6"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "normative_artifacts_modified_during_review": 0
+  },
+  "regression": {
+    "action_666bx_focused": "16/16 passed",
+    "relevant_action_665_666": "342/342 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_and_timezone_determinism": "passed; UTC and Europe/Stockholm both 6b7e867acd2ebec6bbbc661ab2ba5dce0ca5d3309a2f3e732f0333bdf1aff3ac"
+  },
+  "review": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work": true,
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666by-scalar-observation-freeze-manifest.json",
+    "docs/action-666by-scalar-observation-independent-rereview.md",
+    "docs/action-666by-scalar-observation-threat-matrix.json"
+  ]
+}

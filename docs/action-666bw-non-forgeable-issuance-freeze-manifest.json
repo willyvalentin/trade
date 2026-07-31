@@ -1,0 +1,98 @@
+{
+  "manifest_version": "action_666bw_non_forgeable_issuance_freeze_manifest_v1",
+  "action": "666BW",
+  "review_started_at": "2026-07-30T00:00:00+02:00",
+  "base_commit": "e9cfbcc14d4fb8b8973712ed62e5fcdf5565be38",
+  "predecessor_preservation_ref": "refs/codex-preservation/action-666bv",
+  "predecessor_preservation_object": "09bf4d2fb8791ad072ae71e8f3a6b2d17c8fd938",
+  "normative_artifact_count": 5,
+  "normative_contracts": {
+    "issuance": "canonical_non_forgeable_binding_snapshot_issuance_v2",
+    "issuer_authority": "canonical_non_forgeable_issuer_authority_v2",
+    "authority_envelope": "canonical_non_forgeable_issuer_authority_envelope_v2",
+    "nested_request_schema": "canonical_non_forgeable_nested_request_schema_v2",
+    "invalid_request_observation": "canonical_non_forgeable_invalid_request_observation_v2"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-666bv-golden-non-forgeable-snapshot-issuance-report.json",
+      "artifact_type": "synthetic_golden_report",
+      "sha256": "3a6cb74e2e398d522a59b62ea9a2404743cb8687c43c2c69fc952c7b43100ba6",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "docs/action-666bv-non-forgeable-snapshot-issuance.md",
+      "artifact_type": "contract_documentation",
+      "sha256": "74bf88ddad2637bc4abd2e22dac7d989c05626142634aad4664e01122af3b85d",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-non-forgeable-binding-snapshot-issuance-fixtures.ts",
+      "artifact_type": "synthetic_fixtures",
+      "sha256": "0c273d76a01ca410da6163b8fbd6ab5be9da5ff051749af8102df1ee03dd49b2",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "lib/server/canonical-non-forgeable-binding-snapshot-issuance.ts",
+      "artifact_type": "server_only_implementation",
+      "sha256": "c3e3e460c16a257d7043e6d7ea789dd564b599b070197e98149439cdb4537022",
+      "git_status": "preserved_untracked",
+      "normative": true
+    },
+    {
+      "path": "tests/e2e/action-666bv-non-forgeable-snapshot-issuance.spec.ts",
+      "artifact_type": "focused_tests",
+      "sha256": "3e7d85e5907bc1eb5828c91d7ddbafb9ee9ea9dad77b5b0afb115541884b227e",
+      "git_status": "preserved_untracked",
+      "normative": true
+    }
+  ],
+  "canonical_digest_algorithm": "sha256_sorted_path_nul_sha256_lf_v1",
+  "canonical_normative_digest": "19779280218a4d108c18606b66246fc98ccd96d6d870d5a770b9af9e52b93386",
+  "digest_checkpoints": {
+    "before_regression": "19779280218a4d108c18606b66246fc98ccd96d6d870d5a770b9af9e52b93386",
+    "after_regression": "19779280218a4d108c18606b66246fc98ccd96d6d870d5a770b9af9e52b93386",
+    "after_independent_review": "19779280218a4d108c18606b66246fc98ccd96d6d870d5a770b9af9e52b93386"
+  },
+  "byte_parity": {
+    "preservation_object_to_worktree": "5/5",
+    "preservation_object_to_clean_room_checkout": "5/5"
+  },
+  "regression": {
+    "action_666bv_focused": "17/17 passed",
+    "independent_threat_matrix": "8/8 expected-positive assertions passed",
+    "independent_collision_probe": "0/1 passed; intentionally exposed 666BW-M1",
+    "relevant_action_665_666": "325/325 passed",
+    "action_664_db_free": "161/161 passed",
+    "postgresql": "not_applicable_db_forbidden_action",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_golden_parity": "passed",
+    "git_diff_check": "passed",
+    "cross_process_determinism": "passed; 2/2 authority digest and predecessor-root observations matched"
+  },
+  "review": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0,
+    "approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "default_off": true,
+    "kill_switch_zero_work": true,
+    "database_activity_performed": false,
+    "provider_activity_performed": false,
+    "persistence_performed": false,
+    "live_impact": false
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-666bw-non-forgeable-issuance-freeze-manifest.json",
+    "docs/action-666bw-non-forgeable-issuance-independent-rereview.md",
+    "docs/action-666bw-non-forgeable-issuance-threat-matrix.json"
+  ]
+}
