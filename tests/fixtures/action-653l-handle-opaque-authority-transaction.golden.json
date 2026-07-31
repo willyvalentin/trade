@@ -1,0 +1,31 @@
+{
+  "contract_version": "action_653l_handle_opaque_instruction_v4",
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_envelope_digest": "action_653l_instruction_envelope_de3ec4f64e389f98ee78f8b13b9051c25ea4b492c7f75e752d7569a9b860748a",
+    "common_snapshot_digest": "action_653l_public_snapshot_b169f8bb9b31660bd744f7ed54dd5393c205f077b94d8875c2a3f15e023d9928",
+    "common_capsule_digest": "action_653l_handle_opaque_capsule_c2059826af1f9e447dde5704f948645e95c0d2f6be2f63fd2ea02e1168fefc25",
+    "common_instruction_digest": "action_653l_broker_neutral_instruction_d03ddee135738bfa29eae0eac36fbf2d185e711c3e02166e6667c319d8cdfcbb",
+    "common_receipt_digest": "action_653l_private_consumption_receipt_e8d321f3a875f3511edd77d021f540bf2b7cd83678822eb3cc13b4f25aee2cd7",
+    "common_replay_evidence_digest": "action_653l_synthetic_replay_evidence_62f36b76c2f82b1ce39fecf53e88418d0213da530dd9f6f9763941f2b89f9047"
+  },
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "broker_neutral": true,
+    "handle_opaque": true,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}

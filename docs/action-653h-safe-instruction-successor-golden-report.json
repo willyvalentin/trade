@@ -1,0 +1,41 @@
+{
+  "report_version": "action_653h_safe_instruction_successor_golden_v1",
+  "contract_version": "action_653h_safe_instruction_successor_v2",
+  "snapshot_policy_version": "action_653h_iterative_descriptor_snapshot_v1",
+  "pre_consumption_policy_version": "action_653h_all_fallible_validation_before_consumption_v1",
+  "fixture_classification": "synthetic_only",
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_snapshot_digest": "action_653h_snapshot_fa43d76fa59c5f9bc68c00a5c49a0df2028b911b6d2f44af0a27e123206ab8b5",
+    "common_envelope_digest": "action_653h_instruction_envelope_8b34666c2f559434c9473dc8995187d3aa6550d37647fb63457b6f2acf246e93",
+    "common_instruction_digest": "action_653h_broker_neutral_instruction_fa87eca6071b14c59b5cb0641e2e0370325ee8c02d78520cf4a7e6ac0ae6a0c3",
+    "common_replay_evidence_digest": "action_653h_synthetic_replay_evidence_f618ad8d7f376bab97192932d418825e70996dcfd2b29988e8cd53e9d1b828f7"
+  },
+  "remediation": {
+    "m1_nested_accessor_getter_reads": 0,
+    "m1_closed": true,
+    "m2_invalid_attempt_consumptions": 0,
+    "m2_correct_retry_consumptions": 1,
+    "m2_closed": true
+  },
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "real_broker_evidence": false,
+    "real_fill": false,
+    "performance_eligible": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false,
+    "full_execution_regression_passed": false
+  }
+}
