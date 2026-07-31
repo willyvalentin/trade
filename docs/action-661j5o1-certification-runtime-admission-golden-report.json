@@ -1,0 +1,32 @@
+{
+  "action": "661J.5O.1",
+  "admission_identity_digest": "b24080e9d746c3fdaf467a622f18db3b8b4b5d0881c3686cdd3df7d78aea1e15",
+  "admission_version": "action_661j5o1_certification_backed_runtime_admission_v1",
+  "artifact_count": 5,
+  "authorities": {
+    "consumer_module_sha256": "110a919401aee396508ba6d393132ed41e400343ea209559cdc1003eba4f69c5",
+    "consumer_normative_digest": "2793ec54bfdbc15eae21dc587c970e23ac1b5f7f1439a7efed6e6b32055c1636",
+    "delivery_digest": "80024a817857603d508d094e2e53616dfab48ba60ac661211ff3fa2672ad5d0e",
+    "final_aggregate_digest": "98064a290926d7b2ade45965eec3a21b41819763cb667a3a0c54f618600fe99d",
+    "final_freeze_manifest_digest": "9e6f8237a5f760c0ef34b2783eca69d7d1496a935d984bc8f07a92493982a4a6",
+    "final_freeze_manifest_file_sha256": "2fde89c7906057516d820707c726b7f93005e491c56d80799a2568805d1ce5ce",
+    "recovery_disclosure_file_sha256": "06efa3ca53af693e8478a068f4e2202c942300346d208511d921b0eec2993aeb"
+  },
+  "default_off": {
+    "admission_digests_computed": 0,
+    "admission_issuances": 0,
+    "consumer_invocations": 0
+  },
+  "fixture_inventory": 28,
+  "golden_source_artifacts": {
+    "implementation_sha256": "2000e75bd80d3f1f7e58042e1b4f68ca1bac14a80c51aeba259fbd0fe245cfc3",
+    "synthetic_fixture_sha256": "ded6461cbb9cab6b8de138dfb9f0de003734a0ea408537173c2e928818879d8c",
+    "test_spec_sha256": "443228bb0d6ee46624b65830bb1f809b7947c040a048db30d14082624d4b6615"
+  },
+  "policy_digest": "5adbd3b5e223ceec6acd83831650f9cd93ca64fd878375901e0c29ac70881b21",
+  "runtime_execution_performed": false,
+  "scenario_inventory": 14,
+  "shard_inventory": 28,
+  "status": "verified_pending_independent_freeze_review",
+  "trust_model": "module_private_provenance"
+}
