@@ -1,0 +1,65 @@
+{
+  "action": "661J.5N.1",
+  "artifact_hashes": {
+    "contract_documentation_sha256": "c75122681cc20a6df79dbdd4cd539bdb2c0c7481ae31aa57f1c0924a3d634d11",
+    "consumer_implementation_sha256": "1c727c973d04f094bec3527e278eec00746be636f3c28f800725529bc0706a21",
+    "focused_tests_sha256": "8ffea81c2bd63155eadcb764250a2d688118ec23a3352321d9231721ff1122c0",
+    "synthetic_fixtures_sha256": "340da479567f9782b77a7677cf8584e745d4740b4cc8d505c9a1fe4d91549a79"
+  },
+  "authorities": {
+    "base_commit": "e04fb0fe20562ae5d7acfdf593e07a4040eda732",
+    "delivery_digest": "80024a817857603d508d094e2e53616dfab48ba60ac661211ff3fa2672ad5d0e",
+    "final_aggregate_digest": "98064a290926d7b2ade45965eec3a21b41819763cb667a3a0c54f618600fe99d",
+    "final_freeze_manifest_digest": "9e6f8237a5f760c0ef34b2783eca69d7d1496a935d984bc8f07a92493982a4a6"
+  },
+  "consumer_version": "action_661j5n1_default_off_runtime_certification_consumer_v1",
+  "default_off_observation": {
+    "bytes_read": 0,
+    "digests_computed": 0,
+    "file_reads": 0,
+    "reason": "consumer_disabled",
+    "status": "incomplete"
+  },
+  "digest_binding_model": "external_pinned_authorities_plus_independent_rebuild",
+  "enabled_observation": {
+    "counts": {
+      "bytes_read": 8331462,
+      "digests_computed": 1191,
+      "file_reads": 52,
+      "fixtures_verified": 28,
+      "metadata_reads": 245,
+      "scenarios_verified": 14,
+      "shards_verified": 28
+    },
+    "reason": "certification_chain_verified",
+    "status": "certified"
+  },
+  "execution_boundaries": {
+    "docker": false,
+    "environment_secret_access": false,
+    "filesystem_writes": false,
+    "network": false,
+    "production_impact": false,
+    "subprocesses_in_consumer": false
+  },
+  "golden_report_version": "action_661j5n1_runtime_certification_consumer_golden_report_v1",
+  "result_taxonomy": [
+    "certified",
+    "incomplete",
+    "tampered",
+    "incompatible",
+    "scope_rejected"
+  ],
+  "validation": {
+    "aggregate_downgrade_rejected": true,
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "failure_atomicity_rebuilt": true,
+    "full_chain_rebuilt": true,
+    "path_and_symlink_boundary": true,
+    "recovery_disclosure_verified": true,
+    "self_consistent_inner_tampering_rejected": true,
+    "successful_transition_rebuilt": true,
+    "synthetic_missing_extra_renamed_reordered_matrix": true
+  }
+}
