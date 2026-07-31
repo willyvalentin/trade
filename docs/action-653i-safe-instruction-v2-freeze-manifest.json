@@ -1,0 +1,92 @@
+{
+  "manifest_version": "action_653i_safe_instruction_v2_freeze_v1",
+  "action": "653I",
+  "created_at": "2026-07-30",
+  "authority": {
+    "base": "3fc1e6e0ec1fac12d3cb528bebcd631546033378",
+    "preservation_ref": "refs/codex-preservation/action-653h-safe-instruction-successor",
+    "preservation_object": "fee639242b73084ef7c52878ae03bcdf9dee73fc",
+    "preservation_tree": "2e7e31121e8466d547967558865eecf0aed9e281"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-653h-safe-instruction-successor-golden-report.json",
+        "sha256": "58e753482cddddf58e5facd6459fc39a288ddafc8dfcc004a53e134cc2966f7e"
+      },
+      {
+        "path": "docs/action-653h-safe-instruction-successor.md",
+        "sha256": "78a1ccf357a9943d48cf5e8083f30c8830348b7e5f25a9a60f8e27784c9f9b10"
+      },
+      {
+        "path": "lib/action-653h-safe-instruction-successor.ts",
+        "sha256": "eb33f199bf1767410d6600e6d5a05444cfdcbe120fa7d9878d9abd7ce1180046"
+      },
+      {
+        "path": "tests/e2e/action-653h-safe-instruction-successor.spec.ts",
+        "sha256": "3baa677e5650da9314727712b5712bb78444f17ed1bd7418f8f3306dbb946976"
+      },
+      {
+        "path": "tests/fixtures/action-653h-safe-instruction-successor-fixtures.ts",
+        "sha256": "1b6df3745bf81736eaf7b313d9c7c7d3a5ba0986f8036bf9193af03a908f28c7"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "851bd4f9e091759410fb70ca986ecde991a0ac72be922e2c5e255297e6264cac"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-653i-safe-instruction-v2-freeze-manifest.json",
+      "docs/action-653i-safe-instruction-v2-independent-rereview.md",
+      "tests/e2e/action-653i-safe-instruction-v2-independent-rereview.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "851bd4f9e091759410fb70ca986ecde991a0ac72be922e2c5e255297e6264cac",
+    "after_regression": "851bd4f9e091759410fb70ca986ecde991a0ac72be922e2c5e255297e6264cac",
+    "after_independent_review": "851bd4f9e091759410fb70ca986ecde991a0ac72be922e2c5e255297e6264cac",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-653i-safe-instruction-v2-independent-rereview.spec.ts",
+    "suite_sha256": "49b72a6fb3e60105bd324a5145790f57e9c8260eef86e4dbbea8f2644bf7f7f3",
+    "result": "9 passed / 1 failed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 1,
+      "minor": 0,
+      "nit": 0
+    },
+    "finding_ids": [
+      "653I-M1"
+    ]
+  },
+  "validation": {
+    "action_653h_focused": "13/13 passed",
+    "action_650_to_653_predecessor_and_security_union": "163/163 passed",
+    "combined_frozen_regression": "176/176 passed",
+    "independent_rereview": "9 passed / 1 failed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_failure_identity_order_and_messages": "identical",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false,
+    "remediation_performed": false
+  }
+}
