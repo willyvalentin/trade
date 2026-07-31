@@ -1,0 +1,99 @@
+{
+  "manifest_version": "action_653m_handle_opaque_authority_transaction_freeze_v1",
+  "action": "653M",
+  "created_at": "2026-07-30",
+  "authority": {
+    "preservation_ref": "refs/codex-preservation/action-653l-handle-opaque-authority-transaction",
+    "preservation_object": "b8f523209ded5ae55dc8d66cbc3497df13230cd8",
+    "preservation_tree": "cbe754c5bc5663f9e58f82f218965a6c34d479b0"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-653l-handle-opaque-authority-transaction-contract.md",
+        "sha256": "a23ad0a53968382c7ec23b376cdc07158ee3e08766d7abb6b0e3f5a24b362ec8"
+      },
+      {
+        "path": "lib/action-653l-handle-opaque-authority-transaction.ts",
+        "sha256": "f0f495b20f2208c3d10fc5027c6a5c5febedaed0935005f2937b7834d167bf93"
+      },
+      {
+        "path": "tests/e2e/action-653l-handle-opaque-authority-transaction.spec.ts",
+        "sha256": "68aeb0ab6873dc3f76be5290d949c93100832dd55bbafa17d46e16032ff76f2c"
+      },
+      {
+        "path": "tests/fixtures/action-653l-handle-opaque-authority-transaction-fixtures.ts",
+        "sha256": "ab3e4ef82c3602a3503bc5d327b8ac1f2b62ad1f92278cd956c5528b61ef3c81"
+      },
+      {
+        "path": "tests/fixtures/action-653l-handle-opaque-authority-transaction.golden.json",
+        "sha256": "b6d4c064cf525ba3f5f50c29e1e57017e71a7289787b0ef6d1adabb545c8d56d"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "e52b05f8e352676819ab64df8a93dec780dcb1062e0e8fc059de5cc7f90b961a"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-653m-handle-opaque-authority-transaction-freeze-manifest.json",
+      "docs/action-653m-handle-opaque-authority-transaction-independent-rereview.md",
+      "tests/e2e/action-653m-handle-opaque-authority-transaction-independent-rereview.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "e52b05f8e352676819ab64df8a93dec780dcb1062e0e8fc059de5cc7f90b961a",
+    "after_regression": "e52b05f8e352676819ab64df8a93dec780dcb1062e0e8fc059de5cc7f90b961a",
+    "after_independent_review": "e52b05f8e352676819ab64df8a93dec780dcb1062e0e8fc059de5cc7f90b961a",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-653m-handle-opaque-authority-transaction-independent-rereview.spec.ts",
+    "suite_sha256": "12b1b422d89d2cd3a619e6a33fd8b097eb431c6f3bc6ab2a5573f757e3ea4839",
+    "result": "10 passed / 0 failed",
+    "normative_remediation_after_review_started": false,
+    "historical_reproductions": [
+      "653I-M1",
+      "653K-M1"
+    ],
+    "historical_reproductions_classification": "expected_predecessor_findings_not_v4_regressions",
+    "findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    }
+  },
+  "validation": {
+    "action_653l_focused": "13/13 passed",
+    "green_predecessor_and_security_union": "202/202 passed",
+    "independent_rereview": "10/10 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "json_and_diff_checks": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_selected_tracked_blob_drift": "0/577",
+    "broad_failure_identity_order_and_messages": "identical",
+    "broad_verification_method": "content-addressed preserved 653K evidence plus zero predecessor tracked-byte drift; a fresh broad collection was not used because Actions 376-379 require absent external materialization preconditions",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "restricted_successor_live_rerun": "22 passed / 5 failed",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "remediation_performed": false
+  }
+}
