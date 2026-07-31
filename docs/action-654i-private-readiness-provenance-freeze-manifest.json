@@ -1,0 +1,106 @@
+{
+  "manifest_version": "action_654i_private_readiness_provenance_freeze_v1",
+  "action": "654I",
+  "created_at": "2026-07-31",
+  "authority": {
+    "preservation_ref": "refs/codex-preservation/action-654h-private-non-reconstituting-readiness-provenance",
+    "preservation_object": "c966f467a1985baace65ec4a4c3d409f9e59844c",
+    "preservation_tree": "30f2b12af76e7aaa0a890a0434a1ac9d09f7389c",
+    "preservation_parent": "4c834e9818308fb79b579d90705dd91e7fc010a7"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-654h-private-readiness-provenance-contract.md",
+        "sha256": "51e8ae94e6e5818a36f22fa18b6da441298214f693be9175121e8f6c5926fca3"
+      },
+      {
+        "path": "docs/action-654h-private-readiness-provenance-golden-report.json",
+        "sha256": "5ac9540855e47767f0ac659ad7fcde116420f83645766d12e741b6fac7ac2450"
+      },
+      {
+        "path": "lib/action-654h-private-readiness-provenance.ts",
+        "sha256": "d25de5e914319d21cfe8fdbcc00a30854874c2997e36295b435e761451528502"
+      },
+      {
+        "path": "tests/e2e/action-654h-private-readiness-provenance.spec.ts",
+        "sha256": "ca12ffc9122811921cbf7e8278b8d17cd25ca6ab467cd8a7e7848fa9940a8cff"
+      },
+      {
+        "path": "tests/fixtures/action-654h-private-readiness-provenance-fixtures.ts",
+        "sha256": "3074a6397039f96c87a6260ec5c940d8b5176ae577a2574ab0c25a09d1d074cb"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "0eb818a2dbb6dd4a2923fa90c256189ba05a5567d9b0db77a807d9769f4d7941"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-654i-private-readiness-provenance-freeze-manifest.json",
+      "docs/action-654i-private-readiness-provenance-independent-rereview.md",
+      "tests/e2e/action-654i-private-readiness-provenance-independent-rereview.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "0eb818a2dbb6dd4a2923fa90c256189ba05a5567d9b0db77a807d9769f4d7941",
+    "after_regression": "0eb818a2dbb6dd4a2923fa90c256189ba05a5567d9b0db77a807d9769f4d7941",
+    "after_independent_review": "0eb818a2dbb6dd4a2923fa90c256189ba05a5567d9b0db77a807d9769f4d7941",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-654i-private-readiness-provenance-independent-rereview.spec.ts",
+    "suite_sha256": "d66209deabbf7a5c1c923a77e9e46d430ba5f5fc181108a77d51cf79f9de9993",
+    "result": "16 passed / 0 failed / 2 probe-only skipped",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    }
+  },
+  "validation": {
+    "action_654h_focused": "14/14 passed; 2 probe-only skipped",
+    "action_654i_independent_review": "16/16 passed; 2 probe-only skipped",
+    "current_predecessor_and_security_union": "183/183 passed",
+    "action_653t_content_addressed_rereview": "13/13 passed",
+    "cross_process_timezones": "UTC, Europe/Stockholm, America/New_York identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "json_and_diff_checks": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_failure_identity_order_and_messages": "identical content-addressed predecessor evidence",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical content-addressed predecessor evidence",
+    "full_execution_regression_passed": false
+  },
+  "remote_readback": {
+    "pr": 78,
+    "state": "OPEN",
+    "draft": true,
+    "merged": false,
+    "base": "1e2f0b8e699df41c426cfff69240a93cd3098e4c",
+    "head": "4c834e9818308fb79b579d90705dd91e7fc010a7",
+    "unchanged": true
+  },
+  "safety": {
+    "transport_attached": false,
+    "dispatch_permitted": false,
+    "broker_submission_allowed": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "reason": "zero blocker or major findings; frozen authority and all required security boundaries verified"
+  }
+}
