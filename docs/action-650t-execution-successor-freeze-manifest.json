@@ -1,0 +1,508 @@
+{
+  "schema_version": "action_650t_execution_successor_freeze_manifest_v1",
+  "generated_at": "2026-07-29T15:52:08Z",
+  "repository_scope": "/private/tmp/trade-action-650s",
+  "base_commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "branch": "codex/action-650s-execution-foundation-partial-successor",
+  "head": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "normative_paths": [
+    {
+      "path": "docs/action-650s-manual-confirmation-bound-execution-foundation-successor.md",
+      "sha256": "49cddb5626433f33ec473783487c1a87b25a254a8085df1fce53659f17b93db1"
+    },
+    {
+      "path": "lib/action-650s-confirmed-execution-replay.ts",
+      "sha256": "512ed7e83981179e5e7e87b9967b9cca9e0da945d20ff8da3507de9705db5547"
+    },
+    {
+      "path": "lib/action-650s-execution-identity.ts",
+      "sha256": "6b10f41df5eefd0d1b324f92f14f1c6e3745ee1e7984d7387ea83cca77778052"
+    },
+    {
+      "path": "lib/action-650s-execution-preparation.ts",
+      "sha256": "a06819a3a9878b2005c8971897f1563483f0ff5ba6d32d5d1fd707b7ff45469a"
+    },
+    {
+      "path": "lib/action-650s-manual-confirmation.ts",
+      "sha256": "a936d662c74d9ed0fc809f4494a6cb53fe6bf5ed9a5baf2236ddd9ba39e74915"
+    },
+    {
+      "path": "tests/e2e/action-650s-manual-confirmation-bound-successor.spec.ts",
+      "sha256": "ec176ad86fa3b719ab6c37628d9a6934f16bce332b1413b834d5b74ee43d51dd"
+    },
+    {
+      "path": "tests/e2e/action-650s-static-capability-boundary.spec.ts",
+      "sha256": "8420848f96c7f3ca6951d39c770c2ede1ea0a714f5667cbb76db18fc7a5f0153"
+    }
+  ],
+  "combined_normative_digest": "328a41a7015dfd6dd13bd5a338edd2ff244a151834d7c1123d3490d3f683589c",
+  "combined_digest_algorithm": "sha256(sorted(sha256sum-lines-with-relative-paths))",
+  "normative_byte_parity": {
+    "before_regression": "328a41a7015dfd6dd13bd5a338edd2ff244a151834d7c1123d3490d3f683589c",
+    "after_regression": "328a41a7015dfd6dd13bd5a338edd2ff244a151834d7c1123d3490d3f683589c",
+    "after_review": "328a41a7015dfd6dd13bd5a338edd2ff244a151834d7c1123d3490d3f683589c",
+    "byte_identical": true
+  },
+  "self_excluded_review_artifacts": [
+    "docs/action-650t-execution-successor-freeze-manifest.json",
+    "docs/action-650t-execution-successor-independent-review.md",
+    "tests/e2e/action-650t-independent-threat-review.spec.ts",
+    "/private/tmp/action-650t-base-broad.json",
+    "/private/tmp/action-650t-successor-broad.json",
+    "/private/tmp/action-650t-base-restricted.json",
+    "/private/tmp/action-650t-successor-restricted.json"
+  ],
+  "contract_and_capability_versions": [
+    "action_650s_runtime_identity_v1",
+    "action_650s_canonical_order_payload_v1",
+    "action_650s_handoff_identity_v1",
+    "action_650s_execution_preparation_v1",
+    "action_650s_manual_confirmation_capability_v1",
+    "action_650s_confirmed_execution_replay_v1"
+  ],
+  "manual_confirmation_authority": {
+    "actor_class": "human_operator",
+    "execution_mode": "semi_automatic",
+    "authority_scope": "simulated_broker_progress_and_terminal_result",
+    "session_bound": true,
+    "identity_bound": true,
+    "one_shot": true,
+    "real_submission_permitted": false,
+    "verified": false,
+    "verification_findings": [
+      "confirmed_at equal to session_expires_at is accepted",
+      "confirmed_at before the prepared waiting-state instant is accepted"
+    ]
+  },
+  "identity_inventory": {
+    "runtime": [
+      "execution_identity",
+      "lifecycle_identity",
+      "runtime_instance_identity",
+      "runtime_session_identity",
+      "created_at",
+      "context_digest"
+    ],
+    "handoff_and_payload": [
+      "runtime_identity_context_digest",
+      "handoff_identity",
+      "handoff_digest",
+      "canonical_order_payload_digest",
+      "broker_request_identity",
+      "idempotency_identity",
+      "correlation_identity",
+      "ticker",
+      "side",
+      "quantity",
+      "order_type",
+      "limit_price",
+      "stop_price"
+    ],
+    "idempotency_policy": {
+      "exact_duplicate_terminal_result": "idempotent_duplicate",
+      "conflicting_terminal_result": "simulated_needs_review",
+      "cross_execution_result": "blocked"
+    }
+  },
+  "state_machine_inventory": {
+    "preparation": [
+      "prepared",
+      "waiting_for_manual_confirmation",
+      "blocked"
+    ],
+    "confirmed_execution": [
+      "manual_confirmation_verified",
+      "simulated_broker_order_submitting",
+      "simulated_completed",
+      "simulated_failed",
+      "simulated_cancelled",
+      "simulated_needs_review",
+      "blocked"
+    ],
+    "terminal_reconciliation": [
+      "none",
+      "accepted",
+      "duplicate",
+      "needs_review"
+    ]
+  },
+  "scenario_inventory": {
+    "positive": [
+      "stop-loss, target, then recommendation-entry priority",
+      "semi-automatic preparation for all three candidate triggers",
+      "input-order and timezone determinism",
+      "runtime identity changes trace identity without changing the safety decision",
+      "explicit runtime, lifecycle, handoff, payload, request, idempotency, and correlation identities",
+      "deep-frozen identity-bound manual-confirmation capability",
+      "one-shot confirmed simulated execution",
+      "completed, failed, cancelled, and needs-review outcomes",
+      "broker progress accepted only after verified confirmation",
+      "exact duplicate terminal result is idempotent",
+      "restart and retry determinism with explicit identities"
+    ],
+    "negative": [
+      "broker progress or terminal result before confirmation",
+      "caller-asserted runtime provenance",
+      "automatic-mode substitution",
+      "caller-built, cloned, spread, serialized, structured-cloned, prototype, or proxy capability",
+      "execution, lifecycle, runtime, handoff, payload, request, idempotency, or correlation mismatch",
+      "session mismatch",
+      "expired confirmation and expired consumption",
+      "capability renewal and two-execution reuse",
+      "consumption before confirmation, double consumption, and reentrant reuse",
+      "confirmation after terminal state",
+      "conflicting terminal result",
+      "cross-execution broker result",
+      "ticker, side, quantity, price, and order-type drift",
+      "self-consistently recomputed structural tampering",
+      "dynamic transport, persistence, process, submission, production-entrypoint, or framework reachability"
+    ]
+  },
+  "baseline_reconciliation": {
+    "broad_selection": "^tests/e2e/(avanza|execution|post-trade)-.*\\.spec\\.ts$, excluding tests/e2e/execution-sandbox.spec.ts",
+    "base_result": {
+      "passed": 3451,
+      "failed": 13,
+      "total": 3464
+    },
+    "successor_result": {
+      "passed": 3451,
+      "failed": 13,
+      "total": 3464
+    },
+    "failure_identity_order_equal": true,
+    "normalized_error_messages_equal": true,
+    "relevant_source_bytes_equal": true,
+    "successor_reaches_any_failing_surface": false,
+    "failures": [
+      {
+        "order": 1,
+        "test": "UI-facing bridge files do not contain executable review/final/submit/order paths",
+        "spec": "tests/e2e/avanza-bridge-ui-safety-guard.spec.ts",
+        "line": 297,
+        "test_sha256": "58b7dd52f3279b7721d3bba93b0d0cae0275b8a4c7ef9eb74e74a8d686b3b6ba",
+        "error": "app/settings/page.tsx contains an existing POST method",
+        "relevant_source": "app/settings/page.tsx",
+        "relevant_source_sha256": "7b29f01f6c97648fb9a8031258aaf9fea12810a8c15360ce982a533577e734ea",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 2,
+        "test": "controlled live runtime proof success path exposes no public service-role surface",
+        "spec": "tests/e2e/execution-record-audit-writer-controlled-live-runtime-proof-success-regression.spec.ts",
+        "line": 240,
+        "test_sha256": "483bf85ba8c30ffe4d166312a3cc59227d550c7e390bed7e73df2486b8433433",
+        "error": "existing public-service-role scan match",
+        "relevant_source": "lib/post-trade-service-client-factory.ts",
+        "relevant_source_sha256": "058e1eaec836e46b8cb7dee626b0e47c1dc733dff57629f28fe3565b3c608430",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 3,
+        "test": "in-memory runtime proof harness proves success append intent and failed no-append behavior",
+        "spec": "tests/e2e/execution-record-audit-writer-in-memory-runtime-proof-harness.spec.ts",
+        "line": 239,
+        "test_sha256": "a2a764c7e94a44b449bf848846a2182e14fbdb206553da4301c70297f1adc37a",
+        "error": "productionRolloutApproved is true while the assertion expects false",
+        "relevant_source": "lib/server/execution-record-audit-writer-in-memory-runtime-proof-harness.ts",
+        "relevant_source_sha256": "8f51ed01546ed7d15d2ba84d274242b185de8d89a754f82a6aead79183a10fa1",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 4,
+        "test": "in-memory runtime proof harness preserves deterministic bounded idempotency, diagnostics, warnings, and no-retry evidence",
+        "spec": "tests/e2e/execution-record-audit-writer-in-memory-runtime-proof-harness.spec.ts",
+        "line": 303,
+        "test_sha256": "a2a764c7e94a44b449bf848846a2182e14fbdb206553da4301c70297f1adc37a",
+        "error": "productionRolloutApproved is true while the assertion expects false",
+        "relevant_source": "lib/server/execution-record-audit-writer-in-memory-runtime-proof-harness.ts",
+        "relevant_source_sha256": "8f51ed01546ed7d15d2ba84d274242b185de8d89a754f82a6aead79183a10fa1",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 5,
+        "test": "live adapter does not expose service-role values or downstream execution authority",
+        "spec": "tests/e2e/execution-record-audit-writer-live-adapter-boundary-regression.spec.ts",
+        "line": 243,
+        "test_sha256": "7100b5b93e4086636be3d1806a67a3e70807021b8442da1fe454262c11f00fa5",
+        "error": "existing service_role_key assignment-like source text",
+        "relevant_source": "lib/server/execution-record-audit-writer-service-role-adapter.ts",
+        "relevant_source_sha256": "292ad0809d2ae895e89aad5822bd925b389850fca92a7bfb0cfc8ca408f654c4",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 6,
+        "test": "audit writer route auth hardening source remains server-only and direct-write free",
+        "spec": "tests/e2e/execution-record-audit-writer-route-auth-hardening.spec.ts",
+        "line": 290,
+        "test_sha256": "28bc2cd460f1439d6479558a2aa2f3cceee958cda577346b3944eb3bbb6a8363",
+        "error": "route uses verifyApplicationSession while stale assertion expects getTradeAuthToken",
+        "relevant_source": "app/api/execution/audit/writer/route.ts",
+        "relevant_source_sha256": "b06704b7fe7ed80546cf034cf6cb93a2250de5d0a4adf05af58921b998a745a3",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 7,
+        "test": "route invocation harness invokes mocked route and preserves dev and auth gate behavior",
+        "spec": "tests/e2e/execution-record-audit-writer-route-invocation-harness.spec.ts",
+        "line": 368,
+        "test_sha256": "04c0c9b5f88c1f11a5bf583c40186aba85fe9ea30c50c224e4a2e120a2e7a133",
+        "error": "existing route returns 403 while stale assertion expects 401",
+        "relevant_source": "app/api/execution/audit/writer/route.ts",
+        "relevant_source_sha256": "b06704b7fe7ed80546cf034cf6cb93a2250de5d0a4adf05af58921b998a745a3",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 8,
+        "test": "route invocation harness preserves typed route response envelope",
+        "spec": "tests/e2e/execution-record-audit-writer-route-invocation-harness.spec.ts",
+        "line": 451,
+        "test_sha256": "04c0c9b5f88c1f11a5bf583c40186aba85fe9ea30c50c224e4a2e120a2e7a133",
+        "error": "existing hard-disabled route returns blocked 403 while stale assertion expects accepted 201",
+        "relevant_source": "app/api/execution/audit/writer/route.ts",
+        "relevant_source_sha256": "b06704b7fe7ed80546cf034cf6cb93a2250de5d0a4adf05af58921b998a745a3",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 9,
+        "test": "writer skeleton remains write-blocked and disconnected from adapter contract",
+        "spec": "tests/e2e/execution-record-audit-writer-service-role-adapter-dry-run-contract.spec.ts",
+        "line": 196,
+        "test_sha256": "9b86bda22770e0740f6d9e4145abb5ad180a4077ce31e364b454d4caa94b442e",
+        "error": "existing writer imports the service-role adapter while stale assertion forbids it",
+        "relevant_source": "lib/server/execution-record-audit-writer.ts",
+        "relevant_source_sha256": "f56eb099a78decf3e4d6ef09d6b3b5147d05286556f2e2ef919e94eed1371745",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 10,
+        "test": "writer skeleton remains write-blocked and disconnected from adapter fixtures",
+        "spec": "tests/e2e/execution-record-audit-writer-service-role-adapter-fixtures.spec.ts",
+        "line": 220,
+        "test_sha256": "9858b31794a7a15f44735b3788bb64e1af281b97bff336c0a1b100fbcf0f52a8",
+        "error": "existing writer imports the service-role adapter while stale assertion forbids it",
+        "relevant_source": "lib/server/execution-record-audit-writer.ts",
+        "relevant_source_sha256": "f56eb099a78decf3e4d6ef09d6b3b5147d05286556f2e2ef919e94eed1371745",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 11,
+        "test": "mock adapter mapping source and writer boundary remain non-live",
+        "spec": "tests/e2e/execution-record-audit-writer-service-role-adapter-mock-mapping.spec.ts",
+        "line": 263,
+        "test_sha256": "945cd2d80e2241d81b24a1845f35106119c8b81220a8cbd7207aa11fa0228b2e",
+        "error": "existing writer no longer contains stale writer_implementation_not_enabled marker",
+        "relevant_source": "lib/server/execution-record-audit-writer.ts",
+        "relevant_source_sha256": "f56eb099a78decf3e4d6ef09d6b3b5147d05286556f2e2ef919e94eed1371745",
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 12,
+        "test": "tracked source does not expose public service-role env assignments",
+        "spec": "tests/e2e/execution-record-audit-writer-service-role-readiness.spec.ts",
+        "line": 132,
+        "test_sha256": "30b9f3cd0fd5eb34918ac03addc4f66e979d49194bcdd1a0095fb1feb72c71a9",
+        "error": "existing scan returns 19 tracked-source matches",
+        "relevant_source": "sorted 19-path matched-source set",
+        "relevant_source_sha256": "be4a2b29788e217127b3b33cdfcdf3976a1a480fc4395e1ffb338ebf5a19b472",
+        "relevant_source_path_count": 19,
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 13,
+        "test": "lib child_process usage remains explicitly allowlisted and isolated",
+        "spec": "tests/e2e/execution-script-import-boundary.spec.ts",
+        "line": 212,
+        "test_sha256": "cab7f3ff0b6540d64efefd6b894c4d9125ee5b4cd3d87bd89ce07e763db3753a",
+        "error": "two existing child_process users are absent from the stale allowlist",
+        "relevant_sources": [
+          {
+            "path": "lib/post-trade-first-live-read-only-preflight-execution-boundary-contract.ts",
+            "sha256": "5cffdbba0a0e3db8d94665b68d2cc6c38c75a403255ed2a28e763d630b27d36d"
+          },
+          {
+            "path": "lib/post-trade-first-live-read-only-preflight-process-executor-core.ts",
+            "sha256": "7ca92a681a7fc3e99c9ee799a104548cb8a3335aa1a7491f48f154828a1d2dea"
+          }
+        ],
+        "source_bytes_differ": false,
+        "failure_order_equal": true,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      }
+    ]
+  },
+  "restricted_live_fill_reconciliation": {
+    "specs": [
+      "tests/e2e/execution-script-import-boundary.spec.ts",
+      "tests/e2e/first-real-avanza-fill-only-poc-approved-live-fill-only-cdp-runner.spec.ts"
+    ],
+    "base_result": {
+      "passed": 22,
+      "failed": 5,
+      "total": 27
+    },
+    "successor_result": {
+      "passed": 22,
+      "failed": 5,
+      "total": 27
+    },
+    "failure_identity_order_equal": true,
+    "normalized_error_messages_equal": true,
+    "failures": [
+      {
+        "order": 1,
+        "test": "lib child_process usage remains explicitly allowlisted and isolated",
+        "spec": "tests/e2e/execution-script-import-boundary.spec.ts",
+        "line": 212,
+        "test_sha256": "cab7f3ff0b6540d64efefd6b894c4d9125ee5b4cd3d87bd89ce07e763db3753a",
+        "relevant_sources": [
+          {
+            "path": "lib/post-trade-first-live-read-only-preflight-execution-boundary-contract.ts",
+            "sha256": "5cffdbba0a0e3db8d94665b68d2cc6c38c75a403255ed2a28e763d630b27d36d"
+          },
+          {
+            "path": "lib/post-trade-first-live-read-only-preflight-process-executor-core.ts",
+            "sha256": "7ca92a681a7fc3e99c9ee799a104548cb8a3335aa1a7491f48f154828a1d2dea"
+          }
+        ],
+        "source_bytes_differ": false,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 2,
+        "test": "blocks total and cap validation until amount and price readbacks are verified",
+        "spec": "tests/e2e/first-real-avanza-fill-only-poc-approved-live-fill-only-cdp-runner.spec.ts",
+        "line": 281,
+        "test_sha256": "90f83430a1bcc9691c099e3e0e3d5157c3ce0eee7068f5567f5bb7ea9be6c22a",
+        "relevant_source": "scripts/avanza-localhost-bridge-server.mjs",
+        "relevant_source_sha256": "e7e67aa757e73502d291a20f7dd592b6cbcc4e6b70770b8ded3887c142e3e417",
+        "source_bytes_differ": false,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 3,
+        "test": "does not use buying power as a fill-only blocker",
+        "spec": "tests/e2e/first-real-avanza-fill-only-poc-approved-live-fill-only-cdp-runner.spec.ts",
+        "line": 294,
+        "test_sha256": "90f83430a1bcc9691c099e3e0e3d5157c3ce0eee7068f5567f5bb7ea9be6c22a",
+        "relevant_source": "scripts/avanza-localhost-bridge-server.mjs",
+        "relevant_source_sha256": "e7e67aa757e73502d291a20f7dd592b6cbcc4e6b70770b8ded3887c142e3e417",
+        "source_bytes_differ": false,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 4,
+        "test": "supports explicit amount-based and quantity-based input strategies",
+        "spec": "tests/e2e/first-real-avanza-fill-only-poc-approved-live-fill-only-cdp-runner.spec.ts",
+        "line": 300,
+        "test_sha256": "90f83430a1bcc9691c099e3e0e3d5157c3ce0eee7068f5567f5bb7ea9be6c22a",
+        "relevant_source": "scripts/avanza-localhost-bridge-server.mjs",
+        "relevant_source_sha256": "e7e67aa757e73502d291a20f7dd592b6cbcc4e6b70770b8ded3887c142e3e417",
+        "source_bytes_differ": false,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      },
+      {
+        "order": 5,
+        "test": "quantity strategy can gate total validation on quantity plus price",
+        "spec": "tests/e2e/first-real-avanza-fill-only-poc-approved-live-fill-only-cdp-runner.spec.ts",
+        "line": 406,
+        "test_sha256": "90f83430a1bcc9691c099e3e0e3d5157c3ce0eee7068f5567f5bb7ea9be6c22a",
+        "relevant_source": "scripts/avanza-localhost-bridge-server.mjs",
+        "relevant_source_sha256": "e7e67aa757e73502d291a20f7dd592b6cbcc4e6b70770b8ded3887c142e3e417",
+        "source_bytes_differ": false,
+        "successor_reaches_surface": false,
+        "classification": "baseline_identical_out_of_scope"
+      }
+    ]
+  },
+  "verification": {
+    "action_650s_focused": "26/26 passed",
+    "actions_519_533": "1802/1802 passed",
+    "actions_647_649_successor_comparison": "1/1 passed",
+    "base_successor_broad_regression": "3451/3464 passed on each; identical 13-failure set and order",
+    "base_successor_restricted_live_fill": "22/27 passed on each; identical 5-failure set and order",
+    "independent_threat_review": "5/7 passed; 2 major findings",
+    "typescript": "passed",
+    "scoped_eslint_zero_warnings": "passed",
+    "production_build": "passed with non-secret public placeholder configuration",
+    "git_diff_check": "passed",
+    "static_security_import_capability_scans": "passed",
+    "worktree_byte_parity": "passed"
+  },
+  "findings": {
+    "blocker": 0,
+    "major": 2,
+    "minor": 0,
+    "nit": 0
+  },
+  "decisions": {
+    "action_650t_execution_successor_frozen": true,
+    "action_650t_manual_confirmation_authority_verified": false,
+    "action_650t_identity_and_idempotency_verified": true,
+    "action_650t_cdp_browser_and_write_exclusion_verified": true,
+    "action_650t_baseline_failures_reconciled": true,
+    "action_650t_independent_review_approved": false,
+    "action_650t_local_checkpoint_ready": false,
+    "action_650t_progress_percent": 100,
+    "track_4_progress_percent": 45,
+    "action_650s_full_execution_regression_passed": false
+  },
+  "safety_flags": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "delivery_mutations": {
+    "remediation": false,
+    "staging": false,
+    "commit": false,
+    "push": false,
+    "pull_request": false,
+    "live_trial": false,
+    "deploy": false
+  }
+}

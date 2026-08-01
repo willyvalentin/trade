@@ -1,0 +1,135 @@
+{
+  "schema_version": "action_650u_temporal_boundary_successor_refreeze_v1",
+  "generated_at": "2026-07-29T16:27:00Z",
+  "base_commit": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "branch": "codex/action-650s-execution-foundation-partial-successor",
+  "head": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "predecessor": {
+    "combined_normative_digest": "328a41a7015dfd6dd13bd5a338edd2ff244a151834d7c1123d3490d3f683589c",
+    "byte_identical": true
+  },
+  "historical_evidence": [
+    {
+      "path": "docs/action-650s-manual-confirmation-bound-execution-foundation-successor.md",
+      "sha256": "49cddb5626433f33ec473783487c1a87b25a254a8085df1fce53659f17b93db1"
+    },
+    {
+      "path": "docs/action-650t-execution-successor-freeze-manifest.json",
+      "sha256": "e78dbebffc9dd258ba6a9fb2516a1d38ed2b0cefd915a4942834e4c1d6650825"
+    },
+    {
+      "path": "docs/action-650t-execution-successor-independent-review.md",
+      "sha256": "efd1df1d7e5f0dae3d7eb16d5f3e440f104d1233159846924bdc154de7a078b1"
+    },
+    {
+      "path": "tests/e2e/action-650t-independent-threat-review.spec.ts",
+      "sha256": "8b3bfc935f400b1251dc1b641fc8531990d6f42e26bff1d397f46af14b11f901"
+    }
+  ],
+  "successor_normative_paths": [
+    {
+      "path": "lib/action-650u-confirmed-execution-replay.ts",
+      "sha256": "cc862470b0004d847714a8377a1d9db4fd146a4812579d5eb85facf37ada3f82"
+    },
+    {
+      "path": "lib/action-650u-manual-confirmation.ts",
+      "sha256": "e29f24fb823822f75f340c7ca1d633dc72f16dde66ea8266b4b5169fe5b88e97"
+    },
+    {
+      "path": "lib/action-650u-temporal-confirmation-policy.ts",
+      "sha256": "7166a451d9e4ea951b80666a01a77cf101ea28f0c09d2e272a6d5f78475f1fa3"
+    },
+    {
+      "path": "tests/e2e/action-650u-650t-threat-suite-successor.spec.ts",
+      "sha256": "9926a89dfa5e721a26797d6a488eff5475d63f4fdf742fa32ed8890260bb88df"
+    },
+    {
+      "path": "tests/e2e/action-650u-static-capability-boundary.spec.ts",
+      "sha256": "613da2cbf35b415d6083aa6534eae33bc5825bbd9de075f216a8f4119688d2ea"
+    },
+    {
+      "path": "tests/e2e/action-650u-temporal-boundary-successor.spec.ts",
+      "sha256": "1d2ccf7147f28c13c8f2279099c8e6fabf3fe0df845e300882803dca942a656f"
+    }
+  ],
+  "combined_successor_digest": "80623a9d0d5a11fdea67c89875b1fd2eb60e62e6259ecabb47c610f77c9f5935",
+  "combined_digest_algorithm": "sha256(sorted(sha256sum-lines-with-relative-paths))",
+  "self_excluded_artifacts": [
+    "docs/action-650u-temporal-boundary-successor-refreeze-manifest.json",
+    "docs/action-650u-temporal-boundary-independent-rereview.md",
+    "tests/e2e/action-650u-independent-rereview.spec.ts"
+  ],
+  "temporal_policy": {
+    "version": "action_650u_temporal_confirmation_policy_v1",
+    "precision": "nanoseconds",
+    "expiry_rule": "confirmation_at < session_expires_at",
+    "lifecycle_rule": "current_state == waiting_for_manual_confirmation && confirmation_at >= waiting_for_manual_confirmation_at",
+    "caller_supplied_derived_validity_allowed": false,
+    "reason_taxonomy": [
+      "manual_confirmation_timestamp_invalid",
+      "manual_confirmation_waiting_timestamp_invalid",
+      "manual_confirmation_lifecycle_state_mismatch",
+      "manual_confirmation_before_waiting_boundary",
+      "manual_confirmation_session_not_started",
+      "manual_confirmation_session_expired"
+    ]
+  },
+  "digest_and_identity_binding": {
+    "confirmation_request_projection": true,
+    "capability_digest": true,
+    "consumption_projection": true,
+    "consumption_receipt": true,
+    "replay_identity": true,
+    "audit_result_evidence": true,
+    "independent_rebuild_functions": true
+  },
+  "closed_findings": [
+    {
+      "finding": "650T-M1",
+      "status": "remediated_pre_rereview",
+      "evidence": "expiry - 1 ns accepted; expiry and expiry + 1 ns rejected"
+    },
+    {
+      "finding": "650T-M2",
+      "status": "remediated_pre_rereview",
+      "evidence": "waiting - 1 ns rejected; waiting and waiting + 1 ns accepted"
+    }
+  ],
+  "verification_before_refreeze": {
+    "action_650s_and_650u_focused": "56/56 passed",
+    "action_650u_650t_threat_successor": "7/7 passed and included in the 56 focused tests",
+    "actions_519_533": "1802/1802 passed",
+    "broad_base": "3451/3464 passed; 13 known failures",
+    "broad_successor": "3451/3464 passed; identical 13 known failures",
+    "broad_failure_identity_order_and_normalized_error_equal": true,
+    "restricted_base": "22/27 passed; 5 known failures",
+    "restricted_successor": "22/27 passed; identical 5 known failures",
+    "restricted_failure_identity_order_and_normalized_error_equal": true,
+    "typescript": "passed",
+    "scoped_eslint_zero_warnings": "passed",
+    "production_build": "passed with non-secret public placeholder configuration",
+    "git_diff_and_untracked_whitespace": "passed",
+    "static_security_import_capability_scans": "passed"
+  },
+  "baseline_classification": {
+    "successor_regression": 0,
+    "baseline_identical_out_of_scope": 13,
+    "baseline_interaction_risk": 0,
+    "unresolved": 0,
+    "restricted_failures_baseline_identical_out_of_scope": 5,
+    "equivalence_preserved": true
+  },
+  "safety_flags": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "freeze_state": {
+    "implementation_frozen_for_independent_rereview": true,
+    "additional_remediation_allowed": false,
+    "independent_rereview_status": "pending_at_refreeze"
+  }
+}
