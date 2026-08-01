@@ -1,0 +1,85 @@
+{
+  "action": "654P",
+  "manifest_version": "action_654p_canonical_readiness_gate_freeze_v1",
+  "self_excluding": true,
+  "normative_authority": {
+    "ref": "refs/codex-preservation/action-654o-hook-free-canonical-readiness-gate",
+    "object": "07ac1549a7e0518cc1742b09ff4ff2b9372034ad",
+    "tree": "b3027723a46fc933a8ddfbab529446ef0d648f80",
+    "parent": "3330df9a368f7f9979ed0d4a10b2ecd44a6e2672",
+    "artifact_count": 5,
+    "digest_method": "lexicographic path UTF-8, NUL, exact blob bytes, NUL; SHA-256",
+    "digest": "8826c7f6d650bb98416611f8cc07ebf454cad70f7e755a36523c6636016c9ab2",
+    "paths": [
+      {
+        "path": "docs/action-654o-hook-free-canonical-readiness-gate-contract.md",
+        "sha256": "24dcb275d2aca5cfdc69b5ddcf95ce375a4b8ab640f399aeb42a640b878415a2"
+      },
+      {
+        "path": "docs/action-654o-hook-free-canonical-readiness-gate-golden-report.json",
+        "sha256": "e331e36fc84a3b67406891351a3b5ac910e95973c089519dcc0b3d772738a18d"
+      },
+      {
+        "path": "lib/action-654o-hook-free-canonical-readiness-gate.ts",
+        "sha256": "160d55c903da36539a82c77f53f13904b3ee9f7f9cc65d1b201b493d7f7ebb1b"
+      },
+      {
+        "path": "tests/e2e/action-654o-hook-free-canonical-readiness-gate.spec.ts",
+        "sha256": "3251f4607ab60e3482dbfe3a1408eb76359d0a52322b91a5d71dbb8fa399fbcf"
+      },
+      {
+        "path": "tests/fixtures/action-654o-hook-free-canonical-readiness-gate-fixtures.ts",
+        "sha256": "c1eca967b64afff8c2d0bcce36c80cd239e620373601e1a7496a91ed8c18b78a"
+      }
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "8826c7f6d650bb98416611f8cc07ebf454cad70f7e755a36523c6636016c9ab2",
+    "after_regression": "8826c7f6d650bb98416611f8cc07ebf454cad70f7e755a36523c6636016c9ab2",
+    "after_independent_review": "8826c7f6d650bb98416611f8cc07ebf454cad70f7e755a36523c6636016c9ab2",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-654p-canonical-readiness-gate-independent-rereview.spec.ts",
+    "suite_sha256_before_manifest": "e5e3e5c32e5850d424dba836c649d6b84b36a56f9abab39b1318a6386ec6720c",
+    "result": "11 passed / 0 failed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 1,
+      "minor": 0,
+      "nit": 0,
+      "identities": ["654P-M1"]
+    },
+    "finding_summary": "Distinct malformed lone-surrogate primitive strings collapse to identical UTF-8 replacement bytes and identical failure identities."
+  },
+  "validation": {
+    "action_654o_focused": "12/12 passed; 1 probe-only skipped",
+    "action_654p_independent_review": "11/11 passed including finding reproduction",
+    "immediate_union": "53 passed; 5 probe-only skipped",
+    "relevant_predecessor_security_union": "259 passed; 5 probe-only skipped",
+    "cross_process_timezones": "UTC, Europe/Stockholm, America/New_York and reverse order identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_and_diff_checks": "passed",
+    "production_compilation": "passed",
+    "production_build": "failed at known scope-external hb307cCanaryRouteBuildMarker route-export baseline",
+    "broad_base_successor": "3451 passed / 13 failed; content-addressed evidence identical",
+    "restricted_base_successor": "22 passed / 5 failed; live rerun identical",
+    "full_execution_regression_passed": false
+  },
+  "decision": {
+    "successor_frozen": true,
+    "refreeze_complete": true,
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
