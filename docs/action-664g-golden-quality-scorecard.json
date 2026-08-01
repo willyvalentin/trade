@@ -1,0 +1,200 @@
+{
+  "policy_version": "canonical_quality_metrics_v1",
+  "synthetic_test_evidence_only": true,
+  "production_baseline": false,
+  "warning": "Golden fixture evidence only. These values are not Ture's actual recommendation performance.",
+  "bootstrap_seed": "action-664g-golden-seed-v1",
+  "visible_recommendation_quality": {
+    "identity_count": 20,
+    "trading_day_count": 5,
+    "ticker_count": 4,
+    "diagnostic_horizon_count": 40,
+    "metrics": {
+      "win_rate": {
+        "status": "measurable",
+        "value": 0.5,
+        "numerator": 10,
+        "denominator": 20,
+        "confidence_interval": {
+          "method": "wilson_score_interval_v1",
+          "confidence_level": 0.95,
+          "lower": 0.299298008198,
+          "upper": 0.700701991802
+        }
+      },
+      "expectancy_r": {
+        "status": "measurable",
+        "value": 0.5,
+        "numerator": 10,
+        "denominator": 20,
+        "confidence_interval": {
+          "method": "seeded_trading_day_cluster_bootstrap_v1",
+          "confidence_level": 0.95,
+          "lower": 0.5,
+          "upper": 0.5,
+          "bootstrap_iterations": 1000
+        }
+      },
+      "average_winning_r": {
+        "status": "measurable",
+        "value": 2,
+        "numerator": 20,
+        "denominator": 10
+      },
+      "average_losing_r": {
+        "status": "measurable",
+        "value": -1,
+        "numerator": -10,
+        "denominator": 10
+      },
+      "average_mfe_r": {
+        "status": "measurable",
+        "value": 1.4,
+        "numerator": 28,
+        "denominator": 20
+      },
+      "average_mae_r": {
+        "status": "measurable",
+        "value": -0.75,
+        "numerator": -15,
+        "denominator": 20
+      },
+      "target_before_stop_rate": {
+        "status": "measurable",
+        "value": 0.5,
+        "numerator": 10,
+        "denominator": 20
+      },
+      "no_entry_rate_diagnostic": {
+        "status": "measurable",
+        "value": 0,
+        "numerator": 0,
+        "denominator": 20,
+        "reason_codes": [
+          "diagnostic_metric_not_win_loss"
+        ]
+      },
+      "ambiguous_rate_diagnostic": {
+        "status": "measurable",
+        "value": 0,
+        "numerator": 0,
+        "denominator": 20,
+        "reason_codes": [
+          "diagnostic_metric_includes_ineligible_ambiguous_rows"
+        ]
+      }
+    },
+    "calibration": {
+      "brier_score": {
+        "status": "measurable",
+        "value": 0.0225,
+        "numerator": 0.45,
+        "denominator": 20
+      },
+      "expected_calibration_error": {
+        "status": "measurable",
+        "value": 0.15,
+        "numerator": 3,
+        "denominator": 20
+      },
+      "fixed_bucket_denominators": {
+        "p_0_20": 10,
+        "p_20_40": 0,
+        "p_40_60": 0,
+        "p_60_80": 0,
+        "p_80_100": 10
+      }
+    },
+    "ranking": {
+      "precision_at_1": {
+        "status": "not_publishable",
+        "value": 1,
+        "numerator": 3,
+        "denominator": 3,
+        "reason_codes": [
+          "minimum_identity_count_not_met",
+          "minimum_ticker_count_not_met"
+        ]
+      },
+      "precision_at_3": {
+        "status": "not_publishable",
+        "value": 0.666666666667,
+        "numerator": 6,
+        "denominator": 9,
+        "reason_codes": [
+          "minimum_identity_count_not_met"
+        ]
+      },
+      "precision_at_5": {
+        "status": "measurable",
+        "value": 0.6,
+        "numerator": 9,
+        "denominator": 15
+      }
+    }
+  },
+  "research_only_recommendation_quality": {
+    "identity_count": 20,
+    "win_rate": {
+      "status": "measurable",
+      "value": 0.5,
+      "numerator": 10,
+      "denominator": 20
+    },
+    "visible_denominator_contribution": 0
+  },
+  "no_trade_counterfactual": {
+    "ordinary_visible_win_rate_contribution": 0,
+    "opportunity_cost_r": {
+      "status": "measurable",
+      "value": 1.333333333333,
+      "numerator": 4,
+      "denominator": 3,
+      "identity_count": 3,
+      "trading_day_count": 3,
+      "ticker_count": 3,
+      "confidence_interval": {
+        "method": "seeded_trading_day_cluster_bootstrap_v1",
+        "confidence_level": 0.95,
+        "lower": 0.5,
+        "upper": 2,
+        "bootstrap_iterations": 1000
+      }
+    }
+  },
+  "not_measurable_yet_examples": {
+    "confidence_without_probability_semantics": {
+      "metric": "brier_score",
+      "status": "not_measurable_yet",
+      "value": null,
+      "numerator": null,
+      "denominator": 0,
+      "reason_codes": [
+        "confidence_label_not_probability",
+        "confidence_probability_semantics_missing"
+      ]
+    },
+    "incomplete_ranking_opportunity_set": {
+      "metric": "precision_at_5",
+      "status": "not_measurable_yet",
+      "value": null,
+      "numerator": null,
+      "denominator": 0,
+      "reason_codes": [
+        "ranking_candidate_outcome_missing",
+        "ranking_opportunity_set_incomplete",
+        "ranking_rank_missing_or_duplicate"
+      ]
+    },
+    "no_trade_without_opportunity_set": {
+      "metric": "opportunity_cost_r",
+      "status": "not_measurable_yet",
+      "value": null,
+      "numerator": null,
+      "denominator": 0,
+      "reason_codes": [
+        "counterfactual_opportunity_set_not_evaluable"
+      ]
+    }
+  }
+}

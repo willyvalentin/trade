@@ -1,0 +1,53 @@
+{
+  "action": "664F",
+  "status": "passed",
+  "baseline_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "migration_version": "20260726001000",
+  "production_interaction": false,
+  "staging_interaction": false,
+  "external_database_interaction": false,
+  "fixture_matrix": {
+    "passed": 15,
+    "failed": 0,
+    "sample_types_tested": [
+      "visible",
+      "research_only",
+      "shadow",
+      "historical_synthetic",
+      "rejected_candidate",
+      "no_trade"
+    ],
+    "negative_scenarios": [
+      "incomplete_provider_coverage",
+      "duplicated_canonical_identity",
+      "duplicated_horizon",
+      "same_candle_ambiguity",
+      "normalized_parity_mismatch",
+      "tampered_envelope",
+      "non_reproducible_outcome"
+    ]
+  },
+  "disposable_postgres_matrix": {
+    "passed": 1,
+    "failed": 0,
+    "canonical_main_migrations_only": true,
+    "action_664d_migration_applied": true,
+    "rows_read": 12,
+    "unique_canonical_identities": 12,
+    "metrics_candidates": 12,
+    "standard_visible_quality_identities": 1,
+    "all_six_sample_types_present": true,
+    "sample_cohort_separation": "passed",
+    "horizon_separation": "passed",
+    "container_removed": true
+  },
+  "aggregate_publication": {
+    "cohort": null,
+    "denominator": null,
+    "publishable": false,
+    "reason_codes": [
+      "aggregate_cohort_undefined",
+      "aggregate_denominator_undefined"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "scorecard_version": "canonical_quality_scorecard_v1",
+  "comparison_version": "canonical_quality_version_comparison_v1",
+  "metrics_policy_version": "canonical_quality_metrics_v1",
+  "synthetic_test_evidence_only": true,
+  "production_baseline": false,
+  "automatic_promotion_executed": false,
+  "golden_comparison": {
+    "classification": "candidate_improvement",
+    "expectancy_delta_r": 0.5,
+    "baseline_digest": "187684e9cad37e71ce63da12faa97a83fb8f19d4f7d3fb8e6ec6a9eb1ba95518",
+    "candidate_digest": "984cf073f99db87ac8a915d309d8faecc542b7022c47d69577350c7e1a762688"
+  },
+  "metric_deltas": {
+    "win_rate": 0.1,
+    "expectancy_r": 0.5,
+    "brier_score": -0.1,
+    "expected_calibration_error": -0.2,
+    "precision_at_1": 0,
+    "precision_at_3": 0.333333333333,
+    "precision_at_5": 0.2
+  },
+  "comparability": {
+    "same_cohort": true,
+    "same_metrics_policy": true,
+    "compatible_evaluator_provider_contracts": true,
+    "same_period": true,
+    "same_denominator_identity": true,
+    "same_opportunity_set_identity": true,
+    "paired_identity_evidence": true,
+    "paired_opportunity_set_evidence": true,
+    "causal_improvement_claimed": false
+  },
+  "model_change_advice": {
+    "advisory_only": true,
+    "status": "advisory_reject",
+    "automatic_promotion_executed": false,
+    "note": "The synthetic fixture is not a model promotion decision; all gates remain advisory."
+  }
+}

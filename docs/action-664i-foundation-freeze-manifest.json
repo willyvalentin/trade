@@ -1,0 +1,327 @@
+{
+  "manifest_version": "action_664i_foundation_freeze_manifest_v1",
+  "track": "SPÅR 2",
+  "fixture_and_local_evidence_only": true,
+  "baseline_sha": "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33",
+  "branch": "codex/action-664a-evaluation-contract",
+  "frozen_actions": [
+    "664A",
+    "664B",
+    "664C",
+    "664D",
+    "664E",
+    "664F",
+    "664G",
+    "664H"
+  ],
+  "frozen_file_count": 41,
+  "digest_algorithm": "sha256_of_sorted_shasum_lines_v1",
+  "manifest_digest": "ddd86aff397b099f1b9742fd886e003ab9b53d7f48b38295ed77cc571815fbe2",
+  "migration_reservations": {
+    "track_1_preceding_local_reservation": "20260726000000",
+    "track_2_canonical_evaluation": "20260726001000",
+    "collision": false
+  },
+  "critical_artifacts": {
+    "migration": "supabase/migrations/20260726001000_create_canonical_evaluation_decisions.sql",
+    "persistence_contract": "lib/canonical-evaluation-persistence-contract.ts",
+    "default_off_writer": "lib/server/canonical-evaluation-storage-writer.ts",
+    "capture_orchestrator": "lib/server/canonical-evaluation-capture-orchestrator.ts",
+    "read_model": "lib/server/canonical-evaluation-quality-read-model.ts",
+    "metrics_policy": "lib/canonical-quality-metrics.ts",
+    "scorecard_comparison_policy": "lib/canonical-quality-scorecard.ts",
+    "quality_golden_json": "docs/action-664g-golden-quality-scorecard.json",
+    "comparison_golden_json": "docs/action-664h-golden-version-comparison.json"
+  },
+  "files": [
+    {
+      "path": "docs/action-664a-canonical-recommendation-evaluation-contract.md",
+      "action_owner": "664A",
+      "artifact_type": "contract_documentation",
+      "sha256": "dff476d941ecdf3246421101694033968624b52f1b4d1a6444daf3ed4d63c215",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664b-canonical-evaluation-projection-adapters.md",
+      "action_owner": "664B",
+      "artifact_type": "contract_documentation",
+      "sha256": "930dcb30af57b5c37b7b1e663d06e863d9db01aceb9bf65c701ed870959db4b1",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664c-canonical-evaluation-persistence-contract.md",
+      "action_owner": "664C",
+      "artifact_type": "contract_documentation",
+      "sha256": "fe132649468eefce41d4879c42a933b6c694f3ed5ebb15155e505a7de6756e5a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664c-fixture-readiness-report.json",
+      "action_owner": "664C",
+      "artifact_type": "golden_json_evidence",
+      "sha256": "f72b37c867f410d8bdae09cd61a5577aaaadd526b67dedf1faee714222b4bd1c",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664d-additive-evaluation-storage.md",
+      "action_owner": "664D",
+      "artifact_type": "contract_documentation",
+      "sha256": "6978c373ee4f5bc50e3652358725d10fc261ba0f3b1417971c969aa6d039d244",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664d-local-postgres-matrix.json",
+      "action_owner": "664D",
+      "artifact_type": "local_postgres_evidence",
+      "sha256": "0593a151d791669fb537827de70c7eebae441522e931ba032f49c9357800b209",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664e-capture-readback-matrix.json",
+      "action_owner": "664E",
+      "artifact_type": "local_postgres_evidence",
+      "sha256": "f765ded85bed08284a462cebff122fbcf08858d19dc2c4f7a02bdeff27d8366a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664e-default-off-capture-orchestrator.md",
+      "action_owner": "664E",
+      "artifact_type": "contract_documentation",
+      "sha256": "19e94b90b4de4b93ec9efd13e8c2c0dd5660b4ced6c98e663265e53c8f0559ef",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664f-local-quality-read-model-matrix.json",
+      "action_owner": "664F",
+      "artifact_type": "local_postgres_evidence",
+      "sha256": "6ec6693325284bd12dc53ee9bcd75e29d61a2f4cc43c293e658b2b95541cd5c3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664f-quality-read-model.md",
+      "action_owner": "664F",
+      "artifact_type": "contract_documentation",
+      "sha256": "bab2bc66340f3af089dc6e9af7e62c2334cecc561b278563c2e13eea37b92174",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664g-golden-quality-scorecard.json",
+      "action_owner": "664G",
+      "artifact_type": "golden_json_evidence",
+      "sha256": "5765b55cf1541125083b571f3785deb1a8299a5f59c2799497d3fe4e8f412002",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664g-quality-metrics-contract.md",
+      "action_owner": "664G",
+      "artifact_type": "contract_documentation",
+      "sha256": "34843330515706bd85bf6358573ae8eb96f242aabadd0d85c01efbc15618e703",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664h-golden-version-comparison.json",
+      "action_owner": "664H",
+      "artifact_type": "golden_json_evidence",
+      "sha256": "5df7273f43fa7dbd8c698b8f482c199d6af9e7ec9d23378ff718ba187e46d664",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-664h-scorecard-comparison-contract.md",
+      "action_owner": "664H",
+      "artifact_type": "contract_documentation",
+      "sha256": "67c8f7521485085939262df86484241247046e9048f44d55bdedee57c162869c",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-capture-fixtures.ts",
+      "action_owner": "664E",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "d4453d3a328f9f12db8a64c07ddb0092512e9a91f0a28b62c33a0e245075e359",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-persistence-contract.ts",
+      "action_owner": "664C",
+      "artifact_type": "domain_contract",
+      "sha256": "6294eb71c628564c0acaf7666b37d7b0503c67bca0a852c0a443c44a7201f482",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-persistence-fixtures.ts",
+      "action_owner": "664C",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "37e574190ce2c8a5e199ba13fbefa6e391cd72acff75a26a2d72ef7d586f1b7d",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-projection-adapters.ts",
+      "action_owner": "664B",
+      "artifact_type": "projection_contract",
+      "sha256": "ea50d7a582bfcca179b8401c4de99aad559ca36dd9e246d4d3d0f1867a8746e0",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-projection-fixtures.ts",
+      "action_owner": "664B",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "c00d900969f916f6db608687fc2c995ced640f5fb9acf6dc6c05ec3f1d8d0dd9",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-evaluation-quality-read-model-fixtures.ts",
+      "action_owner": "664F",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "5188ddb7c31d7806e6f7f70e97e25689d3f157f87ce078b0e7e32a85fe430fac",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-quality-metrics-fixtures.ts",
+      "action_owner": "664G",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "17ea05cf3160873f23690f2417456da8b8452fbf1a7844694b1c5ff91b4697e4",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-quality-metrics.ts",
+      "action_owner": "664G",
+      "additional_contributor": "664H",
+      "artifact_type": "metrics_policy",
+      "sha256": "a64387fabcd4d65443933bbe3c99a311cbbab2f6b336dbeadfb8b90f51f81b39",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-quality-scorecard-fixtures.ts",
+      "action_owner": "664H",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "b68bbc06309d75e6d4950b6f34b9369aec23f1996588946b302fa1c327ab41c6",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-quality-scorecard.ts",
+      "action_owner": "664H",
+      "artifact_type": "scorecard_comparison_policy",
+      "sha256": "bc1f840e15e1aa8db7720d7f84daff855673c34bb987a9e1eab303acc52a7988",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-recommendation-evaluation-fixtures.ts",
+      "action_owner": "664A",
+      "artifact_type": "synthetic_fixture",
+      "sha256": "1cf8d3b346b6ea06ca8a635b89c3991804cf9a382b6b059ed96368ca040930cf",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-recommendation-evaluation.ts",
+      "action_owner": "664A",
+      "artifact_type": "domain_contract",
+      "sha256": "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-evaluation-capture-orchestrator.ts",
+      "action_owner": "664E",
+      "artifact_type": "inactive_server_orchestrator",
+      "sha256": "0c6db56ae919ca8c5244c83c739bf063ac69ca83527f0515b44ad20e55e2e43b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-evaluation-quality-read-model.ts",
+      "action_owner": "664F",
+      "additional_contributor": "664G",
+      "artifact_type": "read_only_server_model",
+      "sha256": "69fe35393abc9646ac1a275cbcb63fe2260c0fb8c95f84df2c4e8f96d9e7bc1d",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-evaluation-storage-writer.ts",
+      "action_owner": "664D",
+      "artifact_type": "default_off_server_writer",
+      "sha256": "1b67379458e0d298fb4db8bb44dd828b609330a029ebe055cec7498db554ed81",
+      "git_status": "untracked"
+    },
+    {
+      "path": "scripts/action-664d-local-postgres-matrix.mjs",
+      "action_owner": "664D",
+      "artifact_type": "local_postgres_harness",
+      "sha256": "4720890cc5b37619de11aa2d86de2f2ea02051dcd52d42095259ebac919ff519",
+      "git_status": "untracked"
+    },
+    {
+      "path": "supabase/migrations/20260726001000_create_canonical_evaluation_decisions.sql",
+      "action_owner": "664D",
+      "artifact_type": "inactive_additive_migration",
+      "sha256": "0f27d93ca5ecd42968468fc2b12a21bb266b87dc1ce840d206b3f8a985ba4291",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
+      "action_owner": "664A",
+      "artifact_type": "deterministic_test",
+      "sha256": "91b4fa96648423a643b472d6c9d69e1cd01f82b7810b328ecf5e95b98568c6bb",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
+      "action_owner": "664B",
+      "artifact_type": "deterministic_test",
+      "sha256": "c04977760d5cf73fa9d9b3d5b65b7459b189047b340ef7ae3e33cb777c7ca65d",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
+      "action_owner": "664C",
+      "artifact_type": "deterministic_test",
+      "sha256": "46ba6a953fe4f39fbb5cbd5e68fdfc54437e71a3cd634263d7d0ded5fa32f2ea",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664d-additive-evaluation-storage.spec.ts",
+      "action_owner": "664D",
+      "artifact_type": "deterministic_test",
+      "sha256": "bdec02c8fe6455279dc0e454a76469a4a04a7b4ddc628fb213708a0fe2560170",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664e-canonical-capture-orchestrator.spec.ts",
+      "action_owner": "664E",
+      "artifact_type": "deterministic_test",
+      "sha256": "3eb378536481903f18fdc95f8f1843c5f18214a9a8d135d48b5473b87bdc2c3e",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664e-local-postgres-capture-readback.spec.ts",
+      "action_owner": "664E",
+      "artifact_type": "local_postgres_test",
+      "sha256": "aaffec7226971666ce5d3137e0d709b6987fad6a9e4bf0889821a9881c94a950",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664f-canonical-quality-read-model.spec.ts",
+      "action_owner": "664F",
+      "artifact_type": "deterministic_test",
+      "sha256": "4f2d7e9762c6568d47106c039db21aad637a8e5dff503646eb71d09210b798ec",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664f-local-postgres-quality-read-model.spec.ts",
+      "action_owner": "664F",
+      "artifact_type": "local_postgres_test",
+      "sha256": "bbcc1a6563d1674feff97db44cbe070e83e06c172bce38b5312ca9a12d4d5b53",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664g-canonical-quality-metrics.spec.ts",
+      "action_owner": "664G",
+      "artifact_type": "deterministic_test",
+      "sha256": "a6344939b0ac66cfc6ba4babcf3464a34f5e2db4dc3cea21e91f077a82391565",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-664h-canonical-quality-scorecard.spec.ts",
+      "action_owner": "664H",
+      "artifact_type": "deterministic_test",
+      "sha256": "b0b19255a23d814360752d4ef2daacc431f5ab7cbfa3e873e2f2dc29552efb5b",
+      "git_status": "untracked"
+    }
+  ]
+}
