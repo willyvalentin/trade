@@ -1,0 +1,50 @@
+{
+  "admission_identity_digest": "b24080e9d746c3fdaf467a622f18db3b8b4b5d0881c3686cdd3df7d78aea1e15",
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 3136,
+      "path": "docs/action-661j5o1-certification-backed-runtime-admission-authority.md",
+      "sha256": "1d052cb7c538ec9efdf560d4402bbb9d0780ec7686b21b722e24c81aecf87eab"
+    },
+    {
+      "byte_length": 1720,
+      "path": "docs/action-661j5o1-certification-runtime-admission-golden-report.json",
+      "sha256": "c43ce36da9f533f3ea77758a8c3879ccd685c3894a12f348336841cd661b8964"
+    },
+    {
+      "byte_length": 10893,
+      "path": "lib/action-661j5o1-certification-runtime-admission-authority.mjs",
+      "sha256": "2000e75bd80d3f1f7e58042e1b4f68ca1bac14a80c51aeba259fbd0fe245cfc3"
+    },
+    {
+      "byte_length": 10014,
+      "path": "tests/e2e/action-661j5o1-certification-runtime-admission-authority.spec.ts",
+      "sha256": "443228bb0d6ee46624b65830bb1f809b7947c040a048db30d14082624d4b6615"
+    },
+    {
+      "byte_length": 2940,
+      "path": "tests/e2e/action-661j5o1-certification-runtime-admission-fixtures.mjs",
+      "sha256": "ded6461cbb9cab6b8de138dfb9f0de003734a0ea408537173c2e928818879d8c"
+    }
+  ],
+  "freeze_contract": "action_661j5o2_certification_admission_freeze_manifest_v1",
+  "freeze_manifest_digest": "4a14adef993e3584b038153ddc54c443c665de3747f78723c419d2f7a9527fc9",
+  "freeze_manifest_digest_exclusions": [
+    "freeze_manifest_digest"
+  ],
+  "normative_digest": "9c0d03f2584ad4c6821da3bd0c2994a68003e3af48b162acf4e6fdcc4431dc16",
+  "normative_digest_algorithm": "sha256(canonical_json({artifact_count,artifacts}))",
+  "normative_digest_observations": {
+    "after_regression": "9c0d03f2584ad4c6821da3bd0c2994a68003e3af48b162acf4e6fdcc4431dc16",
+    "after_review": "9c0d03f2584ad4c6821da3bd0c2994a68003e3af48b162acf4e6fdcc4431dc16",
+    "before_regression": "9c0d03f2584ad4c6821da3bd0c2994a68003e3af48b162acf4e6fdcc4431dc16"
+  },
+  "normative_files_modified": false,
+  "preservation_commit": "78f49b7e9e011ac43e23ce3e4731fe87d3686e96",
+  "preservation_ref": "refs/preservation/action-661j5o1-certification-backed-runtime-admission-authority",
+  "review_suite": {
+    "path": "tests/e2e/action-661j5o2-certification-admission-independent-review.spec.ts",
+    "sha256": "5660dc81e1cb379ba12437a9ab2eaf36d84061c41c546be701aee7d2628c0e58"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "admission_identity_digest": "b24080e9d746c3fdaf467a622f18db3b8b4b5d0881c3686cdd3df7d78aea1e15",
+  "approved": true,
+  "checkpoint_ready": true,
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "freeze_manifest": {
+    "file_sha256": "4bcb552b9a17f50a783b4088a6cda5dcee178a0fabf513355373792d67906bfe",
+    "manifest_digest": "4a14adef993e3584b038153ddc54c443c665de3747f78723c419d2f7a9527fc9",
+    "path": "docs/action-661j5o2-certification-admission-freeze-manifest.json"
+  },
+  "independence": {
+    "docker_started": false,
+    "netlify_mutated": false,
+    "normative_o1_bytes_modified": false,
+    "production_accessed": false,
+    "remediation_performed": false,
+    "runtime_executed": false
+  },
+  "normative_digest": "9c0d03f2584ad4c6821da3bd0c2994a68003e3af48b162acf4e6fdcc4431dc16",
+  "review_contract": "action_661j5o2_certification_admission_independent_review_v1",
+  "review_digest": "8aee8e26dc17ea0ca2d4e5fb0c81b9ee87bd6e69f8777ebf00a95bf0074f15b2",
+  "review_digest_exclusions": [
+    "review_digest"
+  ],
+  "review_suite": {
+    "path": "tests/e2e/action-661j5o2-certification-admission-independent-review.spec.ts",
+    "sha256": "5660dc81e1cb379ba12437a9ab2eaf36d84061c41c546be701aee7d2628c0e58",
+    "tests_expected": 10
+  },
+  "verified_gates": {
+    "caller_trust_minting_absent": true,
+    "collision_before_identity_reuse": true,
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "distinct_sanitized_failure_identities": true,
+    "exact_duplicate_idempotency": true,
+    "freeze_inventory_and_recovery_binding": true,
+    "hook_free_proxy_getter_callback_boundary": true,
+    "n2a_internal_single_snapshot": true,
+    "no_post_verification_path_read": true,
+    "private_provenance_before_access": true,
+    "public_digest_cannot_upgrade_trust": true,
+    "runtime_and_live_capabilities_absent": true,
+    "scope_and_role_substitution_rejected": true,
+    "twenty_eight_fixture_and_shard_inventory": true
+  }
+}
