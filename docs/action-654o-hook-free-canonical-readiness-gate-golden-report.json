@@ -1,0 +1,104 @@
+{
+  "contract_version": "action_654o_hook_free_canonical_readiness_gate_v1",
+  "report_version": "action_654o_hook_free_canonical_readiness_gate_golden_v1",
+  "gate_schema_version": "action_654o_canonical_gate_v1",
+  "budgets": {
+    "maximum_characters": 128,
+    "maximum_utf8_bytes": 192
+  },
+  "canonical_gate_matrix": [
+    {
+      "name": "disabled",
+      "canonical": "{\"version\":\"action_654o_canonical_gate_v1\",\"enabled\":false,\"kill_switch_active\":false}",
+      "boundary_status": "accepted",
+      "readiness_status": "not_eligible",
+      "downstream_work": 0
+    },
+    {
+      "name": "enabled",
+      "canonical": "{\"version\":\"action_654o_canonical_gate_v1\",\"enabled\":true,\"kill_switch_active\":false}",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "v5_establishments": 1,
+      "readiness_classifications": 1
+    },
+    {
+      "name": "kill_switch_active",
+      "canonical": "{\"version\":\"action_654o_canonical_gate_v1\",\"enabled\":true,\"kill_switch_active\":true}",
+      "boundary_status": "accepted",
+      "readiness_status": "not_eligible",
+      "downstream_work": 0
+    }
+  ],
+  "cases": [
+    {
+      "name": "utc_a",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_2d2d2d43d243ebfe7d52af30c8af882424112ffb76bc9f53a48607e72891d003",
+      "readiness_identity": "action_654h_private_readiness_identity_eb84763351cd45b3797eac0bc183f6c9b8ebee3f3b0b43c3cff019ea90b00839",
+      "readiness_digest": "action_654h_private_readiness_envelope_a42c0247df6fd332ab45d705c1c46d40bcbdb154b1ba3b7c397b45f60f29dad5",
+      "instruction_identity": "action_653s_broker_neutral_instruction_8cc8ec5d751656bdf4cbe55e5ab60b5a4e56a82d3159aa11f0931265aa10213c",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_a4330f3180652f58ac7dd0c99cc20b33772037e5155fb178f9dbf43398ab4d22"
+    },
+    {
+      "name": "utc_b",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_2d2d2d43d243ebfe7d52af30c8af882424112ffb76bc9f53a48607e72891d003",
+      "readiness_identity": "action_654h_private_readiness_identity_eb84763351cd45b3797eac0bc183f6c9b8ebee3f3b0b43c3cff019ea90b00839",
+      "readiness_digest": "action_654h_private_readiness_envelope_a42c0247df6fd332ab45d705c1c46d40bcbdb154b1ba3b7c397b45f60f29dad5",
+      "instruction_identity": "action_653s_broker_neutral_instruction_8cc8ec5d751656bdf4cbe55e5ab60b5a4e56a82d3159aa11f0931265aa10213c",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_a4330f3180652f58ac7dd0c99cc20b33772037e5155fb178f9dbf43398ab4d22"
+    },
+    {
+      "name": "stockholm",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_2d2d2d43d243ebfe7d52af30c8af882424112ffb76bc9f53a48607e72891d003",
+      "readiness_identity": "action_654h_private_readiness_identity_eb84763351cd45b3797eac0bc183f6c9b8ebee3f3b0b43c3cff019ea90b00839",
+      "readiness_digest": "action_654h_private_readiness_envelope_a42c0247df6fd332ab45d705c1c46d40bcbdb154b1ba3b7c397b45f60f29dad5",
+      "instruction_identity": "action_653s_broker_neutral_instruction_8cc8ec5d751656bdf4cbe55e5ab60b5a4e56a82d3159aa11f0931265aa10213c",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_a4330f3180652f58ac7dd0c99cc20b33772037e5155fb178f9dbf43398ab4d22"
+    },
+    {
+      "name": "new_york",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_2d2d2d43d243ebfe7d52af30c8af882424112ffb76bc9f53a48607e72891d003",
+      "readiness_identity": "action_654h_private_readiness_identity_eb84763351cd45b3797eac0bc183f6c9b8ebee3f3b0b43c3cff019ea90b00839",
+      "readiness_digest": "action_654h_private_readiness_envelope_a42c0247df6fd332ab45d705c1c46d40bcbdb154b1ba3b7c397b45f60f29dad5",
+      "instruction_identity": "action_653s_broker_neutral_instruction_8cc8ec5d751656bdf4cbe55e5ab60b5a4e56a82d3159aa11f0931265aa10213c",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_a4330f3180652f58ac7dd0c99cc20b33772037e5155fb178f9dbf43398ab4d22"
+    },
+    {
+      "name": "reverse_input_order",
+      "boundary_status": "accepted",
+      "readiness_status": "ready",
+      "terminal_reason": "readiness_ready",
+      "observed_input_digest": "action_654h_private_readiness_request_2d2d2d43d243ebfe7d52af30c8af882424112ffb76bc9f53a48607e72891d003",
+      "readiness_identity": "action_654h_private_readiness_identity_eb84763351cd45b3797eac0bc183f6c9b8ebee3f3b0b43c3cff019ea90b00839",
+      "readiness_digest": "action_654h_private_readiness_envelope_a42c0247df6fd332ab45d705c1c46d40bcbdb154b1ba3b7c397b45f60f29dad5",
+      "instruction_identity": "action_653s_broker_neutral_instruction_8cc8ec5d751656bdf4cbe55e5ab60b5a4e56a82d3159aa11f0931265aa10213c",
+      "synthetic_replay_identity": "action_653s_synthetic_replay_evidence_a4330f3180652f58ac7dd0c99cc20b33772037e5155fb178f9dbf43398ab4d22"
+    }
+  ],
+  "safety": {
+    "diagnostic_only": true,
+    "synthetic_only": true,
+    "transport_attached": false,
+    "dispatch_permitted": false,
+    "broker_submission_allowed": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "browser_or_cdp_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
