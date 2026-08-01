@@ -1,0 +1,52 @@
+{
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 2174,
+      "path": "docs/action-661j5p1-certification-gated-runtime-selection-golden-report.json",
+      "sha256": "5cfd96516bc34ada6f9fd551829cef3742db7b22c47073cb7797efb2f442e5ea"
+    },
+    {
+      "byte_length": 2602,
+      "path": "docs/action-661j5p1-certification-gated-runtime-selection.md",
+      "sha256": "9678d2a7830147e5fe2fcbaa7c243110a06fee3540772617c7ae35bc07479d19"
+    },
+    {
+      "byte_length": 11665,
+      "path": "lib/action-661j5p1-certification-gated-runtime-selection.mjs",
+      "sha256": "fba8d2f3b6178bef3e270453e4a111704c9bc7dc2a76af749b04632c5d0b1f9e"
+    },
+    {
+      "byte_length": 2786,
+      "path": "tests/e2e/action-661j5p1-certification-gated-runtime-selection-fixtures.mjs",
+      "sha256": "654db0b9694e59ae0c1953f88ebfea2ff48eab517442a95abc95ad86fd7579fd"
+    },
+    {
+      "byte_length": 11521,
+      "path": "tests/e2e/action-661j5p1-certification-gated-runtime-selection.spec.ts",
+      "sha256": "010cb2de8473758a84ebbe3b874a45ec0f78411d60ee73ef324b5719c689e0c6"
+    }
+  ],
+  "expected_selection_identity": "754a7e781f14ae5731ddbac2444b8c7c3182e95c10913ea640e49855610c54ea",
+  "freeze_contract": "action_661j5p2_certification_gated_selection_freeze_manifest_v1",
+  "freeze_manifest_digest": "69ab1f6cdd913c5200b9fd5b05486571ad1cc6a971b33e532a527a7da67d0ba4",
+  "freeze_manifest_digest_exclusions": [
+    "freeze_manifest_digest"
+  ],
+  "golden_report_sha256": "5cfd96516bc34ada6f9fd551829cef3742db7b22c47073cb7797efb2f442e5ea",
+  "normative_digest": "76a330b87160d536bc9dabb390e9ba7c66ed637bd43ead9716be4032acd4602e",
+  "normative_digest_algorithm": "sha256(canonical_json({artifact_count,artifacts}))",
+  "normative_digest_observations": {
+    "after_regression": "76a330b87160d536bc9dabb390e9ba7c66ed637bd43ead9716be4032acd4602e",
+    "after_review": "76a330b87160d536bc9dabb390e9ba7c66ed637bd43ead9716be4032acd4602e",
+    "before_regression": "76a330b87160d536bc9dabb390e9ba7c66ed637bd43ead9716be4032acd4602e"
+  },
+  "normative_files_modified": false,
+  "preservation_commit": "992e61e37c2f6e0095c1993c5a01916c01b0b8ea",
+  "preservation_ref": "refs/preservation/action-661j5p1-certification-gated-runtime-selection-authority",
+  "review_suite": {
+    "path": "tests/e2e/action-661j5p2-certification-gated-selection-independent-review.spec.ts",
+    "sha256": "20442bb05f0a02412ac97ec12a19b8e1f7d8cd89a448ef15dccb6fb3934f092f",
+    "tests_expected": 9
+  }
+}
