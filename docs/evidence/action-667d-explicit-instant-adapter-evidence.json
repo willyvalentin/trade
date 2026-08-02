@@ -1,0 +1,79 @@
+{
+  "evidence_payload": {
+    "report_version": "action_667d_explicit_instant_adapter_evidence_v1",
+    "context_version": "market_context_intelligence_v2",
+    "threshold_version": "market_context_intelligence_thresholds_2026_07_26_v2",
+    "explicit_instant_parser_version": "market_context_explicit_instant_parser_v1",
+    "shadow_adapter_version": "market_context_shadow_evaluation_adapter_v2",
+    "bridge_schema_version": "market_context_canonical_bridge_schema_v1",
+    "generated_from_fixture_timestamp": "2026-07-24T20:00:00.000Z",
+    "production_or_historical_data_used": false,
+    "threshold_decisions": [
+      {
+        "threshold_id": "freshness_minutes.intraday",
+        "value": 30,
+        "status": "reserved_inactive",
+        "classification_effect": false
+      },
+      {
+        "threshold_id": "freshness_minutes.sector_short",
+        "value": 30,
+        "status": "reserved_inactive",
+        "classification_effect": false
+      }
+    ],
+    "verification": {
+      "naive_timestamp_rejection": true,
+      "invalid_offset_rejection": true,
+      "dst_and_offset_equivalence": true,
+      "cross_timezone_processes": [
+        "UTC",
+        "Europe/Stockholm",
+        "America/New_York"
+      ],
+      "cross_timezone_output_sha256": "74ada29c4cbdc5070fd5a073fa84a27cce2502fbcbe908adf9080ce6c8a8f610",
+      "adapter_round_trip_lossless": true,
+      "missing_metadata_not_bindable": true,
+      "v1_classifications_unchanged": true
+    },
+    "decisions": {
+      "action_667d_explicit_instant_remediated": true,
+      "action_667d_lossless_adapter_ready": true,
+      "canonical_binding_ready": false,
+      "canonical_format_compatible": false,
+      "shadow_only": true,
+      "live_ranking_effect": false
+    },
+    "artifact_sha256": [
+      {
+        "path": "lib/market-context-intelligence-lab/explicit-instant-v1.ts",
+        "sha256": "db09715b3583d245be7b7c128c0f5dcf3b7cd8b9e8a8e172f0694112b1b84f6a"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/thresholds-v2.ts",
+        "sha256": "d96cd7c24f5fbfd645ebc7e425ef89b9688e0b764349480d898d423a21bd4d4c"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/contract-v2.ts",
+        "sha256": "231aca8553f72e78111c51e8831bdfbd91d92d3861e96564257249cadb08aa70"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/shadow-canonical-bridge-v1.ts",
+        "sha256": "2f718cf41689797ccc598cbdea5a06751ba7bf073ff5dc6f63e46b1a0e418160"
+      },
+      {
+        "path": "docs/action-667d-explicit-instant-lossless-adapter-remediation.md",
+        "sha256": "520488bbe3c6587ddb10b991080d49894e8a120df547139d9be4d90110f3312a"
+      },
+      {
+        "path": "tests/e2e/action-667d-explicit-instant-lossless-adapter.spec.ts",
+        "sha256": "a722be81a4cf2b78ac7c40ce85ada1c0b7248ee7098a78849ebffbd91ff4414e"
+      }
+    ]
+  },
+  "evidence_digest": {
+    "algorithm": "sha256",
+    "canonicalization": "SHA256(JSON.stringify(evidence_payload))",
+    "value": "c31bea77723d82f2d94e02e1dbd295def50c92334594d154bf85e8f72811dcb6"
+  }
+}
