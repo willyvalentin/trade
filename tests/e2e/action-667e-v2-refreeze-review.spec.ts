@@ -12,6 +12,18 @@ type FreezeArtifact = {
   git_status: "untracked";
 };
 
+const PORTABILITY_SUPERSEDED_ARTIFACTS = new Map([
+  [
+    "tests/e2e/action-667c-market-context-freeze-review.spec.ts",
+    {
+      historical_sha256:
+        "f6390c31bca5c1239f9f535bbc27bd3d3f8ba4994830005925f605f3c4f2a285",
+      portable_sha256:
+        "cfb040d7d2121e4d61d64b2e6883d2be4fe36cb391d76e8a8ba3ee84fe90f40b",
+    },
+  ],
+]);
+
 type FreezeManifest = {
   start_sha: string;
   v1_baseline: {
@@ -60,10 +72,22 @@ function gitStatus(path: string) {
     { cwd: repositoryRoot, encoding: "utf8" },
   );
   expect(result.status).toBe(0);
-  return result.stdout.trim();
+  return result.stdout.trimEnd();
 }
 
-test("manifest inventories exact v1 lineage and v2 artifacts with matching hashes and status", () => {
+function expectPortableCurrentStatus(
+  path: string,
+  status: string,
+  portabilitySuperseded: boolean,
+) {
+  const allowed = ["", `?? ${path}`, `A  ${path}`];
+  if (portabilitySuperseded) {
+    allowed.push(` M ${path}`, `M  ${path}`);
+  }
+  expect(allowed).toContain(status);
+}
+
+test("manifest preserves historical hashes/status while current artifacts remain portable", () => {
   expect(manifest.v1_lineage_artifacts).toHaveLength(12);
   expect(manifest.v2.artifact_count).toBe(7);
   expect(manifest.v2.artifacts).toHaveLength(7);
@@ -72,10 +96,26 @@ test("manifest inventories exact v1 lineage and v2 artifacts with matching hashe
     ...manifest.v1_lineage_artifacts,
     ...manifest.v2.artifacts,
   ]) {
-    expect(
-      sha256(readFileSync(resolve(repositoryRoot, artifact.path))),
-    ).toBe(artifact.sha256);
-    expect(gitStatus(artifact.path)).toBe(`?? ${artifact.path}`);
+    expect(artifact.git_status).toBe("untracked");
+    const historicalPortabilityHash =
+      PORTABILITY_SUPERSEDED_ARTIFACTS.get(artifact.path);
+    if (historicalPortabilityHash) {
+      expect(artifact.sha256).toBe(
+        historicalPortabilityHash.historical_sha256,
+      );
+      expect(
+        sha256(readFileSync(resolve(repositoryRoot, artifact.path))),
+      ).toBe(historicalPortabilityHash.portable_sha256);
+    } else {
+      expect(
+        sha256(readFileSync(resolve(repositoryRoot, artifact.path))),
+      ).toBe(artifact.sha256);
+    }
+    expectPortableCurrentStatus(
+      artifact.path,
+      gitStatus(artifact.path),
+      Boolean(historicalPortabilityHash),
+    );
     expect(artifact.artifact_type.length).toBeGreaterThan(0);
     expect(artifact.version.length).toBeGreaterThan(0);
   }
