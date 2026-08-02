@@ -1,0 +1,141 @@
+{
+  "action": "667M.4B",
+  "evidence_version": "market_context_action_667m4b_pilot_batch_submission_v1",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "2641491b3ee3394edb9eecd82c364c7032203c1a944f7d7cd964f909b53eb79e",
+  "decision_material": {
+    "execution": {
+      "started_at": "2026-07-27T15:23:28.839658Z",
+      "quote_completed_at": "2026-07-27T15:23:44.947021Z",
+      "credential_source": "/Users/willysimonsson/Dev/trade/.env.local",
+      "credential_value_persisted_or_reported": false,
+      "authenticated_metadata_preflight_performed": true,
+      "batch_submission_attempts": 0,
+      "batch_submitted": false,
+      "provider_job_created": false,
+      "provider_job_identity_present": false,
+      "provider_file_inventory_requested": false,
+      "downloads": 0,
+      "automatic_retries": 0
+    },
+    "frozen_preconditions": {
+      "m4a_evidence_digest": "193fb6655e7ed95a92fd8b9ff8edaa14f46e28fa5be11f715db969d1d9b5e693",
+      "m4a_evidence_file_sha256": "22586d5422470bb987c8b7270c1fa00c566438f65420a50bdff897563840c5b0",
+      "action_667m4a_two_stage_admission_ready": true,
+      "action_667m4a_authoritative_calendar_ready": true,
+      "action_667m4a_provider_provenance_sufficient": true,
+      "calendar_version": "market_context_xnys_acquisition_calendar_2026_v1",
+      "calendar_sha256": "fac1d40d9136a43680176f5d1a75b6c3a0bb69531cd6e580c4dc35f72bea2335",
+      "license_evidence_freeze_digest": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c",
+      "encrypted_destination_verified": true,
+      "destination_outside_git": true,
+      "free_space_at_least_1_gib": true
+    },
+    "requested_scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id": 95,
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "start": "2026-07-20T00:00:00Z",
+      "end_exclusive": "2026-07-25T00:00:00Z",
+      "adjustment_state": "raw_unadjusted",
+      "corporate_actions_included": false
+    },
+    "sanitized_fresh_preflight": {
+      "quote_evidence_sha256": "a4bfebe23b71cd84ab6cce012061883c1892ce11b7c646c23f29cd54baf5cb0d",
+      "sdk_version": "0.82.0",
+      "decoder_version": "0.63.0",
+      "resolved_symbols": [
+        "QQQ",
+        "SPY",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "resolved_symbol_count": 13,
+      "partial_symbol_count": 0,
+      "entitlement_start": "2023-03-28T00:00:00.000000000Z",
+      "entitlement_end_exclusive": "2026-07-27T04:00:00.000000000Z",
+      "available_dates": [
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24"
+      ],
+      "available_day_count": 5,
+      "degraded_day_count": 0,
+      "record_count": 516162,
+      "billable_bytes": 24775776,
+      "billable_cap_bytes": 33554432,
+      "estimated_cost_usd": 0.138445436954,
+      "cost_cap_usd": 0.25,
+      "dataset_discovery_exact_membership": false
+    },
+    "fail_closed_decision": {
+      "stage": "fresh_metadata_preflight",
+      "error_codes": [
+        "dataset_not_available"
+      ],
+      "decision": "stop_before_batch_submission",
+      "retry_performed": false,
+      "provider_charge_incurred_by_batch_submission": false,
+      "estimated_cost_was_not_committed": true,
+      "batch_failure_charge_question_applicable": false,
+      "control_file_created": false,
+      "repository_contains_provider_job_identity": false,
+      "provider_file_digests_received": false,
+      "list_files_metadata_is_local_file_hash": false
+    },
+    "statuses": {
+      "action_667m4b_pre_submission_admission_passed": false,
+      "action_667m4b_batch_submitted": false,
+      "action_667m4b_batch_terminal_ready": false,
+      "action_667m4b_file_inventory_available": false,
+      "action_667m4b_declared_transfer_within_cap": false,
+      "action_667m4c_download_gate_ready": false,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    },
+    "no_effect": {
+      "market_data_bytes_received": 0,
+      "support_files_received": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_writes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0,
+      "live_ranking_effect": false
+    }
+  }
+}

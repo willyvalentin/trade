@@ -1,0 +1,103 @@
+{
+  "action": "667M.5C",
+  "evidence_version": "market_context_action_667m5c_calibration_batch_submission_fail_closed_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "22b3735acd6073f772e2e88bb056d3ba6a8473a52d59be3b7d3cd85f21335992",
+  "decision_material": {
+    "attempt": {
+      "started_at": "2026-07-27T20:48:06.376698Z",
+      "result": "failed_closed_before_submission",
+      "sanitized_runtime_result_sha256": "23638b735e5f0a8ad5618974d3fb8e5d882cd46a9c3ff46df74f668f4f439234",
+      "submission_harness_sha256": "ae6625a6e988cc1a2a7658816211168e0495f4192cc94e771a9269f0529f3c19",
+      "failure_type": "ValueError",
+      "provider_failure_message_persisted": false,
+      "automatic_retry_performed": false,
+      "operator_authorized_submission_calls_remaining_in_this_action": 0
+    },
+    "predecessor_bindings": {
+      "m5b_evidence_digest": "7e6a22ba285bb48c02f4de300137b8651ea791d56fd11ac7d3965a396f6faf6b",
+      "m5b_scope_digest": "a06af7191b00fc024f0b11757894764995f1e76d8aa82a31bc9cf9b2a06b1c20",
+      "m5b_quote_digest": "7afc4ee2400f2448996ba623fc4805cf210ff9a03c17dfacb77fca49e4ca4eab",
+      "calendar_digest": "b6f673bbee883282e54933d38e475dd9fef28d7daa5827c2c3fd1e90a4001808",
+      "m3d_license_evidence_file_sha256": "544aff46b9ed2e804972894f320e100c0567da09b0a07554f3b93106bf4120d1",
+      "m4c_encrypted_volume_evidence_file_sha256": "525a7cb666763c9493d61c796718d0c160b4a04ab25bb16824982857637a30b6",
+      "local_predecessor_integrity_passed": true,
+      "scope_and_calendar_match_operator_authorization": true,
+      "license_raw_unadjusted_and_destination_policy_unchanged": true
+    },
+    "failure_diagnosis": {
+      "stage": "fresh_entitlement_range_validation",
+      "completed_authenticated_metadata_calls": [
+        "metadata.list_datasets",
+        "metadata.list_schemas",
+        "metadata.get_dataset_range"
+      ],
+      "range_less_exact_ascii_membership_call_completed": true,
+      "trades_schema_call_completed": true,
+      "entitlement_range_call_completed": true,
+      "root_cause": "local_explicit_instant_parser_rejected_provider_nanosecond_fraction",
+      "provider_instant_shape": "explicit_utc_with_nine_fractional_digits",
+      "local_runtime": "CPython 3.10.7",
+      "parser": "datetime.fromisoformat",
+      "offline_reproduction": {
+        "reproduced": true,
+        "nanosecond_explicit_instant_rejected": true,
+        "credential_or_provider_call_required": false
+      },
+      "provider_or_scope_drift_identified": false,
+      "remediation_required": "replace_local_parser_with_the_existing_strict_lossless_explicit_instant_parser_or_equivalent_nanosecond_safe_validation",
+      "remediation_or_resume_performed_in_this_action": false
+    },
+    "fresh_pre_submission_values": {
+      "fresh_quote_available": false,
+      "fresh_billable_bytes_available": false,
+      "fresh_record_count_available": false,
+      "fresh_entitlement_admitted": false,
+      "quote_age_at_submission_seconds": null,
+      "estimated_cost_usd": null,
+      "billable_bytes": null,
+      "record_count": null,
+      "m5b_quote_reused_for_submission": false,
+      "reason": "preflight stopped before quote endpoints and no submission was attempted"
+    },
+    "external_effects": {
+      "authenticated_metadata_calls": 3,
+      "batch_job_catalog_calls": 0,
+      "batch_submission_calls": 0,
+      "new_batch_submissions": 0,
+      "job_detail_calls": 0,
+      "polls": 0,
+      "support_files_downloaded": 0,
+      "market_data_files_downloaded": 0,
+      "timeseries_record_requests": 0,
+      "streaming_calls": 0,
+      "purchases": 0,
+      "control_file_created": false,
+      "calibration_directory_created": false,
+      "credential_value_logged_or_persisted": false,
+      "provider_job_identity_obtained_logged_or_persisted": false
+    },
+    "statuses": {
+      "action_667m5c_pre_submission_admission_passed": false,
+      "action_667m5c_batch_submitted": false,
+      "action_667m5c_submission_scope_verified": false,
+      "action_667m5c_batch_terminal_ready": false,
+      "new_batch_submissions": 0,
+      "support_files_downloaded": 0,
+      "market_data_files_downloaded": 0,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false
+    },
+    "next_boundary": {
+      "required_action": "667M.5C.1_explicit_nanosecond_entitlement_parser_remediation_and_submission_resume",
+      "new_or_resumed_operator_authorization_required": true,
+      "no_automatic_retry": true,
+      "next_run_must_repeat_full_fresh_pre_submission_gate": true,
+      "next_run_must_recheck_zero_prior_exact_scope_jobs": true,
+      "submission_call_ceiling_for_next_authorized_run": 1
+    }
+  }
+}

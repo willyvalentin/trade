@@ -1,0 +1,94 @@
+{
+  "manifest_version": "market_context_action_667m3d1_whitespace_portability_refreeze_manifest_v1",
+  "generated_on": "2026-07-28",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "head": "409ccfa54beda6f61852401caf03aa0b18899898",
+  "portability_successor_version": "market_context_m3d_whitespace_portability_successor_v1",
+  "predecessor": {
+    "manifest_path": "docs/evidence/action-667m3d-provider-verbatim-license-freeze-manifest.json",
+    "manifest_version": "market_context_action_667m3d_provider_verbatim_license_freeze_manifest_v1",
+    "manifest_sha256": "5c86da3a491e2fd95a0343da7ee043571a6a15828a300f432cc2bb3b05d856a0",
+    "artifact_digest": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c",
+    "historical_document_sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+    "immutable_historical_evidence": true
+  },
+  "checkpoint_reconciliation": {
+    "predecessor_manifest_path": "/private/tmp/action-667m5k2c-scope-reconciliation-20260728/scope-reconciliation-manifest.json",
+    "predecessor_manifest_sha256": "089974e3633dbaa5e2e3b04284d5546d9876ecdf87166234fd840ac3e4ca21dd"
+  },
+  "transformation": {
+    "policy_version": "market_context_whitespace_portability_transformation_v1",
+    "artifact_path": "docs/action-667m3d-provider-verbatim-license-evidence-admission.md",
+    "before_sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+    "after_sha256": "1ee0c890d0a96cd31b352ddf199eec68ec4d6591ca4cdcc5c3385c7b34c537f7",
+    "before_bytes": 6363,
+    "after_bytes": 6357,
+    "byte_delta": -6,
+    "removed_occurrence_count": 3,
+    "removed_bytes_per_occurrence": 2,
+    "removed_character": "U+0020 SPACE",
+    "line_numbers": [
+      19,
+      21,
+      23
+    ],
+    "allowed_change": "remove exactly two trailing U+0020 characters immediately before LF on each declared line",
+    "other_whitespace_changes_allowed": false,
+    "word_or_value_changes_allowed": false,
+    "non_whitespace_digest_algorithm": "sha256(utf8(remove_all_Unicode_White_Space(code_points)))",
+    "before_non_whitespace_sha256": "64975c8ca2ee61591d403841a007637d088fc5910b52c470ac084419577ce625",
+    "after_non_whitespace_sha256": "64975c8ca2ee61591d403841a007637d088fc5910b52c470ac084419577ce625",
+    "semantic_non_whitespace_parity": true
+  },
+  "successor_artifact_count": 3,
+  "successor_artifacts": [
+    {
+      "path": "docs/action-667m3d-provider-verbatim-license-evidence-admission.md",
+      "artifact_type": "provider_verbatim_license_admission_documentation",
+      "classification": "documentation_portability_successor",
+      "version": "market_context_action_667m3d1_license_admission_documentation_portability_successor_v1",
+      "sha256": "1ee0c890d0a96cd31b352ddf199eec68ec4d6591ca4cdcc5c3385c7b34c537f7",
+      "predecessor_sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11"
+    },
+    {
+      "path": "docs/evidence/action-667m3d-provider-verbatim-license-evidence.json",
+      "artifact_type": "sanitized_provider_verbatim_and_readiness_evidence",
+      "classification": "acquisition_readiness_external_evidence",
+      "version": "market_context_action_667m3d_provider_verbatim_license_evidence_v1",
+      "sha256": "544aff46b9ed2e804972894f320e100c0567da09b0a07554f3b93106bf4120d1",
+      "predecessor_sha256": "544aff46b9ed2e804972894f320e100c0567da09b0a07554f3b93106bf4120d1"
+    },
+    {
+      "path": "tests/e2e/action-667m3d-provider-verbatim-license-evidence.spec.ts",
+      "artifact_type": "provider_verbatim_license_admission_test",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3d_tests_v1",
+      "sha256": "cf9302d0e87af80cd1e62eb27e630f659716ec68f074596a2444c6685d3d2492",
+      "predecessor_sha256": "cf9302d0e87af80cd1e62eb27e630f659716ec68f074596a2444c6685d3d2492"
+    }
+  ],
+  "successor_artifact_digest_algorithm": "sha256(concat(sorted(path + NUL + artifact_type + NUL + classification + NUL + version + NUL + sha256 + NUL + predecessor_sha256 + LF)))",
+  "successor_artifact_digest": "0d48f9a04b3bfd5bbf9d6259fff5ba277eedba00539f914883d7d4f1ed5689e7",
+  "semantic_invariants": {
+    "provider_transcription_unchanged": true,
+    "license_rights_unchanged": true,
+    "readiness_fields_unchanged": true,
+    "canonical_evidence_unchanged": true,
+    "operator_acquisition_authorized": false,
+    "download_authorized": false,
+    "normalization_authorized": false,
+    "replay_authorized": false
+  },
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m3d1-whitespace-portability-refreeze-manifest.json",
+    "reason": "The successor manifest excludes its own bytes to avoid a recursive digest."
+  },
+  "decisions": {
+    "action_667m3d1_portability_refreeze_complete": true,
+    "action_667m3d1_historical_freeze_preserved": true,
+    "action_667m3d1_semantic_equivalence_verified": true,
+    "staging_performed": false,
+    "commit_performed": false
+  }
+}

@@ -1,0 +1,500 @@
+{
+  "manifest_version": "action_667l_local_historical_dataset_admission_manifest_v1",
+  "generated_at": "2026-07-26T21:23:34Z",
+  "action": "667L",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "decision": {
+    "action_667l_historical_dataset_admission_ready": false,
+    "status": "fail_closed_no_admissible_dataset",
+    "admissible_candidate_count": 0,
+    "replay_authorized": false,
+    "replay_executed": false,
+    "reason_codes": [
+      "no_candidate_satisfies_all_admission_requirements",
+      "provider_capture_schema_incompatible",
+      "provider_capture_license_unknown",
+      "provider_capture_not_point_in_time_safe",
+      "provider_capture_contains_production_identifier",
+      "synthetic_fixtures_not_historical_evidence",
+      "no_exact_documented_external_dataset_path"
+    ]
+  },
+  "scope": {
+    "searched": [
+      "current_worktree",
+      "repository_tracked_fixture_directories",
+      "repository_tracked_data_directories",
+      "repository_tracked_evidence_directories",
+      "repository_documentation_for_explicit_local_dataset_paths"
+    ],
+    "not_searched": [
+      "home_directory_outside_current_worktree",
+      "downloads",
+      "credential_stores",
+      "other_projects",
+      "provider_or_internet",
+      "production_or_staging",
+      "supabase_or_other_databases"
+    ],
+    "method": [
+      "git_tracked_path_inventory",
+      "repository_reference_search",
+      "aggregate_schema_and_timestamp_inspection",
+      "sha256_file_inventory",
+      "value_suppressing_sensitive_pattern_counts"
+    ],
+    "candidate_files_copied": false,
+    "candidate_files_modified": false,
+    "provider_traffic": false,
+    "database_connection": false,
+    "capture": false,
+    "replay": false
+  },
+  "digest_policy": {
+    "file_digest": "sha256(raw_file_bytes)",
+    "bundle_digest": "sha256(sorted_path + NUL + file_sha256 + LF)",
+    "immutable_binding_required_for_admission": true
+  },
+  "candidates": [
+    {
+      "candidate_id": "operator_observed_aapl_5min_static_capture",
+      "primary_classification": "schema_incompatible",
+      "classifications": [
+        "schema_incompatible",
+        "provenance_incomplete",
+        "license_unknown",
+        "not_point_in_time_safe",
+        "contains_sensitive_identifiers"
+      ],
+      "exact_local_path": "/private/tmp/trade-action-667k/docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
+      "git_status": "tracked",
+      "file_inventory": [
+        {
+          "path": "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
+          "artifact_type": "candidate_ohlcv_payload",
+          "bytes": 30921,
+          "sha256": "7ea7d9d0b5ef3032ad81a69459902dd8c02aafda7017275622e364dcc35bc713",
+          "git_status": "tracked"
+        },
+        {
+          "path": "docs/first-tiny-historical-candle-corrected-ohlcv-payload-static-capture.md",
+          "artifact_type": "provenance_and_validation_note",
+          "bytes": 2550,
+          "sha256": "bfcbccf566ccea0349829821005080c6ffee661e47acef7db94cab4f07c82668",
+          "git_status": "tracked"
+        },
+        {
+          "path": "docs/first-tiny-historical-candle-corrected-payload-refetch-result-verification.md",
+          "artifact_type": "source_verification_note",
+          "bytes": 3022,
+          "sha256": "cb9e092ab53ab9cef3b36a7c6210efe6131ca093c2f634dec32894bca7474f78",
+          "git_status": "tracked"
+        },
+        {
+          "path": "lib/first-tiny-historical-candle-corrected-ohlcv-payload-static-capture.ts",
+          "artifact_type": "static_capture_validator",
+          "bytes": 11314,
+          "sha256": "f8abfb80edc162b6ae237792aeea2d2e728e86c7ae168b6a4053fee3057e86cb",
+          "git_status": "tracked"
+        }
+      ],
+      "dataset_sha256": "7ea7d9d0b5ef3032ad81a69459902dd8c02aafda7017275622e364dcc35bc713",
+      "evidence_bundle_sha256": "9f6d8b660ea3e0b731be1716b94585358d1bd3538d34b4b19eb347289bf5f137",
+      "source_and_provenance": {
+        "status": "provenance_incomplete",
+        "documented_source": "operator_observed_provider_response",
+        "provider": "twelve_data",
+        "source_verification_present": true,
+        "raw_provider_envelope_present": false,
+        "provider_request_identity_complete": false,
+        "observation_availability_proof_present": false
+      },
+      "license_and_usage": {
+        "status": "license_unknown",
+        "internal_research_or_replay_right_documented_in_repository": false
+      },
+      "universe": {
+        "definition": "single_ticker_fixed_capture",
+        "tickers": [
+          "AAPL"
+        ],
+        "ticker_count": 1,
+        "contains_spy": false,
+        "contains_qqq": false,
+        "contains_breadth": false,
+        "contains_sector_or_industry_benchmarks": false
+      },
+      "timezone_and_session": {
+        "observation_timestamp_policy": "explicit_utc_z",
+        "exchange_timezone": "America/New_York",
+        "session": "regular",
+        "calendar_policy_embedded": false
+      },
+      "timestamps": {
+        "observation_timestamp_count": 73,
+        "provider_source_timestamp_count": 0,
+        "received_timestamp_count": 0,
+        "observation_start": "2026-07-08T13:45:00.000Z",
+        "observation_end": "2026-07-08T19:45:00.000Z"
+      },
+      "ohlcv": {
+        "schema_present": true,
+        "interval": "5min",
+        "rows": 73,
+        "missing_open": 0,
+        "missing_high": 0,
+        "missing_low": 0,
+        "missing_close": 0,
+        "missing_volume": 0
+      },
+      "corporate_actions": {
+        "adjusted_values": [
+          false
+        ],
+        "split_adjustment_policy_documented": false,
+        "dividend_adjustment_policy_documented": false
+      },
+      "point_in_time": {
+        "status": "not_point_in_time_safe",
+        "future_observation_filter_proof": false,
+        "provider_source_time_available": false,
+        "received_time_available": false,
+        "lookahead_can_be_excluded_without_guessing": false
+      },
+      "ordering_and_missingness": {
+        "duplicate_observation_timestamps": 0,
+        "out_of_order_observations": 0,
+        "non_5min_internal_gaps": 0,
+        "missingness_policy_documented": false
+      },
+      "coverage": {
+        "days": 1,
+        "tickers": 1,
+        "observations": 73,
+        "date_start": "2026-07-08",
+        "date_end": "2026-07-08"
+      },
+      "sensitive_data_scan": {
+        "credentials_or_tokens_detected": false,
+        "email_or_personal_data_detected": false,
+        "production_identifier_field_present": true,
+        "production_identifier_distinct_count": 1,
+        "production_identifier_occurrences": 73,
+        "identifier_values_suppressed": true
+      },
+      "market_context_binding": {
+        "compatible_with_market_context_shadow_replay_v1": false,
+        "missing_required_domains": [
+          "decision_records",
+          "spy_series",
+          "qqq_series",
+          "breadth",
+          "sector_or_industry_series",
+          "provider_source_timestamps",
+          "received_timestamps",
+          "coverage_and_freshness_by_domain",
+          "producer_build_provider_versions"
+        ]
+      },
+      "admissible": false
+    },
+    {
+      "candidate_id": "repository_us_equity_market_calendar",
+      "primary_classification": "schema_incompatible",
+      "classifications": [
+        "schema_incompatible",
+        "license_unknown"
+      ],
+      "exact_local_path": "/private/tmp/trade-action-667k/data/us-equity-market-calendar.json",
+      "git_status": "tracked",
+      "file_inventory": [
+        {
+          "path": "data/us-equity-market-calendar.json",
+          "artifact_type": "auxiliary_market_calendar",
+          "bytes": 5083,
+          "sha256": "66561b55ab6c0fd8c935beed9853b58ce4a5882e1fd2c0e6f97470dd0a859814",
+          "git_status": "tracked"
+        }
+      ],
+      "dataset_sha256": "66561b55ab6c0fd8c935beed9853b58ce4a5882e1fd2c0e6f97470dd0a859814",
+      "source_and_provenance": {
+        "status": "documented_reviewed",
+        "source_category": "repository_pinned_official_exchange_calendar",
+        "source_organizations_documented": true,
+        "generation_method_documented": true
+      },
+      "license_and_usage": {
+        "status": "license_unknown",
+        "internal_research_or_replay_right_documented_in_repository": false
+      },
+      "calendar": {
+        "contract_version": "us_equity_market_calendar_dataset_v1",
+        "timezone": "America/New_York",
+        "coverage_start": "2026-01-01",
+        "coverage_end": "2028-12-31",
+        "closed_holidays": 29,
+        "early_close_sessions": 5,
+        "weekend_policy": "closed_weekend"
+      },
+      "ohlcv_or_context": {
+        "tickers": 0,
+        "observations": 0,
+        "ohlcv_present": false,
+        "provider_source_timestamps_present": false,
+        "received_timestamps_present": false,
+        "point_in_time_market_context_present": false
+      },
+      "sensitive_data_scan": {
+        "credentials_or_tokens_detected": false,
+        "email_or_personal_data_detected": false,
+        "production_identifier_field_present": false,
+        "identifier_values_suppressed": true
+      },
+      "market_context_binding": {
+        "compatible_with_market_context_shadow_replay_v1": false,
+        "may_be_auxiliary_after_separate_license_review": true,
+        "cannot_be_admitted_as_historical_market_context_evidence": true
+      },
+      "admissible": false
+    },
+    {
+      "candidate_id": "market_context_repository_golden_and_replay_fixtures",
+      "primary_classification": "synthetic_only",
+      "classifications": [
+        "synthetic_only"
+      ],
+      "exact_local_paths": [
+        "/private/tmp/trade-action-667k/lib/market-context-intelligence-lab/golden-fixtures-v1.ts",
+        "/private/tmp/trade-action-667k/lib/market-context-intelligence-lab/shadow-replay-fixtures-v1.ts"
+      ],
+      "file_inventory": [
+        {
+          "path": "lib/market-context-intelligence-lab/golden-fixtures-v1.ts",
+          "artifact_type": "synthetic_contract_golden_fixtures",
+          "bytes": 10964,
+          "sha256": "7a11d64eeb26a4a72d85f5800683a29ef43b90244e68a713d04c6192fff2aa2e",
+          "git_status": "tracked"
+        },
+        {
+          "path": "lib/market-context-intelligence-lab/shadow-replay-fixtures-v1.ts",
+          "artifact_type": "synthetic_historical_session_fixtures",
+          "bytes": 11989,
+          "sha256": "2753a4ed43d083cf6886315b377bd6dab7e95425c88a66877f68ecd38e696f86",
+          "git_status": "untracked_action_667k"
+        }
+      ],
+      "dataset_bundle_sha256": "f73eeff8b1401b4278acf67dae97f8a502b87f94e6016c21b0fb243b025ef35f",
+      "source_and_provenance": {
+        "status": "synthetic_repository_fixture",
+        "provider_data": false,
+        "production_data": false
+      },
+      "license_and_usage": {
+        "status": "repository_fixture_only",
+        "historical_evidence_eligible": false
+      },
+      "coverage": {
+        "fixture_groups": 12,
+        "synthetic_decisions": 14,
+        "real_trading_days": 0,
+        "real_provider_observations": 0
+      },
+      "sensitive_data_scan": {
+        "credentials_or_tokens_detected": false,
+        "email_or_personal_data_detected": false,
+        "uuid_like_identifiers_detected": false,
+        "identifier_values_suppressed": true
+      },
+      "admissible": false
+    },
+    {
+      "candidate_id": "static_signal_package_replay_preview_golden",
+      "primary_classification": "synthetic_only",
+      "classifications": [
+        "synthetic_only",
+        "schema_incompatible"
+      ],
+      "exact_local_path": "/private/tmp/trade-action-667k/tests/fixtures/replay-with-signal-package-static-preview.json.golden.json",
+      "git_status": "tracked",
+      "file_inventory": [
+        {
+          "path": "tests/fixtures/replay-with-signal-package-static-preview.json.golden.json",
+          "artifact_type": "synthetic_replay_result_golden",
+          "bytes": 19482,
+          "sha256": "646e2448bbc3922ce34e57ebebc5d907ef22240a196259e0f016ffdc22166d75",
+          "git_status": "tracked"
+        }
+      ],
+      "dataset_sha256": "646e2448bbc3922ce34e57ebebc5d907ef22240a196259e0f016ffdc22166d75",
+      "source_and_provenance": {
+        "generated_from_static_inputs": true,
+        "provider_call_executed": false,
+        "production_runtime_touched": false
+      },
+      "coverage": {
+        "scenarios": 10,
+        "tickers": 1,
+        "trading_days": 1,
+        "interval": "5min",
+        "raw_ohlcv_series_present": false
+      },
+      "sensitive_data_scan": {
+        "credentials_or_tokens_detected": false,
+        "email_or_personal_data_detected": false,
+        "uuid_like_fixture_identifier_distinct_count": 1,
+        "uuid_like_fixture_identifier_occurrences": 20,
+        "production_origin_proven": false,
+        "identifier_values_suppressed": true
+      },
+      "market_context_binding": {
+        "compatible_with_market_context_shadow_replay_v1": false,
+        "reason": "result_golden_without_required_point_in_time_market_context_series"
+      },
+      "admissible": false
+    },
+    {
+      "candidate_id": "action_667_freeze_sensitivity_and_adapter_evidence",
+      "primary_classification": "schema_incompatible",
+      "classifications": [
+        "schema_incompatible",
+        "synthetic_only"
+      ],
+      "exact_local_paths": [
+        "/private/tmp/trade-action-667k/docs/evidence/action-667b-market-context-sensitivity-report.json",
+        "/private/tmp/trade-action-667k/docs/evidence/action-667c-market-context-freeze-manifest.json",
+        "/private/tmp/trade-action-667k/docs/evidence/action-667d-explicit-instant-adapter-evidence.json",
+        "/private/tmp/trade-action-667k/docs/evidence/action-667e-v2-freeze-manifest.json"
+      ],
+      "file_inventory": [
+        {
+          "path": "docs/evidence/action-667b-market-context-sensitivity-report.json",
+          "bytes": 11262,
+          "sha256": "6e1cd5a462f4ec834ab508a0c41c4146b0dbf537ca020d32dd0fbcbb804e6aa6",
+          "git_status": "tracked"
+        },
+        {
+          "path": "docs/evidence/action-667c-market-context-freeze-manifest.json",
+          "bytes": 3831,
+          "sha256": "ce3d29d093acd30fd7161c4cf1b5f11d3f330b0a30ca393c58f70985fecd4dab",
+          "git_status": "tracked"
+        },
+        {
+          "path": "docs/evidence/action-667d-explicit-instant-adapter-evidence.json",
+          "bytes": 3074,
+          "sha256": "37e4cc3f7f9a06458da36e81765b5e2b65654be9c8663537e6d315f6a992f04c",
+          "git_status": "tracked"
+        },
+        {
+          "path": "docs/evidence/action-667e-v2-freeze-manifest.json",
+          "bytes": 7917,
+          "sha256": "81b2a966c76f4c66380441d4d15dfd3c26cceb3db3e933eee6e6d07c93395d16",
+          "git_status": "tracked"
+        }
+      ],
+      "evidence_bundle_sha256": "664269964d9d591fa6ffc15667dc3d095a868f99be17f68012f52561a777d8f1",
+      "content": {
+        "historical_market_series_present": false,
+        "historical_decision_records_present": false,
+        "purpose": "synthetic_sensitivity_freeze_and_contract_evidence"
+      },
+      "sensitive_data_scan": {
+        "credentials_or_tokens_detected": false,
+        "email_or_personal_data_detected": false,
+        "uuid_like_identifiers_detected": false,
+        "identifier_values_suppressed": true
+      },
+      "admissible": false
+    },
+    {
+      "candidate_id": "explicitly_documented_external_or_local_historical_dataset",
+      "primary_classification": "not_found",
+      "classifications": [
+        "not_found"
+      ],
+      "exact_local_path": null,
+      "reference_inventory": [
+        {
+          "path": "docs/action-337-pattern-discovery-and-confidence-calibration-roadmap.md",
+          "bytes": 11095,
+          "sha256": "e118d9289e356e29ecbad106e894c692b2d6b5d813fde280cd959182fe20d810",
+          "finding": "describes_a_future_exported_read_only_dataset_without_a_path"
+        },
+        {
+          "path": "docs/action-347-learning-dataset-static-fixture-implementation-plan.md",
+          "bytes": 5212,
+          "sha256": "feea6241a64f8e7c37817aa57aa11d5f135ce1a75a6657794833da863eacdfbc",
+          "finding": "explicitly_states_no_fixture_data_yet"
+        },
+        {
+          "path": "docs/action-667k-deterministic-historical-market-context-shadow-replay.md",
+          "bytes": 6655,
+          "sha256": "f154b42f03cd7ab8c0970d83de43305e1dddae33da529e8b8bce00f616326781",
+          "finding": "requires_future_operator_approval_for_exact_paths_but_names_none"
+        }
+      ],
+      "reference_bundle_sha256": "b6cc52724346fa763ddb51d56151bd86bca7a1b69ed8578a8a6ee7ced0986f04",
+      "admissible": false
+    }
+  ],
+  "admission_requirements": {
+    "exact_path": "failed_no_complete_candidate",
+    "file_inventory_and_sha256": "passed_for_found_candidates",
+    "documented_source_and_provenance": "failed_for_replay_eligible_scope",
+    "license_or_usage_right": "failed",
+    "ticker_or_universe_definition": "failed_for_required_market_context_universe",
+    "timezone_and_explicit_instant_policy": "partial",
+    "session_and_calendar_policy": "partial",
+    "observation_provider_source_and_received_timestamps": "failed",
+    "ohlcv_schema_and_interval": "partial_single_ticker_only",
+    "corporate_action_and_split_policy": "failed",
+    "point_in_time_and_lookahead_control": "failed",
+    "duplicate_and_out_of_order_policy": "partial",
+    "missingness_gaps_and_coverage": "partial_insufficient_coverage",
+    "days_tickers_observations_and_range": "passed_for_found_payload_only",
+    "sensitive_data_scan": "failed_production_identifier_present_in_provider_capture",
+    "immutable_dataset_digest": "passed_for_found_files"
+  },
+  "sensitive_data_summary": {
+    "scan_mode": "aggregate_counts_only_values_never_emitted_to_manifest",
+    "credentials_or_tokens_detected": false,
+    "personal_data_detected": false,
+    "production_identifier_detected": true,
+    "production_identifier_location": "operator_observed_aapl_5min_static_capture",
+    "synthetic_fixture_identifier_detected": true,
+    "synthetic_fixture_identifier_location": "static_signal_package_replay_preview_golden"
+  },
+  "next_action": {
+    "action": "667M",
+    "name": "Historical Dataset Acquisition and Preparation Gate",
+    "required_before_replay": true,
+    "requirements": [
+      "operator_approved_exact_local_paths",
+      "documented_internal_research_and_replay_usage_right",
+      "immutable_raw_and_normalized_dataset_digests",
+      "spy_qqq_breadth_and_sector_or_industry_coverage",
+      "explicit_observation_provider_source_and_received_instants",
+      "exchange_calendar_and_corporate_action_policy",
+      "point_in_time_availability_and_revision_controls",
+      "sensitive_identifier_removal_or_approved_sanitization",
+      "schema_validation_without_replay"
+    ],
+    "replay_must_remain_blocked": true
+  },
+  "guardrails": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "canonical_binding_ready": false,
+    "provider_traffic": false,
+    "production_data_access": false,
+    "database_access": false,
+    "capture": false,
+    "persistence": false,
+    "replay": false,
+    "commit": false,
+    "push": false,
+    "pull_request": false,
+    "deploy": false
+  }
+}

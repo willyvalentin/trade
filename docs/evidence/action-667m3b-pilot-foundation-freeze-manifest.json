@@ -1,0 +1,448 @@
+{
+  "manifest_version": "market_context_pilot_foundation_freeze_manifest_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count": 39,
+  "classification_vocabulary": [
+    "current_normative",
+    "superseded_but_retained",
+    "historical_review_evidence",
+    "fixture_test",
+    "documentation",
+    "acquisition_blocking_external_evidence"
+  ],
+  "predecessor_digests": {
+    "pr51_v1_freeze": "eb0ef9eff3318b540ffc060d52d7ba118dfe98bf7303068ab01474fb92168250",
+    "pr51_v2_freeze": "79057d446d4acb7e4e6d0bdf4a97b73dda3dbb4e050b4d67920ffa4c3a78138d",
+    "pr51_review_evidence": "d592cc9b4ce39df9fa4b9aaff0700e2b59865b7b0eedd4a79a8e69157c45c633",
+    "k_dataset": "0541f8d31481636174af7effff86d3dde9638025c54388ddf62f7df611117b07",
+    "k_replay_evidence": "edaf9f3c9654c34662ad5c62e153ae657c69c3f230d3865b9c456f9fb8eb66d4",
+    "m1_raw_fixture": "41e7624e0de1b4c586bab600ec90c6830ae0395e3795877a9ae91693946a37fd",
+    "m1_normalized_fixture": "b213dbc851d8b73c71c529a2b0d66ee27e3c9b7e708485c6a0b29a581a3ab67a",
+    "m2a_v1_freeze": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+    "m2c_v2_freeze": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f",
+    "m3a_artifact_digest": "0a61bbe1bad00077386ebc3abfaa5ebd3759b1b0f523ee679475ef90df12b030",
+    "m3a_evidence_sha256": "0b66e1f341a98c33e9b1cd0e043ea577949341039c75c966f3b2847b47fd504e"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-667k-deterministic-historical-market-context-shadow-replay.md",
+      "artifact_type": "contract_documentation",
+      "classification": "documentation",
+      "version": "action_667k_shadow_replay_documentation_v1",
+      "sha256": "f154b42f03cd7ab8c0970d83de43305e1dddae33da529e8b8bce00f616326781",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["pr51_v2_freeze"]
+    },
+    {
+      "path": "docs/action-667m1-historical-dataset-contract-and-offline-normalization.md",
+      "artifact_type": "contract_documentation",
+      "classification": "documentation",
+      "version": "market_context_historical_dataset_documentation_v1",
+      "sha256": "8cf496ae40d4614998133bceea1f143229ada450a9d980efc2600bcfc6fb6ea3",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_replay_evidence"]
+    },
+    {
+      "path": "docs/action-667m2-historical-dataset-source-license-cost-decision.md",
+      "artifact_type": "source_decision_documentation",
+      "classification": "documentation",
+      "version": "market_context_historical_dataset_source_decision_v1",
+      "sha256": "f6242017bba3fa8d4854394fc3faac9221265d18bf31d225fc372775dbea7dbf",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m1_normalized_fixture"]
+    },
+    {
+      "path": "docs/action-667m2a-deterministic-trade-to-candle-preparation-contract.md",
+      "artifact_type": "contract_documentation",
+      "classification": "documentation",
+      "version": "market_context_historical_trade_to_candle_preparation_v1",
+      "sha256": "4e466995d517d3ccf0b646ecfde40ccce54337bf3fa1125c4ebf01043b7e5247",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m1_normalized_fixture"]
+    },
+    {
+      "path": "docs/action-667m2b-independent-trade-to-candle-freeze-review.md",
+      "artifact_type": "independent_review",
+      "classification": "historical_review_evidence",
+      "version": "action_667m2b_independent_review_v1",
+      "sha256": "3aee75c7e1a0bac8ae0a44f881114d4cf143f63b99b2a5be623820d45b81237c",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "docs/action-667m2c-independent-v2-refreeze-review.md",
+      "artifact_type": "independent_review",
+      "classification": "historical_review_evidence",
+      "version": "action_667m2c_independent_review_v1",
+      "sha256": "07d74f01d23a17c640d2837b14bfdaa3cb340c729de3497d3b1a3affdb8d1d38",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "docs/action-667m2c-nanosecond-trade-preparation-remediation.md",
+      "artifact_type": "contract_documentation",
+      "classification": "documentation",
+      "version": "market_context_historical_trade_to_candle_preparation_v2",
+      "sha256": "e0b252c0586f5c11e57bf893a9c587b0023e790571ff9aebd9129a07e2a7ad77",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "docs/action-667m3-databento-metadata-entitlement-license-gate.md",
+      "artifact_type": "provider_metadata_gate",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_databento_metadata_entitlement_license_gate_v3",
+      "sha256": "5ccaebecd6ae271c9b073371fbeb30cb9155a536a40d744119aa8c4c17902018",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "docs/action-667m3a-databento-license-inquiry-draft.md",
+      "artifact_type": "unsent_license_inquiry",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_databento_license_inquiry_draft_v1",
+      "sha256": "d780e00f1c240355715387478bc7283c5968831c553c5b3ace34f82112013f95",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_artifact_digest"]
+    },
+    {
+      "path": "docs/action-667m3a-nanosecond-receiver-and-pilot-admission.md",
+      "artifact_type": "contract_documentation",
+      "classification": "documentation",
+      "version": "market_context_action_667m3a_contract_documentation_v1",
+      "sha256": "3d3e9b0f1dfbda75bfbba7f96b0692469ea0dd3ab9bfcbff906e8edb91a6dfef",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze", "m3a_artifact_digest"]
+    },
+    {
+      "path": "docs/action-667m3b-pilot-foundation-refreeze-review.md",
+      "artifact_type": "independent_review",
+      "classification": "historical_review_evidence",
+      "version": "market_context_pilot_foundation_review_v1",
+      "sha256": "f86a928d54003e91fbc3976297d2bff35026f14bd1074eeb9df00b36cf22d026",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_evidence_sha256"]
+    },
+    {
+      "path": "docs/evidence/action-667l-local-historical-dataset-admission-manifest.json",
+      "artifact_type": "dataset_admission_evidence",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "action_667l_local_historical_dataset_admission_manifest_v1",
+      "sha256": "0b3cb86157f9c68a1fdecb2984757b292930596793bdbff44369a3fa579d7c3f",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_dataset"]
+    },
+    {
+      "path": "docs/evidence/action-667m1-market-context-historical-dataset-acquisition-spec.json",
+      "artifact_type": "acquisition_specification",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_historical_dataset_acquisition_spec_v1",
+      "sha256": "8dca2761fff3dd05bb6af28a8088bcc23c06e903cb26b73a1bd003737cf83968",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_dataset"]
+    },
+    {
+      "path": "docs/evidence/action-667m2-historical-dataset-source-decision.json",
+      "artifact_type": "source_decision_evidence",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_historical_dataset_source_decision_v1",
+      "sha256": "169d32e865ca66803fa114ab1b0fd4d7c35a587dd64665ca3854efb6c8e820be",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m1_normalized_fixture"]
+    },
+    {
+      "path": "docs/evidence/action-667m2a-trade-to-candle-preparation-evidence.json",
+      "artifact_type": "machine_readable_evidence",
+      "classification": "historical_review_evidence",
+      "version": "market_context_historical_trade_to_candle_preparation_evidence_v1",
+      "sha256": "cbb24280fc43ade0fd322a1821e0beecdf216d6157ae0843d7c9a5b0eda4113b",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "docs/evidence/action-667m2b-trade-to-candle-freeze-manifest.json",
+      "artifact_type": "freeze_manifest",
+      "classification": "historical_review_evidence",
+      "version": "market_context_trade_to_candle_freeze_manifest_v1",
+      "sha256": "5f436e1590082ab6d9b3d140436128fde408200791c9ae6b6912a02a500d1774",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "docs/evidence/action-667m2c-nanosecond-remediation-evidence.json",
+      "artifact_type": "machine_readable_evidence",
+      "classification": "historical_review_evidence",
+      "version": "market_context_historical_trade_nanosecond_remediation_evidence_v1",
+      "sha256": "c14467b990f2b71ba844aa26da2169e7c1515bd0ffb2468bd27c67e2158640e4",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze", "m2c_v2_freeze"]
+    },
+    {
+      "path": "docs/evidence/action-667m2c-v2-freeze-manifest.json",
+      "artifact_type": "freeze_manifest",
+      "classification": "historical_review_evidence",
+      "version": "market_context_historical_trade_to_candle_v2_freeze_manifest_v1",
+      "sha256": "58c6b9dc7a4543d66cd097c24abae0563acf14f0d6b1bf591d55e038b2084e45",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "docs/evidence/action-667m3-databento-metadata-entitlement-license-gate.json",
+      "artifact_type": "provider_metadata_gate_evidence",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_databento_metadata_entitlement_license_gate_v3",
+      "sha256": "548daf77f60fb1ec6aa480db487f7fc62be189e2fb1fa796255475481556c81c",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "docs/evidence/action-667m3a-nanosecond-receiver-pilot-admission-evidence.json",
+      "artifact_type": "machine_readable_evidence",
+      "classification": "historical_review_evidence",
+      "version": "market_context_action_667m3a_evidence_v1",
+      "sha256": "0b66e1f341a98c33e9b1cd0e043ea577949341039c75c966f3b2847b47fd504e",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_artifact_digest"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/action-667m3a-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixture",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3a_synthetic_fixtures_v1",
+      "sha256": "f9aad22b98aa478bef2556d86cc5f755e6f9cbddbe72730ad6e3bf61d2432f73",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_artifact_digest"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/historical-dataset-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixture",
+      "classification": "fixture_test",
+      "version": "market_context_historical_dataset_synthetic_fixtures_v1",
+      "sha256": "47cccfb39bd329888b3ff4f41a8afc626603454d1bfc40ebcff3772ad80d869a",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m1_raw_fixture", "m1_normalized_fixture"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/historical-dataset-nanosecond-receiver-v1.ts",
+      "artifact_type": "implementation",
+      "classification": "current_normative",
+      "version": "market_context_historical_dataset_nanosecond_receiver_v1",
+      "sha256": "2cc0ac90a3c5ae2fb3b5e1f68e6031e3e6acbc2ef485c0440cc8d43e39adc933",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze", "m3a_artifact_digest"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/historical-dataset-v1.ts",
+      "artifact_type": "implementation",
+      "classification": "current_normative",
+      "version": "market_context_historical_dataset_v1",
+      "sha256": "e9888362234eec30854d67c08ec2b4f4f997d34c9bc63bd754d20b286450f32b",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_dataset"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/shadow-replay-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixture",
+      "classification": "fixture_test",
+      "version": "market_context_shadow_replay_synthetic_sessions_v1",
+      "sha256": "2753a4ed43d083cf6886315b377bd6dab7e95425c88a66877f68ecd38e696f86",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_replay_evidence"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/shadow-replay-v1.ts",
+      "artifact_type": "implementation",
+      "classification": "current_normative",
+      "version": "market_context_shadow_replay_v1",
+      "sha256": "6a240490aaf6afb9fde1df8fb24f204aebf1db10a42e9d56f1facb3aa3350fd1",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["pr51_v2_freeze", "k_replay_evidence"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-m1-binding-v2.ts",
+      "artifact_type": "implementation",
+      "classification": "current_normative",
+      "version": "market_context_historical_trade_m1_binding_adapter_v2",
+      "sha256": "dbddd6c631b07b68b0697dce7487bffa5dbc8f81c004733cc99aaeb40a462f58",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-fixtures-v1.ts",
+      "artifact_type": "synthetic_fixture",
+      "classification": "superseded_but_retained",
+      "version": "market_context_historical_trade_to_candle_synthetic_fixtures_v1",
+      "sha256": "ad6db4ac85226629d067dc39950440eb77f9a4b50816fa0d94b308be21069635",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-fixtures-v2.ts",
+      "artifact_type": "synthetic_fixture",
+      "classification": "fixture_test",
+      "version": "market_context_historical_trade_to_candle_synthetic_fixtures_v2",
+      "sha256": "9403500b765fa321ec1140c7a5304baacbf5e39f21ec7889cf849ad6083d0fcb",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-v1.ts",
+      "artifact_type": "implementation",
+      "classification": "superseded_but_retained",
+      "version": "market_context_historical_trade_to_candle_preparation_v1",
+      "sha256": "b7aa7ab03fa005b44310fc00d8c07fafaed24999ad3c662967e535860af00a30",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/trade-to-candle-preparation-v2.ts",
+      "artifact_type": "implementation",
+      "classification": "current_normative",
+      "version": "market_context_historical_trade_to_candle_preparation_v2",
+      "sha256": "a8ffb6a15c4b1f161fa6285d9908bad46d5bc4d30fdfb8ac4b462c46b223ec1b",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "tests/e2e/action-667c-market-context-freeze-review.spec.ts",
+      "artifact_type": "portable_historical_freeze_test",
+      "classification": "fixture_test",
+      "version": "action_667c_freeze_review_test_portable_v2",
+      "sha256": "cfb040d7d2121e4d61d64b2e6883d2be4fe36cb391d76e8a8ba3ee84fe90f40b",
+      "git_status_at_freeze": "modified",
+      "lineage": ["pr51_v1_freeze", "pr51_v2_freeze"]
+    },
+    {
+      "path": "tests/e2e/action-667e-v2-refreeze-review.spec.ts",
+      "artifact_type": "portable_historical_freeze_test",
+      "classification": "fixture_test",
+      "version": "action_667e_v2_refreeze_review_test_portable_v2",
+      "sha256": "c5abf9cb7ef97a2fcd99095dc62269adb539be65f9d1d126d67236d4bc132a0c",
+      "git_status_at_freeze": "modified",
+      "lineage": ["pr51_v2_freeze"]
+    },
+    {
+      "path": "tests/e2e/action-667k-market-context-shadow-replay.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "fixture_test",
+      "version": "market_context_shadow_replay_tests_v1",
+      "sha256": "2969bc462ce2d130e7db23744090133f0ec12fd344e6d06f79b322351bd943e4",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["k_replay_evidence"]
+    },
+    {
+      "path": "tests/e2e/action-667m1-market-context-historical-dataset.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "fixture_test",
+      "version": "market_context_historical_dataset_tests_v1",
+      "sha256": "0e6bdd4aefaecdb268eb82e1cf0e6f48ff2e8abaf0ca8a90e6fde8d3778450aa",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m1_raw_fixture", "m1_normalized_fixture"]
+    },
+    {
+      "path": "tests/e2e/action-667m2a-trade-to-candle-preparation.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "superseded_but_retained",
+      "version": "market_context_historical_trade_to_candle_preparation_tests_v1",
+      "sha256": "54527aacdc8f112ef8714ca8ebf196c329cc8c3a1d14a932d32c77505168c645",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2a_v1_freeze"]
+    },
+    {
+      "path": "tests/e2e/action-667m2c-nanosecond-trade-preparation.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "fixture_test",
+      "version": "market_context_historical_trade_to_candle_preparation_tests_v2",
+      "sha256": "a8b36a043aff6d0083c35403e528c5a373688bfa753cbe51444cfee7703bc906",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m2c_v2_freeze"]
+    },
+    {
+      "path": "tests/e2e/action-667m3a-nanosecond-receiver-pilot-admission.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3a_tests_v1",
+      "sha256": "782ad3c6eca2b43f565730dffdc4ad0889450fe19ca9bbcfff3c5d94d85c6381",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_artifact_digest"]
+    },
+    {
+      "path": "tests/e2e/action-667m3b-pilot-foundation-freeze.spec.ts",
+      "artifact_type": "test_suite",
+      "classification": "fixture_test",
+      "version": "market_context_pilot_foundation_freeze_tests_v1",
+      "sha256": "bc5ba55c7671f2c6027edc7fe03b64d688026ed3a6e576a42a193fbd938bdce9",
+      "git_status_at_freeze": "untracked",
+      "lineage": ["m3a_evidence_sha256"]
+    }
+  ],
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m3b-pilot-foundation-freeze-manifest.json",
+    "reason": "A manifest cannot include its own byte hash without a self-reference; its SHA-256 is reported separately after generation."
+  },
+  "artifact_digest_algorithm": "sha256(concat(sorted_artifacts(path + NUL + artifact_type + NUL + classification + NUL + version + NUL + sha256 + NUL + git_status_at_freeze + NUL + comma_joined_lineage + LF)))",
+  "artifact_digest": "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c",
+  "portability_policy": {
+    "historical_git_status_is_provenance_only": true,
+    "accepted_current_states": [
+      "untracked_exact_hash",
+      "staged_intended_exact_hash",
+      "tracked_clean_exact_hash",
+      "documented_portability_revision_exact_hash"
+    ],
+    "rejected_current_states": [
+      "modified_unfrozen_bytes",
+      "deleted",
+      "renamed",
+      "conflicted",
+      "unexpected_file"
+    ],
+    "unexpected_file_policy": "reject"
+  },
+  "freeze_rules": {
+    "artifact_sha256_must_match": true,
+    "artifact_path_must_match": true,
+    "artifact_deletion_allowed": false,
+    "artifact_modification_allowed": false,
+    "unexpected_file_allowed": false,
+    "market_classification_changes_allowed": false,
+    "preparation_logic_changes_allowed": false,
+    "provider_activity_allowed": false,
+    "dataset_acquisition_allowed": false,
+    "canonical_binding_allowed": false,
+    "live_integration_allowed": false
+  },
+  "decisions": {
+    "action_667m3b_pilot_foundation_frozen": true,
+    "action_667m3b_test_portability_verified": true,
+    "action_667m3b_independent_review_approved": true,
+    "action_667m3b_local_checkpoint_ready": true,
+    "action_667m4_dataset_acquisition_ready": false
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 3,
+    "nit": 0
+  },
+  "external_activity": {
+    "credentials_read": 0,
+    "provider_contacts": 0,
+    "authenticated_provider_requests": 0,
+    "quotes": 0,
+    "downloads": 0,
+    "purchases": 0,
+    "real_data_normalizations": 0,
+    "historical_replays": 0,
+    "database_connections": 0,
+    "canonical_bindings": 0,
+    "live_integrations": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  }
+}

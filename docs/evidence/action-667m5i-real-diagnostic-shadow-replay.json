@@ -1,0 +1,229 @@
+{
+  "artifact_version": "action_667m5i_real_diagnostic_shadow_replay_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest": "678c2947ff3683260d86bf824beeb16c218592b833d258104a356e5db4aa1e9f",
+  "decision_material": {
+    "action": "667M.5I",
+    "versions": {
+      "replay_contract": "market_context_shadow_replay_v1",
+      "diagnostic_replay": "market_context_real_diagnostic_historical_shadow_replay_v1",
+      "schedule": "market_context_diagnostic_replay_schedule_2026_20_sessions_v1",
+      "metric_derivation": "market_context_diagnostic_metric_derivation_v1",
+      "market_context_v1": "market_context_intelligence_v1",
+      "market_context_v2": "market_context_intelligence_v2",
+      "watermark_status": "empirically_unvalidated"
+    },
+    "normalized_input": {
+      "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "lineage_digest": "fa874fd4747d16f9e1a03ef22ed4e9fa3be2491d767087372805992ab0ba3d5c",
+      "manifest_digest": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "raw_root": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "m5g_evidence_digest": "aba25a4bdc5f1844678b40172e0f7caede1c4dae94625981ef2eae05b6c5dfd4",
+      "artifact_count": 303,
+      "session_count": 20,
+      "symbol_count": 13,
+      "sector_etf_count": 11,
+      "candle_count": 100280,
+      "gap_count": 1120,
+      "not_full_market_breadth": true
+    },
+    "schedule": {
+      "decision_count": 60,
+      "decisions_per_session": 3,
+      "eastern_times": [
+        "10:30:02",
+        "12:30:02",
+        "15:30:02"
+      ],
+      "july_utc_times": [
+        "14:30:02Z",
+        "16:30:02Z",
+        "19:30:02Z"
+      ],
+      "current_full_day_aggregation_allowed": false
+    },
+    "replay": {
+      "decision_count": 60,
+      "session_count": 20,
+      "output_artifact_count": 84,
+      "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "replay_manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "replay_core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "full_output_location": "encrypted_external_diagnostic_namespace",
+      "performance_metrics_computed": [],
+      "canonical_outcomes_joined": false,
+      "model_training_performed": false
+    },
+    "determinism": {
+      "runs": [
+        {
+          "timezone": "UTC",
+          "input_order": "canonical",
+          "run": "A"
+        },
+        {
+          "timezone": "UTC",
+          "input_order": "canonical",
+          "run": "B"
+        },
+        {
+          "timezone": "Europe/Stockholm",
+          "input_order": "reverse",
+          "run": "A"
+        },
+        {
+          "timezone": "America/New_York",
+          "input_order": "canonical",
+          "run": "A"
+        }
+      ],
+      "byte_identical_output_trees": true,
+      "result_receipt_sha256": "866ed06d56628b5e404481324207409a85cae34013dede04589716d81bdd675a"
+    },
+    "point_in_time": {
+      "future_input_points_passed_to_core": 0,
+      "provider_timestamp_after_decision_count": 0,
+      "record_finalization_violation_count": 0,
+      "current_full_day_aggregation_use_count": 0,
+      "current_session_future_candles_excluded": 146260,
+      "current_session_future_gaps_excluded": 1940,
+      "later_session_rows_excluded": 2889900
+    },
+    "diagnostics": {
+      "decision_status": {
+        "sufficient": 31,
+        "insufficient": 7,
+        "conflicting": 22
+      },
+      "regime_distribution": {
+        "risk_on_trending": 1,
+        "risk_on_fragile": 2,
+        "neutral_balanced": 6,
+        "choppy_high_volatility": 22,
+        "insufficient_data": 7,
+        "conflicting_context": 22
+      },
+      "evidence_strength_distribution": {
+        "strong": 31,
+        "moderate": 22,
+        "insufficient": 7
+      },
+      "provider_gap_decision_count": 4,
+      "gap_effects": {
+        "decisions_with_eligible_gaps": 51,
+        "eligible_gap_rows": 1420
+      },
+      "sector_contexts": {
+        "total": 660,
+        "rankable": 88,
+        "not_rankable": 572,
+        "strong": 17,
+        "weak": 49,
+        "insufficient": 243
+      },
+      "v1_v2_classification_parity": {
+        "agreement_count": 60,
+        "change_count": 0,
+        "agreement_fraction": 1
+      },
+      "reason_code_frequencies": {
+        "diagnostic_all_reported_trades_not_official_ohlcv": 60,
+        "diagnostic_breadth_not_full_market_breadth": 60,
+        "diagnostic_watermark_empirically_unvalidated": 60,
+        "diagnostic_explicit_candle_gaps_present": 51,
+        "diagnostic_prior_session_history_unavailable": 3
+      }
+    },
+    "dimensions": {
+      "trend_state": {
+        "up": 12,
+        "down": 6,
+        "flat": 12,
+        "conflicting": 24,
+        "insufficient_data": 6
+      },
+      "risk_state": {
+        "risk_on": 3,
+        "neutral": 6,
+        "stressed": 18,
+        "conflicting": 24,
+        "insufficient_data": 9
+      },
+      "volatility_state": {
+        "high": 48,
+        "normal": 3,
+        "insufficient_data": 9
+      },
+      "breadth_state": {
+        "broad": 9,
+        "narrow": 37,
+        "weak": 14
+      },
+      "spy_qqq_agreement": {
+        "agreement_bullish": 12,
+        "agreement_bearish": 6,
+        "agreement_neutral": 12,
+        "disagreement": 24,
+        "insufficient_data": 6
+      },
+      "intraday_context": {
+        "choppy": 46,
+        "neutral": 3,
+        "conflicting": 2,
+        "insufficient_data": 9
+      },
+      "multi_day_context": {
+        "bullish": 9,
+        "bearish": 6,
+        "choppy": 12,
+        "conflicting": 24,
+        "insufficient_data": 9
+      },
+      "data_quality_state": {
+        "good": 53,
+        "provider_gap": 4,
+        "insufficient_data": 3
+      }
+    },
+    "markers": {
+      "diagnostic_all_reported_trades": true,
+      "official_ohlcv_claimed": false,
+      "canonical_performance_eligible": false,
+      "sale_condition_semantics_available": false,
+      "watermark_status": "empirically_unvalidated",
+      "shadow_only": true,
+      "live_ranking_effect": false,
+      "calibrated_probability": false
+    },
+    "implementation_bindings": {
+      "schedule_path": "lib/market-context-intelligence-lab/diagnostic-replay-schedule-v1.ts",
+      "schedule_sha256": "b33e29223bc94d8b851c67a86d35194a3cb047fc7b1a949a36a3f57b29f27be2",
+      "runner_path": "scripts/market_context_diagnostic_replay_v1.ts",
+      "runner_sha256": "01c472ac194280f787453be96fc34959448520bcfde1ee820cfac66e8b6fde98"
+    },
+    "statuses": {
+      "action_667m5i_diagnostic_replay_completed": true,
+      "action_667m5i_sixty_decisions_reconciled": true,
+      "action_667m5i_point_in_time_safety_passed": true,
+      "action_667m5i_two_run_determinism_passed": true,
+      "action_667m5i_cross_timezone_determinism_passed": true,
+      "action_667m5i_replay_evidence_ready": true,
+      "action_667m5j_replay_freeze_ready": true,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    },
+    "authorization": {
+      "performance_claims_authorized": false,
+      "model_training_authorized": false,
+      "database_authorized": false,
+      "provider_activity_authorized": false,
+      "canonical_binding_authorized": false,
+      "commit_authorized": false,
+      "push_authorized": false,
+      "pull_request_authorized": false,
+      "deploy_authorized": false
+    }
+  }
+}

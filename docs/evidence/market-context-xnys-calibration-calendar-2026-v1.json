@@ -1,0 +1,195 @@
+{
+  "artifact_version": "market_context_xnys_calibration_calendar_2026_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "canonical_json_sha256": "b6f673bbee883282e54933d38e475dd9fef28d7daa5827c2c3fd1e90a4001808",
+  "canonical_json_material": {
+    "artifact_id": "market-context-xnys-calibration-calendar-2026",
+    "artifact_version": "market_context_xnys_calibration_calendar_2026_v1",
+    "exchange": "XNYS",
+    "session_scope": "core_trading_session",
+    "candidate_start": "2026-06-26T00:00:00Z",
+    "candidate_end_exclusive": "2026-07-20T00:00:00Z",
+    "exchange_timezone": "America/New_York",
+    "timezone_policy": "NYSE Eastern Time converted explicitly to UTC; candidate dates are EDT (UTC-04:00); host timezone is never used",
+    "retrieved_on": "2026-07-27",
+    "sources": [
+      {
+        "source_id": "nyse_2026_yearly_trading_calendar",
+        "authority": "NYSE",
+        "url": "https://www.nyse.com/publicdocs/nyse/ICE_NYSE_2026_Yearly_Trading_Calendar.pdf",
+        "retrieved_on": "2026-07-27",
+        "content_sha256": "70f5577eb43e60a9dbbecaae3cec23d0f02028c05c7f175013bb3e97816d394f",
+        "supports": [
+          "2026 exchange holidays and trading sessions",
+          "2026 early-close markings",
+          "candidate session inventory"
+        ]
+      },
+      {
+        "source_id": "nyse_holidays_and_trading_hours",
+        "authority": "NYSE",
+        "url": "https://www.nyse.com/trade/hours-calendars",
+        "retrieved_on": "2026-07-27",
+        "content_sha256": "c466a9cb0377a8028046cd581e782f2695d01e2d06570a8f68d048681c0f2ebe",
+        "supports": [
+          "2026-07-03 is closed for observed Independence Day",
+          "NYSE core session is 09:30 through 16:00 Eastern Time",
+          "no early-close exception applies inside the candidate session inventory"
+        ]
+      }
+    ],
+    "excluded_dates": [
+      {
+        "date": "2026-07-03",
+        "reason": "exchange_holiday_independence_day_observed",
+        "is_session": false
+      }
+    ],
+    "sessions": [
+      {
+        "date": "2026-06-26",
+        "open_explicit_instant": "2026-06-26T13:30:00Z",
+        "close_explicit_instant": "2026-06-26T20:00:00Z",
+        "open_unix_ns": "1782480600000000000",
+        "close_unix_ns": "1782504000000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-06-29",
+        "open_explicit_instant": "2026-06-29T13:30:00Z",
+        "close_explicit_instant": "2026-06-29T20:00:00Z",
+        "open_unix_ns": "1782739800000000000",
+        "close_unix_ns": "1782763200000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-06-30",
+        "open_explicit_instant": "2026-06-30T13:30:00Z",
+        "close_explicit_instant": "2026-06-30T20:00:00Z",
+        "open_unix_ns": "1782826200000000000",
+        "close_unix_ns": "1782849600000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-01",
+        "open_explicit_instant": "2026-07-01T13:30:00Z",
+        "close_explicit_instant": "2026-07-01T20:00:00Z",
+        "open_unix_ns": "1782912600000000000",
+        "close_unix_ns": "1782936000000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-02",
+        "open_explicit_instant": "2026-07-02T13:30:00Z",
+        "close_explicit_instant": "2026-07-02T20:00:00Z",
+        "open_unix_ns": "1782999000000000000",
+        "close_unix_ns": "1783022400000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-06",
+        "open_explicit_instant": "2026-07-06T13:30:00Z",
+        "close_explicit_instant": "2026-07-06T20:00:00Z",
+        "open_unix_ns": "1783344600000000000",
+        "close_unix_ns": "1783368000000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-07",
+        "open_explicit_instant": "2026-07-07T13:30:00Z",
+        "close_explicit_instant": "2026-07-07T20:00:00Z",
+        "open_unix_ns": "1783431000000000000",
+        "close_unix_ns": "1783454400000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-08",
+        "open_explicit_instant": "2026-07-08T13:30:00Z",
+        "close_explicit_instant": "2026-07-08T20:00:00Z",
+        "open_unix_ns": "1783517400000000000",
+        "close_unix_ns": "1783540800000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-09",
+        "open_explicit_instant": "2026-07-09T13:30:00Z",
+        "close_explicit_instant": "2026-07-09T20:00:00Z",
+        "open_unix_ns": "1783603800000000000",
+        "close_unix_ns": "1783627200000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-10",
+        "open_explicit_instant": "2026-07-10T13:30:00Z",
+        "close_explicit_instant": "2026-07-10T20:00:00Z",
+        "open_unix_ns": "1783690200000000000",
+        "close_unix_ns": "1783713600000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-13",
+        "open_explicit_instant": "2026-07-13T13:30:00Z",
+        "close_explicit_instant": "2026-07-13T20:00:00Z",
+        "open_unix_ns": "1783949400000000000",
+        "close_unix_ns": "1783972800000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-14",
+        "open_explicit_instant": "2026-07-14T13:30:00Z",
+        "close_explicit_instant": "2026-07-14T20:00:00Z",
+        "open_unix_ns": "1784035800000000000",
+        "close_unix_ns": "1784059200000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-15",
+        "open_explicit_instant": "2026-07-15T13:30:00Z",
+        "close_explicit_instant": "2026-07-15T20:00:00Z",
+        "open_unix_ns": "1784122200000000000",
+        "close_unix_ns": "1784145600000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-16",
+        "open_explicit_instant": "2026-07-16T13:30:00Z",
+        "close_explicit_instant": "2026-07-16T20:00:00Z",
+        "open_unix_ns": "1784208600000000000",
+        "close_unix_ns": "1784232000000000000",
+        "early_close": false,
+        "session_type": "regular"
+      },
+      {
+        "date": "2026-07-17",
+        "open_explicit_instant": "2026-07-17T13:30:00Z",
+        "close_explicit_instant": "2026-07-17T20:00:00Z",
+        "open_unix_ns": "1784295000000000000",
+        "close_unix_ns": "1784318400000000000",
+        "early_close": false,
+        "session_type": "regular"
+      }
+    ],
+    "session_count": 15,
+    "all_regular_full_sessions": true,
+    "independent_control": {
+      "status": "passed",
+      "method": "NYSE yearly calendar session markings cross-checked against NYSE official 2026 holiday table and published core trading hours",
+      "price_data_used": false,
+      "provider_market_data_used": false,
+      "replay_output_used": false
+    }
+  }
+}

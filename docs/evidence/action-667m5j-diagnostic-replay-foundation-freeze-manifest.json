@@ -1,0 +1,365 @@
+{
+  "artifact_version": "market_context_diagnostic_replay_foundation_freeze_manifest_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "freeze_digest": "da82531ae4164d9404c9dddfcdd1d05481929a22e67dff224498a896dc24cd61",
+  "freeze_material": {
+    "action": "667M.5J",
+    "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+    "repository_artifact_count": 29,
+    "external_artifact_count": 2,
+    "lifecycle_summary": {
+      "normative_current": 20,
+      "historical_retained": 9,
+      "superseded_retained": 0
+    },
+    "lineage": {
+      "raw_record_count": 2420049,
+      "raw_file_digest_root": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "raw_to_record_lineage_digest": "fa874fd4747d16f9e1a03ef22ed4e9fa3be2491d767087372805992ab0ba3d5c",
+      "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "replay_core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "sanitized_replay_evidence_digest": "678c2947ff3683260d86bf824beeb16c218592b833d258104a356e5db4aa1e9f"
+    },
+    "repository_artifacts": [
+      {
+        "path": "docs/action-667m5f-twenty-session-raw-admission-and-receive-lag-study.md",
+        "artifact_type": "documentation",
+        "classification": "raw_admission_and_lag_report",
+        "version": "action_667m5f_report_v1",
+        "sha256": "97d1c5b3407e1444c933470b4fd31f4c365a6e9851cc32fa9be9cc3ae7c8c9b3",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "raw_admission"
+      },
+      {
+        "path": "docs/evidence/action-667m5f-twenty-session-raw-admission.json",
+        "artifact_type": "machine_readable_evidence",
+        "classification": "raw_admission_evidence",
+        "version": "market_context_action_667m5f_twenty_session_raw_admission_evidence_v1",
+        "sha256": "7039c46390328fc8cc9ece6c1b31aaafad2142eabc91cc779685e102c4c63971",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "raw_admission"
+      },
+      {
+        "path": "docs/evidence/action-667m5f-twenty-session-receive-lag-report.json",
+        "artifact_type": "machine_readable_evidence",
+        "classification": "receive_lag_evidence",
+        "version": "market_context_twenty_session_raw_dataset_receive_lag_report_v1",
+        "sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "raw_admission"
+      },
+      {
+        "path": "tests/e2e/action-667m5f-twenty-session-raw-admission.spec.ts",
+        "artifact_type": "test",
+        "classification": "raw_admission_regression",
+        "version": "action_667m5f_regression_v1",
+        "sha256": "ac5ec35b8457025c042888a215699993e84420df5dcdbb519ea5955a2cbdb250",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "raw_admission"
+      },
+      {
+        "path": "docs/action-667m5g-sale-condition-gap-decision.md",
+        "artifact_type": "documentation",
+        "classification": "sale_condition_decision_report",
+        "version": "action_667m5g_report_v1",
+        "sha256": "e492bd8ef6d16ee1ca77c9864568e3ad07a2b1b39c37dfd852df42f55c771899",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "diagnostic_policy"
+      },
+      {
+        "path": "docs/evidence/action-667m5g-sale-condition-gap-decision.json",
+        "artifact_type": "machine_readable_evidence",
+        "classification": "sale_condition_decision_evidence",
+        "version": "market_context_action_667m5g_sale_condition_gap_decision_evidence_v1",
+        "sha256": "e5700b65114ba82383537661b03703212aaf46a646e57cdc5b15a7143a73557e",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "diagnostic_policy"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-all-reported-trades-candle-policy-v1.ts",
+        "artifact_type": "contract",
+        "classification": "diagnostic_candle_policy",
+        "version": "market_context_diagnostic_all_reported_trades_candle_policy_v1",
+        "sha256": "108b7caabcc4d3d6216a96a8f3ae2c0d50cd0a05d32e33e55bae0b5db063a9d7",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "diagnostic_policy"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-all-reported-trades-candle-fixtures-v1.ts",
+        "artifact_type": "fixture",
+        "classification": "diagnostic_policy_fixture",
+        "version": "market_context_action_667m5g_synthetic_fixtures_v1",
+        "sha256": "35c5eedbe394af042e2d70a04717a076d6a6f04674d2f14290d2c9e8e18c2c77",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "diagnostic_policy"
+      },
+      {
+        "path": "tests/e2e/action-667m5g-sale-condition-gap-decision.spec.ts",
+        "artifact_type": "test",
+        "classification": "diagnostic_policy_regression",
+        "version": "action_667m5g_regression_v1",
+        "sha256": "ebef4e73756dbb797a85cf8af87c0121e395217c90a4245591e19813ac158344",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "diagnostic_policy"
+      },
+      {
+        "path": "docs/action-667m5h-diagnostic-normalization.md",
+        "artifact_type": "documentation",
+        "classification": "normalization_report",
+        "version": "action_667m5h_report_v1",
+        "sha256": "904e18e59993304bf77887bb8e6822f22d9df46405970bc36cdaf4be3d733695",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "docs/evidence/action-667m5h-diagnostic-normalization.json",
+        "artifact_type": "machine_readable_evidence",
+        "classification": "normalization_evidence",
+        "version": "market_context_action_667m5h_diagnostic_normalization_evidence_v1",
+        "sha256": "91b24508b598820edc36f30d6cac66ab0b15dd4e9a506aee97afcbeaceed2c61",
+        "git_status": "untracked",
+        "lifecycle_status": "historical_retained",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-trade-to-candle-normalization-v1.ts",
+        "artifact_type": "contract",
+        "classification": "normalization_contract",
+        "version": "market_context_diagnostic_trade_to_candle_normalization_v1",
+        "sha256": "d72406cda79b33979f12907bfbbf7c658a6dd5d4c964ff8c9df3048e016b2242",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-trade-to-candle-normalization-fixtures-v1.ts",
+        "artifact_type": "fixture",
+        "classification": "normalization_fixture",
+        "version": "market_context_action_667m5h_synthetic_fixtures_v1",
+        "sha256": "acd9dbd2c51759eb5abeed7de250e361c6a161a6bed6780275282acc0ad6309b",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "scripts/market_context_diagnostic_normalize_1m_v1.py",
+        "artifact_type": "implementation",
+        "classification": "normalization_runner",
+        "version": "market_context_diagnostic_trade_to_candle_normalization_v1",
+        "sha256": "84476808eb669b0e574ffa67340a1c896ce73e2aaa9bf17c9960d5eb07dd6170",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "tests/e2e/action-667m5h-diagnostic-normalization.spec.ts",
+        "artifact_type": "test",
+        "classification": "normalization_regression",
+        "version": "action_667m5h_typescript_regression_v1",
+        "sha256": "8881c8db4b3775b06c86e9993904d2d2e947db220cfc7ea85976376e1e57b7bc",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "tests/python/test_action_667m5h_diagnostic_normalization.py",
+        "artifact_type": "test",
+        "classification": "normalization_regression",
+        "version": "action_667m5h_python_regression_v1",
+        "sha256": "aa1ea5c9f6efb773ac7921756802d7a2f9a6c665683c63e4d7056584dcbe96bb",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "normalization"
+      },
+      {
+        "path": "docs/action-667m5i-real-diagnostic-shadow-replay.md",
+        "artifact_type": "documentation",
+        "classification": "diagnostic_replay_report",
+        "version": "action_667m5i_report_v1",
+        "sha256": "ff7633ccd94d8e3ed5dffd925b1bf47ece00d9c452f13e93dded78ddb44856eb",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      },
+      {
+        "path": "docs/evidence/action-667m5i-real-diagnostic-shadow-replay.json",
+        "artifact_type": "machine_readable_evidence",
+        "classification": "diagnostic_replay_evidence",
+        "version": "action_667m5i_real_diagnostic_shadow_replay_evidence_v1",
+        "sha256": "40a1a1bcaa5ac6b17105a492d22267e4562052966bf84f65b183ae5b2e04fc50",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-replay-schedule-v1.ts",
+        "artifact_type": "contract",
+        "classification": "diagnostic_decision_schedule",
+        "version": "market_context_diagnostic_replay_schedule_2026_20_sessions_v1",
+        "sha256": "b33e29223bc94d8b851c67a86d35194a3cb047fc7b1a949a36a3f57b29f27be2",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "decision_schedule"
+      },
+      {
+        "path": "scripts/market_context_diagnostic_replay_v1.ts",
+        "artifact_type": "implementation",
+        "classification": "diagnostic_replay_runner",
+        "version": "market_context_real_diagnostic_historical_shadow_replay_v1",
+        "sha256": "01c472ac194280f787453be96fc34959448520bcfde1ee820cfac66e8b6fde98",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      },
+      {
+        "path": "tests/e2e/action-667m5i-real-diagnostic-shadow-replay.spec.ts",
+        "artifact_type": "test",
+        "classification": "diagnostic_replay_regression",
+        "version": "action_667m5i_regression_v1",
+        "sha256": "7295c412596bd447dcfa63b3715921d98044b6cbe85aeeca78d9db2d4eca8269",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      },
+      {
+        "path": "docs/evidence/market-context-xnys-acquisition-calendar-2026-v1.json",
+        "artifact_type": "calendar",
+        "classification": "authoritative_xnys_calendar",
+        "version": "market_context_xnys_acquisition_calendar_2026_v1",
+        "sha256": "e36c29b647be12494dace5d135a8d6f54d24bb31331f0b7859b5b3cea0409465",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "calendar"
+      },
+      {
+        "path": "docs/evidence/market-context-xnys-calibration-calendar-2026-v1.json",
+        "artifact_type": "calendar",
+        "classification": "authoritative_xnys_calendar",
+        "version": "market_context_xnys_calibration_calendar_2026_v1",
+        "sha256": "64df5a436c0d58eda9e69b8b4a0d80a4ef0af515427ef3f6f3be97f02fd98ad2",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "calendar"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/contract-v1.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "market_context_evaluator",
+        "version": "market_context_intelligence_v1",
+        "sha256": "6840e6d5a0933e50b1dab44c0c3f6ebcca5ff416f07dadbcd0eb43fe6cf4b474",
+        "git_status": "tracked_unmodified",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "evaluation"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/contract-v2.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "market_context_evaluator",
+        "version": "market_context_intelligence_v2",
+        "sha256": "231aca8553f72e78111c51e8831bdfbd91d92d3861e96564257249cadb08aa70",
+        "git_status": "tracked_unmodified",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "evaluation"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/explicit-instant-v1.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "explicit_instant_parser",
+        "version": "market_context_explicit_instant_parser_v1",
+        "sha256": "db09715b3583d245be7b7c128c0f5dcf3b7cd8b9e8a8e172f0694112b1b84f6a",
+        "git_status": "tracked_unmodified",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "evaluation"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/thresholds-v2.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "threshold_registry",
+        "version": "market_context_intelligence_thresholds_2026_07_26_v2",
+        "sha256": "d96cd7c24f5fbfd645ebc7e425ef89b9688e0b764349480d898d423a21bd4d4c",
+        "git_status": "tracked_unmodified",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "evaluation"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/shadow-canonical-bridge-v1.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "inactive_shadow_bridge",
+        "version": "market_context_shadow_evaluation_adapter_v2",
+        "sha256": "2f718cf41689797ccc598cbdea5a06751ba7bf073ff5dc6f63e46b1a0e418160",
+        "git_status": "tracked_unmodified",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/shadow-replay-v1.ts",
+        "artifact_type": "predecessor_contract",
+        "classification": "shadow_replay_core",
+        "version": "market_context_shadow_replay_v1",
+        "sha256": "6a240490aaf6afb9fde1df8fb24f204aebf1db10a42e9d56f1facb3aa3350fd1",
+        "git_status": "untracked",
+        "lifecycle_status": "normative_current",
+        "lineage_stage": "replay"
+      }
+    ],
+    "external_artifacts": [
+      {
+        "external_artifact_identity": "market_context_diagnostic_all_reported_trades_1m_v1",
+        "path": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/diagnostic-normalized-1m/market_context_diagnostic_all_reported_trades_1m_v1",
+        "classification": "external_normalized_dataset",
+        "version": "market_context_diagnostic_normalized_dataset_manifest_v1",
+        "artifact_count": 303,
+        "dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+        "lineage_digest": "fa874fd4747d16f9e1a03ef22ed4e9fa3be2491d767087372805992ab0ba3d5c",
+        "git_status": "external_outside_git",
+        "lifecycle_status": "normative_current",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "permission_drift_count": 0,
+        "verified": true
+      },
+      {
+        "external_artifact_identity": "market_context_diagnostic_replay_2026_20_sessions_v1",
+        "path": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/diagnostic-shadow-replay-20-sessions/market_context_diagnostic_replay_2026_20_sessions_v1",
+        "classification": "external_diagnostic_replay",
+        "version": "market_context_real_diagnostic_replay_manifest_v1",
+        "artifact_count": 84,
+        "dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+        "core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+        "git_status": "external_outside_git",
+        "lifecycle_status": "normative_current",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "permission_drift_count": 0,
+        "verified": true
+      }
+    ],
+    "freeze_policy": {
+      "unexpected_path_allowed": false,
+      "missing_path_allowed": false,
+      "sha_or_digest_drift_allowed": false,
+      "external_artifact_copy_into_git_allowed": false,
+      "historical_git_status_is_provenance": true,
+      "future_current_git_status_must_be_recomputed": true,
+      "normalization_or_replay_performed": false
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "action": "667M.2C",
+  "evidence_version": "market_context_historical_trade_nanosecond_remediation_evidence_v1",
+  "generated_at": "2026-07-27T00:00:00+02:00",
+  "versions": {
+    "preparation_contract": "market_context_historical_trade_to_candle_preparation_v2",
+    "preparation_policy": "market_context_historical_trade_to_candle_policy_2026_07_27_v2",
+    "timestamp": "market_context_historical_trade_nanosecond_timestamp_v1",
+    "watermark": "market_context_historical_trade_watermark_2s_nanosecond_v2",
+    "tiebreak": "market_context_historical_trade_global_unique_tiebreak_v2",
+    "eligibility": "market_context_historical_trade_eligibility_provider_bounds_v2",
+    "calendar": "market_context_xnys_immutable_calendar_artifact_v2",
+    "canonicalization": "market_context_historical_trade_canonical_json_v2",
+    "breadth": "market_context_sector_etf_breadth_v2",
+    "m1_adapter": "market_context_historical_trade_m1_binding_adapter_v2",
+    "m1_target": "market_context_historical_dataset_v1",
+    "m1_target_normalizer": "market_context_historical_dataset_normalizer_v1",
+    "m1_receiver_extension": "market_context_historical_dataset_nanosecond_extension_v1",
+    "fixtures": "market_context_historical_trade_to_candle_synthetic_fixtures_v2"
+  },
+  "remediation": {
+    "nanosecond_integer_representation": true,
+    "ts_event_ts_recv_independent": true,
+    "nanosecond_ordering": true,
+    "nanosecond_watermark": true,
+    "watermark_max_lateness_ns": "2000000000",
+    "watermark_evidence_status": "empirically_unvalidated",
+    "global_unique_tiebreak": true,
+    "tiebreak_collision_rejection": true,
+    "malformed_runtime_fail_closed": true,
+    "observable_only_historical_gaps": true,
+    "unfinalized_pending_not_gap": true,
+    "late_only_gap_reason": true,
+    "provider_uint32_bounds": true,
+    "provider_scaled_int64_bounds": true,
+    "undefined_price_timestamp_sentinels_rejected": true,
+    "immutable_xnys_calendar_digest": true,
+    "m1_metadata_inference": false,
+    "m1_lossless_nanosecond_extension_required": true,
+    "m1_prepared_result_integrity_reverified": true,
+    "m1_raw_file_and_record_lineage_required": true
+  },
+  "scoped_test_results": {
+    "test_count": 22,
+    "passed": 22,
+    "failed": 0,
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_byte_identical": true,
+    "cross_timezone_digest": "99eaa771ccf73b61e0f66e8df8db304fc90ce38ec65eb5785c225e11ea73b076",
+    "typescript": "passed",
+    "scoped_eslint": "passed"
+  },
+  "combined_regression": {
+    "tests_executed": 112,
+    "passed": 110,
+    "failed": 2,
+    "historical_status_assertion_failures": [
+      "action_667c_expected_pre_commit_untracked_status",
+      "action_667e_expected_pre_commit_untracked_status"
+    ],
+    "product_or_contract_regression_failures": 0,
+    "semantic_regression_excluding_historical_status_assertions": {
+      "tests": 110,
+      "passed": 110,
+      "failed": 0
+    },
+    "historical_replay_suite_executed": false,
+    "historical_replay_suite_reason": "explicitly_prohibited_in_action_667m2c"
+  },
+  "v1_freeze_expected": {
+    "artifact_count": 5,
+    "freeze_digest": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+    "implementation_sha256": "b7aa7ab03fa005b44310fc00d8c07fafaed24999ad3c662967e535860af00a30",
+    "fixtures_sha256": "ad6db4ac85226629d067dc39950440eb77f9a4b50816fa0d94b308be21069635",
+    "tests_sha256": "54527aacdc8f112ef8714ca8ebf196c329cc8c3a1d14a932d32c77505168c645",
+    "documentation_sha256": "4e466995d517d3ccf0b646ecfde40ccce54337bf3fa1125c4ebf01043b7e5247",
+    "evidence_sha256": "cbb24280fc43ade0fd322a1821e0beecdf216d6157ae0843d7c9a5b0eda4113b"
+  },
+  "security_attestation": {
+    "env_local_contents_read": false,
+    "env_local_git_ignored": true,
+    "env_local_git_tracked": false,
+    "databento_credential_read_printed_validated_or_used": false,
+    "netlify_environment_inspected": false
+  },
+  "activity_attestation": {
+    "authenticated_provider_calls": 0,
+    "quote_metadata_entitlement_or_cost_calls": 0,
+    "provider_downloads": 0,
+    "real_data_rows": 0,
+    "real_data_normalizations": 0,
+    "historical_replay_runs": 0,
+    "database_connections": 0,
+    "persistence_or_capture": 0,
+    "canonical_bindings": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  },
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "action_667m3_dataset_acquisition_ready": false
+}

@@ -1,0 +1,246 @@
+{
+  "action": "667M.5A",
+  "evidence_version": "market_context_action_667m5a_raw_dataset_admission_evidence_v1",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "954d68fd88133eb939b62aad2a359b0f6e57df503ba6cb4295af41379b2e2d37",
+  "decision_material": {
+    "analysis": {
+      "policy_version": "market_context_raw_dataset_receive_lag_analysis_policy_2026_07_27_v1",
+      "quantile_policy": "nearest_rank_integer_nanoseconds_v1",
+      "share_policy": "exact_count_over_total_with_12dp_decimal_v1",
+      "watermark_decision_rule": "market_context_receive_lag_watermark_decision_rule_2026_07_27_v1",
+      "analysis_implementation_sha256": "6aa98953232d4dfc148610d83d24693a0a663aa23d20b4472d8840ecabb82657",
+      "full_report_path": "docs/evidence/action-667m5a-raw-receive-lag-report.json",
+      "full_report_file_sha256": "93e24ed7d2ebfb4be31fe727be098295aa62475617da9bf03fc8b8653019ac27",
+      "full_report_digest": "f478b8fabcd8825f9bef5fae04cc799c588491e6d9cf139b575cec1c26b6a894",
+      "full_report_bytes": 125446,
+      "provider_calls": 0,
+      "credentials_loaded": false,
+      "raw_records_persisted_in_repository": 0,
+      "candle_normalizations": 0,
+      "historical_replays": 0
+    },
+    "decoder_provenance": {
+      "decoder_package": "databento-dbn",
+      "decoder_version": "0.63.0",
+      "client_package": "databento",
+      "client_version": "0.82.0",
+      "dbn_library_version": 3,
+      "dbn_metadata_version_values": [
+        1
+      ],
+      "decode_mode": "DBNStore.to_ndarray_chunked_read_only",
+      "chunk_record_limit": 100000,
+      "decoder_native_build_artifact": "_lib.cpython-310-darwin.so",
+      "decoder_native_build_sha256": "b7c8a753b737730a44c8d57263dca4f59a6c7a7679675469159dd0edc3a508db",
+      "decoder_python_module_sha256": "5bdc9146c2a6b4059389d7ca4e47bde1e243b8110db9e70d6d9d813a0a11b13f",
+      "python_implementation": "cpython",
+      "python_version": "3.10.7",
+      "runtime_platform": "macOS-15.6-arm64-arm-64bit",
+      "runtime_machine": "arm64"
+    },
+    "raw_input": {
+      "m4c_evidence_digest": "34bf7087d6e6a2c11c9883622541d60a227283ddce7d0c31736f057a6c52105e",
+      "raw_file_digest_root": "beae4423697e08bdc41ba732624bdb3fa99d703932d53e98e68cbbba7433eca1",
+      "file_count": 5,
+      "total_compressed_bytes": 7729852,
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "hashes_before_and_after_identical": true,
+      "partial_extra_or_temporary_file_count": 0
+    },
+    "record_reconciliation": {
+      "support_record_count": 516162,
+      "decoded_record_count": 516162,
+      "reconciled": true,
+      "per_file": [
+        {
+          "filename": "equs-mini-20260720.trades.dbn.zst",
+          "record_count": 100567
+        },
+        {
+          "filename": "equs-mini-20260721.trades.dbn.zst",
+          "record_count": 91936
+        },
+        {
+          "filename": "equs-mini-20260722.trades.dbn.zst",
+          "record_count": 85474
+        },
+        {
+          "filename": "equs-mini-20260723.trades.dbn.zst",
+          "record_count": 122960
+        },
+        {
+          "filename": "equs-mini-20260724.trades.dbn.zst",
+          "record_count": 115225
+        }
+      ],
+      "session_count": 5,
+      "symbol_count": 13,
+      "publisher_ids": {
+        "95": 516162
+      },
+      "actions": {
+        "T": 516162
+      },
+      "flags": {
+        "0": 114808,
+        "128": 401354
+      },
+      "unknown_action_count": 0,
+      "unknown_flag_bit_count": 0,
+      "publisher_specific_flag_count": 0,
+      "bad_receive_timestamp_flag_count": 0,
+      "undefined_or_sentinel_count": 0,
+      "negative_receive_lag_count": 0,
+      "sequence_zero_count": 516162,
+      "sequence_nonzero_count": 0,
+      "exact_duplicate_record_count": 692,
+      "adjacent_event_out_of_order_count": 2700,
+      "adjacent_receive_out_of_order_count": 0,
+      "per_symbol_event_out_of_order_count": 983,
+      "per_symbol_receive_out_of_order_count": 0,
+      "event_outside_dataset_scope_count": 0,
+      "event_outside_source_file_date_count": 0,
+      "receive_outside_dataset_scope_count": 0,
+      "core_session_record_count": 514273,
+      "before_core_session_record_count": 1524,
+      "after_core_session_record_count": 365
+    },
+    "symbology_and_identity": {
+      "stype_in": "raw_symbol",
+      "stype_out": "instrument_id",
+      "point_in_time_mapping_complete": true,
+      "unknown_instrument_record_count": 0,
+      "mapping_inference_used": false,
+      "fallback_identity_version": "source_file_sha256_plus_zero_based_record_ordinal_v1",
+      "fallback_identity_count": 516162,
+      "fallback_identity_unique_count": 516162,
+      "fallback_identity_collision_count": 0,
+      "fallback_identity_root_sha256": "3041fc5e76f10a4e8df89f7f92884cbb1159803ae5a477708bc56f2cb2933179"
+    },
+    "receive_lag_overall": {
+      "count": 516162,
+      "minimum_ns": 17328,
+      "median_ns": 90439,
+      "p90_ns": 159503,
+      "p95_ns": 300494,
+      "p99_ns": 959754,
+      "p99_9_ns": 5940924,
+      "maximum_ns": 66456177,
+      "negative_count": 0,
+      "within_100ms": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_250ms": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_500ms": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_1s": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_2s": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_3s": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_5s": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "within_10s": {
+        "count": 516162,
+        "total": 516162,
+        "fraction": "516162/516162"
+      },
+      "after_100ms_candle_finalization_count": 0,
+      "after_250ms_candle_finalization_count": 0,
+      "after_500ms_candle_finalization_count": 0,
+      "after_1s_candle_finalization_count": 0,
+      "after_2s_candle_finalization_count": 0,
+      "after_3s_candle_finalization_count": 0,
+      "after_5s_candle_finalization_count": 0,
+      "after_10s_candle_finalization_count": 0
+    },
+    "session_stability": {
+      "session_count": 5,
+      "p99_min_ns": 710192,
+      "p99_max_ns": 1248270,
+      "p99_range_ns": 538078,
+      "p99_9_min_ns": 1777617,
+      "p99_9_max_ns": 11598986,
+      "p99_9_range_ns": 9821369,
+      "maximum_min_ns": 27159118,
+      "maximum_max_ns": 66456177,
+      "maximum_range_ns": 39297059,
+      "overall_late_after_2s_ceiling_ppm": 0,
+      "maximum_session_late_after_2s_ceiling_ppm": 0
+    },
+    "semantic_boundaries": {
+      "sale_conditions": "not_exposed_by_dbn_trades_record_schema",
+      "publisher_specific_condition_mapping": "not_supplied_by_raw_record_schema",
+      "sale_condition_or_publisher_mapping_inference_used": false,
+      "all_records_included_in_lag_study": true,
+      "strict_eligibility_excluded_union_count": 0
+    },
+    "determinism": {
+      "utc_run_1_file_sha256": "93e24ed7d2ebfb4be31fe727be098295aa62475617da9bf03fc8b8653019ac27",
+      "utc_run_2_file_sha256": "93e24ed7d2ebfb4be31fe727be098295aa62475617da9bf03fc8b8653019ac27",
+      "stockholm_file_sha256": "93e24ed7d2ebfb4be31fe727be098295aa62475617da9bf03fc8b8653019ac27",
+      "new_york_file_sha256": "93e24ed7d2ebfb4be31fe727be098295aa62475617da9bf03fc8b8653019ac27",
+      "report_digest": "f478b8fabcd8825f9bef5fae04cc799c588491e6d9cf139b575cec1c26b6a894",
+      "two_utc_runs_byte_identical": true,
+      "cross_timezone_byte_identical": true
+    },
+    "watermark_decision": {
+      "current_normative_watermark_ns": 2000000000,
+      "current_validation_status": "empirically_unvalidated",
+      "recommendation": "insufficient_evidence",
+      "normative_watermark_changed": false,
+      "retain_or_increase_decision_authorized": false,
+      "passed_checks": [
+        "all records included",
+        "zero late records after 2s candle finalization",
+        "zero unknown actions",
+        "zero unknown flag bits",
+        "zero publisher-specific flagged records",
+        "zero bad receive timestamp flags",
+        "zero negative receive lags",
+        "two-run and cross-TZ determinism"
+      ],
+      "unmet_checks": [
+        "only 5 sessions available; decision rule requires at least 20",
+        "sale-condition semantics are not exposed by the DBN trades record schema"
+      ]
+    },
+    "statuses": {
+      "action_667m5a_raw_dataset_admitted": true,
+      "action_667m5a_decoder_provenance_verified": true,
+      "action_667m5a_record_inventory_reconciled": true,
+      "action_667m5a_receive_lag_study_complete": true,
+      "action_667m5a_two_run_determinism_passed": true,
+      "action_667m5a_watermark_recommendation": "insufficient_evidence",
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

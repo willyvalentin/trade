@@ -1,0 +1,83 @@
+{
+  "manifest_version": "market_context_action_667m3c_license_freeze_manifest_v1",
+  "generated_on": "2026-07-27",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count": 4,
+  "artifacts": [
+    {
+      "path": "docs/action-667m3c-databento-license-evidence-reconciliation.md",
+      "artifact_type": "license_reconciliation_documentation",
+      "classification": "documentation",
+      "version": "market_context_action_667m3c_license_reconciliation_documentation_v1",
+      "sha256": "e6022af2a8ac31a0d7ce71aae370c1bef9ad56a4c5ff0d5fbe76e44acd11ce20",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "market_context_action_667m3c_license_evidence_v1",
+        "market_context_five_session_pilot_admission_v1",
+        "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c"
+      ]
+    },
+    {
+      "path": "docs/evidence/action-667m3c-license-evidence-reconciliation.json",
+      "artifact_type": "sanitized_license_and_readiness_evidence",
+      "classification": "acquisition_blocking_external_evidence",
+      "version": "market_context_action_667m3c_license_evidence_v1",
+      "sha256": "fa38d30616b4e19b48eed2af0ebb89e4c6e9fd19cc36c44baede5ca8365464dc",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "91b010295e44595c6b4c68adb3bc12b8cd7e03322db8351cca9a0a17839674a6",
+        "0a61bbe1bad00077386ebc3abfaa5ebd3759b1b0f523ee679475ef90df12b030",
+        "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c"
+      ]
+    },
+    {
+      "path": "tests/e2e/action-667m3b-pilot-foundation-freeze.spec.ts",
+      "artifact_type": "historical_freeze_scope_portability_test",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3b_tests_portable_through_m3c_v2",
+      "sha256": "5311a7b0aa38c1839c1434c6f342e07198046977fc316f8df15984441661b27e",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c",
+        "market_context_action_667m3b_tests_v1"
+      ]
+    },
+    {
+      "path": "tests/e2e/action-667m3c-license-evidence-reconciliation.spec.ts",
+      "artifact_type": "license_reconciliation_and_freeze_test",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3c_tests_v1",
+      "sha256": "759dc969ebd2609fe759a0a54345cc18c1800ab24b9a8c9f9558a1e130e7a30f",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "market_context_action_667m3c_license_evidence_v1",
+        "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c"
+      ]
+    }
+  ],
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m3c-license-evidence-freeze-manifest.json",
+    "reason": "The manifest excludes its own bytes to avoid a recursive digest."
+  },
+  "artifact_digest_algorithm": "sha256(concat(sorted(path + NUL + artifact_type + NUL + classification + NUL + version + NUL + sha256 + NUL + git_status_at_freeze + NUL + comma_joined_lineage + LF)))",
+  "artifact_digest": "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c",
+  "predecessor_digests": {
+    "m2a_v1_freeze": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+    "m2c_v2_freeze": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f",
+    "m3a_evidence": "0a61bbe1bad00077386ebc3abfaa5ebd3759b1b0f523ee679475ef90df12b030",
+    "m3b_foundation_freeze": "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c"
+  },
+  "decisions": {
+    "license_sufficient": false,
+    "technical_pre_download_ready": true,
+    "operator_acquisition_authorized": false,
+    "dataset_acquisition_ready": false,
+    "download_authorized": false,
+    "action_667m3c_license_evidence_reconciled": true,
+    "action_667m3c_license_sufficient": false,
+    "action_667m3c_pilot_pre_download_ready": true,
+    "action_667m4_dataset_acquisition_ready": false
+  }
+}

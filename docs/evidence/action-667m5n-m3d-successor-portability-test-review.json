@@ -1,0 +1,71 @@
+{
+  "review_version": "market_context_action_667m5n_m3d_test_portability_independent_review_v1",
+  "reviewed_on": "2026-07-28",
+  "review_mode": "independent_clean_room_after_additive_refreeze",
+  "review_material": {
+    "successor_manifest_path": "docs/evidence/action-667m5n-m3d-successor-portability-test-refreeze-manifest.json",
+    "successor_manifest_sha256": "8fb6030cf7b31bd01ad262a5fefc3f6c05dcd2514762fa6da5bdabf2a2300e85",
+    "predecessor_test_sha256": "cf9302d0e87af80cd1e62eb27e630f659716ec68f074596a2444c6685d3d2492",
+    "successor_test_sha256": "c73d3de7d45387f704fd5fccfb994255c24668e9d03cea9737997f4304f7e19e",
+    "predecessor_portability_test_sha256": "02ef41944226ce8bd161bbf841040c09129d3728fc343182d80169726758c81b",
+    "successor_portability_test_sha256": "bcdebd545dc777987c63dc1e4c62013c8bf5520f4695b9b72f8ceb8fc6e7cfd0",
+    "m3d_manifest_sha256": "5c86da3a491e2fd95a0343da7ee043571a6a15828a300f432cc2bb3b05d856a0",
+    "m3d1_manifest_sha256": "ec52f739165a5bbadf9d557d06a197af9415df1c3d13ab3da340ddb58d1c2c3d",
+    "m3d1_review_evidence_digest": "88d79d41e1f06dd370898a03acfaf01a57e7548ce4143f4d2f9e8b5443668655"
+  },
+  "review_checks": {
+    "original_m3d_freeze_byte_identical": true,
+    "m3d1_successor_byte_identical": true,
+    "strict_two_state_validation": true,
+    "negative_matrix_fail_closed": true,
+    "semantic_scope_unchanged": true,
+    "provider_transcription_unchanged": true,
+    "license_values_unchanged": true,
+    "historical_provenance_lossless": true,
+    "successor_relation_lossless": true,
+    "minor_finding_h_001_transparent": true,
+    "minor_finding_j_001_transparent": true,
+    "review_step_remediation_performed": false
+  },
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "retained_prior_findings": [
+    {
+      "id": "H-001",
+      "severity": "minor",
+      "status": "documented_not_remediated",
+      "summary": "read-only three-record probe precedes full hash preflight"
+    },
+    {
+      "id": "J-001",
+      "severity": "minor",
+      "status": "documented_not_remediated",
+      "summary": "runner SHA plus manifest is the executable identity; stacked git_commit is not sufficient alone"
+    }
+  ],
+  "decisions": {
+    "action_667m5n_refreeze_complete": true,
+    "action_667m5n_historical_freeze_preserved": true,
+    "action_667m5n_negative_portability_matrix_passed": true,
+    "action_667m5n_independent_rereview_approved": true,
+    "commit_performed": false,
+    "push_performed": false,
+    "pr_updated": false
+  },
+  "review_evidence_digest_algorithm": "sha256(canonical_json(review_material + review_checks + findings + finding_counts + decisions))",
+  "review_evidence_digest": "ce6d4b08e9a95a20171e4cfee1463a272b160f9a5709aaf3a331138c00c771bc",
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m5n-m3d-successor-portability-test-review.json",
+    "reason": "The review evidence excludes its own bytes to avoid a recursive digest."
+  }
+}

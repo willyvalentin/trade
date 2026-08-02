@@ -1,0 +1,396 @@
+{
+  "action": "667M.3R1",
+  "evidence_version": "market_context_databento_metadata_entitlement_license_gate_v3",
+  "initial_gate_timestamp": "2026-07-27T11:21:18Z",
+  "gate_timestamp": "2026-07-27T11:48:56Z",
+  "action_667m3_metadata_gate_completed": true,
+  "action_667m3_entitlement_verified": true,
+  "action_667m3_license_sufficient": false,
+  "action_667m3_exact_quote_available": true,
+  "action_667m3_dataset_acquisition_ready": false,
+  "failure_mode": "fail_closed_unresolved_license_corporate_action_calendar_provenance_and_receiver_gates",
+  "resume": {
+    "resume_action": "667M.3R1",
+    "authorized_credential_path": "/private/tmp/trade-action-667k/.env.local",
+    "authorized_credential_path_exists": true,
+    "authenticated_operations_attempted": true,
+    "alternate_credential_locations_searched": false,
+    "dependency_install_attempted": false,
+    "result": "metadata_gate_completed_acquisition_not_ready"
+  },
+  "official_public_sources": [
+    "https://databento.com/docs/venues-and-datasets/equs-mini",
+    "https://databento.com/docs/schemas-and-data-formats/trades",
+    "https://databento.com/docs/standards-and-conventions/common-fields-enums-types",
+    "https://databento.com/docs/api-reference-historical",
+    "https://databento.com/docs/standards-and-conventions/symbology",
+    "https://databento.com/docs/faqs/usage-pricing-and-data-credits",
+    "https://databento.com/pricing",
+    "https://databento.com/docs/portal/billing",
+    "https://databento.com/docs/venues-and-datasets/corporate-actions",
+    "https://www.nyse.com/markets/hours-calendars"
+  ],
+  "credential_safety": {
+    "env_local_exists": true,
+    "env_local_path_is_git_ignored": true,
+    "env_local_path_is_git_tracked": false,
+    "task_process_key_present_before_task_local_load": false,
+    "worktree_local_key_present": true,
+    "other_credential_locations_searched": false,
+    "netlify_environment_inspected": false,
+    "credential_value_read_or_printed": false,
+    "credential_length_prefix_suffix_or_hash_emitted": false
+  },
+  "authenticated_endpoint_results": {
+    "metadata_list_datasets": 200,
+    "metadata_list_schemas": 200,
+    "metadata_list_publishers": 200,
+    "metadata_get_dataset_range": 200,
+    "metadata_list_unit_prices": 200,
+    "metadata_list_fields": 200,
+    "metadata_get_dataset_condition_calls": 3,
+    "metadata_get_record_count_calls": 2,
+    "metadata_get_billable_size_calls": 2,
+    "metadata_get_cost_calls": 2,
+    "symbology_resolve": 200,
+    "timeseries_calls": 0,
+    "batch_calls": 0,
+    "reference_record_calls": 0
+  },
+  "candidate": {
+    "provider": "databento",
+    "dataset": "EQUS.MINI",
+    "schema": "trades",
+    "encoding": "dbn",
+    "compression": "zstd",
+    "stype_in": "raw_symbol",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLB",
+      "XLC",
+      "XLE",
+      "XLF",
+      "XLI",
+      "XLK",
+      "XLP",
+      "XLRE",
+      "XLU",
+      "XLV",
+      "XLY"
+    ],
+    "symbol_resolution": {
+      "status": "fully_resolved",
+      "supported": [
+        {
+          "symbol": "SPY",
+          "instrument_id": "15144"
+        },
+        {
+          "symbol": "QQQ",
+          "instrument_id": "13340"
+        },
+        {
+          "symbol": "XLB",
+          "instrument_id": "17674"
+        },
+        {
+          "symbol": "XLC",
+          "instrument_id": "17675"
+        },
+        {
+          "symbol": "XLE",
+          "instrument_id": "17676"
+        },
+        {
+          "symbol": "XLF",
+          "instrument_id": "17678"
+        },
+        {
+          "symbol": "XLI",
+          "instrument_id": "17680"
+        },
+        {
+          "symbol": "XLK",
+          "instrument_id": "17681"
+        },
+        {
+          "symbol": "XLP",
+          "instrument_id": "17684"
+        },
+        {
+          "symbol": "XLRE",
+          "instrument_id": "17685"
+        },
+        {
+          "symbol": "XLU",
+          "instrument_id": "17690"
+        },
+        {
+          "symbol": "XLV",
+          "instrument_id": "17692"
+        },
+        {
+          "symbol": "XLY",
+          "instrument_id": "17693"
+        }
+      ],
+      "partial": [],
+      "unsupported": [],
+      "mapping_start": "2025-07-24",
+      "mapping_end_exclusive": "2026-07-25",
+      "provider_status": 0,
+      "provider_message": "OK"
+    },
+    "public_dataset_inception": "2023-03-28",
+    "entitlement_specific_available_range": {
+      "start": "2023-03-28T00:00:00.000000000Z",
+      "end_exclusive": "2026-07-27T04:00:00.000000000Z",
+      "trades_start": "2023-03-28T00:00:00.000000000Z",
+      "trades_end_exclusive": "2026-07-27T04:00:00.000000000Z"
+    },
+    "publisher_summary": "derived_from_ats_and_reg_nms_venue_feeds",
+    "exact_publishers": [
+      {
+        "publisher_id": 95,
+        "dataset": "EQUS.MINI",
+        "venue": "EQUS",
+        "description": "Databento US Equities Mini"
+      }
+    ],
+    "timestamp_semantics": {
+      "ts_event": "matching_engine_received_unix_nanoseconds",
+      "ts_recv": "databento_capture_server_received_unix_nanoseconds",
+      "independent_lossless_preservation_required": true
+    },
+    "authenticated_schemas": [
+      "mbp-1",
+      "tbbo",
+      "trades",
+      "bbo-1s",
+      "bbo-1m",
+      "ohlcv-1s",
+      "ohlcv-1m",
+      "ohlcv-1h",
+      "ohlcv-1d",
+      "definition"
+    ],
+    "historical_trades_unit_price_usd_per_gib": 6,
+    "public_combination_supported": true,
+    "account_combination_verified": true
+  },
+  "packages": [
+    {
+      "package_id": "tiny_five_session_pilot",
+      "status": "not_authorized",
+      "sessions": {
+        "count": 5,
+        "first": "2026-07-20",
+        "last": "2026-07-24",
+        "quote_start": "2026-07-20T00:00:00Z",
+        "quote_end_exclusive": "2026-07-25T00:00:00Z",
+        "early_closes": []
+      },
+      "target_one_minute_opportunities": {
+        "symbol_minutes": 25350,
+        "sector_breadth_minutes": 1950,
+        "estimated_trade_records": 516162
+      },
+      "dataset_conditions": {
+        "available": 5,
+        "degraded": 0,
+        "pending": 0,
+        "missing": 0
+      },
+      "corporate_action_policy": "raw_unadjusted_excluded_from_pilot",
+      "exact_quote": {
+        "records": 516162,
+        "billable_uncompressed_bytes": 24775776,
+        "billable_uncompressed_mib": 23.628021240234375,
+        "compressed_transfer_bytes": "unknown",
+        "price_usd": 0.138445436954,
+        "quote_validity_period": "not_exposed"
+      }
+    },
+    {
+      "package_id": "recommended_252_completed_sessions",
+      "status": "not_authorized",
+      "sessions": {
+        "count": 252,
+        "first": "2025-07-24",
+        "last": "2026-07-24",
+        "quote_start": "2025-07-24T00:00:00Z",
+        "quote_end_exclusive": "2026-07-25T00:00:00Z",
+        "early_closes": [
+          "2025-11-28",
+          "2025-12-24"
+        ],
+        "repository_calendar_covers_entire_range": false
+      },
+      "target_one_minute_opportunities": {
+        "symbol_minutes": 1272960,
+        "sector_breadth_minutes": 97920,
+        "estimated_trade_records": 34312819
+      },
+      "dataset_conditions": {
+        "available": 253,
+        "degraded": 9,
+        "pending": 0,
+        "missing": 0,
+        "degraded_dates": [
+          "2025-08-08",
+          "2025-08-13",
+          "2025-08-19",
+          "2025-08-25",
+          "2025-09-03",
+          "2025-09-08",
+          "2025-09-12",
+          "2025-10-10",
+          "2025-10-13"
+        ],
+        "sanitized_condition_response_sha256": "48d4d488c30c9f77acddda2499d1d0f7a7932922835d29aa4497399a44b7940b"
+      },
+      "corporate_action_policy": "operator_decision_required",
+      "exact_quote": {
+        "records": 34312819,
+        "billable_uncompressed_bytes": 1647015312,
+        "billable_uncompressed_gib": 1.5339025408029556,
+        "compressed_transfer_bytes": "unknown",
+        "price_usd": 9.203415244818,
+        "quote_validity_period": "not_exposed"
+      }
+    }
+  ],
+  "account_and_cost": {
+    "current_credits_usd": "unknown",
+    "projected_post_request_credits_usd": "unknown",
+    "public_new_team_credit_usd": 125,
+    "public_new_team_credit_is_account_evidence": false,
+    "exchange_license_fee": "publicly_advertised_as_zero_for_EQUS.MINI_historical",
+    "tax": "unknown",
+    "currency_conversion": "unknown",
+    "additional_delivery_fee_http_or_ftp": 0,
+    "exact_quote_expiration": "not_exposed_refresh_immediately_before_acquisition",
+    "streaming_repeat_charge": "charged_again_for_outbound_bytes",
+    "batch_repeat_download": "no_additional_data_charge_for_30_days_after_paid_batch"
+  },
+  "rights": {
+    "status": "written_or_account_contract_confirmation_required",
+    "public_historical_direct_exchange_license_normally_required": false,
+    "dataset_specific_publisher_restrictions_apply": true,
+    "raw_retention": "written_confirmation_required",
+    "encrypted_backup": "written_confirmation_required",
+    "private_internal_research": "written_confirmation_required",
+    "deterministic_replay": "written_confirmation_required",
+    "derived_candle_creation_and_retention": "written_confirmation_required",
+    "normalized_evidence_retention": "written_confirmation_required",
+    "internal_audit": "written_confirmation_required",
+    "deletion_after_account_or_entitlement_end": "written_confirmation_required",
+    "team_and_user_scope": "written_confirmation_required",
+    "external_redistribution": "forbidden_by_project_policy_and_provider_specific_terms_must_be_captured"
+  },
+  "corporate_actions": {
+    "separate_product_publicly_available": true,
+    "public_history_years": 6,
+    "point_in_time_records_available": true,
+    "split_dividend_adjustment_factors_available": true,
+    "exact_entitlement": "written_confirmation_required",
+    "exact_current_price": "written_quote_required",
+    "records_retrieved": false
+  },
+  "required_provider_provenance": [
+    "dataset_schema_encoding_compression_dbn_version",
+    "exact_request_parameters_and_symbology_mappings",
+    "publisher_ids_and_metadata",
+    "client_library_name_and_version",
+    "historical_api_version",
+    "entitlement_specific_dataset_and_schema_range",
+    "per_session_dataset_condition_and_last_modified_date",
+    "quote_timestamp_billable_bytes_and_cost",
+    "acquisition_timestamp_and_immutable_raw_file_digests",
+    "provider_product_build_and_revision"
+  ],
+  "provider_build_revision_status": {
+    "available": [
+      "dataset_and_schema_range",
+      "publisher_id_95",
+      "dbn_trade_field_types",
+      "symbology_mapping_intervals",
+      "per_day_condition_and_last_modified_date",
+      "record_count_billable_size_unit_price_and_cost_estimates"
+    ],
+    "missing": [
+      "provider_build_identifier",
+      "dbn_encoder_build",
+      "immutable_dataset_revision_id",
+      "immutable_revision_token"
+    ],
+    "status": "incomplete_provider_confirmation_required"
+  },
+  "provider_semantics_still_required": [
+    "publisher_specific_action_and_flag_eligibility",
+    "sale_condition_treatment",
+    "zero_or_reused_sequence_behavior",
+    "globally_stable_raw_record_tie_break",
+    "empirical_receive_latency_for_watermark"
+  ],
+  "proposed_paths_not_created": {
+    "raw": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/raw",
+    "normalized": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/normalized",
+    "encryption_and_access_control_must_be_verified_before_use": true
+  },
+  "ceilings": {
+    "metadata_gate": {
+      "all_in_cost_usd": 0,
+      "market_data_bytes": 0
+    },
+    "tiny_five_session_pilot": {
+      "all_in_cost_usd": 0.25,
+      "billable_uncompressed_mib": 32,
+      "compressed_transfer_mib": 32,
+      "combined_local_gib": 1
+    },
+    "recommended_252_sessions": {
+      "all_in_cost_usd": 12,
+      "billable_uncompressed_gib": 2,
+      "compressed_transfer_gib": 2,
+      "combined_local_gib": 16
+    },
+    "classification": "operator_proposed_fail_safe_ceilings_not_provider_estimates"
+  },
+  "blockers": [
+    "dataset_specific_license_and_retention_evidence_missing",
+    "corporate_action_entitlement_price_and_252_session_policy_unresolved",
+    "provider_build_revision_semantics_incomplete",
+    "publisher_specific_action_flag_sale_condition_and_sequence_semantics_unvalidated",
+    "nine_candidate_dates_marked_degraded",
+    "compressed_transfer_size_tax_current_credits_and_post_request_balance_not_exposed",
+    "repository_xnys_calendar_does_not_cover_2025",
+    "m1_nanosecond_receiver_extension_not_implemented",
+    "two_second_watermark_empirically_unvalidated"
+  ],
+  "next_acquisition_authorization_phrase": "SPÅR 3 — Action 667M.4: Jag godkänner endast en engångsanskaffning av Databento `EQUS.MINI` raw `trades`, `dbn` + `zstd`, för exakt symbolerna `SPY,QQQ,XLB,XLC,XLE,XLF,XLI,XLK,XLP,XLRE,XLU,XLV,XLY` och exakt intervallet `[2026-07-20T00:00:00Z, 2026-07-25T00:00:00Z)`, endast efter att en ny signerad 667M.3-evidens visar `entitlement_verified:true`, `license_sufficient:true`, `exact_quote_available:true` och `dataset_acquisition_ready:true`. `raw_unadjusted` gäller och corporate actions ingår inte. Stoppa före anskaffning om all-in-priset överstiger USD `0.25`, billable DBN överstiger `32 MiB`, komprimerad transfer överstiger `32 MiB` eller lokalt totalbehov överstiger `1 GiB`. Spara endast under `/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/raw`. Ingen normalization, replay, databas, canonical binding, commit, push, PR, deploy eller liveintegration är godkänd.",
+  "activity_attestation": {
+    "authenticated_metadata_entitlement_cost_calls": 15,
+    "authenticated_symbology_calls": 1,
+    "official_public_document_reads": true,
+    "historical_or_live_market_data_requests": 0,
+    "market_records_received": 0,
+    "batch_jobs_submitted": 0,
+    "provider_files_generated_or_downloaded": 0,
+    "purchases_or_account_changes": 0,
+    "corporate_action_records_received": 0,
+    "normalization_runs": 0,
+    "replay_runs": 0,
+    "database_connections": 0,
+    "capture_or_persistence": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  },
+  "frozen_preparation_v1_v2_artifacts_modified": false,
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

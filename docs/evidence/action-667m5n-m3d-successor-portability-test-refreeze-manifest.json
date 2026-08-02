@@ -1,0 +1,82 @@
+{
+  "manifest_version": "market_context_action_667m5n_m3d_test_portability_refreeze_manifest_v1",
+  "generated_on": "2026-07-28",
+  "action": "667M.5N",
+  "scope": "strict successor portability for the historical M.3D freeze test only",
+  "predecessor_test_artifact": {
+    "path": "tests/e2e/action-667m3d-provider-verbatim-license-evidence.spec.ts",
+    "sha256": "cf9302d0e87af80cd1e62eb27e630f659716ec68f074596a2444c6685d3d2492",
+    "status": "immutable_historical"
+  },
+  "successor_test_artifact": {
+    "path": "tests/e2e/action-667m3d-provider-verbatim-license-evidence.spec.ts",
+    "sha256": "c73d3de7d45387f704fd5fccfb994255c24668e9d03cea9737997f4304f7e19e",
+    "version": "market_context_action_667m5n_m3d_successor_portability_test_v1",
+    "status": "current_portability_successor"
+  },
+  "dependent_portability_test_artifact": {
+    "path": "tests/e2e/action-667m3d1-whitespace-portability-refreeze.spec.ts",
+    "predecessor_sha256": "02ef41944226ce8bd161bbf841040c09129d3728fc343182d80169726758c81b",
+    "successor_sha256": "bcdebd545dc777987c63dc1e4c62013c8bf5520f4695b9b72f8ceb8fc6e7cfd0",
+    "version": "market_context_action_667m5n_m3d1_dependent_portability_test_v1",
+    "reason": "M.3D.1 current-artifact verification must consume the same strict additive successor evidence."
+  },
+  "immutable_predecessors": {
+    "m3d_manifest_path": "docs/evidence/action-667m3d-provider-verbatim-license-freeze-manifest.json",
+    "m3d_manifest_sha256": "5c86da3a491e2fd95a0343da7ee043571a6a15828a300f432cc2bb3b05d856a0",
+    "m3d_artifact_digest": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c",
+    "m3d_historical_document_sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+    "m3d1_manifest_path": "docs/evidence/action-667m3d1-whitespace-portability-refreeze-manifest.json",
+    "m3d1_manifest_sha256": "ec52f739165a5bbadf9d557d06a197af9415df1c3d13ab3da340ddb58d1c2c3d",
+    "m3d1_successor_document_sha256": "1ee0c890d0a96cd31b352ddf199eec68ec4d6591ca4cdcc5c3385c7b34c537f7",
+    "m3d1_review_path": "docs/evidence/action-667m3d1-whitespace-portability-refreeze-review.json",
+    "m3d1_review_sha256": "744b8793a688ab2477640fd64f9515cece15c8020ab17a9899421eca2a592df2",
+    "m3d1_review_evidence_digest": "88d79d41e1f06dd370898a03acfaf01a57e7548ce4143f4d2f9e8b5443668655"
+  },
+  "accepted_document_states": [
+    {
+      "state": "historical",
+      "sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+      "required_evidence": "byte-identical original M.3D manifest"
+    },
+    {
+      "state": "whitespace_portability_successor",
+      "sha256": "1ee0c890d0a96cd31b352ddf199eec68ec4d6591ca4cdcc5c3385c7b34c537f7",
+      "required_evidence": "byte-identical M.3D.1 manifest, exact predecessor/successor relation, transformation proof, semantic-equivalence proof, and approved independent review"
+    }
+  ],
+  "negative_matrix": [
+    "unknown_third_document_hash",
+    "modified_word_or_license_value",
+    "wrong_predecessor_hash",
+    "wrong_successor_hash",
+    "tampered_transformation",
+    "missing_successor_manifest",
+    "changed_successor_manifest",
+    "wrong_review_evidence_digest",
+    "self_consistent_alternative_successor",
+    "original_artifact_with_modified_historical_manifest"
+  ],
+  "semantic_invariants": {
+    "historical_freeze_weakened": false,
+    "broad_hash_allowlist_used": false,
+    "git_status_used_as_content_identity": false,
+    "provider_transcription_changed": false,
+    "license_values_changed": false,
+    "readiness_values_changed": false,
+    "minor_finding_h_001_preserved": true,
+    "minor_finding_j_001_preserved": true
+  },
+  "decisions": {
+    "historical_test_freeze_preserved": true,
+    "successor_portability_only": true,
+    "test_semantics_weakened": false,
+    "commit_performed": false,
+    "push_performed": false,
+    "pr_updated": false
+  },
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m5n-m3d-successor-portability-test-refreeze-manifest.json",
+    "reason": "The additive refreeze manifest excludes its own bytes to avoid a recursive digest."
+  }
+}

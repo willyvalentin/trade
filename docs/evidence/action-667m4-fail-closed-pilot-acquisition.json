@@ -1,0 +1,320 @@
+{
+  "action": "667M.4",
+  "evidence_version": "market_context_action_667m4_fail_closed_pilot_acquisition_v1",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "decision_evidence_digest_algorithm": "sha256(canonical_json(decision_evidence))",
+  "decision_evidence_digest": "1b896d2387af207fa03b59172bfeed38be17a19daedb23395e66f73b6474ce8d",
+  "decision_evidence": {
+    "scope": {
+      "dataset": "EQUS.MINI",
+      "schema": "trades",
+      "encoding": "dbn",
+      "compression": "zstd",
+      "publisher_id": 95,
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "start": "2026-07-20T00:00:00Z",
+      "end_exclusive": "2026-07-25T00:00:00Z",
+      "adjustment_state": "raw_unadjusted",
+      "corporate_actions_included": false,
+      "use": "internal_non_display",
+      "redistribution_allowed": false
+    },
+    "frozen_preconditions": {
+      "m2a_v1_freeze": "exact",
+      "m2c_v2_freeze": "exact",
+      "m3b_foundation_freeze": "historical_exact_with_m3c_documented_portable_test_successor",
+      "m3c_license_evidence_freeze": "exact",
+      "m3d_provider_verbatim_license_freeze": "exact",
+      "m3d_license_sufficient": true,
+      "m4_dataset_acquisition_ready_before_fresh_preflight": true
+    },
+    "credential_safety": {
+      "source_path": "/Users/willysimonsson/Dev/trade/.env.local",
+      "git_ignored": true,
+      "git_tracked": false,
+      "loaded_only_in_preflight_process_memory": true,
+      "value_or_length_prefix_suffix_hash_emitted": false,
+      "persisted": false,
+      "netlify_inspected": false
+    },
+    "local_storage": {
+      "destination": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/raw",
+      "destination_outside_git": true,
+      "destination_created": false,
+      "underlying_volume": "apfs_data_volume",
+      "underlying_volume_encrypted": true,
+      "encryption_evidence": "ioreg_AppleAPFSVolume_Data_Encrypted_Yes",
+      "free_bytes": 14707425280,
+      "free_gib": 13.697357,
+      "actual_downloaded_bytes": 0
+    },
+    "decoder": {
+      "databento_version": "0.82.0",
+      "databento_dbn_version": "0.63.0",
+      "installation_scope": "temporary_venv_outside_repository",
+      "repository_dependency_changes": 0
+    },
+    "calendar": {
+      "session_count": 5,
+      "dates": [
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24"
+      ],
+      "repository_boundaries_immutable_and_tested": true,
+      "repository_acquisition_evidence_classification": "synthetic_fixture",
+      "independent_real_acquisition_calendar_evidence_present": false,
+      "gate_passed": false
+    },
+    "metadata_preflight": {
+      "version": "action_667m4_metadata_preflight_v1",
+      "started_at": "2026-07-27T14:05:29.693898Z",
+      "finished_at": "2026-07-27T14:05:46.101782Z",
+      "maximum_quote_and_entitlement_age_at_decision_seconds": 16.408,
+      "sanitized_preflight_digest": "8356adec14eec98e211d5a1d7c2b442e8412486f05ff4f5256d6b55817054970",
+      "dataset_supported": true,
+      "schema_supported": true,
+      "publisher_exact": true,
+      "resolved_symbols": [
+        "SPY",
+        "QQQ",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "resolved_symbol_count": 13,
+      "partial_symbols": [],
+      "unresolved_symbols": [],
+      "extra_symbols": [],
+      "entitlement_range": {
+        "start": "2023-03-28T00:00:00.000000000Z",
+        "end_exclusive": "2026-07-27T04:00:00.000000000Z"
+      },
+      "conditions": [
+        {
+          "date": "2026-07-20",
+          "condition": "available"
+        },
+        {
+          "date": "2026-07-21",
+          "condition": "available"
+        },
+        {
+          "date": "2026-07-22",
+          "condition": "available"
+        },
+        {
+          "date": "2026-07-23",
+          "condition": "available"
+        },
+        {
+          "date": "2026-07-24",
+          "condition": "available"
+        }
+      ],
+      "records": 516162,
+      "billable_bytes": 24775776,
+      "provider_estimated_cost_usd": 0.138445436954,
+      "historical_trades_unit_price_usd_per_gib": 6,
+      "provider_declared_transfer_bytes": null,
+      "estimated_local_total_bytes": null,
+      "provider_build": null,
+      "immutable_dataset_revision": null,
+      "pre_submission_batch_metadata": null
+    },
+    "hard_caps": {
+      "cost_usd": 0.25,
+      "billable_bytes": 33554432,
+      "transfer_bytes": 33554432,
+      "local_total_bytes": 1073741824
+    },
+    "gates": [
+      {
+        "gate": 1,
+        "name": "dataset_exact",
+        "passed": true
+      },
+      {
+        "gate": 2,
+        "name": "schema_exact",
+        "passed": true
+      },
+      {
+        "gate": 3,
+        "name": "encoding_exact",
+        "passed": true
+      },
+      {
+        "gate": 4,
+        "name": "compression_exact",
+        "passed": true
+      },
+      {
+        "gate": 5,
+        "name": "publisher_exact",
+        "passed": true
+      },
+      {
+        "gate": 6,
+        "name": "symbols_exact",
+        "passed": true
+      },
+      {
+        "gate": 7,
+        "name": "entitlement_covers_interval",
+        "passed": true
+      },
+      {
+        "gate": 8,
+        "name": "all_five_days_available",
+        "passed": true
+      },
+      {
+        "gate": 9,
+        "name": "quote_and_entitlement_under_900_seconds",
+        "passed": true
+      },
+      {
+        "gate": 10,
+        "name": "records_billable_bytes_and_provider_cost_estimate_exact",
+        "passed": true
+      },
+      {
+        "gate": 11,
+        "name": "cost_within_cap",
+        "passed": true
+      },
+      {
+        "gate": 12,
+        "name": "billable_bytes_within_cap",
+        "passed": true
+      },
+      {
+        "gate": 13,
+        "name": "provider_declared_transfer_bytes_within_cap",
+        "passed": false,
+        "reason": "not_exposed_before_batch_submission"
+      },
+      {
+        "gate": 14,
+        "name": "estimated_local_total_within_cap",
+        "passed": false,
+        "reason": "cannot_calculate_without_provider_declared_transfer_bytes"
+      },
+      {
+        "gate": 15,
+        "name": "provider_build_dataset_revision_and_batch_metadata_exact",
+        "passed": false,
+        "reason": "not_exposed_before_batch_submission"
+      },
+      {
+        "gate": 16,
+        "name": "decoder_build_documented_without_repo_dependency_change",
+        "passed": true
+      },
+      {
+        "gate": 17,
+        "name": "immutable_independent_xnys_calendar_evidence",
+        "passed": false,
+        "reason": "repository_evidence_is_explicitly_synthetic"
+      },
+      {
+        "gate": 18,
+        "name": "destination_outside_git_on_verified_encrypted_storage",
+        "passed": true
+      },
+      {
+        "gate": 19,
+        "name": "sufficient_free_disk_space",
+        "passed": true
+      },
+      {
+        "gate": 20,
+        "name": "raw_unadjusted_corporate_actions_excluded",
+        "passed": true
+      },
+      {
+        "gate": 21,
+        "name": "license_matrix_complete",
+        "passed": true
+      },
+      {
+        "gate": 22,
+        "name": "redistribution_forbidden",
+        "passed": true
+      }
+    ],
+    "failed_gates": [
+      13,
+      14,
+      15,
+      17
+    ],
+    "activity": {
+      "authenticated_metadata_calls": 9,
+      "authenticated_symbology_calls": 1,
+      "timeseries_calls": 0,
+      "batch_submission_calls": 0,
+      "batch_status_calls": 0,
+      "batch_file_list_calls": 0,
+      "download_calls": 0,
+      "streaming_calls": 0,
+      "market_records_received": 0,
+      "provider_files_generated": 0,
+      "provider_files_downloaded": 0,
+      "purchases_or_retries": 0
+    },
+    "outcome": {
+      "action_667m4_preflight_passed": false,
+      "action_667m4_batch_submitted": false,
+      "action_667m4_dataset_acquired": false,
+      "action_667m4_post_download_verified": false,
+      "action_667m4_cost_ceiling_respected": true,
+      "action_667m4_storage_ceiling_respected": false,
+      "dataset_acquisition_ready": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  },
+  "security_attestation": {
+    "credential_value_or_metadata_exposed": false,
+    "provider_request_or_batch_identifier_persisted": false,
+    "account_or_billing_identifier_persisted": false,
+    "raw_provider_response_persisted": false,
+    "raw_market_data_in_worktree": false,
+    "destination_created": false,
+    "commit": false,
+    "push": false,
+    "pull_request_update": false,
+    "deploy": false
+  }
+}

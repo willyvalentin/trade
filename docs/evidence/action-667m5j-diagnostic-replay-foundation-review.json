@@ -1,0 +1,271 @@
+{
+  "artifact_version": "market_context_diagnostic_replay_foundation_independent_review_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "review_evidence_digest": "d0357c9582da5fcc1a453e0081ea8e957ecd63614aec305ee5ff46e2e59503ea",
+  "review_material": {
+    "action": "667M.5J",
+    "review_mode": "independent_read_only_no_remediation",
+    "freeze_binding": {
+      "manifest_path": "docs/evidence/action-667m5j-diagnostic-replay-foundation-freeze-manifest.json",
+      "manifest_file_sha256": "9cc7ac7c49e58a9722c1703acf772243db186bd4fd51d9b895634dfcf58e64f6",
+      "freeze_digest": "da82531ae4164d9404c9dddfcdd1d05481929a22e67dff224498a896dc24cd61",
+      "repository_artifact_count": 29,
+      "external_artifact_count": 2
+    },
+    "review_findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 2,
+      "nit": 0,
+      "items": [
+        {
+          "id": "H-001",
+          "severity": "minor",
+          "origin": "Action 667M.5H",
+          "status": "carried_transparently_no_remediation",
+          "finding": "A read-only three-record decoder API probe preceded the complete M.5H current-action hash preflight. It created no artifact; all full normalization runs began after preflight and raw hashes remained unchanged."
+        },
+        {
+          "id": "J-001",
+          "severity": "minor",
+          "origin": "Action 667M.5J independent review",
+          "status": "documented_no_remediation",
+          "finding": "The external replay producer metadata names the stacked base commit while the M.5I runner was an uncommitted worktree artifact. Reproducibility is recovered losslessly by the M.5I runner SHA-256 and this freeze manifest, but the external producer git_commit field alone must not be treated as the complete executable source identity."
+        }
+      ]
+    },
+    "independent_review": [
+      {
+        "id": "IR-01",
+        "topic": "raw_record_candle_decision_replay_lineage",
+        "verdict": "approved",
+        "evidence": "raw root, one disposition per record, normalized lineage root, schedule, replay input and replay output roots form an explicit digest chain"
+      },
+      {
+        "id": "IR-02",
+        "topic": "record_dispositions",
+        "verdict": "approved",
+        "evidence": "2420049 decoded records equal 2420049 included-or-excluded dispositions with zero lineage gaps"
+      },
+      {
+        "id": "IR-03",
+        "topic": "duplicate_treatment_and_volume",
+        "verdict": "approved",
+        "evidence": "3399 duplicate occurrences are retained by unique raw identity; 3395 core duplicates contribute 364595 volume across 2741 candles; silent deduplication is false"
+      },
+      {
+        "id": "IR-04",
+        "topic": "gaps_and_coverage",
+        "verdict": "approved",
+        "evidence": "1120 explicit gaps, 100280 candles, 0.988954635108 coverage, no forward fill and no interpolation"
+      },
+      {
+        "id": "IR-05",
+        "topic": "session_calendar_symbol_scope",
+        "verdict": "approved",
+        "evidence": "20 authoritative regular XNYS sessions and exactly 13 declared ETFs; 2026-07-03 remains excluded"
+      },
+      {
+        "id": "IR-06",
+        "topic": "diagnostic_all_reported_trades_semantics",
+        "verdict": "approved",
+        "evidence": "namespace and mandatory markers remain diagnostic_all_reported_trades and raw_unadjusted"
+      },
+      {
+        "id": "IR-07",
+        "topic": "official_ohlcv_claim_prevention",
+        "verdict": "approved",
+        "evidence": "official_ohlcv_claimed and canonical_performance_eligible remain false in policy, normalized artifacts and replay"
+      },
+      {
+        "id": "IR-08",
+        "topic": "sale_condition_limitation",
+        "verdict": "approved_with_explicit_limitation",
+        "evidence": "sale_condition_semantics_available remains false and no provider-official eligibility inference is made"
+      },
+      {
+        "id": "IR-09",
+        "topic": "watermark_status",
+        "verdict": "approved_with_explicit_limitation",
+        "evidence": "two seconds remains provisional_diagnostic and empirically_unvalidated despite zero late-after-two-second records"
+      },
+      {
+        "id": "IR-10",
+        "topic": "decision_schedule_and_timezone",
+        "verdict": "approved",
+        "evidence": "exactly 60 decisions at 10:30:02, 12:30:02 and 15:30:02 America/New_York with explicit UTC instants"
+      },
+      {
+        "id": "IR-11",
+        "topic": "candle_finalization",
+        "verdict": "approved",
+        "evidence": "zero record-finalization violations and zero provider timestamps after decisions"
+      },
+      {
+        "id": "IR-12",
+        "topic": "future_exclusion",
+        "verdict": "approved",
+        "evidence": "zero future input points entered the core; 146260 candles, 1940 gaps and 2889900 later-session rows were excluded"
+      },
+      {
+        "id": "IR-13",
+        "topic": "benchmark_breadth_sector_completeness",
+        "verdict": "approved",
+        "evidence": "SPY and QQQ are mandatory benchmarks and all eleven sector ETFs are explicit; incomplete contexts remain not_rankable"
+      },
+      {
+        "id": "IR-14",
+        "topic": "breadth_semantics",
+        "verdict": "approved",
+        "evidence": "breadth is derived from exactly eleven sector ETFs and permanently labeled not_full_market_breadth"
+      },
+      {
+        "id": "IR-15",
+        "topic": "evidence_strength_not_probability",
+        "verdict": "approved",
+        "evidence": "calibrated_probability is false and recommendation-confidence mapping is not performed"
+      },
+      {
+        "id": "IR-16",
+        "topic": "v1_v2_parity",
+        "verdict": "approved",
+        "evidence": "60 of 60 classifications agree with zero version classification changes"
+      },
+      {
+        "id": "IR-17",
+        "topic": "reason_codes_and_sector_rankability",
+        "verdict": "approved",
+        "evidence": "reason codes remain explicit; 88 of 660 sector contexts are rankable and 572 are not_rankable"
+      },
+      {
+        "id": "IR-18",
+        "topic": "reproducibility_and_input_order",
+        "verdict": "approved",
+        "evidence": "UTC A/B, Stockholm reverse-order and New York produced byte-identical replay trees"
+      },
+      {
+        "id": "IR-19",
+        "topic": "external_storage_permissions",
+        "verdict": "approved",
+        "evidence": "303 normalized and 84 replay artifacts have zero mode drift; directories are 0700 and files 0600"
+      },
+      {
+        "id": "IR-20",
+        "topic": "performance_claim_absence",
+        "verdict": "approved",
+        "evidence": "no outcomes, PnL, win rate, expectancy, precision, performance evaluation or model training exists"
+      },
+      {
+        "id": "IR-21",
+        "topic": "canonical_and_live_isolation",
+        "verdict": "approved",
+        "evidence": "bridge export remains inactive; canonical_binding_ready and live_ranking_effect remain false with no live consumer import"
+      }
+    ],
+    "threat_cases": [
+      {
+        "case": "raw_normalized_or_replay_digest_drift",
+        "control": "exact root, inventory and manifest digests",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "decision_schedule_changed",
+        "control": "schedule source SHA and exact 20-by-3 decision fixture",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "full_day_leakage_into_intraday",
+        "control": "current_full_day_aggregation_use_count must equal zero",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "later_session_leaks_backward",
+        "control": "later-session rows are excluded before evaluator input",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "gap_ignored",
+        "control": "each missing minute is a typed gap and contributes coverage/reason evidence",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "diagnostic_candle_relabelled_official_or_canonical",
+        "control": "negative claim markers are exact and conflicting usage is rejected",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "evidence_strength_mapped_to_probability",
+        "control": "calibrated_probability must remain false",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "eleven_etf_breadth_relabelled_full_market",
+        "control": "not_full_market_breadth must remain true",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "sale_condition_limitation_removed",
+        "control": "sale_condition_semantics_available must remain false",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "two_second_watermark_relabelled_validated",
+        "control": "watermark_status must remain empirically_unvalidated",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "replay_output_digest_recomputed_or_external_artifact_changed",
+        "control": "external manifest inventory, dataset digest and complete tree digest all bind",
+        "result": "fail_closed_control_verified"
+      },
+      {
+        "case": "external_output_permission_drift",
+        "control": "every directory must be 0700 and every file 0600",
+        "result": "fail_closed_control_verified"
+      }
+    ],
+    "regression": {
+      "playwright_relevant_k_through_m5j": {
+        "passed": 218,
+        "failed": 0,
+        "cross_timezone_matrices_included": true
+      },
+      "m5j_scoped": {
+        "passed": 7,
+        "failed": 0
+      },
+      "m5h_python_pure_unit": {
+        "passed": 4,
+        "failed": 0,
+        "decoder_calls": 0,
+        "execution": "in_memory_import_stubs_for_unavailable_optional_decoder_modules",
+        "environment_note": "direct system-Python discovery could not import databento_dbn; no dependency was installed and the pure aggregation tests were rerun with non-executing in-memory import stubs"
+      },
+      "typescript": "passed",
+      "scoped_eslint": "passed",
+      "json_parity": "passed",
+      "git_diff_check": "passed"
+    },
+    "execution_boundary": {
+      "normalizations": 0,
+      "replays": 0,
+      "provider_calls": 0,
+      "credentials_loaded": 0,
+      "database_connections": 0,
+      "canonical_bindings": 0,
+      "live_consumer_changes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0
+    },
+    "statuses": {
+      "action_667m5j_replay_foundation_frozen": true,
+      "action_667m5j_external_artifact_roots_verified": true,
+      "action_667m5j_independent_review_approved": true,
+      "action_667m5j_local_checkpoint_ready": true,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

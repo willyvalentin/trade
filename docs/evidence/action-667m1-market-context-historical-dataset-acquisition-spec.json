@@ -1,0 +1,213 @@
+{
+  "specification_version": "market_context_historical_dataset_acquisition_spec_v1",
+  "dataset_contract_version": "market_context_historical_dataset_v1",
+  "normalizer_version": "market_context_historical_dataset_normalizer_v1",
+  "status": "specification_only_not_authorized",
+  "purpose": "Define the exact caller-supplied offline dataset needed for a future separately approved market-context shadow replay.",
+  "required_operator_parameters": {
+    "provider_or_source": null,
+    "provider_dataset_product": null,
+    "date_range_start": null,
+    "date_range_end": null,
+    "candle_interval": null,
+    "decision_universe": null,
+    "sector_or_industry_benchmark_universe": null,
+    "breadth_source": null,
+    "license_basis": null,
+    "acquisition_method": null,
+    "cost_approval": null
+  },
+  "date_range": {
+    "mode": "operator_supplied_parameter",
+    "start_parameter": "date_range_start",
+    "end_parameter": "date_range_end",
+    "range_basis": "observation_utc_date",
+    "hardcoded_purchase_range": null,
+    "minimum_or_recommended_duration": null,
+    "reason": "No arbitrary date purchase or historical scope is authorized by this specification."
+  },
+  "required_benchmarks": [
+    "SPY",
+    "QQQ"
+  ],
+  "required_symbols": {
+    "decision_tickers": {
+      "mode": "operator_supplied_parameter",
+      "parameter": "decision_universe"
+    },
+    "benchmark_symbols": [
+      "SPY",
+      "QQQ"
+    ],
+    "sector_or_industry_benchmarks": {
+      "mode": "operator_supplied_parameter",
+      "parameter": "sector_or_industry_benchmark_universe",
+      "requirements": [
+        "stable_context_id",
+        "context_level_sector_or_industry",
+        "benchmark_symbol",
+        "complete_declared_universe_per_decision"
+      ]
+    },
+    "breadth": {
+      "mode": "operator_supplied_parameter",
+      "parameter": "breadth_source",
+      "required": true,
+      "requirements": [
+        "source_identity",
+        "constituent_universe_identity",
+        "expected_constituents",
+        "observed_constituents",
+        "advancing_fraction",
+        "above_short_average_fraction"
+      ]
+    }
+  },
+  "interval": {
+    "mode": "operator_supplied_parameter",
+    "parameter": "candle_interval",
+    "supported_by_contract": [
+      "1min",
+      "5min",
+      "15min",
+      "30min",
+      "1h",
+      "1day"
+    ],
+    "single_interval_per_dataset_required": true
+  },
+  "required_metadata": [
+    "dataset_identity",
+    "dataset_version",
+    "provider_or_source",
+    "documented_provenance",
+    "documented_internal_research_and_replay_usage_right",
+    "acquisition_explicit_instant",
+    "acquisition_method",
+    "immutable_raw_digest",
+    "normalizer_version",
+    "immutable_normalized_digest",
+    "explicit_date_range",
+    "decision_ticker_universe",
+    "benchmark_universe",
+    "breadth_universe",
+    "sector_or_industry_universe",
+    "candle_interval",
+    "exchange_timezone",
+    "session_and_calendar_policy",
+    "observation_explicit_instant",
+    "provider_source_explicit_instant",
+    "received_explicit_instant_or_documented_absence",
+    "split_policy",
+    "dividend_policy",
+    "adjustment_state",
+    "missingness_and_coverage_policy",
+    "duplicate_policy",
+    "out_of_order_policy",
+    "point_in_time_and_leakage_attestation",
+    "sensitive_identifier_sanitization_attestation",
+    "raw_to_normalized_lineage"
+  ],
+  "minimum_coverage": {
+    "policy_version": "market_context_historical_dataset_acquisition_minimum_coverage_v1",
+    "benchmark_rows": 0.98,
+    "breadth_rows": 0.95,
+    "sector_or_industry_rows": 0.95,
+    "observation_timestamp_completeness": 1,
+    "provider_source_timestamp_completeness": 1,
+    "received_timestamp_or_documented_absence_completeness": 1,
+    "decision_level_spy_qqq_presence": 1,
+    "decision_level_breadth_presence": 1,
+    "decision_level_declared_context_presence": 1,
+    "note": "These are versioned admission minima for a future candidate review, not production thresholds and not permission to acquire data."
+  },
+  "timezone_and_calendar": {
+    "observation_timestamp": "explicit_instant_required",
+    "provider_source_timestamp": "explicit_instant_required",
+    "received_timestamp": "explicit_instant_or_documented_absence_required",
+    "exchange_timezone_required": true,
+    "session_policy_required": true,
+    "holiday_and_early_close_policy_required": true,
+    "dst_policy_required": true
+  },
+  "corporate_actions": {
+    "split_policy_required": true,
+    "dividend_policy_required": true,
+    "adjustment_state_per_dataset_and_row_required": true,
+    "mixed_or_implicit_adjustment_state_forbidden": true
+  },
+  "point_in_time": {
+    "decision_instant_required": true,
+    "observation_after_decision": "reject",
+    "provider_source_after_decision": "reject",
+    "received_after_decision": "reject",
+    "revisions_and_backfills_policy_required": true,
+    "lookahead_attestation_required": true,
+    "unknown_availability": "reject"
+  },
+  "quality": {
+    "missing_values": "explicit_and_counted_no_implicit_fill_forward",
+    "gaps": "detect_and_report",
+    "duplicates": "reject",
+    "out_of_order": "sort_canonically_and_report",
+    "non_finite_numeric_values": "reject",
+    "raw_bytes": "read_only_and_digest_bound",
+    "normalization": "deterministic_and_digest_bound"
+  },
+  "sensitive_identifiers": {
+    "provider_run_ids": "remove_before_admission_or_reject",
+    "request_trace_account_user_and_job_ids": "remove_before_admission_or_reject",
+    "credentials_tokens_and_secrets": "reject",
+    "personal_identifiers": "reject",
+    "sanitization_attestation_required": true
+  },
+  "license_questions": [
+    "Does the source license explicitly permit local internal research?",
+    "Does it permit deterministic offline replay and derived normalized artifacts?",
+    "May raw rows be stored locally and for how long?",
+    "May normalized rows and aggregate diagnostics be retained?",
+    "Are redistribution, team access, or repository storage restricted?",
+    "Are benchmark, breadth, and sector datasets covered by the same rights?",
+    "Are corporate-action-adjusted series subject to additional terms?",
+    "Is deletion required when a subscription or evaluation period ends?"
+  ],
+  "estimated_row_volume": {
+    "claim_type": "parameterized_formula_only",
+    "formula": "decision_count * ((2 * benchmark_observations_per_decision) + breadth_observations_per_decision + (declared_context_count * context_observations_per_decision))",
+    "variables": [
+      "decision_count",
+      "benchmark_observations_per_decision",
+      "breadth_observations_per_decision",
+      "declared_context_count",
+      "context_observations_per_decision"
+    ],
+    "fixed_row_estimate": null,
+    "cost_estimate": null,
+    "cost_claim": null
+  },
+  "excluded_existing_artifact": {
+    "path": "docs/first-tiny-historical-candle-corrected-filtered-ohlcv-payload.json",
+    "sha256": "7ea7d9d0b5ef3032ad81a69459902dd8c02aafda7017275622e364dcc35bc713",
+    "admission_status": "inadmissible",
+    "must_not_be_modified": true,
+    "must_not_be_used_as_replay_evidence": true
+  },
+  "future_gate": {
+    "action": "667M.2",
+    "name": "Operator-Approved Historical Dataset Source, License, Cost, and Acquisition Gate",
+    "requires_explicit_operator_approval": true,
+    "must_freeze_exact_source_product_and_paths": true,
+    "must_freeze_license_and_usage_right": true,
+    "must_freeze_cost_ceiling_before_any_purchase_or_download": true,
+    "normalization_or_replay_authorized": false
+  },
+  "external_activity_authorized": false,
+  "provider_traffic_authorized": false,
+  "internet_download_authorized": false,
+  "database_access_authorized": false,
+  "replay_authorized": false,
+  "cost_claim": null,
+  "canonical_binding_ready": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

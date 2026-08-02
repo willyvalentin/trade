@@ -1,0 +1,239 @@
+{
+  "action": "667M.5F",
+  "evidence_version": "market_context_action_667m5f_twenty_session_raw_admission_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "169ea4defec513ea2c661f14408974ab5632be106d4727911a8e1ddc5cd282db",
+  "decision_material": {
+    "analysis": {
+      "analysis_policy_version": "market_context_raw_dataset_receive_lag_analysis_policy_2026_07_27_v1",
+      "analysis_implementation_version": "market_context_twenty_session_raw_dataset_receive_lag_analysis_v1",
+      "analysis_implementation_sha256": "138bf6a06b1ee9c5bf46231b7defbd72534f7acd45a797986c0e3a7a372da7f4",
+      "quantile_policy": "nearest_rank_integer_nanoseconds_v1",
+      "share_policy": "exact_count_over_total_with_12dp_decimal_v1",
+      "watermark_decision_rule": "market_context_receive_lag_watermark_decision_rule_2026_07_27_v1",
+      "full_report_path": "docs/evidence/action-667m5f-twenty-session-receive-lag-report.json",
+      "full_report_file_sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+      "full_report_digest": "f89ba8123f48c0553e3aa03a361edde1c5f593c8a953d44e385983ca7dc5abe4",
+      "full_report_bytes": 251944,
+      "provider_calls": 0,
+      "credentials_loaded": false,
+      "raw_records_persisted_in_repository": 0,
+      "candle_normalizations": 0,
+      "historical_replays": 0
+    },
+    "decoder_provenance": {
+      "decoder_package": "databento-dbn",
+      "decoder_version": "0.63.0",
+      "client_package": "databento",
+      "client_version": "0.82.0",
+      "dbn_library_version": 3,
+      "dbn_metadata_version_values": [
+        1
+      ],
+      "decode_mode": "DBNStore.to_ndarray_chunked_read_only",
+      "chunk_record_limit": 100000,
+      "decoder_native_build_artifact": "_lib.cpython-310-darwin.so",
+      "decoder_native_build_sha256": "b7c8a753b737730a44c8d57263dca4f59a6c7a7679675469159dd0edc3a508db",
+      "decoder_python_module_sha256": "5bdc9146c2a6b4059389d7ca4e47bde1e243b8110db9e70d6d9d813a0a11b13f",
+      "python_implementation": "cpython",
+      "python_version": "3.10.7",
+      "runtime_platform": "macOS-15.6-arm64-arm-64bit",
+      "runtime_machine": "arm64"
+    },
+    "raw_input": {
+      "m4c_evidence_digest": "34bf7087d6e6a2c11c9883622541d60a227283ddce7d0c31736f057a6c52105e",
+      "m4c_raw_integrity_digest": "de2ff953e4b0fc882ad40ffca910c8614b89d59f2410e23cc93f6855e6b12714",
+      "m5e_evidence_digest": "8fd4d8b0fb6d2d99cb29f5c75d3ff0e74ff8d618cca5354951ef1a1e66ebf9f4",
+      "m5e_raw_integrity_digest": "7f539ff24f709cb21098558e0531a3f6526438b932f111e5ce7aa1f333af1a7a",
+      "combined_raw_file_digest_root": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "file_count": 20,
+      "pilot_file_count": 5,
+      "calibration_file_count": 15,
+      "total_compressed_bytes": 35949632,
+      "directory_modes": {
+        "pilot": "0700",
+        "calibration": "0700"
+      },
+      "file_mode": "0600",
+      "hashes_before_and_after_identical": true,
+      "partial_extra_or_temporary_file_count": 0,
+      "non_session_2026_07_03_file_present": false,
+      "pilot_calendar_sha256": "fac1d40d9136a43680176f5d1a75b6c3a0bb69531cd6e580c4dc35f72bea2335",
+      "calibration_calendar_sha256": "b6f673bbee883282e54933d38e475dd9fef28d7daa5827c2c3fd1e90a4001808"
+    },
+    "calibration_raw_admission": {
+      "record_count": 1903887,
+      "file_count": 15,
+      "session_count": 15,
+      "symbol_count": 13,
+      "publisher_ids": {
+        "95": 1903887
+      },
+      "actions": {
+        "T": 1903887
+      },
+      "flags": {
+        "0": 482926,
+        "128": 1420961
+      },
+      "unknown_action_count": 0,
+      "unknown_flag_bit_count": 0,
+      "sequence_zero_count": 1903887,
+      "sequence_nonzero_count": 0,
+      "undefined_price_count": 0,
+      "nonpositive_price_count": 0,
+      "undefined_size_count": 0,
+      "zero_size_count": 0,
+      "undefined_ts_event_count": 0,
+      "undefined_ts_recv_count": 0,
+      "negative_receive_lag_count": 0,
+      "exact_duplicate_record_count": 2707,
+      "byte_identical_record_duplicate_count": 2707,
+      "adjacent_ts_event_out_of_order_count": 9422,
+      "adjacent_ts_recv_out_of_order_count": 0,
+      "per_symbol_ts_event_out_of_order_count": 3448,
+      "per_symbol_ts_recv_out_of_order_count": 0,
+      "event_outside_dataset_range_count": 0,
+      "receive_outside_dataset_range_count": 0,
+      "event_outside_source_file_date_count": 0,
+      "core_session_record_count": 1897457,
+      "before_core_session_record_count": 5262,
+      "after_core_session_record_count": 1168,
+      "unknown_instrument_record_count": 0,
+      "fallback_identity_version": "source_file_sha256_plus_zero_based_record_ordinal_v1",
+      "fallback_identity_count": 1903887,
+      "fallback_identity_unique_count": 1903887,
+      "fallback_identity_collision_count": 0,
+      "fallback_identity_root_sha256": "4ddbf4c7edd0aae6e55f67dd0788c0cb0ddfa61107f663c7ccd4e0cb7ab49a2f"
+    },
+    "combined_record_reconciliation": {
+      "pilot_record_count": 516162,
+      "calibration_record_count": 1903887,
+      "decoded_record_count": 2420049,
+      "expected_record_count": 2420049,
+      "reconciled": true,
+      "session_count": 20,
+      "symbol_count": 13,
+      "publisher_ids": {
+        "95": 2420049
+      },
+      "actions": {
+        "T": 2420049
+      },
+      "flags": {
+        "0": 597734,
+        "128": 1822315
+      },
+      "sequence_zero_count": 2420049,
+      "sequence_nonzero_count": 0,
+      "exact_duplicate_record_count": 3399,
+      "adjacent_ts_event_out_of_order_count": 12122,
+      "adjacent_ts_recv_out_of_order_count": 0,
+      "per_symbol_ts_event_out_of_order_count": 4431,
+      "per_symbol_ts_recv_out_of_order_count": 0,
+      "undefined_or_sentinel_count": 0,
+      "event_outside_dataset_range_count": 0,
+      "receive_outside_dataset_range_count": 0,
+      "event_outside_source_file_date_count": 0,
+      "core_session_record_count": 2411730,
+      "before_core_session_record_count": 6786,
+      "after_core_session_record_count": 1533
+    },
+    "combined_receive_lag": {
+      "count": 2420049,
+      "minimum_ns": 17239,
+      "median_ns": 89817,
+      "p90_ns": 154379,
+      "p95_ns": 274357,
+      "p99_ns": 916381,
+      "p99_9_ns": 4953390,
+      "maximum_ns": 244157745,
+      "negative_count": 0,
+      "within_100ms_count": 2420002,
+      "within_100ms_fraction": "2420002/2420049",
+      "within_250ms_count": 2420049,
+      "within_500ms_count": 2420049,
+      "within_1s_count": 2420049,
+      "within_2s_count": 2420049,
+      "within_3s_count": 2420049,
+      "within_5s_count": 2420049,
+      "within_10s_count": 2420049,
+      "after_100ms_candle_finalization_count": 0,
+      "after_250ms_candle_finalization_count": 0,
+      "after_500ms_candle_finalization_count": 0,
+      "after_1s_candle_finalization_count": 0,
+      "after_2s_candle_finalization_count": 0,
+      "after_3s_candle_finalization_count": 0,
+      "after_5s_candle_finalization_count": 0,
+      "after_10s_candle_finalization_count": 0
+    },
+    "session_stability": {
+      "session_count": 20,
+      "p99_min_ns": 562459,
+      "p99_max_ns": 3334455,
+      "p99_range_ns": 2771996,
+      "p99_9_min_ns": 1354069,
+      "p99_9_max_ns": 34199872,
+      "p99_9_range_ns": 32845803,
+      "maximum_min_ns": 27159118,
+      "maximum_max_ns": 244157745,
+      "maximum_range_ns": 216998627,
+      "overall_late_after_2s_ceiling_ppm": 0,
+      "maximum_session_late_after_2s_ceiling_ppm": 0
+    },
+    "semantic_boundaries": {
+      "sale_conditions": "not_exposed_by_dbn_trades_record_schema",
+      "publisher_specific_condition_mapping": "not_supplied_by_raw_record_schema",
+      "sale_condition_or_publisher_mapping_inference_used": false,
+      "all_records_included_in_lag_study": true,
+      "strict_eligibility_excluded_union_count": 0,
+      "individual_instrument_ids_persisted": false,
+      "raw_records_persisted": false
+    },
+    "determinism": {
+      "utc_run_1_file_sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+      "utc_run_2_file_sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+      "stockholm_reverse_input_file_sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+      "new_york_file_sha256": "b0d8a4ee6ec12f4689a2d3e9aa209c1e1d6a77652d6f835e1115fe2b448c8622",
+      "report_digest": "f89ba8123f48c0553e3aa03a361edde1c5f593c8a953d44e385983ca7dc5abe4",
+      "two_utc_runs_byte_identical": true,
+      "cross_timezone_byte_identical": true,
+      "input_order_determinism_passed": true
+    },
+    "watermark_decision": {
+      "current_normative_watermark_ns": 2000000000,
+      "current_validation_status": "empirically_unvalidated",
+      "recommendation": "insufficient_evidence",
+      "normative_watermark_changed": false,
+      "retain_or_increase_decision_authorized": false,
+      "passed_checks": [
+        "exactly 20 sessions",
+        "overall late after 2s at most 1 ppm",
+        "each session late after 2s at most 5 ppm",
+        "zero unknown actions",
+        "zero unknown flag bits",
+        "zero publisher-specific unresolved records",
+        "zero bad receive timestamp flags",
+        "zero undefined timestamps",
+        "zero negative receive lags",
+        "two-run, input-order and cross-timezone determinism"
+      ],
+      "unmet_checks": [
+        "sale-condition semantics are not exposed by the DBN trades record schema"
+      ]
+    },
+    "statuses": {
+      "action_667m5f_calibration_raw_dataset_admitted": true,
+      "action_667m5f_combined_record_inventory_reconciled": true,
+      "action_667m5f_twenty_session_receive_lag_complete": true,
+      "action_667m5f_two_run_determinism_passed": true,
+      "action_667m5f_watermark_recommendation": "insufficient_evidence",
+      "action_667m5f_normalization_gate_ready": true,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

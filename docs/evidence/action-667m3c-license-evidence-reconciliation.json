@@ -1,0 +1,260 @@
+{
+  "action": "667M.3C",
+  "evidence_version": "market_context_action_667m3c_license_evidence_v1",
+  "recorded_on": "2026-07-27",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "digest_algorithm": "sha256(canonical_json(digest_material))",
+  "evidence_digest": "91b010295e44595c6b4c68adb3bc12b8cd7e03322db8351cca9a0a17839674a6",
+  "digest_material": {
+    "operator_evidence": {
+      "classification": "operator_attested_provider_confirmation",
+      "evidence_reference": "action-667m3c-operator-attestation",
+      "provider_verbatim_available": false,
+      "provider_confirmation_date": null,
+      "sender_or_recipient_metadata_preserved": false,
+      "operator_summaries_are_not_provider_quotes": true,
+      "statements": [
+        {
+          "id": "retention_indefinite",
+          "operator_summary": "All downloaded data may be retained without a time limit."
+        },
+        {
+          "id": "retention_survives_cancellation",
+          "operator_summary": "The retention right remains after the Databento account is terminated."
+        },
+        {
+          "id": "organization_scope",
+          "operator_summary": "The same retention right covers every user within the operator's organization."
+        }
+      ],
+      "invented_wording_or_provenance": false,
+      "sensitive_identifiers_preserved": false
+    },
+    "official_documentation_reconciliation": [
+      {
+        "fact_id": "historical_license_norm",
+        "fact": "Historical data older than 24 hours normally requires no separate exchange license for internal non-redistributed use, subject to dataset-specific terms.",
+        "source": "https://databento.com/docs/faqs/usage-pricing-and-data-credits",
+        "effect": "supports_internal_non_display_use_but_does_not_replace_dataset_specific_terms"
+      },
+      {
+        "fact_id": "historical_market_replay",
+        "fact": "Historical streaming and batch interfaces support market replay.",
+        "source": "https://databento.com/docs/api-reference-historical",
+        "effect": "supports_offline_replay_use"
+      },
+      {
+        "fact_id": "ohlcv_from_trades",
+        "fact": "OHLCV can be derived from Trades.",
+        "source": "https://databento.com/docs/schemas-and-data-formats/trades",
+        "effect": "supports_derived_candle_creation_not_retention"
+      },
+      {
+        "fact_id": "batch_redownload",
+        "fact": "A paid batch is charged once and may be downloaded again for 30 days without another data charge.",
+        "source": "https://databento.com/docs/faqs/usage-pricing-and-data-credits",
+        "effect": "future_cost_preflight_fact_only"
+      },
+      {
+        "fact_id": "equs_mini_sequence",
+        "fact": "EQUS.MINI sequence is always zero.",
+        "source": "https://databento.com/docs/venues-and-datasets/equs-mini",
+        "effect": "requires_immutable_file_identity_plus_record_ordinal_tiebreak"
+      },
+      {
+        "fact_id": "trades_action",
+        "fact": "Trades use the Trade action.",
+        "source": "https://databento.com/docs/schemas-and-data-formats/trades",
+        "effect": "unknown_or_non_trade_action_fail_closed"
+      },
+      {
+        "fact_id": "nanosecond_timestamps",
+        "fact": "Trades provide independent ts_event and ts_recv timestamps in UNIX nanoseconds.",
+        "source": "https://databento.com/docs/standards-and-conventions/common-fields-enums-types",
+        "effect": "lossless_independent_nanosecond_preservation_required"
+      },
+      {
+        "fact_id": "flags_bitmask",
+        "fact": "Record flags use the documented bitmask; bad timestamp, bad book, unknown flag bits and unknown publisher-specific semantics must fail closed.",
+        "source": "https://databento.com/docs/standards-and-conventions/common-fields-enums-types",
+        "effect": "fail_closed_trade_eligibility"
+      },
+      {
+        "fact_id": "redistribution",
+        "fact": "Redistribution remains prohibited for this pilot.",
+        "source": "https://databento.com/docs/faqs/usage-pricing-and-data-credits",
+        "effect": "no_external_redistribution"
+      },
+      {
+        "fact_id": "corporate_actions",
+        "fact": "Corporate actions are a separate product and are not included in the raw-unadjusted pilot.",
+        "source": "https://databento.com/docs/venues-and-datasets/corporate-actions",
+        "effect": "pilot_raw_unadjusted_no_adjustment_or_performance_claim"
+      }
+    ],
+    "license_matrix": [
+      {
+        "topic": "indefinite_raw_retention",
+        "status": "confirmed",
+        "basis": ["operator_attested_provider_confirmation"]
+      },
+      {
+        "topic": "retention_after_cancellation",
+        "status": "confirmed",
+        "basis": ["operator_attested_provider_confirmation"]
+      },
+      {
+        "topic": "organization_team_scope",
+        "status": "confirmed",
+        "basis": ["operator_attested_provider_confirmation"]
+      },
+      {
+        "topic": "internal_non_display_research",
+        "status": "supported",
+        "basis": ["official_public_documentation"]
+      },
+      {
+        "topic": "derived_candles",
+        "status": "creation_supported_retention_written_confirmation_required",
+        "basis": ["official_public_documentation"]
+      },
+      {
+        "topic": "derived_evidence",
+        "status": "retention_written_confirmation_required",
+        "basis": []
+      },
+      {
+        "topic": "offline_replay",
+        "status": "supported",
+        "basis": ["official_public_documentation"]
+      },
+      {
+        "topic": "encrypted_local_storage",
+        "status": "raw_storage_supported",
+        "basis": ["operator_attested_provider_confirmation"]
+      },
+      {
+        "topic": "encrypted_backup",
+        "status": "written_confirmation_required",
+        "basis": []
+      },
+      {
+        "topic": "deletion_obligations",
+        "status": "no_raw_deletion_obligation_attested_derived_and_backup_unresolved",
+        "basis": ["operator_attested_provider_confirmation"]
+      },
+      {
+        "topic": "audit_log_requirements",
+        "status": "written_confirmation_required",
+        "basis": []
+      },
+      {
+        "topic": "redistribution",
+        "status": "forbidden",
+        "basis": ["official_public_documentation", "project_policy"]
+      },
+      {
+        "topic": "corporate_actions",
+        "status": "excluded_raw_unadjusted",
+        "basis": ["pilot_contract", "official_public_documentation"]
+      }
+    ],
+    "unresolved_license_questions": [
+      "Does indefinite retention expressly include encrypted backups and disaster-recovery copies?",
+      "May derived candles and non-reconstructive derived evidence be retained indefinitely after cancellation across the organization?",
+      "What audit, access-log, evidence-retention or provider-notification obligations apply?"
+    ],
+    "technical_pre_download_readiness": {
+      "status": "ready_to_validate_future_evidence_fail_closed",
+      "fresh_quote_and_entitlement": "required_at_future_m4_preflight",
+      "all_five_days_available": "required_at_future_m4_preflight",
+      "cost_and_size_caps": "contract_enforced",
+      "dbn_decoder_encoder_and_provider_build": "required_caller_supplied_no_inference",
+      "batch_condition_metadata_and_manifest": "required_post_download_lineage",
+      "actual_raw_file_sha256": "required_post_download_lineage",
+      "stable_tiebreak": "immutable_source_file_identity_plus_record_ordinal",
+      "sequence_policy": "equs_mini_sequence_zero_not_used_as_unique_identity",
+      "watermark": {
+        "policy_version": "market_context_trade_watermark_policy_2026_07_27_v2",
+        "evidence_status": "empirically_unvalidated",
+        "calibrated": false
+      },
+      "calendar": "immutable_versioned_xnys_pilot_sessions_required",
+      "normalization_before_post_download_admission": false,
+      "replay_before_separate_calibration_and_admission": false
+    },
+    "decisions": {
+      "license_sufficient": false,
+      "technical_pre_download_ready": true,
+      "operator_acquisition_authorized": false,
+      "dataset_acquisition_ready": false,
+      "download_authorized": false,
+      "action_667m3c_license_evidence_reconciled": true,
+      "action_667m3c_license_sufficient": false,
+      "action_667m3c_pilot_pre_download_ready": true,
+      "action_667m4_dataset_acquisition_ready": false
+    },
+    "inactive_m4_authorization_phrase": "SPÅR 3 — Action 667M.4: Jag godkänner en enda fail-closed preflight och, endast om den passerar, en engångsdownload av Databento `EQUS.MINI` raw `trades`, `dbn` + `zstd`, publisher `95`, för exakt symbolerna `SPY,QQQ,XLB,XLC,XLE,XLF,XLI,XLK,XLP,XLRE,XLU,XLV,XLY` och exakt intervallet `[2026-07-20T00:00:00Z, 2026-07-25T00:00:00Z)`. Auktorisationen gäller endast efter att en ny M.3C-evidens visar `license_sufficient:true`, `technical_pre_download_ready:true`, en högst 900 sekunder gammal quote och entitlement, samtliga fem dagar `available`, dokumenterade provider-/encoder-/datasetrevisioner, immutable XNYS-calendar, samt verifierad krypterad destination utanför Git. Stoppa före download om priset överstiger USD `0.25`, billable bytes överstiger `32 MiB`, transfer överstiger `32 MiB` eller lokalt totalbehov överstiger `1 GiB`. `raw_unadjusted` gäller; corporate actions ingår inte. Spara endast under `/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/raw`. Efter download får endast batchmetadata, immutable file identity, record ordinal och faktiska SHA-256-evidens verifieras. Ingen normalization, replay, databas, canonical binding, commit, push, PR, deploy eller liveintegration är godkänd."
+  },
+  "activity_attestation": {
+    "credentials_read_or_inspected": false,
+    "provider_requests": 0,
+    "quotes": 0,
+    "downloads": 0,
+    "purchases": 0,
+    "real_data_normalizations": 0,
+    "historical_replays": 0,
+    "database_connections": 0,
+    "commits": 0,
+    "pushes": 0,
+    "pull_request_updates": 0,
+    "deploys": 0
+  },
+  "regression": {
+    "full_relevant_action_667a_through_m3c": {
+      "tests": 162,
+      "passed": 162,
+      "failed": 0
+    },
+    "cross_timezone_matrix": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "cross_timezone_byte_identical": true,
+    "cross_timezone_digest": "dbbb2449a220896bbca43d9603b5dcb1c5b0d3401c84de29da657de38f8f2323",
+    "typescript": "passed",
+    "scoped_eslint": "passed",
+    "json_parity": "passed",
+    "freeze_parity": "passed",
+    "git_diff_check": "passed",
+    "dependency_changes": 0,
+    "deno_lock_changes": 0
+  },
+  "review": {
+    "implementation_finding_counts": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 1,
+      "nit": 0
+    },
+    "implementation_minor_findings": [
+      {
+        "id": "M3C-001",
+        "finding": "The two-second watermark remains empirically unvalidated and uncalibrated.",
+        "disposition": "transparent_calibration_gate_replay_prohibited"
+      }
+    ],
+    "external_acquisition_blocker_count": 3,
+    "external_acquisition_blockers": [
+      "encrypted_backup_right_written_confirmation_required",
+      "derived_candle_and_derived_evidence_retention_written_confirmation_required",
+      "audit_log_and_provider_notification_obligations_written_confirmation_required"
+    ]
+  },
+  "canonical_binding_performed": false,
+  "shadow_only": true,
+  "live_ranking_effect": false
+}

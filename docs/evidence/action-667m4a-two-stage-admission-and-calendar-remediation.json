@@ -1,0 +1,200 @@
+{
+  "action": "667M.4A",
+  "evidence_version": "market_context_action_667m4a_two_stage_admission_and_calendar_remediation_v1",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "193fb6655e7ed95a92fd8b9ff8edaa14f46e28fa5be11f715db969d1d9b5e693",
+  "decision_material": {
+    "versions": {
+      "admission_contract": "market_context_five_session_pilot_two_stage_admission_v2",
+      "admission_policy": "market_context_five_session_pilot_two_stage_policy_2026_07_27_v2",
+      "provider_provenance": "market_context_databento_batch_provenance_v1",
+      "calendar": "market_context_xnys_acquisition_calendar_2026_v1",
+      "fixtures": "market_context_action_667m4a_synthetic_fixtures_v1"
+    },
+    "predecessor_freezes": {
+      "m2a_v1": "28b5ef0a42023605d299671c05d926e4fbf7e129f421f4feed02a6c6b02f9370",
+      "m2c_v2": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f",
+      "m3b_foundation": "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c",
+      "m3c_license": "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c",
+      "m3d_provider_verbatim": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c",
+      "m4_fail_closed_decision": "1b896d2387af207fa03b59172bfeed38be17a19daedb23395e66f73b6474ce8d"
+    },
+    "two_stage_boundary": {
+      "pre_submission_admission": {
+        "requires": [
+          "exact request scope",
+          "quote and entitlement age at most 900 seconds",
+          "five available days",
+          "record count, billable bytes and cost within hard caps",
+          "M.3D license readiness",
+          "encrypted destination outside Git",
+          "at least 1 GiB free local capacity",
+          "immutable authoritative XNYS calendar",
+          "documented SDK and decoder versions"
+        ],
+        "does_not_require": [
+          "provider file list",
+          "compressed package size",
+          "batch manifest",
+          "batch job metadata",
+          "file-specific provider identity",
+          "internal provider build or internal dataset revision"
+        ],
+        "result": "ready_for_separate_batch_submission_authorization",
+        "batch_submission_authorized": false,
+        "download_authorized": false
+      },
+      "post_submission_pre_download_admission": {
+        "requires": [
+          "valid pre-submission decision receipt",
+          "separate batch authorization evidence",
+          "completed job with exact bound scope",
+          "condition.json, manifest.json and metadata.json",
+          "complete provider file list",
+          "provider filename, size and SHA-256 per file",
+          "aggregate compressed transfer size at most 32 MiB",
+          "package plus equal atomic-download reserve at most 1 GiB",
+          "job cost and billable bytes within original hard caps",
+          "metadata-only inspection with zero downloaded files"
+        ],
+        "result": "ready_for_separate_file_download_authorization",
+        "batch_submission_authorized": false,
+        "download_authorized": false
+      }
+    },
+    "hard_caps": {
+      "cost_usd": 0.25,
+      "billable_bytes": 33554432,
+      "transfer_bytes": 33554432,
+      "local_total_bytes": 1073741824
+    },
+    "calendar": {
+      "artifact_version": "market_context_xnys_acquisition_calendar_2026_v1",
+      "artifact_sha256": "fac1d40d9136a43680176f5d1a75b6c3a0bb69531cd6e580c4dc35f72bea2335",
+      "session_count": 5,
+      "dates": [
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24"
+      ],
+      "core_hours_et": "09:30-16:00",
+      "utc_hours": "13:30-20:00",
+      "early_close_count": 0,
+      "authority": "NYSE",
+      "retrieved_on": "2026-07-27",
+      "price_data_used": false,
+      "replay_output_used": false
+    },
+    "provider_provenance": {
+      "public_sources": [
+        "https://databento.com/docs/portal/download-center",
+        "https://databento.com/docs/api-reference-historical/batch/batch-list-jobs",
+        "https://databento.com/docs/api-reference-historical/batch/batch-list-files",
+        "https://databento.com/docs/standards-and-conventions/databento-binary-encoding"
+      ],
+      "pre_submission_exposed": [
+        "dataset/schema/publisher support",
+        "symbology resolution",
+        "entitlement and dataset condition",
+        "record-count estimate",
+        "billable-size estimate",
+        "cost estimate"
+      ],
+      "post_submission_exposed": {
+        "job": [
+          "dataset",
+          "symbols",
+          "schema",
+          "start",
+          "end",
+          "encoding",
+          "compression",
+          "record_count",
+          "billed_size",
+          "actual_size",
+          "package_size",
+          "cost_usd",
+          "state",
+          "job timestamps"
+        ],
+        "files": [
+          "filename",
+          "size",
+          "SHA-256"
+        ],
+        "support_files": [
+          "condition.json",
+          "manifest.json",
+          "metadata.json"
+        ]
+      },
+      "post_download_exposed": [
+        "DBN format version from self-describing header",
+        "DBN dataset, schema, range and symbology metadata",
+        "actual local file size",
+        "actual local file SHA-256"
+      ],
+      "internal_provider_build": "not_exposed_by_provider",
+      "internal_dataset_revision": "not_exposed_by_provider",
+      "minimum_lossless_identity": [
+        "exact request scope digest",
+        "hashed provider job identity",
+        "job metadata SHA-256",
+        "provider job timestamps",
+        "canonical file-list digest",
+        "provider filename, size and SHA-256",
+        "SDK and decoder versions",
+        "later DBN header verification",
+        "later actual local file SHA-256"
+      ],
+      "raw_file_identity_review": "sufficient_pre_download_pending_local_sha256",
+      "metadata_inferred": false
+    },
+    "rollback_and_effect": {
+      "rollback_policy": "discard unexecuted receipt and require a fresh pre-submission admission",
+      "provider_calls": 0,
+      "credential_reads": 0,
+      "batch_submissions": 0,
+      "downloads": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_writes": 0,
+      "live_imports": 0,
+      "shadow_only": true,
+      "live_ranking_effect": false
+    },
+    "independent_review": {
+      "approved": true,
+      "blockers": 0,
+      "majors": 0,
+      "minors": 0,
+      "nits": 0,
+      "conclusions": [
+        "No download can be admitted without an exact provider file list, transfer size, scope match and verifiable provider hashes.",
+        "Pre-submission no longer requires batch-only fields.",
+        "No internal provider build or dataset revision is invented.",
+        "The official NYSE calendar artifact replaces synthetic acquisition evidence.",
+        "Both stages grant readiness only and never operator authorization."
+      ]
+    },
+    "statuses": {
+      "action_667m4a_two_stage_admission_ready": true,
+      "action_667m4a_authoritative_calendar_ready": true,
+      "action_667m4a_provider_provenance_sufficient": true,
+      "action_667m4a_independent_review_approved": true,
+      "batch_submission_authorized": false,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  },
+  "future_operator_phrases": {
+    "batch_submission": "SPÅR 3 — Action 667M.4B: Jag godkänner exakt en Databento batch submission för `EQUS.MINI` / `trades`, `dbn` + `zstd`, publisher `95`, de 13 deklarerade ETF-symbolerna och intervallet `[2026-07-20T00:00:00Z, 2026-07-25T00:00:00Z)`, endast om en färsk `pre_submission_admission` passerar och all-in-priset är högst USD `0.25`, billable bytes högst `32 MiB`, licens/calendar/destination är oförändrade och ingen download sker i samma Action.",
+    "file_download": "SPÅR 3 — Action 667M.4C: Jag godkänner download av exakt filerna i det redan skapade pilotbatchjobbet endast om `post_submission_pre_download_admission` passerar med komplett `condition.json`, `manifest.json`, `metadata.json` och providerfilförteckning, sammanlagd deklarerad transfer högst `32 MiB`, beräknat lokalt totalbehov högst `1 GiB`, oförändrad scope samt pris och billable bytes inom tidigare godkända tak. Ingen normalization eller replay är godkänd."
+  }
+}

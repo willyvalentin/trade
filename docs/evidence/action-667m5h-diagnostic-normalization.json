@@ -1,0 +1,263 @@
+{
+  "action": "667M.5H",
+  "evidence_version": "market_context_action_667m5h_diagnostic_normalization_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "644bcbf200fe68131d97cd1d40060c34e89aa3572a9351fdff2a0f5470e26d52",
+  "decision_material": {
+    "versions": {
+      "normative_policy": "market_context_diagnostic_all_reported_trades_candle_policy_v1",
+      "normalizer": "market_context_diagnostic_trade_to_candle_normalization_v1",
+      "candle_schema": "market_context_diagnostic_all_reported_trades_1m_candle_v1",
+      "record_disposition_schema": "market_context_diagnostic_raw_record_disposition_v1",
+      "gap_coverage_schema": "market_context_diagnostic_gap_coverage_report_v1",
+      "duplicate_impact_schema": "market_context_diagnostic_duplicate_impact_report_v1",
+      "breadth_schema": "market_context_diagnostic_eleven_sector_etf_breadth_v1",
+      "duplicate_policy": "include_each_unique_raw_identity_no_deduplication_v1",
+      "watermark": "market_context_provisional_diagnostic_watermark_2s_v1",
+      "namespace": "shadow.diagnostic.all_reported_trades.candles.v1"
+    },
+    "implementation_bindings": {
+      "typescript_contract_path": "lib/market-context-intelligence-lab/diagnostic-trade-to-candle-normalization-v1.ts",
+      "typescript_contract_sha256": "d72406cda79b33979f12907bfbbf7c658a6dd5d4c964ff8c9df3048e016b2242",
+      "fixtures_path": "lib/market-context-intelligence-lab/diagnostic-trade-to-candle-normalization-fixtures-v1.ts",
+      "fixtures_sha256": "acd9dbd2c51759eb5abeed7de250e361c6a161a6bed6780275282acc0ad6309b",
+      "normalizer_path": "scripts/market_context_diagnostic_normalize_1m_v1.py",
+      "normalizer_sha256": "84476808eb669b0e574ffa67340a1c896ce73e2aaa9bf17c9960d5eb07dd6170"
+    },
+    "predecessor_bindings": {
+      "m4c_evidence_digest": "34bf7087d6e6a2c11c9883622541d60a227283ddce7d0c31736f057a6c52105e",
+      "m4c_raw_integrity_digest": "de2ff953e4b0fc882ad40ffca910c8614b89d59f2410e23cc93f6855e6b12714",
+      "m5e_evidence_digest": "8fd4d8b0fb6d2d99cb29f5c75d3ff0e74ff8d618cca5354951ef1a1e66ebf9f4",
+      "m5e_raw_integrity_digest": "7f539ff24f709cb21098558e0531a3f6526438b932f111e5ce7aa1f333af1a7a",
+      "m5f_evidence_digest": "169ea4defec513ea2c661f14408974ab5632be106d4727911a8e1ddc5cd282db",
+      "m5f_report_digest": "f89ba8123f48c0553e3aa03a361edde1c5f593c8a953d44e385983ca7dc5abe4",
+      "m5g_evidence_digest": "aba25a4bdc5f1844678b40172e0f7caede1c4dae94625981ef2eae05b6c5dfd4",
+      "combined_raw_file_digest_root": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "combined_calendar_digest": "1858e43c4e1992cb68c840209e0c2f5a098ab3a01798b85ab3b3bbef587df109"
+    },
+    "preflight": {
+      "passed": true,
+      "raw_file_count": 20,
+      "total_compressed_bytes": 35949632,
+      "raw_record_count": 2420049,
+      "session_count": 20,
+      "symbol_count": 13,
+      "publisher_ids": {
+        "95": 2420049
+      },
+      "actions": {
+        "T": 2420049
+      },
+      "flags": {
+        "0": 597734,
+        "128": 1822315
+      },
+      "unknown_action_count": 0,
+      "unknown_flag_bit_count": 0,
+      "negative_receive_lag_count": 0,
+      "scope_deviation_count": 0,
+      "undefined_or_sentinel_count": 0,
+      "decoder_package": "databento-dbn",
+      "decoder_version": "0.63.0",
+      "client_version": "0.82.0",
+      "decoder_native_build_sha256": "b7c8a753b737730a44c8d57263dca4f59a6c7a7679675469159dd0edc3a508db",
+      "decoder_module_sha256": "5bdc9146c2a6b4059389d7ca4e47bde1e243b8110db9e70d6d9d813a0a11b13f",
+      "destination_outside_git": true,
+      "destination_filevault": true
+    },
+    "normalization": {
+      "partitioning": "one_canonical_json_artifact_per_session_and_symbol",
+      "candle_partition_count": 260,
+      "breadth_partition_count": 20,
+      "record_disposition_partition_count": 20,
+      "report_count": 2,
+      "manifest_count": 1,
+      "artifact_count": 303,
+      "total_output_bytes": 107541046,
+      "raw_record_count": 2420049,
+      "core_included_record_count": 2411730,
+      "before_core_excluded_record_count": 6786,
+      "after_core_excluded_record_count": 1533,
+      "record_disposition_count": 2420049,
+      "lineage_gap_count": 0,
+      "records_after_provisional_watermark": 0,
+      "candle_count": 100280,
+      "gap_count": 1120,
+      "expected_minute_rows": 101400,
+      "coverage_ratio": "0.988954635108",
+      "forward_fill_used": false,
+      "interpolation_used": false,
+      "adjustment_inferred": false,
+      "corporate_actions_applied": false
+    },
+    "coverage_by_symbol": {
+      "QQQ": {
+        "candle_count": 7797,
+        "gap_count": 3
+      },
+      "SPY": {
+        "candle_count": 7800,
+        "gap_count": 0
+      },
+      "XLB": {
+        "candle_count": 7654,
+        "gap_count": 146
+      },
+      "XLC": {
+        "candle_count": 7732,
+        "gap_count": 68
+      },
+      "XLE": {
+        "candle_count": 7795,
+        "gap_count": 5
+      },
+      "XLF": {
+        "candle_count": 7790,
+        "gap_count": 10
+      },
+      "XLI": {
+        "candle_count": 7769,
+        "gap_count": 31
+      },
+      "XLK": {
+        "candle_count": 7781,
+        "gap_count": 19
+      },
+      "XLP": {
+        "candle_count": 7720,
+        "gap_count": 80
+      },
+      "XLRE": {
+        "candle_count": 7139,
+        "gap_count": 661
+      },
+      "XLU": {
+        "candle_count": 7746,
+        "gap_count": 54
+      },
+      "XLV": {
+        "candle_count": 7784,
+        "gap_count": 16
+      },
+      "XLY": {
+        "candle_count": 7773,
+        "gap_count": 27
+      }
+    },
+    "duplicate_impact": {
+      "policy": "include_each_unique_raw_identity_no_deduplication_v1",
+      "exact_duplicate_occurrence_count": 3399,
+      "included_core_duplicate_occurrence_count": 3395,
+      "excluded_duplicate_occurrence_count": 4,
+      "included_core_duplicate_volume": "364595",
+      "duplicate_affected_candle_count": 2741,
+      "duplicate_changed_ohlc_candle_count": 0,
+      "silent_deduplication_performed": false,
+      "trade_count_and_volume_include_all_unique_raw_identities": true
+    },
+    "breadth": {
+      "sector_etfs": [
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "declared_sector_etf_count": 11,
+      "comparison": "current_minute_close_vs_immediately_previous_minute_close",
+      "forward_fill_used": false,
+      "not_full_market_breadth": true
+    },
+    "digests": {
+      "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "raw_to_record_disposition_root_sha256": "fa874fd4747d16f9e1a03ef22ed4e9fa3be2491d767087372805992ab0ba3d5c",
+      "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "complete_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "raw_file_digest_root_before": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51",
+      "raw_file_digest_root_after": "7b9d1bdc9e9f75df2424f31da1e194a80f7ec875a34f38cd8782e6a72c09ac51"
+    },
+    "determinism": {
+      "run_count": 3,
+      "timezones": [
+        "UTC",
+        "Europe/Stockholm",
+        "America/New_York"
+      ],
+      "utc_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "stockholm_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "new_york_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "byte_identical": true,
+      "raw_files_byte_identical_before_after": true
+    },
+    "output": {
+      "encrypted_root": "/Users/willysimonsson/Library/Application Support/trade-shadow-data/encrypted/databento/EQUS.MINI/trades/v1/diagnostic-normalized-1m",
+      "final_partition": "market_context_diagnostic_all_reported_trades_1m_v1",
+      "directory_mode": "0700",
+      "file_mode": "0600",
+      "symlink_count": 0,
+      "partial_or_temporary_file_count_inside_final": 0,
+      "per_artifact_path_size_sha256_inventory_location": "normalized-dataset-manifest.json"
+    },
+    "mandatory_markers": {
+      "diagnostic_all_reported_trades": true,
+      "official_ohlcv_claimed": false,
+      "canonical_performance_eligible": false,
+      "sale_condition_semantics_available": false,
+      "raw_unadjusted": true,
+      "corporate_actions_applied": false,
+      "watermark_status": "empirically_unvalidated",
+      "live_ranking_effect": false
+    },
+    "review": {
+      "approved": true,
+      "blocker_findings": 0,
+      "major_findings": 0,
+      "minor_findings": 1,
+      "nit_findings": 0,
+      "minor_findings_detail": [
+        {
+          "id": "H-001",
+          "finding": "A read-only three-record decoder API probe occurred before the complete current-action hash preflight. It created no artifact and performed no normalization. All three full normalization runs began only after the complete preflight passed, and raw hashes remained unchanged.",
+          "dataset_admission_effect": "non_blocking_procedural_finding"
+        }
+      ],
+      "semantic_honesty": "approved_diagnostic_only_markers_present",
+      "point_in_time_and_watermark": "approved_zero_records_after_provisional_watermark",
+      "lineage": "approved_every_raw_record_has_one_included_or_excluded_disposition",
+      "duplicate_handling": "approved_all_unique_raw_identities_preserved_without_deduplication",
+      "canonical_and_live_isolation": "approved"
+    },
+    "execution_boundary": {
+      "provider_calls": 0,
+      "credentials_loaded": 0,
+      "downloads": 0,
+      "replays": 0,
+      "model_training_runs": 0,
+      "database_writes": 0,
+      "canonical_bindings": 0,
+      "live_consumer_changes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0
+    },
+    "statuses": {
+      "action_667m5h_diagnostic_normalization_completed": true,
+      "action_667m5h_raw_to_candle_lineage_verified": true,
+      "action_667m5h_gap_and_coverage_report_ready": true,
+      "action_667m5h_two_run_determinism_passed": true,
+      "action_667m5h_normalized_dataset_admitted": true,
+      "action_667m5i_diagnostic_replay_ready": true,
+      "replay_authorized": false,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}

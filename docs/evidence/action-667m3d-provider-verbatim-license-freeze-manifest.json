@@ -1,0 +1,73 @@
+{
+  "manifest_version": "market_context_action_667m3d_provider_verbatim_license_freeze_manifest_v1",
+  "generated_on": "2026-07-27",
+  "worktree": "/private/tmp/trade-action-667k",
+  "branch": "codex/action-667k-market-context-shadow-replay",
+  "stacked_base": "becee774a270e078fbd8bb55a01d7a59b2205599",
+  "artifact_count": 3,
+  "artifacts": [
+    {
+      "path": "docs/action-667m3d-provider-verbatim-license-evidence-admission.md",
+      "artifact_type": "provider_verbatim_license_admission_documentation",
+      "classification": "documentation",
+      "version": "market_context_action_667m3d_license_admission_documentation_v1",
+      "sha256": "0917aede9d6eeeecd24949201fbcde91a7f802d72521ad640a35a7205968fa11",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "market_context_action_667m3d_provider_verbatim_license_evidence_v1",
+        "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c"
+      ]
+    },
+    {
+      "path": "docs/evidence/action-667m3d-provider-verbatim-license-evidence.json",
+      "artifact_type": "sanitized_provider_verbatim_and_readiness_evidence",
+      "classification": "acquisition_readiness_external_evidence",
+      "version": "market_context_action_667m3d_provider_verbatim_license_evidence_v1",
+      "sha256": "544aff46b9ed2e804972894f320e100c0567da09b0a07554f3b93106bf4120d1",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "09bc39116d3f6f87d030ff74686eeb67cbd7833597e2b62b34b5923c5e893694",
+        "e23925e9517acf4048702e941ef588155bb107ef9729aaa9311aa08528fefa1f",
+        "91b010295e44595c6b4c68adb3bc12b8cd7e03322db8351cca9a0a17839674a6",
+        "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c"
+      ]
+    },
+    {
+      "path": "tests/e2e/action-667m3d-provider-verbatim-license-evidence.spec.ts",
+      "artifact_type": "provider_verbatim_license_admission_test",
+      "classification": "fixture_test",
+      "version": "market_context_action_667m3d_tests_v1",
+      "sha256": "cf9302d0e87af80cd1e62eb27e630f659716ec68f074596a2444c6685d3d2492",
+      "git_status_at_freeze": "untracked",
+      "lineage": [
+        "market_context_action_667m3d_provider_verbatim_license_evidence_v1",
+        "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c"
+      ]
+    }
+  ],
+  "self_exclusion": {
+    "path": "docs/evidence/action-667m3d-provider-verbatim-license-freeze-manifest.json",
+    "reason": "The manifest excludes its own bytes to avoid a recursive digest."
+  },
+  "artifact_digest_algorithm": "sha256(concat(sorted(path + NUL + artifact_type + NUL + classification + NUL + version + NUL + sha256 + NUL + git_status_at_freeze + NUL + comma_joined_lineage + LF)))",
+  "artifact_digest": "c9398b9c2321ed778ea089931a7491c03ed7b91cf8ba6bade72b239c2dd5330c",
+  "predecessor_digests": {
+    "m3c_evidence": "91b010295e44595c6b4c68adb3bc12b8cd7e03322db8351cca9a0a17839674a6",
+    "m3c_freeze": "f30202c86df83d0cbebacbca5a2ff1dfe92e0d6b6a57e905f0a805c7e0af126c",
+    "m3b_foundation_freeze": "d94c986ba4d988b4cf2c4b5ac939b7a0916de60dd46e28c1e2620dd00b36023c",
+    "m2c_v2_freeze": "f5b3ad14fb10fb8fd7fed6547f521f430d8b30895bccb5b684db457160e2de4f"
+  },
+  "decisions": {
+    "action_667m3d_provider_evidence_admitted": true,
+    "action_667m3d_license_sufficient": true,
+    "action_667m3d_pilot_pre_download_ready": true,
+    "action_667m4_dataset_acquisition_ready": true,
+    "license_sufficient": true,
+    "technical_pre_download_ready": true,
+    "dataset_acquisition_ready": true,
+    "operator_acquisition_authorized": false,
+    "download_authorized": false,
+    "normalization_authorized": false,
+    "replay_authorized": false
+  }
+}

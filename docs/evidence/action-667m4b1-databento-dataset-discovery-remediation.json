@@ -1,0 +1,199 @@
+{
+  "action": "667M.4B.1",
+  "evidence_version": "market_context_action_667m4b1_databento_dataset_discovery_remediation_v1",
+  "canonicalization": "canonical_json_recursive_lexicographic_keys_v1",
+  "evidence_digest_algorithm": "sha256(canonical_json(decision_material))",
+  "evidence_digest": "a83e835b63a0d334ed289fee461c192399e0fa74868a5b9b2a5f9614657c4fb1",
+  "decision_material": {
+    "versions": {
+      "discovery_contract": "market_context_databento_dataset_discovery_admission_v1",
+      "discovery_policy": "market_context_databento_dataset_discovery_policy_2026_07_27_v1",
+      "diagnostic_experiment": "market_context_databento_dataset_discovery_experiment_v1",
+      "databento_sdk": "0.82.0",
+      "databento_decoder": "0.63.0"
+    },
+    "predecessor_artifacts": {
+      "m3d_license_freeze_manifest_sha256": "5c86da3a491e2fd95a0343da7ee043571a6a15828a300f432cc2bb3b05d856a0",
+      "m4a_admission_implementation_sha256": "b447374029e7a700a2d8c83d794de4a0c05f38c39f1158d25398f7628ed20d0f",
+      "m4a_calendar_implementation_sha256": "e3318071b4f02b669a944eaeac232d22b8b8a090e4c9fd475f4aa9fd6c2db8a4",
+      "m4a_evidence_sha256": "22586d5422470bb987c8b7270c1fa00c566438f65420a50bdff897563840c5b0",
+      "m4a_readable_report_sha256": "0c37e73acc6b916410300f5ecd08d84cab39a6c790ccece9925accf8953e4f59",
+      "m4b_fail_closed_evidence_sha256": "00910b37ee93b715bd13f281fc47c7ea530d6b517f117492fbfdfebb4e6f4f26",
+      "m4b_readable_report_sha256": "8e198a9bb07de513566a33fb1e210be07d9ee5f795f8b2c137e81f0ee84ad1a7"
+    },
+    "official_contract": {
+      "list_datasets_url": "https://databento.com/docs/api-reference-historical/metadata/metadata-list-datasets",
+      "dataset_catalog_url": "https://databento.com/docs/venues-and-datasets",
+      "retrieved_on": "2026-07-27",
+      "return_type": "list[str]",
+      "range_less_semantics": "list all valid dataset IDs",
+      "ranged_parameters": {
+        "start_date": "inclusive UTC bare date",
+        "end_date": "exclusive UTC bare date"
+      },
+      "metadata_rate_limit_per_second": 20
+    },
+    "bounded_experiment": {
+      "diagnostic_digest": "8b3a536fa83d4903c03c7418416ca26058fcb686e20f9803d75d5935bf9316c1",
+      "authenticated_metadata_calls": 9,
+      "automatic_retries": 0,
+      "batch_calls": 0,
+      "timeseries_calls": 0,
+      "downloads": 0,
+      "streaming_calls": 0,
+      "purchases": 0,
+      "credential_printed": false,
+      "credential_persisted": false,
+      "sdk_range_less": {
+        "http_status": 200,
+        "runtime_type": "list",
+        "list_of_strings": true,
+        "dataset_count": 29,
+        "unique_dataset_count": 29,
+        "duplicate_dataset_ids": false,
+        "exact_ascii_membership_EQUS_MINI": true,
+        "unexpected_whitespace": false,
+        "unicode_code_points": [
+          "U+0045",
+          "U+0051",
+          "U+0055",
+          "U+0053",
+          "U+002E",
+          "U+004D",
+          "U+0049",
+          "U+004E",
+          "U+0049"
+        ],
+        "sorted_sanitized_list_sha256": "8163a0ea289713a94756ea7ff7e191b340e6bf6d5f185e81eebf12032c52bbe8"
+      },
+      "sdk_ranged": {
+        "parameters": {
+          "start_date": "2026-07-20",
+          "end_date": "2026-07-25"
+        },
+        "http_status": 200,
+        "runtime_type": "list",
+        "list_of_strings": true,
+        "dataset_count": 4,
+        "unique_dataset_count": 4,
+        "duplicate_dataset_ids": false,
+        "exact_ascii_membership_EQUS_MINI": false,
+        "near_target_count": 0,
+        "sorted_sanitized_list_sha256": "425afc43a384fddbdcc2b7eab409e07d6f7da9a78b8a92c046c934c1a4b84929"
+      },
+      "raw_http_ranged": {
+        "parameters": {
+          "start_date": "2026-07-20",
+          "end_date": "2026-07-25"
+        },
+        "http_status": 200,
+        "runtime_type": "list",
+        "list_of_strings": true,
+        "dataset_count": 4,
+        "unique_dataset_count": 4,
+        "duplicate_dataset_ids": false,
+        "exact_ascii_membership_EQUS_MINI": false,
+        "near_target_count": 0,
+        "sorted_sanitized_list_sha256": "425afc43a384fddbdcc2b7eab409e07d6f7da9a78b8a92c046c934c1a4b84929"
+      },
+      "comparisons": {
+        "ranged_and_range_less_equal": false,
+        "sdk_and_raw_http_ranged_equal": true,
+        "membership_changed_by_range_filter": true,
+        "sdk_response_normalization_issue": false,
+        "sdk_http_mismatch": false,
+        "whitespace_or_unicode_issue": false
+      }
+    },
+    "dataset_specific_corroboration": {
+      "list_schemas_http_status": 200,
+      "trades_schema_present": true,
+      "get_dataset_range_http_status": 200,
+      "entitlement_start": "2023-03-28T00:00:00.000000000Z",
+      "entitlement_end_exclusive": "2026-07-27T04:00:00.000000000Z",
+      "get_dataset_condition_http_status": 200,
+      "available_dates": [
+        "2026-07-20",
+        "2026-07-21",
+        "2026-07-22",
+        "2026-07-23",
+        "2026-07-24"
+      ],
+      "available_day_count": 5,
+      "degraded_day_count": 0,
+      "symbology_http_status": 200,
+      "resolved_symbol_count": 13,
+      "partial_symbol_count": 0,
+      "cost_http_status": 200,
+      "estimated_cost_usd": 0.138445436954,
+      "billable_size_http_status": 200,
+      "billable_bytes": 24775776,
+      "evidence_role": "corroboration_only_cannot_override_catalog_membership"
+    },
+    "root_cause": {
+      "binary_classification": "contractimplementation bug",
+      "code": "range_filtered_discovery_used_as_catalog_membership",
+      "identified": true,
+      "reason": "The local M.4B runtime gate used the ranged list_datasets result as the catalog-membership authority. Official range-less discovery is the catalog operation, contains exact ASCII EQUS.MINI, and must remain separate from get_dataset_range and get_dataset_condition coverage gates.",
+      "provider_transient": false,
+      "sdk_response_normalization": false,
+      "sdk_http_mismatch": false,
+      "timestamp_instead_of_bare_date": false,
+      "malformed_parameter_form": false,
+      "unresolved_contradiction": false
+    },
+    "remediation": {
+      "membership_source": "range_less_metadata.list_datasets_exact_ascii",
+      "start_date_parameter": null,
+      "end_date_parameter": null,
+      "exact_membership_required": true,
+      "duplicates_rejected": true,
+      "whitespace_or_normalized_lookalikes_rejected": true,
+      "malformed_response_rejected": true,
+      "sdk_http_disagreement_rejected_when_comparison_is_supplied": true,
+      "caller_supplied_membership_boolean_allowed": false,
+      "dataset_specific_success_can_override_missing_membership": false,
+      "range_and_entitlement_gates_remain_separate": true,
+      "operator_authorization_granted": false
+    },
+    "independent_read_only_review": {
+      "approved": true,
+      "blockers": 0,
+      "majors": 0,
+      "minors": 0,
+      "nits": 0,
+      "conclusions": [
+        "Exact ASCII membership remains mandatory and is evaluated from the provider-returned range-less list.",
+        "Ranged discovery cannot be reused as catalog membership.",
+        "Dataset-specific endpoint success remains corroboration and cannot override missing membership.",
+        "Optional raw HTTP comparison fails closed on disagreement.",
+        "The module has no credential, provider client, batch, timeseries, persistence, replay or live integration."
+      ]
+    },
+    "statuses": {
+      "action_667m4b1_discovery_root_cause_identified": true,
+      "action_667m4b1_dataset_membership_verified": true,
+      "action_667m4b1_discovery_contract_remediated": true,
+      "action_667m4b1_independent_review_approved": true,
+      "action_667m4b2_batch_submission_ready": true,
+      "batch_submission_authorized": false,
+      "download_authorized": false,
+      "normalization_authorized": false,
+      "replay_authorized": false
+    },
+    "no_effect": {
+      "provider_market_records_received": 0,
+      "provider_cost_committed_usd": 0,
+      "batch_submissions": 0,
+      "downloads": 0,
+      "normalizations": 0,
+      "replays": 0,
+      "database_writes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_request_updates": 0,
+      "deploys": 0,
+      "live_ranking_effect": false
+    }
+  }
+}
