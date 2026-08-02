@@ -1,0 +1,57 @@
+{
+  "schema_version": "action_652b_execution_risk_envelope_admission_freeze_v1",
+  "action": "652B",
+  "frozen_at": "2026-07-30T10:21:42Z",
+  "base_sha": "7120c0cc9467a0106c4c9da84312b7f4d7ef4774",
+  "branch": "codex/action-652a-execution-risk-envelope-admission",
+  "scope_policy": {
+    "normative_paths": 5,
+    "freeze_manifest_self_excluded": true,
+    "review_evidence_self_excluded": true,
+    "adversarial_review_suite_self_excluded": true,
+    "normative_bytes_may_change_during_review": false
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-652a-execution-risk-envelope-admission-golden-report.json",
+      "sha256": "8bb7f2e0be8f106c9a5776194da5886172c187b1a6650d9ee1de6b70fd56280a"
+    },
+    {
+      "path": "docs/action-652a-execution-risk-envelope-admission.md",
+      "sha256": "c7d17cab47d745dcc86d0fda599330a4453761a21d1f3e9e3032133852159890"
+    },
+    {
+      "path": "lib/action-652a-execution-risk-envelope-admission.ts",
+      "sha256": "718fb7dfa973815f823e7650d912a6e1010cebdcae0b717043ff997404411ee3"
+    },
+    {
+      "path": "tests/e2e/action-652a-execution-risk-envelope-admission.spec.ts",
+      "sha256": "0eebe712b44a3525d84eef671a5c5e924c26f609954a1edc5e2deaaa55654254"
+    },
+    {
+      "path": "tests/fixtures/action-652a-execution-risk-envelope-admission-fixtures.ts",
+      "sha256": "abd7a7960fd0156413fa4063d417ee421a922dcaeb6217c355e132b2c64da43d"
+    }
+  ],
+  "combined_digest": {
+    "algorithm": "sha256",
+    "method": "Sort normative paths bytewise; emit '<sha256><two spaces><path>\\n' for each path; SHA-256 the concatenated UTF-8 bytes.",
+    "value": "0b227fe371b5ce9059635ed05df5b345f8da6121eac95313323ba36a3a085d6f"
+  },
+  "pre_review_verification": {
+    "head_matches_base": true,
+    "tracked_modifications": 0,
+    "staged_paths": 0,
+    "unexpected_paths": 0,
+    "normative_digest_matches_expected": true
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false,
+    "full_execution_regression_passed": false
+  }
+}
