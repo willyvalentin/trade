@@ -1,0 +1,1 @@
+{"attempts":3,"container_running":true,"elapsed_ms":878,"pg_isready":true,"receipt_version":"action_666cq_postgres_readiness_v1","scenario":"isolated01000","select_1":true,"sequence":["container_running","pg_isready","select_1"]}
