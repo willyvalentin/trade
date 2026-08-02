@@ -1,0 +1,146 @@
+{
+  "manifest_version": "action_665e1_counterfactual_foundation_refreeze_v1",
+  "track": "SPÅR 2",
+  "created_at": "2026-07-26T23:41:52.214Z",
+  "branch": "codex/action-665a-counterfactual-opportunity-set-contract",
+  "stacked_base": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "head_at_freeze": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "artifact_count": 19,
+  "aggregate_digest_algorithm": "sha256(path + NUL + sha256 + LF), paths sorted bytewise",
+  "aggregate_digest_before_rereview": "3847cd5d3e371fe090269f11b0657544c496c73179a4f36d971108507c56c4c4",
+  "artifacts": [
+    {
+      "path": "docs/action-665a-counterfactual-opportunity-set-contract.md",
+      "action_owner": "665A/665E/665E.1",
+      "artifact_type": "contract_document",
+      "sha256": "208c22736f890c73f76e955895210fa2d8da5a9302304c1dec605a1c17d3a68a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-completed-scanner-bundle-adapter.md",
+      "action_owner": "665B/665E/665E.1",
+      "artifact_type": "adapter_document",
+      "sha256": "80e6a8378840d1a0c9ecb436c93af7c5e6199e04a003eb0d0fc57155a64f7147",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-fixture-coverage-report.json",
+      "action_owner": "665B/665E",
+      "artifact_type": "fixture_coverage_report",
+      "sha256": "165cb77545d31c05c5c5f4a03050c40f7b7b8dfd9c09b704d9ad434820a41179",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-complete-opportunity-set-evidence-builder.md",
+      "action_owner": "665C/665E/665E.1",
+      "artifact_type": "builder_document",
+      "sha256": "fb3f0b011284fdc6fffc62c1018b1e3cf7ce76c307aa89d55794fe09c63fe323",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-fixture-readiness-report.json",
+      "action_owner": "665C/665E",
+      "artifact_type": "fixture_readiness_report",
+      "sha256": "81ef957cd0a8cf9d098627296665ca7efb5d381ebdf7952177147951618f90c3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665e-counterfactual-foundation-remediation.md",
+      "action_owner": "665E",
+      "artifact_type": "finding_remediation_document",
+      "sha256": "014d10f8264fdd1164901586979fe66e333158e354495afd49240333e0b543e1",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665e1-decision-semantic-binding-remediation.md",
+      "action_owner": "665E.1",
+      "artifact_type": "decision_semantic_binding_document",
+      "sha256": "bb37a729eb716cc589d87b419a3347bef6699992adfe2f3aaa2d3f463e27b07d",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set-fixtures.ts",
+      "action_owner": "665A/665E/665E.1",
+      "artifact_type": "golden_fixtures",
+      "sha256": "7760f54ad558e49eb48bd774c4036d0db49f1b037d45e9877717af913df06b95",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set.ts",
+      "action_owner": "665A/665E/665E.1",
+      "artifact_type": "identity_lineage_and_decision_binding_contract",
+      "sha256": "fd4a809fed117a7d17f8b6bede5fa1b2180ac839fc065d1dd45cdf443a021ff5",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/completed-scanner-bundle-opportunity-set-fixtures.ts",
+      "action_owner": "665B/665E",
+      "artifact_type": "adapter_golden_fixtures",
+      "sha256": "e4f4aef623c10f505b2c30dfa06b47a75c645d64cce1aa025817397399599ec7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/pre-truncation-candidate-capture-evidence.ts",
+      "action_owner": "665E",
+      "artifact_type": "authoritative_capture_evidence_contract",
+      "sha256": "bd6104866674506847e000f3997280d51f1c7df7f2354644eff9d95741bdebca",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder-fixtures.ts",
+      "action_owner": "665C/665E/665E.1",
+      "artifact_type": "builder_golden_fixtures",
+      "sha256": "b42807aedf06960dbb0b92d5a5c68c6380708dafcd6ad9bbfc38a150439a669f",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder.ts",
+      "action_owner": "665C/665E/665E.1",
+      "artifact_type": "default_off_server_builder_and_collision_boundary",
+      "sha256": "8aa290fee4c4c1012801d150cec909ab14074d9e3f4c30efa14289559a01ac7a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-scanner-bundle-opportunity-set-adapter.ts",
+      "action_owner": "665B/665E/665E.1",
+      "artifact_type": "server_only_projection_and_lineage_adapter",
+      "sha256": "4d5bd29eec17fe8884cf71d238b89e2cecba13da33250d61cd3764993b23e152",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665a-counterfactual-opportunity-set-contract.spec.ts",
+      "action_owner": "665A/665E.1",
+      "artifact_type": "contract_tests",
+      "sha256": "34d54c43ffdf276d1401b6e97605b82b7b7a9cfd5da1fe8e1c2b62b71de12ae6",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665b-completed-scanner-bundle-adapter.spec.ts",
+      "action_owner": "665B/665E",
+      "artifact_type": "adapter_tests",
+      "sha256": "308065292093113b72c017297cbedb9bf1e0f228403b8d8f9f9d9ce6e46c8597",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665c-complete-opportunity-set-evidence-builder.spec.ts",
+      "action_owner": "665C/665E/665E.1",
+      "artifact_type": "builder_tests",
+      "sha256": "97598cf5e18688e1beb886626cfccafa675eddd4247156bfc491138d4b4de441",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665e-counterfactual-foundation-remediation.spec.ts",
+      "action_owner": "665E/665E.1",
+      "artifact_type": "original_finding_remediation_tests",
+      "sha256": "c5cfeeb7345d01ab4eb7775ece61b88bb7138aed24fb3015d83f2ce6ee777d6e",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665e1-decision-semantic-binding-remediation.spec.ts",
+      "action_owner": "665E.1",
+      "artifact_type": "decision_binding_and_no_trade_lineage_tests",
+      "sha256": "d155631fc5c91a415360049ceef52824ffe3ce71f7df0b613f14a9b4f2f329f0",
+      "git_status": "untracked"
+    }
+  ]
+}

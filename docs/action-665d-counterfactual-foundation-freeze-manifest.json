@@ -1,0 +1,111 @@
+{
+  "manifest_version": "action_665d_counterfactual_foundation_freeze_v1",
+  "track": "SPÅR 2",
+  "created_at": "2026-07-26T21:58:38Z",
+  "branch": "codex/action-665a-counterfactual-opportunity-set-contract",
+  "stacked_base": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "head_at_freeze": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+  "artifact_count": 14,
+  "aggregate_digest_algorithm": "sha256(path + NUL + sha256 + LF), paths sorted bytewise",
+  "aggregate_digest_before_regression": "89570104844bdf8fe069b4ff077b517d5dd1c18219721dc24a248a34b338b5b0",
+  "artifacts": [
+    {
+      "path": "docs/action-665a-counterfactual-opportunity-set-contract.md",
+      "action_owner": "665A",
+      "artifact_type": "contract_document",
+      "sha256": "2db44d1f41ea5e2923f42ad32e58d3fc9be17f42b64b29a50bf46be715efcd9e",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-completed-scanner-bundle-adapter.md",
+      "action_owner": "665B",
+      "artifact_type": "adapter_document",
+      "sha256": "0b1f8e64873b636a63d3eb1228c3930ad57154029c08e39add732645797a3988",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665b-fixture-coverage-report.json",
+      "action_owner": "665B",
+      "artifact_type": "fixture_readiness_report",
+      "sha256": "06e6ed843ebd54d9e511c095a8345becd54ac81a97251bffe5f2260cfa2fba85",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-complete-opportunity-set-evidence-builder.md",
+      "action_owner": "665C",
+      "artifact_type": "builder_document",
+      "sha256": "e0560363228c0b37dfd716d606299b5f12c2b9e66214cb5ef4f7a5a4c99f94c9",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-665c-fixture-readiness-report.json",
+      "action_owner": "665C",
+      "artifact_type": "fixture_readiness_report",
+      "sha256": "20cdd784fc015b4634f7e46480b4890e7961afe5f8ff959f61858cc898026f57",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set-fixtures.ts",
+      "action_owner": "665A",
+      "artifact_type": "golden_fixtures",
+      "sha256": "c61b8051bd7cd00faeb6b134e20ef24b2755457669131aadc7446d61742d6fab",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/canonical-counterfactual-opportunity-set.ts",
+      "action_owner": "665A",
+      "artifact_type": "identity_and_digest_contract",
+      "sha256": "c8d58b780f4d49a6ff5fd868e84cd14c8da5483f4f129ad117b527506e74413a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/completed-scanner-bundle-opportunity-set-fixtures.ts",
+      "action_owner": "665B",
+      "artifact_type": "golden_fixtures",
+      "sha256": "23d3dc4100c123e89481997c7b77451ab58ee84303489d5117d537774c50906b",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder-fixtures.ts",
+      "action_owner": "665C",
+      "artifact_type": "golden_fixtures",
+      "sha256": "e36c6b76f87be5882107dcceb56d6248b99205ad22f4b5258749e43cb1f11fea",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/complete-opportunity-set-evidence-builder.ts",
+      "action_owner": "665C",
+      "artifact_type": "default_off_server_builder",
+      "sha256": "d548ad9f24258b297401b2e0e19ddf11d83efccfc95eb2fb9bb97bb603ef68f3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-scanner-bundle-opportunity-set-adapter.ts",
+      "action_owner": "665B",
+      "artifact_type": "server_only_projection_adapter",
+      "sha256": "1f9913a6f8597fd28403dbe8beb0d4d6507fae52d7f7ab087756a6a18387be5c",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665a-counterfactual-opportunity-set-contract.spec.ts",
+      "action_owner": "665A",
+      "artifact_type": "contract_tests",
+      "sha256": "258587fcbe5515e72efef64b07654c60454910e2076326e2e0e7674b0df1c15a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665b-completed-scanner-bundle-adapter.spec.ts",
+      "action_owner": "665B",
+      "artifact_type": "adapter_tests",
+      "sha256": "688f0b4435f13c0398354042c1d2bfdf1cbcadee2e2582445b1b0ab95405555f",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-665c-complete-opportunity-set-evidence-builder.spec.ts",
+      "action_owner": "665C",
+      "artifact_type": "builder_tests",
+      "sha256": "93029089e5fb03097213bdf9d981963add441701ecf41869f5d44a0cf4e885a9",
+      "git_status": "untracked"
+    }
+  ]
+}

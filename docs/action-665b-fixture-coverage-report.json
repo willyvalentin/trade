@@ -1,0 +1,65 @@
+{
+  "report_version": "action_665b_fixture_coverage_v1",
+  "evidence_class": "synthetic_fixture_only",
+  "performance_values_included": false,
+  "adapter_version": "completed_scanner_bundle_opportunity_set_adapter_v1",
+  "total": 18,
+  "mapped": 9,
+  "conflicting": 5,
+  "unmappable": 4,
+  "complete_opportunity_sets": 9,
+  "evaluable_counterfactual_sets": 7,
+  "reason_codes_by_source": [
+    {
+      "source": "candidate_membership",
+      "reason_counts": {
+        "candidate_decision_lineage_node_conflict": 1,
+        "candidate_identity_duplicate": 1,
+        "decision_lineage_node_orphaned": 1,
+        "free_text_rejection_reason_not_canonical": 1,
+        "pre_truncation_membership_evidence_conflict": 1
+      }
+    },
+    {
+      "source": "no_trade_decision",
+      "reason_counts": {
+        "no_trade_and_fallback_are_mutually_exclusive": 1
+      }
+    },
+    {
+      "source": "outcome_lineage",
+      "reason_counts": {
+        "candidate_outcome_lineage_conflict": 1,
+        "counterfactual_outcome_lineage_missing": 1,
+        "expected_outcome_lineage_conflict": 1
+      }
+    },
+    {
+      "source": "provider_context",
+      "reason_counts": {
+        "provider_candle_gap": 1,
+        "provider_data_stale": 1
+      }
+    },
+    {
+      "source": "recommendation_scan_run",
+      "reason_counts": {
+        "stable_scan_identity_missing": 1
+      }
+    },
+    {
+      "source": "scanner_candidate_ranking",
+      "reason_counts": {
+        "candidate_rank_sequence_gap": 1,
+        "rank_tie_without_unique_tie_break": 2,
+        "ranking_summary_truncated": 1
+      }
+    },
+    {
+      "source": "versions",
+      "reason_counts": {
+        "mixed_ranking_versions": 1
+      }
+    }
+  ]
+}
