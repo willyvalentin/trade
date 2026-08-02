@@ -1,0 +1,76 @@
+{
+  "action": "661J.5Q.1",
+  "artifact_contract": {
+    "artifact_count": 5,
+    "artifacts": [
+      {
+        "byte_length": 16200,
+        "path": "lib/action-661j5q1-certification-selected-bounded-invocation-plan.mjs",
+        "role": "implementation",
+        "sha256": "f547f17087a314fd8795b3de97750f04c1e21345cc2bc07a6cf9fe7cbccfe64e"
+      },
+      {
+        "byte_length": 3375,
+        "path": "tests/e2e/action-661j5q1-certification-selected-bounded-invocation-plan-fixtures.mjs",
+        "role": "deterministic_fixtures",
+        "sha256": "dd472e4d3c97f2a9a1ce7dd23487153ed5a501ce400c254af37478d50ca37486"
+      },
+      {
+        "byte_length": 18731,
+        "path": "tests/e2e/action-661j5q1-certification-selected-bounded-invocation-plan.spec.ts",
+        "role": "focused_adversarial_tests",
+        "sha256": "5abc557e7621ba37da0e159c7299773898da0e9f675e9f90fef4309c899fab39"
+      },
+      {
+        "byte_length": 3498,
+        "path": "docs/action-661j5q1-certification-selected-bounded-invocation-plan.md",
+        "role": "contract_documentation",
+        "sha256": "74051331135bacb0114c5699d51316d5193eea84c61a11e752c46b87eb95aebc"
+      },
+      {
+        "path": "docs/action-661j5q1-certification-selected-bounded-invocation-plan-golden-report.json",
+        "role": "golden_verification_report",
+        "self_digest_included": false
+      }
+    ]
+  },
+  "authority": {
+    "base_commit": "ae887f165ae807a6df3ca38ccecc58efb864c5c6",
+    "certification_admission_identity_digest": "b24080e9d746c3fdaf467a622f18db3b8b4b5d0881c3686cdd3df7d78aea1e15",
+    "planning_policy_digest": "0510aaa58f31e6522c878fa9d32f798f8ad9bc6bc0cb615e379ceba621cf15ce",
+    "planning_version": "action_661j5q1_certification_selected_bounded_invocation_plan_v1",
+    "runtime_profile_digest": "c030f07347b1890184ee7ce4080c26b609fb1fcd13820bbdde5d8b476e60c95a",
+    "selection_identity_digest": "754a7e781f14ae5731ddbac2444b8c7c3182e95c10913ea640e49855610c54ea",
+    "selection_version": "action_661j5p1_certification_gated_runtime_selection_v1"
+  },
+  "golden": {
+    "canonical_request_digest": "99cef77b0957aee2401c4ddbf58ffd3f511d63fc95f6375ad97a400803d4e932",
+    "plan_identity_digest": "80503eb2c83764ee02520ac9e62c1533a7252bd2ecb260b690191428d7090db2",
+    "request_identity_digest": "1b8814da08957e4641b28d0137fdae644d6a9dccf5d9a7459639edfcd4c7039d",
+    "runner_identity_digest": "76e4804def6411adaba50f4588248e8beaac88c63e1d6029850410b6c84bd2f7"
+  },
+  "predecessor_bytes": {
+    "n2a_consumer_sha256": "110a919401aee396508ba6d393132ed41e400343ea209559cdc1003eba4f69c5",
+    "o1_admission_sha256": "2000e75bd80d3f1f7e58042e1b4f68ca1bac14a80c51aeba259fbd0fe245cfc3",
+    "p1_selection_sha256": "fba8d2f3b6178bef3e270453e4a111704c9bc7dc2a76af749b04632c5d0b1f9e"
+  },
+  "safety": {
+    "default_off_zero_work": true,
+    "network_capability": false,
+    "plan_runtime_authority": false,
+    "production_impact": false,
+    "provider_capability": false,
+    "runtime_execution_performed": false,
+    "write_capability": false
+  },
+  "validation": {
+    "cross_process_timezones": [
+      "UTC",
+      "Europe/Stockholm"
+    ],
+    "focused_suite": "13/13",
+    "full_nopq_regression": "89/89",
+    "scoped_eslint": "passed_zero_warnings",
+    "typescript": "passed"
+  }
+}

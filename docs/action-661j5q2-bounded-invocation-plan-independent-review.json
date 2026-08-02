@@ -1,0 +1,63 @@
+{
+  "approved": true,
+  "checkpoint_ready": true,
+  "expected_plan_identity": "80503eb2c83764ee02520ac9e62c1533a7252bd2ecb260b690191428d7090db2",
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "freeze_manifest": {
+    "file_sha256": "da562f2bd521df2e12b67cb11926d8d29c50a6d0d813013949a10c4cf3ec7f20",
+    "manifest_digest": "7685ac8b395ca9e116c4702c8310930f175569929772102915e68b51ce5dc37e",
+    "path": "docs/action-661j5q2-bounded-invocation-plan-freeze-manifest.json"
+  },
+  "independence": {
+    "docker_started": false,
+    "netlify_mutated": false,
+    "normative_q1_bytes_modified": false,
+    "production_accessed": false,
+    "remediation_performed": false,
+    "runtime_executed": false,
+    "subprocesses_used_only_for_deterministic_read_only_checks": true
+  },
+  "normative_digest": "78ebea7f94290b5163df4f1cc7fbf7ec112494c56eb7e5e3d9c20ea87bbd32ee",
+  "review_contract": "action_661j5q2_bounded_invocation_plan_independent_review_v1",
+  "review_digest": "7a38940fcdf565c661eb4aefeeec45a53d74fb9df4930ef54757b7180f4de040",
+  "review_digest_exclusions": [
+    "review_digest"
+  ],
+  "review_suite": {
+    "path": "tests/e2e/action-661j5q2-bounded-invocation-plan-independent-review.spec.ts",
+    "sha256": "17581d110a57df4174450c61f159717f6e3537455be744d830636911a9878113",
+    "tests_expected": 11
+  },
+  "validation": {
+    "focused_review_tests": "11/11",
+    "git_diff_check_passed": true,
+    "json_parity_passed": true,
+    "nopq_regression_tests": "100/100",
+    "scoped_eslint_warnings": 0,
+    "typescript_passed": true
+  },
+  "verified_gates": {
+    "caller_authority_minting_absent": true,
+    "canonical_request_digest_independently_rebuilt": true,
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "distinct_sanitized_failure_identities": true,
+    "enabled_mode_bounded_read_only": true,
+    "exact_duplicate_idempotency": true,
+    "identity_conflict_fail_closed": true,
+    "p_selection_internalized_once": true,
+    "plan_identity_independently_rebuilt": true,
+    "plan_is_not_runtime_authority": true,
+    "private_planning_provenance": true,
+    "raw_request_content_excluded": true,
+    "receipt_is_not_runtime_authority": true,
+    "request_captured_once": true,
+    "runtime_and_live_capabilities_absent": true,
+    "runtime_runner_admission_selection_binding": true
+  }
+}

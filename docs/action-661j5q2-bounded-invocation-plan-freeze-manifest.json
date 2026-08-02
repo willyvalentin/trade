@@ -1,0 +1,59 @@
+{
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 3282,
+      "path": "docs/action-661j5q1-certification-selected-bounded-invocation-plan-golden-report.json",
+      "sha256": "8c95927d9825d1a7c3755de8e046d168cb30d8ba2897d50a925607ffcbea6eb0"
+    },
+    {
+      "byte_length": 3498,
+      "path": "docs/action-661j5q1-certification-selected-bounded-invocation-plan.md",
+      "sha256": "74051331135bacb0114c5699d51316d5193eea84c61a11e752c46b87eb95aebc"
+    },
+    {
+      "byte_length": 16200,
+      "path": "lib/action-661j5q1-certification-selected-bounded-invocation-plan.mjs",
+      "sha256": "f547f17087a314fd8795b3de97750f04c1e21345cc2bc07a6cf9fe7cbccfe64e"
+    },
+    {
+      "byte_length": 3375,
+      "path": "tests/e2e/action-661j5q1-certification-selected-bounded-invocation-plan-fixtures.mjs",
+      "sha256": "dd472e4d3c97f2a9a1ce7dd23487153ed5a501ce400c254af37478d50ca37486"
+    },
+    {
+      "byte_length": 18731,
+      "path": "tests/e2e/action-661j5q1-certification-selected-bounded-invocation-plan.spec.ts",
+      "sha256": "5abc557e7621ba37da0e159c7299773898da0e9f675e9f90fef4309c899fab39"
+    }
+  ],
+  "expected_plan_identity": "80503eb2c83764ee02520ac9e62c1533a7252bd2ecb260b690191428d7090db2",
+  "freeze_contract": "action_661j5q2_bounded_invocation_plan_freeze_manifest_v1",
+  "freeze_manifest_digest": "7685ac8b395ca9e116c4702c8310930f175569929772102915e68b51ce5dc37e",
+  "freeze_manifest_digest_exclusions": [
+    "freeze_manifest_digest"
+  ],
+  "golden_report_sha256": "8c95927d9825d1a7c3755de8e046d168cb30d8ba2897d50a925607ffcbea6eb0",
+  "normative_digest": "78ebea7f94290b5163df4f1cc7fbf7ec112494c56eb7e5e3d9c20ea87bbd32ee",
+  "normative_digest_algorithm": "sha256(canonical_json({artifact_count,artifacts}))",
+  "normative_digest_observations": {
+    "after_regression": "78ebea7f94290b5163df4f1cc7fbf7ec112494c56eb7e5e3d9c20ea87bbd32ee",
+    "after_review": "78ebea7f94290b5163df4f1cc7fbf7ec112494c56eb7e5e3d9c20ea87bbd32ee",
+    "before_regression": "78ebea7f94290b5163df4f1cc7fbf7ec112494c56eb7e5e3d9c20ea87bbd32ee"
+  },
+  "normative_files_modified": false,
+  "preservation_commit": "323a38381863bce21a6c21185278379ab13036f2",
+  "preservation_ref": "refs/preservation/action-661j5q1-certification-selected-bounded-invocation-plan",
+  "review_suite": {
+    "path": "tests/e2e/action-661j5q2-bounded-invocation-plan-independent-review.spec.ts",
+    "sha256": "17581d110a57df4174450c61f159717f6e3537455be744d830636911a9878113",
+    "tests_expected": 11
+  },
+  "validation": {
+    "focused_review_tests": "11/11",
+    "json_files_parsed": 13,
+    "nopq_regression_tests": "100/100",
+    "scoped_eslint_warnings": 0,
+    "typescript_passed": true
+  }
+}
