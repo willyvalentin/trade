@@ -1,0 +1,1 @@
+{"architecture":"arm64","database_scope":"disposable_local_containers_only","engine":"postgresql","external_credentials_used":false,"identity_version":"action_666cq_runtime_identity_v1","image":"postgres:16-alpine","image_id":"sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777","os":"linux","server_version_target":"16"}
