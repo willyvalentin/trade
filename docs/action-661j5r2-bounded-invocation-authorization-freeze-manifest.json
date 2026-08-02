@@ -1,0 +1,60 @@
+{
+  "artifact_count": 5,
+  "artifacts": [
+    {
+      "byte_length": 3876,
+      "path": "docs/action-661j5r1-transport-inert-bounded-invocation-authorization-golden-report.json",
+      "sha256": "c0744dc2b82d9c4f51aa7deb4ccb5e87d87477ecdd2aef4e3dc4ecf62ea42a24"
+    },
+    {
+      "byte_length": 5004,
+      "path": "docs/action-661j5r1-transport-inert-bounded-invocation-authorization.md",
+      "sha256": "5583e43add82a7cc9b3d6e84b483251fc521eee14bf06a376aaef32addc5ec59"
+    },
+    {
+      "byte_length": 19500,
+      "path": "lib/action-661j5r1-transport-inert-bounded-invocation-authorization.mjs",
+      "sha256": "512c2e1bd1bb798286eb0b5be868a4d6932e6f3fd5d4eb489a1590700ca4ddf3"
+    },
+    {
+      "byte_length": 3351,
+      "path": "tests/e2e/action-661j5r1-transport-inert-bounded-invocation-authorization-fixtures.mjs",
+      "sha256": "1ece35a9c5981219e8f84f09ff239a9c34c656a057fcb8ed7c0de7fc30f4b343"
+    },
+    {
+      "byte_length": 18369,
+      "path": "tests/e2e/action-661j5r1-transport-inert-bounded-invocation-authorization.spec.ts",
+      "sha256": "ecf51f8d6de39f4e6394238b7d2eca5ad29aec45756b36896ce06033b055b21f"
+    }
+  ],
+  "expected_authorization_identity": "4801eefde4ba1675004723f086cee3e937ac3d1b78201c2708edbc0c29f5f21d",
+  "freeze_contract": "action_661j5r2_bounded_invocation_authorization_freeze_manifest_v1",
+  "freeze_manifest_digest": "c9a438c3031d421cd4c6990d1316e0349ac1292d26ab7f7124a06a47dc6dc377",
+  "freeze_manifest_digest_exclusions": [
+    "freeze_manifest_digest"
+  ],
+  "normative_digest": "565cb1f121391c194c300c4d5e488d05b7e766f6c67def50bff6ff9c15ed825c",
+  "normative_digest_algorithm": "sha256(json(sorted[{byte_length,path,sha256}]))",
+  "normative_digest_observations": {
+    "after_regression": "565cb1f121391c194c300c4d5e488d05b7e766f6c67def50bff6ff9c15ed825c",
+    "after_review": "565cb1f121391c194c300c4d5e488d05b7e766f6c67def50bff6ff9c15ed825c",
+    "before_regression": "565cb1f121391c194c300c4d5e488d05b7e766f6c67def50bff6ff9c15ed825c"
+  },
+  "normative_files_modified": false,
+  "preservation_commit": "70765f6e31f99facd09399ca799e6c156f54f233",
+  "preservation_ref": "refs/preservation/action-661j5r1-transport-inert-bounded-invocation-authorization",
+  "review_suite": {
+    "byte_length": 19249,
+    "path": "tests/e2e/action-661j5r2-bounded-invocation-authorization-independent-review.spec.ts",
+    "sha256": "7cc1ecb54bf23ccc8bfaef1493902e993cae7146116912feaaf0dc64c5219100",
+    "tests_expected": 12
+  },
+  "validation": {
+    "focused_r1_r2_tests": "25/25",
+    "focused_review_tests": "12/12",
+    "full_nopqr_regression_tests": "125/125",
+    "json_parity_passed": true,
+    "scoped_eslint_warnings": 0,
+    "typescript_passed": true
+  }
+}

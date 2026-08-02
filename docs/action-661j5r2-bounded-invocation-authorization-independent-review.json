@@ -1,0 +1,67 @@
+{
+  "approved": true,
+  "checkpoint_ready": true,
+  "expected_authorization_identity": "4801eefde4ba1675004723f086cee3e937ac3d1b78201c2708edbc0c29f5f21d",
+  "findings": {
+    "blocker": [],
+    "major": [],
+    "minor": [],
+    "nit": []
+  },
+  "freeze_manifest": {
+    "file_sha256": "9886f5e5cc902747b249374cad69f4e5c2b52bbd99dccf969af62d84b93c5439",
+    "manifest_digest": "c9a438c3031d421cd4c6990d1316e0349ac1292d26ab7f7124a06a47dc6dc377",
+    "path": "docs/action-661j5r2-bounded-invocation-authorization-freeze-manifest.json"
+  },
+  "independence": {
+    "docker_started": false,
+    "netlify_mutated": false,
+    "normative_r1_bytes_modified": false,
+    "production_accessed": false,
+    "remediation_performed": false,
+    "runtime_executed": false,
+    "subprocesses_used_only_for_deterministic_read_only_checks": true
+  },
+  "normative_digest": "565cb1f121391c194c300c4d5e488d05b7e766f6c67def50bff6ff9c15ed825c",
+  "review_contract": "action_661j5r2_bounded_invocation_authorization_independent_review_v1",
+  "review_digest": "1b46a5ebc6ca940d5dc7b0bd5f15cb4ae89d6d5fcccd150fe8fc4d06a5cf3728",
+  "review_digest_exclusions": [
+    "review_digest"
+  ],
+  "review_suite": {
+    "byte_length": 19249,
+    "path": "tests/e2e/action-661j5r2-bounded-invocation-authorization-independent-review.spec.ts",
+    "sha256": "7cc1ecb54bf23ccc8bfaef1493902e993cae7146116912feaaf0dc64c5219100",
+    "tests_expected": 12
+  },
+  "validation": {
+    "focused_r1_r2_tests": "25/25",
+    "focused_review_tests": "12/12",
+    "full_nopqr_regression_tests": "125/125",
+    "git_diff_check_passed": true,
+    "json_parity_passed": true,
+    "scoped_eslint_warnings": 0,
+    "typescript_passed": true
+  },
+  "verified_gates": {
+    "admission_selection_plan_request_chain_bound": true,
+    "attempt_identity_bound": true,
+    "budget_and_expiry_boundaries_exact": true,
+    "caller_authority_minting_absent": true,
+    "caller_hooks_executed": false,
+    "cross_process_timezone_determinism": true,
+    "default_off_zero_work": true,
+    "dynamic_runner_import_absent": true,
+    "exact_duplicate_idempotency": true,
+    "failure_evidence_sanitized": true,
+    "identity_conflict_fail_closed": true,
+    "private_authorization_provenance": true,
+    "q_planning_internalized_once": true,
+    "receipt_is_not_runtime_authority": true,
+    "recomputed_public_identity_cannot_mint_authority": true,
+    "runner_and_runtime_family_bound": true,
+    "runtime_and_external_capabilities_absent": true,
+    "self_consistent_clones_rejected": true,
+    "substitution_matrix_rejected": true
+  }
+}
