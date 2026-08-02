@@ -1,0 +1,44 @@
+{
+  "schema_version": "action_651c_execution_quality_audit_v2_golden_v1",
+  "contract_version": "action_651c_execution_quality_audit_v2",
+  "failure_lineage_policy_version": "action_651c_failure_lineage_policy_v2",
+  "snapshot_policy_version": "action_651c_bounded_plain_data_snapshot_v1",
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_audit_evidence_digest": "action_651c_audit_a04bb12e1055df7650e3ff2f505d491d3b22d2e6bd19ed195ee199971a16a929",
+    "common_snapshot_digest": "action_651c_snapshot_2a1e8937f4cda9c72128f0f2bb7fb792fda0a1db8810e81d728904d34d1881d5",
+    "common_failure_evidence_digest": "action_651c_failure_51af530e79b4669ebe3b2191ea52b66691b0bcd7936386b4c830e45d43e4cf53",
+    "common_failure_lineage_digest": "action_651c_failure_lineage_d399d641d7a790b6ca43d3ed4aca1f8eb1f1739274f60847636b091862580a03",
+    "predecessor_audit_evidence_digest": "action_651a_audit_1edeb10da455650c79b1b1a37c19fea96103ae909c64e31ecd8ec679ce80c1ee"
+  },
+  "failure_collision_matrix": {
+    "first_execution_failure_digest": "action_651c_failure_12d0324cf25aa1b5f4a793272424925c6bd9699f8564d949011d876e518eb153",
+    "second_execution_failure_digest": "action_651c_failure_f73782ecb23008a69c0b802558b5a250538838177c65afa802c58878575336a0",
+    "digests_distinct": true
+  },
+  "accessor_rejection": {
+    "getter_reads": 0,
+    "failure_reason": "accessor_rejected",
+    "audit_evidence_digest": "action_651c_audit_3e4e0c71348e150d3708c18b41149ecb4586d789c74a1c9b087fe7c4a41b8ba4",
+    "snapshot_digest": "action_651c_snapshot_5075f45fe15efe352f93cac6e17dacf4b41fe186a8f39555e97e4b016860ced0",
+    "failure_evidence_digest": "action_651c_failure_9d9360d8a469e9ce571e170c78e6391327771cefb0af457218ee47fafbfb9202"
+  },
+  "safety": {
+    "diagnostic_only": true,
+    "real_broker_evidence": false,
+    "performance_eligible": false,
+    "automatic_execution_allowed": false,
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}

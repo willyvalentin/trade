@@ -1,0 +1,47 @@
+{
+  "schema_version": "action_651b_diagnostic_execution_quality_freeze_manifest_v1",
+  "base_commit": "ff34b3884ee84777af44e380c0fb7e66bc99e9e1",
+  "branch": "codex/action-651a-diagnostic-execution-quality-audit",
+  "freeze_mode": "additive_self_excluded_review_evidence",
+  "normative_path_count": 5,
+  "normative_paths": [
+    {
+      "path": "docs/action-651a-diagnostic-execution-quality-audit.md",
+      "sha256": "900f5c6abe59d2bec2e928ec5288d6ff38b14e849432440cf31f5d1d0352781e"
+    },
+    {
+      "path": "docs/action-651a-diagnostic-execution-quality-golden-report.json",
+      "sha256": "9458f3037e90485fa17a57780f99502d62018703742fc4e52f734d29fdf308ee"
+    },
+    {
+      "path": "lib/action-651a-diagnostic-execution-quality-audit.ts",
+      "sha256": "b47e8da49505780ebfe7c175618ffbcde46b72c63cd4187dcb4dd52cd9f20a22"
+    },
+    {
+      "path": "tests/e2e/action-651a-diagnostic-execution-quality-audit.spec.ts",
+      "sha256": "4533dcf66543f9f656826cfbceaa0e459aeb079b373f7040d444151c3006a7aa"
+    },
+    {
+      "path": "tests/fixtures/action-651a-diagnostic-execution-quality-fixtures.ts",
+      "sha256": "b013ff5912fb22ad22f8ffbbf2c6e3fdcf0c39643d3dd768335f7d1a857a69f2"
+    }
+  ],
+  "combined_digest_method": "sha256(sorted lines of '<sha256><two spaces><path>\\n')",
+  "combined_normative_digest": "29ab1879041034f8ccaf9a49dd2272c5b05ff1f42c3941e0914503b37fc518f3",
+  "golden_audit_digest": "action_651a_audit_1edeb10da455650c79b1b1a37c19fea96103ae909c64e31ecd8ec679ce80c1ee",
+  "self_excluded_review_paths": [
+    "docs/action-651b-diagnostic-execution-quality-freeze-manifest.json",
+    "docs/action-651b-diagnostic-execution-quality-independent-review.md",
+    "tests/e2e/action-651b-diagnostic-execution-quality-independent-review.spec.ts"
+  ],
+  "normative_bytes_may_change_during_review": false,
+  "full_execution_regression_passed": false,
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
