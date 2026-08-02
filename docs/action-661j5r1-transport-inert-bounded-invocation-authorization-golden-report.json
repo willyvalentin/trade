@@ -1,0 +1,87 @@
+{
+  "action": "661J.5R.1",
+  "artifact_contract": {
+    "artifact_count": 5,
+    "artifacts": [
+      {
+        "byte_length": 19500,
+        "path": "lib/action-661j5r1-transport-inert-bounded-invocation-authorization.mjs",
+        "role": "implementation",
+        "sha256": "512c2e1bd1bb798286eb0b5be868a4d6932e6f3fd5d4eb489a1590700ca4ddf3"
+      },
+      {
+        "byte_length": 3351,
+        "path": "tests/e2e/action-661j5r1-transport-inert-bounded-invocation-authorization-fixtures.mjs",
+        "role": "deterministic_fixtures",
+        "sha256": "1ece35a9c5981219e8f84f09ff239a9c34c656a057fcb8ed7c0de7fc30f4b343"
+      },
+      {
+        "byte_length": 18369,
+        "path": "tests/e2e/action-661j5r1-transport-inert-bounded-invocation-authorization.spec.ts",
+        "role": "focused_adversarial_tests",
+        "sha256": "ecf51f8d6de39f4e6394238b7d2eca5ad29aec45756b36896ce06033b055b21f"
+      },
+      {
+        "byte_length": 5004,
+        "path": "docs/action-661j5r1-transport-inert-bounded-invocation-authorization.md",
+        "role": "contract_documentation",
+        "sha256": "5583e43add82a7cc9b3d6e84b483251fc521eee14bf06a376aaef32addc5ec59"
+      },
+      {
+        "path": "docs/action-661j5r1-transport-inert-bounded-invocation-authorization-golden-report.json",
+        "role": "golden_verification_report",
+        "self_digest_included": false
+      }
+    ]
+  },
+  "authority": {
+    "base_commit": "1f49b97988ffa19aa0b174463ae6e388211f2a75",
+    "planning_policy_digest": "0510aaa58f31e6522c878fa9d32f798f8ad9bc6bc0cb615e379ceba621cf15ce",
+    "planning_version": "action_661j5q1_certification_selected_bounded_invocation_plan_v1",
+    "policy_digest": "3e385ab82fdccafb7e75ba5d77a2b55be71b51d056a30c68c27f6f35a1fc37f2",
+    "policy_version": "action_661j5r1_bounded_invocation_authorization_policy_v1",
+    "runtime_family": "action_661j5r2_runtime_certification_rebuild_v1",
+    "runner_identity_digest": "76e4804def6411adaba50f4588248e8beaac88c63e1d6029850410b6c84bd2f7",
+    "selection_identity_digest": "754a7e781f14ae5731ddbac2444b8c7c3182e95c10913ea640e49855610c54ea",
+    "version": "action_661j5r1_transport_inert_bounded_invocation_authorization_v1"
+  },
+  "golden": {
+    "attempt_identity_digest": "70bc330ff302ce60cbacea6cea2b2538f2df5eb9a0afd8d32d6ecea2b4da8e84",
+    "authorization_identity_digest": "4801eefde4ba1675004723f086cee3e937ac3d1b78201c2708edbc0c29f5f21d",
+    "canonical_request_digest": "99cef77b0957aee2401c4ddbf58ffd3f511d63fc95f6375ad97a400803d4e932",
+    "plan_identity_digest": "250529f2619eb4e16f764170e96b1dbaa8339bc13c40c8e041f40c7a9a2c67b6",
+    "request_identity_digest": "0599c4bca6dd2682b1984410ad0e544ce2af2f5fc79136f04abff350c04caafb"
+  },
+  "predecessor_bytes": {
+    "n2a_consumer_sha256": "110a919401aee396508ba6d393132ed41e400343ea209559cdc1003eba4f69c5",
+    "o1_admission_sha256": "2000e75bd80d3f1f7e58042e1b4f68ca1bac14a80c51aeba259fbd0fe245cfc3",
+    "p1_selection_sha256": "fba8d2f3b6178bef3e270453e4a111704c9bc7dc2a76af749b04632c5d0b1f9e",
+    "q1_planning_sha256": "f547f17087a314fd8795b3de97750f04c1e21345cc2bc07a6cf9fe7cbccfe64e"
+  },
+  "safety": {
+    "automatic_model_input": false,
+    "authorization_receipt_runtime_authority": false,
+    "credential_capability": false,
+    "database_capability": false,
+    "default_off_zero_work": true,
+    "dynamic_runner_import": false,
+    "live_ranking_effect": false,
+    "production_impact": false,
+    "provider_capability": false,
+    "runtime_execution_performed": false,
+    "transport_capability": false,
+    "write_capability": false
+  },
+  "validation": {
+    "cross_process_timezones": [
+      "UTC",
+      "Europe/Stockholm",
+      "America/New_York"
+    ],
+    "focused_suite": "13/13",
+    "full_nopqr_regression": "113/113",
+    "json_parity": "passed",
+    "scoped_eslint": "passed_zero_warnings",
+    "typescript": "passed"
+  }
+}
