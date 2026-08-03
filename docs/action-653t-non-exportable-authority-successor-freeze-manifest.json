@@ -1,0 +1,95 @@
+{
+  "manifest_version": "action_653t_non_exportable_authority_successor_freeze_v1",
+  "action": "653T",
+  "created_at": "2026-07-31",
+  "authority": {
+    "preservation_ref": "refs/codex-preservation/action-653s-non-exportable-authority-transaction",
+    "preservation_object": "ac71ecfd7c9e160673685c910480acdc107e0384",
+    "preservation_tree": "80af95b1540c0996ed8b8fc752b100b18ed03033",
+    "preservation_parent": "f6bf570cc4925245e872005cab7d03ee68d208a9"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-653s-non-exportable-authority-transaction-contract.md",
+        "sha256": "ebfcb3e8229cae99824426a67adeb200bce9aab1313f0e9e7f9011ef5b09bc6e"
+      },
+      {
+        "path": "docs/action-653s-non-exportable-authority-transaction-golden-report.json",
+        "sha256": "ce34638546f337a4173c245cac8e0c0fd913386d51c952949391d4c1c819d5cc"
+      },
+      {
+        "path": "lib/action-653s-non-exportable-authority-transaction.ts",
+        "sha256": "416409b6eda54f88f10a17716919b2696896cc343f1758e26bad2216726ced72"
+      },
+      {
+        "path": "tests/e2e/action-653s-non-exportable-authority-transaction.spec.ts",
+        "sha256": "de97ee1bcc5a44fb420326273dc4137ef6b5a63bc367ce047033e7a02b88ad77"
+      },
+      {
+        "path": "tests/fixtures/action-653s-non-exportable-authority-transaction-fixtures.ts",
+        "sha256": "a126f0fdc8253a98715a0cb9943b9d344b15877d29b933f600a9648223c52f61"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "92b071e3a30b58b66a7db923bdc8e6ccff39fe70e20027fe80ff75839093b880"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-653t-non-exportable-authority-successor-freeze-manifest.json",
+      "docs/action-653t-non-exportable-authority-successor-independent-rereview.md",
+      "tests/e2e/action-653t-non-exportable-authority-successor-independent-rereview.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "92b071e3a30b58b66a7db923bdc8e6ccff39fe70e20027fe80ff75839093b880",
+    "after_regression": "92b071e3a30b58b66a7db923bdc8e6ccff39fe70e20027fe80ff75839093b880",
+    "after_independent_review": "92b071e3a30b58b66a7db923bdc8e6ccff39fe70e20027fe80ff75839093b880",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-653t-non-exportable-authority-successor-independent-rereview.spec.ts",
+    "suite_sha256": "585f41a09a1ef24272ab39dfc627bb9a9470924419921bece0e484bed99ccaec",
+    "result": "13 passed / 0 failed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    }
+  },
+  "validation": {
+    "action_653s_focused": "14/14 passed",
+    "green_predecessor_and_security_union": "212/212 passed",
+    "independent_rereview": "13/13 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "json_and_diff_checks": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_selected_tracked_blob_drift": "0/577",
+    "broad_failure_identity_order_and_messages": "identical",
+    "broad_verification_method": "content-addressed preserved 653M evidence plus exact five-path additive preservation delta",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "restricted_successor_live_rerun": "22 passed / 5 failed",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "remediation_performed": false
+  }
+}

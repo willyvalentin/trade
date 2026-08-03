@@ -1,0 +1,96 @@
+{
+  "manifest_version": "action_653k_internal_verification_capsule_freeze_v1",
+  "action": "653K",
+  "created_at": "2026-07-30",
+  "authority": {
+    "preservation_ref": "refs/codex-preservation/action-653j-internal-verification-capsule",
+    "preservation_object": "ba815007e0503d673a7cbaed08a8e0603270dddb",
+    "preservation_tree": "a082d385b7e7393a2c44045e69faa83198431a8e"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-653j-internal-verification-capsule-golden-report.json",
+        "sha256": "13662d4d9dcd91244b07752e7bff8d9d9a209491186216ef8ce046b75d4d09c2"
+      },
+      {
+        "path": "docs/action-653j-internal-verification-capsule.md",
+        "sha256": "697dfc9f43920517cf158ec7ed519cdca7476a2706931437653a750357cc78ff"
+      },
+      {
+        "path": "lib/action-653j-internal-verification-capsule.ts",
+        "sha256": "9cb16cd625ea2d6c3fa9b31ba6edd002af2162438ca9d07f2b71d172813e386b"
+      },
+      {
+        "path": "tests/e2e/action-653j-internal-verification-capsule.spec.ts",
+        "sha256": "8436a5da3046e0ca946260a4b99d509aedba197326994d98a6baefb70015826a"
+      },
+      {
+        "path": "tests/fixtures/action-653j-internal-verification-capsule-fixtures.ts",
+        "sha256": "cbef520e80fb96e11eaa37cf2b19b9b1ab44f7e294b33d70b515a015d3969cd4"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "64187d25340f2ada9194209d7a59446a6d35c04f6bfd98d7d80af439184282a9"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-653k-internal-verification-capsule-freeze-manifest.json",
+      "docs/action-653k-internal-verification-capsule-independent-rereview.md",
+      "tests/e2e/action-653k-internal-verification-capsule-independent-rereview.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "64187d25340f2ada9194209d7a59446a6d35c04f6bfd98d7d80af439184282a9",
+    "after_regression": "64187d25340f2ada9194209d7a59446a6d35c04f6bfd98d7d80af439184282a9",
+    "after_independent_review": "64187d25340f2ada9194209d7a59446a6d35c04f6bfd98d7d80af439184282a9",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-653k-internal-verification-capsule-independent-rereview.spec.ts",
+    "suite_sha256": "33deff4e64e9ead0fbadad6d43055e39105680a3f4b1557ca33d5708d5d9b1e5",
+    "result": "9 passed / 1 failed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 1,
+      "minor": 0,
+      "nit": 0
+    },
+    "finding_ids": [
+      "653K-M1"
+    ]
+  },
+  "validation": {
+    "action_653j_focused": "13/13 passed",
+    "action_650_to_653_predecessor_and_security_union": "176/176 passed",
+    "combined_frozen_regression": "189/189 passed",
+    "independent_rereview": "9 passed / 1 failed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "content-addressed Action 653J evidence preserved",
+    "json_and_diff_checks": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_selected_tracked_blob_drift": "0/577",
+    "broad_failure_identity_order_and_messages": "identical",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false,
+    "remediation_performed": false
+  }
+}

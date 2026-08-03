@@ -1,0 +1,34 @@
+{
+  "action": "653J",
+  "contract_version": "action_653j_internal_verification_capsule_v3",
+  "capsule_policy_version": "action_653j_single_boundary_private_runtime_capsule_v1",
+  "diagnostic_only": true,
+  "synthetic_only": true,
+  "matrix": {
+    "cases": [
+      "utc_a",
+      "utc_b",
+      "stockholm",
+      "new_york",
+      "reverse_input_order"
+    ],
+    "common_envelope_digest": "action_653j_instruction_envelope_d0b8af594e4e14380b86f4a56b27f0775aaa80c3bbf7f3daee7dfa4b4485188b",
+    "common_snapshot_digest": "action_653j_snapshot_fa43d76fa59c5f9bc68c00a5c49a0df2028b911b6d2f44af0a27e123206ab8b5",
+    "common_capsule_digest": "action_653j_verification_capsule_3ea28cfbe8e040e21cdddd30d6117a0159955180f516f76b0c5fdb4a501c9414",
+    "common_instruction_digest": "action_653j_broker_neutral_instruction_96ef4cbdc02f19f9a357522da4574a36349a080739210d48e04c44aba5bbc7e3",
+    "common_replay_evidence_digest": "action_653j_synthetic_replay_evidence_b6f3be13b9cd5c2cee3f1d17203bc296aecf66fc7fea70cbfea3a7ccf59376ec",
+    "post_snapshot_caller_reads": 0,
+    "caller_handles_forwarded_downstream": false,
+    "valid_manual_confirmation_consumptions": 1,
+    "invalid_manual_confirmation_consumptions": 0
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false,
+    "full_execution_regression_passed": false
+  }
+}
