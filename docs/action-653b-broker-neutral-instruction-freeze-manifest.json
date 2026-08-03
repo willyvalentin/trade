@@ -1,0 +1,98 @@
+{
+  "manifest_version": "action_653b_broker_neutral_instruction_freeze_v1",
+  "action": "653B",
+  "created_at": "2026-07-30",
+  "base_sha": "1cc154b572e9a67ee736469466a4649d4146adb3",
+  "durable_worktree": "/Users/willysimonsson/Dev/trade-action-653a-broker-neutral-instruction",
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-653a-broker-neutral-execution-instruction-golden-report.json",
+        "sha256": "488dae5004582e1fa22f3576b12c274cd921c1f5ed7212cac22ee69a12d83375"
+      },
+      {
+        "path": "docs/action-653a-broker-neutral-execution-instruction.md",
+        "sha256": "b57999de2f5588eedf11588955ae450772a497683cb45708151e7b07e9802c16"
+      },
+      {
+        "path": "lib/action-653a-broker-neutral-execution-instruction.ts",
+        "sha256": "138dc40fbf214654300894c974413416c95867f7d01cbdba0f6c58352f1d0b0d"
+      },
+      {
+        "path": "tests/e2e/action-653a-broker-neutral-execution-instruction.spec.ts",
+        "sha256": "bcf73d0c55b30a31c3cb1da231861c53e8ef276dc5ccb6e15d5089223d19f0c4"
+      },
+      {
+        "path": "tests/fixtures/action-653a-broker-neutral-execution-instruction-fixtures.ts",
+        "sha256": "749c05f05fcb12dcc032cc6f704c5f287bdfbf9214b74d84e87121e10c09b6d1"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; for each path hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "c6001208fea3c72e1409c518b0382bc380fa83d29c260fced84b2d57e6851015"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-653b-broker-neutral-instruction-freeze-manifest.json",
+      "docs/action-653b-broker-neutral-instruction-independent-review.md",
+      "tests/e2e/action-653b-broker-neutral-instruction-independent-review.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "c6001208fea3c72e1409c518b0382bc380fa83d29c260fced84b2d57e6851015",
+    "after_regression": "c6001208fea3c72e1409c518b0382bc380fa83d29c260fced84b2d57e6851015",
+    "after_independent_review": "c6001208fea3c72e1409c518b0382bc380fa83d29c260fced84b2d57e6851015",
+    "all_equal": true
+  },
+  "foundation_preservation": {
+    "ref": "refs/codex-preservation/action-653a-foundation",
+    "commit": "e5f195d941f418cd973d3d7fbed56623850e6145",
+    "tree": "58b88751ef9b44fa310594132b29544141340448",
+    "parent": "1cc154b572e9a67ee736469466a4649d4146adb3",
+    "ordinary_index_used": false,
+    "ordinary_branch_moved": false
+  },
+  "review": {
+    "suite": "tests/e2e/action-653b-broker-neutral-instruction-independent-review.spec.ts",
+    "suite_sha256": "d1fc66e6f3a73a7828c965fc16a1adcab7c8502e6883f9481f49a6374963f855",
+    "result": "10/10 passed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    }
+  },
+  "validation": {
+    "action_653a_focused": "13/13 passed",
+    "action_650s_650u_security_union": "66/66 passed",
+    "action_651a_651c_rereview": "34/34 passed",
+    "action_652a_652b_652c_rereview": "40/40 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "golden_json_parity": "passed",
+    "cross_process": "UTC 13/13; Europe/Stockholm 13/13; America/New_York 13/13; reversed input order included",
+    "diff_and_whitespace": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_failure_identity_order_and_messages": "identical",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "checkpoint": {
+    "independent_review_approved": true,
+    "local_checkpoint_ready": true
+  }
+}

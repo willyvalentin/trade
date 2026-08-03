@@ -1,0 +1,44 @@
+{
+  "action": "653A",
+  "contract_version": "action_653a_broker_neutral_execution_instruction_v1",
+  "schema_version": "action_653a_broker_neutral_instruction_schema_v1",
+  "destination_identity": "action_653a_synthetic_replay_only",
+  "fixture_classification": "synthetic_only",
+  "case_names": [
+    "utc_a",
+    "utc_b",
+    "stockholm",
+    "new_york",
+    "reverse_input_order"
+  ],
+  "closed_status_taxonomy": [
+    "prepared",
+    "blocked",
+    "expired",
+    "conflicting",
+    "unmappable"
+  ],
+  "common_envelope_digest": "action_653a_instruction_envelope_25e6242de30d4ad963d373a4d5323b1cd96938cdbc0446299f87d69dac4d7c79",
+  "common_instruction_digest": "action_653a_broker_neutral_instruction_2106a88f0e249dd280d5240db349ccfba73690d1911a95cdeacf8363e0dbd36c",
+  "common_submission_intent_identity": "action_653a_submission_intent_e4490d16f9c69a9cd70d794b",
+  "common_synthetic_replay_evidence_digest": "action_653a_synthetic_replay_evidence_036dbb04966c49ed7dd5f2031efa13b2e5c784f3a3c460d4f78de65894f2b5a8",
+  "boundary_matrix": {
+    "instruction_expiry_minus_1_nanosecond": "prepared",
+    "instruction_expiry_exact": "expired",
+    "instruction_expiry_plus_1_nanosecond": "expired"
+  },
+  "claims": {
+    "real_broker_evidence": false,
+    "real_fill": false,
+    "performance_eligible": false,
+    "causality_claim": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}
