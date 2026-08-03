@@ -1,0 +1,117 @@
+{
+  "manifest_version": "action_666c_shadow_foundation_freeze_v1",
+  "track": "SPÅR 2",
+  "created_at": "2026-07-27T13:26:57Z",
+  "branch": "codex/action-666a-ranking-confidence-shadow-evaluation",
+  "base": "29e6e25de8580fe252c9f49dc10deae6e4508b58",
+  "head_at_freeze": "29e6e25de8580fe252c9f49dc10deae6e4508b58",
+  "artifact_count": 11,
+  "aggregate_digest_algorithm": "sha256(path + NUL + sha256 + LF), paths sorted bytewise",
+  "aggregate_digest_before_review": "c74c8255f329e2fb07295b0914f9235bf49c08e4ac8b04cab5063f2b7bdb3424",
+  "aggregate_digest_after_review": "c74c8255f329e2fb07295b0914f9235bf49c08e4ac8b04cab5063f2b7bdb3424",
+  "pre_post_digest_parity": true,
+  "action_666a_prior_hashes_byte_identical": true,
+  "lineage": {
+    "stacked_parent": {
+      "action": "Action 665F.1 / PR #52 head",
+      "commit": "29e6e25de8580fe252c9f49dc10deae6e4508b58"
+    },
+    "action_665_contracts": [
+      "canonical_counterfactual_opportunity_set_v1",
+      "pre_truncation_candidate_capture_evidence_v1",
+      "canonical_decision_semantic_binding_v1",
+      "canonical_expected_outcome_lineage_v1",
+      "canonical_provider_coverage_v1"
+    ],
+    "action_664_contracts": [
+      "canonical_evaluation_quality_read_model_v1",
+      "canonical_quality_metrics_v1",
+      "primary_60m_else_30m_else_15m_v1"
+    ],
+    "action_666_contracts": [
+      "canonical_shadow_ranking_confidence_evaluation_v1",
+      "completed_paired_shadow_observation_bundle_v1",
+      "completed_paired_shadow_observation_adapter_v1",
+      "default_off_paired_shadow_replay_harness_v1"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666a-golden-shadow-evaluation-report.json",
+      "action_owner": "666A",
+      "artifact_type": "synthetic_golden_evidence",
+      "sha256": "d0ad096d9528f18a55dd643806e042f42408403cde9f1e89dc5e42766de02f65",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666a-paired-ranking-confidence-shadow-evaluation.md",
+      "action_owner": "666A",
+      "artifact_type": "pairing_ranking_confidence_contract_document",
+      "sha256": "afec2185b4c26463caab6fcfe89dbb5d393e8d07f5a7c562ff7bb30ce978bc2f",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666b-completed-paired-shadow-adapter-replay.md",
+      "action_owner": "666B",
+      "artifact_type": "adapter_and_replay_contract_document",
+      "sha256": "b04a6aab7c7408ec43c7c3a9d68d50e5e0ec2241c63569ec4de7149a4ec3f0b7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666b-fixture-coverage-report.json",
+      "action_owner": "666B",
+      "artifact_type": "synthetic_fixture_coverage_evidence",
+      "sha256": "ba6a83ac0a07f2405e1cb569bae1ddf7c4b9e3d526eb80eacc0b1576736b4101",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-shadow-ranking-confidence-evaluation-fixtures.ts",
+      "action_owner": "666A",
+      "artifact_type": "paired_shadow_golden_fixtures",
+      "sha256": "49a9670d5829b87e66d0ff1db27be731d46174d6732fd41937c5236d543a2ec5",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-shadow-ranking-confidence-evaluation.ts",
+      "action_owner": "666A",
+      "artifact_type": "server_only_pairing_ranking_confidence_evaluation_contract",
+      "sha256": "79b5b7c45042654bfe9395476721ab9c8a4bc7ff74761bba3fcf5f2719a00cea",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-paired-shadow-observation-adapter-fixtures.ts",
+      "action_owner": "666B",
+      "artifact_type": "completed_bundle_adapter_golden_fixtures",
+      "sha256": "a2833a6d64515db22e5fe402a661c2ebbd268dc8af4137b9b6c9a479d6375ffe",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-paired-shadow-observation-adapter.ts",
+      "action_owner": "666B",
+      "artifact_type": "server_only_completed_bundle_projection_adapter",
+      "sha256": "26d4ba18685694940bf6cdac50adb72133fe5ba3cda685927908a9613c40ebff",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/default-off-paired-shadow-replay-harness.ts",
+      "action_owner": "666B",
+      "artifact_type": "default_off_fixture_replay_harness",
+      "sha256": "33f43cee9513c84b527e3d0ea63fddbf017c393ff586c09bb974a7b67923995a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-666a-shadow-ranking-confidence-evaluation.spec.ts",
+      "action_owner": "666A",
+      "artifact_type": "pairing_metrics_and_safety_tests",
+      "sha256": "a66a78b167447b6be35ba6c055c6ec17def0ae5b678492bc14a3708f974b9c61",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-666b-completed-paired-shadow-replay.spec.ts",
+      "action_owner": "666B",
+      "artifact_type": "adapter_replay_and_coverage_tests",
+      "sha256": "27472faa7f08b6e03f92ebeb6bfd6dd003aeae0d7a97fd83f3016362e118150b",
+      "git_status": "untracked"
+    }
+  ]
+}

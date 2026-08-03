@@ -1,0 +1,179 @@
+{
+  "action": "666B",
+  "report_version": "action_666b_fixture_coverage_report_v1",
+  "generated_from": "frozen local fixtures",
+  "synthetic_fixture_only": true,
+  "offline_shadow_only": true,
+  "performance_claimed": false,
+  "fixture_count": 16,
+  "adapter_status_counts": {
+    "mapped": 6,
+    "conflicting": 7,
+    "unmappable": 3
+  },
+  "scenario_class_counts": {
+    "complete_pair": 1,
+    "membership": 1,
+    "ranking": 2,
+    "membership_digest": 1,
+    "point_in_time": 1,
+    "contracts": 1,
+    "outcomes": 2,
+    "no_trade": 2,
+    "confidence": 2,
+    "input_digest": 1,
+    "determinism": 2
+  },
+  "adapter_status_by_scenario_class": {
+    "complete_pair": {
+      "mapped": 1,
+      "conflicting": 0,
+      "unmappable": 0
+    },
+    "membership": {
+      "mapped": 0,
+      "conflicting": 0,
+      "unmappable": 1
+    },
+    "ranking": {
+      "mapped": 0,
+      "conflicting": 2,
+      "unmappable": 0
+    },
+    "membership_digest": {
+      "mapped": 0,
+      "conflicting": 1,
+      "unmappable": 0
+    },
+    "point_in_time": {
+      "mapped": 0,
+      "conflicting": 1,
+      "unmappable": 0
+    },
+    "contracts": {
+      "mapped": 0,
+      "conflicting": 1,
+      "unmappable": 0
+    },
+    "outcomes": {
+      "mapped": 0,
+      "conflicting": 1,
+      "unmappable": 1
+    },
+    "no_trade": {
+      "mapped": 1,
+      "conflicting": 0,
+      "unmappable": 1
+    },
+    "confidence": {
+      "mapped": 2,
+      "conflicting": 0,
+      "unmappable": 0
+    },
+    "input_digest": {
+      "mapped": 0,
+      "conflicting": 1,
+      "unmappable": 0
+    },
+    "determinism": {
+      "mapped": 2,
+      "conflicting": 0,
+      "unmappable": 0
+    }
+  },
+  "digest_contracts": {
+    "bundle_input": "sha256_canonical_json_v1",
+    "candidate_set": "Action 665 canonical full candidate-set digest",
+    "pre_truncation_membership": "pre_truncation_candidate_capture_evidence_v1",
+    "outcome_inventory": "sha256 canonical JSON over sorted explicit outcomes",
+    "replay_result": "sha256 canonical JSON over the complete replay result"
+  },
+  "reference_digests": {
+    "complete_mapped_bundle_input": "771cde954bee129848a807927eac7e47771c0c210271a1ada8f20cac19955ff1",
+    "same_bundle_reordered_input": "771cde954bee129848a807927eac7e47771c0c210271a1ada8f20cac19955ff1",
+    "complete_explicit_no_trade_input": "5dff9f3bc4815cdd509c026b0b4b72352b31c9c3afa998966eb81d102329e3f5",
+    "complete_mapped_replay_result": "f95d41dc20851688fe5910c4d6d2b4bb5da60ddec3c263d0a8573e1b20c43fc5"
+  },
+  "scenarios": [
+    {
+      "name": "complete_mapped_baseline_candidate_pair",
+      "scenario_class": "complete_pair",
+      "expected_status": "mapped"
+    },
+    {
+      "name": "truncated_membership",
+      "scenario_class": "membership",
+      "expected_status": "unmappable"
+    },
+    {
+      "name": "rank_gap",
+      "scenario_class": "ranking",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "duplicate_tie_break",
+      "scenario_class": "ranking",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "candidate_set_digest_drift",
+      "scenario_class": "membership_digest",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "different_cutoff",
+      "scenario_class": "point_in_time",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "different_provider_evaluator",
+      "scenario_class": "contracts",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "missing_rejected_outcome",
+      "scenario_class": "outcomes",
+      "expected_status": "unmappable"
+    },
+    {
+      "name": "duplicated_outcome",
+      "scenario_class": "outcomes",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "explicit_no_trade_complete_set",
+      "scenario_class": "no_trade",
+      "expected_status": "mapped"
+    },
+    {
+      "name": "no_trade_without_counterfactual_coverage",
+      "scenario_class": "no_trade",
+      "expected_status": "unmappable"
+    },
+    {
+      "name": "calibrated_probability",
+      "scenario_class": "confidence",
+      "expected_status": "mapped"
+    },
+    {
+      "name": "score_presented_as_probability",
+      "scenario_class": "confidence",
+      "expected_status": "mapped"
+    },
+    {
+      "name": "tampered_input_digest",
+      "scenario_class": "input_digest",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "input_order_determinism",
+      "scenario_class": "determinism",
+      "expected_status": "mapped"
+    },
+    {
+      "name": "immutable_replay",
+      "scenario_class": "determinism",
+      "expected_status": "mapped"
+    }
+  ]
+}

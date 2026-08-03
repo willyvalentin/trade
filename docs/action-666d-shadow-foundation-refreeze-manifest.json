@@ -1,0 +1,133 @@
+{
+  "manifest_version": "action_666d_shadow_foundation_refreeze_manifest_v1",
+  "evidence_class": "synthetic_contract_evidence_only",
+  "base_sha": "29e6e25de8580fe252c9f49dc10deae6e4508b58",
+  "head_sha": "29e6e25de8580fe252c9f49dc10deae6e4508b58",
+  "lineage": {
+    "action_664_foundation_head": "9221aa514a6c5de76ffbe7c05cad2db41a06a928",
+    "action_665_foundation_head": "29e6e25de8580fe252c9f49dc10deae6e4508b58"
+  },
+  "scope_contract": {
+    "normative_artifact_count": 16,
+    "includes_prior_review_evidence": true,
+    "self_referential_refreeze_manifest_excluded": true,
+    "new_rereview_evidence_excluded": true,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_digest_before_regression": "f2c7eea6e5ac73bac733cd9a5d7fc6a276c1253d240438522b8e1307b02e1b5a",
+    "aggregate_digest_after_regression": "f2c7eea6e5ac73bac733cd9a5d7fc6a276c1253d240438522b8e1307b02e1b5a"
+  },
+  "artifacts": [
+    {
+      "path": "docs/action-666a-golden-shadow-evaluation-report.json",
+      "action_owner": "666A",
+      "artifact_type": "synthetic_golden_evidence",
+      "sha256": "d0ad096d9528f18a55dd643806e042f42408403cde9f1e89dc5e42766de02f65",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666a-paired-ranking-confidence-shadow-evaluation.md",
+      "action_owner": "666A",
+      "artifact_type": "contract_documentation",
+      "sha256": "afec2185b4c26463caab6fcfe89dbb5d393e8d07f5a7c562ff7bb30ce978bc2f",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666b-completed-paired-shadow-adapter-replay.md",
+      "action_owner": "666B/666D",
+      "artifact_type": "adapter_and_replay_documentation",
+      "sha256": "bd793a247aca9f0f4aefb36652903e496f08e0a4da3c1498a754ba522f7fd41a",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666b-fixture-coverage-report.json",
+      "action_owner": "666B/666D",
+      "artifact_type": "machine_readable_fixture_evidence",
+      "sha256": "acd6052e7ca81d64214d11b0ccf2cd47ec933b2fdb30eb6169b8148e66fe5fbf",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666c-shadow-foundation-freeze-manifest.json",
+      "action_owner": "666C",
+      "artifact_type": "historical_freeze_evidence",
+      "sha256": "a283b112506457d1cd324550439c81b341acb4ad1963cea15ae5a120e73b2049",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666c-shadow-foundation-independent-review.md",
+      "action_owner": "666C",
+      "artifact_type": "historical_rejected_review_evidence",
+      "sha256": "6a14f522b7bd01a3dbbd62f6224108cf11ce1cfac37271ede148d364ce9eebe8",
+      "git_status": "untracked"
+    },
+    {
+      "path": "docs/action-666d-shadow-provenance-trust-remediation.md",
+      "action_owner": "666D",
+      "artifact_type": "remediation_contract_documentation",
+      "sha256": "e430f9e15a32bf5f40a6931391c7defdcd24f00f8a29239f4245b5c8125148d3",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-shadow-ranking-confidence-evaluation-fixtures.ts",
+      "action_owner": "666A/666D",
+      "artifact_type": "golden_fixture_factory",
+      "sha256": "2bfb980bedd7383f3ec52d2889c9b4fefd3132fc238b8c78d59fb7c64db6a481",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/canonical-shadow-ranking-confidence-evaluation.ts",
+      "action_owner": "666A/666D",
+      "artifact_type": "canonical_evaluation_and_provenance_contract",
+      "sha256": "33b444dbc0acaa352e59dbf32aeb3ec8f231504580ab2b7bf6a82ade97c6b727",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-paired-shadow-observation-adapter-fixtures.ts",
+      "action_owner": "666B/666D",
+      "artifact_type": "completed_bundle_and_registry_fixtures",
+      "sha256": "6827f9dd9e7787deb34c9f28e31c705dd3524c5c39ebad51d5037eb46efd7588",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/completed-paired-shadow-observation-adapter.ts",
+      "action_owner": "666B/666D",
+      "artifact_type": "server_only_projection_adapter",
+      "sha256": "fc58e7fc06ef71afe99a645ce9c51eeec49d3452032193daecd06ce80d904cc7",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/default-off-paired-shadow-replay-harness.ts",
+      "action_owner": "666B/666D",
+      "artifact_type": "default_off_verified_replay_harness",
+      "sha256": "21246dc2384848a1b2f29a0119d33b7f2906c844f3f8c665b36102e21d821389",
+      "git_status": "untracked"
+    },
+    {
+      "path": "lib/server/trusted-paired-shadow-fixture-registry.ts",
+      "action_owner": "666D",
+      "artifact_type": "trusted_fixture_registry_and_anchor_contract",
+      "sha256": "6ac987007355552baeace1ab07a122956d36b13ae13f46226587e52f47a88a48",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-666a-shadow-ranking-confidence-evaluation.spec.ts",
+      "action_owner": "666A",
+      "artifact_type": "golden_contract_tests",
+      "sha256": "a66a78b167447b6be35ba6c055c6ec17def0ae5b678492bc14a3708f974b9c61",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-666b-completed-paired-shadow-replay.spec.ts",
+      "action_owner": "666B/666D",
+      "artifact_type": "adapter_replay_and_registry_tests",
+      "sha256": "86faa6939403aeefc86894ee85428fb17757c4fff55f3d9cd707bb455d3a3802",
+      "git_status": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-666d-shadow-provenance-trust-remediation.spec.ts",
+      "action_owner": "666D",
+      "artifact_type": "provenance_trust_and_tampering_tests",
+      "sha256": "7545baeb1bc16b25f4b057af13dfb468177e1d60a4d71ebdba0cce335943c706",
+      "git_status": "untracked"
+    }
+  ]
+}
