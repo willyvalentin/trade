@@ -1,0 +1,70 @@
+{
+  "action": "654R",
+  "manifest_version": "action_654r_lossless_utf16_successor_freeze_v1",
+  "self_excluding": true,
+  "normative_authority": {
+    "ref": "refs/codex-preservation/action-654q-lossless-utf16-observation",
+    "object": "5eb06cb7f1b6c476665ee8a127097600a2130a95",
+    "tree": "30f4511952a555fb8e91179a602b1dcd8121ff91",
+    "parent": "56b76fe478cb64ff51aa065391623ca51e5a716f",
+    "artifact_count": 5,
+    "digest_method": "lexicographic path UTF-8, NUL, exact blob bytes, NUL; SHA-256",
+    "digest": "4e39e092355845c23bcc67b58e63c1e466c2a8a3c4e84779536c2d12924b85fd",
+    "paths": [
+      "docs/action-654q-lossless-utf16-observation-contract.md",
+      "docs/action-654q-lossless-utf16-observation-golden-report.json",
+      "lib/action-654q-lossless-utf16-observation.ts",
+      "tests/e2e/action-654q-lossless-utf16-observation.spec.ts",
+      "tests/fixtures/action-654q-lossless-utf16-observation-fixtures.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "4e39e092355845c23bcc67b58e63c1e466c2a8a3c4e84779536c2d12924b85fd",
+    "after_regression": "4e39e092355845c23bcc67b58e63c1e466c2a8a3c4e84779536c2d12924b85fd",
+    "after_independent_review": "4e39e092355845c23bcc67b58e63c1e466c2a8a3c4e84779536c2d12924b85fd",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-654r-lossless-utf16-successor-independent-rereview.spec.ts",
+    "suite_sha256": "692851b54404b609ca94837877185a6e5f636db869048117dd5961b1f8c81e84",
+    "result": "11 passed / 0 failed, including finding reproduction",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 1,
+      "minor": 0,
+      "nit": 0,
+      "identities": ["654R-M1"]
+    },
+    "finding_summary": "The budget contract has no distinct total budget, its code-unit boundary is shadowed by the tighter byte budget, and oversized rejection still performs failure and terminal digest work."
+  },
+  "validation": {
+    "action_654q_focused": "14 passed; 2 probe-only skipped",
+    "action_654r_independent_review": "11/11 passed including finding reproduction",
+    "relevant_predecessor_security_union": "284 passed; 7 probe-only skipped",
+    "cross_process_timezones": "UTC, Europe/Stockholm, America/New_York and reverse order identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_and_diff_checks": "passed",
+    "export_capability_dependency_scans": "passed",
+    "production_compilation": "passed",
+    "production_build": "failed at known scope-external hb307cCanaryRouteBuildMarker route-export baseline",
+    "broad_base_successor": "3451 passed / 13 failed; content-addressed evidence identical",
+    "restricted_base_successor": "22 passed / 5 failed; content-addressed evidence identical",
+    "full_execution_regression_passed": false
+  },
+  "decision": {
+    "successor_frozen": true,
+    "refreeze_complete": true,
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  }
+}

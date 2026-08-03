@@ -1,0 +1,94 @@
+{
+  "manifest_version": "action_654b_transport_inert_readiness_freeze_v1",
+  "action": "654B",
+  "created_at": "2026-07-31",
+  "authority": {
+    "preservation_ref": "refs/codex-preservation/action-654a-transport-inert-dispatch-readiness",
+    "preservation_object": "ee966076992d1be1f66ff046f83c9afb3dd5d0fc",
+    "preservation_tree": "589d5a41f6d468f0178623c2eee69613140162f1",
+    "preservation_parent": "1e2f0b8e699df41c426cfff69240a93cd3098e4c"
+  },
+  "normative_scope": {
+    "path_count": 5,
+    "paths": [
+      {
+        "path": "docs/action-654a-transport-inert-dispatch-readiness-contract.md",
+        "sha256": "c3f7392b0cb2486333bed8edb8c30c759531c46ed9bbf9155274b4d60131ef54"
+      },
+      {
+        "path": "docs/action-654a-transport-inert-dispatch-readiness-golden-report.json",
+        "sha256": "395f377ce98faa0fd4a052add2027f4c029e913a73cbf5c5081b3102fdb02892"
+      },
+      {
+        "path": "lib/action-654a-transport-inert-dispatch-readiness.ts",
+        "sha256": "458c6e3ecfde92986a1d8a18c1d266197c437e2c39bb5eeb2b74c6abf3287a2d"
+      },
+      {
+        "path": "tests/e2e/action-654a-transport-inert-dispatch-readiness.spec.ts",
+        "sha256": "c176d802f56af917d1112554869ad90e81ead8edde5256d3f8ac8ff9eca9f5fa"
+      },
+      {
+        "path": "tests/fixtures/action-654a-transport-inert-dispatch-readiness-fixtures.ts",
+        "sha256": "b40061f5ef6d2efce46857aec03336aba8e78f8c377211ba27e778628a9ec809"
+      }
+    ],
+    "combined_digest_method": "sort paths lexicographically; hash path UTF-8 bytes, NUL, exact file bytes, NUL with SHA-256",
+    "combined_sha256": "78e9ee01e4552e98196d15f996501fe8be4c7c1a04f417e6e9d6161d8da864a5"
+  },
+  "self_exclusion": {
+    "excluded_from_normative_digest": [
+      "docs/action-654b-transport-inert-readiness-freeze-manifest.json",
+      "docs/action-654b-transport-inert-readiness-independent-review.md",
+      "tests/e2e/action-654b-transport-inert-readiness-independent-review.spec.ts"
+    ]
+  },
+  "digest_captures": {
+    "before_regression": "78e9ee01e4552e98196d15f996501fe8be4c7c1a04f417e6e9d6161d8da864a5",
+    "after_regression": "78e9ee01e4552e98196d15f996501fe8be4c7c1a04f417e6e9d6161d8da864a5",
+    "after_independent_review": "78e9ee01e4552e98196d15f996501fe8be4c7c1a04f417e6e9d6161d8da864a5",
+    "all_equal": true
+  },
+  "review": {
+    "suite": "tests/e2e/action-654b-transport-inert-readiness-independent-review.spec.ts",
+    "suite_sha256": "3c12674ddb760ff7ce721608e9d407bdfa93e7206bdc134ebef1d71ecfb43721",
+    "result": "15 passed / 0 failed",
+    "normative_remediation_after_review_started": false,
+    "findings": {
+      "blocker": 0,
+      "major": 0,
+      "minor": 0,
+      "nit": 0
+    }
+  },
+  "validation": {
+    "action_654a_focused": "14/14 passed",
+    "action_654b_independent_review": "15/15 passed",
+    "green_predecessor_and_security_union": "212/212 passed",
+    "action_653s_focused": "14/14 passed",
+    "action_653t_frozen_rereview": "13/13 passed",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "production_build": "passed",
+    "json_and_diff_checks": "passed",
+    "broad_base": "3451 passed / 13 failed",
+    "broad_successor": "3451 passed / 13 failed",
+    "broad_failure_identity_order_and_messages": "identical",
+    "restricted_base": "22 passed / 5 failed",
+    "restricted_successor": "22 passed / 5 failed",
+    "restricted_failure_identity_order_and_messages": "identical",
+    "full_execution_regression_passed": false
+  },
+  "safety": {
+    "real_broker_submission": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "automatic_execution": false,
+    "trade_mutation": false,
+    "production_write": false
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "remediation_performed": false
+  }
+}

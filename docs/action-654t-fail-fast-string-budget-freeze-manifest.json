@@ -1,0 +1,55 @@
+{
+  "manifest_version": "action_654t_fail_fast_string_budget_freeze_v1",
+  "normative_authority": {
+    "ref": "refs/codex-preservation/action-654s-fail-fast-separated-string-budget",
+    "object": "5656fc8bd37bb042bac58ed65bbd117b5cf07db4",
+    "tree": "d607d5ab8983501329b51be5d96d5824ce3115e6",
+    "parent": "649a373609dcb718398e0b3a556811ba7dbf9395",
+    "digest_before_regression": "ce662b25e7f3cda25a1f9a6011b06fc5a82cab76921241e9f17e4b433704cb0e",
+    "digest_after_regression": "ce662b25e7f3cda25a1f9a6011b06fc5a82cab76921241e9f17e4b433704cb0e",
+    "digest_after_review": "ce662b25e7f3cda25a1f9a6011b06fc5a82cab76921241e9f17e4b433704cb0e",
+    "artifact_count": 5,
+    "paths": [
+      "docs/action-654s-fail-fast-separated-string-budget-contract.md",
+      "docs/action-654s-fail-fast-separated-string-budget-golden-report.json",
+      "lib/action-654s-fail-fast-separated-string-budget.ts",
+      "tests/e2e/action-654s-fail-fast-separated-string-budget.spec.ts",
+      "tests/fixtures/action-654s-fail-fast-separated-string-budget-fixtures.ts"
+    ]
+  },
+  "review_evidence": {
+    "self_excluded": true,
+    "artifact_count": 3,
+    "paths": [
+      "docs/action-654t-fail-fast-string-budget-freeze-manifest.json",
+      "docs/action-654t-fail-fast-string-budget-independent-rereview.md",
+      "tests/e2e/action-654t-fail-fast-string-budget-independent-rereview.spec.ts"
+    ]
+  },
+  "findings": {
+    "blocker": 0,
+    "major": 2,
+    "minor": 0,
+    "nit": 0,
+    "identities": ["654T-M1", "654T-M2"]
+  },
+  "validation": {
+    "action_654s_focused": "11 passed; 1 probe-only skipped",
+    "action_654t_independent_review": "12 passed, including both finding reproductions",
+    "relevant_predecessor_security_union": "356 passed; 8 probe-only skipped",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_and_diff_checks": "passed",
+    "cross_process_and_timezones": "UTC, Europe/Stockholm and America/New_York deterministic; reverse order passed",
+    "production_compilation": "passed",
+    "production_build": "failed at the unchanged scope-external hb307cCanaryRouteBuildMarker route-export error; not classified as success",
+    "broad_baseline_equivalence": "3451 passed / 13 failed; identical",
+    "restricted_baseline_equivalence": "22 passed / 5 failed; identical",
+    "full_execution_regression_passed": false
+  },
+  "decision": {
+    "independent_rereview_approved": false,
+    "local_checkpoint_ready": false,
+    "full_execution_regression_passed": false
+  }
+}
