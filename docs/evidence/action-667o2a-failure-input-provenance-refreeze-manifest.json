@@ -1,0 +1,76 @@
+{
+  "manifest_version": "action_667o2a_failure_input_provenance_refreeze_manifest_v1",
+  "freeze_material": {
+    "branch": "codex/action-667o-diagnostic-context-outcome-join",
+    "base_head": "d4c70b06e942621bffcb1247a35e8e9d8f42968c",
+    "predecessor": {
+      "normative_digest": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+      "freeze_digest": "1d0566d17b4682108ec1697e6ad7c0b8953a1c001b74da4bf801705cef72734f",
+      "review_evidence_digest": "e408b01bec81208eb29588abaa0da6b542dffffdadf2b65e85e037ffee0e0814",
+      "preserved_byte_identically": true,
+      "historical_finding": "O2-001"
+    },
+    "successor_contract": "market_context_diagnostic_context_outcome_join_v2",
+    "failure_provenance_contract": "market_context_diagnostic_failure_input_provenance_v1",
+    "independent_rebuild_contract": "market_context_diagnostic_failure_rebuild_v1",
+    "normative_artifact_count": 5,
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667o2a-failure-input-provenance-remediation.md",
+        "artifact_type": "contract_documentation",
+        "version": "market_context_diagnostic_context_outcome_join_v2",
+        "git_status_at_freeze": "untracked",
+        "sha256": "9609320477d52c6162462f16d7e9cece80f7a85e959d443b97abf27bef69d329"
+      },
+      {
+        "path": "docs/evidence/action-667o2a-failure-input-provenance-synthetic-golden.json",
+        "artifact_type": "synthetic_golden_evidence",
+        "version": "action_667o2a_failure_input_provenance_synthetic_golden_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "7800429f6cfb469a2bae30b65955d42d87c5ad712e90eb7e4e508180a6b4be57"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-context-outcome-join-fixtures-v2.ts",
+        "artifact_type": "synthetic_fixture_factory",
+        "version": "market_context_diagnostic_context_outcome_synthetic_fixtures_v2",
+        "git_status_at_freeze": "untracked",
+        "sha256": "d82df8ace2a8f9810e5e7dd4bf56ed77edc3031155dcf78c3e12584087b4136c"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-context-outcome-join-v2.ts",
+        "artifact_type": "normative_contract_implementation",
+        "version": "market_context_diagnostic_context_outcome_join_v2",
+        "git_status_at_freeze": "untracked",
+        "sha256": "99bf235a0d0ed8c54ee80fcb253318856aa8aadaebac26f7f241d3a9cdd2df11"
+      },
+      {
+        "path": "tests/e2e/action-667o2a-failure-input-provenance.spec.ts",
+        "artifact_type": "focused_contract_regression",
+        "version": "action_667o2a_failure_input_provenance_tests_v1",
+        "git_status_at_freeze": "untracked",
+        "sha256": "62f5339557b5ed0d79e75c8072dc9be24f09a3f46da8c5b37a8350c84be5b70f"
+      }
+    ],
+    "normative_combined_digest": "58b062ea4978d20389ba4ea25d77d88b0ee0b8c4ea8ca43bfd68a182289990b5",
+    "synthetic_golden_matrix_digest": "b8f1f4f65957a20a0cbb2fb63789aa7214188676dce6aa973387838da982cf8f",
+    "digest_checkpoints": {
+      "before_regression": "58b062ea4978d20389ba4ea25d77d88b0ee0b8c4ea8ca43bfd68a182289990b5",
+      "after_regression": "58b062ea4978d20389ba4ea25d77d88b0ee0b8c4ea8ca43bfd68a182289990b5",
+      "after_review": "58b062ea4978d20389ba4ea25d77d88b0ee0b8c4ea8ca43bfd68a182289990b5"
+    },
+    "freeze_policy": {
+      "manifest_self_excluded_from_normative_digest": true,
+      "review_evidence_self_excluded_from_normative_digest": true,
+      "predecessor_artifacts_modified": false,
+      "missing_artifact_allowed": false,
+      "unexpected_normative_artifact_allowed": false,
+      "path_or_sha_drift_allowed": false,
+      "historical_git_status_is_provenance": true,
+      "real_outcome_join_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "successor_freeze_digest": "ad33c7047c94cf13816ee9d83781cd7338131575a874de2fdba39e70c2cc1d37"
+}

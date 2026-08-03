@@ -1,0 +1,185 @@
+{
+  "review_version": "action_667o2_context_outcome_join_independent_review_v1",
+  "review_material": {
+    "freeze_binding": {
+      "freeze_manifest_path": "docs/evidence/action-667o2-context-outcome-join-freeze-manifest.json",
+      "freeze_digest": "1d0566d17b4682108ec1697e6ad7c0b8953a1c001b74da4bf801705cef72734f",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+      "digest_checkpoints": {
+        "before_regression": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+        "after_regression": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676",
+        "after_review": "12f60ccd3d46fab0c281eee6e41c3825b7e8c3b72d6c039428c0fd102218b676"
+      }
+    },
+    "independent_review": [
+      {
+        "dimension": "external_authority_cannot_be_caller_replaced",
+        "verdict": "approved",
+        "evidence": "The public request has a closed schema without roots or payloads; the expected registry anchor is dependency-injected and registry substitution fails closed."
+      },
+      {
+        "dimension": "no_action_665_or_666_implementation_import",
+        "verdict": "approved",
+        "evidence": "The implementation import graph is limited to stacked market-context parser, snapshot and registry contracts; repository scans found no Action 665/666 import."
+      },
+      {
+        "dimension": "complete_decision_opportunity_evaluator_and_outcome_lineage",
+        "verdict": "approved",
+        "evidence": "Joined identity material binds decision, instrument, complete opportunity membership, baseline/candidate/evaluator versions, outcome window and completion, definitions, cost/slippage, provider/evaluator lineage and cohort membership."
+      },
+      {
+        "dimension": "predictor_and_label_digest_separation",
+        "verdict": "approved",
+        "evidence": "Predictor and label material are independently projected and hashed; changing a later synthetic outcome changes the label but not the predictor projection."
+      },
+      {
+        "dimension": "nanosecond_exact_temporal_ordering",
+        "verdict": "approved",
+        "evidence": "Explicit instants canonicalize to integer Unix nanoseconds without float conversion and boundary tests cover offset equivalence and one-nanosecond ordering."
+      },
+      {
+        "dimension": "outcome_completion_precedes_label_eligibility",
+        "verdict": "approved",
+        "evidence": "Pending outcomes return incomplete_outcome with null label projection; completed outcomes require decision < interval start <= end <= completion <= capture."
+      },
+      {
+        "dimension": "future_or_outcome_data_excluded_from_predictor",
+        "verdict": "approved",
+        "evidence": "Context finalization/provider counters are checked before outcome lookup, and later outcome-value mutation leaves predictor bytes unchanged."
+      },
+      {
+        "dimension": "failure_identity_binds_observed_and_expected_inputs",
+        "verdict": "major_finding",
+        "finding_id": "O2-001",
+        "evidence": "Rejected registry, handoff and outcome payloads are represented by the request digest, expected authority binding and reason codes, but the result does not bind the observed rejected registry or payload identity/digest. Distinct observed substitutions can therefore collapse to the same failure result digest."
+      },
+      {
+        "dimension": "duplicate_and_self_consistent_collision_rejection",
+        "verdict": "approved",
+        "evidence": "Duplicate external join identities and distinct request-digest collisions return deterministic conflicting results; self-consistently rehashed unregistered payloads fail against the external registry."
+      },
+      {
+        "dimension": "closed_exclusive_deterministic_taxonomy",
+        "verdict": "approved",
+        "evidence": "Every result carries exactly one of six closed terminal values with sorted unique reason codes and a canonical result digest."
+      },
+      {
+        "dimension": "default_off_and_kill_switch_zero_work",
+        "verdict": "approved",
+        "evidence": "Default-off and kill-switch branches return before request reads, cloning, registry reads or verifier calls; proxy and counter tests verify zero reads."
+      },
+      {
+        "dimension": "joined_rows_remain_diagnostic_only",
+        "verdict": "approved",
+        "evidence": "Every result binds the closed diagnostic boundary and joined associations explicitly prohibit performance publication and probability mapping."
+      },
+      {
+        "dimension": "synthetic_fixture_performance_boundary",
+        "verdict": "approved",
+        "evidence": "Golden fixtures are explicitly synthetic, real outcome join count is zero and the contract documentation prohibits performance, probability and causal claims."
+      },
+      {
+        "dimension": "terminal_boundary_marker_parity",
+        "verdict": "approved",
+        "evidence": "All terminal outputs are built through one result constructor binding diagnostic_only, shadow_only, non-official, non-canonical, non-model, non-training, non-promotion, non-causal and no-live-effect markers."
+      }
+    ],
+    "finding_matrix": {
+      "taxonomy": [
+        "blocker",
+        "major",
+        "minor",
+        "nit"
+      ],
+      "counts": {
+        "blocker": 0,
+        "major": 1,
+        "minor": 0,
+        "nit": 0
+      },
+      "findings": [
+        {
+          "id": "O2-001",
+          "severity": "major",
+          "title": "Failure results do not bind the observed rejected authority or payload identity",
+          "scope": "failure_identity_only",
+          "details": "For authority-anchor mismatch and invalid context/outcome handoffs, result identity binds the request and expected registry anchor but omits a sanitized digest of the observed rejected registry or handoff. Multiple materially different rejected inputs can produce the same result digest and cannot be distinguished during offline audit.",
+          "impact": "Fail-closed behavior is preserved, but forensic reproducibility and collision-resistant failure identity do not satisfy the O.2 review requirement.",
+          "recommended_future_remediation": "Add a separately versioned sanitized failure-evidence projection binding expected and observed authority, handoff or payload digests; add negative tests proving distinct observed failures cannot collapse to one failure identity.",
+          "remediated_in_action_667o2": false
+        }
+      ],
+      "closed_matrix": true
+    },
+    "regression": {
+      "o1_focused": {
+        "passed": 17,
+        "total": 17
+      },
+      "relevant_667c_e_k_through_o1": {
+        "passed": 283,
+        "total": 283
+      },
+      "cross_timezone_o1": {
+        "UTC": "17/17",
+        "Europe/Stockholm": "17/17",
+        "America/New_York": "17/17",
+        "reversed_input_order_tested": true,
+        "byte_deterministic": true
+      },
+      "typescript": "passed",
+      "scoped_eslint_zero_warnings": "passed",
+      "json_evidence_parity": "passed",
+      "git_diff_check": "passed",
+      "security_and_isolation_scans": "passed",
+      "production_build": {
+        "status": "baseline_failure_not_attributable_to_o1",
+        "turbopack_attempt": "blocked_by_ignored_node_modules_symlink_outside_worktree_root",
+        "documented_webpack_attempt": "compiled_successfully_then_failed_next_route_type_validation",
+        "tracked_base_failure": "app/api/hb307c/ping/route.ts exports hb307cCanaryRouteBuildMarker, which Next.js 16.2.6 rejects as an invalid Route export",
+        "o1_live_imports": 0
+      }
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "permission_drift_count": 0,
+        "symlink_count": 0,
+        "unchanged": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "permission_drift_count": 0,
+        "symlink_count": 0,
+        "unchanged": true
+      }
+    },
+    "decisions": {
+      "action_667o2_context_outcome_join_foundation_frozen": true,
+      "action_667o2_external_authority_verified": true,
+      "action_667o2_temporal_separation_verified": true,
+      "action_667o2_failure_identity_verified": false,
+      "action_667o2_external_roots_verified": true,
+      "action_667o2_independent_review_approved": false,
+      "action_667o2_local_checkpoint_ready": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    },
+    "activity_boundary": {
+      "real_outcome_join_performed": false,
+      "remediation_performed": false,
+      "provider_calls": 0,
+      "database_calls": 0,
+      "persistence_writes": 0,
+      "commits": 0,
+      "pushes": 0,
+      "pull_requests": 0,
+      "deploys": 0
+    }
+  },
+  "review_evidence_digest": "e408b01bec81208eb29588abaa0da6b542dffffdadf2b65e85e037ffee0e0814"
+}

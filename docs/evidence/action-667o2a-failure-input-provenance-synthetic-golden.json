@@ -1,0 +1,46 @@
+{
+  "evidence_version": "action_667o2a_failure_input_provenance_synthetic_golden_v1",
+  "contract_version": "market_context_diagnostic_context_outcome_join_v2",
+  "synthetic_golden_matrix": {
+    "fixture_version": "market_context_diagnostic_context_outcome_synthetic_fixtures_v2",
+    "contract_version": "market_context_diagnostic_context_outcome_join_v2",
+    "case_count": 15,
+    "matrix_digest": "b8f1f4f65957a20a0cbb2fb63789aa7214188676dce6aa973387838da982cf8f"
+  },
+  "collision_proofs": [
+    {
+      "section": "registry_payload",
+      "first_case": "invalid_registry_a",
+      "second_case": "invalid_registry_b",
+      "same_terminal_reason": true,
+      "different_observed_input_digest": true,
+      "different_failure_identity_digest": true,
+      "different_result_digest": true
+    },
+    {
+      "section": "context_handoff_payload",
+      "first_case": "invalid_context_a",
+      "second_case": "invalid_context_b",
+      "same_terminal_reason": true,
+      "different_observed_input_digest": true,
+      "different_failure_identity_digest": true,
+      "different_result_digest": true
+    },
+    {
+      "section": "outcome_payload",
+      "first_case": "invalid_outcome_a",
+      "second_case": "invalid_outcome_b",
+      "same_terminal_reason": true,
+      "different_observed_input_digest": true,
+      "different_failure_identity_digest": true,
+      "different_result_digest": true
+    }
+  ],
+  "real_outcome_join_performed": false,
+  "external_activity": {
+    "provider_calls": 0,
+    "database_calls": 0,
+    "persistence_writes": 0,
+    "real_outcome_joins": 0
+  }
+}
