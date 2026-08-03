@@ -1,0 +1,84 @@
+{
+  "artifact_version": "action_667n1_diagnostic_context_feature_snapshots_evidence_v1",
+  "canonicalization": "recursive_lexicographic_object_keys_preserve_array_order_v1",
+  "evidence_digest": "5e607b07eda340d4253f424e64534f6639dbb2150ff764fa23ec5b0fa2e906c5",
+  "decision_material": {
+    "action": "667N.1",
+    "base_sha": "ae13c8fbb0e3791edf1a4be1ba7f15aa9ddf7b51",
+    "branch": "codex/action-667n-diagnostic-context-feature-snapshots",
+    "versions": {
+      "contract": "market_context_diagnostic_decision_time_context_feature_snapshot_v1",
+      "envelope": "market_context_diagnostic_context_feature_envelope_v1",
+      "point_in_time_policy": "market_context_diagnostic_context_point_in_time_policy_v1",
+      "trust_root": "market_context_diagnostic_context_trust_root_v1",
+      "fixture_adapter": "market_context_diagnostic_context_fixture_adapter_v1",
+      "instant_parser": "databento_explicit_nanosecond_instant_parser_v1"
+    },
+    "source": {
+      "decision_count": 60,
+      "session_count": 20,
+      "normalized_artifact_count": 303,
+      "replay_artifact_count": 84,
+      "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+      "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "normalized_lineage_digest": "fa874fd4747d16f9e1a03ef22ed4e9fa3be2491d767087372805992ab0ba3d5c",
+      "normalized_manifest_digest": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+      "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "replay_manifest_digest": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+      "replay_core_evidence_digest": "a9fbc4112cbdcf95ad8fd82f29156ed0f3d7625e6421d0b55b4127bd8d0497f3",
+      "source_inventory_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+      "calendar_identity": "market_context_xnys_diagnostic_20_sessions_calendar_bundle_v1",
+      "calendar_digest": "6a9524e041a59f54671c1751362a67ef591b6c23b32a1024d6a9f35901c0cb1d",
+      "aggregate_external_trust_root_digest": "24219facef0cd314e00426a094d5fb8e3282bb5a5900cd95b14f90073418ee9c"
+    },
+    "result": {
+      "snapshot_count": 60,
+      "taxonomy_counts": {
+        "mapped": 31,
+        "insufficient_data": 7,
+        "conflicting": 22,
+        "not_point_in_time_safe": 0
+      },
+      "canonical_result_digest": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "outcomes_joined": false,
+      "normalization_executed": false,
+      "replay_executed": false
+    },
+    "point_in_time": {
+      "future_candle_rejection_tested": true,
+      "future_provider_timestamp_rejection_tested": true,
+      "unfinalized_bucket_rejection_tested": true,
+      "full_day_intraday_aggregation_allowed": false,
+      "forward_fill_allowed": false,
+      "pending_bucket_as_missing_allowed": false,
+      "future_exclusions_bound": true
+    },
+    "determinism": {
+      "utc_run_a": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "utc_run_b": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "stockholm_reverse": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "new_york": "80c2d261a9f1e483426a0d617746bf5699cf25ad8a415c2bc1eadfb9d088fe5f",
+      "byte_identical": true
+    },
+    "boundary": {
+      "diagnostic_only": true,
+      "official_ohlcv": false,
+      "canonical_performance_eligible": false,
+      "causal_claimed": false,
+      "outcome_explanation_claimed": false,
+      "live_ranking_effect": false,
+      "automatic_model_input_allowed": false,
+      "canonical_binding_ready": false
+    },
+    "statuses": {
+      "action_667n1_context_snapshot_contract_implemented": true,
+      "action_667n1_point_in_time_safety_verified": true,
+      "action_667n1_sixty_snapshots_reconciled": true,
+      "action_667n1_cross_timezone_determinism_passed": true,
+      "action_667n1_intelligence_adapter_boundary_ready": true,
+      "canonical_binding_ready": false,
+      "live_ranking_effect": false
+    }
+  }
+}
