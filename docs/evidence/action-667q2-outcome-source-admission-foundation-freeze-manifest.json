@@ -1,0 +1,144 @@
+{
+  "manifest_version": "action_667q2_outcome_source_admission_foundation_freeze_manifest_v1",
+  "freeze_material": {
+    "action": "667Q.2",
+    "baseline": {
+      "branch": "codex/action-667q-diagnostic-outcome-source-admission",
+      "head": "23a393f18ed2f90e980bb3a9b5b5eb4ecbf8b53d",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "0709390a3f064272bacdd753e99a0eb7a59ed9a15c285d99d43b9b4281097fc0",
+      "q1_result_digest": "c0cc040db36e9800a0200c2ae0fe5288de2696b924a212d024703f66fe33e4cd"
+    },
+    "versions": {
+      "contract": "market_context_diagnostic_outcome_source_admission_v1",
+      "registry": "market_context_diagnostic_outcome_source_registry_v1",
+      "authority": "market_context_diagnostic_outcome_source_authority_v1",
+      "material": "market_context_diagnostic_outcome_source_material_v1",
+      "payload": "market_context_diagnostic_outcome_source_payload_v1",
+      "failure_provenance": "market_context_diagnostic_outcome_source_failure_provenance_v1",
+      "verifier": "market_context_diagnostic_outcome_source_verifier_v1",
+      "fixtures": "market_context_diagnostic_outcome_source_fixtures_v1",
+      "golden_evidence": "action_667q1_diagnostic_outcome_source_admission_synthetic_golden_v1",
+      "p2a_capture": "diagnostic_decision_outcome_handoff_capture_v2",
+      "o2a_join": "market_context_diagnostic_context_outcome_join_v2"
+    },
+    "digest_policy": {
+      "individual_algorithm": "sha256(raw_file_bytes)",
+      "combined_algorithm": "sha256(JSON.stringify(path_sorted_array_of_path_sha256_and_size_bytes))",
+      "freeze_algorithm": "sha256(canonical_key_sorted_json(freeze_material))",
+      "digest_checkpoints": [
+        "before_regression",
+        "after_regression",
+        "after_independent_review"
+      ]
+    },
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667q1-diagnostic-outcome-source-admission.md",
+        "artifact_type": "contract_documentation",
+        "version": "market_context_diagnostic_outcome_source_admission_v1",
+        "sha256": "76ee581236aac12861e782d63d885b04e12fc77b75b75ac88625536a2a417e28",
+        "size_bytes": 4586,
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "docs/evidence/action-667q1-diagnostic-outcome-source-admission-synthetic-golden.json",
+        "artifact_type": "synthetic_golden_evidence",
+        "version": "action_667q1_diagnostic_outcome_source_admission_synthetic_golden_v1",
+        "sha256": "75bc6a8a94911f061ed2241ab6f7616d5664ca1ba81dc14524baf96656f31206",
+        "size_bytes": 1679,
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-outcome-source-admission-fixtures-v1.ts",
+        "artifact_type": "synthetic_fixtures",
+        "version": "market_context_diagnostic_outcome_source_fixtures_v1",
+        "sha256": "020ffa89ba9a7d1d13d56033cef0ad2d6c58a44c21fc6a5f6b870e750bca6527",
+        "size_bytes": 19824,
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-outcome-source-admission-v1.ts",
+        "artifact_type": "contract_implementation",
+        "version": "market_context_diagnostic_outcome_source_admission_v1",
+        "sha256": "5a85e16815bcc1af50144bba6d97cf913ef938ea30d5a318c20177ea610adf57",
+        "size_bytes": 46024,
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "tests/e2e/action-667q1-diagnostic-outcome-source-admission.spec.ts",
+        "artifact_type": "focused_regression_tests",
+        "version": "action_667q1_focused_regression_v1",
+        "sha256": "d8904ff3f6a84d9c28911f853e498852ab443af2aa9c0d8709c4f32db88d56f6",
+        "size_bytes": 19548,
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      }
+    ],
+    "golden_matrix": {
+      "synthetic_only": true,
+      "case_count": 12,
+      "taxonomy_counts": {
+        "ready": 1,
+        "incomplete": 3,
+        "conflicting": 7,
+        "not_point_in_time_safe": 1,
+        "unmappable": 0
+      },
+      "result_digest": "c0cc040db36e9800a0200c2ae0fe5288de2696b924a212d024703f66fe33e4cd",
+      "p2a_capture_taxonomy": "captured",
+      "o2a_join_taxonomy": "joined"
+    },
+    "safety_boundary": {
+      "default_off_zero_work": true,
+      "kill_switch_zero_work": true,
+      "read_only": true,
+      "diagnostic_only": true,
+      "shadow_only": true,
+      "official_ohlcv": false,
+      "canonical_performance_eligible": false,
+      "automatic_model_input_allowed": false,
+      "automatic_training_allowed": false,
+      "automatic_promotion_allowed": false,
+      "probability_claimed": false,
+      "causal_claimed": false,
+      "live_ranking_effect": false,
+      "real_outcome_source_accessed": false,
+      "real_outcome_capture_performed": false,
+      "real_outcome_join_performed": false
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e"
+      },
+      "replay": {
+        "artifact_count": 84,
+        "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1"
+      }
+    },
+    "self_excluded_artifacts": [
+      "docs/evidence/action-667q2-outcome-source-admission-foundation-freeze-manifest.json",
+      "docs/evidence/action-667q2-outcome-source-admission-foundation-independent-review.json"
+    ],
+    "freeze_policy": {
+      "normative_bytes_mutable_in_action_667q2": false,
+      "findings_remediated_in_action_667q2": false,
+      "freeze_and_review_artifacts_in_normative_digest": false,
+      "provider_database_or_persistence_activity_performed": false,
+      "real_outcome_source_accessed": false,
+      "real_outcome_capture_or_join_performed": false,
+      "commit_push_pr_or_deploy_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "freeze_digest": "6a7b3f06634da198fabe40c4600ef91dfea80395bc92941e781befbd9df78db8"
+}
