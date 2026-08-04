@@ -1,0 +1,245 @@
+{
+  "review_version": "action_667p2_outcome_handoff_foundation_independent_review_v1",
+  "review_material": {
+    "action": "667P.2",
+    "review_mode": "independent_read_only_no_remediation",
+    "baseline": {
+      "branch": "codex/action-667p-diagnostic-outcome-handoff-capture",
+      "head": "c2eeb9ef249a274e1cc8a7f92c9a5894c2951436",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c",
+      "freeze_manifest_version": "action_667p2_outcome_handoff_foundation_freeze_manifest_v1",
+      "freeze_digest": "041a1739c84a3ef6ee4ab7e7fb587229162eaf5f0b82c5d964a922589a7f6ffe"
+    },
+    "digest_checkpoints": {
+      "before_regression": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c",
+      "after_regression": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c",
+      "after_independent_review": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c"
+    },
+    "review_dimensions": [
+      {
+        "dimension": "externally_owned_registry_anchor",
+        "status": "verified",
+        "evidence": "The public request has a closed schema without roots, payloads or verification outcomes; the dependency-injected anchor is checked against the registry identity, version and digest."
+      },
+      {
+        "dimension": "verified_registry_snapshot_immutability",
+        "status": "major_finding",
+        "evidence": "The registry returned by read_registry is validated in place and then reused after read_source callbacks without an immutable clone, freeze or post-read digest revalidation."
+      },
+      {
+        "dimension": "source_namespace_binding",
+        "status": "verified",
+        "evidence": "Decision, opportunity-set, evaluator/outcome, provider/context and cost/slippage namespaces have closed registry entries with identity, schema, payload digest and verifier metadata."
+      },
+      {
+        "dimension": "capture_identity_and_lineage",
+        "status": "verified",
+        "evidence": "Captured output binds capture identity/version, period, cohort, decision, complete membership, evaluator/outcome, provider/cost lineage, registry/root and full digests."
+      },
+      {
+        "dimension": "failure_identity",
+        "status": "verified",
+        "evidence": "Observed sanitized input digests, dispositions, expected bindings and sorted reasons enter failure and terminal identities; equal reasons with distinct rejected bytes produce distinct digests."
+      },
+      {
+        "dimension": "nanosecond_temporal_separation",
+        "status": "verified",
+        "evidence": "Strict explicit-instant parsing and bigint comparison enforce decision before outcome interval, completion and capture, with finalized decision context bounded separately."
+      },
+      {
+        "dimension": "predictor_outcome_separation",
+        "status": "verified",
+        "evidence": "Outcome values are emitted only in the outcome handoff; O.2A independently constructs separate predictor and label projections."
+      },
+      {
+        "dimension": "o2a_interoperability",
+        "status": "verified",
+        "evidence": "The valid synthetic P.1 handoff reaches exactly one O.2A joined result; all non-captured taxonomies have a null bundle and cannot supply a verified outcome handoff."
+      },
+      {
+        "dimension": "default_off_and_kill_switch",
+        "status": "verified",
+        "evidence": "Both branches return frozen precomputed sentinels before request inspection, registry/source lookup, cloning, construction, per-call digesting or O.2A execution."
+      },
+      {
+        "dimension": "diagnostic_safety_markers",
+        "status": "verified",
+        "evidence": "All terminal outputs preserve diagnostic/shadow-only status and prohibit canonical performance, automatic model/training/promotion, causality and live ranking."
+      },
+      {
+        "dimension": "synthetic_only_evidence",
+        "status": "verified",
+        "evidence": "Golden fixtures and interop are synthetic; no real outcome capture, provider access, database access or persistence occurred."
+      }
+    ],
+    "closed_threat_matrix": [
+      {
+        "threat_id": "P2-T001",
+        "threat": "Caller supplies registry root or verification status",
+        "expected": "fail_closed_before_authority_use",
+        "observed": "closed_request_schema_rejects_unknown_fields",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T002",
+        "threat": "Self-consistent static registry replacement",
+        "expected": "anchor_mismatch",
+        "observed": "source_registry_anchor_mismatch",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T003",
+        "threat": "Authority mutates the already verified registry during source lookup",
+        "expected": "mutation_rejected_against_original_registry_digest",
+        "observed": "captured_with_mutated_decision_payload_under_original_registry_digest",
+        "status": "failed_major"
+      },
+      {
+        "threat_id": "P2-T004",
+        "threat": "Source identity is not registered",
+        "expected": "unmappable",
+        "observed": "unmappable",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T005",
+        "threat": "Different invalid payloads share taxonomy and reason",
+        "expected": "distinct_failure_and_terminal_digests",
+        "observed": "distinct_failure_and_terminal_digests",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T006",
+        "threat": "Duplicate capture or decision identity",
+        "expected": "conflicting",
+        "observed": "conflicting_with_explicit_collision_reason",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T007",
+        "threat": "Outcome or provider observation violates nanosecond ordering",
+        "expected": "not_point_in_time_safe",
+        "observed": "not_point_in_time_safe",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T008",
+        "threat": "Incomplete membership or pending completion",
+        "expected": "incomplete_without_bundle",
+        "observed": "incomplete_without_bundle",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T009",
+        "threat": "Non-captured result is presented to O.2A",
+        "expected": "never_joined",
+        "observed": "no_bundle_and_o2a_rejection",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T010",
+        "threat": "Default-off or kill-switch input attempts reads or enumeration",
+        "expected": "zero_work_frozen_sentinel",
+        "observed": "zero_work_frozen_sentinel",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T011",
+        "threat": "Reverse input order or timezone changes canonical result",
+        "expected": "byte_identical",
+        "observed": "byte_identical",
+        "status": "passed"
+      },
+      {
+        "threat_id": "P2-T012",
+        "threat": "Action 665/666 or live/provider/database implementation import",
+        "expected": "absent",
+        "observed": "absent",
+        "status": "passed"
+      }
+    ],
+    "findings": {
+      "blocker": [],
+      "major": [
+        {
+          "finding_id": "P2-001",
+          "title": "Verified registry remains mutable across authority callbacks",
+          "impact": "A mutable authority can alter registry source identities or payload digests after the initial digest/anchor check. The changed payload can then be captured while the bundle still claims the original trusted registry digest.",
+          "reproduction": {
+            "mode": "read_only_clean_room_runtime_probe",
+            "initial_registry_anchor_match": true,
+            "mutation_point": "first read_source callback after registry validation",
+            "terminal_taxonomy": "captured",
+            "accepted_mutated_decision_payload": true,
+            "bundle_registry_digest_remained_original": true
+          },
+          "required_future_remediation": "Snapshot and deep-freeze the verified registry before any source callback, or independently rebuild and revalidate the exact registry material after all reads before constructing a bundle. Add a negative TOCTOU regression.",
+          "remediated_in_action_667p2": false
+        }
+      ],
+      "minor": [],
+      "nit": []
+    },
+    "regression": {
+      "p1_focused": {
+        "passed": 17,
+        "failed": 0
+      },
+      "relevant_c_e_k_through_p1": {
+        "passed": 315,
+        "failed": 0
+      },
+      "cross_timezone_and_reverse_order": "passed",
+      "typescript": "passed",
+      "scoped_eslint": {
+        "status": "passed",
+        "warnings": 0
+      },
+      "json_evidence_parity": "passed",
+      "git_diff_check": "passed",
+      "security_import_dependency_scan": "passed",
+      "production_compilation": {
+        "webpack_compilation": "passed",
+        "full_build": "failed_on_preexisting_out_of_scope_route_export",
+        "out_of_scope_path": "app/api/hb307c/ping/route.ts",
+        "reason": "hb307cCanaryRouteBuildMarker is not a valid Next.js Route export",
+        "p1_or_p2_scope_caused_failure": false
+      }
+    },
+    "external_roots": {
+      "normalized": {
+        "artifact_count": 303,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+        "output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+        "verified_unchanged": true
+      },
+      "replay": {
+        "artifact_count": 84,
+        "root_mode": "0700",
+        "file_permission_drift_count": 0,
+        "symlink_count": 0,
+        "manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+        "output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+        "verified_unchanged": true
+      }
+    },
+    "decisions": {
+      "action_667p2_outcome_handoff_foundation_frozen": true,
+      "action_667p2_external_source_authority_verified": false,
+      "action_667p2_temporal_capture_boundary_verified": true,
+      "action_667p2_failure_identity_verified": true,
+      "action_667p2_o2a_interop_verified": true,
+      "action_667p2_independent_review_approved": false,
+      "action_667p2_local_checkpoint_ready": false,
+      "action_667p2_real_outcome_capture_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "review_evidence_digest": "6f55d2d68a89a7392128a5d1068a228871b21bd04896022afbe73dd909f754c3"
+}

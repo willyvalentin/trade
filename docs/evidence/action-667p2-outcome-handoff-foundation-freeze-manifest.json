@@ -1,0 +1,79 @@
+{
+  "manifest_version": "action_667p2_outcome_handoff_foundation_freeze_manifest_v1",
+  "freeze_material": {
+    "action": "667P.2",
+    "baseline": {
+      "branch": "codex/action-667p-diagnostic-outcome-handoff-capture",
+      "head": "c2eeb9ef249a274e1cc8a7f92c9a5894c2951436",
+      "normative_artifact_count": 5,
+      "normative_combined_digest": "6c35f680f75b8ebe59281215745cf52c8f0234d2e1b8d5a76225452054cde74c"
+    },
+    "digest_policy": {
+      "individual_algorithm": "sha256(raw_file_bytes)",
+      "combined_algorithm": "sha256(JSON.stringify(path_sorted_array_of_path_and_sha256))",
+      "freeze_algorithm": "sha256(canonical_key_sorted_json(freeze_material))",
+      "digest_checkpoints": [
+        "before_regression",
+        "after_regression",
+        "after_independent_review"
+      ]
+    },
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667p1-diagnostic-outcome-handoff-capture-foundation.md",
+        "artifact_type": "contract_documentation",
+        "version": "diagnostic_decision_outcome_handoff_capture_v1",
+        "sha256": "9c29d4a946274354a269e2b063ea6b622f1e06a5733d7712eb057c268f63c3f4",
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "docs/evidence/action-667p1-diagnostic-outcome-handoff-capture-synthetic-golden.json",
+        "artifact_type": "synthetic_golden_evidence",
+        "version": "action_667p1_diagnostic_outcome_handoff_capture_synthetic_golden_v1",
+        "sha256": "dffae61664faf01a2fc6b111854b087d64d78368129087a248e9918dcf4fb99f",
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-decision-outcome-handoff-capture-fixtures-v1.ts",
+        "artifact_type": "synthetic_fixtures",
+        "version": "diagnostic_decision_outcome_capture_synthetic_fixtures_v1",
+        "sha256": "96403293749390dda13365a97d1b87648ba3ed4611ec3ac574fccdb3c4fc5961",
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/diagnostic-decision-outcome-handoff-capture-v1.ts",
+        "artifact_type": "contract_implementation",
+        "version": "diagnostic_decision_outcome_handoff_capture_v1",
+        "sha256": "9c6b3903ebaa86454d22e6cee52e5423edbad88f8f3f02039de33d4cdcb9a1bb",
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      },
+      {
+        "path": "tests/e2e/action-667p1-diagnostic-outcome-handoff-capture.spec.ts",
+        "artifact_type": "focused_regression_tests",
+        "version": "action_667p1_focused_regression_v1",
+        "sha256": "954e807bbcb8dc93aaafbc8129cac50a4c0445945a56975d68326160644a4a92",
+        "git_status_at_freeze": "untracked",
+        "classification": "normative"
+      }
+    ],
+    "self_excluded_artifacts": [
+      "docs/evidence/action-667p2-outcome-handoff-foundation-freeze-manifest.json",
+      "docs/evidence/action-667p2-outcome-handoff-foundation-independent-review.json"
+    ],
+    "freeze_policy": {
+      "normative_bytes_mutable_in_action_667p2": false,
+      "findings_remediated_in_action_667p2": false,
+      "real_outcome_capture_performed": false,
+      "provider_or_database_activity_performed": false,
+      "persistence_or_deploy_performed": false,
+      "canonical_binding_ready": false,
+      "automatic_model_input_allowed": false,
+      "live_ranking_effect": false
+    }
+  },
+  "freeze_digest": "041a1739c84a3ef6ee4ab7e7fb587229162eaf5f0b82c5d964a922589a7f6ffe"
+}
