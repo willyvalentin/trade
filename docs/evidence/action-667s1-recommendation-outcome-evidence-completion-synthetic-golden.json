@@ -1,0 +1,37 @@
+{
+  "action": "667S.1",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_completion_fixtures_v1",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "real_outcome_capture_performed": false,
+  "real_outcome_join_performed": false,
+  "original_gap_count": 18,
+  "case_count": 27,
+  "matrix_digest": "f32ba8d9dd652adfc1dd600b0dd3bab430e75b2d1a5691a2912f4830ed0a2189",
+  "taxonomy_counts": {
+    "completed": 1,
+    "incomplete": 22,
+    "conflicting": 3,
+    "not_point_in_time_safe": 1,
+    "unmappable": 0
+  },
+  "interop": {
+    "completion_taxonomy": "completed",
+    "projection_taxonomy": "bindable",
+    "q1_admission_taxonomy": "ready",
+    "p2a_capture_taxonomy": "captured",
+    "o2a_join_taxonomy": "joined"
+  },
+  "boundaries": {
+    "diagnostic_only": true,
+    "shadow_only": true,
+    "read_only": true,
+    "canonical_performance_eligible": false,
+    "automatic_model_input_allowed": false,
+    "automatic_training_allowed": false,
+    "automatic_promotion_allowed": false,
+    "causal_claimed": false,
+    "live_ranking_effect": false
+  }
+}

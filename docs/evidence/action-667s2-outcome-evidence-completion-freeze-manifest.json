@@ -1,0 +1,87 @@
+{
+  "action": "667S.2",
+  "manifest_version": "repository_owned_outcome_evidence_completion_freeze_manifest_v1",
+  "base_commit": "7642cbb0c5bd1b43ff558303e1259e82f2516837",
+  "branch": "codex/action-667s-recommendation-outcome-evidence-completion",
+  "normative_artifact_count": 5,
+  "normative_inventory_digest": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+  "golden_matrix_cross_timezone_digest": "f32ba8d9dd652adfc1dd600b0dd3bab430e75b2d1a5691a2912f4830ed0a2189",
+  "normative_artifacts": [
+    {
+      "path": "docs/action-667s1-recommendation-outcome-evidence-completion.md",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+      "sha256": "ada186c35b4b74105de3c9e74155dd46950d28dbca286df4dd5c23632202aad9",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667s1-recommendation-outcome-evidence-completion-synthetic-golden.json",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+      "sha256": "b49a27289341dd0fd6708677690479921970e7ae1da64d10ca1ba647912a3715",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-completion-fixtures-v1.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_completion_fixtures_v1",
+      "sha256": "f8607aa06cd795b17a61a277c05f67b7a75f095dfaf1c7de20115a33d89945a2",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-completion-v1.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+      "sha256": "2bd493c56cf5982af2cd2d28d7efc76252e0e7b6e79f477dfd06d8a57a9c5a86",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-667s1-recommendation-outcome-evidence-completion.spec.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_completion_v1",
+      "sha256": "738b4404b72fb5605634964a4f2bcf0ecb0e7e8b2cf79700684d114c5d3a4729",
+      "git_status_at_freeze": "untracked"
+    }
+  ],
+  "closed_taxonomy": [
+    "completed",
+    "incomplete",
+    "conflicting",
+    "not_point_in_time_safe",
+    "unmappable"
+  ],
+  "original_not_bindable_gap_count": 18,
+  "synthetic_matrix": {
+    "scenario_count": 27,
+    "completed": 1,
+    "incomplete": 22,
+    "conflicting": 3,
+    "not_point_in_time_safe": 1,
+    "unmappable": 0,
+    "interop": "S.1 completed -> R.2 bindable -> Q.1 ready -> P.2A captured -> O.2A joined"
+  },
+  "external_roots": {
+    "normalized_artifact_count": 303,
+    "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+    "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+    "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+    "replay_artifact_count": 84,
+    "replay_manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+    "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+    "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1"
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667s2-outcome-evidence-completion-freeze-manifest.json",
+    "docs/evidence/action-667s2-outcome-evidence-completion-independent-review.json",
+    "tests/e2e/action-667s2-outcome-evidence-completion-adversarial-review.spec.ts"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "2c12653bfc3a40cf6aff3e95e11014fef1351067f6b20c84b9888a4fb988ec55"
+}

@@ -1,0 +1,146 @@
+{
+  "action": "667S.2",
+  "review_version": "repository_owned_outcome_evidence_completion_independent_review_v1",
+  "review_mode": "read_only_no_remediation",
+  "base_commit": "7642cbb0c5bd1b43ff558303e1259e82f2516837",
+  "normative_artifact_count": 5,
+  "normative_digest_before_regression": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+  "normative_digest_after_regression": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+  "normative_digest_after_review": "c5d969e48029539109b7f4cf0e7ca39ebc573d0572e9b3d11c897717cab52e99",
+  "golden_matrix_cross_timezone_digest": "f32ba8d9dd652adfc1dd600b0dd3bab430e75b2d1a5691a2912f4830ed0a2189",
+  "freeze": {
+    "manifest_path": "docs/evidence/action-667s2-outcome-evidence-completion-freeze-manifest.json",
+    "freeze_digest": "2c12653bfc3a40cf6aff3e95e11014fef1351067f6b20c84b9888a4fb988ec55",
+    "normative_bytes_preserved": true,
+    "self_excluded": true
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 3,
+    "minor": 1,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "id": "S2-001",
+      "severity": "major",
+      "title": "External authority anchor is not snapshotted before the authority callback",
+      "evidence": [
+        "The callback is invoked exactly once.",
+        "A valid but untrusted anchor present at entry can be replaced inside read_completion_material and the result is accepted as completed.",
+        "A hostile expected_registry_anchor proxy throws before the sanitized authority-read boundary."
+      ],
+      "impact": "The completed decision can depend on mutable post-entry authority bytes instead of one immutable externally owned authority snapshot.",
+      "test": "tests/e2e/action-667s2-outcome-evidence-completion-adversarial-review.spec.ts:S2-001",
+      "remediation_performed": false
+    },
+    {
+      "id": "S2-002",
+      "severity": "major",
+      "title": "Canonicalization has no structural depth or size bound",
+      "evidence": [
+        "A 25000-level request structure raises an uncaught recursion error instead of a deterministic fail-closed result.",
+        "Cycles, ordinary accessors and hostile observed-material proxies are otherwise sanitized."
+      ],
+      "impact": "Extreme caller-controlled structures can escape the contract boundary and create an availability failure.",
+      "test": "tests/e2e/action-667s2-outcome-evidence-completion-adversarial-review.spec.ts:S2-002",
+      "remediation_performed": false
+    },
+    {
+      "id": "S2-003",
+      "severity": "major",
+      "title": "Semantically identical reordered gap closures drift the completed result digest",
+      "evidence": [
+        "Canonical and reversed closure arrays both return completed.",
+        "Both close the same exact 18 gap codes.",
+        "Their result_digest values differ."
+      ],
+      "impact": "The contract does not provide byte-identical input-order determinism for the 18-closure evidence set.",
+      "test": "tests/e2e/action-667s2-outcome-evidence-completion-adversarial-review.spec.ts:S2-003",
+      "remediation_performed": false
+    },
+    {
+      "id": "S2-004",
+      "severity": "minor",
+      "title": "Early registry rejection labels nested observed row and bundle sections absent",
+      "evidence": [
+        "The verified completion_material digest still binds the nested bytes.",
+        "The repository_row and evidence_bundle provenance sections remain disposition absent when an invalid registry stops parsing."
+      ],
+      "impact": "Failure identities remain input-distinct through the material digest, but per-section forensic disposition is less precise than the observed input.",
+      "test": "tests/e2e/action-667s2-outcome-evidence-completion-adversarial-review.spec.ts:S2-004",
+      "remediation_performed": false
+    }
+  ],
+  "verified_boundaries": {
+    "exact_eighteen_gap_closure_required": true,
+    "repository_row_inference_absent": true,
+    "single_authority_callback_read": true,
+    "immutable_authority_anchor_snapshot": false,
+    "only_verified_authority_snapshot_bytes_downstream": false,
+    "recursive_caller_claim_rejection": true,
+    "nanosecond_temporal_finality": true,
+    "opportunity_membership_binding": true,
+    "model_evaluator_outcome_explanation_lineage_binding": true,
+    "completeness_finality_and_digest_binding": true,
+    "different_invalid_observations_have_unique_failure_digests": true,
+    "duplicate_missing_extra_conflicting_closures_fail_closed": true,
+    "reordered_closures_byte_identical": false,
+    "self_consistent_digest_authority_membership_lineage_tampering_rejected": true,
+    "post_verification_mutation_rejected": true,
+    "accessor_proxy_cycle_handling_fail_closed": true,
+    "extreme_structure_handling_fail_closed": false,
+    "default_off_and_kill_switch_zero_work": true,
+    "completed_r2_q1_p2a_o2a_interop": true,
+    "non_completed_stops_before_r2": true
+  },
+  "regression": {
+    "s1_focused": "20/20 passed",
+    "s2_adversarial": "10/10 passed with finding reproduction assertions",
+    "relevant_667": "405/405 passed",
+    "cross_timezone": "UTC A/B, Europe/Stockholm reverse and America/New_York byte-identical for normative golden matrix",
+    "typescript": "passed after generated build types were removed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "diff_whitespace_security_import_dependency_scans": "passed",
+    "production_compilation": "S.1/S.2 scope compiled successfully before the known route export type failure",
+    "production_build_baseline": {
+      "classification": "scope_external_preexisting_baseline",
+      "path": "app/api/hb307c/ping/route.ts",
+      "head_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "base_sha256": "1c25466c151a3d579ae0c4f3eddeec4ca4f99d47779f912a3762e7ee532ef857",
+      "head_error": "hb307cCanaryRouteBuildMarker is not a valid Route export field",
+      "base_error": "hb307cCanaryRouteBuildMarker is not a valid Route export field"
+    }
+  },
+  "external_roots": {
+    "normalized": {
+      "artifact_count": 303,
+      "tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+      "permissions": "0700 directories and 0600 files",
+      "symlinks": 0,
+      "verified": true
+    },
+    "replay": {
+      "artifact_count": 84,
+      "tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+      "permissions": "0700 directories and 0600 files",
+      "symlinks": 0,
+      "verified": true
+    }
+  },
+  "decision": {
+    "foundation_frozen": true,
+    "independent_review_approved": false,
+    "local_checkpoint_ready": false,
+    "reason": "Three unresolved major findings; no remediation is permitted in Action 667S.2."
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "e8f93db596e7503f7665ca19a33647e8d80c0eb9992232ecea5cce8db6929bc6"
+}
