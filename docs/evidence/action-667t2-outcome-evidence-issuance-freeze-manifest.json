@@ -1,0 +1,97 @@
+{
+  "action": "667T.2",
+  "manifest_version": "repository_owned_recommendation_outcome_evidence_issuance_freeze_manifest_v1",
+  "base_commit": "49801613eba3f4ef850d7eae89b1e2cf48d8bd0d",
+  "branch": "codex/action-667t-recommendation-outcome-evidence-issuance",
+  "normative_artifact_count": 5,
+  "normative_inventory_digest": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+  "golden_matrix_cross_timezone_digest": "1d087e920af0b0bf141fc3aeddbe488956d72fa3e30b53f6519439b99cf9ce9a",
+  "digest_checkpoints": {
+    "before_regression": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "after_regression": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "after_independent_review": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7"
+  },
+  "normative_artifacts": [
+    {
+      "path": "docs/action-667t1-recommendation-outcome-evidence-issuance.md",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+      "sha256": "ee5ab2baa333867a59292c1b1780113707efd7b53ee68313dffc9d96aeda72e5",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "docs/evidence/action-667t1-recommendation-outcome-evidence-issuance-synthetic-golden.json",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v1",
+      "sha256": "bd132dad2edec66414443c96601db71b0c42c97ece3558ca25a0a179dd7c45eb",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-fixtures-v1.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v1",
+      "sha256": "824d4577a0cc685f46d76ca6564ad3948c6c9e6ad7550ee97867f379e422d65e",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-v1.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+      "sha256": "cd32b719a7ad40237d17db281902a12bfdb417683ff2474af076be25a2a4496f",
+      "git_status_at_freeze": "untracked"
+    },
+    {
+      "path": "tests/e2e/action-667t1-recommendation-outcome-evidence-issuance.spec.ts",
+      "classification": "normative_current",
+      "version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+      "sha256": "5bcb713b1b2cc5f6727183bb2c6cab3c63bb45e9f5e3a1a217a8aa9fc305862d",
+      "git_status_at_freeze": "untracked"
+    }
+  ],
+  "contract": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+    "authority_version": "repository_owned_recommendation_outcome_evidence_issuer_authority_v1",
+    "registry_version": "repository_owned_recommendation_outcome_evidence_issuer_registry_v1",
+    "envelope_version": "repository_owned_recommendation_outcome_evidence_issuance_envelope_v1",
+    "closed_taxonomy": [
+      "issued",
+      "incomplete",
+      "conflicting",
+      "not_point_in_time_safe",
+      "unmappable"
+    ],
+    "gap_evidence_count": 18
+  },
+  "synthetic_matrix": {
+    "scenario_count": 12,
+    "issued": 2,
+    "incomplete": 3,
+    "conflicting": 5,
+    "not_point_in_time_safe": 1,
+    "unmappable": 1,
+    "interop": "T.1 issued -> S.2A completed -> R.2 bindable -> Q.1 ready -> P.2A captured -> O.2A joined"
+  },
+  "external_roots": {
+    "normalized_artifact_count": 303,
+    "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+    "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+    "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+    "replay_artifact_count": 84,
+    "replay_manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+    "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+    "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1"
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667t2-outcome-evidence-issuance-freeze-manifest.json",
+    "docs/evidence/action-667t2-outcome-evidence-issuance-independent-review.json"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "fab388916f6960d66a75c12f60d87b57ea2fcb60e336bfbeaf9270497c434822"
+}

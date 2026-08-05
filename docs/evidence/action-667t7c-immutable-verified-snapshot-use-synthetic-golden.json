@@ -1,0 +1,244 @@
+{
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v4",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v4",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "scenario_count": 12,
+  "taxonomy_counts": {
+    "issued": 2,
+    "incomplete": 4,
+    "conflicting": 2,
+    "not_point_in_time_safe": 1,
+    "unmappable": 3
+  },
+  "scenarios": [
+    {
+      "id": "conflicting_duplicate_closure",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "pre_downstream_gap_closure_set_digest_mismatch"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "a4ec3d5dceec71a0d43882934fdf7b60800f48754678725ee76cc05afd9e6f6c",
+      "snapshot_bundle_digest": "a3e99abf71a272b00615d31110db2ad81090f6a643cc9fa736c646b1267df355",
+      "result_digest": "f3f9b136b9b6b1c0a2725f5577f002e58d3226ef03be14e1838c0e461e17ec3f"
+    },
+    {
+      "id": "conflicting_trust_root",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "issuer_registry_digest_mismatch",
+        "trust_root_digest_mismatch"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "665fa36095633f1e4fe6767edf5c48bc582dc1e2055a374bbd5550acae90f417",
+      "snapshot_bundle_digest": "b34489399ff04d76e30add50e5bcfb115e7112a619fba65ff8d769b5f52e3f68",
+      "result_digest": "413a3e307c85e68b139826c0519f6ff342c6a11a828fef56ee4758d763229aae"
+    },
+    {
+      "id": "default_off",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "issuance_v4_default_off"
+      ],
+      "request_snapshot_count": 0,
+      "authority_snapshot_count": 0,
+      "caller_material_read_count": 0,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "58ac5090efa1236b322bf1eeedb7c2d4377f377e48a7448ab3f2c13667b9c2ad",
+      "snapshot_bundle_digest": "fb1ff9b72731d2a01466df20dfb0676a99deab4e33daebf543edad9ff25794c9",
+      "result_digest": "5d26bc17cf933d15ebd097ea3be84cbb28ece1d3cb53019e86461518f1499be0"
+    },
+    {
+      "id": "incomplete_material_lookup_failure",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "issuance_material_lookup_failed_sanitized"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "3d2b0a85df8eccdb47117477f9271037ced472ab11e771d80a575cff00610e37",
+      "snapshot_bundle_digest": "fbcb911823aede4c117c21a18ed1f6fa991429021c59394947118c1bb0d3da53",
+      "result_digest": "2f6c7db7e42a98bd5c8837da308acb855be9d331270de14b392bc222416b7cfa"
+    },
+    {
+      "id": "incomplete_missing_closure",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "all_eighteen_gap_closures_required"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "951e5c90bf02be5b3d8ea213b99275c5a0452cf14ce43d120eb16adf36206b85",
+      "snapshot_bundle_digest": "0bf948d8d2933a7c8d1d7138f1593865303710328e1d60060685c281ac7e4f65",
+      "result_digest": "8137329a5993e58ea84e16b0f9cf3d95e230de12c664cdd9d09622f0f70ccc61"
+    },
+    {
+      "id": "issued_t7b_001_mutating_callback",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": true,
+      "s2a_called": true,
+      "downstream_digest_work": true,
+      "downstream_steps": [
+        "s2a_request_constructed",
+        "s2a_called",
+        "s2a_result_digest_bound"
+      ],
+      "failure_identity_digest": null,
+      "snapshot_bundle_digest": "d1bd75baf4793f2414d3f73d6d0a182378edfb5cc9f18d9dbd73b6d0e9647ffb",
+      "result_digest": "8f5d74ee1d547896f908e7945ee5f3d77a049a264728ab928403f4bb509e6246"
+    },
+    {
+      "id": "issued_valid",
+      "taxonomy": "issued",
+      "reason_codes": [],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": true,
+      "s2a_called": true,
+      "downstream_digest_work": true,
+      "downstream_steps": [
+        "s2a_request_constructed",
+        "s2a_called",
+        "s2a_result_digest_bound"
+      ],
+      "failure_identity_digest": null,
+      "snapshot_bundle_digest": "d1bd75baf4793f2414d3f73d6d0a182378edfb5cc9f18d9dbd73b6d0e9647ffb",
+      "result_digest": "8f5d74ee1d547896f908e7945ee5f3d77a049a264728ab928403f4bb509e6246"
+    },
+    {
+      "id": "kill_switch",
+      "taxonomy": "incomplete",
+      "reason_codes": [
+        "issuance_v4_kill_switch_active"
+      ],
+      "request_snapshot_count": 0,
+      "authority_snapshot_count": 0,
+      "caller_material_read_count": 0,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "90b551f3b3546ed38ff0a60026cb19300a8a8b293a85e895b8515cec1a0c1a10",
+      "snapshot_bundle_digest": "fb1ff9b72731d2a01466df20dfb0676a99deab4e33daebf543edad9ff25794c9",
+      "result_digest": "ea7243cd1edb12b2d7fde623a48054d3c78f693be2f3095a7b1cefb3a14d211e"
+    },
+    {
+      "id": "not_point_in_time_safe_temporal",
+      "taxonomy": "not_point_in_time_safe",
+      "reason_codes": [
+        "completion_evidence_temporal_order_invalid"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "a947c886bcfd7fb1202e8b128693e7c7b69064e1d41e2eac1ace3c770a818485",
+      "snapshot_bundle_digest": "783c2fef54e3f0d884bf9f9e3a150e2ce0a38d19c60858baaf50269e466bb89a",
+      "result_digest": "6fac479138b40a7d1deb10c32b6e007a8fdf4b4a83497839b17a35b470e91046"
+    },
+    {
+      "id": "unmappable_extra_request_field",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "issuance_request:closed_schema_violation"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 0,
+      "caller_material_read_count": 0,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "0cba06a40f3aecd6c5776df9a68c463c26d0c31007d84cd5044e734bb622f650",
+      "snapshot_bundle_digest": "30fee41895314c34ac15a93f2479a45296236f8a45e4b3c1e979705c1f1a39d6",
+      "result_digest": "4f4a43ff82438206d002070db4f3b6ea4ec2b374c8f95a8d68b1fb8006d4ccf5"
+    },
+    {
+      "id": "unmappable_missing_repository_row",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "completion_material:closed_schema_violation"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "01850119810a936d40a24fca9fee59c3c46cd377e06e4f18723fc6691ed8f81a",
+      "snapshot_bundle_digest": "9547c7ee1f81354cb71083cee9720f6313cd7982b883270d2c7d54d1dcbaa807",
+      "result_digest": "10492eb6e5953dac04fdd8fe88c47ccd48dcd56fbfc284990a12fbd124ab98d0"
+    },
+    {
+      "id": "unmappable_t7_001_extra_completion_field",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "completion_material:closed_schema_violation"
+      ],
+      "request_snapshot_count": 1,
+      "authority_snapshot_count": 1,
+      "caller_material_read_count": 1,
+      "caller_input_reread_count": 0,
+      "s2a_request_constructed": false,
+      "s2a_called": false,
+      "downstream_digest_work": false,
+      "downstream_steps": [],
+      "failure_identity_digest": "ddc1e18448ae26f34d19c033a16e9390383694a1157781ee6c950751a5087e78",
+      "snapshot_bundle_digest": "0eaa153171ee60f053504dd7ac7efdaba499c1ed099fff5ff67d80dfdfc158f7",
+      "result_digest": "41214a79253ce009367c4411dc92583d96ff0d87a7ba351a695f9ed9ab61a4c3"
+    }
+  ],
+  "t7b_001_predecessor_reproduction": {
+    "predecessor_version": "repository_owned_recommendation_outcome_evidence_issuance_v3",
+    "downstream_steps": [],
+    "caller_material_reads": 1,
+    "sanitized_error": "v3_pre_admission_diverged_from_s2a_sanitized"
+  },
+  "result_digest": "9bb04da67d29229dabdd49b0f181cea0900924e560fc266b2620d5e30af9ce7d"
+}

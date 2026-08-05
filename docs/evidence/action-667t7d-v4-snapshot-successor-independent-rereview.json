@@ -1,0 +1,162 @@
+{
+  "action": "667T.7D",
+  "review_version": "repository_owned_recommendation_outcome_evidence_issuance_v4_snapshot_successor_independent_rereview_v1",
+  "review_mode": "separate_clean_room_no_remediation",
+  "baseline": {
+    "preservation_ref": "refs/codex-preservation/action-667t7c-immutable-snapshot-use",
+    "preservation_commit": "d51a4c73f18da84d58c22668da4d8e42372a3e0e",
+    "preservation_tree": "2218d6b3f66524d06a06e6d7b7b6121856e8914b",
+    "normative_digest": "eeb9d80531b9a9dfb7092cc03fbdb49a2e058986a1add09c1cca12d0a44302a8",
+    "golden_result_digest": "9bb04da67d29229dabdd49b0f181cea0900924e560fc266b2620d5e30af9ce7d",
+    "freeze_digest": "0a949549ad03228c4edba888fd23f872f973117ecf02ab475f8c0e6a91bb138d"
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 0,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [],
+  "review_dimensions": [
+    {
+      "dimension": "t7b_001_callback_mutation",
+      "status": "verified",
+      "evidence": "V3 reproduces the callback authority mutation while V4 snapshots request and authority before the callback and uses the frozen snapshot for both local admission and S.2A."
+    },
+    {
+      "dimension": "single_request_and_authority_read",
+      "status": "verified",
+      "evidence": "Descriptor-instrumented request and authority proxies each observe exactly one snapshot pass; audit counts are request=1, authority=1, material=1 and reread=0."
+    },
+    {
+      "dimension": "descriptor_snapshot_without_getter_execution",
+      "status": "verified",
+      "evidence": "Request and authority accessors are rejected from property descriptors without executing their getters."
+    },
+    {
+      "dimension": "bounded_non_recursive_traversal",
+      "status": "verified",
+      "evidence": "All caller-controlled request, anchor and material values pass through the V3 bounded iterative canonicalizer; cycles, depth, node, key, array and string limits fail closed with sanitized reasons."
+    },
+    {
+      "dimension": "deep_freeze_and_mutation_isolation",
+      "status": "verified",
+      "evidence": "Canonical request, authority and material snapshots are plain data, deeply frozen and separated from caller inputs; callback and post-verification mutation do not change results."
+    },
+    {
+      "dimension": "verified_snapshot_only_downstream",
+      "status": "verified",
+      "evidence": "Pre-admission, V3 request construction, digests, S.2A invocation, failure provenance and audit are derived from the verified snapshot; caller request and authority are not reread."
+    },
+    {
+      "dimension": "t7_001_boundary",
+      "status": "verified",
+      "evidence": "The self-consistent extra completion-field attack remains non-issued before request construction, S.2A calls or downstream digest work."
+    },
+    {
+      "dimension": "non_issued_zero_work",
+      "status": "verified",
+      "evidence": "Every frozen incomplete, conflicting, not_point_in_time_safe and unmappable scenario has request_constructed=false, s2a_called=false and downstream_digest_work=false."
+    },
+    {
+      "dimension": "issued_full_interop",
+      "status": "verified",
+      "evidence": "The issued V4 synthetic handoff preserves issued to completed to bindable to ready to captured to joined interoperability."
+    },
+    {
+      "dimension": "failure_identity",
+      "status": "verified",
+      "evidence": "Failure identities bind taxonomy, snapshot-bundle digest, admission digest and sorted reasons; distinct rejected snapshots produce distinct identities."
+    },
+    {
+      "dimension": "cross_timezone_and_input_order",
+      "status": "verified",
+      "evidence": "The canonical result digest is identical across UTC A/B, Europe/Stockholm, America/New_York and reversed synthetic input order."
+    },
+    {
+      "dimension": "predecessor_and_pr71_isolation",
+      "status": "verified",
+      "evidence": "V1-V3 and the two published PR #71 commits are not modified by this additive preservation-tree review."
+    },
+    {
+      "dimension": "external_roots_and_side_effect_isolation",
+      "status": "verified",
+      "evidence": "Normalized 303-artifact and replay 84-artifact roots retain their manifests, digests, 0700/0600 permissions and zero symlinks; no real outcome source was accessed."
+    }
+  ],
+  "closed_threat_matrix": [
+    {
+      "threat_id": "T7D-T001",
+      "threat": "T7B-001 callback mutation after authority snapshot",
+      "expected": "snapshot_isolated_issued_or_fail_closed_without_divergence",
+      "observed": "snapshot_isolated_issued_without_divergence",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T002",
+      "threat": "Request or authority getter execution",
+      "expected": "getter_not_executed_and_fail_closed",
+      "observed": "getter_not_executed_and_fail_closed",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T003",
+      "threat": "Throwing proxy, cycle or depth-budget exhaustion",
+      "expected": "sanitized_fail_closed",
+      "observed": "sanitized_fail_closed",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T004",
+      "threat": "Post-verification caller mutation",
+      "expected": "result_and_snapshot_unchanged",
+      "observed": "result_and_snapshot_unchanged",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T005",
+      "threat": "T7-001 self-consistent extra completion field",
+      "expected": "non_issued_and_zero_downstream_work",
+      "observed": "unmappable_and_zero_downstream_work",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T006",
+      "threat": "Temporal, membership or authority substitution",
+      "expected": "fail_closed_before_downstream",
+      "observed": "fail_closed_before_downstream",
+      "status": "passed"
+    },
+    {
+      "threat_id": "T7D-T007",
+      "threat": "Different rejected snapshots collapse to one forensic identity",
+      "expected": "distinct_failure_identities",
+      "observed": "distinct_failure_identities",
+      "status": "passed"
+    }
+  ],
+  "regression": {
+    "v4_focused_across_timezones": "16/16 passed in each of UTC, Europe/Stockholm and America/New_York",
+    "relevant_667": "517 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_classification": "not_success_and_not_t_scope_regression",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "diff_check": "passed",
+    "external_roots": "303 normalized / 84 replay; digest and permission safe"
+  },
+  "decision": {
+    "independent_rereview_approved": true,
+    "local_checkpoint_ready": true,
+    "approval_rule": "zero blockers and zero majors",
+    "remediation_performed_during_rereview": false
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "db1ef625e7fd0c43779b984c6ab33432056391b927ea492e29950b758d1108de"
+}

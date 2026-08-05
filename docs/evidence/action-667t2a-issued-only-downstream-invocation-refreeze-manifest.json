@@ -1,0 +1,112 @@
+{
+  "action": "667T.2A",
+  "manifest_version": "repository_owned_recommendation_outcome_evidence_issuance_v2_refreeze_manifest_v1",
+  "base_commit": "49801613eba3f4ef850d7eae89b1e2cf48d8bd0d",
+  "branch": "codex/action-667t-recommendation-outcome-evidence-issuance",
+  "predecessor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v1",
+    "normative_inventory_digest": "cc39653d87b70c5da66abe1a5f3d156f087a64dc611b525ab94bada5a6afdac7",
+    "freeze_digest": "fab388916f6960d66a75c12f60d87b57ea2fcb60e336bfbeaf9270497c434822",
+    "freeze_manifest_sha256": "7dbebc78b0ff98be6f8a8b6477d158c296f40f07d57f328256d5d7bf9542d487",
+    "review_evidence_digest": "c4b4fe3ada4f8ab83a4ac98a83629f4148223906c18836266ef2f04796912330",
+    "review_file_sha256": "f3db938dbb6b601f8dcbd85375f48d4442d86aa15b3e8ff90b6f5acce3564f9c",
+    "finding_retained": "T2-001",
+    "preserved_byte_identically": true,
+    "classification": "historical_predecessor_retained"
+  },
+  "successor": {
+    "contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v2",
+    "authority_version": "repository_owned_recommendation_outcome_evidence_issuer_authority_v2",
+    "registry_version": "repository_owned_recommendation_outcome_evidence_issuer_registry_v2",
+    "pre_downstream_admission_version": "repository_owned_recommendation_outcome_evidence_pre_downstream_admission_v2",
+    "verifier_version": "repository_owned_recommendation_outcome_evidence_issuance_verifier_v2",
+    "normative_artifact_count": 5,
+    "normative_inventory_digest": "a2e808b94b54cbec2002e39e4ef130652df2b48388832f0884b6f7892bc364a3",
+    "golden_matrix_digest": "deacc459b2672d76ad9e8f55ab873c933ad6c919737094f7ad4df34a2ef39e80",
+    "normative_artifacts": [
+      {
+        "path": "docs/action-667t2a-issued-only-downstream-invocation-remediation.md",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_issuance_v2",
+        "sha256": "ff5848264f284ca4c183062f006bcb5afb2cb801df1d75956320278071b366da",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "docs/evidence/action-667t2a-issued-only-downstream-invocation-synthetic-golden.json",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v2",
+        "sha256": "3240f398ab23ec1673a03a6eba614c5845f42a0bb4c42182ca833c7f32c32de6",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-fixtures-v2.ts",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_issuance_fixtures_v2",
+        "sha256": "af9588c362a7a314038847a227fa7c53fadd5f41c778c805b0a7dbbceab726c7",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "lib/market-context-intelligence-lab/recommendation-outcome-evidence-issuance-v2.ts",
+        "classification": "normative_current",
+        "version": "repository_owned_recommendation_outcome_evidence_issuance_v2",
+        "sha256": "7bb9e26e5b6b61d27e513571a09cacb18c4c1b00ca463e5c85b4c12e20f01996",
+        "git_status_at_refreeze": "untracked"
+      },
+      {
+        "path": "tests/e2e/action-667t2a-issued-only-downstream-invocation.spec.ts",
+        "classification": "normative_current",
+        "version": "action_667t2a_issued_only_downstream_invocation_tests_v1",
+        "sha256": "9f95d554b643fec2600a272f7450e74c6103d56b2361d4dcfca5ae72f35cc5e5",
+        "git_status_at_refreeze": "untracked"
+      }
+    ]
+  },
+  "finding_closure": {
+    "T2-001": {
+      "historical_reproduction": "V1 incomplete result exposes a non-null S.2A result digest",
+      "successor_boundary": "V2 selects the complete T taxonomy before S.2A request construction",
+      "non_issued_request_construction_count": 0,
+      "non_issued_s2a_call_count": 0,
+      "non_issued_s2a_result_digest_work_count": 0,
+      "non_issued_s2a_result_field_present": false
+    }
+  },
+  "synthetic_matrix": {
+    "scenario_count": 12,
+    "issued": 2,
+    "incomplete": 3,
+    "conflicting": 5,
+    "not_point_in_time_safe": 1,
+    "unmappable": 1,
+    "focused_tests": "22/22 passed",
+    "relevant_regression": "468/468 passed",
+    "cross_timezone": "UTC, Europe/Stockholm and America/New_York byte-identical",
+    "interop": "T.2A issued -> S.2A completed -> R.2 bindable -> Q.1 ready -> P.2A captured -> O.2A joined"
+  },
+  "external_roots": {
+    "normalized_artifact_count": 303,
+    "normalized_manifest_sha256": "d709a32280c7fb054f5b01141349418f1ff610d61147813866068a64d500a922",
+    "normalized_dataset_digest": "72fd0912e079be176a81748a01cad630dda3dc62322987ee3307e3e0e55b6d8c",
+    "normalized_output_tree_digest": "b76048092197c9a18ecfeff8b851a50e60a60142a9bfa4b82b6d5c6269d1fc1e",
+    "replay_artifact_count": 84,
+    "replay_manifest_sha256": "86ceebf3e782136a27fbb7d1f314f122189103debdde2b03edc1770502e92a79",
+    "replay_dataset_digest": "be4ecb4c391e7415546a1fab41a4e9abab6eba5742e74abaeccb82783fac7555",
+    "replay_output_tree_digest": "9275616f957eb447f642bd06108823ba42d7f5179f08e28ec5dc565fe08005b1",
+    "permission_drift_count": 0,
+    "symlinks": 0
+  },
+  "self_excluded_review_artifacts": [
+    "docs/evidence/action-667t2a-issued-only-downstream-invocation-refreeze-manifest.json",
+    "docs/evidence/action-667t2a-issued-only-downstream-invocation-independent-rereview.json",
+    "tests/e2e/action-667t2a-issued-only-downstream-independent-review.spec.ts"
+  ],
+  "safety": {
+    "synthetic_only": true,
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "freeze_digest_basis": "canonical_json_of_manifest_with_freeze_digest_omitted",
+  "freeze_digest": "e952ce45d6fa9ec8c600c27e999f4c80469187d5a09ba0f6b488191a4251f6b6"
+}
