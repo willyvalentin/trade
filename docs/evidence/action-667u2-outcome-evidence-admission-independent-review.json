@@ -1,0 +1,177 @@
+{
+  "action": "667U.2",
+  "review_version": "recommendation_outcome_evidence_admission_independent_review_v1",
+  "review_mode": "read_only_no_remediation",
+  "normative_artifact_count": 5,
+  "normative_digest_before_regression": "d32e110db2d82997dca0cd9c7d974affb570fbc11342ae7c495f72e9ed55ac2b",
+  "normative_digest_after_regression": "d32e110db2d82997dca0cd9c7d974affb570fbc11342ae7c495f72e9ed55ac2b",
+  "normative_digest_after_review": "d32e110db2d82997dca0cd9c7d974affb570fbc11342ae7c495f72e9ed55ac2b",
+  "golden_result_digest": "de833b06bfcb99f055abf91f82be844da6443585413f29744fa345b395c56a1d",
+  "freeze": {
+    "manifest_path": "docs/evidence/action-667u2-outcome-evidence-admission-foundation-freeze-manifest.json",
+    "freeze_digest": "5a429586d2545fdbaf4e40fdfe54d89667a74deeeaff62f7880039aa277d004d",
+    "normative_bytes_preserved": true,
+    "self_excluded": true
+  },
+  "finding_counts": {
+    "blocker": 0,
+    "major": 1,
+    "minor": 0,
+    "nit": 0
+  },
+  "findings": [
+    {
+      "id": "U2-001",
+      "severity": "major",
+      "title": "Malformed rejected candidate and authority bytes collapse to shared failure identities",
+      "evidence": [
+        "Two distinct malformed candidate JSON strings produce the same reason codes, candidate snapshot digest, failure identity and terminal result digest.",
+        "Two distinct malformed trusted-authority JSON strings for the same issued candidate produce the same reason codes, authority snapshot digest, failure identity and terminal result digest.",
+        "The parse-failure paths digest canonical null rather than a sanitized digest of the actually observed rejected string bytes."
+      ],
+      "impact": "Failure provenance is deterministic but not collision-resistant for malformed observed inputs, so two different rejected observations cannot be distinguished forensically.",
+      "test": "tests/e2e/action-667u2-outcome-evidence-admission-adversarial-review.spec.ts:U2-001",
+      "remediation_performed": false
+    }
+  ],
+  "verified_boundaries": {
+    "final_t_v4_only": true,
+    "predecessor_unknown_authority_and_trust_substitution_fail_closed": true,
+    "all_eighteen_gap_bindings_independently_verified": true,
+    "single_candidate_and_authority_read": true,
+    "accessor_proxy_cycle_and_bounded_depth_fail_closed": true,
+    "snapshot_deep_freeze_and_mutation_isolation": true,
+    "non_issued_downstream_zero_work": true,
+    "nanosecond_temporal_finality_boundary": true,
+    "membership_lineage_and_duplicate_semantics": true,
+    "failure_identity_collision_resistance": false,
+    "independent_digest_rebuild": true,
+    "full_t_v4_s2a_r2_q1_p2a_o2a_interop": true,
+    "default_off_zero_work": true,
+    "external_writes_absent": true,
+    "real_outcome_source_accessed": false,
+    "cross_timezone_and_reverse_order_determinism": true,
+    "external_roots_unchanged": true
+  },
+  "closed_threat_matrix": [
+    {
+      "threat_id": "U2-T001",
+      "threat": "T V1, V2, V3 or unknown source version",
+      "expected": "unmappable_before_authority_or_downstream_work",
+      "observed": "unmappable_before_authority_or_downstream_work",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T002",
+      "threat": "Candidate authority or trusted registry/trust-root substitution",
+      "expected": "conflicting_before_t_v4_rebuild",
+      "observed": "conflicting_before_t_v4_rebuild",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T003",
+      "threat": "Independent omission of any one of eighteen completion gaps",
+      "expected": "all_eighteen_gap_bindings_required_without_inference",
+      "observed": "all_18_independent_omissions_rejected",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T004",
+      "threat": "Multiple candidate or authority reads",
+      "expected": "candidate_1_authority_1_reread_0",
+      "observed": "candidate_1_authority_1_reread_0",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T005",
+      "threat": "Getter, proxy, cycle or bounded-depth attack",
+      "expected": "no_hook_execution_and_sanitized_fail_closed",
+      "observed": "no_hook_execution_and_sanitized_fail_closed",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T006",
+      "threat": "Post-snapshot caller mutation",
+      "expected": "deep_frozen_result_and_snapshot_isolation",
+      "observed": "deep_frozen_result_and_snapshot_isolation",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T007",
+      "threat": "Incomplete, conflicting, unsafe or unmappable T evidence",
+      "expected": "zero_admission_request_t_v4_call_and_downstream_digest_work",
+      "observed": "zero_admission_request_t_v4_call_and_downstream_digest_work",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T008",
+      "threat": "Temporal finality at receive minus one, exact boundary and plus one nanosecond",
+      "expected": "unsafe_admitted_admitted",
+      "observed": "unsafe_admitted_admitted",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T009",
+      "threat": "Membership or lineage mutation and exact duplicate drift",
+      "expected": "mutations_rejected_and_duplicate_byte_identical",
+      "observed": "mutations_rejected_and_duplicate_byte_identical",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T010",
+      "threat": "Supplied T V4 or admission result digest tampering",
+      "expected": "independent_rebuild_rejects_tampering",
+      "observed": "independent_rebuild_rejects_tampering",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T011",
+      "threat": "Different malformed observed inputs collapse to one failure identity",
+      "expected": "distinct_failure_and_terminal_digests",
+      "observed": "candidate_and_authority_parse_failures_each_collide",
+      "status": "finding_U2-001"
+    },
+    {
+      "threat_id": "U2-T012",
+      "threat": "Downstream interoperability drift",
+      "expected": "admitted_completed_bindable_ready_captured_joined",
+      "observed": "admitted_completed_bindable_ready_captured_joined",
+      "status": "passed"
+    },
+    {
+      "threat_id": "U2-T013",
+      "threat": "Default-off or kill-switch observable work",
+      "expected": "zero_candidate_authority_and_downstream_work",
+      "observed": "zero_candidate_authority_and_downstream_work",
+      "status": "passed"
+    }
+  ],
+  "regression": {
+    "u1_focused": "20/20 passed",
+    "u2_adversarial": "16/16 passed with U2-001 finding reproduction assertion",
+    "relevant_667": "553 passed / 2 historical_external_fixture_unavailable",
+    "historical_external_fixture_classification": "not_success_and_not_u_scope_regression",
+    "cross_timezone": "36/36 passed in UTC, Europe/Stockholm and America/New_York; golden reverse order byte-identical",
+    "typescript": "passed",
+    "scoped_eslint": "passed with zero warnings",
+    "json_evidence_parity": "passed",
+    "diff_security_import_dependency_scans": "passed",
+    "external_roots": "303 normalized / 84 replay; every manifest-listed byte, size, permission and symlink check passed"
+  },
+  "decision": {
+    "foundation_frozen": true,
+    "refreeze_complete": true,
+    "independent_review_approved": false,
+    "local_checkpoint_ready": false,
+    "approval_rule": "zero blockers and zero majors",
+    "reason": "U2-001 remains an unresolved major finding; remediation is prohibited in Action 667U.2."
+  },
+  "safety": {
+    "real_outcome_source_accessed": false,
+    "canonical_binding_ready": false,
+    "automatic_model_input_allowed": false,
+    "live_ranking_effect": false
+  },
+  "review_evidence_digest_basis": "canonical_json_of_review_with_review_evidence_digest_omitted",
+  "review_evidence_digest": "8d9f72e9ad569408afd05f13408c64e8e1923dcf99b8cb4eeebf66796153741a"
+}

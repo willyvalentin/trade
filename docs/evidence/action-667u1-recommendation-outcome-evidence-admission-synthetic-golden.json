@@ -1,0 +1,301 @@
+{
+  "fixture_version": "repository_owned_recommendation_outcome_evidence_admission_fixtures_v1",
+  "contract_version": "repository_owned_recommendation_outcome_evidence_admission_v1",
+  "source_contract_version": "repository_owned_recommendation_outcome_evidence_issuance_v4",
+  "synthetic_only": true,
+  "real_outcome_source_accessed": false,
+  "scenario_count": 18,
+  "taxonomy_counts": {
+    "admitted": 1,
+    "rejected": 3,
+    "conflicting": 5,
+    "not_point_in_time_safe": 1,
+    "unmappable": 8
+  },
+  "scenarios": [
+    {
+      "id": "admitted_valid_v4",
+      "taxonomy": "admitted",
+      "reason_codes": [],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 1,
+      "admission_request_constructed": true,
+      "t_v4_rebuild_called": true,
+      "downstream_digest_work": true,
+      "failure_identity_digest": null,
+      "admitted_snapshot_digest": "76757ee08f2dcfa0af4ef9d88333ef66ee4ef965f37a4ce494f8de194a3b01cc",
+      "result_digest": "1f9384ca11f51040b651c8d2699a14acff36ff3a64a3c0b6838051f258772598"
+    },
+    {
+      "id": "conflicting_non_issued_zero_work",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "pre_downstream_gap_closure_set_digest_mismatch",
+        "t_v4_non_issued:conflicting"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "f5f69681eff84486148232dd8a517fdeede751459d4187049030238c7a8aeba3",
+      "admitted_snapshot_digest": null,
+      "result_digest": "e6b59add2f5592dd09ecf59efa4dd5d67c996972ecb7be720f23a9bb9cd67710"
+    },
+    {
+      "id": "default_off",
+      "taxonomy": "rejected",
+      "reason_codes": [
+        "outcome_evidence_admission_default_off"
+      ],
+      "candidate_input_read_count": 0,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "7548b759fd4920d1ab18262164cdca6d45c31980ba05e8c723c7b567512db611",
+      "admitted_snapshot_digest": null,
+      "result_digest": "467d98264529d8fee36bdfd2f538ed962fdfd77f7a716df969afdf0710d18a52"
+    },
+    {
+      "id": "eighteen_gap_tamper",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "all_eighteen_gap_bindings_required_without_inference"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 1,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "c7fe5d5bd4ecfa4e4905eeb83ae3030efa0e4c27123849c77f2c6c75d428b6c2",
+      "admitted_snapshot_digest": null,
+      "result_digest": "d3c1c54ff4db0d6c6375c127bc15e3401c041eb09d7d01c18709253d96f071a1"
+    },
+    {
+      "id": "failure_collision_observation_a",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "unknown_t_evidence_version_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "80b068d818cfa947368f8eb732c8b08fdf61a74c6bde77cb3a0c6614142c1dd6",
+      "admitted_snapshot_digest": null,
+      "result_digest": "be1427c1acd4a12f63974bbbd5a9008f69d53c1b37ce7a894186298e7aa71dce"
+    },
+    {
+      "id": "failure_collision_observation_b",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "unknown_t_evidence_version_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "86e6099e2b145f3096705ae1e7d015a7c41cb5d8e661bef37a7c7f59a53f7ee5",
+      "admitted_snapshot_digest": null,
+      "result_digest": "79fe278cde0ff4bfc310a06e0ad71c460db49f3502b4e0da1497cef50fee2d78"
+    },
+    {
+      "id": "historical_v1_rejected",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "historical_t_v1_v2_v3_evidence_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "3e650db08558b323cb070ff10578d31ca6c7be06f901e82e3bd9a5b89e94512f",
+      "admitted_snapshot_digest": null,
+      "result_digest": "cfca90c989c15c3386d958c5ec60d2c81cd6d8ef95ae514e9d2c7ee6ccba6b62"
+    },
+    {
+      "id": "historical_v2_rejected",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "historical_t_v1_v2_v3_evidence_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "f7308f7f9db750f61db5bc8e67bcb46cf220426f8d288ebfb5113b36e39ae16b",
+      "admitted_snapshot_digest": null,
+      "result_digest": "58074ddd37e5535c74b5256ec9a5ef0ad3a5b1ae2387b2a88b11e8bf5774a6f0"
+    },
+    {
+      "id": "historical_v3_rejected",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "historical_t_v1_v2_v3_evidence_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "c3b903ea22a3bb3b6e71e05d0604f23cd9b43f0ccf7a9e271bc762aefdf8a849",
+      "admitted_snapshot_digest": null,
+      "result_digest": "572c2873106776a4a6defefc9a8f5586e5763d3e42b050c80547335b2541906a"
+    },
+    {
+      "id": "incomplete_non_issued_zero_work",
+      "taxonomy": "rejected",
+      "reason_codes": [
+        "all_eighteen_gap_closures_required",
+        "t_v4_non_issued:incomplete"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "037c6399d960af7a6633cdd91d4dbec3e608e7c6190377f37867c80d4c3fc8d7",
+      "admitted_snapshot_digest": null,
+      "result_digest": "0af113584a7e6b534a062c60c7efb1ceb6a0385dac775883fc230fbfdf62887a"
+    },
+    {
+      "id": "kill_switch",
+      "taxonomy": "rejected",
+      "reason_codes": [
+        "outcome_evidence_admission_kill_switch_active"
+      ],
+      "candidate_input_read_count": 0,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "2e423e15d89396b11553f5cc230d2a9704ce462e62c2df2066a02bc7667ce2c3",
+      "admitted_snapshot_digest": null,
+      "result_digest": "f3a01ed71f5991cac1be81c16b5eaa5a9cf243a37928caac0c69e192fa9bd884"
+    },
+    {
+      "id": "lineage_tamper",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "evidence_bundle_digest_mismatch",
+        "evidence_lineage_root_digest_mismatch",
+        "independent_t_v4_rebuild_not_issued",
+        "pre_downstream_completion_material_digest_mismatch"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 1,
+      "admission_request_constructed": true,
+      "t_v4_rebuild_called": true,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "910d3f21c0dbbcd24e72d60f52182f49ed8066eb0f7838bf1c52ae5898e16a6f",
+      "admitted_snapshot_digest": null,
+      "result_digest": "4c0d9fd9e112fe057bdebde90329ad9c5b6d3d202729f3beb9a67f54664f6835"
+    },
+    {
+      "id": "malformed_json",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "admission_candidate:malformed_json_sanitized"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "09b2749ef5b9016d373338f288903b4888d59e01294cbb98c2e6a03aee9a29ed",
+      "admitted_snapshot_digest": null,
+      "result_digest": "89d3b842cb5622af5dc32ed0d4a0fff8c2acb1a0a221ad3050685d1116ff42f0"
+    },
+    {
+      "id": "supplied_digest_tamper",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "independent_t_v4_digest_rebuild_mismatch"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 1,
+      "admission_request_constructed": true,
+      "t_v4_rebuild_called": true,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "09b7dbed88e4db02f9e95f46843c0a8a7aaf897f40d260ed0d11097e67b8c6f7",
+      "admitted_snapshot_digest": null,
+      "result_digest": "7a2dbd678745a6dc62c3ba9aa9ef0957f2936dde60d9a8e68cf693061f997722"
+    },
+    {
+      "id": "trusted_authority_mismatch",
+      "taxonomy": "conflicting",
+      "reason_codes": [
+        "external_t_v4_authority_anchor_mismatch"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 1,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "b6700ddc686cd1aa89a03bc59865e9726a202e6d612eb60a6c6d336ce80aafe6",
+      "admitted_snapshot_digest": null,
+      "result_digest": "9b42925fba3e0944a9c1873d8a72e80e66e6841d81a9de9fcfb0f8e8cb67a3cc"
+    },
+    {
+      "id": "unknown_version_rejected",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "unknown_t_evidence_version_rejected"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "4ac66f08281f18c4e49eefedd9ba9af4985a35d8f08882ae4ab2aa8d20b62b5d",
+      "admitted_snapshot_digest": null,
+      "result_digest": "59c48becf009aa5b218d04565b5a4be758a89573144bee342a1e3097a30ef72a"
+    },
+    {
+      "id": "unmappable_non_issued_zero_work",
+      "taxonomy": "unmappable",
+      "reason_codes": [
+        "completion_material:closed_schema_violation",
+        "t_v4_non_issued:unmappable"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "de2bfe0bfbb6b3ac8d1d9872d8d3dbab8259f36b74d36703c8f7e32fb3060ac1",
+      "admitted_snapshot_digest": null,
+      "result_digest": "a20f652b23cbb190c09fc50e724379cf327ec9064939e9e6d00bb8fecc7e5734"
+    },
+    {
+      "id": "unsafe_non_issued_zero_work",
+      "taxonomy": "not_point_in_time_safe",
+      "reason_codes": [
+        "completion_evidence_temporal_order_invalid",
+        "t_v4_non_issued:not_point_in_time_safe"
+      ],
+      "candidate_input_read_count": 1,
+      "trusted_authority_read_count": 0,
+      "admission_request_constructed": false,
+      "t_v4_rebuild_called": false,
+      "downstream_digest_work": false,
+      "failure_identity_digest": "d1384d5a793d3aadb0f0bd6354df85cbc3fc32147e02ceb5eb10c6438edc0252",
+      "admitted_snapshot_digest": null,
+      "result_digest": "d3f0999a5125ec230a3ffdbf1936eb37c5125285183ba56c5f289a94a72cbc96"
+    }
+  ],
+  "interop": {
+    "t_v4_admission_taxonomy": "admitted",
+    "s2a_completion_taxonomy": "completed",
+    "r2_projection_taxonomy": "bindable",
+    "q1_admission_taxonomy": "ready",
+    "p2a_capture_taxonomy": "captured",
+    "o2a_join_taxonomy": "joined"
+  },
+  "result_digest": "de833b06bfcb99f055abf91f82be844da6443585413f29744fa345b395c56a1d"
+}
