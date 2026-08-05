@@ -300,7 +300,7 @@ test("all non-issued taxonomies perform zero downstream work", () => {
 });
 
 test("temporal finality is exact at minus one, boundary and plus one ns", () => {
-  const results = [-1n, 0n, 1n].map((offset) => {
+  const results = [BigInt(-1), BigInt(0), BigInt(1)].map((offset) => {
     const fixture =
       createSyntheticRecommendationOutcomeEvidenceAdmissionFixtureV1(
         (issuance) => {
