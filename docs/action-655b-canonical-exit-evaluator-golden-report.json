@@ -1,0 +1,100 @@
+{
+  "action": "655G",
+  "artifact_scope": {
+    "count": 5,
+    "paths": [
+      "docs/action-655b-canonical-exit-evaluator-contract.md",
+      "docs/action-655b-canonical-exit-evaluator-golden-report.json",
+      "lib/action-655b-canonical-exit-evaluator.ts",
+      "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts",
+      "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts"
+    ]
+  },
+  "authority": {
+    "contract_digest": "a494df1633689e5cffa3044437cc925bd770741ce80e6e3c81cbd42c3bf00bb7",
+    "parent_commit": "9e3120b47e06d0dec0dd4ae286a05c72da633b71",
+    "parent_tree": "8eadfb9e90fa7435919936a287832c8503a77eb5",
+    "parent_five_path_digest": "47bcefa5e4ee35f5245db278d3bf9148eaf792f82d51eb29307b71b47fa2c346",
+    "normative_contract_commit": "1ea4c7f2d179b17238eab73d3d8b08e0a2c63698",
+    "normative_contract_tree": "450f259b2241556d2970d1c1e8e9f2fbc73a40d8",
+    "rejected_source_commit": "08e593a58fc18473d6a6212c10f72cae8b7587ce",
+    "review": "Action 655F findings M1 and M2 reproduced only against preserved 655E and closed by this local successor"
+  },
+  "capability_scan": {
+    "application_entrypoint": false,
+    "broker_transport": false,
+    "browser_or_cdp": false,
+    "client_integration": false,
+    "credential_access": false,
+    "database_access": false,
+    "database_migration": false,
+    "execution_authority": false,
+    "filesystem_access": false,
+    "monitor_adapter": false,
+    "network_access": false,
+    "persistence": false,
+    "process_execution": false,
+    "provider_access": false,
+    "queue": false,
+    "route": false,
+    "runtime_integration": false,
+    "timer_or_clock_read": false,
+    "trade_mutation": false
+  },
+  "canonical_hold_result": {
+    "canonical_byte_length": 1690,
+    "canonical_sha256": "2dd431d7ce6aa3f20e232de6d3dfcb7cd2b810901a14402bd723c06d4de3b5b5",
+    "decision_digest": "27162c1929476c7dbed1b2a4ae76f2d3218fb5b489b3b1f12bd89026d74ef5e3",
+    "result_digest": "1823b3f51424d3716ee04897147e7f98adb42ff97c6d06414c52858191e843f4"
+  },
+  "declarations": {
+    "automatic_execution": false,
+    "avanza_live_access": false,
+    "credential_access": false,
+    "delivery_authorization_ready": false,
+    "independent_review_required": true,
+    "production_impact": false,
+    "production_write": false,
+    "real_broker_submission": false,
+    "runtime_execution_performed": false,
+    "trade_mutation": false
+  },
+  "digests": {
+    "decision_positive": "69601e20d9146ef507d76782d0cecc3dbce5aa4c23e64c953765cae952306d25",
+    "implementation_sha256": "8c0854aad8a1d53dc06340d0984ebe786ea2d960265ecf49f5366d2a74de5be6",
+    "invalid_positive": "c0eb00743c9739fcec72858ad19e957830faf479320c4aa4c3da2062a3cffd42",
+    "noneligible_positive": "629bcc3a96664dafe7903b12c83ecf6f9eb36fbcf3c55a03990c145eb56b95ef",
+    "policy": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
+    "provenance": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+    "refused_positive": "cc9d34e76a2efd180a8b9d2aea385506a9fb48ffcea62371f23ae7070603c4ef"
+  },
+  "exports": {
+    "runtime_value_count": 1,
+    "runtime_values": [
+      "evaluateAction655bCanonicalExitDecision"
+    ]
+  },
+  "validation": {
+    "action_654_655_applicable_union": {
+      "historical_remote_head_assertions_excluded_as_inapplicable": 2,
+      "passed": 199,
+      "probe_only_skipped": 9
+    },
+    "eslint": "passed_zero_warnings",
+    "focused": {
+      "negative_case_vectors": 98,
+      "passed": 44
+    },
+    "git_diff_check": "passed",
+    "json": "passed",
+    "typescript": "passed",
+    "action_655f_oracle": {
+      "preserved_655e_expected_failures": 4,
+      "successor_passed": 4
+    },
+    "compound_invalid_matrices": {
+      "stage10": 6,
+      "stage11": 8
+    }
+  }
+}

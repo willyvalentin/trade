@@ -1,0 +1,2793 @@
+{
+  "action": "655D.4",
+  "artifact_role": "normative_contract_manifest",
+  "authority": {
+    "action_654u_runtime_operation": "runAction654uExactBudgetUnitPrivatePolicy",
+    "action_654v_role": "review_evidence_only",
+    "predecessor_commit": "d67fcd0637a07bc7bbdd23e05484809a4069976c",
+    "predecessor_scope_digest": "df46b1358ad3483f49f0d368420aec4210846a95817c84630aaa8724c37c4196",
+    "predecessor_tree": "d5ba74faa1b516fc0f5e8d45c03f7d6a5879311a",
+    "roadmap_blob_sha256": "241f51332b5be149db1a88a7ccff1edf4b1aa5ea6a0a2f1d21996c15aa04e93d",
+    "roadmap_commit": "6712d698447677766d2d550ffcc0785a0c722d11",
+    "roadmap_main_reachability": "unresolved",
+    "starting_main": "01ca7d27de2311482ae8de2fc9a926cd6422d67e"
+  },
+  "canonicalization": {
+    "checked_arithmetic": {
+      "intermediate_maximum": "2^256-1",
+      "stored_integer_maximum": "2^127-1",
+      "unsafe_or_overflow": "refused"
+    },
+    "digest": "sha256",
+    "digest_frame": {
+      "algorithm": "SHA-256",
+      "canonical_field_order": "lexicographic_utf8_object_key_order",
+      "digest_representation": "64_lowercase_hexadecimal_characters",
+      "encoding": "UTF-8_without_BOM",
+      "exact_non_policy_fields": [
+        "contract_version",
+        "domain",
+        "projection"
+      ],
+      "field_name_for_projection": "projection",
+      "forbidden_projection_aliases": [
+        "canonical_unsigned_projection",
+        "payload",
+        "record",
+        "unsigned",
+        "value"
+      ],
+      "input_requirement": "raw_frame_bytes_must_equal_canonical_serialization_before_hashing",
+      "null_encoding": "literal_json_null_and_never_omitted",
+      "projection_member_order": "the_listed_projection_fields_then_serialized_in_canonical_lexicographic_key_order"
+    },
+    "instant": "UTC RFC3339 with exactly nine fractional digits and Z",
+    "integer_string": "^(0|[1-9][0-9]*)$",
+    "json": "UTF-8 NFC strings; closed schemas; lexicographically ordered object keys; arrays preserve declared order; no insignificant whitespace",
+    "price_domain": "positive integer price_units <= 2^127-1 and divisible by tick_size_price_units",
+    "quantity_domain": "positive integer quantity_units <= 2^127-1 and divisible by lot_size_quantity_units",
+    "scale_range": "integer 0..8 used only for display",
+    "uuid": "lowercase canonical RFC4122 text"
+  },
+  "contract_set_id": "action_655d2_server_owned_trade_management_v5",
+  "contracts": {
+    "client_projection": {
+      "contract_version": "action_655a2_trade_management_projection_v2",
+      "forbidden_fields": [
+        "authority_handle",
+        "lease_handle",
+        "policy",
+        "policy_registry",
+        "credential",
+        "broker_session",
+        "dispatch_callback"
+      ],
+      "invariants": [
+        "projection_is_never_source_of_truth",
+        "stale_projection_cannot_authorize_transition",
+        "client_cannot_advance_position_or_recommendation_version",
+        "client_cannot_create_policy_decision_queue_attempt_lease_or_terminal_authority",
+        "no_direct_client_table_mutation"
+      ]
+    },
+    "exit_decision": {
+      "contract_version": "action_655a6_exit_decision_v4",
+      "decision_authority": "server_owned_policy",
+      "decision_status": [
+        "hold",
+        "move_stop",
+        "exit_partial",
+        "exit_full"
+      ],
+      "fields": [
+        "contract_version",
+        "decision_identity",
+        "decision_status",
+        "position_identity",
+        "position_version",
+        "position_snapshot_digest",
+        "observation_identity",
+        "observation_digest",
+        "observed_at",
+        "decision_requested_at",
+        "evaluation_request_identity",
+        "input_digest",
+        "decision_reason",
+        "decision_priority",
+        "recommended_quantity_units",
+        "recommended_stop_price_units",
+        "policy_id",
+        "policy_version",
+        "policy_identity",
+        "policy_digest",
+        "decision_authority",
+        "side_effects_performed"
+      ],
+      "identity_binding": [
+        "result_kind",
+        "provenance_digest",
+        "decision_status",
+        "decision_reason",
+        "decision_priority",
+        "recommended_quantity_units",
+        "recommended_stop_price_units"
+      ],
+      "identity_domain": "trade_management_exit_decision_identity_v3",
+      "identity_frame_contract_version": "action_655a6_exit_decision_identity_v4",
+      "identity_text_format": "tm_exit_decision:v4:<64_lowercase_hex_identity_frame_digest>",
+      "recommended_field_matrix": {
+        "exit_full": {
+          "recommended_quantity_units": "present_exact_remaining_quantity",
+          "recommended_stop_price_units": null
+        },
+        "exit_partial": {
+          "recommended_quantity_units": "present_exact_checked_lot_rounded_partial_quantity",
+          "recommended_stop_price_units": null
+        },
+        "hold": {
+          "recommended_quantity_units": null,
+          "recommended_stop_price_units": null
+        },
+        "move_stop": {
+          "recommended_quantity_units": null,
+          "recommended_stop_price_units": "present_exact_entry_price_units"
+        }
+      },
+      "rule_mapping": [
+        {
+          "decision_priority": 1,
+          "decision_reason": "hard_stop",
+          "decision_status": "exit_full"
+        },
+        {
+          "decision_priority": 2,
+          "decision_reason": "invalidation",
+          "decision_status": "exit_full"
+        },
+        {
+          "decision_priority": 3,
+          "decision_reason": "session_close",
+          "decision_status": "exit_full"
+        },
+        {
+          "decision_priority": 4,
+          "decision_reason": "final_target",
+          "decision_status": "exit_full"
+        },
+        {
+          "decision_priority": 5,
+          "decision_reason": "first_target_partial",
+          "decision_status": "exit_partial"
+        },
+        {
+          "decision_priority": 6,
+          "decision_reason": "profit_protection_stop_move",
+          "decision_status": "move_stop"
+        },
+        {
+          "decision_priority": 7,
+          "decision_reason": "hold",
+          "decision_status": "hold"
+        }
+      ],
+      "side_effects_performed": false
+    },
+    "exit_decision_digest": {
+      "contract_version": "action_655a6_exit_decision_digest_v4",
+      "digest_domain": "trade_management_exit_decision_digest_v3",
+      "digest_representation": "64_lowercase_hexadecimal_characters",
+      "frame_fields": [
+        "contract_version",
+        "domain",
+        "projection"
+      ],
+      "invariants": [
+        "all_projection_fields_are_present",
+        "inapplicable_fields_are_explicit_json_null",
+        "missing_fields_are_rejected_before_hashing",
+        "decision_priority_is_json_integer_or_null",
+        "quantity_and_stop_are_canonical_decimal_strings_or_null",
+        "provenance_digest_is_lowercase_hex_text_not_raw_bytes",
+        "raw_frame_must_be_canonical_before_hashing"
+      ],
+      "projection_fields": [
+        "decision_authority",
+        "decision_identity",
+        "decision_priority",
+        "decision_reason",
+        "decision_status",
+        "invalid_error_code",
+        "invalid_error_path",
+        "noneligible_position_status",
+        "noneligible_reason",
+        "provenance_digest",
+        "recommended_quantity_units",
+        "recommended_stop_price_units",
+        "refusal_error_path",
+        "refusal_reason",
+        "result_kind",
+        "side_effects_performed"
+      ],
+      "result_kind_presence": {
+        "decision": "decision_authority_identity_status_reason_priority_and_declared_outputs_present_provenance_present_other_variant_fields_null",
+        "invalid": "invalid_code_present_path_present_or_declared_null_provenance_and_all_other_variant_fields_null",
+        "noneligible": "position_status_reason_and_provenance_present_all_decision_invalid_refusal_fields_null",
+        "refused": "reason_and_declared_path_present_provenance_present_only_for_verified_context_other_variant_fields_null"
+      }
+    },
+    "exit_evaluation_result": {
+      "contract_version": "action_655a6_exit_evaluation_result_v4",
+      "fields": [
+        "contract_version",
+        "result_kind",
+        "provenance_digest",
+        "decision_digest",
+        "decision",
+        "noneligible",
+        "invalid",
+        "refused",
+        "side_effects_performed",
+        "result_digest"
+      ],
+      "invalid_error_codes": [
+        "schema_invalid",
+        "missing_required_input",
+        "canonical_form_invalid",
+        "input_budget_exceeded",
+        "numeric_domain_invalid",
+        "unsupported_contract_version",
+        "policy_registry_integrity_failure"
+      ],
+      "invalid_error_code_contract": {
+        "case_sensitive": true,
+        "closed_member_count": 7,
+        "input_budget_exceeded_applicability": "only_when_the_entire_raw_host_string_is_a_valid_Unicode_scalar_sequence_and_its_saturating_checked_lossless_UTF8_count_is_greater_than_65536_before_BOM_or_JSON_work",
+        "input_budget_exceeded_forbidden_for": [
+          "wrong_runtime_input_type",
+          "raw_unpaired_surrogate",
+          "BOM",
+          "malformed_JSON",
+          "trailing_data_or_whitespace",
+          "duplicate_key",
+          "schema_or_type_failure",
+          "non_NFC_string",
+          "identity_or_digest_failure"
+        ],
+        "unknown_or_malformed_member_behavior": "reject_result_object_before_digest_or_authority_work"
+      },
+      "invalid_payload_fields": [
+        "error_code",
+        "error_path"
+      ],
+      "noneligible_mapping": {
+        "closed": "position_closed",
+        "exit_pending": "position_exit_pending"
+      },
+      "noneligible_payload_fields": [
+        "position_identity",
+        "position_version",
+        "position_snapshot_digest",
+        "observation_identity",
+        "observation_digest",
+        "observed_at",
+        "decision_requested_at",
+        "evaluation_request_identity",
+        "input_digest",
+        "policy_id",
+        "policy_version",
+        "policy_identity",
+        "policy_digest",
+        "position_status",
+        "noneligible_reason"
+      ],
+      "payload_presence_matrix": {
+        "decision": {
+          "decision": "present",
+          "invalid": null,
+          "noneligible": null,
+          "refused": null
+        },
+        "invalid": {
+          "decision": null,
+          "invalid": "present",
+          "noneligible": null,
+          "refused": null
+        },
+        "noneligible": {
+          "decision": null,
+          "invalid": null,
+          "noneligible": "present",
+          "refused": null
+        },
+        "refused": {
+          "decision": null,
+          "invalid": null,
+          "noneligible": null,
+          "refused": "present"
+        }
+      },
+      "digest_presence_matrix": {
+        "decision": {
+          "decision_digest": "present",
+          "provenance_digest": "present"
+        },
+        "invalid": {
+          "decision_digest": "present",
+          "provenance_digest": null
+        },
+        "noneligible": {
+          "decision_digest": "present",
+          "provenance_digest": "present"
+        },
+        "refused_authority_unavailable": {
+          "decision_digest": "present",
+          "provenance_digest": null
+        },
+        "refused_identity_conflict": {
+          "decision_digest": "present",
+          "provenance_digest": null
+        },
+        "refused_verified_context": {
+          "decision_digest": "present",
+          "provenance_digest": "present"
+        }
+      },
+      "refusal_presence_groups": {
+        "authority_unavailable": {
+          "error_path": null,
+          "input_digest": "present",
+          "observation_provenance": "present",
+          "policy_tuple": null,
+          "position_provenance": "present",
+          "request_provenance": "present"
+        },
+        "identity_conflict": {
+          "error_path": "present_exact_mismatched_field",
+          "input_digest": "present",
+          "observation_provenance": null,
+          "policy_tuple": null,
+          "position_provenance": null,
+          "request_provenance": "decision_requested_at_only"
+        },
+        "verified_context_refusal": {
+          "error_path": "present_exact_causal_field_or_null_only_for_disabled",
+          "input_digest": "present",
+          "observation_provenance": "present",
+          "policy_tuple": "present",
+          "position_provenance": "present",
+          "request_provenance": "present",
+          "reasons": [
+            "disabled",
+            "stale_position_version",
+            "unverified_position_version",
+            "stale_observation",
+            "future_observation",
+            "future_market_data",
+            "expired_policy",
+            "policy_not_effective",
+            "quantity_rule_not_representable",
+            "arithmetic_overflow"
+          ]
+        }
+      },
+      "refused_payload_fields": [
+        "refusal_reason",
+        "error_path",
+        "position_identity",
+        "position_version",
+        "position_snapshot_digest",
+        "observation_identity",
+        "observation_digest",
+        "observed_at",
+        "decision_requested_at",
+        "evaluation_request_identity",
+        "input_digest",
+        "policy_id",
+        "policy_version",
+        "policy_identity",
+        "policy_digest"
+      ],
+      "result_digest_domain": "trade_management_exit_evaluation_result_digest_v3",
+      "result_digest_frame_contract_version": "action_655a6_exit_evaluation_result_digest_v4",
+      "result_digest_projection_fields": [
+        "contract_version",
+        "result_kind",
+        "provenance_digest",
+        "decision_digest",
+        "decision",
+        "noneligible",
+        "invalid",
+        "refused",
+        "side_effects_performed"
+      ],
+      "result_kind": [
+        "decision",
+        "noneligible",
+        "invalid",
+        "refused"
+      ],
+      "side_effects_performed": false,
+      "validation_error_order": "contract_version_first_then_manifest_field_order_depth_first_then_unknown_fields_at_same_depth_in_canonical_utf8_key_order"
+    },
+    "exit_evaluation_input": {
+      "contract_version": "action_655a6_exit_evaluation_input_v4",
+      "fields": [
+        "contract_version",
+        "position_snapshot",
+        "monitor_observation",
+        "decision_requested_at",
+        "evaluation_request_identity",
+        "input_digest"
+      ],
+      "forbidden_fields": [
+        "policy",
+        "policy_snapshot",
+        "policy_id",
+        "policy_identity",
+        "policy_digest",
+        "policy_selector",
+        "policy_factory",
+        "registry",
+        "callback",
+        "authority_handle"
+      ],
+      "invariants": [
+        "primitive_closed_plain_data_only",
+        "position_identity_version_digest_and_instrument_match_observation",
+        "request_identity_binds_request_observation_position_and_private_policy_tuple",
+        "observation_is_fresh_at_decision_requested_at",
+        "private_policy_effective_at_or_before_decision_requested_at",
+        "decision_requested_at_strictly_before_private_policy_expiry",
+        "no_caller_policy_material"
+      ]
+    },
+    "exit_provenance_digest": {
+      "contract_version": "action_655a6_exit_provenance_digest_v1",
+      "digest_domain": "trade_management_exit_provenance_digest_v1",
+      "digest_representation": "64_lowercase_hexadecimal_characters",
+      "excluded_fields": [
+        "client_projection",
+        "decision_authority",
+        "decision_identity",
+        "decision_priority",
+        "decision_reason",
+        "decision_status",
+        "display_price",
+        "display_quantity",
+        "localized_label",
+        "recommended_quantity_units",
+        "recommended_stop_price_units",
+        "result_kind",
+        "side_effects_performed"
+      ],
+      "frame_fields": [
+        "contract_version",
+        "domain",
+        "projection"
+      ],
+      "invariants": [
+        "all_projection_fields_are_verified_present_and_non_null",
+        "digest_is_not_constructed_for_invalid_identity_conflict_or_authority_unavailable_results",
+        "raw_frame_must_be_canonical_before_hashing",
+        "policy_position_recommendation_observation_market_data_and_request_are_all_bound",
+        "projection_contains_no_display_or_result_fields"
+      ],
+      "projection_fields": [
+        "decision_requested_at",
+        "durable_recommendation_uuid",
+        "durable_recommendation_version",
+        "evaluation_request_identity",
+        "input_digest",
+        "instrument_identity",
+        "market_data_contract_version",
+        "market_data_digest",
+        "market_data_observation_identity",
+        "market_data_observed_at",
+        "observation_digest",
+        "observation_identity",
+        "observed_at",
+        "policy_digest",
+        "policy_id",
+        "policy_identity",
+        "policy_version",
+        "position_identity",
+        "position_snapshot_digest",
+        "position_version",
+        "recommendation_identity",
+        "recommendation_normative_digest"
+      ],
+      "serialization": {
+        "absent": "rejected_before_frame_construction",
+        "canonical_json": "closed_object_lexicographic_utf8_key_order_no_whitespace",
+        "enum": "exact_case_sensitive_json_string",
+        "hash": "SHA-256",
+        "integer": "canonical_JSON_integer_without_fraction_exponent_or_quotes",
+        "null": "not_permitted_in_provenance_projection",
+        "text": "NFC_JSON_string",
+        "utf8": "UTF-8_without_BOM"
+      }
+    },
+    "exit_queue_attempt": {
+      "contract_version": "action_655a4_exit_queue_attempt_v3",
+      "fields": [
+        "contract_version",
+        "attempt_identity",
+        "queue_item_identity",
+        "lease_identity",
+        "lease_owner_identity",
+        "attempt_ordinal",
+        "retry_number",
+        "attempt_started_at",
+        "leased_at",
+        "lease_expires_at",
+        "external_idempotency_identity",
+        "execution_identity",
+        "attempt_digest"
+      ],
+      "identity_binding": [
+        "queue_item_identity",
+        "lease_identity",
+        "lease_owner_identity",
+        "attempt_ordinal",
+        "retry_number",
+        "attempt_started_at",
+        "external_idempotency_identity"
+      ],
+      "identity_domain": "trade_management_exit_attempt_identity_v3",
+      "invariants": [
+        "attempt_ordinal_is_positive_and_previous_plus_one",
+        "retry_number_equals_attempt_ordinal_minus_one",
+        "leased_at_lte_attempt_started_at_lt_lease_expires_at",
+        "one_attempt_outcome_only"
+      ]
+    },
+    "exit_queue_attempt_outcome": {
+      "contract_version": "action_655a4_exit_attempt_outcome_v3",
+      "fields": [
+        "contract_version",
+        "attempt_outcome_identity",
+        "queue_item_identity",
+        "attempt_identity",
+        "attempt_ordinal",
+        "retry_number",
+        "lease_identity",
+        "outcome_kind",
+        "outcome_at",
+        "execution_identity",
+        "execution_receipt_digest",
+        "sanitized_evidence_digest",
+        "terminal_candidate_digest",
+        "attempt_outcome_digest"
+      ],
+      "outcome_kind": [
+        "retryable_failure",
+        "terminal_candidate"
+      ],
+      "presence_matrix": {
+        "retryable_failure": {
+          "attempt_identity": "present",
+          "attempt_ordinal": "present_positive_integer",
+          "attempt_outcome_digest": "present",
+          "attempt_outcome_identity": "present",
+          "contract_version": "present_exact",
+          "execution_identity": null,
+          "execution_receipt_digest": null,
+          "lease_identity": "present",
+          "outcome_at": "present",
+          "outcome_kind": "retryable_failure",
+          "queue_item_identity": "present",
+          "retry_number": "present_equals_attempt_ordinal_minus_one",
+          "sanitized_evidence_digest": "present",
+          "terminal_candidate_digest": null
+        },
+        "terminal_candidate_applied": {
+          "attempt_identity": "present",
+          "attempt_ordinal": "present_positive_integer",
+          "attempt_outcome_digest": "present",
+          "attempt_outcome_identity": "present",
+          "contract_version": "present_exact",
+          "execution_identity": "present",
+          "execution_receipt_digest": "present",
+          "lease_identity": "present",
+          "outcome_at": "present",
+          "outcome_kind": "terminal_candidate",
+          "queue_item_identity": "present",
+          "retry_number": "present_equals_attempt_ordinal_minus_one",
+          "sanitized_evidence_digest": "present",
+          "terminal_candidate_digest": "present"
+        },
+        "terminal_candidate_failure": {
+          "attempt_identity": "present",
+          "attempt_ordinal": "present_positive_integer",
+          "attempt_outcome_digest": "present",
+          "attempt_outcome_identity": "present",
+          "contract_version": "present_exact",
+          "execution_identity": null,
+          "execution_receipt_digest": null,
+          "lease_identity": "present",
+          "outcome_at": "present",
+          "outcome_kind": "terminal_candidate",
+          "queue_item_identity": "present",
+          "retry_number": "present_equals_attempt_ordinal_minus_one",
+          "sanitized_evidence_digest": "present",
+          "terminal_candidate_digest": "present"
+        }
+      },
+      "semantics": {
+        "retryable_failure": "closes_attempt_and_moves_queue_item_to_retry_wait_without_terminal_result",
+        "terminal_candidate": "closes_attempt_and_supplies_one_candidate_to_atomic_terminal_transaction"
+      }
+    },
+    "exit_queue_cancellation": {
+      "cancellation_reason": [
+        "operator_requested",
+        "policy_disabled",
+        "position_version_conflict",
+        "retry_budget_exhausted",
+        "superseded_decision",
+        "system_shutdown"
+      ],
+      "cancellation_reason_applicability": {
+        "operator_requested": {
+          "origin_classification": "operator",
+          "permitted_prior_statuses": [
+            "pending",
+            "retry_wait"
+          ]
+        },
+        "policy_disabled": {
+          "origin_classification": "policy",
+          "permitted_prior_statuses": [
+            "pending",
+            "retry_wait"
+          ]
+        },
+        "position_version_conflict": {
+          "origin_classification": "conflict",
+          "permitted_prior_statuses": [
+            "pending",
+            "retry_wait"
+          ]
+        },
+        "retry_budget_exhausted": {
+          "origin_classification": "lease",
+          "permitted_prior_statuses": [
+            "retry_wait"
+          ]
+        },
+        "superseded_decision": {
+          "origin_classification": "system",
+          "permitted_prior_statuses": [
+            "pending",
+            "retry_wait"
+          ]
+        },
+        "system_shutdown": {
+          "origin_classification": "system",
+          "permitted_prior_statuses": [
+            "pending",
+            "retry_wait"
+          ]
+        }
+      },
+      "cancellation_reason_authority": "classification_only_never_grants_or_proves_cancellation_authority",
+      "cancellation_reason_invalid_behavior": "unknown_missing_deprecated_wrong_case_wrong_type_or_inapplicable_reason_is_schema_invalid_no_identity_digest_queue_position_audit_or_conflict_work",
+      "contract_version": "action_655a6_exit_queue_cancellation_v4",
+      "fields": [
+        "contract_version",
+        "cancellation_identity",
+        "queue_item_identity",
+        "prior_queue_status",
+        "decision_position_status",
+        "decision_position_version",
+        "exit_pending_position_version",
+        "restored_position_version",
+        "cancelled_at",
+        "cancellation_reason",
+        "sanitized_evidence_digest",
+        "cancellation_digest"
+      ],
+      "invariants": [
+        "prior_queue_status_is_pending_or_retry_wait",
+        "reason_is_exact_case_sensitive_closed_enum_member_permitted_for_prior_status",
+        "cancellation_identity_and_digest_bind_exact_serialized_reason",
+        "no_attempt_or_execution_evidence",
+        "cancellation_is_not_a_terminal_result",
+        "identical_repeat_is_idempotent",
+        "conflicting_repeat_preserves_first_bytes",
+        "restored_position_version_equals_exit_pending_position_version_plus_one"
+      ],
+      "presence_matrix": {
+        "from_pending": {
+          "attempt_count": 0,
+          "cancellation_digest": "present",
+          "cancellation_identity": "present",
+          "cancellation_reason": "present_closed_enum",
+          "cancelled_at": "present",
+          "contract_version": "present_exact",
+          "decision_position_status": "present_open_or_partially_closed",
+          "decision_position_version": "present_N",
+          "exit_pending_position_version": "present_N_plus_1",
+          "last_attempt_identity": null,
+          "last_attempt_number": null,
+          "last_attempt_outcome": null,
+          "prior_queue_status": "pending",
+          "queue_item_identity": "present",
+          "restored_position_version": "present_N_plus_2",
+          "sanitized_evidence_digest": "present"
+        },
+        "from_retry_wait": {
+          "attempt_count": "positive",
+          "cancellation_digest": "present",
+          "cancellation_identity": "present",
+          "cancellation_reason": "present_closed_enum",
+          "cancelled_at": "present",
+          "contract_version": "present_exact",
+          "decision_position_status": "present_open_or_partially_closed",
+          "decision_position_version": "present_N",
+          "exit_pending_position_version": "present_N_plus_1",
+          "last_attempt_identity": "present",
+          "last_attempt_number": "present_equals_attempt_count",
+          "last_attempt_outcome": "present_retryable_failure",
+          "prior_queue_status": "retry_wait",
+          "queue_item_identity": "present",
+          "restored_position_version": "present_N_plus_2",
+          "sanitized_evidence_digest": "present"
+        }
+      },
+      "position_effect": "exit_pending_N_plus_1_to_decision_position_status_N_plus_2"
+    },
+    "exit_queue_item": {
+      "contract_version": "action_655a4_exit_queue_item_v3",
+      "eligible_decisions": [
+        "exit_partial",
+        "exit_full",
+        "move_stop"
+      ],
+      "fields": [
+        "contract_version",
+        "queue_item_identity",
+        "position_identity",
+        "decision_position_status",
+        "decision_position_version",
+        "exit_pending_position_version",
+        "position_snapshot_digest",
+        "decision_identity",
+        "decision_digest",
+        "decision_status",
+        "decision_reason",
+        "idempotency_identity",
+        "queue_status",
+        "created_at",
+        "available_at",
+        "lease_identity",
+        "lease_owner_identity",
+        "leased_at",
+        "lease_expires_at",
+        "attempt_count",
+        "active_attempt_identity",
+        "active_attempt_number",
+        "last_attempt_identity",
+        "last_attempt_number",
+        "last_attempt_outcome_identity",
+        "last_attempt_outcome",
+        "terminal_result",
+        "cancellation_record",
+        "immutable_conflict_evidence",
+        "audit_chain_head_digest",
+        "queue_item_digest"
+      ],
+      "idempotency_binding": [
+        "position_identity",
+        "decision_position_status",
+        "decision_position_version",
+        "exit_pending_position_version",
+        "position_snapshot_digest",
+        "decision_identity",
+        "decision_digest"
+      ],
+      "queue_status": [
+        "pending",
+        "leased",
+        "retry_wait",
+        "succeeded",
+        "failed_terminal",
+        "cancelled"
+      ],
+      "status_presence_matrix": {
+        "cancelled": {
+          "active_attempt_identity": null,
+          "active_attempt_number": null,
+          "attempt_count": "zero_from_pending_or_positive_from_retry_wait",
+          "cancellation_record": "present",
+          "immutable_conflict_evidence": "present_array",
+          "last_attempt_identity": "null_from_pending_or_present_from_retry_wait",
+          "last_attempt_number": "null_from_pending_or_present_equals_attempt_count_from_retry_wait",
+          "last_attempt_outcome": "null_from_pending_or_present_retryable_failure_from_retry_wait",
+          "lease_expires_at": null,
+          "lease_identity": null,
+          "lease_owner_identity": null,
+          "leased_at": null,
+          "terminal_result": null
+        },
+        "failed_terminal": {
+          "active_attempt_identity": null,
+          "active_attempt_number": null,
+          "attempt_count": "positive",
+          "cancellation_record": null,
+          "immutable_conflict_evidence": "present_array",
+          "last_attempt_identity": "present",
+          "last_attempt_number": "present_equals_attempt_count",
+          "last_attempt_outcome": "present_terminal_candidate_failure",
+          "lease_expires_at": null,
+          "lease_identity": null,
+          "lease_owner_identity": null,
+          "leased_at": null,
+          "terminal_result": "present_terminal_failure"
+        },
+        "leased": {
+          "active_attempt_identity": "present",
+          "active_attempt_number": "present_equals_attempt_count",
+          "attempt_count": "positive",
+          "cancellation_record": null,
+          "immutable_conflict_evidence": "present_array",
+          "last_attempt_identity": "null_when_attempt_count_1_otherwise_present",
+          "last_attempt_number": "null_when_attempt_count_1_otherwise_present_equals_attempt_count_minus_one",
+          "last_attempt_outcome": "null_when_attempt_count_1_otherwise_present_retryable_failure",
+          "lease_expires_at": "present",
+          "lease_identity": "present",
+          "lease_owner_identity": "present",
+          "leased_at": "present",
+          "terminal_result": null
+        },
+        "pending": {
+          "active_attempt_identity": null,
+          "active_attempt_number": null,
+          "attempt_count": 0,
+          "cancellation_record": null,
+          "immutable_conflict_evidence": "present_empty_array",
+          "last_attempt_identity": null,
+          "last_attempt_number": null,
+          "last_attempt_outcome": null,
+          "lease_expires_at": null,
+          "lease_identity": null,
+          "lease_owner_identity": null,
+          "leased_at": null,
+          "terminal_result": null
+        },
+        "retry_wait": {
+          "active_attempt_identity": null,
+          "active_attempt_number": null,
+          "attempt_count": "positive",
+          "cancellation_record": null,
+          "immutable_conflict_evidence": "present_array",
+          "last_attempt_identity": "present",
+          "last_attempt_number": "present_equals_attempt_count",
+          "last_attempt_outcome": "present_retryable_failure",
+          "lease_expires_at": null,
+          "lease_identity": null,
+          "lease_owner_identity": null,
+          "leased_at": null,
+          "terminal_result": null
+        },
+        "succeeded": {
+          "active_attempt_identity": null,
+          "active_attempt_number": null,
+          "attempt_count": "positive",
+          "cancellation_record": null,
+          "immutable_conflict_evidence": "present_array",
+          "last_attempt_identity": "present",
+          "last_attempt_number": "present_equals_attempt_count",
+          "last_attempt_outcome": "present_terminal_candidate_applied",
+          "lease_expires_at": null,
+          "lease_identity": null,
+          "lease_owner_identity": null,
+          "leased_at": null,
+          "terminal_result": "present_applied_result"
+        }
+      },
+      "transitions": [
+        "pending->leased",
+        "pending->cancelled",
+        "leased->retry_wait",
+        "leased->succeeded",
+        "leased->failed_terminal",
+        "retry_wait->leased",
+        "retry_wait->cancelled"
+      ]
+    },
+    "exit_queue_conflict_evidence": {
+      "conflict_kind": [
+        "terminal_result_conflict",
+        "cancellation_conflict"
+      ],
+      "contract_version": "action_655a4_exit_queue_conflict_evidence_v3",
+      "digest_domain": "trade_management_exit_conflict_evidence_digest_v3",
+      "disposition": "manual_review_required",
+      "fields": [
+        "contract_version",
+        "queue_item_identity",
+        "conflict_sequence",
+        "conflict_kind",
+        "preserved_record_digest",
+        "conflicting_record_digest",
+        "disposition",
+        "conflict_evidence_digest"
+      ],
+      "invariants": [
+        "conflict_sequence_is_positive_previous_plus_one",
+        "preserved_record_digest_is_the_first_committed_terminal_or_cancellation_digest",
+        "conflicting_record_digest_differs_from_preserved_record_digest",
+        "append_only_never_replaced_or_deleted",
+        "conflict_record_never_changes_queue_status_or_position",
+        "one_matching_audit_link_is_appended_atomically"
+      ]
+    },
+    "exit_queue_terminal_result": {
+      "contract_version": "action_655a4_exit_queue_terminal_result_v3",
+      "fields": [
+        "contract_version",
+        "terminal_identity",
+        "result_kind",
+        "queue_item_identity",
+        "attempt_identity",
+        "attempt_ordinal",
+        "retry_number",
+        "lease_identity",
+        "execution_identity",
+        "execution_receipt_digest",
+        "affected_quantity_units",
+        "effective_price_units",
+        "effective_stop_price_units",
+        "terminal_at",
+        "sanitized_evidence_digest",
+        "terminal_digest"
+      ],
+      "invariants": [
+        "retryable_failure_is_not_a_terminal_result",
+        "readiness_is_not_fill_evidence",
+        "identical_terminal_repeat_returns_existing_bytes_without_audit_append",
+        "conflicting_terminal_repeat_preserves_first_bytes_and_appends_conflict_audit",
+        "manual_review_required_is_audit_disposition_not_position_or_queue_status",
+        "terminal_status_has_no_outgoing_transition",
+        "terminal_mapping_clears_lease_and_active_attempt",
+        "retry_is_prohibited_after_terminal_mapping"
+      ],
+      "closure_mapping": {
+        "full_exit_applied": {
+          "audit_requirement": "append_one_terminal_audit_record_atomically",
+          "conflict_requirement": "none_on_first_application_later_conflict_appends_evidence_without_overwrite",
+          "effect_field_presence": "execution_and_receipt_affected_quantity_effective_price_present_stop_null",
+          "final_queue_status": "succeeded",
+          "lease_closure": "clear_identity_owner_acquired_expiry_and_active_attempt",
+          "position_effect": "exit_pending_N_plus_1_to_closed_N_plus_2_affected_quantity_equals_remaining",
+          "retry_allowed": false
+        },
+        "partial_exit_applied": {
+          "audit_requirement": "append_one_terminal_audit_record_atomically",
+          "conflict_requirement": "none_on_first_application_later_conflict_appends_evidence_without_overwrite",
+          "effect_field_presence": "execution_and_receipt_affected_quantity_effective_price_present_stop_null",
+          "final_queue_status": "succeeded",
+          "lease_closure": "clear_identity_owner_acquired_expiry_and_active_attempt",
+          "position_effect": "exit_pending_N_plus_1_to_partially_closed_N_plus_2_exact_remaining_reduction",
+          "retry_allowed": false
+        },
+        "stop_change_applied": {
+          "audit_requirement": "append_one_terminal_audit_record_atomically",
+          "conflict_requirement": "none_on_first_application_later_conflict_appends_evidence_without_overwrite",
+          "effect_field_presence": "execution_and_receipt_effective_stop_present_quantity_and_price_null",
+          "final_queue_status": "succeeded",
+          "lease_closure": "clear_identity_owner_acquired_expiry_and_active_attempt",
+          "position_effect": "exit_pending_N_plus_1_to_open_N_plus_2_with_exact_stop",
+          "retry_allowed": false
+        },
+        "terminal_failure": {
+          "audit_requirement": "append_one_terminal_failure_audit_record_atomically",
+          "conflict_requirement": "none_on_first_application_later_conflict_appends_evidence_without_overwrite",
+          "effect_field_presence": "execution_receipt_quantity_price_stop_all_null",
+          "final_queue_status": "failed_terminal",
+          "lease_closure": "clear_identity_owner_acquired_expiry_and_active_attempt",
+          "position_effect": "no_transition_position_remains_exit_pending_N_plus_1",
+          "retry_allowed": false
+        }
+      },
+      "conflict_behavior": {
+        "conflicting_repeat": "reject_preserve_first_terminal_and_position_append_one_immutable_conflict_evidence_and_audit_link",
+        "identical_repeat": "return_existing_queue_item_bytes_no_new_audit_or_conflict_evidence"
+      },
+      "result_kind": [
+        "partial_exit_applied",
+        "full_exit_applied",
+        "stop_change_applied",
+        "terminal_failure"
+      ]
+    },
+    "monitor_observation": {
+      "contract_version": "action_655a2_monitor_observation_v2",
+      "fields": [
+        "contract_version",
+        "observation_identity",
+        "position_identity",
+        "position_version",
+        "position_snapshot_digest",
+        "instrument_identity",
+        "observed_at",
+        "market_data_contract_version",
+        "market_data_observation_identity",
+        "market_data_observed_at",
+        "market_data_digest",
+        "current_price_units",
+        "session_state",
+        "observation_digest"
+      ],
+      "freshness_binding": [
+        "market_data_observed_at_lte_observed_at",
+        "observed_at_lte_decision_requested_at",
+        "request_minus_observed_at_lt_private_maximum_observation_age_ns",
+        "request_minus_market_data_observed_at_lt_private_maximum_market_data_age_ns",
+        "private_maximum_future_skew_ns_equals_zero"
+      ],
+      "identity_domain": "trade_management_monitor_observation_v2",
+      "side_effects": {
+        "broker_calls": 0,
+        "database_writes": 0,
+        "queue_mutations": 0,
+        "position_mutations": 0
+      }
+    },
+    "position_snapshot": {
+      "contract_version": "action_655a6_position_snapshot_v3",
+      "fields": [
+        "contract_version",
+        "position_identity",
+        "position_version",
+        "durable_recommendation_uuid",
+        "durable_recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest",
+        "instrument_identity",
+        "side",
+        "status",
+        "opened_at",
+        "snapshot_at",
+        "price_scale",
+        "tick_size_price_units",
+        "quantity_scale",
+        "lot_size_quantity_units",
+        "total_quantity_units",
+        "remaining_quantity_units",
+        "entry_price_units",
+        "initial_stop_price_units",
+        "initial_risk_price_units",
+        "current_stop_price_units",
+        "invalidation_price_units",
+        "target_1_price_units",
+        "target_2_price_units",
+        "position_snapshot_digest"
+      ],
+      "numeric_invariants": [
+        "durable_recommendation_version_is_positive_integer",
+        "all_price_and_quantity_units_are_positive_checked_integers",
+        "all_prices_tick_aligned",
+        "all_quantities_lot_aligned",
+        "remaining_quantity_lte_total_quantity",
+        "initial_risk_equals_absolute_entry_minus_initial_stop_and_is_positive",
+        "long_initial_stop_and_invalidation_below_entry_targets_above_entry_ascending",
+        "short_initial_stop_and_invalidation_above_entry_targets_below_entry_descending"
+      ],
+      "status": [
+        "open",
+        "exit_pending",
+        "partially_closed",
+        "closed"
+      ],
+      "version_rule": "positive integer incremented exactly once in the same server persistence transaction as each mutation"
+    },
+    "recommendation_position_command": {
+      "contract_version": "action_655a2_recommendation_position_command_v2",
+      "fields": [
+        "contract_version",
+        "durable_recommendation_uuid",
+        "durable_recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest",
+        "execution_identity",
+        "execution_receipt_digest",
+        "position_identity",
+        "instrument_identity",
+        "side",
+        "entry_price_units",
+        "quantity_units",
+        "initial_stop_price_units",
+        "invalidation_price_units",
+        "target_1_price_units",
+        "target_2_price_units",
+        "price_scale",
+        "tick_size_price_units",
+        "quantity_scale",
+        "lot_size_quantity_units",
+        "command_requested_at",
+        "idempotency_identity",
+        "command_digest"
+      ],
+      "idempotency_binding": [
+        "durable_recommendation_uuid",
+        "durable_recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest",
+        "position_identity",
+        "canonical_command_digest"
+      ],
+      "lock_identity": [
+        "durable_recommendation_uuid",
+        "durable_recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest"
+      ],
+      "recommendation_identity_contract": "rec_decision:v1_plus_required_durable_uuid_version_and_normative_digest",
+      "result_disposition": [
+        "created",
+        "replayed",
+        "conflict",
+        "recommendation_binding_conflict",
+        "stale_recommendation_version",
+        "refused",
+        "rolled_back"
+      ],
+      "transaction_steps": [
+        "lock_exact_durable_recommendation_uuid_for_update",
+        "verify_locked_uuid_version_identity_and_normative_digest",
+        "verify_eligibility_and_exact_command_bytes",
+        "reserve_or_verify_position_identity",
+        "create_position_version_1",
+        "transition_same_locked_recommendation_row_to_taken",
+        "link_matching_snapshots",
+        "append_audit_event",
+        "commit"
+      ]
+    }
+  },
+  "digest_test_vectors": {
+    "cancellation_reason": {
+      "invalid": [
+        {
+          "prior_queue_status": "pending",
+          "reason": "operator-requested",
+          "result": "schema_invalid_unknown_enum"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": "manual",
+          "result": "schema_invalid_unknown_enum"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": "",
+          "result": "schema_invalid_unknown_enum"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": null,
+          "result": "schema_invalid_null"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason_presence": "absent",
+          "result": "schema_invalid_missing"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": "Operator_requested",
+          "result": "schema_invalid_wrong_case"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": "legacy_cancelled",
+          "result": "schema_invalid_deprecated_or_unknown_enum"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": 1,
+          "result": "schema_invalid_wrong_type"
+        },
+        {
+          "prior_queue_status": "pending",
+          "reason": "retry_budget_exhausted",
+          "result": "schema_invalid_reason_not_permitted_for_status"
+        }
+      ],
+      "valid": [
+        "operator_requested@pending",
+        "operator_requested@retry_wait",
+        "policy_disabled@pending",
+        "policy_disabled@retry_wait",
+        "position_version_conflict@pending",
+        "position_version_conflict@retry_wait",
+        "retry_budget_exhausted@retry_wait",
+        "superseded_decision@pending",
+        "superseded_decision@retry_wait",
+        "system_shutdown@pending",
+        "system_shutdown@retry_wait"
+      ]
+    },
+    "decision_digest": {
+      "common_frame": {
+        "contract_version": "action_655a6_exit_decision_digest_v4",
+        "domain": "trade_management_exit_decision_digest_v3"
+      },
+      "decision_identity_positive": {
+        "expected_identity": "tm_exit_decision:v4:eb3c2554f646508c49ad4409429fe27697572bae1c760a8e6b417288c216605b",
+        "frame": {
+          "contract_version": "action_655a6_exit_decision_identity_v4",
+          "domain": "trade_management_exit_decision_identity_v3",
+          "projection": {
+            "decision_priority": 1,
+            "decision_reason": "hard_stop",
+            "decision_status": "exit_full",
+            "provenance_digest": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+            "recommended_quantity_units": "10",
+            "recommended_stop_price_units": null,
+            "result_kind": "decision"
+          }
+        }
+      },
+      "negative": {
+        "altered_decision_requested_at_via_provenance_digest": "c08b25b7b5511bc7aa84b09ddb511f50730b1986502c44db888cb4c8ec955c76",
+        "altered_observation_identity_via_provenance_digest": "d30a46579d80bf19021bd6087e729b920bde8e7797d20f5da170f663b14f3627",
+        "altered_policy_digest_via_provenance_digest": "6bfe28fc9c015e78b278d011aa0deaa00411ff33d820d37b6a670d70810d9cad",
+        "altered_recommendation_uuid_via_provenance_digest": "4a17ea838b16dfcf6909c6b4d6d9aee6feed69018868d8cf2a69711befb17bff",
+        "altered_recommendation_version_via_provenance_digest": "f67641b159c0d21db49fc7fd2d9efa59aff0b931e99f8e1d0b7b408858b18c39",
+        "altered_result_discriminator": "1e6eae79a328e7d9648b4e8251b48b368963f87676b78b3442dbd9f5dd2d751d",
+        "field_reordered_raw_sha256": "40078c448ab176382fe646788309fad7d607123872002028556303150249d4ce",
+        "field_reordered_result": "reject_noncanonical_before_digest_verification",
+        "omitted_explicit_null_result": "reject_missing_projection_field_before_hashing"
+      },
+      "positive": {
+        "decision": {
+          "expected_digest": "69601e20d9146ef507d76782d0cecc3dbce5aa4c23e64c953765cae952306d25",
+          "projection": {
+            "decision_authority": "server_owned_policy",
+            "decision_identity": "tm_exit_decision:v4:eb3c2554f646508c49ad4409429fe27697572bae1c760a8e6b417288c216605b",
+            "decision_priority": 1,
+            "decision_reason": "hard_stop",
+            "decision_status": "exit_full",
+            "invalid_error_code": null,
+            "invalid_error_path": null,
+            "noneligible_position_status": null,
+            "noneligible_reason": null,
+            "provenance_digest": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+            "recommended_quantity_units": "10",
+            "recommended_stop_price_units": null,
+            "refusal_error_path": null,
+            "refusal_reason": null,
+            "result_kind": "decision",
+            "side_effects_performed": false
+          }
+        },
+        "invalid": {
+          "expected_digest": "c0eb00743c9739fcec72858ad19e957830faf479320c4aa4c3da2062a3cffd42",
+          "projection": {
+            "decision_authority": null,
+            "decision_identity": null,
+            "decision_priority": null,
+            "decision_reason": null,
+            "decision_status": null,
+            "invalid_error_code": "missing_required_input",
+            "invalid_error_path": "/position_snapshot",
+            "noneligible_position_status": null,
+            "noneligible_reason": null,
+            "provenance_digest": null,
+            "recommended_quantity_units": null,
+            "recommended_stop_price_units": null,
+            "refusal_error_path": null,
+            "refusal_reason": null,
+            "result_kind": "invalid",
+            "side_effects_performed": false
+          }
+        },
+        "noneligible": {
+          "expected_digest": "629bcc3a96664dafe7903b12c83ecf6f9eb36fbcf3c55a03990c145eb56b95ef",
+          "projection": {
+            "decision_authority": null,
+            "decision_identity": null,
+            "decision_priority": null,
+            "decision_reason": null,
+            "decision_status": null,
+            "invalid_error_code": null,
+            "invalid_error_path": null,
+            "noneligible_position_status": "exit_pending",
+            "noneligible_reason": "position_exit_pending",
+            "provenance_digest": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+            "recommended_quantity_units": null,
+            "recommended_stop_price_units": null,
+            "refusal_error_path": null,
+            "refusal_reason": null,
+            "result_kind": "noneligible",
+            "side_effects_performed": false
+          }
+        },
+        "refused": {
+          "expected_digest": "cc9d34e76a2efd180a8b9d2aea385506a9fb48ffcea62371f23ae7070603c4ef",
+          "projection": {
+            "decision_authority": null,
+            "decision_identity": null,
+            "decision_priority": null,
+            "decision_reason": null,
+            "decision_status": null,
+            "invalid_error_code": null,
+            "invalid_error_path": null,
+            "noneligible_position_status": null,
+            "noneligible_reason": null,
+            "provenance_digest": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+            "recommended_quantity_units": null,
+            "recommended_stop_price_units": null,
+            "refusal_error_path": "/monitor_observation/observed_at",
+            "refusal_reason": "stale_observation",
+            "result_kind": "refused",
+            "side_effects_performed": false
+          }
+        }
+      }
+    },
+    "policy_digest": {
+      "expected_digest": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
+      "predecessor_mismatch_reconstruction": {
+        "declared_canonical_unsigned_projection_frame_digest": "7f340292bf4d9d7fb312c367c39411ebd630c1079aa2d4ffff64ccba6310153c",
+        "frozen_predecessor_digest": "9036332001231ba7fa8b46af46c0e2dbaeb852cf5139e14f1f82925a635712e9",
+        "predecessor_commit": "24eab98755497a92e9162d71ecedac9179bbc768",
+        "projection_field_frame_digest": "9036332001231ba7fa8b46af46c0e2dbaeb852cf5139e14f1f82925a635712e9",
+        "result": "declared_field_name_does_not_rebuild_frozen_predecessor_digest"
+      },
+      "negative": {
+        "altered_projection_digest": "89b3327005321a84c047861d077648a02baa493111df2d97261bcf8232d2a487",
+        "alternate_field_name_digest": "660e5d41b8a2268c461e5f0a2385dc807e2564201f7f630db380300ab17a1717",
+        "alternate_field_name_result": "reject_unknown_field_before_hashing",
+        "field_reordered_raw_sha256": "757d043c1e6a765abb4a63e4a88630d3864949dfa44d4caf579d0da4e08c8777",
+        "field_reordered_result": "reject_noncanonical_before_digest_verification"
+      },
+      "positive_frame": {
+        "contract_version": "action_655a6_exit_policy_digest_frame_v3",
+        "domain": "trade_management_exit_policy_v2",
+        "policy_id": "server_primary_exit_policy",
+        "policy_identity": "tm_exit_policy:v3:server_primary_exit_policy:2",
+        "projection": {
+          "contract_version": "action_655a2_exit_policy_v2",
+          "enabled": true,
+          "effective_at": "2026-01-01T00:00:00.000000000Z",
+          "expires_at": "9999-12-31T23:59:59.999999999Z",
+          "maximum_future_skew_ns": "0",
+          "maximum_market_data_age_ns": "5000000000",
+          "maximum_observation_age_ns": "5000000000",
+          "minimum_remaining_lots": "1",
+          "move_stop_to_entry_offset_ticks": "0",
+          "partial_exit_denominator": "2",
+          "partial_exit_numerator": "1",
+          "policy_id": "server_primary_exit_policy",
+          "policy_version": 2,
+          "profit_protection_r_denominator": "1",
+          "profit_protection_r_numerator": "1",
+          "reason_priority": [
+            "hard_stop",
+            "invalidation",
+            "session_close",
+            "final_target",
+            "first_target_partial",
+            "profit_protection_stop_move",
+            "hold"
+          ],
+          "session_exit_states": [
+            "closing",
+            "closed"
+          ]
+        }
+      }
+    },
+    "provenance_digest": {
+      "expected_digest": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+      "negative_expected_digests": {
+        "altered_decision_requested_at": "6635a69cd98109bc6d1d4db1435283e0ab2328e974bfcde909beb620ad1da834",
+        "altered_observation_identity": "8f1efc011108a986005a4795a5a2de5768e8a3abfc2227503370b4586ad7a293",
+        "altered_policy_digest": "bdeb796c571d7c41544403cf9076d20e030a388d6bb50bc4be460d682ead1a02",
+        "altered_recommendation_uuid": "9a849f926a5e04f40a389edf0bae2609bb6186b4a61ddd6dd7a581182f25ee68",
+        "altered_recommendation_version": "e5226f1423f243ef911aba06a08011be20c0bdc710f6d03aa7f46018ccbfc6a3"
+      },
+      "positive_frame": {
+        "contract_version": "action_655a6_exit_provenance_digest_v1",
+        "domain": "trade_management_exit_provenance_digest_v1",
+        "projection": {
+          "decision_requested_at": "2026-08-04T12:00:00.000000000Z",
+          "durable_recommendation_uuid": "22222222-2222-4222-8222-222222222222",
+          "durable_recommendation_version": 7,
+          "evaluation_request_identity": "tm_exit_request:v4:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "input_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "instrument_identity": "instrument:XSTO:SE0000000001",
+          "market_data_contract_version": "synthetic_market_data_observation_v1",
+          "market_data_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+          "market_data_observation_identity": "market_observation:v1:5555555555555555555555555555555555555555555555555555555555555555",
+          "market_data_observed_at": "2026-08-04T11:59:59.000000000Z",
+          "observation_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+          "observation_identity": "tm_observation:v2:3333333333333333333333333333333333333333333333333333333333333333",
+          "observed_at": "2026-08-04T11:59:59.500000000Z",
+          "policy_digest": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
+          "policy_id": "server_primary_exit_policy",
+          "policy_identity": "tm_exit_policy:v3:server_primary_exit_policy:2",
+          "policy_version": 2,
+          "position_identity": "11111111-1111-4111-8111-111111111111",
+          "position_snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "position_version": 3,
+          "recommendation_identity": "rec_decision:v1:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "recommendation_normative_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      }
+    }
+  },
+  "exit_arithmetic": {
+    "comparison_inclusivity": {
+      "hard_stop": "inclusive",
+      "invalidation": "inclusive",
+      "target_1": "inclusive",
+      "target_2": "inclusive"
+    },
+    "favorable_price_delta": {
+      "equality": "zero",
+      "long": "current_price_units_gte_entry_price_units_then_checked_current_minus_entry_else_zero",
+      "short": "current_price_units_lte_entry_price_units_then_checked_entry_minus_current_else_zero",
+      "unfavorable": "zero_no_profit_protection_rule",
+      "unsafe_or_product_overflow": "refused_arithmetic_overflow"
+    },
+    "partial_quantity": "floor(remaining_quantity_units*numerator/denominator) then round_down_to_lot; require at_least_one_lot and remaining_after >= minimum_remaining_lots*lot_size_quantity_units",
+    "profit_protection": "favorable_price_delta*r_denominator >= initial_risk_price_units*r_numerator using checked uint256 intermediates",
+    "rounding": "no_implicit_rounding_except_declared_partial_quantity_round_down_to_lot",
+    "stop_move": "entry_price_units plus zero ticks; entry is prevalidated tick aligned",
+    "target_nullability_matrix": {
+      "neither": "valid_no_target_rules",
+      "target_1_and_target_2": "valid_only_with_side_aware_strict_ordering",
+      "target_1_only": "valid_first_target_rule_only",
+      "target_2_only": "invalid_numeric_domain_at_position_snapshot_target_2_price_units"
+    }
+  },
+  "exit_priority": [
+    "hard_stop",
+    "invalidation",
+    "session_close",
+    "final_target",
+    "first_target_partial",
+    "profit_protection_stop_move",
+    "hold"
+  ],
+  "existing_identity_reuse": {
+    "execution_identity": "action_650s_runtime_identity_v1",
+    "handoff_identity": "action_650s_handoff_identity_v1",
+    "manual_confirmation_receipt": "action_650u_manual_confirmation_consumption_receipt_v1",
+    "readiness_runtime_authority": "action_654u_exact_budget_unit_private_policy_v1",
+    "recommendation_identity": "rec_decision:v1_with_required_durable_row_binding",
+    "risk_admission": "action_652c_non_forgeable_risk_authority_v2"
+  },
+  "first_implementation_slice": {
+    "action": "655B",
+    "authorization": "pending_independent_rereview",
+    "default_off": true,
+    "excluded": [
+      "route",
+      "clock",
+      "provider",
+      "database",
+      "migration",
+      "queue",
+      "worker",
+      "client",
+      "execution_authority",
+      "broker_transport"
+    ],
+    "name": "pure deterministic canonical exit evaluator",
+    "output_authority": "non_persistent_total_evaluation_evidence_only"
+  },
+  "identity_domains": {
+    "attempt_digest": "trade_management_exit_attempt_digest_v3",
+    "attempt_identity": "trade_management_exit_attempt_identity_v3",
+    "attempt_outcome_digest": "trade_management_exit_attempt_outcome_digest_v3",
+    "attempt_outcome_identity": "trade_management_exit_attempt_outcome_identity_v3",
+    "audit_record_digest": "trade_management_exit_audit_record_digest_v3",
+    "cancellation_digest": "trade_management_exit_cancellation_digest_v3",
+    "cancellation_identity": "trade_management_exit_cancellation_identity_v3",
+    "conflict_evidence_digest": "trade_management_exit_conflict_evidence_digest_v3",
+    "command_digest": "trade_management_recommendation_position_command_digest_v2",
+    "command_idempotency_identity": "trade_management_recommendation_position_idempotency_v2",
+    "decision_digest": "trade_management_exit_decision_digest_v3",
+    "decision_identity": "trade_management_exit_decision_identity_v3",
+    "evaluation_input_digest": "trade_management_exit_evaluation_input_digest_v3",
+    "evaluation_request_identity": "trade_management_exit_evaluation_request_identity_v3",
+    "evaluation_result_digest": "trade_management_exit_evaluation_result_digest_v3",
+    "monitor_observation_digest": "trade_management_monitor_observation_digest_v2",
+    "monitor_observation_identity": "trade_management_monitor_observation_identity_v2",
+    "policy_digest": "trade_management_exit_policy_v2",
+    "position_snapshot_digest": "trade_management_position_snapshot_digest_v2",
+    "projection_source_digest": "trade_management_projection_source_digest_v2",
+    "provenance_digest": "trade_management_exit_provenance_digest_v1",
+    "queue_idempotency_identity": "trade_management_exit_queue_idempotency_v3",
+    "queue_item_digest": "trade_management_exit_queue_item_digest_v3",
+    "queue_item_identity": "trade_management_exit_queue_item_identity_v3",
+    "terminal_digest": "trade_management_exit_terminal_digest_v3",
+    "terminal_identity": "trade_management_exit_terminal_identity_v3"
+  },
+  "normative_artifacts": [
+    "docs/action-655a-server-owned-trade-management-design.md",
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json",
+    "docs/action-655a-server-owned-trade-management-threat-model.md",
+    "docs/action-655a-server-owned-trade-management-dependency-gate.json",
+    "docs/action-655a-server-owned-trade-management-next-slice.md"
+  ],
+  "private_policy_registry": {
+    "accepted_policy_allowlist": [
+      {
+        "policy_digest": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
+        "policy_id": "server_primary_exit_policy",
+        "policy_identity": "tm_exit_policy:v3:server_primary_exit_policy:2",
+        "policy_version": 2
+      }
+    ],
+    "caller_selectable": false,
+    "exported": false,
+    "integrity_behavior": {
+      "digest_or_tuple_mismatch": "invalid_policy_registry_integrity_failure",
+      "multiple_matches": "refused_authority_unavailable",
+      "zero_matches": "refused_authority_unavailable"
+    },
+    "normative_digest_frame": {
+      "algorithm": "SHA-256",
+      "canonical_field_order": [
+        "contract_version",
+        "domain",
+        "policy_id",
+        "policy_identity",
+        "projection"
+      ],
+      "contract_version": "action_655a6_exit_policy_digest_frame_v3",
+      "digest_representation": "64_lowercase_hexadecimal_characters",
+      "domain": "trade_management_exit_policy_v2",
+      "encoding": "UTF-8_without_BOM",
+      "field_name_for_projection": "projection",
+      "forbidden_aliases": [
+        "canonical_unsigned_projection",
+        "payload",
+        "policy",
+        "record",
+        "unsigned",
+        "value"
+      ],
+      "policy_id": "server_primary_exit_policy",
+      "policy_identity": "tm_exit_policy:v3:server_primary_exit_policy:2",
+      "raw_frame_requirement": "must_equal_canonical_serialization_before_hashing"
+    },
+    "normative_policy_projection": {
+      "contract_version": "action_655a2_exit_policy_v2",
+      "enabled": true,
+      "effective_at": "2026-01-01T00:00:00.000000000Z",
+      "expires_at": "9999-12-31T23:59:59.999999999Z",
+      "maximum_future_skew_ns": "0",
+      "maximum_market_data_age_ns": "5000000000",
+      "maximum_observation_age_ns": "5000000000",
+      "minimum_remaining_lots": "1",
+      "move_stop_to_entry_offset_ticks": "0",
+      "partial_exit_denominator": "2",
+      "partial_exit_numerator": "1",
+      "policy_id": "server_primary_exit_policy",
+      "policy_version": 2,
+      "profit_protection_r_denominator": "1",
+      "profit_protection_r_numerator": "1",
+      "reason_priority": [
+        "hard_stop",
+        "invalidation",
+        "session_close",
+        "final_target",
+        "first_target_partial",
+        "profit_protection_stop_move",
+        "hold"
+      ],
+      "session_exit_states": [
+        "closing",
+        "closed"
+      ]
+    },
+    "owner": "private_trade_management_server_composition",
+    "policy_digest": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
+    "policy_identity": "tm_exit_policy:v3:server_primary_exit_policy:2",
+    "public_factory_or_selector": false,
+    "test_hook_exported": false
+  },
+  "scope_digest_frame": "sort paths as UTF-8 bytes; for each append path, NUL, exact file bytes, NUL; SHA-256 the concatenation",
+  "state_machine": {
+    "attempt_outcome_is_separate_from_terminal_result": true,
+    "contradictory_presence_combinations_are_schema_invalid": true,
+    "identical_terminal_repeat_changes_state": false,
+    "immutable_conflict_evidence_always_present": true,
+    "manual_review_required_role": "append_only_audit_disposition_only",
+    "position_status": [
+      "open",
+      "exit_pending",
+      "partially_closed",
+      "closed"
+    ],
+    "queue_status": [
+      "pending",
+      "leased",
+      "retry_wait",
+      "succeeded",
+      "failed_terminal",
+      "cancelled"
+    ],
+    "retryable_failure_is_terminal": false,
+    "terminal_conflict_overwrites_prior_evidence": false,
+    "terminal_status_has_outgoing_transition": false,
+    "two_conforming_queue_implementations_serialize_identically": true
+  },
+  "action_655d_exit_evaluator_remediation": {
+    "contract_id": "action_655d_exit_evaluator_remediation_contract_v1",
+    "design_status": "frozen_pending_independent_review",
+    "rejected_implementation": {
+      "commit": "08e593a58fc18473d6a6212c10f72cae8b7587ce",
+      "implementation_sha256": "bb0c82ec72eb0081a7c5102a378a8df8c14fd0575304f34ee49dc659e58724bb",
+      "role": "negative_evidence_only"
+    },
+    "exact_json_type_contract": {
+      "coercion_forbidden": [
+        "String(value)",
+        "template_interpolation",
+        "string_concatenation",
+        "loose_equality",
+        "implicit_comparison_coercion"
+      ],
+      "validation_precedes": [
+        "identity_rebuild",
+        "policy_resolution",
+        "provenance_construction",
+        "arithmetic",
+        "rule_evaluation"
+      ],
+      "wrong_type_result": {
+        "decision": null,
+        "diagnostic_reason_code_not_serialized": "wrong_json_primitive_type",
+        "error_code": "schema_invalid",
+        "error_path": "exact_RFC6901_field_path",
+        "provenance_digest": null,
+        "result_kind": "invalid"
+      },
+      "matrix": [
+        {
+          "category": "uuid",
+          "paths": [
+            "/position_snapshot/position_identity",
+            "/position_snapshot/durable_recommendation_uuid",
+            "/monitor_observation/position_identity"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "position_status",
+          "paths": [
+            "/position_snapshot/status"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "session_state",
+          "paths": [
+            "/monitor_observation/session_state"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "identity_or_enum",
+          "paths": [
+            "/position_snapshot/recommendation_identity",
+            "/position_snapshot/instrument_identity",
+            "/position_snapshot/side",
+            "/monitor_observation/observation_identity",
+            "/monitor_observation/instrument_identity",
+            "/monitor_observation/market_data_contract_version",
+            "/monitor_observation/market_data_observation_identity",
+            "/evaluation_request_identity"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "digest",
+          "paths": [
+            "/position_snapshot/recommendation_normative_digest",
+            "/position_snapshot/position_snapshot_digest",
+            "/monitor_observation/position_snapshot_digest",
+            "/monitor_observation/market_data_digest",
+            "/monitor_observation/observation_digest",
+            "/input_digest"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "json_integer",
+          "paths": [
+            "/position_snapshot/position_version",
+            "/position_snapshot/durable_recommendation_version",
+            "/position_snapshot/price_scale",
+            "/position_snapshot/quantity_scale",
+            "/monitor_observation/position_version"
+          ],
+          "required_json_type": "number_safe_integer"
+        },
+        {
+          "category": "integer_unit_text_or_instant",
+          "paths": [
+            "/position_snapshot/opened_at",
+            "/position_snapshot/snapshot_at",
+            "/position_snapshot/tick_size_price_units",
+            "/position_snapshot/lot_size_quantity_units",
+            "/position_snapshot/total_quantity_units",
+            "/position_snapshot/remaining_quantity_units",
+            "/position_snapshot/entry_price_units",
+            "/position_snapshot/initial_stop_price_units",
+            "/position_snapshot/initial_risk_price_units",
+            "/position_snapshot/current_stop_price_units",
+            "/position_snapshot/invalidation_price_units",
+            "/monitor_observation/observed_at",
+            "/monitor_observation/market_data_observed_at",
+            "/monitor_observation/current_price_units",
+            "/decision_requested_at"
+          ],
+          "required_json_type": "string"
+        },
+        {
+          "category": "nullable_target_integer_unit_text",
+          "paths": [
+            "/position_snapshot/target_1_price_units",
+            "/position_snapshot/target_2_price_units"
+          ],
+          "required_json_type": "string_or_null_as_declared"
+        }
+      ]
+    },
+    "array_coercion_negative_vectors": [
+      {
+        "decision_digest": "0b2d05ff62c9fcfbb2f1cb78190d3366c0b7ae63e23ffa87883451983a394ec0",
+        "error_code": "schema_invalid",
+        "error_path": "/position_snapshot/durable_recommendation_uuid",
+        "field": "durable_recommendation_uuid",
+        "result_digest": "ba5c416f2c6d2e6c26e7c19c0a7997b939f9f26e2fa77d9b63a6f139f2f3689b",
+        "result_kind": "invalid",
+        "value": [
+          "22222222-2222-4222-8222-222222222222"
+        ]
+      },
+      {
+        "decision_digest": "35b59610e38ba3235946399d516e582220ee7064db48fc7af7dd26dc989313ab",
+        "error_code": "schema_invalid",
+        "error_path": "/position_snapshot/status",
+        "field": "position_status",
+        "result_digest": "9652729090df3c546b3e3af573b24b7219d371d065cab8ca1debdc44447ac6e0",
+        "result_kind": "invalid",
+        "value": [
+          "closed"
+        ]
+      },
+      {
+        "decision_digest": "02c0731e3709c66f335501605cd82f67941b75f0a466dbadd210b7c5f7da5337",
+        "error_code": "schema_invalid",
+        "error_path": "/monitor_observation/session_state",
+        "field": "session_state",
+        "result_digest": "fd181c62c4febfbb22c297ddc7b741f1273dadee7628ad5397002bbaa1e100b1",
+        "result_kind": "invalid",
+        "value": [
+          "closing"
+        ]
+      },
+      {
+        "decision_digest": "6c6577142a7abaa52294ed7c169a7dc3d19f58533b5cb653b9aec47badba21b6",
+        "diagnostic_reason_code_not_serialized": "caller_policy_field_forbidden",
+        "error_code": "schema_invalid",
+        "error_path": "/policy_identity",
+        "field": "caller_policy_identity",
+        "result_digest": "0b21d89d330d740dad1d76999268e026be419c859f9363aa7c65129245b969c5",
+        "result_kind": "invalid",
+        "value": [
+          "tm_exit_policy:v3:server_primary_exit_policy:2"
+        ]
+      },
+      {
+        "decision_digest": "5a1b966e63327e73c47299d29c719fb7a15ff13e5c13fc914f06cec02f05098d",
+        "error_code": "schema_invalid",
+        "error_path": "/position_snapshot/recommendation_normative_digest",
+        "field": "digest",
+        "result_digest": "be187c44aa7e09f55429fb1d16da5f833fc229536724c3988cbe7fb96b56ac0b",
+        "result_kind": "invalid",
+        "value": [
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ]
+      }
+    ],
+    "profit_protection": {
+      "current_stop_equals_entry_suppresses_match": false,
+      "predicate": "checked(favorable_price_delta*profit_protection_r_denominator) >= checked(initial_risk_price_units*profit_protection_r_numerator)",
+      "predicate_additional_conditions": [],
+      "result": {
+        "decision_priority": 6,
+        "decision_reason": "profit_protection_stop_move",
+        "decision_status": "move_stop",
+        "recommended_quantity_units": null,
+        "recommended_stop_price_units": "exact_entry_price_units"
+      },
+      "vectors": [
+        {
+          "current_price_units": "109",
+          "current_stop_price_units": "100",
+          "decision_digest": "aadba60c00b115f4c65a3b57975b3ed5c6c1624549e6f0c4104e8b4362103f6c",
+          "decision_priority": 7,
+          "decision_status": "hold",
+          "entry_price_units": "100",
+          "input_sha256": "a42735435fb923d0301fcbefd271d4ab40ac4786483ecb633ca9a325d980d596",
+          "result_digest": "65e0dba6df7fd9a83000026f13c04a820f5190829ddb27e59a9afd86ed58e4b7",
+          "side": "long",
+          "threshold_relation": "maximum_minus_one"
+        },
+        {
+          "current_price_units": "110",
+          "current_stop_price_units": "100",
+          "decision_digest": "1d8f666ff279f5bd87579d44ef16bff5b68471bf163e767cb7fb1805db08a421",
+          "decision_priority": 6,
+          "decision_status": "move_stop",
+          "entry_price_units": "100",
+          "input_sha256": "5bd98874545379871471b3d1cfec3ed450bbcfc4509a91b50e83eb9e6da5004b",
+          "recommended_stop_price_units": "100",
+          "result_digest": "cda11a8c23334b1ea106cdc2ef71069e536e656449737b5574c867e4f37a3266",
+          "side": "long",
+          "threshold_relation": "maximum"
+        },
+        {
+          "current_price_units": "111",
+          "current_stop_price_units": "100",
+          "decision_digest": "06376e147fe73a660cb9e8c631ce343321077036fee11410d94f17e3736c75e9",
+          "decision_priority": 6,
+          "decision_status": "move_stop",
+          "entry_price_units": "100",
+          "input_sha256": "6e204264b344b3758861b97c67d84284e71c70192d2ac80959880ffcacacfc61",
+          "recommended_stop_price_units": "100",
+          "result_digest": "dc8cc178d2e8aebc71a0dcb98f1af9a5fd1db22ca34246e629ddfbe311db3c20",
+          "side": "long",
+          "threshold_relation": "maximum_plus_one"
+        },
+        {
+          "current_price_units": "91",
+          "current_stop_price_units": "100",
+          "decision_digest": "358b99322273c600b8dd98ac2bb0e1e9c5f1684e547d94ff2637e6f76d7b1446",
+          "decision_priority": 7,
+          "decision_status": "hold",
+          "entry_price_units": "100",
+          "input_sha256": "a43c64e84db07acc3c487846b7a1bab146abb51d8b03f5b4c8f51bbc4f756fb9",
+          "result_digest": "d33f37958876b098f1aa87eda587792aee0caf600a25247c728ed883296dbf5b",
+          "side": "short",
+          "threshold_relation": "maximum_minus_one"
+        },
+        {
+          "current_price_units": "90",
+          "current_stop_price_units": "100",
+          "decision_digest": "39432c76b2aab4641ca6f528d282e5a0dcac7b3d89341b463cd7c9d4a231aee3",
+          "decision_priority": 6,
+          "decision_status": "move_stop",
+          "entry_price_units": "100",
+          "input_sha256": "89dfb92cb8938039e9a55cf5abe62ffc8606591444955f45149f9bea890aaa42",
+          "recommended_stop_price_units": "100",
+          "result_digest": "c88b046f7a8b007fbf4aa5497a0ab64b688c8bab5cd200a72adead6429c72b4e",
+          "side": "short",
+          "threshold_relation": "maximum"
+        },
+        {
+          "current_price_units": "89",
+          "current_stop_price_units": "100",
+          "decision_digest": "ce4a4d57855bf450b75124d80553206cc7be8c31b1868657814178f97e8fea60",
+          "decision_priority": 6,
+          "decision_status": "move_stop",
+          "entry_price_units": "100",
+          "input_sha256": "0261f794c5ef445f24e943512f3713693ac7a0ac646cc5b3afb77682207888fe",
+          "recommended_stop_price_units": "100",
+          "result_digest": "cb48e492345f48f16ad1ff41951740c7dabcd1dbd815d49a560c64915ebf1a47",
+          "side": "short",
+          "threshold_relation": "maximum_plus_one"
+        }
+      ]
+    },
+    "utf8_key_comparator": {
+      "algorithm": [
+        "validate each key as the already-required NFC Unicode scalar sequence",
+        "encode each key to exact UTF-8 without BOM or replacement",
+        "compare unsigned bytes from index zero",
+        "first lower unequal byte sorts first",
+        "when all shared bytes are equal the shorter byte sequence sorts first",
+        "equal bytes denote equal keys and duplicate JSON keys are rejected"
+      ],
+      "forbidden": [
+        "javascript_default_sort",
+        "utf16_code_unit_order",
+        "locale_compare",
+        "unicode_normalization_during_sort",
+        "case_folding"
+      ],
+      "vectors": [
+        {
+          "keys": ["", "𐀀"],
+          "name": "root_non_ascii",
+          "ordered_utf8_hex": ["ee8080", "f0908080"],
+          "expected_first_error_pointer": "/"
+        },
+        {
+          "keys": ["", "𐀀"],
+          "name": "nested_position_non_ascii",
+          "ordered_utf8_hex": ["ee8080", "f0908080"],
+          "expected_first_error_pointer": "/position_snapshot/"
+        },
+        {
+          "keys": ["prefix", "prefix𐀀"],
+          "name": "repeated_ascii_prefix",
+          "ordered_utf8_hex": ["707265666978ee8080", "707265666978f0908080"],
+          "expected_first_error_pointer": "/position_snapshot/prefix"
+        },
+        {
+          "keys": ["αx", "α𐀀x"],
+          "name": "repeated_multibyte_prefix",
+          "ordered_utf8_hex": ["ceb1ee808078", "ceb1f090808078"],
+          "expected_first_error_pointer": "/position_snapshot/αx"
+        },
+        {
+          "keys": ["", "a"],
+          "name": "shorter_shared_prefix_first",
+          "ordered_utf8_hex": ["ee8080", "ee808061"],
+          "expected_first_error_pointer": "/position_snapshot/"
+        }
+      ]
+    },
+    "input_budget": {
+      "maximum": 65536,
+      "unit": "lossless_UTF8_bytes",
+      "measured_bytes": "exact_raw_caller_primitive_string_serialization_including_JSON_syntax_escapes_and_whitespace",
+      "measurement_order": [
+        "capture primitive string exactly once",
+        "validate Unicode scalar sequence and count lossless UTF-8 bytes with checked arithmetic",
+        "reject above maximum",
+        "parse JSON",
+        "validate closed schema and exact JSON primitive types",
+        "validate every parsed string as a Unicode scalar sequence then validate NFC and canonical raw serialization",
+        "construct identities and digests",
+        "resolve private policy and construct provenance",
+        "evaluate rules"
+      ],
+      "overflow_behavior": "stop fail-closed before integer overflow or immediately after establishing byte 65537",
+      "scalar_costs": {
+        "U+0000..U+007F": 1,
+        "U+0080..U+07FF": 2,
+        "U+0800..U+D7FF_and_U+E000..U+FFFF": 3,
+        "U+10000..U+10FFFF": 4,
+        "lone_surrogate": "invalid_canonical_form_before_parse_no_replacement"
+      },
+      "oversized_result": {
+        "decision": null,
+        "decision_digest": "9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9",
+        "error_code": "input_budget_exceeded",
+        "error_path": "/",
+        "invalid": "non_null",
+        "noneligible": null,
+        "provenance_digest": null,
+        "refused": null,
+        "result_digest": "1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62",
+        "result_kind": "invalid",
+        "side_effects_performed": false,
+        "input_binding_claimed": false
+      },
+      "vectors": [
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with m plus 63207 ASCII a characters and rebuild observation/request/input digests",
+          "field_code_units": 63208,
+          "field_utf8_bytes": 63208,
+          "input_code_units": 65535,
+          "input_utf8_bytes": 65535,
+          "raw_sha256": "c3fa6e4684f446dd8df0d22e97b422ca6930ff3c4d3ac61245d33b50ecd0b34d",
+          "expected_result_kind": "decision",
+          "expected_decision_status": "hold",
+          "decision_digest": "37c2966907634351a31ab3b122a3a4346238818eec2c48265fe170177391c1fc",
+          "result_digest": "24e4e92db629012a73f8b93b369772f378638d838d2b38e7a4d1a44952789a13"
+        },
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with m plus 63208 ASCII a characters and rebuild observation/request/input digests",
+          "field_code_units": 63209,
+          "field_utf8_bytes": 63209,
+          "input_code_units": 65536,
+          "input_utf8_bytes": 65536,
+          "raw_sha256": "0283ed5a3156ee3cb07b05074e49f7470ab730406dc5100dd1a0c58ccd9a03b2",
+          "expected_result_kind": "decision",
+          "expected_decision_status": "hold",
+          "decision_digest": "c903c0265badf413f9b8659c8e7dc1f291555a2715cff1700d43b4d80375e278",
+          "result_digest": "243c857cddcc020634690e24000161e1d895167bc1a5e7ea92a7c1172401446a"
+        },
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with m plus 63209 ASCII a characters and rebuild observation/request/input digests",
+          "field_code_units": 63210,
+          "field_utf8_bytes": 63210,
+          "input_code_units": 65537,
+          "input_utf8_bytes": 65537,
+          "raw_sha256": "0f247310391972de33affe284dfb309b04be7c940f75c856ff1be216add6abc4",
+          "expected_result_kind": "invalid",
+          "expected_error_code": "input_budget_exceeded",
+          "decision_digest": "9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9",
+          "result_digest": "1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62"
+        },
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with m plus 31604 U+00E9 characters and rebuild observation/request/input digests",
+          "field_code_units": 31605,
+          "field_utf8_bytes": 63209,
+          "input_code_units": 33932,
+          "input_utf8_bytes": 65536,
+          "raw_sha256": "f58b72f39960206eff9721ef4749c093b250ab4e3f99e0e562f69b5afa8eb198",
+          "expected_result_kind": "decision",
+          "expected_decision_status": "hold",
+          "decision_digest": "59ac5a148bd3f838fb220b0e3ed61210252c431a03a26805b75a6c9313eec533",
+          "result_digest": "55cdef93eafd483a27b261a07d3ca90b7a9a39fab19f842b13f41f2bfdfff33a"
+        },
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with m plus 15802 U+1F600 characters and rebuild observation/request/input digests",
+          "field_code_units": 31605,
+          "field_utf8_bytes": 63209,
+          "input_code_units": 33932,
+          "input_utf8_bytes": 65536,
+          "raw_sha256": "2a46bd9196f0e3dffe4f6f8c5cab61962a6f574bac7cbdb8277344df25c67855",
+          "expected_result_kind": "decision",
+          "expected_decision_status": "hold",
+          "decision_digest": "5dffd51661289273ecaf3f7a7d8ca9f041a5525810f49106c2c8289680cc6297",
+          "result_digest": "47635a764c88e465c89d0c39d15a7abc8037e5c082c38cbed9661e5b67da0832"
+        },
+        {
+          "construction": "replace monitor_observation.market_data_contract_version with mm plus 15802 U+1F600 characters and rebuild observation/request/input digests",
+          "field_code_units": 31606,
+          "field_utf8_bytes": 63210,
+          "input_code_units": 33933,
+          "input_utf8_bytes": 65537,
+          "raw_sha256": "de246159d450db50a208d7e47b5e81ac27a49390241f6ec104ac0728aef0aec2",
+          "expected_result_kind": "invalid",
+          "expected_error_code": "input_budget_exceeded",
+          "decision_digest": "9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9",
+          "result_digest": "1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62",
+          "rejected_655b_result_kind": "decision",
+          "rejected_655b_decision_digest": "d4ba93d45f9b64a0e4c02c5a7fb007ca5812037de9b5130040b90dc96975f943",
+          "rejected_655b_result_digest": "9270c133264ee9656b103eef55e5f71909c4f22393ae318d724ed8c3aec57246"
+        }
+      ]
+    },
+    "independent_fixture_oracle": {
+      "production_import_allowed": false,
+      "production_comparator_copy_allowed": false,
+      "production_canonicalizer_copy_allowed": false,
+      "shared_helper_allowed": false,
+      "literal_expected_bytes_and_digests_required": true,
+      "required_rejected_implementation_probes": [
+        "array_coercion",
+        "stop_at_entry_exception",
+        "utf16_key_order",
+        "javascript_code_unit_budget"
+      ],
+      "rejected_655b_must_fail_new_vectors": true
+    },
+    "future_implementation_boundary": {
+      "allowed_path_count": 5,
+      "allowed_paths": [
+        "docs/action-655b-canonical-exit-evaluator-contract.md",
+        "docs/action-655b-canonical-exit-evaluator-golden-report.json",
+        "lib/action-655b-canonical-exit-evaluator.ts",
+        "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts",
+        "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts"
+      ],
+      "design_authority": "action_655d_exit_evaluator_remediation_contract_v1_pending_independent_review",
+      "new_commit_and_digests_required": true,
+      "new_independent_source_review_required": true,
+      "implementation_remediation_authorized": false,
+      "delivery_authorized": false,
+      "runtime_integration_authorized": false
+    }
+  },
+  "action_655d2_raw_json_validation_closure": {
+    "contract_id": "action_655d2_raw_json_validation_closure_v1",
+    "contract_set_id": "action_655d2_server_owned_trade_management_v5",
+    "design_status": "frozen_pending_independent_rereview",
+    "predecessor": {
+      "commit": "5ae5192c797d7f38a11e5a16a2b6237a8305f001",
+      "tree": "2acff1684d362fe8df3996578e27914ebad0acc8",
+      "five_path_digest": "50d1e33296d09eed4dcc4e209e320c52a33a92376af82ab854e5d99556f22284",
+      "review_findings_closed_by_design": [
+        "655D.1-M1",
+        "655D.1-M2"
+      ]
+    },
+    "invalid_reason_enum": {
+      "serialized_type": "JSON_string",
+      "case_sensitive": true,
+      "members": [
+        "schema_invalid",
+        "missing_required_input",
+        "canonical_form_invalid",
+        "input_budget_exceeded",
+        "numeric_domain_invalid",
+        "unsupported_contract_version",
+        "policy_registry_integrity_failure"
+      ],
+      "input_budget_exceeded": {
+        "exact_serialized_value": "input_budget_exceeded",
+        "only_condition": "entire_raw_string_is_a_valid_Unicode_scalar_sequence_and_raw_lossless_utf8_bytes_are_greater_than_65536",
+        "error_path": "/",
+        "provenance_digest": null,
+        "decision_digest": "9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9",
+        "result_digest": "1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62"
+      },
+      "negative_vectors": [
+        {"candidate":"input-budget-exceeded","accepted":false,"digest_work":0},
+        {"candidate":"Input_budget_exceeded","accepted":false,"digest_work":0},
+        {"candidate":"INPUT_BUDGET_EXCEEDED","accepted":false,"digest_work":0},
+        {"candidate":"budget_exceeded","accepted":false,"digest_work":0},
+        {"candidate":"legacy_input_too_large","accepted":false,"digest_work":0},
+        {"candidate":null,"accepted":false,"digest_work":0},
+        {"candidate":["input_budget_exceeded"],"accepted":false,"digest_work":0},
+        {"candidate":65536,"accepted":false,"digest_work":0},
+        {"candidate":{"reason":"input_budget_exceeded"},"accepted":false,"digest_work":0}
+      ],
+      "exhaustiveness_rule": "any_value_not_one_of_the_seven_exact_JSON_strings_is_not_a_valid_CanonicalExitEvaluationResultV4_and_no_decision_or_result_digest_is_constructed_for_it"
+    },
+    "raw_input_contract": {
+      "api_parameter": "one_captured_primitive_string_containing_the_exact_caller_JSON_text",
+      "maximum_lossless_utf8_bytes": 65536,
+      "normalization_form": "NFC",
+      "normalization_behavior": "reject_non_NFC_never_normalize",
+      "BOM_policy": "forbid_initial_U+FEFF_after_counting_its_three_raw_UTF8_bytes",
+      "duplicate_policy": "reject_second_occurrence_after_escape_decoding_without_last_write_wins",
+      "trailing_policy": "reject_every_code_unit_after_the_single_root_value_including_JSON_whitespace_comments_tokens_NUL_or_a_second_value",
+      "canonical_raw_requirement": "exact_raw_text_must_equal_the_UTF8_key_ordered_minimally_escaped_no_whitespace_serialization",
+      "canonical_string_escaping": "emit_quote_as_backslash_quote_backslash_as_double_backslash_U+0008_0009_000A_000C_000D_as_backslash_b_t_n_f_r_other_U+0000_through_001F_as_lowercase_backslash_u00xx_never_escape_solidus_and_emit_every_other_valid_scalar_as_literal_UTF8",
+      "replacement_character_policy": "never_encode_an_unpaired_surrogate_as_U+FFFD"
+    },
+    "validation_pipeline": [
+      {
+        "stage": 1,
+        "name": "runtime_input_type",
+        "operation": "typeof_input_must_equal_string_before_any_property_reflection_or_coercion",
+        "failure": "invalid/schema_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 2,
+        "name": "raw_unicode_scalar_and_lossless_utf8_scan",
+        "operation": "scan_the_entire_captured_UTF16_sequence_once_validate_all_pairs_and_count_with_a_nonallocating_checked_counter_that_saturates_at_65537_so_invalid_encoding_always_precedes_budget",
+        "failure": "invalid/canonical_form_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 3,
+        "name": "raw_input_budget",
+        "operation": "after_the_complete_scalar_scan_reject_if_the_saturated_count_is_65537_without_BOM_parse_digest_or_later_work",
+        "failure": "invalid/input_budget_exceeded/path_root/null_provenance"
+      },
+      {
+        "stage": 4,
+        "name": "initial_BOM",
+        "operation": "reject_if_first_scalar_is_U+FEFF_BOM_bytes_already_counted",
+        "failure": "invalid/canonical_form_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 5,
+        "name": "strict_JSON_lexical_and_syntax_scan",
+        "operation": "tokenize_exact_RFC8259_JSON_without_comments_extensions_NaN_Infinity_or_recovery_decode_escapes_reject_unpaired_or_reversed_escaped_surrogates_and_do_not_materialize_duplicate_keys",
+        "failure": "invalid/canonical_form_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 6,
+        "name": "single_root_and_trailing_data",
+        "operation": "require_document_end_immediately_after_root_value_trailing_whitespace_is_noncanonical_and_rejected",
+        "failure": "invalid/canonical_form_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 7,
+        "name": "decoded_string_scalar_and_NFC",
+        "operation": "validate_every_decoded_key_and_value_as_scalar_sequence_then_require_exact_NFC_without_modification_in_source_token_order",
+        "failure": "invalid/canonical_form_invalid/exact_field_or_key_pointer_when_representable_else_root/null_provenance"
+      },
+      {
+        "stage": 8,
+        "name": "duplicate_object_keys",
+        "operation": "per_object_compare_exact_decoded_NFC_scalar_sequences_first_second_occurrence_in_source_order_fails",
+        "failure": "invalid/canonical_form_invalid/pointer_to_second_decoded_key/null_provenance"
+      },
+      {
+        "stage": 9,
+        "name": "exact_canonical_raw_serialization",
+        "operation": "rebuild_with_unsigned_lexicographic_UTF8_key_order_minimal_JSON_escapes_and_no_whitespace_then_require_byte_equality",
+        "failure": "invalid/canonical_form_invalid/path_root/null_provenance"
+      },
+      {
+        "stage": 10,
+        "name": "closed_schema_and_exact_JSON_types",
+        "operation": "validate_required_unknown_nullable_and_exact_primitive_types_in_manifest_order_without_coercion",
+        "failure": "invalid/schema_or_missing_or_unsupported_code/exact_RFC6901_path/null_provenance"
+      },
+      {
+        "stage": 11,
+        "name": "primitive_value_and_numeric_domains",
+        "operation": "validate_UUID_enum_digest_instant_integer_tick_lot_geometry_and_target_contracts",
+        "failure": "invalid/schema_or_canonical_or_numeric_code/exact_RFC6901_path/null_provenance"
+      },
+      {
+        "stage": 12,
+        "name": "identity_and_digest_validation",
+        "operation": "rebuild_position_observation_request_and_input_evidence",
+        "failure": "refused/identity_conflict/exact_mismatch_path/reason_scoped_presence"
+      },
+      {
+        "stage": 13,
+        "name": "private_policy_and_provenance",
+        "operation": "resolve_only_private_allowlist_verify_policy_digest_then_build_complete_provenance",
+        "failure": "authority_unavailable_or_policy_registry_integrity_failure_with_frozen_presence"
+      },
+      {
+        "stage": 14,
+        "name": "eligibility_freshness_and_rules",
+        "operation": "apply_noneligible_refusal_and_priority_1_through_7_contracts",
+        "failure": "one_total_noneligible_refused_or_decision_variant"
+      }
+    ],
+    "pipeline_justification": "key_and_value_scalar_NFC_validation_precedes_duplicate_insertion_so_normalization_collisions_are_rejected_not_merged; duplicate_detection_precedes_object_materialization_and_schema_validation; raw_budget_precedes_every_JSON_operation",
+    "invalid_digest_vectors": {
+      "schema_invalid_root": {
+        "decision_digest":"1267a5ba3b03eb9d804c388e2532f369308e667b735468f5eecbaa525d31bbd6",
+        "result_digest":"e7b89abfc29b88e52690d9e2b2b325237658ff85bceb73312e2e5ed1b230fe2c"
+      },
+      "canonical_form_invalid_root": {
+        "decision_digest":"f6fc201f287e1584970cf87b8a9adff50a55acf229aea8380e789b2e62851155",
+        "result_digest":"edecfcddcb593a00c72007fd3ba121490f116a461d13e55b93d39d40b0b51056"
+      },
+      "input_budget_exceeded_root": {
+        "decision_digest":"9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9",
+        "result_digest":"1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62"
+      },
+      "duplicate_top_a": {
+        "decision_digest":"63930ea83cd3be4f89c115871f00d68b9493b8dfa551d2d021c7bbeacece5cad",
+        "result_digest":"243cd758f50fcb3108eeca8e4ee0becf5f74c20ece82742bf90d674ba7557be7"
+      },
+      "duplicate_nested_a": {
+        "decision_digest":"d2e4edd84325525429ee5212031f555185cd2c5829f6465e979c6f2e6ebed5fe",
+        "result_digest":"c0d9bb70c40b907a33825a0bb76167289720af8e46cbed43ec24b622579cf6c5"
+      },
+      "non_NFC_market_data_contract_version": {
+        "decision_digest":"a9ca4993d606c9fefcf0c7c14be08f212e934198158872fba162d9a7e94b7e09",
+        "result_digest":"c42ac783c0e4fb8fa2aeaec48714b8018a7902eddbf1edcfac65c793383161a9"
+      },
+      "non_NFC_key_e_combining_acute": {
+        "decision_digest":"cfe1b134b418eb1a088f23413fb2f1258dc269f486005c8678a6502e508a6077",
+        "result_digest":"7babc6d133e45623c8c9e2f60dc1f0b8d0cbf71ed952fdb349200c8d4301b769"
+      }
+    },
+    "raw_JSON_vectors": {
+      "runtime_input_types": [
+        {"classification":"primitive_string","accepted_by_stage_1":true},
+        {"classification":"boxed_String_object","accepted_by_stage_1":false,"result":"schema_invalid_root"},
+        {"classification":"plain_object","accepted_by_stage_1":false,"result":"schema_invalid_root"},
+        {"classification":"array","accepted_by_stage_1":false,"result":"schema_invalid_root"},
+        {"classification":"function","accepted_by_stage_1":false,"result":"schema_invalid_root"},
+        {"classification":"Proxy_object_or_function","accepted_by_stage_1":false,"result":"schema_invalid_root","hooks_executed":0},
+        {"classification":"number_boolean_bigint_symbol_undefined_or_null","accepted_by_stage_1":false,"result":"schema_invalid_root"}
+      ],
+      "malformed": [
+        {"name":"empty_document","raw":"","raw_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+        {"name":"truncated_object","raw":"{","raw_sha256":"021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96"},
+        {"name":"truncated_array","raw":"[","raw_sha256":"245843abef9e72e7efac30138a994bf6301e7e1d7d7042a33d42e863d2638811"},
+        {"name":"invalid_escape","raw":"\"\\x\"","raw_sha256":"6802bc99fec62d9b41926005c78eb80fdba95a69b64f757fa04f4d07d781cef7"},
+        {"name":"invalid_number","raw":"01","raw_sha256":"938db8c9f82c8cb58d3f3ef4fd250036a48d26a712753d2fde5abd03a85cabf4"},
+        {"name":"unexpected_token","raw":"?","raw_sha256":"8a8de823d5ed3e12746a62ef169bcf372be0ca44f0a1236abc35df05d96928e1"}
+      ],
+      "malformed_result": "invalid/canonical_form_invalid/path_root/null_provenance/canonical_root_digests",
+      "BOM": [
+        {"name":"BOM_only","utf8_bytes":3,"raw_sha256":"f1945cd6c19e56b3c1c78943ef5ec18116907a4ca1efc40a57d48ab1db7adfc5","result":"canonical_form_invalid_root"},
+        {"name":"BOM_plus_empty_object","utf8_bytes":5,"raw_sha256":"aa25e978046d680ef8740d837e6de5bc1e2a2dc6089dbda1012544b538d53f65","result":"canonical_form_invalid_root"},
+        {"name":"BOM_plus_65534_ASCII_a","utf8_bytes":65537,"raw_sha256":"d09e559d12baa54a98bdd81c113f8944de530992d9c78a8b4abea611c6c2d3a9","result":"input_budget_exceeded_root"}
+      ],
+      "duplicates": [
+        {"name":"top_level","raw":"{\"a\":1,\"a\":2}","raw_sha256":"1c53ee0df7b12fd4d65b976120c7fa6b847dc41dffd7f0331c3237a1ceab1756","error_path":"/a","digest_vector":"duplicate_top_a"},
+        {"name":"nested","raw":"{\"position_snapshot\":{\"a\":1,\"a\":2}}","raw_sha256":"46102f8a8bfd3c4f00305165e6add248212925affe8e391f7039e68bf07debeb","error_path":"/position_snapshot/a","digest_vector":"duplicate_nested_a"},
+        {"name":"escaped_equivalent","raw":"{\"a\":1,\"\\u0061\":2}","raw_sha256":"c95ba945b310a34906bbfc28ce1346b87741d5a2b3066d1d3ecfa0acbd86392c","error_path":"/a","digest_vector":"duplicate_top_a"}
+      ],
+      "trailing": [
+        {"name":"concatenated_JSON","raw":"{}{}","raw_sha256":"b51f08b698d88d8027a935d9db649774949f5fb41a0c559bfee6a9a13225c72d"},
+        {"name":"trailing_token","raw":"{}x","raw_sha256":"82985617ce795510ad965737efe6b5a76411b26a6d7453ff4ba680e856377bc8"},
+        {"name":"trailing_comment","raw":"{}/*x*/","raw_sha256":"1cb580ada3ebc8c89eff6a6bc16547fec0a022406ca56e9f79223b2584c1a740"},
+        {"name":"trailing_NUL","raw_utf8_hex":"7b7d00","raw_sha256":"68e9e86b6926cc2b37df96b5e61bb8cabdab276272bb73f6767e420c3ead0663"},
+        {"name":"trailing_space","raw":"{} ","raw_sha256":"3d8e6a3f3561a8683abc16c3851110c4e607124c4c5a919cb7e78764882f37ad"}
+      ],
+      "trailing_result": "invalid/canonical_form_invalid/path_root/null_provenance/canonical_root_digests",
+      "surrogates": [
+        {"name":"raw_high_only","representation":"host_UTF16_D800","stage":2,"result":"canonical_form_invalid_root"},
+        {"name":"raw_low_only","representation":"host_UTF16_DFFF","stage":2,"result":"canonical_form_invalid_root"},
+        {"name":"escaped_high_only","raw":"\"\\ud800\"","raw_sha256":"8c0c59dd0d275aadcd462a5fe12eb352cbdfeaf961eae4f85a4660521df7d2f5","stage":5,"result":"canonical_form_invalid_root"},
+        {"name":"escaped_low_only","raw":"\"\\udfff\"","raw_sha256":"aa68369aff102de57c3da5ad0dd5c24149f811b4afcd13c55f2da895bd15c782","stage":5,"result":"canonical_form_invalid_root"},
+        {"name":"escaped_reversed_pair","raw":"\"\\udc00\\ud800\"","raw_sha256":"21b59caaa12b2965ce063778289864b88a44d120c1a47f639d6fb9f6c3ad7a78","stage":5,"result":"canonical_form_invalid_root"},
+        {"name":"escaped_valid_pair","raw":"\"\\ud83d\\ude00\"","raw_sha256":"e30439cb87e140c0b998ad3095285abfec0294e2a8916f9a8f30d85734e6f82b","stage":9,"result":"canonical_form_invalid_root_nonminimal_escape"},
+        {"name":"literal_valid_pair","raw":"\"😀\"","raw_sha256":"7a0c50b92434b015545fe93ab723db2d4b2cdd14a441405624a9ce8be29f1d5a","scalar_validation":"accepted_then_later_schema_stage_applies"}
+      ],
+      "normalization": [
+        {"name":"precomposed_e_acute","sequence":"U+00E9","NFC":true,"behavior":"preserve_exact_scalar_and_continue"},
+        {"name":"decomposed_e_acute","sequence":"U+0065_U+0301","NFC":false,"behavior":"canonical_form_invalid_exact_pointer_never_normalize"},
+        {"name":"key_collision_candidate","raw":"{\"é\":1,\"é\":2}","raw_sha256":"f126472a603049b5f986bb8f35ba8b5fbace9e37c2d5b2abf5ad131a166835b6","error_path":"/é","digest_vector":"non_NFC_key_e_combining_acute","behavior":"reject_non_NFC_second_key_before_duplicate_table_no_merge"}
+      ]
+    },
+    "combining_budget_vectors": [
+      {"name":"combining_65535","construction":"market_data_contract_version=m_plus_21069_U+0065_U+0301_sequences","input_code_units":44466,"input_utf8_bytes":65535,"raw_sha256":"c019e1d1762df8b1efc2a575249415d358aa524c7535b705e771d8c9d16fa4cd","result":"canonical_form_invalid_at_/monitor_observation/market_data_contract_version","decision_digest":"a9ca4993d606c9fefcf0c7c14be08f212e934198158872fba162d9a7e94b7e09","result_digest":"c42ac783c0e4fb8fa2aeaec48714b8018a7902eddbf1edcfac65c793383161a9"},
+      {"name":"combining_65536","construction":"market_data_contract_version=mm_plus_21069_U+0065_U+0301_sequences","input_code_units":44467,"input_utf8_bytes":65536,"raw_sha256":"e5e5b386e1f551d27bfc1ecab21ab087619754509c2df73df113557e043dd766","result":"canonical_form_invalid_at_/monitor_observation/market_data_contract_version","decision_digest":"a9ca4993d606c9fefcf0c7c14be08f212e934198158872fba162d9a7e94b7e09","result_digest":"c42ac783c0e4fb8fa2aeaec48714b8018a7902eddbf1edcfac65c793383161a9"},
+      {"name":"combining_65537","construction":"market_data_contract_version=mmm_plus_21069_U+0065_U+0301_sequences","input_code_units":44468,"input_utf8_bytes":65537,"raw_sha256":"832ff696d36694e1328b0aa38b882c758b232dc6735c634f05ebfee3b86a0d08","result":"input_budget_exceeded_at_root_before_NFC","decision_digest":"9215e974a247735bd623db224f08b04791822adedc549baa91f1e714020062e9","result_digest":"1fd98c51aed5a917650244ad64e3f9949fa5f474bdc1a3d847ba4ce6dfb2ee62"}
+    ],
+    "compound_error_precedence": [
+      {"case":"non_string_and_every_other_claim","winner_stage":1,"result":"schema_invalid_root"},
+      {"case":"raw_lone_surrogate_anywhere_and_over_budget","winner_stage":2,"result":"canonical_form_invalid_root"},
+      {"case":"over_budget_and_initial_BOM","winner_stage":3,"result":"input_budget_exceeded_root"},
+      {"case":"initial_BOM_and_malformed_JSON","winner_stage":4,"result":"canonical_form_invalid_root"},
+      {"case":"malformed_JSON_with_duplicate_lexeme","winner_stage":5,"result":"canonical_form_invalid_root"},
+      {"case":"trailing_data_and_duplicate_key","winner_stage":6,"result":"canonical_form_invalid_root"},
+      {"case":"non_NFC_key_that_would_normalize_to_existing_key","winner_stage":7,"result":"canonical_form_invalid_exact_non_NFC_key_pointer"},
+      {"case":"duplicate_key_and_schema_failure","winner_stage":8,"result":"canonical_form_invalid_duplicate_pointer"},
+      {"case":"noncanonical_key_order_and_schema_failure","winner_stage":9,"result":"canonical_form_invalid_root"},
+      {"case":"wrong_JSON_type_and_identity_mismatch","winner_stage":10,"result":"schema_invalid_exact_field_pointer"},
+      {"case":"numeric_domain_and_identity_mismatch","winner_stage":11,"result":"numeric_domain_invalid_exact_field_pointer"},
+      {"case":"identity_mismatch_and_rule_match","winner_stage":12,"result":"refused_identity_conflict"}
+    ],
+    "digest_consistency": {
+      "policy_provenance_decision_and_prior_result_vectors_unchanged": true,
+      "all_invalid_variants_use_existing_total_decision_and_result_frames": true,
+      "invalid_results_claim_input_binding": false,
+      "two_conforming_implementations_required_byte_identical": true
+    },
+    "independent_fixture_oracle": {
+      "requirements_from_action_655d_preserved": true,
+      "production_import_copy_or_shared_helper_allowed": false,
+      "literal_raw_bytes_SHA256_decision_and_result_digests_required": true,
+      "rejected_655b_remains_negative_evidence_only": true
+    },
+    "future_implementation_boundary": {
+      "allowed_path_count": 5,
+      "allowed_paths": [
+        "docs/action-655b-canonical-exit-evaluator-contract.md",
+        "docs/action-655b-canonical-exit-evaluator-golden-report.json",
+        "lib/action-655b-canonical-exit-evaluator.ts",
+        "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts",
+        "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts"
+      ],
+      "design_authority": "action_655d2_raw_json_validation_closure_v1_pending_independent_rereview",
+      "new_commit_and_digests_required": true,
+      "new_independent_source_review_required": true,
+      "implementation_remediation_authorized": false,
+      "delivery_authorized": false,
+      "runtime_integration_authorized": false
+    }
+  },
+  "action_655d4_utf8_negative_zero_closure": {
+    "contract_id": "action_655d4_utf8_negative_zero_closure_v1",
+    "contract_set_id": "action_655d4_server_owned_trade_management_v6",
+    "design_status": "frozen_pending_independent_rereview",
+    "predecessor": {
+      "commit": "d67fcd0637a07bc7bbdd23e05484809a4069976c",
+      "tree": "d5ba74faa1b516fc0f5e8d45c03f7d6a5879311a",
+      "five_path_digest": "df46b1358ad3483f49f0d368420aec4210846a95817c84630aaa8724c37c4196",
+      "review_findings_closed_by_design": [
+        "655D.3-M1",
+        "655D.3-M2"
+      ]
+    },
+    "evaluator_boundary": {
+      "accepted_runtime_type": "primitive_ECMAScript_string_only",
+      "string_model": "captured_sequence_of_UTF16_code_units",
+      "raw_malformed_UTF8_bytes_representable_as_evaluator_string": false,
+      "capture_count": 1,
+      "coercion_or_reflection_allowed": false,
+      "runtime_value_matrix": [
+        {
+          "classification": "primitive_string_all_valid_Unicode_scalars",
+          "evaluator_invoked": true,
+          "outcome": "continue_to_stage_2_scalar_scan_and_stage_3_UTF8_budget"
+        },
+        {
+          "classification": "primitive_string_unpaired_UTF16_surrogate",
+          "evaluator_invoked": true,
+          "result_kind": "invalid",
+          "error_code": "canonical_form_invalid",
+          "error_path": "/",
+          "decision_priority": null,
+          "provenance_digest": null,
+          "decision_digest": "f6fc201f287e1584970cf87b8a9adff50a55acf229aea8380e789b2e62851155",
+          "result_digest": "edecfcddcb593a00c72007fd3ba121490f116a461d13e55b93d39d40b0b51056"
+        },
+        {
+          "classification": "non_string_including_Buffer_Uint8Array_ArrayBuffer_array_boxed_String_function_proxy_or_object",
+          "evaluator_invoked": true,
+          "content_properties_read": 0,
+          "result_kind": "invalid",
+          "error_code": "schema_invalid",
+          "error_path": "/",
+          "decision_priority": null,
+          "provenance_digest": null,
+          "decision_digest": "1267a5ba3b03eb9d804c388e2532f369308e667b735468f5eecbaa525d31bbd6",
+          "result_digest": "e7b89abfc29b88e52690d9e2b2b325237658ff85bceb73312e2e5ed1b230fe2c"
+        }
+      ],
+      "direct_byte_container_rule": "a_byte_container_is_a_non_string_even_when_its_bytes_are_valid_UTF8_and_stage_1_never_decodes_or_reads_it",
+      "replacement_scalar_rule": "literal_U+FFFD_in_a_primitive_string_is_an_ordinary_scalar_but_no_lossy_decoder_may_create_that_string_from_malformed_bytes",
+      "history_limit": "the_evaluator_cannot_infer_whether_a_literal_U+FFFD_originated_upstream_so_strict_decoding_is_a_required_separate_boundary_precondition"
+    },
+    "strict_upstream_UTF8_boundary": {
+      "implementation_created_by_this_action": false,
+      "required_when_external_bytes_exist": true,
+      "decoder": "strict_UTF8_without_BOM_stripping_normalization_replacement_or_lossy_recovery",
+      "valid_decode_result": "one_primitive_ECMAScript_string_then_invoke_evaluator_once",
+      "malformed_decode_result": {
+        "boundary_contract_version": "action_655d4_strict_UTF8_boundary_rejection_v1",
+        "outcome": "rejected_before_evaluator",
+        "reason": "malformed_utf8",
+        "error_path": null,
+        "decision_priority": null,
+        "evaluator_invoked": false,
+        "replacement_performed": false,
+        "decision_digest": null,
+        "result_digest": null,
+        "provenance_digest": null,
+        "side_effects_performed": false,
+        "input_binding_claimed": false
+      },
+      "forbidden": [
+        "replacement_decode_to_U+FFFD",
+        "ignore_invalid_bytes",
+        "best_effort_decode",
+        "normalization_during_decode",
+        "invoking_evaluator_after_decode_failure"
+      ]
+    },
+    "unicode_boundary_vectors": {
+      "evaluator_strings": [
+        {
+          "name": "valid_ASCII_root_string",
+          "raw": "\"A\"",
+          "raw_utf8_bytes": 3,
+          "raw_sha256": "798640599597df7a8daa32b1132f07850a68b5e71bd295650399a38074f52804",
+          "stage_reached": 10,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests"
+        },
+        {
+          "name": "valid_multibyte_precomposed_root_string",
+          "raw": "\"é\"",
+          "raw_utf8_bytes": 4,
+          "raw_sha256": "f2886017e9c7abacf804b54d64787dce2b611c9544ba21f3affdd126a6e50086",
+          "stage_reached": 10,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests"
+        },
+        {
+          "name": "valid_BMP_root_string",
+          "raw": "\"\"",
+          "raw_utf8_bytes": 5,
+          "raw_sha256": "2ae420786f133698ee38ccf4ade214858eafd2b2ac71c63f118b19df9aebed6b",
+          "stage_reached": 10,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests"
+        },
+        {
+          "name": "valid_astral_root_string",
+          "raw": "\"😀\"",
+          "raw_utf8_bytes": 6,
+          "raw_sha256": "7a0c50b92434b015545fe93ab723db2d4b2cdd14a441405624a9ce8be29f1d5a",
+          "stage_reached": 10,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests"
+        },
+        {
+          "name": "literal_replacement_scalar_root_string",
+          "raw": "\"�\"",
+          "raw_utf8_bytes": 5,
+          "raw_sha256": "568601070314e0f4489c9944b3c151d5251d379330008293bb7e1a826a22a845",
+          "stage_reached": 10,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests",
+          "origin_claim": "literal_scalar_only_no_permission_for_replacement_decoding"
+        },
+        {
+          "name": "raw_lone_high_surrogate",
+          "host_UTF16_units": [55296],
+          "stage": 2,
+          "result": "invalid/canonical_form_invalid/path_root/null_priority_null_provenance/canonical_root_digests"
+        },
+        {
+          "name": "raw_lone_low_surrogate",
+          "host_UTF16_units": [56319],
+          "stage": 2,
+          "result": "invalid/canonical_form_invalid/path_root/null_priority_null_provenance/canonical_root_digests"
+        }
+      ],
+      "direct_byte_containers": [
+        {
+          "name": "Buffer_valid_UTF8",
+          "bytes_hex": "22c3a922",
+          "stage": 1,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests",
+          "bytes_read": 0
+        },
+        {
+          "name": "Uint8Array_valid_UTF8",
+          "bytes_hex": "22c3a922",
+          "stage": 1,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests",
+          "bytes_read": 0
+        },
+        {
+          "name": "Buffer_malformed_UTF8",
+          "bytes_hex": "c0af",
+          "stage": 1,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests",
+          "bytes_read": 0
+        },
+        {
+          "name": "Uint8Array_malformed_UTF8",
+          "bytes_hex": "c0af",
+          "stage": 1,
+          "result": "invalid/schema_invalid/path_root/null_priority_null_provenance/schema_root_digests",
+          "bytes_read": 0
+        }
+      ],
+      "upstream_byte_streams": [
+        {
+          "name": "valid_UTF8_decodes_to_precomposed_root_string",
+          "bytes_hex": "22c3a922",
+          "decoded_raw_sha256": "f2886017e9c7abacf804b54d64787dce2b611c9544ba21f3affdd126a6e50086",
+          "boundary_outcome": "invoke_evaluator_with_primitive_string"
+        },
+        {
+          "name": "overlong_solidus",
+          "bytes_hex": "c0af",
+          "bytes_sha256": "caf573f0daa6960ecb26f8eddbc4e2059277ad5afc6f72ffd59a0ecead602a22",
+          "boundary_outcome": "rejected_before_evaluator/malformed_utf8/no_digests"
+        },
+        {
+          "name": "invalid_continuation",
+          "bytes_hex": "e228a1",
+          "bytes_sha256": "c86ded0f8260d2f24517e33b0198bcff9e350951af1aee5ef3dbcc71b1785401",
+          "boundary_outcome": "rejected_before_evaluator/malformed_utf8/no_digests"
+        },
+        {
+          "name": "UTF8_encoded_surrogate",
+          "bytes_hex": "eda080",
+          "bytes_sha256": "91a681b998555fb475479817b126c94e57e52011fa1842c5d188795a4a05226b",
+          "boundary_outcome": "rejected_before_evaluator/malformed_utf8/no_digests"
+        },
+        {
+          "name": "invalid_four_byte_sequence",
+          "bytes_hex": "f0288cbc",
+          "bytes_sha256": "f1f835367e7b609403486d4d0d9b7889b359fddbd288d93a325527e81aab5708",
+          "boundary_outcome": "rejected_before_evaluator/malformed_utf8/no_digests"
+        },
+        {
+          "name": "truncated_multibyte_sequence",
+          "bytes_hex": "e282",
+          "bytes_sha256": "eed0eb1f664e53388c1f00a4a9ba9b8da60fe792af9eb5f6f4b5ee852a91f03f",
+          "boundary_outcome": "rejected_before_evaluator/malformed_utf8/no_digests"
+        }
+      ]
+    },
+    "number_token_contract": {
+      "stage": 9,
+      "raw_lexeme_retained_until_canonical_check": true,
+      "number_materialization_before_stage_9": false,
+      "accepted_canonical_integer_lexeme_grammar": "0_or_optional_minus_then_nonzero_digit_then_zero_or_more_digits",
+      "fraction_or_exponent_canonical": false,
+      "negative_zero_definition": "leading_minus_and_every_coefficient_digit_is_zero_regardless_of_fraction_or_exponent",
+      "negative_zero_canonical_serialization": "0",
+      "negative_zero_raw_lexeme_is_canonical": false,
+      "stage_9_suborder": [
+        "walk_raw_number_tokens_in_source_token_order_and_compare_each_to_its_language_neutral_canonical_lexeme",
+        "on_number_mismatch_fail_at_the_exact_number_JSON_pointer",
+        "only_then_rebuild_the_complete_document_and_compare_raw_bytes_at_root"
+      ],
+      "integer_range_behavior": "canonical_integer_lexemes_are_preserved_as_decimal_text_without_host_Number_materialization_then_range_and_safe_integer_constraints_are_checked_at_stage_11",
+      "unsafe_or_out_of_range_error": "invalid/numeric_domain_invalid/exact_number_pointer/null_provenance",
+      "forbidden": [
+        "JSON_parse_before_lexeme_retention",
+        "JavaScript_Number_before_stage_9",
+        "JSON_stringify_as_numeric_canonical_authority",
+        "floating_point_round_trip",
+        "locale_number_formatting"
+      ]
+    },
+    "number_token_vectors": [
+      {"lexeme":"-0","raw_sha256":"ed79f26d03f412bde3db206601a698e0bb451bea9e3cc25289636ac17ea74b0a","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"-0.0","raw_sha256":"c26617c7ccbcaa6631b45d851b8cf56e21d2ca624bdb1193afdbd4b560702cec","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"-0e0","raw_sha256":"59f87e5c870e9ae533ea323f154307794bf865f2ac0f0bc40f7b926f728bd66b","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"-0E+0","raw_sha256":"26641ff8e8cd6a91af17d8567729b15e632c09fca9a503729a25e844a27a7bc2","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"0","raw_sha256":"5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9","canonical":"0","stage":9,"result":"continue"},
+      {"lexeme":"0.0","raw_sha256":"8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"0e0","raw_sha256":"5ebc0cfbd7470081bdc842f72bf6b9ecb94bbb777ab6d2f4c79d494f05a5a01f","canonical":"0","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"1","raw_sha256":"6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b","canonical":"1","stage":9,"result":"continue"},
+      {"lexeme":"1.0","raw_sha256":"d0ff5974b6aa52cf562bea5921840c032a860a91a3512f7fe8f768f6bbe005f6","canonical":"1","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"1e2","raw_sha256":"704a2369ce2da4371b814bc79e5d28ed1d43effb1f168655bd297eda01f1c315","canonical":"100","stage":9,"result":"canonical_form_invalid"},
+      {"lexeme":"-1","raw_sha256":"1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464","canonical":"-1","stage":9,"result":"continue_then_declared_domain_applies"},
+      {"lexeme":"9007199254740992","raw_sha256":"c681da39d7273a6a24c15c9cac3a75526ff2ecf8ba4ee60346a0c70c8163bdb2","canonical":"9007199254740992","stage":9,"result":"continue_then_numeric_domain_invalid_if_declared_safe_integer"},
+      {"lexeme":"170141183460469231731687303715884105728","raw_sha256":"af77b83c02097ff201ed0848390024fb04773c58b236a09dfa5ea2dbf3b3adce","canonical":"170141183460469231731687303715884105728","stage":9,"result":"continue_then_numeric_domain_invalid_if_declared_bounded_integer"}
+    ],
+    "declared_position_version_number_matrix": [
+      {
+        "lexeme":"-0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"-0.0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"-0e0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"-0E+0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"0","winner_stage":11,"result_kind":"invalid","error_code":"numeric_domain_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"fd7962b3b33b46245b6aca0c4cc353314ec40f20a6f01741768d7f311038167b","result_digest":"7903596c8a5d639414f54aebe32ea4a1f8f2c1bb1d8ef5d2c198ea0a33b86416"
+      },
+      {
+        "lexeme":"0.0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"0e0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"1","winner_stage":11,"result_kind":"continue","error_code":null,"error_path":null,"decision_priority":null,"provenance_digest":null,"decision_digest":null,"result_digest":null
+      },
+      {
+        "lexeme":"1.0","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"1e2","winner_stage":9,"result_kind":"invalid","error_code":"canonical_form_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75","result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "lexeme":"-1","winner_stage":11,"result_kind":"invalid","error_code":"numeric_domain_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"fd7962b3b33b46245b6aca0c4cc353314ec40f20a6f01741768d7f311038167b","result_digest":"7903596c8a5d639414f54aebe32ea4a1f8f2c1bb1d8ef5d2c198ea0a33b86416"
+      },
+      {
+        "lexeme":"9007199254740992","winner_stage":11,"result_kind":"invalid","error_code":"numeric_domain_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"fd7962b3b33b46245b6aca0c4cc353314ec40f20a6f01741768d7f311038167b","result_digest":"7903596c8a5d639414f54aebe32ea4a1f8f2c1bb1d8ef5d2c198ea0a33b86416"
+      },
+      {
+        "lexeme":"170141183460469231731687303715884105728","winner_stage":11,"result_kind":"invalid","error_code":"numeric_domain_invalid","error_path":"/position_snapshot/position_version","decision_priority":null,"provenance_digest":null,"decision_digest":"fd7962b3b33b46245b6aca0c4cc353314ec40f20a6f01741768d7f311038167b","result_digest":"7903596c8a5d639414f54aebe32ea4a1f8f2c1bb1d8ef5d2c198ea0a33b86416"
+      }
+    ],
+    "negative_zero_digest_vectors": {
+      "root": {
+        "raw": "-0",
+        "error_path": "/",
+        "decision_priority": null,
+        "provenance_digest": null,
+        "decision_digest": "f6fc201f287e1584970cf87b8a9adff50a55acf229aea8380e789b2e62851155",
+        "result_digest": "edecfcddcb593a00c72007fd3ba121490f116a461d13e55b93d39d40b0b51056"
+      },
+      "nested_object": {
+        "raw": "{\"n\":-0}",
+        "raw_sha256": "d54829e5b2d6e184fe2005d0b3ee73c1931163e1c1fd461a7449c9f7255ea2d2",
+        "error_path": "/n",
+        "decision_priority": null,
+        "provenance_digest": null,
+        "decision_digest": "ced973261d89f58bb7b31cabc1ff6956c0ba25e13f66dd9cb71e577e98e37067",
+        "result_digest": "caad3f1a56102f3a3c02ce53398faf83dd52444777adee86084b389796dab172"
+      },
+      "array": {
+        "raw": "[-0]",
+        "raw_sha256": "406944522156bbc83abcf53df7e601ca959db44ca6cf2cbc1459f410dd9e79b6",
+        "error_path": "/0",
+        "decision_priority": null,
+        "provenance_digest": null,
+        "decision_digest": "c8f129f9051673a1d12782ea48a047eff4eefa2e1fb058ad55c74a43d30515d4",
+        "result_digest": "b4c5604aa3b049886246853c2a7b72301aab5acaec8f480f83910781da3f5610"
+      },
+      "position_version": {
+        "token_pointer": "/position_snapshot/position_version",
+        "error_path": "/position_snapshot/position_version",
+        "decision_priority": null,
+        "provenance_digest": null,
+        "decision_digest": "73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75",
+        "result_digest": "410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      }
+    },
+    "negative_zero_compound_precedence": [
+      {
+        "case":"negative_zero_and_trailing_data",
+        "raw":"{\"n\":-0}x",
+        "raw_sha256":"46bcfbbe3b8a2c2d992fff3e6526299bfd97358692887cfcf58a2e4bb3ee8b85",
+        "winner_stage":6,
+        "result_kind":"invalid",
+        "error_code":"canonical_form_invalid",
+        "error_path":"/",
+        "decision_priority":null,
+        "provenance_digest":null,
+        "decision_digest":"f6fc201f287e1584970cf87b8a9adff50a55acf229aea8380e789b2e62851155",
+        "result_digest":"edecfcddcb593a00c72007fd3ba121490f116a461d13e55b93d39d40b0b51056"
+      },
+      {
+        "case":"negative_zero_under_a_duplicate_second_key",
+        "raw":"{\"n\":-0,\"n\":1}",
+        "raw_sha256":"ef6c2e43c3ff0ce819a9ecaa2c25dc93780543fa289b934eedc97dc429216ce5",
+        "winner_stage":8,
+        "result_kind":"invalid",
+        "error_code":"canonical_form_invalid",
+        "error_path":"/n",
+        "decision_priority":null,
+        "provenance_digest":null,
+        "decision_digest":"ced973261d89f58bb7b31cabc1ff6956c0ba25e13f66dd9cb71e577e98e37067",
+        "result_digest":"caad3f1a56102f3a3c02ce53398faf83dd52444777adee86084b389796dab172"
+      },
+      {
+        "case":"negative_zero_and_closed_schema_failure",
+        "raw":"{\"unknown\":-0}",
+        "raw_sha256":"94ed7e2c73fa89f339fc76f515bbe63974f592b4dc8b7337d35fbca93fc072ae",
+        "winner_stage":9,
+        "result_kind":"invalid",
+        "error_code":"canonical_form_invalid",
+        "error_path":"/unknown",
+        "decision_priority":null,
+        "provenance_digest":null,
+        "decision_digest":"c1b1ca828163df658cc33546efb633849ee17d8ebaac07ac07953456f4d89c2f",
+        "result_digest":"92b0f94a0e79707c69725a876092fcfe6022b50d85c86727a0c496bcb19292fd"
+      },
+      {
+        "case":"negative_zero_and_numeric_domain_failure",
+        "construction":"replace_an_otherwise_valid_position_version_token_with_minus_zero",
+        "winner_stage":9,
+        "result_kind":"invalid",
+        "error_code":"canonical_form_invalid",
+        "error_path":"/position_snapshot/position_version",
+        "decision_priority":null,
+        "provenance_digest":null,
+        "decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75",
+        "result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      },
+      {
+        "case":"negative_zero_and_identity_digest_mismatch",
+        "construction":"replace_an_otherwise_valid_position_version_token_with_minus_zero_and_retain_a_stale_position_digest",
+        "winner_stage":9,
+        "result_kind":"invalid",
+        "error_code":"canonical_form_invalid",
+        "error_path":"/position_snapshot/position_version",
+        "decision_priority":null,
+        "provenance_digest":null,
+        "decision_digest":"73e5deaa2f2c2e07cd931dad292755c3e07d70d9f911c31b79b0f9f93a5dbb75",
+        "result_digest":"410ba925124ab703a5c9e71c0ad661ec3d1e0e8f8b2ba0bece68ee4dd9d0b289"
+      }
+    ],
+    "preserved_contract": {
+      "invalid_reason_enum_member_count": 7,
+      "validation_stage_count": 14,
+      "maximum_lossless_UTF8_bytes": 65536,
+      "prior_digest_vectors_byte_identical": true,
+      "prior_dependency_gates_unchanged": true,
+      "roadmap_completion_authority": false,
+      "action_654_byte_parity_required": "48/48",
+      "runtime_export_allowlist": [
+        "runAction654uExactBudgetUnitPrivatePolicy"
+      ]
+    },
+    "future_implementation_boundary": {
+      "allowed_path_count": 5,
+      "allowed_paths": [
+        "docs/action-655b-canonical-exit-evaluator-contract.md",
+        "docs/action-655b-canonical-exit-evaluator-golden-report.json",
+        "lib/action-655b-canonical-exit-evaluator.ts",
+        "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts",
+        "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts"
+      ],
+      "design_authority": "action_655d4_utf8_negative_zero_closure_v1_pending_independent_rereview",
+      "independent_rereview_required": true,
+      "implementation_remediation_authorized": false,
+      "delivery_authorized": false,
+      "runtime_integration_authorized": false
+    }
+  },
+  "safety": {
+    "automatic_execution": false,
+    "avanza_live_access": false,
+    "broker_submission": false,
+    "client_authority": false,
+    "credential_access": false,
+    "database_access": false,
+    "database_migration": false,
+    "persistence_write": false,
+    "production_write": false,
+    "runtime_execution": false,
+    "trade_mutation": false,
+    "transport_attached": false
+  }
+}
