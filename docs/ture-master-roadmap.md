@@ -1,6 +1,6 @@
 # Ture Master Roadmap
 
-**Action 658B delivery candidate, frozen from Action 658A.**
+**Action 658B delivery candidate, factually reconciled by Action 658C.1.**
 
 **Document status:** proposed current-main planning reference.
 
@@ -93,7 +93,10 @@ is implied by this roadmap.
 - Track 2 is an open dependent stack and must be reconciled before any future
   release action.
 - Track 3 is closed after the verified PR #76 merge.
-- Track 4 is a local Action 655 delivery candidate, not a delivered capability.
+- Track 4 has delivered a default-off Action 655 foundation via merged PR #84
+  (`3b7ecfa55e90414f90a3d34952719f69be20f911`); it has no runtime wiring,
+  `runtime_authorization_ready:false`, database, broker, production,
+  server-owned-core, or milestone-completion authority.
 - Track 5 owns governance reconciliation only.
 - Track 6 owns the reserved Action 657 external design/source foundation; it
   is not delivered by this roadmap.
