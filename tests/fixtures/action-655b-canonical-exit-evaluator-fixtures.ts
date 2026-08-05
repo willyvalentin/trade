@@ -1,0 +1,488 @@
+import { createHash } from "node:crypto";
+
+type PlainRecord = Record<string, unknown>;
+
+const policyId = "server_primary_exit_policy";
+const policyIdentity = "tm_exit_policy:v3:server_primary_exit_policy:2";
+const policyDigest = "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf";
+
+export const action655gFixtureTraversalMatrix = Object.freeze({
+  stage10: Object.freeze([
+    "/contract_version",
+    "/position_snapshot/contract_version",
+    "/position_snapshot/position_identity",
+    "/position_snapshot/position_version",
+    "/position_snapshot/durable_recommendation_uuid",
+    "/position_snapshot/durable_recommendation_version",
+    "/position_snapshot/recommendation_identity",
+    "/position_snapshot/recommendation_normative_digest",
+    "/position_snapshot/instrument_identity",
+    "/position_snapshot/side",
+    "/position_snapshot/status",
+    "/position_snapshot/opened_at",
+    "/position_snapshot/snapshot_at",
+    "/position_snapshot/price_scale",
+    "/position_snapshot/tick_size_price_units",
+    "/position_snapshot/quantity_scale",
+    "/position_snapshot/lot_size_quantity_units",
+    "/position_snapshot/total_quantity_units",
+    "/position_snapshot/remaining_quantity_units",
+    "/position_snapshot/entry_price_units",
+    "/position_snapshot/initial_stop_price_units",
+    "/position_snapshot/initial_risk_price_units",
+    "/position_snapshot/current_stop_price_units",
+    "/position_snapshot/invalidation_price_units",
+    "/position_snapshot/target_1_price_units",
+    "/position_snapshot/target_2_price_units",
+    "/position_snapshot/position_snapshot_digest",
+    "/monitor_observation/contract_version",
+    "/monitor_observation/observation_identity",
+    "/monitor_observation/position_identity",
+    "/monitor_observation/position_version",
+    "/monitor_observation/position_snapshot_digest",
+    "/monitor_observation/instrument_identity",
+    "/monitor_observation/observed_at",
+    "/monitor_observation/market_data_contract_version",
+    "/monitor_observation/market_data_observation_identity",
+    "/monitor_observation/market_data_observed_at",
+    "/monitor_observation/market_data_digest",
+    "/monitor_observation/current_price_units",
+    "/monitor_observation/session_state",
+    "/monitor_observation/observation_digest",
+    "/decision_requested_at",
+    "/evaluation_request_identity",
+    "/input_digest",
+  ] as const),
+  stage11: Object.freeze([
+    "/position_snapshot/position_identity",
+    "/position_snapshot/position_version",
+    "/position_snapshot/durable_recommendation_uuid",
+    "/position_snapshot/durable_recommendation_version",
+    "/position_snapshot/recommendation_identity",
+    "/position_snapshot/recommendation_normative_digest",
+    "/position_snapshot/instrument_identity",
+    "/position_snapshot/side",
+    "/position_snapshot/status",
+    "/position_snapshot/opened_at",
+    "/position_snapshot/snapshot_at",
+    "/position_snapshot/price_scale",
+    "/position_snapshot/tick_size_price_units",
+    "/position_snapshot/quantity_scale",
+    "/position_snapshot/lot_size_quantity_units",
+    "/position_snapshot/total_quantity_units",
+    "/position_snapshot/remaining_quantity_units",
+    "/position_snapshot/entry_price_units",
+    "/position_snapshot/initial_stop_price_units",
+    "/position_snapshot/initial_risk_price_units",
+    "/position_snapshot/current_stop_price_units",
+    "/position_snapshot/invalidation_price_units",
+    "/position_snapshot/target_1_price_units",
+    "/position_snapshot/target_2_price_units",
+    "/position_snapshot/position_snapshot_digest",
+    "/monitor_observation/observation_identity",
+    "/monitor_observation/position_identity",
+    "/monitor_observation/position_version",
+    "/monitor_observation/position_snapshot_digest",
+    "/monitor_observation/instrument_identity",
+    "/monitor_observation/observed_at",
+    "/monitor_observation/market_data_contract_version",
+    "/monitor_observation/market_data_observation_identity",
+    "/monitor_observation/market_data_observed_at",
+    "/monitor_observation/market_data_digest",
+    "/monitor_observation/current_price_units",
+    "/monitor_observation/session_state",
+    "/monitor_observation/observation_digest",
+    "/decision_requested_at",
+    "/evaluation_request_identity",
+    "/input_digest",
+  ] as const),
+});
+
+export const action655bFrozenDigestVectors = Object.freeze({
+  policy: {
+    positive: policyDigest,
+    alternate_field_name: "660e5d41b8a2268c461e5f0a2385dc807e2564201f7f630db380300ab17a1717",
+    altered_projection: "89b3327005321a84c047861d077648a02baa493111df2d97261bcf8232d2a487",
+    reordered_raw: "757d043c1e6a765abb4a63e4a88630d3864949dfa44d4caf579d0da4e08c8777",
+  },
+  provenance: {
+    positive: "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
+    altered_decision_requested_at: "6635a69cd98109bc6d1d4db1435283e0ab2328e974bfcde909beb620ad1da834",
+    altered_observation_identity: "8f1efc011108a986005a4795a5a2de5768e8a3abfc2227503370b4586ad7a293",
+    altered_policy_digest: "bdeb796c571d7c41544403cf9076d20e030a388d6bb50bc4be460d682ead1a02",
+    altered_recommendation_uuid: "9a849f926a5e04f40a389edf0bae2609bb6186b4a61ddd6dd7a581182f25ee68",
+    altered_recommendation_version: "e5226f1423f243ef911aba06a08011be20c0bdc710f6d03aa7f46018ccbfc6a3",
+  },
+  decision: {
+    identity: "tm_exit_decision:v4:eb3c2554f646508c49ad4409429fe27697572bae1c760a8e6b417288c216605b",
+    positive: {
+      decision: "69601e20d9146ef507d76782d0cecc3dbce5aa4c23e64c953765cae952306d25",
+      invalid: "c0eb00743c9739fcec72858ad19e957830faf479320c4aa4c3da2062a3cffd42",
+      noneligible: "629bcc3a96664dafe7903b12c83ecf6f9eb36fbcf3c55a03990c145eb56b95ef",
+      refused: "cc9d34e76a2efd180a8b9d2aea385506a9fb48ffcea62371f23ae7070603c4ef",
+    },
+    mutation: {
+      altered_decision_requested_at: "c08b25b7b5511bc7aa84b09ddb511f50730b1986502c44db888cb4c8ec955c76",
+      altered_observation_identity: "d30a46579d80bf19021bd6087e729b920bde8e7797d20f5da170f663b14f3627",
+      altered_policy_digest: "6bfe28fc9c015e78b278d011aa0deaa00411ff33d820d37b6a670d70810d9cad",
+      altered_recommendation_uuid: "4a17ea838b16dfcf6909c6b4d6d9aee6feed69018868d8cf2a69711befb17bff",
+      altered_recommendation_version: "f67641b159c0d21db49fc7fd2d9efa59aff0b931e99f8e1d0b7b408858b18c39",
+      altered_result_discriminator: "1e6eae79a328e7d9648b4e8251b48b368963f87676b78b3442dbd9f5dd2d751d",
+      reordered_raw: "40078c448ab176382fe646788309fad7d607123872002028556303150249d4ce",
+    },
+  },
+});
+
+export function canonicalizeAction655bFixture(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalizeAction655bFixture).join(",")}]`;
+  const record = value as PlainRecord;
+  const keys = Object.keys(record).sort((left, right) => Buffer.compare(Buffer.from(left, "utf8"), Buffer.from(right, "utf8")));
+  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalizeAction655bFixture(record[key])}`).join(",")}}`;
+}
+
+export function digestAction655bFixture(value: unknown): string {
+  return createHash("sha256").update(canonicalizeAction655bFixture(value), "utf8").digest("hex");
+}
+
+const privatePolicy = Object.freeze({
+  contract_version: "action_655a2_exit_policy_v2",
+  enabled: true,
+  effective_at: "2026-01-01T00:00:00.000000000Z",
+  expires_at: "9999-12-31T23:59:59.999999999Z",
+  maximum_future_skew_ns: "0",
+  maximum_market_data_age_ns: "5000000000",
+  maximum_observation_age_ns: "5000000000",
+  minimum_remaining_lots: "1",
+  move_stop_to_entry_offset_ticks: "0",
+  partial_exit_denominator: "2",
+  partial_exit_numerator: "1",
+  policy_id: policyId,
+  policy_version: 2,
+  profit_protection_r_denominator: "1",
+  profit_protection_r_numerator: "1",
+  reason_priority: ["hard_stop", "invalidation", "session_close", "final_target", "first_target_partial", "profit_protection_stop_move", "hold"],
+  session_exit_states: ["closing", "closed"],
+});
+
+function frame(contractVersion: string, domain: string, projection: PlainRecord) {
+  return { contract_version: contractVersion, domain, projection };
+}
+
+function basePosition(): PlainRecord {
+  return {
+    contract_version: "action_655a6_position_snapshot_v3",
+    position_identity: "11111111-1111-4111-8111-111111111111",
+    position_version: 3,
+    durable_recommendation_uuid: "22222222-2222-4222-8222-222222222222",
+    durable_recommendation_version: 7,
+    recommendation_identity: `rec_decision:v1:${"b".repeat(64)}`,
+    recommendation_normative_digest: "c".repeat(64),
+    instrument_identity: "instrument:XSTO:SE0000000001",
+    side: "long",
+    status: "open",
+    opened_at: "2026-08-04T09:00:00.000000000Z",
+    snapshot_at: "2026-08-04T11:59:58.000000000Z",
+    price_scale: 0,
+    tick_size_price_units: "1",
+    quantity_scale: 0,
+    lot_size_quantity_units: "2",
+    total_quantity_units: "20",
+    remaining_quantity_units: "10",
+    entry_price_units: "100",
+    initial_stop_price_units: "90",
+    initial_risk_price_units: "10",
+    current_stop_price_units: "90",
+    invalidation_price_units: "85",
+    target_1_price_units: "120",
+    target_2_price_units: "130",
+    position_snapshot_digest: "",
+  };
+}
+
+function baseObservation(): PlainRecord {
+  return {
+    contract_version: "action_655a2_monitor_observation_v2",
+    observation_identity: `tm_observation:v2:${"3".repeat(64)}`,
+    position_identity: "",
+    position_version: 0,
+    position_snapshot_digest: "",
+    instrument_identity: "",
+    observed_at: "2026-08-04T11:59:59.500000000Z",
+    market_data_contract_version: "synthetic_market_data_observation_v1",
+    market_data_observation_identity: `market_observation:v1:${"5".repeat(64)}`,
+    market_data_observed_at: "2026-08-04T11:59:59.000000000Z",
+    market_data_digest: "6".repeat(64),
+    current_price_units: "105",
+    session_state: "open",
+    observation_digest: "",
+  };
+}
+
+function without(record: PlainRecord, key: string): PlainRecord {
+  return Object.fromEntries(Object.entries(record).filter(([name]) => name !== key));
+}
+
+export type Action655bFixtureOverrides = Readonly<{
+  position?: Readonly<PlainRecord>;
+  observation?: Readonly<PlainRecord>;
+  decision_requested_at?: string;
+}>;
+
+export function buildAction655bCanonicalInput(
+  overrides: Action655bFixtureOverrides = {},
+): string {
+  const position: PlainRecord = { ...basePosition(), ...(overrides.position ?? {}) };
+  position.position_snapshot_digest = digestAction655bFixture(frame(
+    "action_655a6_position_snapshot_digest_v3",
+    "trade_management_position_snapshot_digest_v2",
+    without(position, "position_snapshot_digest"),
+  ));
+  const observation: PlainRecord = {
+    ...baseObservation(),
+    position_identity: position.position_identity,
+    position_version: position.position_version,
+    position_snapshot_digest: position.position_snapshot_digest,
+    instrument_identity: position.instrument_identity,
+    ...(overrides.observation ?? {}),
+  };
+  observation.observation_digest = digestAction655bFixture(frame(
+    "action_655a2_monitor_observation_digest_v2",
+    "trade_management_monitor_observation_digest_v2",
+    without(observation, "observation_digest"),
+  ));
+  const input: PlainRecord = {
+    contract_version: "action_655a6_exit_evaluation_input_v4",
+    position_snapshot: position,
+    monitor_observation: observation,
+    decision_requested_at: overrides.decision_requested_at ?? "2026-08-04T12:00:00.000000000Z",
+    evaluation_request_identity: "",
+    input_digest: "",
+  };
+  input.evaluation_request_identity = `tm_exit_request:v4:${digestAction655bFixture(frame(
+    "action_655a6_exit_evaluation_request_identity_v4",
+    "trade_management_exit_evaluation_request_identity_v3",
+    {
+      decision_requested_at: input.decision_requested_at,
+      observation_digest: observation.observation_digest,
+      observation_identity: observation.observation_identity,
+      policy_digest: policyDigest,
+      policy_id: policyId,
+      policy_identity: policyIdentity,
+      policy_version: 2,
+      position_identity: position.position_identity,
+      position_snapshot_digest: position.position_snapshot_digest,
+      position_version: position.position_version,
+    },
+  ))}`;
+  input.input_digest = digestAction655bFixture(frame(
+    "action_655a6_exit_evaluation_input_digest_v4",
+    "trade_management_exit_evaluation_input_digest_v3",
+    without(input, "input_digest"),
+  ));
+  return canonicalizeAction655bFixture(input);
+}
+
+export function mutateAction655bCanonicalInput(
+  canonicalInput: string,
+  mutate: (input: PlainRecord) => void,
+): string {
+  const parsed = JSON.parse(canonicalInput) as PlainRecord;
+  mutate(parsed);
+  return canonicalizeAction655bFixture(parsed);
+}
+
+export function replaceAction655bRawToken(canonicalInput: string, exactNeedle: string, replacement: string): string {
+  const selected = canonicalInput.lastIndexOf(exactNeedle);
+  if (selected < 0) throw new Error("fixture token is absent");
+  return `${canonicalInput.slice(0, selected)}${replacement}${canonicalInput.slice(selected + exactNeedle.length)}`;
+}
+
+export function buildAction655bExactUtf8BudgetInput(targetBytes: 65_535 | 65_536 | 65_537): string {
+  const prefix = "m".repeat(targetBytes - 65_534);
+  return buildAction655bCanonicalInput({
+    observation: { market_data_contract_version: `${prefix}${"e\u0301".repeat(21_069)}` },
+  });
+}
+
+export const action655bRuleInputs = Object.freeze({
+  hard_stop: buildAction655bCanonicalInput({ observation: { current_price_units: "90" } }),
+  invalidation: buildAction655bCanonicalInput({
+    position: { initial_stop_price_units: "80", initial_risk_price_units: "20", current_stop_price_units: "80" },
+    observation: { current_price_units: "85" },
+  }),
+  session_close: buildAction655bCanonicalInput({ observation: { current_price_units: "105", session_state: "closing" } }),
+  final_target: buildAction655bCanonicalInput({ observation: { current_price_units: "130" } }),
+  first_target_partial: buildAction655bCanonicalInput({ observation: { current_price_units: "120" } }),
+  profit_protection_stop_move: buildAction655bCanonicalInput({ observation: { current_price_units: "110" } }),
+  hold: buildAction655bCanonicalInput({ observation: { current_price_units: "105" } }),
+});
+
+export const action655bShortInputs = Object.freeze({
+  profit_protection: buildAction655bCanonicalInput({
+    position: {
+      side: "short",
+      initial_stop_price_units: "110",
+      initial_risk_price_units: "10",
+      current_stop_price_units: "110",
+      invalidation_price_units: "115",
+      target_1_price_units: "80",
+      target_2_price_units: "70",
+    },
+    observation: { current_price_units: "90" },
+  }),
+  unfavorable_hold: buildAction655bCanonicalInput({
+    position: {
+      side: "short",
+      initial_stop_price_units: "110",
+      initial_risk_price_units: "10",
+      current_stop_price_units: "110",
+      invalidation_price_units: "115",
+      target_1_price_units: "80",
+      target_2_price_units: "70",
+    },
+    observation: { current_price_units: "105" },
+  }),
+});
+
+export const action655bBoundaryInputs = Object.freeze({
+  default_off: action655bRuleInputs.hold,
+  noneligible_exit_pending: buildAction655bCanonicalInput({ position: { status: "exit_pending" } }),
+  noneligible_closed: buildAction655bCanonicalInput({ position: { status: "closed" } }),
+  stale_observation: buildAction655bCanonicalInput({
+    observation: {
+      observed_at: "2026-08-04T11:59:55.000000000Z",
+      market_data_observed_at: "2026-08-04T11:59:55.000000000Z",
+    },
+  }),
+  observation_age_maximum_minus_one: buildAction655bCanonicalInput({
+    observation: {
+      observed_at: "2026-08-04T11:59:55.000000001Z",
+      market_data_observed_at: "2026-08-04T11:59:55.000000001Z",
+    },
+  }),
+  observation_age_maximum_plus_one: buildAction655bCanonicalInput({
+    observation: {
+      observed_at: "2026-08-04T11:59:54.999999999Z",
+      market_data_observed_at: "2026-08-04T11:59:54.999999999Z",
+    },
+  }),
+  market_data_age_maximum_minus_one: buildAction655bCanonicalInput({
+    observation: { market_data_observed_at: "2026-08-04T11:59:55.000000001Z" },
+  }),
+  market_data_age_maximum: buildAction655bCanonicalInput({
+    observation: { market_data_observed_at: "2026-08-04T11:59:55.000000000Z" },
+  }),
+  market_data_age_maximum_plus_one: buildAction655bCanonicalInput({
+    observation: { market_data_observed_at: "2026-08-04T11:59:54.999999999Z" },
+  }),
+  future_observation: buildAction655bCanonicalInput({
+    observation: { observed_at: "2026-08-04T12:00:00.000000001Z" },
+  }),
+  future_market_data: buildAction655bCanonicalInput({
+    observation: { market_data_observed_at: "2026-08-04T11:59:59.500000001Z" },
+  }),
+  tick_lot_rounding: buildAction655bCanonicalInput({
+    position: { lot_size_quantity_units: "4", total_quantity_units: "20", remaining_quantity_units: "12" },
+    observation: { current_price_units: "120" },
+  }),
+  partial_not_representable: buildAction655bCanonicalInput({
+    position: { total_quantity_units: "2", remaining_quantity_units: "2" },
+    observation: { current_price_units: "120" },
+  }),
+  overflow_integer: buildAction655bCanonicalInput({
+    position: {
+      total_quantity_units: (BigInt(1) << BigInt(127)).toString(),
+      remaining_quantity_units: (BigInt(1) << BigInt(127)).toString(),
+    },
+  }),
+  unsafe_version: buildAction655bCanonicalInput({ position: { position_version: Number.MAX_SAFE_INTEGER + 1 } }),
+});
+
+const missingNestedBeforeLaterSibling = mutateAction655bCanonicalInput(action655bRuleInputs.hold, (input) => {
+  delete (input.position_snapshot as PlainRecord).position_identity;
+  delete input.monitor_observation;
+});
+const wrongNestedVersionBeforeMissingFields = mutateAction655bCanonicalInput(action655bRuleInputs.hold, (input) => {
+  const position = input.position_snapshot as PlainRecord;
+  position.contract_version = "wrong";
+  delete position.position_identity;
+  delete input.monitor_observation;
+});
+
+export const action655gReviewOracleCases = Object.freeze([
+  Object.freeze({
+    name: "root_contract_version_before_missing_sibling",
+    input: canonicalizeAction655bFixture({ contract_version: "wrong" }),
+    expected: Object.freeze({ error_code: "unsupported_contract_version", error_path: "/contract_version" }),
+  }),
+  Object.freeze({
+    name: "nested_required_before_later_root_sibling",
+    input: missingNestedBeforeLaterSibling,
+    expected: Object.freeze({ error_code: "missing_required_input", error_path: "/position_snapshot/position_identity" }),
+  }),
+  Object.freeze({
+    name: "nested_contract_version_before_nested_and_root_missing",
+    input: wrongNestedVersionBeforeMissingFields,
+    expected: Object.freeze({ error_code: "unsupported_contract_version", error_path: "/position_snapshot/contract_version" }),
+  }),
+  Object.freeze({
+    name: "position_numeric_domain_before_observation_numeric_domain",
+    input: buildAction655bCanonicalInput({ position: { price_scale: 9 }, observation: { position_version: 0 } }),
+    expected: Object.freeze({ error_code: "numeric_domain_invalid", error_path: "/position_snapshot/price_scale" }),
+  }),
+] as const);
+
+export const action655bExpectedSerializedResults = Object.freeze({
+  hold: Object.freeze({
+    canonical_byte_length: 1690,
+    canonical_sha256: "2dd431d7ce6aa3f20e232de6d3dfcb7cd2b810901a14402bd723c06d4de3b5b5",
+    decision_digest: "27162c1929476c7dbed1b2a4ae76f2d3218fb5b489b3b1f12bd89026d74ef5e3",
+    result_digest: "1823b3f51424d3716ee04897147e7f98adb42ff97c6d06414c52858191e843f4",
+  }),
+});
+
+export const action655bTargetMatrixInputs = Object.freeze({
+  neither: buildAction655bCanonicalInput({ position: { target_1_price_units: null, target_2_price_units: null } }),
+  target_1_only: buildAction655bCanonicalInput({ position: { target_2_price_units: null } }),
+  both: action655bRuleInputs.hold,
+  target_2_only: buildAction655bCanonicalInput({ position: { target_1_price_units: null } }),
+});
+
+export const action655bFrozenVectorFrames = Object.freeze({
+  policy: {
+    contract_version: "action_655a6_exit_policy_digest_frame_v3",
+    domain: "trade_management_exit_policy_v2",
+    policy_id: policyId,
+    policy_identity: policyIdentity,
+    projection: privatePolicy,
+  },
+  provenance: {
+    contract_version: "action_655a6_exit_provenance_digest_v1",
+    domain: "trade_management_exit_provenance_digest_v1",
+    projection: {
+      decision_requested_at: "2026-08-04T12:00:00.000000000Z",
+      durable_recommendation_uuid: "22222222-2222-4222-8222-222222222222",
+      durable_recommendation_version: 7,
+      evaluation_request_identity: `tm_exit_request:v4:${"e".repeat(64)}`,
+      input_digest: "f".repeat(64),
+      instrument_identity: "instrument:XSTO:SE0000000001",
+      market_data_contract_version: "synthetic_market_data_observation_v1",
+      market_data_digest: "6".repeat(64),
+      market_data_observation_identity: `market_observation:v1:${"5".repeat(64)}`,
+      market_data_observed_at: "2026-08-04T11:59:59.000000000Z",
+      observation_digest: "4".repeat(64),
+      observation_identity: `tm_observation:v2:${"3".repeat(64)}`,
+      observed_at: "2026-08-04T11:59:59.500000000Z",
+      policy_digest: policyDigest,
+      policy_id: policyId,
+      policy_identity: policyIdentity,
+      policy_version: 2,
+      position_identity: "11111111-1111-4111-8111-111111111111",
+      position_snapshot_digest: "a".repeat(64),
+      position_version: 3,
+      recommendation_identity: `rec_decision:v1:${"b".repeat(64)}`,
+      recommendation_normative_digest: "c".repeat(64),
+    },
+  },
+});

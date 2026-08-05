@@ -1,0 +1,488 @@
+{
+  "action": "655D.4",
+  "artifact_role": "normative_dependency_gate",
+  "contract_set_id": "action_655d4_server_owned_trade_management_v6",
+  "dependencies": [
+    {
+      "dependency_id": "roadmap_authority_main_reachability",
+      "evidence": {
+        "blob_sha256": "241f51332b5be149db1a88a7ccff1edf4b1aa5ea6a0a2f1d21996c15aa04e93d",
+        "commit": "6712d698447677766d2d550ffcc0785a0c722d11",
+        "path": "docs/ture-master-roadmap.md",
+        "reachable_from_starting_main": false
+      },
+      "required_before": [
+        "roadmap_completion_claim",
+        "runtime_integration"
+      ],
+      "status": "unresolved",
+      "why": "The verified canonical roadmap blob exists on a separate branch but is absent from the starting main tree."
+    },
+    {
+      "dependency_id": "action_650_production_containment",
+      "evidence": {
+        "delivered_source_reachable": true,
+        "production_application_verified_for_new_trade_management_writes": false
+      },
+      "required_before": [
+        "position_writer_rollout",
+        "exit_queue_writer_rollout",
+        "audit_writer_rollout"
+      ],
+      "status": "blocked_dependency",
+      "why": "Source delivery does not prove production catalog or role behavior for a new write path."
+    },
+    {
+      "dependency_id": "action_650_execution_identity_and_confirmation",
+      "evidence": {
+        "confirmation_contract": "action_650u_manual_confirmation_consumption_receipt_v1",
+        "execution_identity_contract": "action_650s_runtime_identity_v1",
+        "reused_without_parallel_identity": true
+      },
+      "required_before": [
+        "exit_execution_attempt",
+        "terminal_execution_receipt_binding"
+      ],
+      "status": "current_authority_dependency",
+      "why": "Future execution must reuse the delivered execution and single-use confirmation lineage."
+    },
+    {
+      "dependency_id": "action_652_authenticated_server_boundary",
+      "evidence": {
+        "authenticated_server_routes_delivered": true,
+        "direct_browser_contained_table_operations_expected": 0,
+        "new_trade_management_route_reviewed": false
+      },
+      "required_before": [
+        "monitor_route",
+        "client_projection_route",
+        "position_or_queue_mutation_route"
+      ],
+      "status": "partial_dependency",
+      "why": "The general boundary exists, but every new fixed-purpose route and ownership check needs a separate implementation and review."
+    },
+    {
+      "dependency_id": "action_652_transactional_recommendation_position_handoff",
+      "evidence": {
+        "migration_path": "supabase/migrations/20260724001500_create_transactional_open_position_command.sql",
+        "semantic_predecessor": "application_open_position_v1",
+        "supports_atomic_retry_and_rollback": true,
+        "supports_required_uuid_version_identity_digest_lock_binding": false,
+        "supports_explicit_position_version": false,
+        "supports_reopen_semantics": false
+      },
+      "required_before": [
+        "action_655_transactional_handoff_implementation"
+      ],
+      "status": "blocked_dependency",
+      "why": "Exact durable recommendation UUID/version/identity/digest locking, position versioning, and reopen/history semantics must be decided before a compatible schema or command successor can be approved."
+    },
+    {
+      "dependency_id": "action_652_risk_admission",
+      "evidence": {
+        "contract": "action_652c_non_forgeable_risk_authority_v2",
+        "private_authority": true,
+        "reused_without_parallel_identity": true
+      },
+      "required_before": [
+        "exit_execution_attempt"
+      ],
+      "status": "current_authority_dependency",
+      "why": "A queue item cannot mint or substitute execution risk authority."
+    },
+    {
+      "dependency_id": "action_654_readiness_authority",
+      "evidence": {
+        "historical_evidence_authority": false,
+        "runtime_export_allowlist": [
+          "runAction654uExactBudgetUnitPrivatePolicy"
+        ],
+        "sole_current_authority": "Action 654U",
+        "transport_attached": false
+      },
+      "required_before": [
+        "future_execution_readiness_linkage"
+      ],
+      "status": "current_authority_dependency",
+      "why": "Action 654U may be referenced only as transport-inert readiness evidence; it is not dispatch or fill authority."
+    },
+    {
+      "dependency_id": "position_version_schema",
+      "evidence": {
+        "current_explicit_position_version": false,
+        "required_contract": "action_655a6_position_snapshot_v3"
+      },
+      "required_before": [
+        "monitor_persistence",
+        "exit_queue_persistence",
+        "client_mutation_commands"
+      ],
+      "status": "unresolved",
+      "why": "Compare-and-swap and stale-projection rejection require a durable positive position version."
+    },
+    {
+      "dependency_id": "durable_exit_queue_schema",
+      "evidence": {
+        "append_only_audit_available_for_exit_queue": false,
+        "durable_queue_available": false,
+        "lease_model_available": false,
+        "terminal_result_model_available": false
+      },
+      "required_before": [
+        "queue_writer",
+        "queue_worker",
+        "terminal_position_transition"
+      ],
+      "status": "unresolved",
+      "why": "Action 655A.6 preserves the queue closure contract but deliberately creates no table, migration, worker, or writer."
+    },
+    {
+      "dependency_id": "market_observation_provenance",
+      "evidence": {
+        "canonical_market_observation_contract_available": false,
+        "current_monitor_route_is_authority": false,
+        "freshness_boundary_defined_by_action_655a2": true,
+        "freshness_is_bound_to_decision_requested_at": true,
+        "maximum_future_skew_ns": "0"
+      },
+      "required_before": [
+        "server_monitor_adapter"
+      ],
+      "status": "unresolved",
+      "why": "Provider identity, quote provenance, and durable observation source must be reviewed separately; the existing mixed route is non-authority."
+    },
+    {
+      "dependency_id": "action_655a2_independent_rereview",
+      "evidence": {
+        "finding_count_remediated_by_design": 5,
+        "independent_rereview_completed": true,
+        "independent_rereview_approved": false,
+        "remaining_major_finding_ids": [
+          "655A.3-M1",
+          "655A.3-M2"
+        ],
+        "local_655b_implementation_authority_granted": false
+      },
+      "required_before": [
+        "action_655a4_design_remediation"
+      ],
+      "status": "completed_with_findings",
+      "why": "Action 655A.3 independently closed original findings M1, M3, and M5 but identified 655A.3-M1 and 655A.3-M2; it granted no Action 655B authority."
+    },
+    {
+      "dependency_id": "action_655a4_independent_rereview",
+      "evidence": {
+        "design_remediation_targets": [
+          "655A.3-M1",
+          "655A.3-M2"
+        ],
+        "independent_rereview_completed": true,
+        "independent_rereview_approved": false,
+        "local_655b_implementation_authority_granted": false,
+        "remaining_major_finding_ids": [
+          "655A.5-M1",
+          "655A.5-M2",
+          "655A.5-M3"
+        ],
+        "prior_closed_findings_required_to_remain_closed": [
+          "655A.1-M1",
+          "655A.1-M3",
+          "655A.1-M5"
+        ]
+      },
+      "required_before": [
+        "action_655a6_design_remediation"
+      ],
+      "status": "completed_with_findings",
+      "why": "Action 655A.5 verified the prior total-result and queue-closure remediations but identified 655A.5-M1, 655A.5-M2, and 655A.5-M3; it granted no Action 655B authority."
+    },
+    {
+      "dependency_id": "action_655a6_independent_rereview",
+      "evidence": {
+        "design_remediation_targets": [
+          "655A.5-M1",
+          "655A.5-M2",
+          "655A.5-M3"
+        ],
+        "independent_rereview_completed": false,
+        "independent_rereview_approved": false,
+        "local_655b_implementation_authority_granted": false,
+        "prior_closed_findings_required_to_remain_closed": [
+          "655A.1-M1",
+          "655A.1-M2",
+          "655A.1-M3",
+          "655A.1-M4",
+          "655A.1-M5"
+        ]
+      },
+      "required_before": [
+        "action_655b_local_implementation"
+      ],
+      "status": "pending_independent_rereview",
+      "why": "Action 655A.6 is a design-only remediation and cannot self-authorize Action 655B; a separate independent rereview must verify the three digest/enum remediations and all preserved closures."
+    },
+    {
+      "dependency_id": "action_655d1_independent_review",
+      "evidence": {
+        "review_completed": true,
+        "review_approved": false,
+        "finding_ids": ["655D.1-M1", "655D.1-M2"],
+        "implementation_remediation_authorized": false
+      },
+      "required_before": ["action_655d2_design_remediation"],
+      "status": "completed_with_findings",
+      "why": "Action 655D.1 verified the intended type, profit, UTF-8 and budget closures but found the closed invalid enum and malformed raw-input outcome matrix internally incomplete."
+    },
+    {
+      "dependency_id": "action_655d2_independent_rereview",
+      "evidence": {
+        "design_remediation_targets": ["655D.1-M1", "655D.1-M2"],
+        "independent_rereview_completed": true,
+        "independent_rereview_approved": false,
+        "remaining_major_finding_ids": ["655D.3-M1", "655D.3-M2"],
+        "local_655b_implementation_remediation_authorized": false
+      },
+      "required_before": ["action_655d4_design_remediation"],
+      "status": "completed_with_findings",
+      "why": "Action 655D.3 verified the frozen D.2 vectors but found the malformed-byte boundary and pre-schema negative-zero canonicalization non-total."
+    },
+    {
+      "dependency_id": "action_655d4_independent_rereview",
+      "evidence": {
+        "design_remediation_targets": ["655D.3-M1", "655D.3-M2"],
+        "independent_rereview_completed": false,
+        "independent_rereview_approved": false,
+        "local_655b_implementation_remediation_authorized": false
+      },
+      "required_before": ["action_655b_local_implementation_remediation"],
+      "status": "pending_independent_rereview",
+      "why": "Action 655D.4 is design-only and cannot self-authorize implementation remediation."
+    },
+    {
+      "dependency_id": "track_2_completion",
+      "evidence": {
+        "closed_by_action_655a6": false,
+        "inherited_provider_window_allowed": false
+      },
+      "required_before": [
+        "provider_window_reactivation",
+        "production_runtime_rollout"
+      ],
+      "status": "open_track",
+      "why": "Track 2 remains open and no authority or provider state may be inherited into Action 655."
+    },
+    {
+      "dependency_id": "track_3_completion",
+      "evidence": {
+        "closed_by_action_655a6": false,
+        "inherited_provider_window_allowed": false
+      },
+      "required_before": [
+        "provider_window_reactivation",
+        "production_runtime_rollout"
+      ],
+      "status": "open_track",
+      "why": "Track 3 remains open and Action 655A.6 cannot reactivate builds, providers, or production."
+    },
+    {
+      "dependency_id": "broker_terminal_transport",
+      "evidence": {
+        "active_adapter": false,
+        "broker_submission_allowed": false,
+        "terminal_fill_authority_defined": false
+      },
+      "required_before": [
+        "exit_dispatch",
+        "broker_submission",
+        "fill_application"
+      ],
+      "status": "deferred",
+      "why": "Broker transport and bounded live trials belong to later, separately authorized milestones."
+    }
+  ],
+  "design_completion": {
+    "design_contracts_frozen_pending_independent_rereview": true,
+    "implies_broker_readiness": false,
+    "implies_delivery_authority": false,
+    "implies_persistence_readiness": false,
+    "implies_production_readiness": false,
+    "implies_roadmap_completion": false,
+    "implies_runtime_readiness": false
+  },
+  "first_slice_gate": {
+    "allowed": false,
+    "action": "655B_remediation_successor",
+    "authorization": "pending_action_655d4_independent_rereview",
+    "name": "pure deterministic canonical exit evaluator remediation",
+    "reason": "Action 655D.3 found two remaining totality ambiguities. Action 655D.4 remediates them in design only and cannot self-authorize implementation remediation."
+  },
+  "action_655d_remediation_gate": {
+    "contract_id": "action_655d_exit_evaluator_remediation_contract_v1",
+    "design_only": true,
+    "independent_review_required": true,
+    "implementation_remediation_authorized": false,
+    "rejected_implementation": {
+      "commit": "08e593a58fc18473d6a6212c10f72cae8b7587ce",
+      "role": "negative_evidence_only",
+      "review_findings": {
+        "blocker": 0,
+        "major": 4,
+        "minor": 1,
+        "nit": 0
+      }
+    },
+    "contractual_closures": [
+      "exact_json_primitive_types_without_coercion",
+      "profit_protection_stop_at_entry",
+      "lexicographic_utf8_byte_key_order",
+      "raw_input_65536_lossless_utf8_byte_budget_and_no_surrogate_replacement",
+      "independent_fixture_oracle"
+    ],
+    "future_remediation_scope": {
+      "exact_path_count": 5,
+      "same_action_655b_paths_only": true,
+      "new_commit_digest_and_independent_source_review_required": true,
+      "delivery_authority": false,
+      "runtime_authority": false
+    },
+    "preserved_gates": [
+      "roadmap_authority_main_reachability",
+      "action_650_production_containment",
+      "action_652_authenticated_server_boundary",
+      "action_652_transactional_recommendation_position_handoff",
+      "position_version_schema",
+      "durable_exit_queue_schema",
+      "market_observation_provenance",
+      "track_2_completion",
+      "track_3_completion",
+      "broker_terminal_transport"
+    ],
+    "action_654": {
+      "bytes_must_remain_unchanged": true,
+      "sole_runtime_authority": "654U",
+      "review_evidence_non_authority": "654V",
+      "runtime_export_allowlist_unchanged": true
+    },
+    "safety": {
+      "automatic_execution": false,
+      "avanza_live_access": false,
+      "broker_submission": false,
+      "credential_access": false,
+      "database_access": false,
+      "database_migration": false,
+      "production_write": false,
+      "runtime_execution": false,
+      "trade_mutation": false,
+      "transport_attached": false
+    }
+  },
+  "action_655d2_remediation_gate": {
+    "contract_id": "action_655d2_raw_json_validation_closure_v1",
+    "design_only": true,
+    "independent_rereview_required": true,
+    "implementation_remediation_authorized": false,
+    "closed_by_design": [
+      "655D.1-M1_closed_invalid_enum_omitted_input_budget_exceeded",
+      "655D.1-M2_non_total_raw_JSON_failure_matrix"
+    ],
+    "invalid_reason_enum": [
+      "schema_invalid",
+      "missing_required_input",
+      "canonical_form_invalid",
+      "input_budget_exceeded",
+      "numeric_domain_invalid",
+      "unsupported_contract_version",
+      "policy_registry_integrity_failure"
+    ],
+    "raw_validation_stage_count": 14,
+    "future_remediation_scope": {
+      "exact_path_count": 5,
+      "same_action_655b_paths_only": true,
+      "new_commit_digest_and_independent_source_review_required": true,
+      "delivery_authority": false,
+      "runtime_authority": false
+    },
+    "preserved_gates": [
+      "roadmap_authority_main_reachability",
+      "action_650_production_containment",
+      "action_652_authenticated_server_boundary",
+      "action_652_transactional_recommendation_position_handoff",
+      "position_version_schema",
+      "durable_exit_queue_schema",
+      "market_observation_provenance",
+      "track_2_completion",
+      "track_3_completion",
+      "broker_terminal_transport"
+    ],
+    "action_654": {
+      "bytes_must_remain_unchanged": true,
+      "sole_runtime_authority": "654U",
+      "review_evidence_non_authority": "654V",
+      "runtime_export_allowlist": ["runAction654uExactBudgetUnitPrivatePolicy"]
+    }
+  },
+  "action_655d4_remediation_gate": {
+    "contract_id": "action_655d4_utf8_negative_zero_closure_v1",
+    "design_only": true,
+    "independent_rereview_required": true,
+    "implementation_remediation_authorized": false,
+    "closed_by_design": [
+      "655D.3-M1_malformed_UTF8_string_boundary_non_total",
+      "655D.3-M2_negative_zero_pre_schema_canonicalization_ambiguous"
+    ],
+    "evaluator_runtime_type": "primitive_ECMAScript_string_only",
+    "external_malformed_UTF8_outcome": "strict_upstream_rejection_before_evaluator_without_decision_result_or_provenance_digest",
+    "negative_zero_outcome": "stage_9_invalid_canonical_form_at_exact_number_pointer_before_schema_numeric_identity_or_rules",
+    "future_remediation_scope": {
+      "exact_path_count": 5,
+      "same_action_655b_paths_only": true,
+      "new_commit_digest_and_independent_source_review_required": true,
+      "delivery_authority": false,
+      "runtime_authority": false
+    },
+    "preserved_gates": [
+      "roadmap_authority_main_reachability",
+      "action_650_production_containment",
+      "action_652_authenticated_server_boundary",
+      "action_652_transactional_recommendation_position_handoff",
+      "position_version_schema",
+      "durable_exit_queue_schema",
+      "market_observation_provenance",
+      "track_2_completion",
+      "track_3_completion",
+      "broker_terminal_transport"
+    ],
+    "action_654": {
+      "bytes_must_remain_unchanged": true,
+      "sole_runtime_authority": "654U",
+      "review_evidence_non_authority": "654V",
+      "runtime_export_allowlist": ["runAction654uExactBudgetUnitPrivatePolicy"]
+    },
+    "safety": {
+      "automatic_execution": false,
+      "avanza_live_access": false,
+      "broker_submission": false,
+      "credential_access": false,
+      "database_access": false,
+      "database_migration": false,
+      "production_write": false,
+      "runtime_execution": false,
+      "trade_mutation": false,
+      "transport_attached": false
+    }
+  },
+  "unresolved_dependency_ids": [
+    "roadmap_authority_main_reachability",
+    "action_650_production_containment",
+    "action_652_authenticated_server_boundary",
+    "action_652_transactional_recommendation_position_handoff",
+    "position_version_schema",
+    "durable_exit_queue_schema",
+    "market_observation_provenance",
+    "action_655a6_independent_rereview",
+    "action_655d4_independent_rereview",
+    "track_2_completion",
+    "track_3_completion",
+    "broker_terminal_transport"
+  ]
+}
