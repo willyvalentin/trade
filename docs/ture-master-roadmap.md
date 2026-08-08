@@ -105,9 +105,18 @@ is implied by this roadmap.
 - Track 2 is an open dependent stack (#54 -> #55 -> #57 -> #58 -> #60 -> #63
   -> #67 -> #72). Its next main-moving work must wait for a fresh reconciliation
   after the current governance candidate is independently reviewed.
-- Track 3 has an active Action 668 Milestone A successor phase. ACTION 668H may
-  run independently as a single-use provider read-only probe, but it has no
-  main-move or Milestone A completion authority.
+- Track 3 has an active Action 668 Milestone A successor phase. ACTION 668H's
+  latest single-use provider read-only authorization was permanently consumed
+  by one GT2-001 attempt that ended `completed_rejected` with completed prefix
+  `0`; GT2-002–GT2-005 were not run and no retry occurred. R8 recovered and
+  checksum-bound the GT2-001 raw transport as 295,229 bytes containing 645
+  authorized catalog-metadata rows; the provider response lacked the frozen
+  wrapper. The external request/response adapter has closed the earlier
+  raw-transport, strict-JSON and wrapper findings at candidate level, but it
+  does not yet have an independently approved, substitution-safe Darwin
+  state-writer architecture. The architecture and execution gates remain
+  open. `execution_authorization_ready:false`; no main-move or Milestone A
+  completion authority exists.
 - Track 4 has delivered a default-off Action 655 foundation via merged PR #84;
   it has no runtime wiring, database, broker, production, server-owned-core, or
   milestone-completion authority.
@@ -126,4 +135,3 @@ PR #45 as stale/non-authority and preserve it unmodified. Provider windows and
 migrations are separately authorized operations. Production remains at
 `f578dd5…`, 126 commits behind current main; this is a release-gate
 contradiction, not completion.
-

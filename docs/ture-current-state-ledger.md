@@ -31,7 +31,7 @@ production, provider, database, migration, broker, or release activity.
 | --- | --- | --- |
 | 1 | paused | Previously delivered source remains historical/corroborated source evidence; no new release is authorized here. |
 | 2 | open dependent stack | PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open; their bases are not current-main authority. |
-| 3 | Milestone A successor phase active, incomplete | Action 668 read-only containment/catalog work is active. ACTION 668H is authorized only as a single-use provider read-only probe in a separate tool-capable task. No Milestone A completion or main-move authority exists. |
+| 3 | Milestone A successor phase active, incomplete | Action 668 read-only containment/catalog work is active. ACTION 668H's latest single-use provider read-only authorization was permanently consumed by one GT2-001 attempt that ended `completed_rejected` with completed prefix `0`; GT2-002–GT2-005 were not run and no retry occurred. R8 recovered and checksum-bound the GT2-001 raw transport as 295,229 bytes containing 645 authorized catalog-metadata rows; the provider response lacked the frozen wrapper. The external request/response adapter has closed the earlier raw-transport, strict-JSON and wrapper findings at candidate level, but it does not yet have an independently approved, substitution-safe Darwin state-writer architecture. The architecture and execution gates remain open. `execution_authorization_ready:false`; no Milestone A completion or main-move authority exists. |
 | 4 | delivered default-off foundation, not milestone completion | Action 655 is delivered via merged PR #84; default-off, no runtime wiring, `runtime_authorization_ready:false`, and no database, broker, production or milestone authority. |
 | 5 | bounded governance reconciliation | Action 669 may freeze only these two external documentation candidates. Draft PR #45 is an overlapping stale historical reference, not a competing canonical governance identity; it must remain unmodified and explicitly rejected as delivery authority. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged on current main with exactly five additive Session V2 paths. Source is main-reachable, default-off and runtime-unwired; runtime, tenancy, database, broker, production and milestone authority remain false. |
@@ -79,4 +79,3 @@ now superseded by direct evidence through Action 668 and the PR #85 merge.
 7. Do not deliver a governance replacement without a fresh preflight that
    verifies PR #45 remains stale/non-authority, preserves it unmodified, and
    rejects it as a competing governance identity.
-
