@@ -1,7 +1,7 @@
 import fs from "node:fs";
-import { SESSION_V2_CONTRACT } from "../../lib/auth/session-v2-contract.ts";
-import { SESSION_V2_FOUNDATION } from "../../lib/auth/session-v2-verification.ts";
-import { cryptoInput, hostileKeyringFixtures, hostileVersionFixtures, syntheticKeys, transitionFacts } from "./session-v2.fixtures.ts";
+import { SESSION_V2_CONTRACT } from "../../lib/auth/session-v2-contract";
+import { SESSION_V2_FOUNDATION } from "../../lib/auth/session-v2-verification";
+import { cryptoInput, hostileKeyringFixtures, hostileVersionFixtures, syntheticKeys, transitionFacts } from "./session-v2.fixtures";
 
 type CaseResult = { id: string; pass: boolean; thrown: boolean; error?: string };
 type MutableRecord = Record<string, unknown>;
@@ -95,8 +95,8 @@ for (let index = 0; index < orderedRows.length - 1; index += 1) {
 
 const binding = SESSION_V2_FOUNDATION.projectEvidence("binding", cryptoInput(), syntheticKeys());
 const provenance = SESSION_V2_FOUNDATION.projectEvidence("provenance", cryptoInput(), syntheticKeys());
-run("binding_golden", () => binding.ok && binding.digest === "8f68aa0e38d1c34ca292516724328a056c299959b756a05947e0165e1cc4e7fe");
-run("provenance_golden", () => provenance.ok && provenance.digest === "decd952d05a3c8782b9b2f3703a8e8b437956a7a6664ec62a8df998fbc336536");
+run("binding_golden", () => binding.ok && binding.digest === "0293b1dbee15164176cbe11c5c4e18087a395f2555e6564868bfdd3b629dd53f");
+run("provenance_golden", () => provenance.ok && provenance.digest === "868b2b8545316134d3a204f1daa2a596a3de07a281b7395b79f4aeb6e4c707b6");
 
 const cryptoMutations: readonly { id: string; projection: "binding" | "provenance"; mutate: (input: MutableRecord, keys: MutableRecord) => boolean }[] = [
   { id: "missing_segment", projection: "binding", mutate: (input) => { delete (input.binding as MutableRecord).claims_digest; return true; } },

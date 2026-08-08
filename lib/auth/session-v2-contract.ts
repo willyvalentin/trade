@@ -43,6 +43,17 @@ type Projection = Readonly<{
   segments: readonly ProjectionSegment[];
 }>;
 
+type RuntimeFieldRule = Readonly<{
+  kind: "canonical_string" | "base64url_sha256" | "safe_integer" | "boolean" | "enum";
+  values?: readonly string[];
+}>;
+
+type RuntimeRecordSchema = Readonly<{
+  prototype: "Object.prototype";
+  exact_own_enumerable_data_fields: readonly string[];
+  fields: Readonly<Record<string, RuntimeFieldRule | { schema: string }>>;
+}>;
+
 const deepFreeze = <T>(value: T): T => {
   if (value === null || typeof value !== "object" || Object.isFrozen(value)) return value;
   for (const key of Reflect.ownKeys(value)) deepFreeze(Reflect.get(value, key));
@@ -91,6 +102,74 @@ const projections: readonly Projection[] = [
   },
 ];
 
+const transitionSchemas: Readonly<Record<string, RuntimeRecordSchema>> = {
+  transition_root: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["now", "predecessor", "successor", "receipt"],
+    fields: {
+      now: { kind: "safe_integer" }, predecessor: { schema: "transition_predecessor" },
+      successor: { schema: "transition_successor" }, receipt: { schema: "transition_receipt" },
+    },
+  },
+  transition_predecessor: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["session_id", "principal_id", "registry_version", "protocol_version", "claims_digest", "snapshot_id", "registry_metadata_valid", "registry_snapshot_expires_at", "family_expires_at", "idle_expires_at", "handle_expires_at", "key_status", "principal_status", "evidence"],
+    fields: {
+      session_id: { kind: "canonical_string" }, principal_id: { kind: "canonical_string" }, registry_version: { kind: "canonical_string" },
+      protocol_version: { kind: "enum", values: ["v2"] }, claims_digest: { kind: "canonical_string" }, snapshot_id: { kind: "canonical_string" },
+      registry_metadata_valid: { kind: "boolean" }, registry_snapshot_expires_at: { kind: "safe_integer" }, family_expires_at: { kind: "safe_integer" },
+      idle_expires_at: { kind: "safe_integer" }, handle_expires_at: { kind: "safe_integer" }, key_status: { kind: "enum", values: ["available", "unavailable"] },
+      principal_status: { kind: "enum", values: ["active", "revoked"] }, evidence: { schema: "transition_evidence" },
+    },
+  },
+  transition_evidence: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["hmac_valid"],
+    fields: { hmac_valid: { kind: "boolean" } },
+  },
+  transition_successor: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["session_id", "principal_id", "registry_version", "protocol_version", "snapshot_id", "issued_at", "expires_at"],
+    fields: {
+      session_id: { kind: "canonical_string" }, principal_id: { kind: "canonical_string" }, registry_version: { kind: "canonical_string" },
+      protocol_version: { kind: "enum", values: ["v2"] }, snapshot_id: { kind: "canonical_string" }, issued_at: { kind: "safe_integer" }, expires_at: { kind: "safe_integer" },
+    },
+  },
+  transition_receipt: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["predecessor_session_id", "successor_session_id", "rotation_grace_until"],
+    fields: {
+      predecessor_session_id: { kind: "canonical_string" }, successor_session_id: { kind: "canonical_string" }, rotation_grace_until: { kind: "safe_integer" },
+    },
+  },
+};
+
+const cryptoSchemas: Readonly<Record<string, RuntimeRecordSchema>> = {
+  crypto_root: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["binding", "provenance"],
+    fields: { binding: { schema: "binding" }, provenance: { schema: "provenance" } },
+  },
+  binding: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["binding_version", "session_id", "principal_id", "registry_version", "snapshot_id", "claims_digest", "expires_at", "key_id"],
+    fields: {
+      binding_version: { kind: "canonical_string" }, session_id: { kind: "canonical_string" }, principal_id: { kind: "canonical_string" },
+      registry_version: { kind: "canonical_string" }, snapshot_id: { kind: "canonical_string" }, claims_digest: { kind: "base64url_sha256" },
+      expires_at: { kind: "canonical_string" }, key_id: { kind: "canonical_string" },
+    },
+  },
+  provenance: {
+    prototype: "Object.prototype",
+    exact_own_enumerable_data_fields: ["provenance_version", "snapshot_id", "provenance_id", "registry_version", "key_id", "principal_id", "binding_digest"],
+    fields: {
+      provenance_version: { kind: "canonical_string" }, snapshot_id: { kind: "canonical_string" }, provenance_id: { kind: "canonical_string" },
+      registry_version: { kind: "canonical_string" }, key_id: { kind: "canonical_string" }, principal_id: { kind: "canonical_string" },
+      binding_digest: { kind: "base64url_sha256" },
+    },
+  },
+};
+
 export const SESSION_V2_CONTRACT = deepFreeze({
   protocol: "trade.session.v2",
   version: "v2",
@@ -102,6 +181,7 @@ export const SESSION_V2_CONTRACT = deepFreeze({
   default_off: true,
   closed_predicate_kind_set: ["not_equal", "immutable_binding", "receipt_binding", "equal", "ordered_time", "future_time", "deadline", "enum_not", "boolean_false", "enum_equal"] as const,
   precedence: { operation: "transition" as const, selection: "lowest_ordinal_among_failed_registry_predicates", rows },
+  runtime_schemas: { transition: transitionSchemas, crypto: cryptoSchemas },
   crypto: {
     canonical_encoding: "utf8-nfc-no-nul-length-prefixed-v1" as const,
     required_segment_order: {
@@ -109,6 +189,8 @@ export const SESSION_V2_CONTRACT = deepFreeze({
       provenance: ["provenance_version", "snapshot_id", "provenance_id", "registry_version", "key_id", "principal_id", "binding_digest"],
     },
     projections,
+    materialization_stages: ["exact_schema", "binding_sha256", "binding_digest_equality", "runtime_key_copy", "provenance_hmac", "opaque_authority_emission"] as const,
+    runtime_key_boundary: "exact_same_realm_uint8array_32_guarded_copy" as const,
   },
 });
 
