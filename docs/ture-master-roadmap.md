@@ -1,6 +1,6 @@
 # Ture Master Roadmap
 
-**Action 669-R1.1 external reconciliation candidate after Action 657 Track 6 delivery.**
+**Action 669-R5-R5 external closed-holding governance remediation candidate.**
 
 **Document status:** proposed current-main planning reference.
 
@@ -51,10 +51,14 @@ Completion requires all of the following, not merely source delivery:
 - generated types, migration allowlist, catalog/security checks, and CI gates;
 - disciplined worktree and release ownership.
 
-Milestone A remains the first incomplete milestone. Action 668 is the active
-read-only evidence lane. Catalog evidence and structural privilege findings do
-not substitute for role-bound behavioral evidence, repository-pinned generated
-types, migration reconciliation, or production/main identity agreement.
+Milestone A remains the first incomplete milestone. ACTION 668H is now
+`closed_holding` under operator decision `D_keep_execution_gate_closed`; this
+is neither active blockage nor milestone completion. Containment,
+authenticated API-boundary, release-identity and CI-gate states remain
+`unknown_current` in this evidence chain. Action 652 is the next permitted
+read-only preparation lane for the authenticated API boundary and browser
+Supabase removal, but it may not become a main-mover until PR #86's governance
+lifecycle is complete.
 
 ### B. Server-Owned Trade Management
 
@@ -104,26 +108,25 @@ is implied by this roadmap.
 - Track 1 is paused.
 - Track 2 is an open dependent stack (#54 -> #55 -> #57 -> #58 -> #60 -> #63
   -> #67 -> #72). Its next main-moving work must wait for a fresh reconciliation
-  after the current governance candidate is independently reviewed.
-- Track 3 has an active Action 668 Milestone A successor phase. ACTION 668H's
-  latest single-use provider read-only authorization was permanently consumed
-  by one GT2-001 attempt that ended `completed_rejected` with completed prefix
-  `0`; GT2-002–GT2-005 were not run and no retry occurred. R8 recovered and
-  checksum-bound the GT2-001 raw transport as 295,229 bytes containing 645
-  authorized catalog-metadata rows; the provider response lacked the frozen
-  wrapper. The external request/response adapter has closed the earlier
-  raw-transport, strict-JSON and wrapper findings at candidate level, but it
-  does not yet have an independently approved, substitution-safe Darwin
-  state-writer architecture. The architecture and execution gates remain
-  open. `execution_authorization_ready:false`; no main-move or Milestone A
-  completion authority exists.
+  after the current governance candidate is independently reviewed and merged.
+- Track 3 / ACTION 668H is `closed_holding` under current operator decision
+  `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
+  consumed, completed prefix `0`, and non-retry. There are zero usable GT2
+  execution authorizations and no alternative trust root or native bootstrap.
+  The execution gate is closed; reopening requires new explicit operator
+  authority. No Milestone A completion or main-move authority exists.
+- Action 652 is the next permitted Milestone A roadmap lane, limited presently
+  to its separately checksum-bound read-only preparation. It must not become a
+  main-mover while PR #86 remains in its governance lifecycle and must not be
+  coupled to GT2 execution, provider authority, Action 650 production apply,
+  or another concurrent main-moving delivery.
 - Track 4 has delivered a default-off Action 655 foundation via merged PR #84;
   it has no runtime wiring, database, broker, production, server-owned-core, or
   milestone-completion authority.
 - Track 5 owns only this bounded two-document Action 669 reconciliation. Draft
   PR #45 is an overlapping stale historical non-authority and must remain
-  unmodified. Action 669 may not deliver without a separate independent review
-  and explicit delivery authorization.
+  unmodified. PR #86 must remain Draft until independent review and explicit
+  transition authority are complete.
 - Track 6 has completed source delivery via merged PR #85 at
   `eb79279d3abdb438d1997e2b06eefb2b6d775d77`. Its five additive Session V2 paths
   are default-off and runtime-unwired; Track 6 is closed/holding with runtime,
