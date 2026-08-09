@@ -5,7 +5,6 @@ import type {
 
 export type PostExecutionServerCaptureRequestOptions = {
   timeoutMs?: number | null;
-  endpoint?: string | null;
 };
 
 export type PostExecutionServerCaptureRequestResult = {
@@ -17,7 +16,7 @@ export type PostExecutionServerCaptureRequestResult = {
   completedAt: string;
 };
 
-const defaultEndpoint = "/api/execution/capture";
+const defaultEndpoint = "/api/execution/capture" as const;
 const defaultTimeoutMs = 10_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -77,6 +76,15 @@ function timeoutMsFromOptions(
     : defaultTimeoutMs;
 }
 
+function selectCaptureEndpoint(value: unknown): typeof defaultEndpoint | undefined {
+  // Do not coerce, parse, decode, normalize, or inspect a non-string value.
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  return value === defaultEndpoint ? defaultEndpoint : undefined;
+}
+
 export async function postExecutionServerCaptureRequest(
   request: ExecutionServerCaptureRequest,
   options: PostExecutionServerCaptureRequestOptions = {},
@@ -89,7 +97,19 @@ export async function postExecutionServerCaptureRequest(
   );
 
   try {
-    const response = await fetch(options.endpoint || defaultEndpoint, {
+    const endpoint = selectCaptureEndpoint(defaultEndpoint);
+
+    if (!endpoint) {
+      return {
+        ok: false,
+        statusCode: null,
+        errors: ["Execution capture request rejected an unsupported endpoint."],
+        warnings: [],
+        completedAt: completedAt(),
+      };
+    }
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",

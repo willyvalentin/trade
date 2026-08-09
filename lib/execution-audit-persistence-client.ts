@@ -7,7 +7,6 @@ import type {
 
 export type PostExecutionAuditPersistenceRequestOptions = {
   timeoutMs?: number | null;
-  endpoint?: string | null;
 };
 
 export type PostExecutionAuditPersistenceRequestResult = {
@@ -19,11 +18,16 @@ export type PostExecutionAuditPersistenceRequestResult = {
   completedAt: string;
 };
 
-const lifecycleEndpoint = "/api/execution/audit/lifecycle-events";
-const agentRunsEndpoint = "/api/execution/audit/agent-runs";
+const lifecycleEndpoint = "/api/execution/audit/lifecycle-events" as const;
+const agentRunsEndpoint = "/api/execution/audit/agent-runs" as const;
 const agentProgressEventsEndpoint =
-  "/api/execution/audit/agent-progress-events";
+  "/api/execution/audit/agent-progress-events" as const;
 const defaultTimeoutMs = 10_000;
+
+type ExecutionAuditPersistenceEndpoint =
+  | typeof lifecycleEndpoint
+  | typeof agentRunsEndpoint
+  | typeof agentProgressEventsEndpoint;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -72,12 +76,33 @@ function timeoutMsFromOptions(
     : defaultTimeoutMs;
 }
 
+function selectAuditPersistenceEndpoint(
+  value: unknown,
+): ExecutionAuditPersistenceEndpoint | undefined {
+  // The named operation owns one literal. Never coerce, parse, decode, or
+  // normalize a candidate endpoint, and never inspect a non-string value.
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  switch (value) {
+    case lifecycleEndpoint:
+      return lifecycleEndpoint;
+    case agentRunsEndpoint:
+      return agentRunsEndpoint;
+    case agentProgressEventsEndpoint:
+      return agentProgressEventsEndpoint;
+    default:
+      return undefined;
+  }
+}
+
 async function postExecutionAuditPersistenceRequest(
   request:
     | PersistExecutionLifecycleEventRequest
     | PersistExecutionAgentRunRequest
     | PersistExecutionAgentProgressEventRequest,
-  endpoint: string,
+  endpoint: ExecutionAuditPersistenceEndpoint,
   options: PostExecutionAuditPersistenceRequestOptions = {},
 ): Promise<PostExecutionAuditPersistenceRequestResult> {
   const completedAt = () => new Date().toISOString();
@@ -88,7 +113,19 @@ async function postExecutionAuditPersistenceRequest(
   );
 
   try {
-    const response = await fetch(options.endpoint || endpoint, {
+    const selectedEndpoint = selectAuditPersistenceEndpoint(endpoint);
+
+    if (!selectedEndpoint) {
+      return {
+        ok: false,
+        statusCode: null,
+        errors: ["Execution audit persistence rejected an unsupported endpoint."],
+        warnings: [],
+        completedAt: completedAt(),
+      };
+    }
+
+    const response = await fetch(selectedEndpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",

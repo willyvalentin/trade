@@ -15,7 +15,6 @@ import type {
 } from "@/lib/execution-record-persistence-contract";
 
 export type RequestExecutionRecordInsertDryRunOptions = {
-  endpoint?: string | null;
   timeoutMs?: number | null;
   fetchFn?: typeof fetch;
 };
@@ -126,6 +125,18 @@ function timeoutMsFromOptions(
     : defaultTimeoutMs;
 }
 
+function selectExecutionRecordInsertEndpoint(
+  value: unknown,
+): typeof defaultEndpoint | undefined {
+  // The client helper owns this literal. Do not coerce, parse, decode, or
+  // normalize endpoint candidates, and do not inspect a non-string value.
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  return value === defaultEndpoint ? defaultEndpoint : undefined;
+}
+
 function parseRouteResponse(
   value: unknown,
 ): ExecutionRecordInsertRouteResponse | undefined {
@@ -174,10 +185,24 @@ export async function requestExecutionRecordInsertDryRun(
     () => controller.abort(),
     timeoutMsFromOptions(options),
   );
-  const fetchFn = options.fetchFn ?? fetch;
 
   try {
-    const response = await fetchFn(options.endpoint || defaultEndpoint, {
+    const endpoint = selectExecutionRecordInsertEndpoint(defaultEndpoint);
+
+    if (!endpoint) {
+      return fallbackResponse({
+        request,
+        status: "error",
+        errorCode: "invalid_request_contract",
+        errorMessage:
+          "Execution record insert dry-run rejected an unsupported endpoint.",
+        message:
+          "Execution record insert dry-run client rejected an unsupported endpoint before any request or persistence operation.",
+      });
+    }
+
+    const fetchFn = options.fetchFn ?? fetch;
+    const response = await fetchFn(endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",
