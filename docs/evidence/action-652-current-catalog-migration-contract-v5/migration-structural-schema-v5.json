@@ -1,0 +1,306 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "trade.action652.migration-history-evidence.structural.v5",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "authority",
+    "completeness",
+    "source_inventory",
+    "provider_history",
+    "receipt_bindings",
+    "provider_batch_binding"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "trade.action652.migration-history-evidence.v5"
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_ref",
+        "effective_role",
+        "transaction_read_only"
+      ],
+      "properties": {
+        "project_ref": {
+          "const": "ekdyopdrrkphlrsilyoo"
+        },
+        "effective_role": {
+          "const": "supabase_read_only_user"
+        },
+        "transaction_read_only": {
+          "const": "on"
+        }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "truncated",
+        "ordered",
+        "provider_entry_count"
+      ],
+      "properties": {
+        "complete": {
+          "const": true
+        },
+        "truncated": {
+          "const": false
+        },
+        "ordered": {
+          "const": true
+        },
+        "provider_entry_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "source_inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "tree",
+        "entry_count",
+        "entries"
+      ],
+      "properties": {
+        "commit": {
+          "const": "9250c11497f590dd24062181491299422a1eda96"
+        },
+        "tree": {
+          "const": "4ae1fe69d28970498226b850589010148c30d7dc"
+        },
+        "entry_count": {
+          "const": 36
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 36,
+          "maxItems": 36,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "name",
+              "path",
+              "bytes",
+              "sha256",
+              "git_blob",
+              "statement_count"
+            ],
+            "properties": {
+              "version": {
+                "type": "string",
+                "pattern": "^[0-9]{14}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "git_blob": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "statement_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "provider_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "result_ordinal",
+          "receipt_id"
+        ],
+        "properties": {
+          "result_ordinal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "receipt_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "receipt_id",
+          "protocol",
+          "version",
+          "name",
+          "statement_count",
+          "source_sql_sha256",
+          "project_ref",
+          "statement_id",
+          "statement_sha256",
+          "result_ordinal",
+          "raw_result_sha256",
+          "raw_result_bytes"
+        ],
+        "properties": {
+          "receipt_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "protocol": {
+            "const": "trade.action652.provider-receipt.v2"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]{14}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source_sql_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "project_ref": {
+            "const": "ekdyopdrrkphlrsilyoo"
+          },
+          "statement_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "result_ordinal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "raw_result_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "raw_result_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "provider_batch_binding": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "batch_receipt_id",
+            "protocol",
+            "project_ref",
+            "statement_id",
+            "statement_sha256",
+            "raw_result_sha256",
+            "raw_result_bytes",
+            "complete",
+            "truncated",
+            "row_count",
+            "ordered_receipt_ids",
+            "ordered_receipts_aggregate_sha256"
+          ],
+          "properties": {
+            "batch_receipt_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "protocol": {
+              "const": "trade.action652.provider-batch-receipt.v1"
+            },
+            "project_ref": {
+              "const": "ekdyopdrrkphlrsilyoo"
+            },
+            "statement_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "statement_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "raw_result_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "raw_result_bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "complete": {
+              "const": true
+            },
+            "truncated": {
+              "const": false
+            },
+            "row_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ordered_receipt_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "ordered_receipts_aggregate_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "x-trade-authority": "structural_non_authority"
+}

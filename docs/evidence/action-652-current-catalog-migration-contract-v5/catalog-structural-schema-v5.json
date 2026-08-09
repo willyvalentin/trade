@@ -1,0 +1,572 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "trade.action652.catalog-typegen-evidence.structural.v5",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "authority",
+    "completeness",
+    "counts",
+    "catalog",
+    "generator_binding",
+    "result_binding"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "trade.action652.catalog-typegen-evidence.v5"
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organization",
+        "project",
+        "project_ref",
+        "effective_role",
+        "transaction_read_only",
+        "default_transaction_read_only"
+      ],
+      "properties": {
+        "organization": {
+          "const": "Valentin Labs"
+        },
+        "project": {
+          "const": "Trade"
+        },
+        "project_ref": {
+          "const": "ekdyopdrrkphlrsilyoo"
+        },
+        "effective_role": {
+          "const": "supabase_read_only_user"
+        },
+        "transaction_read_only": {
+          "const": "on"
+        },
+        "default_transaction_read_only": {
+          "const": "on"
+        }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "truncated",
+        "all_exposed_schemas_enumerated",
+        "unresolved_dimensions"
+      ],
+      "properties": {
+        "complete": {
+          "const": true
+        },
+        "truncated": {
+          "const": false
+        },
+        "all_exposed_schemas_enumerated": {
+          "const": true
+        },
+        "unresolved_dimensions": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemas",
+        "tables",
+        "views",
+        "columns",
+        "primary_keys",
+        "foreign_keys",
+        "functions",
+        "enums",
+        "composites"
+      ],
+      "properties": {
+        "schemas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tables": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "views": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "primary_keys": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "foreign_keys": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "functions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enums": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "composites": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemas",
+        "tables",
+        "views",
+        "columns",
+        "primary_keys",
+        "foreign_keys",
+        "functions",
+        "enums",
+        "composites"
+      ],
+      "properties": {
+        "schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema_name"
+            ],
+            "properties": {
+              "schema_name": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table_schema",
+              "table_name"
+            ],
+            "properties": {
+              "table_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "table_name": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "view_schema",
+              "view_name",
+              "security_invoker"
+            ],
+            "properties": {
+              "view_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "view_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "security_invoker": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table_schema",
+              "table_name",
+              "column_name",
+              "ordinal_position",
+              "data_type",
+              "udt_schema",
+              "udt_name",
+              "is_nullable",
+              "has_default",
+              "is_identity",
+              "is_generated"
+            ],
+            "properties": {
+              "table_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "table_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "column_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ordinal_position": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "data_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "udt_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "udt_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "is_nullable": {
+                "type": "boolean"
+              },
+              "has_default": {
+                "type": "boolean"
+              },
+              "is_identity": {
+                "type": "boolean"
+              },
+              "is_generated": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "primary_keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table_schema",
+              "table_name",
+              "constraint_name",
+              "columns"
+            ],
+            "properties": {
+              "table_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "table_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "constraint_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "columns": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "foreign_keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_schema",
+              "source_table",
+              "constraint_name",
+              "source_columns",
+              "target_schema",
+              "target_table",
+              "target_columns"
+            ],
+            "properties": {
+              "source_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_table": {
+                "type": "string",
+                "minLength": 1
+              },
+              "constraint_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_columns": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "target_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target_table": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target_columns": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "functions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "function_schema",
+              "function_name",
+              "identity_arguments",
+              "return_type"
+            ],
+            "properties": {
+              "function_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "function_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "identity_arguments": {
+                "type": "string"
+              },
+              "return_type": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "enums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "enum_schema",
+              "enum_name",
+              "labels"
+            ],
+            "properties": {
+              "enum_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enum_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "labels": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "composites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type_schema",
+              "type_name",
+              "attributes"
+            ],
+            "properties": {
+              "type_schema": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "attributes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "attribute_name",
+                    "ordinal_position",
+                    "data_type"
+                  ],
+                  "properties": {
+                    "attribute_name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "ordinal_position": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "data_type": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "generator_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cli_version",
+        "command_sha256",
+        "linked_config_sha256",
+        "project_ref",
+        "schema_set",
+        "output_path",
+        "output_sha256"
+      ],
+      "properties": {
+        "cli_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "command_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "linked_config_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "project_ref": {
+          "const": "ekdyopdrrkphlrsilyoo"
+        },
+        "schema_set": {
+          "const": [
+            "public"
+          ]
+        },
+        "output_path": {
+          "const": "lib/supabase-database.types.ts"
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "result_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest_sha256",
+        "ordered_results",
+        "aggregate_sha256"
+      ],
+      "properties": {
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ordered_results": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "result_id",
+              "sha256",
+              "row_count"
+            ],
+            "properties": {
+              "result_id": {
+                "enum": [
+                  "schemas",
+                  "tables",
+                  "views",
+                  "columns",
+                  "primary_keys",
+                  "foreign_keys",
+                  "functions",
+                  "enums",
+                  "composites"
+                ]
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "row_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "aggregate_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  },
+  "x-trade-authority": "structural_non_authority"
+}
