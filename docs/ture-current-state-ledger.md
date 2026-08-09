@@ -82,8 +82,8 @@ checksum-bound ACTION 668H-R8-R5C operator decision.
 7. Do not reopen GT2 execution or introduce a trust root/native bootstrap
    without new explicit operator authority.
 8. Action 652 may continue only as the separately authorized read-only
-   preparation lane while PR #86 is Draft; it must not become a main-mover
-   until PR #86's governance lifecycle is complete.
+   preparation lane while PR #86 remains unmerged; it must not become a
+   main-mover until PR #86's governance lifecycle is complete.
 9. Do not deliver a governance replacement without a fresh preflight that
    verifies PR #45 remains stale/non-authority, preserves it unmodified, and
    rejects it as a competing governance identity.

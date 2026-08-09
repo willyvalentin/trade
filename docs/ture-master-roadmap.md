@@ -125,8 +125,10 @@ is implied by this roadmap.
   milestone-completion authority.
 - Track 5 owns only this bounded two-document Action 669 reconciliation. Draft
   PR #45 is an overlapping stale historical non-authority and must remain
-  unmodified. PR #86 must remain Draft until independent review and explicit
-  transition authority are complete.
+  unmodified. PR #86 is Ready after independent review and explicit transition
+  authority; it must remain unmerged until a fresh independent ordinary-merge
+  preflight approves the remediated bytes and a separate single-use merge
+  authorization is consumed.
 - Track 6 has completed source delivery via merged PR #85 at
   `eb79279d3abdb438d1997e2b06eefb2b6d775d77`. Its five additive Session V2 paths
   are default-off and runtime-unwired; Track 6 is closed/holding with runtime,
