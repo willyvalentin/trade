@@ -1,0 +1,54 @@
+name: Milestone A CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  provider-free-verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      PLAYWRIGHT_SKIP_WEB_SERVER: "true"
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Node.js 24.19.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.19.0
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Lint
+        run: npm run lint -- --max-warnings=8
+      - name: TypeScript
+        run: ./node_modules/.bin/tsc --noEmit --incremental false
+      - name: Browser and server containment
+        run: ./node_modules/.bin/playwright test tests/e2e/action-650-production-data-access-containment.spec.ts tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts tests/e2e/action-652f-server-client-containment.spec.ts --workers=1
+      - name: Authenticated boundary
+        run: ./node_modules/.bin/playwright test tests/e2e/action-652-authentication-boundary.spec.ts --workers=1
+      - name: Catalog and migration evidence contract
+        run: |
+          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts
+          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts
+          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-portability.spec.ts
+      - name: Provider-free intelligence contract
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts tests/e2e/action-664d-additive-evaluation-storage.spec.ts tests/e2e/action-664e-canonical-capture-orchestrator.spec.ts tests/e2e/action-664f-canonical-quality-read-model.spec.ts tests/e2e/action-664g-canonical-quality-metrics.spec.ts tests/e2e/action-664h-canonical-quality-scorecard.spec.ts tests/e2e/action-664j-foundation-review-remediation.spec.ts --workers=1
+      - name: Verify tracked source remained unchanged
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
