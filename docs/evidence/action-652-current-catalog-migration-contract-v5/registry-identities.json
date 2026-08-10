@@ -1,0 +1,13 @@
+{
+  "protocol": "trade.action652.registry-identities.v3",
+  "production": {
+    "path": "contract-registry-v5.json",
+    "sha256": "9ca9dcbc53e5ac1c4dc3ccf825168104278c82a202c90f6b93da801a5fd1ec10",
+    "authority": true
+  },
+  "synthetic_test": {
+    "path": "synthetic-test-registry-v5.json",
+    "sha256": "1ce0ff2ec6248ef03b0be22b162f833af381316225626434d2b8b341ba596596",
+    "authority": false
+  }
+}

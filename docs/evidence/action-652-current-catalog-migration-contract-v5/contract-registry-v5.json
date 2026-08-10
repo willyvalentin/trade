@@ -1,0 +1,382 @@
+{
+  "contract_version": "trade.action652.evidence-contract-registry.v5",
+  "catalog": {
+    "schema_set": [
+      "public"
+    ],
+    "dimension_order": [
+      "schemas",
+      "tables",
+      "views",
+      "columns",
+      "primary_keys",
+      "foreign_keys",
+      "functions",
+      "enums",
+      "composites"
+    ],
+    "identity_fields": {
+      "schemas": [
+        {
+          "name": "schema_name",
+          "type": "utf8_string"
+        }
+      ],
+      "tables": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        }
+      ],
+      "views": [
+        {
+          "name": "view_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "view_name",
+          "type": "utf8_string"
+        }
+      ],
+      "columns": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "ordinal_position",
+          "type": "safe_integer"
+        },
+        {
+          "name": "column_name",
+          "type": "utf8_string"
+        }
+      ],
+      "primary_keys": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "constraint_name",
+          "type": "utf8_string"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "source_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "source_table",
+          "type": "utf8_string"
+        },
+        {
+          "name": "constraint_name",
+          "type": "utf8_string"
+        }
+      ],
+      "functions": [
+        {
+          "name": "function_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "function_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "identity_arguments",
+          "type": "utf8_string"
+        }
+      ],
+      "enums": [
+        {
+          "name": "enum_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "enum_name",
+          "type": "utf8_string"
+        }
+      ],
+      "composites": [
+        {
+          "name": "type_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "type_name",
+          "type": "utf8_string"
+        }
+      ]
+    },
+    "canonical_serialization": "utf8-canonical-json-v1",
+    "dimension_frame": "dimension_name || 0x0a || canonical_json(rows) || 0x0a",
+    "aggregate_frame": "ordered concat(dimension_name || ':' || dimension_sha256 || 0x0a)",
+    "manifest_frame": "canonical_json({dimension_order,identity_fields,canonical_serialization,dimension_frame,aggregate_frame}) || 0x0a"
+  },
+  "migration": {
+    "classification_precedence": [
+      "source_only",
+      "production_only",
+      "name_divergent",
+      "statement_count_divergent",
+      "source_hash_divergent",
+      "matched"
+    ],
+    "byte_parity_states": [
+      "unknown_version_sets_divergent",
+      "unknown_without_trustworthy_provider_hashes",
+      "divergent_from_trustworthy_provider_hashes",
+      "verified_from_trustworthy_provider_hashes"
+    ],
+    "authorized_provider_receipts": [],
+    "provider_free_default": "unknown_without_trustworthy_provider_hashes",
+    "reconciliation_states": [
+      "unknown_provider_history",
+      "reconciled"
+    ],
+    "receipt_shape": [
+      "receipt_id",
+      "protocol",
+      "version",
+      "name",
+      "statement_count",
+      "source_sql_sha256",
+      "project_ref",
+      "statement_id",
+      "statement_sha256",
+      "result_ordinal",
+      "raw_result_sha256",
+      "raw_result_bytes"
+    ],
+    "batch_receipt_shape": [
+      "batch_receipt_id",
+      "protocol",
+      "project_ref",
+      "statement_id",
+      "statement_sha256",
+      "raw_result_sha256",
+      "raw_result_bytes",
+      "complete",
+      "truncated",
+      "row_count",
+      "ordered_receipt_ids",
+      "ordered_receipts_aggregate_sha256"
+    ],
+    "authorized_provider_batches": [],
+    "row_receipt_protocol": "trade.action652.provider-receipt.v2",
+    "batch_receipt_protocol": "trade.action652.provider-batch-receipt.v1"
+  },
+  "schema_authority": {
+    "json_schema_role": "structural_non_authority",
+    "executable_validator_role": "sole_acceptance_authority",
+    "unknown_json_schema_keywords_authoritative": false
+  },
+  "state_machine": {
+    "states": [
+      "unbound",
+      "source_bound",
+      "provider_contract_bound",
+      "provider_evidence_received",
+      "evidence_validated",
+      "reconciled",
+      "completed_valid",
+      "completed_rejected",
+      "indeterminate"
+    ],
+    "terminal_states": [
+      "completed_valid",
+      "completed_rejected",
+      "indeterminate"
+    ],
+    "events": [
+      "bind_source",
+      "bind_provider_contract",
+      "receive_evidence",
+      "validate",
+      "reconcile",
+      "accept",
+      "reject",
+      "transport_indeterminate",
+      "state_corrupt"
+    ],
+    "predicates": [
+      "current_main_exact",
+      "tree_exact",
+      "36_unique_source_versions",
+      "canonical_project_exact",
+      "read_only_role_exact",
+      "manifest_identity_exact",
+      "raw_receipt_durable",
+      "single_use_consumed",
+      "no_retry",
+      "complete_true",
+      "truncated_false",
+      "result_binding_total",
+      "duplicates_zero",
+      "all_entries_classified",
+      "byte_parity_claim_derived",
+      "contradictions_zero",
+      "unknowns_explicit",
+      "reason_code"
+    ],
+    "reason_codes": [
+      "invalid_state",
+      "invalid_event",
+      "predicate_failed",
+      "source_binding_failed",
+      "provider_contract_failed",
+      "transport_failed",
+      "evidence_invalid",
+      "reconciliation_invalid",
+      "state_corrupt"
+    ],
+    "transitions": [
+      {
+        "from": "unbound",
+        "event": "bind_source",
+        "to": "source_bound",
+        "requires": [
+          "current_main_exact",
+          "tree_exact",
+          "36_unique_source_versions"
+        ]
+      },
+      {
+        "from": "source_bound",
+        "event": "bind_provider_contract",
+        "to": "provider_contract_bound",
+        "requires": [
+          "canonical_project_exact",
+          "read_only_role_exact",
+          "manifest_identity_exact"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "receive_evidence",
+        "to": "provider_evidence_received",
+        "requires": [
+          "raw_receipt_durable",
+          "single_use_consumed",
+          "no_retry"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "validate",
+        "to": "evidence_validated",
+        "requires": [
+          "complete_true",
+          "truncated_false",
+          "result_binding_total",
+          "duplicates_zero"
+        ]
+      },
+      {
+        "from": "evidence_validated",
+        "event": "reconcile",
+        "to": "reconciled",
+        "requires": [
+          "all_entries_classified",
+          "byte_parity_claim_derived"
+        ]
+      },
+      {
+        "from": "reconciled",
+        "event": "accept",
+        "to": "completed_valid",
+        "requires": [
+          "contradictions_zero",
+          "unknowns_explicit"
+        ]
+      },
+      {
+        "from": "unbound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "source_bound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "evidence_validated",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "reconciled",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "transport_indeterminate",
+        "to": "indeterminate",
+        "requires": [
+          "single_use_consumed",
+          "no_retry"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "state_corrupt",
+        "to": "indeterminate",
+        "requires": [
+          "single_use_consumed",
+          "no_retry"
+        ]
+      }
+    ]
+  },
+  "runtime_authority": {
+    "raw_registry_private": true,
+    "deep_frozen": true,
+    "exported_snapshots_authoritative": false
+  },
+  "authority_scope": "production"
+}

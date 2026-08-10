@@ -1,0 +1,939 @@
+{
+  "contract_version": "trade.action652.evidence-contract-registry.v5",
+  "catalog": {
+    "schema_set": [
+      "public"
+    ],
+    "dimension_order": [
+      "schemas",
+      "tables",
+      "views",
+      "columns",
+      "primary_keys",
+      "foreign_keys",
+      "functions",
+      "enums",
+      "composites"
+    ],
+    "identity_fields": {
+      "schemas": [
+        {
+          "name": "schema_name",
+          "type": "utf8_string"
+        }
+      ],
+      "tables": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        }
+      ],
+      "views": [
+        {
+          "name": "view_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "view_name",
+          "type": "utf8_string"
+        }
+      ],
+      "columns": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "ordinal_position",
+          "type": "safe_integer"
+        },
+        {
+          "name": "column_name",
+          "type": "utf8_string"
+        }
+      ],
+      "primary_keys": [
+        {
+          "name": "table_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "table_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "constraint_name",
+          "type": "utf8_string"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "source_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "source_table",
+          "type": "utf8_string"
+        },
+        {
+          "name": "constraint_name",
+          "type": "utf8_string"
+        }
+      ],
+      "functions": [
+        {
+          "name": "function_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "function_name",
+          "type": "utf8_string"
+        },
+        {
+          "name": "identity_arguments",
+          "type": "utf8_string"
+        }
+      ],
+      "enums": [
+        {
+          "name": "enum_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "enum_name",
+          "type": "utf8_string"
+        }
+      ],
+      "composites": [
+        {
+          "name": "type_schema",
+          "type": "utf8_string"
+        },
+        {
+          "name": "type_name",
+          "type": "utf8_string"
+        }
+      ]
+    },
+    "canonical_serialization": "utf8-canonical-json-v1",
+    "dimension_frame": "dimension_name || 0x0a || canonical_json(rows) || 0x0a",
+    "aggregate_frame": "ordered concat(dimension_name || ':' || dimension_sha256 || 0x0a)",
+    "manifest_frame": "canonical_json({dimension_order,identity_fields,canonical_serialization,dimension_frame,aggregate_frame}) || 0x0a"
+  },
+  "migration": {
+    "classification_precedence": [
+      "source_only",
+      "production_only",
+      "name_divergent",
+      "statement_count_divergent",
+      "source_hash_divergent",
+      "matched"
+    ],
+    "byte_parity_states": [
+      "unknown_version_sets_divergent",
+      "unknown_without_trustworthy_provider_hashes",
+      "divergent_from_trustworthy_provider_hashes",
+      "verified_from_trustworthy_provider_hashes"
+    ],
+    "authorized_provider_receipts": [
+      {
+        "receipt_id": "127082ebe0fd6ed393cd29ba1d74a8ebc040dbc4a021f40b419b1cec4b6436a9",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000000",
+        "name": "m0",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-000",
+        "statement_sha256": "3801be6f1a9c853229afc3e0f8b59c5a3da370e9f0d105afe97fe0c460d83169",
+        "result_ordinal": 0,
+        "raw_result_sha256": "7035ddab382bdbd36e0ff2841ba4f91fa5b90372fcc27749f601bccf65cf558e",
+        "raw_result_bytes": 1
+      },
+      {
+        "receipt_id": "d98adb6b1c0021952fb8341458c41f4b7bb7a226a5034721ce0e730b27b231da",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000001",
+        "name": "m1",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-001",
+        "statement_sha256": "67607a6582d56b9acf53a1cfd7babc84d15ff3a41ca19dc8bb95b1228920b43e",
+        "result_ordinal": 1,
+        "raw_result_sha256": "84db80aea1c9efdf9780191c37db919c78aef24a63eba74ef9c8cbc2a8186c89",
+        "raw_result_bytes": 2
+      },
+      {
+        "receipt_id": "1840c659bf0641622d6265fe4cb5cda94fe4e97902e455174b800f378d6d9476",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000002",
+        "name": "m2",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-002",
+        "statement_sha256": "a6644c1427b48fd24514e4a3a65b6dd383f0865e65ba05e4c3557c7f72a3819f",
+        "result_ordinal": 2,
+        "raw_result_sha256": "1a57a3ff80e77edfddefc0f7e273cef993eb378387bd7ba5a45b8ac1d9a2fb40",
+        "raw_result_bytes": 3
+      },
+      {
+        "receipt_id": "8d2c94841534cd6b78739949f71f307b9491f8c6bc9ccd156a78e05e681bad77",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000003",
+        "name": "m3",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-003",
+        "statement_sha256": "780caa29b2dd336b6fed234fb4788447a12330c87286b188c9ab797af14c9ea9",
+        "result_ordinal": 3,
+        "raw_result_sha256": "0e47770eae5006217441de254ee735a2c5e02dc97b8b8ff0bfd84dd36e6138de",
+        "raw_result_bytes": 4
+      },
+      {
+        "receipt_id": "f4421d7a4757578ff7cadc0a7ec1c65820c7061b8149881bb475a0ef910ad170",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000004",
+        "name": "m4",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-004",
+        "statement_sha256": "40dd56e480f9f0ccbf31d523b1524200dc72c263e421d34814d05a8be8371b09",
+        "result_ordinal": 4,
+        "raw_result_sha256": "505430f2b2a1e36ddfc9de5d01a64fe63201e6f39d7e02ae88c8e0d725ef9983",
+        "raw_result_bytes": 5
+      },
+      {
+        "receipt_id": "916fdf89d02acfc54397f1cfcd1d8ed8d533ce997810f16ba36e9e2a6fc978ce",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000005",
+        "name": "m5",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000005",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-005",
+        "statement_sha256": "13855e863a7ec588b4ed4680d044799e50650c30efdacc6273241b4c176ee176",
+        "result_ordinal": 5,
+        "raw_result_sha256": "23d4bcd2b73bdae92168cd72024187099938afe02c7ec2ce99b6472682aa9b5d",
+        "raw_result_bytes": 6
+      },
+      {
+        "receipt_id": "6166f6b3244293da1256d8184ddd93532beda2ed3a1ef4bd993277972efe88e7",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000006",
+        "name": "m6",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000006",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-006",
+        "statement_sha256": "0ca0fe81f341bf14d5b17d1ed171671c59dd4b5fada0452ef5422c153988a554",
+        "result_ordinal": 6,
+        "raw_result_sha256": "0cf13c502e06141667bf22dcb431450171764ef06b6747c69fcb7d1f20cc6d43",
+        "raw_result_bytes": 7
+      },
+      {
+        "receipt_id": "b4f88701c937681c8a52e914106830fa9bf3b07423c7c503e164ca552b56fd64",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000007",
+        "name": "m7",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000007",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-007",
+        "statement_sha256": "a151cc659067452ce9ae237d7b8cdc02b8fd6a8dbb3387a0be9d2acc23556118",
+        "result_ordinal": 7,
+        "raw_result_sha256": "75033332a4cca54d194b9f31bb0f3c90c827aaaddfe003858c5dca6009186bfa",
+        "raw_result_bytes": 8
+      },
+      {
+        "receipt_id": "0638e421136538193aa486b29ff1ab0c8b0e168494a3385ba1faf95f6177767d",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000008",
+        "name": "m8",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000008",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-008",
+        "statement_sha256": "612004d8fc5cd5b23e4b9a80ff083e5cf4b2d891bb6e2c76e62c1d4dc56f8332",
+        "result_ordinal": 8,
+        "raw_result_sha256": "c7f2209769c9858fdde0d7c35d4ae2bbcdb23f95974fca5aa375a44f4d883359",
+        "raw_result_bytes": 9
+      },
+      {
+        "receipt_id": "84c6ff6aea4962ec9b7e648d2108843bf3b1f69c60f2ffa6c6011c3d6a26fec0",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000009",
+        "name": "m9",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000009",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-009",
+        "statement_sha256": "a34fa522ba638bfdca344faf20bc6f2069f199fd120603f97148cf06a555efb2",
+        "result_ordinal": 9,
+        "raw_result_sha256": "3e5d0ba463bde8dc0b2f408f87eda35d682d29230e1d6288a8bbb89abbdd8c95",
+        "raw_result_bytes": 10
+      },
+      {
+        "receipt_id": "e661d7a13773dc851a820884c93e7e9463c818dc2e81861127627a03359b217e",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000010",
+        "name": "m10",
+        "statement_count": 1,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000a",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-010",
+        "statement_sha256": "5f9d725e572464d3a4949194d134d0f6cbef8e87757f2babd8c8aff6fb5e5112",
+        "result_ordinal": 10,
+        "raw_result_sha256": "7a940feedcbb9b571adeec0bb450961f414a76d285bcaeed69d7b9fa6f35973c",
+        "raw_result_bytes": 11
+      },
+      {
+        "receipt_id": "9a399a6903a8d3685313bf5d8fece2600ecfd99aeedb983af08e3b1f520b95f6",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000011",
+        "name": "m11",
+        "statement_count": 2,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000b",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-011",
+        "statement_sha256": "acbeea2dc1e9391d06ae8719c22b9ce88293820031f063f379bf9cb1ea7c4281",
+        "result_ordinal": 11,
+        "raw_result_sha256": "a57b48f4e73b9c66989b755e159e5569ed6f5a43ad3df9954a3e0a4c84222278",
+        "raw_result_bytes": 12
+      },
+      {
+        "receipt_id": "72f1b613a2187611bfe4ab3da90d0253ba84ffa128a32e45ab66da0010d69b1d",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000012",
+        "name": "m12",
+        "statement_count": 0,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000c",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-012",
+        "statement_sha256": "8a8e1aff0fb472870d94512bf4028605a8144bb979dfb8424109eea54f56e34c",
+        "result_ordinal": 12,
+        "raw_result_sha256": "acfe88baae182e31b866247fbc4b50e906c00f775a66183c35664a5ee5898769",
+        "raw_result_bytes": 13
+      },
+      {
+        "receipt_id": "e137f9730702b186aee13b0e0a49385bd64db4ea5500147b25049facff997b02",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000013",
+        "name": "m13",
+        "statement_count": 1,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000d",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-013",
+        "statement_sha256": "2ae87851b9af16d0f56fe25dd1d8af2bf3067ff9051bf17caf429a1cf81cd485",
+        "result_ordinal": 13,
+        "raw_result_sha256": "93f35a7b83b9612e7b91ac7aa8db227a1d4a86d893a6dee97e435ef0c1e199cb",
+        "raw_result_bytes": 14
+      },
+      {
+        "receipt_id": "c2f873d800dfc49a8b35835750b59fc9bd4c4b15abbd76b07e8b05d538c0c6af",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000014",
+        "name": "m14",
+        "statement_count": 2,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000e",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-014",
+        "statement_sha256": "8b596f988420161f864805b4e03384c48e59ea4be07c27567e06609b29d45735",
+        "result_ordinal": 14,
+        "raw_result_sha256": "f45c1d8193cadded6f671e111f1ee738a4f954757e58ae74ae2a2f88760ef58c",
+        "raw_result_bytes": 15
+      },
+      {
+        "receipt_id": "13e37da7912e16e9a6c5ad18b2949aaddd625eef708813d6558f75eed6db7f35",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000015",
+        "name": "m15",
+        "statement_count": 0,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000000f",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-015",
+        "statement_sha256": "f54faa4280eade71c3e558306fc04fc996d0a80d3b29fb5b0a6626532415615d",
+        "result_ordinal": 15,
+        "raw_result_sha256": "468669a8eedf840de736a1014856ffff8b224b23807c5ccb1be94886d8383722",
+        "raw_result_bytes": 16
+      },
+      {
+        "receipt_id": "ee3bbd483285366b7dbf080d976f4ad052e662a27585c2bf45a805373843e3a5",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000016",
+        "name": "m16",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000010",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-016",
+        "statement_sha256": "6ad5a736f120d114d592c15e7aca5aa7ee45f8381d23aebc8e77e39c466f43fb",
+        "result_ordinal": 16,
+        "raw_result_sha256": "da9273fdc46e78779e5ace75b534e70b665db7f50e62fef2c25a9a94c2d7ffb0",
+        "raw_result_bytes": 17
+      },
+      {
+        "receipt_id": "e5a07a938756881172e47adee372e8bc4ab424a6641ef9e6d8103842e0bd3a9c",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000017",
+        "name": "m17",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000011",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-017",
+        "statement_sha256": "177da3c916c255e1b8a6552bed7d704dfd907bc7371e401e038e81b3544163b8",
+        "result_ordinal": 17,
+        "raw_result_sha256": "4937d9deaac133dedfad99209fb495e699557b23f57b76235acb89a5b764273a",
+        "raw_result_bytes": 18
+      },
+      {
+        "receipt_id": "3a7071342749f9ae3decba1b2629483e68fee0e32089fd2483a4e66537f32152",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000018",
+        "name": "m18",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000012",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-018",
+        "statement_sha256": "50074f9e6b005b66f101269db9bcdb94d7adf742c1a4b1b5275e9398c47cef34",
+        "result_ordinal": 18,
+        "raw_result_sha256": "f4a46d9cef2a96be0a5cba93c10652dcce690b821c48a128384a06c50fd856a4",
+        "raw_result_bytes": 19
+      },
+      {
+        "receipt_id": "1af2de08761c0cea9bb8a2f1757f28e218cea91c9412876c399a4fa8396a0646",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000019",
+        "name": "m19",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000013",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-019",
+        "statement_sha256": "e25f579415ad0ffe944d7d41b3080ef4f382e98472d97811e50ed810e4420d9c",
+        "result_ordinal": 19,
+        "raw_result_sha256": "fb66c732dfac672a0715d97c1d6b8fd5b9276b87c92feead8abd66fa6420f2ef",
+        "raw_result_bytes": 20
+      },
+      {
+        "receipt_id": "60c4a703f715c19b2f4b92009dc62f562ce98664c69dec35f3f77809e8106bd5",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000020",
+        "name": "m20",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000014",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-020",
+        "statement_sha256": "1aa0d46663b94ff09092414fbcad43a9cc85fa5793814624b608321f6ec4bf42",
+        "result_ordinal": 20,
+        "raw_result_sha256": "16630d0ae7a79106440e9a9c7c7b8b3820f5a5ec41ad0b227f991c99c72e1371",
+        "raw_result_bytes": 21
+      },
+      {
+        "receipt_id": "d90193b0780b653a7492409f69f85c14928cd41cc690e78eee8bc11d3798a8f4",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000021",
+        "name": "m21",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000015",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-021",
+        "statement_sha256": "5dedb5ea296ed1b3d29c8aca3e9e2470a44c1c62e813840f1b65ab6a8b29cd05",
+        "result_ordinal": 21,
+        "raw_result_sha256": "a1e0b106b92f363a3d84687411b71cf9182ac87bddb47cf08c642eaf071c9d09",
+        "raw_result_bytes": 22
+      },
+      {
+        "receipt_id": "790d92726583e64f65f4534485dcd6e5769a080c10a7570e9eff70d09dfcf202",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000022",
+        "name": "m22",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000016",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-022",
+        "statement_sha256": "05b188d28252ad1dfe3ad1956a781a5cc22144eaccbd9a8d0da48f9224dbbebb",
+        "result_ordinal": 22,
+        "raw_result_sha256": "8835731111191b6cfc4efd965302ef5a34a97b77466836223e0aa9216aa150ef",
+        "raw_result_bytes": 23
+      },
+      {
+        "receipt_id": "7b6219a7287983cd683087e047b3e76012e636eea42e5ce38661d564b0694d5b",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000023",
+        "name": "m23",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000017",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-023",
+        "statement_sha256": "66e13e24ba1297c42bbdf6615bb67719a300ddaf52f3328c081364ff63b6c1eb",
+        "result_ordinal": 23,
+        "raw_result_sha256": "9a514830cb07ba032356119b733b6b49e088438b6f3a10236da8e709c4744132",
+        "raw_result_bytes": 24
+      },
+      {
+        "receipt_id": "a6fd953866c0cdde8a359235dab882ae386716f6d95ff7d8222cd49a47b1bb90",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000024",
+        "name": "m24",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000018",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-024",
+        "statement_sha256": "4514c46d3d4af2ed39f9c9cb00b4806dbbbd6477ade2ceef4dfe946da97f7443",
+        "result_ordinal": 24,
+        "raw_result_sha256": "f63d092956ba05e7be1f63ff051884754bc0109a91ebda7b0ebeccff27bafa94",
+        "raw_result_bytes": 25
+      },
+      {
+        "receipt_id": "2ede8e01814ceccdca8f4af96d7c69a042d7a99502247e22be0b7107ca0f88b8",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000025",
+        "name": "m25",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000019",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-025",
+        "statement_sha256": "86b47aab460005ef7f509d66bafce94b9da589d5b7030931b6e9f28f9c96ad30",
+        "result_ordinal": 25,
+        "raw_result_sha256": "aca26cabf28aa7770ddf7440a7f4edbc52ea30b095a928d349dc9a189a155780",
+        "raw_result_bytes": 26
+      },
+      {
+        "receipt_id": "e8f08c648b3367ec14bb7a77dd5eec4e7e128d547d8a22eafb94a4673fc33f99",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000026",
+        "name": "m26",
+        "statement_count": 2,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001a",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-026",
+        "statement_sha256": "d63ec4fefec1333d88c1042c5101c742d298243999fa3661034a60dfc2a93c96",
+        "result_ordinal": 26,
+        "raw_result_sha256": "0a9874141b0f4fd13aed3de5a91cd257654d9ee38b72bdda592373286073b9e7",
+        "raw_result_bytes": 27
+      },
+      {
+        "receipt_id": "f50791439fc8997ab38f7fdd5b4bff7e88602497a1ac15bb37c3c18d449550a9",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000027",
+        "name": "m27",
+        "statement_count": 0,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001b",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-027",
+        "statement_sha256": "0bdd4489e8df81151d4a80d308d00a2ca3fe2c19e2f0d47a1ab49bc8ddd074b6",
+        "result_ordinal": 27,
+        "raw_result_sha256": "e3e6cac3d70d3016ef516506ac1af5d688540ac93f209056f89639ebf79da2ab",
+        "raw_result_bytes": 28
+      },
+      {
+        "receipt_id": "ac6faff823ab1795e8549361a7aaeaae1fd48f14b7486b9fef37805f1fc51060",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000028",
+        "name": "m28",
+        "statement_count": 1,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001c",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-028",
+        "statement_sha256": "e95c317ed8d29663b736e7fc62336c762a192d832a0aac7dcd388e61a9da3426",
+        "result_ordinal": 28,
+        "raw_result_sha256": "dc113220e8eacb7c5717799eaf234a3ada99f90981d3072b17050664343191a8",
+        "raw_result_bytes": 29
+      },
+      {
+        "receipt_id": "1fdcf63df5876826f526d9ab0118aed422b1310d85c6d5eff588e419b935860a",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000029",
+        "name": "m29",
+        "statement_count": 2,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001d",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-029",
+        "statement_sha256": "656dc19d88fcc50bb10804febe3ad091e71bfa654d414fc7c8a7f5014b4d86bb",
+        "result_ordinal": 29,
+        "raw_result_sha256": "1568f0f5f2b935a2263a757d8041cb73cf29b41b11ec25f599cd8f5cc6dc0106",
+        "raw_result_bytes": 30
+      },
+      {
+        "receipt_id": "8440bbe513bd481f7933f693de02e5b37d6b418ea2cd498a42afd33e1f4bf5b5",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000030",
+        "name": "m30",
+        "statement_count": 0,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001e",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-030",
+        "statement_sha256": "450e36073f57615a97d55a36adea2369daf19f9cdc41525315931c5e0f95f96c",
+        "result_ordinal": 30,
+        "raw_result_sha256": "98cd4d958fea9fb38b14a5fa0e7d143f30a9de876b5d527a38013d826435565a",
+        "raw_result_bytes": 31
+      },
+      {
+        "receipt_id": "36c1a5f12c5887b2fc5d99a96c8cdeabbf10c85508b35d56609e62562071d9d3",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000031",
+        "name": "m31",
+        "statement_count": 1,
+        "source_sql_sha256": "000000000000000000000000000000000000000000000000000000000000001f",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-031",
+        "statement_sha256": "02f67759a34f4ffec8645f6ac363f48e4a48033c6ae98a56ecd2cde2f287c04e",
+        "result_ordinal": 31,
+        "raw_result_sha256": "689ee71a2928f39db362186b310253d363e8b526a6e320ce0fa133df603ea97a",
+        "raw_result_bytes": 32
+      },
+      {
+        "receipt_id": "fc2e9ed146ddaa4deecdfcc1aa0072faab97589fba6156beafd43db6cb83c790",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000032",
+        "name": "m32",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000020",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-032",
+        "statement_sha256": "7ed2783450b92d845859ccab0903aa75a42bd186d9c3e3c1eeee59fbcfbdc5e9",
+        "result_ordinal": 32,
+        "raw_result_sha256": "d11307d402cfdc2c5ffc2f40457265a3f7b47529f0ef082400d1741e7547f041",
+        "raw_result_bytes": 33
+      },
+      {
+        "receipt_id": "6dca916dc7d8e8177e39041e011d7ad0bc6a3398f42db3496aca84d9df008a47",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000033",
+        "name": "m33",
+        "statement_count": 0,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000021",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-033",
+        "statement_sha256": "0550d87e9b3f8278b1475c183e1ed59fa060b5412437759d21fa93d2c6f743b0",
+        "result_ordinal": 33,
+        "raw_result_sha256": "547778a1308e37f29b8b4151db64b1359f8a64b358af6e42a1b0e764c1676baf",
+        "raw_result_bytes": 34
+      },
+      {
+        "receipt_id": "6d31a47051bc2520a06f260e23143ee52e7e9048f2aff6531dd39c349ff2a5e4",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000034",
+        "name": "m34",
+        "statement_count": 1,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000022",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-034",
+        "statement_sha256": "641786928b9ec6f74c79a6d0b4b9f68451165fe45cdc61ca48920776470b74b5",
+        "result_ordinal": 34,
+        "raw_result_sha256": "3ee795769011bfe944c5e3b8c6773ade2002ce6776bd37d2df9cbe5985c44963",
+        "raw_result_bytes": 35
+      },
+      {
+        "receipt_id": "278d2d0316b32d3b25fdb9cde646aac70e6a8ef0d4078e64a1d909104f636d76",
+        "protocol": "trade.action652.provider-receipt.v2",
+        "version": "20266000000035",
+        "name": "m35",
+        "statement_count": 2,
+        "source_sql_sha256": "0000000000000000000000000000000000000000000000000000000000000023",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-035",
+        "statement_sha256": "5ca7e772cd4c36be20c5486879570d09ce1b7d4608a437bef2f42c4c6642c396",
+        "result_ordinal": 35,
+        "raw_result_sha256": "11ad6f8b54632377ef0bbd546dfd397be226eebc4af6cc360fb8327a45ce54d7",
+        "raw_result_bytes": 36
+      }
+    ],
+    "provider_free_default": "unknown_without_trustworthy_provider_hashes",
+    "reconciliation_states": [
+      "unknown_provider_history",
+      "reconciled"
+    ],
+    "receipt_shape": [
+      "receipt_id",
+      "protocol",
+      "version",
+      "name",
+      "statement_count",
+      "source_sql_sha256",
+      "project_ref",
+      "statement_id",
+      "statement_sha256",
+      "result_ordinal",
+      "raw_result_sha256",
+      "raw_result_bytes"
+    ],
+    "batch_receipt_shape": [
+      "batch_receipt_id",
+      "protocol",
+      "project_ref",
+      "statement_id",
+      "statement_sha256",
+      "raw_result_sha256",
+      "raw_result_bytes",
+      "complete",
+      "truncated",
+      "row_count",
+      "ordered_receipt_ids",
+      "ordered_receipts_aggregate_sha256"
+    ],
+    "authorized_provider_batches": [
+      {
+        "batch_receipt_id": "efb2113a1edb0774c1ae6bc093f1bf33f0d84ff9a673ec120d6eb4ef37e9cea6",
+        "protocol": "trade.action652.provider-batch-receipt.v1",
+        "project_ref": "ekdyopdrrkphlrsilyoo",
+        "statement_id": "SYN-BATCH",
+        "statement_sha256": "9df51e52f927c208797869b2abeb50e2e4483dc3c8fad3fe8e30280ed2332391",
+        "raw_result_sha256": "f6ab1c9b908c7e01775052a9d95fc1d8625eacd32dbfab21e548fd5c04b38277",
+        "raw_result_bytes": 36,
+        "complete": true,
+        "truncated": false,
+        "row_count": 36,
+        "ordered_receipt_ids": [
+          "127082ebe0fd6ed393cd29ba1d74a8ebc040dbc4a021f40b419b1cec4b6436a9",
+          "d98adb6b1c0021952fb8341458c41f4b7bb7a226a5034721ce0e730b27b231da",
+          "1840c659bf0641622d6265fe4cb5cda94fe4e97902e455174b800f378d6d9476",
+          "8d2c94841534cd6b78739949f71f307b9491f8c6bc9ccd156a78e05e681bad77",
+          "f4421d7a4757578ff7cadc0a7ec1c65820c7061b8149881bb475a0ef910ad170",
+          "916fdf89d02acfc54397f1cfcd1d8ed8d533ce997810f16ba36e9e2a6fc978ce",
+          "6166f6b3244293da1256d8184ddd93532beda2ed3a1ef4bd993277972efe88e7",
+          "b4f88701c937681c8a52e914106830fa9bf3b07423c7c503e164ca552b56fd64",
+          "0638e421136538193aa486b29ff1ab0c8b0e168494a3385ba1faf95f6177767d",
+          "84c6ff6aea4962ec9b7e648d2108843bf3b1f69c60f2ffa6c6011c3d6a26fec0",
+          "e661d7a13773dc851a820884c93e7e9463c818dc2e81861127627a03359b217e",
+          "9a399a6903a8d3685313bf5d8fece2600ecfd99aeedb983af08e3b1f520b95f6",
+          "72f1b613a2187611bfe4ab3da90d0253ba84ffa128a32e45ab66da0010d69b1d",
+          "e137f9730702b186aee13b0e0a49385bd64db4ea5500147b25049facff997b02",
+          "c2f873d800dfc49a8b35835750b59fc9bd4c4b15abbd76b07e8b05d538c0c6af",
+          "13e37da7912e16e9a6c5ad18b2949aaddd625eef708813d6558f75eed6db7f35",
+          "ee3bbd483285366b7dbf080d976f4ad052e662a27585c2bf45a805373843e3a5",
+          "e5a07a938756881172e47adee372e8bc4ab424a6641ef9e6d8103842e0bd3a9c",
+          "3a7071342749f9ae3decba1b2629483e68fee0e32089fd2483a4e66537f32152",
+          "1af2de08761c0cea9bb8a2f1757f28e218cea91c9412876c399a4fa8396a0646",
+          "60c4a703f715c19b2f4b92009dc62f562ce98664c69dec35f3f77809e8106bd5",
+          "d90193b0780b653a7492409f69f85c14928cd41cc690e78eee8bc11d3798a8f4",
+          "790d92726583e64f65f4534485dcd6e5769a080c10a7570e9eff70d09dfcf202",
+          "7b6219a7287983cd683087e047b3e76012e636eea42e5ce38661d564b0694d5b",
+          "a6fd953866c0cdde8a359235dab882ae386716f6d95ff7d8222cd49a47b1bb90",
+          "2ede8e01814ceccdca8f4af96d7c69a042d7a99502247e22be0b7107ca0f88b8",
+          "e8f08c648b3367ec14bb7a77dd5eec4e7e128d547d8a22eafb94a4673fc33f99",
+          "f50791439fc8997ab38f7fdd5b4bff7e88602497a1ac15bb37c3c18d449550a9",
+          "ac6faff823ab1795e8549361a7aaeaae1fd48f14b7486b9fef37805f1fc51060",
+          "1fdcf63df5876826f526d9ab0118aed422b1310d85c6d5eff588e419b935860a",
+          "8440bbe513bd481f7933f693de02e5b37d6b418ea2cd498a42afd33e1f4bf5b5",
+          "36c1a5f12c5887b2fc5d99a96c8cdeabbf10c85508b35d56609e62562071d9d3",
+          "fc2e9ed146ddaa4deecdfcc1aa0072faab97589fba6156beafd43db6cb83c790",
+          "6dca916dc7d8e8177e39041e011d7ad0bc6a3398f42db3496aca84d9df008a47",
+          "6d31a47051bc2520a06f260e23143ee52e7e9048f2aff6531dd39c349ff2a5e4",
+          "278d2d0316b32d3b25fdb9cde646aac70e6a8ef0d4078e64a1d909104f636d76"
+        ],
+        "ordered_receipts_aggregate_sha256": "1119dcc4934a410c1b1b26f9d8f5f9f606517cdb9329b96b048d625cfb7edd7b"
+      }
+    ],
+    "row_receipt_protocol": "trade.action652.provider-receipt.v2",
+    "batch_receipt_protocol": "trade.action652.provider-batch-receipt.v1"
+  },
+  "schema_authority": {
+    "json_schema_role": "structural_non_authority",
+    "executable_validator_role": "sole_acceptance_authority",
+    "unknown_json_schema_keywords_authoritative": false
+  },
+  "state_machine": {
+    "states": [
+      "unbound",
+      "source_bound",
+      "provider_contract_bound",
+      "provider_evidence_received",
+      "evidence_validated",
+      "reconciled",
+      "completed_valid",
+      "completed_rejected",
+      "indeterminate"
+    ],
+    "terminal_states": [
+      "completed_valid",
+      "completed_rejected",
+      "indeterminate"
+    ],
+    "events": [
+      "bind_source",
+      "bind_provider_contract",
+      "receive_evidence",
+      "validate",
+      "reconcile",
+      "accept",
+      "reject",
+      "transport_indeterminate",
+      "state_corrupt"
+    ],
+    "predicates": [
+      "current_main_exact",
+      "tree_exact",
+      "36_unique_source_versions",
+      "canonical_project_exact",
+      "read_only_role_exact",
+      "manifest_identity_exact",
+      "raw_receipt_durable",
+      "single_use_consumed",
+      "no_retry",
+      "complete_true",
+      "truncated_false",
+      "result_binding_total",
+      "duplicates_zero",
+      "all_entries_classified",
+      "byte_parity_claim_derived",
+      "contradictions_zero",
+      "unknowns_explicit",
+      "reason_code"
+    ],
+    "reason_codes": [
+      "invalid_state",
+      "invalid_event",
+      "predicate_failed",
+      "source_binding_failed",
+      "provider_contract_failed",
+      "transport_failed",
+      "evidence_invalid",
+      "reconciliation_invalid",
+      "state_corrupt"
+    ],
+    "transitions": [
+      {
+        "from": "unbound",
+        "event": "bind_source",
+        "to": "source_bound",
+        "requires": [
+          "current_main_exact",
+          "tree_exact",
+          "36_unique_source_versions"
+        ]
+      },
+      {
+        "from": "source_bound",
+        "event": "bind_provider_contract",
+        "to": "provider_contract_bound",
+        "requires": [
+          "canonical_project_exact",
+          "read_only_role_exact",
+          "manifest_identity_exact"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "receive_evidence",
+        "to": "provider_evidence_received",
+        "requires": [
+          "raw_receipt_durable",
+          "single_use_consumed",
+          "no_retry"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "validate",
+        "to": "evidence_validated",
+        "requires": [
+          "complete_true",
+          "truncated_false",
+          "result_binding_total",
+          "duplicates_zero"
+        ]
+      },
+      {
+        "from": "evidence_validated",
+        "event": "reconcile",
+        "to": "reconciled",
+        "requires": [
+          "all_entries_classified",
+          "byte_parity_claim_derived"
+        ]
+      },
+      {
+        "from": "reconciled",
+        "event": "accept",
+        "to": "completed_valid",
+        "requires": [
+          "contradictions_zero",
+          "unknowns_explicit"
+        ]
+      },
+      {
+        "from": "unbound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "source_bound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "evidence_validated",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "reconciled",
+        "event": "reject",
+        "to": "completed_rejected",
+        "requires": [
+          "reason_code"
+        ]
+      },
+      {
+        "from": "provider_contract_bound",
+        "event": "transport_indeterminate",
+        "to": "indeterminate",
+        "requires": [
+          "single_use_consumed",
+          "no_retry"
+        ]
+      },
+      {
+        "from": "provider_evidence_received",
+        "event": "state_corrupt",
+        "to": "indeterminate",
+        "requires": [
+          "single_use_consumed",
+          "no_retry"
+        ]
+      }
+    ]
+  },
+  "runtime_authority": {
+    "raw_registry_private": true,
+    "deep_frozen": true,
+    "exported_snapshots_authoritative": false
+  },
+  "authority_scope": "synthetic_test_non_authority"
+}
