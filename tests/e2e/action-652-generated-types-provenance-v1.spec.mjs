@@ -8,7 +8,6 @@ const manifestUrl = new URL(
   root,
 );
 const manifest = JSON.parse(readFileSync(manifestUrl, "utf8"));
-
 const EXPECTED_SOURCES = new Map([
   [
     "docs/evidence/action-652-current-catalog-migration-contract-v5/contract-registry-v5.json",
@@ -31,7 +30,7 @@ const EXPECTED_SOURCES = new Map([
     "2dd4b21312fc6476fc88006fe2eda3a90f3135be7a1243363f423231a9c4aca1",
   ],
   [
-    "lib/supabase-database.types.ts",
+    "docs/evidence/action-652-generated-types-provenance-v1/supabase-database.types.v1.ts",
     "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c",
   ],
 ]);
@@ -131,7 +130,7 @@ function validate(candidate, reader = readRepoFile) {
     if (
       candidate.contract_version !==
         "trade.action652.generated-types-provenance.v1" ||
-      candidate.evidence_status !== "repository_pinned_delivery_candidate" ||
+      candidate.evidence_status !== "historical_superseded" ||
       candidate.observed_at !== EXPECTED_OBSERVED_AT
     ) {
       return false;
@@ -258,18 +257,22 @@ function validate(candidate, reader = readRepoFile) {
     if (
       !exactKeys(candidate.output, [
         "path",
+        "archived_path",
         "sha256",
         "git_blob_sha1",
         "required_symbols",
       ]) ||
       candidate.output.path !== "lib/supabase-database.types.ts" ||
-      candidate.output.sha256 !== EXPECTED_SOURCES.get(candidate.output.path) ||
+      candidate.output.archived_path !==
+        "docs/evidence/action-652-generated-types-provenance-v1/supabase-database.types.v1.ts" ||
+      candidate.output.sha256 !==
+        EXPECTED_SOURCES.get(candidate.output.archived_path) ||
       JSON.stringify(candidate.output.required_symbols) !==
         JSON.stringify(EXPECTED_REQUIRED_SYMBOLS)
     ) {
       return false;
     }
-    const outputBytes = reader(candidate.output.path);
+    const outputBytes = reader(candidate.output.archived_path);
     if (
       sha256(outputBytes) !== candidate.output.sha256 ||
       gitBlobSha1(outputBytes) !== candidate.output.git_blob_sha1 ||
@@ -412,7 +415,7 @@ check("repository source shape mutation rejected", () => {
 check("generated output mutation rejected", () =>
   !validate(manifest, (path) => {
     const bytes = readRepoFile(path);
-    return path === manifest.output.path
+    return path === manifest.output.archived_path
       ? Buffer.concat([bytes, Buffer.from(" ", "utf8")])
       : bytes;
   }),
