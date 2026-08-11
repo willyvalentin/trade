@@ -1,0 +1,96 @@
+{
+  "contract_version": "trade.action660f.dashboard-owner-relation-recovery-candidate.v1",
+  "evidence_status": "source_only_delivery_candidate",
+  "observed_at": "2026-08-11T21:54:39Z",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "main_commit": "9e2f64a17c3851529beade0685ababb582eac320",
+    "main_tree": "0a5440b75b562da512427a50e05d65ad1fb0aa2f",
+    "main_parents": [
+      "58c29514e5a065920c0994eb3c8fb4baf9415ba5",
+      "5bed9de6be85f0c33c984c3a68bc645504e84325"
+    ],
+    "merge_pull_request": 97,
+    "exact_main_ci_run": 31539134121,
+    "production_netlify_deploy": "6a7b9745ed0bbf0009b90a35",
+    "production_supabase_project_ref": "ekdyopdrrkphlrsilyoo",
+    "canonical_owner_uuid_recorded": false
+  },
+  "production_observation": {
+    "new_production_deploy_triggered_recheck": true,
+    "anonymous_login_redirect_baseline_verified": true,
+    "anonymous_dashboard_denial_verified": true,
+    "authenticated_application_rendered": true,
+    "dashboard_read_rendered": false,
+    "dashboard_failure_code": "application_data_unavailable",
+    "open_positions_api_status": 300,
+    "closed_positions_api_status": 300,
+    "parallel_owner_filtered_reads_returned_200": true,
+    "settings_read_rendered": true,
+    "market_calendar_read_rendered": true,
+    "execution_records_route_rendered_json": true,
+    "execution_record_values_recorded": false,
+    "forms_submitted_by_agent": false,
+    "application_mutation_routes_called_by_agent": false
+  },
+  "root_cause": {
+    "classification": "ambiguous_postgrest_resource_embedding",
+    "positions_to_recommendations_foreign_keys": [
+      "positions_recommendation_id_fkey",
+      "positions_recommendation_owner_fkey"
+    ],
+    "failing_embedding": "recommendations(...)",
+    "required_disambiguation_syntax": "recommendations!positions_recommendation_owner_fkey(...)",
+    "owner_composite_relationship_selected": true,
+    "official_supabase_joins_guide": "https://supabase.com/docs/guides/database/joins-and-nesting",
+    "official_postgrest_resource_embedding_reference": "https://docs.postgrest.org/en/v12/references/api/resource_embedding.html",
+    "current_changelog_conflict_found": false
+  },
+  "source_correction": {
+    "schema_change": false,
+    "migration_change": false,
+    "open_positions_owner_relationship_hint": true,
+    "closed_positions_owner_relationship_hint": true,
+    "legacy_id_only_hint_used": false,
+    "sanitized_503_preserved": true
+  },
+  "regression_test": {
+    "path": "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
+    "failed_before_fix": true,
+    "passed_after_fix": 4,
+    "total": 4
+  },
+  "gate_reconciliation": {
+    "pre_observation_verified": 14,
+    "reopened": [
+      "MA-15"
+    ],
+    "known_gap": [
+      "MA-15"
+    ],
+    "unknown_current": [
+      "MA-13"
+    ],
+    "post_observation_verified": 13,
+    "total": 15,
+    "percentage": 86.7,
+    "milestone_a_complete": false
+  },
+  "ma15_reclosure_conditions": {
+    "exact_scope_merged": false,
+    "exact_main_ci_success": false,
+    "exact_netlify_github_identity": false,
+    "anonymous_boundaries_green": false,
+    "authenticated_required_reads_green": false,
+    "all_satisfied": false
+  },
+  "scope_limits": {
+    "database_mutation": false,
+    "auth_mutation": false,
+    "provider_mutation": false,
+    "deployment_triggered_by_this_action": false,
+    "broker_or_execution_authority": false,
+    "canonical_owner_uuid_disclosure": false,
+    "application_row_disclosure": false
+  }
+}
