@@ -55,7 +55,7 @@ test("derived recommendation records are owner-bound at persistence and read tim
 
 test("the migration protects every owner-bound derived table", async () => {
   const migration = await source(
-    "supabase/migrations/20260811145040_add_fail_closed_application_owner_foundation.sql",
+    "supabase/migrations/20260811163228_add_fail_closed_application_owner_foundation.sql",
   );
 
   for (const table of [

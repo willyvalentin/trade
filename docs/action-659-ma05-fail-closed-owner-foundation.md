@@ -53,7 +53,7 @@ system-shared would have left a service-role cross-owner read path.
 
 ## Migration safety properties
 
-`20260811145040_add_fail_closed_application_owner_foundation.sql` is additive:
+`20260811163228_add_fail_closed_application_owner_foundation.sql` is additive:
 
 - adds nullable owner columns without assigning any UUID;
 - adds indexed foreign keys to `auth.users` as `NOT VALID`, so new invalid

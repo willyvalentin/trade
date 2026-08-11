@@ -18,7 +18,7 @@ before persistent data is changed.
    `writers_paused` to `true`, and run it. It is read-only and must report
    `ready_for_migration = true`.
 4. In the same bounded maintenance window, apply migration
-   `20260811145040_add_fail_closed_application_owner_foundation.sql` through
+   `20260811163228_add_fail_closed_application_owner_foundation.sql` through
    the normal reviewed migration workflow.
 5. Immediately edit only the three values in the temporary operator-input row
    at the top of `activate.sql`, then run the complete file once. Any failed

@@ -76,7 +76,7 @@ test("service-role application data access is explicitly owner-scoped", async ()
 
 test("the migration adds indexed Auth ownership without inferring or backfilling", async () => {
   const migration = await source(
-    "supabase/migrations/20260811145040_add_fail_closed_application_owner_foundation.sql",
+    "supabase/migrations/20260811163228_add_fail_closed_application_owner_foundation.sql",
   );
 
   for (const table of [
