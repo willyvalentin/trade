@@ -199,7 +199,6 @@ select jsonb_build_object(
     'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
   ),
   'authority', jsonb_build_object(
-    'project_ref', 'ekdyopdrrkphlrsilyoo',
     'effective_role', current_user,
     'transaction_read_only', current_setting('transaction_read_only'),
     'default_transaction_read_only', current_setting('default_transaction_read_only')
@@ -207,7 +206,8 @@ select jsonb_build_object(
   'completeness', jsonb_build_object(
     'complete', true,
     'truncated', false,
-    'all_exposed_schemas_enumerated', true,
+    'selected_schemas', jsonb_build_array('public'),
+    'all_selected_schemas_enumerated', true,
     'unresolved_dimensions', '[]'::jsonb
   ),
   'catalog', jsonb_build_object(

@@ -1,29 +1,52 @@
 # Action 660 MA09 — generated-types provenance V2
 
-This package binds Ture's post-MA05 production catalog to regenerated
-TypeScript output without changing the database.
+This package binds Ture's post-MA05 generated TypeScript types to an exact
+Supabase provider response without changing the database.
 
-The catalog capture ran through the Supabase Management API inside an explicit
-`READ ONLY` transaction. The API login role is `postgres`; its default is not
-read-only, so the committed query and receipt deliberately record both the
-effective role and the transaction-local read-only state. The observation
-timestamp is returned by `transaction_timestamp()` in that same catalog row.
-An attempted local switch to `supabase_read_only_user` was denied by
-PostgreSQL and was not used as evidence.
+## Provider-bound execution
 
-The otherwise ignored Supabase CLI linked-project metadata is frozen as
-`linked-project-attestation-v2.json`. Its project, organization and source
-digest are repository-bound so the SQL query's linked target cannot be
-replaced by the hard-coded project label in the query.
+provider-execution-envelope-v2.json records three project-scoped Supabase
+Management API operations:
 
-The receipt contains the complete `public` catalog snapshot, deterministic
-per-dimension hashes, an aggregate hash, the exact project ref, CLI version,
-generation command and generated-output digest. It contains schema metadata
-only and no owner UUID or application row data.
+1. project lookup for ekdyopdrrkphlrsilyoo;
+2. execution of the committed catalog query against that exact project; and
+3. TypeScript generation for that exact project.
 
-The V1 bytes are preserved in the historical V1 package. The executable V2
-oracle is `tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs`.
+The corresponding project, catalog and type-generation responses are frozen
+as repository artifacts and hashed by the executable oracle. The project
+response identifies Trade in Valentin Labs. The catalog request binds the
+requested project, exact query digest and raw database response digest. The
+SQL response itself does not assert a project label.
 
-Status: repository-pinned delivery candidate. MA09 remains open until
-independent review, PR #95 ordering, exact-scope merge, main reachability and
-exact-main CI all succeed.
+## Exact generated-output parity
+
+provider-typegen-response-v2.json is the archived provider generation
+response. Its types value is extracted byte-for-byte to
+provider-typescript-response-v2.ts. The oracle requires those bytes to be
+identical to lib/supabase-database.types.ts, including the final newline.
+This provider-response parity is the semantic authority for the generated
+types; the supporting catalog snapshot is not used as a reimplementation of
+Supabase's generator rules.
+
+## Catalog scope
+
+The catalog query runs inside BEGIN TRANSACTION READ ONLY, returns its
+database transaction timestamp in the same row and selects the explicit schema
+set [public]. The receipt claims only that all selected schemas were
+enumerated. It does not claim to discover every schema configured for the
+Supabase Data API.
+
+The artifacts contain schema metadata only. They contain no owner UUID,
+credential, application row data or database connection URL.
+
+A canonical owner identifier appeared transiently in an earlier Draft commit.
+It is treated as disclosed and is removed from the revised branch history; it
+must never be treated as a credential or reused as secret material.
+
+The V1 bytes remain preserved in the historical V1 package. The provider-free
+oracle is
+tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs.
+
+Status: repository-pinned delivery candidate awaiting independent re-review.
+MA09 remains open until that review, PR #95 ordering, exact-scope merge, main
+reachability and exact-main CI all succeed.
