@@ -75,7 +75,7 @@ export async function GET() {
   if (!session) return applicationSessionUnauthorizedResponse();
 
   const [settingsResult, scanRunsResult] = await Promise.all([
-    readUserSettings(),
+    readUserSettings(session.owner_user_id),
     readRecentScheduledScanRuns(),
   ]);
   if (settingsResult.status !== "available" || scanRunsResult.status !== "available") {
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid settings input." }, { status: 400 });
   }
 
-  const result = await createDefaultUserSettings(settings);
+  const result = await createDefaultUserSettings(session.owner_user_id, settings);
   if (result.status !== "available") {
     return NextResponse.json({ error: "Settings could not be created." }, { status: 503 });
   }
@@ -125,7 +125,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Invalid settings input." }, { status: 400 });
   }
 
-  const result = await updateUserSettings(id, {
+  const result = await updateUserSettings(session.owner_user_id, id, {
     ...settings,
     updated_at: new Date().toISOString(),
   });

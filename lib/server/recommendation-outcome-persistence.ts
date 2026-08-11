@@ -1,6 +1,7 @@
 import "server-only";
 
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
 import type {
   RecommendationOutcome,
   RecommendationOutcomePersistenceResult,
@@ -21,8 +22,9 @@ export type RecommendationOutcomeSupabaseClient = {
   from: (table: string) => SupabaseQueryBuilder;
 };
 
-function toSupabaseRow(outcome: RecommendationOutcome) {
+function toSupabaseRow(outcome: RecommendationOutcome, ownerUserId: string) {
   return {
+    owner_user_id: ownerUserId,
     id: outcome.id,
     snapshot_id: outcome.snapshot_id,
     snapshot_fingerprint: outcome.snapshot_fingerprint,
@@ -75,6 +77,7 @@ export async function persistRecommendationOutcome(
     unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationOutcomePersistenceResult> {
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
   if (!options.supabaseClient?.from) {
     return {
       status: "failed",
@@ -86,10 +89,19 @@ export async function persistRecommendationOutcome(
     };
   }
 
+  if (!ownerUserId) {
+    return {
+      status: "failed",
+      mode: "none",
+      outcome,
+      error: "application_owner_identity_unavailable",
+    };
+  }
+
   try {
     const result = await options.supabaseClient
       .from("recommendation_outcomes")
-      .upsert?.(toSupabaseRow(outcome), {
+      .upsert?.(toSupabaseRow(outcome, ownerUserId), {
         onConflict: "snapshot_fingerprint,horizon",
       });
 

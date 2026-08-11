@@ -388,6 +388,7 @@ async function generatePositionCommentary(
 }
 
 async function monitorPosition(
+  ownerUserId: string,
   position: PositionRow,
   options: { allowFreshIndicatorFetch: boolean },
 ): Promise<PositionUpdateResult & { indicator_source?: string }> {
@@ -491,6 +492,7 @@ async function monitorPosition(
   });
 
   const { error: insertError } = await serverSupabase().from("position_updates").insert({
+    owner_user_id: ownerUserId,
     position_id: position.id,
     action,
     recommendation,
@@ -503,13 +505,16 @@ async function monitorPosition(
   }
 
   if (action === "MOVE_STOP_TO_BREAKEVEN") {
-    const { error: updateError } = await serverSupabase()
+    const { data: updatedPosition, error: updateError } = await serverSupabase()
       .from("positions")
       .update({ current_stop: entryPrice })
-      .eq("id", position.id);
+      .eq("id", position.id)
+      .eq("owner_user_id", ownerUserId)
+      .select("id")
+      .maybeSingle();
 
-    if (updateError) {
-      throw new Error(updateError.message);
+    if (updateError || !updatedPosition) {
+      throw new Error(updateError?.message ?? "Owned position was not updated.");
     }
   }
 
@@ -541,7 +546,8 @@ export async function POST(request: Request) {
     const { data, error } = await serverSupabase()
       .from("positions")
       .select("*, recommendations(setup_type,invalidation)")
-      .eq("status", "open");
+      .eq("status", "open")
+      .eq("owner_user_id", session.owner_user_id);
 
     if (error) {
       return NextResponse.json({ error: "Position data is unavailable." }, { status: 503 });
@@ -554,7 +560,7 @@ export async function POST(request: Request) {
 
     for (const position of positions) {
       try {
-        const update = await monitorPosition(position, {
+        const update = await monitorPosition(session.owner_user_id, position, {
           allowFreshIndicatorFetch:
             freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
         });
@@ -562,7 +568,7 @@ export async function POST(request: Request) {
           freshIndicatorFetchesUsed += 1;
         }
         updates.push(update);
-      } catch (error) {
+      } catch {
         errors.push({
           position_id: position.id,
           ticker: position.ticker,

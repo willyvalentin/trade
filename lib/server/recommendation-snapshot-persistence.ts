@@ -6,6 +6,7 @@ import type {
   RecommendationSnapshot,
   RecommendationSnapshotPersistenceResult,
 } from "@/lib/recommendation-snapshot";
+import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
 
 type SupabaseMutationResult = {
   error?: { message?: string } | null;
@@ -31,8 +32,9 @@ function finiteNumber(value: unknown) {
   return null;
 }
 
-function toSupabaseRow(snapshot: RecommendationSnapshot) {
+function toSupabaseRow(snapshot: RecommendationSnapshot, ownerUserId: string) {
   return {
+    owner_user_id: ownerUserId,
     id: snapshot.id,
     snapshot_fingerprint: snapshot.snapshot_fingerprint,
     recommendation_id: snapshot.recommendation_id,
@@ -69,6 +71,7 @@ export async function persistRecommendationSnapshot(
     unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationSnapshotPersistenceResult> {
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
   if (!options.supabaseClient?.from) {
     return {
       status: "failed",
@@ -80,10 +83,19 @@ export async function persistRecommendationSnapshot(
     };
   }
 
+  if (!ownerUserId) {
+    return {
+      status: "failed",
+      mode: "none",
+      snapshot,
+      error: "application_owner_identity_unavailable",
+    };
+  }
+
   try {
     const result = await options.supabaseClient
       .from("recommendation_snapshots")
-      .upsert?.(toSupabaseRow(snapshot), {
+      .upsert?.(toSupabaseRow(snapshot, ownerUserId), {
         onConflict: "snapshot_fingerprint",
         ignoreDuplicates: true,
       });

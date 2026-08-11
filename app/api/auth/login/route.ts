@@ -12,6 +12,7 @@ import {
 } from "@/lib/server/application-login-abuse-control";
 import { buildApplicationLoginRuntimeProof } from "@/lib/application-login-runtime-proof";
 import { authenticationOriginFailureResponse } from "@/lib/application-mutation-guard-core";
+import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 
 export async function POST(request: Request) {
   const originError = authenticationOriginFailureResponse(request);
@@ -55,6 +56,17 @@ export async function POST(request: Request) {
     !(await passwordsMatch(appPassword, body.password))
   ) {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  }
+
+  const ownerPrincipal = await verifyConfiguredApplicationOwnerPrincipal();
+  if (ownerPrincipal.status !== "verified") {
+    return NextResponse.json(
+      {
+        error: "Application owner identity is unavailable.",
+        code: "application_owner_identity_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   if (!(await finalizeSharedLoginSuccess(admission.identity_digest))) {

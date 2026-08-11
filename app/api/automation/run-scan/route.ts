@@ -85,6 +85,7 @@ import {
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
@@ -1048,10 +1049,11 @@ function calendarFields(
   };
 }
 
-async function readRecentRecommendationScanRuns() {
+async function readRecentRecommendationScanRuns(ownerUserId: string) {
   const { data, error } = await serverSupabase()
     .from("recommendation_scan_runs")
     .select("*")
+    .eq("owner_user_id", ownerUserId)
     .order("observed_at", { ascending: false })
     .limit(50);
 
@@ -1168,10 +1170,11 @@ function shouldSkipForRecentScan({
   return ageMinutes !== null && ageMinutes < cooldownMinutes;
 }
 
-async function archiveExpiredRecommendations() {
+async function archiveExpiredRecommendations(ownerUserId: string) {
   const { data, error } = await serverSupabase()
     .from("recommendations")
     .update({ archived: true })
+    .eq("owner_user_id", ownerUserId)
     .or("status.eq.new,status.is.null")
     .or("archived.eq.false,archived.is.null")
     .lt("created_at", getDefaultRecommendationExpiryCutoff())
@@ -2510,9 +2513,11 @@ async function persistAutomationArtifacts({
 }
 
 async function runDiscardReviewIfDue({
+  ownerUserId,
   marketStatus,
   scanWindow,
 }: {
+  ownerUserId: string;
   marketStatus: Awaited<ReturnType<typeof getUsMarketStatus>>;
   scanWindow: IntradayScanWindow;
 }) {
@@ -2540,6 +2545,7 @@ async function runDiscardReviewIfDue({
 
   try {
     const result = await reviewPendingDiscardedRecommendations({
+      ownerUserId,
       maxReviews: MAX_DISCARD_REVIEWS_PER_RUN,
     });
 
@@ -2577,6 +2583,18 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
+
+  const ownerPrincipal = await verifyConfiguredApplicationOwnerPrincipal();
+  if (ownerPrincipal.status !== "verified") {
+    return NextResponse.json(
+      {
+        error: "Application owner identity is unavailable.",
+        code: "application_owner_identity_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const ownerUserId = ownerPrincipal.owner_user_id;
 
   const body = await parseAutomationRunRequestBody(request);
   const force = body.force === true;
@@ -2692,7 +2710,7 @@ export async function POST(request: Request) {
     marketStatus,
   });
   const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
-    readRecentRecommendationScanRuns(),
+    readRecentRecommendationScanRuns(ownerUserId),
     readRecentScheduledScanRuns(),
   ]);
   let scanWindow = getScanWindowDueNow(scanClock);
@@ -2926,7 +2944,7 @@ export async function POST(request: Request) {
   let expiredRecommendations = 0;
 
   try {
-    expiredRecommendations = await archiveExpiredRecommendations();
+    expiredRecommendations = await archiveExpiredRecommendations(ownerUserId);
   } catch (error) {
     console.error("[automation/run-scan] archive_expired_recommendations_error", {
       scanDate: scanWindow.scanDate,
@@ -3014,6 +3032,7 @@ export async function POST(request: Request) {
 
   if (!marketOpenForScan && !canRunPreMarketWatchlist) {
     const discardReview = await runDiscardReviewIfDue({
+      ownerUserId,
       marketStatus,
       scanWindow: scanWindow.scanWindow,
     });
@@ -3117,6 +3136,7 @@ export async function POST(request: Request) {
     const discardReview =
       scanWindow.scanWindow === "closed"
         ? await runDiscardReviewIfDue({
+            ownerUserId,
             marketStatus,
             scanWindow: scanWindow.scanWindow,
           })
@@ -3775,6 +3795,7 @@ export async function POST(request: Request) {
     }
 
     const generationPromise = generateRecommendations({
+      ownerUserId,
       sessionType,
       scanWindow: scanWindow.scanWindow,
       targetCount: scheduledRuntimeConfig.grow_max_learning_mode

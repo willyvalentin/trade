@@ -59,6 +59,7 @@ import {
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
@@ -746,6 +747,18 @@ export async function POST(request: Request) {
     );
   }
 
+  const ownerPrincipal = await verifyConfiguredApplicationOwnerPrincipal();
+  if (ownerPrincipal.status !== "verified") {
+    return NextResponse.json(
+      {
+        error: "Application owner identity is unavailable.",
+        code: "application_owner_identity_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const ownerUserId = ownerPrincipal.owner_user_id;
+
   console.log("[diagnostics/run-scan] authorized request accepted", {
     route: "/api/diagnostics/run-scan",
     nodeEnv: process.env.NODE_ENV ?? null,
@@ -1096,6 +1109,7 @@ export async function POST(request: Request) {
     }
 
     const generationPromise = generateRecommendations({
+      ownerUserId,
       sessionType,
       scanWindow,
       source: "scheduled",

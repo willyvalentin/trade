@@ -1,5 +1,7 @@
 import "server-only";
 
+import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+
 import {
   getIntradayCandles,
   type IntradayCandle,
@@ -376,9 +378,12 @@ export async function fetchIntradayCandlesForReview(
 }
 
 export async function saveDiscardReviewResult(
+  ownerUserId: string,
   recommendation: DiscardReviewCandidate,
   result: DiscardReviewResult,
 ) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  if (!owner) throw new Error("application_owner_identity_unavailable");
   if (!recommendation.id) {
     return;
   }
@@ -388,7 +393,7 @@ export async function saveDiscardReviewResult(
   const existingMetadata = parseDiscardMetadata(reasonToAvoid);
 
   // TODO: Add discard review metadata fields or metadata JSON column.
-  const { error } = await serverSupabase()
+  const { data: updatedRecommendation, error } = await serverSupabase()
     .from("recommendations")
     .update({
       reason_to_avoid: `${stripExistingDiscardMetadata(reasonToAvoid)}${buildDiscardMetadata(
@@ -398,21 +403,25 @@ export async function saveDiscardReviewResult(
         recommendation,
       )}`,
     })
-    .eq("id", recommendation.id);
+    .eq("id", recommendation.id)
+    .eq("owner_user_id", owner)
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
-    throw error;
+  if (error || !updatedRecommendation) {
+    throw error ?? new Error("Owned recommendation was not updated.");
   }
 }
 
-export async function reviewPendingDiscardedRecommendations(options?: {
+export async function reviewPendingDiscardedRecommendations(options: {
+  ownerUserId: string;
   now?: Date;
   maxReviews?: number;
 }) {
   const now = options?.now ?? new Date();
   const maxReviews = options?.maxReviews ?? MAX_DISCARD_REVIEWS_PER_RUN;
   const candidates = (
-    await getPendingDiscardedRecommendationsForReview(now)
+    await getPendingDiscardedRecommendationsForReview(options.ownerUserId, now)
   ).slice(0, maxReviews);
   const results: {
     ticker: string | null | undefined;
@@ -430,7 +439,7 @@ export async function reviewPendingDiscardedRecommendations(options?: {
         end,
       );
       const result = reviewDiscardedRecommendationOutcome(recommendation, candles);
-      await saveDiscardReviewResult(recommendation, result);
+      await saveDiscardReviewResult(options.ownerUserId, recommendation, result);
       results.push({
         ticker: recommendation.ticker,
         review_status: result.review_status,
@@ -465,13 +474,19 @@ export async function reviewPendingDiscardedRecommendations(options?: {
   };
 }
 
-export async function getPendingDiscardedRecommendationsForReview(now = new Date()) {
+export async function getPendingDiscardedRecommendationsForReview(
+  ownerUserId: string,
+  now = new Date(),
+) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  if (!owner) throw new Error("application_owner_identity_unavailable");
   const since = new Date(now.getTime() - reviewWindowMs).toISOString();
 
   // TODO: Add discard review metadata fields or metadata JSON column.
   const { data, error } = await serverSupabase()
     .from("recommendations")
     .select("*")
+    .eq("owner_user_id", owner)
     .in("status", ["ignored", "discarded", "rejected"])
     .gte("created_at", since);
 

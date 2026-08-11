@@ -12,7 +12,7 @@ export async function GET() {
   const session = await requireApplicationSession();
   if (!session) return applicationSessionUnauthorizedResponse();
 
-  const result = await readApplicationDashboardData();
+  const result = await readApplicationDashboardData(session.owner_user_id);
   if (result.status !== "available") {
     return NextResponse.json(
       { error: "Dashboard data is unavailable.", code: "application_data_unavailable" },

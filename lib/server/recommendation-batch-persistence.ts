@@ -2,6 +2,7 @@ import "server-only";
 
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
+import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
 import type {
   RecommendationBatch,
   RecommendationBatchPersistenceResult,
@@ -22,8 +23,9 @@ export type RecommendationBatchSupabaseClient = {
   from: (table: string) => SupabaseQueryBuilder;
 };
 
-function toSupabaseRow(batch: RecommendationBatch) {
+function toSupabaseRow(batch: RecommendationBatch, ownerUserId: string) {
   return {
+    owner_user_id: ownerUserId,
     id: batch.id,
     batch_fingerprint: batch.batch_fingerprint,
     trading_date: batch.trading_date,
@@ -60,6 +62,7 @@ export async function persistRecommendationBatch(
     unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationBatchPersistenceResult> {
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
   if (!options.supabaseClient?.from) {
     return {
       status: "failed",
@@ -71,10 +74,21 @@ export async function persistRecommendationBatch(
     };
   }
 
+  if (!ownerUserId) {
+    return {
+      status: "failed",
+      mode: "none",
+      batch,
+      error: "application_owner_identity_unavailable",
+    };
+  }
+
   try {
     const result = await options.supabaseClient
       .from("recommendation_batches")
-      .upsert?.(toSupabaseRow(batch), { onConflict: "batch_fingerprint" });
+      .upsert?.(toSupabaseRow(batch, ownerUserId), {
+        onConflict: "batch_fingerprint",
+      });
 
     if (!result?.error) {
       return { status: "saved", mode: "supabase", batch, error: null };

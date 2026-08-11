@@ -12,13 +12,14 @@ test("open-position route delegates to one bounded transactional RPC", async () 
   const service = await source("lib/server/application-data-access.ts");
   const route = await source("app/api/app/positions/route.ts");
 
-  expect(service).toContain('client.rpc("app_open_position_transaction"');
+  expect(service).toContain('client.rpc("app_open_owned_position_transaction"');
   expect(service).not.toContain('client.from("positions").insert');
   expect(service).not.toContain('client.from("recommendations").update');
   expect(service).not.toContain('client.from("recommendation_snapshots").update');
-  expect(service).toContain('p_command_version: "application_open_position_v1"');
+  expect(service).toContain('p_command_version: "application_open_owned_position_v1"');
+  expect(service).toContain("p_owner_user_id: owner");
   expect(route).toContain("requireApplicationSession");
-  expect(route).toContain("openApplicationPosition(body)");
+  expect(route).toContain("openApplicationPosition(session.owner_user_id, body)");
 });
 
 test("transactional RPC locks and validates one recommendation before linked writes", async () => {
