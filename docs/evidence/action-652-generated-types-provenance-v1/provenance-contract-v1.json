@@ -1,0 +1,105 @@
+{
+  "contract_version": "trade.action652.generated-types-provenance.v1",
+  "evidence_status": "repository_pinned_delivery_candidate",
+  "observed_at": "2026-08-11T11:23:40Z",
+  "authority": {
+    "organization": "Valentin Labs",
+    "project": "Trade",
+    "project_ref": "ekdyopdrrkphlrsilyoo",
+    "effective_role": "supabase_read_only_user",
+    "transaction_read_only": "on",
+    "default_transaction_read_only": "on"
+  },
+  "source_receipt": {
+    "contract_version": "trade.action652.catalog-typegen-evidence.v5",
+    "sha256": "792cc8b4d0aa547b0a97a0cea52bb84ec00ec40f2f756ec144fdbcdb111b6d7a",
+    "source_commit": "129b03d94a60dec01e4e45b58eef3df52e4d46d2",
+    "source_tree": "92d9cd4cd961a0cb65224a835a80d5f2017edded",
+    "production_validator_sha256": "2dd4b21312fc6476fc88006fe2eda3a90f3135be7a1243363f423231a9c4aca1",
+    "production_registry_sha256": "9ca9dcbc53e5ac1c4dc3ccf825168104278c82a202c90f6b93da801a5fd1ec10",
+    "complete": true,
+    "truncated": false,
+    "counts": {
+      "schemas": 1,
+      "tables": 30,
+      "views": 0,
+      "columns": 645,
+      "primary_keys": 30,
+      "foreign_keys": 17,
+      "functions": 21,
+      "enums": 0,
+      "composites": 0
+    },
+    "catalog_manifest_sha256": "69ed3224421ff32cdc0b400d70c8c1116f5bf5eea8b68197ead83e6767b08885",
+    "catalog_aggregate_sha256": "b004f8ae915103bef0ddc55365af6211df45dc2026a8d39531c305e880375200"
+  },
+  "generator": {
+    "cli_version": "2.107.0",
+    "generation_mode": "linked",
+    "schema_set": [
+      "public"
+    ],
+    "command": "supabase gen types typescript --linked --schema public > lib/supabase-database.types.ts",
+    "command_sha256": "d78b793eca4791e6067be8dfdaead58b6d2863c141567c75d81f4aaee047fa12",
+    "linked_config_attestation_sha256": "e26ba91a384eadd78a09a063c7784642834e19293f23cf07d8f44a97b4125ce8"
+  },
+  "output": {
+    "path": "lib/supabase-database.types.ts",
+    "sha256": "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c",
+    "git_blob_sha1": "516e39a1d6aeb3bb1779895337a4fae18e4eab71",
+    "required_symbols": [
+      "export type Database",
+      "execution_record_audit_events",
+      "execution_records"
+    ]
+  },
+  "repository_sources": [
+    {
+      "path": "docs/evidence/action-652-current-catalog-migration-contract-v5/contract-registry-v5.json",
+      "sha256": "9ca9dcbc53e5ac1c4dc3ccf825168104278c82a202c90f6b93da801a5fd1ec10"
+    },
+    {
+      "path": "docs/evidence/action-652-current-catalog-migration-contract-v5/registry-identities.json",
+      "sha256": "6ebb3d1aa493b9d9300d890e374195bde944055c8f998b5d70fa6d89940d96e4"
+    },
+    {
+      "path": "docs/proofs/execution-record-audit-table-migration-retry-dry-run-output.txt",
+      "sha256": "e06da9a13bc3e427ef1fd82f50d59f973a226cdd818157de4a5052ba2fa500bb"
+    },
+    {
+      "path": "docs/supabase-generated-types-target-decision.md",
+      "sha256": "b723b44aa3e27d6c141f920ef4b3fe10061a61bcf8062ab3a2ad5dc50a4c6120"
+    },
+    {
+      "path": "lib/server/action-652-current-catalog-migration-evidence-contract-v5.mts",
+      "sha256": "2dd4b21312fc6476fc88006fe2eda3a90f3135be7a1243363f423231a9c4aca1"
+    },
+    {
+      "path": "lib/supabase-database.types.ts",
+      "sha256": "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c"
+    }
+  ],
+  "delivery": {
+    "reconciliation_base_commit": "7749a7260e9db7362d7c6ae0a38af45322cfd7b3",
+    "reconciliation_base_tree": "d6e00d31404e84b338fc4782d212dfa60e25fb70",
+    "gate": "MA-09",
+    "pre_delivery_verified_count": 8,
+    "post_delivery_verified_count": 9,
+    "total_gate_count": 15,
+    "closure_conditions": [
+      "independent_review_no_findings",
+      "exact_scope_merge",
+      "manifest_and_output_main_reachable",
+      "exact_main_ci_success"
+    ]
+  },
+  "scope_limits": {
+    "database_mutation": false,
+    "migration_application": false,
+    "rls_behavior_proof": false,
+    "tenant_owner_binding_proof": false,
+    "release_identity_proof": false,
+    "production_smoke_proof": false,
+    "runtime_authority": false
+  }
+}

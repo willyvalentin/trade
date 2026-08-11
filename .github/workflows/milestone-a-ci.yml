@@ -46,6 +46,8 @@ jobs:
           node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts
           node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts
           node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-portability.spec.ts
+      - name: Generated-types provenance
+        run: node tests/e2e/action-652-generated-types-provenance-v1.spec.mjs
       - name: Provider-free intelligence contract
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts tests/e2e/action-664d-additive-evaluation-storage.spec.ts tests/e2e/action-664e-canonical-capture-orchestrator.spec.ts tests/e2e/action-664f-canonical-quality-read-model.spec.ts tests/e2e/action-664g-canonical-quality-metrics.spec.ts tests/e2e/action-664h-canonical-quality-scorecard.spec.ts tests/e2e/action-664j-foundation-review-remediation.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
