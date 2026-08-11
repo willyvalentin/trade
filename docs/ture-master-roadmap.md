@@ -1,28 +1,27 @@
 # Ture Master Roadmap
 
-**ACTION 652 — MA-09 generated-types provenance delivery candidate.**
+**ACTION 652 — MA-09 verified closure governance reconciliation.**
 
-**Document status:** proposed successor to the canonical roadmap delivered by
-PR #90. On its delivery branch this revision is not current-main authority. It
-becomes the canonical roadmap only when the exact MA-09 revision has been
-independently reviewed, merged and verified as reachable from `main`.
+**Document status:** bounded two-path successor to record the verified MA-09
+closure now present on `main`. On its delivery branch this revision is not
+current-main authority. It becomes canonical only after independent review,
+an exact two-path merge, main reachability and exact-main CI.
 
 `roadmap_completion_authority:false_until_main_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against GitHub `main` commit
-`7749a7260e9db7362d7c6ae0a38af45322cfd7b3`, tree
-`d6e00d31404e84b338fc4782d212dfa60e25fb70`, observed on 2026-08-11.
+`2409b4587f1fc88838a680fbf253963c28163b33`, tree
+`5c54eb026fd5da9b10d76699586a7298408cb1d8`, observed on 2026-08-11.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #90. Its two canonical
-document blobs are byte-identical to the independently reviewed head, and the
-exact-main push run `31489652801` completed successfully with all 317 tests
-passing. PR #45 remains open, Draft,
-dirty/conflicting and `stale_historical_non_authority`; it overlaps both
-governance paths and must remain unmodified.
+The reconciliation base is the ordinary merge of PR #91. Its six delivered
+paths are byte-identical to reviewed head `875c82e1…`; exact-main push run
+`31492511225` completed successfully with every required step passing. PR #45
+remains open, Draft, dirty/conflicting and `stale_historical_non_authority`; it
+overlaps both governance paths and must remain unmodified.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -43,10 +42,10 @@ must remain visibly and operationally distinct.
 Recommendations and related user/trading data must be private, server-owned,
 observable and released through a reproducible identity gate.
 
-At this delivery branch's evidence boundary, formal status remains **8 of 15
-required gates verified (53.3%)**, with no partial credit. Milestone A is
-incomplete. This revision targets 9/15 only after the MA-09 closure rule below
-has been satisfied; branch-local or open-PR bytes do not raise the numerator.
+At this delivery branch's evidence boundary, formal status is **9 of 15
+required gates verified (60.0%)**, with no partial credit. Milestone A remains
+incomplete. This revision records the already corroborated MA-09 closure; it
+does not raise the numerator or establish any new provider behavior.
 
 | Gate | Current classification at delivery boundary |
 | --- | --- |
@@ -58,7 +57,7 @@ has been satisfied; branch-local or open-PR bytes do not raise the numerator.
 | MA-06 production RLS/Data API/ordinary-role behavior | unknown_current |
 | MA-07 source migration inventory | verified_current |
 | MA-08 production migration application/source parity | unknown_current |
-| MA-09 generated-types parity/pinned provenance | known_gap; this exact manifest/oracle revision is the closure candidate |
+| MA-09 generated-types parity/pinned provenance | verified_current |
 | MA-10 catalog/migration evidence contract source | verified_current |
 | MA-11 release/deployment identity | known_gap |
 | MA-12 repository CI workflow/check execution | verified_current |
@@ -66,13 +65,14 @@ has been satisfied; branch-local or open-PR bytes do not raise the numerator.
 | MA-14 disciplined worktree/release ownership | verified_current |
 | MA-15 production behavioral smoke | unknown_current |
 
-**MA-09 closure rule:** an independent reviewer must approve the exact
-provenance manifest, provider-free oracle, CI wiring and governance revision;
-the revision must then merge without scope widening, remain byte-identical on
-`main`, and pass exact-main CI. Only then does MA-09 become
-`verified_current` and the formal numerator become **9/15 (60.0%)**. A later
-generated-type, command, project, schema, receipt or source-binding change
-makes MA-09 subject to reconciliation again.
+**MA-09 closure record:** adversarial review of initial head `723712c4…` found
+one fail-closed defect: ten provenance metadata mutations were accepted.
+Remediation head `875c82e1…` rejected all ten, passed the repository oracle
+21/21 and rejected an exhaustive 69 leaf mutations, 14 unexpected object keys
+and 4 array extensions. PR run `31492155553`, ordinary merge `2409b458…`,
+byte-identical main reachability and exact-main run `31492511225` all
+succeeded. A later generated-type, command, project, schema, receipt or
+source-binding change makes MA-09 subject to reconciliation again.
 
 ACTION 668H remains `closed_holding` under operator decision
 `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
@@ -80,9 +80,8 @@ consumed, completed prefix `0` and non-retry. No usable GT2 authorization,
 alternative trust root or native bootstrap exists.
 
 Source containment, the authenticated server-owned API boundary, canonical
-governance and repository CI are verified on current main. The MA-09 candidate
-content-addresses the generated-types provenance but does not close that gate
-until the closure rule holds. It does not prove production RLS, migration
+governance, repository CI and repository-pinned generated-types provenance are
+verified on current main. MA-09 does not prove production RLS, migration
 application, ordinary-role behavior, tenant ownership, deployment identity or
 runtime behavior.
 
@@ -137,33 +136,33 @@ is implied by this roadmap.
 - Track 3 / ACTION 668H remains `closed_holding`. Provider-free roadmap work
   may continue, but no GT2, SQL, database or provider execution is authorized.
 - Action 652 has delivered source containment, the authenticated server-owned
-  boundary, the catalog/migration evidence contract and canonical governance
-  now present on main. This bounded successor owns only the MA-09 provenance
-  manifest, provider-free oracle, CI wiring and required governance
-  reconciliation. Production and provider behavior remain separately gated.
+  boundary, the catalog/migration evidence contract, canonical governance and
+  MA-09 generated-types provenance now present on main. Production and
+  provider behavior remain separately gated.
 - Track 4's Action 655 foundation is merged via PR #84, default-off and
   runtime-unwired. It provides no database, broker, production or milestone
   authority.
-- Track 5's canonical governance paths are current through merged PR #90.
-  PR #45 remains an overlapping stale historical non-authority and is not
-  modified.
+- Track 5's canonical governance history is current through merged PR #91.
+  This bounded two-path successor makes its verified closure explicit. PR #45
+  remains an overlapping stale historical non-authority and is not modified.
 - Track 6's five additive Session V2 paths are merged via PR #85, default-off
   and runtime-unwired. Runtime, tenancy, database, broker and production
   authority remain false.
 - PR #88 delivered the portable catalog/migration evidence contract, PR #89
-  delivered the repository CI workflow, and PR #90 delivered canonical
-  governance currentness.
+  delivered the repository CI workflow, PR #90 delivered canonical governance
+  currentness and PR #91 delivered MA-09 provenance plus its fail-closed
+  remediation.
 
-Future main-moving work must remain serialized behind this bounded MA-09
-delivery until its review decision is known. Any later main mover requires
-fresh source, provider and policy identity reconciliation.
+Future main-moving work must remain serialized behind this bounded governance
+reconciliation until its review decision is known. Any later main mover
+requires fresh source, provider and policy identity reconciliation.
 
 ## Current provider and release boundary
 
 The latest authenticated Netlify readback identifies published production
 deploy `6a65fd2faae50b00088893fa` at commit
 `f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33`, with builds stopped. A fresh
-GitHub comparison places current main 139 commits ahead of that production
+GitHub comparison places current main 142 commits ahead of that production
 commit. This is an unresolved release-identity contradiction, not completion.
 No deployment is authorized by this reconciliation.
 
@@ -173,12 +172,12 @@ The current checksum-bound Supabase V5 receipt binds project
 also binds generated type output to SHA-256
 `5a74e8de…`. The receipt was obtained as
 `supabase_read_only_user` with transaction and default read-only enabled.
-The MA-09 candidate pins the exact receipt, command, project, schema, CLI,
-source and generated-output identities into repository source and verifies
-them provider-free. It does not prove tenant-owner principal binding, ordinary
+MA-09 pins the exact receipt, command, project, schema, CLI, source and
+generated-output identities into repository source and verifies them
+provider-free. It does not prove tenant-owner principal binding, ordinary
 application-role RLS/Data API behavior, migration history/source parity or
-production smoke; therefore MA-05, MA-06 and MA-08 remain gated, while MA-09
-remains conditional on its closure rule.
+production smoke; therefore MA-05, MA-06 and MA-08 remain gated while MA-09 is
+`verified_current`.
 
 GitHub branch-protection and ruleset endpoints both return HTTP 403 under the
 current private-repository plan. MA-13 is therefore `unknown_current`, not
@@ -186,18 +185,19 @@ absent and not verified.
 
 ## Superseded assertions preserved for audit
 
-- `eb79279d…` / `bc97dd2…`, `129b03d…` / `92d9cd4…`, and
-  `59f00b44…` / `64df5ff0…` were valid earlier main/tree identities. They
-  are now historical and superseded by `7749a726…` / `d6e00d31…`.
+- `eb79279d…` / `bc97dd2…`, `129b03d…` / `92d9cd4…`,
+  `59f00b44…` / `64df5ff0…`, and `7749a726…` / `d6e00d31…` were valid
+  earlier main/tree identities. They are now historical and superseded by
+  `2409b458…` / `5c54eb02…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
-  and PR #90's former Draft delivery state are superseded by their respective
-  merges. PR #90 is the current-main event.
-- Earlier 126-, 135- and 137-commit production distances are superseded by the
-  fresh 139-commit comparison. The published production identity itself is
-  unchanged in the latest authenticated readback.
+  and PRs #90 and #91's former Draft delivery states are superseded by their
+  respective merges. PR #91 is the current-main event.
+- Earlier 126-, 135-, 137- and 139-commit production distances are superseded
+  by the fresh 142-commit comparison. The published production identity itself
+  is unchanged in the latest authenticated readback.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12
   only; production behavior remains unproven.
-- MA-02's pre-merge 7/15 state is superseded by its verified closure at 8/15.
-  This MA-09 candidate still grants no provider, database, migration, broker,
-  release or production authority.
+- MA-02's pre-merge 7/15 state and MA-09's pre-closure 8/15 candidate state are
+  superseded by verified closure at 9/15. This reconciliation grants no
+  provider, database, migration, broker, release or production authority.
