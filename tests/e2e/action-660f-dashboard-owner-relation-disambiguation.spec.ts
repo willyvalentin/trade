@@ -54,13 +54,11 @@ test("dashboard failure remains a sanitized fail-closed 503", async () => {
   expect(route).not.toContain("result.error");
 });
 
-test("governance keeps MA15 open until an exact production recovery", async () => {
-  const [contract, roadmap, ledger, rawEvidence] = await Promise.all([
+test("historical recovery candidate preserves the MA15 reopening evidence", async () => {
+  const [contract, rawEvidence] = await Promise.all([
     source(
       "docs/action-660f-dashboard-owner-relation-disambiguation-recovery-candidate.md",
     ),
-    source("docs/ture-master-roadmap.md"),
-    source("docs/ture-current-state-ledger.md"),
     source(
       "docs/evidence/action-660f-dashboard-owner-relation-disambiguation-recovery-candidate.json",
     ),
@@ -69,8 +67,6 @@ test("governance keeps MA15 open until an exact production recovery", async () =
 
   expect(contract).toContain("MA15 is `known_gap`");
   expect(contract).toContain("13/15 = 86.7%");
-  expect(roadmap).toContain("| MA-15 production behavioral smoke | known_gap |");
-  expect(ledger).toContain("| known_gap | MA-15 |");
   expect(evidence.production_observation.open_positions_api_status).toBe(300);
   expect(evidence.production_observation.closed_positions_api_status).toBe(300);
   expect(evidence.gate_reconciliation.post_observation_verified).toBe(13);

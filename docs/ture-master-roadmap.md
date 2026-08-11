@@ -1,31 +1,29 @@
 # Ture Master Roadmap
 
-**ACTION 660F — dashboard owner-relation disambiguation recovery candidate and
-fail-closed MA-15 reopening.**
+**ACTION 660G — MA-15 verified production reclosure.**
 
-**Document status:** bounded seven-path source-only successor that records the
-post-PR #97 dashboard regression, applies the owner-bound relation hint and
-keeps MA-15 open pending a separately approved production recovery. On its
-delivery branch this revision is not current-main authority. It becomes
-canonical only after an exact-scope merge, main reachability and exact-main CI;
-that delivery alone does not re-close MA-15.
+**Document status:** bounded seven-path documentation-only successor that
+records the exact PR #98 recovery release and re-closes MA-15 from green
+production evidence. On its delivery branch this revision is not current-main
+authority. It becomes canonical only after an exact-scope merge, main
+reachability, exact-main CI and a green smoke of the resulting documentation
+release.
 
 `roadmap_completion_authority:false_until_main_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against GitHub `main` commit
-`9e2f64a17c3851529beade0685ababb582eac320`, tree
-`0a5440b75b562da512427a50e05d65ad1fb0aa2f`, observed on 2026-08-11.
+`f463644ddeb7f49fa8b80924d9103ea8970ccae4`, tree
+`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad`, observed on 2026-08-11.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #97, whose exact-main push
-run `31539134121` completed successfully. Netlify published deploy
-`6a7b9745ed0bbf0009b90a35` for that exact commit. The required post-deploy
-smoke then found the dashboard unavailable: both `positions` embeds returned
-HTTP 300 because two foreign keys now connect `positions` and
-`recommendations`. PR #45 remains open, Draft, dirty/conflicting and
+The reconciliation base is the ordinary merge of PR #98, whose exact-main push
+run `31541394848` completed successfully. Netlify published deploy
+`6a7b9e45ceb7e100087c55fa` for that exact commit. The required post-deploy
+smoke passed: all four owner-bound `positions` embeds returned HTTP 200 and
+none returned HTTP 300. PR #45 remains open, Draft, dirty/conflicting and
 `stale_historical_non_authority`; it overlaps the canonical governance paths
 and must remain unmodified.
 
@@ -48,10 +46,10 @@ must remain visibly and operationally distinct.
 Recommendations and related user/trading data must be private, server-owned,
 observable and released through a reproducible identity gate.
 
-At this delivery branch's evidence boundary, formal status is **13 of 15
-required gates verified (86.7%)**, with no partial credit. Milestone A remains
-incomplete. MA-15 is fail-closed as a known production gap; this revision
-creates no provider or runtime authority.
+At this delivery branch's evidence boundary, formal status is **14 of 15
+required gates verified (93.3%)**, with no partial credit. Milestone A remains
+incomplete because MA-13 is `unknown_current`; this revision creates no
+provider or runtime authority.
 
 | Gate | Current classification at delivery boundary |
 | --- | --- |
@@ -69,7 +67,7 @@ creates no provider or runtime authority.
 | MA-12 repository CI workflow/check execution | verified_current |
 | MA-13 branch protection/required-check policy | unknown_current |
 | MA-14 disciplined worktree/release ownership | verified_current |
-| MA-15 production behavioral smoke | known_gap |
+| MA-15 production behavioral smoke | verified_current |
 
 **MA-09 closure record:** MA05 first triggered the documented fail-closed drift
 rule. Action 660D then archived project-scoped Supabase project, catalog and
@@ -106,22 +104,23 @@ directions.
 The reviewed repository file has the identical byte count and MD5.
 
 **MA-11 closure record:** the earlier closure established exact Netlify,
-deployment-assertion and GitHub identity at `4607990a…`, then at
-`490e3607…` and `58c29514…`. The PR #97 release reconciled all three again
-at current full commit `9e2f64a17c3851529beade0685ababb582eac320`.
-Exact-main CI run `31539134121` succeeded and Netlify deploy
-`6a7b9745ed0bbf0009b90a35` identifies that commit.
+deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
+`58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
+current full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
+Exact-main CI run `31541394848` succeeded and Netlify deploy
+`6a7b9e45ceb7e100087c55fa` identifies that commit.
 
-**MA-15 reopening record:** the PR #97 deploy triggered the preserved smoke
-rule. Anonymous denial, protected application rendering, settings, market
-calendar and execution-record JSON remained green, but dashboard refresh
-failed closed. Supabase API evidence showed both `positions` requests at HTTP
-300 while parallel owner-filtered reads returned 200. The cause is an
-unqualified `recommendations(...)` embed after MA05 added a second FK between
-the same tables. Action 660F selects the composite owner relationship with
-`recommendations!positions_recommendation_owner_fkey(...)` and adds a focused
-regression test, but no deployment has occurred. MA-15 is `known_gap` until
-the corrected exact release and all required production reads pass.
+**MA-15 reclosure record:** the PR #97 deploy triggered the preserved smoke
+rule and exposed an ambiguous `recommendations(...)` embed. Action 660F
+selected the composite owner relationship with
+`recommendations!positions_recommendation_owner_fkey(...)`; PR #98 delivered
+that exact fix. The new release preserved anonymous denial and rendered the
+protected application, dashboard, settings and market-calendar state.
+Supabase API evidence showed four owner-bound `positions` requests at HTTP 200,
+none at HTTP 300, plus two `execution_records` reads at HTTP 200 with no 5xx.
+No form or application mutation route was submitted. MA-15 is therefore
+`verified_current` and remains fail-closed on any later production deploy or
+required-read failure.
 
 ACTION 668H remains `closed_holding` under operator decision
 `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
@@ -192,10 +191,11 @@ is implied by this roadmap.
 - Track 4's Action 655 foundation is merged via PR #84, default-off and
   runtime-unwired. It provides no database, broker, production or milestone
   authority.
-- Track 5's Action 660E governance revision is present on main via PR #97.
-  This bounded seven-path successor records the resulting dashboard regression,
-  reopens MA-15 and carries only a source-level recovery candidate. PR #45
-  remains an overlapping stale historical non-authority and is not modified.
+- Track 5's Action 660F recovery is present on main via PR #98. This bounded
+  seven-path Action 660G successor records the resulting green production
+  recovery and re-closes MA-15 without changing application or provider state.
+  PR #45 remains an overlapping stale historical non-authority and is not
+  modified.
 - Track 6's five additive Session V2 paths are merged via PR #85, default-off
   and runtime-unwired. Runtime, tenancy, database, broker and production
   authority remain false.
@@ -207,24 +207,24 @@ is implied by this roadmap.
   PR #96 then delivered the reviewed V2 provider-bound refresh and satisfied
   the gate's technical closure conditions on main.
 
-Future main-moving work must remain serialized behind this bounded recovery
-candidate until its review decision is known. Any later main mover requires
-fresh source, provider and policy identity reconciliation.
+Future main-moving work must remain serialized behind this bounded
+reconciliation candidate until its review decision is known. Any later main
+mover requires fresh source, provider and policy identity reconciliation.
 
 ## Current provider and release boundary
 
 The latest authenticated Netlify readback identifies published deploy
-`6a7b9745ed0bbf0009b90a35`, its production assertion and GitHub `main` at full
-commit `9e2f64a17c3851529beade0685ababb582eac320`. Exact-main CI is green, but the
-required post-deploy dashboard read is not. This recovery candidate authorizes
-no deployment.
+`6a7b9e45ceb7e100087c55fa`, its production assertion and GitHub `main` at full
+commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI and the required
+post-deploy reads are green. This reconciliation candidate authorizes no
+deployment.
 
-The earlier bounded smoke established anonymous denial, authenticated
-protected-page rendering and HTTP 200 JSON from the required server-owned read
-routes. The post-PR #97 check preserved every tested boundary except dashboard
-data: the two ambiguous `positions` embeds returned HTTP 300 and the
-application correctly surfaced a sanitized 503. No form or application
-mutation route was submitted. The source fix is unverified in production.
+The bounded PR #98 smoke preserved anonymous login redirect and protected API
+denial, rendered the authenticated application, dashboard, settings and market
+calendar, and exercised the dedicated execution-record server read. Four
+owner-bound `positions` requests returned HTTP 200 with no HTTP 300; two
+`execution_records` reads returned HTTP 200 with no 5xx. No form or application
+mutation route was submitted.
 
 The current provider-bound Supabase V2 package binds project
 `ekdyopdrrkphlrsilyoo` to a read-only catalog snapshot of the selected
@@ -250,25 +250,27 @@ absent and not verified.
   `59f00b44…` / `64df5ff0…`, `7749a726…` / `d6e00d31…`, and
   `2409b458…` / `5c54eb02…` and `4607990a…` / `fc5e4e3d…` were valid earlier
   main/tree identities. They are now historical and superseded first by
-  `490e3607…` / `57909c14…`, then by `58c29514…` / `f1353d83…` and now
-  by `9e2f64a…` / `0a5440b7…`.
+  `490e3607…` / `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
+  `9e2f64a…` / `0a5440b7…` and now by `f463644d…` / `b0c8eae0…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by
   the ordinary merge of PR #94.
 - Earlier 126-, 135-, 137-, 139- and 142-commit production distances and deploy
   `6a65fd2f…`, followed by exact identity at `4607990a…` and deploy
-  `6a7b2c1e…`, are historical. The later `490e3607…` and `58c29514…`
-  identities are also superseded by current exact production/main identity at
-  `9e2f64a…` and deploy `6a7b9745…`.
+  `6a7b2c1e…`, are historical. The later `490e3607…`, `58c29514…` and
+  `9e2f64a…` identities are also superseded by current exact production/main
+  identity at `f463644d…` and deploy `6a7b9e45…`.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
-  earlier bounded production evidence closed MA-15, but the post-PR #97
-  dashboard regression reopens it. Action 660C separately proves the
-  production ordinary-role boundary and closes MA-06.
+  earlier bounded production evidence closed MA-15, the post-PR #97 dashboard
+  regression reopened it and the exact PR #98 recovery plus green readbacks
+  now re-close it. Action 660C separately proves the production ordinary-role
+  boundary and closes MA-06.
 - MA-02's pre-merge 7/15 state, MA-09's pre-closure 8/15 candidate state, the
   verified 9/15 MA-09 closure, MA-11/MA-15 closure at 11/15 and post-MA05
   13/15 reopening state and later 14/15 MA-09 closure are historical. The
-  current dashboard failure reopens MA-15 and returns formal status to 13/15.
-  This documentation grants no new provider, database, migration, broker,
-  release or production authority.
+  post-PR #97 dashboard failure returned formal status to 13/15; PR #98
+  recovery verification now restores 14/15 by re-closing MA-15. This
+  documentation grants no new provider, database, migration, broker, release
+  or production authority.

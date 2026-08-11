@@ -1,0 +1,110 @@
+{
+  "contract_version": "trade.action660g.ma15-verified-production-reclosure.v1",
+  "evidence_status": "documentation_delivery_candidate",
+  "observed_at": "2026-08-11T22:24:36Z",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "main_commit": "f463644ddeb7f49fa8b80924d9103ea8970ccae4",
+    "main_tree": "b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad",
+    "main_parents": [
+      "9e2f64a17c3851529beade0685ababb582eac320",
+      "790151d098ad8b9d930c2dba3b168cf5e6f2e61a"
+    ],
+    "merge_pull_request": 98,
+    "reviewed_head": "790151d098ad8b9d930c2dba3b168cf5e6f2e61a",
+    "exact_main_ci_run": 31541394848,
+    "production_netlify_deploy": "6a7b9e45ceb7e100087c55fa",
+    "production_supabase_project_ref": "ekdyopdrrkphlrsilyoo",
+    "canonical_owner_uuid_recorded": false
+  },
+  "recovery_delivery": {
+    "pull_request": 98,
+    "reviewed_head": "790151d098ad8b9d930c2dba3b168cf5e6f2e61a",
+    "merge_commit": "f463644ddeb7f49fa8b80924d9103ea8970ccae4",
+    "reviewed_head_to_merge_file_delta": 0,
+    "exact_scope_merged": true,
+    "exact_main_ci_success": true,
+    "netlify_github_identity_exact": true
+  },
+  "production_observation": {
+    "anonymous_root_status": 307,
+    "anonymous_root_login_redirect": true,
+    "anonymous_dashboard_api_status": 401,
+    "immutable_deploy_root_status": 307,
+    "immutable_deploy_login_redirect": true,
+    "authenticated_application_rendered": true,
+    "dashboard_read_rendered": true,
+    "settings_read_rendered": true,
+    "market_calendar_read_rendered": true,
+    "execution_records_server_read_succeeded": true,
+    "execution_record_values_recorded": false,
+    "forms_submitted_by_agent": false,
+    "application_mutation_routes_called_by_agent": false
+  },
+  "supabase_api_readback": {
+    "sample_size": 100,
+    "owner_bound_positions": {
+      "relation_hint": "recommendations!positions_recommendation_owner_fkey",
+      "request_count": 4,
+      "status_200_count": 4,
+      "status_300_count": 0,
+      "first_observed_at": "2026-08-11T22:18:15.039Z",
+      "last_observed_at": "2026-08-11T22:20:30.894Z"
+    },
+    "historical_ambiguous_positions_control": {
+      "request_count": 4,
+      "status_300_count": 4,
+      "first_observed_at": "2026-08-11T21:48:12.815Z",
+      "last_observed_at": "2026-08-11T21:48:38.318Z"
+    },
+    "execution_records": {
+      "request_count": 2,
+      "status_200_count": 2,
+      "status_5xx_count": 0,
+      "first_observed_at": "2026-08-11T22:19:25.135Z",
+      "last_observed_at": "2026-08-11T22:21:30.430Z"
+    },
+    "request_urls_recorded": false,
+    "row_or_owner_identifiers_recorded": false,
+    "payload_values_recorded": false
+  },
+  "ma15_reclosure_conditions": {
+    "exact_scope_merged": true,
+    "exact_main_ci_success": true,
+    "exact_netlify_github_identity": true,
+    "anonymous_boundaries_green": true,
+    "authenticated_required_reads_green": true,
+    "all_satisfied": true
+  },
+  "gate_reconciliation": {
+    "pre_action_verified": 13,
+    "closed": [
+      "MA-15"
+    ],
+    "remaining_unknown": [
+      "MA-13"
+    ],
+    "post_action_verified": 14,
+    "total": 15,
+    "percentage": 93.3,
+    "milestone_a_complete": false
+  },
+  "candidate_canonicalization_conditions": {
+    "exact_reviewed_scope_merged": false,
+    "exact_main_ci_success": false,
+    "resulting_netlify_github_identity_exact": false,
+    "resulting_production_smoke_green": false,
+    "all_satisfied": false
+  },
+  "scope_limits": {
+    "application_source_mutation": false,
+    "database_mutation": false,
+    "auth_mutation": false,
+    "provider_mutation": false,
+    "runtime_mutation": false,
+    "deployment_triggered_by_this_reconciliation": false,
+    "broker_or_execution_authority": false,
+    "canonical_owner_uuid_disclosure": false,
+    "application_row_disclosure": false
+  }
+}
