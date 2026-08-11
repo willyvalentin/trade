@@ -15,6 +15,12 @@ alter table public.user_settings
   add column if not exists owner_user_id uuid null;
 alter table public.recommendation_snapshots
   add column if not exists owner_user_id uuid null;
+alter table public.recommendation_scan_runs
+  add column if not exists owner_user_id uuid null;
+alter table public.recommendation_batches
+  add column if not exists owner_user_id uuid null;
+alter table public.recommendation_outcomes
+  add column if not exists owner_user_id uuid null;
 
 do $$
 begin
@@ -69,6 +75,39 @@ begin
   ) then
     alter table public.recommendation_snapshots
       add constraint recommendation_snapshots_owner_user_id_fkey
+      foreign key (owner_user_id) references auth.users(id)
+      on delete restrict not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'recommendation_scan_runs_owner_user_id_fkey'
+      and conrelid = 'public.recommendation_scan_runs'::regclass
+  ) then
+    alter table public.recommendation_scan_runs
+      add constraint recommendation_scan_runs_owner_user_id_fkey
+      foreign key (owner_user_id) references auth.users(id)
+      on delete restrict not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'recommendation_batches_owner_user_id_fkey'
+      and conrelid = 'public.recommendation_batches'::regclass
+  ) then
+    alter table public.recommendation_batches
+      add constraint recommendation_batches_owner_user_id_fkey
+      foreign key (owner_user_id) references auth.users(id)
+      on delete restrict not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'recommendation_outcomes_owner_user_id_fkey'
+      and conrelid = 'public.recommendation_outcomes'::regclass
+  ) then
+    alter table public.recommendation_outcomes
+      add constraint recommendation_outcomes_owner_user_id_fkey
       foreign key (owner_user_id) references auth.users(id)
       on delete restrict not valid;
   end if;
@@ -136,6 +175,36 @@ begin
 
   if not exists (
     select 1 from pg_constraint
+    where conname = 'recommendation_scan_runs_owner_required_check'
+      and conrelid = 'public.recommendation_scan_runs'::regclass
+  ) then
+    alter table public.recommendation_scan_runs
+      add constraint recommendation_scan_runs_owner_required_check
+      check (owner_user_id is not null) not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'recommendation_batches_owner_required_check'
+      and conrelid = 'public.recommendation_batches'::regclass
+  ) then
+    alter table public.recommendation_batches
+      add constraint recommendation_batches_owner_required_check
+      check (owner_user_id is not null) not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'recommendation_outcomes_owner_required_check'
+      and conrelid = 'public.recommendation_outcomes'::regclass
+  ) then
+    alter table public.recommendation_outcomes
+      add constraint recommendation_outcomes_owner_required_check
+      check (owner_user_id is not null) not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
     where conname = 'execution_records_user_required_check'
       and conrelid = 'public.execution_records'::regclass
   ) then
@@ -161,6 +230,16 @@ create unique index if not exists user_settings_one_row_per_owner_uidx
   where owner_user_id is not null;
 create index if not exists recommendation_snapshots_owner_created_at_idx
   on public.recommendation_snapshots (owner_user_id, created_at desc);
+create index if not exists recommendation_scan_runs_owner_observed_at_idx
+  on public.recommendation_scan_runs (owner_user_id, observed_at desc);
+create index if not exists recommendation_batches_owner_published_at_idx
+  on public.recommendation_batches (owner_user_id, published_at desc);
+create index if not exists recommendation_batches_owner_scan_run_idx
+  on public.recommendation_batches (owner_user_id, scan_run_fingerprint);
+create index if not exists recommendation_outcomes_owner_evaluated_at_idx
+  on public.recommendation_outcomes (owner_user_id, evaluated_at desc);
+create index if not exists recommendation_outcomes_owner_snapshot_idx
+  on public.recommendation_outcomes (owner_user_id, snapshot_fingerprint);
 
 do $$
 begin
@@ -195,6 +274,9 @@ alter table public.positions enable row level security;
 alter table public.position_updates enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.recommendation_snapshots enable row level security;
+alter table public.recommendation_scan_runs enable row level security;
+alter table public.recommendation_batches enable row level security;
+alter table public.recommendation_outcomes enable row level security;
 alter table public.execution_records enable row level security;
 
 revoke all privileges on table public.recommendations from public, anon, authenticated;
@@ -202,7 +284,43 @@ revoke all privileges on table public.positions from public, anon, authenticated
 revoke all privileges on table public.position_updates from public, anon, authenticated;
 revoke all privileges on table public.user_settings from public, anon, authenticated;
 revoke all privileges on table public.recommendation_snapshots from public, anon, authenticated;
+revoke all privileges on table public.recommendation_scan_runs from public, anon, authenticated;
+revoke all privileges on table public.recommendation_batches from public, anon, authenticated;
+revoke all privileges on table public.recommendation_outcomes from public, anon, authenticated;
 revoke all privileges on table public.execution_records from public, anon, authenticated;
+
+-- Do not rely only on the earlier containment migration. Remove every legacy
+-- policy on owner-bound tables so a later table grant cannot reactivate a
+-- permissive policy that predates MA05.
+do $$
+declare
+  policy_record record;
+begin
+  for policy_record in
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = any (array[
+        'recommendations',
+        'positions',
+        'position_updates',
+        'user_settings',
+        'recommendation_snapshots',
+        'recommendation_scan_runs',
+        'recommendation_batches',
+        'recommendation_outcomes',
+        'execution_records'
+      ])
+  loop
+    execute format(
+      'drop policy if exists %I on %I.%I',
+      policy_record.policyname,
+      policy_record.schemaname,
+      policy_record.tablename
+    );
+  end loop;
+end;
+$$;
 
 drop policy if exists application_owner_access on public.recommendations;
 create policy application_owner_access on public.recommendations
@@ -226,6 +344,21 @@ create policy application_owner_access on public.user_settings
 
 drop policy if exists application_owner_access on public.recommendation_snapshots;
 create policy application_owner_access on public.recommendation_snapshots
+  for select to authenticated
+  using ((select auth.uid()) = owner_user_id);
+
+drop policy if exists application_owner_access on public.recommendation_scan_runs;
+create policy application_owner_access on public.recommendation_scan_runs
+  for select to authenticated
+  using ((select auth.uid()) = owner_user_id);
+
+drop policy if exists application_owner_access on public.recommendation_batches;
+create policy application_owner_access on public.recommendation_batches
+  for select to authenticated
+  using ((select auth.uid()) = owner_user_id);
+
+drop policy if exists application_owner_access on public.recommendation_outcomes;
+create policy application_owner_access on public.recommendation_outcomes
   for select to authenticated
   using ((select auth.uid()) = owner_user_id);
 
@@ -418,5 +551,11 @@ comment on column public.user_settings.owner_user_id is
   'MA05 canonical auth.users owner. One settings row per non-null owner.';
 comment on column public.recommendation_snapshots.owner_user_id is
   'MA05 canonical auth.users owner for recommendation-to-position lineage.';
+comment on column public.recommendation_scan_runs.owner_user_id is
+  'MA05 canonical auth.users owner for the visible recommendation set and its run diagnostics.';
+comment on column public.recommendation_batches.owner_user_id is
+  'MA05 canonical auth.users owner for each official or diagnostic recommendation batch.';
+comment on column public.recommendation_outcomes.owner_user_id is
+  'MA05 canonical auth.users owner inherited from the evaluated recommendation snapshot.';
 comment on column public.execution_records.user_id is
   'MA05 canonical auth.users owner. Nullable only while execution persistence remains gated and legacy rows are reviewed.';

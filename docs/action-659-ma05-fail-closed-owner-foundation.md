@@ -22,12 +22,16 @@ owner-bound records:
 - `position_updates.owner_user_id`
 - `user_settings.owner_user_id`
 - `recommendation_snapshots.owner_user_id`
+- `recommendation_scan_runs.owner_user_id`
+- `recommendation_batches.owner_user_id`
+- `recommendation_outcomes.owner_user_id`
 - `execution_records.user_id`
 
 Manual and scheduled recommendation generation also require the verified
-server owner. Newly generated recommendation rows and snapshot persistence are
-stamped server-side. The owner-aware position RPC checks the same owner across
-the recommendation, position, and snapshot mutation.
+server owner. Newly generated recommendation rows, run diagnostics, batches,
+snapshots, and outcomes are stamped server-side. The owner-aware position RPC
+checks the same owner across the recommendation, position, and snapshot
+mutation.
 
 ## System-shared records
 
@@ -36,13 +40,16 @@ are not filtered by the application owner:
 
 - market calendar, symbol metadata, market regime, and scanner caches;
 - scheduled scan run/attempt observability;
-- recommendation scan-run and batch observability;
-- recommendation outcome aggregates.
 
 This classification does not grant browser or Data API access. Existing Action
 650 containment remains in force. If any system-shared record later contains
 account-specific or personal data, it must be reclassified before that data is
 stored.
+
+An independent review removed recommendation scan runs, batches, and outcomes
+from this list: their payloads include the visible recommendation set, the
+official batch served to the user, or snapshot-linked results. Treating them as
+system-shared would have left a service-role cross-owner read path.
 
 ## Migration safety properties
 

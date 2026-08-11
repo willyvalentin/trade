@@ -57,6 +57,9 @@ test("service-role application data access is explicitly owner-scoped", async ()
     "position_updates",
     "user_settings",
     "recommendation_snapshots",
+    "recommendation_scan_runs",
+    "recommendation_batches",
+    "recommendation_outcomes",
   ]) {
     expect(dataAccess).toContain(`.from("${table}")`);
   }
@@ -82,6 +85,9 @@ test("the migration adds indexed Auth ownership without inferring or backfilling
     "position_updates",
     "user_settings",
     "recommendation_snapshots",
+    "recommendation_scan_runs",
+    "recommendation_batches",
+    "recommendation_outcomes",
   ]) {
     expect(migration).toContain(`alter table public.${table}`);
   }

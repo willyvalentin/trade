@@ -82,11 +82,13 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     client
       .from("recommendation_scan_runs")
       .select("*")
+      .eq("owner_user_id", owner)
       .order("observed_at", { ascending: false })
       .limit(100),
     client
       .from("recommendation_batches")
       .select("*")
+      .eq("owner_user_id", owner)
       .order("published_at", { ascending: false, nullsFirst: false })
       .limit(100),
     client
@@ -98,6 +100,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     client
       .from("recommendation_outcomes")
       .select("*")
+      .eq("owner_user_id", owner)
       .order("evaluated_at", { ascending: false })
       .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
     client
@@ -285,8 +288,16 @@ export async function readOutcomeBackfillRows(
             .in("scan_run_id", identifiers)
             .limit(outcomeBackfillLimit)
         : operation === "batches_by_fingerprint"
-          ? await client.from("recommendation_batches").select("*").in("batch_fingerprint", identifiers)
-          : await client.from("recommendation_batches").select("*").in("scan_run_fingerprint", identifiers);
+          ? await client
+              .from("recommendation_batches")
+              .select("*")
+              .eq("owner_user_id", owner)
+              .in("batch_fingerprint", identifiers)
+          : await client
+              .from("recommendation_batches")
+              .select("*")
+              .eq("owner_user_id", owner)
+              .in("scan_run_fingerprint", identifiers);
 
   return result.error
     ? failed<unknown[]>()

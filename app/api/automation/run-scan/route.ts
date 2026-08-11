@@ -1049,10 +1049,11 @@ function calendarFields(
   };
 }
 
-async function readRecentRecommendationScanRuns() {
+async function readRecentRecommendationScanRuns(ownerUserId: string) {
   const { data, error } = await serverSupabase()
     .from("recommendation_scan_runs")
     .select("*")
+    .eq("owner_user_id", ownerUserId)
     .order("observed_at", { ascending: false })
     .limit(50);
 
@@ -2709,7 +2710,7 @@ export async function POST(request: Request) {
     marketStatus,
   });
   const [recentRecommendationScanRuns, recentScheduledScanRuns] = await Promise.all([
-    readRecentRecommendationScanRuns(),
+    readRecentRecommendationScanRuns(ownerUserId),
     readRecentScheduledScanRuns(),
   ]);
   let scanWindow = getScanWindowDueNow(scanClock);

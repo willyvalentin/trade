@@ -2,6 +2,7 @@ import "server-only";
 
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { classifySupabasePersistenceError } from "@/lib/persistence-error-classifier";
+import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
 import type {
   RecommendationScanRun,
   RecommendationScanRunPersistenceResult,
@@ -22,8 +23,9 @@ export type RecommendationScanRunSupabaseClient = {
   from: (table: string) => SupabaseQueryBuilder;
 };
 
-function toSupabaseRow(scanRun: RecommendationScanRun) {
+function toSupabaseRow(scanRun: RecommendationScanRun, ownerUserId: string) {
   return {
+    owner_user_id: ownerUserId,
     id: scanRun.id,
     run_fingerprint: scanRun.run_fingerprint,
     trading_date: scanRun.trading_date,
@@ -71,6 +73,7 @@ export async function persistRecommendationScanRun(
     unavailableReason?: string | null;
   } = {},
 ): Promise<RecommendationScanRunPersistenceResult> {
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
   if (!options.supabaseClient?.from) {
     return {
       status: "failed",
@@ -82,10 +85,19 @@ export async function persistRecommendationScanRun(
     };
   }
 
+  if (!ownerUserId) {
+    return {
+      status: "failed",
+      mode: "none",
+      scan_run: scanRun,
+      error: "application_owner_identity_unavailable",
+    };
+  }
+
   try {
     const result = await options.supabaseClient
       .from("recommendation_scan_runs")
-      .upsert?.(toSupabaseRow(scanRun), {
+      .upsert?.(toSupabaseRow(scanRun, ownerUserId), {
         onConflict: "run_fingerprint",
         ignoreDuplicates: true,
       });

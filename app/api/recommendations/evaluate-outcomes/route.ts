@@ -518,6 +518,7 @@ async function loadOfficialLiveSnapshots({
     const batchQuery = serverSupabase.client
       .from("recommendation_batches")
       .select("*")
+      .eq("owner_user_id", ownerUserId)
       .order("published_at", {
         ascending: batchFingerprint ? false : true,
         nullsFirst: false,
@@ -811,13 +812,17 @@ async function loadOfficialLiveSnapshots({
 
 async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
   const serverSupabase = getServerSupabaseClient();
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
 
-  if (!serverSupabase.client || snapshotFingerprints.length === 0) {
+  if (!serverSupabase.client || !ownerUserId || snapshotFingerprints.length === 0) {
     return {
       outcomes: [] as RecommendationOutcome[],
-      error: serverSupabase.client
-        ? null
-        : `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`,
+      error:
+        serverSupabase.client && ownerUserId
+          ? null
+          : ownerUserId
+            ? `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`
+            : "application_owner_identity_unavailable",
     };
   }
 
@@ -825,6 +830,7 @@ async function loadSupabaseOutcomes(snapshotFingerprints: string[]) {
     const { data, error } = await serverSupabase.client
       .from("recommendation_outcomes")
       .select("*")
+      .eq("owner_user_id", ownerUserId)
       .in("snapshot_fingerprint", snapshotFingerprints)
       .order("evaluated_at", { ascending: false });
 
