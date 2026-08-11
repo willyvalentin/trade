@@ -1,6 +1,6 @@
 {
   "contract_version": "trade.action652.generated-types-provenance.v1",
-  "evidence_status": "repository_pinned_delivery_candidate",
+  "evidence_status": "historical_superseded",
   "observed_at": "2026-08-11T11:23:40Z",
   "authority": {
     "organization": "Valentin Labs",
@@ -45,6 +45,7 @@
   },
   "output": {
     "path": "lib/supabase-database.types.ts",
+    "archived_path": "docs/evidence/action-652-generated-types-provenance-v1/supabase-database.types.v1.ts",
     "sha256": "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c",
     "git_blob_sha1": "516e39a1d6aeb3bb1779895337a4fae18e4eab71",
     "required_symbols": [
@@ -75,7 +76,7 @@
       "sha256": "2dd4b21312fc6476fc88006fe2eda3a90f3135be7a1243363f423231a9c4aca1"
     },
     {
-      "path": "lib/supabase-database.types.ts",
+      "path": "docs/evidence/action-652-generated-types-provenance-v1/supabase-database.types.v1.ts",
       "sha256": "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c"
     }
   ],

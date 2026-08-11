@@ -1,0 +1,85 @@
+{
+  "contract_version": "trade.action660.ma09.provider-execution-envelope.v2",
+  "provider": "Supabase",
+  "transport": "connected_supabase_management_api",
+  "project_identity": {
+    "lookup_tool": "supabase_get_project",
+    "method": "GET",
+    "endpoint_template": "/v1/projects/{ref}",
+    "endpoint_path": "/v1/projects/ekdyopdrrkphlrsilyoo",
+    "endpoint_reference": "https://supabase.com/docs/reference/api/v1-get-project",
+    "request": {
+      "id": "ekdyopdrrkphlrsilyoo"
+    },
+    "request_frame": "method || 0x0a || endpoint_path || 0x0a",
+    "request_frame_sha256": "93442eb438fa0cdcfffe889921356a69da2eac2b537b5511f026672a59d2e547",
+    "response_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-project-response-v2.json",
+    "response_sha256": "a37c6814e05b584b35939f57c2d00cbc74f72e5ee7f008a88ea2dc7754867ff1",
+    "response_serialization": "exact_provider_json_utf8_plus_repository_lf",
+    "provider_content_sha256": "8ca84105cc612d06fcd919b017cb90071dd05fac07bcb5dc80ef146acf85be23",
+    "response_binding": {
+      "id": "ekdyopdrrkphlrsilyoo",
+      "ref": "ekdyopdrrkphlrsilyoo",
+      "organization_id": "ldcctdjgqpcrliqsltya",
+      "organization_slug": "ldcctdjgqpcrliqsltya",
+      "name": "Trade",
+      "region": "eu-west-1",
+      "status": "ACTIVE_HEALTHY"
+    }
+  },
+  "catalog_execution": {
+    "tool": "supabase_execute_sql",
+    "method": "POST",
+    "endpoint_template": "/v1/projects/{ref}/database/query",
+    "endpoint_path": "/v1/projects/ekdyopdrrkphlrsilyoo/database/query",
+    "endpoint_reference": "https://supabase.com/docs/reference/api/v1-run-a-query",
+    "request": {
+      "project_id": "ekdyopdrrkphlrsilyoo",
+      "query_path": "scripts/action-660-ma09-read-only-catalog.sql",
+      "query_sha256": "f8c01dccadc2944866a52831aeb1f9a4f227e2684f1eb005f6eca9248a8596fb"
+    },
+    "request_frame": "method || 0x0a || endpoint_path || 0x0a || query_sha256 || 0x0a",
+    "request_frame_sha256": "c280e240036d6490ee7d3809802a532681070fe435fd2741c26bffb36507cc7e",
+    "response_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-catalog-response-v2.json",
+    "response_sha256": "0677648d6f0b144f89612f8bd3b814ab96f964b688fc1525e4b0d5f4e54f4d6f",
+    "response_serialization": "exact_provider_json_utf8_plus_repository_lf",
+    "provider_content_sha256": "68c83fb6cdeaa87032cf4a35b343139db984a503153131b406259eed5541a739",
+    "snapshot_json_pointer": "$[0].catalog_snapshot",
+    "database_observed_at": "2026-08-11T19:53:38.618457Z",
+    "transaction_read_only": "on"
+  },
+  "type_generation": {
+    "tool": "supabase_generate_typescript_types",
+    "method": "GET",
+    "endpoint_template": "/v1/projects/{ref}/types/typescript",
+    "endpoint_path": "/v1/projects/ekdyopdrrkphlrsilyoo/types/typescript",
+    "endpoint_reference": "https://supabase.com/docs/reference/api/v1-generate-typescript-types",
+    "request": {
+      "project_id": "ekdyopdrrkphlrsilyoo"
+    },
+    "request_frame": "method || 0x0a || endpoint_path || 0x0a",
+    "request_frame_sha256": "56644b8435b699a2664160b44ddc94f8772884125e5b0f383ba591e7f84e79dc",
+    "raw_response_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-typegen-response-v2.json",
+    "raw_response_sha256": "d585cce5a5911611d691589d2574330c909495ce28041fafc9caac1dbb45194e",
+    "raw_response_serialization": "exact_provider_json_utf8_plus_repository_lf",
+    "raw_provider_content_sha256": "89de6a4544fb776b61ebd71eb0a26ee996548b01b9e39723caa3e5c9f1c89147",
+    "extracted_types_json_pointer": "$.types",
+    "extracted_types_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-typescript-response-v2.ts",
+    "extracted_types_sha256": "f23c3702ffd931cb5d81f13e19a8515125817717e9a3fad7ac85e40795729029",
+    "repository_output_path": "lib/supabase-database.types.ts",
+    "repository_output_sha256": "f23c3702ffd931cb5d81f13e19a8515125817717e9a3fad7ac85e40795729029",
+    "byte_identical": true
+  },
+  "scope": {
+    "catalog_selected_schemas": [
+      "public"
+    ],
+    "generated_output_schemas": [
+      "public"
+    ],
+    "secrets_included": false,
+    "owner_uuid_included": false,
+    "application_row_data_included": false,
+    "database_mutation": false
+  }
+}
