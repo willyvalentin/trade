@@ -25,8 +25,8 @@ before persistent data is changed.
    assertion aborts and rolls back the backfill transaction.
 6. Run `readback.sql` with the same explicitly confirmed UUID. All booleans
    must be true, all null/foreign-owner counts must be zero, every named
-   constraint must be validated, and direct `anon`/`authenticated` table
-   privileges must remain absent.
+   constraint and relationship index must be valid, and direct
+   `anon`/`authenticated` table privileges must remain absent.
 7. Run `two-principal-negative-test.sql` only in a disposable local or staging
    database with two pre-created test Auth users. It temporarily grants SELECT
    inside a transaction and always ends in `ROLLBACK`. Never run it in

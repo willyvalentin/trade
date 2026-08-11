@@ -223,8 +223,12 @@ create index if not exists positions_owner_status_created_at_idx
   on public.positions (owner_user_id, status, created_at desc);
 create unique index if not exists positions_id_owner_user_id_uidx
   on public.positions (id, owner_user_id);
+create index if not exists positions_recommendation_owner_idx
+  on public.positions (recommendation_id, owner_user_id);
 create index if not exists position_updates_owner_created_at_idx
   on public.position_updates (owner_user_id, created_at desc);
+create index if not exists position_updates_position_owner_idx
+  on public.position_updates (position_id, owner_user_id);
 create unique index if not exists user_settings_one_row_per_owner_uidx
   on public.user_settings (owner_user_id)
   where owner_user_id is not null;

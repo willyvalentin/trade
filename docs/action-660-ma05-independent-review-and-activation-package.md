@@ -21,6 +21,11 @@ therefore now adds `owner_user_id`, Auth foreign keys, owner-required checks,
 indexes, RLS policies, explicit service-role filters, and server-side owner
 stamping for all three tables.
 
+A subsequent production read-only preflight also identified that the two
+composite relationship foreign keys needed child-side covering indexes. The
+migration now adds `(recommendation_id, owner_user_id)` on `positions` and
+`(position_id, owner_user_id)` on `position_updates`; readback verifies both.
+
 System-shared classification remains limited to market/reference data,
 scanner caches, and scheduled-run operational observability that does not
 contain the visible recommendation set or account-specific result history.

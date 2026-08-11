@@ -109,6 +109,22 @@ left join pg_constraint constraint_record
  and constraint_record.conname = expected.constraint_name
 order by table_name, constraint_name;
 
+with expected_indexes(index_name) as (values
+  ('positions_recommendation_owner_idx'),
+  ('position_updates_position_owner_idx')
+)
+select
+  expected.index_name,
+  index_record.indexrelid is not null as index_exists,
+  coalesce(index_record.indisvalid, false) as index_valid,
+  coalesce(index_record.indisready, false) as index_ready
+from expected_indexes expected
+left join pg_class class_record
+  on class_record.relnamespace = 'public'::regnamespace
+ and class_record.relname = expected.index_name
+left join pg_index index_record on index_record.indexrelid = class_record.oid
+order by expected.index_name;
+
 select
   not exists (
     select 1

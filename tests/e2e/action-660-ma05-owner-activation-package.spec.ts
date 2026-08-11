@@ -35,7 +35,6 @@ test("derived recommendation records are owner-bound at persistence and read tim
       ),
     );
   }
-
   expect(automation).toContain("readRecentRecommendationScanRuns(ownerUserId)");
   expect(automation).toMatch(
     /from\("recommendation_scan_runs"\)[\s\S]{0,180}eq\("owner_user_id", ownerUserId\)/,
@@ -76,6 +75,10 @@ test("the migration protects every owner-bound derived table", async () => {
       `create policy application_owner_access on public.${table}`,
     );
   }
+  expect(migration).toContain("positions_recommendation_owner_idx");
+  expect(migration).toContain("(recommendation_id, owner_user_id)");
+  expect(migration).toContain("position_updates_position_owner_idx");
+  expect(migration).toContain("(position_id, owner_user_id)");
 });
 
 test("the operator activation bundle is explicit, transactional, and fail-closed", async () => {
@@ -116,6 +119,9 @@ test("readback covers data, constraints, ACL, RPC and rollback-only RLS proof", 
   expect(readback).toContain("foreign_owner_count");
   expect(readback).toContain("physical_not_null");
   expect(readback).toContain("constraint_validated");
+  expect(readback).toContain("positions_recommendation_owner_idx");
+  expect(readback).toContain("position_updates_position_owner_idx");
+  expect(readback).toContain("index_valid");
   expect(readback).toContain("authenticated_select_revoked");
   expect(readback).toContain("public_rpc_execute_revoked");
   expect(readback).toContain("service_role_rpc_execute_granted");
@@ -126,4 +132,20 @@ test("readback covers data, constraints, ACL, RPC and rollback-only RLS proof", 
   expect(negativeTest).toContain("set local role authenticated");
   expect(negativeTest).toContain("visible_other_rows");
   expect(negativeTest.trim().endsWith("rollback;")).toBe(true);
+});
+
+test("the production preflight evidence is read-only and contains no owner UUID", async () => {
+  const evidence = await source(
+    "docs/action-660b-ma05-production-read-only-preflight.md",
+  );
+
+  expect(evidence).toContain("read-only; no production mutation");
+  expect(evidence).toContain("Auth user count: `1`");
+  expect(evidence).toContain("Owner UUID read or inferred: **no**");
+  expect(evidence).toContain("positions_recommendation_owner_idx");
+  expect(evidence).toContain("position_updates_position_owner_idx");
+  expect(evidence).toContain("Writer pause confirmed: **no**");
+  expect(evidence).not.toMatch(
+    /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
+  );
 });
