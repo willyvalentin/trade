@@ -1,12 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 656 — MA-11 and MA-15 verified closure governance reconciliation.**
+**ACTION 660C — MA-05, MA-06 and MA-08 verified closure governance
+reconciliation, with fail-closed MA-09 drift reopening.**
 
-**Evidence timestamp:** 2026-08-11. This bounded two-path successor records the
-corroborated MA-11 release-identity closure and MA-15 production behavioral
-smoke now established against the same immutable revision. On its delivery
-branch it does not authorize repository merging, runtime, production, provider,
-database, migration, broker or release activity.
+**Evidence timestamp:** 2026-08-11. This bounded four-path successor records
+the corroborated MA-05 owner boundary, MA-06 production role/Data API behavior,
+MA-08 exact migration parity and the required MA-09 generated-types drift
+reopening. On its delivery branch it does not authorize repository merging,
+runtime, production, provider, database, migration, broker or release activity.
 
 `roadmap_completion_authority:false_until_main_verified`
 
@@ -15,13 +16,13 @@ database, migration, broker or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub reconciliation base | `4607990afe35b0d089f960dded9538182c23c201` | canonical_current |
-| Current main event | ordinary merge of PR #92 | corroborated_current |
-| Current main tree | `fc5e4e3d2d7e576195abc45c08b13d9ebadb837e` | canonical_current |
-| Current main parents | `2409b4587f1fc88838a680fbf253963c28163b33`, `054520c4f3072ee0a3c6105554243dbd3d59b363` | canonical_current |
-| PR #92 | CLOSED, merged; head `054520c4…`; merge `4607990a…` | corroborated_current |
-| PR #92 scope | exactly two paths; canonical roadmap and current-state ledger | corroborated_current |
-| Exact-main CI | run `31494512027`, push, head `4607990a…`, completed/success; all required steps passed | verified_current |
+| GitHub reconciliation base | `490e3607d1dfb85046be5ce70c787f897b5d939e` | canonical_current |
+| Current main event | ordinary merge of PR #94 | corroborated_current |
+| Current main tree | `57909c14bd7fc2867bd67b94ae0c9a4ad94ffb2c` | canonical_current |
+| Current main parents | `67aa97e9048a80ea35ddfc4442f5761b6a82e102`, `419dcfecdbbc7a498ff5433e85a52f1084cdc3af` | canonical_current |
+| PR #94 | CLOSED, merged; head `419dcfec…`; merge `490e3607…` | corroborated_current |
+| PR #94 scope | MA05 source, activation package, production activation and release | corroborated_current |
+| Exact-main CI | run `31513617560`, push, head `490e3607…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 403 under current private-repository plan | unknown_current |
 | GitHub repository rulesets | API HTTP 403 under current private-repository plan | unknown_current |
@@ -31,53 +32,70 @@ database, migration, broker or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | Netlify build state | builds stopped | latest_authenticated_provider_evidence |
-| Published production deploy | `6a7b2c1e46dc4c4ae089c400` | latest_authenticated_provider_evidence |
-| Published production permalink | `https://6a7b2c1e46dc4c4ae089c400--trade-vl.netlify.app` | verified_reachable |
-| Published production commit | `4607990afe35b0d089f960dded9538182c23c201` | latest_authenticated_provider_evidence |
-| Production assertion | `TURE_CONTINUOUS_INTELLIGENCE_DEPLOYMENT_COMMIT=4607990afe35b0d089f960dded9538182c23c201` | exact_identity_match |
+| Published production release | `trade-vl`, re-enabled after green deployment and smoke | latest_authenticated_provider_evidence |
+| Published production commit | `490e3607d1dfb85046be5ce70c787f897b5d939e` | latest_authenticated_provider_evidence |
+| Production assertion | identifies full commit `490e3607d1dfb85046be5ce70c787f897b5d939e` | exact_identity_match |
 | Production-to-main Git relation | production and main are the same commit | verified_current; contradiction_closed |
-| Production behavioral smoke | anonymous denial, authenticated page and four server-owned read routes passed at `2026-08-11T14:17:33.614Z` | verified_current |
+| Post-MA05 production smoke | application re-enabled only after green protected-route and release checks | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
-| Supabase effective role | `supabase_read_only_user`; transaction/default read-only on | checksum_bound_read_only_evidence |
-| Supabase V5 catalog receipt | complete and untruncated: 1 schema, 30 tables, 645 columns, 30 PK, 17 FK, 21 functions | checksum_bound_read_only_evidence |
-| Generated type output | SHA-256 `5a74e8de…`; same recorded blob across compared source/release identities | repository_pinned_verified_current |
+| MA05 production structure | 9/9 physical NOT NULL and RLS; 20/20 constraints; 2/2 relationship indexes; revoked client grants; service-role-only RPC | verified_current |
+| MA06 anonymous Data API | HTTP 401 / Postgres `42501` on recommendations read | verified_current |
+| MA06 authenticated SQL role | read-only owner-claim query denied with Postgres `42501` | verified_current |
+| MA08 migration parity | 21,658 production/source bytes; MD5 `83e413b3d95cc26106444cc159c0105b` on both | verified_current |
+| Historical Supabase V5 receipt | complete for its earlier schema: 1 schema, 30 tables, 645 columns, 30 PK, 17 FK, 21 functions | superseded_schema_evidence |
+| Generated type output | unchanged SHA-256 `5a74e8de…`; missing MA05 owner fields and RPC | known_gap; MA09_reopened |
 
-The release and smoke evidence above performed no application, database,
-provider or repository mutation after publication. It establishes exact
-release parity and bounded production application/session read behavior. It
-does not establish ordinary application-role RLS/Data API behavior,
-tenant-owner identity or migration application/source parity.
+The Action 660C verification was read-only. Production activation and release
+had already completed under the separately approved Action 660 maintenance
+window. This reconciliation performs no new application, database, provider or
+release mutation.
 
 ## Milestone A gate ledger
 
-At this delivery branch's boundary, formal closure is **11/15 = 73.3%**,
+At this delivery branch's boundary, formal closure is **13/15 = 86.7%**,
 with no partial credit. Milestone A is not complete.
 
 | Classification | Gates |
 | --- | --- |
-| verified_current | MA-01, MA-02, MA-03, MA-04, MA-07, MA-09, MA-10, MA-11, MA-12, MA-14, MA-15 |
-| known_gap | MA-05 |
-| unknown_current | MA-06, MA-08, MA-13 |
+| verified_current | MA-01, MA-02, MA-03, MA-04, MA-05, MA-06, MA-07, MA-08, MA-10, MA-11, MA-12, MA-14, MA-15 |
+| known_gap | MA-09 |
+| unknown_current | MA-13 |
 
-MA-09 is `verified_current`: the remediated oracle passed 21/21, its independent
-exhaustive review accepted none of 69 leaf mutations, 14 unexpected object
-keys or 4 array extensions, PR run `31492155553` succeeded, PR #91 merged with
-exact six-path scope and exact-main run `31492511225` succeeded. Any later
-generated-type or bound provenance drift reopens the gate.
+MA-09 is `known_gap`: its historical remediated oracle and independent review
+remain valid for the V5 receipt, but MA05 later changed the production public
+schema. The pinned type output remains byte-identical to the earlier artifact
+and lacks the new owner fields and owner-aware RPC. The gate's explicit drift
+rule therefore reopens it pending a fresh read-only receipt, type generation,
+provenance binding and independent review.
 
-MA-11 is `verified_current`: Netlify production deploy
-`6a7b2c1e46dc4c4ae089c400`, its full production commit, the production
-assertion and GitHub `main` all identify
-`4607990afe35b0d089f960dded9538182c23c201`. The candidate completed one
-production build, was verified before publication, and retained reachable new
-and rollback permalinks with builds stopped.
+MA-05 is `verified_current`: production readback passed 9/9 owner columns and
+RLS tables, 20/20 constraints, 2/2 relationship indexes, revoked client grants
+and the service-role-only RPC boundary. Two disposable staging principals
+proved one-own/zero-other reads in both directions; the cross-owner RPC failed,
+the same-owner RPC succeeded, all test data rolled back and staging was cleaned
+and paused.
 
-MA-15 is `verified_current`: an anonymous browser reached `/login`; anonymous
-`/api/app/dashboard` failed closed with HTTP 401 and
-`application_session_required`; a locally created canonical HMAC
-trusted-operator session opened `/` with HTTP 200; and dashboard, settings,
-execution-record and market-calendar read routes each returned HTTP 200 JSON.
-The login route and every application mutation route remained uncalled.
+MA-06 is `verified_current`: the anonymous production Data API and a direct
+read-only `authenticated` role check both failed closed with Postgres `42501`.
+The staging rollback proof separately exercised the installed RLS predicate
+with two Auth principals.
+
+MA-08 is `verified_current`: the applied production MA05 migration and the
+reviewed repository source are exactly 21,658 bytes and share MD5
+`83e413b3d95cc26106444cc159c0105b`.
+
+MA-11 is `verified_current`: the earlier closure established exact Netlify,
+deployment-assertion and GitHub identity at `4607990a…`. The later MA05 release
+reconciled all three again at current commit
+`490e3607d1dfb85046be5ce70c787f897b5d939e`; exact-main CI run
+`31513617560` succeeded and the application was re-enabled only after the ready
+release and smoke checks passed.
+
+MA-15 is `verified_current`: the original anonymous and trusted-session proof
+covered `/login`, canonical dashboard denial, authenticated application render
+and four server-owned read routes. The post-MA05 release repeated the bounded
+denial, protected-render and read-route smoke before reactivation. The smoke
+did not call the login route or an application mutation route.
 
 ## Delivery state
 
@@ -86,9 +104,9 @@ The login route and every application mutation route remained uncalled.
 | 1 | paused | No new release authority. |
 | 2 | open dependent stack | PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open and are not current-main authority. |
 | 3 | `closed_holding`, Milestone A incomplete | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
-| Action 652 | source and MA-09 provenance delivered | Source containment, authenticated server-owned boundary, V5 evidence contract, canonical governance and repository-pinned generated-types provenance are present on main. The later MA-15 smoke verifies the deployed application/session read path, but tenant binding, production RLS and migration parity remain unproven. |
+| Action 652 | source boundary delivered; MA-09 provenance historical | Source containment, authenticated server-owned boundary, V5 evidence contract and canonical governance remain present on main. MA05 schema drift reopens MA-09. |
 | 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |
-| 5 | canonical governance current | PR #92 is merged and is the current two-path main baseline. MA-09, MA-11 and MA-15 closure evidence is corroborated. PR #45 remains stale non-authority and unmodified. |
+| 5 | reconciliation delivery candidate | PR #94 is the current main event. This four-path successor closes MA-05/06/08 and reopens MA-09. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
 ## Historical authority and supersession ledger
@@ -97,21 +115,26 @@ The login route and every application mutation route remained uncalled.
   `92d9cd4…`, main `59f00b44…` / tree `64df5ff0…`, main
   `7749a726…` / tree `d6e00d31…`, and main `2409b458…` / tree
   `5c54eb02…` were canonical at their respective evidence timestamps. They are
-  superseded by reconciliation base `4607990a…` / `fc5e4e3d…`.
+  superseded first by `4607990a…` / `fc5e4e3d…` and now by reconciliation base
+  `490e3607…` / `57909c14…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
-  their merges. PR #92 is the current-main event.
+  their merges. PR #92's former current-main state is superseded by the
+  ordinary merge of PR #94.
 - Earlier 126-, 135-, 137-, 139- and 142-commit production-to-main distances
   and deploy `6a65fd2f…` are superseded by exact production/main identity at
-  `4607990a…` and deploy `6a7b2c1e…`.
+  `4607990a…` and deploy `6a7b2c1e…`; that identity is now historical and
+  superseded by current exact production/main identity at `490e3607…`.
 - Previous `unknown_current` source-containment, authenticated API-boundary
   and repository-CI claims are superseded by closed MA-03, MA-04 and MA-12
-  evidence. MA-15 now closes bounded production application/session read
-  behavior; migration application and role-bound enforcement remain unproven.
+  evidence. MA-15 closes bounded production application/session read behavior;
+  Action 660C separately closes migration parity and role-bound enforcement.
 - MA-02's earlier 7/15 delivery state and MA-09's 8/15 delivery-candidate state
-  are superseded by verified MA-09 closure at 9/15 and later MA-11/MA-15
-  closures at 11/15. This reconciliation creates no new provider, database,
-  migration, broker, release or production authority.
+  were superseded by verified MA-09 closure at 9/15 and later MA-11/MA-15
+  closures at 11/15. MA05 then changed the schema. Closing MA-05/06/08 and
+  reopening MA-09 yields the current 13/15 delivery candidate. This
+  reconciliation creates no new provider, database, migration, broker,
+  release or production authority.
 - Historical main `3b7ecfa…`, historical Track 3 closure claims and historical
   Track 6 external-only claims remain superseded as recorded in the prior
   ledger.
@@ -122,17 +145,18 @@ The login route and every application mutation route remained uncalled.
 
 ## Preserved blockers
 
-1. Reopen MA-09 if the generated type bytes, command, project, schema, receipt
-   or any bound source identity drifts from the verified contract.
+1. MA-09 is reopened. Do not close it until a fresh read-only production
+   catalog receipt, generated type output and repository-pinned provenance
+   bind the post-MA05 schema and pass independent review.
 2. Do not claim Action 650 containment applied or production-verified without
    authorized role-bound behavior and migration evidence.
-3. Do not claim tenant/owner completion from catalog, generated output or
-   merged source evidence.
+3. Tenant/owner completion is bound to the Action 660 production and
+   two-principal evidence, not to the stale generated output.
 4. Reopen MA-11 if production deploy, production assertion or GitHub `main`
    stops identifying the same immutable commit.
 5. Do not create a new durable Supabase contract without separate migration
-   allowlist evidence. Repository-pinned generated-types provenance is current,
-   but it does not prove migration application or parity.
+   allowlist evidence. Current migration parity does not repair the reopened
+   generated-types provenance gate.
 6. Do not treat default-off Action 655 or Session V2 source as runtime or
    milestone authority.
 7. Do not treat synthetic outcome, session or execution contracts as live

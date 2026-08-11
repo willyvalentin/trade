@@ -1,0 +1,110 @@
+{
+  "contract_version": "trade.action660c.ma05-ma06-ma08-closure.v1",
+  "evidence_status": "documentation_delivery_candidate",
+  "observed_at": "2026-08-11T18:09:29Z",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "main_commit": "490e3607d1dfb85046be5ce70c787f897b5d939e",
+    "main_tree": "57909c14bd7fc2867bd67b94ae0c9a4ad94ffb2c",
+    "merge_pull_request": 94,
+    "exact_main_ci_run": 31513617560,
+    "production_supabase_project_ref": "ekdyopdrrkphlrsilyoo",
+    "staging_supabase_project_ref": "pdvzyuhykomwfqyyztru",
+    "canonical_owner_uuid_recorded": false
+  },
+  "production_owner_boundary": {
+    "target_tables": 9,
+    "physical_not_null": 9,
+    "rls_enabled": 9,
+    "owner_policies": 9,
+    "anon_select_revoked": 9,
+    "authenticated_select_revoked": 9,
+    "constraints_expected": 20,
+    "constraints_existing": 20,
+    "constraints_validated": 20,
+    "relationship_indexes_expected": 2,
+    "relationship_indexes_valid_ready": 2,
+    "rpc_public_execute": false,
+    "rpc_anon_execute": false,
+    "rpc_authenticated_execute": false,
+    "rpc_service_role_execute": true,
+    "ma05_target_security_advisor_findings": 0
+  },
+  "ordinary_role_behavior": {
+    "anon_data_api": {
+      "method": "GET",
+      "path": "/rest/v1/recommendations?select=id&limit=1",
+      "http_status": 401,
+      "postgres_code": "42501",
+      "outcome": "permission_denied"
+    },
+    "authenticated_read_only_sql": {
+      "role": "authenticated",
+      "canonical_owner_claim_supplied": true,
+      "postgres_code": "42501",
+      "outcome": "permission_denied"
+    }
+  },
+  "two_principal_staging_proof": {
+    "owner_a_visible_own_rows": 1,
+    "owner_a_visible_other_rows": 0,
+    "owner_b_visible_own_rows": 1,
+    "owner_b_visible_other_rows": 0,
+    "cross_owner_rpc_error": "owned_recommendation_not_found",
+    "same_owner_rpc_disposition": "created",
+    "same_owner_position_count": 1,
+    "other_owner_position_count": 0,
+    "rollback_confirmed": true,
+    "persisted_test_rows": 0,
+    "remaining_test_auth_users": 0,
+    "remaining_test_auth_identities": 0,
+    "final_staging_status": "INACTIVE"
+  },
+  "production_migration_parity": {
+    "version": "20260811163228",
+    "name": "add_fail_closed_application_owner_foundation",
+    "statement_count": 1,
+    "production_statement_bytes": 21658,
+    "repository_file_bytes": 21658,
+    "production_statement_md5": "83e413b3d95cc26106444cc159c0105b",
+    "repository_file_md5": "83e413b3d95cc26106444cc159c0105b",
+    "exact_byte_parity": true
+  },
+  "application_validation": {
+    "focused_suites": 4,
+    "tests_passed": 23,
+    "tests_failed": 0
+  },
+  "staging_migration_boundary": {
+    "production_migration_names_present": 32,
+    "preexisting_staging_only_drafts": 2,
+    "semantic_chain_synchronized": true,
+    "version_history_identical": false,
+    "reason": "synchronized migrations received staging-generated apply timestamps"
+  },
+  "ma09_drift": {
+    "reopen_required": true,
+    "reason": "production public schema changed after the pinned V5 catalog and generated-types receipt",
+    "current_generated_types_sha256": "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c",
+    "owner_columns_present_in_generated_types": false,
+    "owner_aware_rpc_present_in_generated_types": false
+  },
+  "gate_reconciliation": {
+    "pre_action_verified": 11,
+    "closed": ["MA-05", "MA-06", "MA-08"],
+    "reopened": ["MA-09"],
+    "remaining_open": ["MA-09", "MA-13"],
+    "post_action_verified": 13,
+    "total": 15,
+    "percentage": 86.7,
+    "milestone_a_complete": false
+  },
+  "scope_limits": {
+    "database_mutation": false,
+    "auth_mutation": false,
+    "provider_mutation": false,
+    "runtime_mutation": false,
+    "deployment": false,
+    "canonical_owner_uuid_disclosure": false
+  }
+}
