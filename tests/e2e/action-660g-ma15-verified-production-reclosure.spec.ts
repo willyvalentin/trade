@@ -27,7 +27,7 @@ test("MA15 reclosure binds the exact recovery release and read-only smoke", asyn
   expect(roadmap).toContain(
     "| MA-15 production behavioral smoke | verified_current |",
   );
-  expect(ledger).toContain("| unknown_current | MA-13 |");
+  expect(ledger).toContain("| known_gap | MA-13 |");
   expect(ledger).not.toContain("| known_gap | MA-15 |");
 
   expect(Object.keys(evidence).sort()).toEqual(

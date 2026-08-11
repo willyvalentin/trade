@@ -1,29 +1,28 @@
 # Ture Master Roadmap
 
-**ACTION 660G — MA-15 verified production reclosure.**
+**ACTION 660H — accepted manual MA-13 merge control.**
 
-**Document status:** bounded seven-path documentation-only successor that
-records the exact PR #98 recovery release and re-closes MA-15 from green
-production evidence. On its delivery branch this revision is not current-main
-authority. It becomes canonical only after an exact-scope merge, main
-reachability, exact-main CI and a green smoke of the resulting documentation
-release.
+**Document status:** bounded eight-path governance-only successor that records
+the operator's decision to keep this private repository on GitHub Free and use
+a mandatory manual merge control. It resolves MA-13 from unknown to a known,
+accepted gap without awarding gate credit. On its delivery branch this
+revision is not current-main authority.
 
-`roadmap_completion_authority:false_until_main_verified`
+`roadmap_completion_authority:false`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against GitHub `main` commit
-`f463644ddeb7f49fa8b80924d9103ea8970ccae4`, tree
-`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad`, observed on 2026-08-11.
+`7662d3f863f8f921b816670363431df8e1ebcdea`, tree
+`86a59f234b69e63b07a60833224015018be41568`, observed on 2026-08-12.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #98, whose exact-main push
-run `31541394848` completed successfully. Netlify published deploy
-`6a7b9e45ceb7e100087c55fa` for that exact commit. The required post-deploy
-smoke passed: all four owner-bound `positions` embeds returned HTTP 200 and
-none returned HTTP 300. PR #45 remains open, Draft, dirty/conflicting and
+The reconciliation base is the ordinary merge of PR #99, whose exact-main push
+run `31543202986` completed successfully. PR #99 made the verified MA-15
+reclosure canonical. Fresh authenticated GitHub readback shows zero branch
+protection rules and plan-gated HTTP 403 responses for both branch protection
+and repository rulesets. PR #45 remains open, Draft, dirty/conflicting and
 `stale_historical_non_authority`; it overlaps the canonical governance paths
 and must remain unmodified.
 
@@ -46,10 +45,10 @@ must remain visibly and operationally distinct.
 Recommendations and related user/trading data must be private, server-owned,
 observable and released through a reproducible identity gate.
 
-At this delivery branch's evidence boundary, formal status is **14 of 15
+At this delivery branch's evidence boundary, formal status remains **14 of 15
 required gates verified (93.3%)**, with no partial credit. Milestone A remains
-incomplete because MA-13 is `unknown_current`; this revision creates no
-provider or runtime authority.
+incomplete because MA-13 is a `known_gap`; the accepted manual control reduces
+operational risk but creates no gate, provider or runtime authority.
 
 | Gate | Current classification at delivery boundary |
 | --- | --- |
@@ -65,7 +64,7 @@ provider or runtime authority.
 | MA-10 catalog/migration evidence contract source | verified_current |
 | MA-11 release/deployment identity | verified_current |
 | MA-12 repository CI workflow/check execution | verified_current |
-| MA-13 branch protection/required-check policy | unknown_current |
+| MA-13 branch protection/required-check policy | known_gap |
 | MA-14 disciplined worktree/release ownership | verified_current |
 | MA-15 production behavioral smoke | verified_current |
 
@@ -121,6 +120,15 @@ none at HTTP 300, plus two `execution_records` reads at HTTP 200 with no 5xx.
 No form or application mutation route was submitted. MA-15 is therefore
 `verified_current` and remains fail-closed on any later production deploy or
 required-read failure.
+
+**MA-13 accepted-gap record:** the private repository remains on GitHub Free by
+explicit operator decision. Authenticated branch-protection and ruleset reads
+both return the plan boundary HTTP 403, while GraphQL reports zero branch
+protection rules. Every future main mover must therefore use the Action 660H
+manual sequence: frozen exact head, exact-head CI, independent read-only
+review, explicit operator approval of PR plus SHA, ordinary PR merge,
+exact-main CI and release-bound smoke when deployed. This control is not
+GitHub enforcement, awards no MA-13 credit and leaves Milestone A incomplete.
 
 ACTION 668H remains `closed_holding` under operator decision
 `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
@@ -191,11 +199,11 @@ is implied by this roadmap.
 - Track 4's Action 655 foundation is merged via PR #84, default-off and
   runtime-unwired. It provides no database, broker, production or milestone
   authority.
-- Track 5's Action 660F recovery is present on main via PR #98. This bounded
-  seven-path Action 660G successor records the resulting green production
-  recovery and re-closes MA-15 without changing application or provider state.
-  PR #45 remains an overlapping stale historical non-authority and is not
-  modified.
+- Track 5's Action 660F recovery is present on main via PR #98 and Action 660G
+  is canonical via PR #99. This bounded Action 660H successor records the
+  accepted manual MA-13 control without changing application or provider
+  state. PR #45 remains an overlapping stale historical non-authority and is
+  not modified.
 - Track 6's five additive Session V2 paths are merged via PR #85, default-off
   and runtime-unwired. Runtime, tenancy, database, broker and production
   authority remain false.
@@ -241,8 +249,10 @@ migration's one statement is byte-identical to repository source, establishing
 MA-08.
 
 GitHub branch-protection and ruleset endpoints both return HTTP 403 under the
-current private-repository plan. MA-13 is therefore `unknown_current`, not
-absent and not verified.
+current private-repository plan, and GraphQL reports zero branch protection
+rules. The operator elected to remain private on GitHub Free. MA-13 is
+therefore a `known_gap` with accepted manual compensation, not absent, not
+verified and not entitled to gate credit.
 
 ## Superseded assertions preserved for audit
 
@@ -274,3 +284,7 @@ absent and not verified.
   recovery verification now restores 14/15 by re-closing MA-15. This
   documentation grants no new provider, database, migration, broker, release
   or production authority.
+- PR #99 made the Action 660G MA-15 reclosure canonical at main `7662d3f…` and
+  exact-main CI run `31543202986`. Action 660H resolves MA-13's earlier
+  `unknown_current` classification to an accepted `known_gap` without changing
+  the 14/15 arithmetic.

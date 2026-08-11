@@ -38,7 +38,7 @@ jobs:
       - name: TypeScript
         run: ./node_modules/.bin/tsc --noEmit --incremental false
       - name: Browser and server containment
-        run: ./node_modules/.bin/playwright test tests/e2e/action-650-production-data-access-containment.spec.ts tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts tests/e2e/action-652f-server-client-containment.spec.ts tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts --workers=1
+        run: ./node_modules/.bin/playwright test tests/e2e/action-650-production-data-access-containment.spec.ts tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts tests/e2e/action-652f-server-client-containment.spec.ts tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts tests/e2e/action-660h-manual-ma13-merge-control.spec.ts --workers=1
       - name: Authenticated boundary
         run: ./node_modules/.bin/playwright test tests/e2e/action-652-authentication-boundary.spec.ts --workers=1
       - name: Catalog and migration evidence contract
