@@ -3,7 +3,7 @@
 **ACTION 660F — dashboard owner-relation disambiguation recovery candidate and
 fail-closed MA-15 reopening.**
 
-**Evidence timestamp:** 2026-08-11. This bounded six-path successor records the
+**Evidence timestamp:** 2026-08-11. This bounded seven-path successor records the
 post-PR #97 dashboard regression, applies the owner-bound relationship hint and
 keeps MA-15 open pending a separately approved production recovery. On its
 delivery branch it does not authorize repository merging, runtime, production,
@@ -112,7 +112,7 @@ production read is green.
 | 3 | `closed_holding`, Milestone A incomplete | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
 | 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |
-| 5 | recovery delivery candidate | PR #97 is the current main event. This six-path successor records the dashboard regression, reopens MA-15 and carries a source-only fix. PR #45 remains stale non-authority and unmodified. |
+| 5 | recovery delivery candidate | PR #97 is the current main event. This seven-path successor records the dashboard regression, reopens MA-15 and carries a source-only fix. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
 ## Historical authority and supersession ledger

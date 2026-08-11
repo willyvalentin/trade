@@ -3,7 +3,7 @@
 **ACTION 660F — dashboard owner-relation disambiguation recovery candidate and
 fail-closed MA-15 reopening.**
 
-**Document status:** bounded six-path source-only successor that records the
+**Document status:** bounded seven-path source-only successor that records the
 post-PR #97 dashboard regression, applies the owner-bound relation hint and
 keeps MA-15 open pending a separately approved production recovery. On its
 delivery branch this revision is not current-main authority. It becomes
@@ -193,7 +193,7 @@ is implied by this roadmap.
   runtime-unwired. It provides no database, broker, production or milestone
   authority.
 - Track 5's Action 660E governance revision is present on main via PR #97.
-  This bounded six-path successor records the resulting dashboard regression,
+  This bounded seven-path successor records the resulting dashboard regression,
   reopens MA-15 and carries only a source-level recovery candidate. PR #45
   remains an overlapping stale historical non-authority and is not modified.
 - Track 6's five additive Session V2 paths are merged via PR #85, default-off
