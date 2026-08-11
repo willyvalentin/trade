@@ -5,6 +5,7 @@ import {
   RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
 } from "@/lib/recent-recommendation-readback";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 
 export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
@@ -18,10 +19,11 @@ function failed<T>(): ApplicationDataAccessResult<T> {
   return { status: "failed" };
 }
 
-export async function readApplicationDashboardData() {
+export async function readApplicationDashboardData(ownerUserId: string) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
 
-  if (!client) {
+  if (!client || !owner) {
     return unavailable<Record<string, unknown>>();
   }
 
@@ -41,23 +43,30 @@ export async function readApplicationDashboardData() {
     recommendationOutcomes,
     marketRegime,
   ] = await Promise.all([
-    client.from("recommendations").select("*"),
+    client.from("recommendations").select("*").eq("owner_user_id", owner),
     client
       .from("user_settings")
       .select("portfolio_size, risk_per_trade_percent")
+      .eq("owner_user_id", owner)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle(),
     client
       .from("positions")
       .select("*, recommendations(setup_type,invalidation)")
-      .eq("status", "open"),
+      .eq("status", "open")
+      .eq("owner_user_id", owner),
     client
       .from("positions")
       .select("*, recommendations(setup_type)")
       .eq("status", "closed")
+      .eq("owner_user_id", owner)
       .order("closed_at", { ascending: false }),
-    client.from("position_updates").select("*").order("created_at", { ascending: false }),
+    client
+      .from("position_updates")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("created_at", { ascending: false }),
     client
       .from("scheduled_scan_runs")
       .select("id,created_at,scan_date,session_type,status,recommendations_created,message")
@@ -83,6 +92,7 @@ export async function readApplicationDashboardData() {
     client
       .from("recommendation_snapshots")
       .select("*")
+      .eq("owner_user_id", owner)
       .order("created_at", { ascending: false })
       .limit(RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT),
     client
@@ -136,43 +146,56 @@ export async function readApplicationDashboardData() {
   };
 }
 
-export async function readUserSettings() {
+export async function readUserSettings(ownerUserId: string) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<Record<string, unknown> | null>();
+  if (!client || !owner) return unavailable<Record<string, unknown> | null>();
 
   const result = await client
     .from("user_settings")
     .select("*")
+    .eq("owner_user_id", owner)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 
-  return result.error
+  return result.error || !result.data
     ? failed<Record<string, unknown> | null>()
     : { status: "available" as const, data: result.data };
 }
 
-export async function createDefaultUserSettings(settings: Record<string, unknown>) {
+export async function createDefaultUserSettings(
+  ownerUserId: string,
+  settings: Record<string, unknown>,
+) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<Record<string, unknown>>();
+  if (!client || !owner) return unavailable<Record<string, unknown>>();
 
-  const result = await client.from("user_settings").insert(settings).select("*").single();
+  const result = await client
+    .from("user_settings")
+    .insert({ ...settings, owner_user_id: owner })
+    .select("*")
+    .single();
   return result.error
     ? failed<Record<string, unknown>>()
     : { status: "available" as const, data: result.data };
 }
 
 export async function updateUserSettings(
+  ownerUserId: string,
   id: string | number,
   settings: Record<string, unknown>,
 ) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<Record<string, unknown> | null>();
+  if (!client || !owner) return unavailable<Record<string, unknown> | null>();
 
   const result = await client
     .from("user_settings")
     .update(settings)
     .eq("id", id)
+    .eq("owner_user_id", owner)
     .select("*")
     .maybeSingle();
 
@@ -181,15 +204,17 @@ export async function updateUserSettings(
     : { status: "available" as const, data: result.data };
 }
 
-export async function readApplicationExecutionRecords() {
+export async function readApplicationExecutionRecords(ownerUserId: string) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<unknown[]>();
+  if (!client || !owner) return unavailable<unknown[]>();
 
   const result = await client
     .from("execution_records")
     .select(
       "id,created_at,ticker,side,quantity,execution_phase,validation_status,record_fingerprint",
     )
+    .eq("user_id", owner)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -235,19 +260,30 @@ function boundedIdentifiers(value: unknown) {
 }
 
 export async function readOutcomeBackfillRows(
+  ownerUserId: string,
   operation: OutcomeBackfillReadOperation,
   requestedIdentifiers: unknown,
 ) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const identifiers = boundedIdentifiers(requestedIdentifiers);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<unknown[]>();
+  if (!client || !owner) return unavailable<unknown[]>();
   if (!identifiers) return failed<unknown[]>();
 
   const result =
     operation === "snapshots_by_fingerprint"
-      ? await client.from("recommendation_snapshots").select("*").in("snapshot_fingerprint", identifiers)
+      ? await client
+          .from("recommendation_snapshots")
+          .select("*")
+          .eq("owner_user_id", owner)
+          .in("snapshot_fingerprint", identifiers)
       : operation === "snapshots_by_scan_run"
-        ? await client.from("recommendation_snapshots").select("*").in("scan_run_id", identifiers).limit(outcomeBackfillLimit)
+        ? await client
+            .from("recommendation_snapshots")
+            .select("*")
+            .eq("owner_user_id", owner)
+            .in("scan_run_id", identifiers)
+            .limit(outcomeBackfillLimit)
         : operation === "batches_by_fingerprint"
           ? await client.from("recommendation_batches").select("*").in("batch_fingerprint", identifiers)
           : await client.from("recommendation_batches").select("*").in("scan_run_fingerprint", identifiers);
@@ -267,13 +303,15 @@ const recommendationStatuses = new Set([
 ]);
 
 export async function updateRecommendationLifecycle(input: {
+  owner_user_id: string;
   recommendation_id: string;
   status: string;
   archived?: boolean;
   reason_to_avoid?: string;
 }) {
+  const owner = normalizeApplicationOwnerUserId(input.owner_user_id);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<null>();
+  if (!client || !owner) return unavailable<null>();
   if (
     !input.recommendation_id ||
     input.recommendation_id.length > 160 ||
@@ -291,6 +329,7 @@ export async function updateRecommendationLifecycle(input: {
     .from("recommendations")
     .update(update)
     .eq("id", input.recommendation_id)
+    .eq("owner_user_id", owner)
     .select("id,status,archived")
     .maybeSingle();
 
@@ -332,9 +371,13 @@ export type ApplicationOpenPositionResult =
     }
   | { status: "unavailable" | "failed" | "invalid" };
 
-export async function openApplicationPosition(input: Record<string, unknown>) {
+export async function openApplicationPosition(
+  ownerUserId: string,
+  input: Record<string, unknown>,
+) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
   const { client } = getServerSupabaseClient();
-  if (!client) return { status: "unavailable" } as const;
+  if (!client || !owner) return { status: "unavailable" } as const;
   if (
     !validPositionInput(input) ||
     (input.execution_metadata !== undefined &&
@@ -345,7 +388,8 @@ export async function openApplicationPosition(input: Record<string, unknown>) {
     return { status: "invalid" } as const;
   }
 
-  const { data, error } = await client.rpc("app_open_position_transaction", {
+  const { data, error } = await client.rpc("app_open_owned_position_transaction", {
+    p_owner_user_id: owner,
     p_recommendation_id: input.recommendation_id,
     p_ticker: input.ticker,
     p_company_name: input.company_name,
@@ -355,7 +399,7 @@ export async function openApplicationPosition(input: Record<string, unknown>) {
     p_target_1: input.target_1,
     p_target_2: input.target_2,
     p_execution_metadata: input.execution_metadata ?? null,
-    p_command_version: "application_open_position_v1",
+    p_command_version: "application_open_owned_position_v1",
   });
   const row = Array.isArray(data) ? data[0] : data;
   if (
@@ -384,12 +428,14 @@ export async function openApplicationPosition(input: Record<string, unknown>) {
 }
 
 export async function updateApplicationPosition(input: {
+  owner_user_id: string;
   position_id: string;
   operation: "partial_close" | "close";
   values: Record<string, unknown>;
 }) {
+  const owner = normalizeApplicationOwnerUserId(input.owner_user_id);
   const { client } = getServerSupabaseClient();
-  if (!client) return unavailable<null>();
+  if (!client || !owner) return unavailable<null>();
   if (!input.position_id || input.position_id.length > 160) return failed<null>();
 
   const values = input.values;
@@ -424,12 +470,26 @@ export async function updateApplicationPosition(input: {
     return failed<null>();
   }
 
-  let result = await client.from("positions").update(update).eq("id", input.position_id);
+  let result = await client
+    .from("positions")
+    .update(update)
+    .eq("id", input.position_id)
+    .eq("owner_user_id", owner)
+    .select("id")
+    .maybeSingle();
   if (result.error && "execution_metadata" in update) {
     const fallback = { ...update } as Record<string, unknown>;
     delete fallback.execution_metadata;
-    result = await client.from("positions").update(fallback).eq("id", input.position_id);
+    result = await client
+      .from("positions")
+      .update(fallback)
+      .eq("id", input.position_id)
+      .eq("owner_user_id", owner)
+      .select("id")
+      .maybeSingle();
   }
 
-  return result.error ? failed<null>() : { status: "available" as const, data: null };
+  return result.error || !result.data
+    ? failed<null>()
+    : { status: "available" as const, data: null };
 }

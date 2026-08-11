@@ -72,10 +72,11 @@ function parseTargetCount(value: unknown) {
   return value;
 }
 
-async function archiveExpiredRecommendations() {
+async function archiveExpiredRecommendations(ownerUserId: string) {
   const { data, error } = await serverSupabase()
     .from("recommendations")
     .update({ archived: true })
+    .eq("owner_user_id", ownerUserId)
     .or("status.eq.new,status.is.null")
     .or("archived.eq.false,archived.is.null")
     .lt("created_at", getDefaultRecommendationExpiryCutoff())
@@ -304,7 +305,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const expiredRecommendations = await archiveExpiredRecommendations();
+    const expiredRecommendations = await archiveExpiredRecommendations(
+      session.owner_user_id,
+    );
     const marketStatus = await getUsMarketStatus();
     const isPreMarketWatchlistScan = scanWindow === "pre_market";
     const canRunPreMarketWatchlist =
@@ -377,6 +380,7 @@ export async function POST(request: Request) {
     }
 
     const result = await generateRecommendations({
+      ownerUserId: session.owner_user_id,
       sessionType,
       scanWindow,
       targetCount: parseTargetCount(body.target_count),

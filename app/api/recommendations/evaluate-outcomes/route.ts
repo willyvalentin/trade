@@ -24,6 +24,8 @@ import {
   summarizeRecommendationSnapshotShadowEntryTrialMetadata,
 } from "@/lib/recommendation-snapshot";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-core";
+import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
@@ -334,11 +336,14 @@ function parseHorizons(value: unknown): RecommendationOutcomeHorizon[] {
 
 async function loadRecentSupabaseSnapshots() {
   try {
+    const ownerUserId = getConfiguredApplicationOwnerUserId();
+    if (!ownerUserId) return [];
     const { client } = getServerSupabaseClient();
     if (!client) return [];
     const { data, error } = await client
       .from("recommendation_snapshots")
       .select("*")
+      .eq("owner_user_id", ownerUserId)
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -483,11 +488,14 @@ async function loadOfficialLiveSnapshots({
   now: Date;
 }) {
   const serverSupabase = getServerSupabaseClient();
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
 
-  if (!serverSupabase.client) {
+  if (!serverSupabase.client || !ownerUserId) {
     return {
       status: "failed" as const,
-      error: `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`,
+      error: ownerUserId
+        ? `server_supabase_unavailable:${serverSupabase.unavailable_reason ?? "unknown"}`
+        : "application_owner_identity_unavailable",
       batch: null as Record<string, unknown> | null,
       batches: [] as Array<Record<string, unknown>>,
       snapshots: [] as RecommendationSnapshot[],
@@ -602,6 +610,7 @@ async function loadOfficialLiveSnapshots({
         const snapshotResult = await serverSupabase.client
           .from("recommendation_snapshots")
           .select("*")
+          .eq("owner_user_id", ownerUserId)
           .in("snapshot_fingerprint", expectedSnapshotFingerprints)
           .order("created_at", { ascending: false });
 
@@ -621,6 +630,7 @@ async function loadOfficialLiveSnapshots({
         const snapshotResult = await serverSupabase.client
           .from("recommendation_snapshots")
           .select("*")
+          .eq("owner_user_id", ownerUserId)
           .eq("scan_run_id", scanRunFingerprint)
           .order("created_at", { ascending: false });
 
@@ -645,6 +655,7 @@ async function loadOfficialLiveSnapshots({
         const snapshotResult = await serverSupabase.client
           .from("recommendation_snapshots")
           .select("*")
+          .eq("owner_user_id", ownerUserId)
           .contains("payload_json", { batch_fingerprint: selectedBatchFingerprint })
           .order("created_at", { ascending: false });
 
@@ -740,6 +751,7 @@ async function loadOfficialLiveSnapshots({
       const recommendationResult = await serverSupabase.client
         .from("recommendations")
         .select("id")
+        .eq("owner_user_id", ownerUserId)
         .in("id", recommendationIds);
 
       recommendationRowsLoadedCount = Array.isArray(recommendationResult.data)
@@ -1686,6 +1698,17 @@ export async function POST(request: Request) {
         ...diagnostics,
       },
       { status: 401 },
+    );
+  }
+
+  const ownerPrincipal = await verifyConfiguredApplicationOwnerPrincipal();
+  if (ownerPrincipal.status !== "verified") {
+    return NextResponse.json(
+      {
+        error: "Application owner identity is unavailable.",
+        code: "application_owner_identity_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 

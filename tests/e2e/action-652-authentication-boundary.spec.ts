@@ -16,6 +16,7 @@ import {
 } from "../../lib/application-mutation-guard-core";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
+const testOwnerUserId = "11111111-1111-4111-8111-111111111111";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -23,7 +24,9 @@ async function source(relativePath: string) {
 
 async function withPassword<T>(callback: () => Promise<T>) {
   const previous = process.env.TRADE_APP_PASSWORD;
+  const previousOwner = process.env.TURE_APPLICATION_OWNER_USER_ID;
   process.env.TRADE_APP_PASSWORD = "action-652-test-password";
+  process.env.TURE_APPLICATION_OWNER_USER_ID = testOwnerUserId;
 
   try {
     return await callback();
@@ -32,6 +35,11 @@ async function withPassword<T>(callback: () => Promise<T>) {
       delete process.env.TRADE_APP_PASSWORD;
     } else {
       process.env.TRADE_APP_PASSWORD = previous;
+    }
+    if (previousOwner === undefined) {
+      delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    } else {
+      process.env.TURE_APPLICATION_OWNER_USER_ID = previousOwner;
     }
   }
 }
@@ -45,7 +53,10 @@ test("signed application sessions are bounded, opaque, and fail closed", async (
     expect(session).not.toContain(process.env.TRADE_APP_PASSWORD!);
     await expect(
       verifyApplicationSession(session!, new Date("2026-07-24T19:59:59.000Z")),
-    ).resolves.toMatchObject({ status: "authenticated" });
+    ).resolves.toMatchObject({
+      status: "authenticated",
+      owner_user_id: testOwnerUserId,
+    });
     await expect(
       verifyApplicationSession(
         session!,
@@ -58,12 +69,31 @@ test("signed application sessions are bounded, opaque, and fail closed", async (
   });
 });
 
+test("application sessions fail closed when the configured owner is absent or changes", async () => {
+  await withPassword(async () => {
+    const session = await createApplicationSession();
+    expect(session).not.toBeNull();
+
+    delete process.env.TURE_APPLICATION_OWNER_USER_ID;
+    await expect(verifyApplicationSession(session!)).resolves.toEqual({
+      status: "configuration_missing",
+    });
+
+    process.env.TURE_APPLICATION_OWNER_USER_ID =
+      "22222222-2222-4222-8222-222222222222";
+    await expect(verifyApplicationSession(session!)).resolves.toEqual({
+      status: "invalid_signature",
+    });
+  });
+});
+
 test("login and logout routes use the bounded HttpOnly session contract", async () => {
   const loginRoute = await source("app/api/auth/login/route.ts");
   const logoutRoute = await source("app/api/auth/logout/route.ts");
   const sessionCore = await source("lib/application-session-core.ts");
 
   expect(loginRoute).toContain("createApplicationSession()");
+  expect(loginRoute).toContain("verifyConfiguredApplicationOwnerPrincipal()");
   expect(loginRoute).toContain("applicationSessionCookieOptions()");
   expect(loginRoute).toContain("name: TRADE_AUTH_COOKIE");
   expect(loginRoute).not.toContain("password: body.password");

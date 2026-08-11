@@ -1,14 +1,34 @@
 export const TRADE_AUTH_COOKIE = "trade_auth";
 export const applicationSessionContractVersion =
-  "ture_application_session_v1" as const;
+  "ture_application_session_v2_owner_bound" as const;
 export const applicationSessionMaxAgeSeconds = 8 * 60 * 60;
+export const applicationOwnerUserIdEnvironmentKey =
+  "TURE_APPLICATION_OWNER_USER_ID" as const;
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type ApplicationSessionPayload = {
   version: typeof applicationSessionContractVersion;
   role: "trusted_operator";
+  owner_user_id: string;
   issued_at: number;
   expires_at: number;
 };
+
+export function normalizeApplicationOwnerUserId(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  return uuidPattern.test(normalized) ? normalized : null;
+}
+
+export function getConfiguredApplicationOwnerUserId(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  return normalizeApplicationOwnerUserId(
+    environment[applicationOwnerUserIdEnvironmentKey],
+  );
+}
 
 function encodeBase64Url(value: Uint8Array) {
   let binary = "";
@@ -82,6 +102,7 @@ function parsePayload(value: string): ApplicationSessionPayload | null {
     if (
       payload.version !== applicationSessionContractVersion ||
       payload.role !== "trusted_operator" ||
+      !normalizeApplicationOwnerUserId(payload.owner_user_id) ||
       typeof issuedAt !== "number" ||
       typeof expiresAt !== "number" ||
       !Number.isSafeInteger(issuedAt) ||
@@ -99,7 +120,7 @@ function parsePayload(value: string): ApplicationSessionPayload | null {
 }
 
 export type ApplicationSessionVerification =
-  | { status: "authenticated"; expires_at: number }
+  | { status: "authenticated"; owner_user_id: string; expires_at: number }
   | {
       status:
         | "missing"
@@ -111,8 +132,9 @@ export type ApplicationSessionVerification =
 
 export async function createApplicationSession(now = new Date()) {
   const secret = sessionSecret();
+  const ownerUserId = getConfiguredApplicationOwnerUserId();
 
-  if (!secret || !Number.isFinite(now.getTime())) {
+  if (!secret || !ownerUserId || !Number.isFinite(now.getTime())) {
     return null;
   }
 
@@ -120,6 +142,7 @@ export async function createApplicationSession(now = new Date()) {
   const payload: ApplicationSessionPayload = {
     version: applicationSessionContractVersion,
     role: "trusted_operator",
+    owner_user_id: ownerUserId,
     issued_at: issuedAt,
     expires_at: issuedAt + applicationSessionMaxAgeSeconds,
   };
@@ -135,8 +158,9 @@ export async function verifyApplicationSession(
   now = new Date(),
 ): Promise<ApplicationSessionVerification> {
   const secret = sessionSecret();
+  const configuredOwnerUserId = getConfiguredApplicationOwnerUserId();
 
-  if (!secret) {
+  if (!secret || !configuredOwnerUserId) {
     return { status: "configuration_missing" };
   }
 
@@ -170,7 +194,15 @@ export async function verifyApplicationSession(
     return { status: "expired" };
   }
 
-  return { status: "authenticated", expires_at: payload.expires_at };
+  if (payload.owner_user_id !== configuredOwnerUserId) {
+    return { status: "invalid_signature" };
+  }
+
+  return {
+    status: "authenticated",
+    owner_user_id: payload.owner_user_id,
+    expires_at: payload.expires_at,
+  };
 }
 
 export function applicationSessionCookieOptions() {

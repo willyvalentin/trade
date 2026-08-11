@@ -31,6 +31,7 @@ export async function POST(request: Request) {
   }
 
   const result = await readOutcomeBackfillRows(
+    session.owner_user_id,
     operation as OutcomeBackfillReadOperation,
     body?.identifiers,
   );

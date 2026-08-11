@@ -14,6 +14,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid recommendation lifecycle input." }, { status: 400 });
   }
   const result = await updateRecommendationLifecycle({
+    owner_user_id: session.owner_user_id,
     recommendation_id: body.recommendation_id,
     status: body.status,
     ...(typeof body.archived === "boolean" ? { archived: body.archived } : {}),

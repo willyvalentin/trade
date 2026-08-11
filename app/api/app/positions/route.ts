@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ error: "Invalid position input." }, { status: 400 });
-  const result = await openApplicationPosition(body);
+  const result = await openApplicationPosition(session.owner_user_id, body);
   if (result.status === "invalid") {
     return NextResponse.json({ error: "Invalid position input." }, { status: 400 });
   }
@@ -42,6 +42,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid position lifecycle input." }, { status: 400 });
   }
   const result = await updateApplicationPosition({
+    owner_user_id: session.owner_user_id,
     position_id: body.position_id,
     operation: body.operation,
     values: body.values as Record<string, unknown>,

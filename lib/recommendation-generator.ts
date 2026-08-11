@@ -90,6 +90,7 @@ import {
   refreshSelectedCandidateReferences,
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
+import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -111,6 +112,7 @@ type ConfidenceBreakdown = {
 type EntryTypeMetadata = RecommendationEntryTypeMetadata;
 
 export type GenerateRecommendationsInput = {
+  ownerUserId: string;
   sessionType: SessionType;
   scanWindow: IntradayScanWindow;
   targetCount?: number;
@@ -3200,6 +3202,7 @@ async function generateRecommendationsWithOpenAI(
 }
 
 export async function generateRecommendations({
+  ownerUserId,
   sessionType,
   scanWindow,
   targetCount,
@@ -3215,6 +3218,15 @@ export async function generateRecommendations({
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
+    const owner = normalizeApplicationOwnerUserId(ownerUserId);
+    if (!owner) {
+      throw new RecommendationGenerationError(
+        "Application owner identity is unavailable.",
+        503,
+        { persistence_error_type: "application_owner_identity_unavailable" },
+      );
+    }
+
     const serverSupabase = getServerSupabaseClient();
     const db = serverSupabase.client;
 
@@ -3317,20 +3329,23 @@ export async function generateRecommendations({
               "long_only",
             ].join(","),
           )
+          .eq("owner_user_id", owner)
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle(),
         db
           .from("recommendations")
           .select("ticker,session_type")
+          .eq("owner_user_id", owner)
           .gte("created_at", todayStart),
         db
           .from("recommendations")
           .select("ticker,status,archived,created_at")
+          .eq("owner_user_id", owner)
           .or("status.eq.new,status.is.null")
           .or("archived.eq.false,archived.is.null")
           .gte("created_at", getDefaultRecommendationExpiryCutoff()),
-        db.from("positions").select("ticker,status"),
+        db.from("positions").select("ticker,status").eq("owner_user_id", owner),
       ]);
 
     if (settingsResult.error) {
@@ -4456,7 +4471,12 @@ export async function generateRecommendations({
 
     const insertResult = await db
       .from("recommendations")
-      .insert(recommendationsToInsert)
+      .insert(
+        recommendationsToInsert.map((recommendation) => ({
+          ...recommendation,
+          owner_user_id: owner,
+        })),
+      )
       .select("*");
 
     if (insertResult.error) {

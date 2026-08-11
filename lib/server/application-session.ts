@@ -10,6 +10,7 @@ import {
   type ApplicationSessionVerification,
 } from "@/lib/application-session-core";
 import { evaluateApplicationMutationOrigin } from "@/lib/application-mutation-guard-core";
+import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 
 export { TRADE_AUTH_COOKIE } from "@/lib/application-session-core";
 
@@ -19,13 +20,18 @@ export async function verifyCurrentApplicationSession() {
 }
 
 export async function hasApplicationSession() {
-  return (await verifyCurrentApplicationSession()).status === "authenticated";
+  return (await requireApplicationSession()) !== null;
 }
 
 export async function requireApplicationSession() {
   const result = await verifyCurrentApplicationSession();
+  if (result.status !== "authenticated") return null;
 
-  return result.status === "authenticated" ? result : null;
+  const principal = await verifyConfiguredApplicationOwnerPrincipal();
+  return principal.status === "verified" &&
+    principal.owner_user_id === result.owner_user_id
+    ? result
+    : null;
 }
 
 export async function requireApplicationPageSession() {
