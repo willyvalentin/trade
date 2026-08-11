@@ -6,9 +6,15 @@ TypeScript output without changing the database.
 The catalog capture ran through the Supabase Management API inside an explicit
 `READ ONLY` transaction. The API login role is `postgres`; its default is not
 read-only, so the committed query and receipt deliberately record both the
-effective role and the transaction-local read-only state. An attempted local
-switch to `supabase_read_only_user` was denied by PostgreSQL and was not used
-as evidence.
+effective role and the transaction-local read-only state. The observation
+timestamp is returned by `transaction_timestamp()` in that same catalog row.
+An attempted local switch to `supabase_read_only_user` was denied by
+PostgreSQL and was not used as evidence.
+
+The otherwise ignored Supabase CLI linked-project metadata is frozen as
+`linked-project-attestation-v2.json`. Its project, organization and source
+digest are repository-bound so the SQL query's linked target cannot be
+replaced by the hard-coded project label in the query.
 
 The receipt contains the complete `public` catalog snapshot, deterministic
 per-dimension hashes, an aggregate hash, the exact project ref, CLI version,

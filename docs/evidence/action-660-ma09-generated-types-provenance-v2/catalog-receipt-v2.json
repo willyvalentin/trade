@@ -1,6 +1,6 @@
 {
   "contract_version": "trade.action660.ma09.catalog-typegen-evidence.v2",
-  "observed_at": "2026-08-11T18:27:48Z",
+  "observed_at": "2026-08-11T19:27:19.850135Z",
   "authority": {
     "organization": "Valentin Labs",
     "project": "Trade",
@@ -9409,7 +9409,7 @@
   },
   "capture_binding": {
     "query_path": "scripts/action-660-ma09-read-only-catalog.sql",
-    "query_sha256": "8e63c7515672e9d483a6b79d70ba1b632ccc8fc2ac7fb783ee848c8d68dac3fd",
+    "query_sha256": "97a2b28d495799500a72e9d19b1c127a1f9ef46a084c1c465ef546570e9616fb",
     "dimension_order": [
       "schemas",
       "tables",

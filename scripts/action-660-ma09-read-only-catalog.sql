@@ -194,6 +194,10 @@ composites as (
   ) x
 )
 select jsonb_build_object(
+  'observed_at', to_char(
+    transaction_timestamp() at time zone 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+  ),
   'authority', jsonb_build_object(
     'project_ref', 'ekdyopdrrkphlrsilyoo',
     'effective_role', current_user,

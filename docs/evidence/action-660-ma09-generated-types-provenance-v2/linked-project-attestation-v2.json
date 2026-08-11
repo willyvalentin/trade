@@ -1,0 +1,9 @@
+{
+  "protocol": "trade.action660.ma09.supabase-linked-project-attestation.v2",
+  "source_kind": "supabase_cli_linked_project_metadata",
+  "source_sha256": "a0d9a6e16fec2e53962eb3e4a3a01cca998be15541df1c1aa48ce8cb70b8a9b4",
+  "project_ref": "ekdyopdrrkphlrsilyoo",
+  "project_name": "Trade",
+  "organization_id": "ldcctdjgqpcrliqsltya",
+  "organization_slug": "ldcctdjgqpcrliqsltya"
+}

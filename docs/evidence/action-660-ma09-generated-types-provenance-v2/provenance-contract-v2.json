@@ -1,7 +1,7 @@
 {
   "contract_version": "trade.action660.ma09.generated-types-provenance.v2",
   "evidence_status": "repository_pinned_delivery_candidate",
-  "observed_at": "2026-08-11T18:27:48Z",
+  "observed_at": "2026-08-11T19:27:19.850135Z",
   "authority": {
     "organization": "Valentin Labs",
     "project": "Trade",
@@ -14,7 +14,7 @@
   "source_receipt": {
     "path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/catalog-receipt-v2.json",
     "contract_version": "trade.action660.ma09.catalog-typegen-evidence.v2",
-    "sha256": "a98e1af29da44f3d643aa09dbc1878ff225378bc9d52b94172011c09a82c69ae",
+    "sha256": "7fe0c253404fea6c175ae36fad3fd16699b3acdf06351c6929c694e54d75f530",
     "complete": true,
     "truncated": false,
     "counts": {
@@ -29,7 +29,9 @@
       "composites": 0
     },
     "catalog_manifest_sha256": "69ed3224421ff32cdc0b400d70c8c1116f5bf5eea8b68197ead83e6767b08885",
-    "catalog_aggregate_sha256": "3402179533f13f175ae61f7f5fd803587156a3e450240d8c40c3cbac30fd6509"
+    "catalog_aggregate_sha256": "3402179533f13f175ae61f7f5fd803587156a3e450240d8c40c3cbac30fd6509",
+    "linked_project_attestation_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/linked-project-attestation-v2.json",
+    "linked_project_attestation_sha256": "97ba08912db8b3965c85f03ca33dbeae6642e4a2b4eaba5a43775e02d75c805c"
   },
   "generator": {
     "cli_version": "2.107.0",
@@ -72,11 +74,15 @@
   "repository_sources": [
     {
       "path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/catalog-receipt-v2.json",
-      "sha256": "a98e1af29da44f3d643aa09dbc1878ff225378bc9d52b94172011c09a82c69ae"
+      "sha256": "7fe0c253404fea6c175ae36fad3fd16699b3acdf06351c6929c694e54d75f530"
     },
     {
       "path": "scripts/action-660-ma09-read-only-catalog.sql",
-      "sha256": "8e63c7515672e9d483a6b79d70ba1b632ccc8fc2ac7fb783ee848c8d68dac3fd"
+      "sha256": "97a2b28d495799500a72e9d19b1c127a1f9ef46a084c1c465ef546570e9616fb"
+    },
+    {
+      "path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/linked-project-attestation-v2.json",
+      "sha256": "97ba08912db8b3965c85f03ca33dbeae6642e4a2b4eaba5a43775e02d75c805c"
     },
     {
       "path": "supabase/migrations/20260811163228_add_fail_closed_application_owner_foundation.sql",
@@ -98,7 +104,7 @@
     "stacked_base_tree": "fa1d70d46d1f3f90e90ba96bb5e5b5feda7da21b",
     "stacked_base_pr": 95,
     "gate": "MA-09",
-    "pre_delivery_verified_count": 13,
+    "stacked_base_candidate_count": 13,
     "post_delivery_candidate_count": 14,
     "total_gate_count": 15,
     "closure_conditions": [
