@@ -53,12 +53,16 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .maybeSingle(),
     client
       .from("positions")
-      .select("*, recommendations(setup_type,invalidation)")
+      .select(
+        "*, recommendations!positions_recommendation_owner_fkey(setup_type,invalidation)",
+      )
       .eq("status", "open")
       .eq("owner_user_id", owner),
     client
       .from("positions")
-      .select("*, recommendations(setup_type)")
+      .select(
+        "*, recommendations!positions_recommendation_owner_fkey(setup_type)",
+      )
       .eq("status", "closed")
       .eq("owner_user_id", owner)
       .order("closed_at", { ascending: false }),
