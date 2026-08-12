@@ -746,6 +746,123 @@ test.describe("Action 666AQ governed improvement end-to-end replay", () => {
         }).valid,
       ).toBe(false);
     }
+
+    const malformedValues: Array<{
+      key: "completed_capture_request" | "request_version" | "source_namespace";
+      values: unknown[];
+    }> = [
+      {
+        key: "request_version",
+        values: [undefined, null, 42, "wrong", {}, []],
+      },
+      {
+        key: "source_namespace",
+        values: [undefined, null, 42, "wrong", {}, []],
+      },
+      {
+        key: "completed_capture_request",
+        values: [undefined, null, 42, "wrong", {}, []],
+      },
+    ];
+    for (const mutation of malformedValues) {
+      for (const malformedValue of mutation.values) {
+        const malformed = structuredClone(
+          action666aqProposalReadyRequest,
+        ) as Record<string, unknown>;
+        malformed[mutation.key] = malformedValue;
+        const result = harness.replay(
+          malformed as CanonicalGovernedImprovementEndToEndRequest,
+        );
+        expect(result.status, `${mutation.key}:${String(malformedValue)}`).toBe(
+          "rejected",
+        );
+        expect(
+          verifyCanonicalGovernedImprovementEndToEndResult({
+            request: malformed as CanonicalGovernedImprovementEndToEndRequest,
+            result,
+            harness,
+          }).valid,
+        ).toBe(false);
+      }
+    }
+
+    for (const captureMutation of [
+      { request_version: "wrong" },
+      { source_namespace: "wrong" },
+      { unexpected: true },
+    ]) {
+      const malformed = structuredClone(
+        action666aqProposalReadyRequest,
+      ) as unknown as Record<string, Record<string, unknown>>;
+      malformed.completed_capture_request = {
+        ...malformed.completed_capture_request,
+        ...captureMutation,
+      };
+      const result = harness.replay(
+        malformed as unknown as CanonicalGovernedImprovementEndToEndRequest,
+      );
+      expect(result.status).toBe("rejected");
+      expect(
+        verifyCanonicalGovernedImprovementEndToEndResult({
+          request:
+            malformed as unknown as CanonicalGovernedImprovementEndToEndRequest,
+          result,
+          harness,
+        }).valid,
+      ).toBe(false);
+    }
+
+    for (const captureKey of Object.keys(
+      action666aqProposalReadyRequest.completed_capture_request,
+    )) {
+      const malformed = structuredClone(
+        action666aqProposalReadyRequest,
+      ) as unknown as Record<string, Record<string, unknown>>;
+      delete malformed.completed_capture_request[captureKey];
+      const result = harness.replay(
+        malformed as unknown as CanonicalGovernedImprovementEndToEndRequest,
+      );
+      expect(result.status, `capture:${captureKey}`).toBe("rejected");
+      expect(
+        verifyCanonicalGovernedImprovementEndToEndResult({
+          request:
+            malformed as unknown as CanonicalGovernedImprovementEndToEndRequest,
+          result,
+          harness,
+        }).valid,
+      ).toBe(false);
+    }
+
+    for (const descriptorMutation of ["hidden", "accessor"] as const) {
+      const malformed = structuredClone(
+        action666aqProposalReadyRequest,
+      ) as Record<string, unknown>;
+      Object.defineProperty(
+        malformed,
+        "request_version",
+        descriptorMutation === "hidden"
+          ? {
+              value: malformed.request_version,
+              enumerable: false,
+            }
+          : {
+              get: () =>
+                action666aqProposalReadyRequest.request_version,
+              enumerable: true,
+            },
+      );
+      const result = harness.replay(
+        malformed as CanonicalGovernedImprovementEndToEndRequest,
+      );
+      expect(result.status).toBe("rejected");
+      expect(
+        verifyCanonicalGovernedImprovementEndToEndResult({
+          request: malformed as CanonicalGovernedImprovementEndToEndRequest,
+          result,
+          harness,
+        }).valid,
+      ).toBe(false);
+    }
   });
 
   test("golden report is exact synthetic evidence, never performance", () => {

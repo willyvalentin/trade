@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_VERSION,
+  CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_REQUEST_VERSION,
   CANONICAL_COMPLETED_IMPROVEMENT_TERMINAL_RESULT_VERSION,
   createCanonicalCompletedImprovementCaptureHarness,
   verifyCanonicalCompletedImprovementCaptureResult,
@@ -430,6 +431,40 @@ function snapshotEndToEndRequest(
     actualKeys.some(
       (key) => typeof key !== "string" || !allowedKeys.has(key),
     )
+  ) {
+    return null;
+  }
+  const captureRequest = ownDataValue(snapshot, "completed_capture_request");
+  if (
+    snapshot.request_version !==
+      CANONICAL_GOVERNED_IMPROVEMENT_END_TO_END_REQUEST_VERSION ||
+    snapshot.source_namespace !==
+      "completed_governed_improvement_replay_input" ||
+    !captureRequest.present ||
+    !hasExactDataKeys(captureRequest.value, [
+      "completed_at",
+      "declared_bindings",
+      "expected_registry_root_digest",
+      "producer_capture_identity",
+      "request_version",
+      "source_artifact_digests",
+      "source_namespace",
+      "trusted_input_digest",
+      "trusted_input_identity",
+      "upstream_sources",
+    ]) ||
+    captureRequest.value.request_version !==
+      CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_REQUEST_VERSION ||
+    captureRequest.value.source_namespace !==
+      "completed_improvement_capture_inputs" ||
+    typeof captureRequest.value.completed_at !== "string" ||
+    typeof captureRequest.value.expected_registry_root_digest !== "string" ||
+    typeof captureRequest.value.producer_capture_identity !== "string" ||
+    typeof captureRequest.value.trusted_input_digest !== "string" ||
+    typeof captureRequest.value.trusted_input_identity !== "string" ||
+    !isRecord(captureRequest.value.declared_bindings) ||
+    !isRecord(captureRequest.value.source_artifact_digests) ||
+    !isRecord(captureRequest.value.upstream_sources)
   ) {
     return null;
   }

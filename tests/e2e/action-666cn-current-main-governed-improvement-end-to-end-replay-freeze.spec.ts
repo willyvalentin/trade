@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cn-current-main-governed-improvement-end-to-end-replay/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "16737be7a7b47b1a8f217873fbdcd7c1d74dfdabca8adf266c458c217cc22b26";
+  "6d5fba9e20bb2ab8fcad92d2cece124efc1128e1fb6e777957750530b6f95d68";
 
 const expectedManifest = {
   schema_version:
@@ -30,7 +30,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "ff44c32e7bec1bbacd9c827686e5b412e77d0554b3b1fadc769f7c557d6b4cd6",
+      "8cd918d84fcfc9017a6f21fc33c82c803f5b3dcb169a3dda1be3a44dc89d25ba",
     artifacts: [
       {
         path:
@@ -41,7 +41,7 @@ const expectedManifest = {
       {
         path: "docs/action-666aq-governed-improvement-end-to-end-replay.md",
         sha256:
-          "2c6f9951bdabb5a4207f845d57b2b982c28e877ce67e125e87374ed47650ca28",
+          "7cfb98298dbefe53d158325f758e93a8810a7963aa7a941d7be4aab11f686120",
       },
       {
         path:
@@ -53,13 +53,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
         sha256:
-          "b15c4aff369e505095177da68042067c41a2f62a6126b41a1bed48b1dffaba4b",
+          "f967c8096f65837851b33442458106d61b2b5ddc21d0144875d9b09c7deeed3a",
       },
       {
         path:
           "tests/e2e/action-666aq-governed-improvement-end-to-end-replay.spec.ts",
         sha256:
-          "9b2129b242501dbe483eb8956437bca783529e28d774f0532e8901d1a3ad9d24",
+          "a23285c75733392b3893d7d472eaf6c0463d8922c0f666bb7e563a6711af8b77",
       },
     ],
   },
@@ -84,6 +84,7 @@ const expectedManifest = {
     construction_time_lookup_and_projection_snapshot_required: true,
     canonical_recursive_request_and_result_surface_required: true,
     mandatory_outer_request_keys_required: true,
+    exact_outer_literals_and_capture_shell_required: true,
     request_and_result_cloneability_required: true,
     private_execution_counters_required: true,
     current_private_stage_verifier_authorities_required: true,

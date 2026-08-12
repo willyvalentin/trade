@@ -51,9 +51,10 @@ The historical v1 implementation is upgraded to v2 before freezing:
 4. request and result runtime surfaces reject cycles, symbols, hidden keys,
    accessors, sparse arrays, extra array keys, non-finite values and
    Proxy/uncloneable surfaces;
-5. the outer request requires all three namespace/version/capture keys and
-   permits no unexpected keys, while its five historical caller-authority
-   names remain explicitly classified as conflicts;
+5. the outer request requires all three namespace/version/capture keys, exact
+   outer and capture literals, the canonical capture own-key shell and shallow
+   value types, and permits no unexpected keys; its five historical
+   caller-authority names remain explicitly classified as conflicts;
 6. execution counters are private and exposed only through frozen snapshots;
    caller counters are never mutated;
 7. capture, adapter and proposal verification use their current private
