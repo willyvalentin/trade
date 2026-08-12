@@ -6,57 +6,60 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
-  "docs/evidence/action-666cl-current-main-improvement-evidence-adapter/foundation-freeze-manifest.json";
+  "docs/evidence/action-666cn-current-main-governed-improvement-end-to-end-replay/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "6d2647a1473a59e471299dafa90061d8cf9ae203ad7cf19f796c6848d03a4134";
+  "6d5fba9e20bb2ab8fcad92d2cece124efc1128e1fb6e777957750530b6f95d68";
 
 const expectedManifest = {
   schema_version:
-    "action_666cl_current_main_improvement_evidence_adapter_foundation_freeze_v1",
+    "action_666cn_current_main_governed_improvement_end_to_end_replay_foundation_freeze_v1",
   authority: {
     repository: "willyvalentin/trade",
-    candidate_base_commit: "0318046d6e0350694b07ab4f35c491841d3e723b",
-    candidate_base_tree: "801bc80ae5f606f81c89cc65cab729a50f850d52",
-    historical_source_pull_request: 57,
-    historical_source_head: "e264715d2390574c639289ab0068acbf0387899c",
-    historical_normative_child: "e87bb62198b54143ea9d3456a1d7872dc81d8871",
+    candidate_base_commit: "a5aa598de7b10a36e3e026ef98df81219559a09c",
+    candidate_base_tree: "929e6e3fcee63b9dcec3232e378d75f254ecba12",
+    historical_source_pull_request: 60,
+    historical_source_head: "1d82cb1bc45ce02e6a9f793e53c815f17e15dab7",
     historical_review_authority_reused: false,
     historical_evidence_artifacts_imported: false,
   },
   foundation: {
-    contract_version: "canonical_completed_improvement_evidence_adapter_v2",
-    replay_version: "canonical_improvement_proposal_replay_v2",
+    contract_version:
+      "canonical_governed_improvement_end_to_end_replay_v2",
+    request_version:
+      "canonical_governed_improvement_end_to_end_request_v1",
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "28296150a6adbdcdacce8f370715cb13543a3ceeabf69446ff8d3034687197c6",
+      "8cd918d84fcfc9017a6f21fc33c82c803f5b3dcb169a3dda1be3a44dc89d25ba",
     artifacts: [
       {
-        path: "docs/action-666ac-completed-improvement-evidence-adapter.md",
+        path:
+          "docs/action-666aq-golden-governed-improvement-end-to-end-report.json",
         sha256:
-          "3d5e417e08d0049d02013d2f3d5a3419dcc6af659f23d7350ef7bddf3089ea30",
+          "7c225f959bf07f9808acdce22b8442c791429ff0131ebc513263cef435bc56ea",
       },
       {
-        path: "docs/action-666ac-golden-improvement-adapter-report.json",
+        path: "docs/action-666aq-governed-improvement-end-to-end-replay.md",
         sha256:
-          "0788a3a40b516d4ef9d90778806e1bae6c774014a1b8c26bcd76dbbe403a2861",
+          "7cfb98298dbefe53d158325f758e93a8810a7963aa7a941d7be4aab11f686120",
       },
       {
         path:
-          "lib/server/canonical-model-improvement-input-adapter-fixtures.ts",
+          "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
         sha256:
-          "1bc228df668777fbf8d34dc966f472d518dd0cf4db73570ca7bc46bbf898071e",
-      },
-      {
-        path: "lib/server/canonical-model-improvement-input-adapter.ts",
-        sha256:
-          "574c4ce69ed00c2f1ce36697a06da2f9a66091168aa191f6655c152b4b5e7e6d",
+          "ac55b6c9ce0ac2276fef6fc0618e45199165de67ab7ec43b6249272465ad20f0",
       },
       {
         path:
-          "tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts",
+          "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
         sha256:
-          "3bda8a3379ca4525f98234f659dd0b3c8a792c6943d207a80335fc1d50100ca4",
+          "f967c8096f65837851b33442458106d61b2b5ddc21d0144875d9b09c7deeed3a",
+      },
+      {
+        path:
+          "tests/e2e/action-666aq-governed-improvement-end-to-end-replay.spec.ts",
+        sha256:
+          "a23285c75733392b3893d7d472eaf6c0463d8922c0f666bb7e563a6711af8b77",
       },
     ],
   },
@@ -64,33 +67,39 @@ const expectedManifest = {
     server_only: true,
     synthetic_only: true,
     fixture_only: true,
-    offline_only: true,
     read_only: true,
     default_off: true,
+    runtime_unwired: true,
     live_consumer_added: false,
     database_or_provider_access_added: false,
     persistence_or_migration_added: false,
     ranking_or_model_effect_added: false,
+    training_or_promotion_added: false,
     experiment_execution_added: false,
     broker_or_execution_authority_added: false,
   },
   runtime_remediation: {
     literal_activation_gate_required: true,
-    canonical_runtime_surface_required: true,
-    exact_option_dependency_and_request_shapes_required: true,
-    exact_adapter_owned_bundle_and_authority_shells_required: true,
-    module_recognized_registry_authority_preserved_in_snapshot: true,
-    construction_time_lookup_snapshot_required: true,
-    descriptor_safe_lookup_and_return_validation_required: true,
+    exact_active_option_and_dependency_shells_required: true,
+    construction_time_lookup_and_projection_snapshot_required: true,
+    canonical_recursive_request_and_result_surface_required: true,
+    mandatory_outer_request_keys_required: true,
+    exact_outer_literals_and_capture_shell_required: true,
+    request_and_result_cloneability_required: true,
     private_execution_counters_required: true,
-    private_frozen_replay_harness_authority_required: true,
-    malformed_request_replay_authority_forbidden: true,
+    current_private_stage_verifier_authorities_required: true,
+    private_frozen_end_to_end_harness_authority_required: true,
+    descriptor_safe_lookup_return_validation_required: true,
+    unverifiable_capture_request_rejected: true,
+    predecessor_consumer_oracles_reconciled: true,
     structured_never_throw_failure_required: true,
+    recursive_adversarial_cross_verification_required: true,
+    exact_recursive_result_equality_required: true,
   },
   delivery: {
     historical_pull_request_merge_authorized: false,
     candidate_merge_authorized: false,
-    deployment_authorized: false,
+    production_deployment_authorized: false,
     provider_or_database_action_authorized: false,
     exact_head_ci_required: true,
     independent_current_head_review_required: true,
@@ -120,7 +129,7 @@ function cloneManifest(): MutableJson {
 function validateManifest(value: unknown) {
   if (!isDeepStrictEqual(value, expectedManifest)) {
     throw new Error(
-      "current_main_improvement_evidence_adapter_freeze_manifest_drift",
+      "current_main_governed_improvement_end_to_end_replay_freeze_manifest_drift",
     );
   }
 }
@@ -142,7 +151,6 @@ function mutationMatrix(
       if (Array.isArray(current)) return current[part as number];
       return (current as { [key: string]: MutableJson })[part as string];
     }, value);
-
   const value = readAt(root, pathToValue);
   if (Array.isArray(value)) {
     const added = cloneManifest();
@@ -156,12 +164,11 @@ function mutationMatrix(
       (readAt(reordered, pathToValue) as MutableJson[]).reverse();
       mutations.push(reordered);
     }
-    for (let index = 0; index < value.length; index += 1) {
-      mutations.push(...mutationMatrix(root, [...pathToValue, index]));
-    }
+    value.forEach((_, index) =>
+      mutations.push(...mutationMatrix(root, [...pathToValue, index])),
+    );
     return mutations;
   }
-
   if (value !== null && typeof value === "object") {
     const extra = cloneManifest();
     (readAt(extra, pathToValue) as { [key: string]: MutableJson }).unexpected =
@@ -177,16 +184,12 @@ function mutationMatrix(
     }
     return mutations;
   }
-
   const changed = cloneManifest();
-  const parentPath = pathToValue.slice(0, -1);
+  const parent = readAt(changed, pathToValue.slice(0, -1));
   const key = pathToValue.at(-1);
-  const parent = readAt(changed, parentPath);
-  if (typeof key === "number") {
-    (parent as MutableJson[])[key] = changedLeaf(value);
-  } else if (key !== undefined) {
+  if (typeof key === "number") (parent as MutableJson[])[key] = changedLeaf(value);
+  else if (key !== undefined)
     (parent as { [key: string]: MutableJson })[key] = changedLeaf(value);
-  }
   mutations.push(changed);
   return mutations;
 }
@@ -217,62 +220,59 @@ async function sourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
-test("Action 666CL binds the exact five-file adapter foundation to current main", async () => {
+test("Action 666CN binds the exact five-file replay foundation to current main", async () => {
   const rawManifest = await source(manifestPath);
   expect(sha256(rawManifest)).toBe(manifestSha256);
-
   const manifest: unknown = JSON.parse(rawManifest.toString("utf8"));
   validateManifest(manifest);
-
-  const artifactLines = await Promise.all(
+  const lines = await Promise.all(
     expectedManifest.foundation.artifacts.map(async (artifact) => {
       const bytes = await source(artifact.path);
       expect(sha256(bytes), artifact.path).toBe(artifact.sha256);
       return `${artifact.path}  ${artifact.sha256}\n`;
     }),
   );
-  expect(sha256([...artifactLines].sort().join(""))).toBe(
+  expect(sha256(lines.sort().join(""))).toBe(
     expectedManifest.foundation.aggregate_sha256,
   );
 });
 
-test("Action 666CL rejects every authority, scope, remediation and delivery mutation", () => {
+test("Action 666CN rejects every authority, scope, remediation and delivery mutation", () => {
   const mutations = mutationMatrix(cloneManifest());
   expect(mutations.length).toBeGreaterThan(100);
   for (const mutation of mutations) {
     expect(() => validateManifest(mutation)).toThrow(
-      "current_main_improvement_evidence_adapter_freeze_manifest_drift",
+      "current_main_governed_improvement_end_to_end_replay_freeze_manifest_drift",
     );
   }
 });
 
-test("Action 666CL excludes historical review authority and binds delivery", async () => {
+test("Action 666CN excludes historical review authority and binds delivery", async () => {
   const rebuild = (
     await source(
-      "docs/action-666cl-current-main-improvement-evidence-adapter-rebuild.md",
+      "docs/action-666cn-current-main-governed-improvement-end-to-end-replay-rebuild.md",
     )
   ).toString("utf8");
-  expect(rebuild).toContain("PR #57 remains historical non-authority");
-  expect(rebuild).toContain("No historical freeze or review artifact");
+  expect(rebuild).toContain("Historical PR #60 remains open stacked non-authority");
+  expect(rebuild).toContain("cannot authorize this current-main rebuild");
   expect(rebuild).toContain(
     "explicit operator approval naming the PR and exact head",
   );
   expect(rebuild).toContain("Spår 2 remains open");
-
-  for (const historicalArtifact of [
-    "docs/action-666ad-improvement-adapter-foundation-freeze-manifest.json",
-    "docs/action-666ad-independent-review.md",
-    "docs/action-666ae-improvement-adapter-foundation-refreeze-manifest.json",
-    "docs/action-666ae-improvement-adapter-independent-rereview.md",
+  for (const historical of [
+    "docs/action-666ar-governed-improvement-end-to-end-replay-freeze-manifest.json",
+    "docs/action-666ar-governed-improvement-end-to-end-replay-independent-review.md",
+    "docs/action-666as-governed-improvement-end-to-end-replay-refreeze-manifest.json",
+    "docs/action-666as-governed-improvement-end-to-end-replay-independent-rereview.md",
   ]) {
-    expect(await exists(historicalArtifact), historicalArtifact).toBe(false);
+    expect(await exists(historical), historical).toBe(false);
   }
 });
 
-test("Action 666CL remains server-only and absent from live consumers", async () => {
+test("Action 666CN remains server-only and absent from live consumers", async () => {
   for (const modulePath of [
-    "lib/server/canonical-model-improvement-input-adapter.ts",
-    "lib/server/canonical-model-improvement-input-adapter-fixtures.ts",
+    "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
+    "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
   ]) {
     const moduleSource = (await source(modulePath)).toString("utf8");
     expect(moduleSource.startsWith('import "server-only";'), modulePath).toBe(
@@ -282,20 +282,17 @@ test("Action 666CL remains server-only and absent from live consumers", async ()
       /@supabase|createClient|fetch\(|process\.env|child_process|app\/api/,
     );
   }
-
   const candidates = (
     await Promise.all(["app", "components", "lib"].map(sourceFiles))
   ).flat();
   const consumers: string[] = [];
   for (const candidate of candidates) {
     const content = (await source(candidate)).toString("utf8");
-    if (content.includes("canonical-model-improvement-input-adapter")) {
+    if (content.includes("canonical-governed-improvement-end-to-end-replay")) {
       consumers.push(candidate);
     }
   }
   expect(consumers.sort()).toEqual([
-    "lib/server/canonical-completed-improvement-evidence-capture.ts",
-    "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
-    "lib/server/canonical-model-improvement-input-adapter-fixtures.ts",
+    "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
   ]);
 });

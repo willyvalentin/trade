@@ -299,5 +299,7 @@ test("Action 666CM remains server-only and absent from live consumers", async ()
   }
   expect(consumers.sort()).toEqual([
     "lib/server/canonical-completed-improvement-evidence-capture-fixtures.ts",
+    "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
+    "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
   ]);
 });
