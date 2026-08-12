@@ -112,6 +112,127 @@ function explanationFromPayload(
   };
 }
 
+type RuntimePath = Array<string | number>;
+
+function runtimeRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function runtimeObjectFieldPaths(
+  value: unknown,
+  path: RuntimePath = [],
+): RuntimePath[] {
+  if (Array.isArray(value)) {
+    return value.length > 0
+      ? runtimeObjectFieldPaths(value[0], [...path, 0])
+      : [];
+  }
+  if (!runtimeRecord(value)) return [];
+  return Object.entries(value).flatMap(([key, item]) => {
+    const itemPath = [...path, key];
+    return [itemPath, ...runtimeObjectFieldPaths(item, itemPath)];
+  });
+}
+
+function runtimeObjectPaths(
+  value: unknown,
+  path: RuntimePath = [],
+): RuntimePath[] {
+  if (Array.isArray(value)) {
+    return value.length > 0
+      ? runtimeObjectPaths(value[0], [...path, 0])
+      : [];
+  }
+  if (!runtimeRecord(value)) return [];
+  return [
+    path,
+    ...Object.entries(value).flatMap(([key, item]) =>
+      runtimeObjectPaths(item, [...path, key]),
+    ),
+  ];
+}
+
+function runtimePathParent(root: unknown, path: RuntimePath) {
+  let current = root;
+  for (const segment of path.slice(0, -1)) {
+    if (typeof segment === "number") {
+      if (!Array.isArray(current)) throw new Error("runtime_path_not_array");
+      current = current[segment];
+    } else {
+      if (!runtimeRecord(current)) throw new Error("runtime_path_not_object");
+      current = current[segment];
+    }
+  }
+  return current;
+}
+
+function runtimePathValue(root: unknown, path: RuntimePath) {
+  const parent = runtimePathParent(root, path);
+  const key = path[path.length - 1];
+  if (typeof key === "number") {
+    if (!Array.isArray(parent)) throw new Error("runtime_path_not_array");
+    return parent[key];
+  }
+  if (!runtimeRecord(parent)) throw new Error("runtime_path_not_object");
+  return parent[key];
+}
+
+function setRuntimePath(root: unknown, path: RuntimePath, value: unknown) {
+  const parent = runtimePathParent(root, path);
+  const key = path[path.length - 1];
+  if (typeof key === "number") {
+    if (!Array.isArray(parent)) throw new Error("runtime_path_not_array");
+    parent[key] = value;
+    return;
+  }
+  if (!runtimeRecord(parent)) throw new Error("runtime_path_not_object");
+  parent[key] = value;
+}
+
+function deleteRuntimePath(root: unknown, path: RuntimePath) {
+  const parent = runtimePathParent(root, path);
+  const key = path[path.length - 1];
+  if (typeof key === "number") {
+    if (!Array.isArray(parent)) throw new Error("runtime_path_not_array");
+    parent.splice(key, 1);
+    return;
+  }
+  if (!runtimeRecord(parent)) throw new Error("runtime_path_not_object");
+  delete parent[key];
+}
+
+function invalidRuntimeValue(value: unknown): unknown {
+  if (typeof value === "string") return 0;
+  if (typeof value === "number") return "not-a-number";
+  if (typeof value === "boolean") return "not-a-boolean";
+  if (Array.isArray(value)) return { not: "an-array" };
+  if (runtimeRecord(value)) return "not-an-object";
+  return { not: "nullable" };
+}
+
+function runtimeResultForPayload(value: unknown) {
+  const post = createCanonicalPredictiveTrustedInputPost({
+    trusted_input_identity: "trusted-input:runtime-shape-adversary",
+    payload: value as CanonicalPredictiveTrustedInputPayload,
+  });
+  const registry = createCanonicalPredictiveTrustedInputRegistry([post]);
+  const engine = createCanonicalPredictiveExplanationEngine({
+    enabled: true,
+    kill_switch: false,
+    trust_boundary: {
+      trust_source: "version_controlled_synthetic_explanation_registry",
+      registry,
+      expected_registry_root_digest: registry.root_digest,
+    },
+  });
+  if (!engine.explain) throw new Error("runtime_shape_engine_disabled");
+  return engine.explain({
+    evidence_class: "synthetic_fixture_only",
+    trusted_input_identity: post.trusted_input_identity,
+    trusted_input_digest: post.semantic_digest,
+  });
+}
+
 test.describe("Action 666M/O predictive outcome explanation", () => {
   test("fixture matrix is fail-closed with expected statuses", () => {
     for (const fixture of action666mFixtureCases) {
@@ -482,6 +603,173 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
           sensitivity_runs: 0,
           outputs_built: 0,
         },
+      });
+    }
+  });
+
+  test("Action 666CJ remediation: kill switch must be the literal boolean false", () => {
+    const runtimeConfigurations: Array<Record<string, unknown>> = [
+      { enabled: true },
+      { enabled: true, kill_switch: undefined },
+      { enabled: true, kill_switch: null },
+      { enabled: true, kill_switch: 0 },
+      { enabled: true, kill_switch: 1 },
+      { enabled: true, kill_switch: "false" },
+      { enabled: true, kill_switch: "true" },
+      { enabled: true, kill_switch: {} },
+      { enabled: true, kill_switch: [] },
+    ];
+
+    for (const configuration of runtimeConfigurations) {
+      let trustReads = 0;
+      const inaccessibleBoundary = new Proxy(
+        action666mSuccessfulTradeTrustBoundary,
+        {
+          get() {
+            trustReads += 1;
+            throw new Error("invalid_kill_switch_touched_trust_boundary");
+          },
+        },
+      );
+      const executionCounters = counters();
+      const engine = createCanonicalPredictiveExplanationEngine({
+        ...configuration,
+        trust_boundary: inaccessibleBoundary,
+        counters: executionCounters,
+      } as never);
+      expect(engine, JSON.stringify(configuration)).toMatchObject({
+        enabled: false,
+        build: null,
+        explain: null,
+        counters: counters(),
+      });
+      expect(trustReads, JSON.stringify(configuration)).toBe(0);
+    }
+  });
+
+  test("Action 666CJ remediation: registry is an immutable construction-time snapshot", () => {
+    const boundary = structuredClone(
+      action666mSuccessfulTradeTrustBoundary,
+    );
+    const originalRoot = boundary.registry.root_digest;
+    const engine = createCanonicalPredictiveExplanationEngine({
+      enabled: true,
+      kill_switch: false,
+      trust_boundary: boundary,
+    });
+    if (!engine.explain) throw new Error("snapshot_engine_disabled");
+
+    const replacement = structuredClone(action666mFalsePositiveFixture.post);
+    const replacementRegistry =
+      createCanonicalPredictiveTrustedInputRegistry([replacement]);
+    boundary.registry.posts = [replacement];
+    boundary.registry.root_digest = replacementRegistry.root_digest;
+    boundary.expected_registry_root_digest = replacementRegistry.root_digest;
+    replacement.payload.canonical_decision_identity =
+      "decision:mutated-after-construction";
+
+    const original = engine.explain(action666mSuccessfulTradeRequest);
+    expect(original).toMatchObject({
+      status: "explainable",
+      explanation: {
+        trusted_registry_root_digest: originalRoot,
+        primary_classification: "correct_positive_trade",
+      },
+    });
+    expect(engine.explain(action666mFalsePositiveFixture.request)).toMatchObject({
+      status: "conflicting",
+      explanation: null,
+      reason_codes: ["trusted_explanation_input_unknown"],
+    });
+  });
+
+  test("Action 666CJ remediation: every malformed trusted shape fails closed without throwing", () => {
+    const baseline: unknown = structuredClone(
+      action666mSuccessfulTradePayload,
+    );
+    const fieldPaths = runtimeObjectFieldPaths(baseline);
+    const objectPaths = runtimeObjectPaths(baseline);
+    let mutationCount = 0;
+
+    for (const path of fieldPaths) {
+      const deleted = structuredClone(baseline);
+      deleteRuntimePath(deleted, path);
+      const deletedResult = runtimeResultForPayload(deleted);
+      expect(deletedResult.explanation, `delete:${path.join(".")}`).toBeNull();
+      expect(deletedResult.status, `delete:${path.join(".")}`).not.toBe(
+        "explainable",
+      );
+      mutationCount += 1;
+
+      const wrongType = structuredClone(baseline);
+      setRuntimePath(
+        wrongType,
+        path,
+        invalidRuntimeValue(runtimePathValue(wrongType, path)),
+      );
+      const wrongTypeResult = runtimeResultForPayload(wrongType);
+      expect(
+        wrongTypeResult.explanation,
+        `wrong-type:${path.join(".")}`,
+      ).toBeNull();
+      expect(
+        wrongTypeResult.status,
+        `wrong-type:${path.join(".")}`,
+      ).not.toBe("explainable");
+      mutationCount += 1;
+    }
+
+    for (const path of objectPaths) {
+      const extra = structuredClone(baseline);
+      let target: unknown = extra;
+      for (const segment of path) {
+        if (typeof segment === "number") {
+          if (!Array.isArray(target)) throw new Error("extra_path_not_array");
+          target = target[segment];
+        } else {
+          if (!runtimeRecord(target)) throw new Error("extra_path_not_object");
+          target = target[segment];
+        }
+      }
+      if (!runtimeRecord(target)) throw new Error("extra_target_not_object");
+      target.__unexpected_runtime_field = true;
+      const result = runtimeResultForPayload(extra);
+      expect(result.explanation, `extra:${path.join(".")}`).toBeNull();
+      expect(result.status, `extra:${path.join(".")}`).not.toBe(
+        "explainable",
+      );
+      mutationCount += 1;
+    }
+
+    expect(mutationCount).toBe(707);
+  });
+
+  test("Action 666CJ remediation: malformed requests return structured failures", () => {
+    const requests: unknown[] = [
+      null,
+      [],
+      {},
+      {
+        ...action666mSuccessfulTradeRequest,
+        unexpected: true,
+      },
+      {
+        ...action666mSuccessfulTradeRequest,
+        trusted_input_digest: 0,
+      },
+      {
+        ...action666mSuccessfulTradeRequest,
+        trusted_input_identity: null,
+      },
+    ];
+    for (const request of requests) {
+      const result = action666mSuccessfulTradeEngine.explain!(request as never);
+      expect(result).toMatchObject({
+        status: "conflicting",
+        explanation: null,
+        reason_codes: [
+          "trusted_explanation_request_runtime_shape_conflicting",
+        ],
       });
     }
   });

@@ -54,6 +54,24 @@ The fixture registry is version-controlled synthetic evidence. It is not
 production key management. A future real producer requires a separately owned
 registry and root-authority boundary.
 
+### Runtime construction boundary
+
+Activation requires both `enabled:true` and the literal boolean
+`kill_switch:false`. A missing, null, numeric, string, array or object kill
+switch remains disabled and cannot read the trust boundary or perform work.
+
+After that gate, the engine creates an internal structured clone of the full
+trust boundary, validates its complete runtime shape and semantic root, and
+deep-freezes the private snapshot. The caller-owned registry is never read
+again. Mutating posts, payloads, digests or either root after construction
+therefore cannot change the engine's trusted evidence.
+
+The runtime validator requires exact own keys, expected primitive types,
+arrays, finite numbers and the complete nested payload structure before any
+deep field is read. Missing, null, wrong-type or unexpected fields return a
+structured failure with `explanation:null`; malformed trust data and requests
+must never escape as exceptions.
+
 ## Model-bound prediction and attribution
 
 `canonical_explanation_model_result_post_v1` binds the candidate model identity
@@ -179,8 +197,8 @@ even if joint prediction remains stable. No causal claim is made.
 ## True no-work default-off
 
 `createCanonicalPredictiveExplanationEngine` defaults to `enabled:false` and
-also requires an explicit false kill switch. Disabled or kill-switched
-factories expose:
+also requires the literal boolean `false` kill switch at runtime. Disabled,
+kill-switched or malformed-switch factories expose:
 
 ```text
 build: null

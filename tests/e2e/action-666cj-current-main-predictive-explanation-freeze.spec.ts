@@ -7,11 +7,11 @@ import path from "node:path";
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cj-current-main-predictive-explanation/foundation-freeze-manifest.json";
-const manifestSha256 = "c73ffa446362d00fe7c6958d0a85129a5a72f76a95b6e0f7c720f772aab534f2";
+const manifestSha256 = "8cb2a5a8d1f8727d79b2e2f49b5b77453c0e244726747fa00ee4c1654bef8f79";
 
 const expectedManifest = {
   schema_version:
-    "action_666cj_current_main_predictive_explanation_foundation_freeze_v1",
+    "action_666cj_current_main_predictive_explanation_foundation_freeze_v2",
   authority: {
     repository: "willyvalentin/trade",
     candidate_base_commit: "a8a4990a81aa30484caf6112d0810161c1e86214",
@@ -25,7 +25,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "ae4bf036814f076f5cc6a0ca08e7fc992e75cffaf847a2ca8a4db649c7a189ea",
+      "2d18fa5c9cd04b34aa80c9ac61721fd1cda2dec8030dfa4ed9d8833f0c89a6e9",
     artifacts: [
       {
         path: "docs/action-666m-golden-predictive-explanation-report.json",
@@ -35,7 +35,7 @@ const expectedManifest = {
       {
         path: "docs/action-666m-predictive-outcome-explanation.md",
         sha256:
-          "8e00a3b7b437ae6c9cc4a26c6c34f9d744072aed4b9d977900c17078759eeaa8",
+          "526268fa99c537b75f22768560b63d2c43b0853f479a9fc410e15c2d6505a5da",
       },
       {
         path:
@@ -46,13 +46,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-predictive-outcome-explanation.ts",
         sha256:
-          "667e1623658700754da095aef04b864c54b36a117f13b23977c4e4bf63d25bd0",
+          "bc0c22175112839495679ff9a8e3469644be96305ac0ec0b0790438fafee3260",
       },
       {
         path:
           "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
         sha256:
-          "8f38f4cf490795882660912de7e1e9ccbdc7fb7c8f44464fa4078417b4ddd15d",
+          "163b6eb539b9eadb025881a450d74c81398365fb1981ef8e6adb0b7804451e8e",
       },
     ],
   },
@@ -66,6 +66,13 @@ const expectedManifest = {
     persistence_or_migration_added: false,
     ranking_or_model_promotion_added: false,
     broker_or_execution_authority_added: false,
+  },
+  review_remediation: {
+    blocking_reviewed_head: "247223cae3649d73c966a09691cca98a24731534",
+    literal_false_kill_switch_required: true,
+    immutable_trust_boundary_snapshot_required: true,
+    exact_recursive_runtime_shape_required: true,
+    structured_never_throw_failure_required: true,
   },
   delivery: {
     historical_pull_request_merge_authorized: false,
@@ -127,7 +134,7 @@ test("Action 666CJ binds the exact five-file foundation to current main", async 
   ).toBe(expectedManifest.foundation.aggregate_sha256);
 });
 
-test("Action 666CJ manifest rejects authority, scope and delivery drift", () => {
+test("Action 666CJ manifest rejects authority, remediation, scope and delivery drift", () => {
   const mutations: unknown[] = [];
   const clone = (): {
     schema_version: string;
@@ -140,6 +147,7 @@ test("Action 666CJ manifest rejects authority, scope and delivery drift", () => 
       artifacts: Array<{ path: string; sha256: string }>;
     };
     scope: Record<string, boolean>;
+    review_remediation: Record<string, string | boolean>;
     delivery: Record<string, boolean>;
   } =>
     JSON.parse(JSON.stringify(expectedManifest)) as {
@@ -153,6 +161,7 @@ test("Action 666CJ manifest rejects authority, scope and delivery drift", () => 
         artifacts: Array<{ path: string; sha256: string }>;
       };
       scope: Record<string, boolean>;
+      review_remediation: Record<string, string | boolean>;
       delivery: Record<string, boolean>;
     };
 
@@ -179,6 +188,21 @@ test("Action 666CJ manifest rejects authority, scope and delivery drift", () => 
   const changedArtifact = clone();
   changedArtifact.foundation.artifacts[0].sha256 = "0".repeat(64);
   mutations.push(changedArtifact);
+
+  const changedReviewedHead = clone();
+  changedReviewedHead.review_remediation.blocking_reviewed_head = "0".repeat(40);
+  mutations.push(changedReviewedHead);
+
+  for (const key of [
+    "literal_false_kill_switch_required",
+    "immutable_trust_boundary_snapshot_required",
+    "exact_recursive_runtime_shape_required",
+    "structured_never_throw_failure_required",
+  ] as const) {
+    const changedRemediation = clone();
+    changedRemediation.review_remediation[key] = false;
+    mutations.push(changedRemediation);
+  }
 
   for (const key of [
     "live_consumer_added",

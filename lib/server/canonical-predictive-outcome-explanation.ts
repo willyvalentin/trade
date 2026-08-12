@@ -430,6 +430,596 @@ const tolerance = 1e-9;
 const primarySet = new Set<string>(CANONICAL_PREDICTIVE_PRIMARY_TAXONOMY);
 const secondarySet = new Set<string>(CANONICAL_PREDICTIVE_SECONDARY_TAXONOMY);
 
+type RuntimeShape =
+  | { kind: "string"; allowed?: readonly string[] }
+  | { kind: "number" }
+  | { kind: "boolean" }
+  | { kind: "literal"; value: string | boolean }
+  | { kind: "array"; item: RuntimeShape }
+  | { kind: "record"; value: RuntimeShape }
+  | { kind: "nullable"; value: RuntimeShape }
+  | { kind: "optional"; value: RuntimeShape }
+  | { kind: "object"; fields: Record<string, RuntimeShape> };
+
+const runtimeString = (allowed?: readonly string[]): RuntimeShape => ({
+  kind: "string",
+  allowed,
+});
+const runtimeNumber: RuntimeShape = { kind: "number" };
+const runtimeBoolean: RuntimeShape = { kind: "boolean" };
+const runtimeLiteral = (value: string | boolean): RuntimeShape => ({
+  kind: "literal",
+  value,
+});
+const runtimeArray = (item: RuntimeShape): RuntimeShape => ({
+  kind: "array",
+  item,
+});
+const runtimeRecord = (value: RuntimeShape): RuntimeShape => ({
+  kind: "record",
+  value,
+});
+const runtimeNullable = (value: RuntimeShape): RuntimeShape => ({
+  kind: "nullable",
+  value,
+});
+const runtimeOptional = (value: RuntimeShape): RuntimeShape => ({
+  kind: "optional",
+  value,
+});
+const runtimeObject = (
+  fields: Record<string, RuntimeShape>,
+): RuntimeShape => ({ kind: "object", fields });
+
+function isRuntimeRecord(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function matchesRuntimeShape(value: unknown, shape: RuntimeShape): boolean {
+  if (shape.kind === "string") {
+    return (
+      typeof value === "string" &&
+      (!shape.allowed || shape.allowed.includes(value))
+    );
+  }
+  if (shape.kind === "number") {
+    return typeof value === "number" && Number.isFinite(value);
+  }
+  if (shape.kind === "boolean") return typeof value === "boolean";
+  if (shape.kind === "literal") return value === shape.value;
+  if (shape.kind === "nullable") {
+    return value === null || matchesRuntimeShape(value, shape.value);
+  }
+  if (shape.kind === "optional") {
+    return value === undefined || matchesRuntimeShape(value, shape.value);
+  }
+  if (shape.kind === "array") {
+    return Array.isArray(value) &&
+      value.every((item) => matchesRuntimeShape(item, shape.item));
+  }
+  if (shape.kind === "record") {
+    return (
+      isRuntimeRecord(value) &&
+      Object.values(value).every((item) =>
+        matchesRuntimeShape(item, shape.value),
+      )
+    );
+  }
+  if (!isRuntimeRecord(value)) return false;
+  const expectedKeys = Object.keys(shape.fields).sort();
+  const requiredKeys = expectedKeys.filter(
+    (key) => shape.fields[key].kind !== "optional",
+  );
+  const actualKeys = Object.keys(value).sort();
+  if (
+    actualKeys.some((key) => !(key in shape.fields)) ||
+    requiredKeys.some((key) => !(key in value))
+  ) {
+    return false;
+  }
+  return actualKeys.every((key) =>
+    matchesRuntimeShape(
+      value[key],
+      shape.fields[key].kind === "optional"
+        ? shape.fields[key].value
+        : shape.fields[key],
+    ),
+  );
+}
+
+const runtimeStringArray = runtimeArray(runtimeString());
+const runtimeNullableString = runtimeNullable(runtimeString());
+const runtimeNullableNumber = runtimeNullable(runtimeNumber);
+const runtimeNullableBoolean = runtimeNullable(runtimeBoolean);
+
+const shadowAlgorithmVersionsShape = runtimeObject({
+  engine_version: runtimeString(),
+  scoring_version: runtimeString(),
+  ranking_version: runtimeString(),
+  threshold_policy_version: runtimeString(),
+  setup_taxonomy_version: runtimeString(),
+  confidence_contract_version: runtimeString(),
+  evaluator_version: runtimeString(),
+  provider_contract_version: runtimeString(),
+});
+
+const shadowVersionTupleShape = runtimeObject({
+  tuple_version: runtimeString(),
+  engine_version: runtimeString(),
+  scoring_version: runtimeString(),
+  ranking_version: runtimeString(),
+  threshold_policy_version: runtimeString(),
+  setup_taxonomy_version: runtimeString(),
+  confidence_contract_version: runtimeString(),
+  evaluator_version: runtimeString(),
+  provider_contract_version: runtimeString(),
+  semantic_digest_algorithm: runtimeLiteral("sha256_canonical_json_v1"),
+  semantic_digest: runtimeString(),
+});
+
+const modelBindingShape = runtimeObject({
+  candidate_model_identity: runtimeString(),
+  model_artifact_digest: runtimeString(),
+  versions: shadowAlgorithmVersionsShape,
+  version_tuple: shadowVersionTupleShape,
+});
+
+const contextEvidenceShape = runtimeObject({
+  regime: runtimeString(),
+  sector: runtimeString(),
+  volatility_state: runtimeString(),
+  liquidity_state: runtimeString(),
+  observed_at: runtimeString(),
+  capture_evidence_identity: runtimeString(),
+  capture_evidence_digest: runtimeString(),
+  regime_associated_mismatch: runtimeBoolean,
+  sector_associated_mismatch: runtimeBoolean,
+  volatility_liquidity_associated_mismatch: runtimeBoolean,
+});
+
+const candidateOutcomeShape = runtimeObject({
+  outcome_identity: runtimeString(),
+  evaluated_at: runtimeString(),
+  evaluator_version: runtimeString(),
+  provider_contract_version: runtimeString(),
+  primary_horizon: runtimeString(["15m", "30m", "60m"]),
+  terminal_outcome: runtimeString([
+    "target_before_stop",
+    "stop_before_target",
+    "no_entry",
+    "neither",
+    "ambiguous_same_candle",
+  ]),
+  outcome_evaluable: runtimeBoolean,
+  reproducible: runtimeBoolean,
+  positive_outcome: runtimeNullableBoolean,
+  r_result: runtimeNullableNumber,
+  coverage_status: runtimeString([
+    "complete",
+    "provider_gap",
+    "stale",
+    "incomplete",
+  ]),
+  reason_codes: runtimeStringArray,
+});
+
+const outcomePathPointShape = runtimeObject({
+  horizon: runtimeString(["15m", "30m", "60m"]),
+  terminal_outcome: runtimeString([
+    "target_before_stop",
+    "stop_before_target",
+    "no_entry",
+    "neither",
+    "ambiguous_same_candle",
+  ]),
+  gross_r: runtimeNullableNumber,
+  net_r: runtimeNullableNumber,
+  completed: runtimeBoolean,
+  diagnostic_only: runtimeBoolean,
+  event_timestamp: runtimeString(),
+  interval_identity: runtimeString(),
+  evaluator_input_identity: runtimeString(),
+  provider_snapshot_identity: runtimeString(),
+  observation_cutoff: runtimeString(),
+  canonical_completion_timestamp: runtimeString(),
+  horizon_completion_timestamp: runtimeString(),
+  point_in_time_eligible: runtimeBoolean,
+  evidence_digest: runtimeString(),
+});
+
+const outcomeEvidenceShape = runtimeObject({
+  evidence_version: runtimeString(),
+  evaluator_input_identity: runtimeString(),
+  provider_snapshot_identity: runtimeString(),
+  observation_cutoff: runtimeString(),
+  canonical_completion_timestamp: runtimeString(),
+  outcome_evaluated_at: runtimeString(),
+  evaluator_version: runtimeString(),
+  provider_contract_version: runtimeString(),
+  realized_outcome_digest: runtimeString(),
+  path_inventory_digest: runtimeString(),
+  evidence_digest: runtimeString(),
+});
+
+const costEvidenceShape = runtimeObject({
+  capture_version: runtimeString(),
+  capture_identity: runtimeString(),
+  evaluator_input_identity: runtimeString(),
+  provider_snapshot_identity: runtimeString(),
+  observed_at: runtimeString(),
+  unit: runtimeLiteral("canonical_r"),
+  gross_r: runtimeNumber,
+  transaction_cost_r: runtimeNumber,
+  slippage_r: runtimeNumber,
+  net_r: runtimeNumber,
+  minimum_reward_risk: runtimeNumber,
+  realized_reward_risk: runtimeNumber,
+  evidence_digest: runtimeString(),
+});
+
+const calibrationBucketShape = runtimeObject({
+  evidence_version: runtimeString(),
+  bucket_identity: runtimeString(),
+  cohort: runtimeString(),
+  period_start: runtimeString(),
+  period_end: runtimeString(),
+  calibration_policy_version: runtimeString(),
+  denominator_identity: runtimeString(),
+  denominator_count: runtimeNumber,
+  trusted_metrics_result_digest: runtimeString(),
+  lower_inclusive: runtimeNumber,
+  upper_inclusive: runtimeNumber,
+  count: runtimeNumber,
+  mean_probability: runtimeNumber,
+  observed_positive_rate: runtimeNumber,
+  evidence_digest: runtimeString(),
+});
+
+const thresholdPolicyShape = runtimeObject({
+  policy_version: runtimeString(),
+  policy_identity: runtimeString(),
+  canonical_threshold: runtimeNumber,
+  allowed_threshold_variants: runtimeArray(runtimeNumber),
+  semantic_digest: runtimeString(),
+});
+
+const modelFeatureEvidenceShape = runtimeObject({
+  feature_id: runtimeString(),
+  current_value: runtimeNumber,
+  minimum_value: runtimeNumber,
+  maximum_value: runtimeNumber,
+  training_mean: runtimeNumber,
+  training_scale: runtimeNumber,
+  standardized_value: runtimeNumber,
+  standardized_coefficient: runtimeNumber,
+  log_odds_contribution: runtimeNumber,
+});
+
+const correlationDiagnosticShape = runtimeObject({
+  first_feature_id: runtimeString(),
+  second_feature_id: runtimeString(),
+  correlation: runtimeNumber,
+  absolute_threshold: runtimeNumber,
+  reason_code: runtimeLiteral("strong_training_window_feature_correlation"),
+});
+
+const researchHypothesisShape = runtimeObject({
+  hypothesis_version: runtimeString(),
+  hypothesis_identity: runtimeString(),
+  statement: runtimeString(),
+  semantic_digest: runtimeString(),
+});
+
+const predictionAttributionShape = runtimeObject({
+  attribution_version: runtimeString(),
+  baseline: runtimeNumber,
+  by_feature: runtimeRecord(runtimeNumber),
+  reconstructed_prediction_scale_value: runtimeNumber,
+  attribution_scale: runtimeString(["log_odds", "canonical_r"]),
+  attribution_unit: runtimeString([
+    "log_odds_target_before_stop",
+    "r_target_before_stop_cost_adjusted",
+  ]),
+  probability_delta: runtimeNullableNumber,
+  predictive_association: runtimeLiteral(true),
+  causal_effect_claimed: runtimeLiteral(false),
+});
+
+const learningPredictionShape = runtimeObject({
+  prediction_identity: runtimeString(),
+  split_identity: runtimeString(),
+  family: runtimeString([
+    "regularized_logistic_target_before_stop",
+    "regularized_linear_canonical_r",
+  ]),
+  canonical_decision_identity: runtimeString(),
+  opportunity_set_identity: runtimeString(),
+  decision_day: runtimeString(),
+  ticker: runtimeString(),
+  regime: runtimeString(),
+  cohort: runtimeString([
+    "visible_recommendation_quality",
+    "research_only_recommendation_quality",
+    "shadow_recommendation_quality",
+    "historical_synthetic_recommendation_quality",
+    "rejected_candidate_counterfactual",
+    "no_trade_counterfactual",
+  ]),
+  actual: runtimeNumber,
+  prediction: runtimeNumber,
+  local_prediction_contribution: predictionAttributionShape,
+  semantic_digest: runtimeString(),
+});
+
+const featureAblationShape = runtimeObject({
+  feature: runtimeString(),
+  family: runtimeString([
+    "regularized_logistic_target_before_stop",
+    "regularized_linear_canonical_r",
+  ]),
+  replacement: runtimeLiteral("training_window_standardized_baseline_zero"),
+  original_loss: runtimeNumber,
+  ablated_loss: runtimeNumber,
+  loss_delta: runtimeNumber,
+  predictive_association: runtimeLiteral(true),
+  causal_effect_claimed: runtimeLiteral(false),
+});
+
+const modelResultShape = runtimeObject({
+  post_version: runtimeString(),
+  result_identity: runtimeString(),
+  offline_learning_result_digest: runtimeString(),
+  baseline_model: modelBindingShape,
+  candidate_model: modelBindingShape,
+  candidate_model_artifact_payload: runtimeObject({
+    candidate_model_identity: runtimeString(),
+    training_input_manifest_digest: runtimeString(),
+    training_input_registry_root_digest: runtimeString(),
+    feature_context_registry_root_digest: runtimeString(),
+    split_identity: runtimeString(),
+    feature_order: runtimeStringArray,
+    intercept: runtimeNumber,
+    features: runtimeArray(modelFeatureEvidenceShape),
+  }),
+  candidate_model_artifact_digest: runtimeString(),
+  oos_prediction: learningPredictionShape,
+  feature_ablation: runtimeArray(featureAblationShape),
+  calibration_evidence: calibrationBucketShape,
+  correlation_diagnostics: runtimeArray(correlationDiagnosticShape),
+  threshold_policy: thresholdPolicyShape,
+  shadow_pair_digest: runtimeString(),
+  shadow_evaluation_digest: runtimeString(),
+  semantic_digest: runtimeString(),
+});
+
+const opportunityVersionsShape = runtimeObject({
+  engine_version: runtimeString(),
+  scoring_version: runtimeString(),
+  ranking_version: runtimeString(),
+  setup_taxonomy_version: runtimeString(),
+  confidence_contract_version: runtimeString(),
+  evaluator_version: runtimeString(),
+  provider_contract_version: runtimeString(),
+  git_commit: runtimeString(),
+  build_identity: runtimeString(),
+  scanner_version: runtimeString(),
+  universe_version: runtimeString(),
+  threshold_version: runtimeString(),
+  reason_taxonomy_version: runtimeString(),
+});
+
+const providerContextShape = runtimeObject({
+  provider: runtimeString(),
+  source_timestamp: runtimeString(),
+  freshness: runtimeString(["fresh", "stale", "gap", "unknown"]),
+  coverage_contract_version: runtimeString(),
+  coverage_denominator: runtimeLiteral("candidate_provider_observations"),
+  coverage_unit: runtimeLiteral("candidate"),
+  expected_observation_count: runtimeNumber,
+  observed_observation_count: runtimeNumber,
+  coverage_reason_codes: runtimeStringArray,
+});
+
+const expectedOutcomeLineageShape = runtimeObject({
+  lineage_version: runtimeString(),
+  lineage_namespace: runtimeString(),
+  evaluator_contract_version: runtimeString(),
+  evaluator_version: runtimeString(),
+  intended_horizon_policy: runtimeLiteral(
+    "primary_60m_else_30m_else_15m_v1",
+  ),
+  scan_identity: runtimeString(),
+  decision_identity: runtimeString(),
+  candidate_identity: runtimeString(),
+  batch_identity: runtimeNullableString,
+  recommendation_decision_identity: runtimeNullableString,
+  snapshot_identity: runtimeNullableString,
+  expected_outcome_lineage_key: runtimeString(),
+});
+
+const candidateMembershipShape = runtimeObject({
+  candidate_identity: runtimeString(),
+  ticker: runtimeString(),
+  original_rank: runtimeNullableNumber,
+  original_score: runtimeNumber,
+  tie_break_key: runtimeNullableString,
+  setup: runtimeNullableString,
+  context: runtimeObject({
+    window: runtimeNullableString,
+    regime: runtimeNullableString,
+    sector: runtimeNullableString,
+    strategy: runtimeNullableString,
+  }),
+  membership_status: runtimeString([
+    "selected",
+    "rejected",
+    "overflow",
+    "under_threshold",
+  ]),
+  rejection_reason_codes: runtimeStringArray,
+  threshold_version: runtimeString(),
+  ranking_version: runtimeString(),
+  eligibility_at_decision: runtimeString([
+    "eligible",
+    "ineligible",
+    "unknown",
+  ]),
+  data_gap_codes: runtimeStringArray,
+  provider_source_timestamp: runtimeString(),
+  lineage: runtimeObject({
+    scan_identity: runtimeString(),
+    batch_identity: runtimeNullableString,
+    recommendation_decision_identity: runtimeNullableString,
+    snapshot_identity: runtimeNullableString,
+  }),
+  expected_outcome_lineage: expectedOutcomeLineageShape,
+  outcome: runtimeNullable(candidateOutcomeShape),
+  canonical_candidate_identity: runtimeString(),
+  canonical_order: runtimeNumber,
+});
+
+const decisionLineageNodeShape = runtimeObject({
+  node_kind: runtimeString(["recommendation", "rejection", "no_trade"]),
+  decision_identity: runtimeString(),
+  candidate_identity: runtimeNullableString,
+  snapshot_identity: runtimeNullableString,
+});
+
+const noTradeSemanticsShape = runtimeObject({
+  explicit_decision_recorded: runtimeLiteral(true),
+  producer_decision_id: runtimeString(),
+  decision_timestamp: runtimeString(),
+  decision_reason_code: runtimeString(),
+  decision_reason_detail: runtimeNullableString,
+  decision_source: runtimeString(),
+  ai_no_trade_observed: runtimeBoolean,
+  deterministic_fallback_used: runtimeLiteral(false),
+});
+
+const candidateTerminalBindingShape = runtimeObject({
+  candidate_identity: runtimeString(),
+  terminal_disposition: runtimeString([
+    "published_recommendation",
+    "deterministic_fallback_recommendation",
+    "rejected_candidate",
+    "overflow_candidate",
+    "under_threshold_candidate",
+    "explicit_no_trade_candidate",
+  ]),
+  decision_identity: runtimeString(),
+  snapshot_identity: runtimeNullableString,
+  expected_outcome_lineage_key: runtimeString(),
+  evaluator_contract_version: runtimeString(),
+  evaluator_version: runtimeString(),
+  intended_horizon_policy: runtimeLiteral(
+    "primary_60m_else_30m_else_15m_v1",
+  ),
+});
+
+const decisionSemanticBindingShape = runtimeObject({
+  binding_version: runtimeString(),
+  decision_disposition: runtimeString([
+    "publish_recommendations",
+    "explicit_no_trade",
+    "deterministic_fallback",
+  ]),
+  terminal_dispositions: runtimeArray(candidateTerminalBindingShape),
+  decision_lineage_nodes: runtimeArray(decisionLineageNodeShape),
+  no_trade_semantics: runtimeNullable(noTradeSemanticsShape),
+  no_trade_semantics_digest: runtimeNullableString,
+  lineage_graph_digest: runtimeString(),
+  version_bundle_digest: runtimeString(),
+  candidate_set_digest: runtimeString(),
+  semantic_digest_algorithm: runtimeLiteral("sha256_canonical_json_v1"),
+  semantic_digest: runtimeString(),
+});
+
+const opportunitySetShape = runtimeObject({
+  contract_version: runtimeString(),
+  opportunity_set_identity: runtimeString(),
+  source_namespace: runtimeString(),
+  scan_identity: runtimeString(),
+  decision_identity: runtimeString(),
+  decision_timestamp: runtimeString(),
+  point_in_time_cutoff: runtimeString(),
+  versions: opportunityVersionsShape,
+  full_candidate_set_digest: runtimeString(),
+  decision_evidence_digest: runtimeString(),
+  decision_semantic_binding: decisionSemanticBindingShape,
+  expected_candidate_count: runtimeNumber,
+  observed_candidate_count: runtimeNumber,
+  provider_context: providerContextShape,
+  pre_truncation_capture_evidence_digest: runtimeString(),
+  candidates: runtimeArray(candidateMembershipShape),
+  readiness: runtimeObject({
+    status: runtimeString([
+      "evaluable",
+      "incomplete_opportunity_set",
+      "rank_gap",
+      "candidate_outcome_missing",
+      "provider_gap",
+      "conflicting",
+      "non_reproducible",
+      "not_point_in_time_safe",
+    ]),
+    counterfactual_evaluation_eligible: runtimeBoolean,
+    reason_codes: runtimeStringArray,
+  }),
+  semantic_digest_algorithm: runtimeLiteral("sha256_canonical_json_v1"),
+  semantic_digest: runtimeString(),
+});
+
+const trustedPayloadShape = runtimeObject({
+  evidence_class: runtimeLiteral("synthetic_fixture_only"),
+  canonical_decision_identity: runtimeString(),
+  explained_candidate_identity: runtimeString(),
+  decision_disposition: runtimeString([
+    "published_trade",
+    "rejected_candidate",
+    "explicit_no_trade",
+  ]),
+  opportunity_set: opportunitySetShape,
+  feature_context_registry_root_digest: runtimeString(),
+  training_input_manifest_identity: runtimeString(),
+  training_input_manifest_digest: runtimeString(),
+  training_input_registry_root_digest: runtimeString(),
+  context_evidence: contextEvidenceShape,
+  model_result: modelResultShape,
+  realized_outcome: candidateOutcomeShape,
+  outcome_path: runtimeArray(outcomePathPointShape),
+  outcome_evidence: outcomeEvidenceShape,
+  cost_evidence: runtimeOptional(costEvidenceShape),
+  entry_timing_sensitive: runtimeBoolean,
+  research_hypotheses: runtimeOptional(runtimeArray(researchHypothesisShape)),
+});
+
+const trustedPostShape = runtimeObject({
+  post_version: runtimeString(),
+  trusted_input_identity: runtimeString(),
+  payload: trustedPayloadShape,
+  semantic_digest: runtimeString(),
+});
+
+const trustBoundaryShape = runtimeObject({
+  trust_source: runtimeLiteral(
+    "version_controlled_synthetic_explanation_registry",
+  ),
+  registry: runtimeObject({
+    registry_version: runtimeString(),
+    posts: runtimeArray(trustedPostShape),
+    root_digest: runtimeString(),
+  }),
+  expected_registry_root_digest: runtimeString(),
+});
+
+const explanationRequestShape = runtimeObject({
+  evidence_class: runtimeLiteral("synthetic_fixture_only"),
+  trusted_input_identity: runtimeString(),
+  trusted_input_digest: runtimeString(),
+});
+
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (value && typeof value === "object") {
@@ -1689,7 +2279,7 @@ export function createCanonicalPredictiveExplanationEngine(input: {
       sensitivity_runs: 0,
       outputs_built: 0,
     };
-  if (input.enabled !== true || input.kill_switch === true) {
+  if (input.enabled !== true || input.kill_switch !== false) {
     return deepFreeze({
       enabled: false as const,
       build: null,
@@ -1697,19 +2287,47 @@ export function createCanonicalPredictiveExplanationEngine(input: {
       counters,
     });
   }
-  const registryReasons = validateRegistry(input.trust_boundary);
+  let boundarySnapshot: CanonicalPredictiveExplanationTrustBoundary | null =
+    null;
+  let registryReasons: string[] = [];
+  try {
+    const candidate: unknown = structuredClone(input.trust_boundary);
+    if (!matchesRuntimeShape(candidate, trustBoundaryShape)) {
+      registryReasons = ["trusted_explanation_runtime_shape_conflicting"];
+    } else {
+      boundarySnapshot = deepFreeze(
+        candidate as CanonicalPredictiveExplanationTrustBoundary,
+      );
+      registryReasons = validateRegistry(boundarySnapshot);
+    }
+  } catch {
+    registryReasons = ["trusted_explanation_runtime_shape_conflicting"];
+  }
   const explain = (
     requestValue: CanonicalPredictiveOutcomeExplanationRequest,
   ): CanonicalPredictiveOutcomeExplanationResult => {
     counters.request_reads += 1;
-    const request = structuredClone(requestValue);
-    counters.clones += 1;
+    let request: CanonicalPredictiveOutcomeExplanationRequest;
+    try {
+      const candidate: unknown = structuredClone(requestValue);
+      counters.clones += 1;
+      if (!matchesRuntimeShape(candidate, explanationRequestShape)) {
+        return failure("conflicting", [
+          "trusted_explanation_request_runtime_shape_conflicting",
+        ]);
+      }
+      request = candidate as CanonicalPredictiveOutcomeExplanationRequest;
+    } catch {
+      return failure("conflicting", [
+        "trusted_explanation_request_runtime_shape_conflicting",
+      ]);
+    }
     counters.trust_lookups += 1;
-    if (registryReasons.length > 0) {
+    if (registryReasons.length > 0 || !boundarySnapshot) {
       return failure("conflicting", registryReasons);
     }
     counters.registry_lookups += 1;
-    const post = input.trust_boundary.registry.posts.find(
+    const post = boundarySnapshot.registry.posts.find(
       (item) => item.trusted_input_identity === request.trusted_input_identity,
     );
     if (
@@ -1724,11 +2342,17 @@ export function createCanonicalPredictiveExplanationEngine(input: {
       ]);
     }
     counters.digest_computations += 1;
-    return buildFromTrustedPost({
-      post,
-      registryRoot: input.trust_boundary.registry.root_digest,
-      counters,
-    });
+    try {
+      return buildFromTrustedPost({
+        post,
+        registryRoot: boundarySnapshot.registry.root_digest,
+        counters,
+      });
+    } catch {
+      return failure("conflicting", [
+        "trusted_explanation_runtime_validation_failed",
+      ]);
+    }
   };
   return {
     enabled: true as const,
