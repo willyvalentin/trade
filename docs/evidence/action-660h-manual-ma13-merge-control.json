@@ -1,0 +1,94 @@
+{
+  "contract_version": "trade.action660h.manual-ma13-merge-control.v1",
+  "evidence_status": "governance_delivery_candidate",
+  "observed_at": "2026-08-12",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "main_commit": "7662d3f863f8f921b816670363431df8e1ebcdea",
+    "main_tree": "86a59f234b69e63b07a60833224015018be41568",
+    "main_parents": [
+      "f463644ddeb7f49fa8b80924d9103ea8970ccae4",
+      "3dcded2aab304a9e7a748a78de17f03f293d0ec5"
+    ],
+    "main_pull_request": 99,
+    "exact_main_ci_run": 31543202986,
+    "repository_visibility": "private",
+    "repository_plan": "free"
+  },
+  "github_readback": {
+    "branch_protection_endpoint_status": 403,
+    "rulesets_endpoint_status": 403,
+    "branch_protection_rule_count": 0,
+    "plan_boundary_message": "Upgrade to GitHub Pro or make this repository public to enable this feature.",
+    "github_enforcement_available": false,
+    "branch_protection_verified": false
+  },
+  "operator_decision": {
+    "selected_path": "continue_private_without_pro",
+    "repository_remains_private": true,
+    "billing_or_plan_mutation": false,
+    "manual_compensation_accepted": true,
+    "ma13_credit_accepted": false
+  },
+  "manual_control": {
+    "control_version": "trade.manual-main-merge.v1",
+    "github_enforced": false,
+    "operator_enforced": true,
+    "pre_merge_steps": [
+      "dedicated_branch_from_current_main",
+      "draft_until_bounded_scope_frozen",
+      "record_exact_head_sha",
+      "exact_head_provider_free_verification_success",
+      "independent_read_only_review_no_blocking_findings",
+      "reconfirm_main_target_clean_mergeability_and_exact_scope",
+      "explicit_operator_approval_of_pr_and_exact_head",
+      "ordinary_pr_merge_no_direct_or_force_push"
+    ],
+    "post_merge_steps": [
+      "record_merge_and_verify_reviewed_scope_main_reachability",
+      "exact_main_ci_success",
+      "exact_deploy_identity_and_production_smoke_when_published",
+      "preserve_bounded_delivery_evidence"
+    ],
+    "fail_closed_on_missing_or_stale_step": true,
+    "equivalent_to_branch_protection": false
+  },
+  "gate_reconciliation": {
+    "previous_ma13_classification": "unknown_current",
+    "current_ma13_classification": "known_gap",
+    "manual_control_classification": "accepted_compensating_control",
+    "verified_before": 14,
+    "verified_after": 14,
+    "total": 15,
+    "percentage": 93.3,
+    "ma13_credit_awarded": false,
+    "milestone_a_complete": false
+  },
+  "candidate_canonicalization_conditions": {
+    "dedicated_branch_from_current_main": false,
+    "draft_until_bounded_scope_frozen": false,
+    "exact_head_sha_recorded_after_scope_freeze": false,
+    "exact_head_ci_success": false,
+    "independent_read_only_review_no_blocking_findings": false,
+    "base_current_cleanly_mergeable_and_exact_scope_reconfirmed": false,
+    "explicit_operator_approval_of_pr_and_exact_head": false,
+    "ordinary_pr_merge_verified": false,
+    "exact_reviewed_scope_merged": false,
+    "exact_main_ci_success": false,
+    "resulting_netlify_github_identity_exact_if_published": false,
+    "resulting_production_smoke_green_if_published": false,
+    "bounded_delivery_evidence_preserved": false,
+    "all_satisfied": false
+  },
+  "scope_limits": {
+    "application_source_mutation": false,
+    "database_mutation": false,
+    "auth_mutation": false,
+    "provider_mutation": false,
+    "runtime_mutation": false,
+    "deployment_triggered_by_this_candidate": false,
+    "broker_or_execution_authority": false,
+    "canonical_owner_uuid_disclosure": false,
+    "application_row_disclosure": false
+  }
+}
