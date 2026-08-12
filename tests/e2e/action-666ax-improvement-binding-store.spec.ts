@@ -34,9 +34,11 @@ import {
   CANONICAL_IMPROVEMENT_BINDING_STORE_VERSION,
   DEFAULT_OFF_IMPROVEMENT_BINDING_STORE_ENABLED,
   DEFAULT_OFF_IMPROVEMENT_BINDING_STORE_KILL_SWITCH_ENGAGED,
+  canonicalImprovementBindingSnapshotIdentity,
   createCanonicalImprovementBindingLookupAdapters,
   createCanonicalImprovementBindingSnapshotAuthority,
   createCanonicalImprovementBindingStoreHarness,
+  type CanonicalImprovementBindingSnapshotAuthority,
   type CanonicalImprovementBindingStoreCounters,
   type CanonicalImprovementBindingSnapshot,
 } from "@/lib/server/canonical-improvement-binding-store";
@@ -62,6 +64,27 @@ function zeroCounters(): CanonicalImprovementBindingStoreCounters {
 function proposalIdentity() {
   return action666vStableImprovementFixture.post.payload
     .proposal_candidates[0].proposal_identity;
+}
+
+function rehashSnapshot(
+  snapshot: CanonicalImprovementBindingSnapshot,
+): CanonicalImprovementBindingSnapshot {
+  const payload = structuredClone(snapshot);
+  delete (payload as Partial<CanonicalImprovementBindingSnapshot>)
+    .snapshot_digest;
+  snapshot.snapshot_digest = canonicalModelImprovementDigest(payload);
+  return snapshot;
+}
+
+function rehashAuthority(
+  authority: CanonicalImprovementBindingSnapshotAuthority,
+): CanonicalImprovementBindingSnapshotAuthority {
+  const payload = structuredClone(authority);
+  delete (
+    payload as Partial<CanonicalImprovementBindingSnapshotAuthority>
+  ).authority_digest;
+  authority.authority_digest = canonicalModelImprovementDigest(payload);
+  return authority;
 }
 
 test.describe("Action 666AX frozen improvement binding snapshot and read-only store", () => {
@@ -630,6 +653,242 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
       "invalid_snapshot",
     );
     expect(authorityHarness.counters.snapshot_reads).toBe(0);
+  });
+
+  test("semantically invalid authorities fail before every snapshot read", () => {
+    const cleanAuthority =
+      createCanonicalImprovementBindingSnapshotAuthority({
+        authority_identity: action666axAuthorityIdentity,
+        owner_boundary_identity: action666axOwnerBoundaryIdentity,
+        snapshot: action666axEmptySnapshot,
+      });
+    const mutations: Array<{
+      name: string;
+      expectedReason: string;
+      rehash?: false;
+      mutate: (authority: Record<string, unknown>) => void;
+    }> = [
+      {
+        name: "authority digest",
+        expectedReason: "snapshot_authority_digest_mismatch",
+        rehash: false,
+        mutate: (authority) => {
+          authority.authority_digest = "0".repeat(64);
+        },
+      },
+      {
+        name: "authority version",
+        expectedReason: "snapshot_authority_version_invalid",
+        mutate: (authority) => {
+          authority.authority_version = "wrong";
+        },
+      },
+      {
+        name: "authority identity",
+        expectedReason: "snapshot_authority_identity_mismatch",
+        mutate: (authority) => {
+          authority.authority_identity = "x";
+        },
+      },
+      {
+        name: "owner boundary identity",
+        expectedReason: "snapshot_authority_identity_mismatch",
+        mutate: (authority) => {
+          authority.owner_boundary_identity =
+            "binding-owner-boundary:unexpected";
+        },
+      },
+      {
+        name: "expected snapshot identity",
+        expectedReason: "snapshot_authority_expected_identity_invalid",
+        mutate: (authority) => {
+          authority.expected_snapshot_identity =
+            "binding-snapshot:unexpected:1:1";
+        },
+      },
+      {
+        name: "expected snapshot digest",
+        expectedReason: "snapshot_authority_digest_format_invalid",
+        mutate: (authority) => {
+          authority.expected_snapshot_digest = "not-a-digest";
+        },
+      },
+      {
+        name: "expected owner identity",
+        expectedReason: "snapshot_authority_expected_identity_invalid",
+        mutate: (authority) => {
+          authority.expected_owner_authority_identity = "bad owner";
+        },
+      },
+      {
+        name: "publication sequence",
+        expectedReason: "snapshot_authority_epoch_invalid",
+        mutate: (authority) => {
+          authority.expected_publication_sequence = 0;
+        },
+      },
+      {
+        name: "publication epoch",
+        expectedReason: "snapshot_authority_epoch_invalid",
+        mutate: (authority) => {
+          authority.expected_publication_epoch = 0;
+        },
+      },
+      {
+        name: "predecessor digest",
+        expectedReason: "snapshot_authority_digest_format_invalid",
+        mutate: (authority) => {
+          authority.expected_predecessor_digest = "not-a-digest";
+        },
+      },
+      {
+        name: "external root",
+        expectedReason: "snapshot_authority_digest_format_invalid",
+        mutate: (authority) => {
+          authority.expected_external_trust_root = "not-a-digest";
+        },
+      },
+      {
+        name: "digest algorithm",
+        expectedReason: "snapshot_authority_version_invalid",
+        mutate: (authority) => {
+          authority.authority_digest_algorithm = "wrong";
+        },
+      },
+    ];
+    for (const mutation of mutations) {
+      const authority = structuredClone(
+        cleanAuthority,
+      ) as CanonicalImprovementBindingSnapshotAuthority;
+      mutation.mutate(authority as unknown as Record<string, unknown>);
+      if (mutation.rehash !== false) rehashAuthority(authority);
+      let snapshotReaderCalls = 0;
+      const harness = createCanonicalImprovementBindingStoreHarness({
+        enabled: true,
+        kill_switch_engaged: false,
+        owner_dependency: {
+          ...action666axEmptyOwnerDependency,
+          read_expected_authority: () => authority,
+          read_verified_snapshot: () => {
+            snapshotReaderCalls += 1;
+            throw new Error("snapshot_reader_must_not_run");
+          },
+        },
+      });
+      expect(snapshotReaderCalls, mutation.name).toBe(0);
+      expect(harness.store?.validation_status, mutation.name).toBe(
+        "invalid_snapshot",
+      );
+      expect(
+        harness.store?.validation_reason_codes,
+        mutation.name,
+      ).toContain(mutation.expectedReason);
+      expect(harness.counters.snapshot_reads, mutation.name).toBe(0);
+      expect(harness.counters.clones, mutation.name).toBe(0);
+      expect(
+        harness.counters.downstream_aj_ac_aq_executions,
+        mutation.name,
+      ).toBe(0);
+    }
+  });
+
+  test("self-consistent malformed owner identities fail closed before snapshot access", () => {
+    const invalidOwnerIdentities: unknown[] = [
+      "",
+      "  ",
+      "ab",
+      "a".repeat(257),
+      "bad owner",
+      null,
+      true,
+      42,
+      {},
+      [],
+    ];
+    const cleanAuthority =
+      createCanonicalImprovementBindingSnapshotAuthority({
+        authority_identity: action666axAuthorityIdentity,
+        owner_boundary_identity: action666axOwnerBoundaryIdentity,
+        snapshot: action666axEmptySnapshot,
+      });
+    for (const invalidOwnerIdentity of invalidOwnerIdentities) {
+      const snapshot = structuredClone(action666axEmptySnapshot);
+      (
+        snapshot as unknown as Record<string, unknown>
+      ).owner_authority_identity = invalidOwnerIdentity;
+      snapshot.snapshot_identity =
+        canonicalImprovementBindingSnapshotIdentity(
+          snapshot as CanonicalImprovementBindingSnapshot,
+        );
+      rehashSnapshot(snapshot);
+      expect(() =>
+        createCanonicalImprovementBindingSnapshotAuthority({
+          authority_identity: action666axAuthorityIdentity,
+          owner_boundary_identity: action666axOwnerBoundaryIdentity,
+          snapshot,
+        }),
+      ).toThrow("canonical_improvement_binding_authority_invalid");
+
+      const authority = structuredClone(cleanAuthority);
+      (
+        authority as unknown as Record<string, unknown>
+      ).expected_owner_authority_identity = invalidOwnerIdentity;
+      authority.expected_snapshot_identity = snapshot.snapshot_identity;
+      authority.expected_snapshot_digest = snapshot.snapshot_digest;
+      rehashAuthority(authority);
+      let snapshotReaderCalls = 0;
+      const harness = createCanonicalImprovementBindingStoreHarness({
+        enabled: true,
+        kill_switch_engaged: false,
+        owner_dependency: {
+          ...action666axEmptyOwnerDependency,
+          read_expected_authority: () => authority,
+          read_verified_snapshot: () => {
+            snapshotReaderCalls += 1;
+            return snapshot;
+          },
+        },
+      });
+      expect(snapshotReaderCalls).toBe(0);
+      expect(harness.store?.validation_status).toBe("invalid_snapshot");
+      expect(harness.store?.validation_reason_codes).toContain(
+        "snapshot_authority_expected_identity_invalid",
+      );
+      expect(harness.counters.snapshot_reads).toBe(0);
+      expect(harness.counters.clones).toBe(0);
+
+      const malformedExpectedSnapshotIdentity = structuredClone(
+        cleanAuthority,
+      );
+      (
+        malformedExpectedSnapshotIdentity as unknown as Record<
+          string,
+          unknown
+        >
+      ).expected_snapshot_identity = invalidOwnerIdentity;
+      rehashAuthority(malformedExpectedSnapshotIdentity);
+      let expectedIdentitySnapshotReaderCalls = 0;
+      const expectedIdentityHarness =
+        createCanonicalImprovementBindingStoreHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          owner_dependency: {
+            ...action666axEmptyOwnerDependency,
+            read_expected_authority: () =>
+              malformedExpectedSnapshotIdentity,
+            read_verified_snapshot: () => {
+              expectedIdentitySnapshotReaderCalls += 1;
+              return action666axEmptySnapshot;
+            },
+          },
+        });
+      expect(expectedIdentitySnapshotReaderCalls).toBe(0);
+      expect(
+        expectedIdentityHarness.store?.validation_reason_codes,
+      ).toContain("snapshot_authority_expected_identity_invalid");
+      expect(expectedIdentityHarness.counters.snapshot_reads).toBe(0);
+      expect(expectedIdentityHarness.counters.clones).toBe(0);
+    }
   });
 
   test("predecessor schema is exact even under self-consistent snapshot and authority digests", () => {

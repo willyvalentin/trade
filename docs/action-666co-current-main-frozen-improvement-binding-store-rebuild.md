@@ -67,6 +67,12 @@ The historical implementation is hardened before freezing:
 9. execution counters are module-private snapshots; optional caller counters
    are shape-checked but never mutated;
 10. predecessor containment oracles enumerate every new server-only consumer.
+11. cloned authority bytes complete full semantic and cryptographic validation
+    before the snapshot reader can run, so every authority drift observes zero
+    snapshot reads and zero snapshot clones;
+12. expected owner/snapshot identities require canonical runtime types, format
+    and derivation; self-consistent rehashing cannot authorize malformed
+    identities.
 
 ## Preserved boundary
 

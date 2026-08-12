@@ -150,6 +150,12 @@ construction, and optional caller counters are never mutated.
 Snapshot and lookup inputs are recursively checked before clone or nested
 access. Cycles, non-plain objects, accessors, symbols, proxies, sparse arrays,
 extra array keys and non-finite numbers cannot become store authority.
+After authority bytes are cloned, their complete semantic and cryptographic
+contract is validated before the snapshot reader can run. Any authority
+version, digest, identity, owner/root, sequence, epoch or predecessor drift
+therefore observes zero snapshot reads and zero snapshot clones. Expected
+owner and snapshot identities must be canonically typed, formatted and bound;
+self-consistent rehashing cannot legitimize malformed identity values.
 Predecessor and entry schemas remain exact even if an attacker recomputes all
 public digests. Malformed lookups return a canonical conflict and never expose
 an exception, backend message or stack.

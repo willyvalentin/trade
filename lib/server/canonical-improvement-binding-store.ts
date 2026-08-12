@@ -636,7 +636,17 @@ export function createCanonicalImprovementBindingSnapshotAuthority(input: {
     ]) ||
     !hasCanonicalRuntimeSurface(input) ||
     !validIdentity(input.authority_identity) ||
-    !validIdentity(input.owner_boundary_identity)
+    !validIdentity(input.owner_boundary_identity) ||
+    !isRecord(input.snapshot) ||
+    !exactKeys(input.snapshot, snapshotKeys) ||
+    !hasCanonicalRuntimeSurface(input.snapshot) ||
+    !validIdentity(input.snapshot.owner_authority_identity) ||
+    !validPositiveInteger(input.snapshot.publication_sequence) ||
+    !validPositiveInteger(input.snapshot.publication_epoch) ||
+    !validIdentity(input.snapshot.snapshot_identity) ||
+    input.snapshot.snapshot_identity !==
+      canonicalImprovementBindingSnapshotIdentity(input.snapshot) ||
+    !fullShaPattern.test(input.snapshot.snapshot_digest)
   ) {
     throw new Error("canonical_improvement_binding_authority_invalid");
   }
@@ -751,6 +761,18 @@ function validateAuthority(
     return false;
   }
   const authority = value as CanonicalImprovementBindingSnapshotAuthority;
+  const expectedOwnerIdentityValid = validIdentity(
+    authority.expected_owner_authority_identity,
+  );
+  const expectedSnapshotIdentityValid = validIdentity(
+    authority.expected_snapshot_identity,
+  );
+  const expectedSequenceValid = validPositiveInteger(
+    authority.expected_publication_sequence,
+  );
+  const expectedEpochValid = validPositiveInteger(
+    authority.expected_publication_epoch,
+  );
   if (
     authority.authority_version !==
       CANONICAL_IMPROVEMENT_BINDING_AUTHORITY_VERSION ||
@@ -773,11 +795,26 @@ function validateAuthority(
   ) {
     reasons.push("snapshot_authority_digest_format_invalid");
   }
-  if (
-    !validPositiveInteger(authority.expected_publication_sequence) ||
-    !validPositiveInteger(authority.expected_publication_epoch)
-  ) {
+  if (!expectedSequenceValid || !expectedEpochValid) {
     reasons.push("snapshot_authority_epoch_invalid");
+  }
+  if (
+    !expectedOwnerIdentityValid ||
+    !expectedSnapshotIdentityValid ||
+    !expectedSequenceValid ||
+    !expectedEpochValid ||
+    (expectedOwnerIdentityValid &&
+      expectedSequenceValid &&
+      expectedEpochValid &&
+      authority.expected_snapshot_identity !==
+        canonicalImprovementBindingSnapshotIdentity({
+          owner_authority_identity:
+            authority.expected_owner_authority_identity,
+          publication_sequence: authority.expected_publication_sequence,
+          publication_epoch: authority.expected_publication_epoch,
+        }))
+  ) {
+    reasons.push("snapshot_authority_expected_identity_invalid");
   }
   const payload = structuredClone(
     authority,
@@ -789,6 +826,39 @@ function validateAuthority(
     reasons.push("snapshot_authority_digest_mismatch");
   }
   return reasons.length === 0;
+}
+
+function invalidAuthorityValidation(input: {
+  authority: CanonicalImprovementBindingSnapshotAuthority;
+  boundaryIdentity: string;
+  counters: CanonicalImprovementBindingStoreCounters;
+  reasons: string[];
+}): SnapshotValidation {
+  return {
+    valid: false,
+    snapshot: null,
+    observed_snapshot_identity: null,
+    observed_snapshot_digest: safeObservedDigest(
+      { snapshot_read_skipped_due_to_invalid_authority: true },
+      input.counters,
+    ),
+    observed_publication_sequence: null,
+    observed_publication_epoch: null,
+    owner_boundary_identity: input.boundaryIdentity,
+    authority_identity:
+      typeof input.authority.authority_identity === "string"
+        ? input.authority.authority_identity
+        : null,
+    authority_digest:
+      typeof input.authority.authority_digest === "string"
+        ? input.authority.authority_digest
+        : null,
+    expected_external_trust_root:
+      typeof input.authority.expected_external_trust_root === "string"
+        ? input.authority.expected_external_trust_root
+        : null,
+    reason_codes: uniqueSorted(input.reasons),
+  };
 }
 
 function validateSnapshot(input: {
@@ -894,9 +964,17 @@ function validateSnapshot(input: {
   ) {
     reasons.push("snapshot_temporal_contract_invalid");
   }
+  const snapshotOwnerIdentityValid = validIdentity(
+    snapshot.owner_authority_identity,
+  );
+  if (!snapshotOwnerIdentityValid) {
+    reasons.push("snapshot_owner_authority_identity_invalid");
+  }
   if (
+    !validIdentity(snapshot.snapshot_identity) ||
+    !snapshotOwnerIdentityValid ||
     snapshot.snapshot_identity !==
-    canonicalImprovementBindingSnapshotIdentity(snapshot)
+      canonicalImprovementBindingSnapshotIdentity(snapshot)
   ) {
     reasons.push("snapshot_identity_mismatch");
   }
@@ -1557,6 +1635,27 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
       );
     if (!authority) {
       throw new Error("binding_owner_authority_runtime_shape_conflicting");
+    }
+    const authorityReasons: string[] = [];
+    if (
+      !validateAuthority(
+        authority,
+        ownerBoundaryIdentity,
+        authorityReasons,
+      )
+    ) {
+      const validation = invalidAuthorityValidation({
+        authority,
+        boundaryIdentity: ownerBoundaryIdentity,
+        counters,
+        reasons: authorityReasons,
+      });
+      return publish({
+        enabled: true as const,
+        status: "ready" as const,
+        store: openStore({ validation, counters }),
+        ...safety,
+      });
     }
     counters.snapshot_reads += 1;
     rawSnapshot = readVerifiedSnapshot();
