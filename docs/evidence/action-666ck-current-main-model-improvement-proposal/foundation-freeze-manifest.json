@@ -1,0 +1,75 @@
+{
+  "schema_version": "action_666ck_current_main_model_improvement_proposal_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "3daa36638f10ec9356811cb9f8e900e44bead3be",
+    "candidate_base_tree": "1a5dadac1b76586130850fd3437f412f9d021c4f",
+    "historical_source_pull_request": 55,
+    "historical_source_head": "785190485ebdbf3e5a17c8555fd32efd7ad9922b",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false
+  },
+  "foundation": {
+    "contract_version": "canonical_model_improvement_proposal_v1",
+    "normative_artifact_count": 6,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "18309ccb2a3b3cb015be003061e211d66b22b2db859cdf65d3b05700badf6004",
+    "artifacts": [
+      {
+        "path": "docs/action-666v-golden-model-improvement-proposal-report.json",
+        "sha256": "c2b5abdedb18536e8f84aaa57a3c987a7ed512df77bd214f7de43debf1930262"
+      },
+      {
+        "path": "docs/action-666v-governed-model-improvement-proposal-contract.md",
+        "sha256": "2c8741e127e7f71c6d136ed024115f5aee4e1dc9c5f01eb1f2486b4d64935be6"
+      },
+      {
+        "path": "lib/server/canonical-model-improvement-proposal-fixtures.ts",
+        "sha256": "574bb11ff13c5d4d9066c7e2895c5bd2fa7f819d4704e498b90b4544453f4787"
+      },
+      {
+        "path": "lib/server/canonical-model-improvement-proposal.ts",
+        "sha256": "fd5b560b5111391966f56206a1991be5c520c2939b8eb479d2a5fae02e6c8ee1"
+      },
+      {
+        "path": "lib/server/canonical-model-improvement-upstream-verification.ts",
+        "sha256": "8f025b4374080e52fa97a1d7f1e7fa532dce66adf54d5cfc4919f2bb6b2757ec"
+      },
+      {
+        "path": "tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts",
+        "sha256": "2118964e61eb3b2fb592cf1ee121c18d25906b940fcf281c5c2525b2e53e2e47"
+      }
+    ]
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "offline_only": true,
+    "default_off": true,
+    "live_consumer_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "runtime_remediation": {
+    "literal_activation_gate_required": true,
+    "immutable_registry_snapshot_required": true,
+    "canonical_runtime_surface_required": true,
+    "exact_request_runtime_shape_required": true,
+    "structured_never_throw_failure_required": true
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true
+  }
+}
