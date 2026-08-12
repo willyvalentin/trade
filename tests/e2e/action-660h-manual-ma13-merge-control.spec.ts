@@ -10,12 +10,21 @@ async function source(relativePath: string) {
 }
 
 function sectionBetween(text: string, start: string, end: string) {
-  const startIndex = text.indexOf(start);
-  const endIndex = text.indexOf(end, startIndex + start.length);
-  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+  const lines = text.split("\n");
+  const startIndexes = lines.flatMap((line, index) =>
+    line === start ? [index] : [],
+  );
+  const endIndexes = lines.flatMap((line, index) =>
+    line === end ? [index] : [],
+  );
+  if (
+    startIndexes.length !== 1 ||
+    endIndexes.length !== 1 ||
+    endIndexes[0] <= startIndexes[0]
+  ) {
     throw new Error(`Missing or reordered contract section: ${start} -> ${end}`);
   }
-  return text.slice(startIndex + start.length, endIndex);
+  return lines.slice(startIndexes[0] + 1, endIndexes[0]).join("\n");
 }
 
 const governedHeadings = [
@@ -28,14 +37,16 @@ const governedHeadings = [
 ];
 
 function assertExactHeadingOrder(text: string) {
-  let previousIndex = -1;
+  const lines = text.split("\n");
+  let previousLineIndex = -1;
   for (const heading of governedHeadings) {
-    const occurrences = text.split(heading).length - 1;
-    const index = text.indexOf(heading);
-    if (occurrences !== 1 || index <= previousIndex) {
+    const indexes = lines.flatMap((line, index) =>
+      line === heading ? [index] : [],
+    );
+    if (indexes.length !== 1 || indexes[0] <= previousLineIndex) {
       throw new Error(`Missing, duplicated or reordered heading: ${heading}`);
     }
-    previousIndex = index;
+    previousLineIndex = indexes[0];
   }
 }
 
@@ -44,20 +55,20 @@ function taggedRequirementIds(
   tag: "PRE" | "POST" | "CAN",
   firstDocumentNumber: number,
 ) {
-  const numberedLines = text
+  const commonMarkNumberedLines = text
     .split("\n")
-    .filter((line) => /^\d+\. /.test(line));
+    .filter((line) => /^ {0,3}\d{1,9}[.)][ \t]+/.test(line));
   const requirementPattern = new RegExp(
     "^(\\d+)\\. `\\[" + tag + "-(\\d{2}): ([a-z0-9_]+)\\]`(?: .*)?$",
   );
 
-  return numberedLines.map((line, index) => {
+  return commonMarkNumberedLines.map((line, index) => {
     const match = line.match(requirementPattern);
     if (!match) {
       throw new Error(`${tag} contains an untagged or malformed requirement`);
     }
     const expectedDocumentNumber = firstDocumentNumber + index;
-    if (Number(match[1]) !== expectedDocumentNumber) {
+    if (match[1] !== String(expectedDocumentNumber)) {
       throw new Error(`${tag} document numbering is not contiguous`);
     }
     const expectedOrdinal = String(index + 1).padStart(2, "0");
@@ -103,6 +114,18 @@ function validateContractRequirementBinding(
   const canonicalizationIds = Object.keys(
     evidence.candidate_canonicalization_conditions,
   ).filter((key) => key !== "all_satisfied");
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      evidence.candidate_canonicalization_conditions,
+      "all_satisfied",
+    ) ||
+    evidence.candidate_canonicalization_conditions.all_satisfied !== false ||
+    Object.values(evidence.candidate_canonicalization_conditions).some(
+      (value) => value !== false,
+    )
+  ) {
+    throw new Error("candidate canonicalization must be explicitly fail-closed");
+  }
 
   requireExactIds(
     taggedRequirementIds(beforeMerge, "PRE", 1),
@@ -399,5 +422,49 @@ test("manual requirement IDs reject every deletion, mutation and extra", async (
     contract.slice(scopeIndex);
   expect(() =>
     validateContractRequirementBinding(deliveryBeforeOperational, evidence),
+  ).toThrow();
+
+  for (const heading of governedHeadings) {
+    expect(() =>
+      validateContractRequirementBinding(
+        contract.replace(`${heading}\n`, `${heading}s\n`),
+        evidence,
+      ),
+    ).toThrow();
+  }
+
+  for (const extra of [
+    "  9. An indented untagged requirement.",
+    "9.\tA tab-separated untagged requirement.",
+    "9) A parenthesized untagged requirement.",
+  ]) {
+    for (const heading of ["### After merge", "## Scope limits"]) {
+      expect(() =>
+        validateContractRequirementBinding(
+          contract.replace(heading, `${extra}\n\n${heading}`),
+          evidence,
+        ),
+      ).toThrow();
+    }
+  }
+
+  const missingAllSatisfied = structuredClone(evidence);
+  delete missingAllSatisfied.candidate_canonicalization_conditions
+    .all_satisfied;
+  expect(() =>
+    validateContractRequirementBinding(contract, missingAllSatisfied),
+  ).toThrow();
+
+  const trueAllSatisfied = structuredClone(evidence);
+  trueAllSatisfied.candidate_canonicalization_conditions.all_satisfied = true;
+  expect(() =>
+    validateContractRequirementBinding(contract, trueAllSatisfied),
+  ).toThrow();
+
+  const trueIndividualCondition = structuredClone(evidence);
+  trueIndividualCondition.candidate_canonicalization_conditions.exact_head_ci_success =
+    true;
+  expect(() =>
+    validateContractRequirementBinding(contract, trueIndividualCondition),
   ).toThrow();
 });
