@@ -27,8 +27,20 @@ const postMergeSteps = [
   "preserve_bounded_delivery_evidence",
 ];
 
+const templateChecklistItems = [
+  "Work started from the current immutable `main` commit on a dedicated branch.",
+  "The PR remained Draft until its bounded scope was complete and frozen.",
+  "The PR targets `main` and contains only the intended bounded scope.",
+  "The exact head SHA is recorded after the scope is frozen.",
+  "`provider-free-verification` is successful for that exact head SHA.",
+  "Independent read-only review has no unresolved blocking finding.",
+  "The PR is cleanly mergeable and its base is current.",
+  "The operator has explicitly approved this PR number and exact head SHA.",
+  "The merge will use an ordinary PR merge; no direct push or force-push.",
+];
+
 const evidenceSha256 =
-  "a0799469e0864a4728a6498917cab0027c44038b2f78dcd8ed41460852b908b5";
+  "47bcbfbd6da71b8f7f812c4177160b5d80da3372771622a7ad027a0b94ef07be";
 
 test("manual MA13 control records the accepted gap without gate credit", async () => {
   const [contract, roadmap, ledger, template, workflow, rawEvidence] =
@@ -113,10 +125,19 @@ test("manual MA13 control records the accepted gap without gate credit", async (
     milestone_a_complete: false,
   });
   expect(evidence.candidate_canonicalization_conditions).toEqual({
+    dedicated_branch_from_current_main: false,
+    draft_until_bounded_scope_frozen: false,
+    exact_head_sha_recorded_after_scope_freeze: false,
+    exact_head_ci_success: false,
+    independent_read_only_review_no_blocking_findings: false,
+    base_current_cleanly_mergeable_and_exact_scope_reconfirmed: false,
+    explicit_operator_approval_of_pr_and_exact_head: false,
+    ordinary_pr_merge_verified: false,
     exact_reviewed_scope_merged: false,
     exact_main_ci_success: false,
     resulting_netlify_github_identity_exact_if_published: false,
     resulting_production_smoke_green_if_published: false,
+    bounded_delivery_evidence_preserved: false,
     all_satisfied: false,
   });
   expect(evidence.scope_limits).toEqual({
@@ -143,19 +164,26 @@ test("manual MA13 control records the accepted gap without gate credit", async (
   expect(ledger).not.toContain("| verified_current | MA-13 |");
 
   expect(template).toContain("Manual merge safety checklist");
-  for (const item of [
-    "The PR targets `main` and contains only the intended bounded scope.",
-    "The exact head SHA is recorded after the scope is frozen.",
-    "`provider-free-verification` is successful for that exact head SHA.",
-    "Independent read-only review has no unresolved blocking finding.",
-    "The PR is cleanly mergeable and its base is current.",
-    "The operator has explicitly approved this PR number and exact head SHA.",
-    "The merge will use an ordinary PR merge; no direct push or force-push.",
-  ]) {
-    expect(template).toContain(`- [ ] ${item}`);
-  }
+  const templateChecklist = template
+    .split("\n")
+    .filter((line) => line.startsWith("- [ ] "))
+    .map((line) => line.slice("- [ ] ".length));
+  expect(templateChecklist).toEqual(templateChecklistItems);
   expect(workflow).toContain(
     "tests/e2e/action-660h-manual-ma13-merge-control.spec.ts",
+  );
+  expect(workflow).toContain(
+    "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+  );
+  expect(workflow).toContain("name: Verify exact revision identity");
+  expect(workflow).toContain(
+    "EXPECTED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+  );
+  expect(workflow).toContain(
+    'run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"',
+  );
+  expect(contract).toMatch(
+    /No subset of these\s+conditions may set `all_satisfied` to true\./,
   );
 
   for (const text of [contract, roadmap, ledger, template, rawEvidence]) {

@@ -79,12 +79,19 @@ database, provider, broker or execution authority is created.
 
 ## Delivery condition
 
-This candidate becomes the canonical manual-control record only after its
-exact reviewed scope reaches `main` and push-triggered exact-main CI succeeds.
-If Netlify publishes the documentation-only merge, exact deploy identity and
-the required production smoke must also pass before MA11 and MA15 may remain
-closed. The delivery can record acceptance of the gap but can never mark MA13
-`verified_current` while GitHub enforcement is absent.
+This candidate becomes the canonical manual-control record only after a
+delivery reconciliation proves every required step: a dedicated branch from
+the recorded current `main`; Draft status until bounded-scope freeze;
+successful exact-head CI; independent read-only review with no blocking
+finding on that exact head; reconfirmed current base, clean mergeability and
+exact scope; explicit operator approval naming the PR and exact head; an
+ordinary PR merge; exact reviewed-scope reachability from `main`; and
+successful push-triggered exact-main CI. If Netlify publishes the
+documentation-only merge, exact deploy identity and the required production
+smoke must also pass before MA11 and MA15 may remain closed. No subset of these
+conditions may set `all_satisfied` to true. The delivery can record acceptance
+of the gap but can never mark MA13 `verified_current` while GitHub enforcement
+is absent.
 
 ## Scope limits
 

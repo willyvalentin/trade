@@ -8,6 +8,8 @@ GitHub Free cannot enforce branch protection for this private repository. The
 following checks are therefore mandatory operator controls; completing them
 does not close MA13 or make Milestone A complete.
 
+- [ ] Work started from the current immutable `main` commit on a dedicated branch.
+- [ ] The PR remained Draft until its bounded scope was complete and frozen.
 - [ ] The PR targets `main` and contains only the intended bounded scope.
 - [ ] The exact head SHA is recorded after the scope is frozen.
 - [ ] `provider-free-verification` is successful for that exact head SHA.

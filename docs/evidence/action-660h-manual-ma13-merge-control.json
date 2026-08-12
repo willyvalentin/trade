@@ -65,10 +65,19 @@
     "milestone_a_complete": false
   },
   "candidate_canonicalization_conditions": {
+    "dedicated_branch_from_current_main": false,
+    "draft_until_bounded_scope_frozen": false,
+    "exact_head_sha_recorded_after_scope_freeze": false,
+    "exact_head_ci_success": false,
+    "independent_read_only_review_no_blocking_findings": false,
+    "base_current_cleanly_mergeable_and_exact_scope_reconfirmed": false,
+    "explicit_operator_approval_of_pr_and_exact_head": false,
+    "ordinary_pr_merge_verified": false,
     "exact_reviewed_scope_merged": false,
     "exact_main_ci_success": false,
     "resulting_netlify_github_identity_exact_if_published": false,
     "resulting_production_smoke_green_if_published": false,
+    "bounded_delivery_evidence_preserved": false,
     "all_satisfied": false
   },
   "scope_limits": {
