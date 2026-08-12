@@ -265,7 +265,11 @@ verified and not entitled to gate credit.
   `2409b458…` / `5c54eb02…` and `4607990a…` / `fc5e4e3d…` were valid earlier
   main/tree identities. They are now historical and superseded first by
   `490e3607…` / `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
-  `9e2f64a…` / `0a5440b7…` and now by `f463644d…` / `b0c8eae0…`.
+  `9e2f64a…` / `0a5440b7…`, then by
+  `f463644ddeb7f49fa8b80924d9103ea8970ccae4` /
+  `b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad` and now by current main
+  `7662d3f863f8f921b816670363431df8e1ebcdea` / tree
+  `86a59f234b69e63b07a60833224015018be41568`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by

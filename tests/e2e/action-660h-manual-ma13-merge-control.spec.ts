@@ -18,21 +18,53 @@ function sectionBetween(text: string, start: string, end: string) {
   return text.slice(startIndex + start.length, endIndex);
 }
 
-function taggedRequirementIds(text: string, tag: "PRE" | "POST" | "CAN") {
-  const matches = [
-    ...text.matchAll(
-      new RegExp(
-        "^\\d+\\. `\\[" + tag + "-(\\d{2}): ([a-z0-9_]+)\\]`",
-        "gm",
-      ),
-    ),
-  ];
-  return matches.map((match, index) => {
+const governedHeadings = [
+  "## Mandatory manual control",
+  "### Before merge",
+  "### After merge",
+  "## Operational effect",
+  "## Delivery condition",
+  "## Scope limits",
+];
+
+function assertExactHeadingOrder(text: string) {
+  let previousIndex = -1;
+  for (const heading of governedHeadings) {
+    const occurrences = text.split(heading).length - 1;
+    const index = text.indexOf(heading);
+    if (occurrences !== 1 || index <= previousIndex) {
+      throw new Error(`Missing, duplicated or reordered heading: ${heading}`);
+    }
+    previousIndex = index;
+  }
+}
+
+function taggedRequirementIds(
+  text: string,
+  tag: "PRE" | "POST" | "CAN",
+  firstDocumentNumber: number,
+) {
+  const numberedLines = text
+    .split("\n")
+    .filter((line) => /^\d+\. /.test(line));
+  const requirementPattern = new RegExp(
+    "^(\\d+)\\. `\\[" + tag + "-(\\d{2}): ([a-z0-9_]+)\\]`(?: .*)?$",
+  );
+
+  return numberedLines.map((line, index) => {
+    const match = line.match(requirementPattern);
+    if (!match) {
+      throw new Error(`${tag} contains an untagged or malformed requirement`);
+    }
+    const expectedDocumentNumber = firstDocumentNumber + index;
+    if (Number(match[1]) !== expectedDocumentNumber) {
+      throw new Error(`${tag} document numbering is not contiguous`);
+    }
     const expectedOrdinal = String(index + 1).padStart(2, "0");
-    if (match[1] !== expectedOrdinal) {
+    if (match[2] !== expectedOrdinal) {
       throw new Error(`${tag} requirement sequence is not contiguous`);
     }
-    return match[2];
+    return match[3];
   });
 }
 
@@ -52,6 +84,7 @@ function validateContractRequirementBinding(
     candidate_canonicalization_conditions: Record<string, boolean>;
   },
 ) {
+  assertExactHeadingOrder(contract);
   const beforeMerge = sectionBetween(
     contract,
     "### Before merge",
@@ -72,17 +105,17 @@ function validateContractRequirementBinding(
   ).filter((key) => key !== "all_satisfied");
 
   requireExactIds(
-    taggedRequirementIds(beforeMerge, "PRE"),
+    taggedRequirementIds(beforeMerge, "PRE", 1),
     evidence.manual_control.pre_merge_steps,
     "pre-merge",
   );
   requireExactIds(
-    taggedRequirementIds(afterMerge, "POST"),
+    taggedRequirementIds(afterMerge, "POST", 9),
     evidence.manual_control.post_merge_steps,
     "post-merge",
   );
   requireExactIds(
-    taggedRequirementIds(delivery, "CAN"),
+    taggedRequirementIds(delivery, "CAN", 1),
     canonicalizationIds,
     "canonicalization",
   );
@@ -122,6 +155,7 @@ const evidenceSha256 =
   "47bcbfbd6da71b8f7f812c4177160b5d80da3372771622a7ad027a0b94ef07be";
 
 const currentMainCommit = "7662d3f863f8f921b816670363431df8e1ebcdea";
+const currentMainTree = "86a59f234b69e63b07a60833224015018be41568";
 const lastVerifiedProductionCommit =
   "f463644ddeb7f49fa8b80924d9103ea8970ccae4";
 
@@ -159,7 +193,7 @@ test("manual MA13 control records the accepted gap without gate credit", async (
   expect(evidence.authority).toEqual({
     repository: "willyvalentin/trade",
     main_commit: currentMainCommit,
-    main_tree: "86a59f234b69e63b07a60833224015018be41568",
+    main_tree: currentMainTree,
     main_parents: [
       lastVerifiedProductionCommit,
       "3dcded2aab304a9e7a748a78de17f03f293d0ec5",
@@ -280,6 +314,11 @@ test("manual MA13 control records the accepted gap without gate credit", async (
   expect(roadmap).toContain(
     `Current GitHub \`main\` is\n\`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because governance-only PR #99\nadvanced \`main\` without a production publish.`,
   );
+  expect(roadmap).toMatch(
+    new RegExp(
+      `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\` and now by current main\\s+\`${currentMainCommit}\` / tree\\s+\`${currentMainTree}\``,
+    ),
+  );
   for (const text of [roadmap, ledger]) {
     expect(text).not.toContain("production and main are the same commit");
     expect(text).not.toContain("current exact production/main identity");
@@ -332,4 +371,33 @@ test("manual requirement IDs reject every deletion, mutation and extra", async (
       ).toThrow();
     }
   }
+
+  for (const [heading, extra] of [
+    ["### After merge", "9. An extra mandatory untagged step."],
+    [
+      "## Operational effect",
+      "13. An extra mandatory untagged post-merge step.",
+    ],
+    ["## Scope limits", "14. An extra mandatory untagged condition."],
+  ] as const) {
+    expect(() =>
+      validateContractRequirementBinding(
+        contract.replace(heading, `${extra}\n\n${heading}`),
+        evidence,
+      ),
+    ).toThrow();
+  }
+
+  const operationalIndex = contract.indexOf("## Operational effect");
+  const deliveryIndex = contract.indexOf("## Delivery condition");
+  const scopeIndex = contract.indexOf("## Scope limits");
+  const deliveryBlock = contract.slice(deliveryIndex, scopeIndex);
+  const deliveryBeforeOperational =
+    contract.slice(0, operationalIndex) +
+    deliveryBlock +
+    contract.slice(operationalIndex, deliveryIndex) +
+    contract.slice(scopeIndex);
+  expect(() =>
+    validateContractRequirementBinding(deliveryBeforeOperational, evidence),
+  ).toThrow();
 });
