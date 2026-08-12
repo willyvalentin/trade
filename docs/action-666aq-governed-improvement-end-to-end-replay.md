@@ -128,7 +128,7 @@ Lookup methods and untrusted projection functions are captured once at harness
 construction. Previous-binding lookup returns must be exactly either `null` or
 one plain `{ semantic_digest }` record; accessors, extras, symbols, malformed
 digests and exceptions are sanitized as lookup failure. The outer request has
-an exact namespace/version/capture shell, except for the five explicitly
+an exact, mandatory namespace/version/capture shell, except for the five explicitly
 forbidden caller-authority names which remain readable solely to produce the
 canonical conflict classification.
 

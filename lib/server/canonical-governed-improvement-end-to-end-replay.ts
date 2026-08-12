@@ -415,13 +415,22 @@ function snapshotEndToEndRequest(
     value,
   );
   if (!snapshot || !isRecord(snapshot)) return null;
-  const allowedKeys = new Set([
+  const requiredKeys = [
     "completed_capture_request",
     "request_version",
     "source_namespace",
+  ];
+  const allowedKeys = new Set([
+    ...requiredKeys,
     ...forbiddenCallerAuthorityFields,
   ]);
-  if (Reflect.ownKeys(snapshot).some((key) => !allowedKeys.has(String(key)))) {
+  const actualKeys = Reflect.ownKeys(snapshot);
+  if (
+    requiredKeys.some((key) => !actualKeys.includes(key)) ||
+    actualKeys.some(
+      (key) => typeof key !== "string" || !allowedKeys.has(key),
+    )
+  ) {
     return null;
   }
   return snapshot as CanonicalGovernedImprovementEndToEndRequest;

@@ -720,6 +720,32 @@ test.describe("Action 666AQ governed improvement end-to-end replay", () => {
     ]) {
       expect(harness.replay(request).status).toBe("rejected");
     }
+
+    for (const requiredKey of [
+      "completed_capture_request",
+      "request_version",
+      "source_namespace",
+    ] as const) {
+      const missingRequired = structuredClone(
+        action666aqProposalReadyRequest,
+      ) as Record<string, unknown>;
+      delete missingRequired[requiredKey];
+      const result = harness.replay(
+        missingRequired as CanonicalGovernedImprovementEndToEndRequest,
+      );
+      expect(result).toMatchObject({
+        status: "rejected",
+        reason_codes: ["end_to_end_request_runtime_shape_conflicting"],
+      });
+      expect(
+        verifyCanonicalGovernedImprovementEndToEndResult({
+          request:
+            missingRequired as CanonicalGovernedImprovementEndToEndRequest,
+          result,
+          harness,
+        }).valid,
+      ).toBe(false);
+    }
   });
 
   test("golden report is exact synthetic evidence, never performance", () => {
