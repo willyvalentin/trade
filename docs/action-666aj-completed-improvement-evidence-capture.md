@@ -70,8 +70,12 @@ properties once at construction. Caller-owned counters are copied, never
 mutated, and only deeply frozen private snapshots are exposed. Requests,
 results, nested objects, and arrays reject accessors, symbols, hidden or extra
 keys, cycles, non-finite values, sparse arrays, and extra array properties.
-Malformed runtime input returns a sanitized, deterministic, never-throw
-diagnostic that cannot be verified as canonical evidence.
+Authority snapshots require exact boundary, registry, post, and canonical
+payload bytes. Empty authority arrays remain empty, so they cannot erase their
+element contract. Requests and results must also survive canonical cloning;
+transparent, stateful, or throwing Proxy values therefore have no evidence
+authority. Malformed runtime input returns a sanitized, deterministic,
+never-throw diagnostic that cannot be verified as canonical evidence.
 
 Verification requires the original module-privately branded frozen harness and
 its private canonical capture function. A copied, forged, disabled, malformed,

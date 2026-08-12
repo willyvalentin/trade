@@ -18,7 +18,7 @@ No historical freeze or review artifact is reused as current authority.
 5. `tests/e2e/action-666aj-completed-improvement-evidence-capture.spec.ts`
 
 The exact sorted-path aggregate is
-`12ba0c0e9dd50d52a2470ae51491d519e26b6562dfbe40be35b252a0c132efbb` and is recorded in
+`6e35b56435ef0f416fc459e66dcedcac5fe1cc011869fe4833b37a1d4e3921ee` and is recorded in
 `docs/evidence/action-666cm-current-main-completed-improvement-evidence-capture/foundation-freeze-manifest.json`.
 
 The following historical PR #58 files are deliberately excluded and retain
@@ -61,6 +61,20 @@ freezing:
    and its private canonical capture function; copies and forgeries fail closed;
 8. the recursive upstream shape is bound to the recognized authority snapshot,
    while semantic drift remains a canonical `conflicting` result.
+
+The first independent review of exact head
+`4df14617542fea40ffce97b042104ef54de469f3` found four additional fail-open or
+closure cases. The replacement candidate also requires:
+
+9. successful canonical snapshots of both requests and results before private
+   verification, so Proxy values and shared malformed diagnostics cannot gain
+   or cross-share canonical authority;
+10. exact boundary, registry, post, and canonical payload reconstruction before
+    a capture authority is module-branded;
+11. empty authority arrays to accept only empty request arrays, rather than
+    losing their element contract through exemplar inference;
+12. every new server-only proposal consumer to be explicitly enumerated in the
+    predecessor foundation's containment oracle.
 
 These remediations require exact-head CI and a new independent read-only review.
 No historical review result can authorize this candidate.

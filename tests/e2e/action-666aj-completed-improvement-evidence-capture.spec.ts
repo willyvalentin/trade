@@ -42,6 +42,7 @@ import {
 import {
   canonicalModelImprovementDigest,
   type CanonicalModelImprovementPreviousBindingLookup,
+  type CanonicalModelImprovementTrustBoundary,
 } from "@/lib/server/canonical-model-improvement-proposal";
 import {
   action666vStableImprovementFixture,
@@ -849,6 +850,72 @@ test.describe("Action 666AJ completed improvement evidence capture", () => {
     );
   });
 
+  test("authority creation rejects extra shells, nested extras, and proxies", () => {
+    const boundary = () => {
+      const value = structuredClone(
+        action666vStableImprovementFixture.trustBoundary,
+      );
+      value.registry_authority =
+        action666vStableImprovementFixture.trustBoundary.registry_authority;
+      return value;
+    };
+    const variants: unknown[] = [];
+    const topExtra = boundary() as unknown as Record<string, unknown>;
+    topExtra.unexpected = true;
+    variants.push(topExtra);
+    const topDelete = boundary() as unknown as Record<string, unknown>;
+    delete topDelete.trust_source;
+    variants.push(topDelete);
+    const topSymbol = boundary() as unknown as Record<PropertyKey, unknown>;
+    topSymbol[Symbol("unexpected")] = true;
+    variants.push(topSymbol);
+    const registryExtra = boundary();
+    (
+      registryExtra.registry as unknown as Record<string, unknown>
+    ).unexpected = true;
+    variants.push(registryExtra);
+    const registryDelete = boundary();
+    delete (
+      registryDelete.registry as unknown as Record<string, unknown>
+    ).root_digest;
+    variants.push(registryDelete);
+    const registryAccessor = boundary();
+    Object.defineProperty(registryAccessor.registry, "posts", {
+      enumerable: true,
+      get: () => registryAccessor.registry.posts,
+    });
+    variants.push(registryAccessor);
+    const registrySymbol = boundary();
+    (
+      registrySymbol.registry as unknown as Record<PropertyKey, unknown>
+    )[Symbol("unexpected")] = true;
+    variants.push(registrySymbol);
+    const postExtra = boundary();
+    (
+      postExtra.registry.posts[0] as unknown as Record<string, unknown>
+    ).unexpected = true;
+    variants.push(postExtra);
+    const payloadExtra = boundary();
+    (
+      payloadExtra.registry.posts[0].payload as unknown as Record<
+        string,
+        unknown
+      >
+    ).unexpected = true;
+    variants.push(payloadExtra);
+    variants.push(new Proxy(boundary(), {}));
+
+    for (const variant of variants) {
+      expect(() =>
+        createCanonicalCompletedImprovementCaptureAuthority(
+          variant as CanonicalModelImprovementTrustBoundary,
+        ),
+      ).toThrow(
+        "completed_improvement_capture_authority_runtime_shape_conflicting",
+      );
+    }
+  });
+
   test("lookup return shapes reject extras and accessors without leaking", () => {
     let accessorReads = 0;
     const invalidReturns: Array<() => unknown> = [
@@ -1010,6 +1077,133 @@ test.describe("Action 666AJ completed improvement evidence capture", () => {
     expect(accessorReads).toBe(0);
   });
 
+  test("proxy requests cannot create or cross-verify canonical diagnostics", () => {
+    const statefulRequestProxy = () => {
+      let ownKeyReads = 0;
+      return new Proxy(structuredClone(action666ajCapturedRequest), {
+        ownKeys: (target) => {
+          ownKeyReads += 1;
+          if (ownKeyReads > 1) throw new Error("stateful_proxy_drift");
+          return Reflect.ownKeys(target);
+        },
+      });
+    };
+    const requests = [
+      new Proxy(structuredClone(action666ajCapturedRequest), {}),
+      statefulRequestProxy(),
+      new Proxy(structuredClone(action666ajCapturedRequest), {
+        ownKeys: () => {
+          throw new Error("throwing_proxy");
+        },
+      }),
+    ];
+    const harness = captureHarness();
+    const results = requests.map((request) =>
+      harness.capture(request),
+    );
+    for (const result of results) {
+      expect(result).toMatchObject({
+        status: "incomplete",
+        capture: null,
+        reason_codes: ["capture_request_runtime_shape_conflicting"],
+      });
+    }
+    for (const request of requests) {
+      for (const result of results) {
+        expect(
+          verifyCanonicalCompletedImprovementCaptureResult({
+            request,
+            result,
+            harness,
+          }),
+        ).toMatchObject({
+          valid: false,
+          canonical_result: null,
+          reason_codes: [
+            "canonical_completed_improvement_capture_request_unverifiable",
+          ],
+        });
+      }
+    }
+
+    const canonicalResult = capture();
+    const proxiedResults = [
+      new Proxy(canonicalResult, {}),
+      new Proxy(canonicalResult, {
+        ownKeys: (() => {
+          let ownKeyReads = 0;
+          return (target: CanonicalCompletedImprovementCaptureResult) => {
+            ownKeyReads += 1;
+            if (ownKeyReads > 1) throw new Error("stateful_proxy_drift");
+            return Reflect.ownKeys(target);
+          };
+        })(),
+      }),
+      new Proxy(canonicalResult, {
+        ownKeys: () => {
+          throw new Error("throwing_proxy");
+        },
+      }),
+    ];
+    for (const result of proxiedResults) {
+      expect(
+        verifyCanonicalCompletedImprovementCaptureResult({
+          request: action666ajCapturedRequest,
+          result,
+          harness,
+        }).valid,
+      ).toBe(false);
+    }
+  });
+
+  test("every authority-empty upstream array rejects inserted object elements", () => {
+    const emptyArrayPaths: Array<Array<string | number>> = [];
+    const collect = (
+      value: unknown,
+      currentPath: Array<string | number> = [],
+    ) => {
+      if (Array.isArray(value)) {
+        if (value.length === 0) emptyArrayPaths.push(currentPath);
+        value.forEach((item, index) => collect(item, [...currentPath, index]));
+        return;
+      }
+      if (value !== null && typeof value === "object") {
+        for (const [key, nested] of Object.entries(value)) {
+          collect(nested, [...currentPath, key]);
+        }
+      }
+    };
+    collect(action666ajCapturedRequest.upstream_sources);
+    expect(emptyArrayPaths.length).toBeGreaterThan(5);
+
+    const harness = captureHarness();
+    for (const emptyPath of emptyArrayPaths) {
+      for (const inserted of [{ unexpected: true }, null, 42]) {
+        const request = structuredClone(action666ajCapturedRequest);
+        let current: unknown = request.upstream_sources;
+        for (const part of emptyPath) {
+          current = Array.isArray(current)
+            ? current[part as number]
+            : (current as Record<string, unknown>)[part as string];
+        }
+        (current as unknown[]).push(inserted);
+        const result = harness.capture(request);
+        expect(result, emptyPath.join(".")).toMatchObject({
+          status: "incomplete",
+          reason_codes: ["capture_request_runtime_shape_conflicting"],
+        });
+        expect(
+          verifyCanonicalCompletedImprovementCaptureResult({
+            request,
+            result,
+            harness,
+          }).valid,
+          emptyPath.join("."),
+        ).toBe(false);
+      }
+    }
+  });
+
   test("copied harnesses and malformed result surfaces have no verifier authority", () => {
     const harness = captureHarness();
     const result = harness.capture(action666ajCapturedRequest);
@@ -1042,6 +1236,20 @@ test.describe("Action 666AJ completed improvement evidence capture", () => {
       }),
     ).toMatchObject({
       valid: false,
+      reason_codes: [
+        "canonical_completed_improvement_capture_verification_failed",
+      ],
+    });
+
+    expect(
+      verifyCanonicalCompletedImprovementCaptureResult({
+        request: action666ajCapturedRequest,
+        result: new Proxy(result, {}),
+        harness,
+      }),
+    ).toMatchObject({
+      valid: false,
+      canonical_result: null,
       reason_codes: [
         "canonical_completed_improvement_capture_verification_failed",
       ],

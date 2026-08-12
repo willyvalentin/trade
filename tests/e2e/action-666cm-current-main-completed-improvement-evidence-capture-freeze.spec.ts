@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cm-current-main-completed-improvement-evidence-capture/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "551df5e8edb5d31ff43faecd38eb5d58e3f2cd8bef77550b1cd15e1c470f5a50";
+  "8069ea429b074a8a530d31b0daf30fe0fc2c0bc2d2b79233c708a97f2fdde29b";
 
 const expectedManifest = {
   schema_version:
@@ -31,12 +31,12 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "12ba0c0e9dd50d52a2470ae51491d519e26b6562dfbe40be35b252a0c132efbb",
+      "6e35b56435ef0f416fc459e66dcedcac5fe1cc011869fe4833b37a1d4e3921ee",
     artifacts: [
       {
         path: "docs/action-666aj-completed-improvement-evidence-capture.md",
         sha256:
-          "f633b42513c95e5f6c301d679a1449b282e5635b784a7a6f437af07196073dca",
+          "a9fee24ccd46416d7460d0522beb98e6f147e588f7309911f97181d590cc5df0",
       },
       {
         path:
@@ -53,13 +53,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-completed-improvement-evidence-capture.ts",
         sha256:
-          "b97f70400197253aeaa0a39b5d4f12b970ac59fd794f3c79fa20461ebd849b53",
+          "aacb1418496327951ab895185af9ccbad74c30c0163b67ca8c35f3834060a926",
       },
       {
         path:
           "tests/e2e/action-666aj-completed-improvement-evidence-capture.spec.ts",
         sha256:
-          "985af7fe7f3251b33a90edb9c41d79f0a203408f2009651731ab265dd7cf62ff",
+          "119a153d2e9ff2c802be8d83877d9fbcb124e061eeff6b452364e086f519313f",
       },
     ],
   },
@@ -87,6 +87,10 @@ const expectedManifest = {
     private_execution_counters_required: true,
     private_frozen_capture_harness_authority_required: true,
     malformed_request_capture_authority_forbidden: true,
+    request_and_result_cloneability_required: true,
+    exact_authority_registry_post_and_payload_reconstruction_required: true,
+    empty_authority_array_element_contract_preserved: true,
+    predecessor_consumer_oracle_reconciled: true,
     structured_never_throw_failure_required: true,
     recursive_adversarial_cross_verification_required: true,
   },

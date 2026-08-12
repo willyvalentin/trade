@@ -3,6 +3,8 @@ import "server-only";
 import {
   canonicalModelImprovementDigest,
   createCanonicalModelImprovementEngine,
+  createCanonicalModelImprovementTrustedPost,
+  createCanonicalModelImprovementTrustedRegistry,
   type CanonicalModelImprovementPreviousBindingLookup,
   type CanonicalModelImprovementTrustBoundary,
   type CanonicalModelVersionTuple,
@@ -225,9 +227,9 @@ type CanonicalCompletedImprovementCapture = (
 
 type CanonicalCompletedImprovementCaptureAuthorityBinding = {
   capture: CanonicalCompletedImprovementCapture;
-  accepts_request: (
+  snapshot_request: (
     value: unknown,
-  ) => value is CanonicalCompletedImprovementCaptureRequest;
+  ) => CanonicalCompletedImprovementCaptureRequest | null;
 };
 
 const safety = {
@@ -519,12 +521,13 @@ function matchesCanonicalRuntimeStructure(
   if (exemplar === null || value === null) return exemplar === value;
   if (Array.isArray(exemplar)) {
     if (!Array.isArray(value)) return false;
+    if (exemplar.length === 0) return value.length === 0;
+    if (value.length > exemplar.length) return false;
     return (
-      exemplar.length === 0 ||
       value.every((item, index) =>
         matchesCanonicalRuntimeStructure(
           item,
-          exemplar[index] ?? exemplar[0],
+          exemplar[index],
         ),
       )
     );
@@ -669,17 +672,94 @@ function isCanonicalCaptureRequest(
   );
 }
 
+function snapshotCanonicalCaptureRequest(
+  value: unknown,
+  upstreamExemplar: CanonicalModelImprovementUpstreamSources,
+): CanonicalCompletedImprovementCaptureRequest | null {
+  try {
+    if (!isCanonicalCaptureRequest(value, upstreamExemplar)) return null;
+    const snapshot: unknown = structuredClone(value);
+    if (!isCanonicalCaptureRequest(snapshot, upstreamExemplar)) return null;
+    return deepFreeze(snapshot);
+  } catch {
+    return null;
+  }
+}
+
+function snapshotCanonicalRuntimeValue(value: unknown): unknown | null {
+  try {
+    if (!hasCanonicalRuntimeSurface(value)) return null;
+    const snapshot: unknown = structuredClone(value);
+    return hasCanonicalRuntimeSurface(snapshot) ? snapshot : null;
+  } catch {
+    return null;
+  }
+}
+
 export function createCanonicalCompletedImprovementCaptureAuthority(
   trustBoundary: CanonicalModelImprovementTrustBoundary,
 ): CanonicalCompletedImprovementCaptureAuthority {
-  if (!hasCanonicalRuntimeSurface(trustBoundary)) {
+  let canonicalRegistry: CanonicalModelImprovementTrustBoundary["registry"];
+  try {
+    if (
+      !hasCanonicalRuntimeSurface(trustBoundary) ||
+      !hasExactRecordKeys(trustBoundary, [
+        "registry",
+        "registry_authority",
+        "trust_source",
+      ]) ||
+      !hasExactRecordKeys(trustBoundary.registry, [
+        "posts",
+        "registry_version",
+        "root_digest",
+      ]) ||
+      !hasExactRecordKeys(trustBoundary.registry_authority, [
+        "allowed_registry_root_digests",
+        "authority_identity",
+        "authority_version",
+        "expected_feature_context_registry_root_digest",
+        "expected_training_input_registry_root_digest",
+        "frozen_manifest_digest",
+        "upstream_verifier_version",
+      ])
+    ) {
+      throw new Error("capture_authority_shell_conflicting");
+    }
+    structuredClone(trustBoundary);
+    const canonicalPosts = trustBoundary.registry.posts.map((post) => {
+      if (
+        !hasExactRecordKeys(post, [
+          "payload",
+          "post_version",
+          "semantic_digest",
+          "trusted_input_identity",
+        ])
+      ) {
+        throw new Error("capture_authority_post_shell_conflicting");
+      }
+      const canonicalPost = createCanonicalModelImprovementTrustedPost({
+        trusted_input_identity: post.trusted_input_identity,
+        payload: post.payload,
+      });
+      if (!exact(canonicalPost, post)) {
+        throw new Error("capture_authority_post_semantics_conflicting");
+      }
+      return canonicalPost;
+    });
+    canonicalRegistry = createCanonicalModelImprovementTrustedRegistry(
+      canonicalPosts,
+    );
+    if (!exact(canonicalRegistry, trustBoundary.registry)) {
+      throw new Error("capture_authority_registry_semantics_conflicting");
+    }
+  } catch {
     throw new Error(
       "completed_improvement_capture_authority_runtime_shape_conflicting",
     );
   }
   const boundarySnapshot = deepFreeze({
     trust_source: structuredClone(trustBoundary.trust_source),
-    registry: structuredClone(trustBoundary.registry),
+    registry: structuredClone(canonicalRegistry),
     registry_authority: trustBoundary.registry_authority,
   });
   const validationEngine = createCanonicalModelImprovementEngine({
@@ -1795,26 +1875,29 @@ export function createCanonicalCompletedImprovementCaptureHarness(input: {
     );
   }
 
-  const acceptsRequest = (
+  const snapshotRequest = (
     value: unknown,
-  ): value is CanonicalCompletedImprovementCaptureRequest => {
-    if (!isCanonicalCaptureRequest(value)) return false;
+  ): CanonicalCompletedImprovementCaptureRequest | null => {
+    if (!isCanonicalCaptureRequest(value)) return null;
     const post =
       authority!.trust_boundary.registry.posts.find(
         (candidate) =>
           candidate.trusted_input_identity === value.trusted_input_identity,
       ) ?? authority!.trust_boundary.registry.posts[0];
-    return (
-      post !== undefined &&
-      isCanonicalCaptureRequest(value, post.payload.upstream_sources)
-    );
+    return post === undefined
+      ? null
+      : snapshotCanonicalCaptureRequest(
+          value,
+          post.payload.upstream_sources,
+        );
   };
   const capture = (
     requestValue: CanonicalCompletedImprovementCaptureRequest,
   ): CanonicalCompletedImprovementCaptureResult => {
     counters.request_reads += 1;
     try {
-      if (!acceptsRequest(requestValue)) {
+      const request = snapshotRequest(requestValue);
+      if (!request) {
         if (hasCanonicalRuntimeSurface(requestValue) && isRecord(requestValue)) {
           const callerAuthority = callerAuthorityReasons(requestValue);
           if (callerAuthority.length > 0) {
@@ -1828,7 +1911,7 @@ export function createCanonicalCompletedImprovementCaptureHarness(input: {
       }
       counters.input_digests += 1;
       return capturedResult({
-        request: requestValue,
+        request,
         authority: authority!,
         previousBindingLookup: previousBindingLookup!,
         captureBindingLookup: captureBindingLookup!,
@@ -1848,7 +1931,7 @@ export function createCanonicalCompletedImprovementCaptureHarness(input: {
       ...safety,
     },
     counters,
-    { capture, accepts_request: acceptsRequest },
+    { capture, snapshot_request: snapshotRequest },
   );
 }
 
@@ -1889,18 +1972,22 @@ export function verifyCanonicalCompletedImprovementCaptureResult(input: {
         reason_codes: ["canonical_completed_improvement_capture_rebuild_unavailable"],
       });
     }
-    if (!hasCanonicalRuntimeSurface(resultInput.value)) {
+    const resultSnapshot = snapshotCanonicalRuntimeValue(resultInput.value);
+    if (resultSnapshot === null) {
       throw new Error("capture_result_runtime_shape_conflicting");
     }
-    if (!authorityBinding.accepts_request(requestInput.value)) {
+    const requestSnapshot = authorityBinding.snapshot_request(
+      requestInput.value,
+    );
+    if (!requestSnapshot) {
       return deepFreeze({
         valid: false,
         canonical_result: null,
         reason_codes: ["canonical_completed_improvement_capture_request_unverifiable"],
       });
     }
-    const canonicalResult = authorityBinding.capture(requestInput.value);
-    const valid = exact(canonicalResult, resultInput.value);
+    const canonicalResult = authorityBinding.capture(requestSnapshot);
+    const valid = exact(canonicalResult, resultSnapshot);
     return deepFreeze({
       valid,
       canonical_result: valid ? canonicalResult : null,
