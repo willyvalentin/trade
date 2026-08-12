@@ -1,0 +1,155 @@
+{
+  "report_version": "action_666v_golden_model_improvement_proposal_report_v1",
+  "proposal_contract_version": "canonical_model_improvement_proposal_v1",
+  "proposal_policy_version": "canonical_model_improvement_policy_v1",
+  "upstream_verifier_version": "canonical_model_improvement_upstream_verifier_v1",
+  "temporal_policy_version": "canonical_model_improvement_explicit_instant_policy_v1",
+  "registry_authority_manifest_digest": "3d8713736e37dc288f9e6ff6991f3306b6a3230cfa01c6273c041f1b3c07e5be",
+  "experiment_preregistration_version": "canonical_model_experiment_preregistration_v1",
+  "evidence_class": "synthetic_fixture_only",
+  "synthetic_evidence": true,
+  "not_ture_performance": true,
+  "not_publishable": true,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "automatic_training_allowed": false,
+  "automatic_parameter_change_allowed": false,
+  "automatic_promotion_allowed": false,
+  "causal_claimed": false,
+  "scenarios": [
+    {
+      "name": "stable_improvement_across_splits",
+      "status": "proposal_ready",
+      "reason_codes": ["all_experiment_candidate_gates_passed"],
+      "canonical_proposal_digest": "c783ae751bfc2dded45ed4ce45769801fdc21afa48832958d3ff8ee005b6b110",
+      "canonical_result_bytes_sha256": "2a53c9a059d861739413d910c83d0556f77a29612a3a3d8b387cf18005adc064"
+    },
+    {
+      "name": "in_sample_only_improvement",
+      "status": "conflicting",
+      "reason_codes": ["action_666_learning_verified_projection_mismatch"],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "d65242122dcc48d31052b1b6429f47de429b4425afb4db586e398601f310ff00"
+    },
+    {
+      "name": "calibration_regression",
+      "status": "research_only",
+      "reason_codes": ["quality_comparison_regression_blocks_experiment"],
+      "canonical_proposal_digest": "2c6523c1d5e009b42e54d602602ee167a1b9880eb1c578c0c077c49289569d03",
+      "canonical_result_bytes_sha256": "54ca42aca0c577c0a02f2dcb08ca77411a66d3fb841e30eeaeeb3bd4bfa701f6"
+    },
+    {
+      "name": "cost_eroded_edge",
+      "status": "research_only",
+      "reason_codes": [
+        "cost_adjusted_edge_not_positive",
+        "protected_metric_regression_blocks_experiment"
+      ],
+      "canonical_proposal_digest": "ef1e7145a6a5ef1701c66378d02e40cf1606dafe0eacc948a4735c650d999e03",
+      "canonical_result_bytes_sha256": "7d5a83c87b07aa5196a1af178185d6b8d7aefe539cb8b41bb597e197dcacd634"
+    },
+    {
+      "name": "regime_specific_pattern",
+      "status": "proposal_ready",
+      "reason_codes": ["all_experiment_candidate_gates_passed"],
+      "canonical_proposal_digest": "1e01d0910284575af587dba9491e7d829527639626fb22dc72c0457f66ed96b9",
+      "canonical_result_bytes_sha256": "f38e3a1e0cfe728416f33a64316d7ad324df972d7589aeda01196ef1c131d1ca"
+    },
+    {
+      "name": "too_few_days_and_tickers",
+      "status": "insufficient_evidence",
+      "reason_codes": ["proposal_minimum_evidence_not_met"],
+      "canonical_proposal_digest": "ea8a9607b58bffc6acad0f6f2a42a5b061f99e0895f98787d9c9f39f9576481f",
+      "canonical_result_bytes_sha256": "75ea93f4acf1d66f72e1303687e5a8c05a427b05a5357d3f2f507aec8a5e8624"
+    },
+    {
+      "name": "conflicting_explanations",
+      "status": "conflicting",
+      "reason_codes": [
+        "action_666_explanation_verified_projection_mismatch",
+        "conflicting_explanation_evidence"
+      ],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "27e012b164360692df9a266e392b283e51f0e588d22f5995b744dddaaf5baeb4"
+    },
+    {
+      "name": "missing_outcomes",
+      "status": "conflicting",
+      "reason_codes": ["action_665_verified_projection_mismatch"],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "b1a1c9a03ad4736085904b10ce4af8ce7e026da25f117f53e43686214655f74c"
+    },
+    {
+      "name": "feature_trust_drift",
+      "status": "conflicting",
+      "reason_codes": [
+        "action_666_learning_verified_projection_mismatch",
+        "external_learning_trust_root_conflicting"
+      ],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "69c5d90b84d5b5d8819e8690d4b2ccdb15fe08ac2e88df81c8bbb40b4fbadbcd"
+    },
+    {
+      "name": "multiple_testing_risk",
+      "status": "research_only",
+      "reason_codes": ["multiple_testing_or_selection_risk_uncontrolled"],
+      "canonical_proposal_digest": "de532da083ad12af0a703eb2ad9ab6cb9172c5bdac4ad7334fa5f0739d1204c4",
+      "canonical_result_bytes_sha256": "9868bb98139942aed436694ad7e6d3a244eec17bc95e509e930fb9c4ff83b941"
+    },
+    {
+      "name": "no_change",
+      "status": "no_change",
+      "reason_codes": ["canonical_no_change_policy_all_quality_gates_passed"],
+      "canonical_proposal_digest": "d7303844a25b625de43f68588f2f4736eea780f97f77a533b0da767e930104f1",
+      "canonical_result_bytes_sha256": "ff32f3dfe1dbbeaaaa0f0097211783cde002d52fbcc0c502b37b8687e55c954a"
+    },
+    {
+      "name": "threshold_protected_metric_regression",
+      "status": "research_only",
+      "reason_codes": [
+        "protected_metric_regression_blocks_experiment",
+        "quality_comparison_regression_blocks_experiment"
+      ],
+      "canonical_proposal_digest": "a6a272fed038565bf5f00fb52f7e6c0c56057cc69c84f689f53daf57fe53691b",
+      "canonical_result_bytes_sha256": "3198cc7f08e44e38028f4d8198638b3383ae204b8ad691ec95111440443896bd"
+    },
+    {
+      "name": "duplicate_proposal_identity",
+      "status": "conflicting",
+      "reason_codes": [
+        "duplicate_proposal_identity",
+        "proposal_candidate_cardinality_conflicting"
+      ],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "0880302c7b27d50c9fdfdc936c885cad7cc745981ea15e026bb8558e226aa41b"
+    },
+    {
+      "name": "tampered_experiment_plan",
+      "status": "conflicting",
+      "reason_codes": [
+        "experiment_metric_set_binding_conflicting",
+        "experiment_plan_digest_or_identity_conflicting",
+        "experiment_row_stability_binding_conflicting"
+      ],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "df59e3dfb0ebd28bfda2bcda5895d8b725a6221794e3cd078b11060bc85221fd"
+    },
+    {
+      "name": "score_is_not_probability",
+      "status": "research_only",
+      "reason_codes": ["probability_semantics_missing"],
+      "canonical_proposal_digest": "4d820ee03becd0bcdf9777f3ca752c43a769b7587bd062cfc51000d1628f7e17",
+      "canonical_result_bytes_sha256": "4288c79349314c73555a4b8602f2ff617a06652917379200e5c7e5a54410cb32"
+    },
+    {
+      "name": "future_context_not_point_in_time_safe",
+      "status": "conflicting",
+      "reason_codes": [
+        "action_665_verified_projection_mismatch",
+        "action_666_explanation_verified_projection_mismatch"
+      ],
+      "canonical_proposal_digest": null,
+      "canonical_result_bytes_sha256": "3866a8874cb5ebf23414d26297a0efc459a3210d8ea0736a9a7c18747142ebd1"
+    }
+  ]
+}

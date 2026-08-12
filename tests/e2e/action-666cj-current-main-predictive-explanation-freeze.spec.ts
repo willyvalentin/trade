@@ -258,6 +258,9 @@ test("Action 666CJ remains server-only and absent from live consumers", async ()
     }
   }
   expect(consumers.sort()).toEqual([
+    "lib/server/canonical-model-improvement-proposal-fixtures.ts",
+    "lib/server/canonical-model-improvement-proposal.ts",
+    "lib/server/canonical-model-improvement-upstream-verification.ts",
     "lib/server/canonical-predictive-outcome-explanation-fixtures.ts",
     "lib/server/canonical-predictive-outcome-explanation.ts",
   ]);
