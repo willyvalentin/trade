@@ -1,0 +1,87 @@
+{
+  "schema_version": "action_666co_current_main_frozen_improvement_binding_store_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "0a40ed49184fd5e6fd0b0b2996002e0d3ca027b0",
+    "candidate_base_tree": "294673813b4bcc6bab6e951a2d44355e100c6f7b",
+    "historical_source_pull_request": 63,
+    "historical_source_head": "bc554c4f1211c6b0acbf846ec34d57325253014a",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false
+  },
+  "foundation": {
+    "snapshot_version": "canonical_improvement_binding_snapshot_v1",
+    "entry_version": "canonical_improvement_binding_entry_v1",
+    "store_version": "canonical_improvement_binding_store_v1",
+    "authority_version": "canonical_improvement_binding_snapshot_authority_v1",
+    "owner_boundary_version": "canonical_improvement_binding_owner_boundary_v1",
+    "lookup_result_version": "canonical_improvement_binding_lookup_result_v1",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "2a8b72499a8a01cea97b0669f0552e51adeb6a8e00f308e94cd3a155e248518a",
+    "artifacts": [
+      {
+        "path": "docs/action-666ax-golden-improvement-binding-store-report.json",
+        "sha256": "b0fc88dcc5ab3cf8e29978169a0f74127cad87c23e71a7b1f8584732725adf07"
+      },
+      {
+        "path": "docs/action-666ax-improvement-binding-store-contract.md",
+        "sha256": "2af9b14a8011f880d2c2d5c6f91436ae898957cab5f14584167aafb6688d8aff"
+      },
+      {
+        "path": "lib/server/canonical-improvement-binding-store-fixtures.ts",
+        "sha256": "9cbb84039ccf7f82f474a4dc66be0d14d977be1536ea9fc25920174b73bdb503"
+      },
+      {
+        "path": "lib/server/canonical-improvement-binding-store.ts",
+        "sha256": "aef11aac6aadb5629577fa21ef13ab647d5387957fb2fe108b08b6ed9d052eec"
+      },
+      {
+        "path": "tests/e2e/action-666ax-improvement-binding-store.spec.ts",
+        "sha256": "f0ba0e5e5106c84e6ec63dd908a6f3db2d6bc52e9797d009e61bcfb95e9fdb11"
+      }
+    ]
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "runtime_remediation": {
+    "literal_activation_gate_required": true,
+    "exact_active_option_counter_and_dependency_shells_required": true,
+    "construction_time_owner_method_snapshot_required": true,
+    "canonical_recursive_authority_snapshot_and_request_surfaces_required": true,
+    "authority_and_snapshot_cloneability_required": true,
+    "private_execution_counters_required": true,
+    "caller_counter_mutation_forbidden": true,
+    "exact_predecessor_and_entry_schemas_required": true,
+    "construction_time_lookup_adapter_snapshot_required": true,
+    "predecessor_consumer_oracles_reconciled": true,
+    "structured_never_throw_lookup_failure_required": true,
+    "recursive_adversarial_runtime_matrix_required": true
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true
+  }
+}
