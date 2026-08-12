@@ -438,7 +438,6 @@ type RuntimeShape =
   | { kind: "array"; item: RuntimeShape }
   | { kind: "record"; value: RuntimeShape }
   | { kind: "nullable"; value: RuntimeShape }
-  | { kind: "optional"; value: RuntimeShape }
   | { kind: "object"; fields: Record<string, RuntimeShape> };
 
 const runtimeString = (allowed?: readonly string[]): RuntimeShape => ({
@@ -461,10 +460,6 @@ const runtimeRecord = (value: RuntimeShape): RuntimeShape => ({
 });
 const runtimeNullable = (value: RuntimeShape): RuntimeShape => ({
   kind: "nullable",
-  value,
-});
-const runtimeOptional = (value: RuntimeShape): RuntimeShape => ({
-  kind: "optional",
   value,
 });
 const runtimeObject = (
@@ -492,12 +487,20 @@ function matchesRuntimeShape(value: unknown, shape: RuntimeShape): boolean {
   if (shape.kind === "nullable") {
     return value === null || matchesRuntimeShape(value, shape.value);
   }
-  if (shape.kind === "optional") {
-    return value === undefined || matchesRuntimeShape(value, shape.value);
-  }
   if (shape.kind === "array") {
-    return Array.isArray(value) &&
-      value.every((item) => matchesRuntimeShape(item, shape.item));
+    if (!Array.isArray(value)) return false;
+    const actualKeys = Reflect.ownKeys(value);
+    if (
+      actualKeys.length !== value.length + 1 ||
+      !actualKeys.includes("length") ||
+      Array.from(
+        { length: value.length },
+        (_, index) => String(index),
+      ).some((key) => !Object.prototype.hasOwnProperty.call(value, key))
+    ) {
+      return false;
+    }
+    return value.every((item) => matchesRuntimeShape(item, shape.item));
   }
   if (shape.kind === "record") {
     return (
@@ -509,23 +512,15 @@ function matchesRuntimeShape(value: unknown, shape: RuntimeShape): boolean {
   }
   if (!isRuntimeRecord(value)) return false;
   const expectedKeys = Object.keys(shape.fields).sort();
-  const requiredKeys = expectedKeys.filter(
-    (key) => shape.fields[key].kind !== "optional",
-  );
   const actualKeys = Object.keys(value).sort();
   if (
-    actualKeys.some((key) => !(key in shape.fields)) ||
-    requiredKeys.some((key) => !(key in value))
+    expectedKeys.length !== actualKeys.length ||
+    expectedKeys.some((key, index) => key !== actualKeys[index])
   ) {
     return false;
   }
-  return actualKeys.every((key) =>
-    matchesRuntimeShape(
-      value[key],
-      shape.fields[key].kind === "optional"
-        ? shape.fields[key].value
-        : shape.fields[key],
-    ),
+  return expectedKeys.every((key) =>
+    matchesRuntimeShape(value[key], shape.fields[key]),
   );
 }
 
@@ -990,9 +985,9 @@ const trustedPayloadShape = runtimeObject({
   realized_outcome: candidateOutcomeShape,
   outcome_path: runtimeArray(outcomePathPointShape),
   outcome_evidence: outcomeEvidenceShape,
-  cost_evidence: runtimeOptional(costEvidenceShape),
+  cost_evidence: costEvidenceShape,
   entry_timing_sensitive: runtimeBoolean,
-  research_hypotheses: runtimeOptional(runtimeArray(researchHypothesisShape)),
+  research_hypotheses: runtimeArray(researchHypothesisShape),
 });
 
 const trustedPostShape = runtimeObject({

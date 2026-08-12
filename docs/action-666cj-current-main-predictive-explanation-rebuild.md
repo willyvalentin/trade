@@ -16,7 +16,7 @@ artifact is reused as current authority.
 5. `tests/e2e/action-666m-predictive-outcome-explanation.spec.ts`
 
 The exact sorted-path aggregate is
-`2d18fa5c9cd04b34aa80c9ac61721fd1cda2dec8030dfa4ed9d8833f0c89a6e9`.
+`9a48bf5e885a4c6f81adcc2b314f143fbfe99b26a1d47e6c1f61debf6b342dce`.
 The machine-readable current-main binding is
 `docs/evidence/action-666cj-current-main-predictive-explanation/foundation-freeze-manifest.json`.
 

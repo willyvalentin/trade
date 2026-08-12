@@ -152,6 +152,24 @@ function runtimeObjectPaths(
   ];
 }
 
+function runtimeArrayPaths(
+  value: unknown,
+  path: RuntimePath = [],
+): RuntimePath[] {
+  if (Array.isArray(value)) {
+    return [
+      path,
+      ...value.flatMap((item, index) =>
+        runtimeArrayPaths(item, [...path, index]),
+      ),
+    ];
+  }
+  if (!runtimeRecord(value)) return [];
+  return Object.entries(value).flatMap(([key, item]) =>
+    runtimeArrayPaths(item, [...path, key]),
+  );
+}
+
 function runtimePathParent(root: unknown, path: RuntimePath) {
   let current = root;
   for (const segment of path.slice(0, -1)) {
@@ -211,10 +229,20 @@ function invalidRuntimeValue(value: unknown): unknown {
 }
 
 function runtimeResultForPayload(value: unknown) {
-  const post = createCanonicalPredictiveTrustedInputPost({
+  const canonicalPost = createCanonicalPredictiveTrustedInputPost({
     trusted_input_identity: "trusted-input:runtime-shape-adversary",
-    payload: value as CanonicalPredictiveTrustedInputPayload,
+    payload: action666mSuccessfulTradePayload,
   });
+  const postPayload = {
+    post_version: canonicalPost.post_version,
+    trusted_input_identity: canonicalPost.trusted_input_identity,
+    payload: value as CanonicalPredictiveTrustedInputPayload,
+  };
+  const post = {
+    ...postPayload,
+    semantic_digest:
+      canonicalPredictiveOutcomeExplanationDigest(postPayload),
+  };
   const registry = createCanonicalPredictiveTrustedInputRegistry([post]);
   const engine = createCanonicalPredictiveExplanationEngine({
     enabled: true,
@@ -459,11 +487,9 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
     expect(
       missingCostFixture.engine.explain!(missingCostFixture.request),
     ).toMatchObject({
-      status: "insufficient_evidence",
+      status: "conflicting",
       explanation: null,
-      reason_codes: expect.arrayContaining([
-        "authoritative_cost_evidence_missing",
-      ]),
+      reason_codes: ["trusted_explanation_runtime_shape_conflicting"],
     });
   });
 
@@ -689,6 +715,7 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
     );
     const fieldPaths = runtimeObjectFieldPaths(baseline);
     const objectPaths = runtimeObjectPaths(baseline);
+    const arrayPaths = runtimeArrayPaths(baseline);
     let mutationCount = 0;
 
     for (const path of fieldPaths) {
@@ -741,7 +768,50 @@ test.describe("Action 666M/O predictive outcome explanation", () => {
       mutationCount += 1;
     }
 
-    expect(mutationCount).toBe(707);
+    for (const path of arrayPaths) {
+      const withExtraKey = structuredClone(baseline);
+      const extraTarget = runtimePathValue(withExtraKey, path);
+      if (!Array.isArray(extraTarget)) {
+        throw new Error("extra_array_target_not_array");
+      }
+      Object.defineProperty(extraTarget, "__unexpected_runtime_array_field", {
+        configurable: true,
+        enumerable: true,
+        value: true,
+        writable: true,
+      });
+      const extraResult = runtimeResultForPayload(withExtraKey);
+      expect(
+        extraResult.explanation,
+        `extra-array-key:${path.join(".")}`,
+      ).toBeNull();
+      expect(
+        extraResult.status,
+        `extra-array-key:${path.join(".")}`,
+      ).not.toBe("explainable");
+      mutationCount += 1;
+
+      const withSparseArray = structuredClone(baseline);
+      const sparseTarget = runtimePathValue(withSparseArray, path);
+      if (!Array.isArray(sparseTarget)) {
+        throw new Error("sparse_array_target_not_array");
+      }
+      if (sparseTarget.length === 0) sparseTarget.length = 1;
+      else delete sparseTarget[0];
+      const sparseResult = runtimeResultForPayload(withSparseArray);
+      expect(
+        sparseResult.explanation,
+        `sparse-array:${path.join(".")}`,
+      ).toBeNull();
+      expect(
+        sparseResult.status,
+        `sparse-array:${path.join(".")}`,
+      ).not.toBe("explainable");
+      mutationCount += 1;
+    }
+
+    expect(arrayPaths.length).toBe(43);
+    expect(mutationCount).toBe(793);
   });
 
   test("Action 666CJ remediation: malformed requests return structured failures", () => {

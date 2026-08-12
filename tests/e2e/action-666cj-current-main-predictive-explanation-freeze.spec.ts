@@ -7,7 +7,7 @@ import path from "node:path";
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cj-current-main-predictive-explanation/foundation-freeze-manifest.json";
-const manifestSha256 = "8cb2a5a8d1f8727d79b2e2f49b5b77453c0e244726747fa00ee4c1654bef8f79";
+const manifestSha256 = "ca344f617289db7dd2d65ed41722a92fe809bf6914527a403c0f8fd82458f1dc";
 
 const expectedManifest = {
   schema_version:
@@ -25,7 +25,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "2d18fa5c9cd04b34aa80c9ac61721fd1cda2dec8030dfa4ed9d8833f0c89a6e9",
+      "9a48bf5e885a4c6f81adcc2b314f143fbfe99b26a1d47e6c1f61debf6b342dce",
     artifacts: [
       {
         path: "docs/action-666m-golden-predictive-explanation-report.json",
@@ -46,13 +46,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-predictive-outcome-explanation.ts",
         sha256:
-          "bc0c22175112839495679ff9a8e3469644be96305ac0ec0b0790438fafee3260",
+          "739e747713132c2523c3a40a54cf8b029f2ffb786eaf7bef79a027b44fd4b57e",
       },
       {
         path:
           "tests/e2e/action-666m-predictive-outcome-explanation.spec.ts",
         sha256:
-          "163b6eb539b9eadb025881a450d74c81398365fb1981ef8e6adb0b7804451e8e",
+          "1248a2eb543b78557f0f45e96837949053f78a2457862d32c8217d91683b0c5b",
       },
     ],
   },
