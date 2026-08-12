@@ -61,6 +61,8 @@ jobs:
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666m-predictive-outcome-explanation.spec.ts tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts --workers=1
       - name: Track 2 current-main model-improvement proposal foundation
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts tests/e2e/action-666ck-current-main-model-improvement-proposal-freeze.spec.ts --workers=1
+      - name: Track 2 current-main completed improvement evidence adapter
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts tests/e2e/action-666cl-current-main-improvement-evidence-adapter-freeze.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code
