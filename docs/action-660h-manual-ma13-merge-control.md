@@ -36,30 +36,39 @@ Every future `main` mover must complete this sequence.
 
 ### Before merge
 
-1. Start from the current immutable `main` commit on a dedicated branch.
-2. Keep the PR Draft until its bounded scope is complete and frozen.
-3. Record the exact PR head SHA after the final change.
-4. Require successful `provider-free-verification` for that exact head SHA.
-5. Require an independent read-only review with no unresolved blocking
+1. `[PRE-01: dedicated_branch_from_current_main]` Start from the current
+   immutable `main` commit on a dedicated branch.
+2. `[PRE-02: draft_until_bounded_scope_frozen]` Keep the PR Draft until its
+   bounded scope is complete and frozen.
+3. `[PRE-03: record_exact_head_sha]` Record the exact PR head SHA after the
+   final change.
+4. `[PRE-04: exact_head_provider_free_verification_success]` Require
+   successful `provider-free-verification` for that exact head SHA.
+5. `[PRE-05: independent_read_only_review_no_blocking_findings]` Require an
+   independent read-only review with no unresolved blocking
    finding on the same exact head.
-6. Reconfirm that the PR targets `main`, remains cleanly mergeable and has not
+6. `[PRE-06: reconfirm_main_target_clean_mergeability_and_exact_scope]`
+   Reconfirm that the PR targets `main`, remains cleanly mergeable and has not
    gained unrelated files or commits.
-7. Obtain explicit operator approval naming both the PR number and exact head
-   SHA.
-8. Merge through the PR using an ordinary merge. Never direct-push or
-   force-push `main`.
+7. `[PRE-07: explicit_operator_approval_of_pr_and_exact_head]` Obtain explicit
+   operator approval naming both the PR number and exact head SHA.
+8. `[PRE-08: ordinary_pr_merge_no_direct_or_force_push]` Merge through the PR
+   using an ordinary merge. Never direct-push or force-push `main`.
 
 ### After merge
 
-9. Record the exact merge commit and verify that the reviewed file scope
+9. `[POST-01: record_merge_and_verify_reviewed_scope_main_reachability]`
+   Record the exact merge commit and verify that the reviewed file scope
    reached `main` without an unexpected delta.
-10. Require successful push-triggered Milestone A CI for that exact main
-    commit.
-11. If Netlify publishes the commit, require exact Netlify/GitHub identity and
-    the preserved anonymous plus authenticated production smoke before
-    re-closing MA11 or MA15.
-12. Preserve a bounded evidence record linking PR, reviewed head, merge,
-    exact-main CI, deploy identity when applicable, and smoke result.
+10. `[POST-02: exact_main_ci_success]` Require successful push-triggered
+    Milestone A CI for that exact main commit.
+11. `[POST-03: exact_deploy_identity_and_production_smoke_when_published]` If
+    Netlify publishes the commit, require exact Netlify/GitHub identity and the
+    preserved anonymous plus authenticated production smoke before re-closing
+    MA11 or MA15.
+12. `[POST-04: preserve_bounded_delivery_evidence]` Preserve a bounded
+    evidence record linking PR, reviewed head, merge, exact-main CI, deploy
+    identity when applicable, and smoke result.
 
 Any missing, stale, failed or contradictory item is fail-closed: do not merge,
 or reopen the affected gate if the failure is discovered after merge. A
@@ -80,18 +89,27 @@ database, provider, broker or execution authority is created.
 ## Delivery condition
 
 This candidate becomes the canonical manual-control record only after a
-delivery reconciliation proves every required step: a dedicated branch from
-the recorded current `main`; Draft status until bounded-scope freeze;
-successful exact-head CI; independent read-only review with no blocking
-finding on that exact head; reconfirmed current base, clean mergeability and
-exact scope; explicit operator approval naming the PR and exact head; an
-ordinary PR merge; exact reviewed-scope reachability from `main`; and
-successful push-triggered exact-main CI. If Netlify publishes the
-documentation-only merge, exact deploy identity and the required production
-smoke must also pass before MA11 and MA15 may remain closed. No subset of these
-conditions may set `all_satisfied` to true. The delivery can record acceptance
-of the gap but can never mark MA13 `verified_current` while GitHub enforcement
-is absent.
+delivery reconciliation proves every condition below:
+
+1. `[CAN-01: dedicated_branch_from_current_main]`
+2. `[CAN-02: draft_until_bounded_scope_frozen]`
+3. `[CAN-03: exact_head_sha_recorded_after_scope_freeze]`
+4. `[CAN-04: exact_head_ci_success]`
+5. `[CAN-05: independent_read_only_review_no_blocking_findings]`
+6. `[CAN-06: base_current_cleanly_mergeable_and_exact_scope_reconfirmed]`
+7. `[CAN-07: explicit_operator_approval_of_pr_and_exact_head]`
+8. `[CAN-08: ordinary_pr_merge_verified]`
+9. `[CAN-09: exact_reviewed_scope_merged]`
+10. `[CAN-10: exact_main_ci_success]`
+11. `[CAN-11: resulting_netlify_github_identity_exact_if_published]`
+12. `[CAN-12: resulting_production_smoke_green_if_published]`
+13. `[CAN-13: bounded_delivery_evidence_preserved]`
+
+If Netlify publishes the documentation-only merge, the applicable deploy and
+production-smoke conditions must pass before MA11 and MA15 may remain closed.
+No subset of these conditions may set `all_satisfied` to true. The delivery
+can record acceptance of the gap but can never mark MA13 `verified_current`
+while GitHub enforcement is absent.
 
 ## Scope limits
 

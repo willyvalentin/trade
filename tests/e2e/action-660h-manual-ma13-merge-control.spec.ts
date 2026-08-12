@@ -9,6 +9,85 @@ async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
 }
 
+function sectionBetween(text: string, start: string, end: string) {
+  const startIndex = text.indexOf(start);
+  const endIndex = text.indexOf(end, startIndex + start.length);
+  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+    throw new Error(`Missing or reordered contract section: ${start} -> ${end}`);
+  }
+  return text.slice(startIndex + start.length, endIndex);
+}
+
+function taggedRequirementIds(text: string, tag: "PRE" | "POST" | "CAN") {
+  const matches = [
+    ...text.matchAll(
+      new RegExp(
+        "^\\d+\\. `\\[" + tag + "-(\\d{2}): ([a-z0-9_]+)\\]`",
+        "gm",
+      ),
+    ),
+  ];
+  return matches.map((match, index) => {
+    const expectedOrdinal = String(index + 1).padStart(2, "0");
+    if (match[1] !== expectedOrdinal) {
+      throw new Error(`${tag} requirement sequence is not contiguous`);
+    }
+    return match[2];
+  });
+}
+
+function requireExactIds(actual: string[], expected: string[], label: string) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(`${label} requirements differ from evidence`);
+  }
+}
+
+function validateContractRequirementBinding(
+  contract: string,
+  evidence: {
+    manual_control: {
+      pre_merge_steps: string[];
+      post_merge_steps: string[];
+    };
+    candidate_canonicalization_conditions: Record<string, boolean>;
+  },
+) {
+  const beforeMerge = sectionBetween(
+    contract,
+    "### Before merge",
+    "### After merge",
+  );
+  const afterMerge = sectionBetween(
+    contract,
+    "### After merge",
+    "## Operational effect",
+  );
+  const delivery = sectionBetween(
+    contract,
+    "## Delivery condition",
+    "## Scope limits",
+  );
+  const canonicalizationIds = Object.keys(
+    evidence.candidate_canonicalization_conditions,
+  ).filter((key) => key !== "all_satisfied");
+
+  requireExactIds(
+    taggedRequirementIds(beforeMerge, "PRE"),
+    evidence.manual_control.pre_merge_steps,
+    "pre-merge",
+  );
+  requireExactIds(
+    taggedRequirementIds(afterMerge, "POST"),
+    evidence.manual_control.post_merge_steps,
+    "post-merge",
+  );
+  requireExactIds(
+    taggedRequirementIds(delivery, "CAN"),
+    canonicalizationIds,
+    "canonicalization",
+  );
+}
+
 const preMergeSteps = [
   "dedicated_branch_from_current_main",
   "draft_until_bounded_scope_frozen",
@@ -41,6 +120,10 @@ const templateChecklistItems = [
 
 const evidenceSha256 =
   "47bcbfbd6da71b8f7f812c4177160b5d80da3372771622a7ad027a0b94ef07be";
+
+const currentMainCommit = "7662d3f863f8f921b816670363431df8e1ebcdea";
+const lastVerifiedProductionCommit =
+  "f463644ddeb7f49fa8b80924d9103ea8970ccae4";
 
 test("manual MA13 control records the accepted gap without gate credit", async () => {
   const [contract, roadmap, ledger, template, workflow, rawEvidence] =
@@ -75,10 +158,10 @@ test("manual MA13 control records the accepted gap without gate credit", async (
 
   expect(evidence.authority).toEqual({
     repository: "willyvalentin/trade",
-    main_commit: "7662d3f863f8f921b816670363431df8e1ebcdea",
+    main_commit: currentMainCommit,
     main_tree: "86a59f234b69e63b07a60833224015018be41568",
     main_parents: [
-      "f463644ddeb7f49fa8b80924d9103ea8970ccae4",
+      lastVerifiedProductionCommit,
       "3dcded2aab304a9e7a748a78de17f03f293d0ec5",
     ],
     main_pull_request: 99,
@@ -185,10 +268,68 @@ test("manual MA13 control records the accepted gap without gate credit", async (
   expect(contract).toMatch(
     /No subset of these\s+conditions may set `all_satisfied` to true\./,
   );
+  validateContractRequirementBinding(contract, evidence);
+
+  expect(lastVerifiedProductionCommit).not.toBe(currentMainCommit);
+  expect(evidence.authority.main_parents[0]).toBe(
+    lastVerifiedProductionCommit,
+  );
+  expect(ledger).toContain(
+    `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of current main \`${currentMainCommit}\`; the commits are not equal because governance-only PR #99 advanced main without a production publish`,
+  );
+  expect(roadmap).toContain(
+    `Current GitHub \`main\` is\n\`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because governance-only PR #99\nadvanced \`main\` without a production publish.`,
+  );
+  for (const text of [roadmap, ledger]) {
+    expect(text).not.toContain("production and main are the same commit");
+    expect(text).not.toContain("current exact production/main identity");
+  }
 
   for (const text of [contract, roadmap, ledger, template, rawEvidence]) {
     expect(text).not.toMatch(
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
     );
+  }
+});
+
+test("manual requirement IDs reject every deletion, mutation and extra", async () => {
+  const [contract, rawEvidence] = await Promise.all([
+    source("docs/action-660h-manual-ma13-merge-control.md"),
+    source("docs/evidence/action-660h-manual-ma13-merge-control.json"),
+  ]);
+  const evidence = JSON.parse(rawEvidence);
+  const groups = [
+    { tag: "PRE", ids: preMergeSteps },
+    { tag: "POST", ids: postMergeSteps },
+    {
+      tag: "CAN",
+      ids: Object.keys(evidence.candidate_canonicalization_conditions).filter(
+        (key) => key !== "all_satisfied",
+      ),
+    },
+  ] as const;
+
+  for (const { tag, ids } of groups) {
+    for (const [index, id] of ids.entries()) {
+      const marker = `\`[${tag}-${String(index + 1).padStart(2, "0")}: ${id}]\``;
+      expect(() =>
+        validateContractRequirementBinding(
+          contract.replace(marker, "`[removed_requirement]`"),
+          evidence,
+        ),
+      ).toThrow();
+      expect(() =>
+        validateContractRequirementBinding(
+          contract.replace(marker, `${marker}\n${index + 20}. ${marker}`),
+          evidence,
+        ),
+      ).toThrow();
+      expect(() =>
+        validateContractRequirementBinding(
+          contract.replace(marker, marker.replace(id, `unexpected_${id}`)),
+          evidence,
+        ),
+      ).toThrow();
+    }
   }
 });

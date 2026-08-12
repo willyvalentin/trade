@@ -40,7 +40,7 @@ migration, broker or release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production and main are the same commit | verified_current; contradiction_closed |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of current main `7662d3f863f8f921b816670363431df8e1ebcdea`; the commits are not equal because governance-only PR #99 advanced main without a production publish | verified_current; production_behind_governance_only_main |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
 | MA05 production structure | 9/9 physical NOT NULL and RLS; 20/20 constraints; 2/2 relationship indexes; revoked client grants; service-role-only RPC | verified_current |
@@ -91,9 +91,11 @@ reviewed repository source are exactly 21,658 bytes and share MD5
 MA-11 is `verified_current`: the earlier closure established exact Netlify,
 deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 `58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
-current commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
+the last verified production commit
+`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
-commit.
+commit. Current main `7662d3f863f8f921b816670363431df8e1ebcdea`
+is a governance-only successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
 relationship correction. Anonymous login redirect and protected dashboard
@@ -139,11 +141,12 @@ enforcement; it awards no credit and Milestone A remains 14/15.
   their merges. PR #92's former current-main state is superseded by the
   ordinary merges of PR #94, PR #95, PR #96, PR #97 and PR #98.
 - Earlier 126-, 135-, 137-, 139- and 142-commit production-to-main distances
-  and deploy `6a65fd2f…` are superseded by exact production/main identity at
+  and deploy `6a65fd2f…` were superseded by exact production/main identity at
   `4607990a…` and deploy `6a7b2c1e…`; those identities and the later
   `490e3607…`, `58c29514…` and `9e2f64a…` releases are historical and
-  superseded by current exact production/main identity at `f463644d…` and
-  deploy `6a7b9e45…`.
+  superseded by the last verified production commit `f463644d…` and deploy
+  `6a7b9e45…`. Governance-only PR #99 then advanced current main to
+  `7662d3f…`; production remains at its first-parent ancestor `f463644d…`.
 - Previous `unknown_current` source-containment, authenticated API-boundary
   and repository-CI claims are superseded by closed MA-03, MA-04 and MA-12
   evidence. Earlier evidence closed bounded MA-15 behavior, the post-PR #97

@@ -105,7 +105,8 @@ The reviewed repository file has the identical byte count and MD5.
 **MA-11 closure record:** the earlier closure established exact Netlify,
 deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 `58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
-current full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
+the last verified production commit
+`f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
 Exact-main CI run `31541394848` succeeded and Netlify deploy
 `6a7b9e45ceb7e100087c55fa` identifies that commit.
 
@@ -222,10 +223,13 @@ mover requires fresh source, provider and policy identity reconciliation.
 ## Current provider and release boundary
 
 The latest authenticated Netlify readback identifies published deploy
-`6a7b9e45ceb7e100087c55fa`, its production assertion and GitHub `main` at full
-commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI and the required
-post-deploy reads are green. This reconciliation candidate authorizes no
-deployment.
+`6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
+`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Current GitHub `main` is
+`7662d3f863f8f921b816670363431df8e1ebcdea`; the production commit is its
+first-parent ancestor and is not equal to it because governance-only PR #99
+advanced `main` without a production publish. The production commit's CI and
+required post-deploy reads are green. This reconciliation candidate authorizes
+no deployment.
 
 The bounded PR #98 smoke preserved anonymous login redirect and protected API
 denial, rendered the authenticated application, dashboard, settings and market
@@ -269,8 +273,9 @@ verified and not entitled to gate credit.
 - Earlier 126-, 135-, 137-, 139- and 142-commit production distances and deploy
   `6a65fd2f…`, followed by exact identity at `4607990a…` and deploy
   `6a7b2c1e…`, are historical. The later `490e3607…`, `58c29514…` and
-  `9e2f64a…` identities are also superseded by current exact production/main
-  identity at `f463644d…` and deploy `6a7b9e45…`.
+  `9e2f64a…` identities are also superseded by the last verified production
+  commit `f463644d…` and deploy `6a7b9e45…`. Governance-only PR #99 advanced
+  current main to `7662d3f…` without changing that production release.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
   earlier bounded production evidence closed MA-15, the post-PR #97 dashboard
