@@ -1,0 +1,93 @@
+{
+  "report_version": "action_666aq_golden_governed_improvement_end_to_end_report_v1",
+  "contract_version": "canonical_governed_improvement_end_to_end_replay_v2",
+  "evidence_classification": "synthetic_fixture_only",
+  "performance_claimed": false,
+  "publishable": false,
+  "scenarios": [
+    {
+      "name": "captured_mapped_proposal_ready",
+      "terminal_status": "completed",
+      "proposal_status": "proposal_ready",
+      "stage_count": 3,
+      "end_to_end_digest": "6b3578681e31c8f4e612f9d4ce4dc3b6bdf282fa3497e552bf06abae17fcc489"
+    },
+    {
+      "name": "captured_mapped_no_change",
+      "terminal_status": "completed",
+      "proposal_status": "no_change",
+      "stage_count": 3,
+      "end_to_end_digest": "6bfb8cd43d7421fbd31f1fe7aec559a9f42a73333493ee3288c9361b674aca05"
+    },
+    {
+      "name": "incomplete_capture",
+      "terminal_status": "rejected",
+      "proposal_status": null,
+      "stage_count": 1,
+      "end_to_end_digest": "3baa056dafb500f9d74761c6b131791983ce37a4981114911a030f4ca6cad862"
+    },
+    {
+      "name": "capture_conflict",
+      "terminal_status": "conflicting",
+      "proposal_status": null,
+      "stage_count": 1,
+      "end_to_end_digest": "6f4fa1204ceaee01de48084bf188bcc8d5ce8a3e6c9ead46429614feca221701"
+    },
+    {
+      "name": "adapter_conflict",
+      "terminal_status": "conflicting",
+      "proposal_status": null,
+      "stage_count": 2,
+      "end_to_end_digest": "58eeac974b85dd0ffe582e05c74469db0d1ccbdb25234ceb2bad77a0c988422e"
+    },
+    {
+      "name": "adapter_unmappable",
+      "terminal_status": "incomplete",
+      "proposal_status": null,
+      "stage_count": 2,
+      "end_to_end_digest": "9e2adf0e5a2ab6520004afe8e48c6b45cd871cc7162f8f206cef98ee7b3d65b2"
+    },
+    {
+      "name": "proposal_research_only",
+      "terminal_status": "completed",
+      "proposal_status": "research_only",
+      "stage_count": 3,
+      "end_to_end_digest": "779695e0d5395f91cd00ab3d34b7079d37a73efc84bedb3fdc38c6731c83858c"
+    },
+    {
+      "name": "proposal_insufficient_evidence",
+      "terminal_status": "completed",
+      "proposal_status": "insufficient_evidence",
+      "stage_count": 3,
+      "end_to_end_digest": "d0f517f0771600a8fd76b0763dfd5337cf8de72afc46ea4a2184187be883112a"
+    },
+    {
+      "name": "capture_trust_root_drift",
+      "terminal_status": "conflicting",
+      "proposal_status": null,
+      "stage_count": 1,
+      "end_to_end_digest": "0fd4b37c9a62b035d2c91d5b31d617baa264d4d2183905ce023c82cb1f8a7712"
+    },
+    {
+      "name": "previous_binding_collision",
+      "terminal_status": "conflicting",
+      "proposal_status": null,
+      "stage_count": 1,
+      "end_to_end_digest": "95455200bdc31b18f9a220aa0bde7fa54b4528715f3d1392b45cd6bf4ebe945d"
+    }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}
