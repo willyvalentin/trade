@@ -19,7 +19,7 @@ No historical freeze or review artifact is reused as current authority.
 5. `tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts`
 
 The exact sorted-path aggregate is
-`a73d3b0020e5ca877dafcef1e50b2f92cdf98c75b45d98bacc3a566a8bce5dfb`.
+`28296150a6adbdcdacce8f370715cb13543a3ceeabf69446ff8d3034687197c6`.
 The machine-readable current-main binding is
 `docs/evidence/action-666cl-current-main-improvement-evidence-adapter/foundation-freeze-manifest.json`.
 
@@ -63,6 +63,17 @@ freezing:
 6. replay verification requires the original frozen, module-privately branded
    harness, rebuilds with its private canonical replay, and rejects fake,
    disabled, altered, or malformed verifier inputs without throwing.
+
+The first independent review of head
+`48987d52500858d8c02e29cc0944b9aef859277a` found two additional fail-open
+cases. The remediated candidate also requires:
+
+7. exact own-key validation of the adapter-owned bundle, trust-boundary,
+   registry, and producer-binding shells, with nested bytes delegated only to
+   the already recognized registry and upstream canonical authorities;
+8. malformed runtime requests remain never-throw diagnostics but are rejected
+   by the private verifier before rebuild, so results cannot cross-verify
+   between malformed requests.
 
 These remediations require exact-head CI and a new independent read-only review.
 No historical review result can authorize this candidate.

@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cl-current-main-improvement-evidence-adapter/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "b17da4dcdc9390cb7c7224dac784c5b953b11cddf592c006c396675ed5738bc5";
+  "6d2647a1473a59e471299dafa90061d8cf9ae203ad7cf19f796c6848d03a4134";
 
 const expectedManifest = {
   schema_version:
@@ -29,12 +29,12 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "a73d3b0020e5ca877dafcef1e50b2f92cdf98c75b45d98bacc3a566a8bce5dfb",
+      "28296150a6adbdcdacce8f370715cb13543a3ceeabf69446ff8d3034687197c6",
     artifacts: [
       {
         path: "docs/action-666ac-completed-improvement-evidence-adapter.md",
         sha256:
-          "89b71a9bd45a54f07cd299841ec84b37b4f15157a7356c2db83818fb7d80208c",
+          "3d5e417e08d0049d02013d2f3d5a3419dcc6af659f23d7350ef7bddf3089ea30",
       },
       {
         path: "docs/action-666ac-golden-improvement-adapter-report.json",
@@ -50,13 +50,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-model-improvement-input-adapter.ts",
         sha256:
-          "ae2d5151fa50ad4b5fa63a95fa1802595ae203b9c6b6d2baec7e1cb3eeefe864",
+          "574c4ce69ed00c2f1ce36697a06da2f9a66091168aa191f6655c152b4b5e7e6d",
       },
       {
         path:
           "tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts",
         sha256:
-          "e30ba0b48b796de5d2b1a1d9ad4f6a264af486dc7053e21f7be1ccdc6f514c8e",
+          "3bda8a3379ca4525f98234f659dd0b3c8a792c6943d207a80335fc1d50100ca4",
       },
     ],
   },
@@ -78,11 +78,13 @@ const expectedManifest = {
     literal_activation_gate_required: true,
     canonical_runtime_surface_required: true,
     exact_option_dependency_and_request_shapes_required: true,
+    exact_adapter_owned_bundle_and_authority_shells_required: true,
     module_recognized_registry_authority_preserved_in_snapshot: true,
     construction_time_lookup_snapshot_required: true,
     descriptor_safe_lookup_and_return_validation_required: true,
     private_execution_counters_required: true,
     private_frozen_replay_harness_authority_required: true,
+    malformed_request_replay_authority_forbidden: true,
     structured_never_throw_failure_required: true,
   },
   delivery: {

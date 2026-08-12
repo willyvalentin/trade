@@ -276,6 +276,28 @@ function ownDataValue(value: object, key: string) {
   return { present: true as const, value: descriptor.value };
 }
 
+function hasExactRecordKeys(
+  value: unknown,
+  expectedKeys: readonly string[],
+): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  try {
+    const actualKeys = Reflect.ownKeys(value).sort((first, second) =>
+      String(first).localeCompare(String(second)),
+    );
+    const sortedExpected = [...expectedKeys].sort();
+    return (
+      actualKeys.length === sortedExpected.length &&
+      actualKeys.every(
+        (key, index) =>
+          typeof key === "string" && key === sortedExpected[index],
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
 function uniqueSorted(values: string[]) {
   return [...new Set(values)].sort();
 }
@@ -370,6 +392,21 @@ function structuralReasons(value: unknown) {
   }
   const reasons: string[] = [];
   if (
+    !hasExactRecordKeys(value, [
+      "bundle_identity",
+      "bundle_version",
+      "completed_at",
+      "producer_bindings",
+      "source_namespace",
+      "trust_boundary",
+      "trusted_input_digest",
+      "trusted_input_identity",
+      "upstream_sources",
+    ])
+  ) {
+    reasons.push("completed_improvement_bundle_keys_conflicting");
+  }
+  if (
     value.bundle_version !==
     CANONICAL_COMPLETED_IMPROVEMENT_EVIDENCE_ADAPTER_VERSION
   ) {
@@ -406,12 +443,41 @@ function structuralReasons(value: unknown) {
   }
   if (!isRecord(value.trust_boundary)) {
     reasons.push("proposal_registry_trust_boundary_missing");
+  } else if (
+    !hasExactRecordKeys(value.trust_boundary, [
+      "registry",
+      "registry_authority",
+      "trust_source",
+    ])
+  ) {
+    reasons.push("proposal_registry_trust_boundary_keys_conflicting");
+  } else if (
+    !hasExactRecordKeys(value.trust_boundary.registry, [
+      "posts",
+      "registry_version",
+      "root_digest",
+    ])
+  ) {
+    reasons.push("proposal_registry_keys_conflicting");
   }
   if (!isRecord(value.upstream_sources)) {
     reasons.push("completed_upstream_sources_missing");
   }
   if (!isRecord(value.producer_bindings)) {
     reasons.push("completed_producer_bindings_missing");
+  } else if (
+    !hasExactRecordKeys(value.producer_bindings, [
+      "baseline_versions",
+      "candidate_versions",
+      "cohort",
+      "evidence_root_digest",
+      "experiment_identity_inventory",
+      "metric_inventory_digest",
+      "period",
+      "row_stability_inventory_digest",
+    ])
+  ) {
+    reasons.push("completed_producer_binding_keys_conflicting");
   }
   return uniqueSorted(reasons);
 }
@@ -668,8 +734,17 @@ function snapshotCompletedImprovementBundle(
   value: CanonicalCompletedImprovementEvidenceBundle,
 ) {
   const snapshot = structuredClone(value);
-  snapshot.trust_boundary.registry_authority =
-    value.trust_boundary.registry_authority;
+  if (
+    isRecord(value) &&
+    isRecord(snapshot) &&
+    isRecord(value.trust_boundary) &&
+    isRecord(snapshot.trust_boundary) &&
+    value.trust_boundary.registry_authority !== null &&
+    typeof value.trust_boundary.registry_authority === "object"
+  ) {
+    snapshot.trust_boundary.registry_authority =
+      value.trust_boundary.registry_authority;
+  }
   return deepFreeze(snapshot);
 }
 
@@ -681,17 +756,17 @@ function projectCanonicalCompletedImprovementEvidenceInternal(
   },
 ): CanonicalCompletedImprovementAdapterResult {
   const counters = dependencies.counters;
+  if (isRecord(value)) {
+    const callerAuthority = callerAuthorityReasons(value);
+    if (callerAuthority.length > 0) {
+      return failure("conflicting", callerAuthority);
+    }
+  }
   const structural = structuralReasons(value);
   if (structural.length > 0) {
     return failure("unmappable", structural);
   }
   const bundle = value as CanonicalCompletedImprovementEvidenceBundle;
-  const callerAuthority = callerAuthorityReasons(
-    value as Record<string, unknown>,
-  );
-  if (callerAuthority.length > 0) {
-    return failure("conflicting", callerAuthority);
-  }
   const joinReasons = incompleteJoinReasons(bundle.upstream_sources);
   if (joinReasons.length > 0) {
     return failure("unmappable", joinReasons);
@@ -1083,6 +1158,25 @@ function replayResult(
   });
 }
 
+function isCanonicalReplayRequest(
+  value: unknown,
+): value is CanonicalImprovementReplayRequest {
+  if (
+    !hasCanonicalRuntimeSurface(value) ||
+    !hasExactRecordKeys(value, ["bundle", "expected_bundle_digest"])
+  ) {
+    return false;
+  }
+  const bundle = ownDataValue(value, "bundle");
+  const expectedDigest = ownDataValue(value, "expected_bundle_digest");
+  return (
+    bundle.present &&
+    isRecord(bundle.value) &&
+    expectedDigest.present &&
+    typeof expectedDigest.value === "string"
+  );
+}
+
 export function createCanonicalImprovementProposalReplayHarness(input: {
   enabled?: boolean;
   kill_switch_engaged?: boolean;
@@ -1194,37 +1288,14 @@ export function createCanonicalImprovementProposalReplayHarness(input: {
     try {
       counters.replay_attempts += 1;
       counters.request_reads += 1;
-      if (
-        !hasCanonicalRuntimeSurface(requestValue) ||
-        !isRecord(requestValue)
-      ) {
-        return invalidRequestResult(
-          "improvement_replay_request_runtime_shape_conflicting",
-        );
-      }
-      const requestKeys = Reflect.ownKeys(requestValue).sort((first, second) =>
-        String(first).localeCompare(String(second)),
-      );
-      if (
-        requestKeys.length !== 2 ||
-        requestKeys[0] !== "bundle" ||
-        requestKeys[1] !== "expected_bundle_digest"
-      ) {
-        return invalidRequestResult(
-          "improvement_replay_request_runtime_shape_conflicting",
-        );
-      }
-      if (
-        typeof requestValue.expected_bundle_digest !== "string" ||
-        !hasCanonicalRuntimeSurface(requestValue.bundle)
-      ) {
+      if (!isCanonicalReplayRequest(requestValue)) {
         return invalidRequestResult(
           "improvement_replay_request_runtime_shape_conflicting",
         );
       }
       const observedDigest =
         canonicalCompletedImprovementEvidenceBundleDigest(
-          requestValue.bundle as CanonicalCompletedImprovementEvidenceBundle,
+          requestValue.bundle,
         );
       counters.input_digests += 1;
       if (
@@ -1240,7 +1311,7 @@ export function createCanonicalImprovementProposalReplayHarness(input: {
       }
       const request = {
         bundle: snapshotCompletedImprovementBundle(
-          requestValue.bundle as CanonicalCompletedImprovementEvidenceBundle,
+          requestValue.bundle,
         ),
         expected_bundle_digest: requestValue.expected_bundle_digest,
       };
@@ -1335,8 +1406,15 @@ export function verifyCanonicalImprovementReplayResult(input: {
     if (!hasCanonicalRuntimeSurface(resultInput.value)) {
       throw new Error("improvement_replay_result_runtime_shape_conflicting");
     }
+    if (!isCanonicalReplayRequest(requestInput.value)) {
+      return deepFreeze({
+        valid: false,
+        canonical_result: null,
+        reason_codes: ["canonical_improvement_replay_request_unverifiable"],
+      });
+    }
     const canonicalResult = canonicalReplay(
-      requestInput.value as CanonicalImprovementReplayRequest,
+      requestInput.value,
     );
     const valid = exact(canonicalResult, resultInput.value);
     return deepFreeze({

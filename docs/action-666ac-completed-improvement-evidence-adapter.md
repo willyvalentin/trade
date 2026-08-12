@@ -85,14 +85,21 @@ inventory, and either the verified mapping digest or an explicit fail-closed
 failure projection. The projection has its own canonical digest and is included
 in the outer replay digest.
 
-Different inputs therefore cannot share replay evidence merely because they
-produce the same status and reason codes. An independently rebuilt replay is
-compared byte-for-byte by `verifyCanonicalImprovementReplayResult`. Rebuild
-authority belongs to a module-private, frozen replay harness recorded outside
-its public surface; a caller cannot forge a lookalike harness, replace its
-public replay function, or change identity, input digests, adapter version,
+Different canonical requests therefore cannot share replay evidence merely
+because they produce the same status and reason codes. An independently rebuilt
+replay is compared byte-for-byte by `verifyCanonicalImprovementReplayResult`.
+Rebuild authority belongs to a module-private, frozen replay harness recorded
+outside its public surface; a caller cannot forge a lookalike harness, replace
+its public replay function, or change identity, input digests, adapter version,
 status, reasons, or projection and then legitimize that result by recomputing
 internal digests.
+
+A malformed runtime request may receive a sanitized diagnostic result so the
+boundary never throws, but that result is deliberately non-authoritative. The
+verifier rejects every noncanonical request before private rebuild, so a
+diagnostic from `null`, an empty object, an accessor, a proxy, an extra-key
+request, or any other malformed shape cannot verify itself or a different
+malformed request.
 
 The request's `expected_bundle_digest` remains an explicit integrity binding,
 not a caller-created registry authority. The separately recognized proposal
@@ -110,10 +117,14 @@ reason: previous_binding_lookup_failed
 Backend exception messages and stack traces never enter canonical output.
 Bundle-shape failures retain their separate structured reasons.
 
-The active boundary accepts exact, enumerable data-property shapes only.
-Lookup methods are captured once at construction, lookup return values are
-validated recursively, and later replacement of caller-owned method properties
-cannot change replay behavior. Replay requests reject missing, extra, hidden,
+The active boundary accepts exact, enumerable data-property shapes only. The
+adapter-owned bundle, trust-boundary, registry, and producer-binding shells are
+exact-key checked. Their nested upstream and trusted-post bytes must match the
+separately recognized canonical registry post and upstream verifier outputs;
+ordinary extra keys therefore fail at the owning authority boundary. Lookup
+methods are captured once at construction, lookup return values are validated
+recursively, and later replacement of caller-owned method properties cannot
+change replay behavior. Replay requests reject missing, extra, hidden,
 symbolic, accessor, cyclic, non-finite, sparse-array, or extra-array-key input
 without throwing. Bundle snapshots clone all serializable caller data while
 preserving only the already frozen, module-recognized registry-authority object

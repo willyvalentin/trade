@@ -85,6 +85,23 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
+function cloneMappedBundle() {
+  const clone = structuredClone(action666acMappedBundle);
+  clone.trust_boundary.registry_authority =
+    action666acMappedBundle.trust_boundary.registry_authority;
+  return clone;
+}
+
+function valueAtPath(
+  value: unknown,
+  pathParts: Array<string | number>,
+): unknown {
+  return pathParts.reduce<unknown>((current, part) => {
+    if (!current || typeof current !== "object") return undefined;
+    return (current as Record<string | number, unknown>)[part];
+  }, value);
+}
+
 test.describe("Action 666AC completed improvement evidence adapter", () => {
   test("golden matrix maps, conflicts, or rejects missing joins deterministically", () => {
     for (const scenario of action666acGoldenScenarios) {
@@ -338,6 +355,61 @@ test.describe("Action 666AC completed improvement evidence adapter", () => {
         "caller_producer_authority_field_forbidden:trusted",
       ]),
     });
+  });
+
+  test("adapter-owned bundle and producer schemas reject ordinary extra keys", () => {
+    const topLevel = cloneMappedBundle() as typeof action666acMappedBundle & {
+      unexpected?: boolean;
+    };
+    topLevel.unexpected = true;
+    expect(project(topLevel)).toMatchObject({
+      status: "unmappable",
+      reason_codes: ["completed_improvement_bundle_keys_conflicting"],
+    });
+
+    const producer = cloneMappedBundle() as typeof action666acMappedBundle & {
+      producer_bindings: typeof action666acMappedBundle.producer_bindings & {
+        unexpected?: boolean;
+      };
+    };
+    producer.producer_bindings.unexpected = true;
+    expect(project(producer)).toMatchObject({
+      status: "unmappable",
+      reason_codes: ["completed_producer_binding_keys_conflicting"],
+    });
+  });
+
+  test("every adapter and delegated authority region rejects an extra own key", () => {
+    const paths: Array<Array<string | number>> = [
+      [],
+      ["trust_boundary"],
+      ["trust_boundary", "registry"],
+      ["trust_boundary", "registry", "posts"],
+      ["trust_boundary", "registry", "posts", 0],
+      ["trust_boundary", "registry", "posts", 0, "payload"],
+      ["upstream_sources"],
+      ["upstream_sources", "quality"],
+      ["upstream_sources", "opportunity_sets"],
+      ["producer_bindings"],
+      ["producer_bindings", "period"],
+      ["producer_bindings", "baseline_versions"],
+    ];
+    for (const pathParts of paths) {
+      const bundle = cloneMappedBundle();
+      const target = valueAtPath(bundle, pathParts);
+      if (!target || typeof target !== "object") continue;
+      Object.defineProperty(target, "unexpected_runtime_key", {
+        configurable: true,
+        enumerable: true,
+        value: true,
+        writable: true,
+      });
+      const result = project(bundle);
+      expect(
+        result.status,
+        `${pathParts.join(".") || "<bundle>"}:${result.reason_codes.join(",")}`,
+      ).not.toBe("mapped");
+    }
   });
 
   test("default-off and kill switch perform zero reads, lookups, clones, or builds", () => {
@@ -643,6 +715,45 @@ test.describe("Action 666AC completed improvement evidence adapter", () => {
         ],
       });
     }
+  });
+
+  test("malformed requests never receive transferable replay authority", () => {
+    const harness = createCanonicalImprovementProposalReplayHarness({
+      enabled: true,
+      kill_switch_engaged: false,
+      previous_binding_lookup: action666acEmptyPreviousBindingLookup,
+    });
+    if (!harness.replay) throw new Error("malformed_authority_harness_not_ready");
+    const malformedRequests = [null, {}, [], { unexpected: true }];
+    const results = malformedRequests.map((request) =>
+      harness.replay!(
+        request as Parameters<NonNullable<typeof harness.replay>>[0],
+      ),
+    );
+    for (let index = 0; index < malformedRequests.length; index += 1) {
+      expect(
+        verifyCanonicalImprovementReplayResult({
+          request: malformedRequests[index] as never,
+          result: results[index],
+          harness,
+        }),
+      ).toEqual({
+        valid: false,
+        canonical_result: null,
+        reason_codes: ["canonical_improvement_replay_request_unverifiable"],
+      });
+    }
+    expect(
+      verifyCanonicalImprovementReplayResult({
+        request: malformedRequests[1] as never,
+        result: results[0],
+        harness,
+      }),
+    ).toEqual({
+      valid: false,
+      canonical_result: null,
+      reason_codes: ["canonical_improvement_replay_request_unverifiable"],
+    });
   });
 
   test("replay verification requires the private frozen harness authority", () => {
