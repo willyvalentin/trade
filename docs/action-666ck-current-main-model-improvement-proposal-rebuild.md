@@ -17,7 +17,7 @@ matrix, refreeze, or freeze artifact is reused as current authority.
 6. `tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts`
 
 The exact sorted-path aggregate is
-`18309ccb2a3b3cb015be003061e211d66b22b2db859cdf65d3b05700badf6004`.
+`f7ef22b054a02f22df28fd1c6b5fed696eafa7336d9f39059ae9b0e513c69d10`.
 The machine-readable current-main binding is
 `docs/evidence/action-666ck-current-main-model-improvement-proposal/foundation-freeze-manifest.json`.
 
@@ -56,6 +56,19 @@ The rebuilt candidate closes three runtime-boundary classes before freezing:
 
 These changes do not satisfy the independent-review gate by themselves. The
 new frozen head requires exact-head CI and a new read-only review.
+
+The first independent review of head
+`4669d7809b3d4b383600ae63f1e11c0e1c74942b` found two further runtime
+authority defects. The remediated candidate additionally requires:
+
+4. a frozen, module-privately branded engine whose result verifier calls only
+   its private canonical builder and rejects fake or publicly altered engines;
+5. descriptor-safe, exact-shape lookup capture plus private counters whose
+   frozen public snapshots and malformed inputs cannot escape the never-throw
+   boundary.
+
+These remediations also require a new exact-head CI run and a fresh independent
+read-only review; the earlier review result cannot authorize delivery.
 
 ## Delivery boundary
 

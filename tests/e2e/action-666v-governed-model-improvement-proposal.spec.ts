@@ -869,6 +869,146 @@ test.describe("Action 666V governed model-improvement proposals", () => {
     expect(engine.build(fixture.request)).toEqual(before);
   });
 
+  test("independent-review remediation: lookup descriptors and execution counters fail closed", () => {
+    const fixture = action666vStableImprovementFixture;
+    const lookupVariants: unknown[] = [];
+    const accessorLookup = {
+      lookup_experiment_binding: () => null,
+    } as Record<string, unknown>;
+    Object.defineProperty(accessorLookup, "lookup_proposal_binding", {
+      enumerable: true,
+      get() {
+        throw new Error("lookup_accessor_escaped");
+      },
+    });
+    lookupVariants.push(accessorLookup);
+
+    const hiddenLookup = {
+      lookup_experiment_binding: () => null,
+    } as Record<string, unknown>;
+    Object.defineProperty(hiddenLookup, "lookup_proposal_binding", {
+      enumerable: false,
+      value: () => null,
+    });
+    lookupVariants.push(hiddenLookup);
+    lookupVariants.push({
+      ...action666x2EmptyPreviousBindingLookup,
+      unexpected: true,
+    });
+    lookupVariants.push({
+      ...action666x2EmptyPreviousBindingLookup,
+      [Symbol("unexpected")]: true,
+    });
+    lookupVariants.push(
+      new Proxy(action666x2EmptyPreviousBindingLookup, {
+        ownKeys() {
+          throw new Error("lookup_proxy_escaped");
+        },
+      }),
+    );
+
+    for (const lookup of lookupVariants) {
+      let engine: ReturnType<typeof createCanonicalModelImprovementEngine>;
+      expect(() => {
+        engine = createCanonicalModelImprovementEngine({
+          enabled: true,
+          kill_switch_engaged: false,
+          trust_boundary: fixture.trustBoundary,
+          previous_binding_lookup: lookup as never,
+        });
+      }).not.toThrow();
+      expect(engine!.status).toBe("conflicting");
+      expect(() => engine!.build?.(fixture.request)).not.toThrow();
+      expect(engine!.build?.(fixture.request)).toMatchObject({
+        status: "conflicting",
+        proposal: null,
+      });
+    }
+
+    const throwingLookup = {
+      lookup_proposal_binding: new Proxy(() => null, {
+        apply() {
+          throw new Error("lookup_apply_escaped");
+        },
+      }),
+      lookup_experiment_binding: () => null,
+    };
+    const throwingEngine = createCanonicalModelImprovementEngine({
+      enabled: true,
+      kill_switch_engaged: false,
+      trust_boundary: fixture.trustBoundary,
+      previous_binding_lookup: throwingLookup,
+    });
+    expect(() => throwingEngine.build?.(fixture.request)).not.toThrow();
+    expect(throwingEngine.build?.(fixture.request)).toMatchObject({
+      status: "conflicting",
+      proposal: null,
+    });
+    const extraResultEngine = createCanonicalModelImprovementEngine({
+      enabled: true,
+      kill_switch_engaged: false,
+      trust_boundary: fixture.trustBoundary,
+      previous_binding_lookup: {
+        lookup_proposal_binding: () => ({
+          semantic_digest: "a".repeat(64),
+          unexpected: true,
+        }) as never,
+        lookup_experiment_binding: () => null,
+      },
+    });
+    expect(() => extraResultEngine.build?.(fixture.request)).not.toThrow();
+    expect(extraResultEngine.build?.(fixture.request)).toMatchObject({
+      status: "conflicting",
+      proposal: null,
+    });
+
+    const frozenCounters = Object.freeze(zeroCounters());
+    const frozenCounterEngine = createCanonicalModelImprovementEngine({
+      enabled: true,
+      kill_switch_engaged: false,
+      trust_boundary: fixture.trustBoundary,
+      previous_binding_lookup: action666x2EmptyPreviousBindingLookup,
+      counters: frozenCounters,
+    });
+    expect(() => frozenCounterEngine.build?.(fixture.request)).not.toThrow();
+    expect(frozenCounterEngine.build?.(fixture.request).status).toBe(
+      "proposal_ready",
+    );
+    expect(frozenCounters).toEqual(zeroCounters());
+    expect(Object.isFrozen(frozenCounterEngine.counters)).toBe(true);
+
+    const counterInputs: unknown[] = [null, [], {}, "zero"];
+    const counterAccessorOptions = {
+      enabled: true,
+      kill_switch_engaged: false,
+      trust_boundary: fixture.trustBoundary,
+      previous_binding_lookup: action666x2EmptyPreviousBindingLookup,
+    } as Record<string, unknown>;
+    Object.defineProperty(counterAccessorOptions, "counters", {
+      enumerable: true,
+      get() {
+        throw new Error("counter_accessor_escaped");
+      },
+    });
+    for (const counters of counterInputs) {
+      const engine = createCanonicalModelImprovementEngine({
+        enabled: true,
+        kill_switch_engaged: false,
+        trust_boundary: fixture.trustBoundary,
+        previous_binding_lookup: action666x2EmptyPreviousBindingLookup,
+        counters: counters as never,
+      });
+      expect(engine.status).toBe("conflicting");
+    }
+    expect(() =>
+      createCanonicalModelImprovementEngine(counterAccessorOptions as never),
+    ).not.toThrow();
+    expect(
+      createCanonicalModelImprovementEngine(counterAccessorOptions as never)
+        .status,
+    ).toBe("conflicting");
+  });
+
   test("current-main remediation: malformed boundaries fail closed without throwing", () => {
     const fixture = action666vStableImprovementFixture;
     const missingPayload = {
@@ -1080,6 +1220,45 @@ test.describe("Action 666V governed model-improvement proposals", () => {
       valid: false,
       canonical_result: null,
       reason_codes: ["canonical_model_improvement_result_tampered"],
+    });
+  });
+
+  test("independent-review remediation: only a privately recognized immutable engine can verify results", () => {
+    const engine = action666vStableImprovementFixture.engine;
+    if (!engine.build) throw new Error("ready_engine_missing");
+    const canonical = engine.build(action666vStableImprovementFixture.request);
+    const forged = structuredClone(canonical);
+    forged.reason_codes = ["caller_claimed_success"];
+
+    expect(Object.isFrozen(engine)).toBe(true);
+    expect(Reflect.set(engine, "build", () => forged)).toBe(false);
+    expect(
+      verifyCanonicalModelImprovementResult({
+        engine,
+        request: action666vStableImprovementFixture.request,
+        result: forged,
+      }),
+    ).toMatchObject({
+      valid: false,
+      canonical_result: null,
+    });
+
+    const fakeEngine = {
+      ...engine,
+      status: "ready" as const,
+      build: () => forged,
+      counters: { ...engine.counters, proposals_built: 999 },
+    };
+    expect(
+      verifyCanonicalModelImprovementResult({
+        engine: fakeEngine as never,
+        request: action666vStableImprovementFixture.request,
+        result: forged,
+      }),
+    ).toEqual({
+      valid: false,
+      canonical_result: null,
+      reason_codes: ["model_improvement_engine_unrecognized"],
     });
   });
 

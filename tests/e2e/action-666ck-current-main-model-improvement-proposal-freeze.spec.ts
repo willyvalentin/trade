@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666ck-current-main-model-improvement-proposal/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "299c989976e65a9fe571e99b4e66a81ae90625fb539a1861462406f4c1e36514";
+  "1f3e73e150b1d626a926492e93496ff1f09f7afd3c7c6c66150610b5a78c3cf7";
 
 const expectedManifest = {
   schema_version:
@@ -27,7 +27,7 @@ const expectedManifest = {
     normative_artifact_count: 6,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "18309ccb2a3b3cb015be003061e211d66b22b2db859cdf65d3b05700badf6004",
+      "f7ef22b054a02f22df28fd1c6b5fed696eafa7336d9f39059ae9b0e513c69d10",
     artifacts: [
       {
         path: "docs/action-666v-golden-model-improvement-proposal-report.json",
@@ -37,7 +37,7 @@ const expectedManifest = {
       {
         path: "docs/action-666v-governed-model-improvement-proposal-contract.md",
         sha256:
-          "2c8741e127e7f71c6d136ed024115f5aee4e1dc9c5f01eb1f2486b4d64935be6",
+          "9777dbdba0e280ec261c8b90f31d413b0845d4df8fcbb59c48ab8e814c47d719",
       },
       {
         path: "lib/server/canonical-model-improvement-proposal-fixtures.ts",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-model-improvement-proposal.ts",
         sha256:
-          "fd5b560b5111391966f56206a1991be5c520c2939b8eb479d2a5fae02e6c8ee1",
+          "e7c397b1b7ed5eb924665ef7ef3930037f2860ababe94c834ecbb24e0bf148f9",
       },
       {
         path:
@@ -59,7 +59,7 @@ const expectedManifest = {
         path:
           "tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts",
         sha256:
-          "2118964e61eb3b2fb592cf1ee121c18d25906b940fcf281c5c2525b2e53e2e47",
+          "78048d414e306c1fd9c84368128e9962040b0fdacb2e03057c1047c365deb6b4",
       },
     ],
   },
@@ -81,6 +81,9 @@ const expectedManifest = {
     canonical_runtime_surface_required: true,
     exact_request_runtime_shape_required: true,
     structured_never_throw_failure_required: true,
+    private_engine_authority_required: true,
+    descriptor_safe_lookup_required: true,
+    private_execution_counters_required: true,
   },
   delivery: {
     historical_pull_request_merge_authorized: false,

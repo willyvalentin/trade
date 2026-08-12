@@ -595,6 +595,48 @@ export type CanonicalModelImprovementExecutionCounters = {
   proposals_built: number;
 };
 
+type CanonicalModelImprovementBuild = (
+  request: CanonicalModelImprovementRequest,
+) => CanonicalModelImprovementResult;
+
+const canonicalModelImprovementEngineAuthorities = new WeakMap<
+  object,
+  CanonicalModelImprovementBuild | null
+>();
+
+function emptyExecutionCounters(): CanonicalModelImprovementExecutionCounters {
+  return {
+    request_reads: 0,
+    clones: 0,
+    trust_lookups: 0,
+    registry_lookups: 0,
+    validations: 0,
+    proposals_built: 0,
+  };
+}
+
+function publishCanonicalModelImprovementEngine<
+  T extends {
+    enabled: boolean;
+    status: string;
+    build: CanonicalModelImprovementBuild | null;
+  },
+>(
+  fields: T,
+  counters: CanonicalModelImprovementExecutionCounters,
+  canonicalBuild: CanonicalModelImprovementBuild | null,
+) {
+  const engine = {
+    ...fields,
+    get counters() {
+      return deepFreeze(structuredClone(counters));
+    },
+  };
+  Object.freeze(engine);
+  canonicalModelImprovementEngineAuthorities.set(engine, canonicalBuild);
+  return engine;
+}
+
 const safety = {
   shadow_only: true,
   live_ranking_effect: false,
@@ -719,6 +761,144 @@ function hasCanonicalRuntimeSurface(
   } finally {
     visited.delete(value);
   }
+}
+
+function ownDataValue(value: object, key: string) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor) return { present: false as const, value: undefined };
+  if (!("value" in descriptor)) {
+    throw new Error(`runtime_accessor_not_allowed:${key}`);
+  }
+  return { present: true as const, value: descriptor.value };
+}
+
+function isExecutionCounterSnapshot(
+  value: unknown,
+): value is CanonicalModelImprovementExecutionCounters {
+  if (!isRuntimeRecord(value)) return false;
+  const expectedKeys = [
+    "clones",
+    "proposals_built",
+    "registry_lookups",
+    "request_reads",
+    "trust_lookups",
+    "validations",
+  ];
+  const keys = Reflect.ownKeys(value).sort((first, second) =>
+    String(first).localeCompare(String(second)),
+  );
+  return (
+    keys.length === expectedKeys.length &&
+    keys.every((key, index) => key === expectedKeys[index]) &&
+    expectedKeys.every((key) => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      return (
+        descriptor !== undefined &&
+        "value" in descriptor &&
+        descriptor.enumerable === true &&
+        typeof descriptor.value === "number" &&
+        Number.isSafeInteger(descriptor.value) &&
+        descriptor.value >= 0
+      );
+    })
+  );
+}
+
+function capturePreviousBindingLookup(
+  value: unknown,
+): CanonicalModelImprovementPreviousBindingLookup {
+  if (!isRuntimeRecord(value)) {
+    throw new Error("previous_binding_lookup_not_plain_object");
+  }
+  const expectedKeys = [
+    "lookup_experiment_binding",
+    "lookup_proposal_binding",
+  ];
+  const keys = Reflect.ownKeys(value).sort((first, second) =>
+    String(first).localeCompare(String(second)),
+  );
+  if (
+    keys.length !== expectedKeys.length ||
+    !keys.every((key, index) => key === expectedKeys[index])
+  ) {
+    throw new Error("previous_binding_lookup_keys_conflicting");
+  }
+  const proposalDescriptor = Object.getOwnPropertyDescriptor(
+    value,
+    "lookup_proposal_binding",
+  );
+  const experimentDescriptor = Object.getOwnPropertyDescriptor(
+    value,
+    "lookup_experiment_binding",
+  );
+  if (
+    !proposalDescriptor ||
+    !("value" in proposalDescriptor) ||
+    proposalDescriptor.enumerable !== true ||
+    typeof proposalDescriptor.value !== "function" ||
+    !experimentDescriptor ||
+    !("value" in experimentDescriptor) ||
+    experimentDescriptor.enumerable !== true ||
+    typeof experimentDescriptor.value !== "function"
+  ) {
+    throw new Error("previous_binding_lookup_descriptors_conflicting");
+  }
+  const lookupProposalBinding = proposalDescriptor.value as (
+    identity: string,
+  ) => { semantic_digest: string } | null;
+  const lookupExperimentBinding = experimentDescriptor.value as (
+    identity: string,
+  ) => { semantic_digest: string } | null;
+  const receiver = Object.freeze({
+    lookup_proposal_binding: lookupProposalBinding,
+    lookup_experiment_binding: lookupExperimentBinding,
+  });
+  const validatedBinding = (
+    binding: unknown,
+    reason: string,
+  ): { semantic_digest: string } | null => {
+    if (binding === null) return null;
+    if (!hasCanonicalRuntimeSurface(binding) || !isRuntimeRecord(binding)) {
+      throw new Error(reason);
+    }
+    const keys = Reflect.ownKeys(binding);
+    const descriptor = Object.getOwnPropertyDescriptor(
+      binding,
+      "semantic_digest",
+    );
+    if (
+      keys.length !== 1 ||
+      keys[0] !== "semantic_digest" ||
+      !descriptor ||
+      !("value" in descriptor) ||
+      descriptor.enumerable !== true ||
+      typeof descriptor.value !== "string" ||
+      !shaPattern.test(descriptor.value)
+    ) {
+      throw new Error(reason);
+    }
+    return structuredClone(binding) as { semantic_digest: string };
+  };
+  return Object.freeze({
+    lookup_proposal_binding: (proposalIdentity) => {
+      const binding = Reflect.apply(lookupProposalBinding, receiver, [
+        proposalIdentity,
+      ]) as { semantic_digest: string } | null;
+      return validatedBinding(
+        binding,
+        "previous_proposal_binding_runtime_surface_conflicting",
+      );
+    },
+    lookup_experiment_binding: (planIdentity) => {
+      const binding = Reflect.apply(lookupExperimentBinding, receiver, [
+        planIdentity,
+      ]) as { semantic_digest: string } | null;
+      return validatedBinding(
+        binding,
+        "previous_experiment_binding_runtime_surface_conflicting",
+      );
+    },
+  });
 }
 
 function isCanonicalModelImprovementRequest(
@@ -2719,107 +2899,101 @@ export function createCanonicalModelImprovementEngine(input: {
   previous_binding_lookup?: CanonicalModelImprovementPreviousBindingLookup;
   counters?: CanonicalModelImprovementExecutionCounters;
 } = {}) {
-  const counters =
-    input.counters ??
-    {
-      request_reads: 0,
-      clones: 0,
-      trust_lookups: 0,
-      registry_lookups: 0,
-      validations: 0,
-      proposals_built: 0,
-    };
-  const enabled = input.enabled === true;
-  const killSwitchClear = input.kill_switch_engaged === false;
+  const counters = emptyExecutionCounters();
+  let enabled = false;
+  let killSwitchClear = false;
+  try {
+    if (!isRuntimeRecord(input)) {
+      throw new Error("model_improvement_options_not_plain_object");
+    }
+    const enabledInput = ownDataValue(input, "enabled");
+    const killSwitchInput = ownDataValue(input, "kill_switch_engaged");
+    enabled = enabledInput.present && enabledInput.value === true;
+    killSwitchClear =
+      killSwitchInput.present && killSwitchInput.value === false;
+  } catch {
+    enabled = false;
+    killSwitchClear = false;
+  }
   if (!enabled || !killSwitchClear) {
-    return deepFreeze({
-      enabled: false as const,
-      status: !enabled
-        ? ("disabled" as const)
-        : ("kill_switch_engaged" as const),
-      build: null,
+    return publishCanonicalModelImprovementEngine(
+      {
+        enabled: false as const,
+        status: !enabled
+          ? ("disabled" as const)
+          : ("kill_switch_engaged" as const),
+        build: null,
+      },
       counters,
-    });
-  }
-  if (!input.trust_boundary || !input.previous_binding_lookup) {
-    return deepFreeze({
-      enabled: true as const,
-      status: "conflicting" as const,
-      build: () =>
-        failure("conflicting", [
-          !input.trust_boundary
-            ? "trusted_proposal_boundary_missing"
-            : "previous_binding_lookup_missing",
-        ]),
-      counters,
-    });
-  }
-  if (
-    typeof input.previous_binding_lookup.lookup_proposal_binding !==
-      "function" ||
-    typeof input.previous_binding_lookup.lookup_experiment_binding !==
-      "function"
-  ) {
-    return deepFreeze({
-      enabled: true as const,
-      status: "conflicting" as const,
-      build: () =>
-        failure("conflicting", ["previous_binding_lookup_conflicting"]),
-      counters,
-    });
+      null,
+    );
   }
   let boundarySnapshot: CanonicalModelImprovementTrustBoundary | null = null;
+  let lookupSnapshot: CanonicalModelImprovementPreviousBindingLookup | null =
+    null;
   let registryReasons: string[] = [];
   try {
-    if (!hasCanonicalRuntimeSurface(input.trust_boundary)) {
-      throw new Error("trusted_proposal_runtime_surface_conflicting");
+    const countersInput = ownDataValue(input, "counters");
+    if (countersInput.present) {
+      if (!isExecutionCounterSnapshot(countersInput.value)) {
+        throw new Error("execution_counters_conflicting");
+      }
+      Object.assign(counters, structuredClone(countersInput.value));
     }
-    boundarySnapshot = deepFreeze({
-      trust_source: structuredClone(input.trust_boundary.trust_source),
-      registry: structuredClone(input.trust_boundary.registry),
-      registry_authority: input.trust_boundary.registry_authority,
-    });
-    registryReasons = validateRegistry(boundarySnapshot);
+    const boundaryInput = ownDataValue(input, "trust_boundary");
+    const lookupInput = ownDataValue(input, "previous_binding_lookup");
+    if (!boundaryInput.present || !boundaryInput.value) {
+      registryReasons = ["trusted_proposal_boundary_missing"];
+    } else if (!lookupInput.present || !lookupInput.value) {
+      registryReasons = ["previous_binding_lookup_missing"];
+    } else if (!hasCanonicalRuntimeSurface(boundaryInput.value)) {
+      throw new Error("trusted_proposal_runtime_surface_conflicting");
+    } else {
+      const boundary =
+        boundaryInput.value as CanonicalModelImprovementTrustBoundary;
+      boundarySnapshot = deepFreeze({
+        trust_source: structuredClone(boundary.trust_source),
+        registry: structuredClone(boundary.registry),
+        registry_authority: boundary.registry_authority,
+      });
+      lookupSnapshot = capturePreviousBindingLookup(lookupInput.value);
+      registryReasons = validateRegistry(boundarySnapshot);
+    }
   } catch {
     registryReasons = ["trusted_proposal_runtime_shape_conflicting"];
   }
   if (registryReasons.length > 0) {
-    return deepFreeze({
-      enabled: true as const,
-      status: "conflicting" as const,
-      build: () => failure("conflicting", registryReasons),
+    const conflictingBuild = () => failure("conflicting", registryReasons);
+    return publishCanonicalModelImprovementEngine(
+      {
+        enabled: true as const,
+        status: "conflicting" as const,
+        build: conflictingBuild,
+      },
       counters,
-    });
+      conflictingBuild,
+    );
   }
-  const previousBindingLookup = input.previous_binding_lookup;
-  const lookupProposalBinding =
-    previousBindingLookup.lookup_proposal_binding.bind(previousBindingLookup);
-  const lookupExperimentBinding =
-    previousBindingLookup.lookup_experiment_binding.bind(previousBindingLookup);
-  const lookupSnapshot: CanonicalModelImprovementPreviousBindingLookup =
-    deepFreeze({
-      lookup_proposal_binding: (proposalIdentity) => {
-        const binding = lookupProposalBinding(proposalIdentity);
-        if (binding !== null && !hasCanonicalRuntimeSurface(binding)) {
-          throw new Error("previous_proposal_binding_runtime_surface_conflicting");
-        }
-        return binding === null ? null : structuredClone(binding);
+  if (!boundarySnapshot || !lookupSnapshot) {
+    const conflictingBuild = () =>
+      failure("conflicting", [
+        "validated_model_improvement_snapshot_missing",
+      ]);
+    return publishCanonicalModelImprovementEngine(
+      {
+        enabled: true as const,
+        status: "conflicting" as const,
+        build: conflictingBuild,
       },
-      lookup_experiment_binding: (planIdentity) => {
-        const binding = lookupExperimentBinding(planIdentity);
-        if (binding !== null && !hasCanonicalRuntimeSurface(binding)) {
-          throw new Error(
-            "previous_experiment_binding_runtime_surface_conflicting",
-          );
-        }
-        return binding === null ? null : structuredClone(binding);
-      },
-    });
+      counters,
+      conflictingBuild,
+    );
+  }
   const build = (
     requestValue: CanonicalModelImprovementRequest,
   ): CanonicalModelImprovementResult => {
-    counters.request_reads += 1;
     try {
+      counters.request_reads += 1;
       if (!hasCanonicalRuntimeSurface(requestValue)) {
         return failure("conflicting", [
           "trusted_proposal_request_runtime_shape_conflicting",
@@ -2855,7 +3029,7 @@ export function createCanonicalModelImprovementEngine(input: {
         expectedTrainingInputRegistryRoot:
           boundarySnapshot!.registry_authority
             .expected_training_input_registry_root_digest,
-        previousBindingLookup: lookupSnapshot,
+        previousBindingLookup: lookupSnapshot!,
         counters,
       });
     } catch {
@@ -2864,12 +3038,15 @@ export function createCanonicalModelImprovementEngine(input: {
       ]);
     }
   };
-  return {
-    enabled: true as const,
-    status: "ready" as const,
-    build,
+  return publishCanonicalModelImprovementEngine(
+    {
+      enabled: true as const,
+      status: "ready" as const,
+      build,
+    },
     counters,
-  };
+    build,
+  );
 }
 
 export function verifyCanonicalModelImprovementResult(input: {
@@ -2877,20 +3054,36 @@ export function verifyCanonicalModelImprovementResult(input: {
   request: CanonicalModelImprovementRequest;
   result: CanonicalModelImprovementResult;
 }) {
-  if (!input.engine.build) {
+  const canonicalBuild =
+    input.engine && typeof input.engine === "object"
+      ? canonicalModelImprovementEngineAuthorities.get(input.engine)
+      : undefined;
+  if (!canonicalBuild) {
     return deepFreeze({
       valid: false,
       canonical_result: null,
-      reason_codes: ["model_improvement_engine_disabled"],
+      reason_codes: [
+        canonicalBuild === null
+          ? "model_improvement_engine_disabled"
+          : "model_improvement_engine_unrecognized",
+      ],
     });
   }
-  const expected = input.engine.build(input.request);
-  const valid = exact(expected, input.result);
-  return deepFreeze({
-    valid,
-    canonical_result: valid ? expected : null,
-    reason_codes: valid
-      ? []
-      : ["canonical_model_improvement_result_tampered"],
-  });
+  try {
+    const expected = canonicalBuild(input.request);
+    const valid = exact(expected, input.result);
+    return deepFreeze({
+      valid,
+      canonical_result: valid ? expected : null,
+      reason_codes: valid
+        ? []
+        : ["canonical_model_improvement_result_tampered"],
+    });
+  } catch {
+    return deepFreeze({
+      valid: false,
+      canonical_result: null,
+      reason_codes: ["canonical_model_improvement_result_tampered"],
+    });
+  }
 }

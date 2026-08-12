@@ -44,6 +44,19 @@ Malformed boundaries, posts, payloads, requests, or lookup results return a
 structured `conflicting` result with `proposal:null`; they never escape as
 runtime exceptions.
 
+Every public engine object is immutable and module-privately branded. Result
+verification uses the private canonical build function associated with that
+exact engine identity; it never trusts a caller-supplied or replaced public
+`build` function. Fake engines, altered engine status, replaced builders, and
+caller-modified counter views cannot become result authority. Execution
+counters are copied into private state and exposed only as frozen snapshots.
+
+The previous-binding lookup must be a plain object with exactly two enumerable
+data-function properties. Accessors, hidden or symbolic properties, extras,
+proxy-trap failures, malformed return values, and thrown lookup execution fail
+closed. Captured functions execute against a private frozen receiver; caller
+mutation after construction cannot replace them.
+
 ## Evidence boundary
 
 The contract accepts only a reference to a separately trusted,
