@@ -57,6 +57,8 @@ jobs:
           node tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs
       - name: Provider-free intelligence contract
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts tests/e2e/action-664d-additive-evaluation-storage.spec.ts tests/e2e/action-664e-canonical-capture-orchestrator.spec.ts tests/e2e/action-664f-canonical-quality-read-model.spec.ts tests/e2e/action-664g-canonical-quality-metrics.spec.ts tests/e2e/action-664h-canonical-quality-scorecard.spec.ts tests/e2e/action-664j-foundation-review-remediation.spec.ts --workers=1
+      - name: Track 2 current-main predictive explanation foundation
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666m-predictive-outcome-explanation.spec.ts tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code

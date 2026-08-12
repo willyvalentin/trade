@@ -1,0 +1,182 @@
+{
+  "report_version": "action_666t_golden_predictive_explanation_report_v1",
+  "contract_version": "canonical_predictive_outcome_explanation_v1",
+  "taxonomy_version": "canonical_predictive_failure_taxonomy_v1",
+  "sensitivity_version": "canonical_predictive_sensitivity_v1",
+  "primary_classification_policy_version": "canonical_predictive_primary_classification_policy_v1",
+  "trusted_input_registry_version": "canonical_explanation_trusted_input_registry_v1",
+  "research_hypothesis_version": "canonical_predictive_research_hypothesis_v1",
+  "evidence_class": "synthetic_fixture_only",
+  "synthetic_evidence": true,
+  "not_ture_performance": true,
+  "not_publishable": true,
+  "shadow_only": true,
+  "live_ranking_effect": false,
+  "automatic_promotion_allowed": false,
+  "automatic_parameter_change_allowed": false,
+  "automatic_threshold_change_allowed": false,
+  "automatic_model_change_allowed": false,
+  "external_ai_canonical_truth_authority": false,
+  "research_hypotheses_affect_ranking": false,
+  "causal_claimed": false,
+  "scenario_count": 13,
+  "successful_explanations": [
+    {
+      "name": "successful_trade",
+      "status": "explainable",
+      "canonical_explanation_digest": "c8e285c6a78fd5fc57125fe4fa63715f8533fd4550a7ff649706a5eb9db167d7",
+      "canonical_result_bytes_sha256": "0dd290d950245b88ccd7c83e650683bbd827d522a483cb7628d9148fbf29fea0"
+    },
+    {
+      "name": "false_positive",
+      "status": "explainable",
+      "canonical_explanation_digest": "f3257c3d5729058a78d1b66018228e69f48f915a4afb2d9b084d9f3b8c7d7c41",
+      "canonical_result_bytes_sha256": "60080c1c02ad735dfff62117c21c5c328c3339209a50ca67c7b8ff0c523a9b59"
+    },
+    {
+      "name": "false_negative",
+      "status": "explainable",
+      "canonical_explanation_digest": "267aa6e6a122bd83ae4178eab75ec73811f2d9f81e86d6c516b94e82709ad797",
+      "canonical_result_bytes_sha256": "9d42eaf484258d480e7672d1168a032701ae83a282c3e4c438e61e175bc49477"
+    },
+    {
+      "name": "correct_rejection",
+      "status": "explainable",
+      "canonical_explanation_digest": "a26851d1c3dda2caaf60debeb000391ba82851d3a2dbd659047e372849f0521b",
+      "canonical_result_bytes_sha256": "a72cbe57212b8154da9e01ef9bd71b510030265fc17a61bfcfbdee615f1d7cd4"
+    },
+    {
+      "name": "explicit_no_trade",
+      "status": "explainable",
+      "canonical_explanation_digest": "956845e7b391ff1c35b87ad0a515a4c0a8b596b7e358cfb50cd4d56dfc0cdc4c",
+      "canonical_result_bytes_sha256": "2a5534b74dc999b0cb1d30dc8fe9d4671b846d541f20aff251d461bb2b4b9e63"
+    },
+    {
+      "name": "cost_reversal",
+      "status": "explainable",
+      "canonical_explanation_digest": "a47d076072ce0d27b8cc3a5b29353c04382dfe7a9a347f4c3dcd1db3df9df2e6",
+      "canonical_result_bytes_sha256": "88ffb4ca7b4582263f86be771ec0d20df4acf763febeec9d4331bb8ad1b92321"
+    },
+    {
+      "name": "association",
+      "status": "explainable",
+      "canonical_explanation_digest": "4c3583a1e0910a3c4eb1eea181f2b36591cd7aefdf154e55ffe418e47d54751b",
+      "canonical_result_bytes_sha256": "f5eaecf6e8c6abb3f6ac1aef5b0c0ffb79134595ecdce7c6ae757fe21c0cdd28"
+    },
+    {
+      "name": "overconfidence",
+      "status": "explainable",
+      "canonical_explanation_digest": "66bb4e7d70d740b70c3e9950056798d9b34e5963d311db5220205b5d63d1707c",
+      "canonical_result_bytes_sha256": "a2616e466d811daca3f6819d38af45076b5131b30ee31039ec78d394a05dcd2c"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "successful_trade",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "correct_positive_trade",
+        "target_before_stop"
+      ]
+    },
+    {
+      "name": "false_positive",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "false_positive",
+        "stop_before_target"
+      ]
+    },
+    {
+      "name": "false_negative",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "false_negative_override",
+        "opportunity_cost_miss",
+        "target_before_stop"
+      ]
+    },
+    {
+      "name": "correct_rejection",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "correct_rejection_or_no_trade",
+        "stop_before_target"
+      ]
+    },
+    {
+      "name": "explicit_no_trade",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "false_negative_override",
+        "opportunity_cost_miss",
+        "target_before_stop"
+      ]
+    },
+    {
+      "name": "cost_reversal",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "false_positive",
+        "edge_consumed_by_cost_or_slippage",
+        "insufficient_reward_risk",
+        "target_before_stop"
+      ]
+    },
+    {
+      "name": "association",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "false_positive",
+        "regime_associated_mismatch",
+        "sector_associated_mismatch",
+        "stop_before_target"
+      ]
+    },
+    {
+      "name": "overconfidence",
+      "status": "explainable",
+      "taxonomy_codes": [
+        "calibration_overconfidence",
+        "false_positive",
+        "stop_before_target"
+      ]
+    },
+    {
+      "name": "missing_membership",
+      "status": "insufficient_evidence",
+      "taxonomy_codes": [
+        "insufficient_evidence"
+      ]
+    },
+    {
+      "name": "feature_drift",
+      "status": "conflicting",
+      "taxonomy_codes": [
+        "conflicting_evidence"
+      ]
+    },
+    {
+      "name": "future_leakage",
+      "status": "not_point_in_time_safe",
+      "taxonomy_codes": [
+        "not_point_in_time_safe"
+      ]
+    },
+    {
+      "name": "lineage_conflict",
+      "status": "non_reproducible",
+      "taxonomy_codes": [
+        "non_reproducible"
+      ]
+    },
+    {
+      "name": "prediction_conflict",
+      "status": "non_reproducible",
+      "taxonomy_codes": [
+        "non_reproducible"
+      ]
+    }
+  ],
+  "disclaimer": "Synthetic golden fixtures validate contract behavior only. They are not production recommendations or Ture performance."
+}
