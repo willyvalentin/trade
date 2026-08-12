@@ -1,0 +1,77 @@
+{
+  "report_version": "canonical_completed_improvement_evidence_capture_golden_report_v1",
+  "capture_contract_version": "canonical_completed_improvement_evidence_capture_v2",
+  "lookup_observation_version": "canonical_completed_improvement_lookup_observation_v1",
+  "terminal_result_version": "canonical_completed_improvement_terminal_result_v1",
+  "evidence_classification": "synthetic_fixture_only",
+  "production_performance_claimed": false,
+  "not_publishable": true,
+  "scenario_count": 13,
+  "expected_status_counts": {
+    "captured": 2,
+    "conflicting": 9,
+    "incomplete": 2
+  },
+  "scenarios": [
+    {
+      "name": "complete_captured",
+      "expected_status": "captured"
+    },
+    {
+      "name": "explicit_no_change",
+      "expected_status": "captured"
+    },
+    {
+      "name": "missing_producer_output",
+      "expected_status": "incomplete"
+    },
+    {
+      "name": "membership_mismatch",
+      "expected_status": "incomplete"
+    },
+    {
+      "name": "version_drift",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "outcome_lineage_conflict",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "provider_context_mismatch",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "point_in_time_violation",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "trust_root_substitution",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "duplicate_capture_identity",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "previous_binding_collision",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "caller_authority_fields",
+      "expected_status": "conflicting"
+    },
+    {
+      "name": "self_consistent_upstream_tampering",
+      "expected_status": "conflicting"
+    }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_change_allowed": false,
+    "automatic_promotion_allowed": false
+  }
+}
