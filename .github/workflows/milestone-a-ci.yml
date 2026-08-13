@@ -69,6 +69,8 @@ jobs:
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666aq-governed-improvement-end-to-end-replay.spec.ts tests/e2e/action-666cn-current-main-governed-improvement-end-to-end-replay-freeze.spec.ts --workers=1
       - name: Track 2 current-main frozen improvement binding store
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ax-improvement-binding-store.spec.ts tests/e2e/action-666co-current-main-frozen-improvement-binding-store-freeze.spec.ts --workers=1
+      - name: Track 2 current-main governed binding snapshot admission
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts tests/e2e/action-666cp-current-main-governed-binding-snapshot-admission-freeze.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code

@@ -304,6 +304,8 @@ test("Action 666CO remains server-only and absent from live consumers", async ()
     }
   }
   expect(consumers.sort()).toEqual([
+    "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
+    "lib/server/canonical-governed-binding-snapshot-admission.ts",
     "lib/server/canonical-improvement-binding-store-fixtures.ts",
   ]);
 });

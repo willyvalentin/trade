@@ -1,0 +1,91 @@
+{
+  "schema_version": "action_666cp_current_main_governed_binding_snapshot_admission_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "315eae107d4860b0d1fa126112eeb46d625c83e8",
+    "candidate_base_tree": "6de7cb8ded4b2f0c7ba59d72f0bf5ce5c600690d",
+    "historical_source_pull_request": 67,
+    "historical_source_head": "4f731a3c92c9b4fbdb1a33848a5371410d703a45",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false
+  },
+  "foundation": {
+    "admission_version": "canonical_improvement_binding_snapshot_admission_v1",
+    "replay_version": "canonical_binding_backed_improvement_replay_v1",
+    "external_snapshot_version": "canonical_external_improvement_binding_snapshot_v1",
+    "external_entry_version": "canonical_external_improvement_binding_entry_v1",
+    "authority_version": "canonical_binding_snapshot_admission_authority_v1",
+    "owner_boundary_version": "canonical_binding_snapshot_admission_owner_boundary_v1",
+    "validator_version": "canonical_bounded_snapshot_validator_v1",
+    "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "4bfbc063a0d29d5d3c7bde81d0ae7775a2f67e044a71038bf6e25b93e87206a0",
+    "artifacts": [
+      {
+        "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
+        "sha256": "d35ddc775fc6b2ce594fe6519a85fee6963a7eaa6e61efe3eae15554d3a45e96"
+      },
+      {
+        "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
+        "sha256": "f3efe933b7d84c2c7c64e768455f492437bb4f95207fee4bcffea934f8910184"
+      },
+      {
+        "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
+        "sha256": "28171bb7028807ce1dc8c592d6e4adf1825dc20eec4bb2ea2d5acce2966dbae1"
+      },
+      {
+        "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
+        "sha256": "9db49835da0aa864842248ac0ac57aecce7d41258e650c6c6dfab3064f0363f0"
+      },
+      {
+        "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
+        "sha256": "1758fa5c516869b49b949a9f2cb0760d3e6455ac0edf69d771aff0ab2f1622a7"
+      }
+    ]
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "runtime_remediation": {
+    "literal_activation_gate_required": true,
+    "exact_active_option_counter_and_dependency_shells_required": true,
+    "construction_time_dependency_snapshot_required": true,
+    "independent_admission_and_capture_authority_pins_required": true,
+    "authority_validation_before_snapshot_read_required": true,
+    "canonical_recursive_snapshot_request_and_result_surfaces_required": true,
+    "strict_string_digest_root_and_pin_validation_required": true,
+    "builder_and_runtime_semantic_validation_parity_required": true,
+    "private_replay_verifier_authority_required": true,
+    "private_execution_counters_required": true,
+    "caller_counter_mutation_forbidden": true,
+    "predecessor_consumer_oracles_reconciled": true,
+    "structured_never_throw_failure_required": true,
+    "recursive_adversarial_runtime_matrix_required": true
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true
+  }
+}
