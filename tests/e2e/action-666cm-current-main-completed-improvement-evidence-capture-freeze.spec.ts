@@ -301,5 +301,7 @@ test("Action 666CM remains server-only and absent from live consumers", async ()
     "lib/server/canonical-completed-improvement-evidence-capture-fixtures.ts",
     "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
     "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
+    "lib/server/canonical-improvement-binding-store-fixtures.ts",
+    "lib/server/canonical-improvement-binding-store.ts",
   ]);
 });

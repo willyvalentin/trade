@@ -1,0 +1,56 @@
+{
+  "report_version": "action_666ax_golden_improvement_binding_store_report_v1",
+  "snapshot_version": "canonical_improvement_binding_snapshot_v1",
+  "store_version": "canonical_improvement_binding_store_v1",
+  "evidence_classification": "synthetic_fixture_only",
+  "performance_claimed": false,
+  "publishable": false,
+  "scenarios": [
+    {
+      "name": "absent_first_capture",
+      "status": "absent",
+      "result_digest": "37f6f497daaaec70468a0d3a41bf946186914c3308d44e0ee5257d60bd781f81"
+    },
+    {
+      "name": "matching_previous_binding",
+      "status": "found",
+      "result_digest": "56ae8c0d161b4bfccc872265386955fcd219c0496939fbdcb64dc2cb207ff09c"
+    },
+    {
+      "name": "future_snapshot",
+      "status": "not_effective",
+      "result_digest": "4a2d1adc99bcd752f946d0c4a5abaad5136b72ca2726573f41cbd46c4b4b6f9b"
+    },
+    {
+      "name": "trust_root_substitution",
+      "status": "invalid_snapshot",
+      "result_digest": "a3da0d1fabace392d82449200ea52f064555f6c0ea4cf5cdbc17b0c1fa46e890"
+    },
+    {
+      "name": "rollback_attempt",
+      "status": "invalid_snapshot",
+      "result_digest": "86f5f907f477c2b9ff53848fdefe1571cd2daa9441381e8f79cba87d6d97ef49"
+    },
+    {
+      "name": "duplicate_inventory",
+      "status": "invalid_snapshot",
+      "result_digest": "648201fe04f8c06a6fbec427a7cdc3d617322dd17596b0d7d93a4f9fe2d7d1b2"
+    }
+  ],
+  "interop": {
+    "aj_capture_status": "captured",
+    "ac_adapter_status": "mapped",
+    "aq_replay_status": "completed",
+    "aq_proposal_status": "proposal_ready"
+  },
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "automatic_training_allowed": false,
+    "automatic_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}
