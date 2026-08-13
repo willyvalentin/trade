@@ -46,6 +46,7 @@ import {
   createCanonicalBindingBackedImprovementReplayHarness,
   createCanonicalBindingSnapshotAdmissionAuthority,
   createCanonicalBindingSnapshotJsonSource,
+  createCanonicalExternalImprovementBindingEntry,
   createCanonicalExternalImprovementBindingSnapshot,
   validateCanonicalBoundedSnapshotPayload,
   verifyCanonicalBindingBackedImprovementReplayResult,
@@ -975,6 +976,105 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       /\.(add|delete|get|has|set)\s*\(/,
     );
     expect(implementationSource).not.toContain("nodeTypes.isProxy(");
+  });
+
+  test("captures regex parsing, avoids live iterators, and orders Unicode bytes deterministically", () => {
+    const validEntryInput = {
+      entry_type: "previous_binding" as const,
+      bound_identity_type: "proposal" as const,
+      bound_identity: "proposal:primordial-order-probe",
+      observed_binding_digest: "a".repeat(64),
+      expected_binding_digest: "a".repeat(64),
+      source_evidence_namespace:
+        "canonical_previous_binding_evidence" as const,
+      source_section_digest: "b".repeat(64),
+      effective_at: action666bdCapturedAt,
+    };
+    const originalRegExpExec = RegExp.prototype.exec;
+    RegExp.prototype.exec = (() => null) as typeof RegExp.prototype.exec;
+    let validEntry;
+    try {
+      validEntry = createCanonicalExternalImprovementBindingEntry(
+        validEntryInput,
+      );
+    } finally {
+      RegExp.prototype.exec = originalRegExpExec;
+    }
+    expect(validEntry.entry_identity).toContain(
+      validEntryInput.bound_identity,
+    );
+
+    const originalRegExpTest = RegExp.prototype.test;
+    RegExp.prototype.test = (() => true) as typeof RegExp.prototype.test;
+    let invalidShaAccepted = false;
+    try {
+      createCanonicalExternalImprovementBindingEntry({
+        ...validEntryInput,
+        observed_binding_digest: "x",
+        expected_binding_digest: "x",
+        source_section_digest: "x",
+      });
+      invalidShaAccepted = true;
+    } catch {
+      invalidShaAccepted = false;
+    } finally {
+      RegExp.prototype.test = originalRegExpTest;
+    }
+    expect(invalidShaAccepted).toBe(false);
+
+    const source = action666bdExternalSnapshot();
+    const duplicateEntry = structuredClone(source.entry_inventory[0]);
+    const duplicateSnapshotInput = {
+      owner_authority_identity: source.owner_authority_identity,
+      registry_authority_identity: source.registry_authority_identity,
+      authority_manifest_digest: source.authority_manifest_digest,
+      authority_root_digest: source.authority_root_digest,
+      publication_sequence: source.publication_sequence,
+      publication_epoch: source.publication_epoch,
+      predecessor: source.predecessor,
+      captured_at: source.captured_at,
+      evidence_cutoff: source.evidence_cutoff,
+      effective_at: source.effective_at,
+      entry_inventory: [duplicateEntry, structuredClone(duplicateEntry)],
+    };
+    const originalArrayIterator = Array.prototype[Symbol.iterator];
+    Array.prototype[Symbol.iterator] = (function* (this: unknown[]) {
+      if (this.length > 0) yield this[0];
+    }) as unknown as typeof originalArrayIterator;
+    let duplicateAccepted = false;
+    try {
+      createCanonicalExternalImprovementBindingSnapshot(
+        duplicateSnapshotInput,
+      );
+      duplicateAccepted = true;
+    } catch {
+      duplicateAccepted = false;
+    } finally {
+      Array.prototype[Symbol.iterator] = originalArrayIterator;
+    }
+    expect(duplicateAccepted).toBe(false);
+
+    const composed = "\u00e9";
+    const decomposed = "e\u0301";
+    const forward = { [composed]: 1, [decomposed]: 2 };
+    const reverse = { [decomposed]: 2, [composed]: 1 };
+    expect(canonicalBindingBackedReplayDigest(forward)).toBe(
+      canonicalBindingBackedReplayDigest(reverse),
+    );
+
+    const implementationSource = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "lib/server/canonical-governed-binding-snapshot-admission.ts",
+      ),
+      "utf8",
+    );
+    expect(implementationSource).not.toMatch(/\.(test|exec)\s*\(/);
+    expect(implementationSource).not.toContain("localeCompare");
+    expect(implementationSource).not.toMatch(
+      /for\s*\(\s*const\s+[^)]*\s+of\s+/,
+    );
+    expect(implementationSource).not.toMatch(/\[\s*\.\.\./);
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {

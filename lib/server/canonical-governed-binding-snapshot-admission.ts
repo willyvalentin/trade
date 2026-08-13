@@ -25,10 +25,6 @@ import {
   type CanonicalImprovementBindingEntry,
   type CanonicalImprovementBindingSnapshot,
 } from "@/lib/server/canonical-improvement-binding-store";
-import {
-  parseCanonicalExplicitInstant,
-} from "@/lib/server/canonical-model-improvement-upstream-verification";
-
 export const CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_ADMISSION_VERSION =
   "canonical_improvement_binding_snapshot_admission_v1" as const;
 export const CANONICAL_BINDING_BACKED_IMPROVEMENT_REPLAY_VERSION =
@@ -63,8 +59,8 @@ type AdmissionStatus =
 type EntryType = "previous_binding" | "capture_binding";
 type BoundIdentityType = "proposal" | "experiment" | "capture";
 
-const shaPattern = /^[a-f0-9]{64}$/;
-const identityPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{2,255}$/;
+const explicitInstantPattern =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/;
 const intrinsicStructuredClone = structuredClone;
 const intrinsicJsonParse = JSON.parse;
 const intrinsicJsonStringify = JSON.stringify;
@@ -92,6 +88,7 @@ const intrinsicArrayPop = Array.prototype.pop;
 const intrinsicArrayPush = Array.prototype.push;
 const intrinsicArraySome = Array.prototype.some;
 const intrinsicArraySort = Array.prototype.sort;
+const IntrinsicArray = Array;
 const IntrinsicMap = Map;
 const intrinsicMapGet = Map.prototype.get;
 const intrinsicMapSet = Map.prototype.set;
@@ -111,8 +108,28 @@ const intrinsicNumberIsSafeInteger = Number.isSafeInteger;
 const intrinsicReflectApply = Reflect.apply;
 const intrinsicReflectOwnKeys = Reflect.ownKeys;
 const intrinsicNodeIsProxy = nodeTypes.isProxy;
+const intrinsicRegExpExec = RegExp.prototype.exec;
+const IntrinsicDate = Date;
+const intrinsicDateUtc = Date.UTC;
+const intrinsicDateGetUTCFullYear = Date.prototype.getUTCFullYear;
+const intrinsicDateGetUTCMonth = Date.prototype.getUTCMonth;
+const intrinsicDateGetUTCDate = Date.prototype.getUTCDate;
+const intrinsicDateGetUTCHours = Date.prototype.getUTCHours;
+const intrinsicDateGetUTCMinutes = Date.prototype.getUTCMinutes;
+const intrinsicDateGetUTCSeconds = Date.prototype.getUTCSeconds;
+const intrinsicDateToISOString = Date.prototype.toISOString;
+const intrinsicNumber = Number;
+const intrinsicBigInt = BigInt;
+const intrinsicMathMax = Math.max;
+const intrinsicMathMin = Math.min;
+const intrinsicMathTrunc = Math.trunc;
+const intrinsicBigIntToString = BigInt.prototype.toString;
+const intrinsicString = String;
+const intrinsicStringCharCodeAt = String.prototype.charCodeAt;
 const intrinsicStringIncludes = String.prototype.includes;
-const intrinsicStringLocaleCompare = String.prototype.localeCompare;
+const intrinsicStringPadEnd = String.prototype.padEnd;
+const intrinsicStringPadStart = String.prototype.padStart;
+const intrinsicStringSlice = String.prototype.slice;
 const intrinsicHashUpdate = createHash("sha256").update;
 const intrinsicHashDigest = createHash("sha256").digest;
 
@@ -194,6 +211,14 @@ function arraySort<T>(
   return values;
 }
 
+function copyArray<T>(values: readonly T[]) {
+  const copied = new IntrinsicArray<T>(values.length);
+  for (let index = 0; index < values.length; index += 1) {
+    copied[index] = values[index];
+  }
+  return copied;
+}
+
 function mapGet<K, V>(map: Map<K, V>, key: K) {
   return intrinsicReflectApply(intrinsicMapGet, map, [key]) as
     | V
@@ -249,11 +274,46 @@ function isProxy(value: object) {
 }
 
 function compareCanonicalStrings(first: string, second: string) {
+  if (first === second) return 0;
+  return first < second ? -1 : 1;
+}
+
+function regexExec(pattern: RegExp, value: string) {
+  return intrinsicReflectApply(intrinsicRegExpExec, pattern, [
+    value,
+  ]) as RegExpExecArray | null;
+}
+
+function stringCharCodeAt(value: string, index: number) {
+  return intrinsicReflectApply(intrinsicStringCharCodeAt, value, [
+    index,
+  ]) as number;
+}
+
+function stringSlice(value: string, start: number, end?: number) {
   return intrinsicReflectApply(
-    intrinsicStringLocaleCompare,
-    first,
-    [second],
-  ) as number;
+    intrinsicStringSlice,
+    value,
+    end === undefined ? [start] : [start, end],
+  ) as string;
+}
+
+function stringPadStart(value: string, length: number, fill: string) {
+  return intrinsicReflectApply(intrinsicStringPadStart, value, [
+    length,
+    fill,
+  ]) as string;
+}
+
+function stringPadEnd(value: string, length: number, fill: string) {
+  return intrinsicReflectApply(intrinsicStringPadEnd, value, [
+    length,
+    fill,
+  ]) as string;
+}
+
+function bigintToString(value: bigint) {
+  return intrinsicReflectApply(intrinsicBigIntToString, value, []) as string;
 }
 
 function stringIncludes(value: string, expected: string) {
@@ -277,7 +337,7 @@ function canonicalizeForDigest(value: unknown): unknown {
     return intrinsicObjectIs(value, -0) ? 0 : value;
   }
   if (intrinsicArrayIsArray(value)) {
-    const canonical = new Array<unknown>(value.length);
+    const canonical = new IntrinsicArray<unknown>(value.length);
     for (let index = 0; index < value.length; index += 1) {
       canonical[index] = canonicalizeForDigest(value[index]);
     }
@@ -297,7 +357,7 @@ function canonicalizeForDigest(value: unknown): unknown {
       ([first]: [string, unknown], [second]: [string, unknown]) =>
         compareCanonicalStrings(first, second),
     );
-    const canonicalEntries: [string, unknown][] = new Array(
+    const canonicalEntries: [string, unknown][] = new IntrinsicArray(
       entries.length,
     );
     for (let index = 0; index < entries.length; index += 1) {
@@ -586,10 +646,11 @@ function deepFreeze<T>(value: T): T {
     !intrinsicObjectIsFrozen(value)
   ) {
     intrinsicObjectFreeze(value);
-    for (const nested of intrinsicObjectValues(
+    const nestedValues = intrinsicObjectValues(
       value as Record<string, unknown>,
-    )) {
-      deepFreeze(nested);
+    );
+    for (let index = 0; index < nestedValues.length; index += 1) {
+      deepFreeze(nestedValues[index]);
     }
   }
   return value;
@@ -602,7 +663,9 @@ function deepFreezeJsonSnapshot<T extends object>(value: T): T {
     const current = arrayPop(pending)!;
     if (weakSetHas(seen, current)) continue;
     weakSetAdd(seen, current);
-    for (const nested of intrinsicObjectValues(current)) {
+    const nestedValues = intrinsicObjectValues(current);
+    for (let index = 0; index < nestedValues.length; index += 1) {
+      const nested = nestedValues[index];
       if (nested !== null && typeof nested === "object") {
         arrayPush(pending, nested);
       }
@@ -666,7 +729,14 @@ function serializeCanonicalJsonIteratively(value: unknown) {
 }
 
 function uniqueSorted(values: string[]) {
-  return arraySort([...new IntrinsicSet(values)]);
+  const unique: string[] = [];
+  const observed = new IntrinsicSet<string>();
+  for (let index = 0; index < values.length; index += 1) {
+    if (setHas(observed, values[index])) continue;
+    setAdd(observed, values[index]);
+    arrayPush(unique, values[index]);
+  }
+  return arraySort(unique, compareCanonicalStrings);
 }
 
 function exact(first: unknown, second: unknown) {
@@ -721,9 +791,15 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
     const actual = arraySort(
       intrinsicReflectOwnKeys(value),
       (first, second) =>
-        compareCanonicalStrings(String(first), String(second)),
+        compareCanonicalStrings(
+          intrinsicString(first),
+          intrinsicString(second),
+        ),
     );
-    const sortedExpected = arraySort([...expected]);
+    const sortedExpected = arraySort(
+      copyArray(expected),
+      compareCanonicalStrings,
+    );
     return (
       actual.length === sortedExpected.length &&
       arrayEvery(
@@ -736,10 +812,10 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
           value,
           key,
         );
-        return Boolean(
+        return !!(
           descriptor &&
             "value" in descriptor &&
-            descriptor.enumerable,
+            descriptor.enumerable
         );
       })
     );
@@ -765,11 +841,41 @@ function ownDataValue(value: object, key: PropertyKey) {
 }
 
 function validIdentity(value: unknown): value is string {
-  return typeof value === "string" && identityPattern.test(value);
+  if (typeof value !== "string" || value.length < 3 || value.length > 256) {
+    return false;
+  }
+  for (let index = 0; index < value.length; index += 1) {
+    const code = stringCharCodeAt(value, index);
+    const alphaNumeric =
+      (code >= 48 && code <= 57) ||
+      (code >= 65 && code <= 90) ||
+      (code >= 97 && code <= 122);
+    if (alphaNumeric) continue;
+    if (
+      index > 0 &&
+      (code === 46 ||
+        code === 47 ||
+        code === 58 ||
+        code === 95 ||
+        code === 45)
+    ) {
+      continue;
+    }
+    return false;
+  }
+  return true;
 }
 
 function validFullSha(value: unknown): value is string {
-  return typeof value === "string" && shaPattern.test(value);
+  if (typeof value !== "string" || value.length !== 64) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = stringCharCodeAt(value, index);
+    if ((code >= 48 && code <= 57) || (code >= 97 && code <= 102)) {
+      continue;
+    }
+    return false;
+  }
+  return true;
 }
 
 function validPositiveInteger(value: unknown): value is number {
@@ -780,23 +886,88 @@ function validPositiveInteger(value: unknown): value is number {
   );
 }
 
+function parseExplicitInstant(value: string) {
+  const match = regexExec(explicitInstantPattern, value);
+  if (!match) return null;
+  const year = intrinsicNumber(match[1]);
+  const month = intrinsicNumber(match[2]);
+  const day = intrinsicNumber(match[3]);
+  const hour = intrinsicNumber(match[4]);
+  const minute = intrinsicNumber(match[5]);
+  const second = intrinsicNumber(match[6]);
+  const fraction = match[7] ?? "";
+  const zone = match[8];
+  if (
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31 ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59
+  ) {
+    return null;
+  }
+  const localMilliseconds = intrinsicReflectApply(
+    intrinsicDateUtc,
+    IntrinsicDate,
+    [year, month - 1, day, hour, minute, second],
+  ) as number;
+  const check = new IntrinsicDate(localMilliseconds);
+  const datePart = (method: (this: Date) => number) =>
+    intrinsicReflectApply(method, check, []) as number;
+  if (
+    datePart(intrinsicDateGetUTCFullYear) !== year ||
+    datePart(intrinsicDateGetUTCMonth) !== month - 1 ||
+    datePart(intrinsicDateGetUTCDate) !== day ||
+    datePart(intrinsicDateGetUTCHours) !== hour ||
+    datePart(intrinsicDateGetUTCMinutes) !== minute ||
+    datePart(intrinsicDateGetUTCSeconds) !== second
+  ) {
+    return null;
+  }
+  let offsetSeconds = 0;
+  if (zone !== "Z") {
+    const sign = zone[0] === "+" ? 1 : -1;
+    const offsetHour = intrinsicNumber(stringSlice(zone, 1, 3));
+    const offsetMinute = intrinsicNumber(stringSlice(zone, 4, 6));
+    if (offsetHour > 23 || offsetMinute > 59) return null;
+    offsetSeconds = sign * (offsetHour * 3_600 + offsetMinute * 60);
+  }
+  const wholeSeconds = intrinsicBigInt(
+    intrinsicMathTrunc(localMilliseconds / 1_000) - offsetSeconds,
+  );
+  const fractionalNanoseconds = intrinsicBigInt(
+    stringPadEnd(fraction, 9, "0") || "0",
+  );
+  return {
+    epoch_nanoseconds:
+      wholeSeconds * intrinsicBigInt(1_000_000_000) +
+      fractionalNanoseconds,
+  };
+}
+
 function canonicalInstant(value: unknown) {
   if (typeof value !== "string") return null;
-  const parsed = parseCanonicalExplicitInstant(value);
+  const parsed = parseExplicitInstant(value);
   if (!parsed) return null;
-  const billion = BigInt(1_000_000_000);
+  const billion = intrinsicBigInt(1_000_000_000);
   let seconds = parsed.epoch_nanoseconds / billion;
   let fraction = parsed.epoch_nanoseconds % billion;
-  if (fraction < BigInt(0)) {
-    seconds -= BigInt(1);
+  if (fraction < intrinsicBigInt(0)) {
+    seconds -= intrinsicBigInt(1);
     fraction += billion;
   }
-  const milliseconds = Number(seconds * BigInt(1_000));
+  const milliseconds = intrinsicNumber(seconds * intrinsicBigInt(1_000));
   if (!intrinsicNumberIsSafeInteger(milliseconds)) return null;
+  const iso = intrinsicReflectApply(
+    intrinsicDateToISOString,
+    new IntrinsicDate(milliseconds),
+    [],
+  ) as string;
+  const fractionText = stringPadStart(bigintToString(fraction), 9, "0");
   return {
-    canonical: `${new Date(milliseconds).toISOString().slice(0, 19)}.${fraction
-      .toString()
-      .padStart(9, "0")}Z`,
+    canonical: `${stringSlice(iso, 0, 19)}.${fractionText}Z`,
     epoch_nanoseconds: parsed.epoch_nanoseconds,
   };
 }
@@ -849,13 +1020,13 @@ function boundedUtf8ByteLength(
 ): BoundedUtf8ByteLength {
   let bytes = 0;
   for (let index = 0; index < value.length; index += 1) {
-    const codeUnit = value.charCodeAt(index);
+    const codeUnit = stringCharCodeAt(value, index);
     if (codeUnit <= 0x7f) {
       bytes += 1;
     } else if (codeUnit <= 0x7ff) {
       bytes += 2;
     } else if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
-      const followingCodeUnit = value.charCodeAt(index + 1);
+      const followingCodeUnit = stringCharCodeAt(value, index + 1);
       if (
         followingCodeUnit >= 0xdc00 &&
         followingCodeUnit <= 0xdfff
@@ -958,7 +1129,7 @@ export function validateCanonicalBoundedSnapshotPayload(
       continue;
     }
     observedNodes += 1;
-    observedDepth = Math.max(observedDepth, frame.depth);
+    observedDepth = intrinsicMathMax(observedDepth, frame.depth);
     if (frame.depth > policy.max_depth) {
       return exceeded("max_depth", frame.path);
     }
@@ -976,7 +1147,7 @@ export function validateCanonicalBoundedSnapshotPayload(
     if (typeof current === "string") {
       const remainingTotalBytes =
         policy.max_total_string_bytes - observedTotalStringBytes;
-      const activeLimit = Math.min(
+      const activeLimit = intrinsicMathMin(
         policy.max_string_bytes,
         remainingTotalBytes,
       );
@@ -1143,7 +1314,7 @@ export function validateCanonicalBoundedSnapshotPayload(
         canonicalArrayShape && index < canonicalArrayLength;
         index += 1
       ) {
-        canonicalArrayShape = ownKeys[index] === String(index);
+        canonicalArrayShape = ownKeys[index] === intrinsicString(index);
       }
       canonicalArrayShape =
         canonicalArrayShape &&
@@ -1201,7 +1372,7 @@ export function validateCanonicalBoundedSnapshotPayload(
       mapSet(boundedKeyBytes, "length", arrayLengthKeyBytes);
     }
 
-    const stringKeys = [...enumerableStringKeys];
+    const stringKeys = copyArray(enumerableStringKeys);
     if (arrayLength !== null) arrayPush(stringKeys, "length");
     arraySort(stringKeys, compareCanonicalStrings);
     const keyPaths = new IntrinsicMap<string, string>();
@@ -1225,7 +1396,8 @@ export function validateCanonicalBoundedSnapshotPayload(
       descriptor: PropertyDescriptor;
     }[] = [];
     try {
-      for (const key of stringKeys) {
+      for (let index = 0; index < stringKeys.length; index += 1) {
+        const key = stringKeys[index];
         const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
           object,
           key,
@@ -1252,7 +1424,8 @@ export function validateCanonicalBoundedSnapshotPayload(
         },
       );
     }
-    for (const { path, descriptor } of descriptors) {
+    for (let index = 0; index < descriptors.length; index += 1) {
+      const { path, descriptor } = descriptors[index];
       if ("get" in descriptor || "set" in descriptor) {
         return invalid(
           `snapshot_payload_accessor_forbidden:${path}`,
@@ -1397,8 +1570,8 @@ const entryKeys = arraySort([
   "source_section_digest",
 ]);
 
-const snapshotKeys = arraySort([
-  ...intrinsicObjectKeys(safety),
+const snapshotKeys = intrinsicObjectKeys(safety);
+arrayPush(snapshotKeys,
   "authority_manifest_digest",
   "authority_root_digest",
   "captured_at",
@@ -1415,7 +1588,8 @@ const snapshotKeys = arraySort([
   "snapshot_digest_algorithm",
   "snapshot_identity",
   "snapshot_version",
-]);
+);
+arraySort(snapshotKeys, compareCanonicalStrings);
 
 const authorityKeys = arraySort([
   "authority_digest",
@@ -1482,7 +1656,7 @@ function snapshotRuntimeValue<T>(value: unknown): T | null {
 
 function hasCanonicalRuntimeSurface(
   value: unknown,
-  seen = new IntrinsicSet<object>(),
+  seen: readonly object[] = [],
 ): boolean {
   if (
     value === undefined ||
@@ -1498,22 +1672,20 @@ function hasCanonicalRuntimeSurface(
   if (
     typeof value !== "object" ||
     isProxy(value) ||
-    setHas(seen, value)
+    arrayIncludes(seen, value)
   ) {
     return false;
   }
-  const nextSeen = new IntrinsicSet(seen);
-  setAdd(nextSeen, value);
+  const nextSeen = copyArray(seen);
+  arrayPush(nextSeen, value);
   try {
     if (intrinsicArrayIsArray(value)) {
       const keys = intrinsicReflectOwnKeys(value);
-      const expected = [
-        ...intrinsicArrayFrom(
-          { length: value.length },
-          (_, index) => String(index),
-        ),
-        "length",
-      ];
+      const expected = intrinsicArrayFrom(
+        { length: value.length },
+        (_, index) => intrinsicString(index),
+      );
+      arrayPush(expected, "length");
       if (
         intrinsicObjectGetPrototypeOf(value) !== intrinsicArrayPrototype ||
         keys.length !== expected.length ||
@@ -1529,13 +1701,13 @@ function hasCanonicalRuntimeSurface(
         (index) => {
           const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
             value,
-            String(index),
+            intrinsicString(index),
           );
-          return Boolean(
+          return !!(
             descriptor &&
               "value" in descriptor &&
               descriptor.enumerable &&
-              hasCanonicalRuntimeSurface(descriptor.value, nextSeen),
+              hasCanonicalRuntimeSurface(descriptor.value, nextSeen)
           );
         },
       );
@@ -1551,11 +1723,11 @@ function hasCanonicalRuntimeSurface(
         value,
         key,
       );
-      return Boolean(
+      return !!(
         descriptor &&
           "value" in descriptor &&
           descriptor.enumerable &&
-          hasCanonicalRuntimeSurface(descriptor.value, nextSeen),
+          hasCanonicalRuntimeSurface(descriptor.value, nextSeen)
       );
     });
   } catch {
@@ -1918,7 +2090,8 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
   const identities = new IntrinsicSet<string>();
   const typedKeys = new IntrinsicSet<string>();
   const crossTypes = new IntrinsicMap<string, EntryType>();
-  for (const entry of entries) {
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
     const typedKey = `${entry.entry_type}:${entry.bound_identity_type}:${entry.bound_identity}`;
     const priorType = mapGet(crossTypes, entry.bound_identity);
     if (
@@ -2516,7 +2689,17 @@ function admitFrozenSnapshot(input: {
   ) {
     arrayPush(reasons, "binding_admission_not_point_in_time_safe");
   }
-  arrayPush(reasons, ...predecessorReasons(snapshot, input.authority));
+  const predecessorReasonCodes = predecessorReasons(
+    snapshot,
+    input.authority,
+  );
+  for (
+    let index = 0;
+    index < predecessorReasonCodes.length;
+    index += 1
+  ) {
+    arrayPush(reasons, predecessorReasonCodes[index]);
+  }
   if (!intrinsicArrayIsArray(snapshot.entry_inventory)) {
     arrayPush(reasons, "binding_admission_entry_inventory_missing");
   } else if (cutoff) {
@@ -2530,7 +2713,8 @@ function admitFrozenSnapshot(input: {
     const identities = new IntrinsicMap<string, string>();
     const typedKeys = new IntrinsicMap<string, string>();
     const crossTypes = new IntrinsicMap<string, EntryType>();
-    for (const entry of entries) {
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = entries[index];
       const priorIdentity = mapGet(identities, entry.entry_identity);
       if (priorIdentity) {
         arrayPush(
@@ -2558,7 +2742,7 @@ function admitFrozenSnapshot(input: {
       }
       mapSet(crossTypes, entry.bound_identity, entry.entry_type);
     }
-    const ordered = arraySort([...entries], (first, second) =>
+    const ordered = arraySort(copyArray(entries), (first, second) =>
       compareCanonicalStrings(
         first.entry_identity,
         second.entry_identity,
@@ -3204,7 +3388,8 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
     null;
   try {
     const optionKeys = ["dependencies", "enabled", "kill_switch_engaged"];
-    const optionKeysWithCounters = [...optionKeys, "counters"];
+    const optionKeysWithCounters = copyArray(optionKeys);
+    arrayPush(optionKeysWithCounters, "counters");
     if (
       !exactKeys(input, optionKeys) &&
       !exactKeys(input, optionKeysWithCounters)

@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "e80649ced415c464333bcd5eb58aec75df712d4e47a9cc8a9a51e68a1ec29e96";
+  "81c89c3536070e2c83eac88bb0bbb1794f2b9dac53cbe7d073ada811dcd234da";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "a5bb4402a820771aa07604d163e0cdc8c257cf801d5dd579bdd5886bf2c47054",
+      "e49c66b56bf3250dc6ad35dbc3facfdd9577f31d3b431619c91b2cfde08ce2bc",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "1f8861a26583e4c2ca3e705f55a893f688edd4bd9836177964ca825d1ad1718a",
+          "0d274590c260975eba4e32a17d0d34c9fa023257d402c47d4bf4f35c389777bb",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "2149a20ad1faf861b83d9266894434ab5798dc7ba82f7686f74b1372e8351d27",
+          "c951185b229702c3a2e528f8831298ff3d28bbab468294ea49f229ab2dd257f5",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "196d764450cdeec02dc3b6abb75a7a11bbd8014f1e2b805c7491f79641cfe204",
+          "643fe00c10092ab4e95d8282f14708f0ede88c802580edc03a2850b5c8ea8730",
       },
     ],
   },
@@ -105,6 +105,9 @@ const expectedManifest = {
     captured_clone_freeze_digest_and_introspection_primordials_required: true,
     captured_array_prototype_traversal_methods_required: true,
     captured_map_set_brand_and_proxy_primordials_required: true,
+    captured_regex_time_numeric_and_string_primordials_required: true,
+    implicit_array_iterator_for_canonical_validation_forbidden: true,
+    strict_locale_independent_canonical_string_order_required: true,
     canonical_json_round_trip_and_duplicate_rejection_required: true,
     cross_limit_budget_precedence_and_permutation_invariance_required: true,
     arbitrary_js_object_pre_allocation_claimed: false,

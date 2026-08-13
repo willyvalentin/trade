@@ -82,7 +82,12 @@ sorting methods are captured too, so post-import prototype patching cannot
 bypass exact-key or recursive surface checks. Map, Set, WeakMap and WeakSet
 constructors and access methods, plus the Node proxy predicate, are captured
 as well; later prototype/property patching cannot forge a private source or
-authority brand, suppress cycle checks, or expose proxy traps. An iterative canonical reserialization must
+authority brand, suppress cycle checks, or expose proxy traps. RegExp parsing,
+date/time conversion, numeric bounds and string byte helpers are also captured;
+SHA and identity validation uses explicit ASCII code-unit checks. Canonical
+collections use index-based traversal instead of the live Array iterator, and
+canonical string ordering is a strict locale-independent UTF-16 order, so
+Unicode-equivalent but byte-distinct keys never inherit insertion order. An iterative canonical reserialization must
 exactly equal the raw JSON
 before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.

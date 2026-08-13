@@ -20,7 +20,7 @@
     "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "a5bb4402a820771aa07604d163e0cdc8c257cf801d5dd579bdd5886bf2c47054",
+    "aggregate_sha256": "e49c66b56bf3250dc6ad35dbc3facfdd9577f31d3b431619c91b2cfde08ce2bc",
     "artifacts": [
       {
         "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -28,7 +28,7 @@
       },
       {
         "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
-        "sha256": "1f8861a26583e4c2ca3e705f55a893f688edd4bd9836177964ca825d1ad1718a"
+        "sha256": "0d274590c260975eba4e32a17d0d34c9fa023257d402c47d4bf4f35c389777bb"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
@@ -36,11 +36,11 @@
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
-        "sha256": "2149a20ad1faf861b83d9266894434ab5798dc7ba82f7686f74b1372e8351d27"
+        "sha256": "c951185b229702c3a2e528f8831298ff3d28bbab468294ea49f229ab2dd257f5"
       },
       {
         "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
-        "sha256": "196d764450cdeec02dc3b6abb75a7a11bbd8014f1e2b805c7491f79641cfe204"
+        "sha256": "643fe00c10092ab4e95d8282f14708f0ede88c802580edc03a2850b5c8ea8730"
       }
     ]
   },
@@ -81,6 +81,9 @@
     "captured_clone_freeze_digest_and_introspection_primordials_required": true,
     "captured_array_prototype_traversal_methods_required": true,
     "captured_map_set_brand_and_proxy_primordials_required": true,
+    "captured_regex_time_numeric_and_string_primordials_required": true,
+    "implicit_array_iterator_for_canonical_validation_forbidden": true,
+    "strict_locale_independent_canonical_string_order_required": true,
     "canonical_json_round_trip_and_duplicate_rejection_required": true,
     "cross_limit_budget_precedence_and_permutation_invariance_required": true,
     "arbitrary_js_object_pre_allocation_claimed": false
