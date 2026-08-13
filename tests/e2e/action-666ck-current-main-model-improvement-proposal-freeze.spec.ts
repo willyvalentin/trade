@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666ck-current-main-model-improvement-proposal/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "1f3e73e150b1d626a926492e93496ff1f09f7afd3c7c6c66150610b5a78c3cf7";
+  "c259f69e6c1881f10cb066d85258ebe20ad6a477d47ccb04325d1f82109bbf04";
 
 const expectedManifest = {
   schema_version:
@@ -27,7 +27,7 @@ const expectedManifest = {
     normative_artifact_count: 6,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "f7ef22b054a02f22df28fd1c6b5fed696eafa7336d9f39059ae9b0e513c69d10",
+      "c8315d58e53d6ea98c3a64795b7bb6ad8855ce994f94f3acb861770b771a5f2b",
     artifacts: [
       {
         path: "docs/action-666v-golden-model-improvement-proposal-report.json",
@@ -37,7 +37,7 @@ const expectedManifest = {
       {
         path: "docs/action-666v-governed-model-improvement-proposal-contract.md",
         sha256:
-          "9777dbdba0e280ec261c8b90f31d413b0845d4df8fcbb59c48ab8e814c47d719",
+          "c1d19f42012d46be938ac4546e83b5a01e3e772b3100f4d865f8a213474c1d75",
       },
       {
         path: "lib/server/canonical-model-improvement-proposal-fixtures.ts",
@@ -53,13 +53,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-model-improvement-upstream-verification.ts",
         sha256:
-          "8f025b4374080e52fa97a1d7f1e7fa532dce66adf54d5cfc4919f2bb6b2757ec",
+          "04a544b5433c0794f975b92bae7281a3a151da262868a46a90aca7fae70a5849",
       },
       {
         path:
           "tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts",
         sha256:
-          "78048d414e306c1fd9c84368128e9962040b0fdacb2e03057c1047c365deb6b4",
+          "d018f85eda1f042dd7c4ecce584cfa15fe6493faa236f166d10f51a0db68fcb0",
       },
     ],
   },
@@ -84,6 +84,7 @@ const expectedManifest = {
     private_engine_authority_required: true,
     descriptor_safe_lookup_required: true,
     private_execution_counters_required: true,
+    process_history_independent_upstream_verification_required: true,
   },
   delivery: {
     historical_pull_request_merge_authorized: false,

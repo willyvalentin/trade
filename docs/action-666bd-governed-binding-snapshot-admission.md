@@ -112,6 +112,9 @@ unproved rebuild claim.
 The same descriptor gate runs immediately after the injected authority reader,
 including its throwing path, so a callback cannot introduce reentrant drift
 between the outer preflight and authority validation.
+Transitive upstream verification keeps no module-global result cache. A
+callback can therefore neither persist a transient policy result nor make a
+later governed replay depend on request order or process history.
 Every malformed-request, authority-read, authority-validation and snapshot-read
 failure before admission rebuild also records
 `admission_rebuild_verified:false`; a rebuild claim is never inferred from a

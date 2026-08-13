@@ -17,7 +17,7 @@ matrix, refreeze, or freeze artifact is reused as current authority.
 6. `tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts`
 
 The exact sorted-path aggregate is
-`f7ef22b054a02f22df28fd1c6b5fed696eafa7336d9f39059ae9b0e513c69d10`.
+`c8315d58e53d6ea98c3a64795b7bb6ad8855ce994f94f3acb861770b771a5f2b`.
 The machine-readable current-main binding is
 `docs/evidence/action-666ck-current-main-model-improvement-proposal/foundation-freeze-manifest.json`.
 
@@ -66,6 +66,9 @@ authority defects. The remediated candidate additionally requires:
 5. descriptor-safe, exact-shape lookup capture plus private counters whose
    frozen public snapshots and malformed inputs cannot escape the never-throw
    boundary.
+6. upstream verification caches are scoped to one verification call; no
+   restored callback/policy mutation or earlier request can persist a semantic
+   result into a later proposal replay.
 
 These remediations also require a new exact-head CI run and a fresh independent
 read-only review; the earlier review result cannot authorize delivery.

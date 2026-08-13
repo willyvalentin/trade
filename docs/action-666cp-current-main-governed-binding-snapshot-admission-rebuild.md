@@ -92,6 +92,9 @@ The historical implementation is hardened before freezing:
     Function descriptors, the live `Object.prototype.hasOwnProperty` callable
     surface, shadow ranking, publishability and nested calibration-bucket
     surfaces.
+17. transitive upstream verification retains no module-global result cache, so
+    an authority callback cannot persist a temporarily mutated policy result
+    after restoring the policy before return.
 
 ## Preserved boundary
 

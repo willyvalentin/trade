@@ -21,6 +21,12 @@ import {
   canonicalModelImprovementPolicy,
 } from "@/lib/server/canonical-model-improvement-proposal";
 import {
+  action666vStableImprovementFixture,
+} from "@/lib/server/canonical-model-improvement-proposal-fixtures";
+import {
+  verifyAndProjectCanonicalModelImprovementUpstreams,
+} from "@/lib/server/canonical-model-improvement-upstream-verification";
+import {
   action666bdAuthority,
   action666bdAuthorityConflictDependencies,
   action666bdCallerAuthorityRequest,
@@ -501,6 +507,48 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       admission_rebuilds: 0,
       end_to_end_executions: 0,
     });
+
+    const restoredPolicyDependencies = action666bdDependencies();
+    const restoredPolicyAuthority =
+      restoredPolicyDependencies.authority_dependency
+        .read_expected_authority();
+    const mutableComparability =
+      canonicalScorecardComparabilityPolicy as unknown as {
+        minimum_identities: number;
+      };
+    const originalMinimum = mutableComparability.minimum_identities;
+    let callbackVerification!: ReturnType<
+      typeof verifyAndProjectCanonicalModelImprovementUpstreams
+    >;
+    restoredPolicyDependencies.authority_dependency
+      .read_expected_authority = () => {
+        try {
+          mutableComparability.minimum_identities = Number.MAX_SAFE_INTEGER;
+          callbackVerification =
+            verifyAndProjectCanonicalModelImprovementUpstreams(
+              action666vStableImprovementFixture.payload.upstream_sources,
+            );
+        } finally {
+          mutableComparability.minimum_identities = originalMinimum;
+        }
+        return restoredPolicyAuthority;
+      };
+    const restoredPolicyHarness = action666bdHarness(
+      restoredPolicyDependencies,
+    );
+    const restoredPolicyResult = restoredPolicyHarness.replay!(
+      action666bdProposalReadyRequest,
+    );
+    expect(callbackVerification).toMatchObject({
+      status: "conflicting",
+      reason_codes: ["action_664_quality_replay_conflicting"],
+    });
+    expect(restoredPolicyResult).toEqual(
+      action666bdReplay(
+        action666bdProposalReadyRequest,
+        action666bdProposalReadyDependencies,
+      ),
+    );
   });
 
   test("rejects unrecognized sources before payload reads and rejects non-JSON surfaces", () => {
