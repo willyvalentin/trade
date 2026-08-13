@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "2ca01f46268913a1d6097521a0e0accdfc0860ef75cdf7ade9564e10a09d5c7a";
+  "4f26adc1cdc02216906e2a118af9028b133ea20d3950330d7f42131c4281c34e";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "e5e73233af9dfc796d2c08119db9aa7b205be6561cb10083c76e89ce80e9abf9",
+      "fc6b2ba2d0dc66f9586f7460c2351f979b5fef66cd4724eaaac1a6cf45b51689",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "6a8869b499fba77cab192f17552b37f8a473675670ac925cee1b8c54f8bd9169",
+          "ab752992f30e593f50d04bf369812134bae5dd21f9332fd0123bedf1605c4332",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "401395448bebcfabc6d6083be2f6ab89fa343909fd3033db21a4baecac6f02e2",
+          "7e34f422821b1d7858e8bbfc61a48a366ad39acfb74cbd6c6b57e883670aa3ad",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "3c799f036dd2675889274607f86a7d9e111700b21c04302a9290d3507f34e114",
+          "e47eb44171d2d5a092f96e78949b95bcfbd780356e17a3eaca07e94580bde29e",
       },
     ],
   },
@@ -116,6 +116,7 @@ const expectedManifest = {
     post_authority_callback_intrinsic_recheck_required: true,
     downstream_mutable_semantic_surface_integrity_gate_required: true,
     function_and_shadow_quality_surface_integrity_gate_required: true,
+    transitive_uri_encoder_integrity_gate_required: true,
     downstream_drift_structured_zero_read_failure_required: true,
     any_failure_unproved_rebuild_claim_forbidden: true,
     cross_limit_budget_precedence_and_permutation_invariance_required: true,

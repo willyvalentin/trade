@@ -94,7 +94,8 @@ before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.
 
 The admission module captures a closed descriptor snapshot of every selected
-global, constructor and prototype (including Function), the live
+global (including the transitive URI encoder), constructor and prototype
+(including Function), the live
 `Object.prototype.hasOwnProperty` callable surface, Node proxy predicate and
 Hash prototype used by
 the older AX/AQ execution path. The same gate snapshots every exported mutable

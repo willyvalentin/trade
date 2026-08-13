@@ -451,6 +451,7 @@ const downstreamGlobalSurface = captureSelectedDescriptorSurface(
   globalThis,
   [
     "structuredClone",
+    "encodeURIComponent",
     "JSON",
     "Object",
     "Function",

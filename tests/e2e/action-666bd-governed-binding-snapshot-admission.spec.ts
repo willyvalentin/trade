@@ -1316,6 +1316,27 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     }
     expect(booleanResult).toEqual(localeResult);
 
+    const uriEncoderHarness = action666bdHarness();
+    const originalEncodeURIComponent = encodeURIComponent;
+    globalThis.encodeURIComponent = ((value: string | number | boolean) =>
+      `drifted:${String(value)}`) as typeof encodeURIComponent;
+    let uriEncoderResult!: CanonicalBindingBackedReplayResult;
+    try {
+      uriEncoderResult = uriEncoderHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      globalThis.encodeURIComponent = originalEncodeURIComponent;
+    }
+    expect(uriEncoderResult).toEqual(localeResult);
+    expect(uriEncoderHarness.counters).toMatchObject({
+      request_reads: 0,
+      authority_reads: 0,
+      snapshot_reads: 0,
+      admission_rebuilds: 0,
+      end_to_end_executions: 0,
+    });
+
     const hashHarness = action666bdHarness();
     const hashPrototype = Object.getPrototypeOf(createHash("sha256")) as {
       update: (...args: unknown[]) => unknown;
