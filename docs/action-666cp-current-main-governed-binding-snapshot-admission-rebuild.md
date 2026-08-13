@@ -81,6 +81,14 @@ The historical implementation is hardened before freezing:
     integrity gate stops before all downstream reads if an AX/AQ intrinsic or
     Node Hash surface drifts after module initialization. The resulting frozen
     failure makes no unproved rebuild claim.
+14. every early request, authority or snapshot failure records admission
+    rebuild as unverified until a real independent rebuild has run.
+15. intrinsic integrity is rechecked immediately after the injected authority
+    reader returns or throws, closing reentrant callback drift before authority
+    validation and snapshot access.
+16. the gate also binds every mutable exported policy, namespace and taxonomy
+    consumed by the full proposal/capture/AQ/AX path, so module-owned semantic
+    mutation fails before execution.
 
 ## Preserved boundary
 

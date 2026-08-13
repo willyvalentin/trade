@@ -4,17 +4,33 @@ import { createHash } from "node:crypto";
 import { types as nodeTypes } from "node:util";
 
 import {
+  CANONICAL_COUNTERFACTUAL_REASON_CODES,
+} from "@/lib/canonical-counterfactual-opportunity-set";
+import {
+  canonicalQualityCalibrationBuckets,
+} from "@/lib/canonical-quality-metrics";
+import {
+  canonicalScorecardComparabilityPolicy,
+  canonicalShadowModelChangePolicy,
+} from "@/lib/canonical-quality-scorecard";
+
+import {
   CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_AUTHORITY_VERSION,
+  CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_STATUSES,
   createCanonicalCompletedImprovementCaptureHarness,
   type CanonicalCompletedImprovementCaptureAuthority,
 } from "@/lib/server/canonical-completed-improvement-evidence-capture";
 import {
+  CANONICAL_GOVERNED_IMPROVEMENT_COMPLETED_PROPOSAL_STATUSES,
+  CANONICAL_GOVERNED_IMPROVEMENT_END_TO_END_STATUSES,
   createCanonicalGovernedImprovementEndToEndReplayHarness,
   verifyCanonicalGovernedImprovementEndToEndResult,
   type CanonicalGovernedImprovementEndToEndRequest,
   type CanonicalGovernedImprovementEndToEndResult,
 } from "@/lib/server/canonical-governed-improvement-end-to-end-replay";
 import {
+  CANONICAL_IMPROVEMENT_BINDING_ENTRY_TYPES,
+  CANONICAL_IMPROVEMENT_BINDING_LOOKUP_STATUSES,
   CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION,
   CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_VERSION,
   createCanonicalImprovementBindingEntry,
@@ -25,6 +41,15 @@ import {
   type CanonicalImprovementBindingEntry,
   type CanonicalImprovementBindingSnapshot,
 } from "@/lib/server/canonical-improvement-binding-store";
+import {
+  CANONICAL_MODEL_IMPROVEMENT_EVIDENCE_CLASSES,
+  CANONICAL_MODEL_IMPROVEMENT_METRICS,
+  CANONICAL_MODEL_IMPROVEMENT_PROPOSAL_TYPES,
+  canonicalModelImprovementPolicy,
+} from "@/lib/server/canonical-model-improvement-proposal";
+import {
+  CANONICAL_MODEL_IMPROVEMENT_EVIDENCE_NAMESPACES,
+} from "@/lib/server/canonical-model-improvement-upstream-verification";
 export const CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_ADMISSION_VERSION =
   "canonical_improvement_binding_snapshot_admission_v1" as const;
 export const CANONICAL_BINDING_BACKED_IMPROVEMENT_REPLAY_VERSION =
@@ -354,6 +379,26 @@ function captureSelectedDescriptorSurface(
   return { target, keys: copiedKeys, descriptors };
 }
 
+function captureRecursiveDescriptorSurfaces(roots: readonly object[]) {
+  const surfaces: IntrinsicDescriptorSurface[] = [];
+  const pending = copyArray(roots);
+  const seen = new IntrinsicWeakSet<object>();
+  while (pending.length > 0) {
+    const current = arrayPop(pending)!;
+    if (weakSetHas(seen, current)) continue;
+    weakSetAdd(seen, current);
+    const surface = captureDescriptorSurface(current);
+    arrayPush(surfaces, surface);
+    for (let index = 0; index < surface.descriptors.length; index += 1) {
+      const nested = surface.descriptors[index].value;
+      if (nested !== null && typeof nested === "object") {
+        arrayPush(pending, nested);
+      }
+    }
+  }
+  return surfaces;
+}
+
 function sameDescriptor(
   first: PropertyDescriptor,
   second: PropertyDescriptor,
@@ -454,6 +499,22 @@ const downstreamIntrinsicSurfaces = [
     intrinsicObjectGetPrototypeOf(createHash("sha256")) as object,
   ),
 ];
+const downstreamSemanticSurfaces = captureRecursiveDescriptorSurfaces([
+  CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_STATUSES,
+  CANONICAL_GOVERNED_IMPROVEMENT_END_TO_END_STATUSES,
+  CANONICAL_GOVERNED_IMPROVEMENT_COMPLETED_PROPOSAL_STATUSES,
+  CANONICAL_IMPROVEMENT_BINDING_ENTRY_TYPES,
+  CANONICAL_IMPROVEMENT_BINDING_LOOKUP_STATUSES,
+  CANONICAL_MODEL_IMPROVEMENT_PROPOSAL_TYPES,
+  CANONICAL_MODEL_IMPROVEMENT_EVIDENCE_CLASSES,
+  CANONICAL_MODEL_IMPROVEMENT_METRICS,
+  CANONICAL_MODEL_IMPROVEMENT_EVIDENCE_NAMESPACES,
+  canonicalModelImprovementPolicy,
+  canonicalQualityCalibrationBuckets,
+  canonicalShadowModelChangePolicy,
+  canonicalScorecardComparabilityPolicy,
+  CANONICAL_COUNTERFACTUAL_REASON_CODES,
+]);
 
 function downstreamIntrinsicSurfacesIntact() {
   if (!descriptorSurfaceIntact(downstreamGlobalSurface, false)) {
@@ -465,6 +526,15 @@ function downstreamIntrinsicSurfacesIntact() {
     index += 1
   ) {
     if (!descriptorSurfaceIntact(downstreamIntrinsicSurfaces[index], true)) {
+      return false;
+    }
+  }
+  for (
+    let index = 0;
+    index < downstreamSemanticSurfaces.length;
+    index += 1
+  ) {
+    if (!descriptorSurfaceIntact(downstreamSemanticSurfaces[index], true)) {
       return false;
     }
   }
@@ -3192,6 +3262,7 @@ function execute(input: {
   request: CanonicalBindingBackedReplayRequest;
   dependencies: CanonicalBindingSnapshotAdmissionDependencies;
   counters: CanonicalBindingSnapshotAdmissionCounters;
+  intrinsicDriftFallback: CanonicalBindingBackedReplayResult;
 }) {
   input.counters.request_reads += 1;
   const requestPlainReasons = plainDataReasons(input.request);
@@ -3224,7 +3295,7 @@ function execute(input: {
     const lineage = buildLineage({
       requestDigest,
       admission,
-      admissionRebuildVerified: true,
+      admissionRebuildVerified: false,
       storeRebuildVerified: false,
       endToEndRebuildVerified: false,
       endToEndResult: null,
@@ -3245,7 +3316,13 @@ function execute(input: {
     input.counters.authority_reads += 1;
     authorityValue =
       input.dependencies.authority_dependency.read_expected_authority();
+    if (!downstreamIntrinsicSurfacesIntact()) {
+      return input.intrinsicDriftFallback;
+    }
   } catch {
+    if (!downstreamIntrinsicSurfacesIntact()) {
+      return input.intrinsicDriftFallback;
+    }
     const admission = failureResult({
       status: "incomplete",
       request,
@@ -3262,7 +3339,7 @@ function execute(input: {
     const lineage = buildLineage({
       requestDigest,
       admission,
-      admissionRebuildVerified: true,
+      admissionRebuildVerified: false,
       storeRebuildVerified: false,
       endToEndRebuildVerified: false,
       endToEndResult: null,
@@ -3309,7 +3386,7 @@ function execute(input: {
     const lineage = buildLineage({
       requestDigest,
       admission,
-      admissionRebuildVerified: true,
+      admissionRebuildVerified: false,
       storeRebuildVerified: false,
       endToEndRebuildVerified: false,
       endToEndResult: null,
@@ -3360,7 +3437,7 @@ function execute(input: {
     const lineage = buildLineage({
       requestDigest,
       admission,
-      admissionRebuildVerified: true,
+      admissionRebuildVerified: false,
       storeRebuildVerified: false,
       endToEndRebuildVerified: false,
       endToEndResult: null,
@@ -3668,6 +3745,7 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
         request: executableRequest,
         dependencies,
         counters,
+        intrinsicDriftFallback,
       });
     } catch {
       return downstreamExecutionFailure(

@@ -4,7 +4,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { types as nodeTypes } from "node:util";
 
+import {
+  CANONICAL_COUNTERFACTUAL_REASON_CODES,
+} from "@/lib/canonical-counterfactual-opportunity-set";
+import {
+  canonicalQualityCalibrationBuckets,
+} from "@/lib/canonical-quality-metrics";
+import {
+  canonicalScorecardComparabilityPolicy,
+  canonicalShadowModelChangePolicy,
+} from "@/lib/canonical-quality-scorecard";
 import goldenReport from "@/docs/action-666bd-golden-binding-backed-replay-report.json";
+import {
+  canonicalModelImprovementPolicy,
+} from "@/lib/server/canonical-model-improvement-proposal";
 import {
   action666bdAuthority,
   action666bdAuthorityConflictDependencies,
@@ -360,6 +373,132 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       "binding_backed_replay_request_schema_invalid",
     );
     expect(result.lineage.ax_store_version).toBeNull();
+    expect(result.lineage.admission_rebuild_verified).toBe(false);
+    expect(harness.counters.admission_rebuilds).toBe(0);
+  });
+
+  test("never claims an admission rebuild on authority failures", () => {
+    const readFailureDependencies = action666bdDependencies();
+    readFailureDependencies.authority_dependency.read_expected_authority =
+      () => {
+        throw new Error("synthetic_authority_read_failure");
+      };
+    const readFailureHarness = action666bdHarness(
+      readFailureDependencies,
+    );
+    const readFailureResult = readFailureHarness.replay!(
+      action666bdProposalReadyRequest,
+    );
+    expect(readFailureResult).toMatchObject({
+      status: "incomplete",
+      lineage: { admission_rebuild_verified: false },
+    });
+    expect(readFailureHarness.counters).toMatchObject({
+      admission_rebuilds: 0,
+      snapshot_reads: 0,
+    });
+
+    const invalidAuthorityDependencies = action666bdDependencies();
+    const invalidAuthority = structuredClone(
+      invalidAuthorityDependencies.authority_dependency
+        .read_expected_authority(),
+    );
+    invalidAuthority.authority_digest = "f".repeat(64);
+    invalidAuthorityDependencies.authority_dependency
+      .read_expected_authority = () => invalidAuthority;
+    const invalidAuthorityHarness = action666bdHarness(
+      invalidAuthorityDependencies,
+    );
+    const invalidAuthorityResult = invalidAuthorityHarness.replay!(
+      action666bdProposalReadyRequest,
+    );
+    expect(invalidAuthorityResult).toMatchObject({
+      status: "conflicting",
+      lineage: { admission_rebuild_verified: false },
+    });
+    expect(invalidAuthorityHarness.counters).toMatchObject({
+      admission_rebuilds: 0,
+      snapshot_reads: 0,
+    });
+
+    const implementationSource = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "lib/server/canonical-governed-binding-snapshot-admission.ts",
+      ),
+      "utf8",
+    );
+    expect(implementationSource).not.toMatch(
+      /admissionRebuildVerified:\s*true/,
+    );
+  });
+
+  test("rechecks intrinsic integrity after the authority reader returns", () => {
+    const dependencies = action666bdDependencies();
+    const authority =
+      dependencies.authority_dependency.read_expected_authority();
+    const originalLocaleCompare = String.prototype.localeCompare;
+    dependencies.authority_dependency.read_expected_authority = () => {
+      String.prototype.localeCompare = function (
+        this: string,
+        other: string,
+      ) {
+        return originalLocaleCompare.call(this, other);
+      };
+      return authority;
+    };
+    const harness = action666bdHarness(dependencies);
+    let result!: CanonicalBindingBackedReplayResult;
+    try {
+      result = harness.replay!(action666bdProposalReadyRequest);
+    } finally {
+      String.prototype.localeCompare = originalLocaleCompare;
+    }
+    expect(result).toMatchObject({
+      status: "unmappable",
+      reason_codes: [
+        "binding_backed_replay_downstream_intrinsic_drift",
+      ],
+      lineage: {
+        admission_rebuild_verified: false,
+        store_rebuild_verified: false,
+        end_to_end_rebuild_verified: false,
+      },
+    });
+    expect(harness.counters).toMatchObject({
+      authority_reads: 1,
+      authority_verifications: 0,
+      snapshot_reads: 0,
+      admission_rebuilds: 0,
+      store_constructions: 0,
+      end_to_end_executions: 0,
+    });
+
+    const throwingDependencies = action666bdDependencies();
+    throwingDependencies.authority_dependency.read_expected_authority =
+      () => {
+        String.prototype.localeCompare = function () {
+          throw new Error("reader_side_intrinsic_drift");
+        };
+        throw new Error("synthetic_authority_read_failure");
+      };
+    const throwingHarness = action666bdHarness(throwingDependencies);
+    let throwingResult!: CanonicalBindingBackedReplayResult;
+    try {
+      throwingResult = throwingHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      String.prototype.localeCompare = originalLocaleCompare;
+    }
+    expect(throwingResult).toEqual(result);
+    expect(throwingHarness.counters).toMatchObject({
+      authority_reads: 1,
+      authority_verifications: 0,
+      snapshot_reads: 0,
+      admission_rebuilds: 0,
+      end_to_end_executions: 0,
+    });
   });
 
   test("rejects unrecognized sources before payload reads and rejects non-JSON surfaces", () => {
@@ -1221,6 +1360,107 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(arraySetterThrown).toBeNull();
     expect(setterCalls).toBe(0);
     expect(arraySetterResult).toEqual(localeResult);
+
+    const policyHarness = action666bdHarness();
+    const mutablePolicy = canonicalModelImprovementPolicy as unknown as {
+      minimum_identities: number;
+    };
+    const originalMinimumIdentities = mutablePolicy.minimum_identities;
+    mutablePolicy.minimum_identities = Number.MAX_SAFE_INTEGER;
+    let policyResult!: CanonicalBindingBackedReplayResult;
+    try {
+      policyResult = policyHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      mutablePolicy.minimum_identities = originalMinimumIdentities;
+    }
+    expect(policyResult).toEqual(localeResult);
+    expect(policyHarness.counters).toMatchObject({
+      request_reads: 0,
+      authority_reads: 0,
+      snapshot_reads: 0,
+      admission_rebuilds: 0,
+      end_to_end_executions: 0,
+    });
+
+    const semanticMutations: Array<{
+      mutate: () => void;
+      restore: () => void;
+    }> = [];
+    const mutableBucket = canonicalQualityCalibrationBuckets[0] as {
+      upper: number;
+    };
+    const originalBucketUpper = mutableBucket.upper;
+    semanticMutations.push({
+      mutate: () => {
+        mutableBucket.upper = 0.99;
+      },
+      restore: () => {
+        mutableBucket.upper = originalBucketUpper;
+      },
+    });
+    const mutableComparability =
+      canonicalScorecardComparabilityPolicy as unknown as {
+        minimum_identities: number;
+      };
+    const originalComparabilityMinimum =
+      mutableComparability.minimum_identities;
+    semanticMutations.push({
+      mutate: () => {
+        mutableComparability.minimum_identities = Number.MAX_SAFE_INTEGER;
+      },
+      restore: () => {
+        mutableComparability.minimum_identities =
+          originalComparabilityMinimum;
+      },
+    });
+    const mutableShadowPolicy =
+      canonicalShadowModelChangePolicy as unknown as {
+        maximum_brier_regression: number;
+      };
+    const originalBrierRegression =
+      mutableShadowPolicy.maximum_brier_regression;
+    semanticMutations.push({
+      mutate: () => {
+        mutableShadowPolicy.maximum_brier_regression = -1;
+      },
+      restore: () => {
+        mutableShadowPolicy.maximum_brier_regression =
+          originalBrierRegression;
+      },
+    });
+    const mutableReasonCodes =
+      CANONICAL_COUNTERFACTUAL_REASON_CODES as unknown as string[];
+    const originalReasonCode = mutableReasonCodes[0];
+    semanticMutations.push({
+      mutate: () => {
+        mutableReasonCodes[0] = "mutated_reason_code";
+      },
+      restore: () => {
+        mutableReasonCodes[0] = originalReasonCode;
+      },
+    });
+    for (const mutation of semanticMutations) {
+      const semanticHarness = action666bdHarness();
+      mutation.mutate();
+      let semanticResult!: CanonicalBindingBackedReplayResult;
+      try {
+        semanticResult = semanticHarness.replay!(
+          action666bdProposalReadyRequest,
+        );
+      } finally {
+        mutation.restore();
+      }
+      expect(semanticResult).toEqual(localeResult);
+      expect(semanticHarness.counters).toMatchObject({
+        request_reads: 0,
+        authority_reads: 0,
+        snapshot_reads: 0,
+        admission_rebuilds: 0,
+        end_to_end_executions: 0,
+      });
+    }
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {

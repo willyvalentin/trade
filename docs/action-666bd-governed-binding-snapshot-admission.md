@@ -95,7 +95,9 @@ encodings without recursive stack use.
 
 The admission module captures a closed descriptor snapshot of every selected
 global, constructor, prototype, Node proxy predicate and Hash prototype used by
-the older AX/AQ execution path. Replay checks that snapshot before request,
+the older AX/AQ execution path. The same gate snapshots every exported mutable
+proposal policy, evidence namespace, metric/proposal taxonomy and AX/AQ/capture
+status array consumed by that path. Replay checks those snapshots before request,
 authority or snapshot inspection. Any post-import intrinsic drift returns one
 precomputed, frozen `binding_backed_replay_downstream_intrinsic_drift` result
 with every rebuild claim false and zero downstream reads. This is a fail-closed
@@ -103,6 +105,13 @@ integrity boundary; it does not claim successful replay inside a process whose
 standard-library surface has been modified. An unexpected downstream exception
 is separately reduced to a structured execution failure and likewise makes no
 unproved rebuild claim.
+The same descriptor gate runs immediately after the injected authority reader,
+including its throwing path, so a callback cannot introduce reentrant drift
+between the outer preflight and authority validation.
+Every malformed-request, authority-read, authority-validation and snapshot-read
+failure before admission rebuild also records
+`admission_rebuild_verified:false`; a rebuild claim is never inferred from a
+fail-closed result.
 
 The recursive validator then provides semantic and forensic defense-in-depth
 over that already byte-bounded JSON value. It reads descriptors without

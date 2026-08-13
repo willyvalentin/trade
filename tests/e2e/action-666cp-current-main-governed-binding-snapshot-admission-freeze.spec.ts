@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "e47f0ac36fc89841d2000c894562ccc5b2f5941426a0076e37f38591c3e2a237";
+  "02eae07401d6fded5817986e8ba8534ff74a7e9cf9d6f13cbb7fb90e08e4a979";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "15aadf50188b43819369978fb6e1c2cdda7b5519cca50ab5cd074014c14bd26f",
+      "3e905c7e4d50333336c4a3c2ec72029c5e457c8ead1f64f6f4d0055b752d125c",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "3444d8db017e579cd17cab69d034426a645b2366619fbc7332bd2fd313cfa93e",
+          "0952f1f82820bfe0038c677001e799c56163fb06f62b2c8ca75f1b4d48c371f7",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "593bb6c7cf4f0b415537f792999ead83749f6993c66d6ba899a23ba3e4ffd358",
+          "4eb130a58d472084e2a0e4b8ee8ac9f154a0a587e2177e9c3035ed2e3137257b",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "282e0d76a7876a5dabd2ecad39fb56e5555101a10825b624646d40a649514c70",
+          "badb384e817706e4eacb5434d8131c0b79deec72b562c55bf65f532514c79b72",
       },
     ],
   },
@@ -113,8 +113,10 @@ const expectedManifest = {
     external_snapshot_effective_equals_captured_required: true,
     frozen_admission_taxonomy_required: true,
     downstream_intrinsic_descriptor_integrity_gate_required: true,
+    post_authority_callback_intrinsic_recheck_required: true,
+    downstream_mutable_semantic_surface_integrity_gate_required: true,
     downstream_drift_structured_zero_read_failure_required: true,
-    downstream_failure_unproved_rebuild_claim_forbidden: true,
+    any_failure_unproved_rebuild_claim_forbidden: true,
     cross_limit_budget_precedence_and_permutation_invariance_required: true,
     arbitrary_js_object_pre_allocation_claimed: false,
   },
