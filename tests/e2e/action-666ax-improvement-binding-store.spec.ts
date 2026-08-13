@@ -269,7 +269,10 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
       changed.entry_inventory[0] as unknown as Record<string, unknown>
     ).entry_type = "unknown_binding";
     const invalid = action666axStore(
-      action666axOwnerDependency(changed),
+      action666axOwnerDependency(
+        changed,
+        action666axPreviousOwnerDependency.read_expected_authority(),
+      ),
     ).lookup_previous_binding({
       binding_identity_type: "proposal",
       binding_identity: proposalIdentity(),
@@ -1104,6 +1107,143 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
           field,
         ).not.toBe("found");
       }
+    }
+  });
+
+  test("canonical snapshot and authority builders reject every runtime-invalid artifact", () => {
+    const validEntry = structuredClone(
+      action666axPreviousBindingSnapshot.entry_inventory[0],
+    );
+    const entryMutations: Array<{
+      name: string;
+      mutate: (entry: Record<string, unknown>) => void;
+    }> = [
+      {
+        name: "version",
+        mutate: (entry) => {
+          entry.entry_version = "wrong_entry_version";
+        },
+      },
+      {
+        name: "type",
+        mutate: (entry) => {
+          entry.entry_type = "unknown_binding";
+        },
+      },
+      {
+        name: "identity",
+        mutate: (entry) => {
+          entry.entry_identity = "binding-entry:substituted";
+        },
+      },
+      {
+        name: "lookup key",
+        mutate: (entry) => {
+          entry.canonical_lookup_key = "proposal:substituted";
+        },
+      },
+      {
+        name: "verification state",
+        mutate: (entry) => {
+          entry.verified_state = "unverified";
+        },
+      },
+      {
+        name: "namespace",
+        mutate: (entry) => {
+          entry.source_evidence_namespace =
+            "canonical_capture_binding_evidence";
+        },
+      },
+      {
+        name: "effective instant",
+        mutate: (entry) => {
+          entry.effective_at = "2026-07-28T00:00:00Z";
+        },
+      },
+      {
+        name: "semantic digest mismatch",
+        mutate: (entry) => {
+          entry.observed_binding_digest = "e".repeat(64);
+        },
+      },
+    ];
+    for (const mutation of entryMutations) {
+      const entry = structuredClone(validEntry) as unknown as Record<
+        string,
+        unknown
+      >;
+      mutation.mutate(entry);
+      if (mutation.name !== "semantic digest mismatch") rehashEntry(entry);
+      expect(
+        () =>
+          createCanonicalImprovementBindingSnapshot({
+            owner_authority_identity: action666axAuthorityIdentity,
+            publication_sequence: 1,
+            publication_epoch: 1,
+            predecessor: {
+              state: "genesis",
+              previous_snapshot_digest: null,
+              previous_publication_sequence: null,
+              previous_publication_epoch: null,
+            },
+            published_at: "2026-07-28T00:00:00.000000000Z",
+            effective_at: "2026-07-28T00:00:00.000000000Z",
+            entry_inventory: [entry as never],
+            expected_external_trust_root: "f".repeat(64),
+          }),
+        mutation.name,
+      ).toThrow("canonical_improvement_binding_snapshot_invalid");
+    }
+
+    const snapshotMutations: Array<{
+      name: string;
+      mutate: (snapshot: Record<string, unknown>) => void;
+    }> = [
+      {
+        name: "snapshot version",
+        mutate: (snapshot) => {
+          snapshot.snapshot_version = "wrong_snapshot_version";
+        },
+      },
+      {
+        name: "predecessor semantics",
+        mutate: (snapshot) => {
+          snapshot.predecessor = {
+            state: "linked",
+            previous_snapshot_digest: "a".repeat(64),
+            previous_publication_sequence: 1,
+            previous_publication_epoch: 1,
+          };
+        },
+      },
+      {
+        name: "inventory digest",
+        mutate: (snapshot) => {
+          snapshot.entry_inventory_digest = "b".repeat(64);
+        },
+      },
+      {
+        name: "snapshot digest",
+        mutate: (snapshot) => {
+          snapshot.snapshot_digest = "c".repeat(64);
+        },
+      },
+    ];
+    for (const mutation of snapshotMutations) {
+      const snapshot = structuredClone(
+        action666axPreviousBindingSnapshot,
+      ) as unknown as Record<string, unknown>;
+      mutation.mutate(snapshot);
+      expect(
+        () =>
+          createCanonicalImprovementBindingSnapshotAuthority({
+            authority_identity: action666axAuthorityIdentity,
+            owner_boundary_identity: action666axOwnerBoundaryIdentity,
+            snapshot: snapshot as never,
+          }),
+        mutation.name,
+      ).toThrow("canonical_improvement_binding_authority_invalid");
     }
   });
 

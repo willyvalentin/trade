@@ -592,9 +592,6 @@ export function createCanonicalImprovementBindingSnapshot(input: {
   }
   const published = canonicalInstant(input.published_at);
   const effective = canonicalInstant(input.effective_at);
-  const predecessor = isRecord(input.predecessor)
-    ? input.predecessor
-    : null;
   if (
     !validIdentity(input.owner_authority_identity) ||
     !validPositiveInteger(input.publication_sequence) ||
@@ -603,23 +600,24 @@ export function createCanonicalImprovementBindingSnapshot(input: {
     !effective ||
     published.epoch_nanoseconds > effective.epoch_nanoseconds ||
     !validFullSha(input.expected_external_trust_root) ||
-    !Array.isArray(input.entry_inventory) ||
-    input.entry_inventory.some(
-      (entry) =>
-        !isRecord(entry) ||
-        !exactKeys(entry, entryKeys) ||
-        !validFullSha(entry.observed_binding_digest) ||
-        !validFullSha(entry.source_evidence_digest) ||
-        !validFullSha(entry.entry_digest),
-    ) ||
-    !predecessor ||
-    !exactKeys(predecessor, genesisPredecessorKeys) ||
-    (predecessor.previous_snapshot_digest !== null &&
-      !validFullSha(predecessor.previous_snapshot_digest))
+    !Array.isArray(input.entry_inventory)
   ) {
     throw new Error("canonical_improvement_binding_snapshot_invalid");
   }
-  const entries = input.entry_inventory
+  const entryReasons: string[] = [];
+  const validatedEntries = input.entry_inventory
+    .map((entry) => validateEntry(entry, entryReasons))
+    .filter(
+      (entry): entry is CanonicalImprovementBindingEntry =>
+        entry !== null,
+    );
+  if (
+    entryReasons.length > 0 ||
+    validatedEntries.length !== input.entry_inventory.length
+  ) {
+    throw new Error("canonical_improvement_binding_snapshot_invalid");
+  }
+  const entries = validatedEntries
     .map((entry) => structuredClone(entry))
     .sort((first, second) =>
       first.entry_identity.localeCompare(second.entry_identity),
@@ -638,10 +636,16 @@ export function createCanonicalImprovementBindingSnapshot(input: {
     expected_external_trust_root: input.expected_external_trust_root,
     snapshot_digest_algorithm: "sha256_canonical_json_v1" as const,
   };
-  return deepFreeze({
+  const snapshot = {
     ...payload,
     snapshot_digest: digest(payload),
-  });
+  };
+  const snapshotReasons: string[] = [];
+  validateSnapshotArtifact(snapshot, snapshotReasons);
+  if (snapshotReasons.length > 0) {
+    throw new Error("canonical_improvement_binding_snapshot_invalid");
+  }
+  return deepFreeze(snapshot);
 }
 
 export function createCanonicalImprovementBindingSnapshotAuthority(input: {
@@ -662,31 +666,13 @@ export function createCanonicalImprovementBindingSnapshotAuthority(input: {
     !isRecord(input.snapshot) ||
     !exactKeys(input.snapshot, snapshotKeys) ||
     !hasCanonicalRuntimeSurface(input.snapshot) ||
-    !validIdentity(input.snapshot.owner_authority_identity) ||
-    !validPositiveInteger(input.snapshot.publication_sequence) ||
-    !validPositiveInteger(input.snapshot.publication_epoch) ||
-    !validIdentity(input.snapshot.snapshot_identity) ||
-    input.snapshot.snapshot_identity !==
-      canonicalImprovementBindingSnapshotIdentity(input.snapshot) ||
-    !validFullSha(input.snapshot.snapshot_digest) ||
-    !validFullSha(input.snapshot.entry_inventory_digest) ||
-    !validFullSha(input.snapshot.expected_external_trust_root) ||
-    !Array.isArray(input.snapshot.entry_inventory) ||
-    input.snapshot.entry_inventory.some(
-      (entry) =>
-        !isRecord(entry) ||
-        !exactKeys(entry, entryKeys) ||
-        !validFullSha(entry.observed_binding_digest) ||
-        !validFullSha(entry.source_evidence_digest) ||
-        !validFullSha(entry.entry_digest),
-    ) ||
-    !isRecord(input.snapshot.predecessor) ||
-    !exactKeys(input.snapshot.predecessor, genesisPredecessorKeys) ||
-    (input.snapshot.predecessor.previous_snapshot_digest !== null &&
-      !validFullSha(
-        input.snapshot.predecessor.previous_snapshot_digest,
-      ))
+    !validIdentity(input.snapshot.owner_authority_identity)
   ) {
+    throw new Error("canonical_improvement_binding_authority_invalid");
+  }
+  const snapshotReasons: string[] = [];
+  validateSnapshotArtifact(input.snapshot, snapshotReasons);
+  if (snapshotReasons.length > 0) {
     throw new Error("canonical_improvement_binding_authority_invalid");
   }
   const payload = {
@@ -789,6 +775,168 @@ function validateEntry(
     reasons.push("snapshot_entry_digest_mismatch");
   }
   return entry;
+}
+
+function validateSnapshotArtifact(
+  value: unknown,
+  reasons: string[],
+): CanonicalImprovementBindingSnapshot | null {
+  if (
+    !isRecord(value) ||
+    !exactKeys(value, snapshotKeys) ||
+    !hasCanonicalRuntimeSurface(value)
+  ) {
+    reasons.push("snapshot_schema_invalid");
+    return null;
+  }
+  const snapshot = value as CanonicalImprovementBindingSnapshot;
+  if (
+    snapshot.snapshot_version !==
+      CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_VERSION ||
+    snapshot.snapshot_digest_algorithm !== "sha256_canonical_json_v1"
+  ) {
+    reasons.push("snapshot_version_invalid");
+  }
+  if (
+    !validFullSha(snapshot.snapshot_digest) ||
+    !validFullSha(snapshot.entry_inventory_digest) ||
+    !validFullSha(snapshot.expected_external_trust_root)
+  ) {
+    reasons.push("snapshot_digest_format_invalid");
+  }
+  if (
+    !validPositiveInteger(snapshot.publication_sequence) ||
+    !validPositiveInteger(snapshot.publication_epoch)
+  ) {
+    reasons.push("snapshot_epoch_invalid");
+  }
+  const published = canonicalInstant(snapshot.published_at);
+  const effective = canonicalInstant(snapshot.effective_at);
+  if (
+    !published ||
+    !effective ||
+    published.canonical !== snapshot.published_at ||
+    effective.canonical !== snapshot.effective_at ||
+    published.epoch_nanoseconds > effective.epoch_nanoseconds
+  ) {
+    reasons.push("snapshot_temporal_contract_invalid");
+  }
+  const snapshotOwnerIdentityValid = validIdentity(
+    snapshot.owner_authority_identity,
+  );
+  if (!snapshotOwnerIdentityValid) {
+    reasons.push("snapshot_owner_authority_identity_invalid");
+  }
+  if (
+    !validIdentity(snapshot.snapshot_identity) ||
+    !snapshotOwnerIdentityValid ||
+    snapshot.snapshot_identity !==
+      canonicalImprovementBindingSnapshotIdentity(snapshot)
+  ) {
+    reasons.push("snapshot_identity_mismatch");
+  }
+  const predecessor = isRecord(snapshot.predecessor)
+    ? snapshot.predecessor
+    : null;
+  if (
+    !predecessor ||
+    !exactKeys(
+      predecessor,
+      snapshot.publication_sequence === 1 ||
+        snapshot.publication_epoch === 1
+        ? genesisPredecessorKeys
+        : linkedPredecessorKeys,
+    )
+  ) {
+    reasons.push("snapshot_predecessor_schema_invalid");
+  } else if (
+    snapshot.publication_sequence === 1 ||
+    snapshot.publication_epoch === 1
+  ) {
+    if (
+      snapshot.publication_sequence !== 1 ||
+      snapshot.publication_epoch !== 1 ||
+      predecessor.state !== "genesis" ||
+      predecessor.previous_snapshot_digest !== null ||
+      predecessor.previous_publication_sequence !== null ||
+      predecessor.previous_publication_epoch !== null
+    ) {
+      reasons.push("snapshot_genesis_contract_invalid");
+    }
+  } else if (
+    predecessor.state !== "linked" ||
+    !validFullSha(predecessor.previous_snapshot_digest) ||
+    predecessor.previous_publication_sequence !==
+      snapshot.publication_sequence - 1 ||
+    !validPositiveInteger(predecessor.previous_publication_epoch) ||
+    Number(predecessor.previous_publication_epoch) >=
+      snapshot.publication_epoch
+  ) {
+    reasons.push("snapshot_predecessor_contract_invalid");
+  }
+  if (!Array.isArray(snapshot.entry_inventory)) {
+    reasons.push("snapshot_entry_inventory_missing");
+  } else {
+    const entries = snapshot.entry_inventory
+      .map((entry) => validateEntry(entry, reasons))
+      .filter(
+        (entry): entry is CanonicalImprovementBindingEntry =>
+          entry !== null,
+      );
+    const identities = new Map<string, string>();
+    const keys = new Map<string, string>();
+    const crossTypes = new Map<string, string>();
+    for (const entry of entries) {
+      const priorIdentity = identities.get(entry.entry_identity);
+      if (priorIdentity) {
+        reasons.push(
+          priorIdentity === entry.entry_digest
+            ? "snapshot_entry_identity_duplicate"
+            : "snapshot_entry_identity_conflicting_bytes",
+        );
+      }
+      identities.set(entry.entry_identity, entry.entry_digest);
+      const typedKey = `${entry.entry_type}:${entry.canonical_lookup_key}`;
+      const priorKey = keys.get(typedKey);
+      if (priorKey) {
+        reasons.push(
+          priorKey === entry.entry_digest
+            ? "snapshot_lookup_key_duplicate"
+            : "snapshot_lookup_key_conflicting_bytes",
+        );
+      }
+      keys.set(typedKey, entry.entry_digest);
+      const priorType = crossTypes.get(entry.bound_identity);
+      if (priorType && priorType !== entry.entry_type) {
+        reasons.push("snapshot_cross_type_identity_collision");
+      }
+      crossTypes.set(entry.bound_identity, entry.entry_type);
+    }
+    const ordered = [...entries].sort((first, second) =>
+      first.entry_identity.localeCompare(second.entry_identity),
+    );
+    if (
+      entries.some(
+        (entry, index) =>
+          entry.entry_identity !== ordered[index]?.entry_identity,
+      )
+    ) {
+      reasons.push("snapshot_entry_inventory_not_canonical");
+    }
+    if (snapshot.entry_inventory_digest !== inventoryDigest(ordered)) {
+      reasons.push("snapshot_entry_inventory_digest_mismatch");
+    }
+  }
+  const payload = structuredClone(
+    snapshot,
+  ) as CanonicalImprovementBindingSnapshot;
+  delete (
+    payload as Partial<CanonicalImprovementBindingSnapshot>
+  ).snapshot_digest;
+  if (snapshot.snapshot_digest !== digest(payload)) {
+    reasons.push("snapshot_digest_mismatch");
+  }
+  return snapshot;
 }
 
 function validateAuthority(
@@ -976,8 +1124,8 @@ function validateSnapshot(input: {
       reason_codes: uniqueSorted(reasons),
     };
   }
-  if (!isRecord(input.raw) || !exactKeys(input.raw, snapshotKeys)) {
-    reasons.push("snapshot_schema_invalid");
+  const snapshot = validateSnapshotArtifact(input.raw, reasons);
+  if (!snapshot) {
     return {
       valid: false,
       snapshot: null,
@@ -992,153 +1140,9 @@ function validateSnapshot(input: {
       reason_codes: uniqueSorted(reasons),
     };
   }
-  const snapshot = input.raw as CanonicalImprovementBindingSnapshot;
-  if (
-    snapshot.snapshot_version !==
-      CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_VERSION ||
-    snapshot.snapshot_digest_algorithm !== "sha256_canonical_json_v1"
-  ) {
-    reasons.push("snapshot_version_invalid");
-  }
-  if (
-    !validFullSha(snapshot.snapshot_digest) ||
-    !validFullSha(snapshot.entry_inventory_digest) ||
-    !validFullSha(snapshot.expected_external_trust_root)
-  ) {
-    reasons.push("snapshot_digest_format_invalid");
-  }
-  if (
-    !validPositiveInteger(snapshot.publication_sequence) ||
-    !validPositiveInteger(snapshot.publication_epoch)
-  ) {
-    reasons.push("snapshot_epoch_invalid");
-  }
-  const published = canonicalInstant(snapshot.published_at);
-  const effective = canonicalInstant(snapshot.effective_at);
-  if (
-    !published ||
-    !effective ||
-    published.canonical !== snapshot.published_at ||
-    effective.canonical !== snapshot.effective_at ||
-    published.epoch_nanoseconds > effective.epoch_nanoseconds
-  ) {
-    reasons.push("snapshot_temporal_contract_invalid");
-  }
-  const snapshotOwnerIdentityValid = validIdentity(
-    snapshot.owner_authority_identity,
-  );
-  if (!snapshotOwnerIdentityValid) {
-    reasons.push("snapshot_owner_authority_identity_invalid");
-  }
-  if (
-    !validIdentity(snapshot.snapshot_identity) ||
-    !snapshotOwnerIdentityValid ||
-    snapshot.snapshot_identity !==
-      canonicalImprovementBindingSnapshotIdentity(snapshot)
-  ) {
-    reasons.push("snapshot_identity_mismatch");
-  }
   const predecessor = isRecord(snapshot.predecessor)
     ? snapshot.predecessor
     : null;
-  if (
-    !predecessor ||
-    !exactKeys(
-      predecessor,
-      snapshot.publication_sequence === 1 ||
-        snapshot.publication_epoch === 1
-        ? genesisPredecessorKeys
-        : linkedPredecessorKeys,
-    )
-  ) {
-    reasons.push("snapshot_predecessor_schema_invalid");
-  } else if (
-    snapshot.publication_sequence === 1 ||
-    snapshot.publication_epoch === 1
-  ) {
-    if (
-      snapshot.publication_sequence !== 1 ||
-      snapshot.publication_epoch !== 1 ||
-      predecessor.state !== "genesis" ||
-      predecessor.previous_snapshot_digest !== null ||
-      predecessor.previous_publication_sequence !== null ||
-      predecessor.previous_publication_epoch !== null
-    ) {
-      reasons.push("snapshot_genesis_contract_invalid");
-    }
-  } else if (
-    predecessor.state !== "linked" ||
-    !validFullSha(predecessor.previous_snapshot_digest) ||
-    predecessor.previous_publication_sequence !==
-      snapshot.publication_sequence - 1 ||
-    !validPositiveInteger(predecessor.previous_publication_epoch) ||
-    Number(predecessor.previous_publication_epoch) >=
-      snapshot.publication_epoch
-  ) {
-    reasons.push("snapshot_predecessor_contract_invalid");
-  }
-  if (!Array.isArray(snapshot.entry_inventory)) {
-    reasons.push("snapshot_entry_inventory_missing");
-  } else {
-    const entries = snapshot.entry_inventory
-      .map((entry) => validateEntry(entry, reasons))
-      .filter(
-        (entry): entry is CanonicalImprovementBindingEntry =>
-          entry !== null,
-      );
-    const identities = new Map<string, string>();
-    const keys = new Map<string, string>();
-    const crossTypes = new Map<string, string>();
-    for (const entry of entries) {
-      const priorIdentity = identities.get(entry.entry_identity);
-      if (priorIdentity) {
-        reasons.push(
-          priorIdentity === entry.entry_digest
-            ? "snapshot_entry_identity_duplicate"
-            : "snapshot_entry_identity_conflicting_bytes",
-        );
-      }
-      identities.set(entry.entry_identity, entry.entry_digest);
-      const typedKey = `${entry.entry_type}:${entry.canonical_lookup_key}`;
-      const priorKey = keys.get(typedKey);
-      if (priorKey) {
-        reasons.push(
-          priorKey === entry.entry_digest
-            ? "snapshot_lookup_key_duplicate"
-            : "snapshot_lookup_key_conflicting_bytes",
-        );
-      }
-      keys.set(typedKey, entry.entry_digest);
-      const priorType = crossTypes.get(entry.bound_identity);
-      if (priorType && priorType !== entry.entry_type) {
-        reasons.push("snapshot_cross_type_identity_collision");
-      }
-      crossTypes.set(entry.bound_identity, entry.entry_type);
-    }
-    const ordered = [...entries].sort((first, second) =>
-      first.entry_identity.localeCompare(second.entry_identity),
-    );
-    if (
-      entries.some(
-        (entry, index) =>
-          entry.entry_identity !== ordered[index]?.entry_identity,
-      )
-    ) {
-      reasons.push("snapshot_entry_inventory_not_canonical");
-    }
-    if (snapshot.entry_inventory_digest !== inventoryDigest(ordered)) {
-      reasons.push("snapshot_entry_inventory_digest_mismatch");
-    }
-  }
-  const payload = structuredClone(
-    snapshot,
-  ) as CanonicalImprovementBindingSnapshot;
-  delete (
-    payload as Partial<CanonicalImprovementBindingSnapshot>
-  ).snapshot_digest;
-  if (snapshot.snapshot_digest !== digest(payload)) {
-    reasons.push("snapshot_digest_mismatch");
-  }
   const authority = input.authority;
   if (
     snapshot.snapshot_identity !== authority.expected_snapshot_identity ||

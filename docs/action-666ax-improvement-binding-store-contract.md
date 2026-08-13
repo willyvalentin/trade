@@ -162,6 +162,9 @@ self-consistent rehashing cannot legitimize malformed identity values.
 Every digest, root and pin is accepted only as an actual full-hash string;
 implicit regular-expression coercion of arrays, objects, numbers or null is
 forbidden across builders and trust-path validation.
+The exported snapshot and authority builders reuse the same complete entry,
+predecessor and snapshot semantic validation as the runtime trust path; a
+builder cannot mint an artifact that the store would reject as invalid.
 Predecessor and entry schemas remain exact even if an attacker recomputes all
 public digests. Malformed lookups return a canonical conflict and never expose
 an exception, backend message or stack.

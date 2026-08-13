@@ -25,6 +25,8 @@ import {
   canonicalModelImprovementDigest,
 } from "@/lib/server/canonical-model-improvement-proposal";
 import {
+  CANONICAL_IMPROVEMENT_BINDING_AUTHORITY_VERSION,
+  CANONICAL_IMPROVEMENT_BINDING_ENTRY_VERSION,
   CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION,
   createCanonicalImprovementBindingEntry,
   createCanonicalImprovementBindingLookupAdapters,
@@ -240,6 +242,42 @@ function recomputeSnapshotDigest(
   return value;
 }
 
+function uncheckedSnapshot(entries: CanonicalImprovementBindingEntry[]) {
+  const value = structuredClone(action666axEmptySnapshot);
+  value.entry_inventory = structuredClone(entries);
+  value.entry_inventory_digest = canonicalModelImprovementDigest({
+    entry_version: CANONICAL_IMPROVEMENT_BINDING_ENTRY_VERSION,
+    entries: value.entry_inventory.map((entry) => ({
+      entry_identity: entry.entry_identity,
+      entry_digest: entry.entry_digest,
+    })),
+  });
+  return recomputeSnapshotDigest(value);
+}
+
+function uncheckedAuthority(
+  value: CanonicalImprovementBindingSnapshot,
+): CanonicalImprovementBindingSnapshotAuthority {
+  const payload = {
+    authority_version: CANONICAL_IMPROVEMENT_BINDING_AUTHORITY_VERSION,
+    authority_identity: action666axAuthorityIdentity,
+    owner_boundary_identity: action666axOwnerBoundaryIdentity,
+    expected_snapshot_identity: value.snapshot_identity,
+    expected_snapshot_digest: value.snapshot_digest,
+    expected_owner_authority_identity: value.owner_authority_identity,
+    expected_publication_sequence: value.publication_sequence,
+    expected_publication_epoch: value.publication_epoch,
+    expected_predecessor_digest:
+      value.predecessor.previous_snapshot_digest,
+    expected_external_trust_root: value.expected_external_trust_root,
+    authority_digest_algorithm: "sha256_canonical_json_v1" as const,
+  };
+  return {
+    ...payload,
+    authority_digest: canonicalModelImprovementDigest(payload),
+  };
+}
+
 export function action666axTrustRootSubstitution() {
   const substituted = structuredClone(action666axEmptySnapshot);
   substituted.expected_external_trust_root = "f".repeat(64);
@@ -256,8 +294,11 @@ export function action666axTrustRootSubstitution() {
 
 export function action666axDuplicateSnapshot() {
   const entry = previousEntries()[0];
-  const duplicate = snapshot([entry, entry]);
-  return action666axOwnerDependency(duplicate);
+  const duplicate = uncheckedSnapshot([entry, entry]);
+  return action666axOwnerDependency(
+    duplicate,
+    uncheckedAuthority(duplicate),
+  );
 }
 
 export function action666axCrossTypeCollisionSnapshot() {
@@ -271,8 +312,11 @@ export function action666axCrossTypeCollisionSnapshot() {
     source_evidence_digest: sourceDigest,
     effective_at: "2026-07-28T00:00:00.000000000Z",
   });
-  const colliding = snapshot([previous, capture]);
-  return action666axOwnerDependency(colliding);
+  const colliding = uncheckedSnapshot([previous, capture]);
+  return action666axOwnerDependency(
+    colliding,
+    uncheckedAuthority(colliding),
+  );
 }
 
 export function action666axCapturedWithStore(

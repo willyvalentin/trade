@@ -78,6 +78,9 @@ The historical implementation is hardened before freezing:
 14. every digest/root/pin field requires an actual full-hash string throughout
     builders and trust validation, preventing implicit regular-expression
     coercion of arrays or other runtime types.
+15. exported snapshot and authority builders share complete semantic artifact
+    validation with the store, so canonical constructors cannot mint bytes the
+    runtime trust path would reject.
 
 ## Preserved boundary
 
