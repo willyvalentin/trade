@@ -77,7 +77,9 @@ raw-byte bound before parsing and cannot issue the private brand itself.
 Parser, serializer, clone, freeze, digest and structural-introspection
 primordials are captured at module evaluation; later global monkey-patching
 cannot substitute parsed data, weaken immutability, collapse distinct digests,
-or execute injected getters. An iterative canonical reserialization must
+or execute injected getters. Array traversal, filtering, membership, stack and
+sorting methods are captured too, so post-import prototype patching cannot
+bypass exact-key or recursive surface checks. An iterative canonical reserialization must
 exactly equal the raw JSON
 before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.

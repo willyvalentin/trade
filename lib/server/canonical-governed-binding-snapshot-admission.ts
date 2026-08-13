@@ -83,14 +83,101 @@ const intrinsicObjectPrototype = Object.prototype;
 const intrinsicArrayIsArray = Array.isArray;
 const intrinsicArrayFrom = Array.from;
 const intrinsicArrayPrototype = Array.prototype;
+const intrinsicArrayEvery = Array.prototype.every;
+const intrinsicArrayFilter = Array.prototype.filter;
+const intrinsicArrayIncludes = Array.prototype.includes;
+const intrinsicArrayJoin = Array.prototype.join;
+const intrinsicArrayMap = Array.prototype.map;
+const intrinsicArrayPop = Array.prototype.pop;
+const intrinsicArrayPush = Array.prototype.push;
+const intrinsicArraySome = Array.prototype.some;
 const intrinsicArraySort = Array.prototype.sort;
 const intrinsicNumberIsFinite = Number.isFinite;
 const intrinsicNumberIsSafeInteger = Number.isSafeInteger;
 const intrinsicReflectApply = Reflect.apply;
 const intrinsicReflectOwnKeys = Reflect.ownKeys;
+const intrinsicStringIncludes = String.prototype.includes;
 const intrinsicStringLocaleCompare = String.prototype.localeCompare;
 const intrinsicHashUpdate = createHash("sha256").update;
 const intrinsicHashDigest = createHash("sha256").digest;
+
+function arrayEvery<T>(
+  values: readonly T[],
+  predicate: (value: T, index: number, values: readonly T[]) => boolean,
+) {
+  return intrinsicReflectApply(intrinsicArrayEvery, values, [
+    predicate,
+  ]) as boolean;
+}
+
+function arrayFilter<T, S extends T>(
+  values: readonly T[],
+  predicate: (value: T, index: number, values: readonly T[]) => value is S,
+): S[];
+function arrayFilter<T>(
+  values: readonly T[],
+  predicate: (value: T, index: number, values: readonly T[]) => boolean,
+): T[];
+function arrayFilter<T>(
+  values: readonly T[],
+  predicate: (value: T, index: number, values: readonly T[]) => boolean,
+) {
+  return intrinsicReflectApply(intrinsicArrayFilter, values, [
+    predicate,
+  ]) as T[];
+}
+
+function arrayIncludes<T>(values: readonly T[], expected: T) {
+  return intrinsicReflectApply(intrinsicArrayIncludes, values, [
+    expected,
+  ]) as boolean;
+}
+
+function arrayJoin(values: readonly string[], separator: string) {
+  return intrinsicReflectApply(intrinsicArrayJoin, values, [
+    separator,
+  ]) as string;
+}
+
+function arrayMap<T, U>(
+  values: readonly T[],
+  mapper: (value: T, index: number, values: readonly T[]) => U,
+) {
+  return intrinsicReflectApply(intrinsicArrayMap, values, [
+    mapper,
+  ]) as U[];
+}
+
+function arrayPop<T>(values: T[]) {
+  return intrinsicReflectApply(intrinsicArrayPop, values, []) as
+    | T
+    | undefined;
+}
+
+function arrayPush<T>(values: T[], ...added: T[]) {
+  return intrinsicReflectApply(intrinsicArrayPush, values, added) as number;
+}
+
+function arraySome<T>(
+  values: readonly T[],
+  predicate: (value: T, index: number, values: readonly T[]) => boolean,
+) {
+  return intrinsicReflectApply(intrinsicArraySome, values, [
+    predicate,
+  ]) as boolean;
+}
+
+function arraySort<T>(
+  values: T[],
+  comparator?: (first: T, second: T) => number,
+) {
+  intrinsicReflectApply(
+    intrinsicArraySort,
+    values,
+    comparator ? [comparator] : [],
+  );
+  return values;
+}
 
 function compareCanonicalStrings(first: string, second: string) {
   return intrinsicReflectApply(
@@ -98,6 +185,12 @@ function compareCanonicalStrings(first: string, second: string) {
     first,
     [second],
   ) as number;
+}
+
+function stringIncludes(value: string, expected: string) {
+  return intrinsicReflectApply(intrinsicStringIncludes, value, [
+    expected,
+  ]) as boolean;
 }
 
 function canonicalizeForDigest(value: unknown): unknown {
@@ -130,10 +223,11 @@ function canonicalizeForDigest(value: unknown): unknown {
       const entry = observedEntries[index];
       if (entry[1] !== undefined) entries[entries.length] = entry;
     }
-    intrinsicReflectApply(intrinsicArraySort, entries, [
+    arraySort(
+      entries,
       ([first]: [string, unknown], [second]: [string, unknown]) =>
         compareCanonicalStrings(first, second),
-    ]);
+    );
     const canonicalEntries: [string, unknown][] = new Array(
       entries.length,
     );
@@ -436,12 +530,12 @@ function deepFreezeJsonSnapshot<T extends object>(value: T): T {
   const pending: object[] = [value];
   const seen = new WeakSet<object>();
   while (pending.length > 0) {
-    const current = pending.pop()!;
+    const current = arrayPop(pending)!;
     if (seen.has(current)) continue;
     seen.add(current);
     for (const nested of intrinsicObjectValues(current)) {
       if (nested !== null && typeof nested === "object") {
-        pending.push(nested);
+        arrayPush(pending, nested);
       }
     }
     intrinsicObjectFreeze(current);
@@ -459,9 +553,9 @@ function serializeCanonicalJsonIteratively(value: unknown) {
     { kind: "value", value },
   ];
   while (pending.length > 0) {
-    const frame = pending.pop()!;
+    const frame = arrayPop(pending)!;
     if (frame.kind === "token") {
-      output.push(frame.value);
+      arrayPush(output, frame.value);
       continue;
     }
     const current = frame.value;
@@ -470,40 +564,40 @@ function serializeCanonicalJsonIteratively(value: unknown) {
       if (serialized === undefined) {
         throw new Error("canonical_binding_snapshot_json_source_invalid");
       }
-      output.push(serialized);
+      arrayPush(output, serialized);
       continue;
     }
     if (intrinsicArrayIsArray(current)) {
-      pending.push({ kind: "token", value: "]" });
+      arrayPush(pending, { kind: "token", value: "]" });
       for (let index = current.length - 1; index >= 0; index -= 1) {
-        pending.push({ kind: "value", value: current[index] });
-        if (index > 0) pending.push({ kind: "token", value: "," });
+        arrayPush(pending, { kind: "value", value: current[index] });
+        if (index > 0) arrayPush(pending, { kind: "token", value: "," });
       }
-      pending.push({ kind: "token", value: "[" });
+      arrayPush(pending, { kind: "token", value: "[" });
       continue;
     }
     const keys = intrinsicObjectKeys(current);
-    pending.push({ kind: "token", value: "}" });
+    arrayPush(pending, { kind: "token", value: "}" });
     for (let index = keys.length - 1; index >= 0; index -= 1) {
       const key = keys[index];
-      pending.push({
+      arrayPush(pending, {
         kind: "value",
         value: (current as Record<string, unknown>)[key],
       });
-      pending.push({ kind: "token", value: ":" });
-      pending.push({
+      arrayPush(pending, { kind: "token", value: ":" });
+      arrayPush(pending, {
         kind: "token",
         value: intrinsicJsonStringify(key),
       });
-      if (index > 0) pending.push({ kind: "token", value: "," });
+      if (index > 0) arrayPush(pending, { kind: "token", value: "," });
     }
-    pending.push({ kind: "token", value: "{" });
+    arrayPush(pending, { kind: "token", value: "{" });
   }
-  return output.join("");
+  return arrayJoin(output, "");
 }
 
 function uniqueSorted(values: string[]) {
-  return [...new Set(values)].sort();
+  return arraySort([...new Set(values)]);
 }
 
 function exact(first: unknown, second: unknown) {
@@ -555,17 +649,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function exactKeys(value: Record<string, unknown>, expected: string[]) {
   try {
-    const actual = intrinsicReflectOwnKeys(value).sort((first, second) =>
-      compareCanonicalStrings(String(first), String(second)),
+    const actual = arraySort(
+      intrinsicReflectOwnKeys(value),
+      (first, second) =>
+        compareCanonicalStrings(String(first), String(second)),
     );
-    const sortedExpected = [...expected].sort();
+    const sortedExpected = arraySort([...expected]);
     return (
       actual.length === sortedExpected.length &&
-      actual.every(
+      arrayEvery(
+        actual,
         (key, index) =>
           typeof key === "string" && key === sortedExpected[index],
       ) &&
-      actual.every((key) => {
+      arrayEvery(actual, (key) => {
         const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
           value,
           key,
@@ -786,7 +883,7 @@ export function validateCanonicalBoundedSnapshotPayload(
   });
 
   while (stack.length > 0) {
-    const frame = stack.pop()!;
+    const frame = arrayPop(stack)!;
     if (frame.kind === "exit") {
       ancestors.delete(frame.value);
       continue;
@@ -908,7 +1005,7 @@ export function validateCanonicalBoundedSnapshotPayload(
       for (const key in object) {
         if (!intrinsicObjectHasOwn(object, key)) continue;
         const observedEnumerableKeys = enumerableStringKeys.length + 1;
-        enumerableStringKeys.push(key);
+        arrayPush(enumerableStringKeys, key);
         if (
           observedEnumerableKeys > policy.max_keys_per_container
         ) {
@@ -999,7 +1096,7 @@ export function validateCanonicalBoundedSnapshotPayload(
         observed_own_keys: ownKeys.length,
       });
     }
-    if (ownKeys.some((key) => typeof key === "symbol")) {
+    if (arraySome(ownKeys, (key) => typeof key === "symbol")) {
       return invalid(
         `snapshot_payload_symbol_key_forbidden:${frame.path}`,
         frame.path,
@@ -1036,8 +1133,8 @@ export function validateCanonicalBoundedSnapshotPayload(
     }
 
     const stringKeys = [...enumerableStringKeys];
-    if (arrayLength !== null) stringKeys.push("length");
-    stringKeys.sort(compareCanonicalStrings);
+    if (arrayLength !== null) arrayPush(stringKeys, "length");
+    arraySort(stringKeys, compareCanonicalStrings);
     const keyPaths = new Map<string, string>();
     for (let index = 0; index < stringKeys.length; index += 1) {
       const key = stringKeys[index];
@@ -1069,7 +1166,7 @@ export function validateCanonicalBoundedSnapshotPayload(
             keyPaths.get(key) ?? frame.path,
           );
         }
-        descriptors.push({
+        arrayPush(descriptors, {
           key,
           path: keyPaths.get(key) ?? frame.path,
           descriptor,
@@ -1106,11 +1203,11 @@ export function validateCanonicalBoundedSnapshotPayload(
     }
 
     ancestors.add(object);
-    stack.push({ kind: "exit", value: object });
+    arrayPush(stack, { kind: "exit", value: object });
     for (let index = descriptors.length - 1; index >= 0; index -= 1) {
       const { path, descriptor } = descriptors[index];
       if (!("value" in descriptor)) continue;
-      stack.push({
+      arrayPush(stack, {
         kind: "enter",
         value: descriptor.value,
         path,
@@ -1214,7 +1311,7 @@ function observedSnapshotIdentity(value: unknown) {
     : null;
 }
 
-const entryKeys = [
+const entryKeys = arraySort([
   "bound_identity",
   "bound_identity_type",
   "effective_at",
@@ -1228,9 +1325,9 @@ const entryKeys = [
   "observed_status",
   "source_evidence_namespace",
   "source_section_digest",
-].sort();
+]);
 
-const snapshotKeys = [
+const snapshotKeys = arraySort([
   ...intrinsicObjectKeys(safety),
   "authority_manifest_digest",
   "authority_root_digest",
@@ -1248,9 +1345,9 @@ const snapshotKeys = [
   "snapshot_digest_algorithm",
   "snapshot_identity",
   "snapshot_version",
-].sort();
+]);
 
-const authorityKeys = [
+const authorityKeys = arraySort([
   "authority_digest",
   "authority_digest_algorithm",
   "authority_identity",
@@ -1264,17 +1361,17 @@ const authorityKeys = [
   "frozen_manifest_digest",
   "owner_boundary_identity",
   "registry_authority_identity",
-].sort();
+]);
 
-const requestKeys = [
+const requestKeys = arraySort([
   "admission_identity",
   "end_to_end_request",
   "lookup_as_of",
   "request_version",
   "source_namespace",
-].sort();
+]);
 
-const captureAuthorityKeys = [
+const captureAuthorityKeys = arraySort([
   "authority_digest",
   "authority_digest_algorithm",
   "authority_identity",
@@ -1284,7 +1381,7 @@ const captureAuthorityKeys = [
   "proposal_registry_root_digest",
   "trust_boundary",
   "upstream_verifier_version",
-].sort();
+]);
 
 function captureMethod(
   value: unknown,
@@ -1350,14 +1447,15 @@ function hasCanonicalRuntimeSurface(
       if (
         intrinsicObjectGetPrototypeOf(value) !== intrinsicArrayPrototype ||
         keys.length !== expected.length ||
-        keys.some((key, index) => key !== expected[index])
+        arraySome(keys, (key, index) => key !== expected[index])
       ) {
         return false;
       }
-      return intrinsicArrayFrom(
-        { length: value.length },
-        (_, index) => index,
-      ).every(
+      return arrayEvery(
+        intrinsicArrayFrom(
+          { length: value.length },
+          (_, index) => index,
+        ),
         (index) => {
           const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
             value,
@@ -1377,7 +1475,7 @@ function hasCanonicalRuntimeSurface(
     ) {
       return false;
     }
-    return intrinsicReflectOwnKeys(value).every((key) => {
+    return arrayEvery(intrinsicReflectOwnKeys(value), (key) => {
       if (typeof key !== "string") return false;
       const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
         value,
@@ -1598,7 +1696,7 @@ export function createCanonicalExternalImprovementBindingEntry(input: {
       : ["proposal", "experiment"];
   const instant = canonicalInstant(input.effective_at);
   if (
-    !expectedIdentityTypes.includes(input.bound_identity_type) ||
+    !arrayIncludes(expectedIdentityTypes, input.bound_identity_type) ||
     !validIdentity(input.bound_identity) ||
     !validFullSha(input.observed_binding_digest) ||
     !validFullSha(input.expected_binding_digest) ||
@@ -1639,7 +1737,7 @@ function inventoryDigest(
 ) {
   return digest({
     inventory_version: "canonical_external_binding_inventory_v1",
-    entries: entries.map((entry) => ({
+    entries: arrayMap(entries, (entry) => ({
       entry_identity: entry.entry_identity,
       entry_digest: entry.entry_digest,
     })),
@@ -1728,21 +1826,24 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
     throw new Error("canonical_external_binding_snapshot_invalid");
   }
   const entryReasons: string[] = [];
-  const entries = input.entry_inventory
-    .map((entry) =>
+  const validatedEntries = arrayMap(
+    input.entry_inventory,
+    (entry) =>
       validateEntry(entry, cutoff.epoch_nanoseconds, entryReasons),
-    )
-    .filter(
+  );
+  const presentEntries = arrayFilter(
+    validatedEntries,
       (entry): entry is CanonicalExternalImprovementBindingEntry =>
         entry !== null,
-    )
-    .map((entry) => intrinsicStructuredClone(entry))
-    .sort((first, second) =>
+  );
+  const entries = arraySort(
+    arrayMap(presentEntries, (entry) => intrinsicStructuredClone(entry)),
+    (first, second) =>
       compareCanonicalStrings(
         first.entry_identity,
         second.entry_identity,
       ),
-    );
+  );
   const identities = new Set<string>();
   const typedKeys = new Set<string>();
   const crossTypes = new Map<string, EntryType>();
@@ -1754,7 +1855,10 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
       typedKeys.has(typedKey) ||
       (priorType !== undefined && priorType !== entry.entry_type)
     ) {
-      entryReasons.push("binding_admission_entry_inventory_conflicting");
+      arrayPush(
+        entryReasons,
+        "binding_admission_entry_inventory_conflicting",
+      );
     }
     identities.add(entry.entry_identity);
     typedKeys.add(typedKey);
@@ -1908,7 +2012,7 @@ function validateAuthority(input: {
     !validPositiveInteger(authority.expected_publication_sequence) ||
     !validPositiveInteger(authority.expected_publication_epoch)
   ) {
-    reasons.push("binding_admission_authority_contract_mismatch");
+    arrayPush(reasons, "binding_admission_authority_contract_mismatch");
   }
   if (
     !validFullSha(authority.frozen_manifest_digest) ||
@@ -1917,14 +2021,14 @@ function validateAuthority(input: {
     (authority.expected_predecessor_digest !== null &&
       !validFullSha(authority.expected_predecessor_digest))
   ) {
-    reasons.push("binding_admission_authority_digest_format_invalid");
+    arrayPush(reasons, "binding_admission_authority_digest_format_invalid");
   }
   const payload = intrinsicStructuredClone(authority);
   delete (
     payload as Partial<CanonicalBindingSnapshotAdmissionAuthority>
   ).authority_digest;
   if (authority.authority_digest !== digest(payload)) {
-    reasons.push("binding_admission_authority_digest_mismatch");
+    arrayPush(reasons, "binding_admission_authority_digest_mismatch");
   }
   if (
     input.captureAuthority.authority_version !==
@@ -1945,7 +2049,7 @@ function validateAuthority(input: {
     authority.frozen_manifest_digest !==
       input.captureAuthority.proposal_registry_manifest_digest
   ) {
-    reasons.push("binding_admission_replay_authority_mismatch");
+    arrayPush(reasons, "binding_admission_replay_authority_mismatch");
   }
   return {
     authority: reasons.length === 0 ? authority : null,
@@ -1959,7 +2063,7 @@ function validateEntry(
   reasons: string[],
 ) {
   if (!isRecord(value) || !exactKeys(value, entryKeys)) {
-    reasons.push("binding_admission_entry_schema_invalid");
+    arrayPush(reasons, "binding_admission_entry_schema_invalid");
     return null;
   }
   const entry = value as CanonicalExternalImprovementBindingEntry;
@@ -1970,18 +2074,18 @@ function validateEntry(
       entry.entry_type !== "capture_binding") ||
     entry.observed_status !== "matching"
   ) {
-    reasons.push("binding_admission_entry_contract_invalid");
+    arrayPush(reasons, "binding_admission_entry_contract_invalid");
   }
   const expectedTypes =
     entry.entry_type === "capture_binding"
       ? ["capture"]
       : ["proposal", "experiment"];
   if (
-    !expectedTypes.includes(entry.bound_identity_type) ||
+    !arrayIncludes(expectedTypes, entry.bound_identity_type) ||
     !validIdentity(entry.bound_identity) ||
     entry.entry_identity !== entryIdentity(entry)
   ) {
-    reasons.push("binding_admission_entry_identity_invalid");
+    arrayPush(reasons, "binding_admission_entry_identity_invalid");
   }
   if (
     !validFullSha(entry.observed_binding_digest) ||
@@ -1989,7 +2093,7 @@ function validateEntry(
     !validFullSha(entry.source_section_digest) ||
     entry.observed_binding_digest !== entry.expected_binding_digest
   ) {
-    reasons.push("binding_admission_entry_status_digest_conflict");
+    arrayPush(reasons, "binding_admission_entry_status_digest_conflict");
   }
   if (
     (entry.entry_type === "previous_binding" &&
@@ -1999,7 +2103,10 @@ function validateEntry(
       entry.source_evidence_namespace !==
         "canonical_capture_binding_evidence")
   ) {
-    reasons.push("binding_admission_entry_source_namespace_mismatch");
+    arrayPush(
+      reasons,
+      "binding_admission_entry_source_namespace_mismatch",
+    );
   }
   const effective = canonicalInstant(entry.effective_at);
   if (
@@ -2007,20 +2114,21 @@ function validateEntry(
     effective.canonical !== entry.effective_at ||
     effective.epoch_nanoseconds > cutoffNanoseconds
   ) {
-    reasons.push("binding_admission_entry_after_evidence_cutoff");
+    arrayPush(reasons, "binding_admission_entry_after_evidence_cutoff");
   }
   if (
     entry.entry_digest_algorithm !== "sha256_canonical_json_v1" ||
     entry.entry_digest !==
       digest(
         intrinsicObjectFromEntries(
-          intrinsicObjectEntries(entry).filter(
+          arrayFilter(
+            intrinsicObjectEntries(entry),
             ([key]) => key !== "entry_digest",
           ),
         ),
       )
   ) {
-    reasons.push("binding_admission_entry_digest_mismatch");
+    arrayPush(reasons, "binding_admission_entry_digest_mismatch");
   }
   return entry;
 }
@@ -2042,7 +2150,7 @@ function predecessorReasons(
       snapshot.predecessor.previous_publication_sequence !== null ||
       snapshot.predecessor.previous_publication_epoch !== null
     ) {
-      reasons.push("binding_admission_genesis_contract_invalid");
+      arrayPush(reasons, "binding_admission_genesis_contract_invalid");
     }
   } else if (
     snapshot.predecessor.state !== "linked" ||
@@ -2055,7 +2163,7 @@ function predecessorReasons(
     snapshot.predecessor.previous_publication_epoch >=
       snapshot.publication_epoch
   ) {
-    reasons.push("binding_admission_predecessor_mismatch");
+    arrayPush(reasons, "binding_admission_predecessor_mismatch");
   }
   if (
     snapshot.publication_sequence !==
@@ -2064,7 +2172,10 @@ function predecessorReasons(
     snapshot.predecessor.previous_snapshot_digest !==
       authority.expected_predecessor_digest
   ) {
-    reasons.push("binding_admission_epoch_rollback_or_predecessor_drift");
+    arrayPush(
+      reasons,
+      "binding_admission_epoch_rollback_or_predecessor_drift",
+    );
   }
   return reasons;
 }
@@ -2191,7 +2302,7 @@ function projectAxSnapshot(
   snapshot: CanonicalExternalImprovementBindingSnapshot,
 ) {
   const entries: CanonicalImprovementBindingEntry[] =
-    snapshot.entry_inventory.map((entry) =>
+    arrayMap(snapshot.entry_inventory, (entry) =>
       createCanonicalImprovementBindingEntry({
         entry_type: entry.entry_type,
         bound_identity_type: entry.bound_identity_type,
@@ -2291,7 +2402,7 @@ function admitFrozenSnapshot(input: {
     snapshot.snapshot_identity !==
       `external-binding-snapshot:${snapshot.owner_authority_identity}:${snapshot.publication_epoch}:${snapshot.publication_sequence}`
   ) {
-    reasons.push("binding_admission_snapshot_contract_invalid");
+    arrayPush(reasons, "binding_admission_snapshot_contract_invalid");
   }
   if (
     snapshot.snapshot_identity !==
@@ -2305,23 +2416,24 @@ function admitFrozenSnapshot(input: {
     snapshot.authority_root_digest !==
       input.authority.expected_authority_root_digest
   ) {
-    reasons.push("binding_admission_authority_snapshot_conflict");
+    arrayPush(reasons, "binding_admission_authority_snapshot_conflict");
   }
   if (
-    !intrinsicObjectEntries(safety).every(
+    !arrayEvery(
+      intrinsicObjectEntries(safety),
       ([key, expected]) =>
         (snapshot as unknown as Record<string, unknown>)[key] ===
         expected,
     )
   ) {
-    reasons.push("binding_admission_safety_contract_conflict");
+    arrayPush(reasons, "binding_admission_safety_contract_conflict");
   }
   const captured = canonicalInstant(snapshot.captured_at);
   const cutoff = canonicalInstant(snapshot.evidence_cutoff);
   const effective = canonicalInstant(snapshot.effective_at);
   const asOf = canonicalInstant(input.request.lookup_as_of);
   if (!captured || !cutoff || !effective || !asOf) {
-    reasons.push("binding_admission_explicit_instant_invalid");
+    arrayPush(reasons, "binding_admission_explicit_instant_invalid");
   } else if (
     captured.canonical !== snapshot.captured_at ||
     cutoff.canonical !== snapshot.evidence_cutoff ||
@@ -2331,27 +2443,27 @@ function admitFrozenSnapshot(input: {
     effective.epoch_nanoseconds > captured.epoch_nanoseconds ||
     captured.epoch_nanoseconds > asOf.epoch_nanoseconds
   ) {
-    reasons.push("binding_admission_not_point_in_time_safe");
+    arrayPush(reasons, "binding_admission_not_point_in_time_safe");
   }
-  reasons.push(...predecessorReasons(snapshot, input.authority));
+  arrayPush(reasons, ...predecessorReasons(snapshot, input.authority));
   if (!intrinsicArrayIsArray(snapshot.entry_inventory)) {
-    reasons.push("binding_admission_entry_inventory_missing");
+    arrayPush(reasons, "binding_admission_entry_inventory_missing");
   } else if (cutoff) {
-    const entries = snapshot.entry_inventory
-      .map((entry) =>
+    const entries = arrayFilter(
+      arrayMap(snapshot.entry_inventory, (entry) =>
         validateEntry(entry, cutoff.epoch_nanoseconds, reasons),
-      )
-      .filter(
-        (entry): entry is CanonicalExternalImprovementBindingEntry =>
-          entry !== null,
-      );
+      ),
+      (entry): entry is CanonicalExternalImprovementBindingEntry =>
+        entry !== null,
+    );
     const identities = new Map<string, string>();
     const typedKeys = new Map<string, string>();
     const crossTypes = new Map<string, EntryType>();
     for (const entry of entries) {
       const priorIdentity = identities.get(entry.entry_identity);
       if (priorIdentity) {
-        reasons.push(
+        arrayPush(
+          reasons,
           priorIdentity === entry.entry_digest
             ? "binding_admission_duplicate_entry_identity"
             : "binding_admission_conflicting_entry_identity",
@@ -2361,7 +2473,8 @@ function admitFrozenSnapshot(input: {
       const typedKey = `${entry.entry_type}:${entry.bound_identity_type}:${entry.bound_identity}`;
       const priorKey = typedKeys.get(typedKey);
       if (priorKey) {
-        reasons.push(
+        arrayPush(
+          reasons,
           priorKey === entry.entry_digest
             ? "binding_admission_duplicate_lookup_identity"
             : "binding_admission_conflicting_lookup_identity",
@@ -2370,23 +2483,23 @@ function admitFrozenSnapshot(input: {
       typedKeys.set(typedKey, entry.entry_digest);
       const priorType = crossTypes.get(entry.bound_identity);
       if (priorType && priorType !== entry.entry_type) {
-        reasons.push("binding_admission_cross_type_collision");
+        arrayPush(reasons, "binding_admission_cross_type_collision");
       }
       crossTypes.set(entry.bound_identity, entry.entry_type);
     }
-    const ordered = [...entries].sort((first, second) =>
+    const ordered = arraySort([...entries], (first, second) =>
       compareCanonicalStrings(
         first.entry_identity,
         second.entry_identity,
       ),
     );
     if (!exact(entries, ordered)) {
-      reasons.push("binding_admission_entry_order_noncanonical");
+      arrayPush(reasons, "binding_admission_entry_order_noncanonical");
     }
     if (
       snapshot.entry_inventory_digest !== inventoryDigest(ordered)
     ) {
-      reasons.push("binding_admission_inventory_digest_mismatch");
+      arrayPush(reasons, "binding_admission_inventory_digest_mismatch");
     }
   }
   const snapshotPayload = intrinsicStructuredClone(snapshot);
@@ -2394,17 +2507,18 @@ function admitFrozenSnapshot(input: {
     snapshotPayload as Partial<CanonicalExternalImprovementBindingSnapshot>
   ).snapshot_digest;
   if (snapshot.snapshot_digest !== digest(snapshotPayload)) {
-    reasons.push("binding_admission_snapshot_digest_mismatch");
+    arrayPush(reasons, "binding_admission_snapshot_digest_mismatch");
   }
   if (reasons.length > 0) {
-    const status = reasons.some((reason) =>
-      reason.includes("not_point_in_time"),
+    const status = arraySome(reasons, (reason) =>
+      stringIncludes(reason, "not_point_in_time"),
     )
       ? "not_point_in_time_safe"
-      : reasons.some(
+      : arraySome(
+            reasons,
             (reason) =>
-              reason.includes("missing") ||
-              reason.includes("incomplete"),
+              stringIncludes(reason, "missing") ||
+              stringIncludes(reason, "incomplete"),
           )
         ? "incomplete"
         : "conflicting";
@@ -2608,13 +2722,13 @@ function structuralRequestReasons(value: unknown) {
     value.source_namespace !==
       "binding_backed_governed_improvement_replay"
   ) {
-    reasons.push("binding_backed_replay_request_contract_invalid");
+    arrayPush(reasons, "binding_backed_replay_request_contract_invalid");
   }
   if (!validIdentity(value.admission_identity)) {
-    reasons.push("binding_backed_replay_admission_identity_invalid");
+    arrayPush(reasons, "binding_backed_replay_admission_identity_invalid");
   }
   if (!canonicalInstant(value.lookup_as_of)) {
-    reasons.push("binding_backed_replay_lookup_instant_invalid");
+    arrayPush(reasons, "binding_backed_replay_lookup_instant_invalid");
   }
   return reasons;
 }
@@ -3033,7 +3147,7 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
           countersInput.value,
           intrinsicObjectKeys(emptyCounters()),
         ) ||
-        intrinsicObjectKeys(emptyCounters()).some((key) => {
+        arraySome(intrinsicObjectKeys(emptyCounters()), (key) => {
           const observed = ownDataValue(countersInput.value as object, key);
           return (
             !observed.present ||

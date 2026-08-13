@@ -733,6 +733,11 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     const originalHasOwn = Object.hasOwn;
     const originalOwnKeys = Reflect.ownKeys;
     const originalArrayIsArray = Array.isArray;
+    const originalArrayEvery = Array.prototype.every;
+    const originalArrayFilter = Array.prototype.filter;
+    const originalArrayMap = Array.prototype.map;
+    const originalArraySome = Array.prototype.some;
+    const originalArraySort = Array.prototype.sort;
     const originalStructuredClone = structuredClone;
     const originalStringify = JSON.stringify;
     const sourceSnapshot = action666bdExternalSnapshot();
@@ -756,7 +761,26 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     let rebuiltSnapshot;
     let rebuiltAuthority;
     let disabledHarness;
+    let poisonedHarness;
     let digestDistinct = false;
+    const poisonedCaptureAuthority = {
+      ...action666bdProposalReadyDependencies.capture_authority,
+    };
+    Object.defineProperty(
+      poisonedCaptureAuthority,
+      "authority_version",
+      {
+        enumerable: true,
+        get() {
+          getterReads += 1;
+          return "poisoned_authority_version";
+        },
+      },
+    );
+    const poisonedDependencies = {
+      ...action666bdProposalReadyDependencies,
+      capture_authority: poisonedCaptureAuthority,
+    };
     try {
       Object.freeze = ((value: object) => value) as typeof Object.freeze;
       Object.isFrozen = (() => false) as typeof Object.isFrozen;
@@ -774,6 +798,17 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
         throw new Error("patched_own_keys");
       }) as typeof Reflect.ownKeys;
       Array.isArray = (() => false) as unknown as typeof Array.isArray;
+      Array.prototype.every = (() =>
+        true) as unknown as typeof Array.prototype.every;
+      Array.prototype.filter = (() =>
+        []) as unknown as typeof Array.prototype.filter;
+      Array.prototype.map = (() =>
+        []) as unknown as typeof Array.prototype.map;
+      Array.prototype.some = (() =>
+        false) as unknown as typeof Array.prototype.some;
+      Array.prototype.sort = (function (this: unknown[]) {
+        return this;
+      }) as unknown as typeof Array.prototype.sort;
       globalThis.structuredClone = (() => {
         const injected: Record<string, unknown> = {};
         Object.defineProperty(injected, "leak", {
@@ -797,6 +832,12 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
         });
       disabledHarness =
         createCanonicalBindingBackedImprovementReplayHarness();
+      poisonedHarness =
+        createCanonicalBindingBackedImprovementReplayHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          dependencies: poisonedDependencies,
+        });
       digestDistinct =
         canonicalBindingBackedReplayDigest({ probe: 1 }) !==
         canonicalBindingBackedReplayDigest({ probe: 2 });
@@ -810,6 +851,11 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       Object.hasOwn = originalHasOwn;
       Reflect.ownKeys = originalOwnKeys;
       Array.isArray = originalArrayIsArray;
+      Array.prototype.every = originalArrayEvery;
+      Array.prototype.filter = originalArrayFilter;
+      Array.prototype.map = originalArrayMap;
+      Array.prototype.some = originalArraySome;
+      Array.prototype.sort = originalArraySort;
       globalThis.structuredClone = originalStructuredClone;
       JSON.stringify = originalStringify;
     }
@@ -819,6 +865,22 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(originalIsFrozen(rebuiltAuthority)).toBe(true);
     expect(originalIsFrozen(disabledHarness)).toBe(true);
     expect(originalIsFrozen(disabledHarness.counters)).toBe(true);
+    expect(poisonedHarness).toMatchObject({
+      enabled: true,
+      status: "unavailable",
+      replay: null,
+    });
+    expect(poisonedHarness.counters).toEqual(zeroCounters());
+    const implementationSource = fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "lib/server/canonical-governed-binding-snapshot-admission.ts",
+      ),
+      "utf8",
+    );
+    expect(implementationSource).not.toMatch(
+      /\.(every|filter|includes|join|map|pop|push|some|sort)\s*\(/,
+    );
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {
