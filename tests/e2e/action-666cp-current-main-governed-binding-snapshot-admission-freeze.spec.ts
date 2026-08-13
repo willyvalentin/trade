@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "9c2768bdc26af80bec5d497ead893f7ad6bed64602d75f91efd38b69b748c258";
+  "0fda7666cdca4bdea12b0311dac7c85ac91b6286f556039a307ac9739fdea886";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "f9825ec81c890ba8eb1582897a6d249b0246dbb86d8d381f91a242f8f687af52",
+      "85ff2ccc1c5dffaa4c9f43c5adfd3cbe9cd13ce70a66bc3150ee3b8785332625",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "3d851710f5b2e410e3d85b684f3679b02d4236180b94056b7a8fa7d5df9b619b",
+          "85212062a656964460dd79fc496ba3f8efc88a3bd8358d3c534adede114232da",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "952e3bcd5cceaad2f7512c0955b36a7edb740669cf65bc358bd93972fac9c69c",
+          "73009800164ec181a0d226a00787eb2f9646c075b813b6982b0830d39c65bcb5",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "4e7ee41728e03a08aa4620495b1d24e421365c43bad87075d07145f9ce35b75f",
+          "64b0fa8bde0e724149938aa4ed996130dc3c2160465c6202f9739e13a11e55dd",
       },
     ],
   },
@@ -99,7 +99,7 @@ const expectedManifest = {
     predecessor_consumer_oracles_reconciled: true,
     structured_never_throw_failure_required: true,
     recursive_adversarial_runtime_matrix_required: true,
-    pre_allocation_budget_enforcement_required: true,
+    serializable_surface_pre_allocation_budget_enforcement_required: true,
   },
   delivery: {
     historical_pull_request_merge_authorized: false,

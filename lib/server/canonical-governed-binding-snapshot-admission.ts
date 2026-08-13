@@ -720,6 +720,65 @@ export function validateCanonicalBoundedSnapshotPayload(
       }
     }
 
+    const enumerableStringKeys: string[] = [];
+    const boundedKeyBytes = new Map<string, number>();
+    let enumerableKeyBytes = 0;
+    try {
+      for (const key in object) {
+        if (!Object.hasOwn(object, key)) continue;
+        const observedEnumerableKeys = enumerableStringKeys.length + 1;
+        if (
+          observedEnumerableKeys > policy.max_keys_per_container
+        ) {
+          observedTotalStringBytes += enumerableKeyBytes;
+          return exceeded("max_keys", frame.path, {
+            observed_array_length: arrayLength,
+            observed_own_keys: observedEnumerableKeys,
+          });
+        }
+        const remainingTotalBytes =
+          policy.max_total_string_bytes -
+          observedTotalStringBytes -
+          enumerableKeyBytes;
+        const activeLimit = Math.min(
+          policy.max_string_bytes,
+          remainingTotalBytes,
+        );
+        const measured = boundedUtf8ByteLength(key, activeLimit);
+        const childPath = boundedChildPath(
+          frame.path,
+          key,
+          enumerableStringKeys.length,
+          measured.bytes,
+        );
+        if (measured.exceeded) {
+          observedTotalStringBytes +=
+            enumerableKeyBytes + measured.bytes;
+          return exceeded(
+            activeLimit === policy.max_string_bytes
+              ? "max_string_bytes"
+              : "max_total_string_bytes",
+            childPath,
+            {
+              observed_array_length: arrayLength,
+              observed_own_keys: observedEnumerableKeys,
+              observed_string_bytes: measured.bytes,
+            },
+          );
+        }
+        enumerableKeyBytes += measured.bytes;
+        boundedKeyBytes.set(key, measured.bytes);
+        enumerableStringKeys.push(key);
+      }
+    } catch {
+      return invalid(
+        "snapshot_payload_introspection_failed",
+        frame.path,
+        { observed_array_length: arrayLength },
+      );
+    }
+    observedTotalStringBytes += enumerableKeyBytes;
+
     let ownKeys: (string | symbol)[];
     try {
       ownKeys = Reflect.ownKeys(object);
@@ -771,41 +830,49 @@ export function validateCanonicalBoundedSnapshotPayload(
         },
       );
     }
+    if (
+      arrayLength === null &&
+      ownKeys.length !== enumerableStringKeys.length
+    ) {
+      return invalid(
+        `snapshot_payload_descriptor_invalid:${frame.path}`,
+        frame.path,
+        { observed_own_keys: ownKeys.length },
+      );
+    }
 
-    const stringKeys = (ownKeys as string[]).sort((first, second) =>
+    if (arrayLength !== null) {
+      const arrayLengthKeyBytes = 6;
+      observedTotalStringBytes += arrayLengthKeyBytes;
+      if (
+        observedTotalStringBytes > policy.max_total_string_bytes
+      ) {
+        return exceeded("max_total_string_bytes", frame.path, {
+          observed_array_length: arrayLength,
+          observed_own_keys: ownKeys.length,
+          observed_string_bytes: arrayLengthKeyBytes,
+        });
+      }
+      boundedKeyBytes.set("length", arrayLengthKeyBytes);
+    }
+
+    const stringKeys = [...enumerableStringKeys];
+    if (arrayLength !== null) stringKeys.push("length");
+    stringKeys.sort((first, second) =>
       first.localeCompare(second),
     );
     const keyPaths = new Map<string, string>();
     for (let index = 0; index < stringKeys.length; index += 1) {
       const key = stringKeys[index];
-      const remainingTotalBytes =
-        policy.max_total_string_bytes - observedTotalStringBytes;
-      const activeLimit = Math.min(
-        policy.max_string_bytes,
-        remainingTotalBytes,
-      );
-      const measured = boundedUtf8ByteLength(key, activeLimit);
-      const childPath = boundedChildPath(
-        frame.path,
+      keyPaths.set(
         key,
-        index,
-        measured.bytes,
+        boundedChildPath(
+          frame.path,
+          key,
+          index,
+          boundedKeyBytes.get(key) ?? 0,
+        ),
       );
-      keyPaths.set(key, childPath);
-      observedTotalStringBytes += measured.bytes;
-      if (measured.exceeded) {
-        return exceeded(
-          activeLimit === policy.max_string_bytes
-            ? "max_string_bytes"
-            : "max_total_string_bytes",
-          childPath,
-          {
-            observed_array_length: arrayLength,
-            observed_own_keys: ownKeys.length,
-            observed_string_bytes: measured.bytes,
-          },
-        );
-      }
     }
 
     const descriptors: {

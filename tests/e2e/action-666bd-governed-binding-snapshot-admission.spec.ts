@@ -665,6 +665,36 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
         1,
     });
 
+    const hundredThousandKeys: Record<string, number> = {};
+    for (let index = 0; index < 100_000; index += 1) {
+      hundredThousandKeys[`attacker_key_${index}`] = index;
+    }
+    const originalObjectOwnKeys = Reflect.ownKeys;
+    let oversizedObjectOwnKeyReads = 0;
+    Reflect.ownKeys = ((target: object) => {
+      if (target === hundredThousandKeys) {
+        oversizedObjectOwnKeyReads += 1;
+      }
+      return originalObjectOwnKeys(target);
+    }) as typeof Reflect.ownKeys;
+    let hundredThousandKeysResult;
+    try {
+      hundredThousandKeysResult =
+        validateCanonicalBoundedSnapshotPayload(
+          hundredThousandKeys,
+        );
+    } finally {
+      Reflect.ownKeys = originalObjectOwnKeys;
+    }
+    expect(oversizedObjectOwnKeyReads).toBe(0);
+    expect(hundredThousandKeysResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_keys",
+      observed_own_keys:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY
+          .max_keys_per_container + 1,
+    });
+
     const exactArray = Array.from(
       {
         length:
@@ -830,6 +860,68 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       throw new Error("expected huge key to exceed budget");
     }
     expect(hugeKeyResult.first_rejected_path.length).toBeLessThan(128);
+
+    const hugeCommonPrefix = "p".repeat(2_000_001);
+    const firstHugeKey = `${hugeCommonPrefix}a`;
+    const secondHugeKey = `${hugeCommonPrefix}b`;
+    const originalLocaleCompare = String.prototype.localeCompare;
+    let localeComparisons = 0;
+    String.prototype.localeCompare = function (
+      that: string,
+      locales?: Intl.LocalesArgument,
+      options?: Intl.CollatorOptions,
+    ) {
+      localeComparisons += 1;
+      return originalLocaleCompare.call(this, that, locales, options);
+    };
+    let hugeCommonPrefixResult;
+    try {
+      hugeCommonPrefixResult =
+        validateCanonicalBoundedSnapshotPayload({
+          [firstHugeKey]: 0,
+          [secondHugeKey]: 0,
+        });
+    } finally {
+      String.prototype.localeCompare = originalLocaleCompare;
+    }
+    expect(localeComparisons).toBe(0);
+    expect(hugeCommonPrefixResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_string_bytes",
+      observed_string_bytes:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes + 1,
+    });
+
+    const excessiveTotalKeyBytes: Record<string, number> = {};
+    const allowedKeyPrefix = "t".repeat(
+      CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes - 64,
+    );
+    for (let index = 0; index < 130; index += 1) {
+      excessiveTotalKeyBytes[`${allowedKeyPrefix}_${index}`] = index;
+    }
+    let totalKeyLocaleComparisons = 0;
+    String.prototype.localeCompare = function (
+      that: string,
+      locales?: Intl.LocalesArgument,
+      options?: Intl.CollatorOptions,
+    ) {
+      totalKeyLocaleComparisons += 1;
+      return originalLocaleCompare.call(this, that, locales, options);
+    };
+    let excessiveTotalKeyBytesResult;
+    try {
+      excessiveTotalKeyBytesResult =
+        validateCanonicalBoundedSnapshotPayload(
+          excessiveTotalKeyBytes,
+        );
+    } finally {
+      String.prototype.localeCompare = originalLocaleCompare;
+    }
+    expect(totalKeyLocaleComparisons).toBe(0);
+    expect(excessiveTotalKeyBytesResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_total_string_bytes",
+    });
   });
 
   test("returns a rebuildable bounded failure for twenty-thousand-level input", () => {
