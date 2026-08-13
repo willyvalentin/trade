@@ -92,10 +92,25 @@ const intrinsicArrayPop = Array.prototype.pop;
 const intrinsicArrayPush = Array.prototype.push;
 const intrinsicArraySome = Array.prototype.some;
 const intrinsicArraySort = Array.prototype.sort;
+const IntrinsicMap = Map;
+const intrinsicMapGet = Map.prototype.get;
+const intrinsicMapSet = Map.prototype.set;
+const IntrinsicSet = Set;
+const intrinsicSetAdd = Set.prototype.add;
+const intrinsicSetHas = Set.prototype.has;
+const IntrinsicWeakMap = WeakMap;
+const intrinsicWeakMapGet = WeakMap.prototype.get;
+const intrinsicWeakMapHas = WeakMap.prototype.has;
+const intrinsicWeakMapSet = WeakMap.prototype.set;
+const IntrinsicWeakSet = WeakSet;
+const intrinsicWeakSetAdd = WeakSet.prototype.add;
+const intrinsicWeakSetDelete = WeakSet.prototype.delete;
+const intrinsicWeakSetHas = WeakSet.prototype.has;
 const intrinsicNumberIsFinite = Number.isFinite;
 const intrinsicNumberIsSafeInteger = Number.isSafeInteger;
 const intrinsicReflectApply = Reflect.apply;
 const intrinsicReflectOwnKeys = Reflect.ownKeys;
+const intrinsicNodeIsProxy = nodeTypes.isProxy;
 const intrinsicStringIncludes = String.prototype.includes;
 const intrinsicStringLocaleCompare = String.prototype.localeCompare;
 const intrinsicHashUpdate = createHash("sha256").update;
@@ -177,6 +192,60 @@ function arraySort<T>(
     comparator ? [comparator] : [],
   );
   return values;
+}
+
+function mapGet<K, V>(map: Map<K, V>, key: K) {
+  return intrinsicReflectApply(intrinsicMapGet, map, [key]) as
+    | V
+    | undefined;
+}
+
+function mapSet<K, V>(map: Map<K, V>, key: K, value: V) {
+  intrinsicReflectApply(intrinsicMapSet, map, [key, value]);
+}
+
+function setAdd<T>(set: Set<T>, value: T) {
+  intrinsicReflectApply(intrinsicSetAdd, set, [value]);
+}
+
+function setHas<T>(set: Set<T>, value: T) {
+  return intrinsicReflectApply(intrinsicSetHas, set, [value]) as boolean;
+}
+
+function weakMapGet<K extends object, V>(map: WeakMap<K, V>, key: K) {
+  return intrinsicReflectApply(intrinsicWeakMapGet, map, [key]) as
+    | V
+    | undefined;
+}
+
+function weakMapHas<K extends object, V>(map: WeakMap<K, V>, key: K) {
+  return intrinsicReflectApply(intrinsicWeakMapHas, map, [key]) as boolean;
+}
+
+function weakMapSet<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  value: V,
+) {
+  intrinsicReflectApply(intrinsicWeakMapSet, map, [key, value]);
+}
+
+function weakSetAdd<T extends object>(set: WeakSet<T>, value: T) {
+  intrinsicReflectApply(intrinsicWeakSetAdd, set, [value]);
+}
+
+function weakSetDelete<T extends object>(set: WeakSet<T>, value: T) {
+  return intrinsicReflectApply(intrinsicWeakSetDelete, set, [value]) as boolean;
+}
+
+function weakSetHas<T extends object>(set: WeakSet<T>, value: T) {
+  return intrinsicReflectApply(intrinsicWeakSetHas, set, [value]) as boolean;
+}
+
+function isProxy(value: object) {
+  return intrinsicReflectApply(intrinsicNodeIsProxy, nodeTypes, [
+    value,
+  ]) as boolean;
 }
 
 function compareCanonicalStrings(first: string, second: string) {
@@ -491,9 +560,9 @@ export type CanonicalBindingSnapshotAdmissionDependencies = {
   expected_capture_authority_digest: string;
 };
 
-const recognizedAuthorities = new WeakSet<object>();
-const recognizedSnapshotSources = new WeakMap<object, () => unknown>();
-const recognizedJsonSnapshots = new WeakSet<object>();
+const recognizedAuthorities = new IntrinsicWeakSet<object>();
+const recognizedSnapshotSources = new IntrinsicWeakMap<object, () => unknown>();
+const recognizedJsonSnapshots = new IntrinsicWeakSet<object>();
 type CanonicalBindingBackedReplayAuthority = {
   replay: (
     request: CanonicalBindingBackedReplayRequest,
@@ -505,7 +574,7 @@ type CanonicalBindingBackedReplayAuthority = {
     value: unknown,
   ) => CanonicalBindingBackedReplayResult | null;
 };
-const canonicalBindingBackedReplayAuthorities = new WeakMap<
+const canonicalBindingBackedReplayAuthorities = new IntrinsicWeakMap<
   object,
   CanonicalBindingBackedReplayAuthority | null
 >();
@@ -528,11 +597,11 @@ function deepFreeze<T>(value: T): T {
 
 function deepFreezeJsonSnapshot<T extends object>(value: T): T {
   const pending: object[] = [value];
-  const seen = new WeakSet<object>();
+  const seen = new IntrinsicWeakSet<object>();
   while (pending.length > 0) {
     const current = arrayPop(pending)!;
-    if (seen.has(current)) continue;
-    seen.add(current);
+    if (weakSetHas(seen, current)) continue;
+    weakSetAdd(seen, current);
     for (const nested of intrinsicObjectValues(current)) {
       if (nested !== null && typeof nested === "object") {
         arrayPush(pending, nested);
@@ -597,7 +666,7 @@ function serializeCanonicalJsonIteratively(value: unknown) {
 }
 
 function uniqueSorted(values: string[]) {
-  return arraySort([...new Set(values)]);
+  return arraySort([...new IntrinsicSet(values)]);
 }
 
 function exact(first: unknown, second: unknown) {
@@ -634,7 +703,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     value === null ||
     typeof value !== "object" ||
     intrinsicArrayIsArray(value) ||
-    nodeTypes.isProxy(value)
+    isProxy(value)
   ) {
     return false;
   }
@@ -838,7 +907,7 @@ export function validateCanonicalBoundedSnapshotPayload(
   value: unknown,
 ): BoundedValidationResult {
   const policy = CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY;
-  const ancestors = new WeakSet<object>();
+  const ancestors = new IntrinsicWeakSet<object>();
   const stack: TraversalFrame[] = [
     { kind: "enter", value, path: "$", depth: 0 },
   ];
@@ -885,7 +954,7 @@ export function validateCanonicalBoundedSnapshotPayload(
   while (stack.length > 0) {
     const frame = arrayPop(stack)!;
     if (frame.kind === "exit") {
-      ancestors.delete(frame.value);
+      weakSetDelete(ancestors, frame.value);
       continue;
     }
     observedNodes += 1;
@@ -929,13 +998,13 @@ export function validateCanonicalBoundedSnapshotPayload(
     }
 
     const object = current as object;
-    if (nodeTypes.isProxy(object)) {
+    if (isProxy(object)) {
       return invalid(
         `snapshot_payload_proxy_forbidden:${frame.path}`,
         frame.path,
       );
     }
-    if (ancestors.has(object)) {
+    if (weakSetHas(ancestors, object)) {
       return invalid(`snapshot_payload_cycle:${frame.path}`, frame.path);
     }
 
@@ -997,7 +1066,7 @@ export function validateCanonicalBoundedSnapshotPayload(
     }
 
     const enumerableStringKeys: string[] = [];
-    const boundedKeyBytes = new Map<string, number>();
+    const boundedKeyBytes = new IntrinsicMap<string, number>();
     const containerStartingStringBytes = observedTotalStringBytes;
     let enumerableKeyBytes = 0;
     let oversizedKeyObserved = false;
@@ -1024,7 +1093,7 @@ export function validateCanonicalBoundedSnapshotPayload(
           continue;
         }
         enumerableKeyBytes += measured.bytes;
-        boundedKeyBytes.set(key, measured.bytes);
+        mapSet(boundedKeyBytes, key, measured.bytes);
       }
     } catch {
       return invalid(
@@ -1129,22 +1198,23 @@ export function validateCanonicalBoundedSnapshotPayload(
           observed_string_bytes: arrayLengthKeyBytes,
         });
       }
-      boundedKeyBytes.set("length", arrayLengthKeyBytes);
+      mapSet(boundedKeyBytes, "length", arrayLengthKeyBytes);
     }
 
     const stringKeys = [...enumerableStringKeys];
     if (arrayLength !== null) arrayPush(stringKeys, "length");
     arraySort(stringKeys, compareCanonicalStrings);
-    const keyPaths = new Map<string, string>();
+    const keyPaths = new IntrinsicMap<string, string>();
     for (let index = 0; index < stringKeys.length; index += 1) {
       const key = stringKeys[index];
-      keyPaths.set(
+      mapSet(
+        keyPaths,
         key,
         boundedChildPath(
           frame.path,
           key,
           index,
-          boundedKeyBytes.get(key) ?? 0,
+          mapGet(boundedKeyBytes, key) ?? 0,
         ),
       );
     }
@@ -1163,12 +1233,12 @@ export function validateCanonicalBoundedSnapshotPayload(
         if (!descriptor) {
           return invalid(
             "snapshot_payload_descriptor_missing",
-            keyPaths.get(key) ?? frame.path,
+            mapGet(keyPaths, key) ?? frame.path,
           );
         }
         arrayPush(descriptors, {
           key,
-          path: keyPaths.get(key) ?? frame.path,
+          path: mapGet(keyPaths, key) ?? frame.path,
           descriptor,
         });
       }
@@ -1190,7 +1260,7 @@ export function validateCanonicalBoundedSnapshotPayload(
         );
       }
       const isArrayLength =
-        array && path === keyPaths.get("length");
+        array && path === mapGet(keyPaths, "length");
       if (
         (!isArrayLength && !descriptor.enumerable) ||
         (isArrayLength && descriptor.enumerable)
@@ -1202,7 +1272,7 @@ export function validateCanonicalBoundedSnapshotPayload(
       }
     }
 
-    ancestors.add(object);
+    weakSetAdd(ancestors, object);
     arrayPush(stack, { kind: "exit", value: object });
     for (let index = descriptors.length - 1; index >= 0; index -= 1) {
       const { path, descriptor } = descriptors[index];
@@ -1257,12 +1327,12 @@ export function createCanonicalBindingSnapshotJsonSource(
     throw new Error("canonical_binding_snapshot_json_source_noncanonical");
   }
   const frozenSnapshot = deepFreezeJsonSnapshot(snapshot);
-  recognizedJsonSnapshots.add(frozenSnapshot);
+  weakSetAdd(recognizedJsonSnapshots, frozenSnapshot);
   const source = intrinsicObjectFreeze({
     source_contract_version:
       "canonical_external_binding_snapshot_source_v1" as const,
   });
-  recognizedSnapshotSources.set(source, () => frozenSnapshot);
+  weakMapSet(recognizedSnapshotSources, source, () => frozenSnapshot);
   return source;
 }
 
@@ -1412,7 +1482,7 @@ function snapshotRuntimeValue<T>(value: unknown): T | null {
 
 function hasCanonicalRuntimeSurface(
   value: unknown,
-  seen = new Set<object>(),
+  seen = new IntrinsicSet<object>(),
 ): boolean {
   if (
     value === undefined ||
@@ -1427,13 +1497,13 @@ function hasCanonicalRuntimeSurface(
   }
   if (
     typeof value !== "object" ||
-    nodeTypes.isProxy(value) ||
-    seen.has(value)
+    isProxy(value) ||
+    setHas(seen, value)
   ) {
     return false;
   }
-  const nextSeen = new Set(seen);
-  nextSeen.add(value);
+  const nextSeen = new IntrinsicSet(seen);
+  setAdd(nextSeen, value);
   try {
     if (intrinsicArrayIsArray(value)) {
       const keys = intrinsicReflectOwnKeys(value);
@@ -1541,7 +1611,7 @@ function snapshotDependencies(
         "read_expected_authority",
       ]) ||
       !isRecord(snapshotDependency.value) ||
-      !recognizedSnapshotSources.has(snapshotDependency.value) ||
+      !weakMapHas(recognizedSnapshotSources, snapshotDependency.value) ||
       authorityDependency.value.owner_boundary_version !==
         CANONICAL_BINDING_SNAPSHOT_OWNER_BOUNDARY_VERSION ||
       !validIdentity(
@@ -1591,7 +1661,8 @@ function snapshotDependencies(
       ],
       "read_expected_authority",
     );
-    const readSnapshot = recognizedSnapshotSources.get(
+    const readSnapshot = weakMapGet(
+      recognizedSnapshotSources,
       snapshotDependency.value,
     );
     if (!readAuthority || !readSnapshot) return null;
@@ -1844,15 +1915,15 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
         second.entry_identity,
       ),
   );
-  const identities = new Set<string>();
-  const typedKeys = new Set<string>();
-  const crossTypes = new Map<string, EntryType>();
+  const identities = new IntrinsicSet<string>();
+  const typedKeys = new IntrinsicSet<string>();
+  const crossTypes = new IntrinsicMap<string, EntryType>();
   for (const entry of entries) {
     const typedKey = `${entry.entry_type}:${entry.bound_identity_type}:${entry.bound_identity}`;
-    const priorType = crossTypes.get(entry.bound_identity);
+    const priorType = mapGet(crossTypes, entry.bound_identity);
     if (
-      identities.has(entry.entry_identity) ||
-      typedKeys.has(typedKey) ||
+      setHas(identities, entry.entry_identity) ||
+      setHas(typedKeys, typedKey) ||
       (priorType !== undefined && priorType !== entry.entry_type)
     ) {
       arrayPush(
@@ -1860,9 +1931,9 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
         "binding_admission_entry_inventory_conflicting",
       );
     }
-    identities.add(entry.entry_identity);
-    typedKeys.add(typedKey);
-    crossTypes.set(entry.bound_identity, entry.entry_type);
+    setAdd(identities, entry.entry_identity);
+    setAdd(typedKeys, typedKey);
+    mapSet(crossTypes, entry.bound_identity, entry.entry_type);
   }
   if (
     entryReasons.length > 0 ||
@@ -1975,7 +2046,7 @@ export function createCanonicalBindingSnapshotAdmissionAuthority(input: {
     ...payload,
     authority_digest: digest(payload),
   });
-  recognizedAuthorities.add(authority);
+  weakSetAdd(recognizedAuthorities, authority);
   return authority;
 }
 
@@ -1989,7 +2060,7 @@ function validateAuthority(input: {
   const reasons: string[] = [];
   if (
     !isRecord(input.value) ||
-    !recognizedAuthorities.has(input.value) ||
+    !weakSetHas(recognizedAuthorities, input.value) ||
     !exactKeys(input.value, authorityKeys)
   ) {
     return {
@@ -2456,11 +2527,11 @@ function admitFrozenSnapshot(input: {
       (entry): entry is CanonicalExternalImprovementBindingEntry =>
         entry !== null,
     );
-    const identities = new Map<string, string>();
-    const typedKeys = new Map<string, string>();
-    const crossTypes = new Map<string, EntryType>();
+    const identities = new IntrinsicMap<string, string>();
+    const typedKeys = new IntrinsicMap<string, string>();
+    const crossTypes = new IntrinsicMap<string, EntryType>();
     for (const entry of entries) {
-      const priorIdentity = identities.get(entry.entry_identity);
+      const priorIdentity = mapGet(identities, entry.entry_identity);
       if (priorIdentity) {
         arrayPush(
           reasons,
@@ -2469,9 +2540,9 @@ function admitFrozenSnapshot(input: {
             : "binding_admission_conflicting_entry_identity",
         );
       }
-      identities.set(entry.entry_identity, entry.entry_digest);
+      mapSet(identities, entry.entry_identity, entry.entry_digest);
       const typedKey = `${entry.entry_type}:${entry.bound_identity_type}:${entry.bound_identity}`;
-      const priorKey = typedKeys.get(typedKey);
+      const priorKey = mapGet(typedKeys, typedKey);
       if (priorKey) {
         arrayPush(
           reasons,
@@ -2480,12 +2551,12 @@ function admitFrozenSnapshot(input: {
             : "binding_admission_conflicting_lookup_identity",
         );
       }
-      typedKeys.set(typedKey, entry.entry_digest);
-      const priorType = crossTypes.get(entry.bound_identity);
+      mapSet(typedKeys, typedKey, entry.entry_digest);
+      const priorType = mapGet(crossTypes, entry.bound_identity);
       if (priorType && priorType !== entry.entry_type) {
         arrayPush(reasons, "binding_admission_cross_type_collision");
       }
-      crossTypes.set(entry.bound_identity, entry.entry_type);
+      mapSet(crossTypes, entry.bound_identity, entry.entry_type);
     }
     const ordered = arraySort([...entries], (first, second) =>
       compareCanonicalStrings(
@@ -2873,7 +2944,8 @@ function execute(input: {
   let rawSnapshot: unknown;
   try {
     input.counters.snapshot_reads += 1;
-    const readSnapshot = recognizedSnapshotSources.get(
+    const readSnapshot = weakMapGet(
+      recognizedSnapshotSources,
       input.dependencies.snapshot_dependency,
     );
     if (!readSnapshot) {
@@ -2883,7 +2955,7 @@ function execute(input: {
     if (
       rawSnapshot === null ||
       typeof rawSnapshot !== "object" ||
-      !recognizedJsonSnapshots.has(rawSnapshot)
+      !weakSetHas(recognizedJsonSnapshots, rawSnapshot)
     ) {
       throw new Error("binding_admission_snapshot_source_unrecognized");
     }
@@ -3097,7 +3169,7 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
         return deepFreeze(intrinsicStructuredClone(counters));
       },
     });
-    canonicalBindingBackedReplayAuthorities.set(harness, authority);
+    weakMapSet(canonicalBindingBackedReplayAuthorities, harness, authority);
     return harness;
   };
   let enabled = false;
@@ -3234,7 +3306,8 @@ export function verifyCanonicalBindingBackedImprovementReplayResult(input: {
     ) {
       throw new Error("binding_backed_replay_verifier_input_conflicting");
     }
-    const authority = canonicalBindingBackedReplayAuthorities.get(
+    const authority = weakMapGet(
+      canonicalBindingBackedReplayAuthorities,
       harnessInput.value,
     );
     if (!authority) {

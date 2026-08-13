@@ -79,7 +79,10 @@ primordials are captured at module evaluation; later global monkey-patching
 cannot substitute parsed data, weaken immutability, collapse distinct digests,
 or execute injected getters. Array traversal, filtering, membership, stack and
 sorting methods are captured too, so post-import prototype patching cannot
-bypass exact-key or recursive surface checks. An iterative canonical reserialization must
+bypass exact-key or recursive surface checks. Map, Set, WeakMap and WeakSet
+constructors and access methods, plus the Node proxy predicate, are captured
+as well; later prototype/property patching cannot forge a private source or
+authority brand, suppress cycle checks, or expose proxy traps. An iterative canonical reserialization must
 exactly equal the raw JSON
 before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.

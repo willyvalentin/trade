@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { types as nodeTypes } from "node:util";
 
 import goldenReport from "@/docs/action-666bd-golden-binding-backed-replay-report.json";
 import {
@@ -738,6 +739,13 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     const originalArrayMap = Array.prototype.map;
     const originalArraySome = Array.prototype.some;
     const originalArraySort = Array.prototype.sort;
+    const originalWeakMapGet = WeakMap.prototype.get;
+    const originalWeakMapHas = WeakMap.prototype.has;
+    const originalWeakMapSet = WeakMap.prototype.set;
+    const originalWeakSetAdd = WeakSet.prototype.add;
+    const originalWeakSetDelete = WeakSet.prototype.delete;
+    const originalWeakSetHas = WeakSet.prototype.has;
+    const originalNodeIsProxy = nodeTypes.isProxy;
     const originalStructuredClone = structuredClone;
     const originalStringify = JSON.stringify;
     const sourceSnapshot = action666bdExternalSnapshot();
@@ -762,7 +770,17 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     let rebuiltAuthority;
     let disabledHarness;
     let poisonedHarness;
+    let recognizedSource;
+    let copiedSourceHarness;
+    let proxyValidation;
     let digestDistinct = false;
+    let proxyTrapReads = 0;
+    const callerSnapshot = action666bdExternalSnapshot();
+    const canonicalSnapshotJson = JSON.stringify(callerSnapshot);
+    const copiedSource = Object.freeze({
+      source_contract_version:
+        "canonical_external_binding_snapshot_source_v1" as const,
+    });
     const poisonedCaptureAuthority = {
       ...action666bdProposalReadyDependencies.capture_authority,
     };
@@ -809,6 +827,23 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       Array.prototype.sort = (function (this: unknown[]) {
         return this;
       }) as unknown as typeof Array.prototype.sort;
+      WeakMap.prototype.get = (() =>
+        () => callerSnapshot) as unknown as typeof WeakMap.prototype.get;
+      WeakMap.prototype.has = (() =>
+        true) as unknown as typeof WeakMap.prototype.has;
+      WeakMap.prototype.set = (() => {
+        throw new Error("patched_weak_map_set");
+      }) as unknown as typeof WeakMap.prototype.set;
+      WeakSet.prototype.add = (() => {
+        throw new Error("patched_weak_set_add");
+      }) as unknown as typeof WeakSet.prototype.add;
+      WeakSet.prototype.delete = (() => {
+        throw new Error("patched_weak_set_delete");
+      }) as unknown as typeof WeakSet.prototype.delete;
+      WeakSet.prototype.has = (() =>
+        true) as unknown as typeof WeakSet.prototype.has;
+      (nodeTypes as { isProxy: typeof nodeTypes.isProxy }).isProxy =
+        (() => false) as typeof nodeTypes.isProxy;
       globalThis.structuredClone = (() => {
         const injected: Record<string, unknown> = {};
         Object.defineProperty(injected, "leak", {
@@ -838,6 +873,29 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
           kill_switch_engaged: false,
           dependencies: poisonedDependencies,
         });
+      recognizedSource = createCanonicalBindingSnapshotJsonSource(
+        canonicalSnapshotJson,
+      );
+      copiedSourceHarness =
+        createCanonicalBindingBackedImprovementReplayHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          dependencies: {
+            ...action666bdProposalReadyDependencies,
+            snapshot_dependency: copiedSource,
+          },
+        });
+      proxyValidation = validateCanonicalBoundedSnapshotPayload(
+        new Proxy(
+          { probe: true },
+          {
+            getPrototypeOf(target) {
+              proxyTrapReads += 1;
+              return originalGetPrototypeOf(target);
+            },
+          },
+        ),
+      );
       digestDistinct =
         canonicalBindingBackedReplayDigest({ probe: 1 }) !==
         canonicalBindingBackedReplayDigest({ probe: 2 });
@@ -856,9 +914,26 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       Array.prototype.map = originalArrayMap;
       Array.prototype.some = originalArraySome;
       Array.prototype.sort = originalArraySort;
+      WeakMap.prototype.get = originalWeakMapGet;
+      WeakMap.prototype.has = originalWeakMapHas;
+      WeakMap.prototype.set = originalWeakMapSet;
+      WeakSet.prototype.add = originalWeakSetAdd;
+      WeakSet.prototype.delete = originalWeakSetDelete;
+      WeakSet.prototype.has = originalWeakSetHas;
+      (nodeTypes as { isProxy: typeof nodeTypes.isProxy }).isProxy =
+        originalNodeIsProxy;
       globalThis.structuredClone = originalStructuredClone;
       JSON.stringify = originalStringify;
     }
+    const recognizedSourceHarness =
+      createCanonicalBindingBackedImprovementReplayHarness({
+        enabled: true,
+        kill_switch_engaged: false,
+        dependencies: {
+          ...action666bdProposalReadyDependencies,
+          snapshot_dependency: recognizedSource,
+        },
+      });
     expect(getterReads).toBe(0);
     expect(digestDistinct).toBe(true);
     expect(originalIsFrozen(rebuiltSnapshot)).toBe(true);
@@ -871,6 +946,21 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       replay: null,
     });
     expect(poisonedHarness.counters).toEqual(zeroCounters());
+    expect(recognizedSourceHarness).toMatchObject({
+      enabled: true,
+      status: "ready",
+    });
+    expect(copiedSourceHarness).toMatchObject({
+      enabled: true,
+      status: "unavailable",
+      replay: null,
+    });
+    expect(copiedSourceHarness.counters).toEqual(zeroCounters());
+    expect(proxyTrapReads).toBe(0);
+    expect(proxyValidation).toMatchObject({
+      status: "invalid",
+      reason_codes: ["snapshot_payload_proxy_forbidden:$"],
+    });
     const implementationSource = fs.readFileSync(
       path.join(
         process.cwd(),
@@ -881,6 +971,10 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(implementationSource).not.toMatch(
       /\.(every|filter|includes|join|map|pop|push|some|sort)\s*\(/,
     );
+    expect(implementationSource).not.toMatch(
+      /\.(add|delete|get|has|set)\s*\(/,
+    );
+    expect(implementationSource).not.toContain("nodeTypes.isProxy(");
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {

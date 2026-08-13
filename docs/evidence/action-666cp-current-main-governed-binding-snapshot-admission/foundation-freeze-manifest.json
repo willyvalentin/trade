@@ -20,7 +20,7 @@
     "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "317c2d94e16dc1a6bfabc7bf0c562e77374c62079cea95749afd6b5f76ebc6b9",
+    "aggregate_sha256": "a5bb4402a820771aa07604d163e0cdc8c257cf801d5dd579bdd5886bf2c47054",
     "artifacts": [
       {
         "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -28,7 +28,7 @@
       },
       {
         "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
-        "sha256": "b22f0c588fabcdab0ae01d09a3562ef34f98b74fffaa05a4dfe886b547ceaae8"
+        "sha256": "1f8861a26583e4c2ca3e705f55a893f688edd4bd9836177964ca825d1ad1718a"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
@@ -36,11 +36,11 @@
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
-        "sha256": "ed04aa30466064eb2f59f11317635fdde11f83f3294935b3c8f8737b12ec5d8e"
+        "sha256": "2149a20ad1faf861b83d9266894434ab5798dc7ba82f7686f74b1372e8351d27"
       },
       {
         "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
-        "sha256": "608f4475fa389741f10de4a5e2a1cd059837367ce02d89a971f9d7b36333c3b9"
+        "sha256": "196d764450cdeec02dc3b6abb75a7a11bbd8014f1e2b805c7491f79641cfe204"
       }
     ]
   },
@@ -80,6 +80,7 @@
     "captured_json_primordials_required": true,
     "captured_clone_freeze_digest_and_introspection_primordials_required": true,
     "captured_array_prototype_traversal_methods_required": true,
+    "captured_map_set_brand_and_proxy_primordials_required": true,
     "canonical_json_round_trip_and_duplicate_rejection_required": true,
     "cross_limit_budget_precedence_and_permutation_invariance_required": true,
     "arbitrary_js_object_pre_allocation_claimed": false
