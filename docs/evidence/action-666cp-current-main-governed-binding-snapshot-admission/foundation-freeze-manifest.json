@@ -20,7 +20,7 @@
     "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "3e905c7e4d50333336c4a3c2ec72029c5e457c8ead1f64f6f4d0055b752d125c",
+    "aggregate_sha256": "e5e73233af9dfc796d2c08119db9aa7b205be6561cb10083c76e89ce80e9abf9",
     "artifacts": [
       {
         "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -28,7 +28,7 @@
       },
       {
         "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
-        "sha256": "0952f1f82820bfe0038c677001e799c56163fb06f62b2c8ca75f1b4d48c371f7"
+        "sha256": "6a8869b499fba77cab192f17552b37f8a473675670ac925cee1b8c54f8bd9169"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
@@ -36,11 +36,11 @@
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
-        "sha256": "4eb130a58d472084e2a0e4b8ee8ac9f154a0a587e2177e9c3035ed2e3137257b"
+        "sha256": "401395448bebcfabc6d6083be2f6ab89fa343909fd3033db21a4baecac6f02e2"
       },
       {
         "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
-        "sha256": "badb384e817706e4eacb5434d8131c0b79deec72b562c55bf65f532514c79b72"
+        "sha256": "3c799f036dd2675889274607f86a7d9e111700b21c04302a9290d3507f34e114"
       }
     ]
   },
@@ -91,6 +91,7 @@
     "downstream_intrinsic_descriptor_integrity_gate_required": true,
     "post_authority_callback_intrinsic_recheck_required": true,
     "downstream_mutable_semantic_surface_integrity_gate_required": true,
+    "function_and_shadow_quality_surface_integrity_gate_required": true,
     "downstream_drift_structured_zero_read_failure_required": true,
     "any_failure_unproved_rebuild_claim_forbidden": true,
     "cross_limit_budget_precedence_and_permutation_invariance_required": true,

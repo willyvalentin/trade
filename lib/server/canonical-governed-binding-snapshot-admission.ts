@@ -8,6 +8,8 @@ import {
 } from "@/lib/canonical-counterfactual-opportunity-set";
 import {
   canonicalQualityCalibrationBuckets,
+  canonicalQualityPublishabilityPolicy,
+  canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
 import {
   canonicalScorecardComparabilityPolicy,
@@ -451,6 +453,7 @@ const downstreamGlobalSurface = captureSelectedDescriptorSurface(
     "structuredClone",
     "JSON",
     "Object",
+    "Function",
     "Array",
     "String",
     "Number",
@@ -470,6 +473,14 @@ const downstreamIntrinsicSurfaces = [
   captureDescriptorSurface(JSON),
   captureDescriptorSurface(Object),
   captureDescriptorSurface(Object.prototype),
+  captureDescriptorSurface(
+    intrinsicObjectGetOwnPropertyDescriptor(
+      Object.prototype,
+      "hasOwnProperty",
+    )!.value as object,
+  ),
+  captureDescriptorSurface(Function),
+  captureDescriptorSurface(Function.prototype),
   captureDescriptorSurface(Array),
   captureDescriptorSurface(Array.prototype),
   captureDescriptorSurface(String),
@@ -511,6 +522,8 @@ const downstreamSemanticSurfaces = captureRecursiveDescriptorSurfaces([
   CANONICAL_MODEL_IMPROVEMENT_EVIDENCE_NAMESPACES,
   canonicalModelImprovementPolicy,
   canonicalQualityCalibrationBuckets,
+  canonicalQualityRankingKValues,
+  canonicalQualityPublishabilityPolicy,
   canonicalShadowModelChangePolicy,
   canonicalScorecardComparabilityPolicy,
   CANONICAL_COUNTERFACTUAL_REASON_CODES,

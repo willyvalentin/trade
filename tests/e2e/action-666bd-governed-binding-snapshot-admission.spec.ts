@@ -9,6 +9,8 @@ import {
 } from "@/lib/canonical-counterfactual-opportunity-set";
 import {
   canonicalQualityCalibrationBuckets,
+  canonicalQualityPublishabilityPolicy,
+  canonicalQualityRankingKValues,
 } from "@/lib/canonical-quality-metrics";
 import {
   canonicalScorecardComparabilityPolicy,
@@ -1361,6 +1363,40 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(setterCalls).toBe(0);
     expect(arraySetterResult).toEqual(localeResult);
 
+    const functionSurfaceHarness = action666bdHarness();
+    Object.defineProperty(Function.prototype, "action666cp_drift", {
+      configurable: true,
+      value: true,
+    });
+    let functionSurfaceResult!: CanonicalBindingBackedReplayResult;
+    try {
+      functionSurfaceResult = functionSurfaceHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      delete (Function.prototype as unknown as Record<string, unknown>)[
+        "action666cp_drift"
+      ];
+    }
+    expect(functionSurfaceResult).toEqual(localeResult);
+
+    const callableSurfaceHarness = action666bdHarness();
+    const hasOwnPropertyFunction = Object.prototype
+      .hasOwnProperty as unknown as Record<string, unknown>;
+    Object.defineProperty(hasOwnPropertyFunction, "call", {
+      configurable: true,
+      value: () => false,
+    });
+    let callableSurfaceResult!: CanonicalBindingBackedReplayResult;
+    try {
+      callableSurfaceResult = callableSurfaceHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      delete hasOwnPropertyFunction.call;
+    }
+    expect(callableSurfaceResult).toEqual(localeResult);
+
     const policyHarness = action666bdHarness();
     const mutablePolicy = canonicalModelImprovementPolicy as unknown as {
       minimum_identities: number;
@@ -1439,6 +1475,33 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       },
       restore: () => {
         mutableReasonCodes[0] = originalReasonCode;
+      },
+    });
+    const mutableRankingValues =
+      canonicalQualityRankingKValues as unknown as number[];
+    const originalRankingValue = mutableRankingValues[0];
+    semanticMutations.push({
+      mutate: () => {
+        mutableRankingValues[0] = 99;
+      },
+      restore: () => {
+        mutableRankingValues[0] = originalRankingValue;
+      },
+    });
+    const mutablePublishability =
+      canonicalQualityPublishabilityPolicy as unknown as {
+        minimum_ranking_opportunity_sets: number;
+      };
+    const originalPublishabilityMinimum =
+      mutablePublishability.minimum_ranking_opportunity_sets;
+    semanticMutations.push({
+      mutate: () => {
+        mutablePublishability.minimum_ranking_opportunity_sets =
+          Number.MAX_SAFE_INTEGER;
+      },
+      restore: () => {
+        mutablePublishability.minimum_ranking_opportunity_sets =
+          originalPublishabilityMinimum;
       },
     });
     for (const mutation of semanticMutations) {

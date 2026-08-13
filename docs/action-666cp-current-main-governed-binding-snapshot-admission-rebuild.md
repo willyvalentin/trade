@@ -88,7 +88,9 @@ The historical implementation is hardened before freezing:
     validation and snapshot access.
 16. the gate also binds every mutable exported policy, namespace and taxonomy
     consumed by the full proposal/capture/AQ/AX path, so module-owned semantic
-    mutation fails before execution.
+    mutation fails before execution; this includes Function descriptors, the
+    live `Object.prototype.hasOwnProperty` callable surface, shadow ranking,
+    publishability and nested calibration-bucket surfaces.
 
 ## Preserved boundary
 

@@ -94,9 +94,12 @@ before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.
 
 The admission module captures a closed descriptor snapshot of every selected
-global, constructor, prototype, Node proxy predicate and Hash prototype used by
+global, constructor and prototype (including Function), the live
+`Object.prototype.hasOwnProperty` callable surface, Node proxy predicate and
+Hash prototype used by
 the older AX/AQ execution path. The same gate snapshots every exported mutable
-proposal policy, evidence namespace, metric/proposal taxonomy and AX/AQ/capture
+proposal/quality/publishability policy, ranking/calibration taxonomy, evidence
+namespace, metric/proposal taxonomy and AX/AQ/capture
 status array consumed by that path. Replay checks those snapshots before request,
 authority or snapshot inspection. Any post-import intrinsic drift returns one
 precomputed, frozen `binding_backed_replay_downstream_intrinsic_drift` result
