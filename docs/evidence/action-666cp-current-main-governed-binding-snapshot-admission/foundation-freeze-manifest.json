@@ -20,7 +20,7 @@
     "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "4bfbc063a0d29d5d3c7bde81d0ae7775a2f67e044a71038bf6e25b93e87206a0",
+    "aggregate_sha256": "f9825ec81c890ba8eb1582897a6d249b0246dbb86d8d381f91a242f8f687af52",
     "artifacts": [
       {
         "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -28,7 +28,7 @@
       },
       {
         "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
-        "sha256": "f3efe933b7d84c2c7c64e768455f492437bb4f95207fee4bcffea934f8910184"
+        "sha256": "3d851710f5b2e410e3d85b684f3679b02d4236180b94056b7a8fa7d5df9b619b"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
@@ -36,11 +36,11 @@
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
-        "sha256": "9db49835da0aa864842248ac0ac57aecce7d41258e650c6c6dfab3064f0363f0"
+        "sha256": "952e3bcd5cceaad2f7512c0955b36a7edb740669cf65bc358bd93972fac9c69c"
       },
       {
         "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
-        "sha256": "1758fa5c516869b49b949a9f2cb0760d3e6455ac0edf69d771aff0ab2f1622a7"
+        "sha256": "4e7ee41728e03a08aa4620495b1d24e421365c43bad87075d07145f9ce35b75f"
       }
     ]
   },
@@ -74,7 +74,8 @@
     "caller_counter_mutation_forbidden": true,
     "predecessor_consumer_oracles_reconciled": true,
     "structured_never_throw_failure_required": true,
-    "recursive_adversarial_runtime_matrix_required": true
+    "recursive_adversarial_runtime_matrix_required": true,
+    "pre_allocation_budget_enforcement_required": true
   },
   "delivery": {
     "historical_pull_request_merge_authorized": false,

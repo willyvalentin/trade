@@ -67,8 +67,12 @@ admission result. The limits exceed the synthetic golden snapshot
 inventory with substantial margin: the ordinary snapshot currently
 uses depth 2 and 35 observed nodes.
 
-The validator reads descriptors without evaluating property values.
-UTF-8 accounting includes both property keys and string values.
+The validator reads descriptors without evaluating property values. Array
+length is validated against policy before own keys are enumerated, and array
+shape is then checked index-by-index without constructing an attacker-sized
+expected-key list. UTF-8 accounting includes both property keys and string
+values and stops as soon as the applicable per-string or remaining-total byte
+budget is crossed; it never materializes a full encoded byte copy.
 Oversized keys use a bounded index/byte-count path label so failure
 reporting cannot reproduce attacker-sized key bytes.
 Accessors, symbols, cycles, custom prototypes, unsupported primitives,

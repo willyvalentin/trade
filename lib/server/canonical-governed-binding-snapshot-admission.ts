@@ -496,7 +496,41 @@ type TraversalFrame =
       value: object;
     };
 
-const utf8Encoder = new TextEncoder();
+type BoundedUtf8ByteLength =
+  | { exceeded: false; bytes: number }
+  | { exceeded: true; bytes: number };
+
+function boundedUtf8ByteLength(
+  value: string,
+  maximumBytes: number,
+): BoundedUtf8ByteLength {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit <= 0x7f) {
+      bytes += 1;
+    } else if (codeUnit <= 0x7ff) {
+      bytes += 2;
+    } else if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      const followingCodeUnit = value.charCodeAt(index + 1);
+      if (
+        followingCodeUnit >= 0xdc00 &&
+        followingCodeUnit <= 0xdfff
+      ) {
+        bytes += 4;
+        index += 1;
+      } else {
+        bytes += 3;
+      }
+    } else {
+      bytes += 3;
+    }
+    if (bytes > maximumBytes) {
+      return { exceeded: true, bytes };
+    }
+  }
+  return { exceeded: false, bytes };
+}
 
 function traversalStats(input: {
   observedDepth: number;
@@ -597,20 +631,22 @@ export function validateCanonicalBoundedSnapshotPayload(
       continue;
     }
     if (typeof current === "string") {
-      const stringBytes = utf8Encoder.encode(current).byteLength;
-      observedTotalStringBytes += stringBytes;
-      if (stringBytes > policy.max_string_bytes) {
-        return exceeded("max_string_bytes", frame.path, {
-          observed_string_bytes: stringBytes,
-        });
-      }
-      if (
-        observedTotalStringBytes >
-        policy.max_total_string_bytes
-      ) {
-        return exceeded("max_total_string_bytes", frame.path, {
-          observed_string_bytes: stringBytes,
-        });
+      const remainingTotalBytes =
+        policy.max_total_string_bytes - observedTotalStringBytes;
+      const activeLimit = Math.min(
+        policy.max_string_bytes,
+        remainingTotalBytes,
+      );
+      const measured = boundedUtf8ByteLength(current, activeLimit);
+      observedTotalStringBytes += measured.bytes;
+      if (measured.exceeded) {
+        return exceeded(
+          activeLimit === policy.max_string_bytes
+            ? "max_string_bytes"
+            : "max_total_string_bytes",
+          frame.path,
+          { observed_string_bytes: measured.bytes },
+        );
       }
       continue;
     }
@@ -631,11 +667,9 @@ export function validateCanonicalBoundedSnapshotPayload(
 
     let array: boolean;
     let prototype: object | null;
-    let ownKeys: (string | symbol)[];
     try {
       array = Array.isArray(current);
       prototype = Object.getPrototypeOf(object);
-      ownKeys = Reflect.ownKeys(object);
     } catch {
       return invalid(
         "snapshot_payload_introspection_failed",
@@ -663,7 +697,6 @@ export function validateCanonicalBoundedSnapshotPayload(
         return invalid(
           "snapshot_payload_introspection_failed",
           frame.path,
-          { observed_own_keys: ownKeys.length },
         );
       }
       if (
@@ -675,22 +708,43 @@ export function validateCanonicalBoundedSnapshotPayload(
         return invalid(
           "snapshot_payload_array_length_invalid",
           frame.path,
-          { observed_own_keys: ownKeys.length },
         );
       }
-      arrayLength = lengthDescriptor.value;
-      const canonicalArrayLength = lengthDescriptor.value as number;
-      const expectedArrayKeys = [
-        ...Array.from(
-          { length: canonicalArrayLength },
-          (_, index) => String(index),
-        ),
-        "length",
-      ];
-      if (
-        ownKeys.length !== expectedArrayKeys.length ||
-        ownKeys.some((key, index) => key !== expectedArrayKeys[index])
+      const validatedArrayLength = lengthDescriptor.value as number;
+      arrayLength = validatedArrayLength;
+      if (validatedArrayLength > policy.max_array_length) {
+        return exceeded("max_array_length", frame.path, {
+          observed_array_length: validatedArrayLength,
+          observed_own_keys: 0,
+        });
+      }
+    }
+
+    let ownKeys: (string | symbol)[];
+    try {
+      ownKeys = Reflect.ownKeys(object);
+    } catch {
+      return invalid(
+        "snapshot_payload_introspection_failed",
+        frame.path,
+        { observed_array_length: arrayLength },
+      );
+    }
+    const canonicalArrayLength = arrayLength;
+    if (canonicalArrayLength !== null) {
+      let canonicalArrayShape =
+        ownKeys.length === canonicalArrayLength + 1;
+      for (
+        let index = 0;
+        canonicalArrayShape && index < canonicalArrayLength;
+        index += 1
       ) {
+        canonicalArrayShape = ownKeys[index] === String(index);
+      }
+      canonicalArrayShape =
+        canonicalArrayShape &&
+        ownKeys[canonicalArrayLength] === "length";
+      if (!canonicalArrayShape) {
         return invalid(
           `snapshot_payload_array_shape_invalid:${frame.path}`,
           frame.path,
@@ -700,15 +754,6 @@ export function validateCanonicalBoundedSnapshotPayload(
           },
         );
       }
-    }
-    if (
-      arrayLength !== null &&
-      arrayLength > policy.max_array_length
-    ) {
-      return exceeded("max_array_length", frame.path, {
-        observed_array_length: arrayLength,
-        observed_own_keys: ownKeys.length,
-      });
     }
     if (ownKeys.length > policy.max_keys_per_container) {
       return exceeded("max_keys", frame.path, {
@@ -733,23 +778,33 @@ export function validateCanonicalBoundedSnapshotPayload(
     const keyPaths = new Map<string, string>();
     for (let index = 0; index < stringKeys.length; index += 1) {
       const key = stringKeys[index];
-      const keyBytes = utf8Encoder.encode(key).byteLength;
-      const childPath = boundedChildPath(frame.path, key, index, keyBytes);
+      const remainingTotalBytes =
+        policy.max_total_string_bytes - observedTotalStringBytes;
+      const activeLimit = Math.min(
+        policy.max_string_bytes,
+        remainingTotalBytes,
+      );
+      const measured = boundedUtf8ByteLength(key, activeLimit);
+      const childPath = boundedChildPath(
+        frame.path,
+        key,
+        index,
+        measured.bytes,
+      );
       keyPaths.set(key, childPath);
-      observedTotalStringBytes += keyBytes;
-      if (keyBytes > policy.max_string_bytes) {
-        return exceeded("max_string_bytes", childPath, {
-          observed_array_length: arrayLength,
-          observed_own_keys: ownKeys.length,
-          observed_string_bytes: keyBytes,
-        });
-      }
-      if (observedTotalStringBytes > policy.max_total_string_bytes) {
-        return exceeded("max_total_string_bytes", childPath, {
-          observed_array_length: arrayLength,
-          observed_own_keys: ownKeys.length,
-          observed_string_bytes: keyBytes,
-        });
+      observedTotalStringBytes += measured.bytes;
+      if (measured.exceeded) {
+        return exceeded(
+          activeLimit === policy.max_string_bytes
+            ? "max_string_bytes"
+            : "max_total_string_bytes",
+          childPath,
+          {
+            observed_array_length: arrayLength,
+            observed_own_keys: ownKeys.length,
+            observed_string_bytes: measured.bytes,
+          },
+        );
       }
     }
 

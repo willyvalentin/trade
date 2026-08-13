@@ -691,6 +691,50 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
         CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_array_length + 1,
     });
 
+    const firstOversizedSparseArray: unknown[] = [];
+    firstOversizedSparseArray.length =
+      CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_array_length + 1;
+    const maximalSparseArray: unknown[] = [];
+    maximalSparseArray.length = 0xffff_ffff;
+    const originalOwnKeys = Reflect.ownKeys;
+    let oversizedArrayOwnKeyReads = 0;
+    Reflect.ownKeys = ((target: object) => {
+      if (
+        target === firstOversizedSparseArray ||
+        target === maximalSparseArray
+      ) {
+        oversizedArrayOwnKeyReads += 1;
+      }
+      return originalOwnKeys(target);
+    }) as typeof Reflect.ownKeys;
+    let firstOversizedSparseResult;
+    let maximalSparseResult;
+    try {
+      firstOversizedSparseResult =
+        validateCanonicalBoundedSnapshotPayload(
+          firstOversizedSparseArray,
+        );
+      maximalSparseResult = validateCanonicalBoundedSnapshotPayload(
+        maximalSparseArray,
+      );
+    } finally {
+      Reflect.ownKeys = originalOwnKeys;
+    }
+    expect(oversizedArrayOwnKeyReads).toBe(0);
+    expect(firstOversizedSparseResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_array_length",
+      observed_array_length:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_array_length + 1,
+      observed_own_keys: 0,
+    });
+    expect(maximalSparseResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_array_length",
+      observed_array_length: 0xffff_ffff,
+      observed_own_keys: 0,
+    });
+
     const exactString = "å".repeat(
       CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes / 2,
     );
@@ -761,6 +805,31 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(oversizedKeyResult.first_rejected_path.length).toBeLessThan(
       128,
     );
+
+    const hugeString = "x".repeat(
+      CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes * 256,
+    );
+    const hugeStringResult =
+      validateCanonicalBoundedSnapshotPayload(hugeString);
+    expect(hugeStringResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_string_bytes",
+      observed_string_bytes:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes + 1,
+    });
+    const hugeKeyResult = validateCanonicalBoundedSnapshotPayload({
+      [hugeString]: 0,
+    });
+    expect(hugeKeyResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_string_bytes",
+      observed_string_bytes:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes + 1,
+    });
+    if (hugeKeyResult.status !== "budget_exceeded") {
+      throw new Error("expected huge key to exceed budget");
+    }
+    expect(hugeKeyResult.first_rejected_path.length).toBeLessThan(128);
   });
 
   test("returns a rebuildable bounded failure for twenty-thousand-level input", () => {
@@ -1190,6 +1259,7 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       "utf8",
     );
     expect(source).toContain('import "server-only";');
+    expect(source).not.toContain("TextEncoder");
     expect(source).not.toMatch(
       /\.(insert|update|upsert)\s*\(|\b(writeFile|appendFile|fetch)\s*\(/,
     );

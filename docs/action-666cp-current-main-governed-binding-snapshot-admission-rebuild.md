@@ -58,7 +58,8 @@ The historical implementation is hardened before freezing:
    validation finish before the snapshot reader may run;
 5. snapshot validation rejects cycles, proxies, accessors, symbols, sparse or
    augmented arrays, non-finite values, unsupported primitives, non-plain
-   objects and budget overflow without throwing;
+   objects and budget overflow without throwing; array-length and incremental
+   UTF-8 limits apply before attacker-proportional validation allocations;
 6. authority, snapshot, request and result bytes are isolated from later
    caller mutation;
 7. entry, predecessor, snapshot and authority builders share the runtime's
