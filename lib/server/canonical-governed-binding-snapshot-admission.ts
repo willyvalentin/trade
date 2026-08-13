@@ -43,13 +43,13 @@ export const CANONICAL_BOUNDED_SNAPSHOT_VALIDATOR_VERSION =
   "canonical_bounded_snapshot_validator_v1" as const;
 export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_VERSION =
   "canonical_bounded_snapshot_budget_policy_v1" as const;
-export const CANONICAL_BINDING_SNAPSHOT_ADMISSION_STATUSES = [
+export const CANONICAL_BINDING_SNAPSHOT_ADMISSION_STATUSES = Object.freeze([
   "admitted",
   "incomplete",
   "conflicting",
   "not_point_in_time_safe",
   "unmappable",
-] as const;
+] as const);
 export const DEFAULT_OFF_BINDING_SNAPSHOT_ADMISSION_ENABLED = false;
 export const DEFAULT_OFF_BINDING_SNAPSHOT_ADMISSION_KILL_SWITCH_ENGAGED =
   true;
@@ -320,6 +320,155 @@ function stringIncludes(value: string, expected: string) {
   return intrinsicReflectApply(intrinsicStringIncludes, value, [
     expected,
   ]) as boolean;
+}
+
+type IntrinsicDescriptorSurface = {
+  target: object;
+  keys: PropertyKey[];
+  descriptors: PropertyDescriptor[];
+};
+
+function captureDescriptorSurface(target: object): IntrinsicDescriptorSurface {
+  const keys = intrinsicReflectOwnKeys(target);
+  const copiedKeys = new IntrinsicArray<PropertyKey>(keys.length);
+  const descriptors = new IntrinsicArray<PropertyDescriptor>(keys.length);
+  for (let index = 0; index < keys.length; index += 1) {
+    copiedKeys[index] = keys[index];
+    descriptors[index] =
+      intrinsicObjectGetOwnPropertyDescriptor(target, keys[index])!;
+  }
+  return { target, keys: copiedKeys, descriptors };
+}
+
+function captureSelectedDescriptorSurface(
+  target: object,
+  keys: readonly PropertyKey[],
+): IntrinsicDescriptorSurface {
+  const copiedKeys = new IntrinsicArray<PropertyKey>(keys.length);
+  const descriptors = new IntrinsicArray<PropertyDescriptor>(keys.length);
+  for (let index = 0; index < keys.length; index += 1) {
+    copiedKeys[index] = keys[index];
+    descriptors[index] =
+      intrinsicObjectGetOwnPropertyDescriptor(target, keys[index])!;
+  }
+  return { target, keys: copiedKeys, descriptors };
+}
+
+function sameDescriptor(
+  first: PropertyDescriptor,
+  second: PropertyDescriptor,
+) {
+  return (
+    first.configurable === second.configurable &&
+    first.enumerable === second.enumerable &&
+    first.writable === second.writable &&
+    intrinsicObjectIs(first.value, second.value) &&
+    intrinsicObjectIs(first.get, second.get) &&
+    intrinsicObjectIs(first.set, second.set)
+  );
+}
+
+function descriptorSurfaceIntact(
+  surface: IntrinsicDescriptorSurface,
+  requireExactKeys: boolean,
+) {
+  try {
+    if (requireExactKeys) {
+      const currentKeys = intrinsicReflectOwnKeys(surface.target);
+      if (currentKeys.length !== surface.keys.length) return false;
+      for (let index = 0; index < currentKeys.length; index += 1) {
+        if (!intrinsicObjectIs(currentKeys[index], surface.keys[index])) {
+          return false;
+        }
+      }
+    }
+    for (let index = 0; index < surface.keys.length; index += 1) {
+      const current = intrinsicObjectGetOwnPropertyDescriptor(
+        surface.target,
+        surface.keys[index],
+      );
+      if (
+        current === undefined ||
+        !sameDescriptor(current, surface.descriptors[index])
+      ) {
+        return false;
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const downstreamGlobalSurface = captureSelectedDescriptorSurface(
+  globalThis,
+  [
+    "structuredClone",
+    "JSON",
+    "Object",
+    "Array",
+    "String",
+    "Number",
+    "Boolean",
+    "BigInt",
+    "Math",
+    "Date",
+    "RegExp",
+    "Map",
+    "Set",
+    "WeakMap",
+    "WeakSet",
+    "Reflect",
+  ],
+);
+const downstreamIntrinsicSurfaces = [
+  captureDescriptorSurface(JSON),
+  captureDescriptorSurface(Object),
+  captureDescriptorSurface(Object.prototype),
+  captureDescriptorSurface(Array),
+  captureDescriptorSurface(Array.prototype),
+  captureDescriptorSurface(String),
+  captureDescriptorSurface(String.prototype),
+  captureDescriptorSurface(Number),
+  captureDescriptorSurface(Number.prototype),
+  captureDescriptorSurface(Boolean),
+  captureDescriptorSurface(Boolean.prototype),
+  captureDescriptorSurface(BigInt),
+  captureDescriptorSurface(BigInt.prototype),
+  captureDescriptorSurface(Math),
+  captureDescriptorSurface(Date),
+  captureDescriptorSurface(Date.prototype),
+  captureDescriptorSurface(RegExp),
+  captureDescriptorSurface(RegExp.prototype),
+  captureDescriptorSurface(Map),
+  captureDescriptorSurface(Map.prototype),
+  captureDescriptorSurface(Set),
+  captureDescriptorSurface(Set.prototype),
+  captureDescriptorSurface(WeakMap),
+  captureDescriptorSurface(WeakMap.prototype),
+  captureDescriptorSurface(WeakSet),
+  captureDescriptorSurface(WeakSet.prototype),
+  captureDescriptorSurface(Reflect),
+  captureDescriptorSurface(nodeTypes),
+  captureDescriptorSurface(
+    intrinsicObjectGetPrototypeOf(createHash("sha256")) as object,
+  ),
+];
+
+function downstreamIntrinsicSurfacesIntact() {
+  if (!descriptorSurfaceIntact(downstreamGlobalSurface, false)) {
+    return false;
+  }
+  for (
+    let index = 0;
+    index < downstreamIntrinsicSurfaces.length;
+    index += 1
+  ) {
+    if (!descriptorSurfaceIntact(downstreamIntrinsicSurfaces[index], true)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function canonicalizeForDigest(value: unknown): unknown {
@@ -708,7 +857,10 @@ function serializeCanonicalJsonIteratively(value: unknown) {
       arrayPush(pending, { kind: "token", value: "[" });
       continue;
     }
-    const keys = intrinsicObjectKeys(current);
+    const keys = arraySort(
+      intrinsicObjectKeys(current),
+      compareCanonicalStrings,
+    );
     arrayPush(pending, { kind: "token", value: "}" });
     for (let index = keys.length - 1; index >= 0; index -= 1) {
       const key = keys[index];
@@ -1939,6 +2091,8 @@ export function createCanonicalExternalImprovementBindingEntry(input: {
       : ["proposal", "experiment"];
   const instant = canonicalInstant(input.effective_at);
   if (
+    (input.entry_type !== "previous_binding" &&
+      input.entry_type !== "capture_binding") ||
     !arrayIncludes(expectedIdentityTypes, input.bound_identity_type) ||
     !validIdentity(input.bound_identity) ||
     !validFullSha(input.observed_binding_digest) ||
@@ -2033,7 +2187,7 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
     !cutoff ||
     !effective ||
     cutoff.epoch_nanoseconds > captured.epoch_nanoseconds ||
-    effective.epoch_nanoseconds > captured.epoch_nanoseconds ||
+    effective.epoch_nanoseconds !== captured.epoch_nanoseconds ||
     !intrinsicArrayIsArray(input.entry_inventory) ||
     !isRecord(input.predecessor) ||
     !exactKeys(input.predecessor, [
@@ -2684,7 +2838,7 @@ function admitFrozenSnapshot(input: {
     effective.canonical !== snapshot.effective_at ||
     asOf.canonical !== input.request.lookup_as_of ||
     cutoff.epoch_nanoseconds > captured.epoch_nanoseconds ||
-    effective.epoch_nanoseconds > captured.epoch_nanoseconds ||
+    effective.epoch_nanoseconds !== captured.epoch_nanoseconds ||
     captured.epoch_nanoseconds > asOf.epoch_nanoseconds
   ) {
     arrayPush(reasons, "binding_admission_not_point_in_time_safe");
@@ -2963,6 +3117,52 @@ function replayResult(input: {
   return deepFreeze({
     ...payload,
     replay_digest: digest(payload, input.counters),
+  });
+}
+
+function downstreamExecutionFailure(
+  request: CanonicalBindingBackedReplayRequest,
+  counters: CanonicalBindingSnapshotAdmissionCounters,
+  reasonCode:
+    | "binding_backed_replay_downstream_execution_failed"
+    | "binding_backed_replay_downstream_intrinsic_drift",
+) {
+  const reasonCodes = [reasonCode];
+  const requestPlainReasons = plainDataReasons(request);
+  const requestDigest = forensicObservedDigest(
+    request,
+    requestPlainReasons,
+    counters,
+  );
+  const admission = failureResult({
+    status: "unmappable",
+    request,
+    observedSnapshot: null,
+    observedSnapshotIdentity: null,
+    observedSnapshotDigest: digest(
+      { downstream_failure_reason: reasonCode },
+      counters,
+    ),
+    authority: null,
+    reasonCodes,
+    counters,
+  });
+  const lineage = buildLineage({
+    requestDigest,
+    admission,
+    admissionRebuildVerified: false,
+    storeRebuildVerified: false,
+    endToEndRebuildVerified: false,
+    endToEndResult: null,
+  });
+  return replayResult({
+    status: "unmappable",
+    proposalStatus: null,
+    admission,
+    endToEndResult: null,
+    lineage,
+    reasonCodes,
+    counters,
   });
 }
 
@@ -3446,17 +3646,36 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
     value: unknown,
   ): CanonicalBindingBackedReplayResult | null =>
     snapshotRuntimeValue<CanonicalBindingBackedReplayResult>(value);
+  const intrinsicDriftFallback = downstreamExecutionFailure(
+    {
+      invalid_binding_backed_replay_request: true,
+    } as unknown as CanonicalBindingBackedReplayRequest,
+    emptyCounters(),
+    "binding_backed_replay_downstream_intrinsic_drift",
+  );
   const replay = (requestValue: CanonicalBindingBackedReplayRequest) => {
+    if (!downstreamIntrinsicSurfacesIntact()) {
+      return intrinsicDriftFallback;
+    }
     const request = snapshotRequest(requestValue);
-    return execute({
-      request:
-        request ??
-        ({
-          invalid_binding_backed_replay_request: true,
-        } as unknown as CanonicalBindingBackedReplayRequest),
-      dependencies,
-      counters,
-    });
+    const executableRequest =
+      request ??
+      ({
+        invalid_binding_backed_replay_request: true,
+      } as unknown as CanonicalBindingBackedReplayRequest);
+    try {
+      return execute({
+        request: executableRequest,
+        dependencies,
+        counters,
+      });
+    } catch {
+      return downstreamExecutionFailure(
+        executableRequest,
+        counters,
+        "binding_backed_replay_downstream_execution_failed",
+      );
+    }
   };
   return publish({
     enabled: true as const,

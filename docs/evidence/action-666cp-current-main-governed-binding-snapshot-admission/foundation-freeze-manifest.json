@@ -20,7 +20,7 @@
     "budget_policy_version": "canonical_bounded_snapshot_budget_policy_v1",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "e49c66b56bf3250dc6ad35dbc3facfdd9577f31d3b431619c91b2cfde08ce2bc",
+    "aggregate_sha256": "15aadf50188b43819369978fb6e1c2cdda7b5519cca50ab5cd074014c14bd26f",
     "artifacts": [
       {
         "path": "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -28,19 +28,19 @@
       },
       {
         "path": "docs/action-666bd-governed-binding-snapshot-admission.md",
-        "sha256": "0d274590c260975eba4e32a17d0d34c9fa023257d402c47d4bf4f35c389777bb"
+        "sha256": "3444d8db017e579cd17cab69d034426a645b2366619fbc7332bd2fd313cfa93e"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
-        "sha256": "ec74636f5d2c671e1026a430578ccd70edb88f5108e5d73ef9f57bd3556aa82a"
+        "sha256": "a5b26f132d784f1f7450f0a3aaf95d0d3af7cd31c9bfca39ebe97429c7ddb9b3"
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-admission.ts",
-        "sha256": "c951185b229702c3a2e528f8831298ff3d28bbab468294ea49f229ab2dd257f5"
+        "sha256": "593bb6c7cf4f0b415537f792999ead83749f6993c66d6ba899a23ba3e4ffd358"
       },
       {
         "path": "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
-        "sha256": "643fe00c10092ab4e95d8282f14708f0ede88c802580edc03a2850b5c8ea8730"
+        "sha256": "282e0d76a7876a5dabd2ecad39fb56e5555101a10825b624646d40a649514c70"
       }
     ]
   },
@@ -84,7 +84,13 @@
     "captured_regex_time_numeric_and_string_primordials_required": true,
     "implicit_array_iterator_for_canonical_validation_forbidden": true,
     "strict_locale_independent_canonical_string_order_required": true,
+    "canonical_json_sorted_key_bytes_required": true,
     "canonical_json_round_trip_and_duplicate_rejection_required": true,
+    "external_snapshot_effective_equals_captured_required": true,
+    "frozen_admission_taxonomy_required": true,
+    "downstream_intrinsic_descriptor_integrity_gate_required": true,
+    "downstream_drift_structured_zero_read_failure_required": true,
+    "downstream_failure_unproved_rebuild_claim_forbidden": true,
     "cross_limit_budget_precedence_and_permutation_invariance_required": true,
     "arbitrary_js_object_pre_allocation_claimed": false
   },

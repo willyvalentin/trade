@@ -61,7 +61,8 @@ The historical implementation is hardened before freezing:
    objects and budget overflow without throwing; array-length and incremental
    UTF-8 limits apply before full encoding or key collation; runtime source
    JSON is byte-bounded before parse and accepted only through a private,
-   module-recognized frozen source;
+   module-recognized frozen source whose recursively key-sorted canonical bytes
+   exactly match the raw input;
 6. authority, snapshot, request and result bytes are isolated from later
    caller mutation;
 7. entry, predecessor, snapshot and authority builders share the runtime's
@@ -75,6 +76,11 @@ The historical implementation is hardened before freezing:
 11. execution counters are module-private snapshots; caller counters are
     shape-checked but never mutated;
 12. predecessor containment oracles enumerate every new server-only consumer.
+13. the exported admission taxonomy is runtime-frozen; effective time equals
+    capture time in both builders and admission; and a captured descriptor
+    integrity gate stops before all downstream reads if an AX/AQ intrinsic or
+    Node Hash surface drifts after module initialization. The resulting frozen
+    failure makes no unproved rebuild claim.
 
 ## Preserved boundary
 

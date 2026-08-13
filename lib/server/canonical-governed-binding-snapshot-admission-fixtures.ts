@@ -36,6 +36,67 @@ import {
   type CanonicalExternalImprovementBindingSnapshot,
 } from "@/lib/server/canonical-governed-binding-snapshot-admission";
 
+type CanonicalJsonFrame =
+  | { kind: "token"; value: string }
+  | { kind: "value"; value: unknown }
+  | { kind: "exit"; value: object };
+
+export function action666bdCanonicalJsonBytes(value: unknown) {
+  const output: string[] = [];
+  const active = new WeakSet<object>();
+  const pending: CanonicalJsonFrame[] = [{ kind: "value", value }];
+  while (pending.length > 0) {
+    const frame = pending.pop()!;
+    if (frame.kind === "token") {
+      output.push(frame.value);
+      continue;
+    }
+    if (frame.kind === "exit") {
+      active.delete(frame.value);
+      continue;
+    }
+    const current = frame.value;
+    if (current === null || typeof current !== "object") {
+      const serialized = JSON.stringify(current);
+      if (serialized === undefined) {
+        throw new Error("action_666bd_fixture_json_invalid");
+      }
+      output.push(serialized);
+      continue;
+    }
+    if (active.has(current)) {
+      throw new Error("action_666bd_fixture_json_cycle");
+    }
+    active.add(current);
+    pending.push({ kind: "exit", value: current });
+    if (Array.isArray(current)) {
+      pending.push({ kind: "token", value: "]" });
+      for (let index = current.length - 1; index >= 0; index -= 1) {
+        pending.push({ kind: "value", value: current[index] });
+        if (index > 0) pending.push({ kind: "token", value: "," });
+      }
+      pending.push({ kind: "token", value: "[" });
+      continue;
+    }
+    const keys = Object.keys(current).sort((first, second) =>
+      first === second ? 0 : first < second ? -1 : 1,
+    );
+    pending.push({ kind: "token", value: "}" });
+    for (let index = keys.length - 1; index >= 0; index -= 1) {
+      const key = keys[index];
+      pending.push({
+        kind: "value",
+        value: (current as Record<string, unknown>)[key],
+      });
+      pending.push({ kind: "token", value: ":" });
+      pending.push({ kind: "token", value: JSON.stringify(key) });
+      if (index > 0) pending.push({ kind: "token", value: "," });
+    }
+    pending.push({ kind: "token", value: "{" });
+  }
+  return output.join("");
+}
+
 type Fixture =
   | typeof action666vStableImprovementFixture
   | typeof action666vNoChangeFixture
@@ -130,10 +191,7 @@ export function action666bdDependencies(
   snapshot: unknown = action666bdExternalSnapshot(fixture),
   authority?: CanonicalBindingSnapshotAdmissionAuthority,
 ): CanonicalBindingSnapshotAdmissionDependencies {
-  const snapshotJson = JSON.stringify(snapshot);
-  if (snapshotJson === undefined) {
-    throw new Error("action_666bd_snapshot_not_json_serializable");
-  }
+  const snapshotJson = action666bdCanonicalJsonBytes(snapshot);
   return action666bdDependenciesFromJson(
     snapshotJson,
     authority ??

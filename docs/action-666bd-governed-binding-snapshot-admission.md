@@ -87,10 +87,22 @@ date/time conversion, numeric bounds and string byte helpers are also captured;
 SHA and identity validation uses explicit ASCII code-unit checks. Canonical
 collections use index-based traversal instead of the live Array iterator, and
 canonical string ordering is a strict locale-independent UTF-16 order, so
-Unicode-equivalent but byte-distinct keys never inherit insertion order. An iterative canonical reserialization must
-exactly equal the raw JSON
+Unicode-equivalent but byte-distinct keys never inherit insertion order. An
+iterative canonical reserialization sorts every object key with that order and
+must exactly equal the raw JSON
 before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.
+
+The admission module captures a closed descriptor snapshot of every selected
+global, constructor, prototype, Node proxy predicate and Hash prototype used by
+the older AX/AQ execution path. Replay checks that snapshot before request,
+authority or snapshot inspection. Any post-import intrinsic drift returns one
+precomputed, frozen `binding_backed_replay_downstream_intrinsic_drift` result
+with every rebuild claim false and zero downstream reads. This is a fail-closed
+integrity boundary; it does not claim successful replay inside a process whose
+standard-library surface has been modified. An unexpected downstream exception
+is separately reduced to a structured execution failure and likewise makes no
+unproved rebuild claim.
 
 The recursive validator then provides semantic and forensic defense-in-depth
 over that already byte-bounded JSON value. It reads descriptors without
@@ -145,7 +157,8 @@ precision. Admission requires:
 
 - canonical explicit capture, evidence-cutoff, effective, entry, and
   lookup instants;
-- evidence cutoff and effective instant no later than capture;
+- evidence cutoff no later than capture and effective instant exactly equal
+  to capture, preserving parity with the AX projection;
 - every entry effective no later than the evidence cutoff;
 - capture no later than lookup `as_of`;
 - deterministic genesis or linked-predecessor semantics;

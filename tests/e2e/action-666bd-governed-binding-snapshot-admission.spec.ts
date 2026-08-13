@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { types as nodeTypes } from "node:util";
@@ -9,6 +10,7 @@ import {
   action666bdAuthorityConflictDependencies,
   action666bdCallerAuthorityRequest,
   action666bdCapturedAt,
+  action666bdCanonicalJsonBytes,
   action666bdCrossTypeCollisionDependencies,
   action666bdDependencies,
   action666bdDependenciesFromJson,
@@ -108,27 +110,10 @@ function valueWithExactNodeCount(targetNodes: number) {
 
 function replayWithValidationProbe(probe: unknown) {
   const source = action666bdExternalSnapshot();
-  let depth = 0;
-  let cursor = probe;
-  while (
-    cursor !== null &&
-    typeof cursor === "object" &&
-    !Array.isArray(cursor) &&
-    Object.keys(cursor).length === 1 &&
-    Object.hasOwn(cursor, "next")
-  ) {
-    depth += 1;
-    cursor = (cursor as { next: unknown }).next;
-  }
-  const probeJson =
-    cursor !== null &&
-    typeof cursor === "object" &&
-    !Array.isArray(cursor) &&
-    Object.keys(cursor).length === 0
-      ? `${'{"next":'.repeat(depth)}{}${"}".repeat(depth)}`
-      : JSON.stringify(probe);
-  const sourceJson = JSON.stringify(source);
-  const snapshotJson = `${sourceJson.slice(0, -1)},"validation_probe":${probeJson}}`;
+  const snapshotJson = action666bdCanonicalJsonBytes({
+    ...source,
+    validation_probe: probe,
+  });
   const dependencies = action666bdDependenciesFromJson(
     snapshotJson,
     action666bdAuthority(source),
@@ -180,6 +165,9 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       "not_point_in_time_safe",
       "unmappable",
     ]);
+    expect(
+      Object.isFrozen(CANONICAL_BINDING_SNAPSHOT_ADMISSION_STATUSES),
+    ).toBe(true);
     const result = replayWith();
     expect(result).toMatchObject({
       replay_version:
@@ -637,7 +625,7 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(oversizedParseCalls).toBe(0);
 
     const validSource = createCanonicalBindingSnapshotJsonSource(
-      JSON.stringify(action666bdExternalSnapshot()),
+      action666bdCanonicalJsonBytes(action666bdExternalSnapshot()),
     );
     expect(validSource).toEqual({
       source_contract_version:
@@ -645,6 +633,15 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     });
     expect(Object.isFrozen(validSource)).toBe(true);
     expect(action666bdHarness().status).toBe("ready");
+    expect(
+      createCanonicalBindingSnapshotJsonSource('{"a":2,"b":1}'),
+    ).toEqual({
+      source_contract_version:
+        "canonical_external_binding_snapshot_source_v1",
+    });
+    expect(() =>
+      createCanonicalBindingSnapshotJsonSource('{"b":1,"a":2}'),
+    ).toThrow("canonical_binding_snapshot_json_source_noncanonical");
 
     const unrecognizedDependencies = {
       ...action666bdProposalReadyDependencies,
@@ -662,7 +659,7 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     });
     expect(unrecognizedHarness.counters.snapshot_reads).toBe(0);
 
-    const canonicalSnapshotJson = JSON.stringify(
+    const canonicalSnapshotJson = action666bdCanonicalJsonBytes(
       action666bdExternalSnapshot(),
     );
     const authorityRootProperty = `"authority_root_digest":"${
@@ -777,7 +774,8 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     let digestDistinct = false;
     let proxyTrapReads = 0;
     const callerSnapshot = action666bdExternalSnapshot();
-    const canonicalSnapshotJson = JSON.stringify(callerSnapshot);
+    const canonicalSnapshotJson =
+      action666bdCanonicalJsonBytes(callerSnapshot);
     const copiedSource = Object.freeze({
       source_contract_version:
         "canonical_external_binding_snapshot_source_v1" as const,
@@ -1021,6 +1019,12 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       RegExp.prototype.test = originalRegExpTest;
     }
     expect(invalidShaAccepted).toBe(false);
+    expect(() =>
+      createCanonicalExternalImprovementBindingEntry({
+        ...validEntryInput,
+        entry_type: "unknown_binding" as never,
+      }),
+    ).toThrow("canonical_external_binding_entry_invalid");
 
     const source = action666bdExternalSnapshot();
     const duplicateEntry = structuredClone(source.entry_inventory[0]);
@@ -1053,6 +1057,13 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       Array.prototype[Symbol.iterator] = originalArrayIterator;
     }
     expect(duplicateAccepted).toBe(false);
+    expect(() =>
+      createCanonicalExternalImprovementBindingSnapshot({
+        ...duplicateSnapshotInput,
+        entry_inventory: source.entry_inventory,
+        effective_at: source.evidence_cutoff,
+      }),
+    ).toThrow("canonical_external_binding_snapshot_invalid");
 
     const composed = "\u00e9";
     const decomposed = "e\u0301";
@@ -1075,6 +1086,141 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       /for\s*\(\s*const\s+[^)]*\s+of\s+/,
     );
     expect(implementationSource).not.toMatch(/\[\s*\.\.\./);
+  });
+
+  test("contains downstream primordial drift as a rebuildable structured failure", () => {
+    const harness = action666bdHarness();
+    expect(harness.status).toBe("ready");
+    expect(harness.replay).not.toBeNull();
+    const originalStructuredClone = structuredClone;
+    globalThis.structuredClone = (() => {
+      throw new Error("post_import_clone_drift");
+    }) as typeof structuredClone;
+    let result!: CanonicalBindingBackedReplayResult;
+    let verification!: ReturnType<
+      typeof verifyCanonicalBindingBackedImprovementReplayResult
+    >;
+    try {
+      result = harness.replay!(action666bdProposalReadyRequest);
+      verification = verifyCanonicalBindingBackedImprovementReplayResult({
+        request: action666bdProposalReadyRequest,
+        result,
+        harness,
+      });
+    } finally {
+      globalThis.structuredClone = originalStructuredClone;
+    }
+    expect(result).toMatchObject({
+      status: "unmappable",
+      reason_codes: [
+        "binding_backed_replay_downstream_intrinsic_drift",
+      ],
+      lineage: {
+        admission_rebuild_verified: false,
+        store_rebuild_verified: false,
+        end_to_end_rebuild_verified: false,
+      },
+    });
+    expect(Object.isFrozen(result)).toBe(true);
+    expect(verification).toMatchObject({
+      valid: true,
+      reason_codes: [],
+    });
+
+    const localeHarness = action666bdHarness();
+    const originalLocaleCompare = String.prototype.localeCompare;
+    String.prototype.localeCompare = function (
+      this: string,
+      other: string,
+    ) {
+      return originalLocaleCompare.call(other, this);
+    };
+    let localeResult!: CanonicalBindingBackedReplayResult;
+    try {
+      localeResult = localeHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      String.prototype.localeCompare = originalLocaleCompare;
+    }
+    expect(localeResult).toMatchObject({
+      status: "unmappable",
+      reason_codes: [
+        "binding_backed_replay_downstream_intrinsic_drift",
+      ],
+      lineage: {
+        admission_rebuild_verified: false,
+        store_rebuild_verified: false,
+        end_to_end_rebuild_verified: false,
+      },
+    });
+    expect(localeHarness.counters).toMatchObject({
+      request_reads: 0,
+      snapshot_reads: 0,
+      authority_reads: 0,
+      end_to_end_executions: 0,
+    });
+
+    const booleanHarness = action666bdHarness();
+    const originalBoolean = Boolean;
+    globalThis.Boolean = ((value?: unknown) =>
+      !originalBoolean(value)) as BooleanConstructor;
+    let booleanResult!: CanonicalBindingBackedReplayResult;
+    try {
+      booleanResult = booleanHarness.replay!(
+        action666bdProposalReadyRequest,
+      );
+    } finally {
+      globalThis.Boolean = originalBoolean;
+    }
+    expect(booleanResult).toEqual(localeResult);
+
+    const hashHarness = action666bdHarness();
+    const hashPrototype = Object.getPrototypeOf(createHash("sha256")) as {
+      update: (...args: unknown[]) => unknown;
+    };
+    const originalHashUpdate = hashPrototype.update;
+    hashPrototype.update = function () {
+      return this;
+    };
+    let hashResult!: CanonicalBindingBackedReplayResult;
+    try {
+      hashResult = hashHarness.replay!(action666bdProposalReadyRequest);
+    } finally {
+      hashPrototype.update = originalHashUpdate;
+    }
+    expect(hashResult).toEqual(localeResult);
+
+    const arraySetterHarness = action666bdHarness();
+    let setterCalls = 0;
+    let observeSetterCalls = false;
+    const originalArrayPrototypeLength = Array.prototype.length;
+    Object.defineProperty(Array.prototype, "0", {
+      configurable: true,
+      set() {
+        if (observeSetterCalls) setterCalls += 1;
+      },
+    });
+    let arraySetterResult!: CanonicalBindingBackedReplayResult;
+    let arraySetterThrown: unknown = null;
+    try {
+      try {
+        observeSetterCalls = true;
+        arraySetterResult = arraySetterHarness.replay!(
+          action666bdProposalReadyRequest,
+        );
+      } catch (error) {
+        arraySetterThrown = error;
+      } finally {
+        observeSetterCalls = false;
+      }
+    } finally {
+      delete (Array.prototype as unknown as Record<string, unknown>)["0"];
+      Array.prototype.length = originalArrayPrototypeLength;
+    }
+    expect(arraySetterThrown).toBeNull();
+    expect(setterCalls).toBe(0);
+    expect(arraySetterResult).toEqual(localeResult);
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {
