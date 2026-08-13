@@ -67,6 +67,12 @@ type BoundIdentityType = "proposal" | "experiment" | "capture";
 
 const shaPattern = /^[a-f0-9]{64}$/;
 const identityPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{2,255}$/;
+const intrinsicJsonParse = JSON.parse;
+const intrinsicJsonStringify = JSON.stringify;
+const intrinsicObjectFreeze = Object.freeze;
+const intrinsicObjectKeys = Object.keys;
+const intrinsicObjectValues = Object.values;
+const intrinsicArrayIsArray = Array.isArray;
 
 export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY = Object.freeze({
   policy_version: CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_VERSION,
@@ -342,14 +348,67 @@ function deepFreezeJsonSnapshot<T extends object>(value: T): T {
     const current = pending.pop()!;
     if (seen.has(current)) continue;
     seen.add(current);
-    for (const nested of Object.values(current)) {
+    for (const nested of intrinsicObjectValues(current)) {
       if (nested !== null && typeof nested === "object") {
         pending.push(nested);
       }
     }
-    Object.freeze(current);
+    intrinsicObjectFreeze(current);
   }
   return value;
+}
+
+type JsonSerializationFrame =
+  | { kind: "token"; value: string }
+  | { kind: "value"; value: unknown };
+
+function serializeCanonicalJsonIteratively(value: unknown) {
+  const output: string[] = [];
+  const pending: JsonSerializationFrame[] = [
+    { kind: "value", value },
+  ];
+  while (pending.length > 0) {
+    const frame = pending.pop()!;
+    if (frame.kind === "token") {
+      output.push(frame.value);
+      continue;
+    }
+    const current = frame.value;
+    if (current === null || typeof current !== "object") {
+      const serialized = intrinsicJsonStringify(current);
+      if (serialized === undefined) {
+        throw new Error("canonical_binding_snapshot_json_source_invalid");
+      }
+      output.push(serialized);
+      continue;
+    }
+    if (intrinsicArrayIsArray(current)) {
+      pending.push({ kind: "token", value: "]" });
+      for (let index = current.length - 1; index >= 0; index -= 1) {
+        pending.push({ kind: "value", value: current[index] });
+        if (index > 0) pending.push({ kind: "token", value: "," });
+      }
+      pending.push({ kind: "token", value: "[" });
+      continue;
+    }
+    const keys = intrinsicObjectKeys(current);
+    pending.push({ kind: "token", value: "}" });
+    for (let index = keys.length - 1; index >= 0; index -= 1) {
+      const key = keys[index];
+      pending.push({
+        kind: "value",
+        value: (current as Record<string, unknown>)[key],
+      });
+      pending.push({ kind: "token", value: ":" });
+      pending.push({
+        kind: "token",
+        value: intrinsicJsonStringify(key),
+      });
+      if (index > 0) pending.push({ kind: "token", value: "," });
+    }
+    pending.push({ kind: "token", value: "{" });
+  }
+  return output.join("");
 }
 
 function uniqueSorted(values: string[]) {
@@ -780,9 +839,7 @@ export function validateCanonicalBoundedSnapshotPayload(
             frame.path,
             {
               observed_array_length: arrayLength,
-              observed_own_keys: perStringLimitExceeded
-                ? observedEnumerableKeys
-                : 0,
+              observed_own_keys: 0,
               observed_string_bytes: perStringLimitExceeded
                 ? policy.max_string_bytes + 1
                 : null,
@@ -988,20 +1045,23 @@ export function createCanonicalBindingSnapshotJsonSource(
   }
   let snapshot: unknown;
   try {
-    snapshot = JSON.parse(snapshotJson) as unknown;
+    snapshot = intrinsicJsonParse(snapshotJson) as unknown;
   } catch {
     throw new Error("canonical_binding_snapshot_json_source_invalid");
   }
   if (
     snapshot === null ||
     typeof snapshot !== "object" ||
-    Array.isArray(snapshot)
+    intrinsicArrayIsArray(snapshot)
   ) {
     throw new Error("canonical_binding_snapshot_json_source_invalid");
   }
+  if (serializeCanonicalJsonIteratively(snapshot) !== snapshotJson) {
+    throw new Error("canonical_binding_snapshot_json_source_noncanonical");
+  }
   const frozenSnapshot = deepFreezeJsonSnapshot(snapshot);
   recognizedJsonSnapshots.add(frozenSnapshot);
-  const source = Object.freeze({
+  const source = intrinsicObjectFreeze({
     source_contract_version:
       "canonical_external_binding_snapshot_source_v1" as const,
   });

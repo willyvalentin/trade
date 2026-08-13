@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "d24920094d6134253199859ff24d3d7c6f54b661514d210091c238aecde7e0fc";
+  "068df04a1ee157891d324fabb8523716424ea2fa1b3a0885b87efad8cd010fad";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "d8e3db9cb2dda85bbf7ce8bf76c8890704771493b99a26ce22dfc4f44c00fe47",
+      "79c6f7357c153e996137f2c44455c22d27873723a61ebbccce1b9f6de5181028",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "48ef8f75e0df82cb2c841201b313ef7a0b147796311f5cb447ea8591a40f1817",
+          "bd31d0668b213358a57e63919b41c1ac0f1725d8cbb782f85948bccc41fb5d77",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "975326f21ea70081ec0aa0533b1dcd443398f603b9c6bcfe8ac86e7f230bd2d1",
+          "c3936d272d4f8d6de486f74a555941dbb019f7b8f10c850935d221c8bdb309d5",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "9ee35bef220cd032ce868c05f5ca88d6cfc8bbdf12e469e8108787799feb0041",
+          "7b4cb56d332f0d347b28356ffaeeacdd0e46706bf6f46fde382a2ff679ed3f8d",
       },
     ],
   },
@@ -101,6 +101,8 @@ const expectedManifest = {
     recursive_adversarial_runtime_matrix_required: true,
     raw_json_byte_bound_before_parse_required: true,
     private_frozen_snapshot_source_brand_required: true,
+    captured_json_primordials_required: true,
+    canonical_json_round_trip_and_duplicate_rejection_required: true,
     arbitrary_js_object_pre_allocation_claimed: false,
   },
   delivery: {

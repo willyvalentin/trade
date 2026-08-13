@@ -74,6 +74,11 @@ branded, and stored behind a module-owned reader. Runtime performs an O(1)
 brand check before traversal. An unbranded caller object or copied source shell
 cannot reach the snapshot reader. A future live adapter must apply the same
 raw-byte bound before parsing and cannot issue the private brand itself.
+Parser, serializer and freeze primordials are captured at module evaluation;
+later global monkey-patching cannot substitute parsed data or execute injected
+getters. An iterative canonical reserialization must exactly equal the raw JSON
+before branding, rejecting duplicate keys and alternative whitespace/escape
+encodings without recursive stack use.
 
 The recursive validator then provides semantic and forensic defense-in-depth
 over that already byte-bounded JSON value. It reads descriptors without

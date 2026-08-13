@@ -647,6 +647,68 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       replay: null,
     });
     expect(unrecognizedHarness.counters.snapshot_reads).toBe(0);
+
+    const canonicalSnapshotJson = JSON.stringify(
+      action666bdExternalSnapshot(),
+    );
+    const authorityRootProperty = `"authority_root_digest":"${
+      action666bdExternalSnapshot().authority_root_digest
+    }"`;
+    const duplicateKeyJson = canonicalSnapshotJson.replace(
+      authorityRootProperty,
+      `"authority_root_digest":"${"e".repeat(64)}",${authorityRootProperty}`,
+    );
+    expect(() =>
+      createCanonicalBindingSnapshotJsonSource(duplicateKeyJson),
+    ).toThrow("canonical_binding_snapshot_json_source_noncanonical");
+    for (const noncanonicalJson of [
+      '{"nested":{"key":1,"key":2}}',
+      '{"whitespace": 1}',
+      '{"escape":"\\u0061"}',
+    ]) {
+      expect(() =>
+        createCanonicalBindingSnapshotJsonSource(noncanonicalJson),
+      ).toThrow("canonical_binding_snapshot_json_source_noncanonical");
+    }
+
+    const primordialProbeJson =
+      '{"action_666cp_primordial_probe":1}';
+    let substitutedParseCalls = 0;
+    let getterReads = 0;
+    JSON.parse = ((
+      text: string,
+      reviver?: Parameters<typeof JSON.parse>[1],
+    ) => {
+      if (text !== primordialProbeJson) {
+        return originalParse(text, reviver);
+      }
+      substitutedParseCalls += 1;
+      const substituted = {} as Record<string, unknown>;
+      Object.defineProperty(substituted, "leak", {
+        enumerable: true,
+        get() {
+          getterReads += 1;
+          throw new Error("caller_getter_executed");
+        },
+      });
+      return substituted;
+    }) as typeof JSON.parse;
+    let primordialSource;
+    try {
+      primordialSource = createCanonicalBindingSnapshotJsonSource(
+        primordialProbeJson,
+      );
+    } finally {
+      JSON.parse = originalParse;
+    }
+    expect(substitutedParseCalls).toBe(0);
+    expect(getterReads).toBe(0);
+    const primordialResult = replayWith({
+      ...action666bdProposalReadyDependencies,
+      snapshot_dependency: primordialSource,
+    });
+    expect(primordialResult.status).not.toBe("admitted");
+    expect(getterReads).toBe(0);
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {
@@ -914,6 +976,18 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       throw new Error("expected huge key to exceed budget");
     }
     expect(hugeKeyResult.first_rejected_path.length).toBeLessThan(128);
+    const oversizedOrderKey = "o".repeat(
+      CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes + 1,
+    );
+    const hugeKeyForward = validateCanonicalBoundedSnapshotPayload({
+      ordinary: 0,
+      [oversizedOrderKey]: 0,
+    });
+    const hugeKeyReverse = validateCanonicalBoundedSnapshotPayload({
+      [oversizedOrderKey]: 0,
+      ordinary: 0,
+    });
+    expect(hugeKeyReverse).toEqual(hugeKeyForward);
 
     const hugeCommonPrefix = "p".repeat(2_000_001);
     const firstHugeKey = `${hugeCommonPrefix}a`;
