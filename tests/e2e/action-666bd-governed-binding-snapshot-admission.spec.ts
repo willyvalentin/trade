@@ -10,6 +10,7 @@ import {
   action666bdCapturedAt,
   action666bdCrossTypeCollisionDependencies,
   action666bdDependencies,
+  action666bdDependenciesFromJson,
   action666bdDuplicateEntriesDependencies,
   action666bdEvidenceAfterCutoffDependencies,
   action666bdExternalSnapshot,
@@ -36,11 +37,13 @@ import {
   CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_DIGEST,
   CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_VERSION,
   CANONICAL_BOUNDED_SNAPSHOT_VALIDATOR_VERSION,
+  CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES,
   CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_ADMISSION_VERSION,
   DEFAULT_OFF_BINDING_SNAPSHOT_ADMISSION_ENABLED,
   DEFAULT_OFF_BINDING_SNAPSHOT_ADMISSION_KILL_SWITCH_ENGAGED,
   canonicalBindingBackedReplayDigest,
   createCanonicalBindingBackedImprovementReplayHarness,
+  createCanonicalBindingSnapshotJsonSource,
   validateCanonicalBoundedSnapshotPayload,
   verifyCanonicalBindingBackedImprovementReplayResult,
   type CanonicalBindingBackedReplayResult,
@@ -101,13 +104,29 @@ function valueWithExactNodeCount(targetNodes: number) {
 
 function replayWithValidationProbe(probe: unknown) {
   const source = action666bdExternalSnapshot();
-  const snapshot = {
-    ...structuredClone(source),
-    validation_probe: probe,
-  };
-  const dependencies = action666bdDependencies(
-    undefined,
-    snapshot,
+  let depth = 0;
+  let cursor = probe;
+  while (
+    cursor !== null &&
+    typeof cursor === "object" &&
+    !Array.isArray(cursor) &&
+    Object.keys(cursor).length === 1 &&
+    Object.hasOwn(cursor, "next")
+  ) {
+    depth += 1;
+    cursor = (cursor as { next: unknown }).next;
+  }
+  const probeJson =
+    cursor !== null &&
+    typeof cursor === "object" &&
+    !Array.isArray(cursor) &&
+    Object.keys(cursor).length === 0
+      ? `${'{"next":'.repeat(depth)}{}${"}".repeat(depth)}`
+      : JSON.stringify(probe);
+  const sourceJson = JSON.stringify(source);
+  const snapshotJson = `${sourceJson.slice(0, -1)},"validation_probe":${probeJson}}`;
+  const dependencies = action666bdDependenciesFromJson(
+    snapshotJson,
     action666bdAuthority(source),
   );
   return {
@@ -351,26 +370,25 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(result.lineage.ax_store_version).toBeNull();
   });
 
-  test("rejects getter/prototype payloads without invoking the getter", () => {
-    const result = replayWith(action666bdGetterSnapshotDependencies());
-    expect(result.status).toBe("unmappable");
-    expect(result.reason_codes.join(" ")).toContain(
-      "snapshot_payload_accessor_forbidden",
+  test("rejects unrecognized sources before payload reads and rejects non-JSON surfaces", () => {
+    const unrecognized = action666bdHarness(
+      action666bdGetterSnapshotDependencies(),
     );
+    expect(unrecognized).toMatchObject({
+      status: "unavailable",
+      replay: null,
+    });
+    expect(unrecognized.counters.snapshot_reads).toBe(0);
 
     const source = action666bdExternalSnapshot();
     const customPrototype = structuredClone(source);
     Object.setPrototypeOf(customPrototype, {
       caller_claimed_trusted_snapshot: true,
     });
-    const prototypeResult = replayWith(
-      action666bdDependencies(
-        undefined,
-        customPrototype,
-        action666bdAuthority(source),
-      ),
+    const prototypeResult = validateCanonicalBoundedSnapshotPayload(
+      customPrototype,
     );
-    expect(prototypeResult.status).toBe("unmappable");
+    expect(prototypeResult.status).toBe("invalid");
     expect(prototypeResult.reason_codes.join(" ")).toContain(
       "snapshot_payload_prototype_forbidden",
     );
@@ -435,11 +453,10 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     );
   });
 
-  test("authority is read exactly once and post-callback mutation cannot change admitted bytes", () => {
+  test("authority is read exactly once and source bytes are isolated from later mutation", () => {
     const snapshot = structuredClone(action666bdExternalSnapshot());
     const authority = action666bdAuthority(snapshot);
     let authorityReads = 0;
-    let snapshotReads = 0;
     const dependencies = action666bdDependencies(
       undefined,
       snapshot,
@@ -449,20 +466,17 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       authorityReads += 1;
       return authority;
     };
-    dependencies.snapshot_dependency.read_snapshot = () => {
-      snapshotReads += 1;
-      return snapshot;
-    };
-    const result = replayWith(dependencies);
-    const before = JSON.stringify(result);
     snapshot.snapshot_identity = "external-binding-snapshot:mutated:9:9";
+    const harness = action666bdHarness(dependencies);
+    const result = harness.replay!(action666bdProposalReadyRequest);
+    const before = JSON.stringify(result);
     expect(authorityReads).toBe(1);
-    expect(snapshotReads).toBe(1);
+    expect(harness.counters.snapshot_reads).toBe(1);
     expect(JSON.stringify(result)).toBe(before);
     expect(result.status).toBe("admitted");
   });
 
-  test("snapshot mutation after authority read fails closed", () => {
+  test("source bytes remain immutable when caller mutates its former object during authority read", () => {
     const snapshot = structuredClone(action666bdExternalSnapshot());
     const authority = action666bdAuthority(snapshot);
     const dependencies = action666bdDependencies(
@@ -475,13 +489,8 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       return authority;
     };
     const result = replayWith(dependencies);
-    expect(result.status).toBe("conflicting");
-    expect(result.reason_codes).toContain(
-      "binding_admission_authority_snapshot_conflict",
-    );
-    expect(result.reason_codes).toContain(
-      "binding_admission_snapshot_digest_mismatch",
-    );
+    expect(result.status).toBe("admitted");
+    expect(result.reason_codes).toEqual([]);
   });
 
   test("input order is canonical and caller input remains immutable", () => {
@@ -586,13 +595,58 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     );
     expect(
       validateCanonicalBoundedSnapshotPayload(
-        action666bdProposalReadyDependencies.snapshot_dependency.read_snapshot(),
+        action666bdExternalSnapshot(),
       ),
     ).toMatchObject({
       status: "valid",
       observed_depth: 2,
       observed_nodes: 35,
     });
+  });
+
+  test("bounds raw JSON before parse and recognizes only module-created sources", () => {
+    const originalParse = JSON.parse;
+    let parseCalls = 0;
+    JSON.parse = ((...parameters: Parameters<typeof JSON.parse>) => {
+      parseCalls += 1;
+      return originalParse(...parameters);
+    }) as typeof JSON.parse;
+    try {
+      expect(() =>
+        createCanonicalBindingSnapshotJsonSource(
+          " ".repeat(CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES + 1),
+        ),
+      ).toThrow("canonical_binding_snapshot_json_source_too_large");
+      expect(parseCalls).toBe(0);
+    } finally {
+      JSON.parse = originalParse;
+    }
+
+    const validSource = createCanonicalBindingSnapshotJsonSource(
+      JSON.stringify(action666bdExternalSnapshot()),
+    );
+    expect(validSource).toEqual({
+      source_contract_version:
+        "canonical_external_binding_snapshot_source_v1",
+    });
+    expect(Object.isFrozen(validSource)).toBe(true);
+    expect(action666bdHarness().status).toBe("ready");
+
+    const unrecognizedDependencies = {
+      ...action666bdProposalReadyDependencies,
+      snapshot_dependency: {
+        source_contract_version:
+          "canonical_external_binding_snapshot_source_v1" as const,
+      },
+    };
+    const unrecognizedHarness = action666bdHarness(
+      unrecognizedDependencies,
+    );
+    expect(unrecognizedHarness).toMatchObject({
+      status: "unavailable",
+      replay: null,
+    });
+    expect(unrecognizedHarness.counters.snapshot_reads).toBe(0);
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {
@@ -922,6 +976,12 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       status: "budget_exceeded",
       budget_kind: "max_total_string_bytes",
     });
+    const reversedTotalKeyBytes = Object.fromEntries(
+      Object.entries(excessiveTotalKeyBytes).reverse(),
+    );
+    expect(
+      validateCanonicalBoundedSnapshotPayload(reversedTotalKeyBytes),
+    ).toEqual(excessiveTotalKeyBytesResult);
   });
 
   test("returns a rebuildable bounded failure for twenty-thousand-level input", () => {
@@ -1251,7 +1311,6 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     captureAuthority.authority_digest =
       canonicalBindingBackedReplayDigest(capturePayload);
     let authorityReads = 0;
-    let snapshotReads = 0;
     const harness =
       createCanonicalBindingBackedImprovementReplayHarness({
         enabled: true,
@@ -1265,13 +1324,7 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
               return source.authority_dependency.read_expected_authority();
             },
           },
-          snapshot_dependency: {
-            ...source.snapshot_dependency,
-            read_snapshot: () => {
-              snapshotReads += 1;
-              return source.snapshot_dependency.read_snapshot();
-            },
-          },
+          snapshot_dependency: source.snapshot_dependency,
           capture_authority: captureAuthority,
           expected_capture_authority_identity:
             captureAuthority.authority_identity,
@@ -1285,7 +1338,6 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
       replay: null,
     });
     expect(authorityReads).toBe(0);
-    expect(snapshotReads).toBe(0);
     expect(harness.counters).toEqual(zeroCounters());
   });
 

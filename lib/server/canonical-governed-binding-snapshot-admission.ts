@@ -82,6 +82,7 @@ export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_DIGEST =
   canonicalModelImprovementDigest(
     CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY,
   );
+export const CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES = 1_048_576;
 
 export type CanonicalBoundedSnapshotBudgetKind =
   | "max_depth"
@@ -194,7 +195,6 @@ export type CanonicalBindingSnapshotAuthorityDependency = {
 
 export type CanonicalBindingSnapshotSourceDependency = {
   source_contract_version: "canonical_external_binding_snapshot_source_v1";
-  read_snapshot: () => unknown;
 };
 
 export type CanonicalBindingBackedReplayRequest = {
@@ -307,6 +307,8 @@ export type CanonicalBindingSnapshotAdmissionDependencies = {
 };
 
 const recognizedAuthorities = new WeakSet<object>();
+const recognizedSnapshotSources = new WeakMap<object, () => unknown>();
+const recognizedJsonSnapshots = new WeakSet<object>();
 type CanonicalBindingBackedReplayAuthority = {
   replay: (
     request: CanonicalBindingBackedReplayRequest,
@@ -329,6 +331,23 @@ function deepFreeze<T>(value: T): T {
     for (const nested of Object.values(value as Record<string, unknown>)) {
       deepFreeze(nested);
     }
+  }
+  return value;
+}
+
+function deepFreezeJsonSnapshot<T extends object>(value: T): T {
+  const pending: object[] = [value];
+  const seen = new WeakSet<object>();
+  while (pending.length > 0) {
+    const current = pending.pop()!;
+    if (seen.has(current)) continue;
+    seen.add(current);
+    for (const nested of Object.values(current)) {
+      if (nested !== null && typeof nested === "object") {
+        pending.push(nested);
+      }
+    }
+    Object.freeze(current);
   }
   return value;
 }
@@ -722,6 +741,7 @@ export function validateCanonicalBoundedSnapshotPayload(
 
     const enumerableStringKeys: string[] = [];
     const boundedKeyBytes = new Map<string, number>();
+    const containerStartingStringBytes = observedTotalStringBytes;
     let enumerableKeyBytes = 0;
     try {
       for (const key in object) {
@@ -730,7 +750,7 @@ export function validateCanonicalBoundedSnapshotPayload(
         if (
           observedEnumerableKeys > policy.max_keys_per_container
         ) {
-          observedTotalStringBytes += enumerableKeyBytes;
+          observedTotalStringBytes = containerStartingStringBytes;
           return exceeded("max_keys", frame.path, {
             observed_array_length: arrayLength,
             observed_own_keys: observedEnumerableKeys,
@@ -745,24 +765,27 @@ export function validateCanonicalBoundedSnapshotPayload(
           remainingTotalBytes,
         );
         const measured = boundedUtf8ByteLength(key, activeLimit);
-        const childPath = boundedChildPath(
-          frame.path,
-          key,
-          enumerableStringKeys.length,
-          measured.bytes,
-        );
         if (measured.exceeded) {
-          observedTotalStringBytes +=
-            enumerableKeyBytes + measured.bytes;
+          const perStringLimitExceeded =
+            activeLimit === policy.max_string_bytes;
+          observedTotalStringBytes = perStringLimitExceeded
+            ? containerStartingStringBytes +
+              policy.max_string_bytes +
+              1
+            : policy.max_total_string_bytes + 1;
           return exceeded(
-            activeLimit === policy.max_string_bytes
+            perStringLimitExceeded
               ? "max_string_bytes"
               : "max_total_string_bytes",
-            childPath,
+            frame.path,
             {
               observed_array_length: arrayLength,
-              observed_own_keys: observedEnumerableKeys,
-              observed_string_bytes: measured.bytes,
+              observed_own_keys: perStringLimitExceeded
+                ? observedEnumerableKeys
+                : 0,
+              observed_string_bytes: perStringLimitExceeded
+                ? policy.max_string_bytes + 1
+                : null,
             },
           );
         }
@@ -948,6 +971,42 @@ export function validateCanonicalBoundedSnapshotPayload(
       observedTotalStringBytes,
     }),
   };
+}
+
+export function createCanonicalBindingSnapshotJsonSource(
+  snapshotJson: string,
+): CanonicalBindingSnapshotSourceDependency {
+  if (typeof snapshotJson !== "string") {
+    throw new Error("canonical_binding_snapshot_json_source_invalid");
+  }
+  const rawBytes = boundedUtf8ByteLength(
+    snapshotJson,
+    CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES,
+  );
+  if (rawBytes.exceeded) {
+    throw new Error("canonical_binding_snapshot_json_source_too_large");
+  }
+  let snapshot: unknown;
+  try {
+    snapshot = JSON.parse(snapshotJson) as unknown;
+  } catch {
+    throw new Error("canonical_binding_snapshot_json_source_invalid");
+  }
+  if (
+    snapshot === null ||
+    typeof snapshot !== "object" ||
+    Array.isArray(snapshot)
+  ) {
+    throw new Error("canonical_binding_snapshot_json_source_invalid");
+  }
+  const frozenSnapshot = deepFreezeJsonSnapshot(snapshot);
+  recognizedJsonSnapshots.add(frozenSnapshot);
+  const source = Object.freeze({
+    source_contract_version:
+      "canonical_external_binding_snapshot_source_v1" as const,
+  });
+  recognizedSnapshotSources.set(source, () => frozenSnapshot);
+  return source;
 }
 
 function plainDataReasons(value: unknown) {
@@ -1209,10 +1268,7 @@ function snapshotDependencies(
         "read_expected_authority",
       ]) ||
       !isRecord(snapshotDependency.value) ||
-      !exactKeys(snapshotDependency.value, [
-        "read_snapshot",
-        "source_contract_version",
-      ]) ||
+      !recognizedSnapshotSources.has(snapshotDependency.value) ||
       authorityDependency.value.owner_boundary_version !==
         CANONICAL_BINDING_SNAPSHOT_OWNER_BOUNDARY_VERSION ||
       !validIdentity(
@@ -1224,8 +1280,6 @@ function snapshotDependencies(
       !validFullSha(
         authorityDependency.value.expected_authority_digest,
       ) ||
-      snapshotDependency.value.source_contract_version !==
-        "canonical_external_binding_snapshot_source_v1" ||
       !validIdentity(expectedCaptureIdentity.value) ||
       !validFullSha(expectedCaptureDigest.value) ||
       !isRecord(captureAuthority.value) ||
@@ -1264,10 +1318,8 @@ function snapshotDependencies(
       ],
       "read_expected_authority",
     );
-    const readSnapshot = captureMethod(
+    const readSnapshot = recognizedSnapshotSources.get(
       snapshotDependency.value,
-      ["read_snapshot", "source_contract_version"],
-      "read_snapshot",
     );
     if (!readAuthority || !readSnapshot) return null;
     const capturePayload = structuredClone(captureAuthority.value);
@@ -1308,11 +1360,8 @@ function snapshotDependencies(
         read_expected_authority:
           readAuthority as () => CanonicalBindingSnapshotAdmissionAuthority,
       },
-      snapshot_dependency: {
-        source_contract_version:
-          "canonical_external_binding_snapshot_source_v1",
-        read_snapshot: readSnapshot,
-      },
+      snapshot_dependency:
+        snapshotDependency.value as CanonicalBindingSnapshotSourceDependency,
       capture_authority:
         captureAuthority.value as CanonicalCompletedImprovementCaptureAuthority,
       expected_capture_authority_identity:
@@ -2525,7 +2574,20 @@ function execute(input: {
   let rawSnapshot: unknown;
   try {
     input.counters.snapshot_reads += 1;
-    rawSnapshot = input.dependencies.snapshot_dependency.read_snapshot();
+    const readSnapshot = recognizedSnapshotSources.get(
+      input.dependencies.snapshot_dependency,
+    );
+    if (!readSnapshot) {
+      throw new Error("binding_admission_snapshot_source_unrecognized");
+    }
+    rawSnapshot = readSnapshot();
+    if (
+      rawSnapshot === null ||
+      typeof rawSnapshot !== "object" ||
+      !recognizedJsonSnapshots.has(rawSnapshot)
+    ) {
+      throw new Error("binding_admission_snapshot_source_unrecognized");
+    }
   } catch {
     const admission = failureResult({
       status: "incomplete",

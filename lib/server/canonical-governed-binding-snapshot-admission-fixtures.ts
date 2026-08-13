@@ -25,6 +25,7 @@ import {
   CANONICAL_BINDING_BACKED_REPLAY_REQUEST_VERSION,
   CANONICAL_BINDING_SNAPSHOT_OWNER_BOUNDARY_VERSION,
   createCanonicalBindingBackedImprovementReplayHarness,
+  createCanonicalBindingSnapshotJsonSource,
   createCanonicalBindingSnapshotAdmissionAuthority,
   createCanonicalExternalImprovementBindingEntry,
   createCanonicalExternalImprovementBindingSnapshot,
@@ -129,11 +130,26 @@ export function action666bdDependencies(
   snapshot: unknown = action666bdExternalSnapshot(fixture),
   authority?: CanonicalBindingSnapshotAdmissionAuthority,
 ): CanonicalBindingSnapshotAdmissionDependencies {
-  const expectedSnapshot =
-    snapshot as CanonicalExternalImprovementBindingSnapshot;
+  const snapshotJson = JSON.stringify(snapshot);
+  if (snapshotJson === undefined) {
+    throw new Error("action_666bd_snapshot_not_json_serializable");
+  }
+  return action666bdDependenciesFromJson(
+    snapshotJson,
+    authority ??
+      action666bdAuthority(
+        snapshot as CanonicalExternalImprovementBindingSnapshot,
+      ),
+    fixture,
+  );
+}
+
+export function action666bdDependenciesFromJson(
+  snapshotJson: string,
+  expectedAuthority: CanonicalBindingSnapshotAdmissionAuthority,
+  fixture: Fixture = action666vStableImprovementFixture,
+): CanonicalBindingSnapshotAdmissionDependencies {
   const captureAuthority = action666ajAuthority(asFixture(fixture));
-  const expectedAuthority =
-    authority ?? action666bdAuthority(expectedSnapshot);
   return {
     authority_dependency: {
       owner_boundary_version:
@@ -144,11 +160,8 @@ export function action666bdDependencies(
       expected_authority_digest: expectedAuthority.authority_digest,
       read_expected_authority: () => expectedAuthority,
     },
-    snapshot_dependency: {
-      source_contract_version:
-        "canonical_external_binding_snapshot_source_v1",
-      read_snapshot: () => snapshot,
-    },
+    snapshot_dependency:
+      createCanonicalBindingSnapshotJsonSource(snapshotJson),
     capture_authority: captureAuthority,
     expected_capture_authority_identity:
       captureAuthority.authority_identity,
@@ -524,21 +537,14 @@ export function action666bdReorderedRequest() {
 }
 
 export function action666bdGetterSnapshotDependencies() {
-  const source = action666bdExternalSnapshot();
-  const malicious = Object.fromEntries(
-    Object.entries(source).filter(([key]) => key !== "snapshot_identity"),
-  ) as Record<string, unknown>;
-  Object.defineProperty(malicious, "snapshot_identity", {
-    enumerable: true,
-    get() {
-      throw new Error("getter_must_not_run");
-    },
-  });
-  return action666bdDependencies(
-    action666vStableImprovementFixture,
-    malicious,
-    action666bdAuthority(source),
-  );
+  const dependencies = action666bdDependencies();
+  return {
+    ...dependencies,
+    snapshot_dependency: Object.freeze({
+      source_contract_version:
+        "canonical_external_binding_snapshot_source_v1" as const,
+    }),
+  };
 }
 
 export const action666bdGoldenScenarios = [

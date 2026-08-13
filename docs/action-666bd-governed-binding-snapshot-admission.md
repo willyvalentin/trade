@@ -67,18 +67,29 @@ admission result. The limits exceed the synthetic golden snapshot
 inventory with substantial margin: the ordinary snapshot currently
 uses depth 2 and 35 observed nodes.
 
-The validator reads descriptors without evaluating property values. Its
-authorized snapshot surface is JSON-serializable enumerable string data. A
-streaming preflight counts and byte-bounds that surface before a complete own
-key list or any collation is requested; hidden and symbol keys are then
-rejected as non-source defense-in-depth. Array
+Untrusted runtime snapshot input enters only through the module-recognized
+JSON source factory. The raw UTF-8 payload is capped at 1,048,576 bytes before
+`JSON.parse`; the parsed plain object is iteratively deep-frozen, privately
+branded, and stored behind a module-owned reader. Runtime performs an O(1)
+brand check before traversal. An unbranded caller object or copied source shell
+cannot reach the snapshot reader. A future live adapter must apply the same
+raw-byte bound before parsing and cannot issue the private brand itself.
+
+The recursive validator then provides semantic and forensic defense-in-depth
+over that already byte-bounded JSON value. It reads descriptors without
+evaluating property values. Hidden and symbol keys are rejected as
+non-source defense-in-depth. Array
 length is validated against policy before own keys are enumerated, and array
 shape is then checked index-by-index without constructing an attacker-sized
 expected-key list. UTF-8 accounting includes both property keys and string
 values and stops as soon as the applicable per-string or remaining-total byte
 budget is crossed; it never materializes a full encoded byte copy. Property
-keys must pass both individual and cumulative bounds before any canonical key
-sorting or collation.
+keys must pass both individual and cumulative semantic bounds before canonical
+sorting or collation. No pre-allocation guarantee is claimed for arbitrary
+caller-created JavaScript objects outside the branded raw-JSON source path.
+Pre-sort key-budget failures use normalized container-level counters, so
+equivalent key/value sets produce identical bounded evidence regardless of
+insertion order.
 Oversized keys use a bounded index/byte-count path label so failure
 reporting cannot reproduce attacker-sized key bytes.
 Accessors, symbols, cycles, custom prototypes, unsupported primitives,

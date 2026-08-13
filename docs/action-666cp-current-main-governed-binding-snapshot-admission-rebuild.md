@@ -59,8 +59,9 @@ The historical implementation is hardened before freezing:
 5. snapshot validation rejects cycles, proxies, accessors, symbols, sparse or
    augmented arrays, non-finite values, unsupported primitives, non-plain
    objects and budget overflow without throwing; array-length and incremental
-   UTF-8 limits apply before attacker-proportional validation allocations or
-   key collation;
+   UTF-8 limits apply before full encoding or key collation; runtime source
+   JSON is byte-bounded before parse and accepted only through a private,
+   module-recognized frozen source;
 6. authority, snapshot, request and result bytes are isolated from later
    caller mutation;
 7. entry, predecessor, snapshot and authority builders share the runtime's
