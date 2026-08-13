@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { types as nodeTypes } from "node:util";
 
 import {
@@ -24,9 +25,6 @@ import {
   type CanonicalImprovementBindingEntry,
   type CanonicalImprovementBindingSnapshot,
 } from "@/lib/server/canonical-improvement-binding-store";
-import {
-  canonicalModelImprovementDigest,
-} from "@/lib/server/canonical-model-improvement-proposal";
 import {
   parseCanonicalExplicitInstant,
 } from "@/lib/server/canonical-model-improvement-upstream-verification";
@@ -67,25 +65,112 @@ type BoundIdentityType = "proposal" | "experiment" | "capture";
 
 const shaPattern = /^[a-f0-9]{64}$/;
 const identityPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{2,255}$/;
+const intrinsicStructuredClone = structuredClone;
 const intrinsicJsonParse = JSON.parse;
 const intrinsicJsonStringify = JSON.stringify;
 const intrinsicObjectFreeze = Object.freeze;
+const intrinsicObjectIsFrozen = Object.isFrozen;
+const intrinsicObjectIs = Object.is;
 const intrinsicObjectKeys = Object.keys;
 const intrinsicObjectValues = Object.values;
+const intrinsicObjectEntries = Object.entries;
+const intrinsicObjectFromEntries = Object.fromEntries;
+const intrinsicObjectGetOwnPropertyDescriptor =
+  Object.getOwnPropertyDescriptor;
+const intrinsicObjectGetPrototypeOf = Object.getPrototypeOf;
+const intrinsicObjectHasOwn = Object.hasOwn;
+const intrinsicObjectPrototype = Object.prototype;
 const intrinsicArrayIsArray = Array.isArray;
+const intrinsicArrayFrom = Array.from;
+const intrinsicArrayPrototype = Array.prototype;
+const intrinsicArraySort = Array.prototype.sort;
+const intrinsicNumberIsFinite = Number.isFinite;
+const intrinsicNumberIsSafeInteger = Number.isSafeInteger;
+const intrinsicReflectApply = Reflect.apply;
+const intrinsicReflectOwnKeys = Reflect.ownKeys;
+const intrinsicStringLocaleCompare = String.prototype.localeCompare;
+const intrinsicHashUpdate = createHash("sha256").update;
+const intrinsicHashDigest = createHash("sha256").digest;
 
-export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY = Object.freeze({
-  policy_version: CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_VERSION,
-  max_depth: 128,
-  max_nodes: 131_072,
-  max_keys_per_container: 4_096,
-  max_array_length: 2_048,
-  max_string_bytes: 65_536,
-  max_total_string_bytes: 8_388_608,
-});
+function compareCanonicalStrings(first: string, second: string) {
+  return intrinsicReflectApply(
+    intrinsicStringLocaleCompare,
+    first,
+    [second],
+  ) as number;
+}
+
+function canonicalizeForDigest(value: unknown): unknown {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+  if (typeof value === "number") {
+    if (!intrinsicNumberIsFinite(value)) {
+      throw new Error("non_finite_canonical_value");
+    }
+    return intrinsicObjectIs(value, -0) ? 0 : value;
+  }
+  if (intrinsicArrayIsArray(value)) {
+    const canonical = new Array<unknown>(value.length);
+    for (let index = 0; index < value.length; index += 1) {
+      canonical[index] = canonicalizeForDigest(value[index]);
+    }
+    return canonical;
+  }
+  if (typeof value === "object") {
+    const observedEntries = intrinsicObjectEntries(
+      value as Record<string, unknown>,
+    );
+    const entries: [string, unknown][] = [];
+    for (let index = 0; index < observedEntries.length; index += 1) {
+      const entry = observedEntries[index];
+      if (entry[1] !== undefined) entries[entries.length] = entry;
+    }
+    intrinsicReflectApply(intrinsicArraySort, entries, [
+      ([first]: [string, unknown], [second]: [string, unknown]) =>
+        compareCanonicalStrings(first, second),
+    ]);
+    const canonicalEntries: [string, unknown][] = new Array(
+      entries.length,
+    );
+    for (let index = 0; index < entries.length; index += 1) {
+      canonicalEntries[index] = [
+        entries[index][0],
+        canonicalizeForDigest(entries[index][1]),
+      ];
+    }
+    return intrinsicObjectFromEntries(canonicalEntries);
+  }
+  throw new Error("unsupported_canonical_value");
+}
+
+function hardenedCanonicalDigest(value: unknown) {
+  const hash = createHash("sha256");
+  intrinsicReflectApply(intrinsicHashUpdate, hash, [
+    intrinsicJsonStringify(canonicalizeForDigest(value)),
+  ]);
+  return intrinsicReflectApply(intrinsicHashDigest, hash, [
+    "hex",
+  ]) as string;
+}
+
+export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY =
+  intrinsicObjectFreeze({
+    policy_version: CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_VERSION,
+    max_depth: 128,
+    max_nodes: 131_072,
+    max_keys_per_container: 4_096,
+    max_array_length: 2_048,
+    max_string_bytes: 65_536,
+    max_total_string_bytes: 8_388_608,
+  });
 
 export const CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_DIGEST =
-  canonicalModelImprovementDigest(
+  hardenedCanonicalDigest(
     CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY,
   );
 export const CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES = 1_048_576;
@@ -332,9 +417,15 @@ const canonicalBindingBackedReplayAuthorities = new WeakMap<
 >();
 
 function deepFreeze<T>(value: T): T {
-  if (value && typeof value === "object" && !Object.isFrozen(value)) {
-    Object.freeze(value);
-    for (const nested of Object.values(value as Record<string, unknown>)) {
+  if (
+    value &&
+    typeof value === "object" &&
+    !intrinsicObjectIsFrozen(value)
+  ) {
+    intrinsicObjectFreeze(value);
+    for (const nested of intrinsicObjectValues(
+      value as Record<string, unknown>,
+    )) {
       deepFreeze(nested);
     }
   }
@@ -424,7 +515,7 @@ function digest(
   counters?: CanonicalBindingSnapshotAdmissionCounters,
 ) {
   if (counters) counters.digest_operations += 1;
-  return canonicalModelImprovementDigest(value);
+  return hardenedCanonicalDigest(value);
 }
 
 function emptyCounters(): CanonicalBindingSnapshotAdmissionCounters {
@@ -448,13 +539,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   if (
     value === null ||
     typeof value !== "object" ||
-    Array.isArray(value) ||
+    intrinsicArrayIsArray(value) ||
     nodeTypes.isProxy(value)
   ) {
     return false;
   }
   try {
-    return Object.getPrototypeOf(value) === Object.prototype;
+    return (
+      intrinsicObjectGetPrototypeOf(value) === intrinsicObjectPrototype
+    );
   } catch {
     return false;
   }
@@ -462,8 +555,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function exactKeys(value: Record<string, unknown>, expected: string[]) {
   try {
-    const actual = Reflect.ownKeys(value).sort((first, second) =>
-      String(first).localeCompare(String(second)),
+    const actual = intrinsicReflectOwnKeys(value).sort((first, second) =>
+      compareCanonicalStrings(String(first), String(second)),
     );
     const sortedExpected = [...expected].sort();
     return (
@@ -473,7 +566,10 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
           typeof key === "string" && key === sortedExpected[index],
       ) &&
       actual.every((key) => {
-        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
+          value,
+          key,
+        );
         return Boolean(
           descriptor &&
             "value" in descriptor &&
@@ -488,7 +584,10 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
 
 function ownDataValue(value: object, key: PropertyKey) {
   try {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
+      value,
+      key,
+    );
     return descriptor &&
       "value" in descriptor &&
       descriptor.enumerable
@@ -510,7 +609,7 @@ function validFullSha(value: unknown): value is string {
 function validPositiveInteger(value: unknown): value is number {
   return (
     typeof value === "number" &&
-    Number.isSafeInteger(value) &&
+    intrinsicNumberIsSafeInteger(value) &&
     value > 0
   );
 }
@@ -527,7 +626,7 @@ function canonicalInstant(value: unknown) {
     fraction += billion;
   }
   const milliseconds = Number(seconds * BigInt(1_000));
-  if (!Number.isSafeInteger(milliseconds)) return null;
+  if (!intrinsicNumberIsSafeInteger(milliseconds)) return null;
   return {
     canonical: `${new Date(milliseconds).toISOString().slice(0, 19)}.${fraction
       .toString()
@@ -704,7 +803,7 @@ export function validateCanonicalBoundedSnapshotPayload(
     if (
       current === null ||
       typeof current === "boolean" ||
-      (typeof current === "number" && Number.isFinite(current))
+      (typeof current === "number" && intrinsicNumberIsFinite(current))
     ) {
       continue;
     }
@@ -746,8 +845,8 @@ export function validateCanonicalBoundedSnapshotPayload(
     let array: boolean;
     let prototype: object | null;
     try {
-      array = Array.isArray(current);
-      prototype = Object.getPrototypeOf(object);
+      array = intrinsicArrayIsArray(current);
+      prototype = intrinsicObjectGetPrototypeOf(object);
     } catch {
       return invalid(
         "snapshot_payload_introspection_failed",
@@ -755,8 +854,10 @@ export function validateCanonicalBoundedSnapshotPayload(
       );
     }
     if (
-      (array && prototype !== Array.prototype) ||
-      (!array && prototype !== Object.prototype && prototype !== null)
+      (array && prototype !== intrinsicArrayPrototype) ||
+      (!array &&
+        prototype !== intrinsicObjectPrototype &&
+        prototype !== null)
     ) {
       return invalid(
         `snapshot_payload_prototype_forbidden:${frame.path}`,
@@ -767,7 +868,7 @@ export function validateCanonicalBoundedSnapshotPayload(
     if (array) {
       let lengthDescriptor: PropertyDescriptor | undefined;
       try {
-        lengthDescriptor = Object.getOwnPropertyDescriptor(
+        lengthDescriptor = intrinsicObjectGetOwnPropertyDescriptor(
           object,
           "length",
         );
@@ -780,7 +881,7 @@ export function validateCanonicalBoundedSnapshotPayload(
       if (
         !lengthDescriptor ||
         !("value" in lengthDescriptor) ||
-        !Number.isSafeInteger(lengthDescriptor.value) ||
+        !intrinsicNumberIsSafeInteger(lengthDescriptor.value) ||
         lengthDescriptor.value < 0
       ) {
         return invalid(
@@ -802,10 +903,12 @@ export function validateCanonicalBoundedSnapshotPayload(
     const boundedKeyBytes = new Map<string, number>();
     const containerStartingStringBytes = observedTotalStringBytes;
     let enumerableKeyBytes = 0;
+    let oversizedKeyObserved = false;
     try {
       for (const key in object) {
-        if (!Object.hasOwn(object, key)) continue;
+        if (!intrinsicObjectHasOwn(object, key)) continue;
         const observedEnumerableKeys = enumerableStringKeys.length + 1;
+        enumerableStringKeys.push(key);
         if (
           observedEnumerableKeys > policy.max_keys_per_container
         ) {
@@ -815,40 +918,16 @@ export function validateCanonicalBoundedSnapshotPayload(
             observed_own_keys: observedEnumerableKeys,
           });
         }
-        const remainingTotalBytes =
-          policy.max_total_string_bytes -
-          observedTotalStringBytes -
-          enumerableKeyBytes;
-        const activeLimit = Math.min(
+        const measured = boundedUtf8ByteLength(
+          key,
           policy.max_string_bytes,
-          remainingTotalBytes,
         );
-        const measured = boundedUtf8ByteLength(key, activeLimit);
         if (measured.exceeded) {
-          const perStringLimitExceeded =
-            activeLimit === policy.max_string_bytes;
-          observedTotalStringBytes = perStringLimitExceeded
-            ? containerStartingStringBytes +
-              policy.max_string_bytes +
-              1
-            : policy.max_total_string_bytes + 1;
-          return exceeded(
-            perStringLimitExceeded
-              ? "max_string_bytes"
-              : "max_total_string_bytes",
-            frame.path,
-            {
-              observed_array_length: arrayLength,
-              observed_own_keys: 0,
-              observed_string_bytes: perStringLimitExceeded
-                ? policy.max_string_bytes + 1
-                : null,
-            },
-          );
+          oversizedKeyObserved = true;
+          continue;
         }
         enumerableKeyBytes += measured.bytes;
         boundedKeyBytes.set(key, measured.bytes);
-        enumerableStringKeys.push(key);
       }
     } catch {
       return invalid(
@@ -857,11 +936,31 @@ export function validateCanonicalBoundedSnapshotPayload(
         { observed_array_length: arrayLength },
       );
     }
+    if (oversizedKeyObserved) {
+      observedTotalStringBytes =
+        containerStartingStringBytes + policy.max_string_bytes + 1;
+      return exceeded("max_string_bytes", frame.path, {
+        observed_array_length: arrayLength,
+        observed_own_keys: 0,
+        observed_string_bytes: policy.max_string_bytes + 1,
+      });
+    }
+    if (
+      containerStartingStringBytes + enumerableKeyBytes >
+      policy.max_total_string_bytes
+    ) {
+      observedTotalStringBytes = policy.max_total_string_bytes + 1;
+      return exceeded("max_total_string_bytes", frame.path, {
+        observed_array_length: arrayLength,
+        observed_own_keys: 0,
+        observed_string_bytes: null,
+      });
+    }
     observedTotalStringBytes += enumerableKeyBytes;
 
     let ownKeys: (string | symbol)[];
     try {
-      ownKeys = Reflect.ownKeys(object);
+      ownKeys = intrinsicReflectOwnKeys(object);
     } catch {
       return invalid(
         "snapshot_payload_introspection_failed",
@@ -938,9 +1037,7 @@ export function validateCanonicalBoundedSnapshotPayload(
 
     const stringKeys = [...enumerableStringKeys];
     if (arrayLength !== null) stringKeys.push("length");
-    stringKeys.sort((first, second) =>
-      first.localeCompare(second),
-    );
+    stringKeys.sort(compareCanonicalStrings);
     const keyPaths = new Map<string, string>();
     for (let index = 0; index < stringKeys.length; index += 1) {
       const key = stringKeys[index];
@@ -962,7 +1059,10 @@ export function validateCanonicalBoundedSnapshotPayload(
     }[] = [];
     try {
       for (const key of stringKeys) {
-        const descriptor = Object.getOwnPropertyDescriptor(object, key);
+        const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
+          object,
+          key,
+        );
         if (!descriptor) {
           return invalid(
             "snapshot_payload_descriptor_missing",
@@ -1096,11 +1196,11 @@ function observedSnapshotIdentity(value: unknown) {
     if (
       value === null ||
       typeof value !== "object" ||
-      Array.isArray(value)
+      intrinsicArrayIsArray(value)
     ) {
       return null;
     }
-    descriptor = Object.getOwnPropertyDescriptor(
+    descriptor = intrinsicObjectGetOwnPropertyDescriptor(
       value,
       "snapshot_identity",
     );
@@ -1131,7 +1231,7 @@ const entryKeys = [
 ].sort();
 
 const snapshotKeys = [
-  ...Object.keys(safety),
+  ...intrinsicObjectKeys(safety),
   "authority_manifest_digest",
   "authority_root_digest",
   "captured_at",
@@ -1195,7 +1295,7 @@ function captureMethod(
   const method = ownDataValue(value, key);
   if (!method.present || typeof method.value !== "function") return null;
   return (...args: unknown[]) =>
-    Reflect.apply(method.value, undefined, args);
+    intrinsicReflectApply(method.value, undefined, args);
 }
 
 function snapshotRuntimeValue<T>(value: unknown): T | null {
@@ -1203,7 +1303,7 @@ function snapshotRuntimeValue<T>(value: unknown): T | null {
     if (validateCanonicalBoundedSnapshotPayload(value).status !== "valid") {
       return null;
     }
-    const snapshot = structuredClone(value);
+    const snapshot = intrinsicStructuredClone(value);
     return validateCanonicalBoundedSnapshotPayload(snapshot).status ===
       "valid"
       ? (snapshot as T)
@@ -1225,7 +1325,9 @@ function hasCanonicalRuntimeSurface(
   ) {
     return true;
   }
-  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "number") {
+    return intrinsicNumberIsFinite(value);
+  }
   if (
     typeof value !== "object" ||
     nodeTypes.isProxy(value) ||
@@ -1236,22 +1338,28 @@ function hasCanonicalRuntimeSurface(
   const nextSeen = new Set(seen);
   nextSeen.add(value);
   try {
-    if (Array.isArray(value)) {
-      const keys = Reflect.ownKeys(value);
+    if (intrinsicArrayIsArray(value)) {
+      const keys = intrinsicReflectOwnKeys(value);
       const expected = [
-        ...Array.from({ length: value.length }, (_, index) => String(index)),
+        ...intrinsicArrayFrom(
+          { length: value.length },
+          (_, index) => String(index),
+        ),
         "length",
       ];
       if (
-        Object.getPrototypeOf(value) !== Array.prototype ||
+        intrinsicObjectGetPrototypeOf(value) !== intrinsicArrayPrototype ||
         keys.length !== expected.length ||
         keys.some((key, index) => key !== expected[index])
       ) {
         return false;
       }
-      return Array.from({ length: value.length }, (_, index) => index).every(
+      return intrinsicArrayFrom(
+        { length: value.length },
+        (_, index) => index,
+      ).every(
         (index) => {
-          const descriptor = Object.getOwnPropertyDescriptor(
+          const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
             value,
             String(index),
           );
@@ -1264,10 +1372,17 @@ function hasCanonicalRuntimeSurface(
         },
       );
     }
-    if (Object.getPrototypeOf(value) !== Object.prototype) return false;
-    return Reflect.ownKeys(value).every((key) => {
+    if (
+      intrinsicObjectGetPrototypeOf(value) !== intrinsicObjectPrototype
+    ) {
+      return false;
+    }
+    return intrinsicReflectOwnKeys(value).every((key) => {
       if (typeof key !== "string") return false;
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
+        value,
+        key,
+      );
       return Boolean(
         descriptor &&
           "value" in descriptor &&
@@ -1382,12 +1497,14 @@ function snapshotDependencies(
       snapshotDependency.value,
     );
     if (!readAuthority || !readSnapshot) return null;
-    const capturePayload = structuredClone(captureAuthority.value);
+    const capturePayload = intrinsicStructuredClone(
+      captureAuthority.value,
+    );
     delete (
       capturePayload as Partial<CanonicalCompletedImprovementCaptureAuthority>
     ).authority_digest;
     if (
-      canonicalModelImprovementDigest(capturePayload) !==
+      hardenedCanonicalDigest(capturePayload) !==
       expectedCaptureDigest.value
     ) {
       return null;
@@ -1576,7 +1693,7 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
     !effective ||
     cutoff.epoch_nanoseconds > captured.epoch_nanoseconds ||
     effective.epoch_nanoseconds > captured.epoch_nanoseconds ||
-    !Array.isArray(input.entry_inventory) ||
+    !intrinsicArrayIsArray(input.entry_inventory) ||
     !isRecord(input.predecessor) ||
     !exactKeys(input.predecessor, [
       "previous_publication_epoch",
@@ -1619,9 +1736,12 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
       (entry): entry is CanonicalExternalImprovementBindingEntry =>
         entry !== null,
     )
-    .map((entry) => structuredClone(entry))
+    .map((entry) => intrinsicStructuredClone(entry))
     .sort((first, second) =>
-      first.entry_identity.localeCompare(second.entry_identity),
+      compareCanonicalStrings(
+        first.entry_identity,
+        second.entry_identity,
+      ),
     );
   const identities = new Set<string>();
   const typedKeys = new Set<string>();
@@ -1657,7 +1777,7 @@ export function createCanonicalExternalImprovementBindingSnapshot(input: {
     authority_root_digest: input.authority_root_digest,
     publication_sequence: input.publication_sequence,
     publication_epoch: input.publication_epoch,
-    predecessor: structuredClone(input.predecessor),
+    predecessor: intrinsicStructuredClone(input.predecessor),
     captured_at: captured.canonical,
     evidence_cutoff: cutoff.canonical,
     effective_at: effective.canonical,
@@ -1698,7 +1818,7 @@ export function createCanonicalBindingSnapshotAdmissionAuthority(input: {
   ) {
     throw new Error("canonical_binding_admission_authority_invalid");
   }
-  const snapshotPayload = structuredClone(input.snapshot);
+  const snapshotPayload = intrinsicStructuredClone(input.snapshot);
   delete (
     snapshotPayload as Partial<CanonicalExternalImprovementBindingSnapshot>
   ).snapshot_digest;
@@ -1799,7 +1919,7 @@ function validateAuthority(input: {
   ) {
     reasons.push("binding_admission_authority_digest_format_invalid");
   }
-  const payload = structuredClone(authority);
+  const payload = intrinsicStructuredClone(authority);
   delete (
     payload as Partial<CanonicalBindingSnapshotAdmissionAuthority>
   ).authority_digest;
@@ -1893,8 +2013,10 @@ function validateEntry(
     entry.entry_digest_algorithm !== "sha256_canonical_json_v1" ||
     entry.entry_digest !==
       digest(
-        Object.fromEntries(
-          Object.entries(entry).filter(([key]) => key !== "entry_digest"),
+        intrinsicObjectFromEntries(
+          intrinsicObjectEntries(entry).filter(
+            ([key]) => key !== "entry_digest",
+          ),
         ),
       )
   ) {
@@ -2128,7 +2250,7 @@ function admitFrozenSnapshot(input: {
   input.counters.clones += 1;
   let snapshot: CanonicalExternalImprovementBindingSnapshot;
   try {
-    snapshot = structuredClone(
+    snapshot = intrinsicStructuredClone(
       input.rawSnapshot,
     ) as CanonicalExternalImprovementBindingSnapshot;
   } catch {
@@ -2186,7 +2308,7 @@ function admitFrozenSnapshot(input: {
     reasons.push("binding_admission_authority_snapshot_conflict");
   }
   if (
-    !Object.entries(safety).every(
+    !intrinsicObjectEntries(safety).every(
       ([key, expected]) =>
         (snapshot as unknown as Record<string, unknown>)[key] ===
         expected,
@@ -2212,7 +2334,7 @@ function admitFrozenSnapshot(input: {
     reasons.push("binding_admission_not_point_in_time_safe");
   }
   reasons.push(...predecessorReasons(snapshot, input.authority));
-  if (!Array.isArray(snapshot.entry_inventory)) {
+  if (!intrinsicArrayIsArray(snapshot.entry_inventory)) {
     reasons.push("binding_admission_entry_inventory_missing");
   } else if (cutoff) {
     const entries = snapshot.entry_inventory
@@ -2253,7 +2375,10 @@ function admitFrozenSnapshot(input: {
       crossTypes.set(entry.bound_identity, entry.entry_type);
     }
     const ordered = [...entries].sort((first, second) =>
-      first.entry_identity.localeCompare(second.entry_identity),
+      compareCanonicalStrings(
+        first.entry_identity,
+        second.entry_identity,
+      ),
     );
     if (!exact(entries, ordered)) {
       reasons.push("binding_admission_entry_order_noncanonical");
@@ -2264,7 +2389,7 @@ function admitFrozenSnapshot(input: {
       reasons.push("binding_admission_inventory_digest_mismatch");
     }
   }
-  const snapshotPayload = structuredClone(snapshot);
+  const snapshotPayload = intrinsicStructuredClone(snapshot);
   delete (
     snapshotPayload as Partial<CanonicalExternalImprovementBindingSnapshot>
   ).snapshot_digest;
@@ -2294,7 +2419,7 @@ function admitFrozenSnapshot(input: {
       counters: input.counters,
     });
   }
-  const frozenSnapshot = deepFreeze(structuredClone(snapshot));
+  const frozenSnapshot = deepFreeze(intrinsicStructuredClone(snapshot));
   const axSnapshot = deepFreeze(projectAxSnapshot(frozenSnapshot));
   const projectionPayload = {
     projection_version:
@@ -2852,10 +2977,10 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
     shell: T,
     authority: CanonicalBindingBackedReplayAuthority | null,
   ) => {
-    const harness = Object.freeze({
+    const harness = intrinsicObjectFreeze({
       ...shell,
       get counters() {
-        return deepFreeze(structuredClone(counters));
+        return deepFreeze(intrinsicStructuredClone(counters));
       },
     });
     canonicalBindingBackedReplayAuthorities.set(harness, authority);
@@ -2904,13 +3029,16 @@ export function createCanonicalBindingBackedImprovementReplayHarness(
     if (
       countersInput.present &&
       (!isRecord(countersInput.value) ||
-        !exactKeys(countersInput.value, Object.keys(emptyCounters())) ||
-        Object.keys(emptyCounters()).some((key) => {
+        !exactKeys(
+          countersInput.value,
+          intrinsicObjectKeys(emptyCounters()),
+        ) ||
+        intrinsicObjectKeys(emptyCounters()).some((key) => {
           const observed = ownDataValue(countersInput.value as object, key);
           return (
             !observed.present ||
             typeof observed.value !== "number" ||
-            !Number.isSafeInteger(observed.value) ||
+            !intrinsicNumberIsSafeInteger(observed.value) ||
             observed.value < 0
           );
         }))

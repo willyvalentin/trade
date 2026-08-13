@@ -43,7 +43,9 @@ import {
   DEFAULT_OFF_BINDING_SNAPSHOT_ADMISSION_KILL_SWITCH_ENGAGED,
   canonicalBindingBackedReplayDigest,
   createCanonicalBindingBackedImprovementReplayHarness,
+  createCanonicalBindingSnapshotAdmissionAuthority,
   createCanonicalBindingSnapshotJsonSource,
+  createCanonicalExternalImprovementBindingSnapshot,
   validateCanonicalBoundedSnapshotPayload,
   verifyCanonicalBindingBackedImprovementReplayResult,
   type CanonicalBindingBackedReplayResult,
@@ -490,7 +492,9 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     };
     const result = replayWith(dependencies);
     expect(result.status).toBe("admitted");
-    expect(result.reason_codes).toEqual([]);
+    expect(result.reason_codes).toEqual([
+      "all_experiment_candidate_gates_passed",
+    ]);
   });
 
   test("input order is canonical and caller input remains immutable", () => {
@@ -607,20 +611,28 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
   test("bounds raw JSON before parse and recognizes only module-created sources", () => {
     const originalParse = JSON.parse;
     let parseCalls = 0;
+    let oversizedError: unknown;
+    let oversizedParseCalls = -1;
     JSON.parse = ((...parameters: Parameters<typeof JSON.parse>) => {
       parseCalls += 1;
       return originalParse(...parameters);
     }) as typeof JSON.parse;
     try {
-      expect(() =>
+      try {
         createCanonicalBindingSnapshotJsonSource(
           " ".repeat(CANONICAL_EXTERNAL_SNAPSHOT_MAX_JSON_BYTES + 1),
-        ),
-      ).toThrow("canonical_binding_snapshot_json_source_too_large");
-      expect(parseCalls).toBe(0);
+        );
+      } catch (error) {
+        oversizedError = error;
+      }
+      oversizedParseCalls = parseCalls;
     } finally {
       JSON.parse = originalParse;
     }
+    expect(oversizedError).toEqual(
+      new Error("canonical_binding_snapshot_json_source_too_large"),
+    );
+    expect(oversizedParseCalls).toBe(0);
 
     const validSource = createCanonicalBindingSnapshotJsonSource(
       JSON.stringify(action666bdExternalSnapshot()),
@@ -709,6 +721,104 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     });
     expect(primordialResult.status).not.toBe("admitted");
     expect(getterReads).toBe(0);
+  });
+
+  test("captures clone, freeze, introspection, and digest primordials", () => {
+    const originalFreeze = Object.freeze;
+    const originalIsFrozen = Object.isFrozen;
+    const originalEntries = Object.entries;
+    const originalGetOwnPropertyDescriptor =
+      Object.getOwnPropertyDescriptor;
+    const originalGetPrototypeOf = Object.getPrototypeOf;
+    const originalHasOwn = Object.hasOwn;
+    const originalOwnKeys = Reflect.ownKeys;
+    const originalArrayIsArray = Array.isArray;
+    const originalStructuredClone = structuredClone;
+    const originalStringify = JSON.stringify;
+    const sourceSnapshot = action666bdExternalSnapshot();
+    const builderInput = {
+      owner_authority_identity:
+        sourceSnapshot.owner_authority_identity,
+      registry_authority_identity:
+        sourceSnapshot.registry_authority_identity,
+      authority_manifest_digest:
+        sourceSnapshot.authority_manifest_digest,
+      authority_root_digest: sourceSnapshot.authority_root_digest,
+      publication_sequence: sourceSnapshot.publication_sequence,
+      publication_epoch: sourceSnapshot.publication_epoch,
+      predecessor: sourceSnapshot.predecessor,
+      captured_at: sourceSnapshot.captured_at,
+      evidence_cutoff: sourceSnapshot.evidence_cutoff,
+      effective_at: sourceSnapshot.effective_at,
+      entry_inventory: sourceSnapshot.entry_inventory,
+    };
+    let getterReads = 0;
+    let rebuiltSnapshot;
+    let rebuiltAuthority;
+    let disabledHarness;
+    let digestDistinct = false;
+    try {
+      Object.freeze = ((value: object) => value) as typeof Object.freeze;
+      Object.isFrozen = (() => false) as typeof Object.isFrozen;
+      Object.entries = (() => {
+        throw new Error("patched_entries");
+      }) as typeof Object.entries;
+      Object.getOwnPropertyDescriptor = (() => {
+        throw new Error("patched_descriptor");
+      }) as typeof Object.getOwnPropertyDescriptor;
+      Object.getPrototypeOf = (() => {
+        throw new Error("patched_prototype");
+      }) as typeof Object.getPrototypeOf;
+      Object.hasOwn = (() => false) as typeof Object.hasOwn;
+      Reflect.ownKeys = (() => {
+        throw new Error("patched_own_keys");
+      }) as typeof Reflect.ownKeys;
+      Array.isArray = (() => false) as unknown as typeof Array.isArray;
+      globalThis.structuredClone = (() => {
+        const injected: Record<string, unknown> = {};
+        Object.defineProperty(injected, "leak", {
+          enumerable: true,
+          get() {
+            getterReads += 1;
+            throw new Error("injected_getter");
+          },
+        });
+        return injected;
+      }) as typeof structuredClone;
+      JSON.stringify = (() => "constant") as typeof JSON.stringify;
+
+      rebuiltSnapshot =
+        createCanonicalExternalImprovementBindingSnapshot(builderInput);
+      rebuiltAuthority =
+        createCanonicalBindingSnapshotAdmissionAuthority({
+          authority_identity: "authority:primordial-probe",
+          owner_boundary_identity: "owner-boundary:primordial-probe",
+          snapshot: rebuiltSnapshot,
+        });
+      disabledHarness =
+        createCanonicalBindingBackedImprovementReplayHarness();
+      digestDistinct =
+        canonicalBindingBackedReplayDigest({ probe: 1 }) !==
+        canonicalBindingBackedReplayDigest({ probe: 2 });
+    } finally {
+      Object.freeze = originalFreeze;
+      Object.isFrozen = originalIsFrozen;
+      Object.entries = originalEntries;
+      Object.getOwnPropertyDescriptor =
+        originalGetOwnPropertyDescriptor;
+      Object.getPrototypeOf = originalGetPrototypeOf;
+      Object.hasOwn = originalHasOwn;
+      Reflect.ownKeys = originalOwnKeys;
+      Array.isArray = originalArrayIsArray;
+      globalThis.structuredClone = originalStructuredClone;
+      JSON.stringify = originalStringify;
+    }
+    expect(getterReads).toBe(0);
+    expect(digestDistinct).toBe(true);
+    expect(originalIsFrozen(rebuiltSnapshot)).toBe(true);
+    expect(originalIsFrozen(rebuiltAuthority)).toBe(true);
+    expect(originalIsFrozen(disabledHarness)).toBe(true);
+    expect(originalIsFrozen(disabledHarness.counters)).toBe(true);
   });
 
   test("accepts exact depth and node budgets and rejects plus one deterministically", () => {
@@ -1056,6 +1166,55 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
     expect(
       validateCanonicalBoundedSnapshotPayload(reversedTotalKeyBytes),
     ).toEqual(excessiveTotalKeyBytesResult);
+
+    const hugeAndTotalForward = {
+      [oversizedOrderKey]: 0,
+      ...excessiveTotalKeyBytes,
+    };
+    const hugeAndTotalReverse = Object.fromEntries(
+      Object.entries(hugeAndTotalForward).reverse(),
+    );
+    const hugeAndTotalResult =
+      validateCanonicalBoundedSnapshotPayload(hugeAndTotalForward);
+    expect(hugeAndTotalResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_string_bytes",
+      observed_own_keys: 0,
+      observed_string_bytes:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_string_bytes + 1,
+    });
+    expect(
+      validateCanonicalBoundedSnapshotPayload(hugeAndTotalReverse),
+    ).toEqual(hugeAndTotalResult);
+
+    const allKeyLimitsEntries = Object.entries(excessiveTotalKeyBytes);
+    for (
+      let index = allKeyLimitsEntries.length;
+      index <
+      CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_keys_per_container;
+      index += 1
+    ) {
+      allKeyLimitsEntries.push([`bounded_filler_${index}`, index]);
+    }
+    const allKeyLimitsForward = Object.fromEntries([
+      [oversizedOrderKey, 0],
+      ...allKeyLimitsEntries,
+    ]);
+    const allKeyLimitsReverse = Object.fromEntries(
+      Object.entries(allKeyLimitsForward).reverse(),
+    );
+    const allKeyLimitsResult =
+      validateCanonicalBoundedSnapshotPayload(allKeyLimitsForward);
+    expect(allKeyLimitsResult).toMatchObject({
+      status: "budget_exceeded",
+      budget_kind: "max_keys",
+      observed_own_keys:
+        CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY.max_keys_per_container + 1,
+      observed_string_bytes: null,
+    });
+    expect(
+      validateCanonicalBoundedSnapshotPayload(allKeyLimitsReverse),
+    ).toEqual(allKeyLimitsResult);
   });
 
   test("returns a rebuildable bounded failure for twenty-thousand-level input", () => {

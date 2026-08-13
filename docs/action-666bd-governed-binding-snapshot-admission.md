@@ -74,9 +74,11 @@ branded, and stored behind a module-owned reader. Runtime performs an O(1)
 brand check before traversal. An unbranded caller object or copied source shell
 cannot reach the snapshot reader. A future live adapter must apply the same
 raw-byte bound before parsing and cannot issue the private brand itself.
-Parser, serializer and freeze primordials are captured at module evaluation;
-later global monkey-patching cannot substitute parsed data or execute injected
-getters. An iterative canonical reserialization must exactly equal the raw JSON
+Parser, serializer, clone, freeze, digest and structural-introspection
+primordials are captured at module evaluation; later global monkey-patching
+cannot substitute parsed data, weaken immutability, collapse distinct digests,
+or execute injected getters. An iterative canonical reserialization must
+exactly equal the raw JSON
 before branding, rejecting duplicate keys and alternative whitespace/escape
 encodings without recursive stack use.
 
@@ -87,14 +89,16 @@ non-source defense-in-depth. Array
 length is validated against policy before own keys are enumerated, and array
 shape is then checked index-by-index without constructing an attacker-sized
 expected-key list. UTF-8 accounting includes both property keys and string
-values and stops as soon as the applicable per-string or remaining-total byte
-budget is crossed; it never materializes a full encoded byte copy. Property
-keys must pass both individual and cumulative semantic bounds before canonical
+values and never materializes a full encoded byte copy. String values stop at
+the applicable per-string or remaining-total byte boundary. Property keys use
+a bounded preflight of at most `max_keys + 1` entries so competing key-count,
+per-key and cumulative-key violations can be classified before any canonical
 sorting or collation. No pre-allocation guarantee is claimed for arbitrary
 caller-created JavaScript objects outside the branded raw-JSON source path.
-Pre-sort key-budget failures use normalized container-level counters, so
+Pre-sort key-budget failures use normalized container-level counters and the
+fixed priority `max_keys` → `max_string_bytes` → `max_total_string_bytes`, so
 equivalent key/value sets produce identical bounded evidence regardless of
-insertion order.
+insertion order, including when multiple limits are exceeded together.
 Oversized keys use a bounded index/byte-count path label so failure
 reporting cannot reproduce attacker-sized key bytes.
 Accessors, symbols, cycles, custom prototypes, unsupported primitives,

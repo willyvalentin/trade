@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "068df04a1ee157891d324fabb8523716424ea2fa1b3a0885b87efad8cd010fad";
+  "f49731f986eac940bae3f6cd2faad92592da009ea3233095e7430ddef4fa6d86";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "79c6f7357c153e996137f2c44455c22d27873723a61ebbccce1b9f6de5181028",
+      "c8311368b8ec40004fb617ac1757c5c281d94c8d99ee371baa3350c230641425",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "bd31d0668b213358a57e63919b41c1ac0f1725d8cbb782f85948bccc41fb5d77",
+          "bf8145cccbf8c28b557c441d14733c0f3b9e741393adeba17a2740d93681d8f9",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "c3936d272d4f8d6de486f74a555941dbb019f7b8f10c850935d221c8bdb309d5",
+          "7dee14c5066a9db4e65294a793c9262d6540c37dd8d98a4fe1b8ec1bfb4313f5",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "7b4cb56d332f0d347b28356ffaeeacdd0e46706bf6f46fde382a2ff679ed3f8d",
+          "fc6f396abf41575c8e5bb0de52ca224eb816a8c9a70fd4338ef4ca9ec81f1d56",
       },
     ],
   },
@@ -102,7 +102,9 @@ const expectedManifest = {
     raw_json_byte_bound_before_parse_required: true,
     private_frozen_snapshot_source_brand_required: true,
     captured_json_primordials_required: true,
+    captured_clone_freeze_digest_and_introspection_primordials_required: true,
     canonical_json_round_trip_and_duplicate_rejection_required: true,
+    cross_limit_budget_precedence_and_permutation_invariance_required: true,
     arbitrary_js_object_pre_allocation_claimed: false,
   },
   delivery: {
