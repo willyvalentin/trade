@@ -134,6 +134,8 @@ export function action666axOwnerDependency(
     owner_boundary_version:
       CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION,
     owner_boundary_identity: action666axOwnerBoundaryIdentity,
+    expected_authority_identity: expectedAuthority.authority_identity,
+    expected_authority_digest: expectedAuthority.authority_digest,
     read_expected_authority: () => expectedAuthority,
     read_verified_snapshot: () => verifiedSnapshot,
   };

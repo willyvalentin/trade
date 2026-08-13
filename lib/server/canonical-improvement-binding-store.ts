@@ -140,6 +140,8 @@ export type CanonicalImprovementBindingOwnerDependency = {
   owner_boundary_version:
     typeof CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION;
   owner_boundary_identity: string;
+  expected_authority_identity: string;
+  expected_authority_digest: string;
   read_expected_authority: () => CanonicalImprovementBindingSnapshotAuthority;
   read_verified_snapshot: () => unknown;
 };
@@ -443,6 +445,10 @@ function validIdentity(value: unknown): value is string {
   return typeof value === "string" && identityPattern.test(value);
 }
 
+function validFullSha(value: unknown): value is string {
+  return typeof value === "string" && fullShaPattern.test(value);
+}
+
 function validPositiveInteger(value: unknown): value is number {
   return Number.isSafeInteger(value) && Number(value) > 0;
 }
@@ -513,8 +519,8 @@ export function createCanonicalImprovementBindingEntry(input: {
   if (
     !expectedSubject.includes(input.bound_identity_type) ||
     !validIdentity(input.bound_identity) ||
-    !fullShaPattern.test(input.observed_binding_digest) ||
-    !fullShaPattern.test(input.source_evidence_digest) ||
+    !validFullSha(input.observed_binding_digest) ||
+    !validFullSha(input.source_evidence_digest) ||
     !instant ||
     (input.entry_type === "capture_binding" &&
       input.source_evidence_namespace !==
@@ -586,6 +592,9 @@ export function createCanonicalImprovementBindingSnapshot(input: {
   }
   const published = canonicalInstant(input.published_at);
   const effective = canonicalInstant(input.effective_at);
+  const predecessor = isRecord(input.predecessor)
+    ? input.predecessor
+    : null;
   if (
     !validIdentity(input.owner_authority_identity) ||
     !validPositiveInteger(input.publication_sequence) ||
@@ -593,7 +602,20 @@ export function createCanonicalImprovementBindingSnapshot(input: {
     !published ||
     !effective ||
     published.epoch_nanoseconds > effective.epoch_nanoseconds ||
-    !fullShaPattern.test(input.expected_external_trust_root)
+    !validFullSha(input.expected_external_trust_root) ||
+    !Array.isArray(input.entry_inventory) ||
+    input.entry_inventory.some(
+      (entry) =>
+        !isRecord(entry) ||
+        !exactKeys(entry, entryKeys) ||
+        !validFullSha(entry.observed_binding_digest) ||
+        !validFullSha(entry.source_evidence_digest) ||
+        !validFullSha(entry.entry_digest),
+    ) ||
+    !predecessor ||
+    !exactKeys(predecessor, genesisPredecessorKeys) ||
+    (predecessor.previous_snapshot_digest !== null &&
+      !validFullSha(predecessor.previous_snapshot_digest))
   ) {
     throw new Error("canonical_improvement_binding_snapshot_invalid");
   }
@@ -646,7 +668,24 @@ export function createCanonicalImprovementBindingSnapshotAuthority(input: {
     !validIdentity(input.snapshot.snapshot_identity) ||
     input.snapshot.snapshot_identity !==
       canonicalImprovementBindingSnapshotIdentity(input.snapshot) ||
-    !fullShaPattern.test(input.snapshot.snapshot_digest)
+    !validFullSha(input.snapshot.snapshot_digest) ||
+    !validFullSha(input.snapshot.entry_inventory_digest) ||
+    !validFullSha(input.snapshot.expected_external_trust_root) ||
+    !Array.isArray(input.snapshot.entry_inventory) ||
+    input.snapshot.entry_inventory.some(
+      (entry) =>
+        !isRecord(entry) ||
+        !exactKeys(entry, entryKeys) ||
+        !validFullSha(entry.observed_binding_digest) ||
+        !validFullSha(entry.source_evidence_digest) ||
+        !validFullSha(entry.entry_digest),
+    ) ||
+    !isRecord(input.snapshot.predecessor) ||
+    !exactKeys(input.snapshot.predecessor, genesisPredecessorKeys) ||
+    (input.snapshot.predecessor.previous_snapshot_digest !== null &&
+      !validFullSha(
+        input.snapshot.predecessor.previous_snapshot_digest,
+      ))
   ) {
     throw new Error("canonical_improvement_binding_authority_invalid");
   }
@@ -718,8 +757,9 @@ function validateEntry(
     reasons.push("snapshot_entry_identity_mismatch");
   }
   if (
-    !fullShaPattern.test(entry.observed_binding_digest) ||
-    !fullShaPattern.test(entry.source_evidence_digest)
+    !validFullSha(entry.observed_binding_digest) ||
+    !validFullSha(entry.source_evidence_digest) ||
+    !validFullSha(entry.entry_digest)
   ) {
     reasons.push("snapshot_entry_digest_format_invalid");
   }
@@ -754,6 +794,8 @@ function validateEntry(
 function validateAuthority(
   value: unknown,
   boundaryIdentity: string,
+  expectedAuthorityIdentity: string,
+  expectedAuthorityDigest: string,
   reasons: string[],
 ): value is CanonicalImprovementBindingSnapshotAuthority {
   if (!isRecord(value) || !exactKeys(value, authorityKeys)) {
@@ -788,12 +830,19 @@ function validateAuthority(
     reasons.push("snapshot_authority_identity_mismatch");
   }
   if (
-    !fullShaPattern.test(authority.expected_snapshot_digest) ||
-    !fullShaPattern.test(authority.expected_external_trust_root) ||
+    !validFullSha(authority.expected_snapshot_digest) ||
+    !validFullSha(authority.expected_external_trust_root) ||
+    !validFullSha(authority.authority_digest) ||
     (authority.expected_predecessor_digest !== null &&
-      !fullShaPattern.test(authority.expected_predecessor_digest))
+      !validFullSha(authority.expected_predecessor_digest))
   ) {
     reasons.push("snapshot_authority_digest_format_invalid");
+  }
+  if (
+    authority.authority_identity !== expectedAuthorityIdentity ||
+    authority.authority_digest !== expectedAuthorityDigest
+  ) {
+    reasons.push("snapshot_authority_pin_mismatch");
   }
   if (!expectedSequenceValid || !expectedEpochValid) {
     reasons.push("snapshot_authority_epoch_invalid");
@@ -865,6 +914,8 @@ function validateSnapshot(input: {
   raw: unknown;
   authority: CanonicalImprovementBindingSnapshotAuthority | null;
   boundaryIdentity: string;
+  expectedAuthorityIdentity: string;
+  expectedAuthorityDigest: string;
   counters: CanonicalImprovementBindingStoreCounters;
 }): SnapshotValidation {
   const reasons: string[] = [];
@@ -906,6 +957,8 @@ function validateSnapshot(input: {
     !validateAuthority(
       input.authority,
       input.boundaryIdentity,
+      input.expectedAuthorityIdentity,
+      input.expectedAuthorityDigest,
       reasons,
     )
   ) {
@@ -946,6 +999,13 @@ function validateSnapshot(input: {
     snapshot.snapshot_digest_algorithm !== "sha256_canonical_json_v1"
   ) {
     reasons.push("snapshot_version_invalid");
+  }
+  if (
+    !validFullSha(snapshot.snapshot_digest) ||
+    !validFullSha(snapshot.entry_inventory_digest) ||
+    !validFullSha(snapshot.expected_external_trust_root)
+  ) {
+    reasons.push("snapshot_digest_format_invalid");
   }
   if (
     !validPositiveInteger(snapshot.publication_sequence) ||
@@ -1008,11 +1068,7 @@ function validateSnapshot(input: {
     }
   } else if (
     predecessor.state !== "linked" ||
-    !fullShaPattern.test(
-      typeof predecessor.previous_snapshot_digest === "string"
-        ? predecessor.previous_snapshot_digest
-        : "",
-    ) ||
+    !validFullSha(predecessor.previous_snapshot_digest) ||
     predecessor.previous_publication_sequence !==
       snapshot.publication_sequence - 1 ||
     !validPositiveInteger(predecessor.previous_publication_epoch) ||
@@ -1540,6 +1596,8 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
   ];
   const optionKeysWithCounters = [...optionKeys, "counters"];
   let ownerBoundaryIdentity = "invalid:owner-boundary";
+  let expectedAuthorityIdentity = "invalid:authority";
+  let expectedAuthorityDigest = "invalid-authority-digest";
   let readExpectedAuthority: () => unknown = () => {
     throw new Error("binding_owner_authority_reader_unavailable");
   };
@@ -1575,6 +1633,8 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
       throw new Error("binding_store_owner_dependency_missing");
     }
     const dependencyKeys = [
+      "expected_authority_digest",
+      "expected_authority_identity",
       "owner_boundary_identity",
       "owner_boundary_version",
       "read_expected_authority",
@@ -1591,12 +1651,24 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
       dependencyInput.value,
       "owner_boundary_identity",
     );
+    const authorityIdentityPin = ownDataValue(
+      dependencyInput.value,
+      "expected_authority_identity",
+    );
+    const authorityDigestPin = ownDataValue(
+      dependencyInput.value,
+      "expected_authority_digest",
+    );
     if (
       !boundaryVersion.present ||
       boundaryVersion.value !==
         CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION ||
       !boundaryIdentity.present ||
-      !validIdentity(boundaryIdentity.value)
+      !validIdentity(boundaryIdentity.value) ||
+      !authorityIdentityPin.present ||
+      !validIdentity(authorityIdentityPin.value) ||
+      !authorityDigestPin.present ||
+      !validFullSha(authorityDigestPin.value)
     ) {
       throw new Error("binding_store_owner_dependency_identity_conflicting");
     }
@@ -1616,6 +1688,8 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
     readExpectedAuthority = expectedAuthorityReader;
     readVerifiedSnapshot = verifiedSnapshotReader;
     ownerBoundaryIdentity = boundaryIdentity.value;
+    expectedAuthorityIdentity = authorityIdentityPin.value;
+    expectedAuthorityDigest = authorityDigestPin.value;
   } catch {
     return publish({
       enabled: true as const,
@@ -1641,6 +1715,8 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
       !validateAuthority(
         authority,
         ownerBoundaryIdentity,
+        expectedAuthorityIdentity,
+        expectedAuthorityDigest,
         authorityReasons,
       )
     ) {
@@ -1694,6 +1770,8 @@ export function createCanonicalImprovementBindingStoreHarness(input: {
       raw: rawSnapshot,
       authority,
       boundaryIdentity: ownerBoundaryIdentity,
+      expectedAuthorityIdentity,
+      expectedAuthorityDigest,
       counters,
     });
   } catch {

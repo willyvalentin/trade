@@ -29,13 +29,16 @@ import {
 } from "@/lib/server/canonical-improvement-binding-store-fixtures";
 import {
   CANONICAL_IMPROVEMENT_BINDING_ENTRY_TYPES,
+  CANONICAL_IMPROVEMENT_BINDING_ENTRY_VERSION,
   CANONICAL_IMPROVEMENT_BINDING_LOOKUP_STATUSES,
   CANONICAL_IMPROVEMENT_BINDING_SNAPSHOT_VERSION,
   CANONICAL_IMPROVEMENT_BINDING_STORE_VERSION,
   DEFAULT_OFF_IMPROVEMENT_BINDING_STORE_ENABLED,
   DEFAULT_OFF_IMPROVEMENT_BINDING_STORE_KILL_SWITCH_ENGAGED,
   canonicalImprovementBindingSnapshotIdentity,
+  createCanonicalImprovementBindingEntry,
   createCanonicalImprovementBindingLookupAdapters,
+  createCanonicalImprovementBindingSnapshot,
   createCanonicalImprovementBindingSnapshotAuthority,
   createCanonicalImprovementBindingStoreHarness,
   type CanonicalImprovementBindingSnapshotAuthority,
@@ -85,6 +88,25 @@ function rehashAuthority(
   ).authority_digest;
   authority.authority_digest = canonicalModelImprovementDigest(payload);
   return authority;
+}
+
+function rehashEntry(entry: Record<string, unknown>) {
+  const payload = structuredClone(entry);
+  delete payload.entry_digest;
+  entry.entry_digest = canonicalModelImprovementDigest(payload);
+}
+
+function rehashInventoryAndSnapshot(
+  snapshot: CanonicalImprovementBindingSnapshot,
+) {
+  snapshot.entry_inventory_digest = canonicalModelImprovementDigest({
+    entry_version: CANONICAL_IMPROVEMENT_BINDING_ENTRY_VERSION,
+    entries: snapshot.entry_inventory.map((entry) => ({
+      entry_identity: entry.entry_identity,
+      entry_digest: entry.entry_digest,
+    })),
+  });
+  return rehashSnapshot(snapshot);
 }
 
 test.describe("Action 666AX frozen improvement binding snapshot and read-only store", () => {
@@ -508,6 +530,18 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
         unexpected: true,
       },
       new Proxy(action666axEmptyOwnerDependency, {}),
+      {
+        ...action666axEmptyOwnerDependency,
+        expected_authority_identity: "x",
+      },
+      {
+        ...action666axEmptyOwnerDependency,
+        expected_authority_identity: [action666axAuthorityIdentity],
+      },
+      {
+        ...action666axEmptyOwnerDependency,
+        expected_authority_digest: ["a".repeat(64)],
+      },
     ];
     const accessor = {
       ...action666axEmptyOwnerDependency,
@@ -792,6 +826,287 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
     }
   });
 
+  test("independent owner pins reject valid self-consistent authority substitutions before snapshot access", () => {
+    const cleanAuthority =
+      createCanonicalImprovementBindingSnapshotAuthority({
+        authority_identity: action666axAuthorityIdentity,
+        owner_boundary_identity: action666axOwnerBoundaryIdentity,
+        snapshot: action666axEmptySnapshot,
+      });
+    const substitutions: Array<{
+      name: string;
+      mutate: (
+        authority: CanonicalImprovementBindingSnapshotAuthority,
+      ) => void;
+    }> = [
+      {
+        name: "authority identity",
+        mutate: (authority) => {
+          authority.authority_identity = "authority:substituted";
+        },
+      },
+      {
+        name: "snapshot digest",
+        mutate: (authority) => {
+          authority.expected_snapshot_digest = "a".repeat(64);
+        },
+      },
+      {
+        name: "external root",
+        mutate: (authority) => {
+          authority.expected_external_trust_root = "b".repeat(64);
+        },
+      },
+      {
+        name: "predecessor digest",
+        mutate: (authority) => {
+          authority.expected_predecessor_digest = "c".repeat(64);
+        },
+      },
+      {
+        name: "owner identity and derived snapshot identity",
+        mutate: (authority) => {
+          authority.expected_owner_authority_identity =
+            "owner:substituted";
+          authority.expected_snapshot_identity =
+            canonicalImprovementBindingSnapshotIdentity({
+              owner_authority_identity: "owner:substituted",
+              publication_sequence:
+                authority.expected_publication_sequence,
+              publication_epoch: authority.expected_publication_epoch,
+            });
+        },
+      },
+      {
+        name: "sequence and derived snapshot identity",
+        mutate: (authority) => {
+          authority.expected_publication_sequence = 2;
+          authority.expected_snapshot_identity =
+            canonicalImprovementBindingSnapshotIdentity({
+              owner_authority_identity:
+                authority.expected_owner_authority_identity,
+              publication_sequence: 2,
+              publication_epoch: authority.expected_publication_epoch,
+            });
+        },
+      },
+      {
+        name: "epoch and derived snapshot identity",
+        mutate: (authority) => {
+          authority.expected_publication_epoch = 2;
+          authority.expected_snapshot_identity =
+            canonicalImprovementBindingSnapshotIdentity({
+              owner_authority_identity:
+                authority.expected_owner_authority_identity,
+              publication_sequence:
+                authority.expected_publication_sequence,
+              publication_epoch: 2,
+            });
+        },
+      },
+    ];
+    for (const substitution of substitutions) {
+      const authority = structuredClone(cleanAuthority);
+      substitution.mutate(authority);
+      rehashAuthority(authority);
+      let snapshotReaderCalls = 0;
+      const harness = createCanonicalImprovementBindingStoreHarness({
+        enabled: true,
+        kill_switch_engaged: false,
+        owner_dependency: {
+          ...action666axEmptyOwnerDependency,
+          read_expected_authority: () => authority,
+          read_verified_snapshot: () => {
+            snapshotReaderCalls += 1;
+            return action666axEmptySnapshot;
+          },
+        },
+      });
+      expect(snapshotReaderCalls, substitution.name).toBe(0);
+      expect(harness.store?.validation_status, substitution.name).toBe(
+        "invalid_snapshot",
+      );
+      expect(
+        harness.store?.validation_reason_codes,
+        substitution.name,
+      ).toContain("snapshot_authority_pin_mismatch");
+      expect(harness.counters.snapshot_reads, substitution.name).toBe(0);
+      expect(harness.counters.clones, substitution.name).toBe(0);
+      expect(
+        harness.counters.downstream_aj_ac_aq_executions,
+        substitution.name,
+      ).toBe(0);
+    }
+  });
+
+  test("every digest surface requires an actual string without RegExp coercion", () => {
+    const validHash = "d".repeat(64);
+    const malformedDigestValues: unknown[] = [
+      null,
+      42,
+      {},
+      [validHash],
+    ];
+    for (const field of [
+      "observed_binding_digest",
+      "source_evidence_digest",
+    ] as const) {
+      for (const malformedDigest of malformedDigestValues) {
+        const input = {
+          entry_type: "capture_binding" as const,
+          bound_identity_type: "capture" as const,
+          bound_identity: "capture:strict-digest-builder",
+          observed_binding_digest: validHash,
+          source_evidence_namespace:
+            "canonical_capture_binding_evidence" as const,
+          source_evidence_digest: validHash,
+          effective_at: "2026-07-28T00:00:00.000000000Z",
+        };
+        (input as unknown as Record<string, unknown>)[field] =
+          malformedDigest;
+        expect(() =>
+          createCanonicalImprovementBindingEntry(input),
+        ).toThrow("canonical_improvement_binding_entry_invalid");
+      }
+    }
+    for (const malformedDigest of malformedDigestValues) {
+      expect(() =>
+        createCanonicalImprovementBindingSnapshot({
+          owner_authority_identity: action666axAuthorityIdentity,
+          publication_sequence: 1,
+          publication_epoch: 1,
+          predecessor: {
+            state: "genesis",
+            previous_snapshot_digest: null,
+            previous_publication_sequence: null,
+            previous_publication_epoch: null,
+          },
+          published_at: "2026-07-28T00:00:00.000000000Z",
+          effective_at: "2026-07-28T00:00:00.000000000Z",
+          entry_inventory: [],
+          expected_external_trust_root: malformedDigest as never,
+        }),
+      ).toThrow("canonical_improvement_binding_snapshot_invalid");
+    }
+
+    for (const field of [
+      "snapshot_digest",
+      "entry_inventory_digest",
+      "expected_external_trust_root",
+    ] as const) {
+      for (const malformedDigest of malformedDigestValues) {
+        const snapshot = structuredClone(action666axEmptySnapshot);
+        (snapshot as unknown as Record<string, unknown>)[field] =
+          malformedDigest;
+        expect(() =>
+          createCanonicalImprovementBindingSnapshotAuthority({
+            authority_identity: action666axAuthorityIdentity,
+            owner_boundary_identity: action666axOwnerBoundaryIdentity,
+            snapshot,
+          }),
+        ).toThrow("canonical_improvement_binding_authority_invalid");
+        const harness = createCanonicalImprovementBindingStoreHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          owner_dependency: {
+            ...action666axEmptyOwnerDependency,
+            read_verified_snapshot: () => snapshot,
+          },
+        });
+        expect(harness.store?.validation_status, field).toBe(
+          "invalid_snapshot",
+        );
+        expect(harness.store?.validation_reason_codes, field).toContain(
+          "snapshot_digest_format_invalid",
+        );
+      }
+    }
+
+    const cleanAuthority =
+      createCanonicalImprovementBindingSnapshotAuthority({
+        authority_identity: action666axAuthorityIdentity,
+        owner_boundary_identity: action666axOwnerBoundaryIdentity,
+        snapshot: action666axEmptySnapshot,
+      });
+    for (const field of [
+      "expected_snapshot_digest",
+      "expected_external_trust_root",
+      "expected_predecessor_digest",
+      "authority_digest",
+    ] as const) {
+      const values =
+        field === "expected_predecessor_digest"
+          ? malformedDigestValues.filter((value) => value !== null)
+          : malformedDigestValues;
+      for (const malformedDigest of values) {
+        const authority = structuredClone(cleanAuthority);
+        (authority as unknown as Record<string, unknown>)[field] =
+          malformedDigest;
+        if (field !== "authority_digest") rehashAuthority(authority);
+        let snapshotReaderCalls = 0;
+        const harness = createCanonicalImprovementBindingStoreHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          owner_dependency: {
+            ...action666axEmptyOwnerDependency,
+            read_expected_authority: () => authority,
+            read_verified_snapshot: () => {
+              snapshotReaderCalls += 1;
+              return action666axEmptySnapshot;
+            },
+          },
+        });
+        expect(snapshotReaderCalls, field).toBe(0);
+        expect(harness.store?.validation_status, field).toBe(
+          "invalid_snapshot",
+        );
+        expect(harness.store?.validation_reason_codes, field).toContain(
+          "snapshot_authority_digest_format_invalid",
+        );
+        expect(harness.counters.snapshot_reads, field).toBe(0);
+        expect(harness.counters.clones, field).toBe(0);
+      }
+    }
+
+    for (const field of [
+      "observed_binding_digest",
+      "source_evidence_digest",
+      "entry_digest",
+    ] as const) {
+      for (const malformedDigest of malformedDigestValues) {
+        const snapshot = structuredClone(
+          action666axPreviousBindingSnapshot,
+        );
+        const entry = snapshot.entry_inventory[0] as unknown as Record<
+          string,
+          unknown
+        >;
+        entry[field] = malformedDigest;
+        if (field !== "entry_digest") rehashEntry(entry);
+        rehashInventoryAndSnapshot(snapshot);
+        const authority = structuredClone(cleanAuthority);
+        authority.expected_snapshot_identity = snapshot.snapshot_identity;
+        authority.expected_snapshot_digest = snapshot.snapshot_digest;
+        rehashAuthority(authority);
+        const store = action666axStore(
+          action666axOwnerDependency(snapshot, authority),
+        );
+        expect(store.validation_status, field).toBe("invalid_snapshot");
+        expect(store.validation_reason_codes, field).toContain(
+          "snapshot_entry_digest_format_invalid",
+        );
+        expect(
+          store.lookup_previous_binding({
+            binding_identity_type: "proposal",
+            binding_identity: proposalIdentity(),
+            as_of: action666axLookupAsOf,
+          }).status,
+          field,
+        ).not.toBe("found");
+      }
+    }
+  });
+
   test("self-consistent malformed owner identities fail closed before snapshot access", () => {
     const invalidOwnerIdentities: unknown[] = [
       "",
@@ -900,12 +1215,11 @@ test.describe("Action 666AX frozen improvement binding snapshot and read-only st
     delete (payload as Partial<CanonicalImprovementBindingSnapshot>)
       .snapshot_digest;
     changed.snapshot_digest = canonicalModelImprovementDigest(payload);
-    const authority =
-      createCanonicalImprovementBindingSnapshotAuthority({
-        authority_identity: action666axAuthorityIdentity,
-        owner_boundary_identity: action666axOwnerBoundaryIdentity,
-        snapshot: changed,
-      });
+    const authority = structuredClone(
+      action666axEmptyOwnerDependency.read_expected_authority(),
+    );
+    authority.expected_snapshot_digest = changed.snapshot_digest;
+    rehashAuthority(authority);
     const store = action666axStore(
       action666axOwnerDependency(changed, authority),
     );

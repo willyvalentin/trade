@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666co-current-main-frozen-improvement-binding-store/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "0445aaabdb86e806c89af0921ade306053ef532cdd7da4d05c5f6aa15c6f2bb2";
+  "ddc9c3f629bce0da6b57509adf77a799c8b7c865aeb583a62950710505b2dd4b";
 
 const expectedManifest = {
   schema_version:
@@ -35,7 +35,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "ae3dededfbd4774ebc3ce6d78c28b883d5d72bf7d07f08fb37d400ff853d564d",
+      "122fa7a5758af5f72f8045e3751fba0bc71c7e14385076c90c7474e2984f8f4d",
     artifacts: [
       {
         path:
@@ -46,24 +46,24 @@ const expectedManifest = {
       {
         path: "docs/action-666ax-improvement-binding-store-contract.md",
         sha256:
-          "26af1507a5fb3ede9099d5e3eff631e481c9182aaa7a2c50612d25e6bc04e5ec",
+          "81a5458043b06589c58cb3e3722cc5fdcd2779171fd2f15c02a097c51e52951f",
       },
       {
         path:
           "lib/server/canonical-improvement-binding-store-fixtures.ts",
         sha256:
-          "9cbb84039ccf7f82f474a4dc66be0d14d977be1536ea9fc25920174b73bdb503",
+          "b50766deae2962bbc01bf80bed7bfb7e403a7124b84a964d626c285ed3df8352",
       },
       {
         path: "lib/server/canonical-improvement-binding-store.ts",
         sha256:
-          "4c1549e46ce03464fa4b8cb7fca3e5d4f0b98c97973b56d60cc26ded268e2590",
+          "8cdc39f7755c1d4747dd9a967dbd06d81b43e83593b9afd686512e8b7085b063",
       },
       {
         path:
           "tests/e2e/action-666ax-improvement-binding-store.spec.ts",
         sha256:
-          "a76b2e25ac974f2bf15026e0dba5fae3d4afe5683bdbed47436d6b58ff958a3c",
+          "237e4ff91d0611acf8219df4750e36182b32bc57b25035a3c5bea422bf240a6f",
       },
     ],
   },
@@ -91,6 +91,8 @@ const expectedManifest = {
     authority_and_snapshot_cloneability_required: true,
     semantic_authority_validation_before_snapshot_read_required: true,
     canonical_owner_and_snapshot_identity_binding_required: true,
+    independent_owner_authority_identity_and_digest_pins_required: true,
+    strict_string_digest_root_and_pin_validation_required: true,
     private_execution_counters_required: true,
     caller_counter_mutation_forbidden: true,
     exact_predecessor_and_entry_schemas_required: true,

@@ -73,6 +73,11 @@ The historical implementation is hardened before freezing:
 12. expected owner/snapshot identities require canonical runtime types, format
     and derivation; self-consistent rehashing cannot authorize malformed
     identities.
+13. the owner dependency supplies descriptor-safe immutable authority identity
+    and digest pins, checked before the returned authority can read a snapshot;
+14. every digest/root/pin field requires an actual full-hash string throughout
+    builders and trust validation, preventing implicit regular-expression
+    coercion of arrays or other runtime types.
 
 ## Preserved boundary
 

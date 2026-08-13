@@ -70,9 +70,12 @@ snapshot root, trusted payload, observed status/digest or owner approval.
 
 The expected authority and snapshot are read from a separate
 `canonical_improvement_binding_owner_boundary_v1` dependency. The authority
-digest and snapshot digest are independently recomputed before any entry is
-visible. The capture/replay caller receives only the read adapters and cannot
-replace the owner dependency through an AJ/AC/AQ request.
+identity and digest are separately pinned as immutable owner-boundary values;
+the returned authority cannot authenticate itself by merely recomputing its
+public digest. Those pins are checked before the snapshot reader can run.
+The authority digest and snapshot digest are then independently recomputed
+before any entry is visible. The capture/replay caller receives only the read
+adapters and cannot replace the owner dependency through an AJ/AC/AQ request.
 
 This fixture implementation demonstrates the boundary. A future real owner
 must provide the authority and verified immutable snapshot from a separately
@@ -156,6 +159,9 @@ version, digest, identity, owner/root, sequence, epoch or predecessor drift
 therefore observes zero snapshot reads and zero snapshot clones. Expected
 owner and snapshot identities must be canonically typed, formatted and bound;
 self-consistent rehashing cannot legitimize malformed identity values.
+Every digest, root and pin is accepted only as an actual full-hash string;
+implicit regular-expression coercion of arrays, objects, numbers or null is
+forbidden across builders and trust-path validation.
 Predecessor and entry schemas remain exact even if an attacker recomputes all
 public digests. Malformed lookups return a canonical conflict and never expose
 an exception, backend message or stack.
