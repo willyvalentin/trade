@@ -95,6 +95,9 @@ The historical implementation is hardened before freezing:
 17. transitive upstream verification retains no module-global result cache, so
     an authority callback cannot persist a temporarily mutated policy result
     after restoring the policy before return.
+18. every descriptor-bound intrinsic and semantic object also binds its exact
+    prototype identity, so inherited-method substitution cannot bypass the
+    zero-read drift gate.
 
 ## Preserved boundary
 

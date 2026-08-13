@@ -99,6 +99,7 @@ global (including the transitive URI encoder), constructor and prototype
 `Object.prototype.hasOwnProperty` callable surface, Node proxy predicate and
 Hash prototype used by
 the older AX/AQ execution path. The same gate snapshots every exported mutable
+object's exact prototype and own descriptors, including each
 proposal/quality/publishability policy, ranking/calibration taxonomy, evidence
 namespace, metric/proposal taxonomy and AX/AQ/capture
 status array consumed by that path. Replay checks those snapshots before request,

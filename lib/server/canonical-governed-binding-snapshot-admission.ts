@@ -351,6 +351,7 @@ function stringIncludes(value: string, expected: string) {
 
 type IntrinsicDescriptorSurface = {
   target: object;
+  prototype: object | null;
   keys: PropertyKey[];
   descriptors: PropertyDescriptor[];
 };
@@ -364,7 +365,12 @@ function captureDescriptorSurface(target: object): IntrinsicDescriptorSurface {
     descriptors[index] =
       intrinsicObjectGetOwnPropertyDescriptor(target, keys[index])!;
   }
-  return { target, keys: copiedKeys, descriptors };
+  return {
+    target,
+    prototype: intrinsicObjectGetPrototypeOf(target),
+    keys: copiedKeys,
+    descriptors,
+  };
 }
 
 function captureSelectedDescriptorSurface(
@@ -378,7 +384,12 @@ function captureSelectedDescriptorSurface(
     descriptors[index] =
       intrinsicObjectGetOwnPropertyDescriptor(target, keys[index])!;
   }
-  return { target, keys: copiedKeys, descriptors };
+  return {
+    target,
+    prototype: intrinsicObjectGetPrototypeOf(target),
+    keys: copiedKeys,
+    descriptors,
+  };
 }
 
 function captureRecursiveDescriptorSurfaces(roots: readonly object[]) {
@@ -420,6 +431,14 @@ function descriptorSurfaceIntact(
   requireExactKeys: boolean,
 ) {
   try {
+    if (
+      !intrinsicObjectIs(
+        intrinsicObjectGetPrototypeOf(surface.target),
+        surface.prototype,
+      )
+    ) {
+      return false;
+    }
     if (requireExactKeys) {
       const currentKeys = intrinsicReflectOwnKeys(surface.target);
       if (currentKeys.length !== surface.keys.length) return false;

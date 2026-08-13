@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cp-current-main-governed-binding-snapshot-admission/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "cb64c5c78159fe4d43d72686ee18b518238bcd376f394c6c6093f80815ef5a57";
+  "13329cedbe3760003b38fd944cb4b3139f13c119d6e0583b3dd0e941586e0869";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "99cc496e17ffe61594239df318816bc095d9bdb9a778cd9af9d7a65c7b7c9631",
+      "156a41f05615163f2ef5fe7a55c4ee7a5c43b8e24c8bb2d610dd71dc46cf4c07",
     artifacts: [
       {
         path: "docs/action-666bd-golden-binding-backed-replay-report.json",
@@ -47,7 +47,7 @@ const expectedManifest = {
       {
         path: "docs/action-666bd-governed-binding-snapshot-admission.md",
         sha256:
-          "fc747048af9b983c8311a6c2d15b969ebebd8716a3758f5b24feb372433850e4",
+          "e74ae4c5f3f399e411ac2458e57c1f591355fd26f716d23a9f8a211c3d5d6c37",
       },
       {
         path:
@@ -58,13 +58,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-governed-binding-snapshot-admission.ts",
         sha256:
-          "7e34f422821b1d7858e8bbfc61a48a366ad39acfb74cbd6c6b57e883670aa3ad",
+          "bf09d7da9fb06482819af8ddcc10bb8b8ea41e0eb172294487b2de9426ed53d5",
       },
       {
         path:
           "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
         sha256:
-          "84f254ec824b80e24964b6f5091b26d1cbe4f9bd1dc8ce9094b7f50345fe83a3",
+          "e6c2654e33c8760dd39c5c31759f61ce3a2914c07dcd7285eb9a962db1fe51c6",
       },
     ],
   },
@@ -118,6 +118,7 @@ const expectedManifest = {
     function_and_shadow_quality_surface_integrity_gate_required: true,
     transitive_uri_encoder_integrity_gate_required: true,
     transitive_verification_process_history_independence_required: true,
+    recursive_descriptor_surface_prototype_identity_required: true,
     downstream_drift_structured_zero_read_failure_required: true,
     any_failure_unproved_rebuild_claim_forbidden: true,
     cross_limit_budget_precedence_and_permutation_invariance_required: true,

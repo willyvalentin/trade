@@ -1546,6 +1546,22 @@ test.describe("Action 666BD governed binding snapshot admission", () => {
         mutableReasonCodes[0] = originalReasonCode;
       },
     });
+    const originalReasonCodePrototype = Object.getPrototypeOf(
+      mutableReasonCodes,
+    );
+    semanticMutations.push({
+      mutate: () => {
+        Object.setPrototypeOf(mutableReasonCodes, {
+          includes: () => false,
+        });
+      },
+      restore: () => {
+        Object.setPrototypeOf(
+          mutableReasonCodes,
+          originalReasonCodePrototype,
+        );
+      },
+    });
     const mutableRankingValues =
       canonicalQualityRankingKValues as unknown as number[];
     const originalRankingValue = mutableRankingValues[0];
