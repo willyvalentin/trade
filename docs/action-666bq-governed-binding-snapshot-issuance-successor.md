@@ -9,6 +9,38 @@ BO bytes. Their previously reported hashes remain historical commitments only.
 The contract is server-only, synthetic-fixture-only and default-off. It has no
 writer, persistence, database, provider, route, scheduler or live call site.
 
+## Current-main reconciliation (Action 666CQ)
+
+Action 666CQ rebuilds this bounded issuance layer on current `main` after the
+governed binding snapshot admission foundation. The historical BQ code is only
+a functional starting point. Historical review, freeze and delivery claims are
+not inherited; current-main bytes require new evidence, CI and independent
+review.
+
+The reconciled implementation adds these current trust-boundary requirements:
+
+- activation requires literal `enabled === true` and a literal cleared kill
+  switch; every other runtime value performs zero dependency work;
+- request, nested replay, end-to-end and capture shells bind exact versions,
+  namespaces, required own data keys, identities and canonical instants before
+  the issuer authority is read;
+- the issuer dependency independently pins the recognized authority identity
+  and digest, while unknown binding entry types and self-consistent authority
+  substitutions fail closed;
+- issuer and AX owner callbacks, identity pins and dependency shells are
+  captured at harness construction, so caller mutation after construction does
+  not change issuance semantics;
+- public digests accept only bounded canonical runtime surfaces, and the
+  semantic-scope digest rejects every literal or shell drift;
+- counters are private, verifier authority is bound to the originating harness,
+  copied or cross-harness verification fails, and unexpected execution errors
+  become closed structured results;
+- runtime primitives used by this layer are captured at module initialization;
+  post-import replacement is contained without throwing or leaking replacement
+  error text.
+
+Action 666CQ remains provider-free and does not authorize a production deploy.
+
 ## Authority and issuance
 
 The request contains an issuance identity and the completed BD replay request.
@@ -24,7 +56,8 @@ recognized, immutable issuer authority. The authority binds:
 - the expected issuance identity.
 
 The authority is read once. A self-consistent caller replacement is not in the
-recognized authority set and fails closed.
+recognized authority set or does not match the independently captured owner
+pins and fails closed.
 
 ## Bounded validation
 
@@ -101,6 +134,6 @@ synthetic_evidence:true
 not_publishable:true
 ```
 
-Disabled or kill-switched factories return before request reads, cloning,
-authority reads, store construction, lookups, snapshot construction, BD replay
-or digest work.
+Disabled, malformed-gate or kill-switched factories return before dependency or
+request reads, cloning, authority reads, store construction, lookups, snapshot
+construction, BD replay or digest work.

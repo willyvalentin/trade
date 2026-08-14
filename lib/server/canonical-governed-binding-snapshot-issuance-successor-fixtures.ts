@@ -159,6 +159,8 @@ export function action666bqAuthority(
 export function action666bqDependencies(
   overrides: Partial<{
     authority: CanonicalGovernedBindingSnapshotIssuerAuthority;
+    expected_authority_identity: string;
+    expected_authority_digest: string;
     minimum_publication_epoch: number;
     ax_owner_dependency: typeof action666axEmptyOwnerDependency;
   }> = {},
@@ -169,13 +171,18 @@ export function action666bqDependencies(
       owner_boundary_version:
         "canonical_governed_binding_snapshot_issuer_owner_boundary_v3",
       owner_boundary_identity: action666bqOwnerBoundaryIdentity,
+      expected_authority_identity:
+        overrides.expected_authority_identity ?? authority.authority_identity,
+      expected_authority_digest:
+        overrides.expected_authority_digest ?? authority.authority_digest,
       minimum_publication_epoch:
         overrides.minimum_publication_epoch ?? 1,
       read_expected_authority: () => authority,
     },
-    ax_owner_dependency:
-      overrides.ax_owner_dependency ??
-      action666axEmptyOwnerDependency,
+    ax_owner_dependency: {
+      ...(overrides.ax_owner_dependency ??
+        action666axEmptyOwnerDependency),
+    },
     capture_authority: captureAuthority,
   };
 }
@@ -231,7 +238,11 @@ export function action666bqSelfConsistentReplacementDependencies() {
     payload as Partial<CanonicalGovernedBindingSnapshotIssuerAuthority>
   ).authority_digest;
   authority.authority_digest = canonicalModelImprovementDigest(payload);
-  return action666bqDependencies({ authority });
+  return action666bqDependencies({
+    authority,
+    expected_authority_identity: action666bqIssuerAuthorityIdentity,
+    expected_authority_digest: action666bqAuthority().authority_digest,
+  });
 }
 
 export function action666bqReorderedRequest() {
