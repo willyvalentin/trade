@@ -7,7 +7,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const evidencePath =
   "docs/evidence/action-666cr-current-main-roadmap-ledger-reconciliation.json";
 const evidenceSha256 =
-  "97afcaccd8aab83620c4875bd4c2fa9a138beee524509c21982c92ff6f0f00b1";
+  "b43a8845e896351f97c617f00336d54e0d2041dff73cd853228019dfb29f0cb8";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -169,6 +169,12 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
   expect(action).toContain("Production deployment is not authorized.");
   expect(action).toContain("netlify/trade-vl/deploy-preview");
   expect(action).toContain("explicitly\nnon-production");
+  expect(ledger).toContain(
+    "no operator-initiated\nprovider configuration/data mutation and no production-release mutation",
+  );
+  expect(ledger).toContain(
+    "automatic non-production preview grants no authority",
+  );
   expect(workflow).toContain(
     "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   );

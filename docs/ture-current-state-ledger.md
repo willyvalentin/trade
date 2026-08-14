@@ -60,7 +60,9 @@ migration, broker, training, promotion or release activity.
 
 Action 666CR is repository-governance-only. It preserves the Action 660H manual
 control, does not modify or supersede the last verified production readback and
-performs no application, database, provider or release mutation.
+performs no application, database or runtime mutation, no operator-initiated
+provider configuration/data mutation and no production-release mutation. The
+automatic non-production preview grants no authority.
 
 ## Milestone A gate ledger
 
