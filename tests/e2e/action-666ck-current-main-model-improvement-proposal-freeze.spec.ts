@@ -296,6 +296,7 @@ test("Action 666CK remains server-only and absent from live consumers", async ()
     "lib/server/canonical-completed-improvement-evidence-capture.ts",
     "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
     "lib/server/canonical-governed-binding-snapshot-admission.ts",
+    "lib/server/canonical-governed-binding-snapshot-issuance-successor-fixtures.ts",
     "lib/server/canonical-governed-improvement-end-to-end-replay-fixtures.ts",
     "lib/server/canonical-governed-improvement-end-to-end-replay.ts",
     "lib/server/canonical-improvement-binding-store-fixtures.ts",
