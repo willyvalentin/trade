@@ -45,7 +45,8 @@
   },
   "track_2": {
     "delivered_current_main_actions": ["666CJ", "666CK", "666CL", "666CM", "666CN", "666CO", "666CP", "666CQ"],
-    "historical_open_draft_non_authority_prs": [54, 55, 57, 58, 60, 63, 67, 72],
+    "historical_open_non_draft_non_authority_prs": [54],
+    "historical_open_draft_non_authority_prs": [55, 57, 58, 60, 63, 67, 72],
     "next_bounded_objective": "current_main_non_forgeable_observation_authority_successor",
     "default_off": true,
     "runtime_unwired": true
@@ -56,20 +57,24 @@
     "production_is_first_parent_ancestor_of_main": true,
     "production_equals_main": false,
     "production_deploy_authorized": false,
-    "provider_mutation_performed": false
+    "automated_deploy_preview_context": "netlify/trade-vl/deploy-preview",
+    "automated_deploy_preview_url": "https://deploy-preview-109--trade-vl.netlify.app",
+    "automated_deploy_preview_is_production": false,
+    "operator_initiated_provider_mutation_performed": false
   },
   "source_document_sha256": {
-    "docs/action-666cr-current-main-roadmap-ledger-reconciliation.md": "5dc389790ce86725bda690213658104aeddfdad0dd9c1236fb54f6453a493edc",
-    "docs/ture-current-state-ledger.md": "e0a6c8ad345f30c2eb71f0ef631c0effe0b38a8175ca6276845311f1fd3b2fd4",
-    "docs/ture-master-roadmap.md": "b0d9d21db639245778ea9c962e130c13bb4a7cb88e193da4dcfa2fe322f426f0"
+    "docs/action-666cr-current-main-roadmap-ledger-reconciliation.md": "ca2f1d1e038bbf2c0484fa50b6352affb86af1845c78277c0cfccbb8582021ea",
+    "docs/ture-current-state-ledger.md": "d9af2e512f42291eba420bd37c32012fac8e086733a3dcbe6790f4ca7e08b286",
+    "docs/ture-master-roadmap.md": "b37525c8a80f87e94388015508150125384fa2567d663e07513a648707ab37ff"
   },
   "scope_limits": {
     "governance_only": true,
     "application_source_mutation": false,
     "database_mutation": false,
-    "provider_mutation": false,
+    "operator_initiated_provider_mutation": false,
     "runtime_mutation": false,
-    "deployment_triggered": false,
+    "production_deployment_triggered": false,
+    "automated_deploy_preview_observed": true,
     "broker_or_execution_authority": false
   }
 }

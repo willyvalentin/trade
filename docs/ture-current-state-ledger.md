@@ -48,6 +48,7 @@ migration, broker, training, promotion or release activity.
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
 | Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of current main `7b79691e473fa630d748763cddf97e1209974e40`; the commits are not equal because PRs #99 and #100 advanced governance and PRs #101 through #108 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
 | MA05 production structure | 9/9 physical NOT NULL and RLS; 20/20 constraints; 2/2 relationship indexes; revoked client grants; service-role-only RPC | verified_current |
@@ -135,7 +136,7 @@ layer. The historical PR and its review evidence remain non-authority.
 | Track | Current classification | Evidence boundary |
 | --- | --- | --- |
 | 1 | paused | No new release authority. |
-| 2 | current-main foundation delivered; observation authority open | PRs #101 through #108 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`, all default-off and runtime-unwired. Historical PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
+| 2 | current-main foundation delivered; observation authority open | PRs #101 through #108 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`, Milestone A incomplete | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
 | 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |

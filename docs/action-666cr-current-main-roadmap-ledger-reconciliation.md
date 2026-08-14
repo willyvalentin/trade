@@ -23,8 +23,9 @@ is promoted to current-main authority by this reconciliation.
   `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ` on current main.
 - All eight Track 2 layers remain server-only, synthetic-only, default-off and
   runtime-unwired.
-- Historical PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open Draft
-  non-authority and are not merge substitutes.
+- Historical PR #54 remains open, non-Draft and non-authority. PRs #55, #57,
+  #58, #60, #63, #67 and #72 remain open Draft non-authority. None is a merge
+  substitute.
 - The next bounded Track 2 objective is a new current-main implementation of
   the first non-forgeable observation-authority successor from historical PR
   #72, with fresh bytes, tests, exact-head CI and independent review.
@@ -42,10 +43,15 @@ The latest verified production evidence remains Netlify deploy
 first-parent ancestor of the reconciled current main and is not equal to it.
 PRs #100 through #108 did not authorize or record a production publish.
 
-This Action performs no provider, database, Auth, migration, broker, runtime,
-training, model, ranking, threshold, promotion or production mutation. It does
-not refresh provider evidence and does not convert source delivery into live
-behavior.
+GitHub did observe the automatic PR #109 status context
+`netlify/trade-vl/deploy-preview` at
+`https://deploy-preview-109--trade-vl.netlify.app`. That preview is explicitly
+non-production and provides no release or provider authority.
+
+This Action performs no operator-initiated provider configuration/data,
+database, Auth, migration, broker, runtime, training, model, ranking,
+threshold, promotion or production mutation. It does not refresh authenticated
+production evidence and does not convert source delivery into live behavior.
 
 ## Delivery boundary
 

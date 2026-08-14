@@ -140,9 +140,10 @@ current main: predictive explanation, governed model-improvement proposal,
 completed-evidence adapter, completed-evidence capture, governed end-to-end
 replay, frozen binding store, binding-snapshot admission and binding-snapshot
 issuance. Every layer is server-only, synthetic-only, default-off and
-runtime-unwired. Historical PRs #54, #55, #57, #58, #60, #63, #67 and #72
-remain open Draft non-authority; their historical bytes and reviews do not
-authorize current-main behavior. The next bounded Track 2 objective is a fresh
+runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority;
+PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority.
+Their historical bytes and reviews do not authorize current-main behavior. The
+next bounded Track 2 objective is a fresh
 current-main rebuild of the first non-forgeable observation-authority successor
 from historical PR #72, followed by new exact-head review and exact-main CI.
 
@@ -208,8 +209,9 @@ is implied by this roadmap.
   PRs #101 -> #108 (`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`). Track 2
   remains open because the non-forgeable observation-authority successor chain
   is not yet rebuilt on current main. The historical dependent stack (#54 ->
-  #55 -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains open Draft
-  non-authority and must not be merged as a substitute.
+  #55 -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains non-authority. PR
+  #54 is open and non-Draft; the others remain open Draft. None may be merged
+  as a substitute.
 - Track 3 / ACTION 668H remains `closed_holding`. Provider-free roadmap work
   may continue, but no GT2, SQL, database or provider execution is authorized.
 - Action 652 delivered source containment, the authenticated server-owned
@@ -251,7 +253,9 @@ first-parent ancestor and is not equal to it because PRs #99 and #100 advanced
 governance and PRs #101 through #108 delivered provider-free, runtime-unwired
 Track 2 source without a production publish. The production commit's CI and
 required post-deploy reads are green. This reconciliation candidate authorizes
-no deployment.
+no production deployment. GitHub's automatic PR #109
+`netlify/trade-vl/deploy-preview` status is a non-production preview and carries
+no release or provider authority.
 
 The bounded PR #98 smoke preserved anonymous login redirect and protected API
 denial, rendered the authenticated application, dashboard, settings and market

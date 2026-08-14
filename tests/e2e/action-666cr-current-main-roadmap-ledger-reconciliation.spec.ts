@@ -7,7 +7,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const evidencePath =
   "docs/evidence/action-666cr-current-main-roadmap-ledger-reconciliation.json";
 const evidenceSha256 =
-  "d33eb0786fca828f4180794ca44d5383acd000dc3ad2cbff4e54dc6539dadcae";
+  "97afcaccd8aab83620c4875bd4c2fa9a138beee524509c21982c92ff6f0f00b1";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -106,7 +106,8 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
       "666CP",
       "666CQ",
     ],
-    historical_open_draft_non_authority_prs: [54, 55, 57, 58, 60, 63, 67, 72],
+    historical_open_non_draft_non_authority_prs: [54],
+    historical_open_draft_non_authority_prs: [55, 57, 58, 60, 63, 67, 72],
     next_bounded_objective:
       "current_main_non_forgeable_observation_authority_successor",
     default_off: true,
@@ -118,15 +119,20 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
     production_is_first_parent_ancestor_of_main: true,
     production_equals_main: false,
     production_deploy_authorized: false,
-    provider_mutation_performed: false,
+    automated_deploy_preview_context: "netlify/trade-vl/deploy-preview",
+    automated_deploy_preview_url:
+      "https://deploy-preview-109--trade-vl.netlify.app",
+    automated_deploy_preview_is_production: false,
+    operator_initiated_provider_mutation_performed: false,
   });
   expect(evidence.scope_limits).toEqual({
     governance_only: true,
     application_source_mutation: false,
     database_mutation: false,
-    provider_mutation: false,
+    operator_initiated_provider_mutation: false,
     runtime_mutation: false,
-    deployment_triggered: false,
+    production_deployment_triggered: false,
+    automated_deploy_preview_observed: true,
     broker_or_execution_authority: false,
   });
 
@@ -149,6 +155,10 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
     expect(text).toContain("31835953106");
     expect(text).toContain("14/15");
     expect(text).toContain("MA-13");
+    expect(text).toContain("PR #54 remains open, non-Draft and non-authority");
+    expect(text).toMatch(
+      /PRs #55, #57,\s+#58, #60, #63, #67 and #72 remain open Draft non-authority/,
+    );
     expect(text).not.toContain("production and main are the same commit");
     expect(text).not.toMatch(
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
@@ -157,6 +167,8 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
   expect(roadmap).toContain("PRs #101 through #108");
   expect(ledger).toContain("current-main foundation delivered; observation authority open");
   expect(action).toContain("Production deployment is not authorized.");
+  expect(action).toContain("netlify/trade-vl/deploy-preview");
+  expect(action).toContain("explicitly\nnon-production");
   expect(workflow).toContain(
     "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   );
