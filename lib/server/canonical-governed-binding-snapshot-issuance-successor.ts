@@ -873,27 +873,29 @@ function snapshotAxOwnerDependency(
   ) {
     return null;
   }
-  return intrinsicObjectFreeze({
-    owner_boundary_version:
-      CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION,
-    owner_boundary_identity: value.owner_boundary_identity,
-    expected_authority_identity: value.expected_authority_identity,
-    expected_authority_digest: value.expected_authority_digest,
-    read_expected_authority: () =>
-      intrinsicReflectApply(
-        readAuthority.value as () => unknown,
-        value,
-        [],
-      ) as ReturnType<
-        CanonicalImprovementBindingOwnerDependency["read_expected_authority"]
-      >,
-    read_verified_snapshot: () =>
-      intrinsicReflectApply(
-        readSnapshot.value as () => unknown,
-        value,
-        [],
-      ),
-  });
+  const dependencySnapshot: CanonicalImprovementBindingOwnerDependency =
+    intrinsicObjectFreeze({
+      owner_boundary_version:
+        CANONICAL_IMPROVEMENT_BINDING_OWNER_BOUNDARY_VERSION,
+      owner_boundary_identity: value.owner_boundary_identity,
+      expected_authority_identity: value.expected_authority_identity,
+      expected_authority_digest: value.expected_authority_digest,
+      read_expected_authority: () =>
+        intrinsicReflectApply(
+          readAuthority.value as () => unknown,
+          dependencySnapshot,
+          [],
+        ) as ReturnType<
+          CanonicalImprovementBindingOwnerDependency["read_expected_authority"]
+        >,
+      read_verified_snapshot: () =>
+        intrinsicReflectApply(
+          readSnapshot.value as () => unknown,
+          dependencySnapshot,
+          [],
+        ),
+    });
+  return dependencySnapshot;
 }
 
 function hasCanonicalCaptureAuthorityShell(
@@ -980,20 +982,25 @@ function snapshotIssuanceDependencies(
     if (!readAuthority.present || typeof readAuthority.value !== "function") {
       return null;
     }
-    const issuerSnapshot = intrinsicObjectFreeze({
-      owner_boundary_version:
-        "canonical_governed_binding_snapshot_issuer_owner_boundary_v3" as const,
-      owner_boundary_identity: issuer.value.owner_boundary_identity as string,
-      expected_authority_identity:
-        issuer.value.expected_authority_identity as string,
-      expected_authority_digest:
-        issuer.value.expected_authority_digest as string,
-      minimum_publication_epoch:
-        issuer.value.minimum_publication_epoch as number,
-      read_expected_authority: () =>
-        intrinsicReflectApply(readAuthority.value as () => unknown, issuer.value, []) as
-          CanonicalGovernedBindingSnapshotIssuerAuthority,
-    });
+    const issuerSnapshot: CanonicalGovernedBindingSnapshotIssuerAuthorityDependency =
+      intrinsicObjectFreeze({
+        owner_boundary_version:
+          "canonical_governed_binding_snapshot_issuer_owner_boundary_v3" as const,
+        owner_boundary_identity:
+          issuer.value.owner_boundary_identity as string,
+        expected_authority_identity:
+          issuer.value.expected_authority_identity as string,
+        expected_authority_digest:
+          issuer.value.expected_authority_digest as string,
+        minimum_publication_epoch:
+          issuer.value.minimum_publication_epoch as number,
+        read_expected_authority: () =>
+          intrinsicReflectApply(
+            readAuthority.value as () => unknown,
+            issuerSnapshot,
+            [],
+          ) as CanonicalGovernedBindingSnapshotIssuerAuthority,
+      });
     return intrinsicObjectFreeze({
       issuer_authority_dependency: issuerSnapshot,
       ax_owner_dependency: axOwnerSnapshot,

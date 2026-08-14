@@ -815,6 +815,138 @@ test.describe("Action 666BQ governed issuance successor", () => {
     );
   });
 
+  test("binds method-style callbacks to frozen construction-time dependency snapshots", () => {
+    const authority = action666bqAuthority();
+    const dependencies = action666bqDependencies({ authority });
+    const issuerState = {
+      owner_boundary_version:
+        dependencies.issuer_authority_dependency.owner_boundary_version,
+      owner_boundary_identity:
+        dependencies.issuer_authority_dependency.owner_boundary_identity,
+      expected_authority_identity:
+        dependencies.issuer_authority_dependency.expected_authority_identity,
+      expected_authority_digest:
+        dependencies.issuer_authority_dependency.expected_authority_digest,
+      minimum_publication_epoch:
+        dependencies.issuer_authority_dependency.minimum_publication_epoch,
+    };
+    const axState = {
+      owner_boundary_version:
+        dependencies.ax_owner_dependency.owner_boundary_version,
+      owner_boundary_identity:
+        dependencies.ax_owner_dependency.owner_boundary_identity,
+      expected_authority_identity:
+        dependencies.ax_owner_dependency.expected_authority_identity,
+      expected_authority_digest:
+        dependencies.ax_owner_dependency.expected_authority_digest,
+    };
+    const originalAxAuthorityReader =
+      dependencies.ax_owner_dependency.read_expected_authority;
+    const originalAxSnapshotReader =
+      dependencies.ax_owner_dependency.read_verified_snapshot;
+    const issuerReceivers: unknown[] = [];
+    const axAuthorityReceivers: unknown[] = [];
+    const axSnapshotReceivers: unknown[] = [];
+
+    dependencies.issuer_authority_dependency.read_expected_authority =
+      function (this: typeof dependencies.issuer_authority_dependency) {
+        issuerReceivers.push(this);
+        if (
+          this.owner_boundary_version !== issuerState.owner_boundary_version ||
+          this.owner_boundary_identity !== issuerState.owner_boundary_identity ||
+          this.expected_authority_identity !==
+            issuerState.expected_authority_identity ||
+          this.expected_authority_digest !==
+            issuerState.expected_authority_digest ||
+          this.minimum_publication_epoch !==
+            issuerState.minimum_publication_epoch
+        ) {
+          throw new Error("issuer_receiver_drift");
+        }
+        return authority;
+      };
+    dependencies.ax_owner_dependency.read_expected_authority =
+      function (this: typeof dependencies.ax_owner_dependency) {
+        axAuthorityReceivers.push(this);
+        if (
+          this.owner_boundary_version !== axState.owner_boundary_version ||
+          this.owner_boundary_identity !== axState.owner_boundary_identity ||
+          this.expected_authority_identity !==
+            axState.expected_authority_identity ||
+          this.expected_authority_digest !== axState.expected_authority_digest
+        ) {
+          throw new Error("ax_authority_receiver_drift");
+        }
+        return originalAxAuthorityReader();
+      };
+    dependencies.ax_owner_dependency.read_verified_snapshot =
+      function (this: typeof dependencies.ax_owner_dependency) {
+        axSnapshotReceivers.push(this);
+        if (
+          this.owner_boundary_version !== axState.owner_boundary_version ||
+          this.owner_boundary_identity !== axState.owner_boundary_identity ||
+          this.expected_authority_identity !==
+            axState.expected_authority_identity ||
+          this.expected_authority_digest !== axState.expected_authority_digest
+        ) {
+          throw new Error("ax_snapshot_receiver_drift");
+        }
+        return originalAxSnapshotReader();
+      };
+
+    const harness =
+      createCanonicalGovernedBindingSnapshotIssuanceHarness({
+        enabled: true,
+        kill_switch_engaged: false,
+        dependencies,
+      });
+    Object.assign(
+      dependencies.issuer_authority_dependency as unknown as Record<
+        string,
+        unknown
+      >,
+      {
+        owner_boundary_version: "post_construction_version_drift",
+        owner_boundary_identity: "owner-boundary:post-construction-drift",
+        expected_authority_identity: "authority:post-construction-drift",
+        expected_authority_digest: "f".repeat(64),
+        minimum_publication_epoch: Number.MAX_SAFE_INTEGER,
+      },
+    );
+    Object.assign(
+      dependencies.ax_owner_dependency as unknown as Record<string, unknown>,
+      {
+        owner_boundary_version: "post_construction_version_drift",
+        owner_boundary_identity: "owner-boundary:post-construction-drift",
+        expected_authority_identity: "authority:post-construction-drift",
+        expected_authority_digest: "f".repeat(64),
+      },
+    );
+
+    expect(harness.issue!(action666bqRequest).status).toBe("issued");
+    expect(issuerReceivers).toHaveLength(1);
+    expect(axAuthorityReceivers).toHaveLength(1);
+    expect(axSnapshotReceivers).toHaveLength(1);
+    const callbackReceivers = [
+      issuerReceivers[0],
+      axAuthorityReceivers[0],
+      axSnapshotReceivers[0],
+    ];
+    for (const receiver of callbackReceivers) {
+      expect(receiver).not.toBeNull();
+      expect(Object.isFrozen(receiver)).toBe(true);
+    }
+    expect(issuerReceivers[0]).not.toBe(
+      dependencies.issuer_authority_dependency,
+    );
+    expect(axAuthorityReceivers[0]).not.toBe(
+      dependencies.ax_owner_dependency,
+    );
+    expect(axSnapshotReceivers[0]).toBe(axAuthorityReceivers[0]);
+    expect(issuerReceivers[0]).toMatchObject(issuerState);
+    expect(axAuthorityReceivers[0]).toMatchObject(axState);
+  });
+
   test("contains post-import primordial replacement without throwing", () => {
     const harness =
       createCanonicalGovernedBindingSnapshotIssuanceHarness({

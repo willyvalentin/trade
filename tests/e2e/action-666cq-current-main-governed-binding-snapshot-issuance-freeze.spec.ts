@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cq-current-main-governed-binding-snapshot-issuance/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "0dee123fd5986e362c1863a68897ad472f131cb151f829e9afd1f85abd9a35e3";
+  "af3926ab99c9861aa9259e4e7557b54d278521578c4e23643be876c907d5a9b7";
 
 const expectedManifest = {
   schema_version:
@@ -42,7 +42,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "01d4ae4ae7f20cbe0291e6d39a99b91c7972aa0faed7571e93444b0b0141ae83",
+      "f513b3379541e5dcd7105332020a7a997d010821330384dd4258eceb996b4c99",
     artifacts: [
       {
         path:
@@ -66,13 +66,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
         sha256:
-          "5e17fc54c0111add2814b2a2ce12d26e8ee4287fce2be7a2906df0004b646bbe",
+          "2b124bfc4424be25dee8d38358704e38e5518af8daac771c812ad2049fb09bd2",
       },
       {
         path:
           "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
         sha256:
-          "07d39273138092a9db9a2d7cf6ddb8d65b13a2d4c36544a7fdf4bd8cd4075868",
+          "f94b9c38dbca9042b02c1bd10ee555556e357ed2a28a3287fa7ecf027756b1ea",
       },
     ],
   },

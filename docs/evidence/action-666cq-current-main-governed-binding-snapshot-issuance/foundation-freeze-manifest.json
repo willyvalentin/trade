@@ -21,7 +21,7 @@
     "budget_version": "canonical_governed_binding_snapshot_issuance_budget_v3",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "01d4ae4ae7f20cbe0291e6d39a99b91c7972aa0faed7571e93444b0b0141ae83",
+    "aggregate_sha256": "f513b3379541e5dcd7105332020a7a997d010821330384dd4258eceb996b4c99",
     "artifacts": [
       {
         "path": "docs/action-666bq-golden-binding-snapshot-issuance-successor-report.json",
@@ -37,11 +37,11 @@
       },
       {
         "path": "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
-        "sha256": "5e17fc54c0111add2814b2a2ce12d26e8ee4287fce2be7a2906df0004b646bbe"
+        "sha256": "2b124bfc4424be25dee8d38358704e38e5518af8daac771c812ad2049fb09bd2"
       },
       {
         "path": "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
-        "sha256": "07d39273138092a9db9a2d7cf6ddb8d65b13a2d4c36544a7fdf4bd8cd4075868"
+        "sha256": "f94b9c38dbca9042b02c1bd10ee555556e357ed2a28a3287fa7ecf027756b1ea"
       }
     ]
   },
