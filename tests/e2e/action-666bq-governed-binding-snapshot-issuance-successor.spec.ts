@@ -825,7 +825,7 @@ test.describe("Action 666BQ governed issuance successor", () => {
       };
       Array.prototype.every = (() => {
         throw new Error("post_import_every_poison");
-      }) as typeof Array.prototype.every;
+      }) as unknown as typeof Array.prototype.every;
       Array.prototype.map = () => {
         throw new Error("post_import_map_poison");
       };
