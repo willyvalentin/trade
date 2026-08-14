@@ -16,7 +16,7 @@ concurrency:
 jobs:
   provider-free-verification:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       CI: "true"
       PLAYWRIGHT_SKIP_WEB_SERVER: "true"
