@@ -10,6 +10,7 @@ import {
   CANONICAL_BOUNDED_SNAPSHOT_BUDGET_POLICY_DIGEST,
   CANONICAL_BOUNDED_SNAPSHOT_VALIDATOR_VERSION,
   createCanonicalBindingBackedImprovementReplayHarness,
+  createCanonicalBindingSnapshotJsonSource,
   createCanonicalBindingSnapshotAdmissionAuthority,
   createCanonicalExternalImprovementBindingEntry,
   createCanonicalExternalImprovementBindingSnapshot,
@@ -90,6 +91,26 @@ export const CANONICAL_GOVERNED_BINDING_SNAPSHOT_ISSUANCE_BUDGET_DIGEST =
 
 const shaPattern = /^[a-f0-9]{64}$/;
 const identityPattern = /^[A-Za-z0-9][A-Za-z0-9._:/-]{2,255}$/;
+
+function canonicalSnapshotJsonBytes(
+  snapshot: CanonicalExternalImprovementBindingSnapshot,
+) {
+  const canonicalize = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(canonicalize);
+    if (value === null || typeof value !== "object") return value;
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort((first, second) =>
+          first === second ? 0 : first < second ? -1 : 1,
+        )
+        .map((key) => [
+          key,
+          canonicalize((value as Record<string, unknown>)[key]),
+        ]),
+    );
+  };
+  return JSON.stringify(canonicalize(snapshot));
+}
 
 const safety = {
   shadow_only: true,
@@ -1093,14 +1114,18 @@ function execute(input: {
         CANONICAL_BINDING_SNAPSHOT_OWNER_BOUNDARY_VERSION,
       owner_boundary_identity:
         CANONICAL_BINDING_SNAPSHOT_OWNER_BOUNDARY_VERSION,
+      expected_authority_identity: admissionAuthority.authority_identity,
+      expected_authority_digest: admissionAuthority.authority_digest,
       read_expected_authority: () => admissionAuthority,
     },
-    snapshot_dependency: {
-      source_contract_version:
-        "canonical_external_binding_snapshot_source_v1" as const,
-      read_snapshot: () => snapshot,
-    },
+    snapshot_dependency: createCanonicalBindingSnapshotJsonSource(
+      canonicalSnapshotJsonBytes(snapshot),
+    ),
     capture_authority: input.dependencies.capture_authority,
+    expected_capture_authority_identity:
+      input.dependencies.capture_authority.authority_identity,
+    expected_capture_authority_digest:
+      input.dependencies.capture_authority.authority_digest,
   };
   const bdHarness =
     createCanonicalBindingBackedImprovementReplayHarness({
@@ -1130,7 +1155,7 @@ function execute(input: {
     verifyCanonicalBindingBackedImprovementReplayResult({
       request: request.binding_backed_replay_request,
       result: replay,
-      dependencies: bdDependencies,
+      harness: bdHarness,
     });
   if (!verification.valid || replay.status !== "admitted") {
     return result({
