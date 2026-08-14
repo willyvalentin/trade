@@ -177,8 +177,11 @@ const templateChecklistItems = [
 const evidenceSha256 =
   "47bcbfbd6da71b8f7f812c4177160b5d80da3372771622a7ad027a0b94ef07be";
 
-const currentMainCommit = "7662d3f863f8f921b816670363431df8e1ebcdea";
-const currentMainTree = "86a59f234b69e63b07a60833224015018be41568";
+const manualControlMainCommit =
+  "7662d3f863f8f921b816670363431df8e1ebcdea";
+const manualControlMainTree = "86a59f234b69e63b07a60833224015018be41568";
+const currentMainCommit = "7b79691e473fa630d748763cddf97e1209974e40";
+const currentMainTree = "5c6eb05b11f83a2c50302c06cd41fd70295702fc";
 const lastVerifiedProductionCommit =
   "f463644ddeb7f49fa8b80924d9103ea8970ccae4";
 
@@ -215,8 +218,8 @@ test("manual MA13 control records the accepted gap without gate credit", async (
 
   expect(evidence.authority).toEqual({
     repository: "willyvalentin/trade",
-    main_commit: currentMainCommit,
-    main_tree: currentMainTree,
+    main_commit: manualControlMainCommit,
+    main_tree: manualControlMainTree,
     main_parents: [
       lastVerifiedProductionCommit,
       "3dcded2aab304a9e7a748a78de17f03f293d0ec5",
@@ -332,14 +335,14 @@ test("manual MA13 control records the accepted gap without gate credit", async (
     lastVerifiedProductionCommit,
   );
   expect(ledger).toContain(
-    `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of current main \`${currentMainCommit}\`; the commits are not equal because governance-only PR #99 advanced main without a production publish`,
+    `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of current main \`${currentMainCommit}\`; the commits are not equal because PRs #99 and #100 advanced governance and PRs #101 through #108 delivered provider-free, runtime-unwired source without a production publish`,
   );
   expect(roadmap).toContain(
-    `Current GitHub \`main\` is\n\`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because governance-only PR #99\nadvanced \`main\` without a production publish.`,
+    `Current GitHub \`main\` is\n\`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because PRs #99 and #100 advanced\ngovernance and PRs #101 through #108 delivered provider-free, runtime-unwired\nTrack 2 source without a production publish.`,
   );
   expect(roadmap).toMatch(
     new RegExp(
-      `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\` and now by current main\\s+\`${currentMainCommit}\` / tree\\s+\`${currentMainTree}\``,
+      `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\`, then by\\s+\`${manualControlMainCommit}\` /\\s+\`${manualControlMainTree}\`, and now by current main\\s+\`${currentMainCommit}\` / tree\\s+\`${currentMainTree}\``,
     ),
   );
   for (const text of [roadmap, ledger]) {

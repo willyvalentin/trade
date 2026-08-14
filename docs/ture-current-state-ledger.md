@@ -1,32 +1,39 @@
 # Ture Current-State Ledger
 
-**ACTION 660H — accepted manual MA-13 merge control.**
+**ACTION 666CR — current-main roadmap and ledger reconciliation.**
 
-**Evidence timestamp:** 2026-08-12. This bounded eight-path successor records
-the operator's choice to keep the repository private on GitHub Free and adopts
-a mandatory manual merge control. It resolves MA-13 from unknown to a known,
-accepted gap without closing the gate. On its delivery branch it does not
-authorize repository merging, runtime, production, provider, database,
-migration, broker or release activity.
+**Evidence timestamp:** 2026-08-15. This governance-only successor reconciles
+the accepted manual MA-13 control and the bounded Track 2 current-main delivery
+through PR #108. It authorizes no runtime, production, provider, database,
+migration, broker, training, promotion or release activity.
 
-`roadmap_completion_authority:false`
+`roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Direct current readbacks
 
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub reconciliation base | `7662d3f863f8f921b816670363431df8e1ebcdea` | canonical_current |
-| Current main event | ordinary merge of PR #99 | corroborated_current |
-| Current main tree | `86a59f234b69e63b07a60833224015018be41568` | canonical_current |
-| Current main parents | `f463644ddeb7f49fa8b80924d9103ea8970ccae4`, `3dcded2aab304a9e7a748a78de17f03f293d0ec5` | canonical_current |
+| GitHub reconciliation base | `7b79691e473fa630d748763cddf97e1209974e40` | canonical_current |
+| Current main event | ordinary merge of PR #108 | corroborated_current |
+| Current main tree | `5c6eb05b11f83a2c50302c06cd41fd70295702fc` | canonical_current |
+| Current main parents | `9a18c2ee394f34e470e3a2804bf9e9b1e444a38c`, `7b2999c519d304a4a8b32596f37b5edf75693789` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
 | PR #97 | MERGED; head `5bed9de6…`; merge `9e2f64a1…` | corroborated_current |
 | PR #98 | MERGED; reviewed head `790151d0…`; merge `f463644d…`; no head-to-main file delta | corroborated_current |
 | PR #99 | MERGED; head `3dcded2a…`; merge `7662d3f8…` | corroborated_current |
-| Exact-main CI | run `31543202986`, push, head `7662d3f8…`, completed/success | verified_current |
+| PR #100 | MERGED; head `a38fa88e…`; merge `a8a4990a…`; manual MA-13 control | corroborated_current |
+| PR #101 | MERGED; head `4cd1b42d…`; merge `3daa3663…`; Action 666CJ | corroborated_current |
+| PR #102 | MERGED; head `6642e5fd…`; merge `0318046d…`; Action 666CK | corroborated_current |
+| PR #103 | MERGED; head `d54d7a2c…`; merge `7bdb119f…`; Action 666CL | corroborated_current |
+| PR #104 | MERGED; head `158af911…`; merge `a5aa598d…`; Action 666CM | corroborated_current |
+| PR #105 | MERGED; head `18771e88…`; merge `0a40ed49…`; Action 666CN | corroborated_current |
+| PR #106 | MERGED; head `cb40b254…`; merge `315eae10…`; Action 666CO | corroborated_current |
+| PR #107 | MERGED; reviewed head `2a870862…`; merge `9a18c2ee…`; Action 666CP | corroborated_current |
+| PR #108 | MERGED; reviewed head `7b2999c5…`; merge `7b79691e…`; Action 666CQ | corroborated_current |
+| Exact-main CI | run `31835953106`, push, head `7b79691e…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 403 under current private-repository plan; GraphQL rule count 0 | known_gap |
 | GitHub repository rulesets | API HTTP 403 under current private-repository plan | known_gap |
@@ -40,7 +47,7 @@ migration, broker or release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of current main `7662d3f863f8f921b816670363431df8e1ebcdea`; the commits are not equal because governance-only PR #99 advanced main without a production publish | verified_current; production_behind_governance_only_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of current main `7b79691e473fa630d748763cddf97e1209974e40`; the commits are not equal because PRs #99 and #100 advanced governance and PRs #101 through #108 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
 | MA05 production structure | 9/9 physical NOT NULL and RLS; 20/20 constraints; 2/2 relationship indexes; revoked client grants; service-role-only RPC | verified_current |
@@ -50,14 +57,15 @@ migration, broker or release activity.
 | Supabase V2 receipt | selected `[public]`: 1 schema, 30 tables, 653 columns, 30 PK, 28 FK, 22 functions | verified_current |
 | Generated type output | provider response and repository output byte-identical at SHA-256 `f23c3702…`; required owner fields and RPC present | verified_current |
 
-The Action 660H decision is repository-governance-only. It does not modify or
-supersede the last verified production readback and performs no application,
-database, provider or release mutation.
+Action 666CR is repository-governance-only. It preserves the Action 660H manual
+control, does not modify or supersede the last verified production readback and
+performs no application, database, provider or release mutation.
 
 ## Milestone A gate ledger
 
-At this delivery branch's boundary, formal closure is **14/15 = 93.3%**,
-with no partial credit. Milestone A is not complete.
+Conditional on these exact reconciliation bytes reaching `main` and successful
+exact-main CI, formal closure is **14/15 = 93.3%**, with no partial credit. The
+candidate itself awards no advance MA-02 credit. Milestone A is not complete.
 
 | Classification | Gates |
 | --- | --- |
@@ -94,8 +102,9 @@ deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
-commit. Current main `7662d3f863f8f921b816670363431df8e1ebcdea`
-is a governance-only successor and has no recorded production publish.
+commit. Current main `7b79691e473fa630d748763cddf97e1209974e40`
+is a governance and provider-free Track 2 successor and has no recorded
+production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
 relationship correction. Anonymous login redirect and protected dashboard
@@ -114,16 +123,23 @@ approval of PR plus SHA, ordinary PR merge, exact-main CI and release-bound
 smoke when deployed. This is accepted manual compensation, not GitHub
 enforcement; it awards no credit and Milestone A remains 14/15.
 
+Track 2 current-main foundation is delivered through PR #108. The verified
+provider-free sequence is `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`.
+Every layer remains server-only, synthetic-only, default-off and runtime-unwired.
+The next bounded objective is a fresh current-main non-forgeable
+observation-authority successor based on the first applicable historical PR #72
+layer. The historical PR and its review evidence remain non-authority.
+
 ## Delivery state
 
 | Track | Current classification | Evidence boundary |
 | --- | --- | --- |
 | 1 | paused | No new release authority. |
-| 2 | open dependent stack | PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open and are not current-main authority. |
+| 2 | current-main foundation delivered; observation authority open | PRs #101 through #108 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`, all default-off and runtime-unwired. Historical PRs #54, #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`, Milestone A incomplete | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
 | 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |
-| 5 | verified recovery; governance delivery candidate | PR #99 is the current main event and makes Action 660G canonical. Action 660H records the accepted manual MA-13 control without closing the gate. PR #45 remains stale non-authority and unmodified. |
+| 5 | verified recovery; manual governance canonical | PR #99 makes Action 660G canonical and PR #100 makes the accepted Action 660H manual MA-13 control canonical without closing the gate. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
 ## Historical authority and supersession ledger
@@ -134,8 +150,9 @@ enforcement; it awards no credit and Milestone A remains 14/15.
   `5c54eb02…` were canonical at their respective evidence timestamps. They are
   superseded first by `4607990a…` / `fc5e4e3d…`, then by `490e3607…` /
   `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
-  `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…` and now by
-  reconciliation base `7662d3f…` / `86a59f23…`.
+  `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…`, then by
+  `7662d3f…` / `86a59f23…` and now by reconciliation base `7b79691e…` /
+  `5c6eb05b…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -145,8 +162,9 @@ enforcement; it awards no credit and Milestone A remains 14/15.
   `4607990a…` and deploy `6a7b2c1e…`; those identities and the later
   `490e3607…`, `58c29514…` and `9e2f64a…` releases are historical and
   superseded by the last verified production commit `f463644d…` and deploy
-  `6a7b9e45…`. Governance-only PR #99 then advanced current main to
-  `7662d3f…`; production remains at its first-parent ancestor `f463644d…`.
+  `6a7b9e45…`. PRs #99 and #100 then advanced governance, and provider-free PRs
+  #101 through #108 advanced current main to `7b79691e…`; production remains at
+  its first-parent ancestor `f463644d…`.
 - Previous `unknown_current` source-containment, authenticated API-boundary
   and repository-CI claims are superseded by closed MA-03, MA-04 and MA-12
   evidence. Earlier evidence closed bounded MA-15 behavior, the post-PR #97
@@ -181,8 +199,10 @@ enforcement; it awards no credit and Milestone A remains 14/15.
 3. Tenant/owner completion is bound to the Action 660 production and
    two-principal evidence; V2 generated output corroborates shape but does not
    replace role-bound behavior proof.
-4. Reopen MA-11 if production deploy, production assertion or GitHub `main`
-   stops identifying the same immutable commit.
+4. Reopen MA-11 if a production deploy/assertion changes without exact GitHub
+   identity reconciliation, or if the recorded production-to-main ancestry is
+   no longer verified. Provider-free main movement alone is not a production
+   publish.
 5. Do not create a new durable Supabase contract without separate migration
    allowlist evidence and a fresh generated-types provenance reconciliation.
 6. Do not treat default-off Action 655 or Session V2 source as runtime or
