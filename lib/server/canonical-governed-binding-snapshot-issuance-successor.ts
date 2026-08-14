@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { types as nodeTypes } from "node:util";
 
 import {
+  CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_AUTHORITY_VERSION,
   CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_REQUEST_VERSION,
   type CanonicalCompletedImprovementCaptureAuthority,
 } from "@/lib/server/canonical-completed-improvement-evidence-capture";
@@ -34,6 +35,9 @@ import {
   type CanonicalImprovementBindingOwnerDependency,
   type CanonicalImprovementBindingLookupResult,
 } from "@/lib/server/canonical-improvement-binding-store";
+import {
+  CANONICAL_MODEL_IMPROVEMENT_UPSTREAM_VERIFIER_VERSION,
+} from "@/lib/server/canonical-model-improvement-upstream-verification";
 
 const intrinsicStructuredClone = structuredClone;
 const intrinsicJsonStringify = JSON.stringify;
@@ -892,6 +896,37 @@ function snapshotAxOwnerDependency(
   });
 }
 
+function hasCanonicalCaptureAuthorityShell(
+  value: unknown,
+): value is CanonicalCompletedImprovementCaptureAuthority {
+  return (
+    isRecord(value) &&
+    intrinsicObjectIsFrozen(value) &&
+    exactKeys(value, [
+      "authority_digest",
+      "authority_digest_algorithm",
+      "authority_identity",
+      "authority_version",
+      "proposal_registry_authority_identity",
+      "proposal_registry_manifest_digest",
+      "proposal_registry_root_digest",
+      "trust_boundary",
+      "upstream_verifier_version",
+    ]) &&
+    value.authority_version ===
+      CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_AUTHORITY_VERSION &&
+    validIdentity(value.authority_identity) &&
+    validIdentity(value.proposal_registry_authority_identity) &&
+    validFullSha(value.proposal_registry_manifest_digest) &&
+    validFullSha(value.proposal_registry_root_digest) &&
+    value.upstream_verifier_version ===
+      CANONICAL_MODEL_IMPROVEMENT_UPSTREAM_VERIFIER_VERSION &&
+    isRecord(value.trust_boundary) &&
+    value.authority_digest_algorithm === "sha256_canonical_json_v1" &&
+    validFullSha(value.authority_digest)
+  );
+}
+
 function snapshotIssuanceDependencies(
   value: unknown,
 ): CanonicalGovernedBindingSnapshotIssuanceDependencies | null {
@@ -934,7 +969,7 @@ function snapshotIssuanceDependencies(
       !intrinsicNumberIsSafeInteger(issuer.value.minimum_publication_epoch) ||
       issuer.value.minimum_publication_epoch < 1 ||
       !axOwnerSnapshot ||
-      !isRecord(captureAuthority.value)
+      !hasCanonicalCaptureAuthorityShell(captureAuthority.value)
     ) {
       return null;
     }
@@ -1054,7 +1089,32 @@ function isCanonicalIssuanceScopeRequest(
     endToEndRequest.completed_capture_request.request_version !==
       CANONICAL_COMPLETED_IMPROVEMENT_CAPTURE_REQUEST_VERSION ||
     endToEndRequest.completed_capture_request.source_namespace !==
-      "completed_improvement_capture_inputs"
+      "completed_improvement_capture_inputs" ||
+    !canonicalInstant(
+      endToEndRequest.completed_capture_request.completed_at,
+    ) ||
+    !validFullSha(
+      endToEndRequest.completed_capture_request
+        .expected_registry_root_digest,
+    ) ||
+    !validIdentity(
+      endToEndRequest.completed_capture_request.producer_capture_identity,
+    ) ||
+    !validFullSha(
+      endToEndRequest.completed_capture_request.trusted_input_digest,
+    ) ||
+    !validIdentity(
+      endToEndRequest.completed_capture_request.trusted_input_identity,
+    ) ||
+    !isRecord(
+      endToEndRequest.completed_capture_request.declared_bindings,
+    ) ||
+    !isRecord(
+      endToEndRequest.completed_capture_request.source_artifact_digests,
+    ) ||
+    !isRecord(
+      endToEndRequest.completed_capture_request.upstream_sources,
+    )
   ) {
     return false;
   }

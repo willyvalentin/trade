@@ -214,6 +214,14 @@ test.describe("Action 666BQ governed issuance successor", () => {
       [["binding_backed_replay_request", "end_to_end_request", "source_namespace"], "wrong"],
       [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "request_version"], "wrong"],
       [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "source_namespace"], "wrong"],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "completed_at"], 42],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "expected_registry_root_digest"], []],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "producer_capture_identity"], {}],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "trusted_input_digest"], 1],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "trusted_input_identity"], null],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "declared_bindings"], []],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "source_artifact_digests"], null],
+      [["binding_backed_replay_request", "end_to_end_request", "completed_capture_request", "upstream_sources"], "wrong"],
     ] as const;
     for (const [pathParts, value] of cases) {
       const malformed = mutatePath(action666bqRequest, pathParts, value);
@@ -675,6 +683,7 @@ test.describe("Action 666BQ governed issuance successor", () => {
       },
       { ...base, issuer_authority_dependency: issuerExtra },
       { ...base, issuer_authority_dependency: issuerMissing },
+      { ...base, capture_authority: {} },
     ];
 
     let getterReads = 0;
@@ -703,6 +712,23 @@ test.describe("Action 666BQ governed issuance successor", () => {
         throw new Error("dependency_proxy_keys");
       },
     }));
+    malformedDependencies.push({
+      ...base,
+      capture_authority: new Proxy({}, {
+        get() {
+          proxyTraps += 1;
+          throw new Error("capture_authority_proxy_get");
+        },
+        getPrototypeOf() {
+          proxyTraps += 1;
+          throw new Error("capture_authority_proxy_prototype");
+        },
+        ownKeys() {
+          proxyTraps += 1;
+          throw new Error("capture_authority_proxy_keys");
+        },
+      }),
+    });
 
     for (const dependencies of malformedDependencies) {
       const harness =
