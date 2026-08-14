@@ -1,0 +1,106 @@
+{
+  "schema_version": "action_666cq_current_main_governed_binding_snapshot_issuance_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "9a18c2ee394f34e470e3a2804bf9e9b1e444a38c",
+    "candidate_base_tree": "794a94999150113599f4aa32c91650b1a2879ba0",
+    "historical_source_pull_request": 72,
+    "historical_source_head": "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
+    "historical_source_code_commit": "4152531b50cd7b4968733afe02fb235a62fd9493",
+    "historical_review_commit": "e9cfbcc14d4fb8b8973712ed62e5fcdf5565be38",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false,
+    "larger_historical_observation_chain_imported": false
+  },
+  "foundation": {
+    "issuance_version": "canonical_governed_binding_snapshot_issuance_successor_v3",
+    "request_version": "canonical_governed_binding_snapshot_issuance_request_v3",
+    "authority_version": "canonical_governed_binding_snapshot_issuer_authority_v3",
+    "observation_version": "canonical_governed_binding_snapshot_issuance_observation_v3",
+    "validator_version": "canonical_governed_binding_snapshot_issuance_validator_v3",
+    "budget_version": "canonical_governed_binding_snapshot_issuance_budget_v3",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "f513b3379541e5dcd7105332020a7a997d010821330384dd4258eceb996b4c99",
+    "artifacts": [
+      {
+        "path": "docs/action-666bq-golden-binding-snapshot-issuance-successor-report.json",
+        "sha256": "83c45f8bfaa9dc34e551624fcad7e1f77a496d8df5054da10f845975289bcd52"
+      },
+      {
+        "path": "docs/action-666bq-governed-binding-snapshot-issuance-successor.md",
+        "sha256": "b02e29c6a204b9b5453e8e6c161332b9e4112237c499397b354d5a1fe4d492a3"
+      },
+      {
+        "path": "lib/server/canonical-governed-binding-snapshot-issuance-successor-fixtures.ts",
+        "sha256": "d54ce461dbeb4f28fe9ce2a61353b72382fc36ae6ee369f952b52fc1563263be"
+      },
+      {
+        "path": "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
+        "sha256": "2b124bfc4424be25dee8d38358704e38e5518af8daac771c812ad2049fb09bd2"
+      },
+      {
+        "path": "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
+        "sha256": "f94b9c38dbca9042b02c1bd10ee555556e357ed2a28a3287fa7ecf027756b1ea"
+      }
+    ]
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false,
+    "historical_scope_split_required": true
+  },
+  "runtime_remediation": {
+    "literal_activation_gate_required": true,
+    "exact_active_option_counter_and_dependency_shells_required": true,
+    "construction_time_issuer_and_ax_dependency_snapshot_required": true,
+    "independent_issuer_authority_identity_and_digest_pins_required": true,
+    "recursive_request_literal_and_shell_validation_before_authority_read_required": true,
+    "canonical_semantic_scope_validation_required": true,
+    "strict_string_digest_root_and_pin_validation_required": true,
+    "unknown_binding_entry_type_forbidden": true,
+    "builder_and_runtime_semantic_validation_parity_required": true,
+    "issued_effective_equals_issued_at_required": true,
+    "private_issuance_verifier_authority_required": true,
+    "private_execution_counters_required": true,
+    "caller_counter_mutation_forbidden": true,
+    "callback_failure_single_read_containment_required": true,
+    "self_consistent_authority_replacement_rejected": true,
+    "structured_never_throw_failure_required": true,
+    "bounded_public_digest_inputs_required": true,
+    "recursive_adversarial_runtime_matrix_required": true,
+    "captured_clone_freeze_digest_and_introspection_primordials_required": true,
+    "captured_array_set_weak_map_brand_and_proxy_primordials_required": true,
+    "captured_regex_time_numeric_and_string_primordials_required": true,
+    "implicit_array_iterator_for_canonical_validation_forbidden": true,
+    "strict_locale_independent_canonical_string_order_required": true,
+    "post_import_primordial_replacement_contained": true,
+    "current_main_predecessor_authorities_reconciled": true,
+    "arbitrary_js_object_pre_allocation_claimed": false
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true,
+    "unexpected_external_deploy_requires_explicit_reconciliation": true
+  }
+}

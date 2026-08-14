@@ -327,5 +327,7 @@ test("Action 666CP remains server-only and absent from live consumers", async ()
   }
   expect(consumers.sort()).toEqual([
     "lib/server/canonical-governed-binding-snapshot-admission-fixtures.ts",
+    "lib/server/canonical-governed-binding-snapshot-issuance-successor-fixtures.ts",
+    "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
   ]);
 });
