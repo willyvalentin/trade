@@ -52,6 +52,7 @@ import {
 } from "@/lib/server/canonical-model-improvement-proposal";
 import {
   canonicalQualitySemanticDigest,
+  canonicalScorecardComparabilityPolicy,
 } from "@/lib/canonical-quality-scorecard";
 import {
   CANONICAL_MODEL_IMPROVEMENT_TEMPORAL_POLICY_VERSION,
@@ -640,6 +641,36 @@ test.describe("Action 666V governed model-improvement proposals", () => {
     ).toMatchObject({
       status: "conflicting",
       reason_codes: ["action_666_explanation_replay_conflicting"],
+    });
+  });
+
+  test("upstream verification is independent of restored prior policy mutation", () => {
+    const canonicalSources =
+      action666vStableImprovementFixture.payload.upstream_sources;
+    const mutablePolicy = canonicalScorecardComparabilityPolicy as {
+      minimum_identities: number;
+    };
+    const originalMinimum = mutablePolicy.minimum_identities;
+    let mutatedVerification!: ReturnType<
+      typeof verifyAndProjectCanonicalModelImprovementUpstreams
+    >;
+    try {
+      mutablePolicy.minimum_identities = Number.MAX_SAFE_INTEGER;
+      mutatedVerification = verifyAndProjectCanonicalModelImprovementUpstreams(
+        canonicalSources,
+      );
+    } finally {
+      mutablePolicy.minimum_identities = originalMinimum;
+    }
+    expect(mutatedVerification).toMatchObject({
+      status: "conflicting",
+      reason_codes: ["action_664_quality_replay_conflicting"],
+    });
+    expect(
+      verifyAndProjectCanonicalModelImprovementUpstreams(canonicalSources),
+    ).toMatchObject({
+      status: "verified",
+      reason_codes: [],
     });
   });
 

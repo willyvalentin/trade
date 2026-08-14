@@ -93,6 +93,9 @@ frozen learning result against its independent registries, and rebuilds every
 canonical explanation. Fields such as `comparable`, `complete`,
 `out_of_sample`, and `reproducible` are projections of those verifier results;
 caller assertions and standalone digest literals are not evidence.
+Verifier reuse is strictly local to one synchronous verification call. No
+module-global verification result survives a call, so restored policy drift,
+callbacks, request order, and earlier failures cannot influence later replay.
 
 Every proposal evidence source is a `(namespace, digest)` pair. The namespace
 must match exactly one verified canonical section digest. Valid SHA-256 values

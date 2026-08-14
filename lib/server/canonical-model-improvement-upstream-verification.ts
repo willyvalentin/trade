@@ -291,24 +291,6 @@ function rate(count: number, denominator: number) {
   return denominator > 0 ? count / denominator : 0;
 }
 
-const qualityVerificationCache = new Map<string, boolean>();
-const opportunityVerificationCache = new Map<
-  string,
-  ReturnType<typeof verifyCanonicalCounterfactualOpportunitySet>
->();
-const shadowVerificationCache = new Map<
-  string,
-  ReturnType<typeof verifyCanonicalShadowEvaluationResult>
->();
-const learningVerificationCache = new Map<
-  string,
-  ReturnType<typeof verifyCanonicalOfflineLearningResult>
->();
-const explanationVerificationCache = new Map<
-  string,
-  ReturnType<typeof verifyCanonicalPredictiveOutcomeExplanation>
->();
-
 export function verifyAndProjectCanonicalModelImprovementUpstreams(
   sources: CanonicalModelImprovementUpstreamSources,
 ): CanonicalModelImprovementUpstreamVerification {
@@ -336,24 +318,19 @@ export function verifyAndProjectCanonicalModelImprovementUpstreams(
   }
 
   const quality = sources.quality;
-  const qualityKey = digest(quality);
-  let qualityValid = qualityVerificationCache.get(qualityKey);
-  if (qualityValid === undefined) {
-    const replayedComparison = compareCanonicalQualityScorecards({
-      baseline: quality.baseline,
-      candidate: quality.candidate,
-      bootstrap_seed: quality.bootstrap_seed,
-    });
-    qualityValid =
-      verifyCanonicalQualityScorecardDigest(quality.baseline) &&
-      verifyCanonicalQualityScorecardDigest(quality.candidate) &&
-      verifyCanonicalPairBoundComparabilityEvidence(
-        quality.comparison.comparison_evidence,
-      ) &&
-      verifyCanonicalQualityVersionComparisonDigest(quality.comparison) &&
-      digest(replayedComparison) === digest(quality.comparison);
-    qualityVerificationCache.set(qualityKey, qualityValid);
-  }
+  const replayedComparison = compareCanonicalQualityScorecards({
+    baseline: quality.baseline,
+    candidate: quality.candidate,
+    bootstrap_seed: quality.bootstrap_seed,
+  });
+  const qualityValid =
+    verifyCanonicalQualityScorecardDigest(quality.baseline) &&
+    verifyCanonicalQualityScorecardDigest(quality.candidate) &&
+    verifyCanonicalPairBoundComparabilityEvidence(
+      quality.comparison.comparison_evidence,
+    ) &&
+    verifyCanonicalQualityVersionComparisonDigest(quality.comparison) &&
+    digest(replayedComparison) === digest(quality.comparison);
   if (!qualityValid) {
     reasons.push("action_664_quality_replay_conflicting");
   }
@@ -366,48 +343,46 @@ export function verifyAndProjectCanonicalModelImprovementUpstreams(
   ) {
     reasons.push("action_665_opportunity_inventory_conflicting");
   }
+  const opportunityVerifications = new Map<
+    string,
+    ReturnType<typeof verifyCanonicalCounterfactualOpportunitySet>
+  >();
   for (const set of sources.opportunity_sets) {
     const key = digest(set);
-    let verification = opportunityVerificationCache.get(key);
+    let verification = opportunityVerifications.get(key);
     if (!verification) {
       verification = verifyCanonicalCounterfactualOpportunitySet(set);
-      opportunityVerificationCache.set(key, verification);
+      opportunityVerifications.set(key, verification);
     }
     if (!verification.valid) {
       reasons.push("action_665_opportunity_replay_conflicting");
     }
   }
 
-  const shadowKey = digest(sources.shadow);
-  let shadowVerification = shadowVerificationCache.get(shadowKey);
-  if (!shadowVerification) {
-    shadowVerification = verifyCanonicalShadowEvaluationResult({
-      comparison_input: sources.shadow.comparison_input,
-      evaluation_result: sources.shadow.evaluation_result,
-    });
-    shadowVerificationCache.set(shadowKey, shadowVerification);
-  }
+  const shadowVerification = verifyCanonicalShadowEvaluationResult({
+    comparison_input: sources.shadow.comparison_input,
+    evaluation_result: sources.shadow.evaluation_result,
+  });
   if (!shadowVerification.valid || !shadowVerification.canonical_result) {
     reasons.push("action_666_shadow_replay_conflicting");
   }
 
-  const learningKey = digest(sources.learning);
-  let learningVerification = learningVerificationCache.get(learningKey);
-  if (!learningVerification) {
-    learningVerification = verifyCanonicalOfflineLearningResult({
-      request: sources.learning.request,
-      result: sources.learning.result,
-      trust_boundary: sources.learning.trust_boundary,
-    });
-    learningVerificationCache.set(learningKey, learningVerification);
-  }
+  const learningVerification = verifyCanonicalOfflineLearningResult({
+    request: sources.learning.request,
+    result: sources.learning.result,
+    trust_boundary: sources.learning.trust_boundary,
+  });
   if (!learningVerification.valid || !learningVerification.canonical_result) {
     reasons.push("action_666_learning_replay_conflicting");
   }
 
+  const explanationVerifications = new Map<
+    string,
+    ReturnType<typeof verifyCanonicalPredictiveOutcomeExplanation>
+  >();
   const explanationResults = sources.explanations.map((source) => {
     const key = digest(source);
-    const cached = explanationVerificationCache.get(key);
+    const cached = explanationVerifications.get(key);
     if (cached) return cached;
     const engine = createCanonicalPredictiveExplanationEngine({
         enabled: true,
@@ -419,7 +394,7 @@ export function verifyAndProjectCanonicalModelImprovementUpstreams(
         request: source.request,
         explanation_result: source.result,
       });
-    explanationVerificationCache.set(key, verification);
+    explanationVerifications.set(key, verification);
     return verification;
   });
   if (
