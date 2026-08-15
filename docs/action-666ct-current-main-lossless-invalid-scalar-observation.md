@@ -20,7 +20,8 @@ This successor adds one narrow, server-only observation layer:
 
 - `bigint` is signed hexadecimal magnitude;
 - `number` is the deterministic IEEE-754 binary64 big-endian byte sequence,
-  preserving `0`, `-0`, infinities and the canonical runtime NaN representation;
+  preserving `0`, `-0` and infinities while normalizing every NaN sign, payload
+  and signaling form to the single quiet-NaN sequence `7ff8000000000000`;
 - `string` is the exact ordered UTF-16 code-unit sequence, including unpaired
   surrogates;
 - `boolean`, `null` and `undefined` use type-bound ASCII literals;

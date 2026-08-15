@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666ct-current-main-lossless-invalid-scalar-observation/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "a9e45c2a4438c3c4ada9a6ec3f0a6243607bc2ab924f4ba8a05b436f20f5d900";
+  "452b9b2985b9b17254dd37dfda3212716505deb8f54c0a5a7f5f8005c43594ba";
 
 const expectedManifest = {
   schema_version:
@@ -38,19 +38,19 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "1bc1ef8d43c254959fe9681969e6057d25b1112cdafbff7ed7c69e7a5ba6dfdb",
+      "8f1e8fefe4df644b3d6311a263a15131720ea3a2230b1ca526c811601882f457",
     artifacts: [
       {
         path:
           "docs/action-666ct-current-main-lossless-invalid-scalar-observation.md",
         sha256:
-          "461f4b989f29530a15b07e0c942371e5c336de0c5d3528cf713ddd17d1c1a2a2",
+          "45588d904ed4c68f2b0b1780d6b4df12a6a40e8607ab9c2b45a887fb91fd78cf",
       },
       {
         path:
           "docs/action-666ct-golden-lossless-invalid-scalar-observation-report.json",
         sha256:
-          "a5e241bc54d758919b6a806c090eb5e0f966b0e5d488cf615fe8be4b433ee68d",
+          "2041b8aa76298ba1f0348aed2b00f867a59bda000b92cc20d8f14cbf9c290d3c",
       },
       {
         path:
@@ -62,13 +62,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
         sha256:
-          "9f9d8bbb65bb403a44bcd4e8ac65bc94aa1b692c163ba684f404bc7082d92a9a",
+          "8a946383e89844a7e765d7f1e591d82977bf99ea08fa66f0802fe86153898292",
       },
       {
         path:
           "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
         sha256:
-          "d4277600f2edfc24f4591ca6e088cbac579db5d05d4d3d5aa8ca2bbd4d77c0b7",
+          "44e3c8eda815a625a7ef993ff6e5900dc8bb94cca6080105d9cc6f5d3ea397d5",
       },
     ],
   },
@@ -79,6 +79,7 @@ const expectedManifest = {
     bigint_preflight_before_hex_materialization: true,
     utf16_length_preflight_before_hex_materialization: true,
     binary64_big_endian_representation_required: true,
+    canonical_nan_normalization_required: true,
     exact_utf16_code_unit_representation_required: true,
     type_tagged_value_digest_required: true,
     bounded_classification_distinct_from_full_identity: true,

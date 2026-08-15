@@ -399,6 +399,7 @@ function paddedHex(value: number, width: number) {
 }
 
 function numberHex(value: number) {
+  if (value !== value) return "7ff8000000000000";
   const view = new IntrinsicDataView(new IntrinsicArrayBuffer(8));
   intrinsicReflectApply(intrinsicDataViewSetFloat64, view, [0, value, false]);
   const chunks = new IntrinsicArray<string>(8);

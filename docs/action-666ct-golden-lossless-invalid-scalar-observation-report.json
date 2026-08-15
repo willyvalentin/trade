@@ -22,7 +22,8 @@
     "positive_zero": "0000000000000000",
     "negative_zero": "8000000000000000",
     "positive_infinity": "7ff0000000000000",
-    "negative_infinity": "fff0000000000000"
+    "negative_infinity": "fff0000000000000",
+    "canonical_nan": "7ff8000000000000"
   },
   "authority": {
     "represented_primitive_private_rebuild_required": true,

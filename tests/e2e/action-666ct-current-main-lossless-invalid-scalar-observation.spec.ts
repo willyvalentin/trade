@@ -40,6 +40,12 @@ function observation(value: unknown) {
   return action666ctIssue(value).primitive_observation!;
 }
 
+function numberFromBinary64Hex(value: string) {
+  const view = new DataView(new ArrayBuffer(8));
+  view.setBigUint64(0, BigInt(`0x${value}`), false);
+  return view.getFloat64(0, false);
+}
+
 function recompute(value: CanonicalLosslessInvalidScalarIssuanceResult) {
   const changed = structuredClone(value);
   const projection = structuredClone(changed);
@@ -170,7 +176,7 @@ test.describe("Action 666CT current-main lossless invalid-scalar observation", (
     expect(digests.size).toBe(cases.length);
   });
 
-  test("preserves binary64 zero, negative zero, finite and non-finite values", () => {
+  test("preserves binary64 values and canonicalizes every NaN payload", () => {
     const cases = [
       [0, goldenReport.golden_values.positive_zero],
       [-0, goldenReport.golden_values.negative_zero],
@@ -188,9 +194,30 @@ test.describe("Action 666CT current-main lossless invalid-scalar observation", (
         canonical_value_bytes: 16,
       });
     }
-    expect(observation(Number.NaN).canonical_value).toMatch(
-      /^7ff[89a-f][a-f0-9]{12}$/,
-    );
+    const nanVariants = [
+      Number.NaN,
+      numberFromBinary64Hex("7ff8000000000001"),
+      numberFromBinary64Hex("7ff8000000000002"),
+      numberFromBinary64Hex("7ff0000000000001"),
+      numberFromBinary64Hex("fff8000000000001"),
+    ];
+    const nanResults = nanVariants.map((value) => action666ctIssue(value));
+    for (const result of nanResults) {
+      expect(result.primitive_observation).toMatchObject({
+        canonical_value: goldenReport.golden_values.canonical_nan,
+        canonical_value_bytes: 16,
+      });
+    }
+    expect(
+      new Set(
+        nanResults.map(
+          (result) => result.primitive_observation!.value_digest,
+        ),
+      ).size,
+    ).toBe(1);
+    expect(
+      new Set(nanResults.map((result) => result.failure_identity_digest)).size,
+    ).toBe(1);
     expect(observation(0).value_digest).not.toBe(observation(-0).value_digest);
   });
 
