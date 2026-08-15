@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666ct-current-main-lossless-invalid-scalar-observation/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "4f35b92f7496c03892c6b0176335584b852ec402c43a408fb1696e8134461c6c";
+  "7161b7afad9346e491d137a7e930722ae0ac7415d5107d09f797b61842fb1692";
 
 const expectedManifest = {
   schema_version:
@@ -38,7 +38,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "8ee956c47e090bfe90b6d0e8b3e5a589a7607667a73b4a7a43c2725f40fc9d7c",
+      "2b36edfe9776feb727777883f049fb8df25d31fd08e178ea4c2fc1114ec45453",
     artifacts: [
       {
         path:
@@ -62,13 +62,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
         sha256:
-          "8a3acc0a4ebd5951b47bfb697973d158fcc86c07adee986573d1987d79fd235c",
+          "2f05263a85f16b8b04b404d9c2209f3149828755171b8d2ac91f337e10122c3d",
       },
       {
         path:
           "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
         sha256:
-          "a5ccfd6b4ef7f24fdcafe39c2b727a9525cc51fe57093f61c84025ca9a586fc9",
+          "b8453c2a49110d41d33fda80fed52ab01439e59d3d0921bef9d7a730037c8321",
       },
     ],
   },
@@ -94,6 +94,7 @@ const expectedManifest = {
     captured_scalar_primordials_required: true,
     proxy_or_accessor_scalar_introspection_allowed: false,
     structured_never_throw_result_required: true,
+    post_import_mutation_same_success_result_claimed: false,
   },
   scope: {
     server_only: true,

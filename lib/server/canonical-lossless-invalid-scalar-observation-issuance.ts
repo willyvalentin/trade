@@ -7,7 +7,6 @@ import {
 } from "node:util";
 
 import {
-  CANONICAL_NON_FORGEABLE_BINDING_SNAPSHOT_ISSUANCE_STATUSES,
   canonicalNonForgeableBindingSnapshotIssuanceDigest,
   createCanonicalNonForgeableBindingSnapshotIssuanceHarness,
   verifyCanonicalNonForgeableBindingSnapshotIssuanceResult,
@@ -33,7 +32,6 @@ const intrinsicArrayJoin = Array.prototype.join;
 const intrinsicStringCharCodeAt = String.prototype.charCodeAt;
 const intrinsicStringPadStart = String.prototype.padStart;
 const intrinsicBigIntToString = BigInt.prototype.toString;
-const intrinsicBigIntAsUintN = BigInt.asUintN;
 const intrinsicBigInt = BigInt;
 const intrinsicNumberToString = Number.prototype.toString;
 const intrinsicDataViewSetFloat64 = DataView.prototype.setFloat64;
@@ -73,6 +71,14 @@ function arrayJoin(values: readonly string[], separator: string) {
   ]) as string;
 }
 
+function copyArrayValues<T>(values: readonly T[]) {
+  const copied = new IntrinsicArray<T>();
+  for (let index = 0; index < values.length; index += 1) {
+    arrayPush(copied, values[index]);
+  }
+  return copied;
+}
+
 function weakMapGet<K extends object, V>(map: WeakMap<K, V>, key: K) {
   return intrinsicReflectApply(intrinsicWeakMapGet, map, [key]) as
     | V
@@ -108,12 +114,12 @@ function exactDataKeys(value: object, expected: readonly string[]) {
     const actual = intrinsicReflectOwnKeys(value);
     if (actual.length !== expected.length) return false;
     const sortedActual = arraySort(
-      new IntrinsicArray(...actual),
+      copyArrayValues(actual),
       (first, second) =>
         compareCanonicalStrings(intrinsicString(first), intrinsicString(second)),
     );
     const sortedExpected = arraySort(
-      new IntrinsicArray(...expected),
+      copyArrayValues(expected),
       compareCanonicalStrings,
     );
     for (let index = 0; index < sortedExpected.length; index += 1) {
@@ -213,7 +219,11 @@ export const DEFAULT_OFF_LOSSLESS_INVALID_SCALAR_ISSUANCE_KILL_SWITCH = true;
 export const CANONICAL_LOSSLESS_PRIMITIVE_OBSERVATION_MAX_BYTES = 65_536;
 export const CANONICAL_LOSSLESS_INVALID_SCALAR_STATUSES =
   intrinsicObjectFreeze([
-    ...CANONICAL_NON_FORGEABLE_BINDING_SNAPSHOT_ISSUANCE_STATUSES,
+    "issued",
+    "incomplete",
+    "conflicting",
+    "not_point_in_time_safe",
+    "rollback_rejected",
   ] as const);
 export const CANONICAL_LOSSLESS_PRIMITIVE_TYPE_TAGS = intrinsicObjectFreeze([
   "bigint",
@@ -447,19 +457,20 @@ function primitiveObservation(
   if (type === "bigint") {
     const bigintValue = value as bigint;
     const negative = bigintValue < intrinsicBigInt(0);
-    const magnitude = negative ? -bigintValue : bigintValue;
     const maximumHexCharacters =
       CANONICAL_LOSSLESS_PRIMITIVE_OBSERVATION_MAX_BYTES - 1;
     const maximumBits = maximumHexCharacters * 4;
-    const bounded = intrinsicReflectApply(intrinsicBigIntAsUintN, BigInt, [
-      maximumBits,
-      magnitude,
-    ]) as bigint;
-    if (bounded !== magnitude) {
+    const magnitudeExclusiveLimit =
+      intrinsicBigInt(1) << intrinsicBigInt(maximumBits);
+    if (
+      (negative && bigintValue <= -magnitudeExclusiveLimit) ||
+      (!negative && bigintValue >= magnitudeExclusiveLimit)
+    ) {
       observationStatus = "budget_exceeded";
       fullValueIdentityClaimed = false;
       reasonCodes = ["lossless_primitive_observation_max_bytes_exceeded"];
     } else {
+      const magnitude = negative ? -bigintValue : bigintValue;
       const magnitudeHex = intrinsicReflectApply(
         intrinsicBigIntToString,
         magnitude,
@@ -583,14 +594,23 @@ function terminalResult(input: {
       }
     : null;
   const failureIdentityDigest = failureIdentity ? digest(failureIdentity) : null;
-  const reasons = input.observation
-    ? representedPrimitive
-      ? [
-          ...input.predecessor.reason_codes,
-          "lossless_invalid_scalar_observation_authoritatively_bound",
-        ]
-      : [...input.predecessor.reason_codes, ...input.observation.reason_codes]
-    : [...input.predecessor.reason_codes];
+  const reasons = copyArrayValues(input.predecessor.reason_codes);
+  if (input.observation) {
+    if (representedPrimitive) {
+      arrayPush(
+        reasons,
+        "lossless_invalid_scalar_observation_authoritatively_bound",
+      );
+    } else {
+      for (
+        let index = 0;
+        index < input.observation.reason_codes.length;
+        index += 1
+      ) {
+        arrayPush(reasons, input.observation.reason_codes[index]);
+      }
+    }
+  }
   const payload = {
     issuance_version: CANONICAL_LOSSLESS_INVALID_SCALAR_ISSUANCE_VERSION,
     status: input.predecessor.status,

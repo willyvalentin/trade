@@ -249,17 +249,21 @@ test.describe("Action 666CT current-main lossless invalid-scalar observation", (
     const atBigIntLimit =
       (BigInt(1) << BigInt(262_140)) - BigInt(1);
     const overBigIntLimit = BigInt(1) << BigInt(262_140);
-    expect(observation(atBigIntLimit)).toMatchObject({
-      observation_status: "represented",
-      canonical_value_bytes: 65_536,
-      full_value_identity_claimed: true,
-    });
-    expect(observation(overBigIntLimit)).toMatchObject({
-      observation_status: "budget_exceeded",
-      canonical_value: null,
-      full_value_identity_claimed: false,
-      value_digest: null,
-    });
+    for (const value of [atBigIntLimit, -atBigIntLimit]) {
+      expect(observation(value)).toMatchObject({
+        observation_status: "represented",
+        canonical_value_bytes: 65_536,
+        full_value_identity_claimed: true,
+      });
+    }
+    for (const value of [overBigIntLimit, -overBigIntLimit]) {
+      expect(observation(value)).toMatchObject({
+        observation_status: "budget_exceeded",
+        canonical_value: null,
+        full_value_identity_claimed: false,
+        value_digest: null,
+      });
+    }
   });
 
   test("classifies symbol and function without granting full identity", () => {
