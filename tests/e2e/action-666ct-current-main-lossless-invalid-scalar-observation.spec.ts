@@ -327,6 +327,55 @@ test.describe("Action 666CT current-main lossless invalid-scalar observation", (
     });
   });
 
+  test("rejects verifier proxies and accessors without caller hooks", () => {
+    const harness = activeHarness();
+    const result = harness.issue!(BigInt(42));
+    let hooks = 0;
+    const proxy = new Proxy(result, {
+      get() {
+        hooks += 1;
+        throw new Error("caller_proxy_get_executed");
+      },
+      ownKeys() {
+        hooks += 1;
+        throw new Error("caller_proxy_own_keys_executed");
+      },
+      getOwnPropertyDescriptor() {
+        hooks += 1;
+        throw new Error("caller_proxy_descriptor_executed");
+      },
+    });
+    expect(
+      verifyCanonicalLosslessInvalidScalarObservationResult({
+        request: BigInt(42),
+        result: proxy,
+        harness,
+      }),
+    ).toMatchObject({
+      valid: false,
+      reason_codes: ["lossless_result_not_bounded"],
+    });
+    const accessor = structuredClone(result);
+    Object.defineProperty(accessor, "reason_codes", {
+      enumerable: true,
+      get() {
+        hooks += 1;
+        throw new Error("caller_getter_executed");
+      },
+    });
+    expect(
+      verifyCanonicalLosslessInvalidScalarObservationResult({
+        request: BigInt(42),
+        result: accessor,
+        harness,
+      }),
+    ).toMatchObject({
+      valid: false,
+      reason_codes: ["lossless_result_not_bounded"],
+    });
+    expect(hooks).toBe(0);
+  });
+
   test("does not introspect object proxies or accessors in the scalar layer", () => {
     let trapReads = 0;
     const proxy = new Proxy(
@@ -353,6 +402,32 @@ test.describe("Action 666CT current-main lossless invalid-scalar observation", (
       predecessor_result_verified: false,
       verifier_authority_granted: false,
     });
+    const functionProxy = new Proxy(function candidate() {}, {
+      get() {
+        trapReads += 1;
+        throw new Error("function_proxy_get_executed");
+      },
+      ownKeys() {
+        trapReads += 1;
+        throw new Error("function_proxy_own_keys_executed");
+      },
+      getOwnPropertyDescriptor() {
+        trapReads += 1;
+        throw new Error("function_proxy_descriptor_executed");
+      },
+      getPrototypeOf() {
+        trapReads += 1;
+        throw new Error("function_proxy_prototype_executed");
+      },
+    });
+    expect(action666ctIssue(functionProxy)).toMatchObject({
+      verifier_authority_granted: false,
+      primitive_observation: {
+        observation_status: "non_representable",
+        primitive_type: "function",
+      },
+    });
+    expect(trapReads).toBe(0);
     const accessor = {};
     Object.defineProperty(accessor, "secret", {
       enumerable: true,

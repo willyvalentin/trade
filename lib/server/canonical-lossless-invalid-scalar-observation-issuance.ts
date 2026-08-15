@@ -79,6 +79,13 @@ function copyArrayValues<T>(values: readonly T[]) {
   return copied;
 }
 
+function stringArrayContains(values: readonly string[], expected: string) {
+  for (let index = 0; index < values.length; index += 1) {
+    if (values[index] === expected) return true;
+  }
+  return false;
+}
+
 function weakMapGet<K extends object, V>(map: WeakMap<K, V>, key: K) {
   return intrinsicReflectApply(intrinsicWeakMapGet, map, [key]) as
     | V
@@ -572,6 +579,10 @@ function terminalResult(input: {
     representedPrimitive &&
     input.predecessor.request_observation.status !== "valid" &&
     !input.predecessorVerified &&
+    !stringArrayContains(
+      input.predecessor.reason_codes,
+      "non_forgeable_internal_execution_failed",
+    ) &&
     input.predecessorVerificationReasonCodes.length === 1 &&
     input.predecessorVerificationReasonCodes[0] ===
       "non_forgeable_invalid_request_not_authoritative";
