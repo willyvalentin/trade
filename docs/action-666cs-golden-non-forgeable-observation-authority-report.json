@@ -1,0 +1,59 @@
+{
+  "report_version": "action_666cs_synthetic_non_forgeable_observation_authority_report_v1",
+  "contract_version": "canonical_non_forgeable_binding_snapshot_issuance_v3",
+  "evidence_class": "synthetic_fixture_only",
+  "performance_claimed": false,
+  "authority_payload_digest": "cd0f2da7eab1dd6e84127d910d5035e32926e66596034e79f26d210acf0f1e3d",
+  "authority_digest": "13b5f5a2c0bce18ba2b59ae64fc3f9b806f5012fcd3312f803d7e95e12acf8b6",
+  "authority_root_digest": "817e896f5d3217c92009f3f24926507f9159e2c44cba8e36c009573d11733d8c",
+  "nested_schema_digest": "e47ace2a98bbf1f81ba4b6cc46b3f9d60e4fa4d352b3dcca3699eadd69914226",
+  "semantic_scope_digest": "5eaf423b38c3ca3d7b228d108687665835da794d373d5e8b904100efe4aa992d",
+  "scenarios": [
+    {
+      "name": "issued_signed_current_main_authority",
+      "expected_status": "issued",
+      "authority_signature_verified": true,
+      "predecessor_result_verified": true
+    },
+    {
+      "name": "self_consistent_alternative_root",
+      "expected_status": "conflicting",
+      "expected_reason": "non_forgeable_external_authority_unverified"
+    },
+    {
+      "name": "cross_session_envelope",
+      "expected_status": "conflicting",
+      "expected_reason": "non_forgeable_external_authority_unverified"
+    },
+    {
+      "name": "duplicate_json_key",
+      "expected_status": "conflicting",
+      "expected_reason": "non_forgeable_external_authority_unverified"
+    },
+    {
+      "name": "malformed_nested_request",
+      "expected_status": "incomplete",
+      "external_authority_read": false
+    },
+    {
+      "name": "semantic_scope_drift",
+      "expected_status": "incomplete",
+      "external_authority_read": false
+    }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  }
+}
