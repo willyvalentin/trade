@@ -354,6 +354,8 @@ test("Action 666CS commits no private key and remains runtime-unwired", async ()
   expect(consumers).toEqual([
     "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
     "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
+    "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
+    "lib/server/canonical-provenance-bound-observation-verification.ts",
   ]);
   const workflow = (
     await source(".github/workflows/milestone-a-ci.yml")

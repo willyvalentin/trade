@@ -6,17 +6,17 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
-  "docs/evidence/action-666ct-current-main-lossless-invalid-scalar-observation/foundation-freeze-manifest.json";
+  "docs/evidence/action-666cu-current-main-provenance-bound-observation-verification/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "452b9b2985b9b17254dd37dfda3212716505deb8f54c0a5a7f5f8005c43594ba";
+  "cbabb69c2a796546c303eaf4d013f3482a311aa1a3ad29c81fec0d5d18d9645d";
 
 const expectedManifest = {
   schema_version:
-    "action_666ct_current_main_lossless_invalid_scalar_observation_foundation_freeze_v1",
+    "action_666cu_current_main_provenance_bound_observation_verification_foundation_freeze_v1",
   authority: {
     repository: "willyvalentin/trade",
-    candidate_base_commit: "7b671f740222b0220c88cdccaaf6378519a2c7be",
-    candidate_base_tree: "3cdbf3a19ab6307b3e3100c74791de7ea6a8cbe1",
+    candidate_base_commit: "2348322478b397505111e8f7da4d2edf176aab13",
+    candidate_base_tree: "4d182c834f0b890d5a9e3da91798e190bc43f900",
     historical_design_pull_request: 72,
     historical_design_head: "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
     historical_design_code_commit:
@@ -28,74 +28,64 @@ const expectedManifest = {
     fresh_current_main_review_required: true,
   },
   foundation: {
-    issuance_version:
-      "canonical_lossless_invalid_scalar_observation_issuance_v4",
-    observation_version: "canonical_lossless_primitive_observation_v2",
-    value_digest_version: "canonical_lossless_primitive_value_digest_v2",
-    failure_identity_version:
-      "canonical_lossless_invalid_scalar_failure_identity_v2",
-    maximum_canonical_value_bytes: 65536,
+    capsule_version: "canonical_provenance_bound_observation_capsule_v2",
+    verification_version:
+      "canonical_provenance_bound_observation_verification_v2",
+    result_version: "canonical_provenance_bound_observation_result_v2",
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "8f1e8fefe4df644b3d6311a263a15131720ea3a2230b1ca526c811601882f457",
+      "21c19907c56a06092dd4205f53bf4220dc1b77898bd4b17f23c7184ae1190a78",
     artifacts: [
       {
         path:
-          "docs/action-666ct-current-main-lossless-invalid-scalar-observation.md",
+          "docs/action-666cu-current-main-provenance-bound-observation-verification.md",
         sha256:
-          "45588d904ed4c68f2b0b1780d6b4df12a6a40e8607ab9c2b45a887fb91fd78cf",
+          "06c426ba5464b69df85ad23ad589275ed5f62fdd39af9f6bad1652b8e7f7be63",
       },
       {
         path:
-          "docs/action-666ct-golden-lossless-invalid-scalar-observation-report.json",
+          "docs/action-666cu-golden-provenance-bound-observation-report.json",
         sha256:
-          "2041b8aa76298ba1f0348aed2b00f867a59bda000b92cc20d8f14cbf9c290d3c",
+          "98ea2d2e68bd4ac0ac56c6f36b6adf37c09d1937cb21024ea55a4107bf131a6f",
       },
       {
         path:
-          "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
+          "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
         sha256:
-          "ea573bc67e8f5be7080520f1a017cd234de17403b228fe8d3405d2bdfb79f6be",
+          "5e773658eea75b726cc4e78c0865c151db7df3807a7b1a923d8f452ae3377f10",
       },
       {
         path:
-          "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
+          "lib/server/canonical-provenance-bound-observation-verification.ts",
         sha256:
-          "8a946383e89844a7e765d7f1e591d82977bf99ea08fa66f0802fe86153898292",
+          "c13562da1f28230d8aa7e73f601acf69a3878d63a867c8d2908d2db388cd888b",
       },
       {
         path:
-          "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
+          "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts",
         sha256:
-          "44e3c8eda815a625a7ef993ff6e5900dc8bb94cca6080105d9cc6f5d3ea397d5",
+          "7e5539c00f79ad855f6d43486da840d090d128bb23c224393c078d42875c4afc",
       },
     ],
   },
   trust_boundary: {
     literal_default_off_gate_required: true,
     literal_kill_switch_clear_required: true,
-    primitive_observation_before_predecessor_execution: true,
-    bigint_preflight_before_hex_materialization: true,
-    utf16_length_preflight_before_hex_materialization: true,
-    binary64_big_endian_representation_required: true,
-    canonical_nan_normalization_required: true,
-    exact_utf16_code_unit_representation_required: true,
-    type_tagged_value_digest_required: true,
-    bounded_classification_distinct_from_full_identity: true,
-    symbol_or_function_full_identity_forbidden: true,
-    budget_exceeded_full_identity_forbidden: true,
-    invalid_object_authority_forbidden: true,
-    private_originating_harness_verifier_required: true,
-    represented_primitive_predecessor_rejection_bound: true,
-    valid_object_predecessor_private_verifier_required: true,
-    caller_supplied_rebuild_dependencies_allowed: false,
+    private_capsule_mint_required: true,
+    exact_action_666ct_represented_primitive_authority_required: true,
+    private_weak_map_lookup_before_candidate_introspection: true,
+    exact_originating_session_required: true,
+    capsule_clone_or_copy_authority_forbidden: true,
+    proxy_or_accessor_candidate_introspection_allowed: false,
+    cross_harness_capsule_authority_forbidden: true,
+    object_symbol_function_or_budget_authority_forbidden: true,
+    private_result_shell_identity_required: true,
+    private_result_rebuild_required: true,
+    exact_result_deep_equality_required: true,
+    captured_reflection_collection_and_freeze_primordials_required: true,
     bounded_public_digest_inputs_required: true,
-    dependency_callbacks_captured_at_construction: true,
-    captured_scalar_primordials_required: true,
-    proxy_or_accessor_scalar_introspection_allowed: false,
     structured_never_throw_result_required: true,
-    post_import_mutation_same_success_result_claimed: false,
   },
   scope: {
     server_only: true,
@@ -115,10 +105,10 @@ const expectedManifest = {
     broker_or_execution_authority_added: false,
   },
   roadmap: {
-    delivered_predecessor: "666CS",
-    candidate_action: "666CT",
+    delivered_predecessor: "666CT",
+    candidate_action: "666CU",
     next_bounded_objective_if_delivered:
-      "current_main_provenance_bound_observation_verification_successor",
+      "current_main_private_atomic_observation_authority_successor",
     track_2_complete_if_delivered: false,
     milestone_credit_awarded: false,
   },
@@ -155,7 +145,7 @@ function cloneManifest(): MutableJson {
 
 function validateManifest(value: unknown) {
   if (!isDeepStrictEqual(value, expectedManifest)) {
-    throw new Error("current_main_lossless_invalid_scalar_manifest_drift");
+    throw new Error("current_main_provenance_bound_observation_manifest_drift");
   }
 }
 
@@ -247,7 +237,7 @@ async function sourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
-test("Action 666CT binds the exact five-file lossless-scalar foundation", async () => {
+test("Action 666CU binds the exact five-file provenance foundation", async () => {
   const rawManifest = await source(manifestPath);
   expect(sha256(rawManifest)).toBe(manifestSha256);
   const manifest: unknown = JSON.parse(rawManifest.toString("utf8"));
@@ -264,28 +254,28 @@ test("Action 666CT binds the exact five-file lossless-scalar foundation", async 
   );
 });
 
-test("Action 666CT rejects every manifest mutation", () => {
+test("Action 666CU rejects every manifest mutation", () => {
   const mutations = mutationMatrix(cloneManifest());
   expect(mutations.length).toBeGreaterThan(100);
   for (const mutation of mutations) {
     expect(() => validateManifest(mutation)).toThrow(
-      "current_main_lossless_invalid_scalar_manifest_drift",
+      "current_main_provenance_bound_observation_manifest_drift",
     );
   }
 });
 
-test("Action 666CT binds historical non-authority and delivery boundaries", async () => {
+test("Action 666CU binds historical non-authority and delivery boundaries", async () => {
   const contract = (
     await source(
-      "docs/action-666ct-current-main-lossless-invalid-scalar-observation.md",
+      "docs/action-666cu-current-main-provenance-bound-observation-verification.md",
     )
   ).toString("utf8");
   expect(contract).toContain(
-    "The historical PR #72 remains an open Draft stacked non-authority.",
+    "Historical PR #72 remains an open Draft stacked non-authority.",
   );
   expect(contract).toContain("design evidence only");
   expect(contract).toContain(
-    "The next bounded Track 2 objective after delivery is current-main",
+    "The next bounded Track 2 objective after delivery is a fresh current-main",
   );
   expect(contract).toContain(
     "4. explicit operator approval names the PR and exact head;",
@@ -294,18 +284,18 @@ test("Action 666CT binds historical non-authority and delivery boundaries", asyn
     "Production deployment, provider action and database action are not authorized.",
   );
   for (const historical of [
-    "docs/action-666bw-non-forgeable-issuance-freeze-manifest.json",
-    "docs/action-666bw-non-forgeable-issuance-independent-rereview.md",
-    "docs/action-666bw-non-forgeable-issuance-threat-matrix.json",
+    "docs/action-666bz-provenance-bound-observation-verification.md",
+    "docs/action-666bz-golden-provenance-bound-observation-report.json",
+    "tests/e2e/action-666bz-provenance-bound-observation-verification.spec.ts",
   ]) {
     expect(await exists(historical), historical).toBe(false);
   }
 });
 
-test("Action 666CT remains server-only, provider-free and runtime-unwired", async () => {
+test("Action 666CU remains server-only, provider-free and runtime-unwired", async () => {
   const governedModules = [
-    "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
-    "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
+    "lib/server/canonical-provenance-bound-observation-verification.ts",
+    "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
   ];
   for (const modulePath of governedModules) {
     const moduleSource = (await source(modulePath)).toString("utf8");
@@ -325,22 +315,20 @@ test("Action 666CT remains server-only, provider-free and runtime-unwired", asyn
     const content = (await source(candidate)).toString("utf8");
     if (
       content.includes(
-        "@/lib/server/canonical-lossless-invalid-scalar-observation-issuance",
+        "@/lib/server/canonical-provenance-bound-observation-verification",
       )
     ) {
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([
-    "lib/server/canonical-provenance-bound-observation-verification.ts",
-  ]);
+  expect(consumers).toEqual([]);
   const workflow = (
     await source(".github/workflows/milestone-a-ci.yml")
   ).toString("utf8");
   expect(workflow).toContain(
-    "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
+    "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts",
   );
   expect(workflow).toContain(
-    "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts",
+    "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification-freeze.spec.ts",
   );
 });

@@ -331,5 +331,6 @@ test("Action 666CP remains server-only and absent from live consumers", async ()
     "lib/server/canonical-governed-binding-snapshot-issuance-successor.ts",
     "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
     "lib/server/canonical-non-forgeable-binding-snapshot-issuance.ts",
+    "lib/server/canonical-provenance-bound-observation-verification.ts",
   ]);
 });
