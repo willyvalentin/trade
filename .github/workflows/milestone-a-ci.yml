@@ -75,6 +75,8 @@ jobs:
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts --workers=1
       - name: Track 2 current-main non-forgeable observation authority
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts --workers=1
+      - name: Track 2 current-main lossless invalid-scalar observation
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code

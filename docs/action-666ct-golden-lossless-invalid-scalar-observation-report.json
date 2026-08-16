@@ -1,0 +1,47 @@
+{
+  "contract_version": "canonical_lossless_invalid_scalar_observation_issuance_v4",
+  "observation_version": "canonical_lossless_primitive_observation_v2",
+  "value_digest_version": "canonical_lossless_primitive_value_digest_v2",
+  "failure_identity_version": "canonical_lossless_invalid_scalar_failure_identity_v2",
+  "maximum_canonical_value_bytes": 65536,
+  "representations": {
+    "bigint": "signed_hexadecimal_magnitude_v2",
+    "number": "ieee754_binary64_big_endian_hex_v2",
+    "string": "utf16_code_units_big_endian_hex_v2",
+    "boolean_null_undefined": "ascii_literal_v2"
+  },
+  "golden_values": {
+    "bigint": {
+      "source": "-(2^127)+17",
+      "canonical_value": "-7fffffffffffffffffffffffffffffef"
+    },
+    "utf16": {
+      "source_code_units": [55296, 84, 117, 114, 101, 57343],
+      "canonical_value": "d8000054007500720065dfff"
+    },
+    "positive_zero": "0000000000000000",
+    "negative_zero": "8000000000000000",
+    "positive_infinity": "7ff0000000000000",
+    "negative_infinity": "fff0000000000000",
+    "canonical_nan": "7ff8000000000000"
+  },
+  "authority": {
+    "represented_primitive_private_rebuild_required": true,
+    "valid_object_predecessor_verification_required": true,
+    "symbol_or_function_authority_granted": false,
+    "budget_exceeded_authority_granted": false,
+    "invalid_object_authority_granted": false,
+    "caller_supplied_rebuild_dependencies_allowed": false
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "provider_or_database_access": false,
+    "production_deployment_authorized": false
+  },
+  "performance_claimed": false
+}

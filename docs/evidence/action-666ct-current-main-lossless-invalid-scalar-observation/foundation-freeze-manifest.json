@@ -1,0 +1,110 @@
+{
+  "schema_version": "action_666ct_current_main_lossless_invalid_scalar_observation_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "7b671f740222b0220c88cdccaaf6378519a2c7be",
+    "candidate_base_tree": "3cdbf3a19ab6307b3e3100c74791de7ea6a8cbe1",
+    "historical_design_pull_request": 72,
+    "historical_design_head": "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
+    "historical_design_code_commit": "0ef7bdbbd2fef3300e7e561a037e5432638dd650",
+    "historical_review_commit": "730baa4f345cd1453ce49d1fc554f4d5a4d9cb48",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false,
+    "historical_successor_chain_imported": false,
+    "fresh_current_main_review_required": true
+  },
+  "foundation": {
+    "issuance_version": "canonical_lossless_invalid_scalar_observation_issuance_v4",
+    "observation_version": "canonical_lossless_primitive_observation_v2",
+    "value_digest_version": "canonical_lossless_primitive_value_digest_v2",
+    "failure_identity_version": "canonical_lossless_invalid_scalar_failure_identity_v2",
+    "maximum_canonical_value_bytes": 65536,
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "8f1e8fefe4df644b3d6311a263a15131720ea3a2230b1ca526c811601882f457",
+    "artifacts": [
+      {
+        "path": "docs/action-666ct-current-main-lossless-invalid-scalar-observation.md",
+        "sha256": "45588d904ed4c68f2b0b1780d6b4df12a6a40e8607ab9c2b45a887fb91fd78cf"
+      },
+      {
+        "path": "docs/action-666ct-golden-lossless-invalid-scalar-observation-report.json",
+        "sha256": "2041b8aa76298ba1f0348aed2b00f867a59bda000b92cc20d8f14cbf9c290d3c"
+      },
+      {
+        "path": "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
+        "sha256": "ea573bc67e8f5be7080520f1a017cd234de17403b228fe8d3405d2bdfb79f6be"
+      },
+      {
+        "path": "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
+        "sha256": "8a946383e89844a7e765d7f1e591d82977bf99ea08fa66f0802fe86153898292"
+      },
+      {
+        "path": "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
+        "sha256": "44e3c8eda815a625a7ef993ff6e5900dc8bb94cca6080105d9cc6f5d3ea397d5"
+      }
+    ]
+  },
+  "trust_boundary": {
+    "literal_default_off_gate_required": true,
+    "literal_kill_switch_clear_required": true,
+    "primitive_observation_before_predecessor_execution": true,
+    "bigint_preflight_before_hex_materialization": true,
+    "utf16_length_preflight_before_hex_materialization": true,
+    "binary64_big_endian_representation_required": true,
+    "canonical_nan_normalization_required": true,
+    "exact_utf16_code_unit_representation_required": true,
+    "type_tagged_value_digest_required": true,
+    "bounded_classification_distinct_from_full_identity": true,
+    "symbol_or_function_full_identity_forbidden": true,
+    "budget_exceeded_full_identity_forbidden": true,
+    "invalid_object_authority_forbidden": true,
+    "private_originating_harness_verifier_required": true,
+    "represented_primitive_predecessor_rejection_bound": true,
+    "valid_object_predecessor_private_verifier_required": true,
+    "caller_supplied_rebuild_dependencies_allowed": false,
+    "bounded_public_digest_inputs_required": true,
+    "dependency_callbacks_captured_at_construction": true,
+    "captured_scalar_primordials_required": true,
+    "proxy_or_accessor_scalar_introspection_allowed": false,
+    "structured_never_throw_result_required": true,
+    "post_import_mutation_same_success_result_claimed": false
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_authority_reader_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "roadmap": {
+    "delivered_predecessor": "666CS",
+    "candidate_action": "666CT",
+    "next_bounded_objective_if_delivered": "current_main_provenance_bound_observation_verification_successor",
+    "track_2_complete_if_delivered": false,
+    "milestone_credit_awarded": false
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true,
+    "unexpected_external_deploy_requires_explicit_reconciliation": true
+  }
+}
