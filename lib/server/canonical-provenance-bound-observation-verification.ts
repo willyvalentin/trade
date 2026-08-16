@@ -318,10 +318,15 @@ type PrivateHarnessAuthority = {
   rebuild: (request: unknown) => CanonicalProvenanceBoundObservationResult;
 };
 
+type PrivateResultRecord = {
+  session: object;
+};
+
 const capsuleRecords =
   new IntrinsicWeakMap<object, PrivateCapsuleRecord>();
 const harnessAuthorities =
   new IntrinsicWeakMap<object, PrivateHarnessAuthority | null>();
+const resultRecords = new IntrinsicWeakMap<object, PrivateResultRecord>();
 
 function emptyCounters(): CanonicalProvenanceBoundObservationCounters {
   return {
@@ -619,10 +624,12 @@ function terminalResult(input: {
     result_digest_algorithm: "sha256_canonical_json_v1" as const,
     ...safety,
   };
-  return deepFreeze({
+  const result = deepFreeze({
     ...projection,
     result_digest: digest(projection, input.counters),
   });
+  weakMapSet(resultRecords, result, { session: input.session });
+  return result;
 }
 
 function execute(input: {
@@ -801,6 +808,32 @@ export function verifyCanonicalProvenanceBoundObservationResult(input: {
             ? "provenance_bound_rebuild_unavailable"
             : "provenance_bound_harness_unrecognized",
         ],
+      });
+    }
+    if (
+      provided.value === null ||
+      (typeof provided.value !== "object" &&
+        typeof provided.value !== "function")
+    ) {
+      return deepFreeze({
+        valid: false,
+        canonical_result: null,
+        reason_codes: ["provenance_bound_untrusted_result_container"],
+      });
+    }
+    const resultRecord = weakMapGet(resultRecords, provided.value as object);
+    if (!resultRecord) {
+      return deepFreeze({
+        valid: false,
+        canonical_result: null,
+        reason_codes: ["provenance_bound_untrusted_result_container"],
+      });
+    }
+    if (resultRecord.session !== authority.session) {
+      return deepFreeze({
+        valid: false,
+        canonical_result: null,
+        reason_codes: ["provenance_bound_originating_harness_mismatch"],
       });
     }
     if (

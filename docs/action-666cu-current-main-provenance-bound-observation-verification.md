@@ -29,6 +29,8 @@ provenance boundary above that result:
 - each harness owns a distinct frozen private session;
 - the capsule and its exact frozen observation reference are registered in a
   module-private `WeakMap`; and
+- each authoritative result shell is registered against that same private
+  harness session before it is returned; and
 - capsule provenance is checked before any candidate property, key,
   descriptor, prototype, iterator or serialization access.
 
@@ -41,11 +43,13 @@ object requests receive no capsule authority in this slice.
 ## Private result verification
 
 The public result verifier accepts only an originating harness, the original
-request and a bounded result shell. Before rebuilding, it requires the result's
-capsule to be present in the private provenance registry and bound to that exact
-harness session. It then privately rebuilds from the request and requires exact
-deep equality. A cloned harness, cloned capsule, recomputed public digest or
-result from another harness cannot grant authority.
+request and the exact privately registered result shell. Before any result-shell
+introspection or rebuilding, it requires that shell and then its capsule to be
+present in the private provenance registries and bound to that exact harness
+session. It then privately rebuilds from the request and requires exact deep
+equality. A shallow or deep result copy, replayed capsule, cloned harness,
+cloned capsule, recomputed public digest or result from another harness cannot
+grant authority.
 
 The implementation captures its reflection, collection, freezing and private
 `WeakMap` operations at module initialization. Default-off and kill-switch

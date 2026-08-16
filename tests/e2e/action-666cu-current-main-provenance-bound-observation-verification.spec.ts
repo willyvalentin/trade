@@ -256,6 +256,7 @@ test.describe("Action 666CU current-main provenance-bound observation verificati
   test("rejects exact clones and copied result shells despite matching public digests", () => {
     const harness = action666cuHarness();
     const result = harness.evaluate!(BigInt(2));
+    const repeated = harness.evaluate!(BigInt(2));
     const clonedCapsule = structuredClone(result.capsule);
     expect(
       verifyCanonicalProvenanceBoundObservationCapsule(clonedCapsule),
@@ -272,7 +273,27 @@ test.describe("Action 666CU current-main provenance-bound observation verificati
       }),
     ).toMatchObject({
       valid: false,
-      reason_codes: ["provenance_bound_untrusted_observation_container"],
+      reason_codes: ["provenance_bound_untrusted_result_container"],
+    });
+    expect(
+      verifyCanonicalProvenanceBoundObservationResult({
+        request: BigInt(2),
+        result: { ...result },
+        harness,
+      }),
+    ).toMatchObject({
+      valid: false,
+      reason_codes: ["provenance_bound_untrusted_result_container"],
+    });
+    expect(
+      verifyCanonicalProvenanceBoundObservationResult({
+        request: BigInt(2),
+        result: { ...repeated, capsule: result.capsule },
+        harness,
+      }),
+    ).toMatchObject({
+      valid: false,
+      reason_codes: ["provenance_bound_untrusted_result_container"],
     });
     expect(() => canonicalProvenanceBoundObservationDigest(result)).not.toThrow();
   });

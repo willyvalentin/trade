@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cu-current-main-provenance-bound-observation-verification/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "69e0d47beda5860a84e5d25d8d169bec544d86f56803ff620acd26f22015cb45";
+  "cbabb69c2a796546c303eaf4d013f3482a311aa1a3ad29c81fec0d5d18d9645d";
 
 const expectedManifest = {
   schema_version:
@@ -35,13 +35,13 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "0939cfd4292b2670e3c57c1b484fd0d8a2a81502c7a076aef352b918d94d0e52",
+      "21c19907c56a06092dd4205f53bf4220dc1b77898bd4b17f23c7184ae1190a78",
     artifacts: [
       {
         path:
           "docs/action-666cu-current-main-provenance-bound-observation-verification.md",
         sha256:
-          "92076cf503154ce50408ee37cfc8219d838a5f6a81d4fccdbb19e926da6e774f",
+          "06c426ba5464b69df85ad23ad589275ed5f62fdd39af9f6bad1652b8e7f7be63",
       },
       {
         path:
@@ -59,13 +59,13 @@ const expectedManifest = {
         path:
           "lib/server/canonical-provenance-bound-observation-verification.ts",
         sha256:
-          "5bd907f4a2ddbb8741947a08ae4721a25afbe8ffe6993cf6886be8ebaa63350b",
+          "c13562da1f28230d8aa7e73f601acf69a3878d63a867c8d2908d2db388cd888b",
       },
       {
         path:
           "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts",
         sha256:
-          "99e04160f35b783463536b6324306c43cc8b5fb5002306bb1014182eebcdf1f4",
+          "7e5539c00f79ad855f6d43486da840d090d128bb23c224393c078d42875c4afc",
       },
     ],
   },
@@ -80,6 +80,7 @@ const expectedManifest = {
     proxy_or_accessor_candidate_introspection_allowed: false,
     cross_harness_capsule_authority_forbidden: true,
     object_symbol_function_or_budget_authority_forbidden: true,
+    private_result_shell_identity_required: true,
     private_result_rebuild_required: true,
     exact_result_deep_equality_required: true,
     captured_reflection_collection_and_freeze_primordials_required: true,
