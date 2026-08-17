@@ -79,6 +79,8 @@ jobs:
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts --workers=1
       - name: Track 2 current-main provenance-bound observation verification
         run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts tests/e2e/action-666cu-current-main-provenance-bound-observation-verification-freeze.spec.ts --workers=1
+      - name: Track 2 current-main private atomic observation authority
+        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts tests/e2e/action-666cv-current-main-private-atomic-observation-authority-freeze.spec.ts --workers=1
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code
