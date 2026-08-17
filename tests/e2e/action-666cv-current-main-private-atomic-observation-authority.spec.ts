@@ -325,6 +325,34 @@ test.describe("Action 666CV current-main private atomic observation authority", 
     expect(fromString.readback_digest).toBe(fromBytes.readback_digest);
   });
 
+  test("rejects non-Uint8 typed arrays before interpreting their elements", () => {
+    const result = action666cvEvaluate("typed-array-brand");
+    const codeUnits = Array.from(result.canonical_evidence_string!, (value) =>
+      value.charCodeAt(0),
+    );
+    const candidates = [
+      new Uint16Array(codeUnits),
+      new Int16Array(codeUnits),
+      new Uint8ClampedArray(codeUnits),
+      new Float32Array(codeUnits),
+      new DataView(Uint8Array.from(codeUnits).buffer),
+      new Proxy(new Uint8Array(codeUnits), {}),
+    ];
+    for (const candidate of candidates) {
+      expect(
+        verifyCanonicalPrivateAtomicObservationReadback(candidate),
+      ).toMatchObject({
+        status: "rejected",
+        evidence: null,
+        provenance_verified: false,
+        verifier_authority_granted: false,
+        observed_input_digest: null,
+        content_identity_claimed: false,
+        reason_codes: ["arbitrary_object_readback_rejected"],
+      });
+    }
+  });
+
   test("readback rejects arbitrary objects and proxies without hooks", () => {
     const { proxy, counts } = hostileProxy();
     for (const candidate of [{}, [], proxy]) {
@@ -534,6 +562,55 @@ test.describe("Action 666CV current-main private atomic observation authority", 
       verifier_authority_granted: false,
     });
     expectRecursivelyFrozen(observed);
+    expectRecursivelyFrozen(readback);
+  });
+
+  test("captures array iteration and typed-array byte-length primordials", () => {
+    const canonical = action666cvEvaluate("captured-iteration").canonical_evidence_string!;
+    const originalIterator = Array.prototype[Symbol.iterator];
+    const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype);
+    const originalByteLength = Object.getOwnPropertyDescriptor(
+      typedArrayPrototype,
+      "byteLength",
+    )!;
+    let iteratorCalls = 0;
+    let byteLengthCalls = 0;
+    let readback: ReturnType<
+      typeof verifyCanonicalPrivateAtomicObservationReadback
+    > | null = null;
+    let thrown: unknown = null;
+    try {
+      Array.prototype[Symbol.iterator] = function () {
+        iteratorCalls += 1;
+        throw new Error("post_import_array_iterator");
+      };
+      Object.defineProperty(typedArrayPrototype, "byteLength", {
+        configurable: true,
+        get() {
+          byteLengthCalls += 1;
+          throw new Error("post_import_typed_array_byte_length");
+        },
+      });
+      readback = verifyCanonicalPrivateAtomicObservationReadback(canonical);
+    } catch (error) {
+      thrown = error;
+    } finally {
+      Array.prototype[Symbol.iterator] = originalIterator;
+      Object.defineProperty(
+        typedArrayPrototype,
+        "byteLength",
+        originalByteLength,
+      );
+    }
+    expect(thrown).toBeNull();
+    expect(iteratorCalls).toBe(0);
+    expect(byteLengthCalls).toBe(0);
+    expect(readback).toMatchObject({
+      status: "integrity_verified",
+      provenance_verified: false,
+      verifier_authority_granted: false,
+      reason_codes: [],
+    });
     expectRecursivelyFrozen(readback);
   });
 

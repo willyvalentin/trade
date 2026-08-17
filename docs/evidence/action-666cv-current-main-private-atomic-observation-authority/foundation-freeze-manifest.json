@@ -21,7 +21,7 @@
     "readback_version": "canonical_private_atomic_observation_readback_v2",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "e03c305a6cea1540e8a65c39fcd78f81caea4eea966363921180690d9038fa36",
+    "aggregate_sha256": "86a71c7408066a762336851a74507a92e8bf83c306954687a2baa69b26fbdd55",
     "artifacts": [
       {
         "path": "docs/action-666cv-current-main-private-atomic-observation-authority.md",
@@ -37,11 +37,11 @@
       },
       {
         "path": "lib/server/canonical-private-atomic-observation-authority.ts",
-        "sha256": "c5e2e1d07cb666a3de73b5ff7f20fe096351d580ddb5a89ee10022566660e433"
+        "sha256": "c15b35d813f80a7b3d89d6b6cca289320879cc807056a5d05bae1a5021ccf576"
       },
       {
         "path": "tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts",
-        "sha256": "8acc74088794c1a3dcee94801ffebc1bfcc5377d843fe59eabe46a1f731f4e6d"
+        "sha256": "0872ebe2ffbed83bf71a4329615e19f916359a6fa682f21a4288e4bb54fda1ac"
       }
     ]
   },

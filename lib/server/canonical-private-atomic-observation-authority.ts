@@ -25,6 +25,7 @@ const IntrinsicArray = Array;
 const intrinsicJsonParse = JSON.parse;
 const intrinsicJsonStringify = JSON.stringify;
 const intrinsicNodeIsProxy = nodeTypes.isProxy;
+const intrinsicNodeIsUint8Array = nodeTypes.isUint8Array;
 const intrinsicObjectFreeze = Object.freeze;
 const intrinsicObjectCreate = Object.create;
 const intrinsicObjectDefineProperty = Object.defineProperty;
@@ -51,6 +52,14 @@ const IntrinsicTextDecoder = TextDecoder;
 const IntrinsicTextEncoder = TextEncoder;
 const intrinsicTextDecoderDecode = TextDecoder.prototype.decode;
 const intrinsicTextEncoderEncode = TextEncoder.prototype.encode;
+const intrinsicTypedArrayPrototype = intrinsicObjectGetPrototypeOf(
+  Uint8Array.prototype,
+);
+const intrinsicTypedArrayByteLength =
+  intrinsicObjectGetOwnPropertyDescriptor(
+    intrinsicTypedArrayPrototype,
+    "byteLength",
+  )?.get as (this: Uint8Array) => number;
 const intrinsicTypedArrayValues = Uint8Array.prototype.values;
 const intrinsicTypedArrayIteratorNext = Object.getPrototypeOf(
   new Uint8Array().values(),
@@ -663,6 +672,17 @@ const evidenceKeys = arraySort(
   copyArrayValues(evidenceSerializationKeys),
   compareCanonicalStrings,
 );
+const evidenceDigestKeys = copyArrayValues([
+  "atomic_capsule_identity",
+  "atomic_capsule_digest",
+  "source_result_digest",
+  "source_capsule_identity",
+  "source_capsule_digest",
+  "primitive_value_digest",
+  "primitive_observation_digest",
+  "bounded_classification_digest",
+  "evidence_digest",
+] as const);
 
 function serializeEvidence(evidence: CanonicalPrivateAtomicObservationEvidence) {
   return canonicalJsonString({
@@ -728,18 +748,8 @@ function exactEvidence(
   ) {
     return false;
   }
-  for (const key of [
-    "atomic_capsule_identity",
-    "atomic_capsule_digest",
-    "source_result_digest",
-    "source_capsule_identity",
-    "source_capsule_digest",
-    "primitive_value_digest",
-    "primitive_observation_digest",
-    "bounded_classification_digest",
-    "evidence_digest",
-  ]) {
-    if (!isSha256(record[key])) return false;
+  for (let index = 0; index < evidenceDigestKeys.length; index += 1) {
+    if (!isSha256(record[evidenceDigestKeys[index]])) return false;
   }
   if (!isPrimitiveType(record.primitive_type)) return false;
   if (
@@ -857,7 +867,12 @@ function canonicalInputString(input: unknown) {
     const bytes = intrinsicReflectApply(intrinsicTextEncoderEncode, textEncoder, [
       input,
     ]) as Uint8Array;
-    if (bytes.byteLength > CANONICAL_PRIVATE_ATOMIC_OBSERVATION_MAX_READBACK_BYTES) {
+    const byteLength = intrinsicReflectApply(
+      intrinsicTypedArrayByteLength,
+      bytes,
+      [],
+    ) as number;
+    if (byteLength > CANONICAL_PRIVATE_ATOMIC_OBSERVATION_MAX_READBACK_BYTES) {
       return { value: null, reason: "readback_too_large" as const };
     }
     return { value: input, reason: null };
@@ -865,6 +880,11 @@ function canonicalInputString(input: unknown) {
   if (
     input === null ||
     (typeof input !== "object" && typeof input !== "function")
+  ) {
+    return { value: null, reason: "arbitrary_object_readback_rejected" as const };
+  }
+  if (
+    !intrinsicReflectApply(intrinsicNodeIsUint8Array, nodeTypes, [input])
   ) {
     return { value: null, reason: "arbitrary_object_readback_rejected" as const };
   }

@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cv-current-main-private-atomic-observation-authority/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "d19fce5154c3a7af56c8ddf5fa9f710736d28ea1f88b68e11c7c4ea65138f5f8";
+  "cdb95c685404050aaa37b03d771698cc3171619cd50dba302856b1046d3a8527";
 
 const expectedManifest = {
   schema_version:
@@ -36,7 +36,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "e03c305a6cea1540e8a65c39fcd78f81caea4eea966363921180690d9038fa36",
+      "86a71c7408066a762336851a74507a92e8bf83c306954687a2baa69b26fbdd55",
     artifacts: [
       {
         path:
@@ -59,13 +59,13 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-private-atomic-observation-authority.ts",
         sha256:
-          "c5e2e1d07cb666a3de73b5ff7f20fe096351d580ddb5a89ee10022566660e433",
+          "c15b35d813f80a7b3d89d6b6cca289320879cc807056a5d05bae1a5021ccf576",
       },
       {
         path:
           "tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts",
         sha256:
-          "8acc74088794c1a3dcee94801ffebc1bfcc5377d843fe59eabe46a1f731f4e6d",
+          "0872ebe2ffbed83bf71a4329615e19f916359a6fa682f21a4288e4bb54fda1ac",
       },
     ],
   },
