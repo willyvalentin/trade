@@ -1,7 +1,8 @@
 {
   "contract_version": "trade.action660i.ma13-verified-branch-protection-closure.v2",
   "evidence_status": "technical_enforcement_verified_repository_closure_candidate",
-  "observed_at": "2026-08-17T15:15:05Z",
+  "observed_at": "2026-08-17T21:04:06Z",
+  "protection_observed_at": "2026-08-17T15:15:05Z",
   "authority": {
     "repository": "willyvalentin/trade",
     "default_branch": "main",
@@ -70,12 +71,15 @@
   "protected_delivery_proof": {
     "pull_request": 113,
     "exact_reviewed_head": "daab530de6e512ae21b9aa38913fc176495774c0",
+    "merged_at": "2026-08-17T16:19:27Z",
     "merge_commit": "cdf03e545cf25c0988627ef192d50acb1d72ba72",
     "merge_tree": "f39ffe5f27d707b804f06273bd1732bb136e05b5",
     "ordinary_pull_request_merge": true,
     "reviewed_head_tree_equals_merge_tree": true,
     "exact_main_ci_run": 32045093016,
     "exact_main_ci_conclusion": "success",
+    "exact_main_ci_completed_at": "2026-08-17T18:22:10Z",
+    "post_merge_protection_observed_at": "2026-08-17T21:04:06Z",
     "post_merge_protection_profile_unchanged": true,
     "production_deployment_performed": false
   },
@@ -129,7 +133,7 @@
     "all_satisfied": false
   },
   "source_document_sha256": {
-    "docs/action-660i-ma13-verified-branch-protection-closure.md": "54cc78a18a0af2b551fcef6c2bc24e192f904206b5240698f2781837fc7979d8",
+    "docs/action-660i-ma13-verified-branch-protection-closure.md": "d6dbe9307fe9701a396d6da66591c3c467ffe435055c3fea498f5d2896d77f61",
     "docs/ture-current-state-ledger.md": "7a58bfde8cc0da6c0138a46b5e9e55e21b4377d6c3c29a45fada990e16aa7a8d",
     "docs/ture-master-roadmap.md": "bed6be03cc21496ef589f455fc01ca9552c0bfbc2a6555d27e6280991c88e7ca"
   },

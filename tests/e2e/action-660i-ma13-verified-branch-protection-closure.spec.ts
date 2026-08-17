@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const evidencePath =
   "docs/evidence/action-660i-ma13-verified-branch-protection-closure.json";
 const evidenceSha256 =
-  "b28416b17a752a530466fa286e7ad52283dc49b375785d5b21999059f36d5b05";
+  "085e2065a5a5af30b96fbaad86493bfdb8c871d760be1e347b3c420f36b06fc4";
 const protectedMain = "cdf03e545cf25c0988627ef192d50acb1d72ba72";
 const protectedMainTree = "f39ffe5f27d707b804f06273bd1732bb136e05b5";
 const pr113Head = "daab530de6e512ae21b9aa38913fc176495774c0";
@@ -32,6 +32,7 @@ function validateEvidence(value: unknown) {
       "gate_reconciliation",
       "manual_control",
       "observed_at",
+      "protection_observed_at",
       "protected_delivery_proof",
       "scope_limits",
       "source_document_sha256",
@@ -47,7 +48,8 @@ function validateEvidence(value: unknown) {
     evidence.evidence_status,
     "technical_enforcement_verified_repository_closure_candidate",
   );
-  assert.equal(evidence.observed_at, "2026-08-17T15:15:05Z");
+  assert.equal(evidence.observed_at, "2026-08-17T21:04:06Z");
+  assert.equal(evidence.protection_observed_at, "2026-08-17T15:15:05Z");
   assert.deepStrictEqual(evidence.authority, {
     repository: "willyvalentin/trade",
     default_branch: "main",
@@ -116,15 +118,46 @@ function validateEvidence(value: unknown) {
   assert.deepStrictEqual(evidence.protected_delivery_proof, {
     pull_request: 113,
     exact_reviewed_head: pr113Head,
+    merged_at: "2026-08-17T16:19:27Z",
     merge_commit: protectedMain,
     merge_tree: protectedMainTree,
     ordinary_pull_request_merge: true,
     reviewed_head_tree_equals_merge_tree: true,
     exact_main_ci_run: 32045093016,
     exact_main_ci_conclusion: "success",
+    exact_main_ci_completed_at: "2026-08-17T18:22:10Z",
+    post_merge_protection_observed_at: "2026-08-17T21:04:06Z",
     post_merge_protection_profile_unchanged: true,
     production_deployment_performed: false,
   });
+  const protectedDelivery = evidence.protected_delivery_proof as Record<
+    string,
+    unknown
+  >;
+  const protectionObservedAt = Date.parse(
+    String(evidence.protection_observed_at),
+  );
+  const mergedAt = Date.parse(String(protectedDelivery.merged_at));
+  const exactMainCiCompletedAt = Date.parse(
+    String(protectedDelivery.exact_main_ci_completed_at),
+  );
+  const postMergeProtectionObservedAt = Date.parse(
+    String(protectedDelivery.post_merge_protection_observed_at),
+  );
+  const observedAt = Date.parse(String(evidence.observed_at));
+  for (const timestamp of [
+    protectionObservedAt,
+    mergedAt,
+    exactMainCiCompletedAt,
+    postMergeProtectionObservedAt,
+    observedAt,
+  ]) {
+    assert.ok(Number.isFinite(timestamp));
+  }
+  assert.ok(protectionObservedAt < mergedAt);
+  assert.ok(mergedAt < exactMainCiCompletedAt);
+  assert.ok(exactMainCiCompletedAt <= postMergeProtectionObservedAt);
+  assert.equal(postMergeProtectionObservedAt, observedAt);
   assert.deepStrictEqual(evidence.gate_reconciliation, {
     previous_ma13_classification: "known_gap",
     technical_ma13_classification: "verified_current",
@@ -259,6 +292,8 @@ test("rejects every protection, gate, delivery and shape drift", async () => {
   const evidence = JSON.parse(await source(evidencePath));
   const mutations: Array<(candidate: MutableEvidence) => void> = [
     (candidate) => { candidate.extra = true; },
+    (candidate) => { delete candidate.protection_observed_at; },
+    (candidate) => { candidate.observed_at = "2026-08-17T15:15:05Z"; },
     (candidate) => { delete candidate.authority.pre_delivery_main_commit; },
     (candidate) => { candidate.authority.pre_delivery_main_tree = "0".repeat(40); },
     (candidate) => { candidate.verified_protection.branch_protection_endpoint_status = 404; },
@@ -276,7 +311,10 @@ test("rejects every protection, gate, delivery and shape drift", async () => {
     (candidate) => { candidate.verified_protection.conversation_resolution_required = false; },
     (candidate) => { candidate.fail_closed_readback.merge_state_status = "CLEAN"; },
     (candidate) => { candidate.protected_delivery_proof.ordinary_pull_request_merge = false; },
+    (candidate) => { candidate.protected_delivery_proof.merged_at = "2026-08-17T15:00:00Z"; },
     (candidate) => { candidate.protected_delivery_proof.exact_main_ci_conclusion = "failure"; },
+    (candidate) => { candidate.protected_delivery_proof.exact_main_ci_completed_at = "2026-08-17T16:00:00Z"; },
+    (candidate) => { candidate.protected_delivery_proof.post_merge_protection_observed_at = "2026-08-17T18:00:00Z"; },
     (candidate) => { candidate.gate_reconciliation.technical_ma13_classification = "known_gap"; },
     (candidate) => { candidate.gate_reconciliation.verified_after_technical_enforcement = 14; },
     (candidate) => { candidate.gate_reconciliation.percentage = 93.3; },

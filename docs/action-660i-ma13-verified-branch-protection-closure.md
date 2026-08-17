@@ -69,6 +69,13 @@ and push run `32045093016` succeeded. Post-merge readback still reported the
 same required check, strictness, administrator enforcement, PR requirement,
 review settings and force-push/deletion/conversation controls.
 
+The evidence timeline is explicit and ordered. The protection profile and the
+blocked Draft readback were observed at `2026-08-17T15:15:05Z`; PR #113 merged
+at GitHub's `2026-08-17T16:19:27Z`; exact-main run `32045093016` completed at
+GitHub's `2026-08-17T18:22:10Z`; and the latest post-merge protection readback
+used GitHub's response date `2026-08-17T21:04:06Z`. The evidence oracle rejects
+missing, reordered or contradictory chronology.
+
 ## Gate reconciliation
 
 The technical MA-13 classification changes from `known_gap` to
