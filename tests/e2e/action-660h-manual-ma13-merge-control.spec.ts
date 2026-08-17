@@ -180,12 +180,12 @@ const evidenceSha256 =
 const manualControlMainCommit =
   "7662d3f863f8f921b816670363431df8e1ebcdea";
 const manualControlMainTree = "86a59f234b69e63b07a60833224015018be41568";
-const currentMainCommit = "7b79691e473fa630d748763cddf97e1209974e40";
-const currentMainTree = "5c6eb05b11f83a2c50302c06cd41fd70295702fc";
+const currentMainCommit = "cdf03e545cf25c0988627ef192d50acb1d72ba72";
+const currentMainTree = "f39ffe5f27d707b804f06273bd1732bb136e05b5";
 const lastVerifiedProductionCommit =
   "f463644ddeb7f49fa8b80924d9103ea8970ccae4";
 
-test("manual MA13 control records the accepted gap without gate credit", async () => {
+test("manual MA13 control preserves the historical accepted gap without gate credit", async () => {
   const [contract, roadmap, ledger, template, workflow, rawEvidence] =
     await Promise.all([
       source("docs/action-660h-manual-ma13-merge-control.md"),
@@ -298,13 +298,11 @@ test("manual MA13 control records the accepted gap without gate credit", async (
   expect(contract).toContain("14/15 = 93.3%");
   expect(contract).toContain("It is not `verified_current`");
   expect(roadmap).toContain(
-    "| MA-13 branch protection/required-check policy | known_gap |",
-  );
-  expect(ledger).toContain("| known_gap | MA-13 |");
-  expect(roadmap).not.toContain(
     "| MA-13 branch protection/required-check policy | verified_current |",
   );
-  expect(ledger).not.toContain("| verified_current | MA-13 |");
+  expect(ledger).toContain("MA-13 is `verified_current`");
+  expect(ledger).toContain("| known_gap | none |");
+  expect(roadmap).toContain("The former Action 660H");
 
   expect(template).toContain("Manual merge safety checklist");
   const templateChecklist = template
@@ -335,14 +333,14 @@ test("manual MA13 control records the accepted gap without gate credit", async (
     lastVerifiedProductionCommit,
   );
   expect(ledger).toContain(
-    `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of current main \`${currentMainCommit}\`; the commits are not equal because PRs #99 and #100 advanced governance and PRs #101 through #108 delivered provider-free, runtime-unwired source without a production publish`,
+    `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of protected pre-delivery main \`${currentMainCommit}\`; the commits are not equal because PRs #99, #100 and #109 advanced governance and PRs #101 through #108 and #110 through #113 delivered provider-free, runtime-unwired source without a production publish`,
   );
   expect(roadmap).toContain(
-    `Current GitHub \`main\` is\n\`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because PRs #99 and #100 advanced\ngovernance and PRs #101 through #108 delivered provider-free, runtime-unwired\nTrack 2 source without a production publish.`,
+    `The protected GitHub \`main\` base\nis \`${currentMainCommit}\`; the production commit is its\nfirst-parent ancestor and is not equal to it because PRs #99, #100 and #109\nadvanced governance and PRs #101 through #108 and #110 through #113 delivered\nprovider-free, runtime-unwired Track 2 source without a production publish.`,
   );
   expect(roadmap).toMatch(
     new RegExp(
-      `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\`, then by\\s+\`${manualControlMainCommit}\` /\\s+\`${manualControlMainTree}\`, and now by current main\\s+\`${currentMainCommit}\` / tree\\s+\`${currentMainTree}\``,
+      `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\`, then by\\s+\`${manualControlMainCommit}\` /\\s+\`${manualControlMainTree}\`, then by[\\s\\S]+and now by the protected\\s+pre-delivery main base \`${currentMainCommit}\` /\\s+tree \`${currentMainTree}\``,
     ),
   );
   for (const text of [roadmap, ledger]) {

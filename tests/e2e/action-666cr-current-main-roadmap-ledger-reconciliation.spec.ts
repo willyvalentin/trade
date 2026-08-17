@@ -17,7 +17,7 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
   expect(Object.keys(value).sort()).toEqual([...expected].sort());
 }
 
-test("reconciles canonical roadmap and ledger to exact current main", async () => {
+test("preserves the historical Action 666CR reconciliation after Action 660I", async () => {
   const [rawEvidence, action, roadmap, ledger, workflow] = await Promise.all([
     source(evidencePath),
     source("docs/action-666cr-current-main-roadmap-ledger-reconciliation.md"),
@@ -136,44 +136,52 @@ test("reconciles canonical roadmap and ledger to exact current main", async () =
     broker_or_execution_authority: false,
   });
 
-  const documents: Record<string, string> = {
-    "docs/action-666cr-current-main-roadmap-ledger-reconciliation.md": action,
-    "docs/ture-current-state-ledger.md": ledger,
-    "docs/ture-master-roadmap.md": roadmap,
-  };
-  expect(Object.keys(evidence.source_document_sha256).sort()).toEqual(
-    Object.keys(documents).sort(),
+  expect(evidence.source_document_sha256).toEqual({
+    "docs/action-666cr-current-main-roadmap-ledger-reconciliation.md":
+      "ca2f1d1e038bbf2c0484fa50b6352affb86af1845c78277c0cfccbb8582021ea",
+    "docs/ture-current-state-ledger.md":
+      "43b7183d9d24731593a0eacd967cc1443cd05e040e356474c772fd3c2ba57323",
+    "docs/ture-master-roadmap.md":
+      "b37525c8a80f87e94388015508150125384fa2567d663e07513a648707ab37ff",
+  });
+  expect(createHash("sha256").update(action).digest("hex")).toBe(
+    evidence.source_document_sha256[
+      "docs/action-666cr-current-main-roadmap-ledger-reconciliation.md"
+    ],
   );
-  for (const [relativePath, text] of Object.entries(documents)) {
-    expect(createHash("sha256").update(text).digest("hex")).toBe(
-      evidence.source_document_sha256[relativePath],
-    );
-  }
 
+  expect(action).toContain("7b79691e473fa630d748763cddf97e1209974e40");
+  expect(action).toContain("31835953106");
+  expect(action).toContain("14/15");
+  expect(roadmap).toContain("cdf03e545cf25c0988627ef192d50acb1d72ba72");
+  expect(ledger).toContain("32045093016");
+  expect(roadmap).toContain("15 of 15 required gates verified (100%)");
+  expect(ledger).toContain("15/15 = 100%");
+  expect(roadmap).toContain(
+    "| MA-13 branch protection/required-check policy | verified_current |",
+  );
+  expect(ledger).toContain("MA-13 is `verified_current`");
   for (const text of [action, roadmap, ledger]) {
-    expect(text).toContain("7b79691e473fa630d748763cddf97e1209974e40");
-    expect(text).toContain("31835953106");
-    expect(text).toContain("14/15");
-    expect(text).toContain("MA-13");
-    expect(text).toContain("PR #54 remains open, non-Draft and non-authority");
     expect(text).toMatch(
-      /PRs #55, #57,\s+#58, #60, #63, #67 and #72 remain open Draft non-authority/,
+      /PR #54 remains\s+open, non-Draft and non-authority/,
+    );
+    expect(text).toMatch(
+      /PRs #55, #57,\s+#58, #60, #63, #67 and #72\s+remain open Draft non-authority/,
     );
     expect(text).not.toContain("production and main are the same commit");
     expect(text).not.toMatch(
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
     );
   }
-  expect(roadmap).toContain("PRs #101 through #108");
-  expect(ledger).toContain("current-main foundation delivered; observation authority open");
+  expect(roadmap).toContain("#110 through #113");
+  expect(ledger).toContain(
+    "current-main foundation delivered; integrity/provenance successor open",
+  );
   expect(action).toContain("Production deployment is not authorized.");
   expect(action).toContain("netlify/trade-vl/deploy-preview");
   expect(action).toContain("explicitly\nnon-production");
   expect(ledger).toContain(
-    "no operator-initiated\nprovider configuration/data mutation and no production-release mutation",
-  );
-  expect(ledger).toContain(
-    "automatic non-production preview grants no authority",
+    "Automatic non-production previews grant no\nauthority",
   );
   expect(workflow).toContain(
     "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",

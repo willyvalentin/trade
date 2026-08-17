@@ -1,0 +1,152 @@
+{
+  "contract_version": "trade.action660i.ma13-verified-branch-protection-closure.v2",
+  "evidence_status": "technical_enforcement_verified_repository_closure_candidate",
+  "observed_at": "2026-08-17T21:04:06Z",
+  "protection_observed_at": "2026-08-17T15:15:05Z",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "default_branch": "main",
+    "repository_visibility": "private",
+    "pre_delivery_main_commit": "cdf03e545cf25c0988627ef192d50acb1d72ba72",
+    "pre_delivery_main_tree": "f39ffe5f27d707b804f06273bd1732bb136e05b5",
+    "pre_delivery_main_parents": [
+      "8eb9c57c83d449042515e5184bae136bb6d827d0",
+      "daab530de6e512ae21b9aa38913fc176495774c0"
+    ],
+    "pre_delivery_main_pull_request": 113,
+    "pre_delivery_exact_main_ci_run": 32045093016,
+    "pre_delivery_exact_main_ci_conclusion": "success"
+  },
+  "before": {
+    "branch_protection_endpoint_status": 404,
+    "branch_protection_message": "Branch not protected",
+    "branch_protected": false,
+    "rulesets_endpoint_status": 200,
+    "repository_rulesets": [],
+    "graphql_branch_protection_rule_count": 0
+  },
+  "authorized_mutation": {
+    "explicit_operator_instruction_to_close_ma13": true,
+    "github_repository_configuration_mutation_performed": true,
+    "branch_protection_put_succeeded": true,
+    "production_deployment_performed": false,
+    "application_source_mutation_performed": false,
+    "database_or_supabase_mutation_performed": false,
+    "runtime_or_broker_mutation_performed": false
+  },
+  "verified_protection": {
+    "branch_protection_endpoint_status": 200,
+    "branch_protected": true,
+    "graphql_branch_protection_rule_count": 1,
+    "pattern": "main",
+    "pull_request_required": true,
+    "required_approving_review_count": 0,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": false,
+    "required_status_checks": [
+      {
+        "context": "provider-free-verification",
+        "app_id": 15368,
+        "app_slug": "github-actions"
+      }
+    ],
+    "strict_required_status_checks": true,
+    "admin_enforcement": true,
+    "enforcement_level": "everyone",
+    "force_pushes_allowed": false,
+    "deletions_allowed": false,
+    "conversation_resolution_required": true,
+    "linear_history_required": false,
+    "branch_locked": false
+  },
+  "fail_closed_readback": {
+    "pull_request": 113,
+    "exact_head": "daab530de6e512ae21b9aa38913fc176495774c0",
+    "exact_base": "8eb9c57c83d449042515e5184bae136bb6d827d0",
+    "is_draft": true,
+    "mergeable": "MERGEABLE",
+    "merge_state_status": "BLOCKED"
+  },
+  "protected_delivery_proof": {
+    "pull_request": 113,
+    "exact_reviewed_head": "daab530de6e512ae21b9aa38913fc176495774c0",
+    "merged_at": "2026-08-17T16:19:27Z",
+    "merge_commit": "cdf03e545cf25c0988627ef192d50acb1d72ba72",
+    "merge_tree": "f39ffe5f27d707b804f06273bd1732bb136e05b5",
+    "ordinary_pull_request_merge": true,
+    "reviewed_head_tree_equals_merge_tree": true,
+    "exact_main_ci_run": 32045093016,
+    "exact_main_ci_conclusion": "success",
+    "exact_main_ci_completed_at": "2026-08-17T18:22:10Z",
+    "post_merge_protection_observed_at": "2026-08-17T21:04:06Z",
+    "post_merge_protection_profile_unchanged": true,
+    "production_deployment_performed": false
+  },
+  "gate_reconciliation": {
+    "previous_ma13_classification": "known_gap",
+    "technical_ma13_classification": "verified_current",
+    "verified_before": 14,
+    "verified_after_technical_enforcement": 15,
+    "total": 15,
+    "percentage": 100,
+    "canonical_roadmap_ledger_delivery_pending": true,
+    "milestone_a_complete_after_exact_main_delivery": true
+  },
+  "manual_control": {
+    "action_660h_remains_defense_in_depth": true,
+    "independent_read_only_review_still_required": true,
+    "explicit_operator_pr_and_sha_approval_still_required": true,
+    "ordinary_pull_request_merge_still_required": true,
+    "exact_main_ci_still_required": true,
+    "technical_branch_protection_now_enforced": true
+  },
+  "track_2": {
+    "delivered_current_main_actions": [
+      "666CJ",
+      "666CK",
+      "666CL",
+      "666CM",
+      "666CN",
+      "666CO",
+      "666CP",
+      "666CQ",
+      "666CS",
+      "666CT",
+      "666CU",
+      "666CV"
+    ],
+    "next_bounded_objective": "current_main_integrity_provenance_separated_observation_authority_successor",
+    "default_off": true,
+    "runtime_unwired": true
+  },
+  "candidate_canonicalization_conditions": {
+    "current_protected_main_base_reconciled": false,
+    "roadmap_and_ledger_currentness_verified": false,
+    "exact_head_ci_success": false,
+    "independent_read_only_review_no_blocking_findings": false,
+    "explicit_operator_approval_of_pr_and_exact_head": false,
+    "protected_ordinary_pr_merge_verified": false,
+    "exact_reviewed_scope_merged": false,
+    "exact_main_ci_success": false,
+    "post_merge_protection_readback_exact": false,
+    "all_satisfied": false
+  },
+  "source_document_sha256": {
+    "docs/action-660i-ma13-verified-branch-protection-closure.md": "d6dbe9307fe9701a396d6da66591c3c467ffe435055c3fea498f5d2896d77f61",
+    "docs/ture-current-state-ledger.md": "7a58bfde8cc0da6c0138a46b5e9e55e21b4377d6c3c29a45fada990e16aa7a8d",
+    "docs/ture-master-roadmap.md": "bed6be03cc21496ef589f455fc01ca9552c0bfbc2a6555d27e6280991c88e7ca"
+  },
+  "scope_limits": {
+    "github_repository_configuration_mutation_already_completed": true,
+    "github_repository_configuration_mutation_by_this_candidate": false,
+    "application_source_mutation": false,
+    "database_or_supabase_mutation": false,
+    "auth_or_runtime_mutation": false,
+    "production_deployment": false,
+    "netlify_configuration_mutation": false,
+    "broker_or_execution_authority": false,
+    "canonical_owner_uuid_disclosure": false,
+    "application_row_disclosure": false
+  }
+}

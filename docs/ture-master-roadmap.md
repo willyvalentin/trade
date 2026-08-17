@@ -1,31 +1,31 @@
 # Ture Master Roadmap
 
-**ACTION 666CR — current-main roadmap and ledger reconciliation.**
+**ACTION 660I — verified MA13 branch-protection closure.**
 
-**Document status:** current-main governance reconciliation after the ordinary,
-provider-free delivery of PRs #100 through #108. It records the accepted manual
-MA-13 control and the bounded Track 2 current-main foundation without granting
-runtime, provider, production, broker, training, promotion or milestone
-authority.
+**Document status:** protected-main governance reconciliation after the
+ordinary, provider-free delivery of PRs #100 through #113. It records verified
+GitHub branch protection, preserves the Action 660H manual control as defense
+in depth and reconciles the bounded Track 2 current-main foundation without
+granting runtime, provider, production, broker, training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
-This roadmap reconciles Ture against GitHub `main` commit
-`7b79691e473fa630d748763cddf97e1209974e40`, tree
-`5c6eb05b11f83a2c50302c06cd41fd70295702fc`, observed on 2026-08-15.
+This roadmap reconciles Ture against protected GitHub `main` base
+`cdf03e545cf25c0988627ef192d50acb1d72ba72`, tree
+`f39ffe5f27d707b804f06273bd1732bb136e05b5`, observed on 2026-08-17.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #108, with parents
-`9a18c2ee394f34e470e3a2804bf9e9b1e444a38c` and
-`7b2999c519d304a4a8b32596f37b5edf75693789`. Exact-main push run
-`31835953106` completed successfully. PRs #100 through #108 form one verified
+The reconciliation base is the ordinary merge of PR #113, with parents
+`8eb9c57c83d449042515e5184bae136bb6d827d0` and
+`daab530de6e512ae21b9aa38913fc176495774c0`. Exact-main push run
+`32045093016` completed successfully. PRs #100 through #113 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
-GitHub `main` remains unprotected under the accepted private/GitHub Free MA-13
-gap, so the mandatory Action 660H manual control remains in force. PR #45
-remains stale historical non-authority and must remain unmodified.
+GitHub `main` is protected by the exact Action 660I profile, while the mandatory
+Action 660H manual control remains defense in depth. PR #45 remains stale
+historical non-authority and must remain unmodified.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -47,11 +47,10 @@ Recommendations and related user/trading data must be private, server-owned,
 observable and released through a reproducible identity gate.
 
 Conditional on these exact reconciliation bytes reaching `main` and successful
-exact-main CI, formal status is **14 of 15 required gates verified (93.3%)**,
-with no partial credit. This candidate itself awards no advance MA-02 credit.
-Milestone A remains incomplete because MA-13 is a `known_gap`; the accepted
-manual control reduces operational risk but creates no gate, provider or
-runtime authority.
+exact-main CI, formal status is **15 of 15 required gates verified (100%)**,
+with no partial credit. Milestone A is complete at the bounded Secure Advisory
+Product gate level. This classification adds no runtime, provider, production,
+broker, training or promotion authority.
 
 | Gate | Current classification at delivery boundary |
 | --- | --- |
@@ -67,7 +66,7 @@ runtime authority.
 | MA-10 catalog/migration evidence contract source | verified_current |
 | MA-11 release/deployment identity | verified_current |
 | MA-12 repository CI workflow/check execution | verified_current |
-| MA-13 branch protection/required-check policy | known_gap |
+| MA-13 branch protection/required-check policy | verified_current |
 | MA-14 disciplined worktree/release ownership | verified_current |
 | MA-15 production behavioral smoke | verified_current |
 
@@ -125,27 +124,28 @@ No form or application mutation route was submitted. MA-15 is therefore
 `verified_current` and remains fail-closed on any later production deploy or
 required-read failure.
 
-**MA-13 accepted-gap record:** the private repository remains on GitHub Free by
-explicit operator decision. Authenticated branch-protection and ruleset reads
-both return the plan boundary HTTP 403, while GraphQL reports zero branch
-protection rules. Every future main mover must therefore use the Action 660H
-manual sequence: frozen exact head, exact-head CI, independent read-only
-review, explicit operator approval of PR plus SHA, ordinary PR merge,
-exact-main CI and release-bound smoke when deployed. This control is not
-GitHub enforcement, awards no MA-13 credit and leaves Milestone A incomplete.
+**MA-13 closure record:** the operator upgraded to GitHub Pro and explicitly
+authorized the branch-protection change. Authenticated readback now reports
+HTTP 200, `main.protected:true` and exactly one matching rule. Every main mover
+must use a pull request and strict `provider-free-verification` from GitHub
+Actions app `15368`; administrator enforcement is active, force pushes and
+deletion are forbidden and conversations must be resolved. PR #113 first
+demonstrated fail-closed `BLOCKED` state while Draft, then merged ordinarily
+only after exact-head gates and produced green exact-main run `32045093016`.
+Action 660H remains mandatory defense in depth. MA-13 is therefore
+`verified_current` and any protection-profile drift reopens it immediately.
 
-**Track 2 current-main delivery record:** PRs #101 through #108 rebuild the
-bounded provider-free chain `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ` on
-current main: predictive explanation, governed model-improvement proposal,
-completed-evidence adapter, completed-evidence capture, governed end-to-end
-replay, frozen binding store, binding-snapshot admission and binding-snapshot
-issuance. Every layer is server-only, synthetic-only, default-off and
-runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority;
-PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority.
-Their historical bytes and reviews do not authorize current-main behavior. The
-next bounded Track 2 objective is a fresh
-current-main rebuild of the first non-forgeable observation-authority successor
-from historical PR #72, followed by new exact-head review and exact-main CI.
+**Track 2 current-main delivery record:** PRs #101 through #108 and #110
+through #113 rebuild the bounded provider-free chain
+`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV` on
+current main. The four newest layers add non-forgeable observation authority,
+lossless invalid-scalar observation, provenance-bound observation verification
+and private atomic observation authority. Every layer is server-only,
+synthetic-only, default-off and runtime-unwired. Historical PR #54 remains
+open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72
+remain open Draft non-authority. Their historical bytes and reviews do not
+authorize current-main behavior. The next bounded Track 2 objective is a fresh
+current-main integrity/provenance-separated observation-authority successor.
 
 ACTION 668H remains `closed_holding` under operator decision
 `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
@@ -205,13 +205,14 @@ is implied by this roadmap.
 ## Current planning allocation
 
 - Track 1 is paused.
-- Track 2 now has eight bounded current-main foundation layers delivered through
-  PRs #101 -> #108 (`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`). Track 2
-  remains open because the non-forgeable observation-authority successor chain
-  is not yet rebuilt on current main. The historical dependent stack (#54 ->
-  #55 -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains non-authority. PR
-  #54 is open and non-Draft; the others remain open Draft. None may be merged
-  as a substitute.
+- Track 2 now has twelve bounded current-main foundation layers delivered
+  through PRs #101 -> #108 and #110 -> #113
+  (`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`).
+  Track 2 remains open for the fresh integrity/provenance-separated
+  observation-authority successor. The historical dependent stack (#54 -> #55
+  -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains non-authority. PR #54 is
+  open and non-Draft; the others remain open Draft. None may be merged as a
+  substitute.
 - Track 3 / ACTION 668H remains `closed_holding`. Provider-free roadmap work
   may continue, but no GT2, SQL, database or provider execution is authorized.
 - Action 652 delivered source containment, the authenticated server-owned
@@ -223,9 +224,9 @@ is implied by this roadmap.
   authority.
 - Track 5's Action 660F recovery is present on main via PR #98, Action 660G is
   canonical via PR #99 and the Action 660H manual MA-13 control is canonical via
-  PR #100. The control changes no application or provider state and remains
-  mandatory for every main mover. PR #45 remains overlapping stale historical
-  non-authority and is not modified.
+  PR #100. Action 660I adds verified GitHub enforcement while retaining that
+  manual control as defense in depth. PR #45 remains overlapping stale
+  historical non-authority and is not modified.
 - Track 6's five additive Session V2 paths are merged via PR #85, default-off
   and runtime-unwired. Runtime, tenancy, database, broker and production
   authority remain false.
@@ -237,23 +238,25 @@ is implied by this roadmap.
   PR #96 then delivered the reviewed V2 provider-bound refresh and satisfied
   the gate's technical closure conditions on main.
 
-Future main-moving work must remain serialized behind this bounded
-reconciliation candidate until its review decision is known. Any later main
-mover requires a fresh current-main pin, exact-head CI, independent review,
-explicit operator approval and exact-main CI. Provider and production identity
-must also be reconciled whenever the candidate changes either boundary.
+Future main-moving work must pass the protected PR and required-check boundary
+and remain serialized behind this bounded reconciliation candidate until its
+review decision is known. Any later main mover also requires a fresh
+current-main pin, exact-head CI, independent review, explicit operator approval
+and exact-main CI. Provider and production identity must be reconciled whenever
+the candidate changes either boundary.
 
 ## Current provider and release boundary
 
 The latest authenticated Netlify readback identifies published deploy
 `6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
-`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Current GitHub `main` is
-`7b79691e473fa630d748763cddf97e1209974e40`; the production commit is its
-first-parent ancestor and is not equal to it because PRs #99 and #100 advanced
-governance and PRs #101 through #108 delivered provider-free, runtime-unwired
-Track 2 source without a production publish. The production commit's CI and
-required post-deploy reads are green. This reconciliation candidate authorizes
-no production deployment. GitHub's automatic PR #109
+`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. The protected GitHub `main` base
+is `cdf03e545cf25c0988627ef192d50acb1d72ba72`; the production commit is its
+first-parent ancestor and is not equal to it because PRs #99, #100 and #109
+advanced governance and PRs #101 through #108 and #110 through #113 delivered
+provider-free, runtime-unwired Track 2 source without a production publish. The
+production commit's CI and required post-deploy reads are green. This
+reconciliation candidate authorizes no production deployment. GitHub's
+automatic PR #109
 `netlify/trade-vl/deploy-preview` status is a non-production preview and carries
 no release or provider authority.
 
@@ -278,11 +281,12 @@ and staging two-principal rollback proof establish MA-06. The applied MA05
 migration's one statement is byte-identical to repository source, establishing
 MA-08.
 
-GitHub branch-protection and ruleset endpoints both return HTTP 403 under the
-current private-repository plan, and GraphQL reports zero branch protection
-rules. The operator elected to remain private on GitHub Free. MA-13 is
-therefore a `known_gap` with accepted manual compensation, not absent, not
-verified and not entitled to gate credit.
+GitHub branch-protection readback returns HTTP 200, `main.protected:true` and
+one exact rule requiring strict `provider-free-verification` from GitHub Actions
+app `15368`, pull requests, administrator enforcement and resolved
+conversations while forbidding force pushes and deletion. The repository
+remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
+660H remains a stronger manual defense-in-depth sequence.
 
 ## Superseded assertions preserved for audit
 
@@ -295,9 +299,11 @@ verified and not entitled to gate credit.
   `f463644ddeb7f49fa8b80924d9103ea8970ccae4` /
   `b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad`, then by
   `7662d3f863f8f921b816670363431df8e1ebcdea` /
-  `86a59f234b69e63b07a60833224015018be41568`, and now by current main
-  `7b79691e473fa630d748763cddf97e1209974e40` / tree
-  `5c6eb05b11f83a2c50302c06cd41fd70295702fc`.
+  `86a59f234b69e63b07a60833224015018be41568`, then by
+  `7b79691e473fa630d748763cddf97e1209974e40` /
+  `5c6eb05b11f83a2c50302c06cd41fd70295702fc`, and now by the protected
+  pre-delivery main base `cdf03e545cf25c0988627ef192d50acb1d72ba72` /
+  tree `f39ffe5f27d707b804f06273bd1732bb136e05b5`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by
@@ -306,9 +312,10 @@ verified and not entitled to gate credit.
   `6a65fd2f…`, followed by exact identity at `4607990a…` and deploy
   `6a7b2c1e…`, are historical. The later `490e3607…`, `58c29514…` and
   `9e2f64a…` identities are also superseded by the last verified production
-  commit `f463644d…` and deploy `6a7b9e45…`. PRs #99 and #100 advanced
-  governance, and provider-free PRs #101 through #108 advanced current main to
-  `7b79691e…`, without changing that last verified production release.
+  commit `f463644d…` and deploy `6a7b9e45…`. PRs #99, #100 and #109 advanced
+  governance, and provider-free PRs #101 through #108 and #110 through #113
+  advanced current main to `cdf03e54…`, without changing that last verified
+  production release.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
   earlier bounded production evidence closed MA-15, the post-PR #97 dashboard
@@ -319,11 +326,14 @@ verified and not entitled to gate credit.
   verified 9/15 MA-09 closure, MA-11/MA-15 closure at 11/15 and post-MA05
   13/15 reopening state and later 14/15 MA-09 closure are historical. The
   post-PR #97 dashboard failure returned formal status to 13/15; PR #98
-  recovery verification now restores 14/15 by re-closing MA-15. This
-  documentation grants no new provider, database, migration, broker, release
-  or production authority.
+  recovery verification restored 14/15 by re-closing MA-15. Action 660I then
+  verifies MA-13 enforcement and conditionally closes 15/15 after protected
+  exact-main delivery. This documentation grants no new provider, database,
+  migration, broker, release or production authority.
 - PR #99 made the Action 660G MA-15 reclosure canonical at main `7662d3f…` and
   exact-main CI run `31543202986`. PR #100 then made Action 660H's accepted
   `known_gap` canonical without changing the 14/15 arithmetic. PRs #101 through
-  #108 are later provider-free Track 2 source deliveries; they grant no
-  production, runtime or milestone authority.
+  #108 and #110 through #113 are later provider-free Track 2 source deliveries;
+  they grant no production or runtime authority. The former Action 660H
+  `known_gap` remains historical but is superseded as the current MA-13
+  classification by Action 660I's verified enforcement.
