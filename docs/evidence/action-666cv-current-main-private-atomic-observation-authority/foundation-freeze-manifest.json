@@ -1,0 +1,109 @@
+{
+  "schema_version": "action_666cv_current_main_private_atomic_observation_authority_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "8eb9c57c83d449042515e5184bae136bb6d827d0",
+    "candidate_base_tree": "7b04bdc7152f113258e9011f0c0629dc9fdb1b33",
+    "candidate_base_exact_main_ci_run": 31976441550,
+    "historical_design_pull_request": 72,
+    "historical_design_head": "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
+    "historical_design_code_commit": "0ef7bdbbd2fef3300e7e561a037e5432638dd650",
+    "historical_review_commit": "730baa4f345cd1453ce49d1fc554f4d5a4d9cb48",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false,
+    "historical_successor_chain_imported": false,
+    "fresh_current_main_review_required": true
+  },
+  "foundation": {
+    "authority_version": "canonical_private_atomic_observation_authority_v2",
+    "evidence_version": "canonical_private_atomic_observation_evidence_v2",
+    "result_version": "canonical_private_atomic_observation_result_v2",
+    "readback_version": "canonical_private_atomic_observation_readback_v2",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "86a71c7408066a762336851a74507a92e8bf83c306954687a2baa69b26fbdd55",
+    "artifacts": [
+      {
+        "path": "docs/action-666cv-current-main-private-atomic-observation-authority.md",
+        "sha256": "b60b83784704cb9845911e54945ce9e9b80b44149a505f3202b9b88212709d78"
+      },
+      {
+        "path": "docs/action-666cv-golden-private-atomic-observation-report.json",
+        "sha256": "dcdde2a489553ccb010e926cebfca88c36ce96fcd80c7b906c2bba313a0da83e"
+      },
+      {
+        "path": "lib/server/canonical-private-atomic-observation-authority-fixtures.ts",
+        "sha256": "e37ab8493163ae1c738119d66c18559b736fed5150704a307d206b053b5a46ae"
+      },
+      {
+        "path": "lib/server/canonical-private-atomic-observation-authority.ts",
+        "sha256": "c15b35d813f80a7b3d89d6b6cca289320879cc807056a5d05bae1a5021ccf576"
+      },
+      {
+        "path": "tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts",
+        "sha256": "0872ebe2ffbed83bf71a4329615e19f916359a6fa682f21a4288e4bb54fda1ac"
+      }
+    ]
+  },
+  "trust_boundary": {
+    "literal_default_off_gate_required": true,
+    "literal_kill_switch_clear_required": true,
+    "exact_action_666cu_originating_result_authority_required": true,
+    "private_atomic_capsule_mint_required": true,
+    "private_weak_map_lookup_before_capsule_introspection": true,
+    "exact_originating_session_required": true,
+    "private_capsule_object_exposure_forbidden": true,
+    "source_capsule_object_exposure_forbidden": true,
+    "private_result_shell_identity_required": true,
+    "private_result_rebuild_required": true,
+    "exact_result_deep_equality_required": true,
+    "result_clone_or_copy_authority_forbidden": true,
+    "cross_harness_result_authority_forbidden": true,
+    "proxy_or_accessor_candidate_introspection_allowed": false,
+    "readback_string_or_genuine_uint8array_only": true,
+    "readback_max_utf8_bytes": 65536,
+    "readback_exact_canonical_bytes_required": true,
+    "readback_duplicate_keys_forbidden": true,
+    "readback_provenance_authority_forbidden": true,
+    "readback_integrity_only_required": true,
+    "captured_reflection_collection_freeze_json_text_and_typed_array_primordials_required": true,
+    "structured_never_throw_result_required": true
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_authority_reader_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "roadmap": {
+    "delivered_predecessor": "666CU",
+    "candidate_action": "666CV",
+    "next_bounded_objective_if_delivered": "current_main_integrity_provenance_separated_observation_authority_successor",
+    "track_2_complete_if_delivered": false,
+    "milestone_credit_awarded": false
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true,
+    "unexpected_external_deploy_requires_explicit_reconciliation": true
+  }
+}

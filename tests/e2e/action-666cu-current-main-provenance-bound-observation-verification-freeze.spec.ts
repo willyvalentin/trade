@@ -321,7 +321,9 @@ test("Action 666CU remains server-only, provider-free and runtime-unwired", asyn
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([]);
+  expect(consumers).toEqual([
+    "lib/server/canonical-private-atomic-observation-authority.ts",
+  ]);
   const workflow = (
     await source(".github/workflows/milestone-a-ci.yml")
   ).toString("utf8");
