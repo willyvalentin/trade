@@ -1,10 +1,11 @@
 # Ture Current-State Ledger
 
-**ACTION 666CR — current-main roadmap and ledger reconciliation.**
+**ACTION 660I — verified MA13 branch-protection closure.**
 
-**Evidence timestamp:** 2026-08-15. This governance-only successor reconciles
-the accepted manual MA-13 control and the bounded Track 2 current-main delivery
-through PR #108. It authorizes no runtime, production, provider, database,
+**Evidence timestamp:** 2026-08-17. This governance-only successor reconciles
+verified GitHub branch protection, preserves the manual MA-13 control as
+defense in depth and records the bounded Track 2 current-main delivery through
+PR #113. It authorizes no runtime, production, provider data, database,
 migration, broker, training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
@@ -14,10 +15,10 @@ migration, broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub reconciliation base | `7b79691e473fa630d748763cddf97e1209974e40` | canonical_current |
-| Current main event | ordinary merge of PR #108 | corroborated_current |
-| Current main tree | `5c6eb05b11f83a2c50302c06cd41fd70295702fc` | canonical_current |
-| Current main parents | `9a18c2ee394f34e470e3a2804bf9e9b1e444a38c`, `7b2999c519d304a4a8b32596f37b5edf75693789` | canonical_current |
+| GitHub protected pre-delivery main base | `cdf03e545cf25c0988627ef192d50acb1d72ba72` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #113 | corroborated_current |
+| Protected pre-delivery main tree | `f39ffe5f27d707b804f06273bd1732bb136e05b5` | canonical_current |
+| Protected pre-delivery main parents | `8eb9c57c83d449042515e5184bae136bb6d827d0`, `daab530de6e512ae21b9aa38913fc176495774c0` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -33,11 +34,17 @@ migration, broker, training, promotion or release activity.
 | PR #106 | MERGED; head `cb40b254…`; merge `315eae10…`; Action 666CO | corroborated_current |
 | PR #107 | MERGED; reviewed head `2a870862…`; merge `9a18c2ee…`; Action 666CP | corroborated_current |
 | PR #108 | MERGED; reviewed head `7b2999c5…`; merge `7b79691e…`; Action 666CQ | corroborated_current |
-| Exact-main CI | run `31835953106`, push, head `7b79691e…`, completed/success | verified_current |
+| PR #109 | MERGED; reviewed head `cdb7b302…`; merge `b84e0a4f…`; Action 666CR | corroborated_current |
+| PR #110 | MERGED; reviewed head `13693d03…`; merge `7b671f74…`; Action 666CS | corroborated_current |
+| PR #111 | MERGED; reviewed head `177c7cf5…`; merge `23483224…`; Action 666CT | corroborated_current |
+| PR #112 | MERGED; reviewed head `5c8914b4…`; merge `8eb9c57c…`; Action 666CU | corroborated_current |
+| PR #113 | MERGED; reviewed head `daab530d…`; merge `cdf03e54…`; Action 666CV | corroborated_current |
+| Exact-main CI | run `32045093016`, push, head `cdf03e54…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
-| GitHub branch protection | API HTTP 403 under current private-repository plan; GraphQL rule count 0 | known_gap |
-| GitHub repository rulesets | API HTTP 403 under current private-repository plan | known_gap |
-| Operator plan decision | remain private on GitHub Free; use mandatory manual merge control; no gate credit | accepted_compensating_control |
+| GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
+| Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
+| Protection enforcement | administrators included; force pushes/deletion denied; conversations resolved; stale approvals dismissed | verified_current |
+| Operator plan transition | private GitHub Pro; explicit MA-13 closure instruction; manual control retained as defense in depth | verified_current |
 
 ## Last verified authenticated provider evidence
 
@@ -47,7 +54,7 @@ migration, broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of current main `7b79691e473fa630d748763cddf97e1209974e40`; the commits are not equal because PRs #99 and #100 advanced governance and PRs #101 through #108 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `cdf03e545cf25c0988627ef192d50acb1d72ba72`; the commits are not equal because PRs #99, #100 and #109 advanced governance and PRs #101 through #108 and #110 through #113 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
@@ -58,22 +65,23 @@ migration, broker, training, promotion or release activity.
 | Supabase V2 receipt | selected `[public]`: 1 schema, 30 tables, 653 columns, 30 PK, 28 FK, 22 functions | verified_current |
 | Generated type output | provider response and repository output byte-identical at SHA-256 `f23c3702…`; required owner fields and RPC present | verified_current |
 
-Action 666CR is repository-governance-only. It preserves the Action 660H manual
-control, does not modify or supersede the last verified production readback and
-performs no application, database or runtime mutation, no operator-initiated
-provider configuration/data mutation and no production-release mutation. The
-automatic non-production preview grants no authority.
+Action 660I is repository-governance-only. It records the already-completed,
+explicitly authorized GitHub branch-protection configuration and preserves the
+Action 660H manual control. This candidate performs no application, database or
+runtime mutation, no provider configuration/data mutation and no
+production-release mutation. Automatic non-production previews grant no
+authority.
 
 ## Milestone A gate ledger
 
 Conditional on these exact reconciliation bytes reaching `main` and successful
-exact-main CI, formal closure is **14/15 = 93.3%**, with no partial credit. The
-candidate itself awards no advance MA-02 credit. Milestone A is not complete.
+exact-main CI, formal closure is **15/15 = 100%**, with no partial credit.
+Milestone A is complete at the bounded Secure Advisory Product gate level.
 
 | Classification | Gates |
 | --- | --- |
-| verified_current | MA-01, MA-02, MA-03, MA-04, MA-05, MA-06, MA-07, MA-08, MA-09, MA-10, MA-11, MA-12, MA-14, MA-15 |
-| known_gap | MA-13 |
+| verified_current | MA-01, MA-02, MA-03, MA-04, MA-05, MA-06, MA-07, MA-08, MA-09, MA-10, MA-11, MA-12, MA-13, MA-14, MA-15 |
+| known_gap | none |
 
 MA-09 is `verified_current`: the V2 package binds project-scoped Supabase
 project, read-only catalog and type-generation responses to the selected
@@ -105,9 +113,9 @@ deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
-commit. Current main `7b79691e473fa630d748763cddf97e1209974e40`
-is a governance and provider-free Track 2 successor and has no recorded
-production publish.
+commit. Protected pre-delivery main
+`cdf03e545cf25c0988627ef192d50acb1d72ba72` is a governance and provider-free
+Track 2 successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
 relationship correction. Anonymous login redirect and protected dashboard
@@ -118,31 +126,33 @@ reads at HTTP 200 with no 5xx response. No form or application mutation route
 was submitted. A later production deploy still reopens this gate until the
 same smoke passes again.
 
-MA-13 is a `known_gap`: the repository remains private on GitHub Free by
-explicit operator decision. Branch protection and rulesets are plan-gated,
-and zero branch protection rules are registered. Action 660H requires a frozen
-exact PR head, exact-head CI, independent read-only review, explicit operator
-approval of PR plus SHA, ordinary PR merge, exact-main CI and release-bound
-smoke when deployed. This is accepted manual compensation, not GitHub
-enforcement; it awards no credit and Milestone A remains 14/15.
+MA-13 is `verified_current`: authenticated readback reports HTTP 200,
+`main.protected:true` and one exact matching rule. Pull requests and strict
+`provider-free-verification` from GitHub Actions app `15368` are required;
+administrator enforcement is active, force pushes and deletion are denied and
+conversations must be resolved. Draft PR #113 first demonstrated a fail-closed
+`BLOCKED` state, then passed the full Action 660H sequence, merged ordinarily
+and produced green exact-main run `32045093016`. Action 660H remains mandatory
+defense in depth. Any protection drift reopens MA-13 immediately.
 
-Track 2 current-main foundation is delivered through PR #108. The verified
-provider-free sequence is `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`.
-Every layer remains server-only, synthetic-only, default-off and runtime-unwired.
-The next bounded objective is a fresh current-main non-forgeable
-observation-authority successor based on the first applicable historical PR #72
-layer. The historical PR and its review evidence remain non-authority.
+Track 2 current-main foundation is delivered through PR #113. The verified
+provider-free sequence is
+`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`.
+Every layer remains server-only, synthetic-only, default-off and
+runtime-unwired. The next bounded objective is a fresh current-main
+integrity/provenance-separated observation-authority successor. Historical PR
+#72 and its review evidence remain non-authority.
 
 ## Delivery state
 
 | Track | Current classification | Evidence boundary |
 | --- | --- | --- |
 | 1 | paused | No new release authority. |
-| 2 | current-main foundation delivered; observation authority open | PRs #101 through #108 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
-| 3 | `closed_holding`, Milestone A incomplete | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
+| 2 | current-main foundation delivered; integrity/provenance successor open | PRs #101 through #108 and #110 through #113 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
+| 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
 | 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |
-| 5 | verified recovery; manual governance canonical | PR #99 makes Action 660G canonical and PR #100 makes the accepted Action 660H manual MA-13 control canonical without closing the gate. PR #45 remains stale non-authority and unmodified. |
+| 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
 ## Historical authority and supersession ledger
@@ -154,8 +164,8 @@ layer. The historical PR and its review evidence remain non-authority.
   superseded first by `4607990a…` / `fc5e4e3d…`, then by `490e3607…` /
   `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
   `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…`, then by
-  `7662d3f…` / `86a59f23…` and now by reconciliation base `7b79691e…` /
-  `5c6eb05b…`.
+  `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, and now by
+  protected pre-delivery base `cdf03e54…` / `f39ffe5f…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -165,24 +175,27 @@ layer. The historical PR and its review evidence remain non-authority.
   `4607990a…` and deploy `6a7b2c1e…`; those identities and the later
   `490e3607…`, `58c29514…` and `9e2f64a…` releases are historical and
   superseded by the last verified production commit `f463644d…` and deploy
-  `6a7b9e45…`. PRs #99 and #100 then advanced governance, and provider-free PRs
-  #101 through #108 advanced current main to `7b79691e…`; production remains at
-  its first-parent ancestor `f463644d…`.
+  `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
+  provider-free PRs #101 through #108 and #110 through #113 advanced current
+  main to `cdf03e54…`; production remains at its first-parent ancestor
+  `f463644d…`.
 - Previous `unknown_current` source-containment, authenticated API-boundary
   and repository-CI claims are superseded by closed MA-03, MA-04 and MA-12
   evidence. Earlier evidence closed bounded MA-15 behavior, the post-PR #97
   dashboard failure reopened it, and the exact PR #98 recovery plus green
   production readbacks now re-close it. Action 660C separately closes migration
   parity and role-bound enforcement.
-- MA-13's former `unknown_current` classification is superseded by the
-  operator's accepted `known_gap` decision. The manual control reduces risk but
-  does not change the verified-gate count.
+- MA-13's former `unknown_current` classification was superseded first by the
+  operator's accepted `known_gap` decision and is now superseded by Action
+  660I's verified GitHub enforcement. The manual control remains defense in
+  depth.
 - MA-02's earlier 7/15 delivery state and MA-09's 8/15 delivery-candidate state
   were superseded by verified MA-09 closure at 9/15 and later MA-11/MA-15
   closures at 11/15. MA05 then changed the schema, producing the historical
   13/15 reopening state and later 14/15 MA-09 closure. The post-PR #97 dashboard
-  failure returned formal status to 13/15; PR #98 recovery verification now
-  restores 14/15 by re-closing MA-15. This documentation creates no new
+  failure returned formal status to 13/15; PR #98 recovery verification
+  restored 14/15 by re-closing MA-15. Action 660I conditionally closes 15/15
+  after protected exact-main delivery. This documentation creates no new
   provider, database, migration, broker, release or production authority.
 - Historical main `3b7ecfa…`, historical Track 3 closure claims and historical
   Track 6 external-only claims remain superseded as recorded in the prior
@@ -214,9 +227,13 @@ layer. The historical PR and its review evidence remain non-authority.
    execution, training, promotion or milestone proof.
 8. Do not reopen GT2 execution or introduce a trust root/native bootstrap
    without new explicit operator authority.
-9. Do not treat the Action 660H manual checklist as branch protection or
-   required-check enforcement. A missing or stale checklist step stops the
-   merge or reopens the affected gate.
+9. Preserve Action 660H as defense in depth; GitHub enforcement does not replace
+   its independent-review, exact-operator-approval or delivery-evidence steps.
+   A missing or stale checklist step stops the merge or reopens the affected
+   gate.
 10. Preserve PR #45 unmodified as stale historical non-authority.
 11. Reopen MA-15 after a new production deploy or if anonymous denial,
     authenticated page rendering or a required server-owned read route fails.
+12. Reopen MA-13 after drift in the required check or app identity, strictness,
+    pull-request requirement, administrator enforcement, force-push/deletion
+    prohibition or conversation-resolution rule.
