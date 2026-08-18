@@ -6,112 +6,102 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
-  "docs/evidence/action-666cs-current-main-non-forgeable-observation-authority/foundation-freeze-manifest.json";
+  "docs/evidence/action-666cw-current-main-integrity-provenance-separated-observation-authority/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "4fa321d52e6df9dfd573617a76a6fb24a08d82aa60cef55f7d8ec0a131170ff5";
+  "d5ffb8bf5421e40cbf9b7d275bf46cd8bd844880f286ca4b69204170d5d18750";
 
 const expectedManifest = {
   schema_version:
-    "action_666cs_current_main_non_forgeable_observation_authority_foundation_freeze_v1",
+    "action_666cw_current_main_integrity_provenance_separated_observation_authority_foundation_freeze_v1",
   authority: {
     repository: "willyvalentin/trade",
-    candidate_base_commit: "b84e0a4fb8c7455cddf8797f112cd2dc059bd697",
-    candidate_base_tree: "54a8d747e4116251ac38428a6d322dc447dee61c",
+    candidate_base_commit: "981bb474ebe5466f92d671ef489a1f3a82d3bcba",
+    candidate_base_tree: "d43918f9e47782002d8b28b11804935112e99c59",
+    candidate_base_exact_main_ci_run: 32080009340,
     historical_design_pull_request: 72,
     historical_design_head: "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
     historical_design_code_commit:
       "0ef7bdbbd2fef3300e7e561a037e5432638dd650",
-    historical_review_commit:
-      "730baa4f345cd1453ce49d1fc554f4d5a4d9cb48",
+    historical_review_commit: "730baa4f345cd1453ce49d1fc554f4d5a4d9cb48",
     historical_review_authority_reused: false,
     historical_evidence_artifacts_imported: false,
     historical_successor_chain_imported: false,
     fresh_current_main_review_required: true,
   },
   foundation: {
-    issuance_version:
-      "canonical_non_forgeable_binding_snapshot_issuance_v3",
-    authority_version: "canonical_non_forgeable_issuer_authority_v3",
+    authority_version:
+      "canonical_integrity_provenance_separated_observation_authority_v2",
+    runtime_evidence_version:
+      "canonical_integrity_provenance_separated_observation_runtime_evidence_v2",
     envelope_version:
-      "canonical_non_forgeable_issuer_authority_envelope_v3",
-    nested_schema_version:
-      "canonical_non_forgeable_nested_request_schema_v3",
-    authority_session_identity:
-      "action-666cs-current-main-external-owner-session-v1",
-    signature_algorithm: "ed25519_sha256_canonical_json_v1",
-    authority_payload_digest:
-      "cd0f2da7eab1dd6e84127d910d5035e32926e66596034e79f26d210acf0f1e3d",
-    pinned_authority_digest:
-      "13b5f5a2c0bce18ba2b59ae64fc3f9b806f5012fcd3312f803d7e95e12acf8b6",
-    pinned_authority_root_digest:
-      "817e896f5d3217c92009f3f24926507f9159e2c44cba8e36c009573d11733d8c",
-    pinned_issuer_anchor_digest:
-      "9dc754dfcdd831c5a9c2e5277ec05125b6a2145115432305856ec4e364815a7e",
-    pinned_nested_schema_digest:
-      "e47ace2a98bbf1f81ba4b6cc46b3f9d60e4fa4d352b3dcca3699eadd69914226",
-    pinned_semantic_scope_digest:
-      "5eaf423b38c3ca3d7b228d108687665835da794d373d5e8b904100efe4aa992d",
-    maximum_envelope_utf8_bytes: 32768,
+      "canonical_integrity_provenance_separated_observation_envelope_v2",
+    result_version:
+      "canonical_integrity_provenance_separated_observation_result_v2",
+    readback_version:
+      "canonical_integrity_provenance_separated_observation_readback_v2",
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "499f278305021911fe44534c7a253d8879036b25a9f5165fabf397b3ebdb5010",
+      "8141d16bfb091bd97d1b5bb9b52311e7ea17243b09f774407815345be7e9aa7b",
     artifacts: [
       {
         path:
-          "docs/action-666cs-current-main-non-forgeable-observation-authority.md",
+          "docs/action-666cw-current-main-integrity-provenance-separated-observation-authority.md",
         sha256:
-          "574f434d60267a8a2bfc46307e413cf65ce47c3980f714d3d5b6a5fbc0add9fa",
+          "59cac89a31318a7b4ab52965d20382f2a014d547a4a35b0e0b10c6fd80dfc378",
       },
       {
         path:
-          "docs/action-666cs-golden-non-forgeable-observation-authority-report.json",
+          "docs/action-666cw-golden-integrity-provenance-separated-observation-report.json",
         sha256:
-          "1ffa999d76fa4f79b45547afa316e47a1385ae753a469bc9e8e3d30dafca6a70",
+          "4c1cbf26befe34493a8159dc6b7a6c341b98bf5504597658e02410f3023312da",
       },
       {
         path:
-          "lib/server/canonical-non-forgeable-binding-snapshot-issuance-fixtures.ts",
+          "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
         sha256:
-          "c383497f485acd41c1a59839ab315d33bf3849bb1ec5d438b3109ce1375ac3d2",
+          "bc351c09bafe24340a2886cb800308780fd1d57f47dbe31e7df17799a7b88604",
       },
       {
         path:
-          "lib/server/canonical-non-forgeable-binding-snapshot-issuance.ts",
+          "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
         sha256:
-          "b40ee661564b9703a46a1379d5545304bc6f01be9668fcc28270ca9ef32f39fa",
+          "fe7c0a8cdcc26d4b7a21a9bf100ffeacb326aee7061bd0e5ab3f47bdeb7e0265",
       },
       {
         path:
-          "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts",
+          "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
         sha256:
-          "fe212f1f48e3f8a8da2f7ca834f535d35768c48d9f4ae94a3eef31f249f7f6b1",
+          "4a1c19a748ac645009d559cc3876a30fe7a56fe31b75f659e46856fe02ee8a9a",
       },
     ],
   },
   trust_boundary: {
     literal_default_off_gate_required: true,
     literal_kill_switch_clear_required: true,
-    request_bounded_before_authority_read: true,
-    recursive_request_schema_bound: true,
-    semantic_request_scope_bound: true,
-    canonical_raw_json_bytes_required: true,
-    duplicate_json_keys_rejected: true,
-    envelope_utf8_bounded_before_parse: true,
-    captured_json_parser_required: true,
-    ed25519_signature_required: true,
-    source_controlled_authority_pins_required: true,
-    actual_cq_authority_cross_checked_against_every_signed_pin: true,
-    private_signing_key_committed: false,
-    general_trust_granting_authority_factory_exported: false,
-    dependency_callbacks_captured_at_construction: true,
-    external_authority_read_exactly_once_per_execution: true,
-    predecessor_execution_after_signature_only: true,
-    private_originating_harness_verifier_required: true,
-    malformed_request_diagnostics_grant_verifier_authority: false,
-    bounded_public_digest_inputs_required: true,
-    captured_primordials_and_structured_containment_required: true,
-    post_import_mutation_same_success_result_claimed: false,
+    exact_action_666cv_originating_result_authority_required: true,
+    private_runtime_provenance_required: true,
+    runtime_provenance_scope: "current_process_only",
+    runtime_evidence_trusted_required: true,
+    public_envelope_provenance_verified_forbidden: true,
+    public_envelope_trusted_forbidden: true,
+    public_envelope_admitted_forbidden: true,
+    public_forgery_integrity_only_required: true,
+    private_result_shell_identity_required: true,
+    private_result_rebuild_required: true,
+    exact_result_deep_equality_required: true,
+    result_clone_or_copy_authority_forbidden: true,
+    cross_harness_result_authority_forbidden: true,
+    proxy_or_accessor_candidate_introspection_allowed: false,
+    readback_string_or_exact_uint8array_only: true,
+    readback_max_utf8_bytes: 65_536,
+    readback_exact_canonical_bytes_required: true,
+    readback_duplicate_keys_forbidden: true,
+    readback_provenance_authority_forbidden: true,
+    readback_integrity_only_required: true,
+    captured_reflection_collection_freeze_json_hash_text_typed_array_and_private_map_primordials_required:
+      true,
+    structured_never_throw_result_required: true,
   },
   scope: {
     server_only: true,
@@ -131,10 +121,10 @@ const expectedManifest = {
     broker_or_execution_authority_added: false,
   },
   roadmap: {
-    delivered_predecessor: "666CQ",
-    candidate_action: "666CS",
+    delivered_predecessor: "666CV",
+    candidate_action: "666CW",
     next_bounded_objective_if_delivered:
-      "current_main_lossless_invalid_scalar_observation_successor",
+      "current_main_callback_free_atomic_observation_successor",
     track_2_complete_if_delivered: false,
     milestone_credit_awarded: false,
   },
@@ -172,13 +162,13 @@ function cloneManifest(): MutableJson {
 function validateManifest(value: unknown) {
   if (!isDeepStrictEqual(value, expectedManifest)) {
     throw new Error(
-      "current_main_non_forgeable_observation_authority_manifest_drift",
+      "current_main_integrity_provenance_separated_observation_manifest_drift",
     );
   }
 }
 
-function readAt(value: MutableJson, pathParts: Array<string | number>) {
-  return pathParts.reduce<MutableJson>((current, part) => {
+function readAt(value: MutableJson, parts: Array<string | number>) {
+  return parts.reduce<MutableJson>((current, part) => {
     if (Array.isArray(current)) return current[part as number];
     return (current as { [key: string]: MutableJson })[part as string];
   }, value);
@@ -205,9 +195,9 @@ function mutationMatrix(
       const removed = cloneManifest();
       (readAt(removed, pathToValue) as MutableJson[]).splice(0, 1);
       mutations.push(removed);
-      const reordered = cloneManifest();
-      (readAt(reordered, pathToValue) as MutableJson[]).reverse();
-      mutations.push(reordered);
+      const reversed = cloneManifest();
+      (readAt(reversed, pathToValue) as MutableJson[]).reverse();
+      mutations.push(reversed);
     }
     value.forEach((_, index) =>
       mutations.push(...mutationMatrix(root, [...pathToValue, index])),
@@ -221,9 +211,9 @@ function mutationMatrix(
     mutations.push(extra);
     for (const key of Object.keys(value)) {
       const removed = cloneManifest();
-      delete (readAt(removed, pathToValue) as {
-        [key: string]: MutableJson;
-      })[key];
+      delete (readAt(removed, pathToValue) as { [key: string]: MutableJson })[
+        key
+      ];
       mutations.push(removed);
       mutations.push(...mutationMatrix(root, [...pathToValue, key]));
     }
@@ -231,23 +221,22 @@ function mutationMatrix(
   }
   const changed = cloneManifest();
   const parent = readAt(changed, pathToValue.slice(0, -1));
-  const key = pathToValue.at(-1);
-  if (typeof key === "number") {
-    (parent as MutableJson[])[key] = changedLeaf(value);
-  } else if (key !== undefined) {
-    (parent as { [key: string]: MutableJson })[key] = changedLeaf(value);
-  }
+  const key = pathToValue.at(-1)!;
+  if (Array.isArray(parent)) parent[key as number] = changedLeaf(value);
+  else
+    (parent as { [key: string]: MutableJson })[key as string] =
+      changedLeaf(value);
   mutations.push(changed);
   return mutations;
 }
 
-async function source(relativePath: string) {
-  return readFile(path.join(repositoryRoot, relativePath));
+async function source(relative: string) {
+  return readFile(path.join(repositoryRoot, relative));
 }
 
-async function exists(relativePath: string) {
+async function exists(relative: string) {
   try {
-    await access(path.join(repositoryRoot, relativePath));
+    await access(path.join(repositoryRoot, relative));
     return true;
   } catch {
     return false;
@@ -255,8 +244,9 @@ async function exists(relativePath: string) {
 }
 
 async function sourceFiles(directory: string): Promise<string[]> {
-  const absolute = path.join(repositoryRoot, directory);
-  const entries = await readdir(absolute, { withFileTypes: true });
+  const entries = await readdir(path.join(repositoryRoot, directory), {
+    withFileTypes: true,
+  });
   const files = await Promise.all(
     entries.map(async (entry) => {
       const relative = path.join(directory, entry.name);
@@ -267,7 +257,7 @@ async function sourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
-test("Action 666CS binds the exact five-file non-forgeable foundation", async () => {
+test("Action 666CW binds the exact five-file provenance-separation foundation", async () => {
   const rawManifest = await source(manifestPath);
   expect(sha256(rawManifest)).toBe(manifestSha256);
   const manifest: unknown = JSON.parse(rawManifest.toString("utf8"));
@@ -284,28 +274,31 @@ test("Action 666CS binds the exact five-file non-forgeable foundation", async ()
   );
 });
 
-test("Action 666CS rejects every manifest mutation", () => {
+test("Action 666CW rejects every manifest mutation", () => {
   const mutations = mutationMatrix(cloneManifest());
   expect(mutations.length).toBeGreaterThan(100);
   for (const mutation of mutations) {
     expect(() => validateManifest(mutation)).toThrow(
-      "current_main_non_forgeable_observation_authority_manifest_drift",
+      "current_main_integrity_provenance_separated_observation_manifest_drift",
     );
   }
 });
 
-test("Action 666CS binds historical non-authority and delivery boundaries", async () => {
+test("Action 666CW binds historical non-authority and delivery boundaries", async () => {
   const contract = (
     await source(
-      "docs/action-666cs-current-main-non-forgeable-observation-authority.md",
+      "docs/action-666cw-current-main-integrity-provenance-separated-observation-authority.md",
     )
   ).toString("utf8");
   expect(contract).toContain(
-    "Historical PR #72 remains an open Draft stacked non-authority",
+    "Historical PR #72 remains open Draft stacked non-authority.",
   );
   expect(contract).toContain("design evidence only");
   expect(contract).toContain(
-    "The next bounded Track 2 objective after delivery is the current-main lossless",
+    "Persisted bytes cannot preserve the module-private `WeakMap`, result identity",
+  );
+  expect(contract).toContain(
+    "a copied result, clone, replay, cross-harness result or public digest cannot",
   );
   expect(contract).toContain(
     "4. explicit operator approval names the PR and exact head;",
@@ -314,18 +307,18 @@ test("Action 666CS binds historical non-authority and delivery boundaries", asyn
     "Production deployment, provider action and database action are not authorized.",
   );
   for (const historical of [
-    "docs/action-666bw-non-forgeable-issuance-freeze-manifest.json",
-    "docs/action-666bw-non-forgeable-issuance-independent-rereview.md",
-    "docs/action-666bw-non-forgeable-issuance-threat-matrix.json",
+    "docs/action-666cd-integrity-provenance-separated-observation-authority.md",
+    "docs/action-666cd-golden-integrity-provenance-separated-observation-report.json",
+    "tests/e2e/action-666cd-integrity-provenance-separated-observation-authority.spec.ts",
   ]) {
     expect(await exists(historical), historical).toBe(false);
   }
 });
 
-test("Action 666CS commits no private key and remains runtime-unwired", async () => {
+test("Action 666CW remains server-only, provider-free and runtime-unwired", async () => {
   const governedModules = [
-    "lib/server/canonical-non-forgeable-binding-snapshot-issuance.ts",
-    "lib/server/canonical-non-forgeable-binding-snapshot-issuance-fixtures.ts",
+    "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
+    "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
   ];
   for (const modulePath of governedModules) {
     const moduleSource = (await source(modulePath)).toString("utf8");
@@ -345,29 +338,20 @@ test("Action 666CS commits no private key and remains runtime-unwired", async ()
     const content = (await source(candidate)).toString("utf8");
     if (
       content.includes(
-        "@/lib/server/canonical-non-forgeable-binding-snapshot-issuance",
+        "@/lib/server/canonical-integrity-provenance-separated-observation-authority",
       )
     ) {
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([
-    "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
-    "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
-    "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
-    "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
-    "lib/server/canonical-private-atomic-observation-authority-fixtures.ts",
-    "lib/server/canonical-private-atomic-observation-authority.ts",
-    "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
-    "lib/server/canonical-provenance-bound-observation-verification.ts",
-  ]);
+  expect(consumers).toEqual([]);
   const workflow = (
     await source(".github/workflows/milestone-a-ci.yml")
   ).toString("utf8");
   expect(workflow).toContain(
-    "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts",
+    "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
   );
   expect(workflow).toContain(
-    "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts",
+    "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts",
   );
 });

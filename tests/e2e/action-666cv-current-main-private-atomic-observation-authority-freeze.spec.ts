@@ -330,7 +330,10 @@ test("Action 666CV remains server-only, provider-free and runtime-unwired", asyn
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([]);
+  expect(consumers.sort()).toEqual([
+    "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
+    "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
+  ]);
   const workflow = (
     await source(".github/workflows/milestone-a-ci.yml")
   ).toString("utf8");
