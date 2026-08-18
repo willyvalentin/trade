@@ -352,6 +352,8 @@ test("Action 666CS commits no private key and remains runtime-unwired", async ()
     }
   }
   expect(consumers).toEqual([
+    "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
+    "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
     "lib/server/canonical-lossless-invalid-scalar-observation-issuance-fixtures.ts",
     "lib/server/canonical-lossless-invalid-scalar-observation-issuance.ts",
     "lib/server/canonical-private-atomic-observation-authority-fixtures.ts",
