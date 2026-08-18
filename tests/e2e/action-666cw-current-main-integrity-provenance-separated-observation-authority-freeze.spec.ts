@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cw-current-main-integrity-provenance-separated-observation-authority/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "eb65b3822562c191e5f2f4fd85a19af3e10574d4c0b1d8a9df73ffb14b2852ea";
+  "d5ffb8bf5421e40cbf9b7d275bf46cd8bd844880f286ca4b69204170d5d18750";
 
 const expectedManifest = {
   schema_version:
@@ -42,7 +42,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "5202236a632573eea041f211132b6af70839dd61f08f8f799b96ac2e89219cf0",
+      "8141d16bfb091bd97d1b5bb9b52311e7ea17243b09f774407815345be7e9aa7b",
     artifacts: [
       {
         path:
@@ -72,7 +72,7 @@ const expectedManifest = {
         path:
           "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
         sha256:
-          "b054f392d672252a3c0bcfda09fd0a14425a3bc4e261104cbd761d349ba7eb7c",
+          "4a1c19a748ac645009d559cc3876a30fe7a56fe31b75f659e46856fe02ee8a9a",
       },
     ],
   },

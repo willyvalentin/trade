@@ -22,7 +22,7 @@
     "readback_version": "canonical_integrity_provenance_separated_observation_readback_v2",
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "5202236a632573eea041f211132b6af70839dd61f08f8f799b96ac2e89219cf0",
+    "aggregate_sha256": "8141d16bfb091bd97d1b5bb9b52311e7ea17243b09f774407815345be7e9aa7b",
     "artifacts": [
       {
         "path": "docs/action-666cw-current-main-integrity-provenance-separated-observation-authority.md",
@@ -42,7 +42,7 @@
       },
       {
         "path": "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
-        "sha256": "b054f392d672252a3c0bcfda09fd0a14425a3bc4e261104cbd761d349ba7eb7c"
+        "sha256": "4a1c19a748ac645009d559cc3876a30fe7a56fe31b75f659e46856fe02ee8a9a"
       }
     ]
   },

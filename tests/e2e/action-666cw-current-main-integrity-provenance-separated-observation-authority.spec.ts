@@ -205,6 +205,40 @@ test.describe("Action 666CW current-main integrity/provenance separation", () =>
     }
   });
 
+  test("fails closed before hooks for enabled invalid dependencies", () => {
+    const hostile = hostileProxy();
+    let harness: ReturnType<
+      typeof createCanonicalIntegrityProvenanceSeparatedObservationAuthorityHarness
+    > | null = null;
+    let thrown: unknown = null;
+    try {
+      harness =
+        createCanonicalIntegrityProvenanceSeparatedObservationAuthorityHarness({
+          enabled: true,
+          kill_switch_engaged: false,
+          dependencies: hostile.proxy as never,
+        });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeNull();
+    expect(harness).toMatchObject({
+      enabled: true,
+      status: "unavailable",
+      observe: null,
+      readback: null,
+      reason_codes: ["integrity_provenance_dependencies_invalid"],
+    });
+    expect(harness?.counters).toEqual(zeroCounters);
+    expect(hostile.counts).toEqual({
+      ownKeys: 0,
+      getOwnPropertyDescriptor: 0,
+      getPrototypeOf: 0,
+      get: 0,
+      has: 0,
+    });
+  });
+
   test("separates private runtime provenance from public byte integrity", () => {
     const harness = action666cwHarness();
     const result = harness.observe!(BigInt(1));
