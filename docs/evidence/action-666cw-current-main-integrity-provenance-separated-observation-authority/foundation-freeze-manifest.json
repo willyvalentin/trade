@@ -1,0 +1,112 @@
+{
+  "schema_version": "action_666cw_current_main_integrity_provenance_separated_observation_authority_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "981bb474ebe5466f92d671ef489a1f3a82d3bcba",
+    "candidate_base_tree": "d43918f9e47782002d8b28b11804935112e99c59",
+    "candidate_base_exact_main_ci_run": 32080009340,
+    "historical_design_pull_request": 72,
+    "historical_design_head": "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
+    "historical_design_code_commit": "0ef7bdbbd2fef3300e7e561a037e5432638dd650",
+    "historical_review_commit": "730baa4f345cd1453ce49d1fc554f4d5a4d9cb48",
+    "historical_review_authority_reused": false,
+    "historical_evidence_artifacts_imported": false,
+    "historical_successor_chain_imported": false,
+    "fresh_current_main_review_required": true
+  },
+  "foundation": {
+    "authority_version": "canonical_integrity_provenance_separated_observation_authority_v2",
+    "runtime_evidence_version": "canonical_integrity_provenance_separated_observation_runtime_evidence_v2",
+    "envelope_version": "canonical_integrity_provenance_separated_observation_envelope_v2",
+    "result_version": "canonical_integrity_provenance_separated_observation_result_v2",
+    "readback_version": "canonical_integrity_provenance_separated_observation_readback_v2",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "5202236a632573eea041f211132b6af70839dd61f08f8f799b96ac2e89219cf0",
+    "artifacts": [
+      {
+        "path": "docs/action-666cw-current-main-integrity-provenance-separated-observation-authority.md",
+        "sha256": "59cac89a31318a7b4ab52965d20382f2a014d547a4a35b0e0b10c6fd80dfc378"
+      },
+      {
+        "path": "docs/action-666cw-golden-integrity-provenance-separated-observation-report.json",
+        "sha256": "4c1cbf26befe34493a8159dc6b7a6c341b98bf5504597658e02410f3023312da"
+      },
+      {
+        "path": "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
+        "sha256": "bc351c09bafe24340a2886cb800308780fd1d57f47dbe31e7df17799a7b88604"
+      },
+      {
+        "path": "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
+        "sha256": "fe7c0a8cdcc26d4b7a21a9bf100ffeacb326aee7061bd0e5ab3f47bdeb7e0265"
+      },
+      {
+        "path": "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
+        "sha256": "b054f392d672252a3c0bcfda09fd0a14425a3bc4e261104cbd761d349ba7eb7c"
+      }
+    ]
+  },
+  "trust_boundary": {
+    "literal_default_off_gate_required": true,
+    "literal_kill_switch_clear_required": true,
+    "exact_action_666cv_originating_result_authority_required": true,
+    "private_runtime_provenance_required": true,
+    "runtime_provenance_scope": "current_process_only",
+    "runtime_evidence_trusted_required": true,
+    "public_envelope_provenance_verified_forbidden": true,
+    "public_envelope_trusted_forbidden": true,
+    "public_envelope_admitted_forbidden": true,
+    "public_forgery_integrity_only_required": true,
+    "private_result_shell_identity_required": true,
+    "private_result_rebuild_required": true,
+    "exact_result_deep_equality_required": true,
+    "result_clone_or_copy_authority_forbidden": true,
+    "cross_harness_result_authority_forbidden": true,
+    "proxy_or_accessor_candidate_introspection_allowed": false,
+    "readback_string_or_exact_uint8array_only": true,
+    "readback_max_utf8_bytes": 65536,
+    "readback_exact_canonical_bytes_required": true,
+    "readback_duplicate_keys_forbidden": true,
+    "readback_provenance_authority_forbidden": true,
+    "readback_integrity_only_required": true,
+    "captured_reflection_collection_freeze_json_hash_text_typed_array_and_private_map_primordials_required": true,
+    "structured_never_throw_result_required": true
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "real_authority_reader_added": false,
+    "real_snapshot_or_publisher_added": false,
+    "database_or_provider_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "experiment_execution_added": false,
+    "broker_or_execution_authority_added": false
+  },
+  "roadmap": {
+    "delivered_predecessor": "666CV",
+    "candidate_action": "666CW",
+    "next_bounded_objective_if_delivered": "current_main_callback_free_atomic_observation_successor",
+    "track_2_complete_if_delivered": false,
+    "milestone_credit_awarded": false
+  },
+  "delivery": {
+    "historical_pull_request_merge_authorized": false,
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "production_identity_and_smoke_required_if_published": true,
+    "unexpected_external_deploy_requires_explicit_reconciliation": true
+  }
+}
