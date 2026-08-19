@@ -1,27 +1,29 @@
 # Ture Master Roadmap
 
-**ACTION 660I — verified MA13 branch-protection closure.**
+**ACTION 666DA — current-main Track 2 closure and Milestone B activation
+reconciliation.**
 
-**Document status:** protected-main governance reconciliation after the
-ordinary, provider-free delivery of PRs #100 through #113. It records verified
-GitHub branch protection, preserves the Action 660H manual control as defense
-in depth and reconciles the bounded Track 2 current-main foundation without
-granting runtime, provider, production, broker, training or promotion authority.
+**Document status:** protected-main governance and planning reconciliation
+through the ordinary, provider-free delivery of PR #119. It preserves verified
+GitHub branch protection and the Action 660H manual control, closes the bounded
+Track 2 source-foundation objective and activates Milestone B planning without
+granting runtime, provider, production, database, broker, training or promotion
+authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`cdf03e545cf25c0988627ef192d50acb1d72ba72`, tree
-`f39ffe5f27d707b804f06273bd1732bb136e05b5`, observed on 2026-08-17.
+`e9c3355125a54f4f9ba55ada2ac55fc91b184647`, tree
+`3037abfe27899bcd2c9abea215c80c459a7213b5`, observed on 2026-08-19.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #113, with parents
-`8eb9c57c83d449042515e5184bae136bb6d827d0` and
-`daab530de6e512ae21b9aa38913fc176495774c0`. Exact-main push run
-`32045093016` completed successfully. PRs #100 through #113 form one verified
+The reconciliation base is the ordinary merge of PR #119, with parents
+`7280f5a6a7317f495dd8ffccdd8df609203026f5` and
+`7892bced03d4defa7a30485387a0a86953b416f5`. Exact-main push run
+`32290740230` completed successfully. PRs #100 through #119 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -135,17 +137,23 @@ only after exact-head gates and produced green exact-main run `32045093016`.
 Action 660H remains mandatory defense in depth. MA-13 is therefore
 `verified_current` and any protection-profile drift reopens it immediately.
 
-**Track 2 current-main delivery record:** PRs #101 through #108 and #110
-through #113 rebuild the bounded provider-free chain
-`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV` on
-current main. The four newest layers add non-forgeable observation authority,
-lossless invalid-scalar observation, provenance-bound observation verification
-and private atomic observation authority. Every layer is server-only,
-synthetic-only, default-off and runtime-unwired. Historical PR #54 remains
-open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72
-remain open Draft non-authority. Their historical bytes and reviews do not
-authorize current-main behavior. The next bounded Track 2 objective is a fresh
-current-main integrity/provenance-separated observation-authority successor.
+**Track 2 current-main delivery record:** PRs #101 through #108, #110 through
+#113, #115 and #117 through #119 deliver the bounded provider-free chain
+`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW
+-> CX -> CY -> CZ` on current main. Action 666CW is the previously named fresh
+current-main integrity/provenance-separated observation-authority successor;
+Actions 666CX through 666CZ harden its callback-free, lossless byte-snapshot
+and private authority boundaries. Every layer is server-only, synthetic-only,
+default-off and runtime-unwired. Track 2 is now
+`source_foundation_complete_holding`. Historical PR #54 remains
+open, non-Draft and non-authority; PRs #55, #57,
+#58, #60, #63, #67 and #72 remain open Draft non-authority. Their historical
+bytes and reviews do not authorize
+current-main behavior.
+
+The former classification `current-main foundation delivered;
+integrity/provenance successor open` and its `#110 through #113` boundary are
+preserved here only as superseded Action 660I-era wording, not current state.
 
 ACTION 668H remains `closed_holding` under operator decision
 `D_keep_execution_gate_closed`. R7-R1 is `completed_rejected`, permanently
@@ -165,6 +173,17 @@ Live trade state must have one server-owned model: deterministic exit decision
 and observation contracts, a durable exit queue, transactional
 recommendation-to-position handoff and client projection rather than client
 truth. It depends on Milestone A.
+
+**Current activation boundary:** Milestone B planning is active while runtime
+remains closed. Action 655G in merged PR #84 supplies a pure, deterministic,
+default-off and runtime-unwired exit evaluator. The first bounded successor is
+`current_main_position_version_schema_reconciliation`: define and prove the
+owner-bound durable positive position version and recommendation-version
+lineage before considering monitor persistence, exit-queue writes, client
+mutation commands or compare-and-swap transitions. Market-observation
+provenance, durable exit-queue schema and transactional recommendation-to-
+position handoff remain separate blockers. No migration, route, worker, broker
+or production write is authorized by this planning activation.
 
 ### C. Semi-Automatic Execution
 
@@ -205,23 +224,27 @@ is implied by this roadmap.
 ## Current planning allocation
 
 - Track 1 is paused.
-- Track 2 now has twelve bounded current-main foundation layers delivered
-  through PRs #101 -> #108 and #110 -> #113
-  (`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`).
-  Track 2 remains open for the fresh integrity/provenance-separated
-  observation-authority successor. The historical dependent stack (#54 -> #55
-  -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains non-authority. PR #54 is
-  open and non-Draft; the others remain open Draft. None may be merged as a
-  substitute.
+- Track 2 has sixteen bounded current-main source-foundation layers delivered
+  through PRs #101 -> #108, #110 -> #113, #115 and #117 -> #119
+  (`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV ->
+  CW -> CX -> CY -> CZ`). The previously open integrity/provenance-separated
+  successor is satisfied by CW and hardened by CX-CZ; Track 2 is
+  `source_foundation_complete_holding`. The historical dependent stack (#54 ->
+  #55 -> #57 -> #58 -> #60 -> #63 -> #67 -> #72) remains non-authority. PR
+  #54 is open and non-Draft; the others remain open Draft. None may be merged
+  as a substitute.
 - Track 3 / ACTION 668H remains `closed_holding`. Provider-free roadmap work
   may continue, but no GT2, SQL, database or provider execution is authorized.
 - Action 652 delivered source containment, the authenticated server-owned
   boundary, the catalog/migration evidence contract and canonical governance.
   Its V1 generated-types bytes remain historical; Action 660D V2 supersedes
   them for the post-MA05 schema.
-- Track 4's Action 655 foundation is merged via PR #84, default-off and
-  runtime-unwired. It provides no database, broker, production or milestone
-  authority.
+- Track 4's Action 655G foundation is merged via PR #84, default-off and
+  runtime-unwired. Milestone B planning now starts with the bounded
+  `current_main_position_version_schema_reconciliation`; position-version
+  durability, market-observation provenance, exit-queue schema and
+  transactional handoff remain unresolved. No database, broker, runtime or
+  production authority follows.
 - Track 5's Action 660F recovery is present on main via PR #98, Action 660G is
   canonical via PR #99 and the Action 660H manual MA-13 control is canonical via
   PR #100. Action 660I adds verified GitHub enforcement while retaining that
@@ -250,15 +273,15 @@ the candidate changes either boundary.
 The latest authenticated Netlify readback identifies published deploy
 `6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. The protected GitHub `main` base
-is `cdf03e545cf25c0988627ef192d50acb1d72ba72`; the production commit is its
-first-parent ancestor and is not equal to it because PRs #99, #100 and #109
-advanced governance and PRs #101 through #108 and #110 through #113 delivered
-provider-free, runtime-unwired Track 2 source without a production publish. The
+is `e9c3355125a54f4f9ba55ada2ac55fc91b184647`; the production commit is its
+first-parent ancestor and is not equal to it because PRs #99, #100, #109,
+#114 and #116 advanced governance and PRs #101 through #108, #110 through
+#113, #115 and #117 through #119 delivered provider-free, runtime-unwired
+Track 2 source without a production publish. The
 production commit's CI and required post-deploy reads are green. This
-reconciliation candidate authorizes no production deployment. GitHub's
-automatic PR #109
-`netlify/trade-vl/deploy-preview` status is a non-production preview and carries
-no release or provider authority.
+reconciliation candidate authorizes no production deployment. Automatic
+`netlify/trade-vl/deploy-preview` statuses are non-production previews and
+carry no release or provider authority.
 
 The bounded PR #98 smoke preserved anonymous login redirect and protected API
 denial, rendered the authenticated application, dashboard, settings and market
@@ -301,9 +324,11 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   `7662d3f863f8f921b816670363431df8e1ebcdea` /
   `86a59f234b69e63b07a60833224015018be41568`, then by
   `7b79691e473fa630d748763cddf97e1209974e40` /
-  `5c6eb05b11f83a2c50302c06cd41fd70295702fc`, and now by the protected
-  pre-delivery main base `cdf03e545cf25c0988627ef192d50acb1d72ba72` /
-  tree `f39ffe5f27d707b804f06273bd1732bb136e05b5`.
+  `5c6eb05b11f83a2c50302c06cd41fd70295702fc`, then by protected main
+  `cdf03e545cf25c0988627ef192d50acb1d72ba72` /
+  `f39ffe5f27d707b804f06273bd1732bb136e05b5`, and now by protected
+  pre-delivery main `e9c3355125a54f4f9ba55ada2ac55fc91b184647` /
+  tree `3037abfe27899bcd2c9abea215c80c459a7213b5`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by
@@ -313,9 +338,9 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   `6a7b2c1e…`, are historical. The later `490e3607…`, `58c29514…` and
   `9e2f64a…` identities are also superseded by the last verified production
   commit `f463644d…` and deploy `6a7b9e45…`. PRs #99, #100 and #109 advanced
-  governance, and provider-free PRs #101 through #108 and #110 through #113
-  advanced current main to `cdf03e54…`, without changing that last verified
-  production release.
+  governance, and provider-free PRs #101 through #108, #110 through #113,
+  #115 and #117 through #119 advanced current main first to `cdf03e54…` and
+  then to `e9c33551…`, without changing that last verified production release.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
   earlier bounded production evidence closed MA-15, the post-PR #97 dashboard
@@ -333,7 +358,8 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
 - PR #99 made the Action 660G MA-15 reclosure canonical at main `7662d3f…` and
   exact-main CI run `31543202986`. PR #100 then made Action 660H's accepted
   `known_gap` canonical without changing the 14/15 arithmetic. PRs #101 through
-  #108 and #110 through #113 are later provider-free Track 2 source deliveries;
+  #108 and #110 through #113 are later provider-free Track 2 source deliveries.
+  PR #115 and PRs #117 through #119 complete and harden the bounded successor;
   they grant no production or runtime authority. The former Action 660H
   `known_gap` remains historical but is superseded as the current MA-13
   classification by Action 660I's verified enforcement.
