@@ -314,7 +314,10 @@ test("Action 666CY remains server-only, consumer-free and registered with Action
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([]);
+  expect(consumers.sort()).toEqual([
+    "lib/server/canonical-lossless-immutable-byte-snapshot-authority-fixtures.ts",
+    "lib/server/canonical-lossless-immutable-byte-snapshot-authority.ts",
+  ]);
   const registration = JSON.parse(
     (
       await source("scripts/action-660j-provider-free-ci-registration.json")

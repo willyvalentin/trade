@@ -143,6 +143,10 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
       "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot-freeze.spec.ts",
     ]),
+    playwright("Lossless immutable byte snapshot authority", [
+      "tests/e2e/action-666cz-current-main-lossless-immutable-byte-snapshot-authority.spec.ts",
+      "tests/e2e/action-666cz-current-main-lossless-immutable-byte-snapshot-authority-freeze.spec.ts",
+    ]),
   ],
   "snapshot-admission": [
     playwright("Governed binding snapshot admission", [
