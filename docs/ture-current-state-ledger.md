@@ -1,12 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 660I — verified MA13 branch-protection closure.**
+**ACTION 666DA — current-main Track 2 closure and Milestone B activation
+reconciliation.**
 
-**Evidence timestamp:** 2026-08-17. This governance-only successor reconciles
-verified GitHub branch protection, preserves the manual MA-13 control as
-defense in depth and records the bounded Track 2 current-main delivery through
-PR #113. It authorizes no runtime, production, provider data, database,
-migration, broker, training, promotion or release activity.
+**Evidence timestamp:** 2026-08-19. This governance-and-planning successor
+preserves verified GitHub branch protection and the manual MA-13 control,
+records the bounded Track 2 source foundation through PR #119 and activates
+Milestone B planning. It authorizes no runtime, production, provider data,
+database, migration, broker, training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -15,10 +16,10 @@ migration, broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `cdf03e545cf25c0988627ef192d50acb1d72ba72` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #113 | corroborated_current |
-| Protected pre-delivery main tree | `f39ffe5f27d707b804f06273bd1732bb136e05b5` | canonical_current |
-| Protected pre-delivery main parents | `8eb9c57c83d449042515e5184bae136bb6d827d0`, `daab530de6e512ae21b9aa38913fc176495774c0` | canonical_current |
+| GitHub protected pre-delivery main base | `e9c3355125a54f4f9ba55ada2ac55fc91b184647` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #119 | corroborated_current |
+| Protected pre-delivery main tree | `3037abfe27899bcd2c9abea215c80c459a7213b5` | canonical_current |
+| Protected pre-delivery main parents | `7280f5a6a7317f495dd8ffccdd8df609203026f5`, `7892bced03d4defa7a30485387a0a86953b416f5` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -39,7 +40,13 @@ migration, broker, training, promotion or release activity.
 | PR #111 | MERGED; reviewed head `177c7cf5…`; merge `23483224…`; Action 666CT | corroborated_current |
 | PR #112 | MERGED; reviewed head `5c8914b4…`; merge `8eb9c57c…`; Action 666CU | corroborated_current |
 | PR #113 | MERGED; reviewed head `daab530d…`; merge `cdf03e54…`; Action 666CV | corroborated_current |
-| Exact-main CI | run `32045093016`, push, head `cdf03e54…`, completed/success | verified_current |
+| PR #114 | MERGED; reviewed head `246a2022…`; merge `981bb474…`; Action 660I evidence successor | corroborated_current |
+| PR #115 | MERGED; reviewed head `e86f2d7b…`; merge `960b88f8…`; Action 666CW | corroborated_current |
+| PR #116 | MERGED; reviewed head `499bc21a…`; merge `b9f894e9…`; Action 660J | corroborated_current |
+| PR #117 | MERGED; reviewed head `69ad1007…`; merge `377b87d3…`; Action 666CX | corroborated_current |
+| PR #118 | MERGED; reviewed head `2d378bd9…`; merge `7280f5a6…`; Action 666CY | corroborated_current |
+| PR #119 | MERGED; reviewed head `7892bced…`; merge `e9c33551…`; Action 666CZ | corroborated_current |
+| Exact-main CI | run `32290740230`, push, head `e9c33551…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -54,7 +61,7 @@ migration, broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `cdf03e545cf25c0988627ef192d50acb1d72ba72`; the commits are not equal because PRs #99, #100 and #109 advanced governance and PRs #101 through #108 and #110 through #113 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `e9c3355125a54f4f9ba55ada2ac55fc91b184647`; the commits are not equal because PRs #99, #100, #109, #114 and #116 advanced governance and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
@@ -65,11 +72,13 @@ migration, broker, training, promotion or release activity.
 | Supabase V2 receipt | selected `[public]`: 1 schema, 30 tables, 653 columns, 30 PK, 28 FK, 22 functions | verified_current |
 | Generated type output | provider response and repository output byte-identical at SHA-256 `f23c3702…`; required owner fields and RPC present | verified_current |
 
-Action 660I is repository-governance-only. It records the already-completed,
-explicitly authorized GitHub branch-protection configuration and preserves the
-Action 660H manual control. This candidate performs no application, database or
-runtime mutation, no provider configuration/data mutation and no
-production-release mutation. Automatic non-production previews grant no
+Action 666DA is repository-governance-and-planning-only. It preserves the
+already-completed, explicitly authorized GitHub branch-protection configuration
+and Action 660H manual control, closes the bounded Track 2 source-foundation
+objective and activates Milestone B planning. This candidate performs no
+application, database or runtime mutation, no provider configuration/data
+mutation and no production-release mutation.
+Automatic non-production previews grant no
 authority.
 
 ## Milestone A gate ledger
@@ -114,7 +123,7 @@ the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
 commit. Protected pre-delivery main
-`cdf03e545cf25c0988627ef192d50acb1d72ba72` is a governance and provider-free
+`e9c3355125a54f4f9ba55ada2ac55fc91b184647` is a governance and provider-free
 Track 2 successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
@@ -135,23 +144,31 @@ conversations must be resolved. Draft PR #113 first demonstrated a fail-closed
 and produced green exact-main run `32045093016`. Action 660H remains mandatory
 defense in depth. Any protection drift reopens MA-13 immediately.
 
-Track 2 current-main foundation is delivered through PR #113. The verified
-provider-free sequence is
-`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`.
-Every layer remains server-only, synthetic-only, default-off and
-runtime-unwired. The next bounded objective is a fresh current-main
-integrity/provenance-separated observation-authority successor. Historical PR
-#72 and its review evidence remain non-authority.
+Track 2 current-main source foundation is delivered through PR #119. The
+verified provider-free sequence is
+`CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW
+-> CX -> CY -> CZ`. CW satisfies the previously open integrity/provenance-
+separated successor objective; CX-CZ harden callback-free, byte-snapshot and
+private-authority boundaries. Every layer remains server-only, synthetic-only,
+default-off and runtime-unwired. Track 2 is
+`source_foundation_complete_holding`. Historical PR #72 and its review evidence
+remain non-authority.
+
+Milestone B planning is active while runtime remains closed. PR #84 / Action
+655G provides the pure default-off exit-evaluator foundation. The next bounded
+objective is `current_main_position_version_schema_reconciliation`; market-
+observation provenance, durable exit-queue schema and transactional handoff
+remain separate blockers.
 
 ## Delivery state
 
 | Track | Current classification | Evidence boundary |
 | --- | --- | --- |
 | 1 | paused | No new release authority. |
-| 2 | current-main foundation delivered; integrity/provenance successor open | PRs #101 through #108 and #110 through #113 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
+| 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 | delivered default-off foundation | PR #84 is merged; no runtime wiring, database, broker, production or milestone authority. |
+| 4 / Milestone B | planning activated; runtime closed | PR #84 / Action 655G is the default-off foundation. The first bounded blocker is `position_version_schema`; no runtime wiring, database, broker or production authority. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
@@ -164,8 +181,9 @@ integrity/provenance-separated observation-authority successor. Historical PR
   superseded first by `4607990a…` / `fc5e4e3d…`, then by `490e3607…` /
   `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
   `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…`, then by
-  `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, and now by
-  protected pre-delivery base `cdf03e54…` / `f39ffe5f…`.
+  `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, then by
+  protected main `cdf03e54…` / `f39ffe5f…`, and now by protected pre-delivery
+  base `e9c33551…` / `3037abfe…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -176,9 +194,13 @@ integrity/provenance-separated observation-authority successor. Historical PR
   `490e3607…`, `58c29514…` and `9e2f64a…` releases are historical and
   superseded by the last verified production commit `f463644d…` and deploy
   `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
-  provider-free PRs #101 through #108 and #110 through #113 advanced current
-  main to `cdf03e54…`; production remains at its first-parent ancestor
-  `f463644d…`.
+  provider-free PRs #101 through #108, #110 through #113, #115 and #117 through
+  #119 advanced current main first to `cdf03e54…` and then `e9c33551…`;
+  production remains at its first-parent ancestor `f463644d…`.
+- The former Track 2 classification `current-main foundation delivered; integrity/provenance successor open`
+  is superseded by
+  `source_foundation_complete_holding`. The prior `#110 through #113` boundary
+  remains historical evidence only.
 - Previous `unknown_current` source-containment, authenticated API-boundary
   and repository-CI claims are superseded by closed MA-03, MA-04 and MA-12
   evidence. Earlier evidence closed bounded MA-15 behavior, the post-PR #97
@@ -237,3 +259,9 @@ integrity/provenance-separated observation-authority successor. Historical PR
 12. Reopen MA-13 after drift in the required check or app identity, strictness,
     pull-request requirement, administrator enforcement, force-push/deletion
     prohibition or conversation-resolution rule.
+13. Do not add Milestone B runtime wiring before an owner-bound durable positive
+    `position_version` and recommendation-version lineage are separately
+    reconciled, migrated and regenerated under explicit authority.
+14. Treat market-observation provenance, durable exit-queue schema and
+    transactional recommendation-to-position handoff as separate blockers; the
+    Action 655G pure evaluator alone closes none of them.

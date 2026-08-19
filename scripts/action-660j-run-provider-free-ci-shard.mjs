@@ -25,6 +25,7 @@ const foundationTests = [
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
+  "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
 ];
 
 const intelligenceTests = [

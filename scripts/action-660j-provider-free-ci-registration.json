@@ -8,6 +8,7 @@
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
+  "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
   "tests/e2e/action-652-authentication-boundary.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts",
