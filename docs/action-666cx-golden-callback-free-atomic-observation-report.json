@@ -1,0 +1,39 @@
+{
+  "report_version": "action_666cx_current_main_callback_free_atomic_observation_golden_report_v1",
+  "candidate_base_commit": "b9f894e92cc41d9d00ef625fe3bd987e495d6445",
+  "candidate_base_tree": "d83819ea9fa49ba8784dce820db21ff39c5d5873",
+  "candidate_base_exact_main_ci_run": 32252186236,
+  "boundary_version": "canonical_callback_free_atomic_observation_v2",
+  "readback_version": "canonical_callback_free_atomic_observation_readback_v2",
+  "predecessor_public_envelope_version": "canonical_integrity_provenance_separated_observation_envelope_v2",
+  "scenarios": [
+    { "name": "bigint_positive_one", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "bigint_positive_two", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "bigint_negative_one", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "number_zero", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "number_negative_zero", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "number_nan", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "number_positive_infinity", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "number_negative_infinity", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "string_one", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "boolean_true", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "null", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] },
+    { "name": "undefined", "terminal_status": "integrity_only", "integrity_verified": true, "provenance_verified": false, "authority_status": "integrity_only", "trusted": false, "admitted": false, "reason_codes": [] }
+  ],
+  "safety": {
+    "shadow_only": true,
+    "live_ranking_effect": false,
+    "live_impact": false,
+    "persistence_performed": false,
+    "automatic_training_allowed": false,
+    "automatic_parameter_change_allowed": false,
+    "automatic_threshold_change_allowed": false,
+    "automatic_model_change_allowed": false,
+    "automatic_promotion_allowed": false,
+    "external_ai_canonical_truth_authority": false,
+    "causal_improvement_claimed": false,
+    "synthetic_evidence": true,
+    "not_publishable": true
+  },
+  "performance_claims": []
+}
