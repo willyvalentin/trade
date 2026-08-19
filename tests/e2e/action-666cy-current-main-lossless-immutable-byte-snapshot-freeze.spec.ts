@@ -6,21 +6,21 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
-  "docs/evidence/action-666cx-current-main-callback-free-atomic-observation/foundation-freeze-manifest.json";
+  "docs/evidence/action-666cy-current-main-lossless-immutable-byte-snapshot/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "2bcf4ac116fc2da9577f537faf78550c2e3f03c185ed5b3c332679a83b4e51b3";
+  "912c85ce416b055279f6865b51a1887729a8ff94074294fee32b567d4efe4653";
 
 const expectedManifest = {
   schema_version:
-    "action_666cx_current_main_callback_free_atomic_observation_foundation_freeze_v1",
+    "action_666cy_current_main_lossless_immutable_byte_snapshot_foundation_freeze_v1",
   authority: {
     repository: "willyvalentin/trade",
-    candidate_base_commit: "b9f894e92cc41d9d00ef625fe3bd987e495d6445",
-    candidate_base_tree: "d83819ea9fa49ba8784dce820db21ff39c5d5873",
-    candidate_base_exact_main_ci_run: 32252186236,
-    delivered_predecessor: "666CW",
-    delivered_predecessor_pull_request: 115,
-    delivered_predecessor_head: "e86f2d7bd6a4ff8674fdad8e4d9d01e04e4a71b4",
+    candidate_base_commit: "377b87d344ddb48d73c725b348d1dcb4c0943fd1",
+    candidate_base_tree: "7b8c529ecabfe367ccba3ec27629f02b8c5d4c44",
+    candidate_base_exact_main_ci_run: 32261552249,
+    delivered_predecessor: "666CX",
+    delivered_predecessor_pull_request: 117,
+    delivered_predecessor_head: "69ad10078a2f5a987c7a8df410d233e25bbe5e18",
     historical_design_pull_request: 72,
     historical_design_head: "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
     historical_design_authority_reused: false,
@@ -29,40 +29,42 @@ const expectedManifest = {
     fresh_current_main_review_required: true,
   },
   foundation: {
-    authority_version: "canonical_callback_free_atomic_observation_v2",
-    readback_version: "canonical_callback_free_atomic_observation_readback_v2",
+    snapshot_contract_version:
+      "canonical_lossless_immutable_byte_snapshot_v2",
+    raw_byte_observation_version: "canonical_raw_byte_observation_v2",
+    readback_version: "canonical_lossless_immutable_byte_readback_v2",
     predecessor_public_envelope_version:
       "canonical_integrity_provenance_separated_observation_envelope_v2",
     max_input_bytes: 65536,
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "ce2124227035ee1d486262ebfd4d49621dc611d9afb22270cfebf8bcf3f2c1a7",
+      "1ce837436660623408140e1338ba8265e79557af732f6930796ca250b2f0f4b5",
     artifacts: [
       {
-        path: "docs/action-666cx-current-main-callback-free-atomic-observation.md",
+        path: "docs/action-666cy-current-main-lossless-immutable-byte-snapshot.md",
         sha256:
-          "32a20c47cbb3ee6b9045b4da9625efa0db9d4cde8e3ea6f68235a4dee802f46a",
+          "973b668441e977df9ef848569068a6b569aff4c8813f31f975bf8b7741b61ef2",
       },
       {
-        path: "docs/action-666cx-golden-callback-free-atomic-observation-report.json",
+        path: "docs/action-666cy-golden-lossless-immutable-byte-snapshot-report.json",
         sha256:
-          "93b1e0706a957e32d00f3ae9f6f87101386b05dd45497197ca206e8126e11e65",
+          "c890eaf53194625f18f180e6d75ed8903e2113c9336f9c870bc8536a7bc3c843",
       },
       {
-        path: "lib/server/canonical-callback-free-atomic-observation-fixtures.ts",
+        path: "lib/server/canonical-lossless-immutable-byte-snapshot-fixtures.ts",
         sha256:
-          "c552a0ade3525224e9c1708067b6bdf10eb810c25dcd37b00f1fe62084586740",
+          "614dfa99325ab90d35ea9df5e6fb99de8dd371dd0d68654823174c65ead3395a",
       },
       {
-        path: "lib/server/canonical-callback-free-atomic-observation.ts",
+        path: "lib/server/canonical-lossless-immutable-byte-snapshot.ts",
         sha256:
-          "58d6b3c8584d2122751eab9b340b1b8196366ebbd6fdce4bf024f4bde2e0eb3c",
+          "5a6dfc14c279ff38c41eb17fc5d038e3fe2011d709620374727fc08bb4ea02b2",
       },
       {
-        path: "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
+        path: "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
         sha256:
-          "548beae3958e3d00f2bd203eb641f1f2d8be1034fd3865150428b161bf7eaaf2",
+          "6f3b1f3f15abc081bf7433a2f7b3c37ba3e4045315b91e25d7f72ca30a744856",
       },
     ],
   },
@@ -73,17 +75,20 @@ const expectedManifest = {
     direct_entry_has_no_dependency_shell: true,
     direct_entry_has_no_harness_or_factory: true,
     direct_entry_has_no_trust_hook_or_upgrade_path: true,
-    predecessor_runtime_authority_construction_forbidden: true,
-    private_capsule_access_forbidden: true,
-    string_or_exact_uint8array_only: true,
-    max_utf8_bytes: 65536,
-    single_internal_byte_snapshot_required: true,
+    string_or_exact_direct_uint8array_only: true,
+    fixed_ordinary_array_buffer_required: true,
+    shared_resizable_detached_proxy_subclass_cross_realm_rejected: true,
+    max_input_bytes: 65536,
+    single_private_byte_snapshot_required: true,
+    byte_budget_preflight_before_copy_required: true,
+    raw_byte_hash_before_decode_or_parse_required: true,
+    distinct_invalid_byte_identity_required: true,
     captured_intrinsics_required: true,
-    canonical_666cw_public_envelope_required: true,
+    canonical_666cx_public_envelope_required: true,
     public_envelope_provenance_verified_forbidden: true,
     public_envelope_trusted_forbidden: true,
     public_envelope_admitted_forbidden: true,
-    self_consistent_public_forgery_integrity_only_required: true,
+    self_consistent_public_replacement_integrity_only_required: true,
     structured_never_throw_failure_required: true,
   },
   scope: {
@@ -103,10 +108,10 @@ const expectedManifest = {
     roadmap_or_ledger_reconciliation_deferred: true,
   },
   roadmap: {
-    candidate_action: "666CX",
-    delivered_predecessor: "666CW",
+    candidate_action: "666CY",
+    delivered_predecessor: "666CX",
     next_bounded_objective_if_delivered:
-      "fresh_current_main_lossless_immutable_byte_snapshot_successor",
+      "fresh_current_main_snapshot_authority_successor",
     track_2_complete_if_delivered: false,
     milestone_credit_awarded: false,
   },
@@ -119,7 +124,7 @@ const expectedManifest = {
     operator_approval_of_pr_and_exact_head_required: true,
     ordinary_pull_request_merge_required: true,
     exact_main_ci_required: true,
-    action_660j_observation_shard_registration_required: true,
+    action_660j_replay_lineage_shard_registration_required: true,
     production_identity_and_smoke_required_if_published: true,
   },
 } as const;
@@ -142,7 +147,7 @@ function cloneManifest(): MutableJson {
 
 function validateManifest(value: unknown) {
   if (!isDeepStrictEqual(value, expectedManifest)) {
-    throw new Error("current_main_callback_free_atomic_observation_manifest_drift");
+    throw new Error("current_main_lossless_immutable_byte_snapshot_manifest_drift");
   }
 }
 
@@ -236,7 +241,7 @@ async function sourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
-test("Action 666CX binds the exact five-file callback-free foundation", async () => {
+test("Action 666CY binds the exact five-file immutable snapshot foundation", async () => {
   const rawManifest = await source(manifestPath);
   expect(sha256(rawManifest)).toBe(manifestSha256);
   const manifest: unknown = JSON.parse(rawManifest.toString("utf8"));
@@ -253,38 +258,37 @@ test("Action 666CX binds the exact five-file callback-free foundation", async ()
   );
 });
 
-test("Action 666CX rejects every manifest mutation", () => {
+test("Action 666CY rejects every manifest mutation", () => {
   const mutations = mutationMatrix(cloneManifest());
   expect(mutations.length).toBeGreaterThan(100);
   for (const mutation of mutations) {
     expect(() => validateManifest(mutation)).toThrow(
-      "current_main_callback_free_atomic_observation_manifest_drift",
+      "current_main_lossless_immutable_byte_snapshot_manifest_drift",
     );
   }
 });
 
-test("Action 666CX binds its fresh current-main and non-authority boundaries", async () => {
+test("Action 666CY binds fresh current-main and historical non-authority", async () => {
   const contract = (
-    await source("docs/action-666cx-current-main-callback-free-atomic-observation.md")
+    await source("docs/action-666cy-current-main-lossless-immutable-byte-snapshot.md")
   ).toString("utf8");
-  expect(contract).toContain("`b9f894e92cc41d9d00ef625fe3bd987e495d6445`");
-  expect(contract).toContain("`32252186236`");
-  expect(contract).toContain("Historical PR #72 remains open Draft stacked non-authority.");
-  expect(contract).toContain("design context only");
-  expect(contract).toContain("No production deployment, provider action, database action or Supabase action");
+  expect(contract).toContain("`377b87d344ddb48d73c725b348d1dcb4c0943fd1`");
+  expect(contract).toContain("`32261552249`");
+  expect(contract).toContain("Historical PR #72 is non-authority design context only.");
+  expect(contract).toContain("No production deployment is authorized.");
   for (const historical of [
-    "docs/action-666cf-callback-free-atomic-observation.md",
-    "docs/action-666cf-golden-callback-free-atomic-observation-report.json",
-    "tests/e2e/action-666cf-callback-free-atomic-observation.spec.ts",
+    "docs/action-666ci-lossless-immutable-byte-snapshot.md",
+    "docs/action-666ci-golden-lossless-immutable-byte-snapshot-report.json",
+    "tests/e2e/action-666ci-lossless-immutable-byte-snapshot.spec.ts",
   ]) {
     expect(await exists(historical), historical).toBe(false);
   }
 });
 
-test("Action 666CX remains server-only, consumer-free and registered with Action 660J", async () => {
+test("Action 666CY remains server-only, consumer-free and registered with Action 660J", async () => {
   const governedModules = [
-    "lib/server/canonical-callback-free-atomic-observation.ts",
-    "lib/server/canonical-callback-free-atomic-observation-fixtures.ts",
+    "lib/server/canonical-lossless-immutable-byte-snapshot.ts",
+    "lib/server/canonical-lossless-immutable-byte-snapshot-fixtures.ts",
   ];
   for (const modulePath of governedModules) {
     const moduleSource = (await source(modulePath)).toString("utf8");
@@ -295,12 +299,6 @@ test("Action 666CX remains server-only, consumer-free and registered with Action
       /BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY|@supabase|createClient|fetch\(|process\.env|child_process|app\/api/,
     );
   }
-  const directSource = (
-    await source("lib/server/canonical-callback-free-atomic-observation.ts")
-  ).toString("utf8");
-  expect(directSource).not.toMatch(
-    /canonical-integrity-provenance-separated-observation|createCanonical|read_request|trust_callback|dependencies|harness/,
-  );
   const candidates = (
     await Promise.all(["app", "components", "lib"].map(sourceFiles))
   ).flat();
@@ -308,23 +306,24 @@ test("Action 666CX remains server-only, consumer-free and registered with Action
   for (const candidate of candidates) {
     if (governedModules.includes(candidate)) continue;
     const content = (await source(candidate)).toString("utf8");
-    if (content.includes("@/lib/server/canonical-callback-free-atomic-observation")) {
+    if (
+      content.includes(
+        "@/lib/server/canonical-lossless-immutable-byte-snapshot",
+      )
+    ) {
       consumers.push(candidate);
     }
   }
-  expect(consumers).toEqual([
-    "lib/server/canonical-lossless-immutable-byte-snapshot-fixtures.ts",
-    "lib/server/canonical-lossless-immutable-byte-snapshot.ts",
-  ]);
+  expect(consumers).toEqual([]);
   const registration = JSON.parse(
     (
       await source("scripts/action-660j-provider-free-ci-registration.json")
     ).toString("utf8"),
   ) as string[];
-  expect(registration).toContain(
-    "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
-  );
-  expect(registration).toContain(
-    "tests/e2e/action-666cx-current-main-callback-free-atomic-observation-freeze.spec.ts",
-  );
+  for (const testPath of [
+    "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
+    "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot-freeze.spec.ts",
+  ]) {
+    expect(registration.filter((entry) => entry === testPath)).toHaveLength(1);
+  }
 });
