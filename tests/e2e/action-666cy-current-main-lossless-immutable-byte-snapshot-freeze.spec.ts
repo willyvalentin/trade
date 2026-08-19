@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cy-current-main-lossless-immutable-byte-snapshot/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "912c85ce416b055279f6865b51a1887729a8ff94074294fee32b567d4efe4653";
+  "98046ffd517cb5a5e03587712cc8d5cb22d333765a09e22c68535577f2aa9f4e";
 
 const expectedManifest = {
   schema_version:
@@ -39,12 +39,12 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "1ce837436660623408140e1338ba8265e79557af732f6930796ca250b2f0f4b5",
+      "4e329bea9b7f1269f3444ec9d23df0e147947649beb012f5c69c84bf0bc6613a",
     artifacts: [
       {
         path: "docs/action-666cy-current-main-lossless-immutable-byte-snapshot.md",
         sha256:
-          "973b668441e977df9ef848569068a6b569aff4c8813f31f975bf8b7741b61ef2",
+          "60f369641a34049667d7d42d47199ddb9405dabc228eb8e32769807525168dae",
       },
       {
         path: "docs/action-666cy-golden-lossless-immutable-byte-snapshot-report.json",
@@ -59,12 +59,12 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-lossless-immutable-byte-snapshot.ts",
         sha256:
-          "5a6dfc14c279ff38c41eb17fc5d038e3fe2011d709620374727fc08bb4ea02b2",
+          "6139a2867ecfe635cd8fa68175b27ce5de8de3f8724f9dc19f75eed94fe52763",
       },
       {
         path: "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
         sha256:
-          "6f3b1f3f15abc081bf7433a2f7b3c37ba3e4045315b91e25d7f72ca30a744856",
+          "136224694f9c77ab0ea79ec1ac8c6ff13fbaeeb90c90a75271674dc37184cd07",
       },
     ],
   },

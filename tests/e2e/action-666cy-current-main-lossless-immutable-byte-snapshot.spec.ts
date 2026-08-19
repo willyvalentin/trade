@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { createHash } from "node:crypto";
+import crypto, { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
 import path from "node:path";
 import vm from "node:vm";
 
@@ -215,6 +216,30 @@ test.describe("Action 666CY current-main lossless immutable byte snapshot", () =
     expect(first.readback_digest).not.toBe(second.readback_digest);
   });
 
+  test("preserves UTF-8 BOM bytes and rejects them as non-canonical input", () => {
+    const canonical = action666cyCanonicalEnvelope(BigInt(1));
+    const canonicalBytes = action666cyCanonicalBytes(BigInt(1));
+    const prefixed = new Uint8Array(canonicalBytes.length + 3);
+    prefixed.set([0xef, 0xbb, 0xbf]);
+    prefixed.set(canonicalBytes, 3);
+    const fromBytes = action666cyTerminal(prefixed);
+    const fromString = action666cyTerminal(`\ufeff${canonical}`);
+    for (const result of [fromBytes, fromString]) {
+      expect(result).toMatchObject({
+        terminal_status: "malformed",
+        integrity_verified: false,
+        provenance_verified: false,
+        trusted: false,
+        admitted: false,
+        reason_codes: ["canonical_json_malformed"],
+      });
+      expect(result.raw_byte_observation).not.toBeNull();
+    }
+    expect(fromBytes.raw_byte_observation?.raw_byte_sha256).not.toBe(
+      action666cyTerminal(canonicalBytes).raw_byte_observation?.raw_byte_sha256,
+    );
+  });
+
   test("takes one private snapshot and is immutable after caller mutation", () => {
     const bytes = action666cyCanonicalBytes(BigInt(1));
     const result = action666cyReadback(bytes);
@@ -418,6 +443,173 @@ test.describe("Action 666CY current-main lossless immutable byte snapshot", () =
     expect(result?.terminal_status).toBe("integrity_only");
   });
 
+  test("pins the hash factory and Hash methods before builtin ESM drift", () => {
+    const canonical = action666cyCanonicalEnvelope("hash-primordial");
+    const mutableCrypto = crypto as { createHash: typeof createHash };
+    const originalCreateHash = mutableCrypto.createHash;
+    const hashPrototype = Object.getPrototypeOf(originalCreateHash("sha256"));
+    const updateDescriptor = Object.getOwnPropertyDescriptor(
+      hashPrototype,
+      "update",
+    )!;
+    const digestDescriptor = Object.getOwnPropertyDescriptor(
+      hashPrototype,
+      "digest",
+    )!;
+    let hookCalls = 0;
+    let result:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    let thrown: unknown;
+    try {
+      mutableCrypto.createHash = (() => {
+        hookCalls += 1;
+        throw new Error("post_import_hash_factory_sentinel");
+      }) as typeof createHash;
+      syncBuiltinESMExports();
+      Object.defineProperty(hashPrototype, "update", {
+        ...updateDescriptor,
+        value() {
+          hookCalls += 1;
+          throw new Error("post_import_hash_update_sentinel");
+        },
+      });
+      Object.defineProperty(hashPrototype, "digest", {
+        ...digestDescriptor,
+        value() {
+          hookCalls += 1;
+          throw new Error("post_import_hash_digest_sentinel");
+        },
+      });
+      try {
+        result = runCanonicalLosslessImmutableByteSnapshot(
+          canonical,
+          true,
+          false,
+        );
+      } catch (error) {
+        thrown = error;
+      }
+    } finally {
+      mutableCrypto.createHash = originalCreateHash;
+      syncBuiltinESMExports();
+      Object.defineProperty(hashPrototype, "update", updateDescriptor);
+      Object.defineProperty(hashPrototype, "digest", digestDescriptor);
+    }
+    expect(thrown).toBeUndefined();
+    expect(hookCalls).toBe(0);
+    expect(result?.terminal_result?.terminal_status).toBe("integrity_only");
+  });
+
+  test("ignores inherited Object and Array toJSON hooks", () => {
+    const canonical = action666cyCanonicalEnvelope("tojson-primordial");
+    const objectDescriptor = Object.getOwnPropertyDescriptor(
+      Object.prototype,
+      "toJSON",
+    );
+    const arrayDescriptor = Object.getOwnPropertyDescriptor(
+      Array.prototype,
+      "toJSON",
+    );
+    let hookCalls = 0;
+    let result:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    let thrown: unknown;
+    try {
+      Object.defineProperty(Object.prototype, "toJSON", {
+        configurable: true,
+        value() {
+          hookCalls += 1;
+          throw new Error("object_tojson_sentinel");
+        },
+      });
+      Object.defineProperty(Array.prototype, "toJSON", {
+        configurable: true,
+        value() {
+          hookCalls += 1;
+          throw new Error("array_tojson_sentinel");
+        },
+      });
+      try {
+        result = runCanonicalLosslessImmutableByteSnapshot(
+          canonical,
+          true,
+          false,
+        );
+      } catch (error) {
+        thrown = error;
+      }
+    } finally {
+      if (objectDescriptor) {
+        Object.defineProperty(Object.prototype, "toJSON", objectDescriptor);
+      } else {
+        delete (Object.prototype as { toJSON?: unknown }).toJSON;
+      }
+      if (arrayDescriptor) {
+        Object.defineProperty(Array.prototype, "toJSON", arrayDescriptor);
+      } else {
+        delete (Array.prototype as { toJSON?: unknown }).toJSON;
+      }
+    }
+    expect(thrown).toBeUndefined();
+    expect(hookCalls).toBe(0);
+    expect(result?.terminal_result?.terminal_status).toBe("integrity_only");
+  });
+
+  test("null-prototypes scratch arrays before inherited index setters", () => {
+    const canonical = action666cyCanonicalEnvelope("array-index-primordial");
+    const priorDescriptor = Object.getOwnPropertyDescriptor(
+      Array.prototype,
+      "0",
+    );
+    let hookCalls = 0;
+    let active:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    let disabled:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    let thrown: unknown;
+    try {
+      Object.defineProperty(Array.prototype, "0", {
+        configurable: true,
+        set() {
+          hookCalls += 1;
+          throw new Error("array_index_sentinel");
+        },
+      });
+      try {
+        active = runCanonicalLosslessImmutableByteSnapshot(
+          canonical,
+          true,
+          false,
+        );
+        disabled = runCanonicalLosslessImmutableByteSnapshot(
+          canonical,
+          false,
+          false,
+        );
+      } catch (error) {
+        thrown = error;
+      }
+    } finally {
+      if (priorDescriptor) {
+        Object.defineProperty(Array.prototype, "0", priorDescriptor);
+      } else {
+        delete (Array.prototype as unknown as { 0?: unknown })[0];
+      }
+    }
+    expect(thrown).toBeUndefined();
+    expect(hookCalls).toBe(0);
+    expect(active?.terminal_result?.terminal_status).toBe("integrity_only");
+    expect(disabled).toMatchObject({
+      status: "disabled",
+      terminal_result: null,
+      counters: zeroCounters,
+    });
+  });
+
   test("preflights oversized strings before encoding", () => {
     const result = runCanonicalLosslessImmutableByteSnapshot(
       "x".repeat(CANONICAL_LOSSLESS_IMMUTABLE_BYTE_MAX_INPUT_BYTES + 1),
@@ -432,6 +624,80 @@ test.describe("Action 666CY current-main lossless immutable byte snapshot", () =
     expect(result.counters).toMatchObject({
       input_boundary_checks: 1,
       input_snapshot_attempts: 1,
+      input_snapshots: 0,
+      input_copy_operations: 0,
+      input_byte_reads: 0,
+      raw_byte_hash_operations: 0,
+      decode_operations: 0,
+      parse_operations: 0,
+    });
+  });
+
+  test("bounds multibyte UTF-8 with captured encodeInto", () => {
+    const encodeDescriptor = Object.getOwnPropertyDescriptor(
+      TextEncoder.prototype,
+      "encode",
+    )!;
+    const encodeIntoDescriptor = Object.getOwnPropertyDescriptor(
+      TextEncoder.prototype,
+      "encodeInto",
+    )!;
+    let hookCalls = 0;
+    let within:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    let oversized:
+      | ReturnType<typeof runCanonicalLosslessImmutableByteSnapshot>
+      | undefined;
+    try {
+      Object.defineProperty(TextEncoder.prototype, "encode", {
+        ...encodeDescriptor,
+        value() {
+          hookCalls += 1;
+          throw new Error("text_encode_sentinel");
+        },
+      });
+      Object.defineProperty(TextEncoder.prototype, "encodeInto", {
+        ...encodeIntoDescriptor,
+        value() {
+          hookCalls += 1;
+          throw new Error("text_encode_into_sentinel");
+        },
+      });
+      within = runCanonicalLosslessImmutableByteSnapshot(
+        "€".repeat(21_845),
+        true,
+        false,
+      );
+      oversized = runCanonicalLosslessImmutableByteSnapshot(
+        "€".repeat(21_846),
+        true,
+        false,
+      );
+    } finally {
+      Object.defineProperty(TextEncoder.prototype, "encode", encodeDescriptor);
+      Object.defineProperty(
+        TextEncoder.prototype,
+        "encodeInto",
+        encodeIntoDescriptor,
+      );
+    }
+    expect(hookCalls).toBe(0);
+    expect(within?.terminal_result).toMatchObject({
+      terminal_status: "malformed",
+      raw_byte_observation: { exact_byte_length: 65_535 },
+    });
+    expect(within?.counters).toMatchObject({
+      input_snapshots: 1,
+      input_copy_operations: 1,
+      input_byte_reads: 65_535,
+    });
+    expect(oversized?.terminal_result).toMatchObject({
+      terminal_status: "input_rejected",
+      reason_codes: ["readback_too_large"],
+      raw_byte_observation: null,
+    });
+    expect(oversized?.counters).toMatchObject({
       input_snapshots: 0,
       input_copy_operations: 0,
       input_byte_reads: 0,
@@ -538,7 +804,7 @@ test.describe("Action 666CY current-main lossless immutable byte snapshot", () =
     );
     expect(stringCapture.indexOf("input.length >")).toBeGreaterThanOrEqual(0);
     expect(stringCapture.indexOf("input.length >")).toBeLessThan(
-      stringCapture.indexOf("intrinsicTextEncoderEncode"),
+      stringCapture.indexOf("intrinsicTextEncoderEncodeInto"),
     );
     const plan = await readFile(
       path.join(

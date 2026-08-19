@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash as intrinsicCreateHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { types as nodeTypes } from "node:util";
 
 import type { CanonicalCallbackFreeAtomicObservationEnvelope } from "@/lib/server/canonical-callback-free-atomic-observation";
@@ -20,6 +20,7 @@ const intrinsicArrayPush = Array.prototype.push;
 const intrinsicArraySort = Array.prototype.sort;
 const IntrinsicArray = Array;
 const IntrinsicArrayBuffer = ArrayBuffer;
+const intrinsicCreateHash = createHash;
 const IntrinsicDataView = DataView;
 const intrinsicJsonParse = JSON.parse;
 const intrinsicJsonStringify = JSON.stringify;
@@ -32,13 +33,14 @@ const intrinsicObjectGetOwnPropertyDescriptor =
   Object.getOwnPropertyDescriptor;
 const intrinsicObjectGetPrototypeOf = Object.getPrototypeOf;
 const intrinsicObjectPrototype = Object.prototype;
+const intrinsicObjectSetPrototypeOf = Object.setPrototypeOf;
 const intrinsicReflectApply = Reflect.apply;
 const intrinsicReflectConstruct = Reflect.construct;
 const intrinsicReflectOwnKeys = Reflect.ownKeys;
 const IntrinsicTextDecoder = TextDecoder;
 const IntrinsicTextEncoder = TextEncoder;
 const intrinsicTextDecoderDecode = TextDecoder.prototype.decode;
-const intrinsicTextEncoderEncode = TextEncoder.prototype.encode;
+const intrinsicTextEncoderEncodeInto = TextEncoder.prototype.encodeInto;
 const intrinsicTypedArrayPrototype = intrinsicObjectGetPrototypeOf(
   Uint8Array.prototype,
 );
@@ -71,7 +73,10 @@ const intrinsicHashUpdate = intrinsicHashPrototype.update as (
 const intrinsicHashDigest = intrinsicHashPrototype.digest as (
   encoding: "hex",
 ) => string;
-const textDecoder = new IntrinsicTextDecoder("utf-8", { fatal: true });
+const textDecoder = new IntrinsicTextDecoder("utf-8", {
+  fatal: true,
+  ignoreBOM: true,
+});
 const textEncoder = new IntrinsicTextEncoder();
 
 export const CANONICAL_LOSSLESS_IMMUTABLE_BYTE_SNAPSHOT_VERSION =
@@ -258,7 +263,9 @@ function arraySort<T>(
 }
 
 function safeArray<T>() {
-  return new IntrinsicArray<T>();
+  const values = new IntrinsicArray<T>();
+  intrinsicReflectApply(intrinsicObjectSetPrototypeOf, null, [values, null]);
+  return values;
 }
 
 function compareStrings(first: string, second: string) {
@@ -325,12 +332,63 @@ function sha256(value: string | Uint8Array) {
   return intrinsicReflectApply(intrinsicHashDigest, hash, ["hex"]) as string;
 }
 
+function canonicalJson(value: unknown): string {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    const serialized = intrinsicJsonStringify(value);
+    if (serialized === undefined) throw new Error("unsupported_json_value");
+    return serialized;
+  }
+  if (intrinsicArrayIsArray(value)) {
+    let serialized = "[";
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = intrinsicObjectGetOwnPropertyDescriptor(
+        value,
+        `${index}`,
+      );
+      if (!descriptor || !("value" in descriptor)) {
+        throw new Error("non_canonical_json_array");
+      }
+      if (index > 0) serialized += ",";
+      serialized += canonicalJson(descriptor.value);
+    }
+    return `${serialized}]`;
+  }
+  if (value !== null && typeof value === "object") {
+    const keys = intrinsicReflectOwnKeys(value);
+    let serialized = "{";
+    let emitted = 0;
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      if (typeof key !== "string") {
+        throw new Error("non_canonical_json_symbol_key");
+      }
+      const descriptor = intrinsicObjectGetOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable) continue;
+      if (!("value" in descriptor)) {
+        throw new Error("non_canonical_json_accessor");
+      }
+      if (emitted > 0) serialized += ",";
+      serialized += `${intrinsicJsonStringify(key)}:${canonicalJson(
+        descriptor.value,
+      )}`;
+      emitted += 1;
+    }
+    return `${serialized}}`;
+  }
+  throw new Error("unsupported_json_value");
+}
+
 function digest(
   value: unknown,
   counters: CanonicalLosslessImmutableByteSnapshotCounters,
 ) {
   counters.digest_operations += 1;
-  return sha256(intrinsicJsonStringify(value));
+  return sha256(canonicalJson(value));
 }
 
 function rawByteSha256(
@@ -436,7 +494,7 @@ function envelopeProjection(
 function serializeEnvelope(
   envelope: CanonicalCallbackFreeAtomicObservationEnvelope,
 ) {
-  return intrinsicJsonStringify({
+  return canonicalJson({
     ...envelopeProjection(envelope),
     envelope_digest: envelope.envelope_digest,
   });
@@ -506,23 +564,40 @@ function captureSnapshot(
         rejection: "readback_too_large",
       };
     }
-    const snapshot = intrinsicReflectApply(
-      intrinsicTextEncoderEncode,
+    const ownedBuffer = new IntrinsicArrayBuffer(
+      CANONICAL_LOSSLESS_IMMUTABLE_BYTE_MAX_INPUT_BYTES,
+    );
+    const encodingTarget = new IntrinsicUint8Array(ownedBuffer);
+    const encoded = intrinsicReflectApply(
+      intrinsicTextEncoderEncodeInto,
       textEncoder,
-      [input],
-    ) as Uint8Array;
-    const byteLength = intrinsicReflectApply(
-      intrinsicTypedArrayByteLength,
-      snapshot,
-      [],
-    ) as number;
-    if (byteLength > CANONICAL_LOSSLESS_IMMUTABLE_BYTE_MAX_INPUT_BYTES) {
+      [input, encodingTarget],
+    ) as { read: number; written: number };
+    const readDescriptor = intrinsicObjectGetOwnPropertyDescriptor(
+      encoded,
+      "read",
+    );
+    const writtenDescriptor = intrinsicObjectGetOwnPropertyDescriptor(
+      encoded,
+      "written",
+    );
+    if (
+      !readDescriptor ||
+      !("value" in readDescriptor) ||
+      typeof readDescriptor.value !== "number" ||
+      !writtenDescriptor ||
+      !("value" in writtenDescriptor) ||
+      typeof writtenDescriptor.value !== "number" ||
+      readDescriptor.value !== input.length
+    ) {
       return {
         snapshot: null,
         input_domain: null,
         rejection: "readback_too_large",
       };
     }
+    const byteLength = writtenDescriptor.value;
+    const snapshot = new IntrinsicUint8Array(ownedBuffer, 0, byteLength);
     counters.input_snapshots += 1;
     counters.input_copy_operations += 1;
     counters.input_byte_reads += byteLength;

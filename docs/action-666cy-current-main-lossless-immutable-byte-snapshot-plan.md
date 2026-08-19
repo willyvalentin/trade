@@ -38,15 +38,18 @@ production deployment.
 
 - literal default-off and kill-switch paths perform zero boundary, snapshot,
   copy, read, hash, decode, parse or digest work;
-- oversized string and typed-array inputs fail before unbounded encoding or
-  byte copying;
+- oversized ASCII, multibyte string and typed-array inputs fail before
+  unbounded encoding or byte copying;
 - exact offset views copy only visible bytes into one private fixed snapshot;
 - caller mutation after entry cannot change the recursively frozen result;
 - SharedArrayBuffer, resizable ArrayBuffer, detached buffers, proxies,
   subclasses, cross-realm views and function/object inputs fail closed without
   caller hook execution;
-- post-import primordial mutation cannot change output or make the public entry
-  throw;
+- post-import hash-export, Hash-method, inherited `toJSON`, numeric Array-index
+  setter and text-encoding primordial mutation cannot change output or make the
+  public entry throw;
+- UTF-8 BOM bytes are preserved through fatal decode and cannot alias canonical
+  bytes;
 - malformed UTF-8 retains raw-byte evidence and exposes only a closed reason;
 - canonical, non-canonical, digest-mismatch and input-rejection terminals remain
   distinct and deterministic;

@@ -20,7 +20,9 @@ resizability, detachment and visible byte length before copying. Shared memory,
 resizable or detached buffers, subclasses, cross-realm views and proxies fail
 closed before byte copying. Accepted typed-array input is copied once into a
 module-owned fixed buffer; only visible view bytes are copied. Accepted string
-input is length-preflighted before one owned UTF-8 encoding snapshot.
+input is encoded with captured `encodeInto` into one fixed 65,536-byte private
+buffer. Incomplete multibyte encoding fails before any over-budget allocation,
+hash, decode or parse.
 
 ## Lossless raw-byte evidence
 
@@ -32,10 +34,12 @@ Before decoding or parsing, every accepted snapshot binds:
 - SHA-256 over the exact raw bytes; and
 - a canonical observation digest.
 
-Fatal UTF-8 failure retains this raw observation. Consequently distinct invalid
-sequences such as `0xff` and `0xfe` have distinct raw hashes, observations,
-terminal identities, failure identities and readback digests, while exposing
-only `raw_bytes_invalid_utf8`.
+Fatal UTF-8 failure retains this raw observation. The decoder preserves a
+leading UTF-8 BOM rather than normalizing it away, so BOM-prefixed bytes cannot
+alias canonical bytes. Consequently distinct invalid sequences such as `0xff`
+and `0xfe` have distinct raw hashes, observations, terminal identities, failure
+identities and readback digests, while exposing only
+`raw_bytes_invalid_utf8`.
 
 ## Integrity without authority
 
@@ -44,10 +48,13 @@ result fixes `provenance_verified:false`, `trusted:false` and `admitted:false`.
 A self-consistent public replacement cannot recreate private runtime provenance
 or upgrade authority.
 
-Every result is canonically digested and recursively frozen. Default-off and
-kill-switch paths do not inspect input or perform boundary, snapshot, copy,
-read, hash, decode, parse or digest work. Errors are structured and never expose
-caller exception text, stacks or backend details.
+Every result is digested with a descriptor-based canonical serializer which
+does not consult inherited `toJSON`. The hash factory and hash methods are
+captured as construction-time values, while scratch arrays are null-prototyped.
+Every result is recursively frozen. Default-off and kill-switch paths do not
+inspect input or perform boundary, snapshot, copy, read, hash, decode, parse or
+digest work. Errors are structured and never expose caller exception text,
+stacks or backend details.
 
 ## Containment and delivery
 
