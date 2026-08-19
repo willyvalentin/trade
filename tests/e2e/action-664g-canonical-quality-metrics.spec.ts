@@ -36,6 +36,18 @@ function filesRecursively(root: string): string[] {
   });
 }
 
+function importsModule(source: string, moduleName: string): boolean {
+  const escapedModuleName = moduleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const quotedModule = `(?:\"[^\"\\n]*${escapedModuleName}(?:\\.[cm]?[jt]sx?)?\"|'[^'\\n]*${escapedModuleName}(?:\\.[cm]?[jt]sx?)?')`;
+  const staticImport = new RegExp(
+    `(?:^|\\n)\\s*(?:import|export)\\s+(?:(?:type\\s+)?[^;]*?\\s+from\\s+)?${quotedModule}`,
+  );
+  const callImport = new RegExp(
+    `\\b(?:import|require)\\s*\\(\\s*${quotedModule}\\s*\\)`,
+  );
+  return staticImport.test(source) || callImport.test(source);
+}
+
 function expectMetricShape(metric: CanonicalMetricResult) {
   expect(metric.policy_version).toBe(CANONICAL_QUALITY_METRICS_POLICY_VERSION);
   expect(["measurable", "not_measurable_yet", "not_publishable"]).toContain(
@@ -511,7 +523,31 @@ test("metrics contract remains absent from all live consumers", () => {
     .flatMap(filesRecursively)
     .filter((path) => /\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(path))
     .filter((path) =>
-      readFileSync(path, "utf8").includes("canonical-quality-metrics"),
+      importsModule(readFileSync(path, "utf8"), "canonical-quality-metrics"),
     );
   expect(importers).toEqual([]);
+  expect(
+    importsModule(
+      'const testPath = "tests/e2e/action-664g-canonical-quality-metrics.spec.ts";',
+      "canonical-quality-metrics",
+    ),
+  ).toBe(false);
+  expect(
+    importsModule(
+      'import { computeCanonicalQualityMetrics } from "@/lib/canonical-quality-metrics";',
+      "canonical-quality-metrics",
+    ),
+  ).toBe(true);
+  expect(
+    importsModule(
+      'const metrics = require("../lib/canonical-quality-metrics");',
+      "canonical-quality-metrics",
+    ),
+  ).toBe(true);
+  expect(
+    importsModule(
+      'const metrics = import("../lib/canonical-quality-metrics");',
+      "canonical-quality-metrics",
+    ),
+  ).toBe(true);
 });

@@ -361,13 +361,15 @@ test("Action 666CS commits no private key and remains runtime-unwired", async ()
     "lib/server/canonical-provenance-bound-observation-verification-fixtures.ts",
     "lib/server/canonical-provenance-bound-observation-verification.ts",
   ]);
-  const workflow = (
-    await source(".github/workflows/milestone-a-ci.yml")
-  ).toString("utf8");
-  expect(workflow).toContain(
+  const registration = JSON.parse(
+    (
+      await source("scripts/action-660j-provider-free-ci-registration.json")
+    ).toString("utf8"),
+  ) as string[];
+  expect(registration).toContain(
     "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts",
   );
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts",
   );
 });

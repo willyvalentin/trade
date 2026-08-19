@@ -186,13 +186,22 @@ const lastVerifiedProductionCommit =
   "f463644ddeb7f49fa8b80924d9103ea8970ccae4";
 
 test("manual MA13 control preserves the historical accepted gap without gate credit", async () => {
-  const [contract, roadmap, ledger, template, workflow, rawEvidence] =
+  const [
+    contract,
+    roadmap,
+    ledger,
+    template,
+    workflow,
+    registration,
+    rawEvidence,
+  ] =
     await Promise.all([
       source("docs/action-660h-manual-ma13-merge-control.md"),
       source("docs/ture-master-roadmap.md"),
       source("docs/ture-current-state-ledger.md"),
       source(".github/PULL_REQUEST_TEMPLATE.md"),
       source(".github/workflows/milestone-a-ci.yml"),
+      source("scripts/action-660j-provider-free-ci-registration.json"),
       source("docs/evidence/action-660h-manual-ma13-merge-control.json"),
     ]);
   const evidence = JSON.parse(rawEvidence);
@@ -310,7 +319,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
     .filter((line) => line.startsWith("- [ ] "))
     .map((line) => line.slice("- [ ] ".length));
   expect(templateChecklist).toEqual(templateChecklistItems);
-  expect(workflow).toContain(
+  const registeredTests = JSON.parse(registration) as string[];
+  expect(registeredTests).toContain(
     "tests/e2e/action-660h-manual-ma13-merge-control.spec.ts",
   );
   expect(workflow).toContain(

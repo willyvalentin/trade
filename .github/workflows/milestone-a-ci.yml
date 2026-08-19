@@ -14,9 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  provider-free-verification:
+  provider-free-verification-shard:
+    name: provider-free-verification / ${{ matrix.shard }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - foundation
+          - replay-lineage
+          - snapshot-admission
+          - snapshot-issuance
+          - non-forgeable-authority
+          - lossless-scalar
     env:
       CI: "true"
       PLAYWRIGHT_SKIP_WEB_SERVER: "true"
@@ -38,53 +49,22 @@ jobs:
           package-manager-cache: false
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Lint
-        run: npm run lint -- --max-warnings=8
-      - name: TypeScript
-        run: ./node_modules/.bin/tsc --noEmit --incremental false
-      - name: Browser and server containment
-        run: ./node_modules/.bin/playwright test tests/e2e/action-650-production-data-access-containment.spec.ts tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts tests/e2e/action-652f-server-client-containment.spec.ts tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts tests/e2e/action-660h-manual-ma13-merge-control.spec.ts tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts --workers=1
-      - name: Authenticated boundary
-        run: ./node_modules/.bin/playwright test tests/e2e/action-652-authentication-boundary.spec.ts --workers=1
-      - name: Catalog and migration evidence contract
-        run: |
-          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts
-          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts
-          node tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-portability.spec.ts
-      - name: Generated-types provenance
-        run: |
-          node tests/e2e/action-652-generated-types-provenance-v1.spec.mjs
-          node tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs
-      - name: Provider-free intelligence contract
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts tests/e2e/action-664d-additive-evaluation-storage.spec.ts tests/e2e/action-664e-canonical-capture-orchestrator.spec.ts tests/e2e/action-664f-canonical-quality-read-model.spec.ts tests/e2e/action-664g-canonical-quality-metrics.spec.ts tests/e2e/action-664h-canonical-quality-scorecard.spec.ts tests/e2e/action-664j-foundation-review-remediation.spec.ts --workers=1
-      - name: Track 2 current-main predictive explanation foundation
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666m-predictive-outcome-explanation.spec.ts tests/e2e/action-666cj-current-main-predictive-explanation-freeze.spec.ts --workers=1
-      - name: Track 2 current-main model-improvement proposal foundation
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666v-governed-model-improvement-proposal.spec.ts tests/e2e/action-666ck-current-main-model-improvement-proposal-freeze.spec.ts --workers=1
-      - name: Track 2 current-main completed improvement evidence adapter
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ac-completed-improvement-evidence-adapter.spec.ts tests/e2e/action-666cl-current-main-improvement-evidence-adapter-freeze.spec.ts --workers=1
-      - name: Track 2 current-main completed improvement evidence capture
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666aj-completed-improvement-evidence-capture.spec.ts tests/e2e/action-666cm-current-main-completed-improvement-evidence-capture-freeze.spec.ts --workers=1
-      - name: Track 2 current-main governed improvement end-to-end replay
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666aq-governed-improvement-end-to-end-replay.spec.ts tests/e2e/action-666cn-current-main-governed-improvement-end-to-end-replay-freeze.spec.ts --workers=1
-      - name: Track 2 current-main frozen improvement binding store
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ax-improvement-binding-store.spec.ts tests/e2e/action-666co-current-main-frozen-improvement-binding-store-freeze.spec.ts --workers=1
-      - name: Track 2 current-main governed binding snapshot admission
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts tests/e2e/action-666cp-current-main-governed-binding-snapshot-admission-freeze.spec.ts --workers=1
-      - name: Track 2 current-main governed binding snapshot issuance
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts --workers=1
-      - name: Track 2 current-main non-forgeable observation authority
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts --workers=1
-      - name: Track 2 current-main lossless invalid-scalar observation
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts --workers=1
-      - name: Track 2 current-main provenance-bound observation verification
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts tests/e2e/action-666cu-current-main-provenance-bound-observation-verification-freeze.spec.ts --workers=1
-      - name: Track 2 current-main private atomic observation authority
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts tests/e2e/action-666cv-current-main-private-atomic-observation-authority-freeze.spec.ts --workers=1
-
-      - name: Track 2 current-main integrity provenance separation
-        run: NODE_OPTIONS=--conditions=react-server ./node_modules/.bin/playwright test tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts --workers=1
+      - name: Run provider-free verification shard
+        run: node scripts/action-660j-run-provider-free-ci-shard.mjs "${{ matrix.shard }}"
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code
           git diff --cached --exit-code
+
+  provider-free-verification:
+    name: provider-free-verification
+    if: ${{ always() }}
+    needs:
+      - provider-free-verification-shard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every provider-free shard to succeed
+        env:
+          SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}
+        run: test "$SHARD_RESULT" = "success"
