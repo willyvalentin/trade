@@ -334,9 +334,11 @@ test("Action 666CV remains server-only, provider-free and runtime-unwired", asyn
     "lib/server/canonical-integrity-provenance-separated-observation-authority-fixtures.ts",
     "lib/server/canonical-integrity-provenance-separated-observation-authority.ts",
   ]);
-  const registration = (
-    await source("scripts/action-660j-provider-free-ci-registration.json")
-  ).toString("utf8");
+  const registration = JSON.parse(
+    (
+      await source("scripts/action-660j-provider-free-ci-registration.json")
+    ).toString("utf8"),
+  ) as string[];
   expect(registration).toContain(
     "tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts",
   );

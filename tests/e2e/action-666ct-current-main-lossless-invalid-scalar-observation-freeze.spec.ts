@@ -334,9 +334,11 @@ test("Action 666CT remains server-only, provider-free and runtime-unwired", asyn
   expect(consumers).toEqual([
     "lib/server/canonical-provenance-bound-observation-verification.ts",
   ]);
-  const registration = (
-    await source("scripts/action-660j-provider-free-ci-registration.json")
-  ).toString("utf8");
+  const registration = JSON.parse(
+    (
+      await source("scripts/action-660j-provider-free-ci-registration.json")
+    ).toString("utf8"),
+  ) as string[];
   expect(registration).toContain(
     "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",
   );

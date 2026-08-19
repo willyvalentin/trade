@@ -183,7 +183,8 @@ test("preserves the historical Action 666CR reconciliation after Action 660I", a
   expect(ledger).toContain(
     "Automatic non-production previews grant no\nauthority",
   );
-  expect(registration).toContain(
+  const registeredTests = JSON.parse(registration) as string[];
+  expect(registeredTests).toContain(
     "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   );
 });

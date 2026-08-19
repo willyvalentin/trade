@@ -319,7 +319,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
     .filter((line) => line.startsWith("- [ ] "))
     .map((line) => line.slice("- [ ] ".length));
   expect(templateChecklist).toEqual(templateChecklistItems);
-  expect(registration).toContain(
+  const registeredTests = JSON.parse(registration) as string[];
+  expect(registeredTests).toContain(
     "tests/e2e/action-660h-manual-ma13-merge-control.spec.ts",
   );
   expect(workflow).toContain(

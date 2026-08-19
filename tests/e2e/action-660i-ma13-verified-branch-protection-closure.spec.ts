@@ -277,7 +277,8 @@ test("closes MA13 only through the exact protected-main evidence chain", async (
   expect(roadmap).toContain("15 of 15 required gates verified (100%)");
   expect(ledger).toContain("| known_gap | none |");
   expect(ledger).toContain("15/15 = 100%");
-  expect(registration).toContain(
+  const registeredTests = JSON.parse(registration) as string[];
+  expect(registeredTests).toContain(
     "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   );
 
