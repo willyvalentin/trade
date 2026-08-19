@@ -22,7 +22,7 @@
     "max_input_bytes": 65536,
     "normative_artifact_count": 5,
     "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
-    "aggregate_sha256": "4e0f6128f71fc6f8074c76511d3ba030519cec9b31874c0918584111b64ddaad",
+    "aggregate_sha256": "ce2124227035ee1d486262ebfd4d49621dc611d9afb22270cfebf8bcf3f2c1a7",
     "artifacts": [
       {
         "path": "docs/action-666cx-current-main-callback-free-atomic-observation.md",
@@ -38,11 +38,11 @@
       },
       {
         "path": "lib/server/canonical-callback-free-atomic-observation.ts",
-        "sha256": "5c16e16e72291b629e0149b560a46c3fe89871b841e17222908afa308d8fe9e2"
+        "sha256": "58d6b3c8584d2122751eab9b340b1b8196366ebbd6fdce4bf024f4bde2e0eb3c"
       },
       {
         "path": "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
-        "sha256": "3912f933264671ce068e859a31110912d4eb8866f85e312879d82e2cd03b7b4a"
+        "sha256": "548beae3958e3d00f2bd203eb641f1f2d8be1034fd3865150428b161bf7eaaf2"
       }
     ]
   },

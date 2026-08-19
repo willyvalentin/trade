@@ -38,6 +38,8 @@ const intrinsicTypedArrayIteratorNext = intrinsicObjectGetPrototypeOf(
 const intrinsicUint8ArrayPrototype = Uint8Array.prototype;
 const IntrinsicUint8Array = Uint8Array;
 const IntrinsicWeakSet = WeakSet;
+const intrinsicWeakSetAdd = WeakSet.prototype.add;
+const intrinsicWeakSetHas = WeakSet.prototype.has;
 const intrinsicHashPrototype = intrinsicObjectGetPrototypeOf(
   intrinsicCreateHash("sha256"),
 );
@@ -247,9 +249,15 @@ function deepFreeze<T>(value: T): T {
   const seen = new IntrinsicWeakSet<object>();
   while (pending.length > 0) {
     const current = arrayPop(pending)!;
-    if (seen.has(current)) continue;
-    seen.add(current);
-    for (const key of intrinsicReflectOwnKeys(current)) {
+    if (
+      intrinsicReflectApply(intrinsicWeakSetHas, seen, [current]) as boolean
+    ) {
+      continue;
+    }
+    intrinsicReflectApply(intrinsicWeakSetAdd, seen, [current]);
+    const keys = intrinsicReflectOwnKeys(current);
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
       const descriptor = intrinsicObjectGetOwnPropertyDescriptor(current, key);
       if (
         descriptor &&
@@ -342,7 +350,8 @@ function exactDataKeys(value: object, expected: readonly string[]) {
     const actual = intrinsicReflectOwnKeys(value);
     if (actual.length !== expected.length) return false;
     const copied = safeArray<string>();
-    for (const key of actual) {
+    for (let index = 0; index < actual.length; index += 1) {
+      const key = actual[index];
       if (typeof key !== "string") return false;
       arrayPush(copied, key);
     }
@@ -449,6 +458,12 @@ function captureInput(
   }
   if (typeof input === "string") {
     counters.input_snapshot_attempts += 1;
+    if (
+      input.length >
+      CANONICAL_CALLBACK_FREE_ATOMIC_OBSERVATION_MAX_INPUT_BYTES
+    ) {
+      return { value: null, bytes: null, rejection: "readback_too_large" };
+    }
     const bytes = intrinsicReflectApply(intrinsicTextEncoderEncode, textEncoder, [
       input,
     ]) as Uint8Array;
@@ -486,6 +501,17 @@ function captureInput(
   counters.input_snapshot_attempts += 1;
   const copied = safeArray<number>();
   try {
+    const sourceByteLength = intrinsicReflectApply(
+      intrinsicTypedArrayByteLength,
+      input,
+      [],
+    ) as number;
+    if (
+      sourceByteLength >
+      CANONICAL_CALLBACK_FREE_ATOMIC_OBSERVATION_MAX_INPUT_BYTES
+    ) {
+      return { value: null, bytes: null, rejection: "readback_too_large" };
+    }
     const iterator = intrinsicReflectApply(intrinsicTypedArrayValues, input, []);
     while (true) {
       const step = intrinsicReflectApply(

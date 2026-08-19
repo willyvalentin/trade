@@ -176,6 +176,78 @@ test.describe("Action 666CX current-main callback-free atomic observation", () =
     }
   });
 
+  test("captures WeakSet and array-iterator primordials before post-import drift", () => {
+    const canonical = action666cxCanonicalEnvelope("primordial-containment");
+    const weakSetHas = Object.getOwnPropertyDescriptor(
+      WeakSet.prototype,
+      "has",
+    )!;
+    const weakSetAdd = Object.getOwnPropertyDescriptor(
+      WeakSet.prototype,
+      "add",
+    )!;
+    const arrayIterator = Object.getOwnPropertyDescriptor(
+      Array.prototype,
+      Symbol.iterator,
+    )!;
+    let weakSetHookCalls = 0;
+    let arrayIteratorHookCalls = 0;
+    let weakSetResult:
+      | ReturnType<typeof runCanonicalCallbackFreeAtomicObservation>
+      | undefined;
+    let arrayIteratorResult:
+      | ReturnType<typeof runCanonicalCallbackFreeAtomicObservation>
+      | undefined;
+    try {
+      Object.defineProperty(WeakSet.prototype, "has", {
+        ...weakSetHas,
+        value() {
+          weakSetHookCalls += 1;
+          throw new Error("weakset_has_sentinel");
+        },
+      });
+      Object.defineProperty(WeakSet.prototype, "add", {
+        ...weakSetAdd,
+        value() {
+          weakSetHookCalls += 1;
+          throw new Error("weakset_add_sentinel");
+        },
+      });
+      weakSetResult = runCanonicalCallbackFreeAtomicObservation(
+        canonical,
+        true,
+        false,
+      );
+    } finally {
+      Object.defineProperty(WeakSet.prototype, "has", weakSetHas);
+      Object.defineProperty(WeakSet.prototype, "add", weakSetAdd);
+    }
+    try {
+      Object.defineProperty(Array.prototype, Symbol.iterator, {
+        ...arrayIterator,
+        value() {
+          arrayIteratorHookCalls += 1;
+          throw new Error("array_iterator_sentinel");
+        },
+      });
+      arrayIteratorResult = runCanonicalCallbackFreeAtomicObservation(
+        canonical,
+        true,
+        false,
+      );
+    } finally {
+      Object.defineProperty(Array.prototype, Symbol.iterator, arrayIterator);
+    }
+    expect(weakSetHookCalls).toBe(0);
+    expect(arrayIteratorHookCalls).toBe(0);
+    expect(weakSetResult?.terminal_result?.terminal_status).toBe(
+      "integrity_only",
+    );
+    expect(arrayIteratorResult?.terminal_result?.terminal_status).toBe(
+      "integrity_only",
+    );
+  });
+
   test("reads canonical 666CW strings and direct bytes as integrity-only only", () => {
     const canonical = action666cxCanonicalEnvelope(BigInt(1));
     const fromString = terminal(canonical);
@@ -357,6 +429,23 @@ test.describe("Action 666CX current-main callback-free atomic observation", () =
       terminal_status: "input_rejected",
       reason_codes: ["readback_too_large"],
     });
+    const oversizedString = runCanonicalCallbackFreeAtomicObservation(
+      "x".repeat(
+        CANONICAL_CALLBACK_FREE_ATOMIC_OBSERVATION_MAX_INPUT_BYTES + 1,
+      ),
+      true,
+      false,
+    );
+    expect(oversizedString.terminal_result).toMatchObject({
+      terminal_status: "input_rejected",
+      reason_codes: ["readback_too_large"],
+    });
+    expect(oversizedString.counters).toMatchObject({
+      input_snapshot_attempts: 1,
+      input_snapshots: 0,
+      input_byte_reads: 0,
+      parse_operations: 0,
+    });
     expect(terminal(new Uint8Array([0xff]))).toMatchObject({
       terminal_status: "input_rejected",
       reason_codes: ["readback_bytes_invalid"],
@@ -375,6 +464,14 @@ test.describe("Action 666CX current-main callback-free atomic observation", () =
     expect(source.startsWith('import "server-only";')).toBe(true);
     expect(source).not.toMatch(
       /canonical-integrity-provenance-separated-observation|createCanonical|read_request|trust_callback|dependencies|harness|@supabase|createClient|fetch\(|process\.env|child_process|app\/api/,
+    );
+    const stringCapture = source.slice(
+      source.indexOf('if (typeof input === "string")'),
+      source.indexOf('if (input === null || typeof input !== "object")'),
+    );
+    expect(stringCapture.indexOf("input.length >")).toBeGreaterThanOrEqual(0);
+    expect(stringCapture.indexOf("input.length >")).toBeLessThan(
+      stringCapture.indexOf("intrinsicTextEncoderEncode"),
     );
     const contract = await readFile(
       path.join(

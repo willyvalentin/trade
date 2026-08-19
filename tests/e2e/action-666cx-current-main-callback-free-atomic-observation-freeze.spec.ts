@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cx-current-main-callback-free-atomic-observation/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "ad554939a8f314b6a16872353bbc952dc6a361fdb4024772d63c165a20b276c6";
+  "2bcf4ac116fc2da9577f537faf78550c2e3f03c185ed5b3c332679a83b4e51b3";
 
 const expectedManifest = {
   schema_version:
@@ -37,7 +37,7 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "4e0f6128f71fc6f8074c76511d3ba030519cec9b31874c0918584111b64ddaad",
+      "ce2124227035ee1d486262ebfd4d49621dc611d9afb22270cfebf8bcf3f2c1a7",
     artifacts: [
       {
         path: "docs/action-666cx-current-main-callback-free-atomic-observation.md",
@@ -57,12 +57,12 @@ const expectedManifest = {
       {
         path: "lib/server/canonical-callback-free-atomic-observation.ts",
         sha256:
-          "5c16e16e72291b629e0149b560a46c3fe89871b841e17222908afa308d8fe9e2",
+          "58d6b3c8584d2122751eab9b340b1b8196366ebbd6fdce4bf024f4bde2e0eb3c",
       },
       {
         path: "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
         sha256:
-          "3912f933264671ce068e859a31110912d4eb8866f85e312879d82e2cd03b7b4a",
+          "548beae3958e3d00f2bd203eb641f1f2d8be1034fd3865150428b161bf7eaaf2",
       },
     ],
   },
