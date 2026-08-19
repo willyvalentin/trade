@@ -65,11 +65,15 @@ artifact, provider credential or production secret participates.
 
 ## Coverage and maintenance contract
 
-The shard runner exposes one closed static plan. Its provider-free contract
-test requires:
+The shard runner exposes one closed static plan and refuses to print or execute
+it unless its ordered test paths exactly match the tracked machine-readable
+registration manifest. Historical freeze oracles read that same manifest, so a
+comment or unused path string cannot preserve false registration. The
+provider-free contract test requires:
 
 - exactly the six shard identities above, in workflow and runner;
 - exact one-time coverage of every test and oracle from the former serial job;
+- exact equality between the executable plan and registration manifest;
 - lint and TypeScript in the foundation shard;
 - `--workers=1` and the existing React Server condition for every applicable
   Playwright command;
@@ -77,9 +81,10 @@ test requires:
 - an exact-revision assertion and clean-tree assertion in every shard; and
 - the unchanged final required-check name and fail-closed aggregate rule.
 
-Future Actions add tests by extending the closed runner plan and its oracle.
-They do not create a second protected context and do not weaken or bypass an
-existing shard.
+Future Actions add tests by extending the closed runner plan, its registration
+manifest and its oracle. Historical registration assertions remain bound to
+that executable manifest. They do not create a second protected context and do
+not weaken or bypass an existing shard.
 
 ## Delivery condition
 
@@ -97,8 +102,9 @@ Production deployment is neither required nor authorized.
 ## Scope limits
 
 Action 660J changes only the provider-free GitHub Actions workflow, its static
-local runner, this contract and its regression oracle. It performs no
-application runtime, Supabase/database/Auth, Netlify configuration, provider
-data, broker, execution, training, promotion or production-deployment
-mutation. Parallel execution changes scheduling, not test meaning or product
-authority.
+local runner and registration manifest, this contract, its regression oracle,
+two provider-free live-import detectors and historical test-registration
+assertions. It performs no application runtime, Supabase/database/Auth,
+Netlify configuration, provider data, broker, execution, training, promotion
+or production-deployment mutation. Parallel execution changes scheduling, not
+test meaning or product authority.

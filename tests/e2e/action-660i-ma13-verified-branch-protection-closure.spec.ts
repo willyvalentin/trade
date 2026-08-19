@@ -239,12 +239,12 @@ type MutableEvidence = Record<string, unknown> & {
 };
 
 test("closes MA13 only through the exact protected-main evidence chain", async () => {
-  const [rawEvidence, action, roadmap, ledger, workflow] = await Promise.all([
+  const [rawEvidence, action, roadmap, ledger, registration] = await Promise.all([
     source(evidencePath),
     source("docs/action-660i-ma13-verified-branch-protection-closure.md"),
     source("docs/ture-master-roadmap.md"),
     source("docs/ture-current-state-ledger.md"),
-    source(".github/workflows/milestone-a-ci.yml"),
+    source("scripts/action-660j-provider-free-ci-registration.json"),
   ]);
   const evidence = JSON.parse(rawEvidence);
 
@@ -277,7 +277,7 @@ test("closes MA13 only through the exact protected-main evidence chain", async (
   expect(roadmap).toContain("15 of 15 required gates verified (100%)");
   expect(ledger).toContain("| known_gap | none |");
   expect(ledger).toContain("15/15 = 100%");
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   );
 

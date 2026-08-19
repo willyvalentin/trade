@@ -345,13 +345,13 @@ test("Action 666CW remains server-only, provider-free and runtime-unwired", asyn
     }
   }
   expect(consumers).toEqual([]);
-  const workflow = (
-    await source(".github/workflows/milestone-a-ci.yml")
+  const registration = (
+    await source("scripts/action-660j-provider-free-ci-registration.json")
   ).toString("utf8");
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
   );
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts",
   );
 });

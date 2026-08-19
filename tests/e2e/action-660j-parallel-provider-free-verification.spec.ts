@@ -7,9 +7,11 @@ import path from "node:path";
 const repositoryRoot = path.resolve(__dirname, "../..");
 const workflowPath = ".github/workflows/milestone-a-ci.yml";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
+const registrationPath =
+  "scripts/action-660j-provider-free-ci-registration.json";
 const contractPath = "docs/action-660j-parallel-provider-free-verification.md";
 const contractSha256 =
-  "ab4b05d5a376638487ae02491717f885152058851fe7f1fbc03a1ae3fc9c30e5";
+  "6b24ba5ce5efdecc6d43ea6da60c88fcc426fd2e53f3d7dc19c62cfdf93a2ca0";
 
 type PlannedCommand = {
   label: string;
@@ -195,6 +197,10 @@ test("preserves exact serial coverage in six closed static shard plans", async (
     .flatMap((plannedCommand) =>
       plannedCommand.args.filter((argument) => argument.startsWith("tests/")),
     );
+  const registeredFiles = JSON.parse(
+    await source(registrationPath),
+  ) as string[];
+  expect(registeredFiles).toEqual(referencedFiles);
   expect(new Set(referencedFiles).size).toBe(referencedFiles.length);
   for (const relativePath of referencedFiles) {
     await expect(access(path.join(repositoryRoot, relativePath))).resolves.toBeUndefined();

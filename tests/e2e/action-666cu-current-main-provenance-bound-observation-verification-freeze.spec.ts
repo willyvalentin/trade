@@ -324,13 +324,13 @@ test("Action 666CU remains server-only, provider-free and runtime-unwired", asyn
   expect(consumers).toEqual([
     "lib/server/canonical-private-atomic-observation-authority.ts",
   ]);
-  const workflow = (
-    await source(".github/workflows/milestone-a-ci.yml")
+  const registration = (
+    await source("scripts/action-660j-provider-free-ci-registration.json")
   ).toString("utf8");
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts",
   );
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cu-current-main-provenance-bound-observation-verification-freeze.spec.ts",
   );
 });

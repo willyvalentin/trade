@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
+);
+const registrationPath = path.join(
+  repositoryRoot,
+  "scripts",
+  "action-660j-provider-free-ci-registration.json",
 );
 
 const foundationTests = [
@@ -151,6 +157,42 @@ export const providerFreeVerificationPlan = Object.freeze({
   ]),
 });
 
+function registeredTestPaths() {
+  const parsed = JSON.parse(readFileSync(registrationPath, "utf8"));
+  if (
+    !Array.isArray(parsed) ||
+    parsed.some(
+      (entry) =>
+        typeof entry !== "string" ||
+        !entry.startsWith("tests/") ||
+        !/\.(?:ts|mjs)$/.test(entry),
+    )
+  ) {
+    throw new Error("Invalid provider-free verification registration manifest");
+  }
+  if (new Set(parsed).size !== parsed.length) {
+    throw new Error("Duplicate provider-free verification registration");
+  }
+  return parsed;
+}
+
+function assertRegisteredCoverage() {
+  const plannedTestPaths = Object.values(providerFreeVerificationPlan)
+    .flat()
+    .flatMap((plannedCommand) =>
+      plannedCommand.args.filter((argument) => argument.startsWith("tests/")),
+    );
+  const registered = registeredTestPaths();
+  if (
+    plannedTestPaths.length !== registered.length ||
+    plannedTestPaths.some((entry, index) => entry !== registered[index])
+  ) {
+    throw new Error(
+      "Provider-free verification plan does not match its registration manifest",
+    );
+  }
+}
+
 function executableFor(runner) {
   switch (runner) {
     case "node":
@@ -203,6 +245,7 @@ function runShard(shardName) {
 }
 
 function main() {
+  assertRegisteredCoverage();
   if (process.argv[2] === "--plan") {
     process.stdout.write(`${JSON.stringify(providerFreeVerificationPlan)}\n`);
     return 0;

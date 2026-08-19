@@ -51,22 +51,6 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run provider-free verification shard
         run: node scripts/action-660j-run-provider-free-ci-shard.mjs "${{ matrix.shard }}"
-        # Registration sentinels retained for predecessor freeze oracles. Action
-        # 660J additionally proves that every path below is executed exactly
-        # once by the closed shard runner plan.
-        # tests/e2e/action-660h-manual-ma13-merge-control.spec.ts
-        # tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts
-        # tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts
-        # tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts
-        # tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts
-        # tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts
-        # tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation-freeze.spec.ts
-        # tests/e2e/action-666cu-current-main-provenance-bound-observation-verification.spec.ts
-        # tests/e2e/action-666cu-current-main-provenance-bound-observation-verification-freeze.spec.ts
-        # tests/e2e/action-666cv-current-main-private-atomic-observation-authority.spec.ts
-        # tests/e2e/action-666cv-current-main-private-atomic-observation-authority-freeze.spec.ts
-        # tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts
-        # tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts
       - name: Verify tracked source remained unchanged
         run: |
           git diff --exit-code

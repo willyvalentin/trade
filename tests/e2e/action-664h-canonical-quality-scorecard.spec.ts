@@ -48,6 +48,18 @@ function filesRecursively(root: string): string[] {
   );
 }
 
+function importsModule(source: string, moduleName: string): boolean {
+  const escapedModuleName = moduleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const quotedModule = `(?:\"[^\"\\n]*${escapedModuleName}(?:\\.[cm]?[jt]sx?)?\"|'[^'\\n]*${escapedModuleName}(?:\\.[cm]?[jt]sx?)?')`;
+  const staticImport = new RegExp(
+    `(?:^|\\n)\\s*(?:import|export)\\s+(?:(?:type\\s+)?[^;]*?\\s+from\\s+)?${quotedModule}`,
+  );
+  const callImport = new RegExp(
+    `\\b(?:import|require)\\s*\\(\\s*${quotedModule}\\s*\\)`,
+  );
+  return staticImport.test(source) || callImport.test(source);
+}
+
 function allFiniteOrNull(value: unknown): boolean {
   if (value === null) return true;
   if (typeof value === "number") return Number.isFinite(value);
@@ -485,7 +497,31 @@ test("scorecard and comparison contracts remain absent from live consumers", () 
     .flatMap(filesRecursively)
     .filter((file) => /\.(?:ts|tsx|js|jsx|mjs|cjs)$/.test(file))
     .filter((file) =>
-      readFileSync(file, "utf8").includes("canonical-quality-scorecard"),
+      importsModule(readFileSync(file, "utf8"), "canonical-quality-scorecard"),
     );
   expect(importers).toEqual([]);
+  expect(
+    importsModule(
+      'const testPath = "tests/e2e/action-664h-canonical-quality-scorecard.spec.ts";',
+      "canonical-quality-scorecard",
+    ),
+  ).toBe(false);
+  expect(
+    importsModule(
+      'import { compareCanonicalQualityScorecards } from "@/lib/canonical-quality-scorecard";',
+      "canonical-quality-scorecard",
+    ),
+  ).toBe(true);
+  expect(
+    importsModule(
+      'const scorecard = require("../lib/canonical-quality-scorecard");',
+      "canonical-quality-scorecard",
+    ),
+  ).toBe(true);
+  expect(
+    importsModule(
+      'const scorecard = import("../lib/canonical-quality-scorecard");',
+      "canonical-quality-scorecard",
+    ),
+  ).toBe(true);
 });

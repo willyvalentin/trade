@@ -18,12 +18,12 @@ function exactKeys(value: Record<string, unknown>, expected: string[]) {
 }
 
 test("preserves the historical Action 666CR reconciliation after Action 660I", async () => {
-  const [rawEvidence, action, roadmap, ledger, workflow] = await Promise.all([
+  const [rawEvidence, action, roadmap, ledger, registration] = await Promise.all([
     source(evidencePath),
     source("docs/action-666cr-current-main-roadmap-ledger-reconciliation.md"),
     source("docs/ture-master-roadmap.md"),
     source("docs/ture-current-state-ledger.md"),
-    source(".github/workflows/milestone-a-ci.yml"),
+    source("scripts/action-660j-provider-free-ci-registration.json"),
   ]);
   const evidence = JSON.parse(rawEvidence);
 
@@ -183,7 +183,7 @@ test("preserves the historical Action 666CR reconciliation after Action 660I", a
   expect(ledger).toContain(
     "Automatic non-production previews grant no\nauthority",
   );
-  expect(workflow).toContain(
+  expect(registration).toContain(
     "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   );
 });
