@@ -1,0 +1,259 @@
+{
+  "contract_version": "trade.action666db.current-main-position-version-schema-reconciliation.v1",
+  "observed_at": "2026-08-19T21:46:14Z",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "main_commit": "c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a",
+    "main_tree": "96012987bf59322f2a4b27202a6946ee668f4556",
+    "main_parents": [
+      "e9c3355125a54f4f9ba55ada2ac55fc91b184647",
+      "93ca8bd41a15a5b6e482779b252406b5639d81b7"
+    ],
+    "main_pull_request": 120,
+    "exact_main_ci_run": 32301932410,
+    "exact_main_ci_conclusion": "success",
+    "required_check": "provider-free-verification",
+    "required_check_app_id": 15368
+  },
+  "schema_authority": {
+    "selected_schemas": [
+      "public"
+    ],
+    "provider_catalog_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-catalog-response-v2.json",
+    "provider_catalog_sha256": "0677648d6f0b144f89612f8bd3b814ab96f964b688fc1525e4b0d5f4e54f4d6f",
+    "provider_typegen_path": "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-typegen-response-v2.json",
+    "provider_typegen_sha256": "d585cce5a5911611d691589d2574330c909495ce28041fafc9caac1dbb45194e",
+    "generated_types_path": "lib/supabase-database.types.ts",
+    "generated_types_sha256": "f23c3702ffd931cb5d81f13e19a8515125817717e9a3fad7ac85e40795729029",
+    "owner_migration_path": "supabase/migrations/20260811163228_add_fail_closed_application_owner_foundation.sql",
+    "owner_migration_sha256": "fd8330d8156d454a79721126f1cc054d07e893452e70a7a9616cdf72ec5219f7",
+    "transaction_migration_path": "supabase/migrations/20260724001500_create_transactional_open_position_command.sql",
+    "transaction_migration_sha256": "b9547df1cd7ce2334f3df9adf277ce7b4b3d1f3ce2aa687c11045008420a1b92",
+    "dependency_gate_path": "docs/action-655a-server-owned-trade-management-dependency-gate.json",
+    "dependency_gate_sha256": "53be2972997aba35370cec8985b42f9e7f061b53022b70b8a5797c993636182a",
+    "evaluator_path": "lib/action-655b-canonical-exit-evaluator.ts",
+    "evaluator_sha256": "8c0854aad8a1d53dc06340d0984ebe786ea2d960265ecf49f5366d2a74de5be6"
+  },
+  "current_schema": {
+    "positions": {
+      "column_count": 20,
+      "columns": [
+        "id",
+        "recommendation_id",
+        "created_at",
+        "ticker",
+        "company_name",
+        "entry_price",
+        "position_size",
+        "current_stop",
+        "target_1",
+        "target_2",
+        "status",
+        "latest_recommendation",
+        "exit_price",
+        "closed_at",
+        "pnl",
+        "pnl_percent",
+        "r_multiple",
+        "exit_notes",
+        "execution_metadata",
+        "owner_user_id"
+      ],
+      "owner_user_id": {
+        "data_type": "uuid",
+        "is_nullable": false
+      },
+      "recommendation_id": {
+        "data_type": "uuid",
+        "is_nullable": true
+      }
+    },
+    "recommendations": {
+      "column_count": 21,
+      "columns": [
+        "id",
+        "created_at",
+        "session_type",
+        "ticker",
+        "company_name",
+        "direction",
+        "setup_type",
+        "entry_low",
+        "entry_high",
+        "stop_loss",
+        "target_1",
+        "target_2",
+        "risk_reward",
+        "confidence",
+        "timeframe",
+        "thesis",
+        "invalidation",
+        "reason_to_avoid",
+        "status",
+        "archived",
+        "owner_user_id"
+      ],
+      "owner_user_id": {
+        "data_type": "uuid",
+        "is_nullable": false
+      }
+    },
+    "lineage_foreign_keys": [
+      {
+        "constraint_name": "positions_owner_user_id_fkey",
+        "source_table": "positions",
+        "source_columns": [
+          "owner_user_id"
+        ],
+        "target_schema": "auth",
+        "target_table": "users",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "constraint_name": "positions_recommendation_id_fkey",
+        "source_table": "positions",
+        "source_columns": [
+          "recommendation_id"
+        ],
+        "target_schema": "public",
+        "target_table": "recommendations",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "constraint_name": "positions_recommendation_owner_fkey",
+        "source_table": "positions",
+        "source_columns": [
+          "recommendation_id",
+          "owner_user_id"
+        ],
+        "target_schema": "public",
+        "target_table": "recommendations",
+        "target_columns": [
+          "id",
+          "owner_user_id"
+        ]
+      },
+      {
+        "constraint_name": "recommendations_owner_user_id_fkey",
+        "source_table": "recommendations",
+        "source_columns": [
+          "owner_user_id"
+        ],
+        "target_schema": "auth",
+        "target_table": "users",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ],
+    "missing_required_columns": {
+      "positions": [
+        "position_version",
+        "durable_recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest"
+      ],
+      "recommendations": [
+        "recommendation_version",
+        "recommendation_identity",
+        "recommendation_normative_digest"
+      ]
+    },
+    "owner_bound_open_position_command": "application_open_owned_position_v1",
+    "owner_bound_open_position_command_verifies_durable_recommendation_lineage": false,
+    "position_version_schema_status": "absent_unresolved"
+  },
+  "frozen_target_contract": {
+    "contract_id": "position_version_schema_v1",
+    "version_sql_type": "bigint",
+    "minimum_version": 1,
+    "maximum_version": 9007199254740991,
+    "recommendation_identity_pattern": "^rec_decision:v1:[0-9a-f]{64}$",
+    "digest_pattern": "^[0-9a-f]{64}$",
+    "recommendations_required_columns": [
+      "recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "positions_required_columns": [
+      "position_version",
+      "durable_recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "positions_recommendation_id_not_null_after_backfill": true,
+    "exact_position_version_key": [
+      "id",
+      "owner_user_id",
+      "position_version"
+    ],
+    "initial_position_version": 1,
+    "mutation_increment": 1,
+    "owner_scoped_compare_and_swap_required": true,
+    "client_can_choose_owner_or_versions": false,
+    "locked_recommendation_tuple": [
+      "recommendation_id",
+      "owner_user_id",
+      "recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "transaction_dispositions": [
+      "created",
+      "replayed",
+      "conflict",
+      "recommendation_binding_conflict",
+      "stale_recommendation_version",
+      "refused",
+      "rolled_back"
+    ],
+    "all_effects_atomic_or_rolled_back": true
+  },
+  "migration_gates": {
+    "read_only_legacy_row_inventory_required": true,
+    "deterministic_backfill_contract_required": true,
+    "source_migration_review_required": true,
+    "isolated_staging_apply_required": true,
+    "cross_owner_and_stale_version_tests_required": true,
+    "production_apply_requires_separate_operator_authority": true,
+    "generated_types_and_ma09_provenance_refresh_required": true,
+    "migration_authorized_by_this_action": false,
+    "position_version_schema_closed_by_this_action": false,
+    "next_bounded_objective": "position_version_schema_migration_design_and_read_only_backfill_preflight"
+  },
+  "preserved_separate_blockers": [
+    "market_observation_provenance",
+    "durable_exit_queue_schema",
+    "transactional_recommendation_position_runtime_handoff",
+    "client_projection_and_mutation_commands"
+  ],
+  "candidate_canonicalization_conditions": {
+    "exact_head_ci_success": false,
+    "independent_read_only_review_no_blocking_findings": false,
+    "explicit_operator_approval_of_pr_and_exact_head": false,
+    "ordinary_protected_pr_merge_verified": false,
+    "exact_reviewed_scope_merged": false,
+    "exact_main_ci_success": false,
+    "all_satisfied": false
+  },
+  "source_document_sha256": {
+    "docs/action-666db-current-main-position-version-schema-reconciliation.md": "1b01661747fb21a9cc3ba64c25fa349b8d39808d2e52efc2161a890c029c6509",
+    "docs/ture-current-state-ledger.md": "0a2ef1f079c9e73ae0f39f3b8046e9fe26dd1953a9a3f002d0776e7d6974f92c",
+    "docs/ture-master-roadmap.md": "ec2824f5ef45178b77c437903fc42a39452570b04ca2eb37451612f4ef550e26"
+  },
+  "scope_limits": {
+    "governance_and_schema_planning_only": true,
+    "application_source_mutation": false,
+    "runtime_mutation": false,
+    "database_or_supabase_mutation": false,
+    "migration_file_added": false,
+    "generated_types_changed": false,
+    "provider_configuration_or_data_mutation": false,
+    "production_deployment": false,
+    "broker_or_execution_authority": false
+  }
+}

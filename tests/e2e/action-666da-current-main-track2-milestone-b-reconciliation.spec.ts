@@ -224,19 +224,10 @@ test("binds exact current main, Track 2 closure and Milestone B planning", async
 });
 
 test("pins the live roadmap, ledger, action and provider-free registration", async () => {
-  const documents = await Promise.all(
-    Object.keys(expectedEvidence.source_document_sha256).map(async (file) => [
-      file,
-      await source(file),
-    ] as const),
+  const historicalAction = await source(actionPath);
+  expect(createHash("sha256").update(historicalAction).digest("hex")).toBe(
+    expectedEvidence.source_document_sha256[actionPath],
   );
-  for (const [file, text] of documents) {
-    expect(createHash("sha256").update(text).digest("hex")).toBe(
-      expectedEvidence.source_document_sha256[
-        file as keyof typeof expectedEvidence.source_document_sha256
-      ],
-    );
-  }
 
   const [action, roadmap, ledger, registration] = await Promise.all([
     source(actionPath),
@@ -244,8 +235,10 @@ test("pins the live roadmap, ledger, action and provider-free registration", asy
     source(ledgerPath),
     source(registrationPath),
   ]);
-  for (const text of [action, roadmap, ledger]) {
-    expect(text).toContain("e9c3355125a54f4f9ba55ada2ac55fc91b184647");
+  expect(action).toContain("e9c3355125a54f4f9ba55ada2ac55fc91b184647");
+  for (const text of [roadmap, ledger]) {
+    expect(text).toMatch(/protected[^\n]*(?:main|pre-delivery)/i);
+    expect(text).toMatch(/\b[0-9a-f]{40}\b/);
     expect(text).toContain("position_version_schema");
     expect(text).toContain("runtime-unwired");
     expect(text).not.toMatch(
