@@ -43,6 +43,8 @@
   "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts",
   "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
   "tests/e2e/action-666cx-current-main-callback-free-atomic-observation-freeze.spec.ts",
+  "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
+  "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot-freeze.spec.ts",
   "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts",
   "tests/e2e/action-666cp-current-main-governed-binding-snapshot-admission-freeze.spec.ts",
   "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",

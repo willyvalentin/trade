@@ -134,6 +134,10 @@ export const providerFreeVerificationPlan = Object.freeze({
       "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
       "tests/e2e/action-666cx-current-main-callback-free-atomic-observation-freeze.spec.ts",
     ]),
+    playwright("Lossless immutable byte snapshot", [
+      "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot.spec.ts",
+      "tests/e2e/action-666cy-current-main-lossless-immutable-byte-snapshot-freeze.spec.ts",
+    ]),
   ]),
   "snapshot-admission": Object.freeze([
     playwright("Governed binding snapshot admission", [
