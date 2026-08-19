@@ -363,3 +363,951 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   they grant no production or runtime authority. The former Action 660H
   `known_gap` remains historical but is superseded as the current MA-13
   classification by Action 660I's verified enforcement.
+
+## Cross-cutting architecture — Ture Agent Intelligence Layer
+
+**Status:** proposed canonical architecture decision for OpenAI Agents SDK adoption.
+
+**Scope:** recommendation intelligence, bounded agentic analysis, shadow evaluation,
+post-trade analysis and future Closed-Loop Learning support.
+
+**This section does not authorize:** production agent authority, broker execution,
+position mutation, risk-policy mutation, database writes, autonomous learning
+promotion, prompt promotion, model promotion or replacement of deterministic
+Ture safety systems.
+
+```text
+agent_runtime_authority:false_until_explicit_promotion_gate
+agent_execution_authority:false
+agent_broker_write_authority:false
+agent_risk_override_authority:false
+agent_position_state_authority:false
+agent_learning_promotion_authority:false
+```
+
+### Purpose
+
+Ture shall use the OpenAI Agents SDK as the preferred framework for **new
+agentic intelligence workflows** when iterative reasoning, bounded tool use,
+specialist analysis, tracing or evaluation creates measurable value.
+
+This is not a rewrite of Ture into an autonomous agent. Ture remains a hybrid
+system:
+
+- deterministic software owns trading truth, state, risk, validation and execution;
+- agentic intelligence interprets evidence, investigates candidates, challenges
+  trade theses, produces structured assessments and later supports learning;
+- deterministic Ture components retain final authority over every consequential
+  trading action.
+
+The adoption objective is twofold:
+
+1. reduce future engineering work by using a maintained agent runtime instead of
+   building generic agent-loop, tool-orchestration, handoff, guardrail, tracing
+   and evaluation infrastructure internally; and
+2. improve Ture's intelligence quality by allowing bounded model workflows to
+   investigate relevant context, use read-only tools, challenge conclusions and
+   support systematic post-trade analysis.
+
+**Permanent principle:**
+
+> The agent may analyze, propose, challenge and explain. Ture Core verifies,
+> authorizes and acts.
+
+### Target architecture
+
+```text
+┌───────────────────────────────────────────────┐
+│          TURE AGENT INTELLIGENCE LAYER        │
+│                                               │
+│ OpenAI Agents SDK                             │
+│                                               │
+│ • setup analysis                              │
+│ • contextual analysis                         │
+│ • contradiction detection                     │
+│ • selective critic/review                     │
+│ • structured trade assessment                 │
+│ • post-trade analysis                         │
+│ • research                                    │
+│ • evaluation support                          │
+│ • agent tracing / usage telemetry             │
+│                                               │
+│           ADVISORY / ANALYTICAL               │
+└──────────────────────┬────────────────────────┘
+                       │
+                structured proposal
+                       │
+                       ▼
+┌───────────────────────────────────────────────┐
+│                   TURE CORE                   │
+│                                               │
+│ • market-data ownership                       │
+│ • provider provenance                         │
+│ • indicators                                  │
+│ • scanner                                     │
+│ • local scoring                               │
+│ • ranking                                     │
+│ • freshness validation                        │
+│ • recommendation reality guard                │
+│ • sanitizer                                   │
+│ • risk engine                                 │
+│ • position state                              │
+│ • exit rules                                  │
+│ • execution candidate selection               │
+│ • execution lifecycle/state machine           │
+│ • authorization                               │
+│ • broker integration                          │
+│ • durable audit                               │
+│                                               │
+│              AUTHORITATIVE                    │
+└───────────────────────────────────────────────┘
+```
+
+### Relationship to the roadmap milestones
+
+**Milestone A — Secure Advisory Product:** no change. The existing privacy,
+ownership, production-boundary and governance controls remain authoritative.
+Agents SDK must not weaken or reopen them.
+
+**Milestone B — Server-Owned Trade Management:** remains the active primary
+engineering line. Durable position versions, recommendation lineage, exit
+queues, market-observation provenance, transactional handoff and server-owned
+state remain deterministic Ture work. Agents SDK does not replace them and
+must not delay or substitute for them.
+
+A shadow Agent Intelligence pilot may run in parallel only if it remains
+read-only, non-authoritative, isolated from execution and unable to change
+canonical state.
+
+**Milestone C — Semi-Automatic Execution:** agents may improve analysis before
+an execution candidate exists, but they do not become an authorization boundary.
+Deterministic validation and operator control remain mandatory.
+
+**Milestone D — Closed-Loop Learning:** this is expected to become the largest
+long-term Agents SDK integration point. Agents may analyze completed trades,
+identify recurring patterns, separate bad decisions from bad outcomes, generate
+structured observations and propose hypotheses. They may not autonomously
+modify ranking, prompts, risk parameters or live trading policy.
+
+**Milestone E — Controlled Automatic Execution:** agents remain upstream
+intelligence even if execution later becomes automatic. The permanent path is:
+
+```text
+Agent assessment
+      ↓
+Ture proposal
+      ↓
+deterministic risk validation
+      ↓
+position/state validation
+      ↓
+execution authorization
+      ↓
+broker execution
+```
+
+There shall be no direct `Agent -> Broker` authority path.
+
+### Deterministic components that must remain outside LLM authority
+
+Ture Core remains authoritative for:
+
+- quotes, candles, timestamps, data freshness and provider identity;
+- VWAP, momentum, volume, risk/reward, PnL and R-multiple calculations;
+- market-session and scan-window status;
+- scanner candidate generation, local scoring and baseline ranking;
+- recommendation reality guard and sanitizer;
+- position state and deterministic exit actions;
+- execution intents, exit priority, candidate picker and lifecycle state;
+- execution identity, manual confirmation and authorization;
+- broker integration and durable audit.
+
+The agent consumes these values and may critique their implications. It does
+not become their source of truth.
+
+### Primary Agents SDK use cases
+
+Agents SDK shall first be used where agentic behavior provides clear analytical
+value:
+
+1. **Setup analysis** — evaluate whether a scanner-selected setup is coherent,
+   actionable, timely and supported by momentum, volume, regime and risk/reward.
+2. **Trade critic** — deliberately challenge an attractive setup and look for
+   contradictions or ignored warnings.
+3. **Context retrieval** — use bounded Ture tools to retrieve only the context
+   required for the current decision instead of expanding a single large prompt.
+4. **Post-trade analysis** — compare original thesis with realized outcome and
+   identify which assumptions, signals or warnings were correct or wrong.
+5. **Evaluation and research** — compare baseline Ture, agent variants, models,
+   prompts, tool sets and specialist workflows.
+6. **Later user-facing intelligence** — recommendation explanations, "why no
+   trade?", session review and coaching, only after core quality is proven.
+
+### One-agent-first policy
+
+Ture must not begin with a large multi-agent architecture.
+
+The first implementation shall be one agent:
+
+```text
+Ture Setup Analyst
+```
+
+It shall have:
+
+- clear static instructions;
+- a strict structured output contract;
+- bounded read-only Ture tools;
+- explicit tool schemas;
+- explicit model selection;
+- explicit turn and output limits;
+- guardrails;
+- no write authority.
+
+Specialist agents or handoffs are added only when evals demonstrate a concrete
+limitation in the single-agent design.
+
+### Initial read-only tool policy
+
+Recommended first tools:
+
+```text
+getCandidateContext()
+getIntradayIndicators()
+getMarketRegime()
+getRankingContext()
+getRecommendationPlanContext()
+getPortfolioRiskContext()
+```
+
+Later, once canonical outcome infrastructure exists:
+
+```text
+getHistoricalSetupOutcomes()
+getComparableTradeOutcomes()
+getRecentCalibrationContext()
+getSessionPerformanceContext()
+```
+
+Every tool must have:
+
+- explicit typed input and output;
+- narrow purpose;
+- bounded response size;
+- deterministic timeout/error semantics;
+- data-source identity;
+- freshness metadata where relevant;
+- Ture trace correlation;
+- no implicit side effect.
+
+Preferred tool-result metadata:
+
+```text
+source
+provider
+observed_at
+freshness_status
+data_version
+trace_id
+```
+
+### Forbidden Agent tools and capabilities
+
+The Agent Intelligence Layer must not expose:
+
+```text
+placeOrder()
+submitOrder()
+cancelOrder()
+changePosition()
+closePosition()
+changeStop()
+approveExecution()
+createExecutionAuthorization()
+mutateRiskSettings()
+modifyScannerPolicy()
+modifyRankingPolicy()
+promoteModel()
+promotePrompt()
+writeLearningPolicy()
+```
+
+It must also have no access to broker credentials, authentication tokens,
+Supabase service-role credentials, OpenAI keys, provider secrets, unrestricted
+production SQL, unrestricted shell or unrestricted filesystem access.
+
+Sandbox agents, shell execution, computer use or browser-control authority are
+not required for normal trade analysis and need a separate explicit architecture
+and security decision before adoption.
+
+### Initial structured output contract
+
+The first shadow agent shall return a dedicated assessment rather than a
+canonical Ture recommendation.
+
+```text
+AgentTradeAssessmentV1
+
+assessment_id
+agent_version
+prompt_version
+model
+candidate_ticker
+
+decision:
+  TRADE
+  NO_TRADE
+  DEFER
+
+setup_type
+confidence_score
+confidence_label
+
+thesis
+supporting_signals[]
+contradictions[]
+missing_data[]
+risk_flags[]
+
+market_regime_alignment
+momentum_assessment
+volume_assessment
+timing_assessment
+risk_reward_assessment
+ranking_assessment
+
+plan_assessment:
+  ACCEPT
+  REJECT
+  INSUFFICIENT_DATA
+
+data_freshness_status
+tool_calls_used[]
+trace_id
+usage
+```
+
+During the first pilot the agent must **not create new entry, stop or target
+prices**. It evaluates the canonical Ture plan. This isolates the experiment to
+analysis and trade-selection quality. Any later agent-proposed price plan remains
+a proposal and must pass deterministic validation.
+
+### Shadow-first adoption
+
+The first implementation must be non-authoritative shadow intelligence.
+
+```text
+                     SAME INPUT
+                         │
+               ┌─────────┴─────────┐
+               │                   │
+               ▼                   ▼
+        CURRENT TURE         AGENT SDK TURE
+        recommendation       shadow analysis
+               │                   │
+               ▼                   ▼
+          baseline A            variant B
+               │                   │
+               └─────────┬─────────┘
+                         │
+                         ▼
+                 REALIZED OUTCOME
+                         │
+                         ▼
+                    COMPARISON
+```
+
+Shadow rules:
+
+- Agent output cannot alter the canonical recommendation.
+- Agent output cannot alter position state or execution.
+- Agent failure cannot block the canonical scan.
+- Agent timeout cannot block the canonical scan.
+- Tool failure cannot alter the canonical scan.
+- Agent disagreement is evidence, not authority.
+- Current Ture remains the control group.
+
+### Evaluation framework
+
+Agents SDK adoption is evidence-driven. The promotion question is not whether
+an agent "sounds smarter". It is whether it improves measurable trading-decision
+quality or provides equivalent quality with material platform/observability
+benefit without degrading safety.
+
+Decision-quality metrics should include where available:
+
+- trade/no-trade discrimination;
+- recommendation acceptance/rejection quality;
+- realized R and expectancy;
+- win rate, target-hit rate and stop-hit rate;
+- maximum favorable excursion and maximum adverse excursion;
+- false-positive and missed-opportunity rates;
+- ranking lift;
+- performance by setup type, regime and scan window.
+
+Confidence calibration must measure:
+
+- outcome by confidence band/decile;
+- calibration error;
+- confidence versus scanner score;
+- overconfidence and underconfidence.
+
+Safety metrics include:
+
+```text
+unsupported_ticker_count
+fabricated_price_count
+fabricated_market_fact_count
+stale_data_misrepresentation_count
+forbidden_tool_attempt_count
+write_tool_call_count
+schema_violation_count
+reality_guard_block_count
+```
+
+Promotion requires zero consequential unsupported-data or forbidden-authority
+violations across the representative promotion suite.
+
+Reliability metrics include successful-run rate, structured-output success,
+max-turn failures, tool errors, timeouts, fallback rate, p50/p95 latency and
+model/API errors.
+
+Cost metrics must include per run:
+
+```text
+model_requests
+input_tokens
+cached_input_tokens
+output_tokens
+total_tokens
+estimated_model_cost
+tool_cost
+total_agent_cost
+```
+
+Ture should also calculate cost per scan, analyzed candidate, published
+recommendation and incremental measured improvement versus baseline.
+
+### Model policy
+
+Ture must not silently rely on an Agents SDK default model. Every experiment
+must explicitly record:
+
+```text
+model
+model_snapshot_or_alias
+reasoning_effort
+prompt_version
+agent_version
+toolset_version
+```
+
+Model selection is an eval-controlled parameter, not a permanent architecture
+choice.
+
+Initial test ladder at the time of this decision:
+
+```text
+Broad / economical worker:  gpt-5.4-mini
+Selective stronger analyst: gpt-5.6-terra
+Frontier critic/benchmark:   gpt-5.6-sol
+```
+
+These names are a starting hypothesis only. They may be replaced by later
+models without changing this architecture policy.
+
+Long-term model escalation should be selective:
+
+```text
+efficient analysis
+      ↓
+sufficient confidence?
+   /       \
+ YES       NO
+  ↓         ↓
+finish   stronger model
+             ↓
+        unresolved?
+         /      \
+       NO       YES
+       ↓         ↓
+    finish     critic
+```
+
+Frontier models shall not become default merely because they are stronger in
+aggregate benchmarks. Promotion requires Ture-specific evidence.
+
+### Turn, token and cost controls
+
+Agent loops must be explicitly bounded with:
+
+- `maxTurns`;
+- maximum output tokens;
+- maximum tool calls;
+- maximum tool-result size;
+- request timeout;
+- overall run timeout;
+- per-run budget;
+- daily shadow budget;
+- monthly experiment budget.
+
+The initial Setup Analyst should use a small turn budget sufficient for initial
+assessment, bounded retrieval and final structured decision. Open-ended
+exploration is not allowed.
+
+A limit hit is recorded as `agent_limit_reached` and grants no authority.
+
+### Tracing and privacy
+
+Ture's existing `ActiveScanTrace` remains the canonical domain trace. Agents SDK
+tracing is complementary.
+
+```text
+Ture ActiveScanTrace
+│
+├── market-data stage
+├── scanner stage
+├── ranking stage
+├── recommendation stage
+├── persistence stage
+│
+└── agent_intelligence
+      │
+      ├── agent_trace_id
+      ├── model requests
+      ├── tool calls
+      ├── guardrails
+      ├── turns
+      ├── token usage
+      └── final assessment
+```
+
+Agents SDK tracing must not become the authoritative trading audit record.
+
+Because Ture is privacy-first, default SDK tracing behavior must not
+implicitly define production policy. Agent context or exported traces must not
+contain secrets or unnecessary user/account identifiers.
+
+Prefer opaque Ture trace IDs, candidate IDs, recommendation IDs and normalized
+risk constraints over personally identifying information.
+
+Initial policy:
+
+- SDK tracing may be enabled for sanitized synthetic/offline runs;
+- production-like sensitive context uses explicit sanitization or tracing-off
+  configuration as required;
+- the canonical Ture trace must remain independently sufficient to reconstruct
+  system behavior;
+- tracing policy must be re-approved before production Agent Intelligence
+  promotion.
+
+### Guardrail architecture
+
+Agents SDK guardrails are an additional defense layer, not a replacement for
+Ture validation.
+
+Potential input/tool/output guardrails may reject malformed requests,
+unsupported tickers, excessive data ranges, sensitive tool output, schema
+violations or plan-authority violations.
+
+The required final path remains:
+
+```text
+Agent
+  ↓
+SDK guardrails
+  ↓
+Ture Reality Guard
+  ↓
+Ture sanitizer
+  ↓
+Ture Core
+```
+
+### Failure and fallback policy
+
+Agents fail closed with respect to authority and must not degrade the baseline
+canonical path during shadow testing.
+
+Failure examples include API errors, tool timeouts, schema failures, guardrail
+trips, max-turn exhaustion, budget exhaustion or trace-policy violations.
+
+During shadow mode:
+
+```text
+Agent failed
+    ↓
+record failure
+    ↓
+canonical Ture continues unchanged
+```
+
+After any later advisory promotion, a safe non-agent baseline or deterministic
+fallback must remain available. No failure mode may result in **more** execution
+authority.
+
+### Multi-agent expansion policy
+
+Multiple agents are introduced only after a single-agent limitation is
+measured.
+
+Potential future design:
+
+```text
+                Ture Analysis Manager
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+      Setup Analyst   Context Analyst   Critic
+          │              │              │
+          └──────────────┼──────────────┘
+                         ▼
+                 final assessment
+```
+
+The preferred initial multi-agent pattern is manager-controlled specialization.
+Handoffs are used only when a specialist genuinely needs to own an entire
+workflow. No specialist receives greater authority than the manager.
+
+### Post-trade Agent and Milestone D
+
+A later `PostTradeAnalyst` is a high-priority Milestone D use case.
+
+Its inputs may include original candidate snapshot, scanner score,
+recommendation, Agent assessment, entry/stop/targets, realized outcome, MFE,
+MAE, session context and regime.
+
+Its structured output should distinguish:
+
+```text
+decision_quality
+outcome_quality
+thesis_accuracy
+signal_accuracy
+missed_warning_signals
+false_warning_signals
+timing_error
+risk_geometry_error
+market_regime_error
+data_quality_issue
+model_reasoning_issue
+```
+
+This prevents the learning system from equating a losing trade with a bad
+decision or a winning trade with a good decision.
+
+Agent learning observations remain evidence only until canonical evaluation and
+promotion.
+
+### Learning-policy boundary
+
+An agent may eventually propose feature weighting changes, setup-definition
+changes, prompt changes, tool-context changes, confidence recalibration,
+rejection rules or model changes. It may not deploy them.
+
+Required promotion flow:
+
+```text
+Agent hypothesis
+      ↓
+structured proposal
+      ↓
+offline dataset
+      ↓
+evaluation
+      ↓
+counterfactual comparison
+      ↓
+shadow deployment
+      ↓
+outcome evidence
+      ↓
+explicit promotion decision
+      ↓
+versioned canonical policy
+```
+
+No online self-modifying trading policy is authorized by Agents SDK adoption.
+
+### Rollout sequence
+
+**AI-00 — Canonical architecture contract**
+
+- Add this specification to the master roadmap.
+- Freeze authority, privacy, model, tool and promotion policy.
+- No runtime behavior change.
+
+**AI-01 — Freeze baseline and comparison contract**
+
+- Define the current recommendation path as the control.
+- Freeze comparable inputs, output identity and evaluation metrics.
+
+**AI-02 — TypeScript Agents SDK scaffold**
+
+- Add the smallest runnable Agents SDK path inside the existing TypeScript
+  project.
+- One Setup Analyst only.
+- No production authority.
+
+**AI-03 — Read-only Ture tool contracts**
+
+- Implement narrow, typed, bounded read-only tool adapters.
+- No credentials or write paths exposed.
+
+**AI-04 — `AgentTradeAssessmentV1` and guardrails**
+
+- Enforce the structured output contract.
+- Add explicit tool and output constraints.
+
+**AI-05 — Synthetic/fixture eval harness**
+
+- Exercise the real agent path against representative happy paths, missing data,
+  stale data, contradictions, forbidden calls and regression fixtures.
+
+**AI-06 — Historical/offline shadow comparison**
+
+- Replay frozen candidate packages through baseline Ture and Agent SDK Ture.
+- Compare against known outcomes where available.
+
+**AI-07 — Live shadow feature path**
+
+- Run Agent Intelligence beside real scans.
+- Capture output, disagreements, tool usage, latency, tokens, cost and later
+  outcomes.
+- No live effect.
+
+**AI-08 — Outcome and calibration comparison**
+
+- Measure decision quality, confidence calibration, regime/setup performance and
+  failure behavior.
+
+**AI-09 — Cost/latency/reliability assessment**
+
+- Produce actual cost-per-analysis and operational quality evidence.
+
+**AI-10 — Formal promotion review**
+
+Permitted decisions:
+
+```text
+PROMOTE
+CONTINUE_SHADOW
+REVISE
+REJECT
+```
+
+Promotion requires no blocking authority violation, no material safety
+regression, acceptable reliability/latency/cost, representative outcome
+evidence, privacy/tracing approval, rollback capability and explicit operator
+approval.
+
+**AI-11 — Optional advisory-path integration**
+
+Only after promotion may Agent Intelligence affect the canonical recommendation
+path. The initial promoted scope remains advisory and feature-flagged.
+
+**AI-12 — Optional specialist-agent experiment**
+
+Add Context Analyst or Trade Critic only if single-agent evals justify it.
+
+**AI-13 — `PostTradeAnalyst` foundation**
+
+Build structured post-trade analytical output once canonical outcome identity
+is available.
+
+**AI-14 — Closed-Loop Learning integration**
+
+Align with Milestone D. Agent-generated observations may enter learning datasets;
+live policy changes remain separately gated.
+
+### Promotion package requirements
+
+Every Agent Intelligence promotion package must bind:
+
+**Identity**
+
+- agent version;
+- prompt version;
+- model and reasoning configuration;
+- toolset version;
+- output-schema version;
+- code revision.
+
+**Safety**
+
+- no write or broker authority;
+- reality-guard results;
+- hallucination/fabrication results;
+- stale-data behavior;
+- tool-boundary results.
+
+**Quality**
+
+- baseline comparison;
+- outcome comparison;
+- confidence calibration;
+- regime/setup breakdown.
+
+**Operations**
+
+- latency;
+- error/fallback rate;
+- max-turn rate;
+- token usage;
+- cost.
+
+**Privacy**
+
+- tracing configuration;
+- sanitization/redaction evidence;
+- no-secret validation.
+
+**Rollback**
+
+- feature flag;
+- known baseline path;
+- deterministic fallback.
+
+### Development-time benefit policy
+
+Ture should prefer Agents SDK primitives over custom generic infrastructure for:
+
+- agent loop;
+- tool invocation loop;
+- agent-as-tool orchestration;
+- justified handoffs;
+- agent sessions where useful;
+- agent/tool guardrails;
+- human-in-the-loop mechanisms where useful;
+- agent tracing;
+- model/tool usage accounting.
+
+Ture continues to build domain-specific infrastructure for trading truth,
+provenance, state, security, database durability, scanner logic, outcome
+identity, risk, execution, broker correctness and canonical audit.
+
+**Rule:** do not build generic agent infrastructure already provided by Agents
+SDK unless a demonstrated Ture-specific requirement cannot be met safely by the
+SDK.
+
+### Cost policy
+
+Agents SDK cost is treated as an intelligence operating cost. Ture optimizes:
+
+```text
+decision quality per dollar
+```
+
+rather than minimum dollars per call.
+
+Principles:
+
+- efficient models handle broad analysis;
+- stronger models are selectively escalated;
+- irrelevant context is not sent;
+- bounded tools are preferred to oversized prompt payloads;
+- caching is used where appropriate;
+- actual token and tool usage is recorded;
+- model quality is compared empirically;
+- frontier models are used only when measured value justifies them.
+
+A small cost increase is acceptable if representative evidence shows a material
+reduction in bad recommendations. No model tier receives permanent status
+without eval evidence.
+
+### Suggested implementation structure
+
+Existing repository conventions take precedence, but the conceptual separation
+should resemble:
+
+```text
+lib/
+  agent-intelligence/
+    agent.ts
+    runner.ts
+    models.ts
+    schemas.ts
+    guardrails.ts
+    trace-bridge.ts
+    cost.ts
+
+    tools/
+      candidate-context.ts
+      intraday-indicators.ts
+      market-regime.ts
+      ranking-context.ts
+      risk-context.ts
+
+    shadow/
+      run-shadow-assessment.ts
+      compare-baseline.ts
+
+    post-trade/
+      analyst.ts
+      schemas.ts
+
+evals/
+  agent-intelligence/
+    cases/
+    graders/
+    results/
+
+docs/
+  agent-intelligence/
+```
+
+### Definition of Done for initial adoption
+
+Agents SDK is **architecturally adopted** when:
+
+- this specification is canonical in the roadmap;
+- Agents SDK exists as an explicit Ture dependency;
+- one TypeScript Setup Analyst runs end-to-end;
+- the agent uses only bounded read-only tools;
+- the structured output contract is enforced;
+- agent/model/prompt/tool identities are recorded;
+- turn and usage limits are enforced;
+- privacy/tracing behavior is explicit;
+- `ActiveScanTrace` can correlate the agent run;
+- synthetic/offline evals exist;
+- the current recommendation engine remains available as baseline;
+- shadow execution cannot change a recommendation, position or broker action.
+
+Agents SDK is **production-promoted for recommendation intelligence** only after
+the separate formal Promotion Review succeeds.
+
+### Explicit non-goals
+
+Agents SDK adoption does not authorize:
+
+- rewriting Ture as a fully autonomous trading agent;
+- replacing deterministic market-data calculations;
+- replacing scanner baseline logic;
+- replacing risk management;
+- replacing server-owned position state;
+- replacing the execution state machine;
+- direct LLM broker control;
+- agent-controlled database authority;
+- unrestricted internet research during execution;
+- autonomous strategy modification;
+- autonomous prompt/model promotion;
+- autonomous capital or risk adjustment.
+
+### Permanent Agent Intelligence rule
+
+> **Ture may delegate reasoning, investigation, critique and learning analysis to
+> agents. It shall not delegate canonical trading truth, risk authority, state
+> authority or execution authority to an LLM.**
+
+The target end-state is not:
+
+```text
+AI runs Ture.
+```
+
+It is:
+
+```text
+AI makes Ture more intelligent.
+Ture Core keeps Ture correct.
+```
