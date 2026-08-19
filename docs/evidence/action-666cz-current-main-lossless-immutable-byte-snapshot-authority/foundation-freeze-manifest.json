@@ -1,0 +1,108 @@
+{
+  "schema_version": "action_666cz_current_main_lossless_immutable_byte_snapshot_authority_foundation_freeze_v1",
+  "authority": {
+    "repository": "willyvalentin/trade",
+    "candidate_base_commit": "7280f5a6a7317f495dd8ffccdd8df609203026f5",
+    "candidate_base_tree": "944a9fe64992f115a514070e3a0ff6e5df26c5a1",
+    "candidate_base_exact_main_ci_run": 32277517623,
+    "delivered_predecessor": "666CY",
+    "delivered_predecessor_pull_request": 118,
+    "delivered_predecessor_head": "2d378bd96123470c5f0bf4ca2d991a032be06ff3",
+    "historical_design_pull_request": 72,
+    "historical_design_head": "40155d6b5bf03cb8e3ed2207f4f771d62b6f6937",
+    "historical_design_authority_reused": false,
+    "historical_evidence_artifacts_imported": false,
+    "historical_successor_chain_imported": false,
+    "fresh_current_main_review_required": true
+  },
+  "foundation": {
+    "authority_version": "canonical_lossless_immutable_byte_snapshot_authority_v2",
+    "evidence_version": "canonical_lossless_immutable_byte_snapshot_authority_evidence_v2",
+    "result_version": "canonical_lossless_immutable_byte_snapshot_authority_result_v2",
+    "readback_version": "canonical_lossless_immutable_byte_snapshot_authority_readback_v2",
+    "source_snapshot_version": "canonical_lossless_immutable_byte_snapshot_v2",
+    "source_readback_version": "canonical_lossless_immutable_byte_readback_v2",
+    "normative_artifact_count": 5,
+    "aggregate_algorithm": "sha256 over sorted lines '<path>  <sha256>\\n'",
+    "aggregate_sha256": "f1bbe6a94312548732d94ab57bc453f27519615dd2be7edd07aba503cf6d11c3",
+    "artifacts": [
+      {
+        "path": "docs/action-666cz-current-main-lossless-immutable-byte-snapshot-authority.md",
+        "sha256": "bfd90741806015c0c7e5bf2305ab709fed0cc006c1aee161b3fdc444ef6e7c08"
+      },
+      {
+        "path": "docs/action-666cz-golden-lossless-immutable-byte-snapshot-authority-report.json",
+        "sha256": "3b7ab28faf61c4e1aa2f3a9eab23047af38a8d2684fa80146c377c0147b249ab"
+      },
+      {
+        "path": "lib/server/canonical-lossless-immutable-byte-snapshot-authority-fixtures.ts",
+        "sha256": "da077ea8b88e771aaa54120aa9d437e9f429ddcc09de60b53e8fcf75b119af8a"
+      },
+      {
+        "path": "lib/server/canonical-lossless-immutable-byte-snapshot-authority.ts",
+        "sha256": "3e8fb2653af6bf2a228aa7234c864073654dec4557439e2e4f3af8c862ef4917"
+      },
+      {
+        "path": "tests/e2e/action-666cz-current-main-lossless-immutable-byte-snapshot-authority.spec.ts",
+        "sha256": "9cfab176e80aaf6204f0e93bce385bdb0a6666ee7b73cf31b1fd4e65d6cae30f"
+      }
+    ]
+  },
+  "trust_boundary": {
+    "literal_default_off_gate_required": true,
+    "literal_kill_switch_clear_required": true,
+    "exact_action_666cy_integrity_only_result_required": true,
+    "direct_predecessor_invocation_without_callback_required": true,
+    "private_harness_session_required": true,
+    "private_result_shell_registration_required": true,
+    "weak_registry_lookup_before_result_introspection_required": true,
+    "exact_originating_session_required": true,
+    "deterministic_predecessor_rebuild_required": true,
+    "descriptor_based_exact_result_equality_required": true,
+    "result_clone_copy_or_reconstruction_authority_forbidden": true,
+    "cross_harness_result_authority_forbidden": true,
+    "public_readback_provenance_authority_forbidden": true,
+    "public_readback_integrity_only_required": true,
+    "public_readback_trusted_or_admitted_forbidden": true,
+    "proxy_or_accessor_candidate_introspection_allowed": false,
+    "captured_reflection_collection_freeze_hash_and_array_primordials_required": true,
+    "null_prototype_scratch_arrays_required": true,
+    "structured_never_throw_result_required": true
+  },
+  "scope": {
+    "server_only": true,
+    "synthetic_only": true,
+    "fixture_only": true,
+    "read_only": true,
+    "default_off": true,
+    "runtime_unwired": true,
+    "live_consumer_added": false,
+    "callback_or_dependency_reader_added": false,
+    "provider_or_database_access_added": false,
+    "persistence_or_migration_added": false,
+    "ranking_or_model_effect_added": false,
+    "training_or_promotion_added": false,
+    "broker_or_execution_authority_added": false,
+    "workflow_integration_owned_by_action_660j": true,
+    "roadmap_or_ledger_reconciliation_deferred": true
+  },
+  "roadmap": {
+    "candidate_action": "666CZ",
+    "delivered_predecessor": "666CY",
+    "next_bounded_objective_if_delivered": "fresh_current_main_snapshot_authority_integrity_provenance_separation_successor",
+    "track_2_complete_if_delivered": false,
+    "milestone_credit_awarded": false
+  },
+  "delivery": {
+    "candidate_merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_or_database_action_authorized": false,
+    "exact_head_ci_required": true,
+    "independent_current_head_review_required": true,
+    "operator_approval_of_pr_and_exact_head_required": true,
+    "ordinary_pull_request_merge_required": true,
+    "exact_main_ci_required": true,
+    "action_660j_replay_lineage_shard_registration_required": true,
+    "production_identity_and_smoke_required_if_published": true
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "canonical_snapshot_authority",
+    "result_status": "verified",
+    "runtime_authority_status": "provenance_verified",
+    "serialized_authority_status": "integrity_only",
+    "provenance_verified": true,
+    "source_raw_byte_sha256": "c94c2dc4b0ce2070e8e54dcaa84425a7d189c4ef3a4ed9bf73fe520a33f0396d",
+    "source_terminal_identity": "2adc51479e95b31c2111961df7e2087ff7f74ab72f7729e2b34833dd458110dd",
+    "evidence_digest": "7779c899383e97d5a2392f9e432551a9aae001546f97c7bf0b6c37f72baa79db",
+    "result_digest": "1b41187eb1c9810e3d9767b5d515607944c0df06c775cfcc57a19503420ed6a9",
+    "readback_status": "integrity_only",
+    "readback_provenance_verified": false,
+    "readback_verifier_authority_granted": false,
+    "readback_digest": "7b1a5a5bd0f0d3ad7f60fde19473947380bc7d1843517f09601b36aca234ca0b",
+    "verification_valid": true,
+    "reason_codes": []
+  },
+  {
+    "name": "malformed_snapshot_rejected",
+    "result_status": "rejected",
+    "runtime_authority_status": "none",
+    "serialized_authority_status": "none",
+    "provenance_verified": false,
+    "source_raw_byte_sha256": null,
+    "source_terminal_identity": null,
+    "evidence_digest": null,
+    "result_digest": "63ad97f1933d0a335ec5cabee3e7f79eb2f45833105c315d813e3a6498cfcd3f",
+    "readback_status": "rejected",
+    "readback_provenance_verified": false,
+    "readback_verifier_authority_granted": false,
+    "readback_digest": "5f39ec18be78e5e707e3dfd7cd4a998a5d2d7998d01c2473274e96f2f8f68363",
+    "verification_valid": false,
+    "reason_codes": [
+      "snapshot_authority_source_not_verified"
+    ]
+  }
+]
