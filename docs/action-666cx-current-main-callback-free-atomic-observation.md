@@ -3,13 +3,15 @@
 ## Authority and current-main base
 
 Action 666CX starts from protected main commit
-`960b88f85f3ad7be10c4b848c40127d63a21390b`, tree
-`40b6384cfe95ee8a9e46980d5a5f861f6dc062a1`. This is the ordinary merge of
-PR #115 with parents
-`981bb474ebe5466f92d671ef489a1f3a82d3bcba` and
-`e86f2d7bd6a4ff8674fdad8e4d9d01e04e4a71b4`. Exact-main push CI run
-`32196042641` completed successfully on that commit; GitHub deployments were
-empty at the recorded readback.
+`b9f894e92cc41d9d00ef625fe3bd987e495d6445`, tree
+`d83819ea9fa49ba8784dce820db21ff39c5d5873`. This is the ordinary merge of
+Action 660J / PR #116 with parents
+`960b88f85f3ad7be10c4b848c40127d63a21390b` and
+`499bc21ade91d2d0dcf03927183415b383d716ef`. Exact-main push CI run
+`32252186236` completed successfully on that commit; GitHub deployments were
+empty at the recorded readback. Action 660J changes only the provider-free CI
+scheduling and registration infrastructure and does not alter the delivered
+666CW runtime foundation from PR #115.
 
 Historical PR #72 remains open Draft stacked non-authority. Its callback-free
 material is design context only. This Action does not import historical source,
@@ -74,8 +76,8 @@ training, promotion, broker action or production deployment.
 Five normative artifacts — implementation, synthetic fixture, focused test,
 this contract and the synthetic golden report — are hash-pinned in a separate
 fail-closed manifest. Action 660J owns the provider-free CI sharding
-integration; before delivery it must register the focused and freeze tests in
-its observation shard and retain the clean tracked-tree requirement.
+integration; the focused and freeze tests are registered in its replay-lineage
+shard while the workflow and clean tracked-tree requirement remain unchanged.
 
 ## Delivery condition
 

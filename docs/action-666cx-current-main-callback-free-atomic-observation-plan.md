@@ -3,13 +3,16 @@
 ## Planning status and authority boundary
 
 This plan was prepared from the then-open Action 666CW PR #115 head
-`e86f2d7bd6a4ff8674fdad8e4d9d01e04e4a71b4`. Its prerequisite is now met:
-PR #115 merged ordinarily to protected `main` at
-`960b88f85f3ad7be10c4b848c40127d63a21390b`, tree
-`40b6384cfe95ee8a9e46980d5a5f861f6dc062a1`, and exact-main push CI run
-`32196042641` succeeded. This plan and the resulting candidate still create no
-delivery, runtime, provider, database, broker, release, production or
-roadmap-completion authority.
+`e86f2d7bd6a4ff8674fdad8e4d9d01e04e4a71b4`. Its semantic prerequisite was met
+when PR #115 merged ordinarily. Before this candidate was published, Action
+660J / PR #116 then merged the provider-free CI sharding infrastructure to
+protected `main` at `b9f894e92cc41d9d00ef625fe3bd987e495d6445`, tree
+`d83819ea9fa49ba8784dce820db21ff39c5d5873`; exact-main push CI run
+`32252186236` succeeded. PR #116 changes CI scheduling and registration only;
+it does not alter the delivered 666CW runtime foundation. This protected
+commit/tree is the current candidate base. The plan and resulting candidate
+still create no delivery, runtime, provider, database, broker, release,
+production or roadmap-completion authority.
 
 Action 666CX is a fresh current-main successor. Historical PR #72 / Action
 666CF material remains design context only and may not supply implementation,
@@ -71,9 +74,9 @@ fatal UTF-8 decoding and the 65,536-byte cap are checked before any
 caller-controlled traversal.
 
 The canonical-envelope schema is pinned to the delivered 666CW public
-envelope version and its exact digest projection, re-established from fresh
-current-main source after PR #115 merges. The implementation may use no
-predecessor runtime authority path to validate that public schema.
+envelope version and its exact digest projection, re-established from the
+protected current-main source at the post-PR #116 base. The implementation may
+use no predecessor runtime authority path to validate that public schema.
 
 ## Scope after the prerequisite
 
@@ -84,14 +87,16 @@ The implementation candidate should be additive and limited to:
 3. a focused Action 666CX Playwright specification;
 4. a contract document and synthetic golden report;
 5. a separate five-artifact freeze manifest and freeze specification; and
-6. a handoff specification for the required provider-free CI registration.
+6. the required provider-free CI registration in Action 660J's replay-lineage
+   shard.
 
 The 666CX source must not change 666CW source, fixture, focused test, freeze
-manifest or golden report. The CI workflow, roadmap and current-state ledger
-are intentionally deferred: Action 660J owns the provider-free CI sharding
-integration, where 666CX belongs only in the observation shard. There is no
-route, UI, persistence, migration, provider, broker, model, ranking, training,
-promotion or deployment work in scope.
+manifest or golden report. The roadmap and current-state ledger remain
+deferred. Action 660J owns the provider-free CI sharding integration, so this
+candidate extends only its executable replay-lineage plan, machine-readable
+registration and plan oracle; the workflow and protected check identity remain
+unchanged. There is no route, UI, persistence, migration, provider, broker,
+model, ranking, training, promotion or deployment work in scope.
 
 ## Required tests
 
@@ -133,9 +138,9 @@ promotion or deployment work in scope.
    that delivered source; do not carry any historical hash or implementation
    forward.
 4. Implement only the additive 666CX contract and tests above, then run the
-   focused 666CX/666CW tests and the freeze tests. Defer repository CI
-   registration to Action 660J's observation shard; do not modify its workflow
-   integration surface here.
+   focused 666CX/666CW tests and the freeze tests. Register the two 666CX tests
+   in Action 660J's replay-lineage plan and machine manifest without modifying
+   the workflow or protected aggregate identity.
 5. Freeze the final five-artifact scope, obtain an independent current-head
    read-only review and record exact-head test evidence.
 6. Before pushing a branch or opening a PR, obtain explicit operator approval

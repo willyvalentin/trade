@@ -1,8 +1,8 @@
 {
   "report_version": "action_666cx_current_main_callback_free_atomic_observation_golden_report_v1",
-  "candidate_base_commit": "960b88f85f3ad7be10c4b848c40127d63a21390b",
-  "candidate_base_tree": "40b6384cfe95ee8a9e46980d5a5f861f6dc062a1",
-  "candidate_base_exact_main_ci_run": 32196042641,
+  "candidate_base_commit": "b9f894e92cc41d9d00ef625fe3bd987e495d6445",
+  "candidate_base_tree": "d83819ea9fa49ba8784dce820db21ff39c5d5873",
+  "candidate_base_exact_main_ci_run": 32252186236,
   "boundary_version": "canonical_callback_free_atomic_observation_v2",
   "readback_version": "canonical_callback_free_atomic_observation_readback_v2",
   "predecessor_public_envelope_version": "canonical_integrity_provenance_separated_observation_envelope_v2",

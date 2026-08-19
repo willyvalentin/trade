@@ -135,6 +135,10 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority.spec.ts",
       "tests/e2e/action-666cw-current-main-integrity-provenance-separated-observation-authority-freeze.spec.ts",
     ]),
+    playwright("Callback-free atomic observation", [
+      "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
+      "tests/e2e/action-666cx-current-main-callback-free-atomic-observation-freeze.spec.ts",
+    ]),
   ],
   "snapshot-admission": [
     playwright("Governed binding snapshot admission", [

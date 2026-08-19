@@ -8,16 +8,16 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const manifestPath =
   "docs/evidence/action-666cx-current-main-callback-free-atomic-observation/foundation-freeze-manifest.json";
 const manifestSha256 =
-  "da85813eb7842bf792de3c65f06be537f16c002ec66ab83edb371d99a3a2ecbd";
+  "ad554939a8f314b6a16872353bbc952dc6a361fdb4024772d63c165a20b276c6";
 
 const expectedManifest = {
   schema_version:
     "action_666cx_current_main_callback_free_atomic_observation_foundation_freeze_v1",
   authority: {
     repository: "willyvalentin/trade",
-    candidate_base_commit: "960b88f85f3ad7be10c4b848c40127d63a21390b",
-    candidate_base_tree: "40b6384cfe95ee8a9e46980d5a5f861f6dc062a1",
-    candidate_base_exact_main_ci_run: 32196042641,
+    candidate_base_commit: "b9f894e92cc41d9d00ef625fe3bd987e495d6445",
+    candidate_base_tree: "d83819ea9fa49ba8784dce820db21ff39c5d5873",
+    candidate_base_exact_main_ci_run: 32252186236,
     delivered_predecessor: "666CW",
     delivered_predecessor_pull_request: 115,
     delivered_predecessor_head: "e86f2d7bd6a4ff8674fdad8e4d9d01e04e4a71b4",
@@ -37,17 +37,17 @@ const expectedManifest = {
     normative_artifact_count: 5,
     aggregate_algorithm: "sha256 over sorted lines '<path>  <sha256>\\n'",
     aggregate_sha256:
-      "53e09d81e737f197e40ee470f1f7690f1dc6a7e3c2409b895d3e62ad0ec4ae36",
+      "4e0f6128f71fc6f8074c76511d3ba030519cec9b31874c0918584111b64ddaad",
     artifacts: [
       {
         path: "docs/action-666cx-current-main-callback-free-atomic-observation.md",
         sha256:
-          "7227c00ac4bd0f5405bc4d67289aefd0dd7700672b23aeb9ccab513b8820789a",
+          "32a20c47cbb3ee6b9045b4da9625efa0db9d4cde8e3ea6f68235a4dee802f46a",
       },
       {
         path: "docs/action-666cx-golden-callback-free-atomic-observation-report.json",
         sha256:
-          "6f6a7b0675d5b969e7b29f4d11269d1af107735ccf493bb3524e91959205e352",
+          "93b1e0706a957e32d00f3ae9f6f87101386b05dd45497197ca206e8126e11e65",
       },
       {
         path: "lib/server/canonical-callback-free-atomic-observation-fixtures.ts",
@@ -62,7 +62,7 @@ const expectedManifest = {
       {
         path: "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
         sha256:
-          "3a98141651dc152c37ee3905a6d83778003b285e7b73179c0302296f235feb5c",
+          "3912f933264671ce068e859a31110912d4eb8866f85e312879d82e2cd03b7b4a",
       },
     ],
   },
@@ -267,8 +267,8 @@ test("Action 666CX binds its fresh current-main and non-authority boundaries", a
   const contract = (
     await source("docs/action-666cx-current-main-callback-free-atomic-observation.md")
   ).toString("utf8");
-  expect(contract).toContain("`960b88f85f3ad7be10c4b848c40127d63a21390b`");
-  expect(contract).toContain("`32196042641`");
+  expect(contract).toContain("`b9f894e92cc41d9d00ef625fe3bd987e495d6445`");
+  expect(contract).toContain("`32252186236`");
   expect(contract).toContain("Historical PR #72 remains open Draft stacked non-authority.");
   expect(contract).toContain("design context only");
   expect(contract).toContain("No production deployment, provider action, database action or Supabase action");
@@ -281,7 +281,7 @@ test("Action 666CX binds its fresh current-main and non-authority boundaries", a
   }
 });
 
-test("Action 666CX remains server-only, consumer-free and isolated from Action 660J", async () => {
+test("Action 666CX remains server-only, consumer-free and registered with Action 660J", async () => {
   const governedModules = [
     "lib/server/canonical-callback-free-atomic-observation.ts",
     "lib/server/canonical-callback-free-atomic-observation-fixtures.ts",
@@ -313,4 +313,15 @@ test("Action 666CX remains server-only, consumer-free and isolated from Action 6
     }
   }
   expect(consumers).toEqual([]);
+  const registration = JSON.parse(
+    (
+      await source("scripts/action-660j-provider-free-ci-registration.json")
+    ).toString("utf8"),
+  ) as string[];
+  expect(registration).toContain(
+    "tests/e2e/action-666cx-current-main-callback-free-atomic-observation.spec.ts",
+  );
+  expect(registration).toContain(
+    "tests/e2e/action-666cx-current-main-callback-free-atomic-observation-freeze.spec.ts",
+  );
 });

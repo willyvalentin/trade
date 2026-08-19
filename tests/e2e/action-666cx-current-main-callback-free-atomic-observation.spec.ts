@@ -383,7 +383,7 @@ test.describe("Action 666CX current-main callback-free atomic observation", () =
       ),
       "utf8",
     );
-    expect(contract).toContain("`960b88f85f3ad7be10c4b848c40127d63a21390b`");
+    expect(contract).toContain("`b9f894e92cc41d9d00ef625fe3bd987e495d6445`");
     expect(contract).toMatch(/GitHub deployments were\s+empty/);
   });
 });
