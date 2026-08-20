@@ -57,6 +57,8 @@ type Evidence = {
   ready_route: {
     ready_for_review_event_required: boolean;
     ready_synchronize_event_required: boolean;
+    pr_concurrency_key: string;
+    stale_pr_runs_cancelled: boolean;
     full_shards: string[];
     fail_fast: boolean;
     all_shards_run_to_completion: boolean;
@@ -115,6 +117,12 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
     expect(workflow).toContain(`      - ${eventType}`);
   }
   expect(workflow).toContain("push:\n    branches:\n      - main");
+  expect(workflow).toContain(
+    "concurrency:\n  group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}\n  cancel-in-progress: true",
+  );
+  expect(workflow).not.toContain(
+    "github.event.pull_request.number || github.ref",
+  );
 
   const draftJob = blockBetween(
     workflow,
@@ -321,6 +329,8 @@ test("binds exact governance evidence and forbids release authority", async () =
     ready_route: {
       ready_for_review_event_required: true,
       ready_synchronize_event_required: true,
+      pr_concurrency_key: "github.event.pull_request.number",
+      stale_pr_runs_cancelled: true,
       full_shards: [
         "foundation",
         "replay-lineage",
@@ -337,6 +347,8 @@ test("binds exact governance evidence and forbids release authority", async () =
       event: "push",
       branch: "main",
       exact_github_sha: true,
+      main_concurrency_key: "github.sha",
+      later_main_push_can_cancel_prior_main_run: false,
       full_matrix_required: true,
       fail_fast: false,
       all_shards_run_to_completion: true,

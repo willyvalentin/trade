@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:

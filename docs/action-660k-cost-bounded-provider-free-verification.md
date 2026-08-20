@@ -50,6 +50,13 @@ complete matrix result is exactly `success`.
 Every push to `main` continues to run the full six-shard matrix and protected
 aggregate on exact `github.sha`. No Draft path exists for `main`.
 
+Workflow concurrency is keyed by the pull-request number for pull-request
+events and by exact `github.sha` for `main` pushes. `cancel-in-progress:true`
+therefore cancels stale Draft/Ready work only within the same pull request.
+Every distinct `main` SHA has a distinct concurrency group, so a later merge or
+push cannot cancel or replace an earlier exact-main full run before all six
+shards and its protected aggregate have completed.
+
 The full matrix retains `fail-fast:false`, so every one of the six required
 shards runs to completion on Ready heads and `main`, even after an early shard
 failure. `always()` still runs the protected aggregate and requires the matrix
