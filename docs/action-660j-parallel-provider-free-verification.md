@@ -52,11 +52,17 @@ required check. It succeeds only when the matrix result is exactly `success`.
 A failed, cancelled, timed-out or incomplete shard therefore leaves the
 required check non-successful.
 
-The matrix uses `fail-fast: false` so all shard results remain visible after an
-early failure. This improves diagnostics but grants no partial credit: the
-final required check remains binary. Workflow parse failure or a missing
-required job remains fail-closed under branch protection because the protected
-context cannot report success.
+The delivered Action 660J matrix uses `fail-fast: false` so every shard runs to
+completion and all results remain visible after an early failure. Action 660K
+preserves that behavior for every full Ready/main run. A failure, cancellation,
+timeout, skipped full matrix, workflow parse failure or missing required job
+remains fail-closed because the protected context cannot report success.
+
+Action 660K also adds a distinct quick Draft job. The six-shard job is skipped
+on Draft and the protected aggregate therefore fails deliberately; quick Draft
+success can never satisfy branch protection. Converting the PR to Ready, every
+later push while Ready and every push to `main` automatically run the complete
+six-shard matrix before the protected aggregate may succeed.
 
 This architecture follows GitHub's documented pattern for a required job that
 depends on other jobs: the dependent job uses `always()` and inspects its

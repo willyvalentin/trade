@@ -11,7 +11,7 @@ const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const contractPath = "docs/action-660j-parallel-provider-free-verification.md";
 const contractSha256 =
-  "6b24ba5ce5efdecc6d43ea6da60c88fcc426fd2e53f3d7dc19c62cfdf93a2ca0";
+  "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40";
 
 type PlannedCommand = {
   label: string;
@@ -47,6 +47,7 @@ const foundationTests = [
   "tests/e2e/action-660h-manual-ma13-merge-control.spec.ts",
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
+  "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
@@ -258,9 +259,16 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
     .filter((line) => /^  [a-z0-9-]+:$/.test(line))
     .map((line) => line.trim().slice(0, -1));
   expect(jobIds).toEqual([
+    "draft-provider-free-verification",
     "provider-free-verification-shard",
     "provider-free-verification",
   ]);
+
+  const draftJob = blockBetween(
+    workflow,
+    "draft-provider-free-verification",
+    "provider-free-verification-shard",
+  );
 
   const shardJob = blockBetween(
     workflow,
@@ -271,6 +279,13 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
 
   expect(shardJob).toContain(
     "name: provider-free-verification / ${{ matrix.shard }}",
+  );
+  expect(draftJob).toContain("name: draft-provider-free-verification");
+  expect(draftJob).toContain(
+    "if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true }}",
+  );
+  expect(shardJob).toContain(
+    "if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}",
   );
   expect(shardJob).toContain("timeout-minutes: 60");
   expect(shardJob).toContain("fail-fast: false");
