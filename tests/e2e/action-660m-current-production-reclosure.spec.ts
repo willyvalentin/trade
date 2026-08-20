@@ -22,7 +22,7 @@ const historicalSourceCommit =
 const actionSha256 =
   "160f9b11f00a7170dc961a9932326ee2925ae84ae080a76cd165e3b25a3c243e";
 const evidenceSha256 =
-  "7aaecde7a9d88e82a9dbaad8fdf6838be5192469f6597db1c32d3908f6eb8613";
+  "cf6938dfb292273db5ce2742f2d0e57ba8428f28894278af7975c2a05ea9b9b0";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -164,7 +164,7 @@ function expectedEvidence() {
       documentation_evidence_tests_ci_registration_and_workflow_history_only:
         true,
       provider_free_ci_history_checkout_changed: true,
-      automatic_non_production_deploy_preview_observed: true,
+      automatic_non_production_deploy_preview_is_delivery_only: true,
       netlify_production_build_or_deploy_triggered_by_this_candidate: false,
       application_source_mutation: false,
       runtime_mutation: false,

@@ -115,7 +115,7 @@
     "production_publication_triggered_by_this_candidate": false,
     "documentation_evidence_tests_ci_registration_and_workflow_history_only": true,
     "provider_free_ci_history_checkout_changed": true,
-    "automatic_non_production_deploy_preview_observed": true,
+    "automatic_non_production_deploy_preview_is_delivery_only": true,
     "netlify_production_build_or_deploy_triggered_by_this_candidate": false,
     "application_source_mutation": false,
     "runtime_mutation": false,
