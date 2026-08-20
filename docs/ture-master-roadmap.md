@@ -89,7 +89,7 @@ nine owner fields are physically `NOT NULL`; 20/20 constraints, 9/9 RLS
 policies, revoked client grants, two relationship indexes and the server-only
 RPC boundary passed production readback. Two disposable staging principals
 each saw one own row and zero rows belonging to the other principal. The
-cross-owner RPC call failed, the same-owner call succeeded, every proof rolled
+cross-owner RPC call failed, the same-owner RPC succeeded, every proof rolled
 back and staging was cleaned and paused.
 
 **MA-06 closure record:** an actual anonymous production Data API read failed
@@ -110,7 +110,7 @@ deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 `58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
 the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
-Exact-main CI run `31541394848` succeeded and Netlify deploy
+Exact-main CI run `31536166511` succeeded and Netlify deploy
 `6a7b9e45ceb7e100087c55fa` identifies that commit.
 
 **MA-15 reclosure record:** the PR #97 deploy triggered the preserved smoke
@@ -374,3 +374,108 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   they grant no production or runtime authority. The former Action 660H
   `known_gap` remains historical but is superseded as the current MA-13
   classification by Action 660I's verified enforcement.
+
+## Cross-cutting architecture — External Capability Expansion (EXT-00)
+
+**Status:** proposed canonical cost-gated architecture. The detailed normative
+contract is `docs/ture-external-capability-expansion-spec.md`.
+
+**Purpose:** plan external systems early when they may materially improve Ture,
+while deferring subscriptions and live influence until their prerequisites and
+evidence gates are satisfied.
+
+```text
+external_capability_runtime_authority:false_until_explicit_activation_gate
+paid_subscription_authority:false_until_explicit_cost_gate
+annual_commitment_authority:false_during_development_unless_separately_approved
+external_signal_live_influence:false_until_shadow_and_ablation_pass
+```
+
+### Permanent cost discipline
+
+Ture shall prefer, in order:
+
+```text
+local/open-source
+→ public/free source
+→ sample/sandbox
+→ free tier
+→ trial or credits
+→ month-to-month paid plan
+→ annual commitment only after proven production need
+```
+
+Trials or expiring credits are activated **just in time**, after adapter contracts,
+fixtures and eval harnesses are ready. A service is not subscribed to merely
+because it appears in the roadmap.
+
+### Planned capability tracks
+
+The long-term roadmap shall include:
+
+- `TEMP-*` — Temporal durable workflow orchestration;
+- `CAT-*` — Catalyst Intelligence using free primary sources plus a commercial
+  fast-news/catalyst candidate such as Benzinga;
+- `SIP-*` — precision SIP quote/liquidity data for hot/execution candidates;
+- `BREADTH-*` — Market Breadth / Regime Intelligence V2;
+- `DATA-*` — Parquet research data lake with DuckDB/Polars and optional R2;
+- `REPLAY-*` — independent historical replay/backtest validation using LEAN;
+- `OBS-*` — runtime observability with OpenTelemetry/Sentry-class tooling;
+- `MLOPS-*` — model/prompt/experiment registry when experiment proliferation
+  makes it necessary;
+- `MICRO-*` — Level 2/3 market-microstructure research, late and evidence-gated;
+- `OPT-*` — options-context intelligence, late and research-only first.
+
+### Temporal placement
+
+Temporal is a **durable control plane**, not trading truth and not the primary
+market-data stream processor. Ture Core detects time-critical market events and
+retains state/risk/execution authority. Temporal may durably coordinate retries,
+timers, recovery, candidate/outcome/research workflows and later bounded
+position follow-up.
+
+Temporal development begins locally at `$0`. Cloud credits are activated only
+after local workflow/replay/failure contracts are proven. Normal paid Cloud
+activation is later and separately gated.
+
+### Data-source placement
+
+Catalyst Intelligence should begin with free SEC primary-source integration and
+vendor samples. Commercial Benzinga evaluation is trial/quote-gated and may not
+start a paid plan until the adapter and outcome comparison are ready.
+
+Precision SIP development begins on a free data tier; a paid complete-US-market
+feed is activated only when execution-shadow work can measure spread/liquidity
+value.
+
+Expensive live Level 2/3 data remains explicitly late and requires historical
+or shadow evidence before procurement.
+
+### Research and learning placement
+
+Local Parquet + DuckDB/Polars is the first research-lake implementation. Remote
+object storage is added only when needed and should use available free tiers
+first.
+
+An independent LEAN replay path becomes a required validation layer before
+major Milestone D policy promotions rely materially on historical simulation.
+
+Observability is separate from Ture's canonical domain audit. Model/prompt
+registry tooling remains subordinate to Ture Model Change Governance.
+
+### Roadmap timing
+
+**Plan now, spend later.** Recommended order:
+
+1. Cost/authority contracts for all EXT tracks.
+2. Free/local Temporal, SEC, breadth, data-lake, replay and observability work
+   when their Milestone B prerequisites permit.
+3. Just-in-time trials/credits only when eval harnesses are ready.
+4. First recurring subscriptions only when shadow evidence needs the paid data
+   or Cloud feature.
+5. Expensive depth/options/enterprise licensing only after explicit promotion
+   and procurement review.
+
+This cross-cutting track does not replace or delay the active Milestone B durable
+state work. It grants no provider activation, subscription, runtime, database,
+broker, model-promotion or production authority.
