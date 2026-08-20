@@ -1,13 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 666DA — current-main Track 2 closure and Milestone B activation
-reconciliation.**
+**ACTION 666DB — current-main position-version schema reconciliation.**
 
-**Evidence timestamp:** 2026-08-19. This governance-and-planning successor
-preserves verified GitHub branch protection and the manual MA-13 control,
-records the bounded Track 2 source foundation through PR #119 and activates
-Milestone B planning. It authorizes no runtime, production, provider data,
-database, migration, broker, training, promotion or release activity.
+**Evidence timestamp:** 2026-08-19. This provider-free schema-planning
+successor preserves verified GitHub branch protection and the manual MA-13
+control, starts from the ordinary delivery of PR #120 and freezes the first
+Milestone B position/recommendation version target. It authorizes no runtime,
+production, provider data, database, migration, broker, training, promotion or
+release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -16,10 +16,10 @@ database, migration, broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `e9c3355125a54f4f9ba55ada2ac55fc91b184647` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #119 | corroborated_current |
-| Protected pre-delivery main tree | `3037abfe27899bcd2c9abea215c80c459a7213b5` | canonical_current |
-| Protected pre-delivery main parents | `7280f5a6a7317f495dd8ffccdd8df609203026f5`, `7892bced03d4defa7a30485387a0a86953b416f5` | canonical_current |
+| GitHub protected pre-delivery main base | `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #120 | corroborated_current |
+| Protected pre-delivery main tree | `96012987bf59322f2a4b27202a6946ee668f4556` | canonical_current |
+| Protected pre-delivery main parents | `e9c3355125a54f4f9ba55ada2ac55fc91b184647`, `93ca8bd41a15a5b6e482779b252406b5639d81b7` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -46,7 +46,8 @@ database, migration, broker, training, promotion or release activity.
 | PR #117 | MERGED; reviewed head `69ad1007…`; merge `377b87d3…`; Action 666CX | corroborated_current |
 | PR #118 | MERGED; reviewed head `2d378bd9…`; merge `7280f5a6…`; Action 666CY | corroborated_current |
 | PR #119 | MERGED; reviewed head `7892bced…`; merge `e9c33551…`; Action 666CZ | corroborated_current |
-| Exact-main CI | run `32290740230`, push, head `e9c33551…`, completed/success | verified_current |
+| PR #120 | MERGED; reviewed head `93ca8bd4…`; merge `c67ec928…`; Action 666DA | corroborated_current |
+| Exact-main CI | run `32301932410`, push, head `c67ec928…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -61,7 +62,7 @@ database, migration, broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `e9c3355125a54f4f9ba55ada2ac55fc91b184647`; the commits are not equal because PRs #99, #100, #109, #114 and #116 advanced governance and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`; the commits are not equal because PRs #99, #100, #109, #114, #116 and #120 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
@@ -72,12 +73,12 @@ database, migration, broker, training, promotion or release activity.
 | Supabase V2 receipt | selected `[public]`: 1 schema, 30 tables, 653 columns, 30 PK, 28 FK, 22 functions | verified_current |
 | Generated type output | provider response and repository output byte-identical at SHA-256 `f23c3702…`; required owner fields and RPC present | verified_current |
 
-Action 666DA is repository-governance-and-planning-only. It preserves the
-already-completed, explicitly authorized GitHub branch-protection configuration
-and Action 660H manual control, closes the bounded Track 2 source-foundation
-objective and activates Milestone B planning. This candidate performs no
-application, database or runtime mutation, no provider configuration/data
-mutation and no production-release mutation.
+Action 666DB is provider-free schema planning only. It preserves the
+already-completed GitHub branch-protection configuration and Action 660H manual
+control, proves the current position/recommendation version gap and freezes the
+future owner-bound target. This candidate performs no application, database or
+runtime mutation, no provider configuration/data mutation and no
+production-release mutation.
 Automatic non-production previews grant no
 authority.
 
@@ -123,8 +124,8 @@ the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
 commit. Protected pre-delivery main
-`e9c3355125a54f4f9ba55ada2ac55fc91b184647` is a governance and provider-free
-Track 2 successor and has no recorded production publish.
+`c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` is a governance/planning and
+provider-free Track 2 successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
 relationship correction. Anonymous login redirect and protected dashboard
@@ -155,10 +156,19 @@ default-off and runtime-unwired. Track 2 is
 remain non-authority.
 
 Milestone B planning is active while runtime remains closed. PR #84 / Action
-655G provides the pure default-off exit-evaluator foundation. The next bounded
-objective is `current_main_position_version_schema_reconciliation`; market-
-observation provenance, durable exit-queue schema and transactional handoff
-remain separate blockers.
+655G provides the pure default-off exit-evaluator foundation. Action 666DB
+conditionally closes `current_main_position_version_schema_reconciliation` by
+freezing `position_version_schema_v1`: owner-bound positive safe-integer
+position/recommendation versions, locked recommendation identity/digest lineage
+using Action 664A `canonical_recommendation_identity_v1`, and compare-and-swap
+semantics. Action 655G's current hash-suffix identity validator is incompatible
+and must be reconciled before runtime wiring. The durable schema remains
+unresolved pending read-only backfill inventory, migration, staging, production
+application and generated-types provenance. The next bounded objective is
+`position_version_schema_migration_design_and_read_only_backfill_preflight`;
+the current-row version tuple is only a CAS predicate. Append-only
+position-version history, market-observation provenance, durable exit-queue
+schema and transactional runtime handoff remain separate blockers.
 
 ## Delivery state
 
@@ -168,7 +178,7 @@ remain separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | planning activated; runtime closed | PR #84 / Action 655G is the default-off foundation. The first bounded blocker is `position_version_schema`; no runtime wiring, database, broker or production authority. |
+| 4 / Milestone B | target contract frozen; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`, while migration/backfill/generated-types proof remains blocked and no runtime wiring, database, broker or production authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
@@ -182,8 +192,9 @@ remain separate blockers.
   `57909c14…`, then by `58c29514…` / `f1353d83…`, then by
   `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…`, then by
   `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, then by
-  protected main `cdf03e54…` / `f39ffe5f…`, and now by protected pre-delivery
-  base `e9c33551…` / `3037abfe…`.
+  protected main `cdf03e54…` / `f39ffe5f…`, then by protected main
+  `e9c33551…` / `3037abfe…`, and now by protected pre-delivery base
+  `c67ec928…` / `96012987…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -195,7 +206,8 @@ remain separate blockers.
   superseded by the last verified production commit `f463644d…` and deploy
   `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
   provider-free PRs #101 through #108, #110 through #113, #115 and #117 through
-  #119 advanced current main first to `cdf03e54…` and then `e9c33551…`;
+  #119 advanced current main first to `cdf03e54…` and then `e9c33551…`; PR
+  #120 advanced governance/planning to `c67ec928…`;
   production remains at its first-parent ancestor `f463644d…`.
 - The former Track 2 classification `current-main foundation delivered; integrity/provenance successor open`
   is superseded by
@@ -259,9 +271,10 @@ remain separate blockers.
 12. Reopen MA-13 after drift in the required check or app identity, strictness,
     pull-request requirement, administrator enforcement, force-push/deletion
     prohibition or conversation-resolution rule.
-13. Do not add Milestone B runtime wiring before an owner-bound durable positive
-    `position_version` and recommendation-version lineage are separately
-    reconciled, migrated and regenerated under explicit authority.
+13. Do not add Milestone B runtime wiring before the frozen
+    `position_version_schema_v1` target is separately backed by an authorized
+    read-only legacy-row inventory, migration, staging proof, production apply
+    and regenerated provider-bound types.
 14. Treat market-observation provenance, durable exit-queue schema and
     transactional recommendation-to-position handoff as separate blockers; the
     Action 655G pure evaluator alone closes none of them.
