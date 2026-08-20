@@ -291,10 +291,13 @@ test("preserves the fail-closed proxy and separate production authority", async 
     "expect(routePublicationDiagnosticSlashResponse.status).toBe(401)",
   );
 
-  for (const text of [contract, ledger, roadmap]) {
+  expect(contract).toContain("Action 660L");
+  expect(contract).toContain("6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a");
+  expect(contract).toContain("f463644ddeb7f49fa8b80924d9103ea8970ccae4");
+  for (const text of [ledger, roadmap]) {
     expect(text).toContain("Action 660L");
-    expect(text).toContain("6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a");
-    expect(text).toContain("f463644ddeb7f49fa8b80924d9103ea8970ccae4");
+    expect(text).toContain("a80f3a8856121edb4260909ac1cedcf638d421b8");
+    expect(text).toContain("dbeed25f2074bff4dba8cee7f6d511cb17992efc");
     expect(text).not.toMatch(
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
     );
@@ -304,6 +307,8 @@ test("preserves the fail-closed proxy and separate production authority", async 
   expect(contract).toContain(
     "Production deployment remains a separate later decision.",
   );
+  expect(ledger).toContain("production_is_first_parent_ancestor_of_main");
+  expect(roadmap).toContain("is now its ordinary first-parent descendant");
 });
 
 test("rejects evidence deletion, extras and authority/security forgery", async () => {

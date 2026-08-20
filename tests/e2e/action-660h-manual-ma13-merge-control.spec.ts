@@ -373,11 +373,13 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
       `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\`, then by\\s+\`${manualControlMainCommit}\` /\\s+\`${manualControlMainTree}\`, then by[\\s\\S]+and now by protected\\s+pre-delivery main \`[0-9a-f]{40}\` /\\s+tree \`[0-9a-f]{40}\``,
     ),
   );
+  expect(ledger).toContain("production_is_first_parent_ancestor_of_main");
   expect(ledger).toContain(
-    "production and protected pre-delivery main are the same commit",
+    "a80f3a8856121edb4260909ac1cedcf638d421b8",
   );
+  expect(roadmap).toContain("is now its ordinary first-parent descendant");
   expect(roadmap).toContain(
-    "The protected GitHub `main` base\nis the same commit",
+    "a80f3a8856121edb4260909ac1cedcf638d421b8",
   );
 
   for (const text of [contract, roadmap, ledger, template, rawEvidence]) {
