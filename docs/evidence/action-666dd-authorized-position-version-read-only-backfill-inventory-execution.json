@@ -1,0 +1,104 @@
+{
+  "contract_version": "trade.action666dd.authorized-position-version-read-only-backfill-inventory-execution.v1",
+  "action_id": "ACTION_666DD",
+  "evidence_captured_at": "2026-08-20T22:14:47Z",
+  "authority": {
+    "operator_approval_received": true,
+    "approved_sql_sha256": "eeec737109347a48d5bceaa4f1ab4ee5dcaa4303d9aaa884ef5ece94cfdff173",
+    "target_project_name": "Trade",
+    "target_project_id": "ekdyopdrrkphlrsilyoo",
+    "credential_boundary": "project_scoped_supabase_mcp_oauth",
+    "aggregate_only_output_required": true,
+    "evidence_destination": "docs/evidence/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.json",
+    "ddl_authorized": false,
+    "dml_authorized": false,
+    "migration_authorized": false,
+    "production_deploy_authorized": false,
+    "other_mutation_authorized": false
+  },
+  "source_authority": {
+    "main_commit": "cb501d3ad3626be1bb13429a9791574a2040b64e",
+    "main_tree": "3f4a962de0f8ee49e86e096a21b7084dedf0b27b",
+    "reviewed_head": "c69aa68e08100de1df1092a0a07c75a4ce6c8daf",
+    "exact_main_ci_run": 32419997618,
+    "sql_path": "scripts/action-666dc-position-version-read-only-backfill-preflight.sql",
+    "sql_sha256": "eeec737109347a48d5bceaa4f1ab4ee5dcaa4303d9aaa884ef5ece94cfdff173"
+  },
+  "execution": {
+    "execution_count": 1,
+    "execution_channel": "supabase_mcp_execute_sql",
+    "query_result_rows": 1,
+    "contract_version": "position_version_read_only_backfill_preflight_v1",
+    "transaction_read_only": true,
+    "transaction_isolation": "repeatable read",
+    "row_security_fail_closed": true,
+    "rollback_statement_bound_in_approved_sql": true,
+    "database_mutation_performed": false,
+    "schema_mutation_performed": false,
+    "production_deploy_performed": false
+  },
+  "inventory": {
+    "row_counts": {
+      "recommendations": 1049,
+      "positions": 8,
+      "recommendations_created_at_null": 0,
+      "positions_created_at_null": 0
+    },
+    "link_integrity": {
+      "positions_recommendation_id_null": 0,
+      "positions_recommendation_id_present": 8,
+      "positions_orphaned_recommendation": 0,
+      "positions_owner_mismatch": 0,
+      "positions_owner_bound": 8,
+      "duplicate_owner_bound_link_groups": 0,
+      "duplicate_owner_bound_link_rows": 0,
+      "recommendations_without_position": 1041
+    },
+    "backfill_classes": {
+      "recommendations_identity_seed_eligible": 1049,
+      "positions_lineage_copy_eligible": 8,
+      "positions_lineage_copy_blocked": 0
+    },
+    "catalog_guards": {
+      "owner_bound_foreign_key_valid": true,
+      "recommendation_owner_unique_index_valid": true,
+      "position_owner_reference_index_valid": true,
+      "recommendations_rls_enabled": true,
+      "positions_rls_enabled": true
+    },
+    "privacy": {
+      "aggregate_counts_and_booleans_only": true,
+      "row_contents_returned": false,
+      "row_identifiers_returned": false,
+      "owner_identifiers_returned": false,
+      "connection_identifier_returned": false,
+      "credential_returned": false
+    }
+  },
+  "reconciliation": {
+    "all_positions_linked": true,
+    "all_linked_positions_owner_bound": true,
+    "all_positions_lineage_copy_eligible": true,
+    "all_recommendations_identity_seed_eligible": true,
+    "position_totals_reconcile": true,
+    "recommendation_totals_reconcile": true,
+    "inventory_blocker_count": 0,
+    "inventory_clean": true
+  },
+  "source_document_sha256": {
+    "scripts/action-666dc-position-version-read-only-backfill-preflight.sql": "eeec737109347a48d5bceaa4f1ab4ee5dcaa4303d9aaa884ef5ece94cfdff173",
+    "docs/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.md": "7a365f6e7c2985895ce081dffabfca44afac0bd84191914afef42779a8a3ba2c",
+    "docs/ture-master-roadmap.md": "ac4c7eb3e6b1b929f757e45fecdf31ad31d855ce41b6cb877d97601fafd4676c",
+    "docs/ture-current-state-ledger.md": "7373fe28dc5f3357237fc69e04d095e080c618263190ebe03c0f716ff9616d07"
+  },
+  "decision": {
+    "bounded_objective_closed": "authorized_position_version_read_only_backfill_inventory_execution",
+    "next_bounded_objective": "deterministic_recommendation_lineage_backfill_contract",
+    "backfill_execution_authorized": false,
+    "migration_authorized": false,
+    "runtime_wiring_authorized": false,
+    "database_write_authorized": false,
+    "production_deploy_authorized": false,
+    "broker_or_automatic_execution_authorized": false
+  }
+}
