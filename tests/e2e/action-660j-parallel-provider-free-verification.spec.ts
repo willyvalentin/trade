@@ -56,6 +56,7 @@ const foundationTests = [
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
+  "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts",
 ];
 
 const intelligenceTests = [
