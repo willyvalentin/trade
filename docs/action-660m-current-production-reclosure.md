@@ -8,11 +8,14 @@ already-built atomic Netlify artifact for protected GitHub `main` commit
 release assertion left by the later PR #102 production publication and
 re-closes MA-11 and MA-15 against the current protected-main release.
 
-This action is a documentation, evidence and oracle reconciliation only. The
-production publication happened before these candidate bytes were created.
-This candidate triggers no further build, deploy, provider configuration/data,
-database, migration, application runtime, broker, training or promotion
-mutation.
+This action reconciles documentation, evidence and oracles and makes one
+bounded CI-workflow correction: Ready/main provider-free checkouts fetch the
+history required to read the pinned pre-reconciliation commit. The production
+publication happened before these candidate bytes were created. Draft/Ready CI
+and the automatic non-production PR preview remain delivery checks; this
+candidate triggers no Netlify production build or deploy and performs no
+provider configuration/data, database, migration, application runtime, broker,
+training or promotion mutation.
 
 ## Exact authority and release identity
 

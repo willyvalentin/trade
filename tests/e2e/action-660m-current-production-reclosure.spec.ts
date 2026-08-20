@@ -20,9 +20,9 @@ const thisTest =
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const actionSha256 =
-  "65863ac5af511aefd413f9a4fb5567e57bae1de60f5807e863adca9954228021";
+  "160f9b11f00a7170dc961a9932326ee2925ae84ae080a76cd165e3b25a3c243e";
 const evidenceSha256 =
-  "8618bc3f513a19b17e6aa25debf8a960b7e5a3de6446c848222699e74ceadeb1";
+  "7aaecde7a9d88e82a9dbaad8fdf6838be5192469f6597db1c32d3908f6eb8613";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -161,7 +161,11 @@ function expectedEvidence() {
     scope_limits: {
       records_already_completed_production_publication: true,
       production_publication_triggered_by_this_candidate: false,
-      documentation_evidence_tests_and_ci_registration_only: true,
+      documentation_evidence_tests_ci_registration_and_workflow_history_only:
+        true,
+      provider_free_ci_history_checkout_changed: true,
+      automatic_non_production_deploy_preview_observed: true,
+      netlify_production_build_or_deploy_triggered_by_this_candidate: false,
       application_source_mutation: false,
       runtime_mutation: false,
       database_or_supabase_mutation: false,
@@ -323,6 +327,12 @@ test("preserves the no-new-deploy and no-runtime scope boundary", async () => {
   const parsed = JSON.parse(evidence) as ReturnType<typeof expectedEvidence>;
   expect(parsed.scope_limits.production_publication_triggered_by_this_candidate)
     .toBe(false);
+  expect(
+    parsed.scope_limits.provider_free_ci_history_checkout_changed,
+  ).toBe(true);
+  expect(
+    parsed.scope_limits.netlify_production_build_or_deploy_triggered_by_this_candidate,
+  ).toBe(false);
   expect(parsed.scope_limits.runtime_mutation).toBe(false);
   expect(parsed.scope_limits.database_or_supabase_mutation).toBe(false);
   expect(parsed.candidate_canonicalization_conditions.all_satisfied).toBe(false);

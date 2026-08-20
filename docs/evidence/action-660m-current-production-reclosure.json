@@ -113,7 +113,10 @@
   "scope_limits": {
     "records_already_completed_production_publication": true,
     "production_publication_triggered_by_this_candidate": false,
-    "documentation_evidence_tests_and_ci_registration_only": true,
+    "documentation_evidence_tests_ci_registration_and_workflow_history_only": true,
+    "provider_free_ci_history_checkout_changed": true,
+    "automatic_non_production_deploy_preview_observed": true,
+    "netlify_production_build_or_deploy_triggered_by_this_candidate": false,
     "application_source_mutation": false,
     "runtime_mutation": false,
     "database_or_supabase_mutation": false,
@@ -123,6 +126,6 @@
     "next_bounded_objective": "position_version_schema_migration_design_and_read_only_backfill_preflight"
   },
   "source_document_sha256": {
-    "docs/action-660m-current-production-reclosure.md": "65863ac5af511aefd413f9a4fb5567e57bae1de60f5807e863adca9954228021"
+    "docs/action-660m-current-production-reclosure.md": "160f9b11f00a7170dc961a9932326ee2925ae84ae080a76cd165e3b25a3c243e"
   }
 }
