@@ -89,7 +89,7 @@ nine owner fields are physically `NOT NULL`; 20/20 constraints, 9/9 RLS
 policies, revoked client grants, two relationship indexes and the server-only
 RPC boundary passed production readback. Two disposable staging principals
 each saw one own row and zero rows belonging to the other principal. The
-cross-owner RPC call failed, the same-owner RPC succeeded, every proof rolled
+cross-owner RPC call failed, the same-owner call succeeded, every proof rolled
 back and staging was cleaned and paused.
 
 **MA-06 closure record:** an actual anonymous production Data API read failed
@@ -110,7 +110,7 @@ deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 `58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
 the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
-Exact-main CI run `31536166511` succeeded and Netlify deploy
+Exact-main CI run `31541394848` succeeded and Netlify deploy
 `6a7b9e45ceb7e100087c55fa` identifies that commit.
 
 **MA-15 reclosure record:** the PR #97 deploy triggered the preserved smoke
