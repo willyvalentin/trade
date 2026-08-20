@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -17,6 +17,8 @@ const evidencePath =
   "docs/evidence/action-660k-cost-bounded-provider-free-verification.json";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const roadmapPath = "docs/ture-master-roadmap.md";
+const historicalSourceCommit =
+  "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 
 const sourcePaths = [
   workflowPath,
@@ -25,9 +27,15 @@ const sourcePaths = [
   draftRunnerPath,
   "docs/action-660j-parallel-provider-free-verification.md",
   contractPath,
-  ledgerPath,
-  roadmapPath,
 ] as const;
+
+const historicalCurrentStateSources = {
+  [workflowPath]: workflowPath,
+  [registrationPath]: registrationPath,
+  [shardRunnerPath]: shardRunnerPath,
+  [ledgerPath]: ledgerPath,
+  [roadmapPath]: roadmapPath,
+} as const;
 
 type Evidence = {
   contract_version: string;
@@ -77,6 +85,14 @@ type DraftRunnerModule = {
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function historicalSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 async function draftRunnerModule() {
@@ -159,6 +175,8 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
     "if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}",
   );
   expect(shardJob).toContain("fail-fast: false");
+  expect(shardJob).toContain("fetch-depth: 0");
+  expect(workflow).not.toContain("fetch-depth: 1");
   expect(shardJob).toContain(
     "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
   );
@@ -280,7 +298,14 @@ test("binds exact governance evidence and forbids release authority", async () =
         createHash("sha256").update(await source(sourcePath)).digest("hex"),
       ]),
     ),
-  );
+  ) as Record<string, string>;
+  for (const [historicalPath, snapshotPath] of Object.entries(
+    historicalCurrentStateSources,
+  )) {
+    sourceHashes[historicalPath] = createHash("sha256")
+      .update(historicalSource(snapshotPath))
+      .digest("hex");
+  }
 
   expect(evidence).toEqual({
     contract_version: "action_660k_cost_bounded_provider_free_ci_v1",

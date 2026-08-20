@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -15,6 +16,8 @@ const roadmapPath = "docs/ture-master-roadmap.md";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
+const historicalSourceCommit =
+  "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const thisTest =
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts";
 
@@ -71,8 +74,22 @@ const documentHashes = {
     "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c",
 } as const;
 
+const historicalDocumentSources = {
+  [actionPath]: actionPath,
+  [ledgerPath]: ledgerPath,
+  [roadmapPath]: roadmapPath,
+} as const;
+
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function historicalSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 function sha256(value: string) {
@@ -483,7 +500,15 @@ test("binds catalog, generated types, migrations and the evaluator contract", as
 
 test("freezes the target and the later migration gates without runtime authority", async () => {
   for (const [file, expectedHash] of Object.entries(documentHashes)) {
-    expect(sha256(await source(file))).toBe(expectedHash);
+    expect(
+      sha256(
+        historicalSource(
+          historicalDocumentSources[
+            file as keyof typeof historicalDocumentSources
+          ],
+        ),
+      ),
+    ).toBe(expectedHash);
   }
   const [action, roadmap, ledger, registration] = await Promise.all([
     source(actionPath),

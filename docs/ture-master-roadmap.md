@@ -1,28 +1,30 @@
 # Ture Master Roadmap
 
-**ACTION 660L — Next.js security release gate.**
+**ACTION 660M — Current production reclosure.**
 
-**Document status:** source-only security release reconciliation through the
-ordinary delivery of PR #124. It preserves verified GitHub branch protection,
-the Action 660H manual control and Action 660K cost-bounded CI scheduling,
-keeps the first owner-bound position/recommendation version target frozen and
-grants no merge, migration, runtime, provider, production, database-write,
-broker, training or promotion authority.
+**Document status:** production identity and smoke reconciliation after the
+ordinary delivery of PR #125 and the explicitly authorized publication of its
+already-built atomic Netlify artifact. It preserves verified GitHub branch
+protection, the Action 660H manual control, Action 660K cost-bounded CI and the
+first owner-bound position/recommendation version target. These candidate bytes
+grant no further deploy, migration, runtime, provider, database-write, broker,
+training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`, tree
-`2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7`, observed on 2026-08-20.
+`dbeed25f2074bff4dba8cee7f6d511cb17992efc`, tree
+`c444a51272dce1842554ff888642d8ef000aab24`, observed on
+2026-08-20T16:19:28Z.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #124, with parents
-`466e95318a6feb1418ec60bfced98703183ccc54` and
-`93bedb2965c4aebb09c3e8a6a46676921501fce0`. Exact-main push run
-`32372291563` completed successfully. PRs #100 through #121 and PR #124 form one verified
+The reconciliation base is the ordinary merge of PR #125, with parents
+`6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` and
+`08321f53371228737e7abd60a22b54c1c2c9ad98`. Exact-main push run
+`32386472091` completed successfully. PRs #100 through #121, #124 and #125 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -41,6 +43,12 @@ graph to zero audit findings, corrects six stale proxy expectations without a
 runtime proxy change, and adds one audit/build gate to full Ready and `main`
 foundation verification. The quick Draft route remains cost-bounded and cannot
 authorize merge. Production deployment remains a separate explicit decision.
+
+That separate decision is now complete: the operator explicitly authorized
+publication of the existing atomic deploy for exact PR #125 merge
+`dbeed25f…`. Action 660M freezes the exact deploy/main identity, release delta,
+anonymous no-effect smoke and operator-attested authenticated read smoke. The
+Action 660M candidate itself performs no new publication.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -125,7 +133,10 @@ deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
 Exact-main CI run `31541394848` succeeded and Netlify deploy
-`6a7b9e45ceb7e100087c55fa` identifies that commit.
+`6a7b9e45ceb7e100087c55fa` identified that historical release. A later PR #102
+publish superseded its currentness. Action 660M now re-closes MA-11 at exact
+protected-main commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`, Netlify
+deploy `6a871d6b27fb2100082f16f9` and exact-main CI run `32386472091`.
 
 **MA-15 reclosure record:** the PR #97 deploy triggered the preserved smoke
 rule and exposed an ambiguous `recommendations(...)` embed. Action 660F
@@ -136,8 +147,14 @@ protected application, dashboard, settings and market-calendar state.
 Supabase API evidence showed four owner-bound `positions` requests at HTTP 200,
 none at HTTP 300, plus two `execution_records` reads at HTTP 200 with no 5xx.
 No form or application mutation route was submitted. MA-15 is therefore
-`verified_current` and remains fail-closed on any later production deploy or
-required-read failure.
+historically `verified_current`. The later PR #102 publication reopened its
+currentness. After the explicitly authorized PR #125 release, anonymous login,
+denial and no-effect diagnostics passed; the operator manually verified the
+authenticated dashboard, execution-record and settings reads. Independent
+agent browser inspection was unavailable because the administrative browser
+policy could not be verified, and no agent form or mutation route was used.
+MA-15 is again `verified_current` and remains fail-closed on any later
+production deploy or required-read failure.
 
 **MA-13 closure record:** the operator upgraded to GitHub Pro and explicitly
 authorized the branch-protection change. Authenticated readback now reports
@@ -293,15 +310,13 @@ the candidate changes either boundary.
 ## Current provider and release boundary
 
 The latest authenticated Netlify readback identifies published deploy
-`6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
-`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. The protected GitHub `main` base
-is `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`; the production commit is its
-first-parent ancestor and is not equal to it because PRs #99, #100, #109,
-#114, #116, #120, #121 and #124 advanced governance/planning and PRs #101 through #108,
-#110 through #113, #115 and #117 through #119 delivered provider-free,
-runtime-unwired Track 2 source without a production publish. The
-production commit's CI and required post-deploy reads are green. This
-reconciliation candidate authorizes no production deployment. Automatic
+`6a871d6b27fb2100082f16f9` and its production assertion at full commit
+`dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
+is the same commit with tree `c444a51272dce1842554ff888642d8ef000aab24`.
+The deploy is ready, locked, production-context, main-branch, plugin-success
+and has zero ordinary/enhanced secrets findings. Exact-main CI and required
+post-publication reads are green. This reconciliation candidate records that
+completed publication but authorizes no further production deployment. Automatic
 `netlify/trade-vl/deploy-preview` statuses are non-production previews and
 carry no release or provider authority.
 
@@ -311,6 +326,13 @@ calendar, and exercised the dedicated execution-record server read. Four
 owner-bound `positions` requests returned HTTP 200 with no HTTP 300; two
 `execution_records` reads returned HTTP 200 with no 5xx. No form or application
 mutation route was submitted.
+
+The current PR #125 production smoke preserves the anonymous login redirect,
+HTTP 200 login render with candidate-matching body bytes, runtime-health,
+environment-boundary and route-publication no-effect diagnostics, plus HTTP
+401/no-store denial of the anonymous dashboard. The operator manually verified
+authenticated dashboard, execution-record and settings reads. Agent-side
+browser readback was policy-blocked and is not claimed as independent evidence.
 
 The current provider-bound Supabase V2 package binds project
 `ekdyopdrrkphlrsilyoo` to a read-only catalog snapshot of the selected
@@ -354,9 +376,11 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` /
   tree `96012987bf59322f2a4b27202a6946ee668f4556`, then by protected main
   `466e95318a6feb1418ec60bfced98703183ccc54` /
-  `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`, and now by protected
-  pre-delivery main `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` /
-  tree `2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7`.
+  `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`, then by protected main
+  `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` /
+  tree `2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7`, and now by protected
+  pre-delivery main `dbeed25f2074bff4dba8cee7f6d511cb17992efc` /
+  tree `c444a51272dce1842554ff888642d8ef000aab24`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by
@@ -364,13 +388,17 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
 - Earlier 126-, 135-, 137-, 139- and 142-commit production distances and deploy
   `6a65fd2f…`, followed by exact identity at `4607990a…` and deploy
   `6a7b2c1e…`, are historical. The later `490e3607…`, `58c29514…` and
-  `9e2f64a…` identities are also superseded by the last verified production
-  commit `f463644d…` and deploy `6a7b9e45…`. PRs #99, #100 and #109 advanced
+  `9e2f64a…` identities are also superseded by the historically verified
+  production commit `f463644d…` and deploy `6a7b9e45…`. PRs #99, #100 and #109 advanced
   governance, and provider-free PRs #101 through #108, #110 through #113,
   #115 and #117 through #119 advanced current main first to `cdf03e54…` and
   then to `e9c33551…`; PR #120 advanced governance/planning to `c67ec928…`,
-  and PR #121 delivered the bounded position-version reconciliation at
-  `466e953…`, without changing that last verified production release.
+  PR #121 delivered the bounded position-version reconciliation at
+  `466e953…`, PR #124 delivered cost-bounded CI at `6ef40e52…`, and PR #125
+  delivered the security release at `dbeed25f…`. The later PR #102 production
+  publish had superseded the old Action 660G currentness; Action 660M now
+  restores exact production/main identity at `dbeed25f…` / deploy
+  `6a871d6b…`.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
   earlier bounded production evidence closed MA-15, the post-PR #97 dashboard
