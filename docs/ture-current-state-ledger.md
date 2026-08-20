@@ -1,13 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 660L — Next.js security release gate.**
+**ACTION 660M — Current production reclosure.**
 
-**Evidence timestamp:** 2026-08-20. This source-only security release candidate
-starts from the ordinary delivery of PR #124, preserves its cost-bounded
-provider-free CI scheduling, upgrades Next.js to `16.3.1`, and keeps the frozen
-Milestone B position/recommendation version target unchanged. It authorizes no
-merge, runtime, production, provider data, database, migration, broker,
-training, promotion or release activity.
+**Evidence timestamp:** 2026-08-20T16:19:28Z. This reconciliation records the
+explicitly authorized publication of the already-built atomic Netlify artifact
+for the ordinary PR #125 merge. It re-closes MA-11 and MA-15 against exact
+production/main identity and preserves the frozen Milestone B target. These
+candidate bytes authorize no further deploy, runtime, provider data, database,
+migration, broker, training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -16,10 +16,10 @@ training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #124 | corroborated_current |
-| Protected pre-delivery main tree | `2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7` | canonical_current |
-| Protected pre-delivery main parents | `466e95318a6feb1418ec60bfced98703183ccc54`, `93bedb2965c4aebb09c3e8a6a46676921501fce0` | canonical_current |
+| GitHub protected pre-delivery main base | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #125 | corroborated_current |
+| Protected pre-delivery main tree | `c444a51272dce1842554ff888642d8ef000aab24` | canonical_current |
+| Protected pre-delivery main parents | `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`, `08321f53371228737e7abd60a22b54c1c2c9ad98` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -49,24 +49,28 @@ training, promotion or release activity.
 | PR #120 | MERGED; reviewed head `93ca8bd4…`; merge `c67ec928…`; Action 666DA | corroborated_current |
 | PR #121 | MERGED; reviewed head `cd36389c…`; merge `466e9531…`; Action 666DB | corroborated_current |
 | PR #124 | MERGED; reviewed head `93bedb29…`; merge `6ef40e52…`; Action 660K | corroborated_current |
-| Exact-main CI | run `32372291563`, push, head `6ef40e52…`, completed/success | verified_current |
+| PR #125 | MERGED; reviewed head `08321f53…`; merge `dbeed25f…`; Action 660L | corroborated_current |
+| Exact-main CI | run `32386472091`, push, head `dbeed25f…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
 | Protection enforcement | administrators included; force pushes/deletion denied; conversations resolved; stale approvals dismissed | verified_current |
 | Operator plan transition | private GitHub Pro; explicit MA-13 closure instruction; manual control retained as defense in depth | verified_current |
 
-## Last verified authenticated provider evidence
+## Current verified authenticated provider evidence
 
 | Item | Value | Classification |
 | --- | --- | --- |
 | Published production release | `trade-vl` | latest_authenticated_provider_evidence |
-| Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
-| Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
-| Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`; the commits are not equal because PRs #99, #100, #109, #114, #116, #120, #121 and #124 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
+| Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
+| Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
+| Production-to-main Git relation | production and protected pre-delivery main are the same commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc` with tree `c444a51272dce1842554ff888642d8ef000aab24` | verified_current; production_equals_main |
+| Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
+| Post-PR #125 anonymous smoke | login redirect, login render, runtime health, environment boundary and route-publication diagnostic green; anonymous dashboard denied HTTP 401/no-store | verified_current |
+| Post-PR #125 authenticated smoke | operator manually verified dashboard, execution-record and settings reads; agent browser inspection unavailable because the administrative browser policy could not be verified; no agent form or mutation route submitted | operator_attested_verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
 | MA05 production structure | 9/9 physical NOT NULL and RLS; 20/20 constraints; 2/2 relationship indexes; revoked client grants; service-role-only RPC | verified_current |
 | MA06 anonymous Data API | HTTP 401 / Postgres `42501` on recommendations read | verified_current |
@@ -96,8 +100,16 @@ Action 660L is a source-only security release candidate. It upgrades `next`
 and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the npm lock graph
 to zero audit findings, corrects six stale proxy expectations without changing
 `proxy.ts`, and adds one full-Ready/main dependency-audit and production-build
-gate to the foundation shard. Production remains at deploy `6a7b9e45…` and
-commit `f463644d…`; merge and production deployment are not authorized here.
+gate to the foundation shard. Its candidate bytes did not authorize production;
+PR #125 later merged ordinarily and the operator separately authorized exact
+deploy `6a871d6b…` at merge commit `dbeed25f…`. Its historical production
+baseline was full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4`.
+
+Action 660M records that separate already-completed production publication.
+Exact Netlify/GitHub identity, anonymous no-effect smoke and the
+operator-attested authenticated reads re-close MA-11 and MA-15. Action 660M
+itself is documentation/evidence/test reconciliation and triggers no new
+deployment.
 
 ## Milestone A gate ledger
 
@@ -137,21 +149,21 @@ reviewed repository source are exactly 21,658 bytes and share MD5
 MA-11 is `verified_current`: the earlier closure established exact Netlify,
 deployment-assertion and GitHub identity at `4607990a…`, `490e3607…`,
 `58c29514…` and `9e2f64a1…`. The PR #98 release reconciled all three again at
-the last verified production commit
-`f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
-`31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
-commit. Protected pre-delivery main
-`6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` is a governance/planning and
-provider-free Track 2 successor and has no recorded production publish.
+historical production commit `f463644d…`. The later PR #102 publication
+superseded that currentness. Action 660M now verifies Netlify deploy
+`6a871d6b27fb2100082f16f9` and protected pre-delivery main are the same exact
+commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; exact-main CI run
+`32386472091` is green.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
-relationship correction. Anonymous login redirect and protected dashboard
-denial remained green. Authenticated application, dashboard, settings and
-market-calendar reads rendered. Supabase API logs showed four owner-bound
-`positions` embeds at HTTP 200, none at HTTP 300, plus two `execution_records`
-reads at HTTP 200 with no 5xx response. No form or application mutation route
-was submitted. A later production deploy still reopens this gate until the
-same smoke passes again.
+relationship correction and its historical smoke. The later PR #102 publish
+reopened currentness. After the separately authorized PR #125 release, the
+anonymous login, protected denial and no-effect diagnostics passed; the
+operator manually verified dashboard, execution-record and settings reads.
+Agent-side browser readback was policy-blocked and is not claimed as
+independent evidence. No agent form or application mutation route was
+submitted. A later production deploy still reopens this gate until the same
+smoke passes again.
 
 MA-13 is `verified_current`: authenticated readback reports HTTP 200,
 `main.protected:true` and one exact matching rule. Pull requests and strict
@@ -211,8 +223,10 @@ schema and transactional runtime handoff remain separate blockers.
   `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, then by
   protected main `cdf03e54…` / `f39ffe5f…`, then by protected main
   `e9c33551…` / `3037abfe…`, then by protected main
-  `c67ec928…` / `96012987…`, and now by protected pre-delivery base
-  `466e953…` / `cdd83c87…`.
+  `c67ec928…` / `96012987…`, then by protected main
+  `466e953…` / `cdd83c87…`, then by protected main `6ef40e52…` /
+  `2f4d282d…`, and now by protected pre-delivery base `dbeed25f…` /
+  `c444a512…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -221,14 +235,17 @@ schema and transactional runtime handoff remain separate blockers.
   and deploy `6a65fd2f…` were superseded by exact production/main identity at
   `4607990a…` and deploy `6a7b2c1e…`; those identities and the later
   `490e3607…`, `58c29514…` and `9e2f64a…` releases are historical and
-  superseded by the last verified production commit `f463644d…` and deploy
-  `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
+  superseded by the historically verified production commit `f463644d…` and
+  deploy `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
   provider-free PRs #101 through #108, #110 through #113, #115 and #117 through
   #119 advanced current main first to `cdf03e54…` and then `e9c33551…`; PR
   #120 advanced governance/planning to `c67ec928…`, PR #121 delivered the
-  bounded position-version reconciliation at `466e953…`, and PR #124 delivered
-  cost-bounded CI scheduling at `6ef40e52…`;
-  production remains at its first-parent ancestor `f463644d…`.
+  bounded position-version reconciliation at `466e953…`, PR #124 delivered
+  cost-bounded CI scheduling at `6ef40e52…`, and PR #125 delivered the security
+  release at `dbeed25f…`. A later PR #102 production publish had made the old
+  current-state assertion stale; the separately authorized Action 660M publish
+  now restores exact production/main identity at `dbeed25f…` / deploy
+  `6a871d6b…`.
 - The former Track 2 classification `current-main foundation delivered; integrity/provenance successor open`
   is superseded by
   `source_foundation_complete_holding`. The prior `#110 through #113` boundary

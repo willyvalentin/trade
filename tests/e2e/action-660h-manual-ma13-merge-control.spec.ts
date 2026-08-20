@@ -1,12 +1,23 @@
 import { expect, test } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
+const historicalSourceCommit =
+  "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function historicalSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 function sectionBetween(text: string, start: string, end: string) {
@@ -192,6 +203,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
     workflow,
     registration,
     rawEvidence,
+    historicalRoadmap,
+    historicalLedger,
   ] =
     await Promise.all([
       source("docs/action-660h-manual-ma13-merge-control.md"),
@@ -201,6 +214,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
       source(".github/workflows/milestone-a-ci.yml"),
       source("scripts/action-660j-provider-free-ci-registration.json"),
       source("docs/evidence/action-660h-manual-ma13-merge-control.json"),
+      historicalSource("docs/ture-master-roadmap.md"),
+      historicalSource("docs/ture-current-state-ledger.md"),
     ]);
   const evidence = JSON.parse(rawEvidence);
 
@@ -345,23 +360,25 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
   expect(evidence.authority.main_parents[0]).toBe(
     lastVerifiedProductionCommit,
   );
-  expect(ledger).toMatch(
+  expect(historicalLedger).toMatch(
     new RegExp(
       `production \`${lastVerifiedProductionCommit}\` is the first-parent ancestor of protected pre-delivery main \`[0-9a-f]{40}\`; the commits are not equal because`,
     ),
   );
-  expect(roadmap).toMatch(
+  expect(historicalRoadmap).toMatch(
     /The protected GitHub `main` base\nis `[0-9a-f]{40}`; the production commit is its\nfirst-parent ancestor and is not equal to it because/,
   );
-  expect(roadmap).toMatch(
+  expect(historicalRoadmap).toMatch(
     new RegExp(
       `then by\\s+\`f463644ddeb7f49fa8b80924d9103ea8970ccae4\` /\\s+\`b0c8eae01c22d3f720e4cc5fc4ed5424a24bdcad\`, then by\\s+\`${manualControlMainCommit}\` /\\s+\`${manualControlMainTree}\`, then by[\\s\\S]+and now by protected\\s+pre-delivery main \`[0-9a-f]{40}\` /\\s+tree \`[0-9a-f]{40}\``,
     ),
   );
-  for (const text of [roadmap, ledger]) {
-    expect(text).not.toContain("production and main are the same commit");
-    expect(text).not.toContain("current exact production/main identity");
-  }
+  expect(ledger).toContain(
+    "production and protected pre-delivery main are the same commit",
+  );
+  expect(roadmap).toContain(
+    "The protected GitHub `main` base\nis the same commit",
+  );
 
   for (const text of [contract, roadmap, ledger, template, rawEvidence]) {
     expect(text).not.toMatch(

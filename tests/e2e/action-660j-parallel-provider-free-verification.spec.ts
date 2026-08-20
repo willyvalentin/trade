@@ -52,6 +52,7 @@ const foundationTests = [
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
   "tests/e2e/action-660l-next-security-release-gate.spec.ts",
+  "tests/e2e/action-660m-current-production-reclosure.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",

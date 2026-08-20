@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -14,6 +15,8 @@ const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
   "b7ad4d3aced53da86e54ed03d205dbbcc68588b3554a26c44edd65a6db692e5a";
+const historicalSourceCommit =
+  "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 
 const sourcePaths = [
   "package.json",
@@ -32,9 +35,20 @@ const sourcePaths = [
   "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
   contractPath,
-  "docs/ture-current-state-ledger.md",
-  "docs/ture-master-roadmap.md",
 ] as const;
+
+const historicalCurrentStateSources = {
+  [registrationPath]: registrationPath,
+  [runnerPath]: runnerPath,
+  "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts":
+    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts":
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
+  "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts":
+    "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
+  "docs/ture-current-state-ledger.md": "docs/ture-current-state-ledger.md",
+  "docs/ture-master-roadmap.md": "docs/ture-master-roadmap.md",
+} as const;
 
 type PlannedCommand = {
   label: string;
@@ -55,19 +69,33 @@ async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
 }
 
+function historicalSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
+}
+
 function sha256(value: string | Buffer) {
   return createHash("sha256").update(value).digest("hex");
 }
 
 async function sourceHashes() {
-  return Object.fromEntries(
+  const hashes = Object.fromEntries(
     await Promise.all(
       sourcePaths.map(async (sourcePath) => [
         sourcePath,
         sha256(await source(sourcePath)),
       ]),
     ),
-  );
+  ) as Record<string, string>;
+  for (const [historicalPath, snapshotPath] of Object.entries(
+    historicalCurrentStateSources,
+  )) {
+    hashes[historicalPath] = sha256(historicalSource(snapshotPath));
+  }
+  return hashes;
 }
 
 function expectedEvidence(sources: Record<string, string>) {
