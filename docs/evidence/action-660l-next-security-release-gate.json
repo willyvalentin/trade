@@ -1,0 +1,108 @@
+{
+  "contract_version": "action_660l_next_security_release_gate_v1",
+  "observed_at": "2026-08-20",
+  "authority": {
+    "base_main_commit": "6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a",
+    "base_main_tree": "2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7",
+    "base_exact_main_ci_run": 32372291563,
+    "required_check": "provider-free-verification",
+    "last_verified_production_commit": "f463644ddeb7f49fa8b80924d9103ea8970ccae4",
+    "last_verified_production_deploy": "6a7b9e45ceb7e100087c55fa",
+    "merge_authorized": false,
+    "production_deployment_authorized": false,
+    "provider_mutation_performed": false
+  },
+  "baseline": {
+    "next": "16.2.6",
+    "eslint_config_next": "16.2.6",
+    "sharp": "0.34.5",
+    "postcss": "8.5.14",
+    "nanoid": "3.3.12",
+    "production_dependency_high_findings": 4,
+    "release_blocking_advisory": "GHSA-6gpp-xcg3-4w24",
+    "proxy_auth_boundary_present": true,
+    "i18n_routing_present": false,
+    "server_actions_present": false,
+    "rewrites_present": false
+  },
+  "candidate": {
+    "next": "16.3.1",
+    "eslint_config_next": "16.3.1",
+    "sharp": "0.35.3",
+    "postcss": "8.5.23",
+    "nanoid": "3.3.18",
+    "full_audit_total_findings": 0,
+    "build_completed": true,
+    "static_pages_generated": 33,
+    "typescript_completed": true,
+    "lint_errors": 0,
+    "lint_existing_warnings": 7
+  },
+  "proxy_reconciliation": {
+    "baseline_passes": 21,
+    "baseline_failures": 6,
+    "uncorrected_candidate_passes": 21,
+    "uncorrected_candidate_failures": 6,
+    "corrected_candidate_passes": 17,
+    "corrected_candidate_failures": 0,
+    "stale_expectations_corrected": 6,
+    "proxy_runtime_source_changed": false,
+    "ordinary_api_requires_session": true,
+    "canonical_public_paths_are_exact": true,
+    "secret_leakage_observed": false,
+    "side_effect_observed": false
+  },
+  "ci": {
+    "workflow_changed": false,
+    "draft_quick_route_preserved": true,
+    "draft_quick_can_authorize_merge": false,
+    "full_ready_and_main_audit_label": "Production dependency audit",
+    "full_ready_and_main_build_label": "Production build",
+    "audit_command": [
+      "npm",
+      "audit",
+      "--audit-level=high",
+      "--no-fund"
+    ],
+    "build_command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "focused_proxy_tests": [
+      "tests/e2e/action-307k-proxy-runtime-crash-isolation.spec.ts",
+      "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts",
+      "tests/e2e/api-auth-middleware-boundary-audit.spec.ts"
+    ],
+    "action_oracle": "tests/e2e/action-660l-next-security-release-gate.spec.ts",
+    "registered_exactly_once": true
+  },
+  "sources": {
+    "package.json": "f3fa605a2f08eeb787471b14174e4ec3cc7db8bab4c1b50a2e4e8a4a876a19d0",
+    "package-lock.json": "476ee07495deb38aac1f66b9fd5dbe6b2889dc73d4e026633200548c2d65c4ea",
+    "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+    ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
+    "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",
+    "scripts/action-660j-provider-free-ci-registration.json": "1443dbf9bb0263e5fd1e43df878b574af7953f6b82947f3465a74d1353add9bb",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "886101c8c14a7e1317e5e24a1e08bfeba53518a0670d11d35cc610a1640e8a50",
+    "scripts/action-660k-run-draft-ci.mjs": "9984c01238b20a866d970b7e39b24bf020981d58b5344fef12a84efbe0963b39",
+    "tests/e2e/action-307k-proxy-runtime-crash-isolation.spec.ts": "87cf23ee02092fff6a6c050bff761efd3009e4511b91fe736e3dcf0f6b583162",
+    "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts": "df93d8389f163d2aa202bd3c6c93c231e6d5540e6682c5e033b08a6d62c4f86a",
+    "tests/e2e/api-auth-middleware-boundary-audit.spec.ts": "0ff7215125f04a23766c1f2e78934161de3ed213aa50f40f621b9fdddc5bf043",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "caa7bfaf463a0ebbc3c5dd3b75103332b1d6cd6cd5b1ebec4fd3fd716d7558a7",
+    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "18db420f7667f8cf1280040ec71f7f2ab416da47066c1393d2d61b80026facf1",
+    "docs/action-660l-next-security-release-gate.md": "9f48eff38211793bb0be6bd68facb452f537a71b5667f99ced17a7104e26da55",
+    "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
+    "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
+  },
+  "delivery": {
+    "draft_quick_ci_observed_green": false,
+    "draft_protected_aggregate_observed_failure": false,
+    "ready_exact_head_full_ci_observed_green": false,
+    "independent_review_no_findings": false,
+    "operator_approval_exact_pr_and_head": false,
+    "ordinary_protected_merge": false,
+    "exact_main_full_ci_observed_green": false,
+    "production_deployment_performed": false
+  }
+}

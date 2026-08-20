@@ -17,6 +17,9 @@ const registrationPath = path.join(
 
 const foundationTests = [
   "tests/e2e/action-650-production-data-access-containment.spec.ts",
+  "tests/e2e/action-307k-proxy-runtime-crash-isolation.spec.ts",
+  "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts",
+  "tests/e2e/api-auth-middleware-boundary-audit.spec.ts",
   "tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
@@ -25,6 +28,7 @@ const foundationTests = [
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  "tests/e2e/action-660l-next-security-release-gate.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
   "tests/e2e/action-666da-current-main-track2-milestone-b-reconciliation.spec.ts",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
@@ -73,6 +77,12 @@ export const providerFreeVerificationPlan = Object.freeze({
   foundation: Object.freeze([
     command("Lint", "npm", ["run", "lint", "--", "--max-warnings=8"]),
     command("TypeScript", "tsc", ["--noEmit", "--incremental", "false"]),
+    command("Production dependency audit", "npm", [
+      "audit",
+      "--audit-level=high",
+      "--no-fund",
+    ]),
+    command("Production build", "npm", ["run", "build"]),
     playwright("Browser and server containment", foundationTests, false),
     playwright(
       "Authenticated boundary",

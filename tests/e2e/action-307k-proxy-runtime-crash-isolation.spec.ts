@@ -35,7 +35,18 @@ async function expectProxyPassThrough(path: string, method = "GET") {
   return response;
 }
 
-test("proxy.ts is standalone and imports only next server primitives", () => {
+async function expectProxyAuthRequired(path: string, method = "GET") {
+  const response = await proxyRequest(path, method);
+
+  expect(response.status).toBe(401);
+  expect(response.headers.get("x-ture-proxy-marker")).toBe(
+    GLOBAL_API_BOUNDARY_MARKER,
+  );
+
+  return response;
+}
+
+test("proxy.ts imports only next server and closed auth/origin primitives", () => {
   const source = readFileSync(proxyPath, "utf8");
   const imports = source
     .split(/\r?\n/)
@@ -45,10 +56,11 @@ test("proxy.ts is standalone and imports only next server primitives", () => {
   expect(imports).toEqual([
     'import { NextResponse } from "next/server";',
     'import type { NextRequest } from "next/server";',
+    'import { TRADE_AUTH_COOKIE, verifyApplicationSession } from "@/lib/trade-auth";',
+    'import { evaluateApplicationMutationOrigin } from "@/lib/application-mutation-guard-core";',
   ]);
   expect(importText).not.toContain("from \"./");
   expect(importText).not.toContain("from \"../");
-  expect(importText).not.toContain("from \"@/");
   expect(importText).not.toContain("supabase");
   expect(importText).not.toContain("Twelve");
   expect(importText).not.toContain("scanner");
@@ -61,13 +73,13 @@ test("proxy.ts is standalone and imports only next server primitives", () => {
 
 test("proxy passes through API diagnostic and historical-backfill families", async () => {
   await expectProxyPassThrough("/api/ping307h");
-  await expectProxyPassThrough("/api/ping307h/");
   await expectProxyPassThrough("/api/hb307c");
-  await expectProxyPassThrough("/api/hb307c/ping");
   await expectProxyPassThrough("/api/route-publication-diagnostic");
   await expectProxyPassThrough("/api/historical-backfill/first-tiny-signal-package-discovery-readback/ping");
   await expectProxyPassThrough("/api/historical-backfill/future-diagnostic-route/ping");
-  await expectProxyPassThrough("/api/symbol-metadata");
+  await expectProxyAuthRequired("/api/ping307h/");
+  await expectProxyAuthRequired("/api/hb307c/ping");
+  await expectProxyAuthRequired("/api/symbol-metadata");
 });
 
 test("proxy passes through diagnostic page routes", async () => {
@@ -79,8 +91,8 @@ test("proxy passes through diagnostic page routes", async () => {
   await expectProxyPassThrough("/public-probe-307g/");
 });
 
-test("proxy pass-through has no trading or persistence side-effect flags", async () => {
-  const response = await expectProxyPassThrough("/api/symbol-metadata", "POST");
+test("proxy auth boundary has no trading or persistence side-effect flags", async () => {
+  const response = await expectProxyAuthRequired("/api/symbol-metadata", "POST");
   const body = await response.text();
 
   expect(body).not.toContain("provider_call_executed\":true");

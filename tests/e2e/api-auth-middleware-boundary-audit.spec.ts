@@ -89,13 +89,13 @@ async function withEnv<T>(
   }
 }
 
-test("proxy runtime isolation passes ordinary API routes through", async () => {
+test("proxy runtime isolation requires auth for ordinary API routes", async () => {
   const response = await withEnv(
     { TRADE_APP_PASSWORD: "trade-password" },
     () => proxyRequest({ path: "/api/symbol-metadata", method: "GET" }),
   );
 
-  expect(response.status).not.toBe(401);
+  expect(response.status).toBe(401);
   expect(response.headers.get("x-ture-proxy-marker")).toBe(
     GLOBAL_API_BOUNDARY_MARKER,
   );
@@ -114,7 +114,7 @@ test("proxy runtime isolation does not expose automation header values", async (
   );
   const serialized = await response.text();
 
-  expect(response.status).not.toBe(401);
+  expect(response.status).toBe(401);
   expect(response.headers.get("x-ture-proxy-marker")).toBe(
     GLOBAL_API_BOUNDARY_MARKER,
   );
@@ -372,11 +372,11 @@ test("safe diagnostic routes are not blocked by proxy", async () => {
 
   expect(environmentResponse.status).not.toBe(401);
   expect(hb307cResponse.status).not.toBe(401);
-  expect(hb307cSlashResponse.status).not.toBe(401);
-  expect(hb307cPingResponse.status).not.toBe(401);
-  expect(hb307cPingSlashResponse.status).not.toBe(401);
+  expect(hb307cSlashResponse.status).toBe(401);
+  expect(hb307cPingResponse.status).toBe(401);
+  expect(hb307cPingSlashResponse.status).toBe(401);
   expect(routePublicationDiagnosticResponse.status).not.toBe(401);
-  expect(routePublicationDiagnosticSlashResponse.status).not.toBe(401);
+  expect(routePublicationDiagnosticSlashResponse.status).toBe(401);
   expect(firstTinyResponse.status).not.toBe(401);
   expect(firstTinyPingResponse.status).not.toBe(401);
   expect(firstTinyAuditWriteResponse.status).not.toBe(401);
