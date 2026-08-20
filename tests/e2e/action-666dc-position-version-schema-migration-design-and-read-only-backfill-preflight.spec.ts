@@ -20,6 +20,7 @@ const thisTest =
   "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts";
 const evidenceSha256 =
   "6e713ed26934038d7e3f57ab5601cba07df5671acccbf1f076399e24bb162a16";
+const canonicalRevision = "cb501d3ad3626be1bb13429a9791574a2040b64e";
 
 const sourcePaths = {
   predecessor_action:
@@ -62,6 +63,13 @@ const sourceHashes = {
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function canonicalSource(relativePath: string) {
+  return execFileSync("git", ["show", `${canonicalRevision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  });
 }
 
 function sha256(value: string) {
@@ -499,13 +507,13 @@ test("binds action, roadmap and ledger while preserving production/main distinct
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath))).toBe(expectedHash);
+    expect(sha256(canonicalSource(relativePath))).toBe(expectedHash);
   }
-  const [action, roadmap, ledger] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
-  ]);
+  const [action, roadmap, ledger] = [
+    canonicalSource(actionPath),
+    canonicalSource(roadmapPath),
+    canonicalSource(ledgerPath),
+  ];
   for (const text of [action, roadmap, ledger]) {
     expect(text).toContain("position_version_schema_v1");
     expect(text).toContain(

@@ -1,30 +1,32 @@
 # Ture Master Roadmap
 
-**ACTION 666DC — Position-version migration design and read-only backfill preflight.**
+**ACTION 666DD — Authorized position-version read-only backfill inventory execution.**
 
-**Document status:** provider-free migration design after ordinary delivery of
-PR #126. It preserves verified GitHub branch protection, the Action 660H manual
-control, Action 660K cost-bounded CI, Action 660M's last verified production
-release and Action 666DB's owner-bound position/recommendation version target.
-It adds an aggregate-only SQL preflight but does not run it. These candidate
-bytes grant no deploy, SQL execution, migration, runtime, provider,
-database-write, broker, training or promotion authority.
+**Document status:** aggregate-only production inventory evidence after
+ordinary delivery of PR #127. It preserves verified GitHub branch protection,
+the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
+verified production release and Action 666DB's owner-bound
+position/recommendation version target. The exact Action 666DC query was
+explicitly authorized and executed once through the project-scoped Supabase
+MCP boundary. This candidate grants no further SQL execution, migration,
+runtime, provider mutation, database write, deploy, broker, training or
+promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`a80f3a8856121edb4260909ac1cedcf638d421b8`, tree
-`331625c5486aa4f50828762e6b0e758d251b346a`, observed on
-2026-08-20T19:21:39Z.
+`cb501d3ad3626be1bb13429a9791574a2040b64e`, tree
+`3f4a962de0f8ee49e86e096a21b7084dedf0b27b`, observed on
+2026-08-20T22:14:47Z.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #126, with parents
-`dbeed25f2074bff4dba8cee7f6d511cb17992efc` and
-`92e5ae9b444e3b773d9c7ff40aad3d60037909f6`. Exact-main push run
-`32401750100` completed successfully. PRs #100 through #121 and #124 through #126 form one verified
+The reconciliation base is the ordinary merge of PR #127, with parents
+`a80f3a8856121edb4260909ac1cedcf638d421b8` and
+`c69aa68e08100de1df1092a0a07c75a4ce6c8daf`. Exact-main push run
+`32419997618` completed successfully. PRs #100 through #121 and #124 through #127 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -50,11 +52,12 @@ publication of the existing atomic deploy for exact PR #125 merge
 anonymous no-effect smoke and operator-attested authenticated read smoke. The
 Action 660M candidate itself performs no new publication.
 
-PR #126 subsequently adds governance/evidence/test and history-aware CI bytes
-only. Protected `main` is therefore one ordinary first-parent merge ahead of
-the last verified production commit. Production remains the Action 660M
-release at `dbeed25f…`; no production publication was approved or observed for
-PR #126.
+PRs #126 and #127 subsequently add governance, evidence, tests, history-aware
+CI and the source-controlled read-only inventory artifact only; the later
+authorized execution does not change repository or runtime bytes. Protected `main` is
+therefore two ordinary first-parent merges ahead of the last verified
+production commit. Production remains the Action 660M release at `dbeed25f…`;
+no production publication was approved or observed for PR #126 or PR #127.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -217,15 +220,18 @@ closes `current_main_position_version_schema_reconciliation` by proving the
 current schema gap and freezing an owner-bound durable positive position
 version plus recommendation-version/identity/digest target. Action 666DC
 freezes the phased migration design and an aggregate-only, repeatable-read SQL
-preflight; that SQL remains unexecuted. The durable `position_version_schema`
-dependency itself remains unresolved until an explicitly authorized read-only
-legacy-row inventory, deterministic backfill contract, separately reviewed
-migration, staging apply, authorized production apply and refreshed
-generated-types provenance all pass.
+preflight. Action 666DD executes those exact bytes once under explicit
+authority and records a clean aggregate inventory: 1,049 identity-seed-
+eligible recommendations, eight owner-bound lineage-copy-eligible positions
+and zero null/orphan/owner-mismatch/duplicate/blocked-lineage classes. The
+durable `position_version_schema` dependency itself remains unresolved until
+the deterministic backfill contract, separately reviewed migration, staging
+apply, authorized production apply and refreshed generated-types provenance
+all pass.
 Action 666DB's former next objective,
 `position_version_schema_migration_design_and_read_only_backfill_preflight`, is
-satisfied by this bounded design only; it does not count as executing the
-inventory or applying the schema.
+satisfied by this bounded design. Action 666DD separately satisfies the
+authorized inventory objective; neither Action applies the schema.
 Market-observation provenance, durable exit-queue schema and transactional
 recommendation-to-position runtime wiring remain separate blockers. No
 migration, route, worker, broker or production write is authorized here.
@@ -279,7 +285,8 @@ is implied by this roadmap.
   #54 is open and non-Draft; the others remain open Draft. None may be merged
   as a substitute.
 - Track 3 / ACTION 668H remains `closed_holding`. Provider-free roadmap work
-  may continue, but no GT2, SQL, database or provider execution is authorized.
+  may continue, but Track 3 grants no GT2, SQL, database or provider execution
+  authority.
 - Action 652 delivered source containment, the authenticated server-owned
   boundary, the catalog/migration evidence contract and canonical governance.
   Its V1 generated-types bytes remain historical; Action 660D V2 supersedes
@@ -289,12 +296,13 @@ is implied by this roadmap.
   `position_version_schema_v1` target: positive safe-integer versions,
   owner-scoped compare-and-swap and locked recommendation UUID/version/
   identity/digest lineage using the existing Action 664A
-  `canonical_recommendation_identity_v1`. Action 666DC now freezes the phased
-  migration design and a source-controlled aggregate-only SQL preflight without
-  executing it. Action 655G's current hash-suffix identity validator is
+  `canonical_recommendation_identity_v1`. Action 666DC freezes the phased
+  migration design and source-controlled aggregate-only SQL. Action 666DD
+  records its single authorized read-only production execution and clean
+  reconciled inventory. Action 655G's current hash-suffix identity validator is
   incompatible and remains a separate pre-runtime reconciliation gate. The
   next bounded objective is
-  `authorized_position_version_read_only_backfill_inventory_execution`. The
+  `deterministic_recommendation_lineage_backfill_contract`. The
   current-row version tuple is a CAS predicate, not a historical reference
   target; append-only position-version history, market-observation provenance,
   exit-queue schema and transactional runtime handoff remain unresolved. No
@@ -328,12 +336,13 @@ The latest authenticated Netlify readback identifies published deploy
 `6a871d6b27fb2100082f16f9` and its production assertion at full commit
 `dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
 is now its ordinary first-parent descendant
-`a80f3a8856121edb4260909ac1cedcf638d421b8`, tree
-`331625c5486aa4f50828762e6b0e758d251b346a`, after governance-only PR #126.
+`cb501d3ad3626be1bb13429a9791574a2040b64e`, tree
+`3f4a962de0f8ee49e86e096a21b7084dedf0b27b`, after governance-only PRs #126
+and #127.
 The deploy is ready, locked, production-context, main-branch, plugin-success
 and has zero ordinary/enhanced secrets findings. Exact-main CI and required
 post-publication reads are green. Production is not asserted equal to current
-main after PR #126, and this reconciliation candidate authorizes no further
+main after PR #127, and this reconciliation candidate authorizes no further
 production deployment. Automatic
 `netlify/trade-vl/deploy-preview` statuses are non-production previews and
 carry no release or provider authority.

@@ -1,12 +1,12 @@
 # Ture Current-State Ledger
 
-**ACTION 666DC — Position-version migration design and read-only backfill preflight.**
+**ACTION 666DD — Authorized position-version read-only backfill inventory execution.**
 
-**Evidence timestamp:** 2026-08-20T19:21:39Z. This reconciliation records the
-ordinary PR #126 merge and freezes a provider-free migration design plus one
-unexecuted aggregate-only SQL preflight for the Action 666DB target. The last
-verified production release remains the earlier PR #125 commit. These candidate
-bytes authorize no SQL execution, deploy, runtime, provider data, database,
+**Evidence timestamp:** 2026-08-20T22:14:47Z. This reconciliation records the
+ordinary PR #127 merge and the explicitly authorized, single aggregate-only
+production inventory for the Action 666DB target. The last verified production
+release remains the earlier PR #125 commit. These candidate bytes authorize no
+further SQL execution, deploy, runtime, provider mutation, database write,
 migration, broker, training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
@@ -16,10 +16,10 @@ migration, broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `a80f3a8856121edb4260909ac1cedcf638d421b8` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #126 | corroborated_current |
-| Protected pre-delivery main tree | `331625c5486aa4f50828762e6b0e758d251b346a` | canonical_current |
-| Protected pre-delivery main parents | `dbeed25f2074bff4dba8cee7f6d511cb17992efc`, `92e5ae9b444e3b773d9c7ff40aad3d60037909f6` | canonical_current |
+| GitHub protected pre-delivery main base | `cb501d3ad3626be1bb13429a9791574a2040b64e` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #127 | corroborated_current |
+| Protected pre-delivery main tree | `3f4a962de0f8ee49e86e096a21b7084dedf0b27b` | canonical_current |
+| Protected pre-delivery main parents | `a80f3a8856121edb4260909ac1cedcf638d421b8`, `c69aa68e08100de1df1092a0a07c75a4ce6c8daf` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -51,7 +51,8 @@ migration, broker, training, promotion or release activity.
 | PR #124 | MERGED; reviewed head `93bedb29…`; merge `6ef40e52…`; Action 660K | corroborated_current |
 | PR #125 | MERGED; reviewed head `08321f53…`; merge `dbeed25f…`; Action 660L | corroborated_current |
 | PR #126 | MERGED; reviewed head `92e5ae9b…`; merge `a80f3a88…`; Action 660M current-production reclosure evidence successor | corroborated_current |
-| Exact-main CI | run `32401750100`, push, head `a80f3a88…`, completed/success | verified_current |
+| PR #127 | MERGED; reviewed head `c69aa68e…`; merge `cb501d3a…`; Action 666DC | corroborated_current |
+| Exact-main CI | run `32419997618`, push, head `cb501d3a…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -66,7 +67,7 @@ migration, broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
 | Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
-| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is the direct first parent of current main `a80f3a8856121edb4260909ac1cedcf638d421b8`; the commits are not equal and PR #126 is governance-only | verified_current; production_is_first_parent_ancestor_of_main |
+| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `cb501d3ad3626be1bb13429a9791574a2040b64e`; the commits are not equal and PRs #126–#127 are governance/preflight-only | verified_current; production_is_first_parent_ancestor_of_main |
 | Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
@@ -80,15 +81,17 @@ migration, broker, training, promotion or release activity.
 | Supabase V2 receipt | selected `[public]`: 1 schema, 30 tables, 653 columns, 30 PK, 28 FK, 22 functions | verified_current |
 | Generated type output | provider response and repository output byte-identical at SHA-256 `f23c3702…`; required owner fields and RPC present | verified_current |
 
-Action 666DC is provider-free schema planning only. It preserves the
-already-completed GitHub branch-protection configuration, Action 660H manual
-control and Action 666DB target. It freezes a phased migration design and adds
-one unexecuted aggregate-only, repeatable-read SQL preflight. This candidate
-performs no SQL execution, application/database/runtime mutation, provider
-configuration/data mutation or production-release mutation.
+Action 666DC is provider-free schema planning only. Action 666DD separately
+binds the explicit authorization and one execution of its exact aggregate-only,
+repeatable-read SQL. The result proves 1,049 identity-seed-eligible
+recommendations, eight owner-bound lineage-copy-eligible positions and zero
+null/orphan/owner-mismatch/duplicate/blocked-lineage classes. It performs no
+application/database/runtime mutation, provider configuration mutation or
+production-release mutation and authorizes no second query.
 Action 666DB's former next objective,
 `position_version_schema_migration_design_and_read_only_backfill_preflight`, is
-satisfied by this design package only; no inventory or migration has run.
+satisfied by that design package. Action 666DD separately closes the authorized
+inventory objective; no backfill or migration has run.
 Automatic non-production previews grant no
 authority.
 
@@ -194,14 +197,15 @@ conditionally closes `current_main_position_version_schema_reconciliation` by
 freezing `position_version_schema_v1`: owner-bound positive safe-integer
 position/recommendation versions, locked recommendation identity/digest lineage
 using Action 664A `canonical_recommendation_identity_v1`, and compare-and-swap
-semantics. Action 666DC freezes the phased migration design and an unexecuted
-aggregate-only SQL preflight. Action 655G's current hash-suffix identity
+semantics. Action 666DC freezes the phased migration design and aggregate-only
+SQL preflight. Action 666DD records its one authorized clean production
+inventory. Action 655G's current hash-suffix identity
 validator is incompatible and must be reconciled before runtime wiring. The
-durable schema remains unresolved pending explicitly authorized read-only
-backfill inventory, deterministic lineage contract, migration, staging,
+durable schema remains unresolved pending a deterministic lineage contract,
+migration, staging,
 production application and generated-types provenance. The next bounded
 objective is
-`authorized_position_version_read_only_backfill_inventory_execution`;
+`deterministic_recommendation_lineage_backfill_contract`;
 the current-row version tuple is only a CAS predicate. Append-only
 position-version history, market-observation provenance, durable exit-queue
 schema and transactional runtime handoff remain separate blockers.
@@ -214,7 +218,7 @@ schema and transactional runtime handoff remain separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target and migration/preflight design frozen; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight without executing it. Inventory/backfill/migration/generated-types proof remains blocked and no runtime wiring, database, broker or production authority exists. |
+| 4 / Milestone B | target, migration/preflight design and clean inventory frozen; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory. Deterministic lineage, backfill, migration and generated-types proof remain blocked and no runtime wiring, database-write, broker or production authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
@@ -316,8 +320,9 @@ schema and transactional runtime handoff remain separate blockers.
     pull-request requirement, administrator enforcement, force-push/deletion
     prohibition or conversation-resolution rule.
 13. Do not add Milestone B runtime wiring before the frozen
-    `position_version_schema_v1` target is separately backed by an authorized
-    read-only legacy-row inventory, migration, staging proof, production apply
+    `position_version_schema_v1` target is separately backed by the clean
+    read-only legacy-row inventory, deterministic lineage contract, migration,
+    staging proof, production apply
     and regenerated provider-bound types.
 14. Treat market-observation provenance, durable exit-queue schema and
     transactional recommendation-to-position handoff as separate blockers; the
