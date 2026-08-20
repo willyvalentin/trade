@@ -30,6 +30,7 @@ const sourcePaths = [
 ] as const;
 
 const historicalCurrentStateSources = {
+  [workflowPath]: workflowPath,
   [registrationPath]: registrationPath,
   [shardRunnerPath]: shardRunnerPath,
   [ledgerPath]: ledgerPath,
@@ -174,6 +175,8 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
     "if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}",
   );
   expect(shardJob).toContain("fail-fast: false");
+  expect(shardJob).toContain("fetch-depth: 0");
+  expect(workflow).not.toContain("fetch-depth: 1");
   expect(shardJob).toContain(
     "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
   );

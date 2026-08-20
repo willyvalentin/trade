@@ -38,6 +38,8 @@ const sourcePaths = [
 ] as const;
 
 const historicalCurrentStateSources = {
+  ".github/workflows/milestone-a-ci.yml":
+    ".github/workflows/milestone-a-ci.yml",
   [registrationPath]: registrationPath,
   [runnerPath]: runnerPath,
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts":

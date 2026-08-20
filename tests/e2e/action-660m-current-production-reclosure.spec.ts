@@ -14,6 +14,7 @@ const roadmapPath = "docs/ture-master-roadmap.md";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
+const workflowPath = ".github/workflows/milestone-a-ci.yml";
 const thisTest =
   "tests/e2e/action-660m-current-production-reclosure.spec.ts";
 const historicalSourceCommit =
@@ -243,9 +244,10 @@ test("keeps roadmap and ledger current without rewriting historical evidence", a
 });
 
 test("registers the reconciliation once in the executable foundation plan", async () => {
-  const [registrationRaw, runner] = await Promise.all([
+  const [registrationRaw, runner, workflow] = await Promise.all([
     source(registrationPath),
     source(runnerPath),
+    source(workflowPath),
   ]);
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([
@@ -253,6 +255,8 @@ test("registers the reconciliation once in the executable foundation plan", asyn
   ]);
   expect(new Set(registration).size).toBe(registration.length);
   expect(runner.split(JSON.stringify(thisTest)).length - 1).toBe(1);
+  expect(workflow.split("fetch-depth: 0").length - 1).toBe(2);
+  expect(workflow).not.toContain("fetch-depth: 1");
 });
 
 test("rejects recursive deletion, value, shape and extra-key drift", async () => {
