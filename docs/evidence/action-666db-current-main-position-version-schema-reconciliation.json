@@ -257,8 +257,8 @@
   },
   "source_document_sha256": {
     "docs/action-666db-current-main-position-version-schema-reconciliation.md": "be11d2beca725a1bde42382543f29a09a66ec8e1e58758aaee66fefafa6fa24d",
-    "docs/ture-current-state-ledger.md": "a0a64f00dbee80efe8a495fb00ea97c1a1707df1c98a1e2b8f8dcdb9a54bfed2",
-    "docs/ture-master-roadmap.md": "be3c87b016a8045bc0c3c8fcb75bb6a67f26d538e7a6f1a17b8e4fd22006e9d5"
+    "docs/ture-current-state-ledger.md": "22a65a252e828829db94e0f5e5d8a2c9b775c28f224115b81af7d2c8965f1c19",
+    "docs/ture-master-roadmap.md": "32933942a4f271b57a878fe06cc08bacfec687cb36e2fe5dfaca10a7d1406b08"
   },
   "scope_limits": {
     "governance_and_schema_planning_only": true,

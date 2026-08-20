@@ -1,32 +1,39 @@
 # Ture Master Roadmap
 
-**ACTION 666DB — current-main position-version schema reconciliation.**
+**ACTION 660K — cost-bounded provider-free verification scheduling.**
 
-**Document status:** protected-main Milestone B schema-planning reconciliation
-through the ordinary, provider-free delivery of PR #120. It preserves verified
-GitHub branch protection and the Action 660H manual control, freezes the first
-owner-bound position/recommendation version target and grants no migration,
-runtime, provider, production, database-write, broker, training or promotion
-authority.
+**Document status:** protected-main CI-governance reconciliation through the
+ordinary, provider-free delivery of PR #121. It preserves verified GitHub
+branch protection and the Action 660H manual control, keeps the first
+owner-bound position/recommendation version target frozen and grants no
+migration, runtime, provider, production, database-write, broker, training or
+promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`, tree
-`96012987bf59322f2a4b27202a6946ee668f4556`, observed on 2026-08-19.
+`466e95318a6feb1418ec60bfced98703183ccc54`, tree
+`cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`, observed on 2026-08-20.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #120, with parents
-`e9c3355125a54f4f9ba55ada2ac55fc91b184647` and
-`93ca8bd41a15a5b6e482779b252406b5639d81b7`. Exact-main push run
-`32301932410` completed successfully. PRs #100 through #120 form one verified
+The reconciliation base is the ordinary merge of PR #121, with parents
+`c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` and
+`cd36389cfffe42aa91842ce6358726e3a713ed0a`. Exact-main push run
+`32359092838` completed successfully. PRs #100 through #121 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
 historical non-authority and must remain unmodified.
+
+Action 660K is a scheduling-only cost-control candidate. Draft pushes receive
+quick provider-free feedback under a distinct non-protected job, while the
+protected `provider-free-verification` aggregate remains fail-closed because
+the full matrix is skipped. Making the PR Ready, every later Ready push and
+every push to `main` automatically requires the complete six-shard matrix. A
+quick Draft result can never authorize merge or change product authority.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -281,9 +288,9 @@ the candidate changes either boundary.
 The latest authenticated Netlify readback identifies published deploy
 `6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. The protected GitHub `main` base
-is `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`; the production commit is its
+is `466e95318a6feb1418ec60bfced98703183ccc54`; the production commit is its
 first-parent ancestor and is not equal to it because PRs #99, #100, #109,
-#114, #116 and #120 advanced governance/planning and PRs #101 through #108,
+#114, #116, #120 and #121 advanced governance/planning and PRs #101 through #108,
 #110 through #113, #115 and #117 through #119 delivered provider-free,
 runtime-unwired Track 2 source without a production publish. The
 production commit's CI and required post-deploy reads are green. This
@@ -336,9 +343,11 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   `cdf03e545cf25c0988627ef192d50acb1d72ba72` /
   `f39ffe5f27d707b804f06273bd1732bb136e05b5`, then by protected main
   `e9c3355125a54f4f9ba55ada2ac55fc91b184647` /
-  `3037abfe27899bcd2c9abea215c80c459a7213b5`, and now by protected
-  pre-delivery main `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` /
-  tree `96012987bf59322f2a4b27202a6946ee668f4556`.
+  `3037abfe27899bcd2c9abea215c80c459a7213b5`, then by protected main
+  `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` /
+  tree `96012987bf59322f2a4b27202a6946ee668f4556`, and now by protected
+  pre-delivery main `466e95318a6feb1418ec60bfced98703183ccc54` /
+  tree `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by
@@ -351,7 +360,8 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   governance, and provider-free PRs #101 through #108, #110 through #113,
   #115 and #117 through #119 advanced current main first to `cdf03e54…` and
   then to `e9c33551…`; PR #120 advanced governance/planning to `c67ec928…`,
-  without changing that last verified production release.
+  and PR #121 delivered the bounded position-version reconciliation at
+  `466e953…`, without changing that last verified production release.
 - Containment, authenticated API-boundary and CI were previously
   `unknown_current`. Current main evidence closes MA-03, MA-04 and MA-12;
   earlier bounded production evidence closed MA-15, the post-PR #97 dashboard

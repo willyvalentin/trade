@@ -1,11 +1,11 @@
 # Ture Current-State Ledger
 
-**ACTION 666DB — current-main position-version schema reconciliation.**
+**ACTION 660K — cost-bounded provider-free verification scheduling.**
 
-**Evidence timestamp:** 2026-08-19. This provider-free schema-planning
-successor preserves verified GitHub branch protection and the manual MA-13
-control, starts from the ordinary delivery of PR #120 and freezes the first
-Milestone B position/recommendation version target. It authorizes no runtime,
+**Evidence timestamp:** 2026-08-20. This provider-free CI-governance successor
+preserves verified GitHub branch protection and the manual MA-13 control,
+starts from the ordinary delivery of PR #121 and keeps the frozen Milestone B
+position/recommendation version target unchanged. It authorizes no runtime,
 production, provider data, database, migration, broker, training, promotion or
 release activity.
 
@@ -16,10 +16,10 @@ release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #120 | corroborated_current |
-| Protected pre-delivery main tree | `96012987bf59322f2a4b27202a6946ee668f4556` | canonical_current |
-| Protected pre-delivery main parents | `e9c3355125a54f4f9ba55ada2ac55fc91b184647`, `93ca8bd41a15a5b6e482779b252406b5639d81b7` | canonical_current |
+| GitHub protected pre-delivery main base | `466e95318a6feb1418ec60bfced98703183ccc54` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #121 | corroborated_current |
+| Protected pre-delivery main tree | `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82` | canonical_current |
+| Protected pre-delivery main parents | `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`, `cd36389cfffe42aa91842ce6358726e3a713ed0a` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -47,7 +47,8 @@ release activity.
 | PR #118 | MERGED; reviewed head `2d378bd9…`; merge `7280f5a6…`; Action 666CY | corroborated_current |
 | PR #119 | MERGED; reviewed head `7892bced…`; merge `e9c33551…`; Action 666CZ | corroborated_current |
 | PR #120 | MERGED; reviewed head `93ca8bd4…`; merge `c67ec928…`; Action 666DA | corroborated_current |
-| Exact-main CI | run `32301932410`, push, head `c67ec928…`, completed/success | verified_current |
+| PR #121 | MERGED; reviewed head `cd36389c…`; merge `466e9531…`; Action 666DB | corroborated_current |
+| Exact-main CI | run `32359092838`, push, head `466e9531…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -62,7 +63,7 @@ release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`; the commits are not equal because PRs #99, #100, #109, #114, #116 and #120 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `466e95318a6feb1418ec60bfced98703183ccc54`; the commits are not equal because PRs #99, #100, #109, #114, #116, #120 and #121 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
@@ -81,6 +82,14 @@ runtime mutation, no provider configuration/data mutation and no
 production-release mutation.
 Automatic non-production previews grant no
 authority.
+
+Action 660K is a scheduling-only cost-control candidate. Draft pushes receive
+quick provider-free feedback under the distinct non-protected job name
+`draft-provider-free-verification`, while the protected
+`provider-free-verification` aggregate fails because its full six-shard matrix
+is skipped. A Ready transition, every later Ready push and every `main` push
+must run the complete matrix before that protected aggregate may succeed. A
+quick Draft result can never authorize merge.
 
 ## Milestone A gate ledger
 
@@ -124,7 +133,7 @@ the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
 commit. Protected pre-delivery main
-`c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` is a governance/planning and
+`466e95318a6feb1418ec60bfced98703183ccc54` is a governance/planning and
 provider-free Track 2 successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
@@ -193,8 +202,9 @@ schema and transactional runtime handoff remain separate blockers.
   `9e2f64a…` / `0a5440b7…`, then by `f463644d…` / `b0c8eae0…`, then by
   `7662d3f…` / `86a59f23…`, then by `7b79691e…` / `5c6eb05b…`, then by
   protected main `cdf03e54…` / `f39ffe5f…`, then by protected main
-  `e9c33551…` / `3037abfe…`, and now by protected pre-delivery base
-  `c67ec928…` / `96012987…`.
+  `e9c33551…` / `3037abfe…`, then by protected main
+  `c67ec928…` / `96012987…`, and now by protected pre-delivery base
+  `466e953…` / `cdd83c87…`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their merges. PR #92's former current-main state is superseded by the
@@ -207,7 +217,8 @@ schema and transactional runtime handoff remain separate blockers.
   `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
   provider-free PRs #101 through #108, #110 through #113, #115 and #117 through
   #119 advanced current main first to `cdf03e54…` and then `e9c33551…`; PR
-  #120 advanced governance/planning to `c67ec928…`;
+  #120 advanced governance/planning to `c67ec928…`, and PR #121 delivered the
+  bounded position-version reconciliation at `466e953…`;
   production remains at its first-parent ancestor `f463644d…`.
 - The former Track 2 classification `current-main foundation delivered; integrity/provenance successor open`
   is superseded by

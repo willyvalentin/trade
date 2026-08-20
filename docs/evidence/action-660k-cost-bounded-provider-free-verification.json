@@ -1,0 +1,103 @@
+{
+  "contract_version": "action_660k_cost_bounded_provider_free_ci_v1",
+  "authority": {
+    "base_main_commit": "466e95318a6feb1418ec60bfced98703183ccc54",
+    "base_main_tree": "cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82",
+    "base_exact_main_ci_run": 32359092838,
+    "required_check": "provider-free-verification",
+    "required_check_app_id": 15368,
+    "branch_protection_change": false,
+    "production_deployment_authority": false
+  },
+  "billing_baseline": {
+    "observed_date": "2026-08-19",
+    "workflow_runs": 15,
+    "runner_jobs": 105,
+    "rounded_billable_ubuntu_minutes": 1825,
+    "ubuntu_two_core_usd_per_minute": 0.006,
+    "estimated_usd": 10.95,
+    "cancelled_runs": 4,
+    "cancelled_rounded_minutes": 403,
+    "cancelled_estimated_usd": 2.42,
+    "exact_main_runs": 5,
+    "exact_main_rounded_minutes": 640,
+    "exact_main_estimated_usd": 3.84,
+    "operator_budget_ceiling_usd": 30,
+    "budget_ceiling_is_spending_target": false
+  },
+  "draft_route": {
+    "event": "pull_request",
+    "draft_required": true,
+    "job_name": "draft-provider-free-verification",
+    "protected_job_name_used": false,
+    "exact_head_checkout": true,
+    "merge_base_diff": true,
+    "always_run_labels": [
+      "Lint",
+      "TypeScript",
+      "Browser and server containment"
+    ],
+    "changed_registered_groups_added": true,
+    "clean_tree_required": true,
+    "full_matrix_result": "skipped",
+    "protected_aggregate_result": "failure"
+  },
+  "ready_route": {
+    "ready_for_review_event_required": true,
+    "ready_synchronize_event_required": true,
+    "pr_concurrency_key": "github.event.pull_request.number",
+    "stale_pr_runs_cancelled": true,
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ],
+    "fail_fast": false,
+    "all_shards_run_to_completion": true,
+    "protected_aggregate_success_requires_full_matrix_success": true
+  },
+  "main_route": {
+    "event": "push",
+    "branch": "main",
+    "exact_github_sha": true,
+    "main_concurrency_key": "github.sha",
+    "later_main_push_can_cancel_prior_main_run": false,
+    "full_matrix_required": true,
+    "fail_fast": false,
+    "all_shards_run_to_completion": true,
+    "protected_aggregate_required": true
+  },
+  "fail_closed": {
+    "draft_quick_check_can_authorize_merge": false,
+    "skipped_full_matrix_can_authorize_merge": false,
+    "failed_full_matrix_can_authorize_merge": false,
+    "cancelled_full_matrix_can_authorize_merge": false,
+    "timed_out_full_matrix_can_authorize_merge": false,
+    "incomplete_full_matrix_can_authorize_merge": false,
+    "ready_head_full_ci_required": true,
+    "exact_main_full_ci_required": true
+  },
+  "sources": {
+    ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
+    "scripts/action-660j-provider-free-ci-registration.json": "2a86b5e46c5e04aeef4ad916d49cd37b4c7e5c5751a48ebd962c0ea0bec224e3",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "614a8992390d2c057a21f2f13b161857f2a74bd1fab70c21467dfefbc945d20a",
+    "scripts/action-660k-run-draft-ci.mjs": "9984c01238b20a866d970b7e39b24bf020981d58b5344fef12a84efbe0963b39",
+    "docs/action-660j-parallel-provider-free-verification.md": "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40",
+    "docs/action-660k-cost-bounded-provider-free-verification.md": "05e4d85205902fcf85af6b9b348b6d933108f4cc6605a97452ae3ec38d480cd4",
+    "docs/ture-current-state-ledger.md": "22a65a252e828829db94e0f5e5d8a2c9b775c28f224115b81af7d2c8965f1c19",
+    "docs/ture-master-roadmap.md": "32933942a4f271b57a878fe06cc08bacfec687cb36e2fe5dfaca10a7d1406b08"
+  },
+  "delivery": {
+    "draft_quick_observed_green": false,
+    "draft_protected_aggregate_observed_failure": false,
+    "ready_exact_head_full_ci_observed_green": false,
+    "independent_review_no_findings": false,
+    "operator_approval_exact_pr_and_head": false,
+    "ordinary_protected_merge": false,
+    "exact_main_full_ci_observed_green": false,
+    "production_deployment_authorized": false
+  }
+}
