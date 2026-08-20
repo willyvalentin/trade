@@ -19,7 +19,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts";
 const evidenceSha256 =
-  "09d640c413152072f6f80bdbaeef1d87258faa8235243c4251cf6cec2584c581";
+  "6e713ed26934038d7e3f57ab5601cba07df5671acccbf1f076399e24bb162a16";
 
 const sourcePaths = {
   predecessor_action:
@@ -68,6 +68,51 @@ function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+function countOccurrences(value: string, fragment: string) {
+  return value.split(fragment).length - 1;
+}
+
+function hasFailClosedInventoryBindings(sql: string) {
+  const normalized = sql.toLowerCase();
+  const foreignKeyEnd = normalized.indexOf(
+    ") as owner_bound_foreign_key_valid,",
+  );
+  const recommendationIndexEnd = normalized.indexOf(
+    ") as recommendation_owner_unique_index_valid,",
+  );
+  const positionIndexEnd = normalized.indexOf(
+    ") as position_owner_reference_index_valid,",
+  );
+  if (
+    foreignKeyEnd < 0 ||
+    recommendationIndexEnd <= foreignKeyEnd ||
+    positionIndexEnd <= recommendationIndexEnd
+  ) {
+    return false;
+  }
+
+  const recommendationIndexGuard = normalized.slice(
+    foreignKeyEnd,
+    recommendationIndexEnd,
+  );
+  const positionIndexGuard = normalized.slice(
+    recommendationIndexEnd,
+    positionIndexEnd,
+  );
+  const recommendationBinding =
+    "and x.indrelid = 'public.recommendations'::regclass";
+  const positionBinding = "and x.indrelid = 'public.positions'::regclass";
+
+  return (
+    countOccurrences(normalized, "set local row_security = off;") === 1 &&
+    normalized.includes(
+      "'row_security_fail_closed', current_setting('row_security') = 'off'",
+    ) &&
+    countOccurrences(recommendationIndexGuard, recommendationBinding) === 1 &&
+    countOccurrences(positionIndexGuard, positionBinding) === 1
+  );
+}
+
 function gitGrep(pattern: string, paths: string[]) {
   try {
     return execFileSync("git", ["grep", "-l", pattern, "--", ...paths], {
@@ -103,7 +148,10 @@ type Evidence = {
     lock_timeout: string;
     idle_in_transaction_session_timeout: string;
     search_path: string;
+    row_security: string;
+    policy_filtered_inventory_allowed: boolean;
     fully_qualified_application_relations: boolean;
+    index_guard_relations: Record<string, string>;
     single_jsonb_result: boolean;
     result_groups: Record<string, string[]>;
     stop_conditions: string[];
@@ -241,6 +289,26 @@ test("freezes a bounded aggregate-only SQL transaction that cannot mutate", asyn
   const contract = evidence.preflight_contract;
   expect(sha256(sql)).toBe(contract.sql_sha256);
   expect(contract.sql_path).toBe(sqlPath);
+  expect(Object.keys(contract)).toEqual([
+    "contract_id",
+    "sql_path",
+    "sql_sha256",
+    "transaction_isolation",
+    "transaction_read_only",
+    "statement_timeout",
+    "lock_timeout",
+    "idle_in_transaction_session_timeout",
+    "search_path",
+    "row_security",
+    "policy_filtered_inventory_allowed",
+    "fully_qualified_application_relations",
+    "index_guard_relations",
+    "single_jsonb_result",
+    "result_groups",
+    "stop_conditions",
+    "privacy",
+    "execution",
+  ]);
   expect(contract).toMatchObject({
     contract_id: "position_version_read_only_backfill_preflight_v1",
     transaction_isolation: "repeatable read",
@@ -249,7 +317,13 @@ test("freezes a bounded aggregate-only SQL transaction that cannot mutate", asyn
     lock_timeout: "1s",
     idle_in_transaction_session_timeout: "15s",
     search_path: "pg_catalog",
+    row_security: "off",
+    policy_filtered_inventory_allowed: false,
     fully_qualified_application_relations: true,
+    index_guard_relations: {
+      recommendation_owner_unique_index: "public.recommendations",
+      position_owner_reference_index: "public.positions",
+    },
     single_jsonb_result: true,
   });
   expect(contract.execution).toEqual({
@@ -278,6 +352,7 @@ test("freezes a bounded aggregate-only SQL transaction that cannot mutate", asyn
     "set local idle_in_transaction_session_timeout = '15s';",
   );
   expect(normalized).toContain("set local search_path = pg_catalog;");
+  expect(hasFailClosedInventoryBindings(sql)).toBe(true);
   expect(normalized).toContain("from public.recommendations");
   expect(normalized).toContain("from public.positions");
   expect(normalized).not.toMatch(
@@ -302,6 +377,35 @@ test("freezes a bounded aggregate-only SQL transaction that cannot mutate", asyn
     "positions_lineage_copy_blocked_nonzero",
     "catalog_guard_false",
   ]);
+});
+
+test("rejects RLS-filtered inventory and index guards bound to the wrong table", async () => {
+  const sql = await source(sqlPath);
+  const recommendationBinding =
+    "and x.indrelid = 'public.recommendations'::regclass";
+  const positionBinding = "and x.indrelid = 'public.positions'::regclass";
+  expect(hasFailClosedInventoryBindings(sql)).toBe(true);
+
+  for (const mutation of [
+    sql.replace("set local row_security = off;", ""),
+    sql.replace("set local row_security = off;", "set local row_security = on;"),
+    sql.replace(
+      "'row_security_fail_closed', current_setting('row_security') = 'off',",
+      "",
+    ),
+    sql.replace(recommendationBinding, ""),
+    sql.replace(
+      recommendationBinding,
+      "and x.indrelid = 'public.positions'::regclass",
+    ),
+    sql.replace(positionBinding, ""),
+    sql.replace(
+      positionBinding,
+      "and x.indrelid = 'public.recommendations'::regclass",
+    ),
+  ]) {
+    expect(hasFailClosedInventoryBindings(mutation)).toBe(false);
+  }
 });
 
 test("freezes phased constraints, privileges and remaining gates without authority", async () => {

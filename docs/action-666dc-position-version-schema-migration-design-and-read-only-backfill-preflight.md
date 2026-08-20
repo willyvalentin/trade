@@ -57,12 +57,16 @@ Its contract is fail-closed:
 
 1. start one `REPEATABLE READ`, `READ ONLY` transaction;
 2. set local statement, lock and idle-in-transaction timeouts;
-3. use a `pg_catalog` search path and schema-qualified application relations;
-4. take one stable snapshot and emit exactly one JSONB value;
-5. return aggregate counts and booleans only;
-6. never return row contents, position/recommendation UUIDs or owner UUIDs;
-7. perform no DDL, DML, function call, role change, copy or persistence;
-8. finish with `ROLLBACK`, including when the caller forgets to close the
+3. set local `row_security = off`, so a caller subject to either table's RLS
+   fails instead of receiving a policy-filtered partial inventory;
+4. use a `pg_catalog` search path and schema-qualified application relations;
+5. bind each index guard through `pg_index.indrelid` to its exact application
+   relation, rather than accepting a same-named index on another table;
+6. take one stable snapshot and emit exactly one JSONB value;
+7. return aggregate counts and booleans only;
+8. never return row contents, position/recommendation UUIDs or owner UUIDs;
+9. perform no DDL, DML, function call, role change, copy or persistence;
+10. finish with `ROLLBACK`, including when the caller forgets to close the
    transaction normally.
 
 The output is closed to these groups:
@@ -75,7 +79,7 @@ The output is closed to these groups:
 - `backfill_classes`: recommendation identity-seed eligibility and position
   lineage-copy eligible/blocked totals;
 - `catalog_guards`: validated owner-bound FK, both required relationship
-  indexes and RLS enabled on both tables;
+  indexes bound to their exact base tables and RLS enabled on both tables;
 - `privacy`: explicit proof that only aggregate counts and booleans leave the
   transaction.
 

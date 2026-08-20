@@ -4,6 +4,7 @@ set local statement_timeout = '15s';
 set local lock_timeout = '1s';
 set local idle_in_transaction_session_timeout = '15s';
 set local search_path = pg_catalog;
+set local row_security = off;
 
 with
 recommendation_counts as (
@@ -102,6 +103,7 @@ catalog_guards as (
       join pg_catalog.pg_index x on x.indexrelid = i.oid
       where n.nspname = 'public'
         and i.relname = 'recommendations_id_owner_user_id_uidx'
+        and x.indrelid = 'public.recommendations'::regclass
         and x.indisunique
         and x.indisvalid
         and x.indisready
@@ -123,6 +125,7 @@ catalog_guards as (
       join pg_catalog.pg_index x on x.indexrelid = i.oid
       where n.nspname = 'public'
         and i.relname = 'positions_recommendation_owner_idx'
+        and x.indrelid = 'public.positions'::regclass
         and x.indisvalid
         and x.indisready
         and x.indpred is null
@@ -151,6 +154,7 @@ select pg_catalog.jsonb_build_object(
   'contract_version', 'position_version_read_only_backfill_preflight_v1',
   'transaction_read_only', current_setting('transaction_read_only') = 'on',
   'transaction_isolation', current_setting('transaction_isolation'),
+  'row_security_fail_closed', current_setting('row_security') = 'off',
   'row_counts', pg_catalog.jsonb_build_object(
     'recommendations', recommendation_counts.total_rows,
     'positions', position_counts.total_rows,

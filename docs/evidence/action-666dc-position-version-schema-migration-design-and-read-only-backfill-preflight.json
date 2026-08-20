@@ -1,6 +1,6 @@
 {
   "contract_version": "trade.action666dc.position-version-schema-migration-design-and-read-only-backfill-preflight.v1",
-  "observed_at": "2026-08-20T19:21:39Z",
+  "observed_at": "2026-08-20T20:22:22Z",
   "authority": {
     "repository": "willyvalentin/trade",
     "main_commit": "a80f3a8856121edb4260909ac1cedcf638d421b8",
@@ -45,14 +45,20 @@
   "preflight_contract": {
     "contract_id": "position_version_read_only_backfill_preflight_v1",
     "sql_path": "scripts/action-666dc-position-version-read-only-backfill-preflight.sql",
-    "sql_sha256": "2409320064c6f2996d1f005efbbb5f9da8ae89538f69a2cd7325595f84635068",
+    "sql_sha256": "eeec737109347a48d5bceaa4f1ab4ee5dcaa4303d9aaa884ef5ece94cfdff173",
     "transaction_isolation": "repeatable read",
     "transaction_read_only": true,
     "statement_timeout": "15s",
     "lock_timeout": "1s",
     "idle_in_transaction_session_timeout": "15s",
     "search_path": "pg_catalog",
+    "row_security": "off",
+    "policy_filtered_inventory_allowed": false,
     "fully_qualified_application_relations": true,
+    "index_guard_relations": {
+      "recommendation_owner_unique_index": "public.recommendations",
+      "position_owner_reference_index": "public.positions"
+    },
     "single_jsonb_result": true,
     "result_groups": {
       "row_counts": [
@@ -191,7 +197,7 @@
     "all_satisfied": false
   },
   "source_document_sha256": {
-    "docs/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.md": "f1108b09a0110e8d494b57ce49d955c1c62f66ffce32303b40914fb83c4daffc",
+    "docs/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.md": "2000393812aeb02ffb996faf337022fcf8974c4b0992d4175962c47ca7df0232",
     "docs/ture-master-roadmap.md": "cb60bc40d2ea5c1bee0ab07d84973751e1e5c5fe2aa3b6c20101d4017cc0c5ed",
     "docs/ture-current-state-ledger.md": "f4061a09ab3c45c72bbce33e219b8f2539fa3f6cb13ff19c41716874aca1ddfe"
   },
