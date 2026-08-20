@@ -160,12 +160,15 @@ Milestone B planning is active while runtime remains closed. PR #84 / Action
 conditionally closes `current_main_position_version_schema_reconciliation` by
 freezing `position_version_schema_v1`: owner-bound positive safe-integer
 position/recommendation versions, locked recommendation identity/digest lineage
-and compare-and-swap semantics. The durable schema remains unresolved pending
-read-only backfill inventory, migration, staging, production application and
-generated-types provenance. The next bounded objective is
+using Action 664A `canonical_recommendation_identity_v1`, and compare-and-swap
+semantics. Action 655G's current hash-suffix identity validator is incompatible
+and must be reconciled before runtime wiring. The durable schema remains
+unresolved pending read-only backfill inventory, migration, staging, production
+application and generated-types provenance. The next bounded objective is
 `position_version_schema_migration_design_and_read_only_backfill_preflight`;
-market-observation provenance, durable exit-queue schema and transactional
-runtime handoff remain separate blockers.
+the current-row version tuple is only a CAS predicate. Append-only
+position-version history, market-observation provenance, durable exit-queue
+schema and transactional runtime handoff remain separate blockers.
 
 ## Delivery state
 

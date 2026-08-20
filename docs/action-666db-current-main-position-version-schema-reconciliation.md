@@ -42,7 +42,13 @@ The durable version contract required by Action 655A/655G is absent:
 The pure Action 655G evaluator therefore remains runtime-unwired. Synthetic
 `position_version` and recommendation-lineage fields accepted by the evaluator
 are contract evidence only, not proof that the current database can supply
-them durably.
+them durably. Its current recommendation-identity validator accepts only
+`rec_decision:v1:` plus a 64-hex suffix, while the already canonical Action
+664A identity is
+`rec_decision:v1:<encoded source namespace>:<encoded producer decision id>:<decision epoch milliseconds>`.
+Action 655A requires reuse of that existing canonical identity. The evaluator
+format is therefore an explicit incompatibility to reconcile before runtime
+wiring; it cannot redefine the database target.
 
 ## Frozen target contract
 
@@ -54,8 +60,9 @@ server-owned fields.
 
 - `recommendation_version bigint not null`, constrained to the inclusive
   range `1..9007199254740991`;
-- `recommendation_identity text not null`, constrained to
-  `rec_decision:v1:` followed by exactly 64 lowercase hexadecimal characters;
+- `recommendation_identity text not null`, carrying the exact
+  `canonical_recommendation_identity_v1` value emitted by the Action 664A
+  builder from source namespace, producer decision ID and decision instant;
 - `recommendation_normative_digest text not null`, constrained to exactly 64
   lowercase hexadecimal characters.
 
@@ -70,8 +77,10 @@ server-owned fields.
   locked recommendation row;
 - `recommendation_id uuid not null` after an explicit legacy-row preflight and
   approved backfill;
-- an exact-version key/index on
-  `(id, owner_user_id, position_version)` for future version-bound references.
+- `(id, owner_user_id, position_version)` is the exact mutable-row
+  compare-and-swap predicate only; it is not a durable historical reference
+  key. Any version-bound foreign key or audit reference requires a separately
+  designed append-only position-version relation.
 
 The successor to `app_open_owned_position_transaction` must remain
 `security definer`, service-role-only, owner-scoped and fixed-purpose. In one
@@ -112,22 +121,28 @@ these later gates are independently satisfied:
    legacy backfill classes without exposing row contents or owner UUIDs;
 2. a deterministic, separately reviewed recommendation identity/digest
    backfill contract maps every eligible legacy row or fails closed;
-3. a source migration and v2 owner-bound open-position command are reviewed
+3. Action 655G's hash-suffix recommendation-identity validator is reconciled
+   to the existing `canonical_recommendation_identity_v1` contract and its
+   provider-free fixtures are refrozen;
+4. any durable version-bound reference or audit requirement receives a
+   separately reviewed append-only position-version/history design; no foreign
+   key may target the mutable current-row version tuple;
+5. a source migration and v2 owner-bound open-position command are reviewed
    with safe constraints, indexed foreign keys, bounded locks and no client
    grants;
-4. an isolated staging apply proves rollback, exact retry, stale-version,
+6. an isolated staging apply proves rollback, exact retry, stale-version,
    cross-owner, identity/digest-conflict and compare-and-swap behavior;
-5. a separately authorized production migration is applied and read back;
-6. generated TypeScript and the Action 660D/MA-09 provider provenance package
+7. a separately authorized production migration is applied and read back;
+8. generated TypeScript and the Action 660D/MA-09 provider provenance package
    are refreshed from the exact post-migration `[public]` schema.
 
 The next bounded objective is
 `position_version_schema_migration_design_and_read_only_backfill_preflight`.
 
-Market-observation provenance, durable exit-queue schema, transactional
-recommendation-to-position runtime wiring and client projection remain
-separate blockers. No monitor, queue, worker, route, broker or production write
-is authorized by this Action.
+Append-only position-version history, market-observation provenance, durable
+exit-queue schema, transactional recommendation-to-position runtime wiring and
+client projection remain separate blockers. No monitor, queue, worker, route,
+broker or production write is authorized by this Action.
 
 ## Delivery boundary
 

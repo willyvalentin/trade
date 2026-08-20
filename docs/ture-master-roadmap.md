@@ -244,11 +244,15 @@ is implied by this roadmap.
   runtime-unwired. Action 666DB freezes the bounded
   `position_version_schema_v1` target: positive safe-integer versions,
   owner-scoped compare-and-swap and locked recommendation UUID/version/
-  identity/digest lineage. The next bounded objective is
+  identity/digest lineage using the existing Action 664A
+  `canonical_recommendation_identity_v1`. Action 655G's current hash-suffix
+  identity validator is incompatible and remains a separate pre-runtime
+  reconciliation gate. The next bounded objective is
   `position_version_schema_migration_design_and_read_only_backfill_preflight`.
-  Position-version durability, market-observation provenance, exit-queue
-  schema and transactional runtime handoff remain unresolved. No database,
-  broker, runtime or production authority follows.
+  The current-row version tuple is a CAS predicate, not a historical reference
+  target; append-only position-version history, market-observation provenance,
+  exit-queue schema and transactional runtime handoff remain unresolved. No
+  database, broker, runtime or production authority follows.
 - Track 5's Action 660F recovery is present on main via PR #98, Action 660G is
   canonical via PR #99 and the Action 660H manual MA-13 control is canonical via
   PR #100. Action 660I adds verified GitHub enforcement while retaining that

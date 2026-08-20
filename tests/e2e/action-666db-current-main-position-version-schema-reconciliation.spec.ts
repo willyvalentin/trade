@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const evidencePath =
   "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json";
 const evidenceSha256 =
-  "1b0ea6d87b37fbc713360a19e488ee483545bf3ab27aa2a09f17bcd63b86c643";
+  "a9c9df22825327c9c389b962043c209d3eae04b8525879723fc4072341b2e710";
 const actionPath =
   "docs/action-666db-current-main-position-version-schema-reconciliation.md";
 const roadmapPath = "docs/ture-master-roadmap.md";
@@ -31,6 +31,12 @@ const sourceHashes = {
     "b9547df1cd7ce2334f3df9adf277ce7b4b3d1f3ce2aa687c11045008420a1b92",
   dependency_gate:
     "53be2972997aba35370cec8985b42f9e7f061b53022b70b8a5797c993636182a",
+  trade_management_contract_manifest:
+    "15b689bab4451ee6adf1cb5d215f4d331101ebf27ab20f1c0dd7d31591430cde",
+  canonical_recommendation_identity_contract:
+    "dff476d941ecdf3246421101694033968624b52f1b4d1a6444daf3ed4d63c215",
+  canonical_recommendation_identity_source:
+    "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
   evaluator:
     "8c0854aad8a1d53dc06340d0984ebe786ea2d960265ecf49f5366d2a74de5be6",
 } as const;
@@ -47,16 +53,22 @@ const sourcePaths = {
     "supabase/migrations/20260724001500_create_transactional_open_position_command.sql",
   dependency_gate:
     "docs/action-655a-server-owned-trade-management-dependency-gate.json",
+  trade_management_contract_manifest:
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json",
+  canonical_recommendation_identity_contract:
+    "docs/action-664a-canonical-recommendation-evaluation-contract.md",
+  canonical_recommendation_identity_source:
+    "lib/canonical-recommendation-evaluation.ts",
   evaluator: "lib/action-655b-canonical-exit-evaluator.ts",
 } as const;
 
 const documentHashes = {
   [actionPath]:
-    "1b01661747fb21a9cc3ba64c25fa349b8d39808d2e52efc2161a890c029c6509",
+    "be11d2beca725a1bde42382543f29a09a66ec8e1e58758aaee66fefafa6fa24d",
   [ledgerPath]:
-    "0a2ef1f079c9e73ae0f39f3b8046e9fe26dd1953a9a3f002d0776e7d6974f92c",
+    "a0a64f00dbee80efe8a495fb00ea97c1a1707df1c98a1e2b8f8dcdb9a54bfed2",
   [roadmapPath]:
-    "ec2824f5ef45178b77c437903fc42a39452570b04ca2eb37451612f4ef550e26",
+    "be3c87b016a8045bc0c3c8fcb75bb6a67f26d538e7a6f1a17b8e4fd22006e9d5",
 } as const;
 
 async function source(relativePath: string) {
@@ -166,6 +178,10 @@ function currentSchemaFromCatalog(providerCatalog: ProviderCatalog) {
       "application_open_owned_position_v1",
     owner_bound_open_position_command_verifies_durable_recommendation_lineage:
       false,
+    exit_evaluator_recommendation_identity_pattern:
+      "^rec_decision:v1:[0-9a-f]{64}$",
+    exit_evaluator_identity_matches_canonical_recommendation_identity_v1:
+      false,
     position_version_schema_status: "absent_unresolved",
   };
 }
@@ -203,6 +219,18 @@ function expectedEvidence(currentSchema: ReturnType<typeof currentSchemaFromCata
       transaction_migration_sha256: sourceHashes.transaction_migration,
       dependency_gate_path: sourcePaths.dependency_gate,
       dependency_gate_sha256: sourceHashes.dependency_gate,
+      trade_management_contract_manifest_path:
+        sourcePaths.trade_management_contract_manifest,
+      trade_management_contract_manifest_sha256:
+        sourceHashes.trade_management_contract_manifest,
+      canonical_recommendation_identity_contract_path:
+        sourcePaths.canonical_recommendation_identity_contract,
+      canonical_recommendation_identity_contract_sha256:
+        sourceHashes.canonical_recommendation_identity_contract,
+      canonical_recommendation_identity_source_path:
+        sourcePaths.canonical_recommendation_identity_source,
+      canonical_recommendation_identity_source_sha256:
+        sourceHashes.canonical_recommendation_identity_source,
       evaluator_path: sourcePaths.evaluator,
       evaluator_sha256: sourceHashes.evaluator,
     },
@@ -212,7 +240,10 @@ function expectedEvidence(currentSchema: ReturnType<typeof currentSchemaFromCata
       version_sql_type: "bigint",
       minimum_version: 1,
       maximum_version: 9007199254740991,
-      recommendation_identity_pattern: "^rec_decision:v1:[0-9a-f]{64}$",
+      recommendation_identity_contract:
+        "canonical_recommendation_identity_v1",
+      recommendation_identity_shape:
+        "rec_decision:v1:<encoded source namespace>:<encoded producer decision id>:<decision epoch milliseconds>",
       digest_pattern: "^[0-9a-f]{64}$",
       recommendations_required_columns: [
         "recommendation_version",
@@ -226,11 +257,14 @@ function expectedEvidence(currentSchema: ReturnType<typeof currentSchemaFromCata
         "recommendation_normative_digest",
       ],
       positions_recommendation_id_not_null_after_backfill: true,
-      exact_position_version_key: [
+      current_position_compare_and_swap_tuple: [
         "id",
         "owner_user_id",
         "position_version",
       ],
+      current_position_row_is_version_reference_target: false,
+      append_only_position_version_history_required_for_version_bound_references:
+        true,
       initial_position_version: 1,
       mutation_increment: 1,
       owner_scoped_compare_and_swap_required: true,
@@ -256,6 +290,8 @@ function expectedEvidence(currentSchema: ReturnType<typeof currentSchemaFromCata
     migration_gates: {
       read_only_legacy_row_inventory_required: true,
       deterministic_backfill_contract_required: true,
+      exit_evaluator_identity_contract_reconciliation_required: true,
+      immutable_position_version_history_design_required: true,
       source_migration_review_required: true,
       isolated_staging_apply_required: true,
       cross_owner_and_stale_version_tests_required: true,
@@ -267,6 +303,8 @@ function expectedEvidence(currentSchema: ReturnType<typeof currentSchemaFromCata
         "position_version_schema_migration_design_and_read_only_backfill_preflight",
     },
     preserved_separate_blockers: [
+      "exit_evaluator_recommendation_identity_contract",
+      "append_only_position_version_history",
       "market_observation_provenance",
       "durable_exit_queue_schema",
       "transactional_recommendation_position_runtime_handoff",
@@ -359,13 +397,26 @@ test("binds catalog, generated types, migrations and the evaluator contract", as
     expect(sha256(await source(sourcePaths[key]))).toBe(sourceHashes[key]);
   }
 
-  const [rawCatalog, generatedTypes, ownerMigration, transactionMigration, dependencyRaw, evaluator] =
+  const [
+    rawCatalog,
+    generatedTypes,
+    ownerMigration,
+    transactionMigration,
+    dependencyRaw,
+    tradeManagementManifestRaw,
+    canonicalIdentityContract,
+    canonicalIdentitySource,
+    evaluator,
+  ] =
     await Promise.all([
       source(sourcePaths.provider_catalog),
       source(sourcePaths.generated_types),
       source(sourcePaths.owner_migration),
       source(sourcePaths.transaction_migration),
       source(sourcePaths.dependency_gate),
+      source(sourcePaths.trade_management_contract_manifest),
+      source(sourcePaths.canonical_recommendation_identity_contract),
+      source(sourcePaths.canonical_recommendation_identity_source),
       source(sourcePaths.evaluator),
     ]);
   const current = currentSchemaFromCatalog(
@@ -391,6 +442,20 @@ test("binds catalog, generated types, migrations and the evaluator contract", as
   expect(ownerMigration).toContain("application_open_owned_position_v1");
   expect(ownerMigration).not.toContain("durable_recommendation_version");
   expect(transactionMigration).toContain("application_open_position_v1");
+
+  expect(canonicalIdentityContract).toContain(
+    "rec_decision:v1:<encoded source namespace>:<encoded producer decision id>:<decision epoch milliseconds>",
+  );
+  expect(canonicalIdentitySource).toContain("encodeURIComponent(sourceNamespace)");
+  expect(canonicalIdentitySource).toContain("encodeURIComponent(decisionId)");
+  const tradeManagementManifest = JSON.parse(tradeManagementManifestRaw) as {
+    existing_identity_reuse: Record<string, string>;
+  };
+  expect(tradeManagementManifest.existing_identity_reuse).toMatchObject({
+    recommendation_identity:
+      "rec_decision:v1_with_required_durable_row_binding",
+  });
+  expect(evaluator).toContain("!/^rec_decision:v1:[0-9a-f]{64}$/.test");
 
   const dependencyGate = JSON.parse(dependencyRaw) as {
     dependencies: Array<Record<string, unknown>>;
