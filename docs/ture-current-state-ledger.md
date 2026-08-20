@@ -1,13 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 660K — cost-bounded provider-free verification scheduling.**
+**ACTION 660L — Next.js security release gate.**
 
-**Evidence timestamp:** 2026-08-20. This provider-free CI-governance successor
-preserves verified GitHub branch protection and the manual MA-13 control,
-starts from the ordinary delivery of PR #121 and keeps the frozen Milestone B
-position/recommendation version target unchanged. It authorizes no runtime,
-production, provider data, database, migration, broker, training, promotion or
-release activity.
+**Evidence timestamp:** 2026-08-20. This source-only security release candidate
+starts from the ordinary delivery of PR #124, preserves its cost-bounded
+provider-free CI scheduling, upgrades Next.js to `16.3.1`, and keeps the frozen
+Milestone B position/recommendation version target unchanged. It authorizes no
+merge, runtime, production, provider data, database, migration, broker,
+training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -16,10 +16,10 @@ release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `466e95318a6feb1418ec60bfced98703183ccc54` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #121 | corroborated_current |
-| Protected pre-delivery main tree | `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82` | canonical_current |
-| Protected pre-delivery main parents | `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a`, `cd36389cfffe42aa91842ce6358726e3a713ed0a` | canonical_current |
+| GitHub protected pre-delivery main base | `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #124 | corroborated_current |
+| Protected pre-delivery main tree | `2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7` | canonical_current |
+| Protected pre-delivery main parents | `466e95318a6feb1418ec60bfced98703183ccc54`, `93bedb2965c4aebb09c3e8a6a46676921501fce0` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -48,7 +48,8 @@ release activity.
 | PR #119 | MERGED; reviewed head `7892bced…`; merge `e9c33551…`; Action 666CZ | corroborated_current |
 | PR #120 | MERGED; reviewed head `93ca8bd4…`; merge `c67ec928…`; Action 666DA | corroborated_current |
 | PR #121 | MERGED; reviewed head `cd36389c…`; merge `466e9531…`; Action 666DB | corroborated_current |
-| Exact-main CI | run `32359092838`, push, head `466e9531…`, completed/success | verified_current |
+| PR #124 | MERGED; reviewed head `93bedb29…`; merge `6ef40e52…`; Action 660K | corroborated_current |
+| Exact-main CI | run `32372291563`, push, head `6ef40e52…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -63,7 +64,7 @@ release activity.
 | Published production deploy | Netlify `6a7b9e45ceb7e100087c55fa` | latest_authenticated_provider_evidence |
 | Published production commit | `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `f463644ddeb7f49fa8b80924d9103ea8970ccae4` | exact_identity_match |
-| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `466e95318a6feb1418ec60bfced98703183ccc54`; the commits are not equal because PRs #99, #100, #109, #114, #116, #120 and #121 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
+| Production-to-main Git relation | production `f463644ddeb7f49fa8b80924d9103ea8970ccae4` is the first-parent ancestor of protected pre-delivery main `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`; the commits are not equal because PRs #99, #100, #109, #114, #116, #120, #121 and #124 advanced governance/planning and PRs #101 through #108, #110 through #113, #115 and #117 through #119 delivered provider-free, runtime-unwired source without a production publish | verified_current; production_behind_non_production_main |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
 | Supabase project | `ekdyopdrrkphlrsilyoo` | checksum_bound_read_only_evidence |
@@ -83,13 +84,20 @@ production-release mutation.
 Automatic non-production previews grant no
 authority.
 
-Action 660K is a scheduling-only cost-control candidate. Draft pushes receive
+Action 660K is delivered scheduling-only cost control. Draft pushes receive
 quick provider-free feedback under the distinct non-protected job name
 `draft-provider-free-verification`, while the protected
 `provider-free-verification` aggregate fails because its full six-shard matrix
 is skipped. A Ready transition, every later Ready push and every `main` push
 must run the complete matrix before that protected aggregate may succeed. A
 quick Draft result can never authorize merge.
+
+Action 660L is a source-only security release candidate. It upgrades `next`
+and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the npm lock graph
+to zero audit findings, corrects six stale proxy expectations without changing
+`proxy.ts`, and adds one full-Ready/main dependency-audit and production-build
+gate to the foundation shard. Production remains at deploy `6a7b9e45…` and
+commit `f463644d…`; merge and production deployment are not authorized here.
 
 ## Milestone A gate ledger
 
@@ -133,7 +141,7 @@ the last verified production commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. Exact-main CI run
 `31541394848` and Netlify deploy `6a7b9e45ceb7e100087c55fa` identify that
 commit. Protected pre-delivery main
-`466e95318a6feb1418ec60bfced98703183ccc54` is a governance/planning and
+`6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` is a governance/planning and
 provider-free Track 2 successor and has no recorded production publish.
 
 MA-15 is `verified_current`: PR #98 delivered the exact Action 660F owner-bound
@@ -217,8 +225,9 @@ schema and transactional runtime handoff remain separate blockers.
   `6a7b9e45…`. PRs #99, #100 and #109 then advanced governance, and
   provider-free PRs #101 through #108, #110 through #113, #115 and #117 through
   #119 advanced current main first to `cdf03e54…` and then `e9c33551…`; PR
-  #120 advanced governance/planning to `c67ec928…`, and PR #121 delivered the
-  bounded position-version reconciliation at `466e953…`;
+  #120 advanced governance/planning to `c67ec928…`, PR #121 delivered the
+  bounded position-version reconciliation at `466e953…`, and PR #124 delivered
+  cost-bounded CI scheduling at `6ef40e52…`;
   production remains at its first-parent ancestor `f463644d…`.
 - The former Track 2 classification `current-main foundation delivered; integrity/provenance successor open`
   is superseded by

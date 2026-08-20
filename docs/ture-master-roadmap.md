@@ -1,39 +1,46 @@
 # Ture Master Roadmap
 
-**ACTION 660K — cost-bounded provider-free verification scheduling.**
+**ACTION 660L — Next.js security release gate.**
 
-**Document status:** protected-main CI-governance reconciliation through the
-ordinary, provider-free delivery of PR #121. It preserves verified GitHub
-branch protection and the Action 660H manual control, keeps the first
-owner-bound position/recommendation version target frozen and grants no
-migration, runtime, provider, production, database-write, broker, training or
-promotion authority.
+**Document status:** source-only security release reconciliation through the
+ordinary delivery of PR #124. It preserves verified GitHub branch protection,
+the Action 660H manual control and Action 660K cost-bounded CI scheduling,
+keeps the first owner-bound position/recommendation version target frozen and
+grants no merge, migration, runtime, provider, production, database-write,
+broker, training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`466e95318a6feb1418ec60bfced98703183ccc54`, tree
-`cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`, observed on 2026-08-20.
+`6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`, tree
+`2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7`, observed on 2026-08-20.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #121, with parents
-`c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` and
-`cd36389cfffe42aa91842ce6358726e3a713ed0a`. Exact-main push run
-`32359092838` completed successfully. PRs #100 through #121 form one verified
+The reconciliation base is the ordinary merge of PR #124, with parents
+`466e95318a6feb1418ec60bfced98703183ccc54` and
+`93bedb2965c4aebb09c3e8a6a46676921501fce0`. Exact-main push run
+`32372291563` completed successfully. PRs #100 through #121 and PR #124 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
 historical non-authority and must remain unmodified.
 
-Action 660K is a scheduling-only cost-control candidate. Draft pushes receive
+Action 660K is delivered scheduling-only cost control. Draft pushes receive
 quick provider-free feedback under a distinct non-protected job, while the
 protected `provider-free-verification` aggregate remains fail-closed because
 the full matrix is skipped. Making the PR Ready, every later Ready push and
 every push to `main` automatically requires the complete six-shard matrix. A
 quick Draft result can never authorize merge or change product authority.
+
+Action 660L is a source-only security release candidate. It upgrades Next.js
+and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the installed npm
+graph to zero audit findings, corrects six stale proxy expectations without a
+runtime proxy change, and adds one audit/build gate to full Ready and `main`
+foundation verification. The quick Draft route remains cost-bounded and cannot
+authorize merge. Production deployment remains a separate explicit decision.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -288,9 +295,9 @@ the candidate changes either boundary.
 The latest authenticated Netlify readback identifies published deploy
 `6a7b9e45ceb7e100087c55fa` and its production assertion at full commit
 `f463644ddeb7f49fa8b80924d9103ea8970ccae4`. The protected GitHub `main` base
-is `466e95318a6feb1418ec60bfced98703183ccc54`; the production commit is its
+is `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a`; the production commit is its
 first-parent ancestor and is not equal to it because PRs #99, #100, #109,
-#114, #116, #120 and #121 advanced governance/planning and PRs #101 through #108,
+#114, #116, #120, #121 and #124 advanced governance/planning and PRs #101 through #108,
 #110 through #113, #115 and #117 through #119 delivered provider-free,
 runtime-unwired Track 2 source without a production publish. The
 production commit's CI and required post-deploy reads are green. This
@@ -345,9 +352,11 @@ remains private on GitHub Pro. MA-13 is therefore `verified_current`; Action
   `e9c3355125a54f4f9ba55ada2ac55fc91b184647` /
   `3037abfe27899bcd2c9abea215c80c459a7213b5`, then by protected main
   `c67ec9280bf5b4ff9f57930f79b7e62bd4ec750a` /
-  tree `96012987bf59322f2a4b27202a6946ee668f4556`, and now by protected
-  pre-delivery main `466e95318a6feb1418ec60bfced98703183ccc54` /
-  tree `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`.
+  tree `96012987bf59322f2a4b27202a6946ee668f4556`, then by protected main
+  `466e95318a6feb1418ec60bfced98703183ccc54` /
+  `cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82`, and now by protected
+  pre-delivery main `6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a` /
+  tree `2f4d282dd3fc867d96b5dac2dcdcc59c50d6f8a7`.
 - PR #86's former Ready/unmerged state, PR #89's former Draft/unmerged state
   and PRs #90, #91 and #92's former Draft delivery states are superseded by
   their respective merges. PR #92's former current-main state is superseded by

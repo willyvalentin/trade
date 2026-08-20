@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(__dirname, "../..");
 const evidencePath =
   "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json";
 const evidenceSha256 =
-  "8fe5c65ef6bbf1fa99f0169404f15b9c40d8562ad893d7d92ac240d8aa3b4a26";
+  "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995";
 const actionPath =
   "docs/action-666db-current-main-position-version-schema-reconciliation.md";
 const roadmapPath = "docs/ture-master-roadmap.md";
@@ -66,9 +66,9 @@ const documentHashes = {
   [actionPath]:
     "be11d2beca725a1bde42382543f29a09a66ec8e1e58758aaee66fefafa6fa24d",
   [ledgerPath]:
-    "22a65a252e828829db94e0f5e5d8a2c9b775c28f224115b81af7d2c8965f1c19",
+    "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
   [roadmapPath]:
-    "32933942a4f271b57a878fe06cc08bacfec687cb36e2fe5dfaca10a7d1406b08",
+    "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c",
 } as const;
 
 async function source(relativePath: string) {
