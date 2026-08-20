@@ -91,6 +91,8 @@
     "tests/e2e/api-auth-middleware-boundary-audit.spec.ts": "0ff7215125f04a23766c1f2e78934161de3ed213aa50f40f621b9fdddc5bf043",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "caa7bfaf463a0ebbc3c5dd3b75103332b1d6cd6cd5b1ebec4fd3fd716d7558a7",
     "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "18db420f7667f8cf1280040ec71f7f2ab416da47066c1393d2d61b80026facf1",
+    "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
+    "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
     "docs/action-660l-next-security-release-gate.md": "9f48eff38211793bb0be6bd68facb452f537a71b5667f99ced17a7104e26da55",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"

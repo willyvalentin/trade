@@ -13,7 +13,7 @@ const draftRunnerPath = "scripts/action-660k-run-draft-ci.mjs";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "b2ba9a1c2105ee2764a8fbb5d1e743fbe4c915f5dc00ab8758c4e3ba5219d3ec";
+  "b7ad4d3aced53da86e54ed03d205dbbcc68588b3554a26c44edd65a6db692e5a";
 
 const sourcePaths = [
   "package.json",
@@ -29,6 +29,8 @@ const sourcePaths = [
   "tests/e2e/api-auth-middleware-boundary-audit.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json",
+  "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
   contractPath,
   "docs/ture-current-state-ledger.md",
   "docs/ture-master-roadmap.md",
