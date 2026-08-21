@@ -20,7 +20,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666df-canonical-recommendation-identity-reconciliation.spec.ts";
 const evidenceSha256 =
-  "bd393b8cbb62534793c4e3c2cc8da078a64da0b086af8b314798bc1817d049a8";
+  "e8447a019d7c0fc186f753529320b6616477fd7712b1ecd2238ecf5c17116893";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -105,7 +105,8 @@ test("pins the exact Action 666DF reconciliation evidence and source bytes", asy
     control_characters_forbidden: true,
     encoded_components_must_round_trip: true,
     epoch_milliseconds_must_be_safe_exact_integer: true,
-    utc_four_digit_year_required: true,
+    utc_instant_reconstructs_from_safe_epoch: true,
+    extended_utc_years_from_valid_action_664a_offsets_accepted: true,
     legacy_hash_suffix_identity_rejected: true,
   });
   for (const [relativePath, expectedSha256] of Object.entries(
@@ -147,6 +148,16 @@ test("accepts every rebuilt Action 664A identity and rejects every noncanonical 
       source_namespace: "source_1.v2",
       decision_id: "idé !()'*-._~",
       decided_at: "1969-12-31T23:59:59.999Z",
+    },
+    {
+      source_namespace: "a",
+      decision_id: "x",
+      decided_at: "0000-01-01T00:00:00+14:00",
+    },
+    {
+      source_namespace: "a",
+      decision_id: "x",
+      decided_at: "9999-12-31T23:59:59.999-14:00",
     },
   ] as const;
 

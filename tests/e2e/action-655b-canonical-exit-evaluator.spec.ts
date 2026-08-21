@@ -104,22 +104,36 @@ test("default-off returns deterministic verified-context refusal", () => {
 });
 
 test("655G accepts only an exact Action 664A canonical recommendation identity", () => {
-  const identity = buildCanonicalRecommendationIdentity({
-    source_namespace: "recommendation_snapshot",
-    decision_id: "golden:decision:001",
-    decided_at: "2026-07-08T13:32:00.000Z",
-  });
-  expect(identity.ok).toBe(true);
-  if (!identity.ok) return;
+  for (const input of [
+    {
+      source_namespace: "recommendation_snapshot",
+      decision_id: "golden:decision:001",
+      decided_at: "2026-07-08T13:32:00.000Z",
+    },
+    {
+      source_namespace: "a",
+      decision_id: "x",
+      decided_at: "0000-01-01T00:00:00+14:00",
+    },
+    {
+      source_namespace: "a",
+      decision_id: "x",
+      decided_at: "9999-12-31T23:59:59.999-14:00",
+    },
+  ] as const) {
+    const identity = buildCanonicalRecommendationIdentity(input);
+    expect(identity.ok, JSON.stringify(input)).toBe(true);
+    if (!identity.ok) continue;
 
-  expect(
-    evaluateAction655bCanonicalExitDecision(
-      buildAction655bCanonicalInput({
-        position: { recommendation_identity: identity.value.value },
-      }),
-      true,
-    ).result_kind,
-  ).toBe("decision");
+    expect(
+      evaluateAction655bCanonicalExitDecision(
+        buildAction655bCanonicalInput({
+          position: { recommendation_identity: identity.value.value },
+        }),
+        true,
+      ).result_kind,
+    ).toBe("decision");
+  }
 
   for (const recommendationIdentity of [
     `rec_decision:v1:${"b".repeat(64)}`,

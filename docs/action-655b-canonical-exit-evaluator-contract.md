@@ -26,9 +26,11 @@ rec_decision:v1:<encoded source namespace>:<encoded decision id>:<decision epoch
 
 The evaluator decodes the two encoded components, requires a canonical source
 namespace and canonical NFC decision ID, requires a safe exact epoch integer
-that reconstructs to a four-digit UTC ISO instant, then reconstructs the five
-segments with `encodeURIComponent` and the canonical epoch. The rebuilt text
-must equal the supplied text byte-for-byte. Thus unescaped separators,
+that reconstructs to a valid UTC ISO instant, then reconstructs the five
+segments with `encodeURIComponent` and the canonical epoch. A permitted
+four-digit Action 664A input whose offset crosses a UTC year boundary may
+canonically reconstruct with an extended UTC year. The rebuilt text must equal
+the supplied text byte-for-byte. Thus unescaped separators,
 lowercase or malformed percent escapes, noncanonical whitespace/control text,
 leading-zero epoch values, out-of-range dates and all legacy hash-suffix
 values fail at `/position_snapshot/recommendation_identity` before identity or

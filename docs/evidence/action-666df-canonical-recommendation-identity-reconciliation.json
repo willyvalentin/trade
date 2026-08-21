@@ -24,7 +24,8 @@
     "control_characters_forbidden": true,
     "encoded_components_must_round_trip": true,
     "epoch_milliseconds_must_be_safe_exact_integer": true,
-    "utc_four_digit_year_required": true,
+    "utc_instant_reconstructs_from_safe_epoch": true,
+    "extended_utc_years_from_valid_action_664a_offsets_accepted": true,
     "legacy_hash_suffix_identity_rejected": true
   },
   "reconciliation": {
@@ -37,20 +38,20 @@
     "refrozen_digest_vectors_required": true
   },
   "source_sha256": {
-    "docs/action-666df-canonical-recommendation-identity-reconciliation.md": "932a840b79ca4174ac8254255ca22fb2bd8520f09e32d128b838def728d1a213",
-    "docs/action-655b-canonical-exit-evaluator-contract.md": "af4dba96faf73495e3bdc65ddcbeb15c079c88e9c667d9cc1ac79bd929d853b2",
-    "docs/action-655b-canonical-exit-evaluator-golden-report.json": "759d27edc7e5c0f88dbb02320088b7c08c63ff410af75e14bda51042d0730e22",
-    "lib/action-655b-canonical-exit-evaluator.ts": "c53c4e1e69a8a2082566b3c46ad1ab5618debe0b799270066365f5803b28286e",
+    "docs/action-666df-canonical-recommendation-identity-reconciliation.md": "a86e9b3bb781e6ebf0373da4faf9bc9e4ed8d4e100b4010b124a73eed3a8e545",
+    "docs/action-655b-canonical-exit-evaluator-contract.md": "ea0379f3b3f0e5b1a4a92e2ede318b42d0fd7ed242e2bba4166508f42c6c6ec0",
+    "docs/action-655b-canonical-exit-evaluator-golden-report.json": "559e64efb30264d8b236d49be2f43d444a67a31b98fe9cf33a60f42eb43b82cc",
+    "lib/action-655b-canonical-exit-evaluator.ts": "0dc6a301f9206ddc1ef2ad037aa104dcd1a715c61f84fb6cfd0e775364626772",
     "lib/canonical-recommendation-evaluation.ts": "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
-    "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts": "b0bc35bad3164857312ea92d44313157453c237d49fe91a6f3cb36a68d49606e",
+    "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts": "ec1fcd835ddae8b03be0e59c77f891e5bcdb8f641201ea916e912b504835c4af",
     "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts": "e6c38233b74b3bf6fcb2b8907bf61c7cdf0f3a479c88462cb401f9a34e9ea3f6",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "f2677d5f89a0489c09a4d5a469d1edd2c000cfa0d891cd680d99415975164cd1",
     "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts": "00732a1d3350aa12e004ddb76c3166d2ffba8a056adb8f7fef458ce0fd310503",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "be0c614cecf016709464415db27b2c9371d65ab6b0b94ab2941365267107db3e",
     "scripts/action-660j-provider-free-ci-registration.json": "1a617c1967f00413925f442f095aeb8353e082776aa53901153dd8c4cf3b1a59",
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "8a82d837c95df5f6458bda8432b7e1ff91721e8d30ba2eace131bf51ecc74390",
-    "docs/ture-master-roadmap.md": "9d46497420a64987cd85dd58c72d551d7e8eb46f767c66d55db69023e93e7a43",
-    "docs/ture-current-state-ledger.md": "9c27b27489288dc30d6f86ad16ccde90ac4181545ab9bacceef3743de77d560d"
+    "docs/ture-master-roadmap.md": "2fbe980b529f63ecbc7a17bc6e3a515d24929e5471103a268f60485f5ed779e2",
+    "docs/ture-current-state-ledger.md": "3ab22f7e361bea845f92abaaaf80bfd2602da4467ae413951f735084f4280a70"
   },
   "authority_limits": {
     "database_query_authorized": false,

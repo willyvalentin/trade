@@ -35,8 +35,9 @@ Action 655G now accepts an identity only when all of the following hold:
 3. the decoded namespace meets Action 664A's canonical namespace grammar;
 4. the decoded decision ID is nonempty, no longer than 240 UTF-16 code units,
    trimmed, NFC and free of control characters;
-5. the epoch is one exact safe integer that reconstructs to a four-digit UTC
-   ISO instant; and
+5. the epoch is one exact safe integer that reconstructs to a valid UTC ISO
+   instant; a permitted four-digit Action 664A input whose offset crosses a
+   UTC year boundary may reconstruct with an extended UTC year; and
 6. re-encoding the decoded values with `encodeURIComponent` and
    `Date.parse(canonicalUtcInstant)` reproduces the supplied identity
    byte-for-byte.

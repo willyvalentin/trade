@@ -887,7 +887,6 @@ function isCanonicalRecommendationIdentity(value: unknown): boolean {
   if (Number.isNaN(decidedAt.getTime())) return false;
   const canonicalDecidedAt = decidedAt.toISOString();
   if (
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(canonicalDecidedAt) ||
     !canonicalRecommendationIdentitySourceNamespace.test(sourceNamespace) ||
     decisionId.length === 0 ||
     decisionId.length > 240 ||
