@@ -92,17 +92,17 @@ case-folded or substituted values are never equivalent. Text must be NFC,
 control-character-free UTF-8 and preserve its exact code points. A numeric
 source value is handled as lossless decimal text, never a JavaScript number.
 Its accepted input grammar is exactly
-`^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$`. Normalization first removes every
+`^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$`. Normalization first removes every
 trailing fractional zero, then removes the decimal point if no fractional
 digits remain, and finally maps either signed or unsigned zero magnitude to
 `0`. Its canonical output grammar is exactly
-`^(?:0|-?[1-9][0-9]*(?:\\.[0-9]*[1-9])?)$`.
+`^(?:0|-?(?:0\.[0-9]*[1-9]|[1-9][0-9]*(?:\.[0-9]*[1-9])?))$`.
 
 The following vectors are normative: `1.0 -> 1`, `0.0 -> 0`, `-0.0 -> 0`,
-`-0 -> 0`, `-1.2300 -> -1.23`, and `100.0100 -> 100.01`. Thus no canonical
-value ends in a decimal point or a fractional zero. `1.`, `.1`, `00`, `01`,
-`-01`, `+1`, exponent notation, `NaN`, infinity, locale formatting, rounding
-and precision loss fail closed.
+`-0 -> 0`, `0.10 -> 0.1`, `-0.0100 -> -0.01`, `-1.2300 -> -1.23`, and
+`100.0100 -> 100.01`. Thus no canonical value ends in a decimal point or a
+fractional zero. `1.`, `.1`, `00`, `01`, `-01`, `+1`, exponent notation,
+`NaN`, infinity, locale formatting, rounding and precision loss fail closed.
 
 The later server implementation must construct this frame from the locked row,
 first reject any noncanonical member, then compare its raw bytes with its

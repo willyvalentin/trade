@@ -20,7 +20,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666de-deterministic-recommendation-lineage-backfill-contract.spec.ts";
 const evidenceSha256 =
-  "dc937787c66baf1f65032dc0e5830c0a8748ec546c9080f3e70d04cb93bb02cf";
+  "57929c87c4faa10dcd89d3b30360c10789487c8897409bc180655499fc8df5f5";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -38,7 +38,8 @@ function sha256(value: string) {
 }
 
 const decimalInputPattern = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
-const decimalOutputPattern = /^(?:0|-?[1-9][0-9]*(?:\.[0-9]*[1-9])?)$/;
+const decimalOutputPattern =
+  /^(?:0|-?(?:0\.[0-9]*[1-9]|[1-9][0-9]*(?:\.[0-9]*[1-9])?))$/;
 
 function normalizeLosslessDecimalText(input: string) {
   if (!decimalInputPattern.test(input)) {
@@ -164,7 +165,11 @@ test("reuses the existing Action 664A identity builder without an inferred legac
 });
 
 test("freezes a closed lossless normative digest frame and bounded owner batches", async () => {
-  const evidence = JSON.parse(await source(evidencePath)) as Evidence;
+  const [evidenceRaw, action] = await Promise.all([
+    source(evidencePath),
+    source(actionPath),
+  ]);
+  const evidence = JSON.parse(evidenceRaw) as Evidence;
   expect(evidence.normative_digest).toEqual({
     contract_version: "legacy_recommendation_normative_projection_v1",
     domain: "trade.legacy_recommendation_normative_digest.v1",
@@ -205,12 +210,15 @@ test("freezes a closed lossless normative digest frame and bounded owner batches
         "remove_empty_fractional_separator",
         "normalize_zero_magnitude_sign",
       ],
-      output_grammar: "^(?:0|-?[1-9][0-9]*(?:\\.[0-9]*[1-9])?)$",
+      output_grammar:
+        "^(?:0|-?(?:0\\.[0-9]*[1-9]|[1-9][0-9]*(?:\\.[0-9]*[1-9])?))$",
       accepted_vectors: [
         { input: "1.0", canonical: "1" },
         { input: "0.0", canonical: "0" },
         { input: "-0.0", canonical: "0" },
         { input: "-0", canonical: "0" },
+        { input: "0.10", canonical: "0.1" },
+        { input: "-0.0100", canonical: "-0.01" },
         { input: "-1.2300", canonical: "-1.23" },
         { input: "100.0100", canonical: "100.01" },
       ],
@@ -243,6 +251,14 @@ test("freezes a closed lossless normative digest frame and bounded owner batches
       "noncanonical_decimal_input",
     );
   }
+  expect(action).toContain(
+    "`^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$`",
+  );
+  expect(action).toContain(
+    "`^(?:0|-?(?:0\\.[0-9]*[1-9]|[1-9][0-9]*(?:\\.[0-9]*[1-9])?))$`",
+  );
+  expect(action).toContain("`0.10 -> 0.1`");
+  expect(action).toContain("`-0.0100 -> -0.01`");
   expect(evidence.future_batch_contract).toEqual({
     execution_authorized: false,
     exclusive_server_migration_lock_required: true,

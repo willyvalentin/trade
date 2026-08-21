@@ -65,7 +65,7 @@
         "remove_empty_fractional_separator",
         "normalize_zero_magnitude_sign"
       ],
-      "output_grammar": "^(?:0|-?[1-9][0-9]*(?:\\.[0-9]*[1-9])?)$",
+      "output_grammar": "^(?:0|-?(?:0\\.[0-9]*[1-9]|[1-9][0-9]*(?:\\.[0-9]*[1-9])?))$",
       "accepted_vectors": [
         {
           "input": "1.0",
@@ -82,6 +82,14 @@
         {
           "input": "-0",
           "canonical": "0"
+        },
+        {
+          "input": "0.10",
+          "canonical": "0.1"
+        },
+        {
+          "input": "-0.0100",
+          "canonical": "-0.01"
         },
         {
           "input": "-1.2300",

@@ -340,13 +340,13 @@ The latest authenticated Netlify readback identifies published deploy
 `6a871d6b27fb2100082f16f9` and its production assertion at full commit
 `dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
 is now its ordinary first-parent descendant
-`cb501d3ad3626be1bb13429a9791574a2040b64e`, tree
-`3f4a962de0f8ee49e86e096a21b7084dedf0b27b`, after governance-only PRs #126
-and #127.
+`ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, tree
+`b9b02c7b55daa2719fe28241c170f056537e0b18`, after governance/preflight-only
+PRs #126–#128.
 The deploy is ready, locked, production-context, main-branch, plugin-success
 and has zero ordinary/enhanced secrets findings. Exact-main CI and required
 post-publication reads are green. Production is not asserted equal to current
-main after PR #127, and this reconciliation candidate authorizes no further
+main after PR #128, and this reconciliation candidate authorizes no further
 production deployment. Automatic
 `netlify/trade-vl/deploy-preview` statuses are non-production previews and
 carry no release or provider authority.
