@@ -24,7 +24,7 @@ const action666dgTest =
   "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts";
 const action666dhTest =
   "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts";
-const evidenceSha256 = "e9be59be9f3896d372d9b984dadfa5982bbe13e154ba2a2c38fa383964798e54";
+const evidenceSha256 = "0208dde3f13c4c16140408b78f8e2692d7f76e4a56693b8d08cc0a9d469cf17a";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -54,6 +54,7 @@ function hasRequiredMigrationBoundary(sql: string) {
     "references public.positions (id, owner_user_id)",
     "foreign key (recommendation_id, owner_user_id)",
     "references public.recommendations (id, owner_user_id)",
+    "and index_record.indimmediate",
     "on delete restrict",
     "position_version_history_position_version_safe_range_check",
     "position_version between 1 and 9007199254740991",
@@ -122,7 +123,7 @@ test("freezes the owner-bound, append-only schema boundary", async () => {
   const evidence = JSON.parse(await source(evidencePath)) as Evidence;
   expect(evidence.migration).toEqual({
     path: migrationPath,
-    sha256: "157197f30250af99621bd82c737ba4e87800252742c62f60dd29fe41e4b3fa81",
+    sha256: "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f",
     relation: "public.position_version_history",
     explicit_transaction_control: false,
     create_index_concurrently: false,
@@ -131,6 +132,7 @@ test("freezes the owner-bound, append-only schema boundary", async () => {
     durable_identity_columns: ["position_id", "owner_user_id", "position_version"],
     parent_reference: "public.positions(id, owner_user_id)",
     recommendation_reference: "public.recommendations(id, owner_user_id)",
+    foreign_key_parent_targets_immediate: true,
     restrictive_deletes: true,
     safe_integer_range: [1, 9007199254740991],
     sha256_lowercase_hex_required: true,
@@ -145,6 +147,7 @@ test("freezes the owner-bound, append-only schema boundary", async () => {
 
   const sql = await source(migrationPath);
   expect(hasRequiredMigrationBoundary(sql)).toBe(true);
+  expect(normalized(sql).match(/and index_record\.indimmediate/g)).toHaveLength(3);
   expect(normalized(sql)).not.toContain("create index concurrently");
   expect(normalized(sql)).not.toMatch(/\binsert\s+into\b/);
   expect(normalized(sql)).not.toMatch(/\bupdate\s+public\.positions\b/);
@@ -166,6 +169,7 @@ test("rejects source drift that removes catalog, RLS or append-only proofs", asy
     ),
     sql.replace("before update or delete on public.position_version_history", "before update on public.position_version_history"),
     sql.replace("position_state_digest ~ '^[0-9a-f]{64}$'", "position_state_digest is not null"),
+    sql.replaceAll("and index_record.indimmediate", ""),
   ]) {
     expect(mutation).not.toBe(sql);
     expect(hasRequiredMigrationBoundary(mutation)).toBe(false);

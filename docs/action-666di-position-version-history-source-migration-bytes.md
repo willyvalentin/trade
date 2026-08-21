@@ -27,9 +27,11 @@ source-migration additions.
 ## Frozen SQL boundary
 
 The migration has no explicit `BEGIN`/`COMMIT`, no `CREATE INDEX
-CONCURRENTLY`, and no DML. It first proves or creates the exact valid unique
-parent target `public.positions(id, owner_user_id)`, then proves the matching
-owner-bound recommendation target. It creates the history table with:
+CONCURRENTLY`, and no DML. It first proves or creates the exact valid,
+immediate unique parent target `public.positions(id, owner_user_id)`, then
+proves the matching owner-bound recommendation target. A deferrable unique
+key is rejected because it cannot be a foreign-key target. It creates the
+history table with:
 
 - composite primary key `(position_id, owner_user_id, position_version)`;
 - restrictive, owner-bound foreign keys to both `positions(id, owner_user_id)`

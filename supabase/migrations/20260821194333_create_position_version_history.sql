@@ -18,6 +18,7 @@ begin
       and index_record.indisunique
       and index_record.indisvalid
       and index_record.indisready
+      and index_record.indimmediate
       and index_record.indpred is null
       and index_record.indexprs is null
       and (
@@ -46,6 +47,7 @@ begin
       and index_record.indisunique
       and index_record.indisvalid
       and index_record.indisready
+      and index_record.indimmediate
       and index_record.indpred is null
       and index_record.indexprs is null
       and (
@@ -73,6 +75,7 @@ begin
       and index_record.indisunique
       and index_record.indisvalid
       and index_record.indisready
+      and index_record.indimmediate
       and index_record.indpred is null
       and index_record.indexprs is null
       and (

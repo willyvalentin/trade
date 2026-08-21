@@ -11,7 +11,7 @@
   },
   "migration": {
     "path": "supabase/migrations/20260821194333_create_position_version_history.sql",
-    "sha256": "157197f30250af99621bd82c737ba4e87800252742c62f60dd29fe41e4b3fa81",
+    "sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f",
     "relation": "public.position_version_history",
     "explicit_transaction_control": false,
     "create_index_concurrently": false,
@@ -20,6 +20,7 @@
     "durable_identity_columns": ["position_id", "owner_user_id", "position_version"],
     "parent_reference": "public.positions(id, owner_user_id)",
     "recommendation_reference": "public.recommendations(id, owner_user_id)",
+    "foreign_key_parent_targets_immediate": true,
     "restrictive_deletes": true,
     "safe_integer_range": [1, 9007199254740991],
     "sha256_lowercase_hex_required": true,
@@ -32,7 +33,7 @@
     "mutable_current_position_version_fk_target": false
   },
   "source_document_sha256": {
-    "docs/action-666di-position-version-history-source-migration-bytes.md": "bf24c009328e42ff7d0ec72553a24f1322904e144be60b0d0a9601bbf1b08fca",
+    "docs/action-666di-position-version-history-source-migration-bytes.md": "8d19ec31b42c8f891e405f75698dff24b1bdac93de6fcb83ead35decf20bfbbf",
     "docs/ture-master-roadmap.md": "3056bcfb738532a3ceb2508e11cf42986f69d67d6d1bcef0664caabfdf21ab50",
     "docs/ture-current-state-ledger.md": "ad8f8e54d30de7f0aabbd43a2efa8b10106d7cf08a446d384c5c93ecd0036d9e",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "b356f7b98c01fe4fae1afef1d2130f70ab442fd795e3dbf303a6734b7ce18eeb",
