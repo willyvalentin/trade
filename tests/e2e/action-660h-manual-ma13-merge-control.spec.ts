@@ -7,6 +7,8 @@ import path from "node:path";
 const repositoryRoot = path.resolve(__dirname, "../..");
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
+const successionSourceCommit =
+  "ddce80b57c9ab21b5210d2aa484271c2da0f60e6";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -16,6 +18,14 @@ function historicalSource(relativePath: string) {
   return execFileSync(
     "git",
     ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
+}
+
+function successionSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${successionSourceCommit}:${relativePath}`],
     { cwd: repositoryRoot, encoding: "utf8" },
   );
 }
@@ -205,6 +215,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
     rawEvidence,
     historicalRoadmap,
     historicalLedger,
+    successionRoadmap,
+    successionLedger,
   ] =
     await Promise.all([
       source("docs/action-660h-manual-ma13-merge-control.md"),
@@ -216,6 +228,8 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
       source("docs/evidence/action-660h-manual-ma13-merge-control.json"),
       historicalSource("docs/ture-master-roadmap.md"),
       historicalSource("docs/ture-current-state-ledger.md"),
+      successionSource("docs/ture-master-roadmap.md"),
+      successionSource("docs/ture-current-state-ledger.md"),
     ]);
   const evidence = JSON.parse(rawEvidence);
 
@@ -374,11 +388,13 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
     ),
   );
   expect(ledger).toContain("production_is_first_parent_ancestor_of_main");
-  expect(ledger).toContain(
+  expect(successionLedger).toContain(
     "a80f3a8856121edb4260909ac1cedcf638d421b8",
   );
-  expect(roadmap).toContain("is now its ordinary first-parent descendant");
-  expect(roadmap).toContain(
+  expect(successionRoadmap).toContain(
+    "is now its ordinary first-parent descendant",
+  );
+  expect(successionRoadmap).toContain(
     "a80f3a8856121edb4260909ac1cedcf638d421b8",
   );
 

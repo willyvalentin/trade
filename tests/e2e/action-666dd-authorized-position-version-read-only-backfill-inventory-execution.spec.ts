@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
+const canonicalRevision = "981fcb3acc59030ce6531042ff5e0e0b27542501";
 const actionPath =
   "docs/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.md";
 const evidencePath =
@@ -21,6 +22,13 @@ const evidenceSha256 =
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function canonicalSource(relativePath: string) {
+  return execFileSync("git", ["show", `${canonicalRevision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  });
 }
 
 function sha256(value: string) {
@@ -216,7 +224,7 @@ test("binds exact source documents and keeps later authority closed", async () =
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath))).toBe(expectedHash);
+    expect(sha256(canonicalSource(relativePath))).toBe(expectedHash);
   }
   expect(evidence.decision).toEqual({
     bounded_objective_closed:

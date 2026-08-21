@@ -17,6 +17,8 @@ const evidenceSha256 =
   "b7ad4d3aced53da86e54ed03d205dbbcc68588b3554a26c44edd65a6db692e5a";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
+const successionSourceCommit =
+  "ddce80b57c9ab21b5210d2aa484271c2da0f60e6";
 
 const sourcePaths = [
   "package.json",
@@ -75,6 +77,14 @@ function historicalSource(relativePath: string) {
   return execFileSync(
     "git",
     ["show", `${historicalSourceCommit}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
+}
+
+function successionSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${successionSourceCommit}:${relativePath}`],
     { cwd: repositoryRoot, encoding: "utf8" },
   );
 }
@@ -280,6 +290,8 @@ test("preserves the fail-closed proxy and separate production authority", async 
   const contract = await source(contractPath);
   const ledger = await source("docs/ture-current-state-ledger.md");
   const roadmap = await source("docs/ture-master-roadmap.md");
+  const successionLedger = successionSource("docs/ture-current-state-ledger.md");
+  const successionRoadmap = successionSource("docs/ture-master-roadmap.md");
 
   expect(proxySource).toContain('pathname === "/api/runtime-health/ping"');
   expect(proxySource).toContain('pathname.startsWith("/api/historical-backfill/")');
@@ -294,7 +306,7 @@ test("preserves the fail-closed proxy and separate production authority", async 
   expect(contract).toContain("Action 660L");
   expect(contract).toContain("6ef40e52eb7139e1e8c238f8a1d44385c0d1cf8a");
   expect(contract).toContain("f463644ddeb7f49fa8b80924d9103ea8970ccae4");
-  for (const text of [ledger, roadmap]) {
+  for (const text of [successionLedger, successionRoadmap]) {
     expect(text).toContain("Action 660L");
     expect(text).toContain("a80f3a8856121edb4260909ac1cedcf638d421b8");
     expect(text).toContain("dbeed25f2074bff4dba8cee7f6d511cb17992efc");
@@ -309,6 +321,8 @@ test("preserves the fail-closed proxy and separate production authority", async 
   );
   expect(ledger).toContain("production_is_first_parent_ancestor_of_main");
   expect(roadmap).toContain("is now its ordinary first-parent descendant");
+  expect(ledger).toContain("Action 660L");
+  expect(roadmap).toContain("Action 660L");
 });
 
 test("rejects evidence deletion, extras and authority/security forgery", async () => {
