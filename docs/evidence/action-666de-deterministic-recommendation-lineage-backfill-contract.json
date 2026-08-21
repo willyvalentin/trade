@@ -1,0 +1,108 @@
+{
+  "contract_version": "trade.action666de.deterministic-recommendation-lineage-backfill-contract.v1",
+  "action_id": "ACTION_666DE",
+  "evidence_captured_at": "2026-08-21T09:29:26Z",
+  "predecessor": {
+    "main_commit": "ddce80b57c9ab21b5210d2aa484271c2da0f60e6",
+    "main_tree": "b9b02c7b55daa2719fe28241c170f056537e0b18",
+    "reviewed_head": "981fcb3acc59030ce6531042ff5e0e0b27542501",
+    "exact_main_ci_run": 32428905068,
+    "inventory_evidence_path": "docs/evidence/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.json",
+    "inventory_evidence_sha256": "972c51db190b13784010d7893edd72639d46b153adc20e8be0215d9ea6aeec1d"
+  },
+  "legacy_mapping": {
+    "source_relation": "public.recommendations",
+    "source_namespace": "legacy_recommendations",
+    "decision_id_column": "id",
+    "decision_id_format": "lowercase_canonical_uuid",
+    "decided_at_column": "created_at",
+    "identity_builder": "buildCanonicalRecommendationIdentity",
+    "identity_contract_version": "canonical_recommendation_identity_v1",
+    "initial_recommendation_version": 1,
+    "unclassifiable_row_disposition": "blocked_unclassifiable_legacy_recommendation"
+  },
+  "normative_digest": {
+    "contract_version": "legacy_recommendation_normative_projection_v1",
+    "domain": "trade.legacy_recommendation_normative_digest.v1",
+    "algorithm": "sha256",
+    "digest_format": "64_lowercase_hexadecimal_characters",
+    "frame_keys": [
+      "contract_version",
+      "domain",
+      "projection"
+    ],
+    "projection_keys": [
+      "archived",
+      "company_name",
+      "confidence",
+      "created_at",
+      "direction",
+      "entry_high",
+      "entry_low",
+      "invalidation",
+      "owner_user_id",
+      "reason_to_avoid",
+      "recommendation_id",
+      "risk_reward",
+      "session_type",
+      "setup_type",
+      "status",
+      "stop_loss",
+      "target_1",
+      "target_2",
+      "thesis",
+      "ticker",
+      "timeframe"
+    ],
+    "utf8_without_bom_required": true,
+    "raw_frame_must_equal_canonical_serialization": true,
+    "nullable_values_explicit_null": true,
+    "lossless_decimal_text_required": true,
+    "heuristic_or_client_value_allowed": false
+  },
+  "future_batch_contract": {
+    "execution_authorized": false,
+    "exclusive_server_migration_lock_required": true,
+    "owner_scoped": true,
+    "owner_order": "canonical_uuid_ascending",
+    "row_order": "recommendation_id_ascending",
+    "maximum_rows_per_owner_batch": 100,
+    "row_lock_required": true,
+    "skip_locked_allowed": false,
+    "client_cursor_allowed": false,
+    "checkpoint_advances_only_after_commit": true,
+    "atomic_owner_batch_required": true,
+    "copy_position_lineage_only_from_owner_matching_recommendation": true
+  },
+  "reconciliation": {
+    "inventory_recommendations": 1049,
+    "inventory_positions": 8,
+    "all_recommendations_identity_seed_eligible": true,
+    "all_positions_lineage_copy_eligible": true,
+    "required_initial_recommendation_version": 1,
+    "required_initial_position_version": 1,
+    "fresh_inventory_required_before_write": true,
+    "nonzero_blocker_count_stops_before_write": true,
+    "source_drift_requires_new_review": true
+  },
+  "source_document_sha256": {
+    "docs/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.md": "7a365f6e7c2985895ce081dffabfca44afac0bd84191914afef42779a8a3ba2c",
+    "docs/evidence/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.json": "972c51db190b13784010d7893edd72639d46b153adc20e8be0215d9ea6aeec1d",
+    "docs/action-664a-canonical-recommendation-evaluation-contract.md": "dff476d941ecdf3246421101694033968624b52f1b4d1a6444daf3ed4d63c215",
+    "lib/canonical-recommendation-evaluation.ts": "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
+    "lib/supabase-database.types.ts": "f23c3702ffd931cb5d81f13e19a8515125817717e9a3fad7ac85e40795729029"
+  },
+  "decision": {
+    "bounded_objective_closed": "deterministic_recommendation_lineage_backfill_contract",
+    "next_bounded_objective": "action_655g_canonical_recommendation_identity_reconciliation",
+    "database_query_authorized": false,
+    "database_write_authorized": false,
+    "migration_authorized": false,
+    "staging_apply_authorized": false,
+    "production_apply_authorized": false,
+    "generated_types_refresh_authorized": false,
+    "runtime_wiring_authorized": false,
+    "production_deploy_authorized": false,
+    "broker_or_automatic_execution_authorized": false
+  }
+}
