@@ -58,6 +58,52 @@
     "raw_frame_must_equal_canonical_serialization": true,
     "nullable_values_explicit_null": true,
     "lossless_decimal_text_required": true,
+    "decimal_normalization": {
+      "input_grammar": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "normalization_order": [
+        "remove_fractional_trailing_zeroes",
+        "remove_empty_fractional_separator",
+        "normalize_zero_magnitude_sign"
+      ],
+      "output_grammar": "^(?:0|-?[1-9][0-9]*(?:\\.[0-9]*[1-9])?)$",
+      "accepted_vectors": [
+        {
+          "input": "1.0",
+          "canonical": "1"
+        },
+        {
+          "input": "0.0",
+          "canonical": "0"
+        },
+        {
+          "input": "-0.0",
+          "canonical": "0"
+        },
+        {
+          "input": "-0",
+          "canonical": "0"
+        },
+        {
+          "input": "-1.2300",
+          "canonical": "-1.23"
+        },
+        {
+          "input": "100.0100",
+          "canonical": "100.01"
+        }
+      ],
+      "rejected_forms": [
+        "1.",
+        ".1",
+        "00",
+        "01",
+        "-01",
+        "+1",
+        "1e0",
+        "NaN",
+        "Infinity"
+      ]
+    },
     "heuristic_or_client_value_allowed": false
   },
   "future_batch_contract": {

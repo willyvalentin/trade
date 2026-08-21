@@ -20,7 +20,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666de-deterministic-recommendation-lineage-backfill-contract.spec.ts";
 const evidenceSha256 =
-  "d62ab09627b69950072311d90c78cfc8f06fcfc774d0efa05de4b2087bcc4f45";
+  "dc937787c66baf1f65032dc0e5830c0a8748ec546c9080f3e70d04cb93bb02cf";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -35,6 +35,23 @@ function canonicalSource(relativePath: string) {
 
 function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+const decimalInputPattern = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
+const decimalOutputPattern = /^(?:0|-?[1-9][0-9]*(?:\.[0-9]*[1-9])?)$/;
+
+function normalizeLosslessDecimalText(input: string) {
+  if (!decimalInputPattern.test(input)) {
+    throw new Error("noncanonical_decimal_input");
+  }
+  const negative = input.startsWith("-");
+  const unsigned = negative ? input.slice(1) : input;
+  const [integer, fractional = ""] = unsigned.split(".");
+  const normalizedFractional = fractional.replace(/0+$/, "");
+  const normalized = normalizedFractional
+    ? `${integer}.${normalizedFractional}`
+    : integer;
+  return normalized === "0" ? "0" : `${negative ? "-" : ""}${normalized}`;
 }
 
 function gitGrep(pattern: string, paths: string[]) {
@@ -181,8 +198,51 @@ test("freezes a closed lossless normative digest frame and bounded owner batches
     raw_frame_must_equal_canonical_serialization: true,
     nullable_values_explicit_null: true,
     lossless_decimal_text_required: true,
+    decimal_normalization: {
+      input_grammar: "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      normalization_order: [
+        "remove_fractional_trailing_zeroes",
+        "remove_empty_fractional_separator",
+        "normalize_zero_magnitude_sign",
+      ],
+      output_grammar: "^(?:0|-?[1-9][0-9]*(?:\\.[0-9]*[1-9])?)$",
+      accepted_vectors: [
+        { input: "1.0", canonical: "1" },
+        { input: "0.0", canonical: "0" },
+        { input: "-0.0", canonical: "0" },
+        { input: "-0", canonical: "0" },
+        { input: "-1.2300", canonical: "-1.23" },
+        { input: "100.0100", canonical: "100.01" },
+      ],
+      rejected_forms: [
+        "1.",
+        ".1",
+        "00",
+        "01",
+        "-01",
+        "+1",
+        "1e0",
+        "NaN",
+        "Infinity",
+      ],
+    },
     heuristic_or_client_value_allowed: false,
   });
+  const decimalNormalization = evidence.normative_digest
+    .decimal_normalization as {
+    accepted_vectors: Array<{ input: string; canonical: string }>;
+    rejected_forms: string[];
+  };
+  for (const vector of decimalNormalization.accepted_vectors) {
+    const canonical = normalizeLosslessDecimalText(vector.input);
+    expect(canonical).toBe(vector.canonical);
+    expect(decimalOutputPattern.test(canonical)).toBe(true);
+  }
+  for (const rejected of decimalNormalization.rejected_forms) {
+    expect(() => normalizeLosslessDecimalText(rejected)).toThrow(
+      "noncanonical_decimal_input",
+    );
+  }
   expect(evidence.future_batch_contract).toEqual({
     execution_authorized: false,
     exclusive_server_migration_lock_required: true,
