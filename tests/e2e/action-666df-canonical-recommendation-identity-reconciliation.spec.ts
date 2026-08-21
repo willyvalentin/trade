@@ -21,6 +21,7 @@ const thisTest =
   "tests/e2e/action-666df-canonical-recommendation-identity-reconciliation.spec.ts";
 const evidenceSha256 =
   "173b46cf3197065d18902e0af8f2bebad10892da5cc61a2002382933f778c045";
+const canonicalRevision = "a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -117,7 +118,10 @@ test("pins the exact Action 666DF reconciliation evidence and source bytes", asy
   for (const [relativePath, expectedSha256] of Object.entries(
     evidence.source_sha256,
   )) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedSha256);
+    expect(
+      sha256(historicalSource(canonicalRevision, relativePath)),
+      relativePath,
+    ).toBe(expectedSha256);
   }
   expect(evidence.authority_limits).toEqual({
     database_query_authorized: false,

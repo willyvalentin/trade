@@ -60,6 +60,7 @@ const foundationTests = [
   "tests/e2e/action-666dd-authorized-position-version-read-only-backfill-inventory-execution.spec.ts",
   "tests/e2e/action-666de-deterministic-recommendation-lineage-backfill-contract.spec.ts",
   "tests/e2e/action-666df-canonical-recommendation-identity-reconciliation.spec.ts",
+  "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts",
 ];
 
 const intelligenceTests = [

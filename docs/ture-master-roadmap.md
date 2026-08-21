@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DF — Canonical recommendation-identity reconciliation.**
+**ACTION 666DG — Append-only position-version history decision.**
 
-**Document status:** source-only reconciliation after ordinary delivery of
-Action 666DE. It preserves verified GitHub branch protection,
+**Document status:** source-only decision after ordinary delivery of
+Action 666DF. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -13,16 +13,20 @@ lossless normative digest projection, with
 `action_655g_canonical_recommendation_identity_reconciliation` as its recorded
 next bounded objective; Action 666DF completes that source-only reconciliation
 by making 655G accept the exact Action 664A identity grammar instead of a hash
-suffix. It grants no further SQL execution, migration, runtime, provider
-mutation, database write, deploy, broker, training or promotion authority.
+suffix. Action 666DG now closes only the separate
+`append_only_position_version_history_decision`: a future durable version-bound
+reference must target a new append-only history relation rather than the
+mutable current-row compare-and-swap version. It grants no further SQL
+execution, migration, runtime, provider mutation, database write, deploy,
+broker, training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`151b7881819d8ffc8f6a0bfaf11cad165b7c0954`, tree
-`06738e1fe2d837e47ffb33d687e1e6e802556631`, observed after Action 666DE's
+`a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, tree
+`cdc2e3b013c8c023b1a3b42a0ac31367a781e583`, observed after Action 666DF's
 ordinary delivery. The preserved Action 666DE base was
 `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, tree
 `b9b02c7b55daa2719fe28241c170f056537e0b18`, observed on
@@ -30,10 +34,10 @@ ordinary delivery. The preserved Action 666DE base was
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #129, with parents
-`ddce80b57c9ab21b5210d2aa484271c2da0f60e6` and
-`4257b42032aebb46d35c8e6d5db171925e6f0a14`. Exact-main push run
-`32479311239` completed successfully. PRs #100 through #121 and #124 through #129 form one verified
+The decision base is the ordinary merge of PR #130, with parents
+`151b7881819d8ffc8f6a0bfaf11cad165b7c0954` and
+`48fa88f592816b579777ed02b5cfeb3a8d29a889`. Exact-main push run
+`32492244739` completed successfully. PRs #100 through #121 and #124 through #130 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -237,11 +241,13 @@ and zero null/orphan/owner-mismatch/duplicate/blocked-lineage classes. Action
 666DE satisfies `deterministic_recommendation_lineage_backfill_contract` by
 freezing the Action 664A identity inputs, exact normative digest projection and
 owner-scoped bounded batch/reconciliation contract. Action 666DF reconciles
-655G's predicate to that exact Action 664A identity. The durable
-`position_version_schema` dependency itself remains unresolved until Action
-666DF's separately reviewed reconciliation, append-only history decision,
-separately reviewed migration, staging apply,
-authorized production apply and refreshed generated-types provenance all pass.
+655G's predicate to that exact Action 664A identity. Action 666DG freezes the
+separate future append-only history decision: a durable version-bound reference
+uses `(position_id, owner_user_id, position_version)` in a later history
+relation while the current-row version remains CAS-only. The durable
+`position_version_schema` dependency itself remains unresolved until the
+separately reviewed history source migration, staging apply, authorized
+production apply and refreshed generated-types provenance all pass.
 Action 666DB's former next objective,
 `position_version_schema_migration_design_and_read_only_backfill_preflight`, is
 satisfied by this bounded design. Action 666DD separately satisfies the
@@ -315,12 +321,13 @@ is implied by this roadmap.
   records its single authorized read-only production execution and clean
   reconciled inventory. Action 666DE freezes deterministic legacy lineage and
 its digest/batch/reconciliation contract. Action 666DF reconciles 655G's
-identity predicate to the Action 664A grammar; it is the current separate
-pre-runtime reconciliation gate. The
-  current-row version tuple is a CAS predicate, not a historical reference
-  target; append-only position-version history, market-observation provenance,
-  exit-queue schema and transactional runtime handoff remain unresolved. No
-  database, broker, runtime or production authority follows.
+identity predicate to the Action 664A grammar. Action 666DG closes the
+source-only history decision: the current-row version tuple is a CAS predicate,
+not a historical reference target, and future durable references target the
+separately migrated append-only history composite key. The source migration,
+market-observation provenance, exit-queue schema and transactional runtime
+handoff remain unresolved. No database, broker, runtime or production authority
+follows.
 - Track 5's Action 660F recovery is present on main via PR #98, Action 660G is
   canonical via PR #99 and the Action 660H manual MA-13 control is canonical via
   PR #100. Action 660I adds verified GitHub enforcement while retaining that
@@ -338,7 +345,7 @@ pre-runtime reconciliation gate. The
   the gate's technical closure conditions on main.
 
 Future main-moving work must pass the protected PR and required-check boundary
-and remain serialized behind this bounded reconciliation candidate until its
+and remain serialized behind this bounded history-decision candidate until its
 review decision is known. Any later main mover also requires a fresh
 current-main pin, exact-head CI, independent review, explicit operator approval
 and exact-main CI. Provider and production identity must be reconciled whenever
@@ -350,13 +357,13 @@ The latest authenticated Netlify readback identifies published deploy
 `6a871d6b27fb2100082f16f9` and its production assertion at full commit
 `dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
 is now its ordinary first-parent descendant
-`151b7881819d8ffc8f6a0bfaf11cad165b7c0954`, tree
-`06738e1fe2d837e47ffb33d687e1e6e802556631`, after governance,
-preflight and lineage-contract-only PRs #126–#129.
+`a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, tree
+`cdc2e3b013c8c023b1a3b42a0ac31367a781e583`, after governance,
+preflight, lineage-contract and source-only reconciliation PRs #126–#130.
 The deploy is ready, locked, production-context, main-branch, plugin-success
 and has zero ordinary/enhanced secrets findings. Exact-main CI and required
 post-publication reads are green. Production is not asserted equal to current
-main after PR #129, and this reconciliation candidate authorizes no further
+main after PR #130, and this history-decision candidate authorizes no further
 production deployment. Automatic
 `netlify/trade-vl/deploy-preview` statuses are non-production previews and
 carry no release or provider authority.
