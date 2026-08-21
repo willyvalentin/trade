@@ -242,7 +242,7 @@ test("pins exact main, predecessor and closed evidence shape", async () => {
 
 test("binds source authority and still proves the seven-column schema gap", async () => {
   for (const key of Object.keys(sourcePaths) as Array<keyof typeof sourcePaths>) {
-    expect(sha256(await source(sourcePaths[key]))).toBe(sourceHashes[key]);
+    expect(sha256(canonicalSource(sourcePaths[key]))).toBe(sourceHashes[key]);
   }
   const catalog = JSON.parse(
     await source(sourcePaths.provider_catalog),

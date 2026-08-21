@@ -106,29 +106,29 @@ export const action655bFrozenDigestVectors = Object.freeze({
     reordered_raw: "757d043c1e6a765abb4a63e4a88630d3864949dfa44d4caf579d0da4e08c8777",
   },
   provenance: {
-    positive: "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
-    altered_decision_requested_at: "6635a69cd98109bc6d1d4db1435283e0ab2328e974bfcde909beb620ad1da834",
-    altered_observation_identity: "8f1efc011108a986005a4795a5a2de5768e8a3abfc2227503370b4586ad7a293",
-    altered_policy_digest: "bdeb796c571d7c41544403cf9076d20e030a388d6bb50bc4be460d682ead1a02",
-    altered_recommendation_uuid: "9a849f926a5e04f40a389edf0bae2609bb6186b4a61ddd6dd7a581182f25ee68",
-    altered_recommendation_version: "e5226f1423f243ef911aba06a08011be20c0bdc710f6d03aa7f46018ccbfc6a3",
+    positive: "1351cd913fa2bae9db8145809679a48b0da9491018819a2f1b53a29314194bcc",
+    altered_decision_requested_at: "8faa48feb18f8726e5acbe0a43e3cf74a59015be7bad1bb1481a6ae8fec3571a",
+    altered_observation_identity: "483693571de512c36d31d746dc4dcbabbe5b6e6ebfa4098aa279f5691d2c675a",
+    altered_policy_digest: "a7c7563185c6e7352a3efb5ad4e965f0fa8e1c8024a44738418dd4b24165e3be",
+    altered_recommendation_uuid: "e2da73e275ec33b0ffc37a5f45fa832105c47d8b46cb127f231ac31b9919a8b0",
+    altered_recommendation_version: "a23ff06adc74d5e70880c537f107e118c1c8e424e3d469c5dc66314cae3af547",
   },
   decision: {
-    identity: "tm_exit_decision:v4:eb3c2554f646508c49ad4409429fe27697572bae1c760a8e6b417288c216605b",
+    identity: "tm_exit_decision:v4:beb83712b4080d43952274f5fc46a76b5236bb2b9a2ac3c7990c22c9304377ba",
     positive: {
-      decision: "69601e20d9146ef507d76782d0cecc3dbce5aa4c23e64c953765cae952306d25",
+      decision: "6cfa14bb3ee7fb4084d2a9d67504d20cfee6057fe39bd4b376a1f9e1b88edd38",
       invalid: "c0eb00743c9739fcec72858ad19e957830faf479320c4aa4c3da2062a3cffd42",
-      noneligible: "629bcc3a96664dafe7903b12c83ecf6f9eb36fbcf3c55a03990c145eb56b95ef",
-      refused: "cc9d34e76a2efd180a8b9d2aea385506a9fb48ffcea62371f23ae7070603c4ef",
+      noneligible: "fcf5cd83c9013111eb7203d6d9710628ece39f20a8244fa91540b5d50a578a1a",
+      refused: "05aa2a55d7bb8deaec8622b82f42e19b63e70baa92f83e224967d781a1aa7705",
     },
     mutation: {
-      altered_decision_requested_at: "c08b25b7b5511bc7aa84b09ddb511f50730b1986502c44db888cb4c8ec955c76",
-      altered_observation_identity: "d30a46579d80bf19021bd6087e729b920bde8e7797d20f5da170f663b14f3627",
-      altered_policy_digest: "6bfe28fc9c015e78b278d011aa0deaa00411ff33d820d37b6a670d70810d9cad",
-      altered_recommendation_uuid: "4a17ea838b16dfcf6909c6b4d6d9aee6feed69018868d8cf2a69711befb17bff",
-      altered_recommendation_version: "f67641b159c0d21db49fc7fd2d9efa59aff0b931e99f8e1d0b7b408858b18c39",
-      altered_result_discriminator: "1e6eae79a328e7d9648b4e8251b48b368963f87676b78b3442dbd9f5dd2d751d",
-      reordered_raw: "40078c448ab176382fe646788309fad7d607123872002028556303150249d4ce",
+      altered_decision_requested_at: "05379b6864463ad791fe90e862579ca976fc6cfeac85cb5c03735df9e2790ad1",
+      altered_observation_identity: "f423a6fd7962c8740cb9ebb4128927d5c60f5093a355609d4d851507137f5c4a",
+      altered_policy_digest: "44b0b2931fe78036f7545ea5aec4636343e24932d9e6f3103a3b2b3251ad4d3d",
+      altered_recommendation_uuid: "29334fe0f3eac828c1b67ba51192847ad384536a5d02a0c044fd26f84fc592d6",
+      altered_recommendation_version: "70812fd5b13351137e398b02d0431c4301aa2efabafb89cd9d67fe692186bb42",
+      altered_result_discriminator: "a7513a45a7d19ef8f01532943da58be4eb998c45473cb4971fced04003e29523",
+      reordered_raw: "94e22d55ee51896ace0d79b59563c840b6853b6ef927e70ae65e07da90a609d9",
     },
   },
 });
@@ -176,7 +176,8 @@ function basePosition(): PlainRecord {
     position_version: 3,
     durable_recommendation_uuid: "22222222-2222-4222-8222-222222222222",
     durable_recommendation_version: 7,
-    recommendation_identity: `rec_decision:v1:${"b".repeat(64)}`,
+    recommendation_identity:
+      "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:1783517520000",
     recommendation_normative_digest: "c".repeat(64),
     instrument_identity: "instrument:XSTO:SE0000000001",
     side: "long",
@@ -299,9 +300,14 @@ export function replaceAction655bRawToken(canonicalInput: string, exactNeedle: s
 }
 
 export function buildAction655bExactUtf8BudgetInput(targetBytes: 65_535 | 65_536 | 65_537): string {
-  const prefix = "m".repeat(targetBytes - 65_534);
+  const nonNfcValue = "e\u0301".repeat(21_069);
+  const baseline = buildAction655bCanonicalInput({
+    observation: { market_data_contract_version: nonNfcValue },
+  });
+  const prefixBytes = targetBytes - Buffer.byteLength(baseline, "utf8");
+  if (prefixBytes < 0) throw new Error("fixture_budget_underflow");
   return buildAction655bCanonicalInput({
-    observation: { market_data_contract_version: `${prefix}${"e\u0301".repeat(21_069)}` },
+    observation: { market_data_contract_version: `${"m".repeat(prefixBytes)}${nonNfcValue}` },
   });
 }
 
@@ -436,9 +442,9 @@ export const action655gReviewOracleCases = Object.freeze([
 export const action655bExpectedSerializedResults = Object.freeze({
   hold: Object.freeze({
     canonical_byte_length: 1690,
-    canonical_sha256: "2dd431d7ce6aa3f20e232de6d3dfcb7cd2b810901a14402bd723c06d4de3b5b5",
-    decision_digest: "27162c1929476c7dbed1b2a4ae76f2d3218fb5b489b3b1f12bd89026d74ef5e3",
-    result_digest: "1823b3f51424d3716ee04897147e7f98adb42ff97c6d06414c52858191e843f4",
+    canonical_sha256: "5e1c37f994581a537eae8ffd2c4e0bf1b432e09f057386b2caed19a6813f46e6",
+    decision_digest: "cb40c85aa8a31a5049bfd92d3992f9a25bc93bf8b8cae828dd3e0d455c2f35d8",
+    result_digest: "e167aeb9b06d6fc35eea128b3b7efb0cac6bb5593de7da6f04b0441ac99f23a4",
   }),
 });
 
@@ -481,7 +487,8 @@ export const action655bFrozenVectorFrames = Object.freeze({
       position_identity: "11111111-1111-4111-8111-111111111111",
       position_snapshot_digest: "a".repeat(64),
       position_version: 3,
-      recommendation_identity: `rec_decision:v1:${"b".repeat(64)}`,
+      recommendation_identity:
+        "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:1783517520000",
       recommendation_normative_digest: "c".repeat(64),
     },
   },
