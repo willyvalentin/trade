@@ -20,7 +20,9 @@ const registrationPath =
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666di-position-version-history-source-migration-bytes.spec.ts";
-const evidenceSha256 = "23a15fd768b5cae8d14e9968e139d9b689a47b8584ac1e206d145a1efd93e778";
+const action666dgTest =
+  "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts";
+const evidenceSha256 = "2cc847f3d2ce99ce857fb8c6cffb58b198415f268bb3510a838db3f2858e8b49";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -207,6 +209,8 @@ test("binds all current source bytes and leaves application authority closed", a
   }
   expect(action).toContain(migrationPath);
   expect(action).toContain("does not execute that SQL");
+  expect(action).toContain("historical Action 666DG oracle");
+  expect(Object.hasOwn(evidence.source_document_sha256, action666dgTest)).toBe(true);
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);

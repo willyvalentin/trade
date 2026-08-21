@@ -19,6 +19,11 @@ The exact predecessor is protected `main` merge
 run `32515918303` completed successfully. Action 666DH remains the immutable
 source-migration design predecessor.
 
+The historical Action 666DG oracle continues to prove that no
+`position_version_history` source existed at Action 666DG's delivered revision.
+It evaluates that closed historical claim against that revision rather than
+against later, explicitly reviewed source-migration additions.
+
 ## Frozen SQL boundary
 
 The migration has no explicit `BEGIN`/`COMMIT`, no `CREATE INDEX
