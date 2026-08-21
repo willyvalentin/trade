@@ -26,6 +26,10 @@
     "epoch_milliseconds_must_be_safe_exact_integer": true,
     "utc_instant_reconstructs_from_safe_epoch": true,
     "extended_utc_years_from_valid_action_664a_offsets_accepted": true,
+    "action_664a_emittable_epoch_milliseconds": {
+      "minimum_inclusive": -62167305540000,
+      "maximum_inclusive": 253402387139999
+    },
     "legacy_hash_suffix_identity_rejected": true
   },
   "reconciliation": {
@@ -38,12 +42,12 @@
     "refrozen_digest_vectors_required": true
   },
   "source_sha256": {
-    "docs/action-666df-canonical-recommendation-identity-reconciliation.md": "a86e9b3bb781e6ebf0373da4faf9bc9e4ed8d4e100b4010b124a73eed3a8e545",
-    "docs/action-655b-canonical-exit-evaluator-contract.md": "ea0379f3b3f0e5b1a4a92e2ede318b42d0fd7ed242e2bba4166508f42c6c6ec0",
-    "docs/action-655b-canonical-exit-evaluator-golden-report.json": "559e64efb30264d8b236d49be2f43d444a67a31b98fe9cf33a60f42eb43b82cc",
-    "lib/action-655b-canonical-exit-evaluator.ts": "0dc6a301f9206ddc1ef2ad037aa104dcd1a715c61f84fb6cfd0e775364626772",
+    "docs/action-666df-canonical-recommendation-identity-reconciliation.md": "30e70b875d8e2b705b0bb5ce58b08147d05573267d647e1e6f0c4ba7dc0d2eb0",
+    "docs/action-655b-canonical-exit-evaluator-contract.md": "9739962a69e7d5b4fb32c5631d73f0dfb700661ec0c151acec381819b4d93651",
+    "docs/action-655b-canonical-exit-evaluator-golden-report.json": "34d82e093c2f59377ce55d09af73e25b8715f5be9bb5acb6ab851447043ae32c",
+    "lib/action-655b-canonical-exit-evaluator.ts": "ce19ce277cb10ab0b55b0db2c4bec33cf50f1e7598f1157441c22706d4e67703",
     "lib/canonical-recommendation-evaluation.ts": "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
-    "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts": "ec1fcd835ddae8b03be0e59c77f891e5bcdb8f641201ea916e912b504835c4af",
+    "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts": "991ceb3c3925f8b2e02142f7e62a8fe212cc6faede315352ade13200a04bf47a",
     "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts": "e6c38233b74b3bf6fcb2b8907bf61c7cdf0f3a479c88462cb401f9a34e9ea3f6",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "f2677d5f89a0489c09a4d5a469d1edd2c000cfa0d891cd680d99415975164cd1",
     "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts": "00732a1d3350aa12e004ddb76c3166d2ffba8a056adb8f7fef458ce0fd310503",

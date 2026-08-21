@@ -37,7 +37,9 @@ Action 655G now accepts an identity only when all of the following hold:
    trimmed, NFC and free of control characters;
 5. the epoch is one exact safe integer that reconstructs to a valid UTC ISO
    instant; a permitted four-digit Action 664A input whose offset crosses a
-   UTC year boundary may reconstruct with an extended UTC year; and
+   UTC year boundary may reconstruct with an extended UTC year, but the epoch
+   remains in Action 664A's exact emittable inclusive interval
+   `-62167305540000` through `253402387139999`; and
 6. re-encoding the decoded values with `encodeURIComponent` and
    `Date.parse(canonicalUtcInstant)` reproduces the supplied identity
    byte-for-byte.

@@ -17,6 +17,8 @@ const canonicalInstant = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{
 const canonicalRecommendationIdentityEpoch = /^-?(?:0|[1-9][0-9]*)$/;
 const canonicalRecommendationIdentitySourceNamespace = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const recommendationIdentityControlCharacter = /[\u0000-\u001f\u007f]/;
+const action664aMinimumRecommendationIdentityEpochMilliseconds = -62_167_305_540_000;
+const action664aMaximumRecommendationIdentityEpochMilliseconds = 253_402_387_139_999;
 
 type PlainRecord = Record<string, unknown>;
 type ResultKind = "decision" | "noneligible" | "invalid" | "refused";
@@ -880,7 +882,12 @@ function isCanonicalRecommendationIdentity(value: unknown): boolean {
     return false;
   }
   const epochMilliseconds = Number(parts[4]);
-  if (!Number.isSafeInteger(epochMilliseconds) || String(epochMilliseconds) !== parts[4]) {
+  if (
+    !Number.isSafeInteger(epochMilliseconds) ||
+    String(epochMilliseconds) !== parts[4] ||
+    epochMilliseconds < action664aMinimumRecommendationIdentityEpochMilliseconds ||
+    epochMilliseconds > action664aMaximumRecommendationIdentityEpochMilliseconds
+  ) {
     return false;
   }
   const decidedAt = new Date(epochMilliseconds);

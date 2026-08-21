@@ -113,12 +113,12 @@ test("655G accepts only an exact Action 664A canonical recommendation identity",
     {
       source_namespace: "a",
       decision_id: "x",
-      decided_at: "0000-01-01T00:00:00+14:00",
+      decided_at: "0000-01-01T00:00:00+23:59",
     },
     {
       source_namespace: "a",
       decision_id: "x",
-      decided_at: "9999-12-31T23:59:59.999-14:00",
+      decided_at: "9999-12-31T23:59:59.999-23:59",
     },
   ] as const) {
     const identity = buildCanonicalRecommendationIdentity(input);
@@ -140,6 +140,8 @@ test("655G accepts only an exact Action 664A canonical recommendation identity",
     "rec_decision:v1:recommendation_snapshot:golden:decision:001:1783517520000",
     "rec_decision:v1:recommendation_snapshot:golden%3adecision%3a001:1783517520000",
     "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:01783517520000",
+    "rec_decision:v1:a:x:-62167305540001",
+    "rec_decision:v1:a:x:253402387140000",
     "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:8640000000000001",
   ]) {
     expect(
