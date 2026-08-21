@@ -1,12 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 666DG — Append-only position-version history decision.**
+**ACTION 666DH — Position-version history source-migration design.**
 
-**Evidence timestamp:** 2026-08-21. This decision follows ordinary delivery of
-Action 666DF's source-only reconciliation. It closes only
-`append_only_position_version_history_decision`: the current-row version stays
-a compare-and-swap predicate and a future durable reference must instead target
-an append-only, owner-scoped history relation. The last verified production
+**Evidence timestamp:** 2026-08-21. This source-only design follows ordinary
+delivery of Action 666DG. It closes only
+`position_version_history_source_migration_design`: a future SQL migration must
+create the owner-scoped append-only history relation with its composite key,
+restrictive foreign keys, RLS/grant denial and append-only trigger. It adds no
+migration bytes or database authority. The last verified production
 release remains the earlier PR #125 commit. Action 666DE's historical next
 bounded objective, `action_655g_canonical_recommendation_identity_reconciliation`,
 was closed by Action 666DF and remains preserved as immutable lineage. These
@@ -21,10 +22,10 @@ broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #130 | corroborated_current |
-| Protected pre-delivery main tree | `cdc2e3b013c8c023b1a3b42a0ac31367a781e583` | canonical_current |
-| Protected pre-delivery main parents | `151b7881819d8ffc8f6a0bfaf11cad165b7c0954`, `48fa88f592816b579777ed02b5cfeb3a8d29a889` | canonical_current |
+| GitHub protected pre-delivery main base | `adff18009490e8ac3d079a8ef0fd47209fef0424` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #131 | corroborated_current |
+| Protected pre-delivery main tree | `cb2b72b098db6d3cfac6c7116cc5a3343324fcfe` | canonical_current |
+| Protected pre-delivery main parents | `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, `8d43939285d9ab7a3f6b629db97bf439e197d0db` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |

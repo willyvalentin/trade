@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DG — Append-only position-version history decision.**
+**ACTION 666DH — Position-version history source-migration design.**
 
-**Document status:** source-only decision after ordinary delivery of
-Action 666DF. It preserves verified GitHub branch protection,
+**Document status:** source-only design after ordinary delivery of Action
+666DG. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -13,10 +13,14 @@ lossless normative digest projection, with
 `action_655g_canonical_recommendation_identity_reconciliation` as its recorded
 next bounded objective; Action 666DF completes that source-only reconciliation
 by making 655G accept the exact Action 664A identity grammar instead of a hash
-suffix. Action 666DG now closes only the separate
+suffix. Action 666DG closes the separate
 `append_only_position_version_history_decision`: a future durable version-bound
 reference must target a new append-only history relation rather than the
-mutable current-row compare-and-swap version. It grants no further SQL
+mutable current-row compare-and-swap version. Action 666DH closes only the
+`position_version_history_source_migration_design` objective and freezes the
+future source-migration shape for that relation: composite identity,
+owner-bound parent, restrictive deletion, append-only trigger, RLS/grant deny
+boundary and staging proofs. It adds no SQL migration bytes and grants no SQL
 execution, migration, runtime, provider mutation, database write, deploy,
 broker, training or promotion authority.
 
@@ -25,8 +29,8 @@ broker, training or promotion authority.
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, tree
-`cdc2e3b013c8c023b1a3b42a0ac31367a781e583`, observed after Action 666DF's
+`adff18009490e8ac3d079a8ef0fd47209fef0424`, tree
+`cb2b72b098db6d3cfac6c7116cc5a3343324fcfe`, observed after Action 666DG's
 ordinary delivery. The preserved Action 666DE base was
 `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, tree
 `b9b02c7b55daa2719fe28241c170f056537e0b18`, observed on
@@ -34,10 +38,10 @@ ordinary delivery. The preserved Action 666DE base was
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The decision base is the ordinary merge of PR #130, with parents
-`151b7881819d8ffc8f6a0bfaf11cad165b7c0954` and
-`48fa88f592816b579777ed02b5cfeb3a8d29a889`. Exact-main push run
-`32492244739` completed successfully. PRs #100 through #121 and #124 through #130 form one verified
+The decision base is the ordinary merge of PR #131, with parents
+`a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b` and
+`8d43939285d9ab7a3f6b629db97bf439e197d0db`. Exact-main push run
+`32504982516` completed successfully. PRs #100 through #121 and #124 through #131 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale

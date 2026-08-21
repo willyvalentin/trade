@@ -7,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const predecessorRevision = "a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b";
+const actionRevision = "adff18009490e8ac3d079a8ef0fd47209fef0424";
 const actionPath =
   "docs/action-666dg-append-only-position-version-history-decision.md";
 const evidencePath =
@@ -27,6 +28,13 @@ async function source(relativePath: string) {
 
 function historicalSource(relativePath: string) {
   return execFileSync("git", ["show", `${predecessorRevision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  });
+}
+
+function historicalSourceAtAction(relativePath: string) {
+  return execFileSync("git", ["show", `${actionRevision}:${relativePath}`], {
     cwd: repositoryRoot,
     encoding: "utf8",
   });
@@ -166,13 +174,13 @@ test("freezes the history key, append-only restriction and atomic transition", a
   });
 });
 
-test("binds candidate source bytes and rejects decision drift", async () => {
+test("pins Action 666DG source bytes at its delivered main revision", async () => {
   const raw = await source(evidencePath);
   const evidence = JSON.parse(raw) as Evidence;
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedHash);
+    expect(sha256(historicalSourceAtAction(relativePath)), relativePath).toBe(expectedHash);
   }
   for (const mutation of [
     raw.replace('"position_version_history_v1"', '"position_version_history_v2"'),
