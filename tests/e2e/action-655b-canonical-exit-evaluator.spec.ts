@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
 
 import { evaluateAction655bCanonicalExitDecision } from "../../lib/action-655b-canonical-exit-evaluator";
+import { buildCanonicalRecommendationIdentity } from "../../lib/canonical-recommendation-evaluation";
 import {
   action655bBoundaryInputs,
   action655bExpectedSerializedResults,
@@ -100,6 +101,43 @@ test("default-off returns deterministic verified-context refusal", () => {
     side_effects_performed: false,
   });
   expect(Object.isFrozen(result)).toBe(true);
+});
+
+test("655G accepts only an exact Action 664A canonical recommendation identity", () => {
+  const identity = buildCanonicalRecommendationIdentity({
+    source_namespace: "recommendation_snapshot",
+    decision_id: "golden:decision:001",
+    decided_at: "2026-07-08T13:32:00.000Z",
+  });
+  expect(identity.ok).toBe(true);
+  if (!identity.ok) return;
+
+  expect(
+    evaluateAction655bCanonicalExitDecision(
+      buildAction655bCanonicalInput({
+        position: { recommendation_identity: identity.value.value },
+      }),
+      true,
+    ).result_kind,
+  ).toBe("decision");
+
+  for (const recommendationIdentity of [
+    `rec_decision:v1:${"b".repeat(64)}`,
+    "rec_decision:v1:recommendation_snapshot:golden:decision:001:1783517520000",
+    "rec_decision:v1:recommendation_snapshot:golden%3adecision%3a001:1783517520000",
+    "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:01783517520000",
+    "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:8640000000000001",
+  ]) {
+    expect(
+      evaluateAction655bCanonicalExitDecision(
+        buildAction655bCanonicalInput({ position: { recommendation_identity: recommendationIdentity } }),
+        true,
+      ).invalid,
+    ).toEqual({
+      error_code: "schema_invalid",
+      error_path: "/position_snapshot/recommendation_identity",
+    });
+  }
 });
 
 test("all seven frozen rules map to exact status reason priority and outputs", () => {
@@ -869,7 +907,7 @@ test("golden report JSON and implementation digest are exact", () => {
   expect(golden.digests.implementation_sha256).toBe(createHash("sha256").update(readFileSync(productionPath)).digest("hex"));
   expect(golden.digests.policy).toBe(action655bFrozenDigestVectors.policy.positive);
   expect(golden.digests.provenance).toBe(action655bFrozenDigestVectors.provenance.positive);
-  expect(golden.validation.focused).toEqual({ passed: 44, negative_case_vectors: 98 });
+  expect(golden.validation.focused).toEqual({ passed: 45, negative_case_vectors: 103 });
 });
 
 test("Action 655D.4 contract bytes remain unchanged", () => {

@@ -1,12 +1,39 @@
 # Action 655G — Deterministic First-Error Traversal Remediation Contract
 
-Status: isolated local preservation checkpoint with the Action 655F first-error findings remediated and independently exercised against preserved predecessor bytes. This artifact grants no branch, pull-request, delivery, merge, runtime-integration, persistence, execution, provider, broker, database, roadmap-completion, or production authority.
+Status: isolated, default-off evaluator checkpoint. Action 666DF is the only
+successor change: it reconciles the evaluator's position
+`recommendation_identity` predicate with the already-canonical Action 664A
+identity grammar. It grants no branch, pull-request, delivery, merge,
+runtime-integration, persistence, execution, provider, broker, database,
+roadmap-completion, or production authority.
 
 ## Frozen authority and scope
 
 The unchanged normative contract authority is Action 655D.4 preservation commit `1ea4c7f2d179b17238eab73d3d8b08e0a2c63698`, tree `450f259b2241556d2970d1c1e8e9f2fbc73a40d8`, and five-artifact digest `a494df1633689e5cffa3044437cc925bd770741ce80e6e3c81cbd42c3bf00bb7`. This successor is based directly on Action 655E preservation commit `9e3120b47e06d0dec0dd4ae286a05c72da633b71`, tree `8eadfb9e90fa7435919936a287832c8503a77eb5`, and five-artifact digest `47bcefa5e4ee35f5245db278d3bf9148eaf792f82d51eb29307b71b47fa2c346`. Action 655F findings `655F-M1` and `655F-M2` are historical negative evidence and contribute no authority.
 
 Exactly five files constitute Action 655G: the evaluator, independent synthetic fixtures, focused/adversarial tests, this contract, and the golden report. All Action 654 and Action 655D.4 bytes remain unchanged. Action 654U remains the sole delivered readiness runtime authority; Action 654V and all Action 655 review artifacts are evidence only.
+
+## Action 666DF canonical recommendation-identity reconciliation
+
+The former hash-suffix-only predicate
+`rec_decision:v1:<64 lowercase hexadecimal characters>` is not accepted. At
+stage 11, `position_snapshot.recommendation_identity` must instead be exactly
+the Action 664A `canonical_recommendation_identity_v1` output:
+
+```text
+rec_decision:v1:<encoded source namespace>:<encoded decision id>:<decision epoch milliseconds>
+```
+
+The evaluator decodes the two encoded components, requires a canonical source
+namespace and canonical NFC decision ID, requires a safe exact epoch integer
+that reconstructs to a four-digit UTC ISO instant, then reconstructs the five
+segments with `encodeURIComponent` and the canonical epoch. The rebuilt text
+must equal the supplied text byte-for-byte. Thus unescaped separators,
+lowercase or malformed percent escapes, noncanonical whitespace/control text,
+leading-zero epoch values, out-of-range dates and all legacy hash-suffix
+values fail at `/position_snapshot/recommendation_identity` before identity or
+policy work. The reconciliation does not infer a decision from a ticker,
+position, current time, hash, client value or database row.
 
 ## Public operation boundary
 

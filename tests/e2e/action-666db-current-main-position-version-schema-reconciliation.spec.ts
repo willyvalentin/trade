@@ -411,7 +411,7 @@ test("binds exact main and proves the current position-version schema gap", asyn
 
 test("binds catalog, generated types, migrations and the evaluator contract", async () => {
   for (const key of Object.keys(sourcePaths) as Array<keyof typeof sourcePaths>) {
-    expect(sha256(await source(sourcePaths[key]))).toBe(sourceHashes[key]);
+    expect(sha256(historicalSource(sourcePaths[key]))).toBe(sourceHashes[key]);
   }
 
   const [
@@ -434,7 +434,7 @@ test("binds catalog, generated types, migrations and the evaluator contract", as
       source(sourcePaths.trade_management_contract_manifest),
       source(sourcePaths.canonical_recommendation_identity_contract),
       source(sourcePaths.canonical_recommendation_identity_source),
-      source(sourcePaths.evaluator),
+      historicalSource(sourcePaths.evaluator),
     ]);
   const current = currentSchemaFromCatalog(
     JSON.parse(rawCatalog) as ProviderCatalog,

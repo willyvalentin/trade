@@ -14,6 +14,9 @@ const lowerHexDigest = /^[0-9a-f]{64}$/;
 const canonicalUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const canonicalPositiveIntegerText = /^[1-9][0-9]*$/;
 const canonicalInstant = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{9})Z$/;
+const canonicalRecommendationIdentityEpoch = /^-?(?:0|[1-9][0-9]*)$/;
+const canonicalRecommendationIdentitySourceNamespace = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+const recommendationIdentityControlCharacter = /[\u0000-\u001f\u007f]/;
 
 type PlainRecord = Record<string, unknown>;
 type ResultKind = "decision" | "noneligible" | "invalid" | "refused";
@@ -849,6 +852,60 @@ function exactSafeInteger(value: RawNumber): bigint {
   return BigInt(value.rawNumber);
 }
 
+function isCanonicalRecommendationIdentity(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const parts = value.split(":");
+  if (parts.length !== 5 || parts[0] !== "rec_decision" || parts[1] !== "v1") {
+    return false;
+  }
+  const sourceNamespace = (() => {
+    try {
+      return decodeURIComponent(parts[2]);
+    } catch {
+      return null;
+    }
+  })();
+  const decisionId = (() => {
+    try {
+      return decodeURIComponent(parts[3]);
+    } catch {
+      return null;
+    }
+  })();
+  if (
+    sourceNamespace === null ||
+    decisionId === null ||
+    !canonicalRecommendationIdentityEpoch.test(parts[4])
+  ) {
+    return false;
+  }
+  const epochMilliseconds = Number(parts[4]);
+  if (!Number.isSafeInteger(epochMilliseconds) || String(epochMilliseconds) !== parts[4]) {
+    return false;
+  }
+  const decidedAt = new Date(epochMilliseconds);
+  if (Number.isNaN(decidedAt.getTime())) return false;
+  const canonicalDecidedAt = decidedAt.toISOString();
+  if (
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(canonicalDecidedAt) ||
+    !canonicalRecommendationIdentitySourceNamespace.test(sourceNamespace) ||
+    decisionId.length === 0 ||
+    decisionId.length > 240 ||
+    decisionId !== decisionId.trim() ||
+    decisionId !== decisionId.normalize("NFC") ||
+    recommendationIdentityControlCharacter.test(decisionId)
+  ) {
+    return false;
+  }
+  return [
+    "rec_decision",
+    "v1",
+    encodeURIComponent(sourceNamespace),
+    encodeURIComponent(decisionId),
+    String(Date.parse(canonicalDecidedAt)),
+  ].join(":") === value;
+}
+
 function validatePosition(position: PlainRecord): ValidationFailure | null {
   if (typeof position.position_identity !== "string" || !canonicalUuid.test(position.position_identity)) return { code: "schema_invalid", path: "/position_snapshot/position_identity" };
   const positionVersion = exactSafeInteger(position.position_version as RawNumber);
@@ -856,7 +913,7 @@ function validatePosition(position: PlainRecord): ValidationFailure | null {
   if (typeof position.durable_recommendation_uuid !== "string" || !canonicalUuid.test(position.durable_recommendation_uuid)) return { code: "schema_invalid", path: "/position_snapshot/durable_recommendation_uuid" };
   const recommendationVersion = exactSafeInteger(position.durable_recommendation_version as RawNumber);
   if (recommendationVersion <= bigIntZero || recommendationVersion > BigInt(Number.MAX_SAFE_INTEGER)) return { code: "numeric_domain_invalid", path: "/position_snapshot/durable_recommendation_version" };
-  if (typeof position.recommendation_identity !== "string" || !/^rec_decision:v1:[0-9a-f]{64}$/.test(position.recommendation_identity)) return { code: "schema_invalid", path: "/position_snapshot/recommendation_identity" };
+  if (!isCanonicalRecommendationIdentity(position.recommendation_identity)) return { code: "schema_invalid", path: "/position_snapshot/recommendation_identity" };
   if (!isDigest(position.recommendation_normative_digest)) return { code: "schema_invalid", path: "/position_snapshot/recommendation_normative_digest" };
   if (!isNfcText(position.instrument_identity) || !position.instrument_identity) return { code: "schema_invalid", path: "/position_snapshot/instrument_identity" };
   if (position.side !== "long" && position.side !== "short") return { code: "schema_invalid", path: "/position_snapshot/side" };

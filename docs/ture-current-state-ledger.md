@@ -1,12 +1,15 @@
 # Ture Current-State Ledger
 
-**ACTION 666DE — Deterministic recommendation lineage backfill contract.**
+**ACTION 666DF — Canonical recommendation-identity reconciliation.**
 
-**Evidence timestamp:** 2026-08-21T09:29:26Z. This reconciliation records the
-ordinary PR #128 merge and the deterministic source-only lineage contract that
-follows the explicitly authorized, single aggregate-only production inventory
-for the Action 666DB target. The last verified production release remains the
-earlier PR #125 commit. These candidate bytes authorize no further SQL
+**Evidence timestamp:** 2026-08-21T12:23:14Z. This reconciliation follows
+ordinary delivery of Action 666DE's deterministic source-only lineage contract
+after the explicitly authorized, single aggregate-only production inventory
+for the Action 666DB target. It aligns 655G to Action 664A's canonical identity
+grammar, closing Action 666DE's recorded
+`action_655g_canonical_recommendation_identity_reconciliation` next bounded
+objective. The last verified production release remains the earlier PR #125
+commit. These candidate bytes authorize no further SQL
 execution, deploy, runtime, provider mutation, database write, migration,
 broker, training, promotion or release activity.
 
@@ -17,10 +20,10 @@ broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `ddce80b57c9ab21b5210d2aa484271c2da0f60e6` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #128 | corroborated_current |
-| Protected pre-delivery main tree | `b9b02c7b55daa2719fe28241c170f056537e0b18` | canonical_current |
-| Protected pre-delivery main parents | `cb501d3ad3626be1bb13429a9791574a2040b64e`, `981fcb3acc59030ce6531042ff5e0e0b27542501` | canonical_current |
+| GitHub protected pre-delivery main base | `151b7881819d8ffc8f6a0bfaf11cad165b7c0954` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #129 | corroborated_current |
+| Protected pre-delivery main tree | `06738e1fe2d837e47ffb33d687e1e6e802556631` | canonical_current |
+| Protected pre-delivery main parents | `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, `4257b42032aebb46d35c8e6d5db171925e6f0a14` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -52,9 +55,10 @@ broker, training, promotion or release activity.
 | PR #124 | MERGED; reviewed head `93bedb29…`; merge `6ef40e52…`; Action 660K | corroborated_current |
 | PR #125 | MERGED; reviewed head `08321f53…`; merge `dbeed25f…`; Action 660L | corroborated_current |
 | PR #126 | MERGED; reviewed head `92e5ae9b…`; merge `a80f3a88…`; Action 660M current-production reclosure evidence successor | corroborated_current |
-| PR #127 | MERGED; reviewed head `c69aa68e…`; merge `cb501d3a…`; Action 666DC | corroborated_current |
+| PR #127 | MERGED; reviewed head `c69aa68e…`; merge `cb501d3ad3626be1bb13429a9791574a2040b64e`; Action 666DC | corroborated_current |
 | PR #128 | MERGED; reviewed head `981fcb3a…`; merge `ddce80b5…`; Action 666DD | corroborated_current |
-| Exact-main CI | run `32428905068`, push, head `ddce80b5…`, completed/success | verified_current |
+| PR #129 | MERGED; reviewed head `4257b420…`; merge `151b7881…`; Action 666DE | corroborated_current |
+| Exact-main CI | run `32479311239`, push, head `151b7881…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -205,11 +209,11 @@ using Action 664A `canonical_recommendation_identity_v1`, and compare-and-swap
 semantics. Action 666DC freezes the phased migration design and aggregate-only
 SQL preflight. Action 666DD records its one authorized clean production
 inventory. Action 666DE freezes the deterministic lineage contract. Action
-655G's current hash-suffix identity validator is incompatible and must be
-reconciled before runtime wiring. The durable schema remains unresolved pending
+666DF reconciles 655G's former hash-suffix validator to the Action 664A
+identity grammar before runtime wiring. The durable schema remains unresolved pending
 migration, staging, production application and generated-types provenance. The
 next bounded objective is
-`action_655g_canonical_recommendation_identity_reconciliation`;
+`append_only_position_version_history`;
 the current-row version tuple is only a CAS predicate. Append-only
 position-version history, market-observation provenance, durable exit-queue
 schema and transactional runtime handoff remain separate blockers.

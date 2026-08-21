@@ -1,0 +1,70 @@
+{
+  "contract_version": "trade.action666df.canonical-recommendation-identity-reconciliation.v1",
+  "action_id": "ACTION_666DF",
+  "predecessor": {
+    "main_commit": "151b7881819d8ffc8f6a0bfaf11cad165b7c0954",
+    "main_tree": "06738e1fe2d837e47ffb33d687e1e6e802556631",
+    "reviewed_head": "4257b42032aebb46d35c8e6d5db171925e6f0a14",
+    "exact_main_ci_run": 32479311239,
+    "lineage_contract_path": "docs/evidence/action-666de-deterministic-recommendation-lineage-backfill-contract.json",
+    "lineage_contract_sha256": "57929c87c4faa10dcd89d3b30360c10789487c8897409bc180655499fc8df5f5"
+  },
+  "canonical_identity": {
+    "contract_version": "canonical_recommendation_identity_v1",
+    "source_builder_path": "lib/canonical-recommendation-evaluation.ts",
+    "identity_shape": "rec_decision:v1:<encoded source namespace>:<encoded decision id>:<decision epoch milliseconds>",
+    "segment_count": 5,
+    "fixed_segments": [
+      "rec_decision",
+      "v1"
+    ],
+    "source_namespace_grammar": "^[a-z0-9][a-z0-9._-]{0,63}$",
+    "decision_id_maximum_utf16_code_units": 240,
+    "canonical_nfc_required": true,
+    "control_characters_forbidden": true,
+    "encoded_components_must_round_trip": true,
+    "epoch_milliseconds_must_be_safe_exact_integer": true,
+    "utc_four_digit_year_required": true,
+    "legacy_hash_suffix_identity_rejected": true
+  },
+  "reconciliation": {
+    "target_module_path": "lib/action-655b-canonical-exit-evaluator.ts",
+    "target_field": "/position_snapshot/recommendation_identity",
+    "fails_before_policy_resolution": true,
+    "default_off_unchanged": true,
+    "runtime_unwired": true,
+    "source_only": true,
+    "refrozen_digest_vectors_required": true
+  },
+  "source_sha256": {
+    "docs/action-666df-canonical-recommendation-identity-reconciliation.md": "932a840b79ca4174ac8254255ca22fb2bd8520f09e32d128b838def728d1a213",
+    "docs/action-655b-canonical-exit-evaluator-contract.md": "af4dba96faf73495e3bdc65ddcbeb15c079c88e9c667d9cc1ac79bd929d853b2",
+    "docs/action-655b-canonical-exit-evaluator-golden-report.json": "759d27edc7e5c0f88dbb02320088b7c08c63ff410af75e14bda51042d0730e22",
+    "lib/action-655b-canonical-exit-evaluator.ts": "c53c4e1e69a8a2082566b3c46ad1ab5618debe0b799270066365f5803b28286e",
+    "lib/canonical-recommendation-evaluation.ts": "e236c2bfd1baa692f8aa54b3370873ee19fe21a1ee8281839f5e5dad7c3a23cc",
+    "tests/e2e/action-655b-canonical-exit-evaluator.spec.ts": "b0bc35bad3164857312ea92d44313157453c237d49fe91a6f3cb36a68d49606e",
+    "tests/fixtures/action-655b-canonical-exit-evaluator-fixtures.ts": "e6c38233b74b3bf6fcb2b8907bf61c7cdf0f3a479c88462cb401f9a34e9ea3f6",
+    "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "f2677d5f89a0489c09a4d5a469d1edd2c000cfa0d891cd680d99415975164cd1",
+    "tests/e2e/action-666dc-position-version-schema-migration-design-and-read-only-backfill-preflight.spec.ts": "00732a1d3350aa12e004ddb76c3166d2ffba8a056adb8f7fef458ce0fd310503",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "be0c614cecf016709464415db27b2c9371d65ab6b0b94ab2941365267107db3e",
+    "scripts/action-660j-provider-free-ci-registration.json": "1a617c1967f00413925f442f095aeb8353e082776aa53901153dd8c4cf3b1a59",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "8a82d837c95df5f6458bda8432b7e1ff91721e8d30ba2eace131bf51ecc74390",
+    "docs/ture-master-roadmap.md": "9d46497420a64987cd85dd58c72d551d7e8eb46f767c66d55db69023e93e7a43",
+    "docs/ture-current-state-ledger.md": "9c27b27489288dc30d6f86ad16ccde90ac4181545ab9bacceef3743de77d560d"
+  },
+  "authority_limits": {
+    "database_query_authorized": false,
+    "database_write_authorized": false,
+    "migration_authorized": false,
+    "generated_types_refresh_authorized": false,
+    "runtime_wiring_authorized": false,
+    "provider_mutation_authorized": false,
+    "broker_or_automatic_execution_authorized": false,
+    "production_deploy_authorized": false
+  },
+  "decision": {
+    "bounded_objective_closed": "action_655g_canonical_recommendation_identity_reconciliation",
+    "next_bounded_objective": "append_only_position_version_history",
+    "production_authority_granted": false
+  }
+}

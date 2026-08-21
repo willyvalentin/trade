@@ -1,33 +1,39 @@
 # Ture Master Roadmap
 
-**ACTION 666DE — Deterministic recommendation lineage backfill contract.**
+**ACTION 666DF — Canonical recommendation-identity reconciliation.**
 
-**Document status:** deterministic, source-only lineage contract after
-ordinary delivery of PR #128. It preserves verified GitHub branch protection,
+**Document status:** source-only reconciliation after ordinary delivery of
+Action 666DE. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
 explicitly authorized and executed once through the project-scoped Supabase
 MCP boundary. Action 666DE freezes the legacy Action 664A identity mapping and
-lossless normative digest projection. It grants no further SQL execution,
-migration, runtime, provider mutation, database write, deploy, broker,
-training or promotion authority.
+lossless normative digest projection, with
+`action_655g_canonical_recommendation_identity_reconciliation` as its recorded
+next bounded objective; Action 666DF completes that source-only reconciliation
+by making 655G accept the exact Action 664A identity grammar instead of a hash
+suffix. It grants no further SQL execution, migration, runtime, provider
+mutation, database write, deploy, broker, training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
+`151b7881819d8ffc8f6a0bfaf11cad165b7c0954`, tree
+`06738e1fe2d837e47ffb33d687e1e6e802556631`, observed after Action 666DE's
+ordinary delivery. The preserved Action 666DE base was
 `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, tree
 `b9b02c7b55daa2719fe28241c170f056537e0b18`, observed on
 2026-08-21T09:29:26Z.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The reconciliation base is the ordinary merge of PR #128, with parents
-`cb501d3ad3626be1bb13429a9791574a2040b64e` and
-`981fcb3acc59030ce6531042ff5e0e0b27542501`. Exact-main push run
-`32428905068` completed successfully. PRs #100 through #121 and #124 through #128 form one verified
+The reconciliation base is the ordinary merge of PR #129, with parents
+`ddce80b57c9ab21b5210d2aa484271c2da0f60e6` and
+`4257b42032aebb46d35c8e6d5db171925e6f0a14`. Exact-main push run
+`32479311239` completed successfully. PRs #100 through #121 and #124 through #129 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -56,6 +62,9 @@ Action 660M candidate itself performs no new publication.
 PRs #126 through #128 subsequently add governance, evidence, tests,
 history-aware CI and the source-controlled read-only inventory artifact only;
 the later authorized execution does not change repository or runtime bytes.
+Action 666DC's historical ordinary merge is
+`cb501d3ad3626be1bb13429a9791574a2040b64e`; it remains the exact source-only
+preflight checkpoint, not a current deployment authority.
 Protected `main` is therefore three ordinary first-parent merges ahead of the last verified
 production commit. Production remains the Action 660M release at `dbeed25f…`;
 no production publication was approved or observed for PR #126 or PR #127.
@@ -227,9 +236,11 @@ eligible recommendations, eight owner-bound lineage-copy-eligible positions
 and zero null/orphan/owner-mismatch/duplicate/blocked-lineage classes. Action
 666DE satisfies `deterministic_recommendation_lineage_backfill_contract` by
 freezing the Action 664A identity inputs, exact normative digest projection and
-owner-scoped bounded batch/reconciliation contract. The durable
+owner-scoped bounded batch/reconciliation contract. Action 666DF reconciles
+655G's predicate to that exact Action 664A identity. The durable
 `position_version_schema` dependency itself remains unresolved until Action
-655G identity reconciliation, separately reviewed migration, staging apply,
+666DF's separately reviewed reconciliation, append-only history decision,
+separately reviewed migration, staging apply,
 authorized production apply and refreshed generated-types provenance all pass.
 Action 666DB's former next objective,
 `position_version_schema_migration_design_and_read_only_backfill_preflight`, is
@@ -303,10 +314,9 @@ is implied by this roadmap.
   migration design and source-controlled aggregate-only SQL. Action 666DD
   records its single authorized read-only production execution and clean
   reconciled inventory. Action 666DE freezes deterministic legacy lineage and
-  its digest/batch/reconciliation contract. Action 655G's current hash-suffix
-  identity validator is incompatible and remains the next separate pre-runtime
-  reconciliation gate,
-  `action_655g_canonical_recommendation_identity_reconciliation`. The
+its digest/batch/reconciliation contract. Action 666DF reconciles 655G's
+identity predicate to the Action 664A grammar; it is the current separate
+pre-runtime reconciliation gate. The
   current-row version tuple is a CAS predicate, not a historical reference
   target; append-only position-version history, market-observation provenance,
   exit-queue schema and transactional runtime handoff remain unresolved. No

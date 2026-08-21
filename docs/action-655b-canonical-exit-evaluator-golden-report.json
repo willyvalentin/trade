@@ -43,9 +43,9 @@
   },
   "canonical_hold_result": {
     "canonical_byte_length": 1690,
-    "canonical_sha256": "2dd431d7ce6aa3f20e232de6d3dfcb7cd2b810901a14402bd723c06d4de3b5b5",
-    "decision_digest": "27162c1929476c7dbed1b2a4ae76f2d3218fb5b489b3b1f12bd89026d74ef5e3",
-    "result_digest": "1823b3f51424d3716ee04897147e7f98adb42ff97c6d06414c52858191e843f4"
+    "canonical_sha256": "5e1c37f994581a537eae8ffd2c4e0bf1b432e09f057386b2caed19a6813f46e6",
+    "decision_digest": "cb40c85aa8a31a5049bfd92d3992f9a25bc93bf8b8cae828dd3e0d455c2f35d8",
+    "result_digest": "e167aeb9b06d6fc35eea128b3b7efb0cac6bb5593de7da6f04b0441ac99f23a4"
   },
   "declarations": {
     "automatic_execution": false,
@@ -60,13 +60,13 @@
     "trade_mutation": false
   },
   "digests": {
-    "decision_positive": "69601e20d9146ef507d76782d0cecc3dbce5aa4c23e64c953765cae952306d25",
-    "implementation_sha256": "8c0854aad8a1d53dc06340d0984ebe786ea2d960265ecf49f5366d2a74de5be6",
+    "decision_positive": "6cfa14bb3ee7fb4084d2a9d67504d20cfee6057fe39bd4b376a1f9e1b88edd38",
+    "implementation_sha256": "c53c4e1e69a8a2082566b3c46ad1ab5618debe0b799270066365f5803b28286e",
     "invalid_positive": "c0eb00743c9739fcec72858ad19e957830faf479320c4aa4c3da2062a3cffd42",
-    "noneligible_positive": "629bcc3a96664dafe7903b12c83ecf6f9eb36fbcf3c55a03990c145eb56b95ef",
+    "noneligible_positive": "fcf5cd83c9013111eb7203d6d9710628ece39f20a8244fa91540b5d50a578a1a",
     "policy": "746fb35346a353752cc01a38d76a2b6e5593b41f8e7e078d746ebfd221c496cf",
-    "provenance": "e0f6ab5441083bcaa1e0f257a013409aa813d3f8bd6033a9e786b2ff21813dcd",
-    "refused_positive": "cc9d34e76a2efd180a8b9d2aea385506a9fb48ffcea62371f23ae7070603c4ef"
+    "provenance": "1351cd913fa2bae9db8145809679a48b0da9491018819a2f1b53a29314194bcc",
+    "refused_positive": "05aa2a55d7bb8deaec8622b82f42e19b63e70baa92f83e224967d781a1aa7705"
   },
   "exports": {
     "runtime_value_count": 1,
@@ -82,8 +82,8 @@
     },
     "eslint": "passed_zero_warnings",
     "focused": {
-      "negative_case_vectors": 98,
-      "passed": 44
+      "negative_case_vectors": 103,
+      "passed": 45
     },
     "git_diff_check": "passed",
     "json": "passed",
