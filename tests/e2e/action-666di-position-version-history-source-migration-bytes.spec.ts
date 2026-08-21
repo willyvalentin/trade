@@ -24,7 +24,7 @@ const action666dgTest =
   "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts";
 const action666dhTest =
   "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts";
-const evidenceSha256 = "0208dde3f13c4c16140408b78f8e2692d7f76e4a56693b8d08cc0a9d469cf17a";
+const evidenceSha256 = "912268c3240ea10173af4a27348d114388b932146236faed178692da1b73ea98";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -216,6 +216,12 @@ test("binds all current source bytes and leaves application authority closed", a
   expect(action).toContain(migrationPath);
   expect(action).toContain("does not execute that SQL");
   expect(action).toContain("historical Action 666DG and 666DH oracles");
+  expect(roadmap).toContain(`main\` base\n\`${predecessorRevision}`);
+  expect(roadmap).toContain("PRs #126 through #132");
+  expect(roadmap).not.toContain("a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b");
+  expect(ledger).toContain(`current main \`${predecessorRevision}\``);
+  expect(ledger).toContain("PRs #126–#132");
+  expect(ledger).not.toContain("a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b");
   expect(Object.hasOwn(evidence.source_document_sha256, action666dgTest)).toBe(true);
   expect(Object.hasOwn(evidence.source_document_sha256, action666dhTest)).toBe(true);
   const registration = JSON.parse(registrationRaw) as string[];

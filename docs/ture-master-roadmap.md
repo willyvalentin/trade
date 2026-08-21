@@ -2,8 +2,8 @@
 
 **ACTION 666DI — Position-version history source-migration bytes.**
 
-**Document status:** source-only design after ordinary delivery of Action
-666DG. It preserves verified GitHub branch protection,
+**Document status:** source-only migration bytes after ordinary delivery of
+Action 666DH. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -70,15 +70,18 @@ publication of the existing atomic deploy for exact PR #125 merge
 anonymous no-effect smoke and operator-attested authenticated read smoke. The
 Action 660M candidate itself performs no new publication.
 
-PRs #126 through #128 subsequently add governance, evidence, tests,
-history-aware CI and the source-controlled read-only inventory artifact only;
-the later authorized execution does not change repository or runtime bytes.
+PRs #126 through #132 subsequently add governance, evidence, tests,
+history-aware CI, the source-controlled read-only inventory artifact, lineage
+reconciliation, the append-only history decision and the source-migration
+design only; the later authorized execution does not change repository or
+runtime bytes.
 Action 666DC's historical ordinary merge is
 `cb501d3ad3626be1bb13429a9791574a2040b64e`; it remains the exact source-only
 preflight checkpoint, not a current deployment authority.
-Protected `main` is therefore three ordinary first-parent merges ahead of the last verified
-production commit. Production remains the Action 660M release at `dbeed25f…`;
-no production publication was approved or observed for PR #126 or PR #127.
+Protected `main` is therefore seven ordinary first-parent merges ahead of the
+last verified production commit. Production remains the Action 660M release at
+`dbeed25f…`; no production publication was approved or observed for PRs #126
+through #132.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -364,13 +367,14 @@ The latest authenticated Netlify readback identifies published deploy
 `6a871d6b27fb2100082f16f9` and its production assertion at full commit
 `dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
 is now its ordinary first-parent descendant
-`a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, tree
-`cdc2e3b013c8c023b1a3b42a0ac31367a781e583`, after governance,
-preflight, lineage-contract and source-only reconciliation PRs #126–#130.
+`b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b`, tree
+`f108d74ea13206ab7e37dbab14f48ad8bbd18211`, after governance,
+preflight, lineage-contract, source-only reconciliation, append-only-history
+decision and source-migration-design PRs #126–#132.
 The deploy is ready, locked, production-context, main-branch, plugin-success
 and has zero ordinary/enhanced secrets findings. Exact-main CI and required
 post-publication reads are green. Production is not asserted equal to current
-main after PR #130, and this history-decision candidate authorizes no further
+main after PR #132, and this history-decision candidate authorizes no further
 production deployment. Automatic
 `netlify/trade-vl/deploy-preview` statuses are non-production previews and
 carry no release or provider authority.

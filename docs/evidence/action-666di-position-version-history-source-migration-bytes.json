@@ -34,8 +34,8 @@
   },
   "source_document_sha256": {
     "docs/action-666di-position-version-history-source-migration-bytes.md": "8d19ec31b42c8f891e405f75698dff24b1bdac93de6fcb83ead35decf20bfbbf",
-    "docs/ture-master-roadmap.md": "3056bcfb738532a3ceb2508e11cf42986f69d67d6d1bcef0664caabfdf21ab50",
-    "docs/ture-current-state-ledger.md": "ad8f8e54d30de7f0aabbd43a2efa8b10106d7cf08a446d384c5c93ecd0036d9e",
+    "docs/ture-master-roadmap.md": "947d0d6aa634bbde9e3944364634d3b0f3a2d05bb2f3974660858f8f06c1fa0a",
+    "docs/ture-current-state-ledger.md": "1489eb9c0bd2428c76ab341d147bd7bda97211431bb4abf65bbcad08e21e52f5",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "b356f7b98c01fe4fae1afef1d2130f70ab442fd795e3dbf303a6734b7ce18eeb",
     "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts": "1c21c64d9f7a2fa98a5eda24ca6fa5a467839f48432af77c053470cf4a09cb97",
     "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts": "e7ab39b2cb2ad82daea74a89c2649b78a4f9b91431726565018c8d540f45574c",
