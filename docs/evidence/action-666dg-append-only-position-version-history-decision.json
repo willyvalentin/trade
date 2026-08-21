@@ -1,0 +1,100 @@
+{
+  "contract_version": "trade.action666dg.append-only-position-version-history-decision.v1",
+  "action_id": "ACTION_666DG",
+  "predecessor": {
+    "main_commit": "a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b",
+    "main_tree": "cdc2e3b013c8c023b1a3b42a0ac31367a781e583",
+    "reviewed_head": "48fa88f592816b579777ed02b5cfeb3a8d29a889",
+    "exact_main_ci_run": 32492244739,
+    "action_666df_path": "docs/action-666df-canonical-recommendation-identity-reconciliation.md",
+    "action_666df_sha256": "b741cef3b4ccecd8e086ee73f9e00c05cf7e211a5d69c65c820721a96b5ff338",
+    "action_666df_evidence_path": "docs/evidence/action-666df-canonical-recommendation-identity-reconciliation.json",
+    "action_666df_evidence_sha256": "173b46cf3197065d18902e0af8f2bebad10892da5cc61a2002382933f778c045"
+  },
+  "history_contract": {
+    "contract_id": "position_version_history_v1",
+    "relation": "public.position_version_history",
+    "relation_created_by_this_action": false,
+    "durable_identity_columns": [
+      "position_id",
+      "owner_user_id",
+      "position_version"
+    ],
+    "position_version_sql_type": "bigint",
+    "minimum_position_version": 1,
+    "maximum_position_version": 9007199254740991,
+    "owner_bound_parent_reference": {
+      "source_columns": [
+        "position_id",
+        "owner_user_id"
+      ],
+      "target_relation": "public.positions",
+      "target_columns": [
+        "id",
+        "owner_user_id"
+      ]
+    },
+    "version_bound_references_target_history_only": true,
+    "current_position_version_is_cas_only": true,
+    "locked_recommendation_tuple_columns": [
+      "recommendation_id",
+      "owner_user_id",
+      "durable_recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "separately_frozen_position_state_frame_required": true,
+    "position_state_digest_required": true,
+    "position_state_digest_algorithm": "sha256",
+    "parent_or_recommendation_cascade_delete_allowed": false,
+    "append_only_trigger_required": true,
+    "updates_or_deletes_allowed": false
+  },
+  "transition_contract": {
+    "legacy_backfill_initial_version": 1,
+    "fresh_clean_inventory_required_before_backfill": true,
+    "deterministic_lineage_contract_required_before_backfill": true,
+    "owner_scoped_current_position_lock_required": true,
+    "expected_current_version_required": true,
+    "successor_increment": 1,
+    "maximum_version_refused": true,
+    "current_row_update_and_history_insert_atomic": true,
+    "history_insert_failure_rolls_back_current_row": true,
+    "stale_owner_or_recommendation_tuple_rolls_back": true,
+    "exact_retry_must_not_duplicate_history_identity": true,
+    "global_cross_position_order_claimed": false
+  },
+  "security_contract": {
+    "rls_required": true,
+    "new_anon_or_authenticated_grants": false,
+    "client_write_policy_allowed": false,
+    "server_owned_writer_required": true,
+    "security_definer_search_path_fixed": true,
+    "public_anon_authenticated_execute_revoked": true,
+    "runtime_or_data_api_wiring_added_by_this_action": false
+  },
+  "source_document_sha256": {
+    "docs/action-666dg-append-only-position-version-history-decision.md": "46f1d3c627e8f28e5d57d1e1a654a416f1252af9ec503003e6bd39759c7cf4eb",
+    "docs/ture-master-roadmap.md": "c3e69853a393329baa103b1a4d2f23cd96272b0285bc4baf818043d9a1de4835",
+    "docs/ture-current-state-ledger.md": "026185a189420b32674a05c90780058d1e85392b08217f5ca7d331c71d421278",
+    "scripts/action-660j-provider-free-ci-registration.json": "f3831983bd2776bad4f1f0c523ca071d89e1b7a179af91a36db5cb48961189a1",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "5090386e5cea09a8d55dafc7b18d019fdbfa99bcb524cf29528f8179756a43b2"
+  },
+  "authority_limits": {
+    "database_query_authorized": false,
+    "database_write_authorized": false,
+    "migration_authorized": false,
+    "staging_apply_authorized": false,
+    "production_apply_authorized": false,
+    "generated_types_refresh_authorized": false,
+    "runtime_wiring_authorized": false,
+    "provider_mutation_authorized": false,
+    "production_deploy_authorized": false,
+    "broker_or_automatic_execution_authorized": false
+  },
+  "decision": {
+    "bounded_objective_closed": "append_only_position_version_history_decision",
+    "next_bounded_objective": "position_version_history_source_migration_design",
+    "production_authority_granted": false
+  }
+}

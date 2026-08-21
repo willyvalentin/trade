@@ -1,15 +1,16 @@
 # Ture Current-State Ledger
 
-**ACTION 666DF — Canonical recommendation-identity reconciliation.**
+**ACTION 666DG — Append-only position-version history decision.**
 
-**Evidence timestamp:** 2026-08-21T12:23:14Z. This reconciliation follows
-ordinary delivery of Action 666DE's deterministic source-only lineage contract
-after the explicitly authorized, single aggregate-only production inventory
-for the Action 666DB target. It aligns 655G to Action 664A's canonical identity
-grammar, closing Action 666DE's recorded
-`action_655g_canonical_recommendation_identity_reconciliation` next bounded
-objective. The last verified production release remains the earlier PR #125
-commit. These candidate bytes authorize no further SQL
+**Evidence timestamp:** 2026-08-21. This decision follows ordinary delivery of
+Action 666DF's source-only reconciliation. It closes only
+`append_only_position_version_history_decision`: the current-row version stays
+a compare-and-swap predicate and a future durable reference must instead target
+an append-only, owner-scoped history relation. The last verified production
+release remains the earlier PR #125 commit. Action 666DE's historical next
+bounded objective, `action_655g_canonical_recommendation_identity_reconciliation`,
+was closed by Action 666DF and remains preserved as immutable lineage. These
+candidate bytes authorize no further SQL
 execution, deploy, runtime, provider mutation, database write, migration,
 broker, training, promotion or release activity.
 
@@ -20,10 +21,10 @@ broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `151b7881819d8ffc8f6a0bfaf11cad165b7c0954` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #129 | corroborated_current |
-| Protected pre-delivery main tree | `06738e1fe2d837e47ffb33d687e1e6e802556631` | canonical_current |
-| Protected pre-delivery main parents | `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, `4257b42032aebb46d35c8e6d5db171925e6f0a14` | canonical_current |
+| GitHub protected pre-delivery main base | `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #130 | corroborated_current |
+| Protected pre-delivery main tree | `cdc2e3b013c8c023b1a3b42a0ac31367a781e583` | canonical_current |
+| Protected pre-delivery main parents | `151b7881819d8ffc8f6a0bfaf11cad165b7c0954`, `48fa88f592816b579777ed02b5cfeb3a8d29a889` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -58,7 +59,8 @@ broker, training, promotion or release activity.
 | PR #127 | MERGED; reviewed head `c69aa68e…`; merge `cb501d3ad3626be1bb13429a9791574a2040b64e`; Action 666DC | corroborated_current |
 | PR #128 | MERGED; reviewed head `981fcb3a…`; merge `ddce80b5…`; Action 666DD | corroborated_current |
 | PR #129 | MERGED; reviewed head `4257b420…`; merge `151b7881…`; Action 666DE | corroborated_current |
-| Exact-main CI | run `32479311239`, push, head `151b7881…`, completed/success | verified_current |
+| PR #130 | MERGED; reviewed head `48fa88f5…`; merge `a8b94861…`; Action 666DF | corroborated_current |
+| Exact-main CI | run `32492244739`, push, head `a8b94861…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -73,7 +75,7 @@ broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
 | Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
-| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `151b7881819d8ffc8f6a0bfaf11cad165b7c0954`; the commits are not equal and PRs #126–#129 are governance, preflight and lineage-contract-only | verified_current; production_is_first_parent_ancestor_of_main |
+| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`; the commits are not equal and PRs #126–#130 are governance, preflight, lineage-contract and source-only reconciliation work | verified_current; production_is_first_parent_ancestor_of_main |
 | Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
@@ -210,12 +212,12 @@ semantics. Action 666DC freezes the phased migration design and aggregate-only
 SQL preflight. Action 666DD records its one authorized clean production
 inventory. Action 666DE freezes the deterministic lineage contract. Action
 666DF reconciles 655G's former hash-suffix validator to the Action 664A
-identity grammar before runtime wiring. The durable schema remains unresolved pending
-migration, staging, production application and generated-types provenance. The
-next bounded objective is
-`append_only_position_version_history`;
-the current-row version tuple is only a CAS predicate. Append-only
-position-version history, market-observation provenance, durable exit-queue
+identity grammar before runtime wiring. Action 666DG closes the source-only
+`append_only_position_version_history_decision`: the current-row version tuple
+is only a CAS predicate and future durable references target a separately
+migrated append-only history composite key. The durable schema remains
+unresolved pending source migration, staging, production application and
+generated-types provenance. Market-observation provenance, durable exit-queue
 schema and transactional runtime handoff remain separate blockers.
 
 ## Delivery state
