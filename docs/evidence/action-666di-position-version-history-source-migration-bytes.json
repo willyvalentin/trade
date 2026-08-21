@@ -32,10 +32,12 @@
     "mutable_current_position_version_fk_target": false
   },
   "source_document_sha256": {
-    "docs/action-666di-position-version-history-source-migration-bytes.md": "223a0a537f78c3abc1b31683ccce976de3b28f285f0de00ea11bbaa7b8b0a0c3",
+    "docs/action-666di-position-version-history-source-migration-bytes.md": "bf24c009328e42ff7d0ec72553a24f1322904e144be60b0d0a9601bbf1b08fca",
     "docs/ture-master-roadmap.md": "3056bcfb738532a3ceb2508e11cf42986f69d67d6d1bcef0664caabfdf21ab50",
     "docs/ture-current-state-ledger.md": "ad8f8e54d30de7f0aabbd43a2efa8b10106d7cf08a446d384c5c93ecd0036d9e",
-    "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts": "a94e338827b49bae1eda96165c3246a527a2718b9e55ec9045082bf201d811e7",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "b356f7b98c01fe4fae1afef1d2130f70ab442fd795e3dbf303a6734b7ce18eeb",
+    "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts": "1c21c64d9f7a2fa98a5eda24ca6fa5a467839f48432af77c053470cf4a09cb97",
+    "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts": "e7ab39b2cb2ad82daea74a89c2649b78a4f9b91431726565018c8d540f45574c",
     "scripts/action-660j-provider-free-ci-registration.json": "9dc3026eaa569b67557d69ce1ce6aab9b2ce381b9a2edf4c6fee4299e0bd85fb",
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "d54b5a013af4dd94538fa60d1c3f1e9ce5aeb07ad032d49650b6a77203625b19"
   },

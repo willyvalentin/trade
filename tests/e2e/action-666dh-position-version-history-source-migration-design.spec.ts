@@ -7,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const predecessorRevision = "adff18009490e8ac3d079a8ef0fd47209fef0424";
+const actionRevision = "5572286f2545c7cc81e83534f4060a5a2ae280ac";
 const actionPath =
   "docs/action-666dh-position-version-history-source-migration-design.md";
 const evidencePath =
@@ -26,6 +27,13 @@ async function source(relativePath: string) {
 
 function historicalSource(relativePath: string) {
   return execFileSync("git", ["show", `${predecessorRevision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  });
+}
+
+function historicalSourceAtAction(relativePath: string) {
+  return execFileSync("git", ["show", `${actionRevision}:${relativePath}`], {
     cwd: repositoryRoot,
     encoding: "utf8",
   });
@@ -107,7 +115,7 @@ test("freezes the composite-key, append-only and RLS migration boundary", async 
 test("binds source bytes, stays source-only and registers exactly once", async () => {
   const evidence = JSON.parse(await source(evidencePath)) as Evidence;
   for (const [relativePath, expectedHash] of Object.entries(evidence.source_document_sha256)) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedHash);
+    expect(sha256(historicalSourceAtAction(relativePath)), relativePath).toBe(expectedHash);
   }
   expect(evidence.authority_limits).toEqual({
     database_query_authorized: false, database_write_authorized: false,
@@ -121,16 +129,21 @@ test("binds source bytes, stays source-only and registers exactly once", async (
     next_bounded_objective: "position_version_history_source_migration_bytes",
     production_authority_granted: false,
   });
-  const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath), source(roadmapPath), source(ledgerPath),
+  const [registrationRaw, runner] = await Promise.all([
     source(registrationPath), source(runnerPath),
   ]);
-  for (const document of [action, roadmap, ledger]) {
+  for (const document of [
+    historicalSourceAtAction(actionPath),
+    historicalSourceAtAction(roadmapPath),
+    historicalSourceAtAction(ledgerPath),
+  ]) {
     expect(document).toMatch(/action 666dh/i);
     expect(document).toContain("position_version_history_source_migration_design");
     expect(document).toContain(predecessorRevision);
   }
-  expect(action).not.toMatch(/create\s+table|alter\s+table|insert\s+into/i);
+  expect(historicalSourceAtAction(actionPath)).not.toMatch(
+    /create\s+table|alter\s+table|insert\s+into/i,
+  );
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);

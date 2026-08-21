@@ -218,14 +218,15 @@ test("keeps database and runtime authority closed while registering once", async
     next_bounded_objective: "position_version_history_source_migration_design",
     production_authority_granted: false,
   });
-  const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
+  const [registrationRaw, runner] = await Promise.all([
     source(registrationPath),
     source(runnerPath),
   ]);
-  for (const document of [action, roadmap, ledger]) {
+  for (const document of [
+    historicalSourceAtAction(actionPath),
+    historicalSourceAtAction(roadmapPath),
+    historicalSourceAtAction(ledgerPath),
+  ]) {
     expect(document).toContain("Action 666DG");
     expect(document).toContain("append_only_position_version_history_decision");
     expect(document).toContain(predecessorRevision);

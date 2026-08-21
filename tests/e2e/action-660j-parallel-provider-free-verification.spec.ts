@@ -62,6 +62,7 @@ const foundationTests = [
   "tests/e2e/action-666df-canonical-recommendation-identity-reconciliation.spec.ts",
   "tests/e2e/action-666dg-append-only-position-version-history-decision.spec.ts",
   "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts",
+  "tests/e2e/action-666di-position-version-history-source-migration-bytes.spec.ts",
 ];
 
 const intelligenceTests = [
