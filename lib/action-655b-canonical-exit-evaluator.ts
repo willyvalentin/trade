@@ -18,7 +18,7 @@ const canonicalRecommendationIdentityEpoch = /^-?(?:0|[1-9][0-9]*)$/;
 const canonicalRecommendationIdentitySourceNamespace = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const recommendationIdentityControlCharacter = /[\u0000-\u001f\u007f]/;
 const action664aMinimumRecommendationIdentityEpochMilliseconds = -62_167_305_540_000;
-const action664aMaximumRecommendationIdentityEpochMilliseconds = 253_402_387_139_999;
+const action664aMaximumRecommendationIdentityEpochMilliseconds = 253_402_387_140_000;
 
 type PlainRecord = Record<string, unknown>;
 type ResultKind = "decision" | "noneligible" | "invalid" | "refused";

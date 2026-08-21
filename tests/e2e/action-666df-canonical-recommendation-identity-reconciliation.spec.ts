@@ -20,7 +20,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const thisTest =
   "tests/e2e/action-666df-canonical-recommendation-identity-reconciliation.spec.ts";
 const evidenceSha256 =
-  "209150883216b34feeacafa2be47a8e914ba3cbf32fd024a367fa0af10fc103d";
+  "173b46cf3197065d18902e0af8f2bebad10892da5cc61a2002382933f778c045";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -109,7 +109,8 @@ test("pins the exact Action 666DF reconciliation evidence and source bytes", asy
     extended_utc_years_from_valid_action_664a_offsets_accepted: true,
     action_664a_emittable_epoch_milliseconds: {
       minimum_inclusive: -62167305540000,
-      maximum_inclusive: 253402387139999,
+      maximum_inclusive: 253402387140000,
+      maximum_source_instant: "9999-12-31T24:00:00.000-23:59",
     },
     legacy_hash_suffix_identity_rejected: true,
   });
@@ -161,7 +162,7 @@ test("accepts every rebuilt Action 664A identity and rejects every noncanonical 
     {
       source_namespace: "a",
       decision_id: "x",
-      decided_at: "9999-12-31T23:59:59.999-23:59",
+      decided_at: "9999-12-31T24:00:00.000-23:59",
     },
   ] as const;
 
@@ -188,7 +189,7 @@ test("accepts every rebuilt Action 664A identity and rejects every noncanonical 
     "rec_decision:v1:Recommendation_Snapshot:golden%3Adecision%3A001:1783517520000",
     "rec_decision:v1:recommendation_snapshot:golden%0Adecision:1783517520000",
     "rec_decision:v1:a:x:-62167305540001",
-    "rec_decision:v1:a:x:253402387140000",
+    "rec_decision:v1:a:x:253402387140001",
     "rec_decision:v1:recommendation_snapshot:golden%3Adecision%3A001:8640000000000001",
   ]) {
     expect(

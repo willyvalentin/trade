@@ -31,8 +31,9 @@ segments with `encodeURIComponent` and the canonical epoch. A permitted
 four-digit Action 664A input whose offset crosses a UTC year boundary may
 canonically reconstruct with an extended UTC year. The epoch must nevertheless
 fall within the exact Action 664A-emittable interval
-`-62167305540000` through `253402387139999`, inclusive. The rebuilt text must
-equal the supplied text byte-for-byte. Thus unescaped separators,
+`-62167305540000` through `253402387140000`, inclusive; the upper endpoint
+comes from Action 664A's permitted terminal `24:00:00.000` local time. The
+rebuilt text must equal the supplied text byte-for-byte. Thus unescaped separators,
 lowercase or malformed percent escapes, noncanonical whitespace/control text,
 leading-zero epoch values, out-of-range dates and all legacy hash-suffix
 values fail at `/position_snapshot/recommendation_identity` before identity or
