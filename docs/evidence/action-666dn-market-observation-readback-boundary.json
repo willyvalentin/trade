@@ -1,0 +1,36 @@
+{
+  "contract_version": "trade.action666dn.market-observation-readback-boundary.v1",
+  "action_id": "ACTION_666DN",
+  "predecessor": {
+    "protected_main_commit": "d2a1a17c615349b6fd774ef3fc10a9ca9ea46bf4",
+    "protected_main_tree": "d440d6b6f301e844e234ccef5a01af286a3ff6d1"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dn-market-observation-readback-boundary.md": "31b6586e37df476fa36f4fb24617bb5e5bf50e15156047b861917b4b2566f55f",
+    "lib/action-655b-canonical-exit-evaluator.ts": "bd1db79a948f44293a5e02af94d55d1c965e03c3083aad13ab8ac43b95268af1",
+    "lib/action-666dm-market-observation-provenance.ts": "3cc1e027a84948ffb59bdf8e8a9e6f41d19081258a46faf3d362abf3f6af9982",
+    "lib/action-666dn-market-observation-readback-boundary.ts": "509de4bb0c924765bbf523a2b8a04eb6f5da3af3b7cd45dae337e42059539823",
+    "tests/fixtures/action-666dn-market-observation-readback-boundary-fixtures.ts": "82afaa61dc55bf8c1c22810204d1931cf89a52f717b2541526706863841d9af8"
+  },
+  "delivery": {
+    "kind": "source_only_candidate",
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "database_operations": false,
+    "deployment": false,
+    "broker_operations": false
+  },
+  "privacy": {
+    "no_raw_provider_payload": true,
+    "no_connection_or_credential_material": true,
+    "source_reference_kind": "opaque_666dm_commitment_only"
+  },
+  "contract": {
+    "input_contract_version": "action_666dn_market_observation_readback_input_v1",
+    "output_contract_version": "action_666dn_market_observation_readback_boundary_v1",
+    "action_655g_freshness_profile": "maximum_market_data_age_ns_5000000000",
+    "runtime_authority_granted": false,
+    "side_effects_performed": false
+  },
+  "next_gate": "separately_authorized_provider_readback_adapter_and_runtime_integration"
+}
