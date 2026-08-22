@@ -45,6 +45,7 @@ const foundationTests = [
   "tests/e2e/action-666dl-position-version-history-generated-types-and-ma09-provenance-refresh.spec.ts",
   "tests/e2e/action-666dm-market-observation-provenance.spec.ts",
   "tests/e2e/action-666dn-market-observation-readback-boundary.spec.ts",
+  "tests/e2e/action-666do-market-price-attestation-boundary.spec.ts",
 ];
 
 const intelligenceTests = [

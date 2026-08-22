@@ -1,0 +1,37 @@
+{
+  "contract_version": "trade.action666do.market-price-attestation-boundary.v1",
+  "action_id": "ACTION_666DO",
+  "predecessor": {
+    "protected_main_commit": "f7bb504b16dd824c74b961bc96d6041d625e7822",
+    "protected_main_tree": "5b9f3a0bce9c1bea5eb0f6d732b89d32bec5c190"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666do-market-price-attestation-boundary.md": "b2cc5ebbd90f13105ba45569eacfd6dbb668117da1abe4ca5f1bc396eba8dfc2",
+    "lib/action-655b-canonical-exit-evaluator.ts": "bd1db79a948f44293a5e02af94d55d1c965e03c3083aad13ab8ac43b95268af1",
+    "lib/action-666dm-market-observation-provenance.ts": "3cc1e027a84948ffb59bdf8e8a9e6f41d19081258a46faf3d362abf3f6af9982",
+    "lib/action-666dn-market-observation-readback-boundary.ts": "509de4bb0c924765bbf523a2b8a04eb6f5da3af3b7cd45dae337e42059539823",
+    "lib/action-666do-market-price-attestation-boundary.ts": "122577cbf406230381eb29d22ddd6a660d06cb4f22ada753b783333ffe484d8f",
+    "tests/fixtures/action-666do-market-price-attestation-boundary-fixtures.ts": "6048f42810f4ca09101639253bf92c9ffbebd9841475e1ca805930c92327c5d1"
+  },
+  "delivery": {
+    "kind": "source_only_candidate",
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "database_operations": false,
+    "deployment": false,
+    "broker_operations": false
+  },
+  "privacy": {
+    "no_raw_provider_payload": true,
+    "no_connection_or_credential_material": true,
+    "price_representation": "sanitized_exact_integer_units_only"
+  },
+  "contract": {
+    "input_contract_version": "action_666do_market_price_attestation_input_v1",
+    "output_contract_version": "action_666do_market_price_attestation_v1",
+    "prerequisite": "fresh_opaque_666dm_666dn_lineage",
+    "runtime_authority_granted": false,
+    "side_effects_performed": false
+  },
+  "next_gate": "separately_authorized_provider_adapter_source_linkage_and_runtime_integration"
+}
