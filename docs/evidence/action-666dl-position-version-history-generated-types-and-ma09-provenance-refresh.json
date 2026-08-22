@@ -26,7 +26,8 @@
     "scripts/action-660j-provider-free-ci-registration.json": "2e3f2c2f292f10663be013aceea025413f1e02b192e47ac18ee58ec42c86f965",
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "a09c74cbfed5c61b208ad68ecec501f1a017681d7ae0fac7fe81aafc53403d50",
     "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs": "3f151100643cb64bbbb5814766c654646b2b30eed20a7c3998318b8d2a65ed4a",
-    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "54835311ed3480304226140e9ffd37c98c51072e994388916115d3020ee9d21f"
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "54835311ed3480304226140e9ffd37c98c51072e994388916115d3020ee9d21f",
+    "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts": "9c69e4bd6975cab2cc5cb3068ea9f53c0abb6335a49cc28c7ce24e6ce9b5141a"
   },
   "authority_limits": {
     "database_mutation": false,
