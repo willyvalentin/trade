@@ -21,7 +21,7 @@ const predecessorTest =
   "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts";
 const thisTest =
   "tests/e2e/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.spec.ts";
-const evidenceSha256 = "ad16fe67a75f2e4666de6a7ec562ca747ac123acfb16f6b1bda5b153cfb4cf1e";
+const evidenceSha256 = "7afded9b82b7a7a6da7bd0ac7a6d1f00c69af6f41c6642a7d39f63173df5c27c";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
