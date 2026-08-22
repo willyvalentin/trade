@@ -2,8 +2,8 @@
   "contract_version": "trade.action666dm.provider_neutral_market_observation_provenance.v1",
   "action_id": "ACTION_666DM",
   "predecessor": {
-    "protected_main_commit": "d31c0920e7f90d4714f363767159caba598e8652",
-    "protected_main_tree": "59eba00d398e0c29b9f7b99803de7c1853636a37"
+    "protected_main_commit": "4efcea11a73c3e8a96fac0a9872392c166844eb4",
+    "protected_main_tree": "a93872a575afcd9dc4076a8963a536c1f7bfd961"
   },
   "source_artifact_sha256": {
     "docs/action-666dm-provider-neutral-market-observation-provenance.md": "6a96f69c934ef8c1f2707c8fd44bb4bd3483f3e52d2d7349ca926b40a1f640f5",
