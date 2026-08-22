@@ -70,6 +70,7 @@ const foundationTests = [
   "tests/e2e/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.spec.ts",
   "tests/e2e/action-666dl-position-version-history-generated-types-and-ma09-provenance-refresh.spec.ts",
   "tests/e2e/action-666dm-market-observation-provenance.spec.ts",
+  "tests/e2e/action-666dn-market-observation-readback-boundary.spec.ts",
 ];
 
 const intelligenceTests = [

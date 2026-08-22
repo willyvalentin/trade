@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DM — Provider-neutral market-observation provenance.**
+**ACTION 666DN — Market-observation readback boundary.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DL. It preserves verified GitHub branch protection,
+of Action 666DM. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -36,17 +36,20 @@ an operator-authorized, project-scoped read-only type-generation response that
 is not archived. It preserves the V2 MA09 package as historical evidence and
 grants no database mutation, migration application, backfill, runtime wiring,
 provider configuration mutation, deployment, broker, training or promotion
-authority. Action 666DM is separately bounded source-only work: it defines a
-pure canonical provenance commitment for future market observations, without
-an adapter, provider call, freshness claim or Action 655G activation.
+authority. Action 666DM delivered a pure canonical provenance commitment for
+future market observations, without an adapter, provider call, freshness claim
+or Action 655G activation. Action 666DN is separately bounded source-only
+work: it assesses opaque 666DM provenance against declared timestamps using
+the current 655G freshness profile, without a provider readback, current-price
+construction, runtime activation or Action 655G activation.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`4efcea11a73c3e8a96fac0a9872392c166844eb4`, tree
-`a93872a575afcd9dc4076a8963a536c1f7bfd961`, observed after Action 666DL's
+`d2a1a17c615349b6fd774ef3fc10a9ca9ea46bf4`, tree
+`d440d6b6f301e844e234ccef5a01af286a3ff6d1`, observed after Action 666DM's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -54,10 +57,10 @@ ordinary delivery.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The decision base is the ordinary merge of PR #137, with parents
-`d31c0920e7f90d4714f363767159caba598e8652` and
-`897d84d1397ffe994c27fe3486c811736e442773`. Exact-main push run
-`32593537469` completed successfully. PRs #100 through #121 and #124 through #137 form one verified
+The decision base is the ordinary merge of PR #138, with parents
+`4efcea11a73c3e8a96fac0a9872392c166844eb4` and
+`1f0f955b89c49294e9878c16f0bc1af480f24958`. Exact-main push run
+`32597263375` completed successfully. PRs #100 through #121 and #124 through #138 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -88,7 +91,7 @@ publication of the existing atomic deploy for exact PR #125 merge
 anonymous no-effect smoke and operator-attested authenticated read smoke. The
 Action 660M candidate itself performs no new publication.
 
-PRs #126 through #137 subsequently add governance, evidence, tests,
+PRs #126 through #138 subsequently add governance, evidence, tests,
 history-aware CI, the source-controlled read-only inventory artifact, lineage
 reconciliation, the append-only history decision and the source-migration
 design and bytes. The separately authorized isolated staging execution changes
@@ -96,10 +99,10 @@ only that staging schema; it does not change repository or runtime bytes.
 Action 666DC's historical ordinary merge is
 `cb501d3ad3626be1bb13429a9791574a2040b64e`; it remains the exact source-only
 preflight checkpoint, not a current deployment authority.
-Protected `main` is therefore twelve ordinary first-parent merges ahead of the
+Protected `main` is therefore thirteen ordinary first-parent merges ahead of the
 last verified production commit. Production remains the Action 660M release at
 `dbeed25f…`; no production publication was approved or observed for PRs #126
-through #137. Action 666DK's production database migration is a separately
+through #138. Action 666DK's production database migration is a separately
 authorized schema mutation, not a Netlify publication.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
@@ -281,9 +284,10 @@ Action 666DB's former next objective,
 `position_version_schema_migration_design_and_read_only_backfill_preflight`, is
 satisfied by this bounded design. Action 666DD separately satisfies the
 authorized inventory objective; neither Action applies the schema. Action
-666DM is the next source-only candidate: it defines a canonical
-market-observation provenance commitment but no adapter, provider call,
-freshness/readback behavior or Action 655G activation. Durable exit-queue
+666DM delivers the canonical market-observation provenance commitment. Action
+666DN is the next source-only candidate: it assesses that opaque commitment
+against declared timestamps but has no adapter, provider readback,
+current-price construction or Action 655G activation. Durable exit-queue
 schema and transactional recommendation-to-position runtime wiring remain
 separate blockers. No migration, route, worker, broker or production write is
 authorized here.

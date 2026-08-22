@@ -1,11 +1,12 @@
 # Ture Current-State Ledger
 
-**ACTION 666DM — Provider-neutral market-observation provenance.**
+**ACTION 666DN — Market-observation readback boundary.**
 
 **Evidence timestamp:** 2026-08-22. This source-only candidate follows ordinary
-delivery of Action 666DL's privacy-preserving generated-types refresh. It
-defines a provider-neutral canonical market-observation provenance commitment;
-it does not use a provider response or make a provider call. The last verified
+delivery of Action 666DM's provider-neutral provenance commitment. It assesses
+that opaque commitment against declared timestamps under the current 655G
+freshness profile; it does not use a provider response or make a provider call.
+The last verified
 production release remains the earlier PR #125 commit; this source work is not
 a deployment. Action 666DE's historical next
 bounded objective, `action_655g_canonical_recommendation_identity_reconciliation`,
@@ -21,10 +22,10 @@ promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `4efcea11a73c3e8a96fac0a9872392c166844eb4` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #137 | corroborated_current |
-| Protected pre-delivery main tree | `a93872a575afcd9dc4076a8963a536c1f7bfd961` | canonical_current |
-| Protected pre-delivery main parents | `d31c0920e7f90d4714f363767159caba598e8652`, `897d84d1397ffe994c27fe3486c811736e442773` | canonical_current |
+| GitHub protected pre-delivery main base | `d2a1a17c615349b6fd774ef3fc10a9ca9ea46bf4` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #138 | corroborated_current |
+| Protected pre-delivery main tree | `d440d6b6f301e844e234ccef5a01af286a3ff6d1` | canonical_current |
+| Protected pre-delivery main parents | `4efcea11a73c3e8a96fac0a9872392c166844eb4`, `1f0f955b89c49294e9878c16f0bc1af480f24958` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -67,7 +68,8 @@ promotion or release activity.
 | PR #135 | MERGED; reviewed head `0f93e46d…`; merge `0ce325d4…`; Action 666DK | corroborated_current |
 | PR #136 | MERGED; reviewed head `0777d461…`; merge `d31c0920…`; Action 660N | corroborated_current |
 | PR #137 | MERGED; reviewed head `897d84d1…`; merge `4efcea11…`; Action 666DL | corroborated_current |
-| Exact-main CI | push on `4efcea11…`, completed/success | verified_current |
+| PR #138 | MERGED; reviewed head `1f0f955b…`; merge `d2a1a17c…`; Action 666DM | corroborated_current |
+| Exact-main CI | push on `d2a1a17c…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -82,7 +84,7 @@ promotion or release activity.
 | Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
 | Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
-| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `4efcea11a73c3e8a96fac0a9872392c166844eb4`; the commits are not equal and PRs #126–#137 are governance, preflight, lineage-contract, source-only reconciliation, append-only-history decision, source-migration design/bytes, isolated staging-proof work, CI cache control and generated-types provenance. The separately authorized 666DK database migration is not a Netlify publication. | verified_current; production_is_first_parent_ancestor_of_main |
+| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `d2a1a17c615349b6fd774ef3fc10a9ca9ea46bf4`; the commits are not equal and PRs #126–#138 are governance, preflight, lineage-contract, source-only reconciliation, append-only-history decision, source-migration design/bytes, isolated staging-proof work, CI cache control, generated-types provenance and market-observation provenance. The separately authorized 666DK database migration is not a Netlify publication. | verified_current; production_is_first_parent_ancestor_of_main |
 | Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
@@ -157,9 +159,10 @@ MA-09's V2 package remains `verified_historical`: it binds the earlier
 project-scoped, read-only provider type-generation receipt at SHA-256
 `f23c3702…`. Action 666DL preserves the privacy-preserving current refresh as
 delivered source provenance, binding only repository output hashes and
-retaining no raw provider response. Action 666DM is a separate source-only
-candidate for market-observation provenance; it grants no runtime, database or
-release authority.
+retaining no raw provider response. Action 666DM is delivered source-only
+market-observation provenance. Action 666DN is the separate source-only
+candidate for a freshness assessment over that opaque provenance; it grants no
+runtime, database or release authority.
 
 MA-05 is `verified_current`: production readback passed 9/9 owner columns and
 RLS tables, 20/20 constraints, 2/2 relationship indexes, revoked client grants
@@ -232,10 +235,11 @@ migrated append-only history composite key. Action 666DK now records the
 separately authorized production source migration application and aggregate
 catalog proof. Action 666DL was the source-delivery candidate for the
 privacy-preserving generated-types/MA-09 provenance refresh and has since
-reached protected main with exact-main CI. Action 666DM is now a source-only
-candidate for canonical market-observation provenance. An adapter,
-freshness/readback contract, durable exit-queue schema and transactional
-runtime handoff remain separate blockers.
+reached protected main with exact-main CI. Action 666DM has also reached
+protected main as source-only canonical market-observation provenance. Action
+666DN is the source-only candidate for freshness assessment over that opaque
+provenance. A provider adapter, actual readback, durable exit-queue schema and
+transactional runtime handoff remain separate blockers.
 
 ## Delivery state
 
@@ -245,7 +249,7 @@ runtime handoff remain separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance. Action 666DM is an unmerged source-only candidate for canonical market-observation provenance. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Action 666DM delivers source-only market-observation provenance. Action 666DN is the unmerged source-only freshness-assessment candidate. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
