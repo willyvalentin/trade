@@ -1,0 +1,96 @@
+{
+  "contract_version": "trade.action666dj.position-version-history-isolated-staging-apply-and-catalog-proof.v1",
+  "action_id": "ACTION_666DJ",
+  "observed_at": "2026-08-22T10:59:55Z",
+  "predecessor": {
+    "main_commit": "16bf7504a7651bcbd0e1991e46580298cc6f03d0",
+    "main_tree": "8409ee13dd81e8d8bc1374c1801c5701040b1fca",
+    "main_parents": [
+      "b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b",
+      "0e2e4defb6679e25a71466aee40fd3824e3862f0"
+    ],
+    "exact_main_ci_run": 32566129762,
+    "action_666di_path": "docs/action-666di-position-version-history-source-migration-bytes.md",
+    "action_666di_migration_sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f"
+  },
+  "staging_execution": {
+    "environment_label": "ture-staging",
+    "production_targeted": false,
+    "source_migration_path": "supabase/migrations/20260821194333_create_position_version_history.sql",
+    "source_migration_sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f",
+    "migration_apply_succeeded": true,
+    "aggregate_only_results": true,
+    "row_owner_connection_identifiers_excluded": true,
+    "preflight": {
+      "row_security_off": true,
+      "positions_exists": true,
+      "recommendations_exists": true,
+      "history_absent_before_apply": true,
+      "positions_owner_target_eligible": true,
+      "recommendations_owner_target_eligible": true
+    },
+    "catalog_proof": {
+      "history_table_exists": true,
+      "history_row_count_after_apply": 0,
+      "rls_enabled": true,
+      "client_policy_count": 0,
+      "anon_table_privileges_all_revoked": true,
+      "authenticated_table_privileges_all_revoked": true,
+      "primary_key_exact": true,
+      "restrictive_foreign_keys_exact": true,
+      "safety_check_count": 6,
+      "recommendation_owner_index_exact": true,
+      "append_only_trigger_exact": true,
+      "append_only_function_execute_revoked": true
+    },
+    "rollback_behavioral_proof": {
+      "rollback_only": true,
+      "check_count": 14,
+      "all_checks_passed": true,
+      "valid_insert_accepted": true,
+      "duplicate_primary_key_rejected": true,
+      "cross_owner_foreign_key_rejected": true,
+      "minimum_version_enforced": true,
+      "maximum_version_enforced": true,
+      "digest_format_enforced": true,
+      "state_object_enforced": true,
+      "higher_version_retry_accepted": true,
+      "update_rejected_by_append_only_trigger": true,
+      "delete_rejected_by_append_only_trigger": true,
+      "position_parent_delete_restricted": true,
+      "recommendation_parent_delete_restricted": true,
+      "anon_read_denied": true,
+      "authenticated_read_denied": true
+    },
+    "post_rollback": {
+      "history_row_count": 0,
+      "rls_still_enabled": true
+    }
+  },
+  "source_document_sha256": {
+    "docs/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.md": "834d526e99bdbe9c7eef1d3ee51f2b078f9358ffca91a9435bcb3fc3f40882f8",
+    "docs/ture-master-roadmap.md": "2be1f2aa8c407fa2d19ce3c31cb95bfaecc38db62da472f611137a195279edbc",
+    "docs/ture-current-state-ledger.md": "a12094d7c6b1b62cdced583c57e3f42571c30ea00844256a48f4a38b4fe32c19",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "ab9962800e6170e98f1e165f5cec4abc4c1d54b378066067b8123f92380faeec",
+    "tests/e2e/action-666di-position-version-history-source-migration-bytes.spec.ts": "9ed0371959246fa54131da0b973c3af5f304761c9f7af2b6f566ccec025de08d",
+    "scripts/action-660j-provider-free-ci-registration.json": "8397a9eb188905af15eb5f84f41f9e994aeb6604b3b6470da00c8c40dcff8ee2",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "6efb2b53e99dce48a01fb3b7c4b0cb61442d9052a054b5e15150290a4a42dfaa"
+  },
+  "authority_limits": {
+    "staging_migration_apply_performed": true,
+    "staging_fixture_writes_rolled_back": true,
+    "production_database_query_performed": false,
+    "production_database_mutation_performed": false,
+    "production_migration_apply_performed": false,
+    "backfill_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "provider_configuration_mutation_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_history_isolated_staging_apply_and_catalog_proof",
+    "next_bounded_objective": "separate_production_apply_or_backfill_decision",
+    "production_authority_granted": false
+  }
+}

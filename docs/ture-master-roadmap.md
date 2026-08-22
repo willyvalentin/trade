@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DI — Position-version history source-migration bytes.**
+**ACTION 666DJ — Position-version history isolated staging apply and catalog proof.**
 
-**Document status:** source-only migration bytes after ordinary delivery of
-Action 666DH. It preserves verified GitHub branch protection,
+**Document status:** isolated staging proof after ordinary delivery of
+Action 666DI. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -23,17 +23,19 @@ owner-bound parent, restrictive deletion, append-only trigger, RLS/grant deny
 boundary and staging proofs. Action 666DI closes only
 `position_version_history_source_migration_bytes` and adds the reviewed source bytes
 for that empty relation, including its restrictive foreign keys, named checks,
-catalog assertions and append-only trigger. It grants no SQL execution,
-migration application, runtime, provider mutation, database write, deploy,
-broker, training or promotion authority.
+catalog assertions and append-only trigger. Action 666DJ records one explicitly
+authorized isolated staging application of those exact bytes plus aggregate-only
+catalog proof and rollback-only behavioural fixtures. It grants no production
+SQL, backfill, runtime, provider mutation, database write outside that rolled
+back staging fixture, deploy, broker, training or promotion authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b`, tree
-`f108d74ea13206ab7e37dbab14f48ad8bbd18211`, observed after Action 666DH's
+`16bf7504a7651bcbd0e1991e46580298cc6f03d0`, tree
+`8409ee13dd81e8d8bc1374c1801c5701040b1fca`, observed after Action 666DI's
 ordinary delivery. The preserved Action 666DE base was
 `ddce80b57c9ab21b5210d2aa484271c2da0f60e6`, tree
 `b9b02c7b55daa2719fe28241c170f056537e0b18`, observed on
@@ -41,10 +43,10 @@ ordinary delivery. The preserved Action 666DE base was
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The decision base is the ordinary merge of PR #132, with parents
-`adff18009490e8ac3d079a8ef0fd47209fef0424` and
-`5572286f2545c7cc81e83534f4060a5a2ae280ac`. Exact-main push run
-`32515918303` completed successfully. PRs #100 through #121 and #124 through #132 form one verified
+The decision base is the ordinary merge of PR #133, with parents
+`b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b` and
+`0e2e4defb6679e25a71466aee40fd3824e3862f0`. Exact-main push run
+`32566129762` completed successfully. PRs #100 through #121 and #124 through #133 form one verified
 first-parent delivery sequence; each exact-main push run completed successfully.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -70,18 +72,18 @@ publication of the existing atomic deploy for exact PR #125 merge
 anonymous no-effect smoke and operator-attested authenticated read smoke. The
 Action 660M candidate itself performs no new publication.
 
-PRs #126 through #132 subsequently add governance, evidence, tests,
+PRs #126 through #133 subsequently add governance, evidence, tests,
 history-aware CI, the source-controlled read-only inventory artifact, lineage
 reconciliation, the append-only history decision and the source-migration
-design only; the later authorized execution does not change repository or
-runtime bytes.
+design and bytes. The separately authorized isolated staging execution changes
+only that staging schema; it does not change repository or runtime bytes.
 Action 666DC's historical ordinary merge is
 `cb501d3ad3626be1bb13429a9791574a2040b64e`; it remains the exact source-only
 preflight checkpoint, not a current deployment authority.
-Protected `main` is therefore seven ordinary first-parent merges ahead of the
+Protected `main` is therefore eight ordinary first-parent merges ahead of the
 last verified production commit. Production remains the Action 660M release at
 `dbeed25f…`; no production publication was approved or observed for PRs #126
-through #132.
+through #133.
 
 An open PR, preservation ref, fixture, test result, default-off delivery or
 historical checkpoint is not production-completion evidence. No milestone is
@@ -367,10 +369,10 @@ The latest authenticated Netlify readback identifies published deploy
 `6a871d6b27fb2100082f16f9` and its production assertion at full commit
 `dbeed25f2074bff4dba8cee7f6d511cb17992efc`. The protected GitHub `main` base
 is now its ordinary first-parent descendant
-`b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b`, tree
-`f108d74ea13206ab7e37dbab14f48ad8bbd18211`, after governance,
+`16bf7504a7651bcbd0e1991e46580298cc6f03d0`, tree
+`8409ee13dd81e8d8bc1374c1801c5701040b1fca`, after governance,
 preflight, lineage-contract, source-only reconciliation, append-only-history
-decision and source-migration-design PRs #126–#132.
+decision and source-migration-design/bytes PRs #126–#133.
 The deploy is ready, locked, production-context, main-branch, plugin-success
 and has zero ordinary/enhanced secrets findings. Exact-main CI and required
 post-publication reads are green. Production is not asserted equal to current
