@@ -17,11 +17,13 @@ const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
+const planOracleTest =
+  "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
 const predecessorTest =
   "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts";
 const thisTest =
   "tests/e2e/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.spec.ts";
-const evidenceSha256 = "7afded9b82b7a7a6da7bd0ac7a6d1f00c69af6f41c6642a7d39f63173df5c27c";
+const evidenceSha256 = "c0c9e62e1c68bf2ad1b4ca8e0091d7a38a72394e3e24111517e913b9ff5dcf5f";
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -174,6 +176,7 @@ test("binds exact source, exactly-once CI registration and consumed authority", 
   expect(action).not.toContain("ekdyopdrrkphlrsilyoo");
   expect(action).not.toContain("pdvzyuhykomwfqyyztru");
   expect(action).toContain("does not backfill legacy data");
+  expect(Object.hasOwn(evidence.source_document_sha256, planOracleTest)).toBe(true);
   expect(Object.hasOwn(evidence.source_document_sha256, predecessorTest)).toBe(true);
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
