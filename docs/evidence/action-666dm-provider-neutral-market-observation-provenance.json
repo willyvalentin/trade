@@ -1,0 +1,33 @@
+{
+  "contract_version": "trade.action666dm.provider_neutral_market_observation_provenance.v1",
+  "action_id": "ACTION_666DM",
+  "predecessor": {
+    "protected_main_commit": "4efcea11a73c3e8a96fac0a9872392c166844eb4",
+    "protected_main_tree": "a93872a575afcd9dc4076a8963a536c1f7bfd961"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dm-provider-neutral-market-observation-provenance.md": "6a96f69c934ef8c1f2707c8fd44bb4bd3483f3e52d2d7349ca926b40a1f640f5",
+    "lib/action-666dm-market-observation-provenance.ts": "3cc1e027a84948ffb59bdf8e8a9e6f41d19081258a46faf3d362abf3f6af9982",
+    "tests/fixtures/action-666dm-market-observation-provenance-fixtures.ts": "39d4f424e16e44f083af6ff09d9e62dc368e296c26765b0a950f1a7f4c15d7cc"
+  },
+  "delivery": {
+    "kind": "source_only_candidate",
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "database_operations": false,
+    "deployment": false,
+    "broker_operations": false
+  },
+  "privacy": {
+    "no_raw_provider_payload": true,
+    "no_connection_or_credential_material": true,
+    "source_reference_kind": "opaque_sha256_commitment_only"
+  },
+  "contract": {
+    "input_contract_version": "action_666dm_market_observation_input_v1",
+    "output_contract_version": "action_666dm_market_observation_provenance_v1",
+    "output_is_655g_compatible_commitment_only": true,
+    "side_effects_performed": false
+  },
+  "next_gate": "separately_reviewed_adapter_and_freshness_integration"
+}

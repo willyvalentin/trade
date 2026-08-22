@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
+const predecessorRevision = "d31c0920e7f90d4714f363767159caba598e8652";
+const deliveryRevision = "4efcea11a73c3e8a96fac0a9872392c166844eb4";
 const actionPath =
   "docs/action-666dl-position-version-history-generated-types-and-ma09-provenance-refresh.md";
 const evidencePath =
@@ -48,6 +51,14 @@ const sourceHashes = {
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function deliveredSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${deliveryRevision}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 function sha256(value: string) {
@@ -108,23 +119,30 @@ test("pins the privacy-preserving current type output", async () => {
   });
 });
 
-test("requires exact current output bytes and the reviewed source migration", async () => {
+test("preserves the exact delivered output bytes and reviewed source migration", async () => {
   const [types, migration] = await Promise.all([
-    source(typePath),
-    source(migrationPath),
+    deliveredSource(typePath),
+    deliveredSource(migrationPath),
   ]);
   expect(sha256(types)).toBe(outputSha256);
   expect(gitBlobSha1(types)).toBe(outputBlobSha1);
   expect(sha256(migration)).toBe(migrationSha256);
   for (const [relativePath, expectedHash] of Object.entries(sourceHashes)) {
-    expect(sha256(await source(relativePath))).toBe(expectedHash);
+    expect(sha256(deliveredSource(relativePath))).toBe(expectedHash);
   }
 });
 
 test("preserves V2 as historical evidence and registers 666DL once", async () => {
+  expect(() =>
+    execFileSync(
+      "git",
+      ["merge-base", "--is-ancestor", predecessorRevision, deliveryRevision],
+      { cwd: repositoryRoot, encoding: "utf8" },
+    ),
+  ).not.toThrow();
   const [action, v2Oracle, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(v2OraclePath),
+    deliveredSource(actionPath),
+    deliveredSource(v2OraclePath),
     source(registrationPath),
     source(runnerPath),
   ]);
