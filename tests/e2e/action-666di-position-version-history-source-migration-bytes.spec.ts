@@ -7,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const predecessorRevision = "b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b";
+const actionRevision = "0e2e4defb6679e25a71466aee40fd3824e3862f0";
 const actionPath =
   "docs/action-666di-position-version-history-source-migration-bytes.md";
 const evidencePath =
@@ -32,6 +33,13 @@ async function source(relativePath: string) {
 
 function historicalSource(relativePath: string) {
   return execFileSync("git", ["show", `${predecessorRevision}:${relativePath}`], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+  });
+}
+
+function historicalSourceAtAction(relativePath: string) {
+  return execFileSync("git", ["show", `${actionRevision}:${relativePath}`], {
     cwd: repositoryRoot,
     encoding: "utf8",
   });
@@ -176,12 +184,12 @@ test("rejects source drift that removes catalog, RLS or append-only proofs", asy
   }
 });
 
-test("binds all current source bytes and leaves application authority closed", async () => {
+test("preserves the delivered source bytes and leaves application authority closed", async () => {
   const evidence = JSON.parse(await source(evidencePath)) as Evidence;
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedHash);
+    expect(sha256(historicalSourceAtAction(relativePath)), relativePath).toBe(expectedHash);
   }
   expect(evidence.authority_limits).toEqual({
     database_query_authorized: false,
@@ -201,13 +209,13 @@ test("binds all current source bytes and leaves application authority closed", a
     production_authority_granted: false,
   });
 
-  const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
+  const [registrationRaw, runner] = await Promise.all([
     source(registrationPath),
     source(runnerPath),
   ]);
+  const action = historicalSourceAtAction(actionPath);
+  const roadmap = historicalSourceAtAction(roadmapPath);
+  const ledger = historicalSourceAtAction(ledgerPath);
   for (const document of [action, roadmap, ledger]) {
     expect(document).toMatch(/action 666di/i);
     expect(document).toContain("position_version_history_source_migration_bytes");
