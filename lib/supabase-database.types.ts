@@ -1584,6 +1584,60 @@ export type Database = {
           },
         ]
       }
+      position_version_history: {
+        Row: {
+          durable_recommendation_version: number
+          owner_user_id: string
+          position_id: string
+          position_state_digest: string
+          position_state_frame: Json
+          position_version: number
+          recommendation_id: string
+          recommendation_identity: string
+          recommendation_normative_digest: string
+          recorded_at: string
+        }
+        Insert: {
+          durable_recommendation_version: number
+          owner_user_id: string
+          position_id: string
+          position_state_digest: string
+          position_state_frame: Json
+          position_version: number
+          recommendation_id: string
+          recommendation_identity: string
+          recommendation_normative_digest: string
+          recorded_at?: string
+        }
+        Update: {
+          durable_recommendation_version?: number
+          owner_user_id?: string
+          position_id?: string
+          position_state_digest?: string
+          position_state_frame?: Json
+          position_version?: number
+          recommendation_id?: string
+          recommendation_identity?: string
+          recommendation_normative_digest?: string
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_version_history_position_owner_fkey"
+            columns: ["position_id", "owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id", "owner_user_id"]
+          },
+          {
+            foreignKeyName: "position_version_history_recommendation_owner_fkey"
+            columns: ["recommendation_id", "owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "recommendations"
+            referencedColumns: ["id", "owner_user_id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           closed_at: string | null
