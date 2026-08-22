@@ -41,6 +41,7 @@ const foundationTests = [
   "tests/e2e/action-666dh-position-version-history-source-migration-design.spec.ts",
   "tests/e2e/action-666di-position-version-history-source-migration-bytes.spec.ts",
   "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts",
+  "tests/e2e/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.spec.ts",
 ];
 
 const intelligenceTests = [
