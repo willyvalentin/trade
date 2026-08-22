@@ -44,12 +44,16 @@ function sha256(value: string) {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-function gitGrep(pattern: string, paths: string[]) {
+function gitGrepAtAction(pattern: string, paths: string[]) {
   try {
-    return execFileSync("git", ["grep", "-l", pattern, "--", ...paths], {
-      cwd: repositoryRoot,
-      encoding: "utf8",
-    });
+    return execFileSync(
+      "git",
+      ["grep", "-l", pattern, actionRevision, "--", ...paths],
+      {
+        cwd: repositoryRoot,
+        encoding: "utf8",
+      },
+    );
   } catch (error) {
     if (error && typeof error === "object" && "status" in error && error.status === 1) {
       return "";
@@ -214,14 +218,15 @@ test("keeps database and runtime authority closed while registering once", async
     next_bounded_objective: "position_version_history_source_migration_design",
     production_authority_granted: false,
   });
-  const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
+  const [registrationRaw, runner] = await Promise.all([
     source(registrationPath),
     source(runnerPath),
   ]);
-  for (const document of [action, roadmap, ledger]) {
+  for (const document of [
+    historicalSourceAtAction(actionPath),
+    historicalSourceAtAction(roadmapPath),
+    historicalSourceAtAction(ledgerPath),
+  ]) {
     expect(document).toContain("Action 666DG");
     expect(document).toContain("append_only_position_version_history_decision");
     expect(document).toContain(predecessorRevision);
@@ -230,7 +235,12 @@ test("keeps database and runtime authority closed while registering once", async
     );
   }
   expect(
-    gitGrep("position_version_history", ["app", "components", "lib", "supabase/migrations"]),
+    gitGrepAtAction("position_version_history", [
+      "app",
+      "components",
+      "lib",
+      "supabase/migrations",
+    ]),
   ).toBe("");
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);

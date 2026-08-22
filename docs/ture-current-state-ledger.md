@@ -1,18 +1,18 @@
 # Ture Current-State Ledger
 
-**ACTION 666DH — Position-version history source-migration design.**
+**ACTION 666DI — Position-version history source-migration bytes.**
 
-**Evidence timestamp:** 2026-08-21. This source-only design follows ordinary
-delivery of Action 666DG. It closes only
-`position_version_history_source_migration_design`: a future SQL migration must
-create the owner-scoped append-only history relation with its composite key,
-restrictive foreign keys, RLS/grant denial and append-only trigger. It adds no
-migration bytes or database authority. The last verified production
+**Evidence timestamp:** 2026-08-21. This source-only package follows ordinary
+delivery of Action 666DH. It closes only
+`position_version_history_source_migration_bytes`: one reviewed local SQL
+migration creates the empty owner-scoped append-only history relation with its
+composite key, restrictive foreign keys, RLS/grant denial and append-only
+trigger. It does not apply the migration or grant database authority. The last verified production
 release remains the earlier PR #125 commit. Action 666DE's historical next
 bounded objective, `action_655g_canonical_recommendation_identity_reconciliation`,
 was closed by Action 666DF and remains preserved as immutable lineage. These
 candidate bytes authorize no further SQL
-execution, deploy, runtime, provider mutation, database write, migration,
+execution, deploy, runtime, provider mutation, database write, migration application,
 broker, training, promotion or release activity.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
@@ -22,10 +22,10 @@ broker, training, promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `adff18009490e8ac3d079a8ef0fd47209fef0424` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #131 | corroborated_current |
-| Protected pre-delivery main tree | `cb2b72b098db6d3cfac6c7116cc5a3343324fcfe` | canonical_current |
-| Protected pre-delivery main parents | `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`, `8d43939285d9ab7a3f6b629db97bf439e197d0db` | canonical_current |
+| GitHub protected pre-delivery main base | `b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #132 | corroborated_current |
+| Protected pre-delivery main tree | `f108d74ea13206ab7e37dbab14f48ad8bbd18211` | canonical_current |
+| Protected pre-delivery main parents | `adff18009490e8ac3d079a8ef0fd47209fef0424`, `5572286f2545c7cc81e83534f4060a5a2ae280ac` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -61,7 +61,9 @@ broker, training, promotion or release activity.
 | PR #128 | MERGED; reviewed head `981fcb3a…`; merge `ddce80b5…`; Action 666DD | corroborated_current |
 | PR #129 | MERGED; reviewed head `4257b420…`; merge `151b7881…`; Action 666DE | corroborated_current |
 | PR #130 | MERGED; reviewed head `48fa88f5…`; merge `a8b94861…`; Action 666DF | corroborated_current |
-| Exact-main CI | run `32492244739`, push, head `a8b94861…`, completed/success | verified_current |
+| PR #131 | MERGED; reviewed head `8d439392…`; merge `adff1800…`; Action 666DG | corroborated_current |
+| PR #132 | MERGED; reviewed head `5572286f…`; merge `b80584dc…`; Action 666DH | corroborated_current |
+| Exact-main CI | run `32515918303`, push, head `b80584dc…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -76,7 +78,7 @@ broker, training, promotion or release activity.
 | Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
 | Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
-| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `a8b94861e53d2aff6fb7ceb5afa3f415a6363b7b`; the commits are not equal and PRs #126–#130 are governance, preflight, lineage-contract and source-only reconciliation work | verified_current; production_is_first_parent_ancestor_of_main |
+| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `b80584dca0c2b2f1c7f2dd8793d59ac63dbafe6b`; the commits are not equal and PRs #126–#132 are governance, preflight, lineage-contract, source-only reconciliation, append-only-history decision and source-migration-design work | verified_current; production_is_first_parent_ancestor_of_main |
 | Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
