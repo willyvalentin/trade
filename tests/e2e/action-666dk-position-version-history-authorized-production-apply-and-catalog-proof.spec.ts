@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -6,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const predecessorRevision = "1b1d903142be6413049d12b8078a110fc29dbd12";
+const deliveryRevision = "0ce325d49ad3951cc898070b005fa1d224ef118a";
 const actionPath =
   "docs/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.md";
 const evidencePath =
@@ -27,6 +29,14 @@ const evidenceSha256 = "c0c9e62e1c68bf2ad1b4ca8e0091d7a38a72394e3e24111517e913b9
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function deliveredSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${deliveryRevision}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 function sha256(value: string) {
@@ -136,12 +146,19 @@ test("requires the exact migration and aggregate-only production catalog proof",
   });
 });
 
-test("binds exact source, exactly-once CI registration and consumed authority", async () => {
+test("binds delivered source, exactly-once CI registration and consumed authority", async () => {
   const evidence = JSON.parse(await source(evidencePath)) as Evidence;
+  expect(() =>
+    execFileSync(
+      "git",
+      ["merge-base", "--is-ancestor", predecessorRevision, deliveryRevision],
+      { cwd: repositoryRoot, encoding: "utf8" },
+    ),
+  ).not.toThrow();
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedHash);
+    expect(sha256(deliveredSource(relativePath)), relativePath).toBe(expectedHash);
   }
   expect(evidence.authority_limits).toEqual({
     production_database_query_performed: true,
@@ -163,9 +180,9 @@ test("binds exact source, exactly-once CI registration and consumed authority", 
   });
 
   const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
+    deliveredSource(actionPath),
+    deliveredSource(roadmapPath),
+    deliveredSource(ledgerPath),
     source(registrationPath),
     source(runnerPath),
   ]);

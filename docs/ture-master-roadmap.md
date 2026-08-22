@@ -61,6 +61,11 @@ the full matrix is skipped. Making the PR Ready, every later Ready push and
 every push to `main` automatically requires the complete six-shard matrix. A
 quick Draft result can never authorize merge or change product authority.
 
+Action 660N is the separately bounded lockfile-bound npm download-cache
+candidate. It preserves Action 660K's scheduling model, six-shard Ready/main
+matrix, exact-SHA and clean-tree controls, and fail-closed aggregate; it caches
+only downloaded npm packages and retains locked `npm ci --ignore-scripts`.
+
 Action 660L is a source-only security release candidate. It upgrades Next.js
 and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the installed npm
 graph to zero audit findings, corrects six stale proxy expectations without a
