@@ -1,0 +1,87 @@
+{
+  "contract_version": "trade.action666dk.position-version-history-authorized-production-apply-and-catalog-proof.v1",
+  "action_id": "ACTION_666DK",
+  "observed_at": "2026-08-22T12:37:53Z",
+  "predecessor": {
+    "main_commit": "1b1d903142be6413049d12b8078a110fc29dbd12",
+    "main_tree": "634a75e7446192af6978fe472d1a76c141068010",
+    "main_parents": [
+      "16bf7504a7651bcbd0e1991e46580298cc6f03d0",
+      "2500d35ee29a3892e4bd83fb088c1f0c3bd6067c"
+    ],
+    "exact_main_ci_run": 32571560062,
+    "action_666dj_path": "docs/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.md",
+    "action_666di_migration_sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f"
+  },
+  "production_execution": {
+    "environment_label": "Trade",
+    "staging_targeted": false,
+    "source_migration_path": "supabase/migrations/20260821194333_create_position_version_history.sql",
+    "source_migration_sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f",
+    "provider_migration_record": {
+      "version": "20260822123246",
+      "name": "20260821194333_create_position_version_history"
+    },
+    "migration_apply_succeeded": true,
+    "aggregate_only_results": true,
+    "row_owner_connection_identifiers_excluded": true,
+    "preflight": {
+      "history_relation_absent": true,
+      "append_only_trigger_absent": true,
+      "append_only_function_absent": true,
+      "positions_owner_parent_target_eligible": true,
+      "recommendations_owner_parent_target_eligible": true
+    },
+    "postflight": {
+      "history_relation_exists": true,
+      "history_row_count": 0,
+      "rls_enabled": true,
+      "client_policies_absent": true,
+      "anon_and_authenticated_read_denied": true,
+      "anon_and_authenticated_write_denied": true,
+      "primary_key_valid": true,
+      "restrictive_owner_foreign_keys_valid": true,
+      "safety_check_count": 6,
+      "recommendation_owner_index_valid": true,
+      "append_only_trigger_enabled": true,
+      "security_invoker_function_with_fixed_path": true
+    },
+    "advisories": {
+      "new_relation_security_info": "rls_enabled_no_policy",
+      "new_relation_performance_info": "unused_index",
+      "new_relation_warning_or_error": false
+    },
+    "privacy": {
+      "row_contents_returned": false,
+      "row_identifiers_returned": false,
+      "owner_identifiers_returned": false,
+      "connection_identifiers_returned": false,
+      "credentials_embedded": false
+    }
+  },
+  "source_document_sha256": {
+    "docs/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.md": "8d012a763adbbe23b7626e6c2c4a8a8132c3a4694955fbc702f6ddd004945c50",
+    "docs/ture-master-roadmap.md": "6f2e15f447f46086b42042805f8dcb776f075428cc77413a61303dbd5fe23744",
+    "docs/ture-current-state-ledger.md": "92b7f66fdc59b991b924a3cfd86613e0b537f29380addf4ba53e1b97bc2f3a70",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "28468ca7b91df134557086d7cf6a0364ab044b5552294d8642711be102bc6ffb",
+    "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts": "e88fbadbd3da33625d6e56668bf8da50d058fe3a3101e6e35591bfba74eca019",
+    "scripts/action-660j-provider-free-ci-registration.json": "b4f050b075fbc4a3ef8e4618195419e67ea17b9d483283d3db70ee4ec3dd1471",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "f69be44e5c0fc2d93f1018c672ac58c8cb020473927a86bb219e85e0e68b8903"
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": true,
+    "production_migration_apply_performed": true,
+    "backfill_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "provider_configuration_mutation_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_history_authorized_production_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_history_generated_types_and_ma09_provenance_refresh",
+    "production_authority_consumed_for_exact_migration_only": true,
+    "production_deployment_authorized": false
+  }
+}

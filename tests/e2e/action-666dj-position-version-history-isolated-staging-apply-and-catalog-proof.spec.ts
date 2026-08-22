@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -6,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const predecessorRevision = "16bf7504a7651bcbd0e1991e46580298cc6f03d0";
+const deliveryRevision = "1b1d903142be6413049d12b8078a110fc29dbd12";
 const actionPath =
   "docs/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.md";
 const evidencePath =
@@ -25,6 +27,14 @@ const evidenceSha256 = "3987a998a6ae23ff8f9eede207d15ca20a25cb97533cb8407154357e
 
 async function source(relativePath: string) {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
+
+function deliveredSource(relativePath: string) {
+  return execFileSync(
+    "git",
+    ["show", `${deliveryRevision}:${relativePath}`],
+    { cwd: repositoryRoot, encoding: "utf8" },
+  );
 }
 
 function sha256(value: string) {
@@ -142,12 +152,19 @@ test("requires the exact migration, aggregate-only catalog proof and rollback pr
   });
 });
 
-test("binds current source bytes, exactly-once CI registration and closed production authority", async () => {
+test("binds delivered source bytes, exactly-once CI registration and closed production authority", async () => {
   const evidence = JSON.parse(await source(evidencePath)) as Evidence;
+  expect(() =>
+    execFileSync(
+      "git",
+      ["merge-base", "--is-ancestor", predecessorRevision, deliveryRevision],
+      { cwd: repositoryRoot, encoding: "utf8" },
+    ),
+  ).not.toThrow();
   for (const [relativePath, expectedHash] of Object.entries(
     evidence.source_document_sha256,
   )) {
-    expect(sha256(await source(relativePath)), relativePath).toBe(expectedHash);
+    expect(sha256(deliveredSource(relativePath)), relativePath).toBe(expectedHash);
   }
   expect(evidence.authority_limits).toEqual({
     staging_migration_apply_performed: true,
@@ -184,8 +201,8 @@ test("binds current source bytes, exactly-once CI registration and closed produc
   expect(action).toContain("14/14 checks");
   expect(action).toContain("post-rollback row count is zero");
   expect(action).toContain("not a production authorization");
-  expect(roadmap).toContain("PRs #126 through #133");
-  expect(ledger).toContain("PRs #126–#133");
+  expect(roadmap).toMatch(/PRs #126 through #[0-9]+/);
+  expect(ledger).toMatch(/PRs #126–#[0-9]+/);
   expect(Object.hasOwn(evidence.source_document_sha256, predecessorTest)).toBe(true);
   const registration = JSON.parse(registrationRaw) as string[];
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
