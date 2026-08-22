@@ -10,6 +10,8 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const contractPath = "docs/action-660j-parallel-provider-free-verification.md";
+const cacheEvidencePath =
+  "docs/evidence/action-660n-lockfile-bound-npm-download-cache.json";
 const contractSha256 =
   "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40";
 
@@ -321,7 +323,8 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
     'run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"',
     "persist-credentials: false",
     "node-version: 24.19.0",
-    "package-manager-cache: false",
+    "cache: npm",
+    "cache-dependency-path: package-lock.json",
     "run: npm ci --ignore-scripts --no-audit --no-fund",
     'run: node scripts/action-660j-run-provider-free-ci-shard.mjs "${{ matrix.shard }}"',
     "git diff --exit-code",
@@ -352,6 +355,85 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
       env: { ...process.env, SHARD_RESULT: "success" },
     }).status,
   ).toBe(0);
+});
+
+test("binds npm download caching to the committed lockfile without weakening verification", async () => {
+  const workflow = await source(workflowPath);
+  const draftJob = blockBetween(
+    workflow,
+    "draft-provider-free-verification",
+    "provider-free-verification-shard",
+  );
+  const shardJob = blockBetween(
+    workflow,
+    "provider-free-verification-shard",
+    "provider-free-verification",
+  );
+  const cacheEvidence = JSON.parse(await source(cacheEvidencePath));
+  const packageLockSha256 = createHash("sha256")
+    .update(await source("package-lock.json"))
+    .digest("hex");
+  const workflowSha256 = createHash("sha256").update(workflow).digest("hex");
+
+  expect(cacheEvidence).toEqual({
+    contract_version: "action_660n_lockfile_bound_npm_download_cache_v1",
+    authority: {
+      base_main_commit: "0ce325d49ad3951cc898070b005fa1d224ef118a",
+      base_main_tree: "5cee9a86bdf86bc0117255cb23a9be34e8631b73",
+      branch_protection_change: false,
+      production_deployment_authority: false,
+    },
+    lockfile_binding: {
+      setup_action: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+      cache_input: "npm",
+      cache_dependency_path: "package-lock.json",
+      package_lock_sha256: packageLockSha256,
+      workflow_sha256: workflowSha256,
+      cached_material: "npm_download_cache_only",
+      node_modules_cached: false,
+      locked_install_command: "npm ci --ignore-scripts --no-audit --no-fund",
+    },
+    routes: {
+      draft_job: "draft-provider-free-verification",
+      full_matrix_job: "provider-free-verification-shard",
+      draft_and_full_use_same_lockfile_binding: true,
+      full_matrix_shard_count: 6,
+      protected_aggregate: "provider-free-verification",
+    },
+    preserved_controls: {
+      draft_vs_ready_gating: true,
+      exact_revision_identity_checks: true,
+      clean_tree_checks: true,
+      npm_ci_ignore_scripts: true,
+      fail_closed_aggregate: true,
+      branch_protection_behavior: true,
+    },
+    delivery: {
+      cache_hit_observed: false,
+      draft_ci_observed: false,
+      ready_exact_head_ci_observed: false,
+      exact_main_ci_observed: false,
+      production_deployment_authorized: false,
+    },
+  });
+
+  for (const job of [draftJob, shardJob]) {
+    expect(occurrenceCount(job, "cache: npm")).toBe(1);
+    expect(occurrenceCount(job, "cache-dependency-path: package-lock.json")).toBe(1);
+    expect(job).not.toContain("package-manager-cache: false");
+    expect(occurrenceCount(job, "npm ci --ignore-scripts --no-audit --no-fund")).toBe(1);
+    expect(job.indexOf("cache: npm")).toBeLessThan(
+      job.indexOf("npm ci --ignore-scripts --no-audit --no-fund"),
+    );
+    expect(job.indexOf("Verify exact")).toBeLessThan(job.indexOf("cache: npm"));
+    expect(job.indexOf("npm ci --ignore-scripts --no-audit --no-fund")).toBeLessThan(
+      job.indexOf("Verify tracked source remained unchanged"),
+    );
+  }
+
+  const aggregateJob = blockBetween(workflow, "provider-free-verification");
+  expect(aggregateJob).toContain('run: test "$SHARD_RESULT" = "success"');
+  expect(aggregateJob).not.toContain("continue-on-error");
 });
 
 test("freezes the bounded baseline and forbids production authority", async () => {

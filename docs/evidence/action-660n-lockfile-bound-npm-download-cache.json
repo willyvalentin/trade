@@ -1,0 +1,41 @@
+{
+  "contract_version": "action_660n_lockfile_bound_npm_download_cache_v1",
+  "authority": {
+    "base_main_commit": "0ce325d49ad3951cc898070b005fa1d224ef118a",
+    "base_main_tree": "5cee9a86bdf86bc0117255cb23a9be34e8631b73",
+    "branch_protection_change": false,
+    "production_deployment_authority": false
+  },
+  "lockfile_binding": {
+    "setup_action": "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "cache_input": "npm",
+    "cache_dependency_path": "package-lock.json",
+    "package_lock_sha256": "476ee07495deb38aac1f66b9fd5dbe6b2889dc73d4e026633200548c2d65c4ea",
+    "workflow_sha256": "aed0f647be09325b32fb452ed41ce77d906d155c7910a100bf00172f705f53bc",
+    "cached_material": "npm_download_cache_only",
+    "node_modules_cached": false,
+    "locked_install_command": "npm ci --ignore-scripts --no-audit --no-fund"
+  },
+  "routes": {
+    "draft_job": "draft-provider-free-verification",
+    "full_matrix_job": "provider-free-verification-shard",
+    "draft_and_full_use_same_lockfile_binding": true,
+    "full_matrix_shard_count": 6,
+    "protected_aggregate": "provider-free-verification"
+  },
+  "preserved_controls": {
+    "draft_vs_ready_gating": true,
+    "exact_revision_identity_checks": true,
+    "clean_tree_checks": true,
+    "npm_ci_ignore_scripts": true,
+    "fail_closed_aggregate": true,
+    "branch_protection_behavior": true
+  },
+  "delivery": {
+    "cache_hit_observed": false,
+    "draft_ci_observed": false,
+    "ready_exact_head_ci_observed": false,
+    "exact_main_ci_observed": false,
+    "production_deployment_authorized": false
+  }
+}
