@@ -121,6 +121,11 @@ is skipped. A Ready transition, every later Ready push and every `main` push
 must run the complete matrix before that protected aggregate may succeed. A
 quick Draft result can never authorize merge.
 
+Action 660N is an unmerged source-only candidate for a lockfile-bound npm
+download cache. It does not change the protected check, six-shard Ready/main
+verification, exact-SHA or clean-tree controls, database state or deployment
+authority.
+
 Action 660L is a source-only security release candidate. It upgrades `next`
 and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the npm lock graph
 to zero audit findings, corrects six stale proxy expectations without changing

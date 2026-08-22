@@ -10,6 +10,7 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const contractPath = "docs/action-660j-parallel-provider-free-verification.md";
+const cacheContractPath = "docs/action-660n-lockfile-bound-npm-download-cache.md";
 const cacheEvidencePath =
   "docs/evidence/action-660n-lockfile-bound-npm-download-cache.json";
 const contractSha256 =
@@ -369,7 +370,11 @@ test("binds npm download caching to the committed lockfile without weakening ver
     "provider-free-verification-shard",
     "provider-free-verification",
   );
-  const cacheEvidence = JSON.parse(await source(cacheEvidencePath));
+  const [cacheContract, cacheEvidenceRaw] = await Promise.all([
+    source(cacheContractPath),
+    source(cacheEvidencePath),
+  ]);
+  const cacheEvidence = JSON.parse(cacheEvidenceRaw);
   const packageLockSha256 = createHash("sha256")
     .update(await source("package-lock.json"))
     .digest("hex");
@@ -416,6 +421,11 @@ test("binds npm download caching to the committed lockfile without weakening ver
       production_deployment_authorized: false,
     },
   });
+  expect(cacheContract).toContain("Action 660N");
+  expect(cacheContract).toContain(cacheEvidencePath);
+  expect(cacheContract).toContain(cacheEvidence.authority.base_main_commit);
+  expect(cacheContract).toContain(cacheEvidence.authority.base_main_tree);
+  expect(cacheContract).toContain("does not cache\n`node_modules`");
 
   for (const job of [draftJob, shardJob]) {
     expect(occurrenceCount(job, "cache: npm")).toBe(1);
