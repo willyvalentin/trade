@@ -1,0 +1,47 @@
+{
+  "contract_version": "trade.action666dl.generated-types-and-ma09-provenance-refresh.v1",
+  "action_id": "ACTION_666DL",
+  "observed_at": "2026-08-22T18:07:52Z",
+  "predecessor": {
+    "protected_main_commit": "d31c0920e7f90d4714f363767159caba598e8652",
+    "protected_main_tree": "59eba00d398e0c29b9f7b99803de7c1853636a37",
+    "source_migration_sha256": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f",
+    "prior_authorized_apply_evidence_sha256": "c0c9e62e1c68bf2ad1b4ca8e0091d7a38a72394e3e24111517e913b9ff5dcf5f"
+  },
+  "type_generation": {
+    "transport": "operator_authorized_project_scoped_read_only",
+    "response_shape": "exact_object_types_string",
+    "response_content_retained": false,
+    "privacy_classification": "schema_identifier_only",
+    "repository_output_path": "lib/supabase-database.types.ts",
+    "repository_output_sha256": "57eb9b06cfc32570f1a930e80169cf6f1e1f2059ec92f6ccae40f9a5ceabfe00",
+    "repository_output_git_blob_sha1": "44ee825c72f8bfae97848de064c4e727a1b64916",
+    "in_memory_byte_identical_before_write": true
+  },
+  "source_document_sha256": {
+    "docs/action-666dl-position-version-history-generated-types-and-ma09-provenance-refresh.md": "fc2189b4060a8e2515acb018239512783b93ea9631b906d74b7cb49b6f7fc7f4",
+    "docs/ture-current-state-ledger.md": "c69d541558a269d522c0b834bae99fd1f571243267b1798f4240f96faeb1d5af",
+    "docs/ture-master-roadmap.md": "a09b1970aa88c58eb42c1f86c2c32497f5803d99fb4c0c620ade262951285808",
+    "docs/evidence/action-666dk-position-version-history-authorized-production-apply-and-catalog-proof.json": "c0c9e62e1c68bf2ad1b4ca8e0091d7a38a72394e3e24111517e913b9ff5dcf5f",
+    "scripts/action-660j-provider-free-ci-registration.json": "2e3f2c2f292f10663be013aceea025413f1e02b192e47ac18ee58ec42c86f965",
+    "scripts/action-660j-run-provider-free-ci-shard.mjs": "a09c74cbfed5c61b208ad68ecec501f1a017681d7ae0fac7fe81aafc53403d50",
+    "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs": "3f151100643cb64bbbb5814766c654646b2b30eed20a7c3998318b8d2a65ed4a",
+    "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "54835311ed3480304226140e9ffd37c98c51072e994388916115d3020ee9d21f",
+    "tests/e2e/action-666dj-position-version-history-isolated-staging-apply-and-catalog-proof.spec.ts": "9c69e4bd6975cab2cc5cb3068ea9f53c0abb6335a49cc28c7ce24e6ce9b5141a"
+  },
+  "authority_limits": {
+    "database_mutation": false,
+    "migration_application": false,
+    "legacy_backfill": false,
+    "runtime_wiring": false,
+    "provider_configuration_mutation": false,
+    "production_deployment": false,
+    "broker_or_execution": false
+  },
+  "decision": {
+    "bounded_objective": "generated_types_and_ma09_provenance_refresh",
+    "candidate_status": "source_delivery_candidate",
+    "historical_v2_evidence_preserved": true,
+    "next_bounded_objective": "separately_gated_milestone_b_runtime_design"
+  }
+}

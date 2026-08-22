@@ -186,9 +186,9 @@ test("binds delivered source bytes, exactly-once CI registration and closed prod
   });
 
   const [action, roadmap, ledger, registrationRaw, runner] = await Promise.all([
-    source(actionPath),
-    source(roadmapPath),
-    source(ledgerPath),
+    deliveredSource(actionPath),
+    deliveredSource(roadmapPath),
+    deliveredSource(ledgerPath),
     source(registrationPath),
     source(runnerPath),
   ]);

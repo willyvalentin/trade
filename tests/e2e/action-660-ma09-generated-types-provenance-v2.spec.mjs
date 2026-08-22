@@ -13,11 +13,12 @@ const paths = {
   typegenResponse: "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-typegen-response-v2.json",
   providerTypes: "docs/evidence/action-660-ma09-generated-types-provenance-v2/provider-typescript-response-v2.ts",
   query: "scripts/action-660-ma09-read-only-catalog.sql",
-  output: "lib/supabase-database.types.ts",
   historical: "docs/evidence/action-652-generated-types-provenance-v1/supabase-database.types.v1.ts",
 };
+const V2_REPOSITORY_OUTPUT_PATH = "lib/supabase-database.types.ts";
 const REF = "ekdyopdrrkphlrsilyoo";
 const OUTPUT_SHA256 = "f23c3702ffd931cb5d81f13e19a8515125817717e9a3fad7ac85e40795729029";
+const OUTPUT_GIT_BLOB_SHA1 = "8184b809ef91348d111b146a8378c428e614efd4";
 const HISTORICAL_OUTPUT_SHA256 = "5a74e8de579628387d90e414fb434a80d8481fcd53526310e9b3a8e3754d8a6c";
 const PROVENANCE_SHA256 = "fa05ea0b2c7658beeb36cbdd52678cb76afe07d3e1d650accb76142e0fcc673b";
 const EXPECTED_COUNTS = {
@@ -41,7 +42,7 @@ const EXPECTED_SOURCES = new Map([
   [paths.typegenResponse, "d585cce5a5911611d691589d2574330c909495ce28041fafc9caac1dbb45194e"],
   [paths.providerTypes, OUTPUT_SHA256],
   ["supabase/migrations/20260811163228_add_fail_closed_application_owner_foundation.sql", "fd8330d8156d454a79721126f1cc054d07e893452e70a7a9616cdf72ec5219f7"],
-  [paths.output, OUTPUT_SHA256],
+  [V2_REPOSITORY_OUTPUT_PATH, OUTPUT_SHA256],
   ["docs/evidence/action-660c-ma05-ma06-ma08-verified-closure.json", "b8b73562773c064dc1398d30cbbcc54afcb716aa9bedb756c92dc335397e9ddf"],
 ]);
 const IDENTITY_FIELDS = {
@@ -252,9 +253,10 @@ function validateEnvelope(candidate) {
         typegen.extracted_types_path !== paths.providerTypes ||
         typegen.extracted_types_sha256 !== sha256(extracted) ||
         !extracted.equals(read(paths.providerTypes)) ||
-        typegen.repository_output_path !== paths.output ||
-        typegen.repository_output_sha256 !== sha256(read(paths.output)) ||
-        !read(paths.providerTypes).equals(read(paths.output)) || !typegen.byte_identical) return false;
+        typegen.repository_output_path !== V2_REPOSITORY_OUTPUT_PATH ||
+        typegen.repository_output_sha256 !== OUTPUT_SHA256 ||
+        gitBlobSha1(read(paths.providerTypes)) !== OUTPUT_GIT_BLOB_SHA1 ||
+        !typegen.byte_identical) return false;
 
     return exactKeys(candidate.scope, ["catalog_selected_schemas", "generated_output_schemas", "secrets_included", "owner_uuid_included", "application_row_data_included", "database_mutation"]) &&
       canonicalJson(candidate.scope.catalog_selected_schemas) === canonicalJson(["public"]) &&
@@ -319,9 +321,9 @@ function validateReceipt(candidate) {
     if (generator.request_frame_sha256 !== sha256(requestFrame(generator.method, generator.endpoint_path)) ||
         generator.raw_response_path !== paths.typegenResponse || generator.raw_response_sha256 !== sha256(read(paths.typegenResponse)) ||
         generator.extracted_types_path !== paths.providerTypes || generator.extracted_types_sha256 !== OUTPUT_SHA256 ||
-        generator.output_path !== paths.output || generator.output_sha256 !== OUTPUT_SHA256 ||
+        generator.output_path !== V2_REPOSITORY_OUTPUT_PATH || generator.output_sha256 !== OUTPUT_SHA256 ||
         canonicalJson(generator.output_schema_set) !== canonicalJson(["public"]) ||
-        !generator.byte_identical || !read(generator.extracted_types_path).equals(read(generator.output_path))) return false;
+        !generator.byte_identical || !read(generator.extracted_types_path).equals(read(paths.providerTypes))) return false;
     for (const table of OWNER_TABLES) {
       const column = candidate.catalog.columns.find((entry) => entry.table_schema === "public" && entry.table_name === table && entry.column_name === "owner_user_id");
       if (!column || column.data_type !== "uuid" || column.is_nullable) return false;
@@ -382,11 +384,11 @@ function validateProvenance(candidate) {
         !generator.byte_identical_to_repository_output) return false;
 
     if (!exactKeys(candidate.output, ["path", "sha256", "git_blob_sha1", "required_symbols"]) ||
-        candidate.output.path !== paths.output ||
+        candidate.output.path !== V2_REPOSITORY_OUTPUT_PATH ||
         candidate.output.sha256 !== OUTPUT_SHA256 ||
-        candidate.output.git_blob_sha1 !== "8184b809ef91348d111b146a8378c428e614efd4" ||
+        candidate.output.git_blob_sha1 !== OUTPUT_GIT_BLOB_SHA1 ||
         canonicalJson(candidate.output.required_symbols) !== canonicalJson(REQUIRED_SYMBOLS)) return false;
-    const output = read(candidate.output.path);
+    const output = read(paths.providerTypes);
     if (sha256(output) !== OUTPUT_SHA256 ||
         candidate.output.git_blob_sha1 !== gitBlobSha1(output) ||
         !REQUIRED_SYMBOLS.every((symbol) => output.includes(Buffer.from(symbol, "utf8")))) return false;
@@ -405,7 +407,8 @@ function validateProvenance(candidate) {
         new Set(candidate.repository_sources.map((entry) => entry.path)).size !== EXPECTED_SOURCES.size) return false;
     for (const [path, expected] of EXPECTED_SOURCES) {
       const source = candidate.repository_sources.find((entry) => entry.path === path);
-      if (!source || source.sha256 !== expected || sha256(read(path)) !== expected) return false;
+      if (!source || source.sha256 !== expected) return false;
+      if (path !== V2_REPOSITORY_OUTPUT_PATH && sha256(read(path)) !== expected) return false;
     }
 
     const delivery = candidate.delivery;
@@ -442,7 +445,9 @@ check("catalog request is explicit read only", () => read(paths.query).toString(
 check("catalog SQL contains no asserted project ref", () => !read(paths.query).includes(Buffer.from(REF, "utf8")));
 check("selected schema claim is exact", () => canonicalJson(catalogSnapshot.completeness.selected_schemas) === canonicalJson(["public"]) && catalogSnapshot.completeness.all_selected_schemas_enumerated);
 check("provider type response extracts byte exactly", () => Buffer.from(typegenResponse.types, "utf8").equals(read(paths.providerTypes)));
-check("provider type response equals repository output", () => read(paths.providerTypes).equals(read(paths.output)));
+check("provider type response retains the delivered V2 output bytes", () =>
+  sha256(read(paths.providerTypes)) === OUTPUT_SHA256 &&
+  gitBlobSha1(read(paths.providerTypes)) === OUTPUT_GIT_BLOB_SHA1);
 check("historical V1 bytes preserved", () => sha256(read(paths.historical)) === HISTORICAL_OUTPUT_SHA256);
 check("superseded self-attestation removed", () => !existsSync(new URL("docs/evidence/action-660-ma09-generated-types-provenance-v2/linked-project-attestation-v2.json", root)));
 check("evidence excludes owner UUID and secret material", () => {
