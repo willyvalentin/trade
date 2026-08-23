@@ -1,0 +1,42 @@
+{
+  "contract_version": "trade.action666dw.transactional-recommendation-position-writer-durable-idempotency-storage-contract.v1",
+  "action_id": "ACTION_666DW",
+  "predecessor": {
+    "protected_main_commit": "0da9b32fbc810969011686f31e7a6d6239723d0f",
+    "protected_main_tree": "387ab15ccd305bbd4a835113b467040d47485793",
+    "exact_main_ci_run": 32630534563,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dv-transactional-recommendation-position-writer-authenticated-server-owner-context-contract.md": "24260b26fd277b231a6e1dc2610f3550339a32c06823184a0e7ca39193f389fe",
+    "docs/evidence/action-666dv-transactional-recommendation-position-writer-authenticated-server-owner-context-contract.json": "1f83676e847029bfce36ef50fc4a287088bbabebacdd2ade5c1e9c4178552163",
+    "lib/transactional-recommendation-position-writer-authenticated-server-owner-context-contract.ts": "67d874fcb1124cd7c9675c9412187ea2508b93769f7f8c6ca6789116ab30fc59"
+  },
+  "durable_idempotency_storage_contract": {
+    "requirement_count": 5,
+    "storage_adapter_selected": false,
+    "durable_storage_read_present": false,
+    "durable_storage_write_present": false,
+    "immutable_record_admitted": false,
+    "complete_command_binding_admitted": false,
+    "owner_bound_recommendation_scope_admitted": false,
+    "replay_decision_admitted": false,
+    "conflict_decision_admitted": false,
+    "same_transaction_reservation_admitted": false,
+    "result_observation_admitted": false
+  },
+  "delivery": {
+    "kind": "source_only_durable_idempotency_storage_contract",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_durable_idempotency_storage_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_owner_bound_effect_contract",
+    "production_authority_granted": false
+  }
+}

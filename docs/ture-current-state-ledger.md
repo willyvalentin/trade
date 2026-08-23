@@ -1,10 +1,10 @@
 # Ture Current-State Ledger
 
-**ACTION 666DV — Transactional recommendation-to-position writer authenticated server-owner context contract.**
+**ACTION 666DW — Transactional recommendation-to-position writer durable idempotency storage contract.**
 
 **Evidence timestamp:** 2026-08-23. This source-only candidate follows ordinary
-delivery of Action 666DU's transaction-capability contract. It freezes a
-default-deny authenticated server-owner context admission contract only; it
+delivery of Action 666DV's authenticated server-owner context contract. It
+freezes a default-deny durable-idempotency storage admission contract only; it
 does not add SQL, use a provider response, make a database operation or
 activate runtime wiring.
 The last verified
@@ -23,10 +23,10 @@ promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `8437c25fe7904810e61cc9f2ca2efbbaf554040a` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #146 | corroborated_current |
-| Protected pre-delivery main tree | `9e7746551a9e99410f962497f572a2fffa834007` | canonical_current |
-| Protected pre-delivery main parents | `a33e27b3d94a20ce7cd1a61cf26caa9c52fc2776`, `1d4827cf75d1d37c86edb9c5e5863b1da1f00b31` | canonical_current |
+| GitHub protected pre-delivery main base | `0da9b32fbc810969011686f31e7a6d6239723d0f` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #147 | corroborated_current |
+| Protected pre-delivery main tree | `387ab15ccd305bbd4a835113b467040d47485793` | canonical_current |
+| Protected pre-delivery main parents | `8437c25fe7904810e61cc9f2ca2efbbaf554040a`, `496548290a0a35e3cad026bbee40515a17cb5fe3` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -78,7 +78,8 @@ promotion or release activity.
 | PR #144 | MERGED; reviewed head `f40fc0ef…`; merge `2b4db2f5…`; Action 666DS | corroborated_current |
 | PR #145 | MERGED; reviewed head `bc30c123…`; merge `a33e27b3…`; Action 666DT | corroborated_current |
 | PR #146 | MERGED; reviewed head `1d4827cf…`; merge `8437c25f…`; Action 666DU | corroborated_current |
-| Exact-main CI | push on `8437c25f…`, run `32626894943`, completed/success | verified_current |
+| PR #147 | MERGED; reviewed head `49654829…`; merge `0da9b32f…`; Action 666DV | corroborated_current |
+| Exact-main CI | push on `0da9b32f…`, run `32630534563`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -270,7 +271,7 @@ separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN, 666DO, 666DP, 666DQ, 666DR, 666DS, 666DT and 666DU deliver source-only observation, freshness, price-attestation, durable exit-queue and transactional handoff boundaries. Action 666DV is the unmerged default-deny authenticated server-owner context contract. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN, 666DO, 666DP, 666DQ, 666DR, 666DS, 666DT, 666DU and 666DV deliver source-only observation, freshness, price-attestation, durable exit-queue and transactional handoff boundaries. Action 666DW is the unmerged default-deny durable-idempotency storage contract. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
