@@ -1,0 +1,40 @@
+{
+  "contract_version": "trade.action666dt.transactional-recommendation-position-writer-implementation-preflight.v1",
+  "action_id": "ACTION_666DT",
+  "predecessor": {
+    "protected_main_commit": "2b4db2f560405a49dc3add8e5fec8401e31c01d3",
+    "protected_main_tree": "d7389799de0843e03327b5a804abba1ea4d2adc6"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666ds-transactional-recommendation-position-writer-static-implementation-boundary.md": "0f3dbfc745800f31977c874b86582a0c9394fd86f4e628f6a8106757dc40cd62",
+    "docs/evidence/action-666ds-transactional-recommendation-position-writer-static-implementation-boundary.json": "044a8aa73d0cd1bfae54003e2bf57eddc8b2487e9f07979537f02e7187563c17",
+    "lib/transactional-recommendation-position-writer-static-contract.ts": "ca01dbc71e05258a85ed0d32aeb06f8ee62d3d83fea723a86bd2d218353d06eb",
+    "lib/supabase-database.types.ts": "57eb9b06cfc32570f1a930e80169cf6f1e1f2059ec92f6ccae40f9a5ceabfe00",
+    "supabase/migrations/20260821194333_create_position_version_history.sql": "aaf0d677da73316355e30bb3d613d0274244ed896fb4c3bf266bb8b045fd177f"
+  },
+  "implementation_preflight": {
+    "authenticated_server_owner_context_admitted": false,
+    "transaction_capability_contract_admitted": false,
+    "idempotency_storage_admission_complete": false,
+    "history_shape_source_verified": true,
+    "history_row_member_count": 10,
+    "history_owner_bound_relationship_count": 2,
+    "result_before_commit_permitted": false,
+    "individual_effect_write_permitted": false,
+    "writer_implementation_admitted": false
+  },
+  "delivery": {
+    "kind": "source_only_implementation_preflight",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_implementation_preflight",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_database_transaction_capability_contract",
+    "production_authority_granted": false
+  }
+}

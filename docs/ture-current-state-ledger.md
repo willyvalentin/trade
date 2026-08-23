@@ -1,11 +1,11 @@
 # Ture Current-State Ledger
 
-**ACTION 666DS — Transactional recommendation-to-position writer static implementation boundary.**
+**ACTION 666DT — Transactional recommendation-to-position writer implementation preflight.**
 
 **Evidence timestamp:** 2026-08-23. This source-only candidate follows ordinary
-delivery of Action 666DR's private recommendation-to-position writer contract.
-It adds only default-deny static TypeScript metadata; it does not add SQL, use
-a provider response, make a database operation or activate runtime wiring.
+delivery of Action 666DS's default-deny static writer boundary. It freezes
+implementation admissions only; it does not add SQL, use a provider response,
+make a database operation or activate runtime wiring.
 The last verified
 production release remains the earlier PR #125 commit; this source work is not
 a deployment. Action 666DE's historical next
@@ -74,7 +74,8 @@ promotion or release activity.
 | PR #141 | MERGED; reviewed head `2cf57a7b…`; merge `3480f52d…`; Action 666DP | corroborated_current |
 | PR #142 | MERGED; reviewed head `57112824…`; merge `53589141…`; Action 666DQ | corroborated_current |
 | PR #143 | MERGED; reviewed head `17775dc0…`; merge `361646f1…`; Action 666DR | corroborated_current |
-| Exact-main CI | push on `361646f1…`, completed/success | verified_current |
+| PR #144 | MERGED; reviewed head `f40fc0ef…`; merge `2b4db2f5…`; Action 666DS | corroborated_current |
+| Exact-main CI | push on `2b4db2f5…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -171,8 +172,9 @@ has reached protected main as the separate source-only durable exit-queue
 migration design. Action 666DQ has reached protected main as the source-only
 recommendation-to-position transaction-handoff design. Action 666DR has
 reached protected main as the private server-writer source contract. Action
-666DS is the next default-deny static implementation boundary; it grants no
-SQL, runtime, database or release authority.
+666DS has reached protected main as its default-deny static boundary. Action
+666DT is the next implementation preflight; it grants no SQL, runtime,
+database or release authority.
 
 MA-05 is `verified_current`: production readback passed 9/9 owner columns and
 RLS tables, 20/20 constraints, 2/2 relationship indexes, revoked client grants
@@ -252,9 +254,10 @@ sanitized price attestation. Action 666DP has reached protected main with the
 durable exit-queue migration design. Action 666DQ has reached protected main
 with the recommendation-to-position transaction-handoff design. Action 666DR
 has reached protected main as the private server-writer source contract. Action
-666DS is the source-only candidate for its static default-deny boundary. A
-provider adapter, actual readback, SQL bytes and transactional runtime handoff
-remain separate blockers.
+666DS has reached protected main as its static default-deny boundary. Action
+666DT is the source-only candidate for implementation admissions. A provider
+adapter, actual readback, SQL bytes and transactional runtime handoff remain
+separate blockers.
 
 ## Delivery state
 
@@ -264,7 +267,7 @@ remain separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN, 666DO, 666DP, 666DQ and 666DR deliver source-only observation, freshness, price-attestation, durable exit-queue and transactional handoff boundaries. Action 666DS is the unmerged static default-deny writer boundary. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN, 666DO, 666DP, 666DQ, 666DR and 666DS deliver source-only observation, freshness, price-attestation, durable exit-queue and transactional handoff boundaries. Action 666DT is the unmerged implementation preflight. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
