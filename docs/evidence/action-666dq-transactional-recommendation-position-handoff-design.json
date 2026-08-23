@@ -1,0 +1,39 @@
+{
+  "contract_version": "trade.action666dq.transactional-recommendation-position-handoff-design.v1",
+  "action_id": "ACTION_666DQ",
+  "predecessor": {
+    "protected_main_commit": "3480f52dc58ca8d17f165c49bc6adf483f95d6d1",
+    "protected_main_tree": "56ffdfa4f063a2951b15ebd1241c2bdc533d2fb1"
+  },
+  "source_artifact_sha256": {
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json": "15b689bab4451ee6adf1cb5d215f4d331101ebf27ab20f1c0dd7d31591430cde",
+    "docs/action-655a-server-owned-trade-management-design.md": "fb041b8926849db0fee7296e1d89cb934ca4e4c4aaaeb1934ceca9c221e7618e",
+    "docs/action-655a-server-owned-trade-management-threat-model.md": "b5512f2571ae37bcf8e73e22cf5c59a00a0d477080224a4c26323e382e13970b",
+    "docs/action-666dp-durable-exit-queue-source-migration-design.md": "686d7a16e73c1d73a841643b40e0cff2f1465719142395f1c2dcf8ee8e94a458"
+  },
+  "handoff_design": {
+    "command_contract_version": "action_655a2_recommendation_position_command_v2",
+    "position_initial_version": 1,
+    "lock_exact_durable_recommendation": true,
+    "verify_canonical_command_bytes_before_write": true,
+    "recommendation_identity_alone_authorizes_handoff": false,
+    "idempotent_repeat_returns_immutable_replay_only": true,
+    "all_effects_commit_or_roll_back_together": true,
+    "mutable_position_version_is_durable_fk_target": false,
+    "exit_queue_created_by_this_handoff": false
+  },
+  "delivery": {
+    "kind": "source_only_design",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_handoff_design",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_source_contract",
+    "production_authority_granted": false
+  }
+}
