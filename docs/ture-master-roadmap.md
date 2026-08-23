@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DW — Transactional recommendation-to-position writer durable idempotency storage contract.**
+**ACTION 666DX — Transactional recommendation-to-position writer owner-bound position-effect contract.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DV. It preserves verified GitHub branch protection,
+of Action 666DW. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -50,17 +50,18 @@ default-deny static metadata boundary. Action 666DT has reached protected main
 as the implementation-admissions preflight. Action 666DU has reached protected
 main as the default-deny transaction-capability contract. Action 666DV has
 reached protected main as the default-deny authenticated server-owner context
-contract. Action 666DW is the next source-only work: it freezes durable
-idempotency-storage requirements without selecting an adapter, reading or
-writing storage, adding a route, migration or runtime authority.
+contract. Action 666DW has reached protected main as the default-deny durable
+idempotency-storage contract. Action 666DX is the next source-only work: it
+freezes owner-bound position and append-only history-effect requirements without
+reading or writing storage, adding a route, migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`0da9b32fbc810969011686f31e7a6d6239723d0f`, tree
-`387ab15ccd305bbd4a835113b467040d47485793`, observed after Action 666DV's
+`6b18d6d2fbddec88992eeb1af45b73731082b27f`, tree
+`2817c464f0afacdc9bc61f044de255e41224651e`, observed after Action 666DW's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -307,10 +308,11 @@ default-deny static boundary. Action 666DT has reached protected main as its
 implementation-admissions preflight. Action 666DU has reached protected main
 as its default-deny transaction-capability contract. Action 666DV has reached
 protected main as its default-deny authenticated server-owner context contract.
-Action 666DW is the next source-only candidate: it freezes future durable
-idempotency-storage requirements with all operational flags default-denied.
-SQL bytes, schema application, route, worker, broker and production writes
-remain separate blockers.
+Action 666DW has reached protected main as the default-deny durable
+idempotency-storage contract. Action 666DX is the next source-only candidate:
+it freezes future owner-bound paired position/history-effect requirements with
+all operational flags default-denied. SQL bytes, schema application, route,
+worker, broker and production writes remain separate blockers.
 
 ### C. Semi-Automatic Execution
 
