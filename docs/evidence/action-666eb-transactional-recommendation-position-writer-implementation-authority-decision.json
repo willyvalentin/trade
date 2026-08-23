@@ -1,0 +1,37 @@
+{
+  "contract_version": "trade.action666eb.transactional-recommendation-position-writer-implementation-authority-decision.v1",
+  "action_id": "ACTION_666EB",
+  "predecessor": {
+    "protected_main_commit": "bcf2aec4ed395ed8960da742bfcef8d178cc696e",
+    "exact_main_ci_run": 32659617285,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666ea-transactional-recommendation-position-writer-admission-bundle-contract.md": "98fcb2b38f7c67c46494d18278a026a5442f202783594d8f6130cf7c9521dafd",
+    "docs/evidence/action-666ea-transactional-recommendation-position-writer-admission-bundle-contract.json": "cd1d257fd1f675cd368f8dba90c3ffd0f5453f8111cae79532d2f08d665af6bd",
+    "lib/transactional-recommendation-position-writer-admission-bundle-contract.ts": "d71ada2c121116718d9e77a63144943bca16edf48e98f140a5764a0e4e49a9cf"
+  },
+  "authority": {
+    "explicit_operator_authorization_recorded": true,
+    "private_server_adapter_implementation_authorized": true,
+    "owner_bound_transactional_command_integration_authorized": true,
+    "runtime_activation_may_follow_normal_protected_review": true,
+    "client_side_writer_authorized": false,
+    "broker_operation_authorized_by_this_decision": false,
+    "external_effect_executed_by_this_decision": false
+  },
+  "delivery": {
+    "kind": "source_only_implementation_authority_decision",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_implementation_authority_decision",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_private_server_adapter_implementation",
+    "production_authority_granted": false
+  }
+}

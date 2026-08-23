@@ -1,11 +1,11 @@
 # Ture Current-State Ledger
 
-**ACTION 666EA — Transactional recommendation-to-position writer admission-bundle contract.**
+**ACTION 666EB — Transactional recommendation-to-position writer implementation-authority decision.**
 
-**Evidence timestamp:** 2026-08-23. This source-only candidate follows ordinary
-delivery of Action 666DZ's failure-atomicity contract. It freezes a default-deny
-seven-contract admission bundle only; it does not add SQL,
-use a provider response, make a database operation or activate runtime wiring.
+**Evidence timestamp:** 2026-08-23. This source-only candidate follows exact-main
+delivery of Action 666EA's admission-bundle contract. It records the operator's
+explicit implementation authority for the next private server adapter; it does
+not add SQL, use a provider response, make a database operation or activate runtime wiring.
 The last verified
 production release remains the earlier PR #125 commit; this source work is not
 a deployment. Action 666DE's historical next
@@ -22,10 +22,10 @@ promotion or release activity.
 | Item | Value | Classification |
 | --- | --- | --- |
 | GitHub default branch | `main` | canonical_current |
-| GitHub protected pre-delivery main base | `3c72ece474dad62af2419a632849661576ebd836` | canonical_current |
-| Current main event before this candidate | ordinary merge of PR #151 | corroborated_current |
-| Protected pre-delivery main tree | `f8f91ee5d34c5316243b759d9efd57a51901e1a1` | canonical_current |
-| Protected pre-delivery main parents | `8a2577929823fdcf8a792afb78dd87e14c6c9a84`, `f26037cd8c6a11eb213bb29217f0f244da972087` | canonical_current |
+| GitHub protected pre-delivery main base | `bcf2aec4ed395ed8960da742bfcef8d178cc696e` | canonical_current |
+| Current main event before this candidate | ordinary merge of PR #152 | corroborated_current |
+| Protected pre-delivery main tree | `300aaff31b18a7cfcebb0ebd159a5e9013e6a9c1` | canonical_current |
+| Protected pre-delivery main parents | `3c72ece474dad62af2419a632849661576ebd836`, `e261b5b8f2a0cdf33e4e90fada229ff33f1e69e8` | canonical_current |
 | PR #95 | MERGED; head `e0b71ddb…`; merge `a1806410…`; merged first | corroborated_current |
 | PR #96 | MERGED; reviewed head `baf3f20b…`; merge `58c29514…`; no head-to-main file delta | corroborated_current |
 | Independent PR #96 re-review | exact head `baf3f20b…`; no findings; read-only | verified_current |
@@ -82,7 +82,8 @@ promotion or release activity.
 | PR #149 | MERGED; reviewed head `59f3e286…`; merge `094e06e5…`; Action 666DX | corroborated_current |
 | PR #150 | MERGED; reviewed head `d9fa3286…`; merge `8a257792…`; Action 666DY | corroborated_current |
 | PR #151 | MERGED; reviewed head `f26037cd…`; merge `3c72ece4…`; Action 666DZ | corroborated_current |
-| Exact-main CI | push on `3c72ece…`, run `32654878870`, completed/success | verified_current |
+| PR #152 | MERGED; reviewed head `e261b5b8…`; merge `bcf2aec4…`; Action 666EA | corroborated_current |
+| Exact-main CI | push on `bcf2aec…`, run `32659617285`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -97,7 +98,7 @@ promotion or release activity.
 | Published production deploy | Netlify `6a871d6b27fb2100082f16f9` | latest_authenticated_provider_evidence |
 | Published production commit | `dbeed25f2074bff4dba8cee7f6d511cb17992efc` | latest_authenticated_provider_evidence |
 | Production assertion | identifies full commit `dbeed25f2074bff4dba8cee7f6d511cb17992efc`; state `ready`, context `production`, branch `main`, plugin `success`, locked, zero ordinary/enhanced secrets findings | exact_identity_match |
-| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `3c72ece474dad62af2419a632849661576ebd836`; the commits are not equal and PRs #126–#151 are governance, preflight, lineage-contract, source-only reconciliation, append-only-history decision, source-migration design/bytes, isolated staging-proof work, CI cache control, generated-types provenance, market-observation boundaries and writer admission contracts. The separately authorized 666DK database migration is not a Netlify publication. | verified_current; production_is_first_parent_ancestor_of_main |
+| Production-to-main Git relation | production `dbeed25f2074bff4dba8cee7f6d511cb17992efc` is a first-parent ancestor of current main `bcf2aec4ed395ed8960da742bfcef8d178cc696e`; the commits are not equal and PRs #126–#152 are governance, preflight, lineage-contract, source-only reconciliation, append-only-history decision, source-migration design/bytes, isolated staging-proof work, CI cache control, generated-types provenance, market-observation boundaries and writer admission contracts. The separately authorized 666DK database migration is not a Netlify publication. | verified_current; production_is_first_parent_ancestor_of_main |
 | Production publication time | `2026-08-20T16:10:09.766Z` | latest_authenticated_provider_evidence |
 | PR #109 automatic Netlify status | `netlify/trade-vl/deploy-preview` at `https://deploy-preview-109--trade-vl.netlify.app` | non_production_preview_non_authority |
 | Post-PR #98 production smoke | owner-bound positions embeds 4/4 HTTP 200 and 0 HTTP 300; dashboard, settings, market calendar and execution-record reads green; no form or application mutation route submitted by agent | verified_current |
@@ -274,7 +275,7 @@ separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN, 666DO, 666DP, 666DQ, 666DR, 666DS, 666DT, 666DU, 666DV, 666DW, 666DX, 666DY and 666DZ deliver source-only observation, freshness, price-attestation, durable exit-queue and transactional handoff boundaries. Action 666EA is the next default-deny admission-bundle contract. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; controlled implementation begins | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM through 666EA deliver source-only observation and transactional writer boundaries. Action 666EB records explicit operator authority for a private server adapter through normal protected review. No broker or client writer authority is granted by this decision. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
