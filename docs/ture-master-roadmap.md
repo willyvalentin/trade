@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DR — Transactional recommendation-to-position writer source contract.**
+**ACTION 666DS — Transactional recommendation-to-position writer static implementation boundary.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DQ. It preserves verified GitHub branch protection,
+of Action 666DR. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -44,17 +44,18 @@ sanitized integer price to fresh opaque 666DM/666DN lineage without a provider
 readback or runtime activation. Action 666DP separately freezes the durable
 exit-queue migration design. Action 666DQ separately freezes the
 recommendation-to-position transaction order, idempotency and atomic rollback
-requirements. Action 666DR is the next source-only work: it freezes the
-private server-writer source contract without adding an implementation, route,
-migration or runtime authority.
+requirements. Action 666DR has reached protected main as the private
+server-writer source contract. Action 666DS is the next source-only work: it
+adds only default-deny static TypeScript metadata for that frozen boundary,
+without a callable writer, route, migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`535891413eeea61ab2cad879f21c7698447f9822`, tree
-`b8a95318c149c0ea9549d664c1943222c20a2c97`, observed after Action 666DQ's
+`361646f101524db1c1c7af7407781147ac131f1e`, tree
+`4aeeb12184862aed6069652bd3637abdacd19b32`, observed after Action 666DR's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -295,10 +296,11 @@ sanitized price to that opaque lineage but has no adapter, provider readback,
 source-linkage assertion or Action 655G activation. Action 666DP has reached
 protected main as the source-only durable exit-queue migration design. Action
 666DQ has reached protected main as the source-only recommendation-to-position
-transaction design. Action 666DR is the next source-only candidate: it freezes
-the private server-writer source contract and its complete transaction boundary.
-SQL bytes, schema application, route, worker, broker and production writes
-remain separate blockers.
+transaction design. Action 666DR has reached protected main as the private
+server-writer source contract. Action 666DS is the next source-only candidate:
+it encodes the default-deny static boundary only. SQL bytes, schema
+application, route, worker, broker and production writes remain separate
+blockers.
 
 ### C. Semi-Automatic Execution
 
@@ -370,9 +372,10 @@ source-only history decision: the current-row version tuple is a CAS predicate,
 not a historical reference target, and future durable references target the
 separately migrated append-only history composite key. The production history
 migration is now applied and catalog-verified; generated types/MA-09
-provenance, market-observation provenance, exit-queue schema and transactional
-runtime handoff remain unresolved. No further database, broker, runtime or
-production authority follows.
+provenance, market-observation provenance and static transactional handoff
+boundaries are delivered, while any transactional runtime handoff remains
+unresolved. No further database, broker, runtime or production authority
+follows.
 - Track 5's Action 660F recovery is present on main via PR #98, Action 660G is
   canonical via PR #99 and the Action 660H manual MA-13 control is canonical via
   PR #100. Action 660I adds verified GitHub enforcement while retaining that

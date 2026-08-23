@@ -49,6 +49,7 @@ const foundationTests = [
   "tests/e2e/action-666dp-durable-exit-queue-source-migration-design.spec.ts",
   "tests/e2e/action-666dq-transactional-recommendation-position-handoff-design.spec.ts",
   "tests/e2e/action-666dr-transactional-recommendation-position-writer-source-contract.spec.ts",
+  "tests/e2e/action-666ds-transactional-recommendation-position-writer-static-implementation-boundary.spec.ts",
 ];
 
 const intelligenceTests = [
