@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DT — Transactional recommendation-to-position writer implementation preflight.**
+**ACTION 666DU — Transactional recommendation-to-position writer database transaction capability contract.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DS. It preserves verified GitHub branch protection,
+of Action 666DT. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -46,17 +46,19 @@ exit-queue migration design. Action 666DQ separately freezes the
 recommendation-to-position transaction order, idempotency and atomic rollback
 requirements. Action 666DR has reached protected main as the private
 server-writer source contract. Action 666DS has reached protected main as the
-default-deny static metadata boundary. Action 666DT is the next source-only
-work: it freezes independent implementation admissions without a callable
-writer, route, migration or runtime authority.
+default-deny static metadata boundary. Action 666DT has reached protected main
+as the implementation-admissions preflight. Action 666DU is the next
+source-only work: it freezes the database transaction-capability admission
+contract without selecting an adapter, invoking a transaction, adding a route,
+migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`2b4db2f560405a49dc3add8e5fec8401e31c01d3`, tree
-`d7389799de0843e03327b5a804abba1ea4d2adc6`, observed after Action 666DS's
+`a33e27b3d94a20ce7cd1a61cf26caa9c52fc2776`, tree
+`65c40032c258f925bad11e1c5e054b6333247b9b`, observed after Action 666DT's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -299,9 +301,11 @@ protected main as the source-only durable exit-queue migration design. Action
 666DQ has reached protected main as the source-only recommendation-to-position
 transaction design. Action 666DR has reached protected main as the private
 server-writer source contract. Action 666DS has reached protected main as its
-default-deny static boundary. Action 666DT is the next source-only candidate:
-it freezes implementation admissions only. SQL bytes, schema application,
-route, worker, broker and production writes remain separate blockers.
+default-deny static boundary. Action 666DT has reached protected main as its
+implementation-admissions preflight. Action 666DU is the next source-only
+candidate: it freezes the future transaction-capability admission surface with
+all operational flags default-denied. SQL bytes, schema application, route,
+worker, broker and production writes remain separate blockers.
 
 ### C. Semi-Automatic Execution
 

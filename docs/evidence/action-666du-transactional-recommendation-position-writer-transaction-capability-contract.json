@@ -1,0 +1,44 @@
+{
+  "contract_version": "trade.action666du.transactional-recommendation-position-writer-transaction-capability-contract.v1",
+  "action_id": "ACTION_666DU",
+  "predecessor": {
+    "protected_main_commit": "a33e27b3d94a20ce7cd1a61cf26caa9c52fc2776",
+    "protected_main_tree": "65c40032c258f925bad11e1c5e054b6333247b9b",
+    "exact_main_ci_run": 32623411457,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dt-transactional-recommendation-position-writer-implementation-preflight.md": "178dc7b90f81cd354e538d577ae2a4fcad891739f4d2f4ac44c3e578a39c9d98",
+    "docs/evidence/action-666dt-transactional-recommendation-position-writer-implementation-preflight.json": "076a55f6a96317cffe490d2794999098db10c02f5a0d553b0bebf4dc41dbf744",
+    "lib/transactional-recommendation-position-writer-static-contract.ts": "ca01dbc71e05258a85ed0d32aeb06f8ee62d3d83fea723a86bd2d218353d06eb"
+  },
+  "transaction_capability_contract": {
+    "phase_count": 7,
+    "adapter_selected": false,
+    "adapter_invocation_present": false,
+    "authenticated_server_owner_context_admitted": false,
+    "transaction_capability_admitted": false,
+    "transaction_begin_admitted": false,
+    "durable_recommendation_lock_admitted": false,
+    "durable_idempotency_read_admitted": false,
+    "owner_bound_position_mutation_admitted": false,
+    "owner_bound_history_append_admitted": false,
+    "transaction_commit_admitted": false,
+    "rollback_result_may_be_observed": false,
+    "individual_effect_operation_present": false
+  },
+  "delivery": {
+    "kind": "source_only_transaction_capability_contract",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_database_transaction_capability_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_authenticated_server_owner_context_contract",
+    "production_authority_granted": false
+  }
+}
