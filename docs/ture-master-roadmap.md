@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DZ — Transactional recommendation-to-position writer failure-atomicity contract.**
+**ACTION 666EA — Transactional recommendation-to-position writer admission-bundle contract.**
 
-**Document status:** source-only candidate after the ordinary source delivery
-of Action 666DY. It preserves verified GitHub branch protection,
+**Document status:** source-only candidate after the exact-main delivery of
+Action 666DZ. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -54,16 +54,18 @@ contract. Action 666DW has reached protected main as the default-deny durable
 idempotency-storage contract. Action 666DX has reached protected main as the
 default-deny owner-bound position-effect contract. Action 666DY has reached
 protected main as the default-deny commit-visible result contract. Action 666DZ
-is the next source-only work: it freezes failure-atomicity requirements without
-reading or writing storage, adding a route, migration or runtime authority.
+has reached protected main as the default-deny failure-atomicity contract.
+Action 666EA is the next source-only work: it freezes a seven-contract
+admission bundle without reading or writing storage, adding a route, migration
+or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`8a2577929823fdcf8a792afb78dd87e14c6c9a84`, tree
-`a149e07ec56bbb5dea1c401ba193982cb654cc26`, observed after Action 666DY's
+`3c72ece474dad62af2419a632849661576ebd836`, tree
+`f8f91ee5d34c5316243b759d9efd57a51901e1a1`, observed after Action 666DZ's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -71,11 +73,13 @@ ordinary delivery.
 GitHub current-main evidence, exact provider readbacks, authorized database
 readbacks and executable source outrank this document.
 
-The decision base is the ordinary merge of PR #138, with parents
+The historical decision base is the ordinary merge of PR #138, with parents
 `4efcea11a73c3e8a96fac0a9872392c166844eb4` and
-`1f0f955b89c49294e9878c16f0bc1af480f24958`. Exact-main push run
-`32597263375` completed successfully. PRs #100 through #121 and #124 through #138 form one verified
-first-parent delivery sequence; each exact-main push run completed successfully.
+`1f0f955b89c49294e9878c16f0bc1af480f24958`. Its exact-main push run
+`32597263375` completed successfully. PRs #100 through #121 and #124 through
+#151 form one verified first-parent delivery sequence; each exact-main push run
+completed successfully, with PR #151's run `32654878870` the immediate
+predecessor evidence for this source-only candidate.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
 historical non-authority and must remain unmodified.
@@ -314,9 +318,11 @@ Action 666DW has reached protected main as the default-deny durable
 idempotency-storage contract. Action 666DX has reached protected main as the
 default-deny owner-bound paired position/history-effect contract. Action 666DY
 has reached protected main as the default-deny commit-visible result contract.
-Action 666DZ is the next source-only candidate: it freezes failure atomicity
-with all operational flags default-denied. SQL bytes, schema application, route,
-worker, broker and production writes remain separate blockers.
+Action 666DZ has reached protected main as the default-deny failure-atomicity
+contract. Action 666EA is the next source-only candidate: it freezes the
+seven-contract admission bundle with all operational flags default-denied. SQL
+bytes, schema application, route, worker, broker and production writes remain
+separate blockers.
 
 ### C. Semi-Automatic Execution
 
