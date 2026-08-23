@@ -76,6 +76,41 @@ test("666DP freezes an owner-bound durable exit-queue design without a migration
   for (const [relativePath, expectedHash] of Object.entries(evidence.source_artifact_sha256)) {
     expect(sha256(source(relativePath))).toBe(expectedHash);
   }
+
+  const manifest = JSON.parse(source(
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json",
+  ));
+  expect(manifest.contracts.exit_queue_item).toMatchObject({
+    contract_version: "action_655a4_exit_queue_item_v3",
+    queue_status: evidence.schema_design.queue_states,
+    idempotency_binding: [
+      "position_identity",
+      "decision_position_status",
+      "decision_position_version",
+      "exit_pending_position_version",
+      "position_snapshot_digest",
+      "decision_identity",
+      "decision_digest",
+    ],
+    transitions: [
+      "pending->leased",
+      "pending->cancelled",
+      "leased->retry_wait",
+      "leased->succeeded",
+      "leased->failed_terminal",
+      "retry_wait->leased",
+      "retry_wait->cancelled",
+    ],
+  });
+  expect(manifest.contracts.exit_queue_attempt.invariants).toContain(
+    "one_attempt_outcome_only",
+  );
+  expect(manifest.contracts.exit_queue_cancellation.invariants).toContain(
+    "conflicting_repeat_preserves_first_bytes",
+  );
+  expect(source("docs/action-655a-server-owned-trade-management-threat-model.md")).toContain(
+    "Decision position version N, queue-created exit-pending version N+1",
+  );
 });
 
 test("666DP remains a privacy-safe design and is protected by the full CI plan", () => {
