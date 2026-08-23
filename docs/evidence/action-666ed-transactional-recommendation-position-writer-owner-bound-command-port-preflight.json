@@ -1,0 +1,52 @@
+{
+  "contract_version": "trade.action666ed.transactional_recommendation_position_writer_owner_bound_command_port_preflight.v1",
+  "action_id": "ACTION_666ED",
+  "predecessor": {
+    "protected_main_commit": "487ec4d71d5f8e5584be3007279cf3231aa5eea4",
+    "exact_main_ci_run": 32668699813,
+    "exact_main_ci_conclusion": "success"
+  },
+  "production_read_only_observation": {
+    "observed_at": "2026-08-23T22:46:16Z",
+    "scope": "catalog_and_aggregate_inventory_only",
+    "routine": "public.app_open_owned_position_transaction(uuid,uuid,text,text,numeric,numeric,numeric,numeric,numeric,jsonb,text)",
+    "security_definer": true,
+    "fixed_search_path": ["pg_catalog", "public"],
+    "execute_grantees": ["postgres", "service_role"],
+    "position_version_history_present": true,
+    "recommendation_durable_lineage_columns_present": false,
+    "position_durable_lineage_columns_present": false,
+    "v1_history_insert_present": false,
+    "aggregate_counts": {
+      "recommendations": 1068,
+      "positions": 8,
+      "positions_without_recommendation": 0,
+      "position_version_history": 0,
+      "taken_recommendations": 8,
+      "open_positions": 0
+    },
+    "row_contents_or_identifiers_returned": false
+  },
+  "source_artifact_sha256": {
+    "docs/action-666ec-transactional-recommendation-position-writer-private-server-adapter.md": "61607145eacc9a92893206d2e304bf4061e2ee46fea8d0cf501918fcb28b2913",
+    "docs/evidence/action-666ec-transactional-recommendation-position-writer-private-server-adapter.json": "7202462a55ba3d0911cc01da7d46c5ad3f75c25a646685c67ddb3a20a730eb79",
+    "lib/server/transactional-recommendation-position-writer-private-adapter.ts": "477a8bf3534f1e7ca5819e32c1760c95b956756d6640c4164fb1a87e55b1b14b",
+    "lib/transactional-recommendation-position-writer-owner-bound-command-port-preflight.ts": "5fa785aa70da420defacaf87dea4a6bbbed6693e2fbd1f466cee6cbacbbbf493"
+  },
+  "delivery": {
+    "kind": "owner_bound_command_port_preflight",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_owner_bound_command_port_preflight",
+    "next_bounded_objective": "position_version_lineage_additive_migration_package",
+    "existing_v1_command_admissible": false,
+    "concrete_port_bound": false,
+    "production_authority_granted": false
+  }
+}
