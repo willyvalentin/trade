@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DY — Transactional recommendation-to-position writer commit-visible result contract.**
+**ACTION 666DZ — Transactional recommendation-to-position writer failure-atomicity contract.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DX. It preserves verified GitHub branch protection,
+of Action 666DY. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -52,17 +52,18 @@ main as the default-deny transaction-capability contract. Action 666DV has
 reached protected main as the default-deny authenticated server-owner context
 contract. Action 666DW has reached protected main as the default-deny durable
 idempotency-storage contract. Action 666DX has reached protected main as the
-default-deny owner-bound position-effect contract. Action 666DY is the next
-source-only work: it freezes commit-visible result requirements without reading
-or writing storage, adding a route, migration or runtime authority.
+default-deny owner-bound position-effect contract. Action 666DY has reached
+protected main as the default-deny commit-visible result contract. Action 666DZ
+is the next source-only work: it freezes failure-atomicity requirements without
+reading or writing storage, adding a route, migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`094e06e566823f367a482c466027a1b3b5ba9ebf`, tree
-`695ff03d5cbb318af4fdbe6cafb43730e69aa236`, observed after Action 666DX's
+`8a2577929823fdcf8a792afb78dd87e14c6c9a84`, tree
+`a149e07ec56bbb5dea1c401ba193982cb654cc26`, observed after Action 666DY's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -312,7 +313,8 @@ protected main as its default-deny authenticated server-owner context contract.
 Action 666DW has reached protected main as the default-deny durable
 idempotency-storage contract. Action 666DX has reached protected main as the
 default-deny owner-bound paired position/history-effect contract. Action 666DY
-is the next source-only candidate: it freezes a future commit-visible result
+has reached protected main as the default-deny commit-visible result contract.
+Action 666DZ is the next source-only candidate: it freezes failure atomicity
 with all operational flags default-denied. SQL bytes, schema application, route,
 worker, broker and production writes remain separate blockers.
 
