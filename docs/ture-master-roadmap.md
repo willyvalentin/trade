@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DQ — Transactional recommendation-to-position handoff design.**
+**ACTION 666DR — Transactional recommendation-to-position writer source contract.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DP. It preserves verified GitHub branch protection,
+of Action 666DQ. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -42,18 +42,19 @@ or Action 655G activation. Action 666DN separately delivered the bounded
 freshness assessment over opaque 666DM provenance. Action 666DO binds a
 sanitized integer price to fresh opaque 666DM/666DN lineage without a provider
 readback or runtime activation. Action 666DP separately freezes the durable
-exit-queue migration design. Action 666DQ is the next source-only work: it
-freezes recommendation-to-position transaction order, idempotency and atomic
-rollback requirements without adding a route, migration, writer or runtime
-authority.
+exit-queue migration design. Action 666DQ separately freezes the
+recommendation-to-position transaction order, idempotency and atomic rollback
+requirements. Action 666DR is the next source-only work: it freezes the
+private server-writer source contract without adding an implementation, route,
+migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`3480f52dc58ca8d17f165c49bc6adf483f95d6d1`, tree
-`56ffdfa4f063a2951b15ebd1241c2bdc533d2fb1`, observed after Action 666DP's
+`535891413eeea61ab2cad879f21c7698447f9822`, tree
+`b8a95318c149c0ea9549d664c1943222c20a2c97`, observed after Action 666DQ's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -293,10 +294,11 @@ authorized inventory objective; neither Action applies the schema. Action
 sanitized price to that opaque lineage but has no adapter, provider readback,
 source-linkage assertion or Action 655G activation. Action 666DP has reached
 protected main as the source-only durable exit-queue migration design. Action
-666DQ is the next source-only candidate: it freezes the recommendation-to-
-position transaction order, idempotency and atomic rollback boundary. SQL
-bytes, schema application, route, worker, broker and production writes remain
-separate blockers.
+666DQ has reached protected main as the source-only recommendation-to-position
+transaction design. Action 666DR is the next source-only candidate: it freezes
+the private server-writer source contract and its complete transaction boundary.
+SQL bytes, schema application, route, worker, broker and production writes
+remain separate blockers.
 
 ### C. Semi-Automatic Execution
 

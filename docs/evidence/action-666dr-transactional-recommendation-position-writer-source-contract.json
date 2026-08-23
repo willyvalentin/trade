@@ -1,0 +1,48 @@
+{
+  "contract_version": "trade.action666dr.transactional-recommendation-position-writer-source-contract.v1",
+  "action_id": "ACTION_666DR",
+  "predecessor": {
+    "protected_main_commit": "535891413eeea61ab2cad879f21c7698447f9822",
+    "protected_main_tree": "b8a95318c149c0ea9549d664c1943222c20a2c97"
+  },
+  "source_artifact_sha256": {
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json": "15b689bab4451ee6adf1cb5d215f4d331101ebf27ab20f1c0dd7d31591430cde",
+    "docs/action-655a-server-owned-trade-management-design.md": "fb041b8926849db0fee7296e1d89cb934ca4e4c4aaaeb1934ceca9c221e7618e",
+    "docs/action-655a-server-owned-trade-management-threat-model.md": "b5512f2571ae37bcf8e73e22cf5c59a00a0d477080224a4c26323e382e13970b",
+    "docs/action-666dq-transactional-recommendation-position-handoff-design.md": "b78eb5d6d9036c9ba3ea2c0fe0ce68f1530496b3d44d99e2476e1fb9f90dc315"
+  },
+  "writer_contract": {
+    "command_contract_version": "action_655a2_recommendation_position_command_v2",
+    "authenticated_server_owner_required": true,
+    "client_owner_projection_authoritative": false,
+    "recommendation_identity_alone_authorizes_handoff": false,
+    "requires_one_transaction_capability": true,
+    "requires_exact_locked_recommendation": true,
+    "requires_complete_idempotency_binding_before_position_write": true,
+    "position_initial_history_version": 1,
+    "same_transaction_effects": [
+      "append_position_version_1",
+      "transition_same_locked_recommendation_to_taken",
+      "link_matching_snapshots",
+      "append_audit_event"
+    ],
+    "result_available_before_commit": false,
+    "exact_retry_returns_immutable_original_result": true,
+    "partial_write_permitted": false
+  },
+  "delivery": {
+    "kind": "source_only_contract",
+    "implementation_file_added": false,
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_source_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_static_implementation_boundary",
+    "production_authority_granted": false
+  }
+}
