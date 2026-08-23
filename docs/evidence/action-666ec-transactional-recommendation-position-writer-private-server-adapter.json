@@ -1,0 +1,31 @@
+{
+  "contract_version": "trade.action666ec.transactional_recommendation_position_writer_private_server_adapter.v1",
+  "action_id": "ACTION_666EC",
+  "predecessor": {
+    "protected_main_commit": "9ba3ad61d191488fc411554e2f974513692a8f26",
+    "protected_main_tree": "a0a9cf23da8dc99e4008e8b0e5d18b38e8c03fd0",
+    "exact_main_ci_run": 32664222438,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666eb-transactional-recommendation-position-writer-implementation-authority-decision.md": "e63332352fc4d7d8fa9c7dec1b31881476f27b18923a0e44af89f2ca2519dd98",
+    "docs/evidence/action-666eb-transactional-recommendation-position-writer-implementation-authority-decision.json": "b7b6b357c8801e549e8dc13ce3c9a244a2f956627f684eab962e3355d99cb140",
+    "lib/transactional-recommendation-position-writer-implementation-authority-decision.ts": "47a0bcb51b0fde9db8f30df0f8d25c901c429c379f919296ae25fcad15eaf8fb",
+    "lib/server/transactional-recommendation-position-writer-private-adapter.ts": "477a8bf3534f1e7ca5819e32c1760c95b956756d6640c4164fb1a87e55b1b14b"
+  },
+  "delivery": {
+    "kind": "private_server_adapter_implementation",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_private_server_adapter_implementation",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_owner_bound_command_port_integration",
+    "concrete_port_bound": false,
+    "production_authority_granted": false
+  }
+}

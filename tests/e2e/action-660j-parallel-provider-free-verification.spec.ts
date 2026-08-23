@@ -85,6 +85,7 @@ const foundationTests = [
   "tests/e2e/action-666dz-transactional-recommendation-position-writer-failure-atomicity-contract.spec.ts",
   "tests/e2e/action-666ea-transactional-recommendation-position-writer-admission-bundle-contract.spec.ts",
   "tests/e2e/action-666eb-transactional-recommendation-position-writer-implementation-authority-decision.spec.ts",
+  "tests/e2e/action-666ec-transactional-recommendation-position-writer-private-server-adapter.spec.ts",
 ];
 
 const intelligenceTests = [
