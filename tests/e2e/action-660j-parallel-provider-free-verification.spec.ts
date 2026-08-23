@@ -82,6 +82,7 @@ const foundationTests = [
   "tests/e2e/action-666dw-transactional-recommendation-position-writer-durable-idempotency-storage-contract.spec.ts",
   "tests/e2e/action-666dx-transactional-recommendation-position-writer-owner-bound-position-effect-contract.spec.ts",
   "tests/e2e/action-666dy-transactional-recommendation-position-writer-commit-visible-result-contract.spec.ts",
+  "tests/e2e/action-666dz-transactional-recommendation-position-writer-failure-atomicity-contract.spec.ts",
 ];
 
 const intelligenceTests = [

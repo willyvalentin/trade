@@ -1,0 +1,39 @@
+{
+  "contract_version": "trade.action666dz.transactional-recommendation-position-writer-failure-atomicity-contract.v1",
+  "action_id": "ACTION_666DZ",
+  "predecessor": {
+    "protected_main_commit": "8a2577929823fdcf8a792afb78dd87e14c6c9a84",
+    "protected_main_tree": "a149e07ec56bbb5dea1c401ba193982cb654cc26",
+    "exact_main_ci_run": 32643860630,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dy-transactional-recommendation-position-writer-commit-visible-result-contract.md": "c9438d778eb5d0646b0b7caa9ee9b5d23df2ec56bfb8d6c205a2db38794176e9",
+    "docs/evidence/action-666dy-transactional-recommendation-position-writer-commit-visible-result-contract.json": "d940bb438e930e2c242c2ede4f43dbaec2e9b2f001fbd4aa98242d3e4369753b",
+    "lib/transactional-recommendation-position-writer-commit-visible-result-contract.ts": "4e76f4b5e9002652544a0936dab78b19a75cf40b7cd782e102aa51adb0c97552"
+  },
+  "failure_atomicity_contract": {
+    "requirement_count": 6,
+    "rejected_command_checked": false,
+    "aborted_command_checked": false,
+    "no_position_effect_verified": false,
+    "no_history_effect_verified": false,
+    "failed_reservation_contained": false,
+    "retry_partial_effect_rejected": false,
+    "owner_bound_failure_projection_admitted": false
+  },
+  "delivery": {
+    "kind": "source_only_failure_atomicity_contract",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_failure_atomicity_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_admission_bundle_contract",
+    "production_authority_granted": false
+  }
+}
