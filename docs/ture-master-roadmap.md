@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DV — Transactional recommendation-to-position writer authenticated server-owner context contract.**
+**ACTION 666DW — Transactional recommendation-to-position writer durable idempotency storage contract.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DU. It preserves verified GitHub branch protection,
+of Action 666DV. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -48,18 +48,19 @@ requirements. Action 666DR has reached protected main as the private
 server-writer source contract. Action 666DS has reached protected main as the
 default-deny static metadata boundary. Action 666DT has reached protected main
 as the implementation-admissions preflight. Action 666DU has reached protected
-main as the default-deny transaction-capability contract. Action 666DV is the
-next source-only work: it freezes the authenticated server-owner context
-admission contract without selecting or invoking a resolver, adding a route,
-migration or runtime authority.
+main as the default-deny transaction-capability contract. Action 666DV has
+reached protected main as the default-deny authenticated server-owner context
+contract. Action 666DW is the next source-only work: it freezes durable
+idempotency-storage requirements without selecting an adapter, reading or
+writing storage, adding a route, migration or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`8437c25fe7904810e61cc9f2ca2efbbaf554040a`, tree
-`9e7746551a9e99410f962497f572a2fffa834007`, observed after Action 666DU's
+`0da9b32fbc810969011686f31e7a6d6239723d0f`, tree
+`387ab15ccd305bbd4a835113b467040d47485793`, observed after Action 666DV's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -304,11 +305,12 @@ transaction design. Action 666DR has reached protected main as the private
 server-writer source contract. Action 666DS has reached protected main as its
 default-deny static boundary. Action 666DT has reached protected main as its
 implementation-admissions preflight. Action 666DU has reached protected main
-as its default-deny transaction-capability contract. Action 666DV is the next
-source-only candidate: it freezes the future authenticated server-owner context
-requirements with all operational flags default-denied. SQL bytes, schema
-application, route, worker, broker and production writes remain separate
-blockers.
+as its default-deny transaction-capability contract. Action 666DV has reached
+protected main as its default-deny authenticated server-owner context contract.
+Action 666DW is the next source-only candidate: it freezes future durable
+idempotency-storage requirements with all operational flags default-denied.
+SQL bytes, schema application, route, worker, broker and production writes
+remain separate blockers.
 
 ### C. Semi-Automatic Execution
 
