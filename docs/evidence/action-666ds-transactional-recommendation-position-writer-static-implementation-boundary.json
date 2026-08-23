@@ -1,0 +1,43 @@
+{
+  "contract_version": "trade.action666ds.transactional-recommendation-position-writer-static-implementation-boundary.v1",
+  "action_id": "ACTION_666DS",
+  "predecessor": {
+    "protected_main_commit": "361646f101524db1c1c7af7407781147ac131f1e",
+    "protected_main_tree": "4aeeb12184862aed6069652bd3637abdacd19b32"
+  },
+  "source_artifact_sha256": {
+    "docs/action-655a-server-owned-trade-management-contract-manifest.json": "15b689bab4451ee6adf1cb5d215f4d331101ebf27ab20f1c0dd7d31591430cde",
+    "docs/action-666dr-transactional-recommendation-position-writer-source-contract.md": "3ec4a14da9ed167eaf9271f6c004737c8d550ba61f97f28626b1f38337116e12",
+    "docs/evidence/action-666dr-transactional-recommendation-position-writer-source-contract.json": "ba8892899a33abb093ec01ff3b53ef6594a91c7c99cc40e0d8b82f1d5ead72b5",
+    "lib/transactional-recommendation-position-writer-static-contract.ts": "ca01dbc71e05258a85ed0d32aeb06f8ee62d3d83fea723a86bd2d218353d06eb"
+  },
+  "static_contract": {
+    "contract_version": "transactional_recommendation_position_writer_static_contract_v1",
+    "command_contract_version": "action_655a2_recommendation_position_command_v2",
+    "authenticated_server_owner_required": true,
+    "client_owner_projection_authoritative": false,
+    "requires_one_private_transaction_capability": true,
+    "requires_exact_locked_recommendation": true,
+    "requires_complete_idempotency_binding_before_position_write": true,
+    "position_initial_history_version": 1,
+    "result_available_before_commit": false,
+    "partial_write_permitted": false,
+    "idempotency_binding_member_count": 6,
+    "result_disposition_count": 7
+  },
+  "delivery": {
+    "kind": "source_only_static_contract",
+    "writer_implementation": false,
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_static_implementation_boundary",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_implementation_preflight",
+    "production_authority_granted": false
+  }
+}
