@@ -1,9 +1,10 @@
 # Ture Master Roadmap
 
-**ACTION 666EA — Transactional recommendation-to-position writer admission-bundle contract.**
+**ACTION 666EB — Transactional recommendation-to-position writer implementation-authority decision.**
 
 **Document status:** source-only candidate after the exact-main delivery of
-Action 666DZ. It preserves verified GitHub branch protection,
+Action 666EA. It records explicit operator authority for the next private
+server adapter while preserving verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -55,17 +56,18 @@ idempotency-storage contract. Action 666DX has reached protected main as the
 default-deny owner-bound position-effect contract. Action 666DY has reached
 protected main as the default-deny commit-visible result contract. Action 666DZ
 has reached protected main as the default-deny failure-atomicity contract.
-Action 666EA is the next source-only work: it freezes a seven-contract
-admission bundle without reading or writing storage, adding a route, migration
-or runtime authority.
+Action 666EA has reached protected main as the default-deny seven-contract
+admission bundle. Action 666EB is the next source-only work: it records the
+operator's explicit authority to construct one private server adapter without
+activating a route, migration or runtime effect by decision alone.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`3c72ece474dad62af2419a632849661576ebd836`, tree
-`f8f91ee5d34c5316243b759d9efd57a51901e1a1`, observed after Action 666DZ's
+`bcf2aec4ed395ed8960da742bfcef8d178cc696e`, tree
+`300aaff31b18a7cfcebb0ebd159a5e9013e6a9c1`, observed after Action 666EA's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -77,8 +79,8 @@ The historical decision base is the ordinary merge of PR #138, with parents
 `4efcea11a73c3e8a96fac0a9872392c166844eb4` and
 `1f0f955b89c49294e9878c16f0bc1af480f24958`. Its exact-main push run
 `32597263375` completed successfully. PRs #100 through #121 and #124 through
-#151 form one verified first-parent delivery sequence; each exact-main push run
-completed successfully, with PR #151's run `32654878870` the immediate
+#152 form one verified first-parent delivery sequence; each exact-main push run
+completed successfully, with PR #152's run `32659617285` the immediate
 predecessor evidence for this source-only candidate.
 GitHub `main` is protected by the exact Action 660I profile, while the mandatory
 Action 660H manual control remains defense in depth. PR #45 remains stale
@@ -319,10 +321,11 @@ idempotency-storage contract. Action 666DX has reached protected main as the
 default-deny owner-bound paired position/history-effect contract. Action 666DY
 has reached protected main as the default-deny commit-visible result contract.
 Action 666DZ has reached protected main as the default-deny failure-atomicity
-contract. Action 666EA is the next source-only candidate: it freezes the
-seven-contract admission bundle with all operational flags default-denied. SQL
-bytes, schema application, route, worker, broker and production writes remain
-separate blockers.
+contract. Action 666EA has reached protected main as the default-deny
+seven-contract admission bundle. Action 666EB is the next source-only
+candidate: it records explicit operator authority for a private server adapter.
+The adapter, not this decision, must prove any SQL command, schema function,
+route, worker or production activation it uses.
 
 ### C. Semi-Automatic Execution
 
