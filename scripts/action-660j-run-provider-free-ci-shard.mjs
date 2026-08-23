@@ -46,6 +46,7 @@ const foundationTests = [
   "tests/e2e/action-666dm-market-observation-provenance.spec.ts",
   "tests/e2e/action-666dn-market-observation-readback-boundary.spec.ts",
   "tests/e2e/action-666do-market-price-attestation-boundary.spec.ts",
+  "tests/e2e/action-666dp-durable-exit-queue-source-migration-design.spec.ts",
 ];
 
 const intelligenceTests = [
