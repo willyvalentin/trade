@@ -1,14 +1,16 @@
 # Ture Master Roadmap
 
-**ACTION 666EC — Transactional recommendation-to-position writer private server adapter.**
+**ACTION 666ED — Transactional recommendation-to-position writer owner-bound command-port preflight.**
 
 **Document status:** source-only candidate after the exact-main delivery of
-Action 666EB. It implements one inert, injected private server adapter while preserving verified GitHub branch protection,
-the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
-verified production release and Action 666DB's owner-bound
-position/recommendation version target. The exact Action 666DC query was
-explicitly authorized and executed once through the project-scoped Supabase
-MCP boundary. Action 666DE freezes the legacy Action 664A identity mapping and
+Action 666EC. It turns an authorized aggregate-only production parity check into
+an explicit no-bind decision for the current v1 routine while preserving
+verified GitHub branch protection, the Action 660H manual control, Action 660K
+cost-bounded CI, Action 660M's last verified production release and Action
+666DB's owner-bound position/recommendation version target. The exact Action
+666DC query was explicitly authorized and executed once through the
+project-scoped Supabase MCP boundary. Action 666DE freezes the legacy Action
+664A identity mapping and
 lossless normative digest projection, with
 `action_655g_canonical_recommendation_identity_reconciliation` as its recorded
 next bounded objective; Action 666DF completes that source-only reconciliation
@@ -57,9 +59,11 @@ protected main as the default-deny commit-visible result contract. Action 666DZ
 has reached protected main as the default-deny failure-atomicity contract.
 Action 666EA has reached protected main as the default-deny seven-contract
 admission bundle. Action 666EB records the operator's explicit authority to
-construct one private server adapter. Action 666EC is the next source-only work:
-it implements that injected adapter without activating a route, migration or
-runtime effect.
+construct one private server adapter. Action 666EC implemented that injected
+adapter without activating a route, migration or runtime effect. Action 666ED
+is the next source-only work: it uses authorized read-only parity evidence to
+make the existing v1 routine non-admissible for a concrete port while
+preserving its server-only security boundary.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -323,9 +327,10 @@ has reached protected main as the default-deny commit-visible result contract.
 Action 666DZ has reached protected main as the default-deny failure-atomicity
 contract. Action 666EA has reached protected main as the default-deny
 seven-contract admission bundle. Action 666EB records explicit operator
-authority for a private server adapter. Action 666EC is the next source-only
-candidate: it implements only the injected private adapter. Its future concrete
-command port, not the adapter, must prove any SQL command, schema function,
+authority for a private server adapter. Action 666EC implements only the
+injected private adapter. Action 666ED verifies the current v1 routine remains
+non-admissible as that concrete command port; a future v2 port, not the adapter,
+must prove any SQL command, schema function,
 route, worker or production activation it uses.
 
 ### C. Semi-Automatic Execution
