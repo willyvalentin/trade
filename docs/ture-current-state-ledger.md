@@ -1,11 +1,12 @@
 # Ture Current-State Ledger
 
-**ACTION 666DO — Market-price attestation boundary.**
+**ACTION 666DP — Durable exit-queue source-migration design.**
 
 **Evidence timestamp:** 2026-08-23. This source-only candidate follows ordinary
-delivery of Action 666DN's market-observation freshness assessment. It binds a
-sanitized integer price to fresh opaque 666DM/666DN lineage; it does not use a
-provider response, assert raw-to-price linkage or make a provider call.
+delivery of Action 666DO's market-price attestation boundary. It freezes a
+future owner-bound, append-only exit-queue migration shape and atomic position
+transition preconditions; it does not add SQL, use a provider response, make a
+database operation or activate runtime wiring.
 The last verified
 production release remains the earlier PR #125 commit; this source work is not
 a deployment. Action 666DE's historical next
@@ -70,7 +71,8 @@ promotion or release activity.
 | PR #137 | MERGED; reviewed head `897d84d1…`; merge `4efcea11…`; Action 666DL | corroborated_current |
 | PR #138 | MERGED; reviewed head `1f0f955b…`; merge `d2a1a17c…`; Action 666DM | corroborated_current |
 | PR #139 | MERGED; reviewed head `e36fdee2…`; merge `f7bb504b…`; Action 666DN | corroborated_current |
-| Exact-main CI | push on `f7bb504b…`, completed/success | verified_current |
+| PR #140 | MERGED; reviewed head `34e12c8b…`; merge `a351b114…`; Action 666DO | corroborated_current |
+| Exact-main CI | push on `a351b114…`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
@@ -161,9 +163,10 @@ project-scoped, read-only provider type-generation receipt at SHA-256
 `f23c3702…`. Action 666DL preserves the privacy-preserving current refresh as
 delivered source provenance, binding only repository output hashes and
 retaining no raw provider response. Actions 666DM and 666DN deliver source-only
-market-observation provenance and freshness assessment. Action 666DO is the
-separate source-only candidate for a sanitized integer price attestation over
-that opaque lineage; it grants no runtime, database or release authority.
+market-observation provenance and freshness assessment, while Action 666DO
+delivers a sanitized price attestation over that opaque lineage. Action 666DP
+is the separate source-only candidate for the durable exit-queue migration
+design; it grants no SQL, runtime, database or release authority.
 
 MA-05 is `verified_current`: production readback passed 9/9 owner columns and
 RLS tables, 20/20 constraints, 2/2 relationship indexes, revoked client grants
@@ -238,10 +241,10 @@ catalog proof. Action 666DL was the source-delivery candidate for the
 privacy-preserving generated-types/MA-09 provenance refresh and has since
 reached protected main with exact-main CI. Actions 666DM and 666DN have also
 reached protected main as source-only market-observation provenance and
-freshness assessment. Action 666DO is the source-only candidate for a
-sanitized price attestation over that opaque lineage. A provider adapter, actual
-readback, durable exit-queue schema and transactional runtime handoff remain
-separate blockers.
+freshness assessment. Action 666DO has reached protected main with its
+sanitized price attestation. Action 666DP is the source-only candidate for a
+durable exit-queue migration design. A provider adapter, actual readback, SQL
+bytes and transactional runtime handoff remain separate blockers.
 
 ## Delivery state
 
@@ -251,7 +254,7 @@ separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM and 666DN deliver source-only market-observation provenance and freshness assessment. Action 666DO is the unmerged sanitized price-attestation candidate. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply and generated-types provenance proven; runtime closed | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM, 666DN and 666DO deliver source-only observation provenance, freshness and price-attestation boundaries. Action 666DP is the unmerged durable exit-queue migration design. Backfill and runtime wiring remain blocked; no broker or production-deployment authority exists. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 

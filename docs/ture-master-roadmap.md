@@ -1,9 +1,9 @@
 # Ture Master Roadmap
 
-**ACTION 666DO — Market-price attestation boundary.**
+**ACTION 666DP — Durable exit-queue source-migration design.**
 
 **Document status:** source-only candidate after the ordinary source delivery
-of Action 666DN. It preserves verified GitHub branch protection,
+of Action 666DO. It preserves verified GitHub branch protection,
 the Action 660H manual control, Action 660K cost-bounded CI, Action 660M's last
 verified production release and Action 666DB's owner-bound
 position/recommendation version target. The exact Action 666DC query was
@@ -39,18 +39,20 @@ provider configuration mutation, deployment, broker, training or promotion
 authority. Action 666DM delivered a pure canonical provenance commitment for
 future market observations, without an adapter, provider call, freshness claim
 or Action 655G activation. Action 666DN separately delivered the bounded
-freshness assessment over opaque 666DM provenance. Action 666DO is the next
-source-only work: it binds a sanitized integer price to fresh opaque 666DM/666DN
-lineage without a provider readback, source-linkage assertion, runtime
-activation or Action 655G activation.
+freshness assessment over opaque 666DM provenance. Action 666DO binds a
+sanitized integer price to fresh opaque 666DM/666DN lineage without a provider
+readback or runtime activation. Action 666DP is the separate source-only
+durable exit-queue migration design: it freezes owner-bound append-only queue
+relations and future atomic position transitions without adding SQL, a worker
+or runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`f7bb504b16dd824c74b961bc96d6041d625e7822`, tree
-`5b9f3a0bce9c1bea5eb0f6d732b89d32bec5c190`, observed after Action 666DN's
+`a351b114aa8a1e96357036216db9ee1e1a21dc78`, tree
+`08eabafbee40781b131297c0b584328e229d719e`, observed after Action 666DO's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
@@ -286,13 +288,12 @@ Action 666DB's former next objective,
 satisfied by this bounded design. Action 666DD separately satisfies the
 authorized inventory objective; neither Action applies the schema. Action
 666DM delivers the canonical market-observation provenance commitment. Action
-666DN delivers the source-only freshness assessment. Action 666DO is the next
-source-only candidate: it binds a sanitized integer price to fresh opaque
-lineage but has no adapter, provider readback, source-linkage assertion or
-Action 655G activation. Durable exit-queue
-schema and transactional recommendation-to-position runtime wiring remain
-separate blockers. No migration, route, worker, broker or production write is
-authorized here.
+666DN delivers the source-only freshness assessment. Action 666DO binds a
+sanitized price to that opaque lineage but has no adapter, provider readback,
+source-linkage assertion or Action 655G activation. Action 666DP is the next
+source-only candidate: it freezes the durable exit-queue migration shape and
+atomic transition preconditions. SQL bytes, schema application, route, worker,
+broker and production writes remain separate blockers.
 
 ### C. Semi-Automatic Execution
 
