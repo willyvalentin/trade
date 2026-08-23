@@ -1,0 +1,40 @@
+{
+  "contract_version": "trade.action666dy.transactional-recommendation-position-writer-commit-visible-result-contract.v1",
+  "action_id": "ACTION_666DY",
+  "predecessor": {
+    "protected_main_commit": "094e06e566823f367a482c466027a1b3b5ba9ebf",
+    "protected_main_tree": "695ff03d5cbb318af4fdbe6cafb43730e69aa236",
+    "exact_main_ci_run": 32638759351,
+    "exact_main_ci_conclusion": "success_after_targeted_retry"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666dx-transactional-recommendation-position-writer-owner-bound-position-effect-contract.md": "40f371dd9eeeb541de3dac30a3edcf626a5c7a6bf654cf4af75c51e515506fda",
+    "docs/evidence/action-666dx-transactional-recommendation-position-writer-owner-bound-position-effect-contract.json": "ffbf6147ddb0da7ddb775bcba39547dfcec7b2227c06773059f7b82aae7b70fa",
+    "lib/transactional-recommendation-position-writer-owner-bound-position-effect-contract.ts": "026446005d8730afcb19f6a43dfd307b7110157521da8da452c5ce9a9583ad47"
+  },
+  "commit_visible_result_contract": {
+    "requirement_count": 6,
+    "durable_decision_observed": false,
+    "transaction_commit_confirmed": false,
+    "owner_bound_command_result_verified": false,
+    "paired_effect_result_verified": false,
+    "created_result_admitted": false,
+    "replayed_result_admitted": false,
+    "conflict_result_admitted": false,
+    "privacy_safe_result_projection_admitted": false
+  },
+  "delivery": {
+    "kind": "source_only_commit_visible_result_contract",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_commit_visible_result_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_failure_atomicity_contract",
+    "production_authority_granted": false
+  }
+}
