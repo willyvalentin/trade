@@ -1,0 +1,40 @@
+{
+  "contract_version": "trade.action666dv.transactional-recommendation-position-writer-authenticated-server-owner-context-contract.v1",
+  "action_id": "ACTION_666DV",
+  "predecessor": {
+    "protected_main_commit": "8437c25fe7904810e61cc9f2ca2efbbaf554040a",
+    "protected_main_tree": "9e7746551a9e99410f962497f572a2fffa834007",
+    "exact_main_ci_run": 32626894943,
+    "exact_main_ci_conclusion": "success"
+  },
+  "source_artifact_sha256": {
+    "docs/action-666du-transactional-recommendation-position-writer-transaction-capability-contract.md": "3b4cd4ad912950465c7d3d7f507b6b938506970cc3d51d194e79fe4ca58ea1bd",
+    "docs/evidence/action-666du-transactional-recommendation-position-writer-transaction-capability-contract.json": "93c8f1cb5bb2fc656d67901d488bd15ea6c06ce63e356a1f011468270a980e9d",
+    "lib/transactional-recommendation-position-writer-transaction-capability-contract.ts": "4bd7b90a2363fc94ef6fa67ccb52078cf7fdfb48087e5d5420ba3f20a62c91f3"
+  },
+  "authenticated_server_owner_context_contract": {
+    "requirement_count": 5,
+    "server_resolver_selected": false,
+    "server_resolver_invocation_present": false,
+    "authenticated_subject_resolution_admitted": false,
+    "client_owner_projection_accepted": false,
+    "owner_binding_resolved": false,
+    "recommendation_scope_admitted": false,
+    "position_scope_admitted": false,
+    "transaction_handoff_admitted": false
+  },
+  "delivery": {
+    "kind": "source_only_authenticated_server_owner_context_contract",
+    "database_operations": false,
+    "migration_file_added": false,
+    "runtime_wiring": false,
+    "provider_calls": false,
+    "broker_operations": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "transactional_recommendation_to_position_writer_authenticated_server_owner_context_contract",
+    "next_bounded_objective": "transactional_recommendation_to_position_writer_durable_idempotency_storage_contract",
+    "production_authority_granted": false
+  }
+}

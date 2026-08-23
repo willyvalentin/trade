@@ -78,6 +78,7 @@ const foundationTests = [
   "tests/e2e/action-666ds-transactional-recommendation-position-writer-static-implementation-boundary.spec.ts",
   "tests/e2e/action-666dt-transactional-recommendation-position-writer-implementation-preflight.spec.ts",
   "tests/e2e/action-666du-transactional-recommendation-position-writer-transaction-capability-contract.spec.ts",
+  "tests/e2e/action-666dv-transactional-recommendation-position-writer-authenticated-server-owner-context-contract.spec.ts",
 ];
 
 const intelligenceTests = [
