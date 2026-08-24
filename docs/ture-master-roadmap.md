@@ -113,8 +113,13 @@ additive migration package; it may not apply, validate, backfill or activate a
 writer. Action 666EM now creates those source-only migration bytes through the
 Supabase CLI: two nullable marker columns and the four designed `NOT VALID`
 checks. It applies nothing anywhere, preserves all existing constraints and
-introduces no default, client grant, RLS change or writer. The next gate is an
-isolated staging apply and catalog proof of these exact bytes only.
+introduces no default, client grant, RLS change or writer. Action 666EN closes
+the next gate by applying only those immutable bytes to isolated staging after
+a read-only compatibility preflight. The remote catalog proves the two nullable
+markers without defaults and all four unvalidated checks. No row value is read
+or written and production remains untouched. The next gate is a separately
+reviewed v2 writer command-port design; it may not activate a writer, backfill
+or change production.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
