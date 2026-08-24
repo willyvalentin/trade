@@ -69,6 +69,7 @@ const foundationTests = [
   "tests/e2e/action-666ej-position-version-lineage-control-character-projection-provenance-reconciliation.spec.ts",
   "tests/e2e/action-666ek-position-version-lineage-versioned-projection-successor-contract.spec.ts",
   "tests/e2e/action-666el-position-version-lineage-projection-contract-storage-design.spec.ts",
+  "tests/e2e/action-666em-position-version-lineage-projection-contract-additive-migration-package.spec.ts",
 ];
 
 const intelligenceTests = [

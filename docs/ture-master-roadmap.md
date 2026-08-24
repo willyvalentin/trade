@@ -110,7 +110,11 @@ is the v2 contract; NULL is not an implicit v1. Existing constraints are
 retained, cross-relation ownership remains server-enforced, and no schema bytes
 or database action are created. The next gate is a separately reviewed
 additive migration package; it may not apply, validate, backfill or activate a
-writer.
+writer. Action 666EM now creates those source-only migration bytes through the
+Supabase CLI: two nullable marker columns and the four designed `NOT VALID`
+checks. It applies nothing anywhere, preserves all existing constraints and
+introduces no default, client grant, RLS change or writer. The next gate is an
+isolated staging apply and catalog proof of these exact bytes only.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

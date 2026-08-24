@@ -1,0 +1,65 @@
+{
+  "contract_version": "trade.action666em.position-version-lineage-projection-contract-additive-migration-package.v1",
+  "action_id": "ACTION_666EM",
+  "evidence_captured_at": "2026-08-24T13:30:48Z",
+  "predecessor": {
+    "protected_main_commit": "58f21634ca0da6d6cc3a10821ddb2de38b4b5728",
+    "exact_main_ci_run": 32729963024,
+    "exact_main_ci_conclusion": "success",
+    "action_666el_storage_design_path": "docs/evidence/action-666el-position-version-lineage-projection-contract-storage-design.json"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260824133138_add_position_version_lineage_projection_contract_marker.sql",
+    "sha256": "f35a0a367354103fda9e3f68c6f085f998c4520f0eacde4e0d8c7bcbc18a2d13",
+    "created_with_supabase_migration_new": true,
+    "kind": "nullable_additive_projection_contract_marker_schema",
+    "column_name": "recommendation_projection_contract",
+    "column_type": "text",
+    "relations": [
+      "public.recommendations",
+      "public.positions"
+    ],
+    "allowed_non_null_value": "legacy_recommendation_normative_projection_v2",
+    "named_not_valid_constraints": [
+      "recommendations_recommendation_projection_contract_value_check",
+      "recommendations_lineage_projection_contract_complete_check",
+      "positions_recommendation_projection_contract_value_check",
+      "positions_lineage_projection_contract_complete_check"
+    ],
+    "existing_action_666ee_constraints_retained": true,
+    "dml_statements": false,
+    "runtime_function_added": false,
+    "grant_or_policy_change": false,
+    "constraint_validation": false,
+    "physical_not_null_activation": false,
+    "default_added": false,
+    "index_added": false,
+    "foreign_key_added": false
+  },
+  "delivery": {
+    "source_migration_added": true,
+    "database_operations": false,
+    "isolated_staging_apply": false,
+    "production_apply": false,
+    "durable_backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "deployment": false
+  },
+  "authority_limits": {
+    "database_query_performed": false,
+    "database_mutation_performed": false,
+    "schema_mutation_performed": false,
+    "constraint_validation_performed": false,
+    "grant_or_policy_change_performed": false,
+    "provider_or_broker_contact_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_additive_migration_package",
+    "next_bounded_objective": "position_version_lineage_projection_contract_isolated_staging_apply_and_catalog_proof",
+    "isolated_staging_apply_authorized": false,
+    "production_apply_authorized": false,
+    "backfill_authorized": false,
+    "v2_writer_activation_authorized": false
+  }
+}
