@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-**ACTION 666ED — Transactional recommendation-to-position writer owner-bound command-port preflight.**
+**ACTION 666EE — Position-version lineage additive migration package.**
 
 **Evidence timestamp:** 2026-08-23. This source-only candidate follows exact-main
 delivery of Action 666EC's private server adapter. It records the authorized
@@ -13,7 +13,9 @@ bounded objective, `action_655g_canonical_recommendation_identity_reconciliation
 was closed by Action 666DF and remains preserved as immutable lineage. This
 receipt authorizes no production SQL, backfill, deploy, runtime,
 provider mutation, database write, migration application, broker, training,
-promotion or release activity.
+promotion or release activity. Action 666EE adds reviewed source bytes only:
+nullable durable-lineage columns and fail-closed new-write checks. It does not
+apply DDL, backfill data, change a privilege or bind a v2 command port.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
