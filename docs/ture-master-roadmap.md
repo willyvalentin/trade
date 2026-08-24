@@ -122,9 +122,13 @@ separate v2 writer command-port design: a server-owned, service-role-only
 fixed-search-path routine locks the owner-scoped recommendation, refuses any
 all-NULL or partial v2 tuple, derives the v2 fields, creates version-one
 position/history state atomically and replays only an exact immutable retry
-binding. It implements and invokes nothing. The next gate is an independent
-read-only v2 command-port admission preflight; it may not apply DDL/DML, bind
-the writer, backfill or change production.
+binding. It implements and invokes nothing. Action 666EP independently checks
+the isolated staging catalog with a boolean-only query. The nullable v2 fields,
+unvalidated marker checks, owner-scoped append-only history and client-deny
+boundary remain present, but no marker-aware routine or complete durable v2
+idempotency storage is proven. It refuses concrete-port admission without any
+DDL/DML, writer binding, backfill or production target. The next gate is a
+source-only storage-and-routine package design.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

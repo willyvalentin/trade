@@ -1,13 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 666EO — Position-version lineage projection-contract v2 writer command-port design.**
+**ACTION 666EP — Position-version lineage projection-contract v2 writer command-port admission preflight.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EN's green
-exact-main delivery. Action 666EO freezes only the future v2 private
-owner-bound writer design: the locked recommendation tuple must be complete,
-v2-marked and derived server-side before an atomic position/history effect.
-All-NULL legacy rows, partial tuples and owner mismatches remain refused. No
-row value is read or written, and no backfill, routine, validation,
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EO's green
+exact-main delivery. Action 666EP independently reads only the isolated staging
+catalog and refuses v2 writer admission: the physical lineage, marker,
+append-only history and client-deny foundations are intact, but no marker-aware
+routine or complete durable idempotency storage is proven. No application row
+value or identifier is returned, and no backfill, routine, validation,
 normalization or data-quality rewrite is admitted. The last verified production
 release remains the earlier PR #125 commit; no production deployment occurred.
 This receipt records no production mutation, runtime activation,
@@ -105,6 +105,8 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `77be5d14…`, run `32737039472`, completed/success | verified_current |
 | PR #165 | MERGED; merge `99b945a2…`; Action 666EN | corroborated_current |
 | Exact-main CI | push on `99b945a2…`, run `32744898801`, completed/success | verified_current |
+| PR #166 | MERGED; merge `e19ee99d…`; Action 666EO | corroborated_current |
+| Exact-main CI | push on `e19ee99d…`, run `32753120497`, completed/success | verified_current |
 | Isolated staging apply | reviewed Action 666EM marker source applied once; nullable-marker and four-constraint catalog proof green; no row values published | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
