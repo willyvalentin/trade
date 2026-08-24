@@ -1,0 +1,91 @@
+{
+  "action_id": "666ER",
+  "evidence_captured_at": "2026-08-24T19:50:15Z",
+  "predecessor": {
+    "protected_main_commit": "5c016c0f920c4e2b833c3dc94a6d06ddd9750d82",
+    "exact_main_ci_run": 32767327322,
+    "exact_main_ci_conclusion": "success",
+    "action_666eq_package_design_path": "docs/evidence/action-666eq-position-version-lineage-projection-contract-v2-writer-storage-routine-package-design.json"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260824195409_position_version_lineage_v2_writer_storage_routine_package.sql",
+    "sha256": "c9564854dcb81989afd2ff3de2279cc0309a8366592835b56d842fc736ab9196",
+    "created_with_supabase_migration_new": true,
+    "source_bytes_reviewed_only": true,
+    "private_schema": "private",
+    "relation_identifier": "owner_bound_position_command_idempotency_v2",
+    "routine_identifier": "write_owner_bound_recommendation_position_v2",
+    "routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
+    "database_apply_performed": false
+  },
+  "routine_boundary": {
+    "operational_inputs": [
+      "authenticated_server_owner",
+      "opaque_recommendation_reference",
+      "canonical_command_digest"
+    ],
+    "caller_authoritative_lineage_or_position_inputs": false,
+    "security_definer": true,
+    "fixed_search_path": "",
+    "all_relations_explicitly_qualified": true,
+    "public_anon_authenticated_execute_revoked": true,
+    "service_role_execute_granted": true,
+    "runtime_or_route_binding_added": false
+  },
+  "receipt_contract": {
+    "address_key": [
+      "authenticated_server_owner",
+      "canonical_command_digest"
+    ],
+    "address_key_primary": true,
+    "owner_recommendation_second_effect_prevention": true,
+    "complete_binding_fields": [
+      "authenticated_server_owner",
+      "opaque_recommendation_reference",
+      "recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest",
+      "recommendation_projection_contract",
+      "server_generated_position_identity",
+      "initial_position_version",
+      "canonical_command_digest",
+      "committed_outcome",
+      "initial_history_identity"
+    ],
+    "private_relation_rls_enabled": true,
+    "direct_table_privileges_to_public_anon_authenticated_service_role": false,
+    "position_foreign_key_deferred_until_commit": true,
+    "immutable_to_application_roles_after_commit": true
+  },
+  "transaction_contract": {
+    "owner_scoped_recommendation_lock_first": true,
+    "complete_exact_v2_tuple_required_before_receipt_effect": true,
+    "exact_committed_receipt_replays_only_after_paired_effect_proof": true,
+    "reservation_precedes_position_effect": true,
+    "initial_position_version": 1,
+    "owner_scoped_initial_history_insert": true,
+    "position_state_digest_algorithm": "sha256",
+    "exception_rolls_back_receipt_position_recommendation_state_and_history": true,
+    "second_position_on_retry_or_conflict": false
+  },
+  "authority_limits": {
+    "database_connection_opened": false,
+    "database_ddl_or_dml_applied": false,
+    "staging_targeted": false,
+    "production_targeted": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "route_added": false,
+    "backfill": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "v2_writer_activated": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_v2_writer_command_port_storage_and_routine_source_migration_package",
+    "next_bounded_objective": "position_version_lineage_projection_contract_v2_writer_command_port_source_migration_isolated_staging_apply_and_catalog_proof",
+    "isolated_staging_apply_authorized_by_this_action": false,
+    "production_apply_authorized_by_this_action": false,
+    "runtime_activation_authorized": false
+  }
+}

@@ -74,6 +74,7 @@ const foundationTests = [
   "tests/e2e/action-666eo-position-version-lineage-projection-contract-v2-writer-command-port-design.spec.ts",
   "tests/e2e/action-666ep-position-version-lineage-v2-writer-command-port-admission-preflight.spec.ts",
   "tests/e2e/action-666eq-position-version-lineage-v2-writer-storage-routine-package-design.spec.ts",
+  "tests/e2e/action-666er-position-version-lineage-v2-writer-storage-routine-source-migration-package.spec.ts",
 ];
 
 const intelligenceTests = [
