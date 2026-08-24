@@ -159,6 +159,13 @@ foreign-key relationships need index remediation, so production promotion,
 runtime binding and activation remain closed. The next gate is a separately
 reviewed additive source-only receipt foreign-key index migration package.
 
+Action 666ET now delivers that remediation package as immutable source bytes.
+It requires the private receipt and both owner-bound foreign keys, rejects
+reserved-name conflicts, and adds only the two matching private lookup
+indexes. It does not connect to a database, apply bytes, invoke the writer,
+read/write rows, alter grants/RLS, bind runtime code or target production. A
+separately reviewed isolated-staging apply and catalog proof is the next gate.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

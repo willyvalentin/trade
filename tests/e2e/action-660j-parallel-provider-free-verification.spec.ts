@@ -102,6 +102,7 @@ const foundationTests = [
   "tests/e2e/action-666eq-position-version-lineage-v2-writer-storage-routine-package-design.spec.ts",
   "tests/e2e/action-666er-position-version-lineage-v2-writer-storage-routine-source-migration-package.spec.ts",
   "tests/e2e/action-666es-position-version-lineage-v2-writer-staging-apply-catalog-proof.spec.ts",
+  "tests/e2e/action-666et-position-version-lineage-v2-writer-receipt-foreign-key-index-source-migration-package.spec.ts",
 ];
 
 const intelligenceTests = [
