@@ -1,18 +1,17 @@
 # Ture Current-State Ledger
 
-**ACTION 666EP — Position-version lineage projection-contract v2 writer command-port admission preflight.**
+**ACTION 666EQ — Position-version lineage projection-contract v2 writer storage and routine package design.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EO's green
-exact-main delivery. Action 666EP independently reads only the isolated staging
-catalog and refuses v2 writer admission: the physical lineage, marker,
-append-only history and client-deny foundations are intact, but no marker-aware
-routine or complete durable idempotency storage is proven. No application row
-value or identifier is returned, and no backfill, routine, validation,
-normalization or data-quality rewrite is admitted. The last verified production
-release remains the earlier PR #125 commit; no production deployment occurred.
-This receipt records no production mutation, runtime activation,
-provider/broker activity, grant/policy change, generated-type refresh or v2
-command-port binding.
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EP's green
+exact-main delivery. Action 666EQ freezes the smallest source-only future v2
+database package: one private service-role-only routine and one immutable
+owner-plus-digest receipt relation. It keeps every authoritative lineage member
+locked-source-derived, makes exact retries replay only a committed receipt and
+requires the receipt, version-one position and initial owner-scoped history to
+commit or roll back together. No database bytes, query, mutation, routine,
+grant/policy change, generated type, runtime activation, provider/broker
+activity or production target is admitted. The last verified production release
+remains the earlier PR #125 commit; no production deployment occurred.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -107,6 +106,8 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `99b945a2…`, run `32744898801`, completed/success | verified_current |
 | PR #166 | MERGED; merge `e19ee99d…`; Action 666EO | corroborated_current |
 | Exact-main CI | push on `e19ee99d…`, run `32753120497`, completed/success | verified_current |
+| PR #167 | MERGED; merge `e8fad011…`; Action 666EP | corroborated_current |
+| Exact-main CI | push on `e8fad011…`, run `32760333735`, completed/success | verified_current |
 | Isolated staging apply | reviewed Action 666EM marker source applied once; nullable-marker and four-constraint catalog proof green; no row values published | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
