@@ -87,6 +87,13 @@ all-null tuple. It performs no durable backfill, constraint validation,
 `NOT NULL` activation, generated-type refresh or writer activation. The next
 separate gate is an owner-bound backfill admission preflight.
 
+Action 666EI performs that owner-bound admission preflight. Its fresh
+aggregate-only result preserves the all-null durable tuples and intact
+owner-bound links, but fails closed on control characters prohibited by the
+frozen Action 666DE digest contract. No backfill is admitted. The next gate is
+a provenance reconciliation of that projection blocker, not a silent
+normalization, contract relaxation or write.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

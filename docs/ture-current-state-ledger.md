@@ -1,16 +1,17 @@
 # Ture Current-State Ledger
 
-**ACTION 666EH — Position-version lineage authorized production apply and catalog proof.**
+**ACTION 666EI — Position-version lineage owner-bound backfill admission preflight.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows the successful
-exact-main delivery of Action 666EG's production preflight. Action 666EH then
-applied Action 666EE's pinned nullable durable-lineage bytes exactly once to
-production, verified aggregate-only catalog shape and ran a rollback-only
-legacy-v1 fixture that retained an all-null lineage tuple. No durable fixture
-row remained. The last verified production release remains the earlier PR #125
-commit; no production deployment occurred. This receipt records no backfill,
-runtime activation, provider/broker activity, grant/policy change,
-generated-type refresh or v2 command-port binding.
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EH's
+successful production application of the nullable lineage columns. Action
+666EI then performed one fresh aggregate-only, repeatable-read, read-only
+admission preflight. The durable tuples and owner-bound links remain all-null
+and reconciled, but the frozen Action 666DE contract rejects control characters
+found in the source projection. Therefore no backfill is admitted or performed.
+The last verified production release remains the earlier PR #125 commit; no
+production deployment occurred. This receipt records no runtime activation,
+provider/broker activity, grant/policy change, generated-type refresh or v2
+command-port binding.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -89,6 +90,8 @@ Action 666DF and remains preserved as immutable lineage.
 | PR #155 | MERGED; Action 666ED | corroborated_current |
 | PR #156 | MERGED; merge `7dea60d4…`; Action 666EE | corroborated_current |
 | Exact-main CI | push on `7dea60d4…`, run `32677913942`, completed/success | verified_current |
+| PR #159 | MERGED; merge `da17511a…`; Action 666EH | corroborated_current |
+| Exact-main CI | push on `da17511a…`, run `32691349831`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
