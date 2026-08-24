@@ -92,6 +92,7 @@ const foundationTests = [
   "tests/e2e/action-666eg-position-version-lineage-production-apply-decision-and-preflight.spec.ts",
   "tests/e2e/action-666eh-position-version-lineage-authorized-production-apply-and-catalog-proof.spec.ts",
   "tests/e2e/action-666ei-position-version-lineage-owner-bound-backfill-admission-preflight.spec.ts",
+  "tests/e2e/action-666ej-position-version-lineage-control-character-projection-provenance-reconciliation.spec.ts",
 ];
 
 const intelligenceTests = [

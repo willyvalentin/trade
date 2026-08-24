@@ -1,17 +1,19 @@
 # Ture Current-State Ledger
 
-**ACTION 666EI — Position-version lineage owner-bound backfill admission preflight.**
+**ACTION 666EJ — Position-version lineage control-character projection provenance reconciliation.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EH's
-successful production application of the nullable lineage columns. Action
-666EI then performed one fresh aggregate-only, repeatable-read, read-only
-admission preflight. The durable tuples and owner-bound links remain all-null
-and reconciled, but the frozen Action 666DE contract rejects control characters
-found in the source projection. Therefore no backfill is admitted or performed.
-The last verified production release remains the earlier PR #125 commit; no
-production deployment occurred. This receipt records no runtime activation,
-provider/broker activity, grant/policy change, generated-type refresh or v2
-command-port binding.
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EI's
+green exact-main delivery. Action 666EJ performed one fresh aggregate-only,
+repeatable-read, read-only classification without returning any source text,
+row, owner or identifier. It proves the Action 666EI blocker is structurally
+compatible with preserved legacy narrative whitespace and not with a
+categorical or non-whitespace control-character defect. Action 666DE's v1
+digest remains immutable; no backfill, normalization or data-quality rewrite
+is admitted. The next bounded objective is a separately reviewed versioned
+projection-successor contract. The last verified production release remains
+the earlier PR #125 commit; no production deployment occurred. This receipt
+records no runtime activation, provider/broker activity, grant/policy change,
+generated-type refresh or v2 command-port binding.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -92,6 +94,8 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `7dea60d4…`, run `32677913942`, completed/success | verified_current |
 | PR #159 | MERGED; merge `da17511a…`; Action 666EH | corroborated_current |
 | Exact-main CI | push on `da17511a…`, run `32691349831`, completed/success | verified_current |
+| PR #160 | MERGED; merge `a0b5bf64…`; Action 666EI | corroborated_current |
+| Exact-main CI | push on `a0b5bf64…`, run `32710226247`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |
