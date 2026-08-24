@@ -1,17 +1,18 @@
 # Ture Current-State Ledger
 
-**ACTION 666EN — Position-version lineage projection-contract isolated staging apply and catalog proof.**
+**ACTION 666EO — Position-version lineage projection-contract v2 writer command-port design.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EM's green
-exact-main delivery. Action 666EN applies the immutable, reviewed marker
-migration only to isolated staging after a read-only physical-shape preflight.
-The catalog proof confirms the two nullable text markers without defaults and
-four new `NOT VALID` v2 checks. No row value is read or written, and no
-backfill, validation, normalization or data-quality rewrite is admitted. The
-last verified production release remains the earlier PR #125 commit; no
-production deployment occurred. This receipt records no production mutation,
-runtime activation, provider/broker activity, grant/policy change,
-generated-type refresh or v2 command-port binding.
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EN's green
+exact-main delivery. Action 666EO freezes only the future v2 private
+owner-bound writer design: the locked recommendation tuple must be complete,
+v2-marked and derived server-side before an atomic position/history effect.
+All-NULL legacy rows, partial tuples and owner mismatches remain refused. No
+row value is read or written, and no backfill, routine, validation,
+normalization or data-quality rewrite is admitted. The last verified production
+release remains the earlier PR #125 commit; no production deployment occurred.
+This receipt records no production mutation, runtime activation,
+provider/broker activity, grant/policy change, generated-type refresh or v2
+command-port binding.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -102,6 +103,8 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `58f21634…`, run `32729963024`, completed/success | verified_current |
 | PR #164 | MERGED; merge `77be5d14…`; Action 666EM | corroborated_current |
 | Exact-main CI | push on `77be5d14…`, run `32737039472`, completed/success | verified_current |
+| PR #165 | MERGED; merge `99b945a2…`; Action 666EN | corroborated_current |
+| Exact-main CI | push on `99b945a2…`, run `32744898801`, completed/success | verified_current |
 | Isolated staging apply | reviewed Action 666EM marker source applied once; nullable-marker and four-constraint catalog proof green; no row values published | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |

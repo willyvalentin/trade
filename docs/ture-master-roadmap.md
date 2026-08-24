@@ -117,9 +117,14 @@ introduces no default, client grant, RLS change or writer. Action 666EN closes
 the next gate by applying only those immutable bytes to isolated staging after
 a read-only compatibility preflight. The remote catalog proves the two nullable
 markers without defaults and all four unvalidated checks. No row value is read
-or written and production remains untouched. The next gate is a separately
-reviewed v2 writer command-port design; it may not activate a writer, backfill
-or change production.
+or written and production remains untouched. Action 666EO now freezes the
+separate v2 writer command-port design: a server-owned, service-role-only
+fixed-search-path routine locks the owner-scoped recommendation, refuses any
+all-NULL or partial v2 tuple, derives the v2 fields, creates version-one
+position/history state atomically and replays only an exact immutable retry
+binding. It implements and invokes nothing. The next gate is an independent
+read-only v2 command-port admission preflight; it may not apply DDL/DML, bind
+the writer, backfill or change production.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
