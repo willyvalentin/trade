@@ -1,0 +1,51 @@
+{
+  "action_id": "666EP",
+  "predecessor": {
+    "protected_main_commit": "e19ee99de3359ed6f46571b9496dccae4ae4eaf4",
+    "exact_main_ci_run": 32753120497,
+    "exact_main_ci_conclusion": "success",
+    "action_666eo_design_path": "docs/evidence/action-666eo-position-version-lineage-projection-contract-v2-writer-command-port-design.json"
+  },
+  "isolated_staging_catalog_preflight": {
+    "scope": "catalog_boolean_only",
+    "query_path": "docs/sql/action-666ep-position-version-lineage-projection-contract-v2-writer-command-port-admission-preflight.sql",
+    "query_sha256": "cbe72e6b4f3f123278863770d610f6a94dd189b97bee6b0a9a6670ddbd4cb61d",
+    "application_row_contents_or_identifiers_returned": false,
+    "v2_source_and_target_columns_are_nullable_expected_types": true,
+    "v2_marker_constraints_are_present_not_valid": true,
+    "history_relation_is_owner_scoped_rls_append_only": true,
+    "target_tables_deny_anon_and_authenticated_table_privileges": true,
+    "existing_v1_private_boundary_retained": true,
+    "v2_marker_aware_writer_routine_present": false,
+    "proven_complete_v2_idempotency_storage_present": false
+  },
+  "current_supabase_security_guidance": {
+    "security_definer_requires_fixed_search_path": true,
+    "function_execution_requires_explicit_restriction": true,
+    "relevant_breaking_change_detected_for_catalog_only_query": false
+  },
+  "authority_limits": {
+    "isolated_staging_database_queried": true,
+    "production_targeted": false,
+    "database_ddl_or_dml": false,
+    "migration_file_added": false,
+    "routine_or_rpc_created": false,
+    "grant_or_rls_change": false,
+    "backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "route_added": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "v2_writer_activated": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_v2_writer_command_port_admission_preflight",
+    "next_bounded_objective": "position_version_lineage_projection_contract_v2_writer_command_port_storage_and_routine_package_design",
+    "concrete_v2_command_port_admitted": false,
+    "reason": "marker_aware_routine_and_complete_idempotency_storage_are_not_proven",
+    "production_change_authorized": false,
+    "backfill_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
