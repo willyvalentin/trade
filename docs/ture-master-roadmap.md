@@ -130,6 +130,15 @@ idempotency storage is proven. It refuses concrete-port admission without any
 DDL/DML, writer binding, backfill or production target. The next gate is a
 source-only storage-and-routine package design.
 
+Action 666EQ now closes the source-only storage-and-routine package design. It
+reserves a private service-role-only v2 routine and an immutable owner-plus-
+digest receipt relation, both with complete locked-source lineage binding.
+Exact retries replay only a committed matching receipt, while conflicts and
+exceptions create no second or partial effect. No database bytes, DDL/DML,
+grant/RLS change, route or runtime binding is created. The next gate is an
+immutable source-migration package for those exact reserved objects; applying
+it, backfilling and production targeting remain separate gates.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
