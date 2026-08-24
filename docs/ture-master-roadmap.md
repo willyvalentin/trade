@@ -150,6 +150,15 @@ runtime binding, generated-type refresh, staging/production apply, backfill or
 deployment occurs. A separately reviewed isolated-staging apply and catalog
 proof is the next gate.
 
+Action 666ES has now applied those exact reviewed bytes once to isolated
+staging after a read-only compatibility preflight. The catalog proof confirms
+the private receipt relation, RLS, owner-bound keys, direct-access denial and
+the fixed-empty-search-path, service-role-only routine without invoking it or
+reading/writing a row. The isolated catalog reports that the new private
+foreign-key relationships need index remediation, so production promotion,
+runtime binding and activation remain closed. The next gate is a separately
+reviewed additive source-only receipt foreign-key index migration package.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

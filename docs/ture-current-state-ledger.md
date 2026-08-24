@@ -1,17 +1,18 @@
 # Ture Current-State Ledger
 
-**ACTION 666ER — Position-version lineage projection-contract v2 writer storage and routine source-migration package.**
+**ACTION 666ES — Position-version lineage projection-contract v2 writer isolated staging apply and catalog proof.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EQ's green
-exact-main delivery. Action 666ER records immutable, Supabase-CLI-created
-source bytes for a private service-role-only v2 routine and its owner-plus-
-digest receipt relation. The source routine locks and derives v2 lineage,
-replays only a complete committed paired effect and otherwise reserves the
-receipt, creates a version-one position and appends its owner-scoped history
-atomically. The source is not applied: no database connection, DDL/DML,
-generated-type refresh, runtime/route binding, provider/broker activity or
-production target occurs. The last verified production release remains the
-earlier PR #125 commit; no production deployment occurred.
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666ER's green
+exact-main delivery. Action 666ES applies the immutable source bytes once to
+isolated staging after a read-only compatibility preflight. Aggregate-only
+catalog proof confirms the private receipt relation, RLS, owner-bound keys,
+direct access denial and service-role-only fixed-empty-search-path writer
+routine; the routine was not invoked and no row value was read or written. The
+staging advisory requires an additive private receipt foreign-key index remedy
+before production promotion. No production target, generated-type refresh,
+runtime/route binding, deployment or provider/broker operation occurred. The
+last verified production release remains the earlier PR #125 commit; no
+production deployment occurred.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -110,6 +111,10 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `e8fad011…`, run `32760333735`, completed/success | verified_current |
 | PR #168 | MERGED; merge `5c016c0f…`; Action 666EQ | corroborated_current |
 | Exact-main CI | push on `5c016c0f…`, run `32767327322`, completed/success | verified_current |
+| PR #169 | MERGED; merge `a365d835…`; Action 666ER | corroborated_current |
+| Exact-main CI | push on `a365d835…`, run `32777972800`, completed/success | verified_current |
+| Isolated staging apply | reviewed Action 666ER private receipt-and-writer source applied once; boolean-only catalog proof green; routine not invoked and no row value published | verified_current |
+| Staging advisor disposition | direct-deny private receipt configuration accepted; receipt foreign-key index remedy required before production promotion | open_remediation |
 | Isolated staging apply | reviewed Action 666EM marker source applied once; nullable-marker and four-constraint catalog proof green; no row values published | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
