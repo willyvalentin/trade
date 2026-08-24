@@ -1,16 +1,15 @@
 # Ture Current-State Ledger
 
-**ACTION 666EK — Position-version lineage versioned projection-successor contract.**
+**ACTION 666EL — Position-version lineage projection-contract storage design.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EJ's
-green exact-main delivery. Action 666EK defines a separate v2 normative digest
-frame for the previously classified preserved narrative whitespace. It keeps
-Action 666DE's v1 digest immutable, accepts only TAB/LF/CR in the three named
-narrative members, preserves exact NFC code points and requires canonical short
-JSON escapes. No row is selected or changed, and no backfill, normalization or
-data-quality rewrite is admitted. A future additive storage package must bind
-the v2 marker to both owner-matching lineage tuples before any later backfill
-design. The last verified production release remains the earlier PR #125
+**Evidence timestamp:** 2026-08-24. This receipt follows Action 666EK's
+green exact-main delivery. Action 666EL designs a single nullable
+`recommendation_projection_contract` marker on both lineage tuples. It admits
+only the separately frozen v2 value for a new non-null tuple, keeps a NULL
+marker distinct from v1, retains the existing constraints and leaves
+cross-relation ownership to a future server-side routine. No migration bytes,
+row read or write, backfill, validation, normalization or data-quality rewrite
+is admitted. The last verified production release remains the earlier PR #125
 commit; no production deployment occurred. This receipt records no runtime
 activation, provider/broker activity, grant/policy change, generated-type
 refresh or v2 command-port binding.
@@ -98,6 +97,8 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `a0b5bf64…`, run `32710226247`, completed/success | verified_current |
 | PR #161 | MERGED; merge `0b884a0d…`; Action 666EJ | corroborated_current |
 | Exact-main CI | push on `0b884a0d…`, run `32716854248`, completed/success | verified_current |
+| PR #162 | MERGED; merge `e0f7e29b…`; Action 666EK | corroborated_current |
+| Exact-main CI | push on `e0f7e29b…`, run `32723117665`, completed/success | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
 | Required status check | strict `provider-free-verification`, GitHub Actions app `15368` | verified_current |

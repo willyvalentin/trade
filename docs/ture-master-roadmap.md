@@ -103,7 +103,14 @@ with canonical JSON escapes while keeping categorical members control-free.
 V1 is not relaxed or upgraded in place, and a later durable marker on both
 lineage tuples is required before any backfill design. The next gate is that
 additive projection-contract storage design; Action 666EK itself authorizes no
-data, schema, runtime or deployment change.
+data, schema, runtime or deployment change. Action 666EL closes that storage
+design with one nullable `recommendation_projection_contract` marker on each
+lineage tuple and four future `NOT VALID` constraints. The sole non-null marker
+is the v2 contract; NULL is not an implicit v1. Existing constraints are
+retained, cross-relation ownership remains server-enforced, and no schema bytes
+or database action are created. The next gate is a separately reviewed
+additive migration package; it may not apply, validate, backfill or activate a
+writer.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

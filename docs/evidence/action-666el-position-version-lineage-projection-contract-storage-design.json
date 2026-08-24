@@ -1,0 +1,85 @@
+{
+  "contract_version": "trade.action666el.position-version-lineage-projection-contract-storage-design.v1",
+  "action_id": "ACTION_666EL",
+  "evidence_captured_at": "2026-08-24T12:19:18Z",
+  "predecessor": {
+    "protected_main_commit": "e0f7e29b53ca4e8cf3ad928c19b2b7c0ac3dbdbe",
+    "exact_main_ci_run": 32723117665,
+    "exact_main_ci_conclusion": "success",
+    "action_666ek_contract_path": "docs/evidence/action-666ek-position-version-lineage-versioned-projection-successor-contract.json",
+    "action_666ee_migration_path": "supabase/migrations/20260824000000_add_position_version_lineage_columns.sql",
+    "action_666ee_migration_sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0"
+  },
+  "additive_marker_storage": {
+    "column_name": "recommendation_projection_contract",
+    "column_type": "text",
+    "nullable_until_separate_validation": true,
+    "relations": [
+      "public.recommendations",
+      "public.positions"
+    ],
+    "allowed_non_null_values": [
+      "legacy_recommendation_normative_projection_v2"
+    ],
+    "null_marker_means": "no_admissible_durable_lineage_result",
+    "default_allowed": false,
+    "in_place_v1_to_v2_upgrade_allowed": false
+  },
+  "future_constraint_transition": {
+    "execution_authorized": false,
+    "atomic_schema_transaction_required": true,
+    "catalog_shape_preflight_required": true,
+    "constraint_validation_in_package_allowed": false,
+    "existing_action_666ee_constraints_retained": true,
+    "named_not_valid_constraints": [
+      "recommendations_recommendation_projection_contract_value_check",
+      "recommendations_lineage_projection_contract_complete_check",
+      "positions_recommendation_projection_contract_value_check",
+      "positions_lineage_projection_contract_complete_check"
+    ],
+    "recommendation_complete_tuple_members": [
+      "recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest",
+      "recommendation_projection_contract"
+    ],
+    "position_complete_tuple_members": [
+      "position_version",
+      "durable_recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest",
+      "recommendation_projection_contract"
+    ],
+    "new_non_null_tuple_required_marker": "legacy_recommendation_normative_projection_v2",
+    "mixed_or_unknown_marker_disposition": "blocked_projection_contract_mismatch"
+  },
+  "future_writer_boundary": {
+    "execution_authorized": false,
+    "owner_matching_locked_recommendation_required": true,
+    "marker_copy_must_be_server_written": true,
+    "retry_requires_exact_marker_identity_digest_and_versions": true,
+    "row_local_check_authorizes_cross_relation_copy": false,
+    "unmarked_or_v1_complete_tuple_disposition": "stop_requires_separate_remediation_decision"
+  },
+  "authority_limits": {
+    "database_query_performed": false,
+    "database_mutation_performed": false,
+    "schema_mutation_performed": false,
+    "migration_source_added": false,
+    "durable_backfill_performed": false,
+    "constraint_validation_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "grant_or_policy_change_performed": false,
+    "production_deployment_performed": false,
+    "provider_or_broker_contact_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_storage_design",
+    "next_bounded_objective": "position_version_lineage_projection_contract_additive_migration_package",
+    "staging_apply_authorized": false,
+    "production_apply_authorized": false,
+    "backfill_authorized": false,
+    "v2_writer_activation_authorized": false
+  }
+}
