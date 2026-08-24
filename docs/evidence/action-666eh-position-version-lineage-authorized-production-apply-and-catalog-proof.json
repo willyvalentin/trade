@@ -1,0 +1,79 @@
+{
+  "contract_version": "trade.action666eh.position-version-lineage-authorized-production-apply-and-catalog-proof.v1",
+  "action_id": "ACTION_666EH",
+  "observed_at": "2026-08-24T04:01:07Z",
+  "predecessor": {
+    "protected_main_commit": "cfc8ba6d1ad859005774ac46ddf2eb1ce6d99a56",
+    "exact_main_ci_run": 32686495539,
+    "exact_main_ci_conclusion": "success",
+    "action_666eg_path": "docs/action-666eg-position-version-lineage-production-apply-decision-and-preflight.md",
+    "action_666ee_migration_sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0"
+  },
+  "production_execution": {
+    "production_targeted": true,
+    "source_migration_path": "supabase/migrations/20260824000000_add_position_version_lineage_columns.sql",
+    "source_migration_sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0",
+    "provider_assigned_migration_version": "20260824040107",
+    "migration_apply_succeeded": true,
+    "aggregate_only_results": true,
+    "row_owner_connection_identifiers_excluded": true,
+    "preflight": {
+      "target_migration_ledger_entry_absent": true,
+      "relations_present": true,
+      "target_lineage_column_count": 0,
+      "target_lineage_constraint_count": 0,
+      "recommendation_count": 1068,
+      "position_count": 8,
+      "position_version_history_count": 0,
+      "v1_boundary_preserved": true,
+      "relations_rls_and_client_select_denied": true
+    },
+    "catalog_proof": {
+      "all_seven_lineage_columns_exact_nullable": true,
+      "all_nine_checks_exist_not_valid": true,
+      "recommendation_rows_with_any_lineage_value": 0,
+      "position_rows_with_any_lineage_value": 0,
+      "existing_rls_preserved": true,
+      "client_select_denied": true,
+      "v1_security_definer_preserved": true,
+      "v1_fixed_search_path_preserved": true,
+      "v1_execute_boundary_preserved": true
+    },
+    "rollback_only_v1_fixture": {
+      "v1_fixture_created_all_null": true,
+      "recommendation_fixture_rolled_back": true,
+      "position_fixture_rolled_back": true
+    },
+    "post_apply_advisors": {
+      "security_target_lint_count": 0,
+      "performance_target_lint_count": 2,
+      "performance_target_lints": [
+        "positions_owner_status_created_at_idx",
+        "positions_recommendation_owner_idx"
+      ],
+      "performance_target_lints_added_by_action_666ee": false
+    }
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": true,
+    "production_migration_apply_performed": true,
+    "rollback_only_fixture_writes_performed": true,
+    "rollback_only_fixture_writes_persisted": false,
+    "backfill_performed": false,
+    "not_valid_constraints_validated": false,
+    "physical_not_null_activation": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "grant_or_policy_change_performed": false,
+    "provider_or_broker_contact_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_authorized_production_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_lineage_owner_bound_backfill_admission_preflight",
+    "durable_backfill_authorized_by_this_action": false,
+    "constraint_validation_authorized_by_this_action": false,
+    "v2_writer_activation_authorized_by_this_action": false
+  }
+}

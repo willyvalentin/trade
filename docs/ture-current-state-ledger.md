@@ -1,15 +1,16 @@
 # Ture Current-State Ledger
 
-**ACTION 666EF — Position-version lineage isolated staging apply and catalog proof.**
+**ACTION 666EH — Position-version lineage authorized production apply and catalog proof.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows the exact-main
-delivery of Action 666EE's nullable durable-lineage migration package. Action
-666EF applied its pinned bytes only to isolated staging, verified aggregate-only
-catalog shape and ran a rollback-only legacy-v1 fixture that retained an
-all-null lineage tuple. The last verified production release remains the
-earlier PR #125 commit; no production deployment occurred. This receipt records
-no production SQL, backfill, runtime activation, provider/broker activity,
-grant/policy change, generated-type refresh or v2 command-port binding.
+**Evidence timestamp:** 2026-08-24. This receipt follows the successful
+exact-main delivery of Action 666EG's production preflight. Action 666EH then
+applied Action 666EE's pinned nullable durable-lineage bytes exactly once to
+production, verified aggregate-only catalog shape and ran a rollback-only
+legacy-v1 fixture that retained an all-null lineage tuple. No durable fixture
+row remained. The last verified production release remains the earlier PR #125
+commit; no production deployment occurred. This receipt records no backfill,
+runtime activation, provider/broker activity, grant/policy change,
+generated-type refresh or v2 command-port binding.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
