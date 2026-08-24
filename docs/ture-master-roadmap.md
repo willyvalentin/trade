@@ -1,10 +1,10 @@
 # Ture Master Roadmap
 
-**ACTION 666EE — Position-version lineage additive migration package.**
+**ACTION 666EF — Position-version lineage isolated staging apply and catalog proof.**
 
-**Document status:** source-only candidate after the exact-main delivery of
-Action 666EC. It turns an authorized aggregate-only production parity check into
-an explicit no-bind decision for the current v1 routine while preserving
+**Document status:** Action 666EF isolated-staging proof after the exact-main
+delivery of Action 666EE. It preserves an explicit no-bind decision for the
+current v1 routine while preserving
 verified GitHub branch protection, the Action 660H manual control, Action 660K
 cost-bounded CI, Action 660M's last verified production release and Action
 666DB's owner-bound position/recommendation version target. The exact Action
@@ -65,18 +65,20 @@ is the next source-only work: it uses authorized read-only parity evidence to
 make the existing v1 routine non-admissible for a concrete port while
 preserving its server-only security boundary.
 
-Action 666EE is the successor source-only work: it supplies reviewed nullable
-recommendation/position lineage-migration bytes and named `NOT VALID`
-new-write checks. It applies no database change, backfills no data, changes no
-grant and does not bind a v2 command port.
+Action 666EE supplied reviewed nullable recommendation/position lineage-
+migration bytes and named `NOT VALID` new-write checks. Action 666EF has now
+applied those exact bytes once to isolated staging, verified their catalog shape
+and proved a rollback-only legacy-v1 fixture continues to create all-null
+lineage tuples. It applies nothing to production, backfills no data, validates
+no check, changes no grant and does not bind a v2 command port.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`9ba3ad61d191488fc411554e2f974513692a8f26`, tree
-`a0a9cf23da8dc99e4008e8b0e5d18b38e8c03fd0`, observed after Action 666EB's
+`7dea60d4dd70a49ca59abf11e6288a4964023520`, tree
+`dcc93976b4bd921299448b064bcc85e9597a59c1`, observed after Action 666EE's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
