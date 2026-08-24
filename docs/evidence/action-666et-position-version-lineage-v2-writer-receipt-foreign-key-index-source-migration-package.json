@@ -1,0 +1,61 @@
+{
+  "action_id": "666ET",
+  "evidence_captured_at": "2026-08-24T23:04:16Z",
+  "predecessor": {
+    "protected_main_commit": "e88aca4e6156d819c4e315791464489820346a49",
+    "exact_main_ci_run": 32785082992,
+    "exact_main_ci_conclusion": "success",
+    "action_666es_staging_catalog_proof_path": "docs/evidence/action-666es-position-version-lineage-v2-writer-staging-apply-catalog-proof.json"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260824230454_position_version_lineage_v2_writer_receipt_foreign_key_indexes.sql",
+    "sha256": "715a30b645e92347349125164c28a5c3288a28789b34865067ae778239ee87ad",
+    "created_with_supabase_migration_new": true,
+    "source_bytes_reviewed_only": true,
+    "private_relation_identifier": "owner_bound_position_command_idempotency_v2",
+    "database_apply_performed": false
+  },
+  "index_contract": {
+    "receipt_relation_required_before_index_creation": true,
+    "recommendation_owner_foreign_key_required": true,
+    "position_owner_foreign_key_required": true,
+    "index_name_conflicts_fail_closed": true,
+    "recommendation_owner_index": {
+      "identifier": "obpciv2_receipt_recommendation_owner_idx",
+      "columns": [
+        "opaque_recommendation_reference",
+        "authenticated_server_owner"
+      ]
+    },
+    "position_owner_index": {
+      "identifier": "obpciv2_receipt_position_owner_idx",
+      "columns": [
+        "server_generated_position_identity",
+        "authenticated_server_owner"
+      ]
+    }
+  },
+  "authority_limits": {
+    "database_connection_opened": false,
+    "database_ddl_or_dml_applied": false,
+    "staging_targeted": false,
+    "production_targeted": false,
+    "row_values_read": false,
+    "row_values_written": false,
+    "writer_invoked": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "route_added": false,
+    "backfill": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "v2_writer_activated": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_receipt_foreign_key_index_source_migration_package",
+    "next_bounded_objective": "position_version_lineage_v2_writer_receipt_foreign_key_index_isolated_staging_apply_and_catalog_proof",
+    "isolated_staging_apply_authorized_by_this_action": false,
+    "production_apply_authorized_by_this_action": false,
+    "runtime_activation_authorized": false
+  }
+}
