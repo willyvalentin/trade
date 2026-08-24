@@ -1,0 +1,50 @@
+{
+  "contract_version": "trade.action666ee.position-version-lineage-additive-migration-package.v1",
+  "action_id": "ACTION_666EE",
+  "predecessor": {
+    "protected_main_commit": "cfb8fd503577cbe9aa5834f75b901a03ba5510e8",
+    "exact_main_ci_run": 32674389880,
+    "exact_main_ci_conclusion": "success",
+    "action_666ed_path": "docs/action-666ed-transactional-recommendation-position-writer-owner-bound-command-port-preflight.md",
+    "action_666ed_sha256": "3cd0d0f4b419828548622f63efbf0a02625636f4dbca76418db57821ec4ce6d2"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260824000000_add_position_version_lineage_columns.sql",
+    "sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0",
+    "kind": "nullable_additive_lineage_schema",
+    "recommendation_columns": [
+      "recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "position_columns": [
+      "position_version",
+      "durable_recommendation_version",
+      "recommendation_identity",
+      "recommendation_normative_digest"
+    ],
+    "named_not_valid_constraints": 9,
+    "dml_statements": false,
+    "runtime_function_added": false,
+    "grant_or_policy_change": false,
+    "physical_not_null_activation": false,
+    "recommendation_id_not_null_activation": false
+  },
+  "delivery": {
+    "source_migration_added": true,
+    "database_operations": false,
+    "staging_apply": false,
+    "production_apply": false,
+    "deterministic_backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_additive_migration_package",
+    "next_bounded_objective": "position_version_lineage_isolated_staging_apply_and_catalog_proof",
+    "existing_v1_command_admissible": false,
+    "v2_command_port_admissible": false,
+    "production_authority_granted": false
+  }
+}

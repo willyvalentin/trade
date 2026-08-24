@@ -1,6 +1,6 @@
 # Ture Master Roadmap
 
-**ACTION 666ED — Transactional recommendation-to-position writer owner-bound command-port preflight.**
+**ACTION 666EE — Position-version lineage additive migration package.**
 
 **Document status:** source-only candidate after the exact-main delivery of
 Action 666EC. It turns an authorized aggregate-only production parity check into
@@ -64,6 +64,11 @@ adapter without activating a route, migration or runtime effect. Action 666ED
 is the next source-only work: it uses authorized read-only parity evidence to
 make the existing v1 routine non-admissible for a concrete port while
 preserving its server-only security boundary.
+
+Action 666EE is the successor source-only work: it supplies reviewed nullable
+recommendation/position lineage-migration bytes and named `NOT VALID`
+new-write checks. It applies no database change, backfills no data, changes no
+grant and does not bind a v2 command port.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
