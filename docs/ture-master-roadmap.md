@@ -1,10 +1,10 @@
 # Ture Master Roadmap
 
-**ACTION 666EF — Position-version lineage isolated staging apply and catalog proof.**
+**ACTION 666EG — Position-version lineage production-apply decision and preflight.**
 
-**Document status:** Action 666EF isolated-staging proof after the exact-main
-delivery of Action 666EE. It preserves an explicit no-bind decision for the
-current v1 routine while preserving
+**Document status:** Action 666EG production decision/preflight after the
+exact-main delivery of Action 666EF. It preserves an explicit no-bind decision
+for the current v1 routine while preserving
 verified GitHub branch protection, the Action 660H manual control, Action 660K
 cost-bounded CI, Action 660M's last verified production release and Action
 666DB's owner-bound position/recommendation version target. The exact Action
@@ -72,13 +72,20 @@ and proved a rollback-only legacy-v1 fixture continues to create all-null
 lineage tuples. It applies nothing to production, backfills no data, validates
 no check, changes no grant and does not bind a v2 command port.
 
+Action 666EG has performed one fresh aggregate-only production preflight of
+those same bytes. It confirms the target migration is absent, all seven target
+columns and nine target checks remain absent, the existing server-only/RLS
+boundaries remain intact and the small affected relation counts are reconciled.
+It deliberately applies no DDL, performs no backfill or validation, and makes
+the exact migration application a separate catalog-proof gate.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
 
 This roadmap reconciles Ture against protected GitHub `main` base
-`7dea60d4dd70a49ca59abf11e6288a4964023520`, tree
-`dcc93976b4bd921299448b064bcc85e9597a59c1`, observed after Action 666EE's
+`dfd377f63b0b47a0ff4e80de0c02ccb4929f1380`, tree
+`079418186eb57ca678ea1ff402ab890d6121eee1`, observed after Action 666EF's
 ordinary delivery. The preserved Action 666DK base was
 `1b1d903142be6413049d12b8078a110fc29dbd12`, tree
 `634a75e7446192af6978fe472d1a76c141068010`, observed after Action 666DJ's
