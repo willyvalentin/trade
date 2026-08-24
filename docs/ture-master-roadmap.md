@@ -79,6 +79,14 @@ boundaries remain intact and the small affected relation counts are reconciled.
 It deliberately applies no DDL, performs no backfill or validation, and makes
 the exact migration application a separate catalog-proof gate.
 
+Action 666EH has now applied that single pinned nullable schema package once
+to production after its exact-main CI gate. Aggregate catalog readback confirms
+the seven nullable columns, nine `NOT VALID` checks, existing deny boundaries
+and all-null legacy rows; a rollback-only v1 fixture preserves the transitional
+all-null tuple. It performs no durable backfill, constraint validation,
+`NOT NULL` activation, generated-type refresh or writer activation. The next
+separate gate is an owner-bound backfill admission preflight.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
