@@ -92,7 +92,13 @@ aggregate-only result preserves the all-null durable tuples and intact
 owner-bound links, but fails closed on control characters prohibited by the
 frozen Action 666DE digest contract. No backfill is admitted. The next gate is
 a provenance reconciliation of that projection blocker, not a silent
-normalization, contract relaxation or write.
+normalization, contract relaxation or write. Action 666EJ completes that
+reconciliation with a separate boolean-only read-only classification: the
+control characters are structurally compatible with preserved legacy narrative
+formatting (TAB, LF or CR), absent from categorical members and absent from the
+non-whitespace control class. Action 666DE v1 remains immutable and no
+backfill is admitted. The next gate is a separately reviewed versioned
+projection-successor contract; it may not infer a v1 relaxation or data write.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
