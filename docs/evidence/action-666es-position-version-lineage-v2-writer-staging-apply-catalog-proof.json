@@ -1,0 +1,73 @@
+{
+  "action_id": "666ES",
+  "evidence_captured_at": "2026-08-24T21:58:38Z",
+  "predecessor": {
+    "protected_main_commit": "a365d8357d3996ec90b885a9bdb013e365fb533c",
+    "exact_main_ci_run": 32777972800,
+    "exact_main_ci_conclusion": "success",
+    "action_666er_source_migration_package_path": "docs/evidence/action-666er-position-version-lineage-projection-contract-v2-writer-storage-routine-source-migration-package.json"
+  },
+  "source_migration": {
+    "path": "supabase/migrations/20260824195409_position_version_lineage_v2_writer_storage_routine_package.sql",
+    "sha256": "c9564854dcb81989afd2ff3de2279cc0309a8366592835b56d842fc736ab9196",
+    "applied_exact_reviewed_source": true,
+    "stored_routine_not_invoked": true
+  },
+  "isolated_staging": {
+    "target_identity_published": false,
+    "target_health_verified": true,
+    "preflight": {
+      "recommendations_table_present": true,
+      "positions_table_present": true,
+      "position_version_history_present": true,
+      "pgcrypto_digest_present": true,
+      "recommendation_v2_lineage_shapes_present": true,
+      "receipt_relation_absent_before_apply": true,
+      "writer_routine_absent_before_apply": true
+    },
+    "remote_migration_registry": {
+      "entry_name": "action_666er_position_version_lineage_v2_writer_storage_routine_package",
+      "apply_succeeded": true
+    },
+    "catalog_proof": {
+      "private_schema_present": true,
+      "receipt_relation_present": true,
+      "receipt_rls_enabled": true,
+      "receipt_columns_match_contract": true,
+      "receipt_primary_key_present": true,
+      "receipt_owner_recommendation_unique_present": true,
+      "recommendation_owner_foreign_key_present": true,
+      "deferred_position_owner_foreign_key_present": true,
+      "receipt_direct_access_revoked": true,
+      "writer_routine_present": true,
+      "writer_security_definer": true,
+      "writer_empty_search_path": true,
+      "writer_execute_is_service_role_only": true
+    },
+    "advisor_classification": {
+      "private_receipt_rls_without_policy_is_intentional_default_deny": true,
+      "receipt_foreign_key_index_remediation_required_before_production": true
+    }
+  },
+  "authority_limits": {
+    "staging_targeted": true,
+    "production_targeted": false,
+    "row_values_read": false,
+    "row_values_written": false,
+    "writer_invoked": false,
+    "backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "route_added": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "v2_writer_activated": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_v2_writer_command_port_source_migration_isolated_staging_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_lineage_v2_writer_receipt_foreign_key_index_source_migration_package",
+    "production_apply_authorized": false,
+    "runtime_activation_authorized": false,
+    "foreign_key_index_remediation_required_before_production": true
+  }
+}
