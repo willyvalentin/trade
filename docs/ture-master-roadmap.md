@@ -139,6 +139,17 @@ grant/RLS change, route or runtime binding is created. The next gate is an
 immutable source-migration package for those exact reserved objects; applying
 it, backfilling and production targeting remain separate gates.
 
+Action 666ER now delivers that immutable source-migration package without
+applying it. Its Supabase-CLI-created source file introduces a non-Data-API
+private schema, the reserved owner-and-digest receipt relation and the
+reserved service-role-only fixed-empty-search-path routine. The routine locks
+and derives the complete v2 lineage tuple, reserves the receipt, creates the
+version-one position and appends matching history in one rollback-safe
+transaction. Client execution and direct receipt-table access are denied; no
+runtime binding, generated-type refresh, staging/production apply, backfill or
+deployment occurs. A separately reviewed isolated-staging apply and catalog
+proof is the next gate.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
