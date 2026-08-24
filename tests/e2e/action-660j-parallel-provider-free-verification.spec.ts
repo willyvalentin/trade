@@ -89,6 +89,7 @@ const foundationTests = [
   "tests/e2e/action-666ed-transactional-recommendation-position-writer-owner-bound-command-port-preflight.spec.ts",
   "tests/e2e/action-666ee-position-version-lineage-additive-migration-package.spec.ts",
   "tests/e2e/action-666ef-position-version-lineage-isolated-staging-apply-and-catalog-proof.spec.ts",
+  "tests/e2e/action-666eg-position-version-lineage-production-apply-decision-and-preflight.spec.ts",
 ];
 
 const intelligenceTests = [

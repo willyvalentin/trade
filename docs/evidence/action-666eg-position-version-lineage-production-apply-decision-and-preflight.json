@@ -1,0 +1,71 @@
+{
+  "contract_version": "trade.action666eg.position-version-lineage-production-apply-decision-and-preflight.v1",
+  "action_id": "ACTION_666EG",
+  "observed_at": "2026-08-24T02:46:00Z",
+  "predecessor": {
+    "protected_main_commit": "dfd377f63b0b47a0ff4e80de0c02ccb4929f1380",
+    "exact_main_ci_run": 32682369515,
+    "exact_main_ci_conclusion": "success",
+    "action_666ef_path": "docs/action-666ef-position-version-lineage-isolated-staging-apply-and-catalog-proof.md",
+    "action_666ee_migration_sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0"
+  },
+  "production_read_only_preflight": {
+    "environment_label": "Trade",
+    "query_path": "docs/sql/action-666eg-position-version-lineage-production-preflight.sql",
+    "query_sha256": "9a2dce63f4969192671bc51bda3644c55ebb95dd7bdfbe3bcc92ccd87a30b237",
+    "transaction_read_only": true,
+    "aggregate_only_results": true,
+    "target_migration_ledger_entry_absent": true,
+    "recommendations_exists": true,
+    "positions_exists": true,
+    "position_version_history_exists": true,
+    "target_lineage_column_count": 0,
+    "target_lineage_constraint_count": 0,
+    "recommendation_count": 1068,
+    "position_count": 8,
+    "positions_without_recommendation_count": 0,
+    "position_version_history_count": 0,
+    "v1_command_present": true,
+    "v1_security_definer": true,
+    "v1_fixed_search_path": true,
+    "v1_anon_execute_denied": true,
+    "v1_authenticated_execute_denied": true,
+    "v1_service_role_execute_granted": true,
+    "recommendations_rls_enabled": true,
+    "positions_rls_enabled": true,
+    "anon_and_authenticated_select_denied": true,
+    "row_contents_or_identifiers_returned": false
+  },
+  "exact_next_apply_scope": {
+    "migration_path": "supabase/migrations/20260824000000_add_position_version_lineage_columns.sql",
+    "migration_sha256": "66fa75933f341fb672b223e2699e558c33e8b9c934e9765ba1ef70e15fbc77a0",
+    "nullable_columns_added": 7,
+    "not_valid_constraints_added": 9,
+    "dml_statements": false,
+    "grant_or_policy_change": false,
+    "runtime_function_added": false,
+    "physical_not_null_activation": false,
+    "backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "production_deployment": false
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": false,
+    "production_migration_apply_performed": false,
+    "backfill_performed": false,
+    "not_valid_constraints_validated": false,
+    "physical_not_null_activation": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "provider_or_broker_contact_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_production_apply_decision_and_preflight",
+    "next_bounded_objective": "position_version_lineage_authorized_production_apply_and_catalog_proof",
+    "exact_additive_migration_eligible_for_next_independent_gate": true,
+    "production_migration_apply_performed_by_this_action": false
+  }
+}
