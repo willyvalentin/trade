@@ -97,8 +97,13 @@ reconciliation with a separate boolean-only read-only classification: the
 control characters are structurally compatible with preserved legacy narrative
 formatting (TAB, LF or CR), absent from categorical members and absent from the
 non-whitespace control class. Action 666DE v1 remains immutable and no
-backfill is admitted. The next gate is a separately reviewed versioned
-projection-successor contract; it may not infer a v1 relaxation or data write.
+backfill is admitted. Action 666EK now closes the separately reviewed v2
+projection-successor contract: it preserves exact NFC narrative whitespace
+with canonical JSON escapes while keeping categorical members control-free.
+V1 is not relaxed or upgraded in place, and a later durable marker on both
+lineage tuples is required before any backfill design. The next gate is that
+additive projection-contract storage design; Action 666EK itself authorizes no
+data, schema, runtime or deployment change.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

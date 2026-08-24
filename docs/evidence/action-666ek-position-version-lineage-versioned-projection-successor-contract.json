@@ -1,0 +1,109 @@
+{
+  "contract_version": "trade.action666ek.position-version-lineage-versioned-projection-successor-contract.v1",
+  "action_id": "ACTION_666EK",
+  "evidence_captured_at": "2026-08-24T11:02:17Z",
+  "predecessor": {
+    "protected_main_commit": "0b884a0d533698d7029e393cd45664a1bd3bd451",
+    "exact_main_ci_run": 32716854248,
+    "exact_main_ci_conclusion": "success",
+    "action_666de_contract_path": "docs/evidence/action-666de-deterministic-recommendation-lineage-backfill-contract.json",
+    "action_666ej_reconciliation_path": "docs/evidence/action-666ej-position-version-lineage-control-character-projection-provenance-reconciliation.json"
+  },
+  "v1_immutability": {
+    "contract_version": "legacy_recommendation_normative_projection_v1",
+    "relaxed": false,
+    "in_place_upgrade_allowed": false
+  },
+  "v2_normative_digest": {
+    "contract_version": "legacy_recommendation_normative_projection_v2",
+    "domain": "trade.legacy_recommendation_normative_digest.v2",
+    "algorithm": "sha256",
+    "digest_format": "64_lowercase_hexadecimal_characters",
+    "frame_keys": [
+      "contract_version",
+      "domain",
+      "projection"
+    ],
+    "projection_keys": [
+      "archived",
+      "company_name",
+      "confidence",
+      "created_at",
+      "direction",
+      "entry_high",
+      "entry_low",
+      "invalidation",
+      "owner_user_id",
+      "reason_to_avoid",
+      "recommendation_id",
+      "risk_reward",
+      "session_type",
+      "setup_type",
+      "status",
+      "stop_loss",
+      "target_1",
+      "target_2",
+      "thesis",
+      "ticker",
+      "timeframe"
+    ],
+    "utf8_without_bom_required": true,
+    "raw_frame_must_equal_canonical_serialization": true,
+    "nullable_values_explicit_null": true,
+    "lossless_decimal_contract_reused_from_action_666de": true,
+    "identity_contract_reused_from_action_666de": true
+  },
+  "text_policy": {
+    "nfc_required": true,
+    "categorical_control_characters_allowed": false,
+    "narrative_members": [
+      "invalidation",
+      "reason_to_avoid",
+      "thesis"
+    ],
+    "allowed_narrative_control_code_points": [
+      "U+0009",
+      "U+000A",
+      "U+000D"
+    ],
+    "canonical_json_escape_sequences": [
+      "\\t",
+      "\\n",
+      "\\r"
+    ],
+    "literal_control_byte_allowed": false,
+    "unicode_escape_alternative_allowed": false,
+    "trim_or_normalization_allowed": false,
+    "rejected_disposition": "blocked_non_whitespace_narrative_control_character"
+  },
+  "future_durable_binding": {
+    "execution_authorized": false,
+    "projection_contract_marker_required": true,
+    "marker_required_on_recommendation_and_position": true,
+    "initial_marker_value": "legacy_recommendation_normative_projection_v2",
+    "mixed_contract_retry_allowed": false,
+    "v1_to_v2_in_place_upgrade_allowed": false,
+    "owner_matching_copy_required": true,
+    "next_bounded_objective": "position_version_lineage_projection_contract_storage_design"
+  },
+  "authority_limits": {
+    "database_query_performed": false,
+    "database_mutation_performed": false,
+    "schema_mutation_performed": false,
+    "durable_backfill_performed": false,
+    "constraint_validation_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "grant_or_policy_change_performed": false,
+    "production_deployment_performed": false,
+    "provider_or_broker_contact_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_versioned_projection_successor_contract",
+    "database_write_authorized": false,
+    "migration_authorized": false,
+    "staging_apply_authorized": false,
+    "production_apply_authorized": false,
+    "v2_writer_activation_authorized": false
+  }
+}
