@@ -236,8 +236,13 @@ transport, reading credentials or binding an adapter. Action 666FD now closes
 that separately reviewed private transport implementation preflight: the
 current manifest has no direct PostgreSQL protocol dependency and no selected
 server-only private transport or contained credential source. Transport
-implementation remains fail-closed. The next gate is a separately reviewed
-dependency-and-credential source design.
+implementation remains fail-closed. Action 666FE now freezes the next
+source-only design: a future exact `pg@8.23.0` server-only direct PostgreSQL
+driver, `@types/pg@8.23.1` companion, dedicated non-public connection-secret
+name and fixed private V2 routine statement. Neither package or secret exists
+in the application boundary yet, so connection, query, decoder and adapter
+remain fail-closed. The next gate is isolated dependency-and-lockfile source
+installation only.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
