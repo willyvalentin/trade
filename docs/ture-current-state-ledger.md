@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666FH — V2 writer private non-Data-API transport continuation scope and evidence-admission review.**
+
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FG's green
+exact-main delivery. Action 666FH establishes the ordered, separately reviewed
+evidence gates for any future secret-manager, least-privileged role, transport,
+staging-connection and writer-admission work. It grants none of them: no
+secret-manager integration or access, credential provisioning/read, transport,
+connection, query, writer invocation, route/UI binding, deployment or
+provider/broker activity occurred.
+
 **ACTION 666FG — V2 writer private non-Data-API transport credential-provisioning and connection-admission preflight.**
 
 **Evidence timestamp:** 2026-08-25. This receipt follows Action 666FF's green
