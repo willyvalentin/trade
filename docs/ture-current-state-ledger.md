@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666FI — V2 writer protected server-secret-manager capability and named-secret provisioning admission review.**
+
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FH's green
+exact-main delivery. The repository-visible deployment configuration declares a
+functions directory but no protected secret-manager identity, server-only
+access scope, managed V2 secret or least-privileged database role. Capability
+and named-secret provisioning remain fail-closed: no secret-manager metadata or
+value was read, no secret was provisioned, and no transport, connection,
+routine, writer, route/UI, deployment or provider/broker activity occurred.
+
 **ACTION 666FH — V2 writer private non-Data-API transport continuation scope and evidence-admission review.**
 
 **Evidence timestamp:** 2026-08-25. This receipt follows Action 666FG's green
