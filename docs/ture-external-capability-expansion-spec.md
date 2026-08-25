@@ -210,7 +210,7 @@ All non-deterministic I/O belongs in Activities, including:
 
 - market-data calls;
 - Supabase calls;
-- Benzinga/SEC calls;
+- WhyMove discovery and primary-source calls;
 - OpenAI Agents SDK runs;
 - object-storage I/O;
 - external notifications.
@@ -304,128 +304,72 @@ Production promotion should occur before Ture depends heavily on long-running au
 
 ---
 
-# 4. EXT-02 — Catalyst Intelligence Layer
+# 4. EXT-02 — Catalyst Intelligence / WhyMove Engine
 
-## 4.1 Objective
+## 4.1 Decision
 
-Allow Ture to distinguish technical movement from event-driven movement and understand *why* a stock is moving.
+Ture will build its own **WhyMove Engine** to assess whether, and on what evidence, a ticker is moving. Benzinga is removed as a planned dependency: it is not a future commercial candidate, premium fallback, trial target, adapter target or activation path.
 
-This directly extends the product's existing News/Catalyst Awareness concept.
-
-## 4.2 Source architecture
-
-```text
-commercial fast source
-(Benzinga candidate)
-        ↓
-fast structured catalyst context
-
-SEC EDGAR
-        ↓
-primary-source filing evidence
-
+~~~text
+Massive News + Finnhub Company News       ← discovery/evidence leads
+SEC EDGAR + issuer IR/press releases      ← filing and issuer primary evidence
+FDA + Federal Reserve/BLS/BEA             ← regulatory and macro primary evidence
+                         ↓
 Ture deterministic normalization
-        ↓
-CatalystSnapshot
-        ↓
-scanner / ranking / Agent Intelligence
-```
+                         ↓
+CatalystSnapshot / WhyMove assessment
+                         ↓
+shadow, ablation and separate promotion review
+~~~
 
-## 4.3 Candidate commercial data
+Massive and Finnhub accounts already exist. Their existence does not authorize a credential read, API call, runtime provider activation, persistence or spend.
 
-Benzinga is currently the preferred commercial candidate because relevant datasets include:
+## 4.2 Evidence roles
 
-- Why Is It Moving;
-- Stock Market News;
-- Press Releases;
-- Analyst Ratings;
-- Earnings;
-- Corporate Guidance;
-- FDA Calendar;
-- Economic Calendar;
-- other structured event datasets when useful.
+- Massive News and Finnhub Company News are planned discovery and ticker-linked evidence leads, not automatic canonical truth.
+- SEC EDGAR and issuer IR/press releases are planned primary evidence for filing and issuer claims where relevant.
+- FDA and official Federal Reserve, BLS and BEA publications are planned primary evidence for regulatory or macro claims where relevant.
+- Ture normalization is source-aware: it de-duplicates, preserves timestamps, classifies, and exposes conflict/missing states.
 
-## 4.4 Primary-source verification
+No source is exclusive truth. A relevant primary source is preferred when available, but unavailable corroboration is an explicit uncertainty state; it does not refute a discovery lead or imply a technical-only move.
 
-SEC EDGAR should be integrated independently for filing-related evidence.
+## 4.3 Canonical catalyst contract
 
-SEC data is a public/free source and should be used before paying for redundant filing access where possible.
+The existing CatalystSnapshot direction remains. The future contract must also preserve source_class, external_item_id, source_published_at, observed_at, received_at, primary_source_available, primary_source_verified, corroboration_state, conflicting_evidence_state, available_at_snapshot_time, why_move_assessment, missing_reason and anti_leakage_status.
 
-## 4.5 Canonical catalyst contract
+why_move_assessment must distinguish at least supported, competing_evidence, no_verified_catalyst and evidence_unavailable. technical_only_move cannot be inferred only because a discovery source returns no result; it requires a separately approved coverage rule.
 
-Suggested fields:
+An LLM/agent may summarize or classify supplied evidence. It may not invent a catalyst, citation, timestamp or verification result, or turn unsupported web/news text into canonical market truth.
 
-```text
-catalyst_detected
-catalyst_type
-catalyst_timestamp
-source
-primary_source_available
-primary_source_verified
-catalyst_summary
-catalyst_confidence
-catalyst_risk
-expected_time_sensitivity
-news_driven_move
-technical_only_move
-```
+## 4.4 Cost and activation gate
 
-## 4.6 Authority boundary
+~~~text
+new_paid_subscription_authority:false
+Benzinga_trial_purchase_or_renewal_authority:false
+Massive_Finnhub_runtime_activation_authority:false
+primary_source_runtime_call_authority:false
+incremental_paid_provider_commitment:$0
+raw_or_derived_response_retention_authority:false
+~~~
 
-An LLM/agent may summarize or classify supplied evidence.
+No new paid subscription, trial, credit activation, provider configuration, environment variable, route, worker or scheduled collector is authorized. Any later bounded proposal must record the exact endpoint and plan semantics, rate/cost ceiling, permitted retention and derived-data rights, adapter contract, fixtures, rollback and success/removal criterion.
 
-It may not invent a catalyst or turn unsupported web/news text into canonical market truth.
+## 4.5 CAT roadmap sequence
 
-## 4.7 Development path and cost gate
+- CAT-00 — this source strategy, cost decision and normalization governance.
+- CAT-01 — source-aware contract, taxonomy and local/static fixtures.
+- CAT-02 — local normalizer and technical-baseline versus evidence ablation harness; no provider call or persistence.
+- CAT-03 — separately approved minimal read-only discovery/primary-source shadow evaluation.
+- CAT-04 — outcome/calibration ablation across technical baseline, discovery-only, primary-only and combined normalized evidence.
+- CAT-05 — separate advisory promotion review only if value is material.
 
-Start with:
+Shadow evidence may not alter scanner/ranking, recommendations, risk, execution eligibility or agent authority. Provider failure, timeout, absent coverage or conflicting evidence must not block the canonical scan path.
 
-- SEC EDGAR: `$0`;
-- Benzinga public samples/documentation where available: `$0`;
-- Benzinga commercial terms: information gathering only.
+## 4.6 Timing
 
-Benzinga offers a free-trial request path, but the trial should not be started until Ture has a working adapter contract and eval harness.
-
-Public pricing is not assumed. Treat Benzinga as `QUOTE_ONLY` until terms are received.
-
-## 4.8 Manual vendor-discovery requirement
-
-Before paid or trial activation, collect from Benzinga:
-
-- trial length;
-- trial datasets/endpoints included;
-- whether Why Is It Moving is included;
-- real-time news/press-release coverage;
-- analyst ratings, earnings, guidance, FDA and economic-calendar availability;
-- rate limits and streaming options;
-- latency/SLAs;
-- historical access included in trial/paid plan;
-- single-user/private internal development terms;
-- future multi-user/commercial redistribution terms;
-- monthly vs annual minimum commitment;
-- setup/onboarding fees;
-- cancellation terms;
-- startup/early-stage discounts;
-- whether trial activation can be deferred until integration is ready.
-
-## 4.9 Roadmap sequence
-
-- `CAT-00` — Catalyst taxonomy and normalized contract.
-- `CAT-01` — SEC primary-source adapter.
-- `CAT-02` — Benzinga sample/fixture adapter without paid subscription.
-- `CAT-03` — Vendor quote/trial readiness review.
-- `CAT-04` — Just-in-time Benzinga free trial.
-- `CAT-05` — Catalyst outcome dataset and ablation.
-- `CAT-06` — Controlled recommendation/ranking influence.
-
-## 4.10 Timing
-
-Integrate SEC and contract work relatively early.
-
-Activate a commercial real-time feed only when Ture is ready to measure whether catalyst context changes recommendation quality.
+Plan and test the contract now. Do not activate a runtime source until a separate bounded gate has approved it. There is no planned premium-provider re-evaluation path for Benzinga.
 
 ---
-
 # 5. EXT-03 — Precision Market Data Layer / SIP
 
 ## 5.1 Objective
@@ -933,7 +877,6 @@ Target incremental vendor cost:
 Only when eval harnesses are ready:
 
 - Temporal Cloud free credits;
-- Benzinga free trial;
 - Databento $125 historical credits;
 - Railway or equivalent worker-host trial if remote worker testing is needed.
 
@@ -952,7 +895,7 @@ Temporal Cloud Essentials      from $100/month
 Alpaca Algo Trader Plus        $99/month
 Sentry                         $0 initially; Team $26 if needed
 R2                             usually $0 early; usage-based later
-Benzinga                       quote-dependent
+WhyMove evidence sources         $0 incremental paid commitment
 ```
 
 These must be activated only at their explicit roadmap gates.
@@ -981,7 +924,7 @@ This table is planning evidence only and must be rechecked at activation time.
 | Temporal Cloud | activate credits only when cloud eval-ready | $0 during available credits | Essentials from $100/mo |
 | Temporal startup program | apply only if eligible | $0 | $6,000 credits/1 year if accepted |
 | SEC EDGAR | public API/data | $0 | $0 |
-| Benzinga | samples + sales discovery; trial just-in-time | $0 before paid activation | quote-dependent |
+| Massive + Finnhub | existing accounts; not activated | $0 incremental paid commitment | no paid activation planned |
 | Alpaca Basic | free adapter/prototype | $0 | $0 |
 | Alpaca full SIP/OPRA | activate at execution-shadow gate | $0 before gate | $99/mo |
 | Breadth derived locally | existing data | ~$0 | ~$0 incremental |
@@ -999,20 +942,11 @@ This table is planning evidence only and must be rechecked at activation time.
 
 # 15. Manual procurement/discovery actions
 
-## Benzinga — do now, but do not activate trial
+## WhyMove sources — keep inactive
 
-The operator should contact Benzinga now solely to collect commercial and trial terms.
+Massive and Finnhub accounts already exist. Do not activate a provider trial, paid plan or runtime integration. Before CAT-03, complete CAT-01/02 source-aware fixtures and ablation harnesses, then seek a separate bounded approval that records endpoint/plan semantics, retention/derived-data rights, rate/cost ceiling, success metric and rollback.
 
-Preferred request posture:
-
-- private/internal single-user development today;
-- possible future commercial/multi-user product later;
-- US equities day-trading use case;
-- interest in Why Is It Moving, real-time news/press releases, analyst ratings, earnings, corporate guidance, FDA and economic calendar;
-- request a quote and free-trial details;
-- explicitly ask whether the trial can be started later when integration is ready.
-
-Do not sign an annual contract or begin a paid subscription as part of vendor discovery.
+Do not treat vendor account existence as source, licensing, persistence or live-influence authority.
 
 ## Temporal — do not subscribe yet
 
