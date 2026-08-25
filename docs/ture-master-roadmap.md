@@ -268,6 +268,14 @@ read, no credential was provisioned, and no deployment, transport, connection,
 writer or route/UI authority is granted. A separate value-free identity and
 access-scope evidence capture is the next bounded gate.
 
+Action 666FJ completes that limited capture. Repository configuration identifies
+Netlify only as a deployment-platform hint; it provides no managed-secret or
+access-policy evidence. A value-free status probe was unauthenticated, so it
+observed no project, secret-manager, secret-scope or policy metadata. No login,
+environment enumeration, secret access, provisioning or runtime operation is
+admitted. A separately reviewed deployment-metadata authentication and
+value-free secret-scope-read admission remains the only next step.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
