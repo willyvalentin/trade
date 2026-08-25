@@ -276,6 +276,14 @@ environment enumeration, secret access, provisioning or runtime operation is
 admitted. A separately reviewed deployment-metadata authentication and
 value-free secret-scope-read admission remains the only next step.
 
+Action 666FK closes that admission review without opening it. Interactive login
+and CI-token use are distinct credential operations, and general environment
+listing or export cannot establish a one-secret, redaction-safe receipt. No
+deployment metadata, secret-manager metadata or value was read. The next
+separate gate is a design-only authority and audit-safe metadata-channel
+contract; all credential, transport, connection and writer authority remains
+fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
