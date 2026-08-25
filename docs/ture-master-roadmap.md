@@ -251,6 +251,14 @@ environment or existing Supabase client material. It grants no provisioning,
 read, connection or implementation authority; any runtime action needs a new
 separately reviewed roadmap action.
 
+Action 666FH now performs that separate static review. It records the ordered,
+independently reviewable evidence gates needed before any runtime capability
+could be considered: protected secret-manager capability, named-secret and
+least-privileged-role admission, value-free post-provision provenance,
+transport-source review, staging connection preflight, and finally writer or
+route/UI admission. Every gate remains closed; no secret, transport,
+connection, query, writer invocation or runtime wiring is added.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

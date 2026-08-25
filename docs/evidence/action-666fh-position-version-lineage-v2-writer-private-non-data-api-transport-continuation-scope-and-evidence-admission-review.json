@@ -1,0 +1,50 @@
+{
+  "contract_version": "trade.action666fh.position-version-lineage-v2-writer-private-non-data-api-transport-continuation-scope-and-evidence-admission-review.v1",
+  "action_id": "ACTION_666FH",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "b98ff6138c0e05a0420e91238160d09530c21f68",
+    "exact_main_ci_run": 32874783136,
+    "exact_main_ci_conclusion": "success",
+    "action_666fg_evidence_path": "docs/evidence/action-666fg-position-version-lineage-v2-writer-private-non-data-api-transport-credential-provisioning-and-connection-admission-preflight.json"
+  },
+  "current_source_boundary": {
+    "selected_runtime_driver": "pg@8.23.0",
+    "selected_type_companion": "@types/pg@8.23.1",
+    "non_public_connection_secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL",
+    "protected_secret_manager_integrated": false,
+    "credential_provisioned_or_read": false,
+    "server_only_transport_module_present": false,
+    "database_connection_opened": false,
+    "database_query_or_mutation": false,
+    "writer_invoked": false
+  },
+  "ordered_evidence_gates": [
+    "protected_server_secret_manager_capability_and_deployment_scope_review",
+    "named_secret_provisioning_and_least_privileged_role_admission_review",
+    "post_provisioning_value_free_provenance_attestation",
+    "private_transport_source_contract_and_fake_only_test_seam_review",
+    "staging_only_connection_admission_preflight",
+    "writer_adapter_and_route_ui_admission_review"
+  ],
+  "authority_limits": {
+    "secret_manager_access_granted": false,
+    "credential_provisioning_admitted": false,
+    "credential_read_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "database_query_or_mutation_admitted": false,
+    "writer_invocation_admitted": false,
+    "runtime_wiring_admitted": false,
+    "route_or_ui_wiring_admitted": false,
+    "provider_or_broker_contact_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_private_non_data_api_transport_continuation_scope_and_evidence_admission_review",
+    "continuation_sequence_established": true,
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_server_secret_manager_capability_and_named_secret_provisioning_admission_review",
+    "reason": "a source-only secret name and locked driver dependency do not establish protected capability, secret provenance, least privilege, or connection safety"
+  }
+}
