@@ -115,6 +115,7 @@ const foundationTests = [
   "tests/e2e/action-666fd-position-version-lineage-v2-writer-private-non-data-api-transport-implementation-preflight.spec.ts",
   "tests/e2e/action-666fe-position-version-lineage-v2-writer-private-non-data-api-transport-dependency-and-credential-design.spec.ts",
   "tests/e2e/action-666ff-position-version-lineage-v2-writer-private-non-data-api-transport-dependency-lockfile-source-installation.spec.ts",
+  "tests/e2e/action-666fg-position-version-lineage-v2-writer-private-non-data-api-transport-credential-provisioning-and-connection-admission-preflight.spec.ts",
 ];
 
 const intelligenceTests = [

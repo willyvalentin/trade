@@ -1,12 +1,13 @@
 # Ture Current-State Ledger
 
-**ACTION 666FF — V2 writer private non-Data-API transport dependency lockfile source installation.**
+**ACTION 666FG — V2 writer private non-Data-API transport credential-provisioning and connection-admission preflight.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FE's green
-exact-main delivery. Action 666FF applies the already selected exact source
-entries `pg@8.23.0` and `@types/pg@8.23.1` to the manifest and lockfile only.
-The V2 transport remains fail-closed: no configuration read or secret
-provisioning, connection, client, digest builder, decoder or adapter is
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FF's green
+exact-main delivery. Action 666FG records the fail-closed preflight for the
+already selected V2 connection-secret name: any future value must originate in
+a protected server-secret manager, not source control, a public environment or
+existing Supabase client material. No secret is provisioned or read; no
+transport, client, connection, digest builder, decoder or adapter is
 implemented. No port, route/UI binding, writer invocation, application row
 read/write, deployment or provider/broker activity occurred.
 The last verified production release remains the earlier PR #125 commit; no
@@ -27,8 +28,10 @@ public generated-type provenance, Action 666FB records the separate fail-closed
 private command-port admission preflight, Action 666FC freezes the V2 private
 non-Data-API command-port source contract, Action 666FD records the separate
 transport implementation preflight, Action 666FE freezes the distinct
-dependency-and-secret source design, and Action 666FF applies only its exact
-dependency-and-lockfile source entries.
+dependency-and-secret source design, Action 666FF applies only its exact
+dependency-and-lockfile source entries, and Action 666FG closes the separate
+credential-provenance and connection-admission preflight without granting
+runtime authority.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
