@@ -202,6 +202,15 @@ backfill, validation, type refresh, writer invocation, runtime wiring or
 deployment occurred. The next gate repeats the separate writer storage/routine
 production preflight now that the marker dependency is proven.
 
+Action 666EY closes that repeated aggregate-only writer-package preflight. The
+marker prerequisite is now present with its exact nullable/default-free shape;
+all base lineage/history, digest and client-deny prerequisites remain intact;
+and the private receipt relation, routine and two indexes are still absent.
+Both reviewed writer source migrations remain absent from the production
+migration registry. The ordered source package is eligible only for its own
+later production application and catalog-proof gate. No DDL/DML, writer call,
+row access, backfill, type refresh, runtime wiring or deployment occurred.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
