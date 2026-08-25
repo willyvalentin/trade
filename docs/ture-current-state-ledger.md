@@ -1,15 +1,14 @@
 # Ture Current-State Ledger
 
-**ACTION 666FC — V2 writer private non-Data-API command-port source contract.**
+**ACTION 666FD — V2 writer private non-Data-API transport implementation preflight.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FB's green
-exact-main delivery. Action 666FC freezes only the V2 private command-port
-source contract: the authenticated-owner, opaque-recommendation and digest
-parameter order; canonical digest projection; and exact committed-result
-mapping. It selects no transport and implements no credential containment,
-digest builder, decoder or adapter. No port, route/UI binding, writer
-invocation, application row read/write, deployment or provider/broker activity
-occurred.
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FC's green
+exact-main delivery. Action 666FD records that no direct PostgreSQL protocol
+dependency, selected server-only private transport or contained credential
+source exists in the reviewed source boundary. The V2 transport remains
+fail-closed: no connection, client, digest builder, decoder or adapter is
+implemented. No port, route/UI binding, writer invocation, application row
+read/write, deployment or provider/broker activity occurred.
 The last verified production release remains the earlier PR #125 commit; no
 production deployment occurred. Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
@@ -25,8 +24,9 @@ one authorized production application with aggregate catalog proof, Action 666EY
 established clean writer-package application readiness, Action 666EZ
 applied that ordered package with aggregate catalog proof, Action 666FA recorded
 public generated-type provenance, Action 666FB records the separate fail-closed
-private command-port admission preflight, and Action 666FC freezes the V2
-private non-Data-API command-port source contract.
+private command-port admission preflight, Action 666FC freezes the V2 private
+non-Data-API command-port source contract, and Action 666FD records the
+separate transport implementation preflight.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

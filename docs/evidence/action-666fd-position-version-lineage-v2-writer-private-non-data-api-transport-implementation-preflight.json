@@ -1,0 +1,48 @@
+{
+  "contract_version": "trade.action666fd.position-version-lineage-v2-writer-private-non-data-api-transport-implementation-preflight.v1",
+  "action_id": "ACTION_666FD",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "1a26957c8c19827d72b63e21cc7e95cdf0dce0b4",
+    "exact_main_ci_run": 32846406114,
+    "exact_main_ci_conclusion": "success",
+    "action_666fc_evidence_path": "docs/evidence/action-666fc-position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.json"
+  },
+  "static_repository_observation": {
+    "scope": "locked_package_manifest_and_source_import_boundary_only",
+    "private_schema_is_non_data_api": true,
+    "existing_server_supabase_client_present": true,
+    "existing_server_supabase_client_selected_for_private_transport": false,
+    "direct_postgresql_protocol_dependencies": [],
+    "private_non_data_api_transport_module_present": false,
+    "configuration_or_credential_read": false,
+    "database_connection_opened": false
+  },
+  "required_implementation_inputs": {
+    "server_only_transport_module_boundary": false,
+    "locked_direct_postgresql_protocol_dependency": false,
+    "private_schema_non_data_api_call_capability": false,
+    "dedicated_unexported_server_credential_containment": false,
+    "fixed_parameter_binding_without_sql_identifier_interpolation": false,
+    "action_666fc_exact_v2_parameter_digest_and_result_contract": true,
+    "strict_committed_result_decoder": false,
+    "separate_v2_adapter": false
+  },
+  "authority_limits": {
+    "dependency_added": false,
+    "credential_provisioned_or_read": false,
+    "database_query_or_mutation": false,
+    "writer_invoked": false,
+    "runtime_wiring": false,
+    "route_or_ui_wiring": false,
+    "provider_or_broker_contact": false,
+    "production_deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_private_non_data_api_transport_implementation_preflight",
+    "transport_implementation_admitted": false,
+    "reason": "no_locked_direct_postgresql_dependency_or_reviewed_server_credential_containment_design_exists",
+    "next_bounded_objective": "position_version_lineage_v2_writer_private_non_data_api_transport_dependency_and_credential_design",
+    "runtime_activation_authorized": false
+  }
+}
