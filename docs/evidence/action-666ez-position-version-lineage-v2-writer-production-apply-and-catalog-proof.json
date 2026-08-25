@@ -1,0 +1,86 @@
+{
+  "contract_version": "trade.action666ez.position-version-lineage-v2-writer-authorized-production-apply-and-catalog-proof.v1",
+  "action_id": "ACTION_666EZ",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "bcda2dc10fd16dc75d1a96870213349306da5b83",
+    "exact_main_ci_run": 32816847379,
+    "exact_main_ci_conclusion": "success",
+    "action_666ey_evidence_path": "docs/evidence/action-666ey-position-version-lineage-v2-writer-production-apply-decision-and-preflight.json"
+  },
+  "reviewed_source_migrations": {
+    "writer_storage_routine": {
+      "path": "supabase/migrations/20260824195409_position_version_lineage_v2_writer_storage_routine_package.sql",
+      "sha256": "c9564854dcb81989afd2ff3de2279cc0309a8366592835b56d842fc736ab9196",
+      "preflight_registry_entry_absent": true,
+      "migration_apply_succeeded": true,
+      "postapply_registry_entry_present": true
+    },
+    "receipt_foreign_key_indexes": {
+      "path": "supabase/migrations/20260824230454_position_version_lineage_v2_writer_receipt_foreign_key_indexes.sql",
+      "sha256": "715a30b645e92347349125164c28a5c3288a28789b34865067ae778239ee87ad",
+      "preflight_registry_entry_absent": true,
+      "migration_apply_succeeded": true,
+      "postapply_registry_entry_present": true
+    }
+  },
+  "production_proofs": {
+    "preflight": {
+      "transaction_read_only": true,
+      "aggregate_only_results": true,
+      "public_prerequisite_relations_present": true,
+      "pgcrypto_digest_dependency_present": true,
+      "projection_markers_nullable_text_without_defaults_exact": true,
+      "receipt_relation_absent": true,
+      "writer_routine_absent": true,
+      "receipt_foreign_key_indexes_absent": true,
+      "parent_rls_and_client_select_denial_intact": true
+    },
+    "postflight": {
+      "query_path": "docs/sql/action-666ez-v2-writer-production-apply-and-catalog-proof.sql",
+      "query_sha256": "1bd629f417bcf18113bd989a4149177ceb976cda24ecbf8a2e45bdac5a1fc1b2",
+      "transaction_read_only": true,
+      "aggregate_only_results": true,
+      "private_schema_exists": true,
+      "service_role_private_usage_only": true,
+      "receipt_relation_exact_columns": true,
+      "receipt_rls_without_policies": true,
+      "receipt_client_privileges_denied": true,
+      "receipt_constraint_shape_and_validation": true,
+      "foreign_keys_target_expected_parents": true,
+      "position_owner_fk_deferred": true,
+      "receipt_foreign_key_indexes_valid": true,
+      "writer_routine_hardened": true,
+      "writer_routine_execute_restricted": true,
+      "parent_rls_and_client_select_denial_intact": true
+    },
+    "advisor_review_performed_after_ddl": true,
+    "advisor_results_authorize_no_additional_change": true
+  },
+  "privacy": {
+    "row_contents_returned": false,
+    "row_identifiers_returned": false,
+    "owner_identifiers_returned": false,
+    "connection_identifiers_returned": false,
+    "credentials_embedded": false
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": true,
+    "production_migration_apply_performed": true,
+    "writer_invoked": false,
+    "backfill_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "reviewed_private_grant_or_rls_boundary_applied": true,
+    "unreviewed_grant_or_rls_change_performed": false,
+    "provider_or_broker_contact_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_storage_and_foreign_key_index_authorized_production_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_lineage_v2_writer_generated_types_provenance_refresh_and_runtime_binding_decision",
+    "production_migration_authority_consumed_for_exact_sources_only": true,
+    "writer_runtime_activation_authorized": false
+  }
+}

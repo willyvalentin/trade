@@ -211,6 +211,15 @@ migration registry. The ordered source package is eligible only for its own
 later production application and catalog-proof gate. No DDL/DML, writer call,
 row access, backfill, type refresh, runtime wiring or deployment occurred.
 
+Action 666EZ now applies those two reviewed writer source migrations once to
+production in the required storage/routine-then-index order after a fresh
+aggregate-only preflight. The post-apply catalog proves the private schema
+boundary, receipt relation, RLS and client denial, owner-bound foreign keys,
+valid foreign-key indexes and fixed-empty-search-path service-role-only writer
+without invoking it or reading/writing an application row. The next separate
+gate is a generated-types provenance refresh and runtime-binding decision;
+writer invocation, route binding and deployment remain closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
