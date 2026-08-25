@@ -414,8 +414,8 @@ because it appears in the roadmap.
 The long-term roadmap shall include:
 
 - `TEMP-*` — Temporal durable workflow orchestration;
-- `CAT-*` — Catalyst Intelligence using free primary sources plus a commercial
-  fast-news/catalyst candidate such as Benzinga;
+- `CAT-*` — Catalyst Intelligence / WhyMove Engine using Massive and Finnhub
+  discovery/evidence leads plus official primary sources; Benzinga excluded;
 - `SIP-*` — precision SIP quote/liquidity data for hot/execution candidates;
 - `BREADTH-*` — Market Breadth / Regime Intelligence V2;
 - `DATA-*` — Parquet research data lake with DuckDB/Polars and optional R2;
@@ -440,9 +440,12 @@ activation is later and separately gated.
 
 ### Data-source placement
 
-Catalyst Intelligence should begin with free SEC primary-source integration and
-vendor samples. Commercial Benzinga evaluation is trial/quote-gated and may not
-start a paid plan until the adapter and outcome comparison are ready.
+Catalyst Intelligence is a Ture-owned WhyMove Engine. It begins with Massive
+and Finnhub discovery/evidence leads plus SEC EDGAR, issuer IR/press releases,
+FDA and official macro primary sources. Existing Massive/Finnhub accounts do
+not authorize runtime activation, and CAT-00 has a $0 incremental paid-provider
+commitment. The entire stack remains shadow/ablation-gated; Benzinga is not a
+planned premium dependency, trial, fallback or adapter.
 
 Precision SIP development begins on a free data tier; a paid complete-US-market
 feed is activated only when execution-shadow work can measure spread/liquidity
@@ -450,6 +453,22 @@ value.
 
 Expensive live Level 2/3 data remains explicitly late and requires historical
 or shadow evidence before procurement.
+
+### CAT-00 decision and merge order
+
+CAT-00 is a documentation-only Catalyst Intelligence amendment. It preserves the Agent Intelligence/Ture Core authority boundary and grants no provider activation, credential access, route, worker, scheduler, database write, recommendation/ranking influence, risk influence, broker authority or deployment authority.
+
+~~~text
+PR #121 (current Milestone B roadmap candidate)
+        ↓
+PR #122 / AI-00 (Agent Intelligence)
+        ↓
+PR #123 / EXT-00 (External Capability Expansion)
+        ↓
+CAT-00 (WhyMove Engine / Benzinga-removal amendment)
+~~~
+
+CAT-00 must remain Draft and be refrozen onto the exact merged AI-00 then EXT-00 heads before review/merge. Its diff must stay documentation-only and must reconcile, not retain, any upstream Benzinga wording.
 
 ### Research and learning placement
 
