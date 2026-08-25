@@ -119,6 +119,7 @@ const foundationTests = [
   "tests/e2e/action-666fh-position-version-lineage-v2-writer-private-non-data-api-transport-continuation-scope-and-evidence-admission-review.spec.ts",
   "tests/e2e/action-666fi-position-version-lineage-v2-writer-protected-server-secret-manager-capability-and-named-secret-provisioning-admission-review.spec.ts",
   "tests/e2e/action-666fj-position-version-lineage-v2-writer-protected-deployment-secret-manager-identity-and-access-scope-evidence-capture.spec.ts",
+  "tests/e2e/action-666fk-position-version-lineage-v2-writer-protected-deployment-metadata-authentication-and-value-free-secret-scope-read-admission-review.spec.ts",
 ];
 
 const intelligenceTests = [
