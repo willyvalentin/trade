@@ -1,0 +1,48 @@
+{
+  "contract_version": "trade.action666fa.position-version-lineage-v2-writer-generated-types-provenance-and-runtime-binding-decision.v1",
+  "action_id": "ACTION_666FA",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "90ff57128f4b793cad1e9c5bdf3b03395dfed8ef",
+    "exact_main_ci_run": 32823346526,
+    "exact_main_ci_conclusion": "success",
+    "action_666ez_evidence_path": "docs/evidence/action-666ez-position-version-lineage-v2-writer-production-apply-and-catalog-proof.json"
+  },
+  "type_generation": {
+    "transport": "operator_authorized_project_scoped_read_only",
+    "response_shape": "exact_object_types_string",
+    "response_content_retained": false,
+    "repository_output_path": "lib/supabase-database.types.ts",
+    "repository_output_sha256": "a173cd727821dbe4e5f7a9868f1187cfb159f9c58c62071db765ff402f2d81f8",
+    "repository_output_git_blob_sha1": "3b8ef034e39f0823747bd4450ef3be741f34f547",
+    "generated_type_bytes": 101159,
+    "in_memory_byte_identical_before_write": true,
+    "public_lineage_field_delta_exact": true,
+    "private_schema_in_generated_output": false,
+    "v2_writer_routine_in_generated_output": false,
+    "v2_receipt_relation_in_generated_output": false
+  },
+  "runtime_binding_decision": {
+    "existing_private_adapter_server_only": true,
+    "existing_private_adapter_inert": true,
+    "v2_writer_binding_implemented": false,
+    "route_or_ui_binding_implemented": false,
+    "runtime_binding_authorized": false,
+    "blocking_reason": "private_writer_surface_is_excluded_from_public_generated_types_and_requires_a_separate_server_only_command_port_admission_preflight"
+  },
+  "authority_limits": {
+    "database_mutation": false,
+    "migration_application": false,
+    "writer_invoked": false,
+    "backfill_performed": false,
+    "runtime_wiring": false,
+    "route_or_ui_wiring": false,
+    "provider_or_broker_contact": false,
+    "production_deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_generated_types_provenance_refresh_and_runtime_binding_decision",
+    "next_bounded_objective": "position_version_lineage_v2_writer_private_command_port_runtime_binding_admission_preflight",
+    "runtime_binding_authorized": false
+  }
+}
