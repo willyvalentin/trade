@@ -85,6 +85,7 @@ const foundationTests = [
   "tests/e2e/action-666ez-position-version-lineage-v2-writer-production-apply-and-catalog-proof.spec.ts",
   "tests/e2e/action-666fa-position-version-lineage-v2-writer-generated-types-provenance-and-runtime-binding-decision.spec.ts",
   "tests/e2e/action-666fb-position-version-lineage-v2-writer-private-command-port-runtime-binding-admission-preflight.spec.ts",
+  "tests/e2e/action-666fc-position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.spec.ts",
 ];
 
 const intelligenceTests = [

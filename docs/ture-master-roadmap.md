@@ -229,8 +229,11 @@ Action 666FB closes that static, fail-closed admission preflight. The deployed
 private routine boundary is proven, but no reviewed server-only non-Data-API
 transport, V2 digest-and-result contract or replacement V2 adapter exists.
 Concrete port binding, writer invocation, route/UI binding and deployment
-remain closed. The next gate is a separately reviewed source-only private
-non-Data-API command-port contract.
+remain closed. Action 666FC now freezes that separately reviewed source-only
+private non-Data-API command-port contract: it fixes the parameter order,
+canonical digest projection and committed-result mapping without selecting a
+transport, reading credentials or binding an adapter. The next gate is a
+separately reviewed private transport implementation preflight.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
