@@ -1644,6 +1644,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           current_stop: number | null
+          durable_recommendation_version: number | null
           entry_price: number
           execution_metadata: Json | null
           exit_notes: string | null
@@ -1654,8 +1655,12 @@ export type Database = {
           pnl: number | null
           pnl_percent: number | null
           position_size: number | null
+          position_version: number | null
           r_multiple: number | null
           recommendation_id: string | null
+          recommendation_identity: string | null
+          recommendation_normative_digest: string | null
+          recommendation_projection_contract: string | null
           status: string
           target_1: number | null
           target_2: number | null
@@ -1666,6 +1671,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           current_stop?: number | null
+          durable_recommendation_version?: number | null
           entry_price: number
           execution_metadata?: Json | null
           exit_notes?: string | null
@@ -1676,8 +1682,12 @@ export type Database = {
           pnl?: number | null
           pnl_percent?: number | null
           position_size?: number | null
+          position_version?: number | null
           r_multiple?: number | null
           recommendation_id?: string | null
+          recommendation_identity?: string | null
+          recommendation_normative_digest?: string | null
+          recommendation_projection_contract?: string | null
           status?: string
           target_1?: number | null
           target_2?: number | null
@@ -1688,6 +1698,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           current_stop?: number | null
+          durable_recommendation_version?: number | null
           entry_price?: number
           execution_metadata?: Json | null
           exit_notes?: string | null
@@ -1698,8 +1709,12 @@ export type Database = {
           pnl?: number | null
           pnl_percent?: number | null
           position_size?: number | null
+          position_version?: number | null
           r_multiple?: number | null
           recommendation_id?: string | null
+          recommendation_identity?: string | null
+          recommendation_normative_digest?: string | null
+          recommendation_projection_contract?: string | null
           status?: string
           target_1?: number | null
           target_2?: number | null
@@ -2110,6 +2125,10 @@ export type Database = {
           invalidation: string | null
           owner_user_id: string
           reason_to_avoid: string | null
+          recommendation_identity: string | null
+          recommendation_normative_digest: string | null
+          recommendation_projection_contract: string | null
+          recommendation_version: number | null
           risk_reward: number | null
           session_type: string
           setup_type: string | null
@@ -2133,6 +2152,10 @@ export type Database = {
           invalidation?: string | null
           owner_user_id: string
           reason_to_avoid?: string | null
+          recommendation_identity?: string | null
+          recommendation_normative_digest?: string | null
+          recommendation_projection_contract?: string | null
+          recommendation_version?: number | null
           risk_reward?: number | null
           session_type?: string
           setup_type?: string | null
@@ -2156,6 +2179,10 @@ export type Database = {
           invalidation?: string | null
           owner_user_id?: string
           reason_to_avoid?: string | null
+          recommendation_identity?: string | null
+          recommendation_normative_digest?: string | null
+          recommendation_projection_contract?: string | null
+          recommendation_version?: number | null
           risk_reward?: number | null
           session_type?: string
           setup_type?: string | null

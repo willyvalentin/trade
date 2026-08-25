@@ -216,9 +216,14 @@ production in the required storage/routine-then-index order after a fresh
 aggregate-only preflight. The post-apply catalog proves the private schema
 boundary, receipt relation, RLS and client denial, owner-bound foreign keys,
 valid foreign-key indexes and fixed-empty-search-path service-role-only writer
-without invoking it or reading/writing an application row. The next separate
-gate is a generated-types provenance refresh and runtime-binding decision;
-writer invocation, route binding and deployment remain closed.
+without invoking it or reading/writing an application row.
+
+Action 666FA refreshes only the public generated-type provenance from the
+validated in-memory types envelope. It binds the new output hashes and proves
+that the private schema, V2 writer routine and receipt relation remain absent
+from the public output. The existing server-only injected-port adapter remains
+inert; writer invocation, concrete port binding, route/UI binding and deployment
+remain closed pending a separate private command-port admission preflight.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

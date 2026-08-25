@@ -1,17 +1,15 @@
 # Ture Current-State Ledger
 
-**ACTION 666EZ — V2 writer authorized production apply and catalog proof.**
+**ACTION 666FA — V2 writer generated-types provenance and runtime-binding decision.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EY's green
-exact-main delivery. Action 666EZ applies the reviewed storage/routine and
-receipt-index source migrations once to production in dependency order after a
-fresh aggregate-only preflight. Boolean-only postflight catalog proof confirms
-the private receipt and routine boundary, RLS/client denial, owner-bound
-foreign keys, valid indexes and fixed-empty-search-path, service-role-only
-execution. No writer invocation, application row read/write, type refresh,
-runtime/route binding, deployment or provider/broker activity occurred. The
-last verified production release remains the earlier PR #125 commit; no
-production deployment occurred. Action 666DE's historical next bounded objective,
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EZ's green
+exact-main delivery. Action 666FA refreshes only the public generated TypeScript
+output from a validated in-memory types envelope and binds the output by hashes;
+neither the private schema, V2 writer routine nor receipt relation is exposed.
+The existing writer adapter remains server-only and inert, so no concrete port,
+route/UI binding, writer invocation, application row read/write, deployment or
+provider/broker activity occurred. The last verified production release remains
+the earlier PR #125 commit; no production deployment occurred. Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
 
@@ -22,8 +20,10 @@ aggregate-only production preflight for the writer storage/routine package;
 its fail-closed result left that package unapplied. Action 666EW established
 the marker package's separate production readiness, Action 666EX recorded its
 one authorized production application with aggregate catalog proof, Action
-666EY established clean writer-package application readiness, and Action 666EZ
-has now applied that ordered package with aggregate catalog proof.
+Action 666EY established clean writer-package application readiness, Action 666EZ
+applied that ordered package with aggregate catalog proof, and Action 666FA
+now records only public generated-type provenance plus a fail-closed runtime
+binding decision.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
