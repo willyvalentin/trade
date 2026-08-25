@@ -241,8 +241,12 @@ source-only design: a future exact `pg@8.23.0` server-only direct PostgreSQL
 driver, `@types/pg@8.23.1` companion, dedicated non-public connection-secret
 name and fixed private V2 routine statement. Neither package or secret exists
 in the application boundary yet, so connection, query, decoder and adapter
-remain fail-closed. The next gate is isolated dependency-and-lockfile source
-installation only.
+remain fail-closed. Action 666FF now applies those exact package and lockfile
+entries only. It adds no transport module, import, secret read, connection,
+query, decoder, adapter or runtime binding; the V2 writer remains fail-closed.
+The next gate is a separately reviewed credential-provenance and
+connection-admission preflight, before any secret provisioning/read or
+transport implementation.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

@@ -14,7 +14,7 @@ const draftRunnerPath = "scripts/action-660k-run-draft-ci.mjs";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "b7ad4d3aced53da86e54ed03d205dbbcc68588b3554a26c44edd65a6db692e5a";
+  "a4f312eee247044ed7bc91cbb544e29b186e899bbf49ac4ab8456987f3136a9c";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
