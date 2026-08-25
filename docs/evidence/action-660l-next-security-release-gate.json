@@ -78,8 +78,8 @@
     "registered_exactly_once": true
   },
   "sources": {
-    "package.json": "f3fa605a2f08eeb787471b14174e4ec3cc7db8bab4c1b50a2e4e8a4a876a19d0",
-    "package-lock.json": "476ee07495deb38aac1f66b9fd5dbe6b2889dc73d4e026633200548c2d65c4ea",
+    "package.json": "fda10942e26abade2c62032529d61f3080a927b825742b35f6fa0140022a0ad5",
+    "package-lock.json": "19113dfa93671ddca7b5f2d4e01bb11794a5999d102408963727fbb1c7de0f40",
     "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
     "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",

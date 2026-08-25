@@ -13,7 +13,6 @@ const evidencePath =
   "docs/evidence/action-666fe-position-version-lineage-v2-writer-private-non-data-api-transport-dependency-and-credential-design.json";
 const modulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-transport-dependency-and-credential-design.ts";
-const packagePath = "package.json";
 const action666fcModulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
@@ -166,15 +165,13 @@ test("666FE binds the exact-main predecessor and limits itself to static design"
   });
 });
 
-test("666FE leaves the manifest and runtime boundary fail-closed", () => {
-  const manifest = JSON.parse(source(packagePath)) as {
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-  };
+test("666FE records the pre-install manifest and preserves the runtime boundary", () => {
   const designSource = source(modulePath);
 
-  expect(manifest.dependencies?.pg).toBeUndefined();
-  expect(manifest.devDependencies?.["@types/pg"]).toBeUndefined();
+  expect(
+    JSON.parse(source(evidencePath)).read_only_package_metadata
+      .package_or_lockfile_mutated,
+  ).toBe(false);
   expect(source(action666fcModulePath)).toContain(
     "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
   );

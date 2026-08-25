@@ -13,7 +13,6 @@ const evidencePath =
   "docs/evidence/action-666fd-position-version-lineage-v2-writer-private-non-data-api-transport-implementation-preflight.json";
 const modulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-transport-implementation-preflight.ts";
-const packagePath = "package.json";
 const supabaseServerPath = "lib/supabase-server.ts";
 const action666fcModulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.ts";
@@ -128,22 +127,15 @@ test("666FD binds the exact-main predecessor and static manifest-only observatio
   });
 });
 
-test("666FD proves the current dependency graph has no selected private transport", () => {
-  const manifest = JSON.parse(source(packagePath)) as {
-    dependencies?: Record<string, string>;
-  };
-  const dependencies = manifest.dependencies ?? {};
+test("666FD records the pre-install dependency graph and no selected private transport", () => {
+  const staticObservation = JSON.parse(source(evidencePath))
+    .static_repository_observation;
   const preflightSource = source(modulePath);
 
-  expect(dependencies["@supabase/supabase-js"]).toBeTruthy();
-  for (const directPostgresqlDependency of [
-    "pg",
-    "postgres",
-    "@neondatabase/serverless",
-    "@vercel/postgres",
-  ]) {
-    expect(dependencies[directPostgresqlDependency]).toBeUndefined();
-  }
+  expect(staticObservation.direct_postgresql_protocol_dependencies).toEqual([]);
+  expect(staticObservation.private_non_data_api_transport_module_present).toBe(
+    false,
+  );
   expect(source(supabaseServerPath)).toContain('from "@supabase/supabase-js"');
   expect(source(action666fcModulePath)).toContain(
     "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
