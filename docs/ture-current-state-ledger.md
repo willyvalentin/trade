@@ -16,6 +16,13 @@ Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
 
+Action 666EU separately applied the reviewed private receipt foreign-key index
+package once to isolated staging and proved its exact catalog shape without
+writer invocation or row access. Action 666EV then completed the distinct
+aggregate-only production preflight for the writer storage/routine package;
+its fail-closed result left that package unapplied. Action 666EW is the
+separate marker-package decision recorded above.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Direct current readbacks
