@@ -259,6 +259,15 @@ transport-source review, staging connection preflight, and finally writer or
 route/UI admission. Every gate remains closed; no secret, transport,
 connection, query, writer invocation or runtime wiring is added.
 
+Action 666FI closes the first static review of that sequence. The
+repository-visible deployment configuration declares a functions directory but
+does not establish a protected secret-manager identity, server-only access
+scope, managed-secret existence or least-privileged role. The V2 connection
+input therefore remains unavailable: no secret-manager metadata or value was
+read, no credential was provisioned, and no deployment, transport, connection,
+writer or route/UI authority is granted. A separate value-free identity and
+access-scope evidence capture is the next bounded gate.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
