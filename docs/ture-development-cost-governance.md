@@ -195,7 +195,7 @@ If price is disproportionate to Ture's current stage, classify the capability `D
 | OpenAI API / Agents SDK runtime | NOT_NEEDED_YET for new agent layer | $0 fixed; future usage-based | AI-02+ runtime/eval work | small models, hard budgets, baseline Ture |
 | Temporal local | FREE_LOCAL | $0 | after local durability/replay contracts prove need for managed Cloud | continue local/self-hosted during development |
 | Temporal Cloud | NOT_NEEDED_YET | $0 | TEMP cloud activation gate | local Temporal; use credits before paid |
-| Benzinga APIs | licensing pending / SAMPLE_ONLY where permitted | $0 currently | CAT trial/eval-ready gate, then separate paid promotion gate | SEC EDGAR + free/public primary sources + deferred commercial catalyst layer |
+| Massive News + Finnhub Company News | EXISTING_ACCOUNTS / NOT_ACTIVATED | $0 incremental paid commitment | separately approved CAT-03 bounded read-only shadow gate | SEC EDGAR + issuer/regulatory/macro primary sources; do not infer a catalyst from absence |
 | SEC EDGAR | public/free | $0 | none | canonical free primary-source foundation |
 | Alpaca Basic | FREE_TIER candidate | $0 | SIP execution-shadow gate | existing market-data provider / free tier |
 | Alpaca paid SIP/OPRA | NOT_NEEDED_YET | $0 | SIP evidence gate before meaningful semi-auto execution | free/basic quotes; defer precision layer |
@@ -210,65 +210,46 @@ If price is disproportionate to Ture's current stage, classify the capability `D
 | Databento live depth | DEFERRED_COST by default | $0 | only after historical/shadow microstructure evidence + explicit procurement | do not activate; SIP/top-of-book only |
 | Dedicated options data | NOT_NEEDED_YET | $0 | OPT research gate | reuse OPRA if already included elsewhere; omit signal |
 
-## 9. Benzinga-specific cost and licensing governance
+## 9. WhyMove Engine cost and licensing governance
 
-Benzinga is currently a candidate fast commercial catalyst source, not a required Ture dependency.
+CAT-00 fixes Catalyst Intelligence as a Ture-owned WhyMove Engine. Massive News and Finnhub Company News are planned discovery/evidence leads; SEC EDGAR, issuer IR/press releases, FDA, and official Federal Reserve/BLS/BEA publications are the planned primary-source layer.
 
-Current status:
+~~~text
+massive_account_exists:true
+finnhub_account_exists:true
+provider_runtime_activation_authority:false
+primary_source_runtime_call_authority:false
+new_paid_subscription_authority:false
+incremental_paid_provider_commitment:$0
+Benzinga_planned_dependency:false
+~~~
 
-```text
-technical_account_created:true
-api_key_received:true
-commercial_license_confirmed:false
-paid_subscription_authority:false
-production_dependency_authority:false
-```
+An existing account, API key, sample response or roadmap entry does not establish rights to use a dataset, retain its response/derived metadata, or make it canonical. Before a bounded source evaluation, document the exact endpoint and plan semantics, rate/cost ceiling, internal-use and retention rights, redistribution limits, fixture, success metric, removal criterion and rollback.
 
-Receiving an API key does not prove rights to use every dataset in Ture or establish production licensing.
+### WhyMove Engine decision tree
 
-Until Benzinga licensing responds, Ture must treat commercial price, allowed feeds, rate limits, retention, internal-use rights and future multi-user/redistribution rights as unknown.
-
-### Benzinga decision tree
-
-```text
-licensing response
+~~~text
+local fixture + technical baseline
       ↓
-acceptable development/sample terms?
-   /                         \
- YES                         NO
-  ↓                           ↓
-build CAT adapter         SEC/free fallback
-with samples/free access  + DEFERRED_COST
-  ↓
-eval harness ready?
-   /       \
- NO       YES
-  ↓         ↓
-wait      activate trial / low-rate dev access
-             ↓
-       measurable value?
-          /        \
-        NO          YES
-        ↓            ↓
-     reject/defer   paid quote review
-                         ↓
-                  affordable now?
-                    /        \
-                  NO          YES
-                  ↓            ↓
-             DEFERRED_COST   month-to-month
-             use fallback    paid activation
-```
+source-aware normalizer and ablation harness ready?
+   /                                      \
+ NO                                      YES
+  ↓                                        ↓
+wait                         separately approve bounded read-only shadow
+                                            ↓
+                              material incremental value over baseline?
+                                  /                       \
+                                NO                         YES
+                                ↓                           ↓
+                       retain research-only         separate advisory
+                       / remove source path         promotion review
+~~~
 
-### Benzinga price ceiling policy during early development
+No trial, paid plan or recurring spend is a default branch of this tree. Benzinga has no re-evaluation branch because it is no longer a planned dependency.
 
-No fixed universal price ceiling is declared because data value may change by milestone. However, any Benzinga recurring quote above the high-cost-vendor threshold is automatically `DEFERRED_COST` pending a separate value/procurement review.
+## 10. WhyMove Engine evidence architecture
 
-If a quote is in the low-thousands of dollars per month during single-user development, Ture should not activate it by default. The roadmap retains Catalyst Intelligence but uses free/cheaper sources until the product or budget justifies the premium feed.
-
-## 10. Free/low-cost Catalyst fallback architecture
-
-If Benzinga or another commercial catalyst feed is too expensive, Catalyst Intelligence remains buildable in layers:
+Catalyst Intelligence is designed to remain buildable without a paid news dependency:
 
 ```text
 SEC EDGAR
@@ -301,7 +282,7 @@ Examples:
 
 **Paid SIP → Basic/free** when execution-shadow or live execution validation is paused.
 
-**Benzinga paid → fallback catalyst stack** if the evaluation window ends, product benefit is not material, or budget priority changes.
+**Any later paid WhyMove discovery feed → primary-source evidence stack** if the evaluation window ends, product benefit is not material, or budget priority changes.
 
 **Sentry paid → free/OpenTelemetry** if quota/retention/team requirements no longer justify the plan.
 
