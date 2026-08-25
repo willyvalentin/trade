@@ -1,15 +1,15 @@
 # Ture Current-State Ledger
 
-**ACTION 666FB — V2 writer private command-port runtime-binding admission preflight.**
+**ACTION 666FC — V2 writer private non-Data-API command-port source contract.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EZ's green
-exact-main delivery. Action 666FA refreshed only the public generated TypeScript
-output from a validated in-memory types envelope and bound the output by hashes;
-neither the private schema, V2 writer routine nor receipt relation is exposed.
-Action 666FB proves the deployed private routine boundary but refuses concrete
-binding because no reviewed non-Data-API transport, V2 digest/result contract or
-replacement V2 adapter exists. No port, route/UI binding, writer invocation,
-application row read/write, deployment or provider/broker activity occurred.
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FB's green
+exact-main delivery. Action 666FC freezes only the V2 private command-port
+source contract: the authenticated-owner, opaque-recommendation and digest
+parameter order; canonical digest projection; and exact committed-result
+mapping. It selects no transport and implements no credential containment,
+digest builder, decoder or adapter. No port, route/UI binding, writer
+invocation, application row read/write, deployment or provider/broker activity
+occurred.
 The last verified production release remains the earlier PR #125 commit; no
 production deployment occurred. Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
@@ -24,8 +24,9 @@ the marker package's separate production readiness, Action 666EX recorded its
 one authorized production application with aggregate catalog proof, Action 666EY
 established clean writer-package application readiness, Action 666EZ
 applied that ordered package with aggregate catalog proof, Action 666FA recorded
-public generated-type provenance, and Action 666FB records the separate
-fail-closed private command-port admission preflight.
+public generated-type provenance, Action 666FB records the separate fail-closed
+private command-port admission preflight, and Action 666FC freezes the V2
+private non-Data-API command-port source contract.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 

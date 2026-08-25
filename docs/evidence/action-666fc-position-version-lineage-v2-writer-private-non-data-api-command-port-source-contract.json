@@ -1,0 +1,61 @@
+{
+  "contract_version": "trade.action666fc.position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.v1",
+  "action_id": "ACTION_666FC",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "4c97bfea15a32053fdc87469be5cf5534ebf2ebe",
+    "exact_main_ci_run": 32840102542,
+    "exact_main_ci_conclusion": "success",
+    "action_666fb_evidence_path": "docs/evidence/action-666fb-position-version-lineage-v2-writer-private-command-port-runtime-binding-admission-preflight.json"
+  },
+  "proven_private_database_boundary": {
+    "action_666ez_catalog_proof_path": "docs/evidence/action-666ez-position-version-lineage-v2-writer-production-apply-and-catalog-proof.json",
+    "private_schema_is_non_data_api": true,
+    "writer_routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
+    "writer_routine_fixed_empty_search_path": true,
+    "writer_routine_service_role_execution_restricted": true,
+    "receipt_direct_access_denied": true
+  },
+  "frozen_source_contract": {
+    "parameter_order": [
+      "authenticated_server_owner",
+      "opaque_recommendation_reference",
+      "canonical_command_digest"
+    ],
+    "canonical_digest_projection_fields": [
+      "contract_version",
+      "routine_signature",
+      "authenticated_server_owner",
+      "opaque_recommendation_reference"
+    ],
+    "canonical_digest_algorithm": "sha256_lowercase_hex",
+    "committed_result_wire_columns": [
+      "disposition",
+      "position_id",
+      "position_version",
+      "initial_history_identity"
+    ],
+    "committed_result_dispositions": ["created", "replayed"],
+    "initial_position_version": 1,
+    "legacy_snapshot_link_count_permitted": false
+  },
+  "authority_limits": {
+    "database_connection_opened": false,
+    "database_query_or_mutation": false,
+    "credentials_read_or_configured": false,
+    "canonical_digest_built": false,
+    "live_result_decoded": false,
+    "writer_invoked": false,
+    "runtime_wiring": false,
+    "route_or_ui_wiring": false,
+    "provider_or_broker_contact": false,
+    "production_deployment": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_private_non_data_api_command_port_source_contract",
+    "private_transport_implemented": false,
+    "concrete_private_command_port_binding_admitted": false,
+    "next_bounded_objective": "position_version_lineage_v2_writer_private_non_data_api_transport_implementation_preflight",
+    "runtime_activation_authorized": false
+  }
+}
