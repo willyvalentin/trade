@@ -185,6 +185,14 @@ runtime activation. The next gate is a separate production decision/preflight
 for the reviewed nullable projection-marker package; it remains independent of
 the later writer package apply.
 
+Action 666EW closes that separate marker decision/preflight. Its fresh
+aggregate-only production readback confirms the base nullable lineage shapes,
+the nine prior `NOT VALID` checks, intact RLS/client-deny boundaries and both
+absent markers. The exact reviewed two-marker/four-check source package is
+eligible only for its own later production apply and catalog-proof gate. No
+database mutation, backfill, validation, runtime binding or writer activation
+occurs here.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

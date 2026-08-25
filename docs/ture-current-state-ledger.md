@@ -1,20 +1,27 @@
 # Ture Current-State Ledger
 
-**ACTION 666EV — Position-version lineage v2 writer storage and foreign-key index production-apply decision and preflight.**
+**ACTION 666EW — Projection-contract marker production-apply decision and preflight.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EU's green
-exact-main delivery. Action 666EV performs one aggregate-only production
-dependency preflight for the reviewed private writer storage/routine and
-foreign-key-index source packages. Base lineage/history shapes, digest support
-and client-deny/RLS boundaries are present, while both required
-projection-contract markers are absent. The writer package is therefore not
-eligible for production application. No DDL/DML, writer invocation, row read or
-write, generated-type refresh, runtime/route binding, deployment or
-provider/broker activity occurred. The last verified production release remains
-the earlier PR #125 commit; no production deployment occurred.
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EV's green
+exact-main delivery. Action 666EW performs one aggregate-only production
+decision/preflight for the reviewed nullable projection-contract marker source
+package. Base lineage shapes and checks retain their intended transitional
+state, both markers remain absent, and RLS/client-deny boundaries remain
+intact. The marker package is eligible only for its own later production apply
+and catalog-proof gate. No DDL/DML, writer invocation, row read/write,
+generated-type refresh, runtime/route binding, deployment or provider/broker
+activity occurred. The last verified production release remains the earlier PR
+#125 commit; no production deployment occurred.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
+
+Action 666EU separately applied the reviewed private receipt foreign-key index
+package once to isolated staging and proved its exact catalog shape without
+writer invocation or row access. Action 666EV then completed the distinct
+aggregate-only production preflight for the writer storage/routine package;
+its fail-closed result left that package unapplied. Action 666EW is the
+separate marker-package decision recorded above.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
