@@ -176,6 +176,15 @@ mutation remain closed. The next gate is a separate aggregate-only production
 apply decision and dependency preflight for the ordered storage/routine-plus-
 index package.
 
+Action 666EV closes that aggregate-only production dependency preflight. The
+required base lineage/history shapes, digest dependency and client-deny/RLS
+boundaries remain intact; the private receipt/routine/index package has not
+been applied. Both required projection-contract markers are absent in
+production, so 666EV fails closed and authorizes neither the writer package nor
+runtime activation. The next gate is a separate production decision/preflight
+for the reviewed nullable projection-marker package; it remains independent of
+the later writer package apply.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
