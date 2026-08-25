@@ -193,6 +193,15 @@ eligible only for its own later production apply and catalog-proof gate. No
 database mutation, backfill, validation, runtime binding or writer activation
 occurs here.
 
+Action 666EX now applies that exact reviewed marker source once to production
+after a fresh aggregate-only preflight and records a post-apply catalog proof.
+Both markers are exact nullable text without defaults; the four new checks and
+the nine earlier lineage checks remain `NOT VALID`; legacy all-null tuples,
+RLS and client-select denial remain intact. No row was read or written, and no
+backfill, validation, type refresh, writer invocation, runtime wiring or
+deployment occurred. The next gate repeats the separate writer storage/routine
+production preflight now that the marker dependency is proven.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

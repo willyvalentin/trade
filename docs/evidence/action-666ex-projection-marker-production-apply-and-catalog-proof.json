@@ -1,0 +1,81 @@
+{
+  "contract_version": "trade.action666ex.projection-contract-marker-authorized-production-apply-and-catalog-proof.v1",
+  "action_id": "ACTION_666EX",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "cee2889c4d3a3e0576d79f13b2d0fcc0a37f2cb6",
+    "exact_main_ci_run": 32807378805,
+    "exact_main_ci_conclusion": "success",
+    "action_666ew_evidence_path": "docs/evidence/action-666ew-projection-marker-production-apply-decision-and-preflight.json"
+  },
+  "source_migration": {
+    "path": "supabase/migrations/20260824133138_add_position_version_lineage_projection_contract_marker.sql",
+    "sha256": "f35a0a367354103fda9e3f68c6f085f998c4520f0eacde4e0d8c7bcbc18a2d13",
+    "preflight_registry_entry_absent": true,
+    "migration_apply_succeeded": true,
+    "postapply_registry_entry_present": true,
+    "dml_statements": false,
+    "default_added": false,
+    "index_added": false,
+    "runtime_function_added": false,
+    "grant_or_policy_change": false,
+    "constraint_validation": false,
+    "physical_not_null_activation": false
+  },
+  "production_proofs": {
+    "preflight": {
+      "transaction_read_only": true,
+      "aggregate_only_results": true,
+      "recommendations_relation_present": true,
+      "positions_relation_present": true,
+      "base_lineage_columns_nullable_exact_without_defaults": true,
+      "base_lineage_constraints_present_not_valid": true,
+      "recommendation_projection_marker_absent": true,
+      "position_projection_marker_absent": true,
+      "recommendations_rls_enabled": true,
+      "positions_rls_enabled": true,
+      "public_client_select_denied": true
+    },
+    "postflight": {
+      "query_path": "docs/sql/action-666ex-projection-marker-production-apply-and-catalog-proof.sql",
+      "query_sha256": "e7c36e901a20343432c8863162d4954f78929dfe4881d380d273dfa825d63027",
+      "transaction_read_only": true,
+      "aggregate_only_results": true,
+      "target_relations_present": true,
+      "marker_columns_nullable_text_without_defaults_exact": true,
+      "marker_checks_present_not_valid": true,
+      "base_checks_remain_present_not_valid": true,
+      "legacy_all_null_tuple_remains_catalog_admissible": true,
+      "rls_enabled": true,
+      "client_select_denied": true
+    },
+    "advisor_review_performed_after_ddl": true,
+    "advisor_results_authorize_no_additional_change": true
+  },
+  "privacy": {
+    "row_contents_returned": false,
+    "row_identifiers_returned": false,
+    "owner_identifiers_returned": false,
+    "connection_identifiers_returned": false,
+    "credentials_embedded": false
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": true,
+    "production_migration_apply_performed": true,
+    "backfill_performed": false,
+    "constraint_validation_performed": false,
+    "physical_not_null_activation": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "writer_invoked": false,
+    "provider_or_broker_contact_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_projection_contract_marker_authorized_production_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_lineage_v2_writer_storage_and_routine_production_apply_decision_and_preflight_repeat_after_marker_proof",
+    "production_migration_authority_consumed_for_exact_source_only": true,
+    "v2_writer_activation_authorized": false
+  }
+}

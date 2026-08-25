@@ -80,6 +80,7 @@ const foundationTests = [
   "tests/e2e/action-666eu-position-version-lineage-v2-writer-receipt-foreign-key-index-staging-apply-catalog-proof.spec.ts",
   "tests/e2e/action-666ev-position-version-lineage-v2-writer-production-apply-decision-and-preflight.spec.ts",
   "tests/e2e/action-666ew-projection-marker-production-apply-decision-and-preflight.spec.ts",
+  "tests/e2e/action-666ex-projection-marker-production-apply-and-catalog-proof.spec.ts",
 ];
 
 const intelligenceTests = [
