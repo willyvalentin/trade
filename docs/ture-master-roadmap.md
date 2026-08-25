@@ -244,9 +244,12 @@ in the application boundary yet, so connection, query, decoder and adapter
 remain fail-closed. Action 666FF now applies those exact package and lockfile
 entries only. It adds no transport module, import, secret read, connection,
 query, decoder, adapter or runtime binding; the V2 writer remains fail-closed.
-The next gate is a separately reviewed credential-provenance and
-connection-admission preflight, before any secret provisioning/read or
-transport implementation.
+Action 666FG now closes the separately reviewed credential-provenance and
+connection-admission preflight: a later named connection input must come only
+from a protected server-secret manager, never source control, a public
+environment or existing Supabase client material. It grants no provisioning,
+read, connection or implementation authority; any runtime action needs a new
+separately reviewed roadmap action.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
