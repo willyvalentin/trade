@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -16,6 +17,12 @@ const thisTest = "tests/e2e/action-666dt-transactional-recommendation-position-w
 const evidenceSha256 = "076a55f6a96317cffe490d2794999098db10c02f5a0d553b0bebf4dc41dbf744";
 
 function source(relativePath: string) { return readFileSync(resolve(root, relativePath), "utf8"); }
+function historicalSource(revision: string, relativePath: string) {
+  return execFileSync("git", ["show", `${revision}:${relativePath}`], {
+    cwd: root,
+    encoding: "utf8",
+  });
+}
 function sha256(value: string) { return createHash("sha256").update(value, "utf8").digest("hex"); }
 
 test("666DT freezes unresolved writer admissions and source-only history shape", () => {
@@ -48,7 +55,7 @@ test("666DT freezes unresolved writer admissions and source-only history shape",
     production_authority_granted: false,
   });
   for (const [relativePath, expectedHash] of Object.entries(evidence.source_artifact_sha256)) {
-    expect(sha256(source(relativePath))).toBe(expectedHash);
+    expect(sha256(historicalSource(evidence.predecessor.protected_main_commit, relativePath))).toBe(expectedHash);
   }
   const types = source(typesPath);
   const table = types.match(/position_version_history:\s*\{([\s\S]*?)\n\s*positions:/)?.[1] ?? "";

@@ -427,7 +427,7 @@ test("binds catalog, generated types, migrations and the evaluator contract", as
   ] =
     await Promise.all([
       source(sourcePaths.provider_catalog),
-      source(sourcePaths.generated_types),
+      historicalSource(sourcePaths.generated_types),
       source(sourcePaths.owner_migration),
       source(sourcePaths.transaction_migration),
       source(sourcePaths.dependency_gate),

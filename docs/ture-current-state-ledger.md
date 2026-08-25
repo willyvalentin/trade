@@ -20,7 +20,7 @@ aggregate-only production preflight for the writer storage/routine package;
 its fail-closed result left that package unapplied. Action 666EW established
 the marker package's separate production readiness, Action 666EX recorded its
 one authorized production application with aggregate catalog proof, Action
-666EY established clean writer-package application readiness, Action 666EZ
+Action 666EY established clean writer-package application readiness, Action 666EZ
 applied that ordered package with aggregate catalog proof, and Action 666FA
 now records only public generated-type provenance plus a fail-closed runtime
 binding decision.
