@@ -294,6 +294,14 @@ The next separate gate may review only implementation-admission criteria for
 that future authority and channel; every runtime and credential capability
 remains fail-closed.
 
+Action 666FM closes the resulting implementation-admission review. No bound
+actor, provider project, privileged session or revocation evidence exists, and
+no dedicated metadata-channel source, route, receipt source or leakage-negative
+test exists in the repository. Implementation is therefore not admitted. The
+next separate gate may design the redacted metadata-receipt schema and its
+negative disclosure contract; authentication, metadata access and all runtime
+authority remain fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

@@ -1,0 +1,70 @@
+{
+  "contract_version": "trade.action666fm.position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-implementation-admission-review.v1",
+  "action_id": "ACTION_666FM",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "b70971eec08c8c98ea99d753f68fec6222154532",
+    "exact_main_ci_run": 32910127321,
+    "exact_main_ci_conclusion": "success",
+    "action_666fl_evidence_path": "docs/evidence/action-666fl-position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-design.json"
+  },
+  "source_catalog_evidence": {
+    "netlify_functions_directory_declared": true,
+    "dedicated_deployment_metadata_channel_source_present": false,
+    "dedicated_deployment_metadata_route_present": false,
+    "named_v2_secret_runtime_reference_present": false,
+    "named_v2_secret_static_contract_reference_present": true,
+    "redacted_metadata_receipt_source_present": false,
+    "negative_leakage_test_source_present": false
+  },
+  "implementation_requirements": {
+    "approved_authenticated_actor_and_provider_project_binding_required": true,
+    "least_privileged_session_and_revocation_evidence_required": true,
+    "non_exporting_metadata_channel_source_required": true,
+    "one_named_secret_scope_filter_required": true,
+    "redacted_audit_receipt_source_required": true,
+    "negative_disclosure_tests_required": true
+  },
+  "v2_writer_boundary": {
+    "non_public_connection_secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL",
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "named_secret_provisioned": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "authentication_token_read_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "environment_enumeration_admitted": false,
+    "environment_export_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_provisioning_admitted": false,
+    "credential_read_admitted": false,
+    "deployment_configuration_change_admitted": false,
+    "database_role_grant_admitted": false,
+    "metadata_channel_implementation_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "database_query_or_mutation_admitted": false,
+    "writer_invocation_admitted": false,
+    "runtime_wiring_admitted": false,
+    "route_or_ui_wiring_admitted": false,
+    "provider_or_broker_contact_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_authentication_authority_and_audit_safe_metadata_channel_implementation_admission_review",
+    "implementation_admitted": false,
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_channel_redaction_receipt_schema_and_contract_design",
+    "reason": "the required authority evidence and all implementation, receipt and negative-leakage sources are absent"
+  }
+}
