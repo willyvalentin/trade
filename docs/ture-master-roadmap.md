@@ -166,6 +166,16 @@ indexes. It does not connect to a database, apply bytes, invoke the writer,
 read/write rows, alter grants/RLS, bind runtime code or target production. A
 separately reviewed isolated-staging apply and catalog proof is the next gate.
 
+Action 666EU has applied those exact index bytes once to isolated staging after
+a read-only compatibility preflight. The catalog proves both private indexes
+are exact, valid and ready while receipt RLS and direct-access denial remain
+unchanged. The staging index advisor now reports only initial unused-index
+information before any permitted writer workload; the prior missing-index
+finding is remediated. Production, runtime binding, writer invocation and data
+mutation remain closed. The next gate is a separate aggregate-only production
+apply decision and dependency preflight for the ordered storage/routine-plus-
+index package.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

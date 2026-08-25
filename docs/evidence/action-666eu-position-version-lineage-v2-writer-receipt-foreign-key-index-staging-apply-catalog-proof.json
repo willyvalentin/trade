@@ -1,0 +1,64 @@
+{
+  "action_id": "666EU",
+  "evidence_captured_at": "2026-08-25T00:15:16Z",
+  "predecessor": {
+    "protected_main_commit": "1da62cf59a7218a20dd6657432d218ca13b92d22",
+    "exact_main_ci_run": 32790553157,
+    "exact_main_ci_conclusion": "success",
+    "action_666et_source_migration_package_path": "docs/evidence/action-666et-position-version-lineage-v2-writer-receipt-foreign-key-index-source-migration-package.json"
+  },
+  "source_migration": {
+    "path": "supabase/migrations/20260824230454_position_version_lineage_v2_writer_receipt_foreign_key_indexes.sql",
+    "sha256": "715a30b645e92347349125164c28a5c3288a28789b34865067ae778239ee87ad",
+    "applied_exact_reviewed_source": true
+  },
+  "isolated_staging": {
+    "target_identity_published": false,
+    "target_health_verified": true,
+    "preflight": {
+      "receipt_relation_present": true,
+      "receipt_rls_enabled": true,
+      "recommendation_owner_foreign_key_present": true,
+      "deferred_position_owner_foreign_key_present": true,
+      "recommendation_owner_index_absent_before_apply": true,
+      "position_owner_index_absent_before_apply": true
+    },
+    "remote_migration_registry": {
+      "entry_name": "action_666et_position_version_lineage_v2_writer_receipt_foreign_key_indexes",
+      "apply_succeeded": true
+    },
+    "catalog_proof": {
+      "receipt_relation_present": true,
+      "receipt_rls_enabled": true,
+      "receipt_direct_access_revoked": true,
+      "recommendation_owner_index_exact": true,
+      "position_owner_index_exact": true
+    },
+    "advisor_classification": {
+      "receipt_unindexed_foreign_key_advisory_remediated": true,
+      "new_index_unused_advisory_expected_before_writer_workload": true,
+      "private_receipt_rls_without_policy_is_intentional_default_deny": true
+    }
+  },
+  "authority_limits": {
+    "staging_targeted": true,
+    "production_targeted": false,
+    "row_values_read": false,
+    "row_values_written": false,
+    "writer_invoked": false,
+    "backfill": false,
+    "generated_types_refresh": false,
+    "runtime_wiring": false,
+    "route_added": false,
+    "grant_or_rls_change": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "v2_writer_activated": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_receipt_foreign_key_index_isolated_staging_apply_and_catalog_proof",
+    "next_bounded_objective": "position_version_lineage_v2_writer_storage_and_foreign_key_index_production_apply_decision_and_preflight",
+    "production_apply_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}

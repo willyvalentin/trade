@@ -1,16 +1,16 @@
 # Ture Current-State Ledger
 
-**ACTION 666ET — Position-version lineage projection-contract v2 writer receipt foreign-key index source-migration package.**
+**ACTION 666EU — Position-version lineage projection-contract v2 writer receipt foreign-key index isolated staging apply and catalog proof.**
 
-**Evidence timestamp:** 2026-08-24. This receipt follows Action 666ES's green
-exact-main delivery. Action 666ET records immutable, Supabase-CLI-created
-source bytes for the two private receipt foreign-key lookup indexes required by
-the isolated staging review. The package fail-closes on missing predecessor
-shapes or reserved index names. It opens no database connection and performs
-no DDL/DML, writer invocation, row read/write, generated-type refresh,
-runtime/route binding, deployment or provider/broker activity; staging and
-production remain untouched. The last verified production release remains the
-earlier PR #125 commit; no production deployment occurred.
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666ET's green
+exact-main delivery. Action 666EU applies the reviewed private receipt
+foreign-key index bytes once to isolated staging after a read-only preflight.
+Aggregate-only catalog proof confirms both prescribed indexes are valid/ready
+and preserves RLS plus direct table-access denial. The writer was not invoked,
+no row value was read/written and production, generated-type refresh,
+runtime/route binding, deployment and provider/broker activity remain closed.
+The last verified production release remains the earlier PR #125 commit; no
+production deployment occurred.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -113,8 +113,11 @@ Action 666DF and remains preserved as immutable lineage.
 | Exact-main CI | push on `a365d835…`, run `32777972800`, completed/success | verified_current |
 | PR #170 | MERGED; merge `e88aca4e…`; Action 666ES | corroborated_current |
 | Exact-main CI | push on `e88aca4e…`, run `32785082992`, completed/success | verified_current |
+| PR #171 | MERGED; merge `1da62cf5…`; Action 666ET | corroborated_current |
+| Exact-main CI | push on `1da62cf5…`, run `32790553157`, completed/success | verified_current |
 | Isolated staging apply | reviewed Action 666ER private receipt-and-writer source applied once; boolean-only catalog proof green; routine not invoked and no row value published | verified_current |
-| Staging advisor disposition | direct-deny private receipt configuration accepted; source-only receipt foreign-key index remedy prepared, pending isolated staging proof | remediation_in_progress |
+| Isolated staging index apply | reviewed Action 666ET receipt indexes applied once; exact boolean-only catalog proof green; writer not invoked and no row value published | verified_current |
+| Staging advisor disposition | private direct-deny configuration accepted; missing-index advisory remediated; initial unused-index information expected before writer workload | verified_current |
 | Isolated staging apply | reviewed Action 666EM marker source applied once; nullable-marker and four-constraint catalog proof green; no row values published | verified_current |
 | PR #45 | OPEN, Draft, dirty/conflicting; head `6712d698…`; overlaps both governance paths | stale_historical_non_authority |
 | GitHub branch protection | API HTTP 200; `main.protected:true`; exactly one matching rule; PR required | verified_current |
