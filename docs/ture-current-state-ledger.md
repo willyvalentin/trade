@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666FJ — V2 writer protected deployment secret-manager identity and access-scope evidence capture.**
+
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666FI's green
+exact-main delivery. Repository configuration identifies Netlify only as a
+deployment-platform hint. A strictly value-free status probe was unauthenticated
+and observed no provider project, secret-manager identity, managed secret,
+access scope or policy. No login, environment enumeration, secret read,
+provisioning, transport, connection, routine, writer, route/UI, broker or
+production action occurred.
+
 **ACTION 666FI — V2 writer protected server-secret-manager capability and named-secret provisioning admission review.**
 
 **Evidence timestamp:** 2026-08-25. This receipt follows Action 666FH's green
