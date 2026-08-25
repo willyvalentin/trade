@@ -104,6 +104,7 @@ const foundationTests = [
   "tests/e2e/action-666es-position-version-lineage-v2-writer-staging-apply-catalog-proof.spec.ts",
   "tests/e2e/action-666et-position-version-lineage-v2-writer-receipt-foreign-key-index-source-migration-package.spec.ts",
   "tests/e2e/action-666eu-position-version-lineage-v2-writer-receipt-foreign-key-index-staging-apply-catalog-proof.spec.ts",
+  "tests/e2e/action-666ev-position-version-lineage-v2-writer-production-apply-decision-and-preflight.spec.ts",
 ];
 
 const intelligenceTests = [
