@@ -1,0 +1,79 @@
+{
+  "contract_version": "trade.action666fl.position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-design.v1",
+  "action_id": "ACTION_666FL",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "1d8b2183f43ab4aadebbb4d3c31948ff63a9f963",
+    "exact_main_ci_run": 32904499030,
+    "exact_main_ci_conclusion": "success",
+    "action_666fk_evidence_path": "docs/evidence/action-666fk-position-version-lineage-v2-writer-protected-deployment-metadata-authentication-and-value-free-secret-scope-read-admission-review.json"
+  },
+  "future_authentication_authority_contract": {
+    "human_initiated_provider_session_required": true,
+    "separate_authority_before_authentication_required": true,
+    "bound_provider_project_required": true,
+    "least_privileged_principal_required": true,
+    "session_lifetime_and_revocation_path_required": true,
+    "ci_token_is_interchangeable_with_human_session": false,
+    "ci_token_custody_and_scope_requires_separate_review": true
+  },
+  "future_metadata_channel_contract": {
+    "one_named_secret_scope_projection_required": true,
+    "non_exporting_channel_required": true,
+    "environment_enumeration_permitted": false,
+    "environment_export_permitted": false,
+    "secret_value_projection_permitted": false,
+    "unrelated_secret_name_projection_permitted": false,
+    "redacted_audit_receipt_required": true,
+    "receipt_fields": [
+      "approved_actor_class",
+      "bound_project_proof",
+      "role_proof",
+      "operation_kind",
+      "result_class",
+      "timestamp",
+      "revocation_reference"
+    ]
+  },
+  "v2_writer_boundary": {
+    "non_public_connection_secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL",
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "named_secret_provisioned": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "authentication_token_read_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "environment_enumeration_admitted": false,
+    "environment_export_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_provisioning_admitted": false,
+    "credential_read_admitted": false,
+    "deployment_configuration_change_admitted": false,
+    "database_role_grant_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "database_query_or_mutation_admitted": false,
+    "writer_invocation_admitted": false,
+    "runtime_wiring_admitted": false,
+    "route_or_ui_wiring_admitted": false,
+    "provider_or_broker_contact_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_authentication_authority_and_audit_safe_metadata_channel_design",
+    "authentication_or_metadata_operation_admitted": false,
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_authentication_authority_and_audit_safe_metadata_channel_implementation_admission_review",
+    "reason": "the design defines future minimum controls but does not attest an actor, provider project, role, session, channel implementation or secret scope"
+  }
+}
