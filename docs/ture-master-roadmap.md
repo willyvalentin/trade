@@ -232,8 +232,12 @@ Concrete port binding, writer invocation, route/UI binding and deployment
 remain closed. Action 666FC now freezes that separately reviewed source-only
 private non-Data-API command-port contract: it fixes the parameter order,
 canonical digest projection and committed-result mapping without selecting a
-transport, reading credentials or binding an adapter. The next gate is a
-separately reviewed private transport implementation preflight.
+transport, reading credentials or binding an adapter. Action 666FD now closes
+that separately reviewed private transport implementation preflight: the
+current manifest has no direct PostgreSQL protocol dependency and no selected
+server-only private transport or contained credential source. Transport
+implementation remains fail-closed. The next gate is a separately reviewed
+dependency-and-credential source design.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
