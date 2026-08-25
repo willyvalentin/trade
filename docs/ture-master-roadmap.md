@@ -284,6 +284,16 @@ separate gate is a design-only authority and audit-safe metadata-channel
 contract; all credential, transport, connection and writer authority remains
 fail-closed.
 
+Action 666FL completes that design-only contract. A future metadata channel
+needs separately authorized human-initiated authentication, a bound provider
+project and least-privileged principal, a non-exporting one-secret-scope
+projection and a redacted audit receipt with a revocation path. It attests none
+of those controls and performs no authentication, token access, provider or
+secret metadata read, provisioning, transport, connection or writer operation.
+The next separate gate may review only implementation-admission criteria for
+that future authority and channel; every runtime and credential capability
+remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
