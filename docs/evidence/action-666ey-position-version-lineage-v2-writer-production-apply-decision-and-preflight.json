@@ -1,0 +1,69 @@
+{
+  "contract_version": "trade.action666ey.position-version-lineage-v2-writer-production-apply-decision-and-preflight-repeat.v1",
+  "action_id": "ACTION_666EY",
+  "evidence_captured_at": "2026-08-25",
+  "predecessor": {
+    "protected_main_commit": "5a102323c519f5ac086725acd3a26e7d8cea0bf8",
+    "exact_main_ci_run": 32812334646,
+    "exact_main_ci_conclusion": "success",
+    "action_666ex_catalog_proof_path": "docs/evidence/action-666ex-projection-marker-production-apply-and-catalog-proof.json"
+  },
+  "reviewed_source_packages": {
+    "writer_storage_routine": {
+      "path": "supabase/migrations/20260824195409_position_version_lineage_v2_writer_storage_routine_package.sql",
+      "sha256": "c9564854dcb81989afd2ff3de2279cc0309a8366592835b56d842fc736ab9196",
+      "production_migration_registry_entry_present": false
+    },
+    "receipt_foreign_key_indexes": {
+      "path": "supabase/migrations/20260824230454_position_version_lineage_v2_writer_receipt_foreign_key_indexes.sql",
+      "sha256": "715a30b645e92347349125164c28a5c3288a28789b34865067ae778239ee87ad",
+      "production_migration_registry_entry_present": false
+    },
+    "projection_contract_marker_prerequisite": {
+      "path": "supabase/migrations/20260824133138_add_position_version_lineage_projection_contract_marker.sql",
+      "sha256": "f35a0a367354103fda9e3f68c6f085f998c4520f0eacde4e0d8c7bcbc18a2d13",
+      "production_migration_registry_entry_present": true
+    }
+  },
+  "production_read_only_preflight": {
+    "environment_label": "Trade",
+    "query_path": "docs/sql/action-666ey-position-version-lineage-v2-writer-production-apply-decision-preflight.sql",
+    "query_sha256": "78b6b21f8dfcf359eace8f6a65dedf1c46884cf3a0c66335f59750737bf68945",
+    "transaction_read_only": true,
+    "aggregate_only_results": true,
+    "recommendations_relation_present": true,
+    "positions_relation_present": true,
+    "position_version_history_relation_present": true,
+    "base_lineage_prerequisite_columns_exact": true,
+    "history_writer_columns_exact": true,
+    "projection_markers_nullable_text_without_defaults_exact": true,
+    "receipt_relation_absent": true,
+    "writer_routine_absent": true,
+    "recommendation_owner_index_absent": true,
+    "position_owner_index_absent": true,
+    "pgcrypto_digest_dependency_present": true,
+    "recommendations_rls_enabled": true,
+    "positions_rls_enabled": true,
+    "public_client_select_denied": true,
+    "row_contents_or_identifiers_returned": false
+  },
+  "authority_limits": {
+    "production_database_query_performed": true,
+    "production_database_mutation_performed": false,
+    "production_migration_apply_performed": false,
+    "writer_invoked": false,
+    "backfill_performed": false,
+    "generated_types_refresh_performed": false,
+    "runtime_wiring_performed": false,
+    "grant_or_rls_change_performed": false,
+    "provider_or_broker_contact_performed": false,
+    "production_deployment_performed": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_storage_and_routine_production_apply_decision_and_preflight_repeat_after_marker_proof",
+    "writer_storage_and_index_package_eligible_for_next_production_apply_gate": true,
+    "next_bounded_objective": "position_version_lineage_v2_writer_storage_and_foreign_key_index_authorized_production_apply_and_catalog_proof",
+    "production_apply_authorized_by_this_action": false,
+    "runtime_activation_authorized": false
+  }
+}

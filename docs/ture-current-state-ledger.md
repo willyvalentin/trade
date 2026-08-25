@@ -1,17 +1,15 @@
 # Ture Current-State Ledger
 
-**ACTION 666EX — Projection-contract marker authorized production apply and catalog proof.**
+**ACTION 666EY — Repeated v2 writer production-apply decision and preflight.**
 
-**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EW's green
-exact-main delivery. Action 666EX applies the reviewed nullable
-projection-contract marker source once to production following a new
-aggregate-only preflight. The post-apply catalog proof confirms exact nullable
-marker shapes, retained `NOT VALID` transitional checks, legacy all-null
-admissibility and unchanged RLS/client-deny boundaries. No application row was
-read or written, no writer was invoked, and no type refresh, runtime/route
-binding, deployment or provider/broker activity occurred. The last verified
-production release remains the earlier PR #125 commit; no production deployment
-occurred.
+**Evidence timestamp:** 2026-08-25. This receipt follows Action 666EX's green
+exact-main delivery. Action 666EY repeats the writer-package production
+preflight after the separately proven marker application. All required
+base/history, marker, digest and client-deny prerequisites are true; the
+private receipt relation, writer routine and indexes remain absent. No DDL/DML,
+writer invocation, row read/write, type refresh, runtime/route binding,
+deployment or provider/broker activity occurred. The last verified production
+release remains the earlier PR #125 commit; no production deployment occurred.
 Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
@@ -21,8 +19,9 @@ package once to isolated staging and proved its exact catalog shape without
 writer invocation or row access. Action 666EV then completed the distinct
 aggregate-only production preflight for the writer storage/routine package;
 its fail-closed result left that package unapplied. Action 666EW established
-the marker package's separate production readiness, and Action 666EX now
-records its one authorized production application with aggregate catalog proof.
+the marker package's separate production readiness, Action 666EX recorded its
+one authorized production application with aggregate catalog proof, and Action
+666EY now establishes clean writer-package application readiness.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
