@@ -1,15 +1,17 @@
 # Ture Current-State Ledger
 
-**ACTION 666FA — V2 writer generated-types provenance and runtime-binding decision.**
+**ACTION 666FB — V2 writer private command-port runtime-binding admission preflight.**
 
 **Evidence timestamp:** 2026-08-25. This receipt follows Action 666EZ's green
-exact-main delivery. Action 666FA refreshes only the public generated TypeScript
-output from a validated in-memory types envelope and binds the output by hashes;
+exact-main delivery. Action 666FA refreshed only the public generated TypeScript
+output from a validated in-memory types envelope and bound the output by hashes;
 neither the private schema, V2 writer routine nor receipt relation is exposed.
-The existing writer adapter remains server-only and inert, so no concrete port,
-route/UI binding, writer invocation, application row read/write, deployment or
-provider/broker activity occurred. The last verified production release remains
-the earlier PR #125 commit; no production deployment occurred. Action 666DE's historical next bounded objective,
+Action 666FB proves the deployed private routine boundary but refuses concrete
+binding because no reviewed non-Data-API transport, V2 digest/result contract or
+replacement V2 adapter exists. No port, route/UI binding, writer invocation,
+application row read/write, deployment or provider/broker activity occurred.
+The last verified production release remains the earlier PR #125 commit; no
+production deployment occurred. Action 666DE's historical next bounded objective,
 `action_655g_canonical_recommendation_identity_reconciliation`, was closed by
 Action 666DF and remains preserved as immutable lineage.
 
@@ -19,11 +21,11 @@ writer invocation or row access. Action 666EV then completed the distinct
 aggregate-only production preflight for the writer storage/routine package;
 its fail-closed result left that package unapplied. Action 666EW established
 the marker package's separate production readiness, Action 666EX recorded its
-one authorized production application with aggregate catalog proof, Action
-Action 666EY established clean writer-package application readiness, Action 666EZ
-applied that ordered package with aggregate catalog proof, and Action 666FA
-now records only public generated-type provenance plus a fail-closed runtime
-binding decision.
+one authorized production application with aggregate catalog proof, Action 666EY
+established clean writer-package application readiness, Action 666EZ
+applied that ordered package with aggregate catalog proof, Action 666FA recorded
+public generated-type provenance, and Action 666FB records the separate
+fail-closed private command-port admission preflight.
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
@@ -320,7 +322,7 @@ separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply, generated-types provenance and lineage production-apply decision proven; controlled implementation begins | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM through 666EB deliver source-only observation and transactional writer boundaries. Action 666EC implements an inert private adapter, Action 666ED makes the current v1 routine non-admissible as its concrete port, Action 666EE delivers additive nullable lineage bytes, Action 666EF proves those bytes only on isolated staging with rolled-back v1 compatibility, and Action 666EG records fresh aggregate-only production preflight that defers the exact additive DDL to a separate gate. No broker or client writer authority is granted by this delivery. |
+| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply, generated-types provenance and lineage production-apply decision proven; controlled implementation begins | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM through 666EB deliver source-only observation and transactional writer boundaries. Action 666EC implements an inert private adapter, Action 666ED makes the current v1 routine non-admissible as its concrete port, Action 666EE delivers additive nullable lineage bytes, Action 666EF proves those bytes only on isolated staging with rolled-back v1 compatibility, and Action 666EG records fresh aggregate-only production preflight that defers the exact additive DDL to a separate gate. Action 666FB separately refuses a concrete V2 port until its private transport, digest/result and replacement-adapter contracts are reviewed. No broker or client writer authority is granted by this delivery. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 

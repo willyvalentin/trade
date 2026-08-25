@@ -225,6 +225,13 @@ from the public output. The existing server-only injected-port adapter remains
 inert; writer invocation, concrete port binding, route/UI binding and deployment
 remain closed pending a separate private command-port admission preflight.
 
+Action 666FB closes that static, fail-closed admission preflight. The deployed
+private routine boundary is proven, but no reviewed server-only non-Data-API
+transport, V2 digest-and-result contract or replacement V2 adapter exists.
+Concrete port binding, writer invocation, route/UI binding and deployment
+remain closed. The next gate is a separately reviewed source-only private
+non-Data-API command-port contract.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
