@@ -345,6 +345,13 @@ criterion and class, while requiring uniqueness, complete coverage and
 value-free non-issuance. The next separate gate may define a static
 witness-consistency proof only; all runtime authority remains fail-closed.
 
+Action 666FT now defines one static, declarative consistency-proof shape for
+the three witnesses: unique identifiers, exact criterion coverage, exact class
+binding, value-free representation and non-issuance. It does not execute a
+proof or integrity check, nor issue or verify an attestation or receipt. The
+next separate gate may conduct a static proof-admission review only; all
+runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

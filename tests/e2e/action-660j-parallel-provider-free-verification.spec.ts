@@ -129,6 +129,7 @@ const foundationTests = [
   "tests/e2e/action-666fq-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-design.spec.ts",
   "tests/e2e/action-666fr-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-catalog-design.spec.ts",
   "tests/e2e/action-666fs-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-integrity-contract-design.spec.ts",
+  "tests/e2e/action-666ft-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-design.spec.ts",
 ];
 
 const intelligenceTests = [
