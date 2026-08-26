@@ -123,6 +123,7 @@ const foundationTests = [
   "tests/e2e/action-666fl-position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-design.spec.ts",
   "tests/e2e/action-666fm-position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-implementation-admission-review.spec.ts",
   "tests/e2e/action-666fn-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-schema-and-negative-disclosure-contract.spec.ts",
+  "tests/e2e/action-666fo-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-test-vectors.spec.ts",
 ];
 
 const intelligenceTests = [
