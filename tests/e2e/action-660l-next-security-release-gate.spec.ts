@@ -11,10 +11,12 @@ const evidencePath =
 const contractPath = "docs/action-660l-next-security-release-gate.md";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const draftRunnerPath = "scripts/action-660k-run-draft-ci.mjs";
+const draftCostControlTestPath =
+  "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts";
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "a4f312eee247044ed7bc91cbb544e29b186e899bbf49ac4ab8456987f3136a9c";
+  "ec6cb3dc3f7901ef934d64c12b012c0b48a42efe3e9965bad3897cb1cd5326d1";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
@@ -33,7 +35,7 @@ const sourcePaths = [
   "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts",
   "tests/e2e/api-auth-middleware-boundary-audit.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
-  "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  draftCostControlTestPath,
   "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts",
   contractPath,
@@ -44,8 +46,6 @@ const historicalCurrentStateSources = {
     ".github/workflows/milestone-a-ci.yml",
   [registrationPath]: registrationPath,
   [runnerPath]: runnerPath,
-  "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts":
-    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts":
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts":
@@ -108,6 +108,12 @@ async function sourceHashes() {
     hashes[historicalPath] = sha256(historicalSource(snapshotPath));
   }
   return hashes;
+}
+
+function releaseSnapshotSources() {
+  return {
+    [draftCostControlTestPath]: sha256(historicalSource(draftCostControlTestPath)),
+  };
 }
 
 function expectedEvidence(sources: Record<string, string>) {
@@ -184,6 +190,7 @@ function expectedEvidence(sources: Record<string, string>) {
       registered_exactly_once: true,
     },
     sources,
+    release_snapshot_sources: releaseSnapshotSources(),
     delivery: {
       draft_quick_ci_observed_green: false,
       draft_protected_aggregate_observed_failure: false,
@@ -266,7 +273,12 @@ test("runs one full audit/build gate while keeping Draft feedback non-authoritat
     draftModule
       .selectDraftCommands(["package.json", "package-lock.json"])
       .map((entry) => entry.label),
-  ).toEqual(["Lint", "TypeScript", "Browser and server containment"]);
+  ).toEqual([
+    "Lint",
+    "TypeScript",
+    "Draft critical security smoke",
+    "Browser and server containment",
+  ]);
 
   const registration = JSON.parse(await source(registrationPath)) as string[];
   for (const requiredPath of [
@@ -356,6 +368,9 @@ test("rejects evidence deletion, extras and authority/security forgery", async (
     },
     (value) => {
       Reflect.deleteProperty(value.sources, "package-lock.json");
+    },
+    (value) => {
+      Reflect.deleteProperty(value, "release_snapshot_sources");
     },
     (value) => {
       value.sources.unexpected = "0".repeat(64);

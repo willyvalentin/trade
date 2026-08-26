@@ -1,5 +1,5 @@
 {
-  "contract_version": "action_660k_cost_bounded_provider_free_ci_v1",
+  "contract_version": "action_660k_cost_bounded_provider_free_ci_v2",
   "authority": {
     "base_main_commit": "466e95318a6feb1418ec60bfced98703183ccc54",
     "base_main_tree": "cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82",
@@ -35,9 +35,11 @@
     "always_run_labels": [
       "Lint",
       "TypeScript",
-      "Browser and server containment"
+      "Draft critical security smoke"
     ],
     "changed_registered_groups_added": true,
+    "source_to_test_mapping": true,
+    "unmapped_source_falls_back_to_broad_containment": true,
     "clean_tree_required": true,
     "full_matrix_result": "skipped",
     "protected_aggregate_result": "failure"
@@ -84,9 +86,9 @@
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
     "scripts/action-660j-provider-free-ci-registration.json": "1443dbf9bb0263e5fd1e43df878b574af7953f6b82947f3465a74d1353add9bb",
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "886101c8c14a7e1317e5e24a1e08bfeba53518a0670d11d35cc610a1640e8a50",
-    "scripts/action-660k-run-draft-ci.mjs": "9984c01238b20a866d970b7e39b24bf020981d58b5344fef12a84efbe0963b39",
+    "scripts/action-660k-run-draft-ci.mjs": "71e214042ae1ddc5918d0cc7439116d994cb4f28e07f027eea5e4cc23d49a406",
     "docs/action-660j-parallel-provider-free-verification.md": "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40",
-    "docs/action-660k-cost-bounded-provider-free-verification.md": "05e4d85205902fcf85af6b9b348b6d933108f4cc6605a97452ae3ec38d480cd4",
+    "docs/action-660k-cost-bounded-provider-free-verification.md": "0947d49124d7d85cb9a7f7b2cb97966c7f3f5e7ccf29894561b3b353a31705c0",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
   },

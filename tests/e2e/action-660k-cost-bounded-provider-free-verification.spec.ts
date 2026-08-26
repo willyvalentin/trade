@@ -58,6 +58,8 @@ type Evidence = {
     merge_base_diff: boolean;
     always_run_labels: string[];
     changed_registered_groups_added: boolean;
+    source_to_test_mapping: boolean;
+    unmapped_source_falls_back_to_broad_containment: boolean;
     clean_tree_required: boolean;
     full_matrix_result: string;
     protected_aggregate_result: string;
@@ -208,7 +210,7 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
   }
 });
 
-test("selects a closed cost-bounded Draft plan from exact registered test paths", async () => {
+test("selects a closed fast Draft plan with conservative source fallbacks", async () => {
   const { isFullSha, selectDraftCommands } = await draftRunnerModule();
   const validSha = "a".repeat(40);
   expect(isFullSha(validSha)).toBe(true);
@@ -228,7 +230,7 @@ test("selects a closed cost-bounded Draft plan from exact registered test paths"
   const baselineLabels = [
     "Lint",
     "TypeScript",
-    "Browser and server containment",
+    "Draft critical security smoke",
   ];
   expect(selectDraftCommands([]).map((entry) => entry.label)).toEqual(
     baselineLabels,
@@ -241,18 +243,45 @@ test("selects a closed cost-bounded Draft plan from exact registered test paths"
     "tests/e2e/action-666bd-governed-binding-snapshot-admission.spec.ts";
   expect(
     selectDraftCommands([admissionPath]).map((entry) => entry.label),
-  ).toEqual([...baselineLabels, "Governed binding snapshot admission"]);
+  ).toEqual([
+    ...baselineLabels,
+    `Affected registered test: ${admissionPath}`,
+  ]);
   expect(
     selectDraftCommands([admissionPath, admissionPath]).map(
       (entry) => entry.label,
     ),
-  ).toEqual([...baselineLabels, "Governed binding snapshot admission"]);
+  ).toEqual([
+    ...baselineLabels,
+    `Affected registered test: ${admissionPath}`,
+  ]);
 
+  const generatedTypesPath =
+    "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs";
+  expect(selectDraftCommands([generatedTypesPath]).map((entry) => entry.label))
+    .toEqual([
+      ...baselineLabels,
+      `Affected registered test: ${generatedTypesPath}`,
+    ]);
+
+  expect(selectDraftCommands(["proxy.ts"]).map((entry) => entry.label)).toEqual([
+    ...baselineLabels,
+    "Authenticated boundary",
+  ]);
   expect(
-    selectDraftCommands([
-      "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
-    ]).map((entry) => entry.label),
-  ).toEqual([...baselineLabels, "Generated-types provenance V2"]);
+    selectDraftCommands(["scripts/action-660k-run-draft-ci.mjs"]).map(
+      (entry) => entry.label,
+    ),
+  ).toEqual([...baselineLabels, "Draft CI contract smoke"]);
+  expect(selectDraftCommands(["app/page.tsx"]).map((entry) => entry.label)).toEqual([
+    ...baselineLabels,
+    "Browser and server containment",
+  ]);
+  expect(
+    selectDraftCommands(["unmapped-runtime-input/unknown.ts"]).map(
+      (entry) => entry.label,
+    ),
+  ).toEqual([...baselineLabels, "Browser and server containment"]);
 
   expect(() => selectDraftCommands("not-an-array")).toThrow(
     "changedPaths must be an array of strings",
@@ -308,7 +337,7 @@ test("binds exact governance evidence and forbids release authority", async () =
   }
 
   expect(evidence).toEqual({
-    contract_version: "action_660k_cost_bounded_provider_free_ci_v1",
+    contract_version: "action_660k_cost_bounded_provider_free_ci_v2",
     authority: {
       base_main_commit: "466e95318a6feb1418ec60bfced98703183ccc54",
       base_main_tree: "cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82",
@@ -344,9 +373,11 @@ test("binds exact governance evidence and forbids release authority", async () =
       always_run_labels: [
         "Lint",
         "TypeScript",
-        "Browser and server containment",
+        "Draft critical security smoke",
       ],
       changed_registered_groups_added: true,
+      source_to_test_mapping: true,
+      unmapped_source_falls_back_to_broad_containment: true,
       clean_tree_required: true,
       full_matrix_result: "skipped",
       protected_aggregate_result: "failure",

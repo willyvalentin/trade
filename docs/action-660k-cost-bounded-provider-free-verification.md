@@ -1,7 +1,8 @@
 # Action 660K — cost-bounded provider-free verification
 
-Status: **Ready-gated CI cost-control candidate; the protected full check is
-never satisfied by Draft verification**.
+Status: **Ready-gated CI cost-control candidate; Draft uses a small,
+non-authoritative critical smoke suite and the protected full check is never
+satisfied by Draft verification**.
 
 The frozen baseline is protected `main`
 `466e95318a6feb1418ec60bfced98703183ccc54`, tree
@@ -31,11 +32,15 @@ protection.
 While a pull request is Draft:
 
 1. `draft-provider-free-verification` checks out the exact Draft head;
-2. it runs lint, TypeScript and the complete browser/server containment group;
-3. it additionally runs every registered Action 660J command group containing
-   a test changed between the pull request merge base and exact head;
-4. it proves tracked source is unchanged; and
-5. the six-shard job is skipped, so the protected aggregate receives
+2. it runs lint, TypeScript and a closed three-test critical security smoke
+   suite;
+3. it runs an individual registered test when that exact test file changed;
+4. it maps the small, reviewed set of auth/proxy and CI-scheduling source
+   paths to their matching focused tests; and
+5. any unmapped non-documentation source path falls back to the complete
+   browser/server containment group;
+6. it proves tracked source is unchanged; and
+7. the six-shard job is skipped, so the protected aggregate receives
    `SHARD_RESULT=skipped` and fails closed.
 
 The Draft check has a distinct non-protected name. It cannot produce, replace,
@@ -77,13 +82,17 @@ The always-run set is exactly:
 
 - `Lint`;
 - `TypeScript`; and
-- `Browser and server containment`.
+- `Draft critical security smoke`.
 
-Additional selection occurs only when a changed test path is an exact member
-of a registered Action 660J command. A command is selected at most once and
-retains its original runner, arguments, `--workers=1` and React Server
-condition. This is fast feedback, not delivery authority; final Ready-head and
-exact-main full CI remain mandatory.
+Additional selection is closed and deterministic. A changed test path must be
+an exact member of the registered Action 660J plan; it then runs alone with the
+same runner, `--workers=1` and React Server condition as its full-CI command.
+The reviewed auth/proxy and CI-scheduling mappings select only their named
+focused commands. Documentation-only paths add no broad test group. Every
+other non-documentation source path falls back to the complete browser/server
+containment command. A command is selected at most once. This is fast feedback,
+not delivery authority; final Ready-head and exact-main full CI remain
+mandatory.
 
 ## Delivery condition
 
