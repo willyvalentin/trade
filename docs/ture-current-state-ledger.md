@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666FN — V2 writer protected deployment metadata-receipt schema and negative-disclosure contract.**
+
+**Evidence timestamp:** 2026-08-26. This receipt follows Action 666FM's green
+exact-main delivery. It defines a static redacted receipt schema that permits
+only classifications, an opaque identifier, a binding digest and revocation
+reference while prohibiting secret, raw provider, token, environment,
+connection and database disclosure. No receipt is issued and no authentication,
+metadata or secret access, transport, connection, routine, writer, route/UI,
+broker or production action occurred.
+
 **ACTION 666FM — V2 writer protected deployment authentication authority and audit-safe metadata-channel implementation admission review.**
 
 **Evidence timestamp:** 2026-08-25. This receipt follows Action 666FL's green

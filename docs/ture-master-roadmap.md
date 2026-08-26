@@ -302,6 +302,16 @@ next separate gate may design the redacted metadata-receipt schema and its
 negative disclosure contract; authentication, metadata access and all runtime
 authority remain fail-closed.
 
+Action 666FN now closes that static schema-and-contract gate. A future receipt
+may contain only its version, opaque identifier, event time, actor and
+principal classifications, provider-project binding digest, one named-secret
+scope classification, metadata-presence classification, policy revision and
+revocation reference. It expressly excludes raw secret, provider, token,
+environment, connection and database material, and it cannot issue a receipt.
+The next separate gate may design provider-free negative-disclosure test
+vectors only; authentication, provider and secret metadata access, transport,
+database and writer authority remain fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

@@ -1,0 +1,72 @@
+{
+  "contract_version": "trade.action666fn.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-schema-and-negative-disclosure-contract.v1",
+  "action_id": "ACTION_666FN",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "4dfddb0242fce171fe8f08cca65981858511b4b0",
+    "exact_main_ci_run": 32915380396,
+    "exact_main_ci_conclusion": "success",
+    "action_666fm_evidence_path": "docs/evidence/action-666fm-position-version-lineage-v2-writer-protected-deployment-authentication-authority-and-audit-safe-metadata-channel-implementation-admission-review.json"
+  },
+  "receipt_schema": {
+    "permitted_fields": [
+      "schema_version",
+      "receipt_identifier",
+      "event_time_utc",
+      "authenticated_actor_class",
+      "provider_project_binding_digest",
+      "principal_authority_class",
+      "named_secret_scope_class",
+      "metadata_presence_class",
+      "policy_revision",
+      "revocation_reference"
+    ],
+    "prohibited_fields": [
+      "secret_value",
+      "raw_secret_metadata",
+      "raw_secret_name",
+      "provider_project_identifier",
+      "authentication_token",
+      "environment_variable_set",
+      "connection_string",
+      "database_result"
+    ],
+    "exact_named_secret_reference_allowed": false,
+    "provider_project_identifier_allowed": false,
+    "actor_identity_allowed": false,
+    "negative_disclosure_vectors_required": true
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "named_secret_provisioned": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "metadata_channel_implementation_admitted": false,
+    "receipt_issuance_admitted": false,
+    "route_or_ui_wiring_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_schema_and_negative_disclosure_contract",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_test_vector_design",
+    "reason": "the receipt schema is static and forbids sensitive disclosure; no authority exists to obtain, issue or act on metadata"
+  }
+}
