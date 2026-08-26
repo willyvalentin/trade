@@ -1,5 +1,25 @@
 # Ture Master Roadmap
 
+## Current operating dashboard
+
+This dashboard is the short operational view of the roadmap. The detailed
+Action history, source, exact-main CI and authorized readbacks remain the
+evidence authority; this dashboard never creates runtime, provider, broker,
+database, deployment, secret, transport, writer, route or UI authority.
+
+| Control | Current state | Next required outcome |
+| --- | --- | --- |
+| Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
+| Current bounded workstream | Action 666FT delivered the value-free static witness-consistency-proof design | Action 666FU may review static proof admission only |
+| Next decision | Security closeout remains open | Record `close_static_workstream`, `authorize_one_bounded_implementation` or `redesign_or_stop` |
+| Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
+| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
+| Accountable roles | Product owner, delivery owner and independent reviewer must be named in the next decision record | Do not infer authority from an Action, test, fixture or CI result |
+
+The canonical operating rules, risk register, dependency map, quality metrics
+and Action template are in
+[`roadmap-operating-governance.md`](./roadmap-operating-governance.md).
+
 **ACTION 666EG — Position-version lineage production-apply decision and preflight.**
 
 **Document status:** Action 666EG production decision/preflight after the
@@ -351,6 +371,60 @@ binding, value-free representation and non-issuance. It does not execute a
 proof or integrity check, nor issue or verify an attestation or receipt. The
 next separate gate may conduct a static proof-admission review only; all
 runtime authority remains fail-closed.
+
+## Security closeout governance
+
+This rule closes a bounded static security workstream with an explicit product
+and review decision. It does not claim that Ture is universally secure, revise
+the completed Milestone A gate, or grant runtime, provider, broker, database,
+deployment, secret, transport, writer, route or UI authority.
+
+The rule currently applies to the protected deployment metadata-receipt and V2
+writer witness workstream. Action 666FU is the immediate next bounded step: it
+may conduct a static witness-consistency-proof admission review only.
+
+### Closeout criteria
+
+The workstream may be closed only when all of the following are recorded in
+the current-state ledger and the closeout decision record:
+
+1. The applicable threat model maps every protected claim to its source,
+   focused test or review evidence, and any residual risk.
+2. The final reviewed revision has passed exact-main CI and every applicable
+   focused verification; a passing result is evidence, not activation
+   authority.
+3. Every protected claim has traceable source, test, CI, reviewer and
+   limitation references.
+4. Protected-secret management, least-privileged identity, private transport,
+   writer invocation and route/UI binding are each explicitly classified as
+   `admitted`, `blocked` or `deferred`.
+5. A named product owner and independent reviewer record one required decision
+   below, including the residual-risk disposition and the next product outcome.
+
+### Required closeout decision
+
+- `close_static_workstream`: stop further static work in this workstream,
+  preserve residual risks and return to a separately prioritized product
+  outcome.
+- `authorize_one_bounded_implementation`: authorize exactly one separately
+  scoped runtime-adjacent action with a rollback boundary and required
+  production evidence. This decision does not authorize any other activation.
+- `redesign_or_stop`: reject the proposed activation path and revise the threat
+  model or architecture before further work.
+
+### Anti-drift rule
+
+No static security Action after Action 666FU may start unless it closes a named
+closeout criterion or the named product owner explicitly approves the bounded
+extension. A closeout decision is required after at most two additional static
+Actions. Every extension must name the threat reduced, the criterion closed and
+the concrete product capability or decision it enables; more documentation
+alone is not sufficient.
+
+The canonical process, decision-record template and status board are in
+[`security-closeout-governance.md`](./security-closeout-governance.md).
+Cross-workstream ownership, risk, dependency and flow-control rules are in
+[`roadmap-operating-governance.md`](./roadmap-operating-governance.md).
 
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
