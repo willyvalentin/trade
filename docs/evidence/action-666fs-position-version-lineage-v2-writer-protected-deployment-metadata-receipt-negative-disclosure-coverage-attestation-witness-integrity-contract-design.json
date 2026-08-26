@@ -1,0 +1,63 @@
+{
+  "contract_version": "trade.action666fs.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-integrity-contract-design.v1",
+  "action_id": "ACTION_666FS",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "e1bdb043e9466c32f4c4c8d61aa1e145cf97352c",
+    "exact_main_ci_run": 32960673526,
+    "exact_main_ci_conclusion": "success",
+    "action_666fr_evidence_path": "docs/evidence/action-666fr-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-catalog-design.json"
+  },
+  "negative_disclosure_coverage_attestation_witness_integrity_contract_design": {
+    "witness_ids": [
+      "schema_prohibited_disclosure_coverage_classification",
+      "vector_disclosure_explanation_classification",
+      "value_free_rejection_boundary_classification"
+    ],
+    "witness_count": 3,
+    "witness_id_uniqueness_required": true,
+    "criterion_coverage_exact_required": true,
+    "witness_class_binding_exact_required": true,
+    "value_free_required": true,
+    "attestation_issued_required": false,
+    "automated_integrity_verification_permitted": false,
+    "attestation_issuance_permitted": false,
+    "attestation_verification_permitted": false,
+    "receipt_issuance_permitted": false,
+    "sensitive_fixture_values_permitted": false
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "sensitive_fixture_admitted": false,
+    "automated_integrity_verification_admitted": false,
+    "attestation_issuance_admitted": false,
+    "attestation_verification_admitted": false,
+    "receipt_issuance_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness_integrity_contract_design",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness_consistency_proof_design",
+    "reason": "the integrity contract is declarative, provider-free and value-free; it cannot inspect, validate, issue or verify a witness, attestation or receipt"
+  }
+}
