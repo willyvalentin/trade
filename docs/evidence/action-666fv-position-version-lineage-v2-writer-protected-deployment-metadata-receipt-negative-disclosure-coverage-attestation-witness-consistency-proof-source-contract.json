@@ -1,0 +1,70 @@
+{
+  "contract_version": "trade.action666fv.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-source-contract.v1",
+  "action_id": "ACTION_666FV",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "cc47571ab6959959e1ebfaab7133754f41d6ae7c",
+    "protected_main_tree": "3a807e042371881c871d5defe541228162e2fdc5",
+    "exact_main_ci_run": 33020225505,
+    "exact_main_ci_conclusion": "success",
+    "action_666fu_evidence_path": "docs/evidence/action-666fu-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-admission-review.json"
+  },
+  "negative_disclosure_coverage_attestation_witness_consistency_proof_source_contract": {
+    "source_requirements": [
+      "immutable_source_revision",
+      "source_artifact_integrity_digest",
+      "source_provenance_binding",
+      "independent_source_authority",
+      "source_value_redaction",
+      "source_contract_only_non_execution"
+    ],
+    "independent_proof_source_required": true,
+    "concrete_proof_source_selected": false,
+    "concrete_source_artifact_read": false,
+    "source_contract_validated": false,
+    "proof_execution_permitted": false,
+    "automated_integrity_verification_permitted": false,
+    "attestation_issuance_permitted": false,
+    "attestation_verification_permitted": false,
+    "receipt_issuance_permitted": false,
+    "sensitive_fixture_values_permitted": false
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "source_artifact_read": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "source_artifact_read_admitted": false,
+    "source_validation_admitted": false,
+    "sensitive_fixture_admitted": false,
+    "proof_execution_admitted": false,
+    "automated_integrity_verification_admitted": false,
+    "attestation_issuance_admitted": false,
+    "attestation_verification_admitted": false,
+    "receipt_issuance_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness_consistency_proof_source_contract_design",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness_consistency_proof_value_free_witness_input_contract_design",
+    "reason": "a source contract can state future immutable, integrity, provenance, authority and redaction requirements without selecting, reading or validating a source; execution remains fail-closed"
+  }
+}

@@ -379,6 +379,13 @@ or integrity check, and neither issues nor verifies an attestation or receipt.
 The next separate gate may define a static proof-source contract only; all
 runtime authority remains fail-closed.
 
+Action 666FV now defines that static proof-source contract: a future source
+must have an immutable revision, integrity digest, provenance binding,
+independent authority and value-free redaction. No source is selected, read or
+validated, and no proof or integrity check runs. The next separate gate may
+define a static value-free witness-input contract only; all runtime authority
+remains fail-closed.
+
 ## Security closeout governance
 
 This rule closes a bounded static security workstream with an explicit product
