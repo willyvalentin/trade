@@ -340,6 +340,11 @@ coverage-attestation criterion. It issues and verifies neither an attestation
 nor a receipt. The next separate gate may define a static witness-integrity
 contract only; all runtime authority remains fail-closed.
 
+Action 666FS now fixes the three static witness identifiers to their exact
+criterion and class, while requiring uniqueness, complete coverage and
+value-free non-issuance. The next separate gate may define a static
+witness-consistency proof only; all runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
