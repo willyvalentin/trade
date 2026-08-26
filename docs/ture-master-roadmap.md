@@ -320,6 +320,15 @@ environment, secret manager, database or writer. The next separate gate may
 reconcile static vector coverage only; all runtime authority remains
 fail-closed.
 
+Action 666FP now reconciles every 666FN receipt-schema prohibited disclosure
+against its 666FO value-free rejection vector. Actor identity and an exact
+named-secret reference remain separately required negative disclosures. The
+static reconciliation records no uncovered denylist item and no unexplained
+vector. It performs no receipt validation or issuance and has no provider,
+environment, secret-manager, database, transport or writer capability. The
+next separate gate may define static coverage-attestation criteria only; all
+runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
