@@ -335,6 +335,11 @@ underlying reconciliation remains value-free and unable to issue a receipt. It
 does not issue or verify an attestation. The next separate gate may define a
 static witness catalog only; all runtime authority remains fail-closed.
 
+Action 666FR now defines one static, value-free witness classification for each
+coverage-attestation criterion. It issues and verifies neither an attestation
+nor a receipt. The next separate gate may define a static witness-integrity
+contract only; all runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
