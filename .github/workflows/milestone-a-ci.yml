@@ -207,5 +207,6 @@ jobs:
         with:
           name: post-merge-candidate-provenance-main-${{ github.sha }}
           path: .ci-provenance
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
