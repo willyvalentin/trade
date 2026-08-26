@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666FT delivered the value-free static witness-consistency-proof design | Action 666FU may review static proof admission only |
+| Current bounded workstream | Action 666FU completed the static proof-admission review without admitting proof execution | Record the closeout evidence and decision; any further Action must satisfy the extension rule |
 | Next decision | Security closeout remains open | Record `close_static_workstream`, `authorize_one_bounded_implementation` or `redesign_or_stop` |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
@@ -372,6 +372,13 @@ proof or integrity check, nor issue or verify an attestation or receipt. The
 next separate gate may conduct a static proof-admission review only; all
 runtime authority remains fail-closed.
 
+Action 666FU reviewed that proof shape and refused execution because its
+independent source, value-free input, deterministic result, independent oracle
+and non-issuance gates have not been separately defined. It performs no proof
+or integrity check, and neither issues nor verifies an attestation or receipt.
+The next separate gate may define a static proof-source contract only; all
+runtime authority remains fail-closed.
+
 ## Security closeout governance
 
 This rule closes a bounded static security workstream with an explicit product
@@ -380,8 +387,10 @@ the completed Milestone A gate, or grant runtime, provider, broker, database,
 deployment, secret, transport, writer, route or UI authority.
 
 The rule currently applies to the protected deployment metadata-receipt and V2
-writer witness workstream. Action 666FU is the immediate next bounded step: it
-may conduct a static witness-consistency-proof admission review only.
+writer witness workstream. Action 666FU is the delivered proof-admission
+boundary; it refused proof execution and left runtime authority fail-closed.
+Any further Action must therefore follow the closeout and anti-drift rules
+below.
 
 ### Closeout criteria
 

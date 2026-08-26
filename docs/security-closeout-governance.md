@@ -29,8 +29,8 @@ writer witness workstream:
 
 | Item | Status |
 | --- | --- |
-| Latest delivered boundary | Action 666FT static witness-consistency-proof design |
-| Immediate next boundary | Action 666FU static proof-admission review only |
+| Latest delivered boundary | Action 666FU static proof-admission review; it did not admit proof execution |
+| Immediate next boundary | Complete the closeout record and decision; any extension must meet the anti-drift rule |
 | Runtime authority | not admitted |
 | Closeout decision | not yet recorded |
 | Milestone A classification | unchanged; its bounded 15/15 gate does not imply runtime activation |
@@ -62,10 +62,11 @@ its own authorization to activate a runtime capability.
 
 ## Anti-drift rule
 
-Action 666FU is the immediate next static review. After it, no static security
-Action may begin unless it closes a named criterion below or the named product
-owner approves the precise extension. A closeout decision is mandatory after
-at most two additional static Actions.
+Action 666FU completed the immediate static review and did not admit proof
+execution. After it, no static security Action may begin unless it closes a
+named criterion below or the named product owner approves the precise
+extension. A closeout decision is mandatory after at most two additional static
+Actions.
 
 Each extension must name:
 

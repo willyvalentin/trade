@@ -64,7 +64,7 @@ the stated trigger occurs.
 
 | ID | Risk | Severity | Current disposition | Review trigger | Accountable role |
 | --- | --- | --- | --- | --- | --- |
-| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigate through the security closeout rule and its Action budget | Action 666FU closeout review or any proposed extension | Product owner |
+| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigate through the security closeout rule and its Action budget | Closeout decision after Action 666FU or any proposed extension | Product owner |
 | RG-02 | Protected runtime prerequisites are not admitted, so an unsafe shortcut could bypass the intended boundary | high safety risk | Keep secret management, identity, transport, writer and route/UI fail-closed | Any proposal to implement or activate a runtime path | Independent reviewer |
 | RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Observe and classify every non-successful run before changing a required gate | Weekly flow review or any CI gate-change proposal | Delivery owner |
 | RG-04 | Production and current-main identity can drift after a deployment or database change | high release risk | Reconcile exact identities and reopen the affected Milestone A evidence | Every production deploy/assertion or migration application | Operator and independent reviewer |
@@ -73,7 +73,7 @@ the stated trigger occurs.
 
 | Blocked outcome | Depends on | Evidence required before it moves | Next allowed move |
 | --- | --- | --- | --- |
-| Static metadata-receipt/witness workstream closeout | Action 666FU admission review and complete closeout record | Claim-to-evidence map, residual-risk disposition, named owners and exact-main CI | One closeout decision |
+| Static metadata-receipt/witness workstream closeout | Delivered Action 666FU admission review and complete closeout record | Claim-to-evidence map, residual-risk disposition, named owners and exact-main CI | One closeout decision |
 | One bounded V2 writer implementation | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI classifications | Separately reviewed authority, containment/rollback and required operational evidence | Exactly one authorized implementation Action |
 | Milestone B runtime capability | Canonical server-owned writer, durable identity, auditability and approved activation boundary | Behavior-level, idempotency and owner-bound evidence appropriate to the scope | Separately authorized runtime trial or remain blocked |
 | Production publication | Exact deploy/main identity, required CI, applicable smoke/readback and explicit operator approval | Release-specific evidence; source merge alone is insufficient | One authorized release decision |
