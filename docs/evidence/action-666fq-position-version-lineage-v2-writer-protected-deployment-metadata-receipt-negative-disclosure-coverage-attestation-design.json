@@ -1,0 +1,54 @@
+{
+  "contract_version": "trade.action666fq.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-design.v1",
+  "action_id": "ACTION_666FQ",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "7668d35448d3299a3ba01f225e7409746242486c",
+    "exact_main_ci_run": 32947118747,
+    "exact_main_ci_conclusion": "success",
+    "action_666fp_evidence_path": "docs/evidence/action-666fp-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-reconciliation.json"
+  },
+  "negative_disclosure_coverage_attestation_design": {
+    "criteria_ids": [
+      "all_schema_prohibited_disclosures_covered",
+      "all_vector_disclosures_explained",
+      "value_free_rejection_only"
+    ],
+    "attestation_issuance_permitted": false,
+    "receipt_issuance_permitted": false,
+    "sensitive_fixture_values_permitted": false,
+    "criteria_satisfied": true
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "sensitive_fixture_admitted": false,
+    "attestation_issuance_admitted": false,
+    "receipt_issuance_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_design",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness_catalog_design",
+    "reason": "the criteria are static, provider-free and value-free; they can neither issue nor verify an attestation or a receipt"
+  }
+}

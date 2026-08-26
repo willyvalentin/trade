@@ -329,6 +329,12 @@ environment, secret-manager, database, transport or writer capability. The
 next separate gate may define static coverage-attestation criteria only; all
 runtime authority remains fail-closed.
 
+Action 666FQ now defines the static criteria for attesting that this coverage
+is complete: every schema denial is covered, every vector is explained, and the
+underlying reconciliation remains value-free and unable to issue a receipt. It
+does not issue or verify an attestation. The next separate gate may define a
+static witness catalog only; all runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary

@@ -99,6 +99,7 @@ const foundationTests = [
   "tests/e2e/action-666fn-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-schema-and-negative-disclosure-contract.spec.ts",
   "tests/e2e/action-666fo-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-test-vectors.spec.ts",
   "tests/e2e/action-666fp-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-reconciliation.spec.ts",
+  "tests/e2e/action-666fq-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-design.spec.ts",
 ];
 
 const intelligenceTests = [
