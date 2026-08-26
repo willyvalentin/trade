@@ -85,17 +85,20 @@
     "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",
     "scripts/action-660j-provider-free-ci-registration.json": "1443dbf9bb0263e5fd1e43df878b574af7953f6b82947f3465a74d1353add9bb",
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "886101c8c14a7e1317e5e24a1e08bfeba53518a0670d11d35cc610a1640e8a50",
-    "scripts/action-660k-run-draft-ci.mjs": "9984c01238b20a866d970b7e39b24bf020981d58b5344fef12a84efbe0963b39",
+    "scripts/action-660k-run-draft-ci.mjs": "71e214042ae1ddc5918d0cc7439116d994cb4f28e07f027eea5e4cc23d49a406",
     "tests/e2e/action-307k-proxy-runtime-crash-isolation.spec.ts": "87cf23ee02092fff6a6c050bff761efd3009e4511b91fe736e3dcf0f6b583162",
     "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts": "df93d8389f163d2aa202bd3c6c93c231e6d5540e6682c5e033b08a6d62c4f86a",
     "tests/e2e/api-auth-middleware-boundary-audit.spec.ts": "0ff7215125f04a23766c1f2e78934161de3ed213aa50f40f621b9fdddc5bf043",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "caa7bfaf463a0ebbc3c5dd3b75103332b1d6cd6cd5b1ebec4fd3fd716d7558a7",
-    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "18db420f7667f8cf1280040ec71f7f2ab416da47066c1393d2d61b80026facf1",
+    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "bb3852eef84e305a535a4d073f6ecda39949d164c4e873f2128300bde66766b6",
     "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
     "docs/action-660l-next-security-release-gate.md": "9f48eff38211793bb0be6bd68facb452f537a71b5667f99ced17a7104e26da55",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
+  },
+  "release_snapshot_sources": {
+    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "18db420f7667f8cf1280040ec71f7f2ab416da47066c1393d2d61b80026facf1"
   },
   "delivery": {
     "draft_quick_ci_observed_green": false,
