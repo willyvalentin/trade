@@ -1,0 +1,75 @@
+{
+  "contract_version": "trade.action666fp.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-reconciliation.v1",
+  "action_id": "ACTION_666FP",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "e2c8d6f7ca95d45250d65c7702c0cf2e655b9b6c",
+    "exact_main_ci_run": 32940604918,
+    "exact_main_ci_conclusion": "success",
+    "action_666fo_evidence_path": "docs/evidence/action-666fo-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-test-vectors.json"
+  },
+  "negative_disclosure_coverage_reconciliation": {
+    "schema_prohibited_disclosures": [
+      "secret_value",
+      "raw_secret_metadata",
+      "raw_secret_name",
+      "provider_project_identifier",
+      "authentication_token",
+      "environment_variable_set",
+      "connection_string",
+      "database_result"
+    ],
+    "additional_required_negative_disclosures": [
+      "actor_identity",
+      "exact_named_secret_reference"
+    ],
+    "vector_disclosures": [
+      "secret_value",
+      "raw_secret_metadata",
+      "raw_secret_name",
+      "provider_project_identifier",
+      "authentication_token",
+      "environment_variable_set",
+      "connection_string",
+      "database_result",
+      "actor_identity",
+      "exact_named_secret_reference"
+    ],
+    "uncovered_schema_prohibited_disclosures": [],
+    "unexplained_vector_disclosures": [],
+    "required_disposition": "reject_without_receipt_issuance",
+    "receipt_issuance_permitted": false,
+    "sensitive_fixture_values_permitted": false
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "sensitive_fixture_admitted": false,
+    "receipt_issuance_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_coverage_reconciliation",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_design",
+    "reason": "the reconciliation is static, provider-free and value-free; it can neither issue a receipt nor act on metadata"
+  }
+}
