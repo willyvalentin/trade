@@ -1,0 +1,61 @@
+{
+  "contract_version": "trade.action666fo.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-test-vectors.v1",
+  "action_id": "ACTION_666FO",
+  "evidence_captured_at": "2026-08-26",
+  "predecessor": {
+    "protected_main_commit": "b856b0ba2b5588a06faf4786363f568f3dfbb1ec",
+    "exact_main_ci_run": 32934898458,
+    "exact_main_ci_conclusion": "success",
+    "action_666fn_evidence_path": "docs/evidence/action-666fn-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-schema-and-negative-disclosure-contract.json"
+  },
+  "negative_disclosure_vector_design": {
+    "provider_free_only": true,
+    "sensitive_fixture_values_permitted": false,
+    "receipt_issuance_permitted": false,
+    "vector_disclosures": [
+      "secret_value",
+      "raw_secret_metadata",
+      "raw_secret_name",
+      "provider_project_identifier",
+      "authentication_token",
+      "environment_variable_set",
+      "connection_string",
+      "database_result",
+      "actor_identity",
+      "exact_named_secret_reference"
+    ],
+    "required_disposition": "reject_without_receipt_issuance"
+  },
+  "v2_writer_boundary": {
+    "provider_authentication_initiated": false,
+    "authentication_token_read": false,
+    "provider_project_metadata_read": false,
+    "environment_variable_enumeration_performed": false,
+    "environment_export_performed": false,
+    "secret_manager_metadata_read": false,
+    "secret_value_accessed": false,
+    "metadata_receipt_issued": false,
+    "database_connection_opened": false,
+    "routine_invoked": false,
+    "writer_invoked": false
+  },
+  "authority_limits": {
+    "provider_authentication_admitted": false,
+    "provider_metadata_read_admitted": false,
+    "secret_manager_metadata_read_admitted": false,
+    "credential_read_admitted": false,
+    "sensitive_fixture_admitted": false,
+    "receipt_issuance_admitted": false,
+    "route_or_ui_wiring_admitted": false,
+    "transport_implementation_admitted": false,
+    "database_connection_admitted": false,
+    "writer_invocation_admitted": false,
+    "production_deployment_admitted": false
+  },
+  "decision": {
+    "bounded_objective_closed": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_test_vector_design",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "protected_deployment_metadata_receipt_negative_disclosure_coverage_reconciliation",
+    "reason": "the vector catalog is static, provider-free and value-free; it cannot obtain, validate, issue or act on metadata"
+  }
+}

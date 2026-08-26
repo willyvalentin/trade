@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666FO — V2 writer protected deployment metadata-receipt negative-disclosure test vectors.**
+
+**Evidence timestamp:** 2026-08-26. This receipt follows Action 666FN's green
+exact-main delivery. It defines only value-free, provider-free rejection vectors
+for each prohibited receipt disclosure plus actor identity and an exact
+named-secret reference. No fixture contains sensitive material and no receipt,
+authentication, metadata or secret access, transport, connection, routine,
+writer, route/UI, broker or production action occurred.
+
 **ACTION 666FN — V2 writer protected deployment metadata-receipt schema and negative-disclosure contract.**
 
 **Evidence timestamp:** 2026-08-26. This receipt follows Action 666FM's green

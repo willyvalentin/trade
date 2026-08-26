@@ -312,6 +312,14 @@ The next separate gate may design provider-free negative-disclosure test
 vectors only; authentication, provider and secret metadata access, transport,
 database and writer authority remain fail-closed.
 
+Action 666FO now defines provider-free negative-disclosure test vectors for
+every prohibited receipt disclosure plus actor identity and an exact
+named-secret reference. Each vector is value-free and requires rejection
+without receipt issuance. It performs no validation against a provider,
+environment, secret manager, database or writer. The next separate gate may
+reconcile static vector coverage only; all runtime authority remains
+fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
