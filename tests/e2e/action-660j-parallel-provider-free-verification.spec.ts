@@ -54,6 +54,7 @@ const foundationTests = [
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  "tests/e2e/action-660o-merge-candidate-provenance.spec.ts",
   "tests/e2e/action-660l-next-security-release-gate.spec.ts",
   "tests/e2e/action-660m-current-production-reclosure.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
@@ -345,6 +346,8 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
     "draft-provider-free-verification",
     "provider-free-verification-shard",
     "provider-free-verification",
+    "merge-candidate-provenance",
+    "post-merge-candidate-provenance",
   ]);
 
   const draftJob = blockBetween(
@@ -379,8 +382,8 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
   expect(workflowShards).toEqual(shardNames);
 
   for (const required of [
-    "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
-    "EXPECTED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+    "ref: ${{ github.sha }}",
+    "EXPECTED_REVISION: ${{ github.sha }}",
     'run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"',
     "persist-credentials: false",
     "node-version: 24.19.0",

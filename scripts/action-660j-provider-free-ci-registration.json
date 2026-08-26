@@ -11,6 +11,7 @@
   "tests/e2e/action-660i-ma13-verified-branch-protection-closure.spec.ts",
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
+  "tests/e2e/action-660o-merge-candidate-provenance.spec.ts",
   "tests/e2e/action-660l-next-security-release-gate.spec.ts",
   "tests/e2e/action-660m-current-production-reclosure.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",

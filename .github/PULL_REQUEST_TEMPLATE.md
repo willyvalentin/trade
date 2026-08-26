@@ -12,7 +12,11 @@ does not close MA13 or make Milestone A complete.
 - [ ] The PR remained Draft until its bounded scope was complete and frozen.
 - [ ] The PR targets `main` and contains only the intended bounded scope.
 - [ ] The exact head SHA is recorded after the scope is frozen.
-- [ ] `provider-free-verification` is successful for that exact head SHA.
+- [ ] `provider-free-verification` is successful for GitHub's merge candidate
+      formed from that exact head SHA and the then-current `main` base.
+- [ ] The candidate SHA and tree SHA are recorded by the merge-candidate POC.
+- [ ] For POC evidence, merge using GitHub's **Create a merge commit** method;
+      squash and rebase merges remain fail-closed observations.
 - [ ] Independent read-only review has no unresolved blocking finding.
 - [ ] The PR is cleanly mergeable and its base is current.
 - [ ] The operator has explicitly approved this PR number and exact head SHA.

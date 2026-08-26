@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 
 concurrency:
   group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -78,15 +80,18 @@ jobs:
       CI: "true"
       PLAYWRIGHT_SKIP_WEB_SERVER: "true"
     steps:
-      - name: Checkout exact revision
+      - name: Checkout exact candidate or main revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          # For a non-merged pull_request GitHub sets github.sha/github.ref to
+          # its immutable refs/pull/<number>/merge candidate. A push to main
+          # still checks out that exact pushed main revision.
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify exact revision identity
+      - name: Verify exact candidate or main revision identity
         env:
-          EXPECTED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_REVISION: ${{ github.sha }}
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"
       - name: Set up Node.js 24.19.0
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -117,3 +122,90 @@ jobs:
         env:
           SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}
         run: test "$SHARD_RESULT" = "success"
+
+  # POC only: this job records evidence after the unchanged six-shard Full CI.
+  # It is deliberately not a required check, and exact-main Full CI remains
+  # mandatory after every main push while the candidate model is being proven.
+  merge-candidate-provenance:
+    name: merge-candidate-provenance / POC
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.provider-free-verification.result == 'success' }}
+    needs:
+      - provider-free-verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact GitHub merge candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact GitHub merge candidate identity
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
+          EXPECTED_REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"
+          test "$GITHUB_REF" = "$EXPECTED_REF"
+      - name: Capture successful candidate provenance
+        id: capture
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/action-660o-merge-candidate-provenance.mjs capture .ci-provenance/merge-candidate-provenance.json
+      - name: Store candidate provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.capture.outputs.artifact_name }}
+          path: .ci-provenance/merge-candidate-provenance.json
+          if-no-files-found: error
+          retention-days: 30
+
+  # POC only: this job always runs after the unchanged exact-main six-shard
+  # verification. It never authorizes a merge and cannot suppress Full CI.
+  post-merge-candidate-provenance:
+    name: post-merge-candidate-provenance / POC
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - provider-free-verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact main revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact main revision identity
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"
+      - name: Discover matching candidate provenance
+        id: discover
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EXACT_MAIN_FULL_CI_RESULT: ${{ needs.provider-free-verification.result }}
+        run: node scripts/action-660o-merge-candidate-provenance.mjs discover .ci-provenance/merge-candidate-discovery.json
+      - name: Download matching candidate provenance
+        if: ${{ steps.discover.outputs.provenance_run_id != '' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ steps.discover.outputs.provenance_artifact_name }}
+          run-id: ${{ steps.discover.outputs.provenance_run_id }}
+          github-token: ${{ github.token }}
+          path: .ci-provenance/candidate
+      - name: Compare exact main with candidate provenance
+        if: ${{ steps.discover.outputs.provenance_run_id != '' && needs.provider-free-verification.result == 'success' }}
+        id: compare
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EXACT_MAIN_FULL_CI_RESULT: ${{ needs.provider-free-verification.result }}
+        run: node scripts/action-660o-merge-candidate-provenance.mjs verify .ci-provenance/candidate/merge-candidate-provenance.json .ci-provenance/merge-candidate-discovery.json .ci-provenance/post-merge-candidate-provenance.json
+      - name: Store post-merge POC evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: post-merge-candidate-provenance-main-${{ github.sha }}
+          path: .ci-provenance
+          if-no-files-found: error
+          retention-days: 30

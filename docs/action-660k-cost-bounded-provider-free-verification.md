@@ -91,8 +91,8 @@ The reviewed auth/proxy and CI-scheduling mappings select only their named
 focused commands. Documentation-only paths add no broad test group. Every
 other non-documentation source path falls back to the complete browser/server
 containment command. A command is selected at most once. This is fast feedback,
-not delivery authority; final Ready-head and exact-main full CI remain
-mandatory.
+not delivery authority; final Ready merge-candidate and exact-main full CI
+remain mandatory.
 
 ## Delivery condition
 
@@ -100,8 +100,9 @@ This candidate is incomplete until its exact final head has:
 
 - a green Draft quick job while the protected aggregate demonstrably fails on
   Draft because the full matrix is skipped;
-- an automatic Ready transition that runs all six shards and produces a green
-  protected aggregate on the same exact head;
+- an automatic Ready transition that runs all six shards on GitHub's exact
+  merge candidate for the frozen head and current base, and produces a green
+  protected aggregate;
 - independent read-only review with no blocking finding;
 - explicit operator approval naming the exact PR and head;
 - an ordinary protected merge with no unexpected tree delta; and

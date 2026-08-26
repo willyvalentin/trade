@@ -1,5 +1,5 @@
 {
-  "contract_version": "action_660k_cost_bounded_provider_free_ci_v2",
+  "contract_version": "action_660k_cost_bounded_provider_free_ci_v3",
   "authority": {
     "base_main_commit": "466e95318a6feb1418ec60bfced98703183ccc54",
     "base_main_tree": "cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82",
@@ -49,6 +49,7 @@
     "ready_synchronize_event_required": true,
     "pr_concurrency_key": "github.event.pull_request.number",
     "stale_pr_runs_cancelled": true,
+    "github_merge_candidate_checkout": true,
     "full_shards": [
       "foundation",
       "replay-lineage",
@@ -79,7 +80,7 @@
     "cancelled_full_matrix_can_authorize_merge": false,
     "timed_out_full_matrix_can_authorize_merge": false,
     "incomplete_full_matrix_can_authorize_merge": false,
-    "ready_head_full_ci_required": true,
+    "ready_merge_candidate_full_ci_required": true,
     "exact_main_full_ci_required": true
   },
   "sources": {
@@ -88,14 +89,14 @@
     "scripts/action-660j-run-provider-free-ci-shard.mjs": "886101c8c14a7e1317e5e24a1e08bfeba53518a0670d11d35cc610a1640e8a50",
     "scripts/action-660k-run-draft-ci.mjs": "71e214042ae1ddc5918d0cc7439116d994cb4f28e07f027eea5e4cc23d49a406",
     "docs/action-660j-parallel-provider-free-verification.md": "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40",
-    "docs/action-660k-cost-bounded-provider-free-verification.md": "0947d49124d7d85cb9a7f7b2cb97966c7f3f5e7ccf29894561b3b353a31705c0",
+    "docs/action-660k-cost-bounded-provider-free-verification.md": "bb811cdfbfed8401179269ae628c1f74fb0c5de55f3db06103ff2af459f1cf47",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
   },
   "delivery": {
     "draft_quick_observed_green": false,
     "draft_protected_aggregate_observed_failure": false,
-    "ready_exact_head_full_ci_observed_green": false,
+    "ready_merge_candidate_full_ci_observed_green": false,
     "independent_review_no_findings": false,
     "operator_approval_exact_pr_and_head": false,
     "ordinary_protected_merge": false,

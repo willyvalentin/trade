@@ -69,6 +69,7 @@ type Evidence = {
     ready_synchronize_event_required: boolean;
     pr_concurrency_key: string;
     stale_pr_runs_cancelled: boolean;
+    github_merge_candidate_checkout: boolean;
     full_shards: string[];
     fail_fast: boolean;
     all_shards_run_to_completion: boolean;
@@ -179,12 +180,9 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
   expect(shardJob).toContain("fail-fast: false");
   expect(shardJob).toContain("fetch-depth: 0");
   expect(workflow).not.toContain("fetch-depth: 1");
-  expect(shardJob).toContain(
-    "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
-  );
-  expect(shardJob).toContain(
-    "EXPECTED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
-  );
+  expect(shardJob).toContain("ref: ${{ github.sha }}");
+  expect(shardJob).toContain("EXPECTED_REVISION: ${{ github.sha }}");
+  expect(shardJob).toContain("refs/pull/<number>/merge candidate");
 
   expect(aggregateJob).toContain("name: provider-free-verification");
   expect(aggregateJob).toContain("if: ${{ always() }}");
@@ -337,7 +335,7 @@ test("binds exact governance evidence and forbids release authority", async () =
   }
 
   expect(evidence).toEqual({
-    contract_version: "action_660k_cost_bounded_provider_free_ci_v2",
+    contract_version: "action_660k_cost_bounded_provider_free_ci_v3",
     authority: {
       base_main_commit: "466e95318a6feb1418ec60bfced98703183ccc54",
       base_main_tree: "cdd83c876aee0096fd7d903c20e8e3b7ef4f6d82",
@@ -387,6 +385,7 @@ test("binds exact governance evidence and forbids release authority", async () =
       ready_synchronize_event_required: true,
       pr_concurrency_key: "github.event.pull_request.number",
       stale_pr_runs_cancelled: true,
+      github_merge_candidate_checkout: true,
       full_shards: [
         "foundation",
         "replay-lineage",
@@ -417,14 +416,14 @@ test("binds exact governance evidence and forbids release authority", async () =
       cancelled_full_matrix_can_authorize_merge: false,
       timed_out_full_matrix_can_authorize_merge: false,
       incomplete_full_matrix_can_authorize_merge: false,
-      ready_head_full_ci_required: true,
+      ready_merge_candidate_full_ci_required: true,
       exact_main_full_ci_required: true,
     },
     sources: sourceHashes,
     delivery: {
       draft_quick_observed_green: false,
       draft_protected_aggregate_observed_failure: false,
-      ready_exact_head_full_ci_observed_green: false,
+      ready_merge_candidate_full_ci_observed_green: false,
       independent_review_no_findings: false,
       operator_approval_exact_pr_and_head: false,
       ordinary_protected_merge: false,
