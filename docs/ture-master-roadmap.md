@@ -352,6 +352,13 @@ proof or integrity check, nor issue or verify an attestation or receipt. The
 next separate gate may conduct a static proof-admission review only; all
 runtime authority remains fail-closed.
 
+Action 666FU now reviews that proof shape and refuses execution because its
+independent source, value-free input, deterministic result, independent oracle
+and non-issuance gates have not been separately defined. It performs no proof
+or integrity check, and neither issues nor verifies an attestation or receipt.
+The next separate gate may define a static proof-source contract only; all
+runtime authority remains fail-closed.
+
 `roadmap_completion_authority:false_until_exact_main_delivery_verified`
 
 ## Evidence boundary
