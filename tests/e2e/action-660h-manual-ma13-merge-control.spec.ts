@@ -188,7 +188,9 @@ const templateChecklistItems = [
   "The PR remained Draft until its bounded scope was complete and frozen.",
   "The PR targets `main` and contains only the intended bounded scope.",
   "The exact head SHA is recorded after the scope is frozen.",
-  "`provider-free-verification` is successful for that exact head SHA.",
+  "`provider-free-verification` is successful for GitHub's merge candidate",
+  "The candidate SHA and tree SHA are recorded by the merge-candidate POC.",
+  "For POC evidence, merge using GitHub's **Create a merge commit** method;",
   "Independent read-only review has no unresolved blocking finding.",
   "The PR is cleanly mergeable and its base is current.",
   "The operator has explicitly approved this PR number and exact head SHA.",
@@ -350,12 +352,15 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
   expect(registeredTests).toContain(
     "tests/e2e/action-660h-manual-ma13-merge-control.spec.ts",
   );
+  expect(workflow).toContain("ref: ${{ github.event.pull_request.head.sha }}");
+  expect(workflow).toContain("name: Verify exact Draft revision identity");
   expect(workflow).toContain(
-    "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+    "EXPECTED_REVISION: ${{ github.event.pull_request.head.sha }}",
   );
-  expect(workflow).toContain("name: Verify exact revision identity");
+  expect(workflow).toContain("name: Checkout exact candidate or main revision");
+  expect(workflow).toContain("ref: ${{ github.sha }}");
   expect(workflow).toContain(
-    "EXPECTED_REVISION: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+    "EXPECTED_REVISION: ${{ github.sha }}",
   );
   expect(workflow).toContain(
     'run: test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"',

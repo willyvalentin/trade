@@ -259,7 +259,11 @@ test("registers the reconciliation once in the executable foundation plan", asyn
   ]);
   expect(new Set(registration).size).toBe(registration.length);
   expect(runner.split(JSON.stringify(thisTest)).length - 1).toBe(1);
-  expect(workflow.split("fetch-depth: 0").length - 1).toBe(2);
+  // Draft, Full CI, candidate capture and post-merge comparison each require
+  // complete ancestry; the latter two are POC-only evidence jobs.
+  expect(workflow.split("fetch-depth: 0").length - 1).toBe(4);
+  expect(workflow).toContain("merge-candidate-provenance / POC");
+  expect(workflow).toContain("post-merge-candidate-provenance / POC");
   expect(workflow).not.toContain("fetch-depth: 1");
 });
 
