@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666FX — Post-closeout delivery-risk review and Draft CI classification.**
+
+**Evidence timestamp:** 2026-08-27. Action 666FX performs the first required
+post-closeout risk-register and governance review. It confirms Action 666FW's
+static workstream remains closed, classifies PR #205's Draft aggregate failure
+as an expected skipped-matrix workflow semantic mismatch, and does not re-run
+it. Ready Full CI and exact-main Full CI both remain green, unchanged and
+required; their candidate and main trees match. No workflow, required check,
+branch protection, Netlify, secret, provider, transport, database, writer,
+route/UI, deployment or production action occurred. The next separate gate is
+a fail-closed required-check-impact review before any Draft aggregate change.
+
 **ACTION 666FW — V2 writer protected deployment metadata-receipt security closeout.**
 
 **Evidence timestamp:** 2026-08-27. Action 666FW records the named

@@ -65,9 +65,9 @@ the stated trigger occurs.
 
 | ID | Risk | Severity | Current disposition | Review trigger | Accountable role |
 | --- | --- | --- | --- | --- | --- |
-| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigate through the autonomous security-closeout policy and its Action budget | Any proposed reopen after Action 666FW or extension of an active workstream | Codex autonomous governance controller |
+| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigated: Action 666FW closed the bounded static workstream and Action 666FX records its post-closeout review; reopening needs the autonomous security-closeout policy | Any proposed reopen after Action 666FW or extension of an active workstream | Codex autonomous governance controller |
 | RG-02 | Protected runtime prerequisites are not admitted, so an unsafe shortcut could bypass the intended boundary | high safety risk | Keep secret management, identity, transport, writer and route/UI fail-closed | Any proposal to implement or activate a runtime path | Independent automated verifier |
-| RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Automatically classify every non-successful run before changing a required gate | A CI gate-change proposal or the declared cadence job | Codex delivery automation |
+| RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Action 666FX classifies PR #205's Draft aggregate failure as expected skipped-matrix semantics; retain all gates until a required-check-impact review proves a safe change | A CI gate-change proposal or the declared cadence job | Codex delivery automation |
 | RG-04 | Production and current-main identity can drift after a deployment or database change | high release risk | Reconcile exact identities and reopen the affected Milestone A evidence | Every production deploy/assertion or migration application | Policy-bound automation operator and independent automated verifier |
 
 ## Dependency map
@@ -131,7 +131,9 @@ than extended by default. It must not wait for human review.
 - Update the ledger control board when an Action changes the current scope,
   authority, dependency, residual risk or next decision.
 - Re-evaluate the initial risk register automatically at every closeout,
-  release or runtime-admission decision.
+  release or runtime-admission decision. Action 666FX records the first
+  post-closeout review; a later Draft aggregate change still requires its own
+  required-check-impact review.
 - Evaluate delivery-flow measures on their declared cadence while the full CI
   matrix remains the required merge gate.
 - Reassess this governance document after the first recorded closeout decision

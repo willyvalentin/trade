@@ -11,9 +11,9 @@ database, deployment, secret, transport, writer, route or UI authority.
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
 | Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
-| Next decision | `close_static_workstream` is recorded | No workstream continuation waits for a human reviewer; a future reopen must meet its policy and evidence conditions |
+| Next decision | Action 666FX records the post-closeout delivery-risk review and classifies the observed Draft aggregate result | Review Draft aggregate semantics only after required-check impact evidence is available |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
-| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
+| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; PR #205's Draft aggregate result is classified as expected workflow semantics, not a test failure | Review Draft aggregate required-check impact before any workflow change; retain Ready and exact-main Full CI |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
 The canonical operating rules, risk register, dependency map, quality metrics
@@ -394,6 +394,16 @@ static contract. Its recorded named roles are historical closeout evidence, not
 a continuing manual gate. A reopening requires an autonomous policy evaluation
 with a concrete outcome, bounded scope, rollback/containment and independently
 machine-verifiable authority evidence.
+
+Action 666FX performs the required post-closeout governance and risk review.
+It reconciles the operational dashboard with Action 666FW, retains every
+runtime boundary as blocked and classifies PR #205's failed Draft aggregate as
+an expected consequence of a skipped Full-CI matrix rather than an
+implementation, infrastructure or Netlify failure. It changes no CI workflow,
+required check, branch-protection rule, Netlify behavior or POC safety
+boundary. The next separate outcome is a required-check-impact review for the
+Draft aggregate; it must fail closed unless it proves Ready and exact-main Full
+CI remain fully required.
 
 ## Security closeout governance
 

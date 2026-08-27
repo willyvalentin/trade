@@ -1,0 +1,67 @@
+{
+  "contract_version": "trade.action666fx.post-closeout-delivery-risk-and-ci-classification.v1",
+  "action_id": "ACTION_666FX",
+  "decision_id": "DELIVERY_FLOW_REVIEW_666FX",
+  "reviewed_revision": {
+    "protected_main_commit": "02070e5ec9fc09564afb0da476c8d5769f85399f",
+    "protected_main_tree": "8c9a9a3e47b70948856109b6e9fcf57a52f81691",
+    "exact_main_ci_run": 33059631761,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666fx-post-closeout-delivery-risk-and-ci-classification.spec.ts"
+  },
+  "autonomous_controls": {
+    "governance_controller": "codex_autonomous_governance_controller",
+    "delivery_automation": "codex_delivery_automation",
+    "independent_machine_verification": "github_exact_run_status_and_saved_merge_candidate_provenance_artifact",
+    "decision_policy": "current_protected_main_autonomous_closeout_policy"
+  },
+  "risk_register_review": {
+    "RG-01": "mitigated_by_action_666fw_close_static_workstream",
+    "RG-02": "unchanged_fail_closed",
+    "RG-03": "draft_aggregate_expected_workflow_semantic_mismatch_classified",
+    "RG-04": "main_candidate_tree_reconciled_on_action_666fw_merge"
+  },
+  "observed_runs": {
+    "draft": {
+      "run_id": 33056752966,
+      "draft_fast_check": "success",
+      "full_matrix": "skipped",
+      "normal_aggregate": "failure",
+      "classification": "expected_workflow_semantic_mismatch",
+      "rerun_initiated": false
+    },
+    "ready_full_ci": {
+      "run_id": 33057037823,
+      "six_shards": "success",
+      "aggregate": "success",
+      "merge_candidate_poc": "success",
+      "candidate_tree": "8c9a9a3e47b70948856109b6e9fcf57a52f81691",
+      "total_runner_seconds": 7627
+    },
+    "exact_main_full_ci": {
+      "run_id": 33059631761,
+      "six_shards": "success",
+      "aggregate": "success",
+      "post_merge_poc": "success",
+      "main_tree": "8c9a9a3e47b70948856109b6e9fcf57a52f81691",
+      "total_runner_seconds": 7314
+    }
+  },
+  "decision": {
+    "type": "defer_draft_aggregate_semantics_change_pending_required_check_impact_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "action_666fy_draft_ci_aggregate_required_check_impact_review"
+  },
+  "protected_runtime_prerequisites": {
+    "secret_manager": "blocked",
+    "least_privileged_identity": "blocked",
+    "private_transport": "blocked",
+    "writer_invocation": "blocked",
+    "route_ui_binding": "blocked"
+  }
+}
