@@ -1,0 +1,56 @@
+{
+  "contract_version": "trade.action666fw.position-version-lineage-v2-writer-protected-deployment-metadata-receipt-security-closeout.v1",
+  "action_id": "ACTION_666FW",
+  "decision_id": "SECURITY_CLOSEOUT_666FW",
+  "evidence_captured_at": "2026-08-27",
+  "workstream": "position_version_lineage_v2_writer_protected_deployment_metadata_receipt_negative_disclosure_coverage_attestation_witness",
+  "reviewed_revision": {
+    "protected_main_commit": "e0df5a2e9bdb37b4924d204519f84fe7dece747b",
+    "protected_main_tree": "ad3a1cd5b2378de855a0464e5584ab0d9cc713b0",
+    "exact_main_ci_run": 33026964955,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666fv-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-source-contract.spec.ts",
+    "predecessor_evidence": [
+      "docs/evidence/action-666fu-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-admission-review.json",
+      "docs/evidence/action-666fv-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-consistency-proof-source-contract.json"
+    ]
+  },
+  "roles": {
+    "product_owner": "Codex (appointed by user in task on 2026-08-27)",
+    "delivery_owner": "Codex",
+    "independent_reviewer": "Willy Simonsson (designated by user in task on 2026-08-27)"
+  },
+  "decision": {
+    "type": "close_static_workstream",
+    "runtime_activation_authorized": false,
+    "future_static_extension_authorized": false,
+    "next_product_outcome": "return_to_separately_prioritized_roadmap_work; server_owned_writer_capability_remains_deferred",
+    "alternatives_rejected": [
+      "authorize_one_bounded_implementation",
+      "further_static_witness_input_contract",
+      "redesign_or_stop"
+    ],
+    "rationale": "all runtime prerequisites remain blocked and a further static contract would not close a runtime prerequisite or enable a concrete product capability"
+  },
+  "protected_runtime_prerequisites": {
+    "secret_manager": "blocked",
+    "least_privileged_identity": "blocked",
+    "private_transport": "blocked",
+    "writer_invocation": "blocked",
+    "route_ui_binding": "blocked"
+  },
+  "residual_risks": {
+    "independent_proof_source": "deferred; no source selected, read or validated",
+    "value_free_witness_input": "deferred; no input contract or proof execution admitted",
+    "deterministic_proof_result": "deferred; no result computation admitted",
+    "independent_oracle": "deferred; no oracle admitted",
+    "runtime_authority": "blocked; no secret, provider, transport, database, writer, route, UI, deployment or production authority granted"
+  },
+  "containment": {
+    "reopen_requires": "new named product-owner and independent-review decision with a concrete product outcome, bounded scope, rollback_or_containment and required authority evidence",
+    "exact_main_full_ci_retained": true,
+    "branch_protection_retained": true,
+    "draft_ci_retained": true,
+    "netlify_unchanged": true
+  }
+}
