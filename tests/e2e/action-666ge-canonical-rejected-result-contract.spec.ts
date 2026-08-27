@@ -107,7 +107,7 @@ test("666GE records only the source-only canonical rejection boundary", () => {
   expect(documentation).toMatch(/only\s+`rejection_code` differs/i);
   expect(documentation).toMatch(/no implementation change is\s+necessary/i);
   expect(documentation).toMatch(/ACTION_666GF/);
-  expect(source(roadmapPath)).toMatch(/Action 666GE/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GE/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);
