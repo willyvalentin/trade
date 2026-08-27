@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GA delivers the selected provider-free Milestone B advisory-clarity primitive as a pure and runtime-unwired explanation projection | Independently review its static scope; any integration remains separately gated |
-| Next decision | Action 666GB may independently review the pure explanation projection's source and non-wiring boundary | Do not invoke the evaluator, read data, wire UI/route, or reopen the closed static workstream |
+| Current bounded workstream | Action 666GB independently confirms the selected provider-free Milestone B explanation projection has no import or production runtime consumer | Preserve its pure, runtime-unwired boundary; any integration remains separately gated |
+| Next decision | Action 666GC may review adversarial descriptor-and-prototype inputs for the same source-only projection contract | Do not invoke the evaluator, read data, wire UI/route, or reopen the closed static workstream |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
