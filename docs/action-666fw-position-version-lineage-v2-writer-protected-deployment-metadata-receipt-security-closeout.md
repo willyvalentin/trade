@@ -57,3 +57,11 @@ The next product outcome is to return to separately prioritized roadmap work;
 any future server-owned writer capability remains deferred until its existing
 secret-manager, identity, transport, writer and route/UI gates are separately
 admitted.
+
+## Governance supersession
+
+The role designations and the earlier named-owner/reviewer reopening sentence
+preserve the historical Action 666FW closeout record. They do not create a
+continuing manual approval gate. The canonical [security closeout governance](./security-closeout-governance.md)
+now evaluates any later reopening, extension or implementation through Codex
+autonomous policy evaluation and independent machine-verifiable evidence.

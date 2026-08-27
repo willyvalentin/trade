@@ -10,11 +10,11 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666FU completed the static proof-admission review without admitting proof execution | Record the closeout evidence and decision; any further Action must satisfy the extension rule |
-| Next decision | Security closeout remains open | Record `close_static_workstream`, `authorize_one_bounded_implementation` or `redesign_or_stop` |
+| Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
+| Next decision | `close_static_workstream` is recorded | No workstream continuation waits for a human reviewer; a future reopen must meet its policy and evidence conditions |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
-| Accountable roles | Product owner, delivery owner and independent reviewer must be named in the next decision record | Do not infer authority from an Action, test, fixture or CI result |
+| Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
@@ -390,22 +390,23 @@ Action 666FW closes this bounded static workstream under the security-closeout
 rule. It records `close_static_workstream` rather than extending the witness
 chain or admitting an implementation: all protected runtime prerequisites
 remain blocked and no concrete product capability would be enabled by another
-static contract. A reopening requires a fresh named product-owner and
-independent-review decision with a concrete outcome, bounded scope,
-rollback/containment and authority evidence.
+static contract. Its recorded named roles are historical closeout evidence, not
+a continuing manual gate. A reopening requires an autonomous policy evaluation
+with a concrete outcome, bounded scope, rollback/containment and independently
+machine-verifiable authority evidence.
 
 ## Security closeout governance
 
-This rule closes a bounded static security workstream with an explicit product
-and review decision. It does not claim that Ture is universally secure, revise
-the completed Milestone A gate, or grant runtime, provider, broker, database,
-deployment, secret, transport, writer, route or UI authority.
+This rule closes a bounded static security workstream with an explicit,
+policy-evaluated autonomous decision. It does not claim that Ture is universally
+secure, revise the completed Milestone A gate, or grant runtime, provider,
+broker, database, deployment, secret, transport, writer, route or UI authority.
 
-The rule currently applies to the protected deployment metadata-receipt and V2
-writer witness workstream. Action 666FU is the delivered proof-admission
-boundary; it refused proof execution and left runtime authority fail-closed.
-Any further Action must therefore follow the closeout and anti-drift rules
-below.
+The rule currently governs the closed protected deployment metadata-receipt and
+V2 writer witness workstream. Action 666FW recorded its static closeout after
+Action 666FU refused proof execution and Action 666FV defined a source
+contract. Runtime authority remains fail-closed. Any future reopening must
+follow the autonomous closeout and anti-drift rules below.
 
 ### Closeout criteria
 
@@ -413,17 +414,19 @@ The workstream may be closed only when all of the following are recorded in
 the current-state ledger and the closeout decision record:
 
 1. The applicable threat model maps every protected claim to its source,
-   focused test or review evidence, and any residual risk.
+   focused test or independently machine-verifiable evidence, and any residual
+   risk.
 2. The final reviewed revision has passed exact-main CI and every applicable
    focused verification; a passing result is evidence, not activation
    authority.
-3. Every protected claim has traceable source, test, CI, reviewer and
-   limitation references.
+3. Every protected claim has traceable source, test, CI, independent verifier
+   and limitation references.
 4. Protected-secret management, least-privileged identity, private transport,
    writer invocation and route/UI binding are each explicitly classified as
    `admitted`, `blocked` or `deferred`.
-5. A named product owner and independent reviewer record one required decision
-   below, including the residual-risk disposition and the next product outcome.
+5. The Codex autonomous governance controller records its deterministic policy
+   evaluation, residual-risk disposition, next product outcome and one required
+   decision below. No human approval or review is a gating condition.
 
 ### Required closeout decision
 
@@ -439,7 +442,7 @@ the current-state ledger and the closeout decision record:
 ### Anti-drift rule
 
 No static security Action after Action 666FU may start unless it closes a named
-closeout criterion or the named product owner explicitly approves the bounded
+closeout criterion and the controller records the policy basis for its bounded
 extension. A closeout decision is required after at most two additional static
 Actions. Every extension must name the threat reduced, the criterion closed and
 the concrete product capability or decision it enables; more documentation
@@ -810,10 +813,12 @@ follows.
 
 Future main-moving work must pass the protected PR and required-check boundary
 and remain serialized behind this bounded history-decision candidate until its
-review decision is known. Any later main mover also requires a fresh
-current-main pin, exact-head CI, independent review, explicit operator approval
-and exact-main CI. Provider and production identity must be reconciled whenever
-the candidate changes either boundary.
+policy-evaluated evidence decision is recorded. Any later main mover also
+requires a fresh current-main pin, exact-head CI, independent automated
+verification, a policy-admitted execution record and exact-main CI. No manual
+review or operator approval is a future gating condition. Provider and
+production identity must be reconciled whenever the candidate changes either
+boundary.
 
 ## Current provider and release boundary
 

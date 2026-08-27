@@ -191,7 +191,7 @@ authority.
 | Workstream closeout | `closed_static_workstream` | Preserve the Action 666FW record and return to separately prioritized roadmap work |
 | Protected runtime prerequisites | `blocked` | Secret manager, least-privileged identity, private transport, writer invocation and route/UI binding remain separately gated |
 | Residual-risk disposition | `deferred_no_runtime_authority` | Reassess only in a new separately authorized product outcome |
-| Static-action budget | `closed_after_666FW` | No further static Action in this workstream without a new recorded owner/reviewer decision |
+| Static-action budget | `closed_after_666FW` | No further static Action in this workstream unless Codex records a new autonomous policy evaluation and independent machine-verification |
 
 The closeout rule and decision-record template are canonical in
 [`security-closeout-governance.md`](./security-closeout-governance.md).
@@ -205,11 +205,11 @@ evidence records below and creates no activation authority.
 | --- | --- | --- |
 | Highest-priority bounded outcome | `security_closeout_complete_static_workstream_closed` | Return to separately prioritized roadmap work; no witness-chain extension is open |
 | Product capability enabled by current work | `none_runtime_authorized` | A future server-owned writer capability remains separately gated and deferred |
-| Product owner | `Codex` | Reopen only with a new named decision and required authority evidence |
-| Delivery owner | `Codex` | Maintain the closeout record and fail-closed boundary |
-| Independent reviewer | `Willy Simonsson` | Reassess on any proposal to reopen or activate a runtime path |
+| Autonomous governance controller | `codex_autonomous_governance_controller` | Evaluate and record the deterministic reopen policy without human input |
+| Delivery automation | `codex_delivery_automation` | Begin a policy-admitted extension or implementation after its technical evidence passes |
+| Independent automated verification | `exact_main_ci_and_focused_controls` | Corroborate any reopen, extension or implementation without a human reviewer |
 | Runtime blockers | `secret_manager_identity_transport_writer_route_ui_not_admitted` | Keep each fail-closed until separately classified and authorized |
-| Delivery-risk review | `open` | Review the initial risk register at the next Action boundary and every release/activation decision |
+| Delivery-risk review | `automated_at_each_decision_boundary` | Codex re-evaluates the initial risk register at the next Action boundary and every release/activation decision |
 | CI flow baseline | `observed_2026_08_26` | Classify failures and re-runs before changing required CI gates |
 
 The canonical ownership, risk, dependency, metric and Action-template rules
