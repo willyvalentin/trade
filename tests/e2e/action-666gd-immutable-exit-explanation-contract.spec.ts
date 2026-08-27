@@ -114,7 +114,7 @@ test("666GD records only the immutable source-only result boundary", () => {
   expect(documentation).toMatch(/fresh frozen classification projection/i);
   expect(documentation).toMatch(/no implementation change is necessary/i);
   expect(documentation).toMatch(/ACTION_666GE/);
-  expect(source(roadmapPath)).toMatch(/Action 666GD/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GD/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);

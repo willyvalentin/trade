@@ -1,5 +1,18 @@
 # Ture Current-State Ledger
 
+**ACTION 666GE — Canonical rejected exit-explanation result contract.**
+
+**Evidence timestamp:** 2026-08-27. Action 666GE independently confirms the
+source-only explanation projection returns fresh, frozen and fixed eight-key
+rejected values. Both rejected classes retain the same version, advisory-only
+authority, null-only payload and false runtime/side-effect flags; only the
+closed rejection code distinguishes malformed input from an exact but
+unsupported classification. No evaluator, data, provider, secret, transport,
+database, writer, route/UI, deployment, broker or execution capability is
+added. Ready Full CI and exact-main Full CI remain unchanged and mandatory. The
+next action is a source-only accepted-versus-rejected partition review; runtime
+integration remains blocked.
+
 **ACTION 666GD — Immutable exit-decision explanation result contract.**
 
 **Evidence timestamp:** 2026-08-27. Action 666GD independently confirms the

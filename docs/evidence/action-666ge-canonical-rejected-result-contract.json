@@ -1,0 +1,46 @@
+{
+  "contract_version": "trade.action666ge.canonical-rejected-result-contract.v1",
+  "action_id": "ACTION_666GE",
+  "reviewed_revision": {
+    "protected_main_commit": "7a26410ce62548753cbd7ece0212549b57613f48",
+    "protected_main_tree": "9d54069ccd79c2451497edab357009d34039ca2e",
+    "exact_main_ci_run": 33108256942,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "2e34cc24456a87ab99fee9e7cb62d50986500bcf",
+    "candidate_tree": "9d54069ccd79c2451497edab357009d34039ca2e",
+    "candidate_main_match": true
+  },
+  "canonical_rejection_contract": {
+    "source_path": "lib/action-666ga-provider-free-exit-decision-explanation.ts",
+    "entrypoint": "projectAction666gaExitDecisionExplanation",
+    "result_key_count": 8,
+    "rejection_codes": [
+      "invalid_input_shape",
+      "unsupported_decision_classification"
+    ],
+    "shared_rejection_fields": [
+      "contract_version",
+      "projection_state",
+      "authority",
+      "classification",
+      "advisory_copy",
+      "runtime_wired",
+      "side_effects_performed"
+    ],
+    "rejection_code_is_only_variant": true,
+    "rejected_results_are_fresh_per_invocation": true,
+    "outer_result_frozen": true,
+    "rejected_payload_is_null_only": true,
+    "runtime_wired": false,
+    "side_effects_performed": false
+  },
+  "delivery_controls": {
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "ACTION_666GF"
+  }
+}
