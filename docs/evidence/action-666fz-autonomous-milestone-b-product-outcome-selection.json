@@ -1,0 +1,72 @@
+{
+  "contract_version": "trade.action666fz.autonomous-milestone-b-product-outcome-selection.v1",
+  "action_id": "ACTION_666FZ",
+  "decision_id": "MILESTONE_B_PRODUCT_OUTCOME_SELECTION_666FZ",
+  "reviewed_revision": {
+    "protected_main_commit": "52e4659bb5c97bba1845fc4a38cc30bc128ca1e4",
+    "protected_main_tree": "98f78c5b9ebe6b7e7c111834119b89fa2ceb7a47",
+    "exact_main_ci_run": 33073808497,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666fz-autonomous-milestone-b-product-outcome-selection.spec.ts"
+  },
+  "autonomous_controls": {
+    "governance_controller": "codex_autonomous_governance_controller",
+    "delivery_automation": "codex_delivery_automation",
+    "independent_machine_verification": "github_exact_run_status_and_saved_merge_candidate_provenance_artifact",
+    "decision_policy": "current_protected_main_autonomous_closeout_policy"
+  },
+  "candidates": {
+    "v2_writer_transport_reopen": "rejected_blocked_runtime_prerequisites",
+    "draft_required_check_semantics_change": "rejected_action_666fy_strict_context_proof",
+    "read_write_position_queue_or_observation_capability": "rejected_runtime_database_admission_required",
+    "provider_free_exit_decision_explanation_projection": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "provider_free_exit_decision_explanation_projection",
+    "implementation_action": "ACTION_666GA",
+    "accepted_input_fields": [
+      "decision_status",
+      "decision_reason",
+      "decision_priority"
+    ],
+    "forbidden_input_categories": [
+      "canonical_input_json",
+      "price",
+      "quantity",
+      "position_identity",
+      "recommendation_identity",
+      "digest",
+      "policy",
+      "credential",
+      "timestamp"
+    ],
+    "must_not": [
+      "import_or_invoke_exit_evaluator",
+      "read_or_write_database",
+      "network_or_provider_call",
+      "route_or_ui_wiring",
+      "queue_or_writer_invocation",
+      "broker_or_execution_authority"
+    ],
+    "default_off": true,
+    "runtime_unwired": true,
+    "execution_authority": false
+  },
+  "decision": {
+    "type": "select_one_provider_free_product_implementation",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "action_666ga_provider_free_exit_decision_explanation_projection"
+  },
+  "protected_runtime_prerequisites": {
+    "secret_manager": "blocked",
+    "least_privileged_identity": "blocked",
+    "private_transport": "blocked",
+    "writer_invocation": "blocked",
+    "route_ui_binding": "blocked"
+  }
+}
