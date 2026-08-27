@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GH — Exit-explanation result detachment.**
+Action 666GH independently verifies each accepted source-only projection returns
+a frozen classification detached from its caller-owned input. Mutating every
+input field after projection cannot alter the previously returned tuple, and
+all seven returned classifications are distinct local values. The review adds
+no evaluator, data, provider, secret, transport, database, writer, route/UI,
+deployment, broker or execution capability. Ready Full CI and exact-main Full
+CI remain unchanged and mandatory. This completes the authorized 15-action
+cap; runtime integration remains blocked.
+
 **ACTION 666GG — Static exit-explanation table integrity.**
 Action 666GG independently verifies the source-only Action 666GA explanation
 table contains exactly seven ordered frozen rows, each with one exact

@@ -145,7 +145,7 @@ test("666GG records only the source-only frozen-table integrity review", () => {
   expect(documentation).toMatch(/seven ordered frozen rows/i);
   expect(documentation).toMatch(/no\s+implementation change is\s+necessary/i);
   expect(documentation).toMatch(/ACTION_666GH/);
-  expect(source(roadmapPath)).toMatch(/Action 666GG/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GG/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);

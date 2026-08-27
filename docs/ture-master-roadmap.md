@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GG reviews the selected provider-free Milestone B explanation projection's frozen static table definition | Preserve the seven ordered fixed rows, canonical rejections and closed source-only table; any integration remains separately gated |
-| Next decision | Action 666GH may review returned-result detachment for the same source-only projection contract | Do not invoke the evaluator, read data, wire UI/route, or reopen the closed static workstream |
+| Current bounded workstream | Action 666GH completes the authorized source-only review cap by checking result detachment from caller-owned input | Preserve the seven ordered fixed rows, canonical rejections, local result copies and closed source-only table; any integration remains separately gated |
+| Next decision | The authorized 15-action cap is complete | Do not begin a successor action, invoke the evaluator, read data, wire UI/route, or reopen the closed static workstream without a new decision |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
