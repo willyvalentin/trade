@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666GF — Accepted-versus-rejected exit-explanation partition.**
+Action 666GF independently verifies the source-only Action 666GA projection's
+finite accepted-versus-rejected partition: exactly seven declared tuples
+project, while the other 189 tuples in the 196-tuple known-vocabulary
+cross-product reject as unsupported and malformed shapes reject as invalid.
+The review also covers nearby one-field perturbations without adding an
+evaluator, data, provider, secret, transport, database, writer, route/UI,
+deployment, broker or execution capability. Ready Full CI and exact-main Full
+CI remain unchanged and mandatory. The next action is a source-only table-
+definition integrity review; runtime integration remains blocked.
+
 **ACTION 666GE — Canonical rejected exit-explanation result contract.**
 
 **Evidence timestamp:** 2026-08-27. Action 666GE independently confirms the

@@ -1,0 +1,38 @@
+{
+  "contract_version": "trade.action666gf.accepted-rejected-partition-contract.v1",
+  "action_id": "ACTION_666GF",
+  "reviewed_revision": {
+    "protected_main_commit": "5b6a7580834c9c36c16435386a0659910af61f88",
+    "protected_main_tree": "a1814942a8c8c8bf799b9de562bbb6feb8d80d1c",
+    "exact_main_ci_run": 33114585504,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "49286fb6c02cfd5df4c0687b8dcca469feaae744",
+    "candidate_tree": "a1814942a8c8c8bf799b9de562bbb6feb8d80d1c",
+    "candidate_main_match": true
+  },
+  "accepted_rejected_partition": {
+    "source_path": "lib/action-666ga-provider-free-exit-decision-explanation.ts",
+    "entrypoint": "projectAction666gaExitDecisionExplanation",
+    "accepted_tuple_count": 7,
+    "known_status_count": 4,
+    "known_reason_count": 7,
+    "known_priority_count": 7,
+    "known_vocabulary_cross_product_count": 196,
+    "projected_cross_product_tuple_count": 7,
+    "unsupported_cross_product_tuple_count": 189,
+    "nearby_closed_tuple_rejection_code": "unsupported_decision_classification",
+    "malformed_shape_rejection_code": "invalid_input_shape",
+    "projected_runtime_wired": false,
+    "projected_side_effects_performed": false,
+    "rejected_payload_is_null_only": true
+  },
+  "delivery_controls": {
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "ACTION_666GG"
+  }
+}
