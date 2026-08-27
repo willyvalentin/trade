@@ -177,10 +177,10 @@ authority.
 
 | Item | Current classification | Required next evidence or decision |
 | --- | --- | --- |
-| Static witness consistency design | Action 666FT designed the declarative, value-free boundary; Action 666FU reviewed it and did not admit proof execution | Record closeout evidence and one decision; any extension must obey the Action budget |
-| Workstream closeout | `open_no_closeout_decision` | Record all closeout criteria and one required decision in the canonical closeout record |
+| Static witness consistency design | Action 666FT designed the declarative, value-free boundary; Action 666FU reviewed it and did not admit proof execution | Codex autonomously records closeout evidence and the policy-selected decision; any extension must obey the Action budget |
+| Workstream closeout | `open_no_closeout_decision` | Record all closeout criteria and one policy-selected decision in the canonical closeout record |
 | Protected runtime prerequisites | `not_admitted` | Classify secret manager, least-privileged identity, private transport, writer invocation and route/UI binding as `admitted`, `blocked` or `deferred` |
-| Residual-risk disposition | `not_recorded_for_closeout` | Named product owner and independent reviewer must accept, defer or redesign each residual risk |
+| Residual-risk disposition | `not_recorded_for_closeout` | Codex autonomous governance controller must policy-classify each residual risk as accepted, deferred, mitigated or redesign-required |
 | Static-action budget | `starts_after_666FU` | No more than two additional static Actions without a recorded closeout decision |
 
 The closeout rule and decision-record template are canonical in
@@ -193,13 +193,13 @@ evidence records below and creates no activation authority.
 
 | Control | Current classification | Required review or update |
 | --- | --- | --- |
-| Highest-priority bounded outcome | `security_closeout_for_static_metadata_receipt_and_v2_writer_witness_workstream` | Complete the Action 666FU closeout record, then make one closeout decision |
+| Highest-priority bounded outcome | `security_closeout_for_static_metadata_receipt_and_v2_writer_witness_workstream` | Complete the Action 666FU closeout record, then automatically record one policy-selected closeout decision |
 | Product capability enabled by current work | `none_yet` | The closeout record must state the next product outcome or explicitly stop static work |
-| Product owner | `unassigned_for_current_closeout` | Name one before recording a closeout decision |
-| Delivery owner | `unassigned_for_current_closeout` | Name one before beginning an approved extension or implementation |
-| Independent reviewer | `unassigned_for_current_closeout` | Name one before recording a closeout decision |
+| Autonomous governance controller | `codex_autonomous_governance_controller` | Evaluate and record the deterministic closeout policy without human input |
+| Delivery automation | `codex_delivery_automation` | Begin a policy-admitted extension or implementation after its technical evidence passes |
+| Independent automated verification | `exact_main_ci_and_focused_controls` | Corroborate the closeout record without a human reviewer |
 | Runtime blockers | `secret_manager_identity_transport_writer_route_ui_not_admitted` | Keep each fail-closed until separately classified and authorized |
-| Delivery-risk review | `open` | Review the initial risk register at the next Action boundary and every release/activation decision |
+| Delivery-risk review | `automated_at_each_decision_boundary` | Codex re-evaluates the initial risk register at the next Action boundary and every release/activation decision |
 | CI flow baseline | `observed_2026_08_26` | Classify failures and re-runs before changing required CI gates |
 
 The canonical ownership, risk, dependency, metric and Action-template rules

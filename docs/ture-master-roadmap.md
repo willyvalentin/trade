@@ -14,7 +14,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Next decision | Security closeout remains open | Record `close_static_workstream`, `authorize_one_bounded_implementation` or `redesign_or_stop` |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
-| Accountable roles | Product owner, delivery owner and independent reviewer must be named in the next decision record | Do not infer authority from an Action, test, fixture or CI result |
+| Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
@@ -388,10 +388,10 @@ remains fail-closed.
 
 ## Security closeout governance
 
-This rule closes a bounded static security workstream with an explicit product
-and review decision. It does not claim that Ture is universally secure, revise
-the completed Milestone A gate, or grant runtime, provider, broker, database,
-deployment, secret, transport, writer, route or UI authority.
+This rule closes a bounded static security workstream with an explicit,
+policy-evaluated autonomous decision. It does not claim that Ture is universally
+secure, revise the completed Milestone A gate, or grant runtime, provider,
+broker, database, deployment, secret, transport, writer, route or UI authority.
 
 The rule currently applies to the protected deployment metadata-receipt and V2
 writer witness workstream. Action 666FU is the delivered proof-admission
@@ -405,17 +405,19 @@ The workstream may be closed only when all of the following are recorded in
 the current-state ledger and the closeout decision record:
 
 1. The applicable threat model maps every protected claim to its source,
-   focused test or review evidence, and any residual risk.
+   focused test or independently machine-verifiable evidence, and any residual
+   risk.
 2. The final reviewed revision has passed exact-main CI and every applicable
    focused verification; a passing result is evidence, not activation
    authority.
-3. Every protected claim has traceable source, test, CI, reviewer and
-   limitation references.
+3. Every protected claim has traceable source, test, CI, independent verifier
+   and limitation references.
 4. Protected-secret management, least-privileged identity, private transport,
    writer invocation and route/UI binding are each explicitly classified as
    `admitted`, `blocked` or `deferred`.
-5. A named product owner and independent reviewer record one required decision
-   below, including the residual-risk disposition and the next product outcome.
+5. The Codex autonomous governance controller records its deterministic policy
+   evaluation, residual-risk disposition, next product outcome and one required
+   decision below. No human approval or review is a gating condition.
 
 ### Required closeout decision
 
@@ -431,7 +433,7 @@ the current-state ledger and the closeout decision record:
 ### Anti-drift rule
 
 No static security Action after Action 666FU may start unless it closes a named
-closeout criterion or the named product owner explicitly approves the bounded
+closeout criterion and the controller records the policy basis for its bounded
 extension. A closeout decision is required after at most two additional static
 Actions. Every extension must name the threat reduced, the criterion closed and
 the concrete product capability or decision it enables; more documentation
@@ -802,10 +804,12 @@ follows.
 
 Future main-moving work must pass the protected PR and required-check boundary
 and remain serialized behind this bounded history-decision candidate until its
-review decision is known. Any later main mover also requires a fresh
-current-main pin, exact-head CI, independent review, explicit operator approval
-and exact-main CI. Provider and production identity must be reconciled whenever
-the candidate changes either boundary.
+policy-evaluated evidence decision is recorded. Any later main mover also
+requires a fresh current-main pin, exact-head CI, independent automated
+verification, a policy-admitted execution record and exact-main CI. No manual
+review or operator approval is a future gating condition. Provider and
+production identity must be reconciled whenever the candidate changes either
+boundary.
 
 ## Current provider and release boundary
 
