@@ -1,0 +1,38 @@
+{
+  "contract_version": "trade.action666gc.exit-explanation-adversarial-input-contract.v1",
+  "action_id": "ACTION_666GC",
+  "reviewed_revision": {
+    "protected_main_commit": "07687651446e641278893a488df3d877d6690976",
+    "protected_main_tree": "9d8232fe24cdc09f65f84990a8fad1b0de81003c",
+    "exact_main_ci_run": 33095271357,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "abf1333476b711de3d467461f292d9780a51f58a",
+    "candidate_tree": "9d8232fe24cdc09f65f84990a8fad1b0de81003c",
+    "candidate_main_match": true
+  },
+  "input_contract": {
+    "source_path": "lib/action-666ga-provider-free-exit-decision-explanation.ts",
+    "entrypoint": "projectAction666gaExitDecisionExplanation",
+    "accepted_own_data_fields": [
+      "decision_status",
+      "decision_reason",
+      "decision_priority"
+    ],
+    "descriptor_observation_failure_result": "invalid_input_shape",
+    "null_prototype_accepted_when_exact_own_data_is_valid": true,
+    "inherited_property_reading": false,
+    "inherited_property_mutation": false,
+    "proxy_trap_side_effect_freedom_claimed": false,
+    "runtime_wired": false,
+    "side_effects_performed": false
+  },
+  "delivery_controls": {
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "ACTION_666GD"
+  }
+}

@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666GC — Adversarial input contract for exit-decision explanation.**
+
+**Evidence timestamp:** 2026-08-27. Action 666GC contains failed own-descriptor
+observation as a fail-closed invalid input result, while preserving exact own
+data projection for null and untrusted custom prototypes. It neither reads nor
+mutates inherited properties, and inherited accessors cannot substitute for an
+own classification field. No evaluator, data, provider, secret, transport,
+database, writer, route/UI, deployment, broker or execution capability is
+added. Ready Full CI and exact-main Full CI remain unchanged and mandatory.
+The next action is a source-only immutable-result and fixed-advisory-copy
+review; runtime integration remains blocked.
+
 **ACTION 666GB — Static scope review of exit-decision explanation.**
 
 **Evidence timestamp:** 2026-08-27. Action 666GB independently confirms that

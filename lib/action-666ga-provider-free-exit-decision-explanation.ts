@@ -98,10 +98,25 @@ function invalidResult(
   });
 }
 
+function readOwnDescriptors(candidate: object) {
+  try {
+    return {
+      names: Object.getOwnPropertyNames(candidate),
+      symbols: Object.getOwnPropertySymbols(candidate),
+      descriptors: Object.getOwnPropertyDescriptors(candidate),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function closedClassification(value: unknown): DecisionClassification | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;
-  const names = Object.getOwnPropertyNames(candidate);
+  const own = readOwnDescriptors(candidate);
+  if (!own) return null;
+
+  const { names, symbols, descriptors } = own;
   const expected = [
     "decision_priority",
     "decision_reason",
@@ -109,13 +124,12 @@ function closedClassification(value: unknown): DecisionClassification | null {
   ];
   if (
     names.length !== expected.length ||
-    Object.getOwnPropertySymbols(candidate).length !== 0 ||
+    symbols.length !== 0 ||
     !expected.every((field) => names.includes(field))
   ) {
     return null;
   }
 
-  const descriptors = Object.getOwnPropertyDescriptors(candidate);
   const status = descriptors.decision_status;
   const reason = descriptors.decision_reason;
   const priority = descriptors.decision_priority;
