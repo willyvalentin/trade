@@ -1,0 +1,48 @@
+{
+  "contract_version": "trade.action666ga.provider-free-exit-decision-explanation.v1",
+  "action_id": "ACTION_666GA",
+  "reviewed_revision": {
+    "protected_main_commit": "4b4d6dc15ccc0d2e9741aec94fe048771b7da5ab",
+    "protected_main_tree": "79ab9d0aeca475281877cad3e0fddccfe38fd5db",
+    "exact_main_ci_run": 33080999099,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "ce7c44d884e73871bfcc1d4d3ec9e9dee86a9361",
+    "candidate_tree": "79ab9d0aeca475281877cad3e0fddccfe38fd5db",
+    "candidate_main_match": true
+  },
+  "selected_outcome": "provider_free_exit_decision_explanation_projection",
+  "implementation": {
+    "source_path": "lib/action-666ga-provider-free-exit-decision-explanation.ts",
+    "entrypoint": "projectAction666gaExitDecisionExplanation",
+    "accepted_input_fields": [
+      "decision_status",
+      "decision_reason",
+      "decision_priority"
+    ],
+    "accepted_classification_count": 7,
+    "output_authority": "advisory_projection_no_execution_authority",
+    "runtime_wired": false,
+    "side_effects_performed": false
+  },
+  "forbidden_capabilities": [
+    "exit_evaluator_import_or_invocation",
+    "canonical_input_json",
+    "price_or_quantity",
+    "position_or_recommendation_identity",
+    "digest_policy_credential_or_timestamp",
+    "database_read_or_write",
+    "network_or_provider_call",
+    "route_or_ui_wiring",
+    "queue_or_writer_invocation",
+    "broker_or_execution_authority"
+  ],
+  "delivery_controls": {
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "ACTION_666GB"
+  }
+}
