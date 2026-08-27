@@ -205,7 +205,7 @@ test("666GF records only the source-only accepted-versus-rejected partition", ()
   expect(documentation).toMatch(/196-tuple known vocabulary cross-product/i);
   expect(documentation).toMatch(/no\s+implementation change is\s+necessary/i);
   expect(documentation).toMatch(/ACTION_666GG/);
-  expect(source(roadmapPath)).toMatch(/Action 666GF/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GF/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);
