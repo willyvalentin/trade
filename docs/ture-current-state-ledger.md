@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666GA — Provider-free exit-decision explanation projection.**
+
+**Evidence timestamp:** 2026-08-27. Action 666GA implements the one pure,
+default-off and runtime-unwired advisory projection selected by Action 666FZ.
+It accepts exactly the three already-declared decision-classification fields,
+maps only seven exact tuples to fixed Swedish explanation copy, and rejects all
+unknown, expanded or mismatched shapes. It does not import or invoke the exit
+evaluator; it reads no data and performs no provider, secret, transport,
+database, writer, route/UI, deployment, broker or execution action. Full Ready
+CI and exact-main Full CI remain unchanged and mandatory. The next action is a
+separate static scope review; runtime integration remains blocked.
+
 **ACTION 666FZ — Autonomous Milestone B product-outcome selection.**
 
 **Evidence timestamp:** 2026-08-27. Action 666FZ selects exactly one

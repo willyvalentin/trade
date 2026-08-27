@@ -136,6 +136,7 @@ const foundationTests = [
   "tests/e2e/action-666fx-post-closeout-delivery-risk-and-ci-classification.spec.ts",
   "tests/e2e/action-666fy-draft-ci-aggregate-required-check-impact-review.spec.ts",
   "tests/e2e/action-666fz-autonomous-milestone-b-product-outcome-selection.spec.ts",
+  "tests/e2e/action-666ga-provider-free-exit-decision-explanation.spec.ts",
 ];
 
 const intelligenceTests = [
