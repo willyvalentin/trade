@@ -1,0 +1,54 @@
+{
+  "contract_version": "trade.action666gb.exit-explanation-static-scope-review.v1",
+  "action_id": "ACTION_666GB",
+  "reviewed_revision": {
+    "protected_main_commit": "8895881e52910d98ab635f99f8f2f8958e448ada",
+    "protected_main_tree": "9b57c08afbb691de5b4ac9473fdabfe8c4dfab63",
+    "exact_main_ci_run": 33088425182,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "1e23781e4d8f6678ba3d5512829467f339681bbd",
+    "candidate_tree": "9b57c08afbb691de5b4ac9473fdabfe8c4dfab63",
+    "candidate_main_match": true
+  },
+  "reviewed_projection": {
+    "source_path": "lib/action-666ga-provider-free-exit-decision-explanation.ts",
+    "entrypoint": "projectAction666gaExitDecisionExplanation",
+    "external_import_count": 0,
+    "production_runtime_consumers": [],
+    "accepted_own_data_fields": [
+      "decision_status",
+      "decision_reason",
+      "decision_priority"
+    ],
+    "accepted_classification_count": 7,
+    "output_authority": "advisory_projection_no_execution_authority",
+    "runtime_wired": false,
+    "side_effects_performed": false
+  },
+  "rejection_guarantees": [
+    "missing_or_expanded_own_property_shape",
+    "symbol_bearing_input",
+    "accessor_property_input_without_getter_execution",
+    "non_safe_integer_priority",
+    "unsupported_exact_tuple"
+  ],
+  "forbidden_capabilities": [
+    "exit_evaluator_import_or_invocation",
+    "canonical_input_json",
+    "database_read_or_write",
+    "network_or_provider_call",
+    "secret_or_credential_access",
+    "queue_or_writer_invocation",
+    "route_or_ui_wiring",
+    "broker_or_execution_authority"
+  ],
+  "delivery_controls": {
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "ACTION_666GC"
+  }
+}
