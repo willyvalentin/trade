@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666GG — Static exit-explanation table integrity.**
+Action 666GG independently verifies the source-only Action 666GA explanation
+table contains exactly seven ordered frozen rows, each with one exact
+classification triple and one fixed Swedish advisory string. Priorities one
+through seven occur once, duplicate triples and caller-controlled copy
+construction are absent, and no provider, environment or dynamic-module read
+is present. The review adds no evaluator, data, provider, secret, transport,
+database, writer, route/UI, deployment, broker or execution capability. Ready
+Full CI and exact-main Full CI remain unchanged and mandatory. The next action
+is a source-only returned-result detachment review; runtime integration remains
+blocked.
+
 **ACTION 666GF — Accepted-versus-rejected exit-explanation partition.**
 Action 666GF independently verifies the source-only Action 666GA projection's
 finite accepted-versus-rejected partition: exactly seven declared tuples

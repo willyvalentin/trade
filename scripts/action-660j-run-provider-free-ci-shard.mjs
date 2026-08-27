@@ -116,6 +116,7 @@ const foundationTests = [
   "tests/e2e/action-666gd-immutable-exit-explanation-contract.spec.ts",
   "tests/e2e/action-666ge-canonical-rejected-result-contract.spec.ts",
   "tests/e2e/action-666gf-accepted-rejected-partition-contract.spec.ts",
+  "tests/e2e/action-666gg-static-explanation-table-integrity.spec.ts",
 ];
 
 const intelligenceTests = [
