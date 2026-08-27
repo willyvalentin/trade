@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666FU completed the static proof-admission review without admitting proof execution | Record the closeout evidence and decision; any further Action must satisfy the extension rule |
-| Next decision | Security closeout remains open | Record `close_static_workstream`, `authorize_one_bounded_implementation` or `redesign_or_stop` |
+| Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
+| Next decision | `close_static_workstream` is recorded | No workstream continuation waits for a human reviewer; a future reopen must meet its policy and evidence conditions |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive | Review CI duration, failure classification and re-run causes without weakening required checks |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -386,6 +386,15 @@ validated, and no proof or integrity check runs. The next separate gate may
 define a static value-free witness-input contract only; all runtime authority
 remains fail-closed.
 
+Action 666FW closes this bounded static workstream under the security-closeout
+rule. It records `close_static_workstream` rather than extending the witness
+chain or admitting an implementation: all protected runtime prerequisites
+remain blocked and no concrete product capability would be enabled by another
+static contract. Its recorded named roles are historical closeout evidence, not
+a continuing manual gate. A reopening requires an autonomous policy evaluation
+with a concrete outcome, bounded scope, rollback/containment and independently
+machine-verifiable authority evidence.
+
 ## Security closeout governance
 
 This rule closes a bounded static security workstream with an explicit,
@@ -393,11 +402,11 @@ policy-evaluated autonomous decision. It does not claim that Ture is universally
 secure, revise the completed Milestone A gate, or grant runtime, provider,
 broker, database, deployment, secret, transport, writer, route or UI authority.
 
-The rule currently applies to the protected deployment metadata-receipt and V2
-writer witness workstream. Action 666FU is the delivered proof-admission
-boundary; it refused proof execution and left runtime authority fail-closed.
-Any further Action must therefore follow the closeout and anti-drift rules
-below.
+The rule currently governs the closed protected deployment metadata-receipt and
+V2 writer witness workstream. Action 666FW recorded its static closeout after
+Action 666FU refused proof execution and Action 666FV defined a source
+contract. Runtime authority remains fail-closed. Any future reopening must
+follow the autonomous closeout and anti-drift rules below.
 
 ### Closeout criteria
 

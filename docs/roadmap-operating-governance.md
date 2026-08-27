@@ -65,7 +65,7 @@ the stated trigger occurs.
 
 | ID | Risk | Severity | Current disposition | Review trigger | Accountable role |
 | --- | --- | --- | --- | --- | --- |
-| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigate through the autonomous security-closeout policy and its Action budget | Closeout decision after Action 666FU or any proposed extension | Codex autonomous governance controller |
+| RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigate through the autonomous security-closeout policy and its Action budget | Any proposed reopen after Action 666FW or extension of an active workstream | Codex autonomous governance controller |
 | RG-02 | Protected runtime prerequisites are not admitted, so an unsafe shortcut could bypass the intended boundary | high safety risk | Keep secret management, identity, transport, writer and route/UI fail-closed | Any proposal to implement or activate a runtime path | Independent automated verifier |
 | RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Automatically classify every non-successful run before changing a required gate | A CI gate-change proposal or the declared cadence job | Codex delivery automation |
 | RG-04 | Production and current-main identity can drift after a deployment or database change | high release risk | Reconcile exact identities and reopen the affected Milestone A evidence | Every production deploy/assertion or migration application | Policy-bound automation operator and independent automated verifier |
@@ -74,7 +74,7 @@ the stated trigger occurs.
 
 | Blocked outcome | Depends on | Evidence required before it moves | Next allowed move |
 | --- | --- | --- | --- |
-| Static metadata-receipt/witness workstream closeout | Delivered Action 666FU admission review and complete closeout record | Claim-to-evidence map, residual-risk disposition, policy evaluation, independent automated verification and exact-main CI | One autonomous closeout decision |
+| Closed static metadata-receipt/witness workstream | Action 666FW closeout record | Preserved closeout record, exact-main CI and fail-closed runtime prerequisites | Return to separately prioritized work; any reopen needs one autonomous policy evaluation and independent automated verification |
 | One bounded V2 writer implementation | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI classifications | Policy-admitted authority, containment/rollback and required operational evidence | Exactly one pre-authorized implementation Action |
 | Milestone B runtime capability | Canonical server-owned writer, durable identity, auditability and policy-admitted activation boundary | Behavior-level, idempotency and owner-bound evidence appropriate to the scope | One pre-authorized runtime trial or remain blocked by technical evidence |
 | Production publication | Exact deploy/main identity, required CI, applicable smoke/readback and a policy-admitted execution record | Release-specific evidence; source merge alone is insufficient | One pre-authorized release decision |

@@ -29,11 +29,15 @@ writer witness workstream:
 
 | Item | Status |
 | --- | --- |
-| Latest delivered boundary | Action 666FU static proof-admission review; it did not admit proof execution |
-| Immediate next boundary | Autonomously complete the closeout record and record the policy-selected decision; any extension must meet the anti-drift rule |
+| Latest delivered boundary | Action 666FW recorded the closeout decision after Action 666FU's proof-admission refusal and Action 666FV's source contract |
+| Immediate next boundary | Return to separately prioritized roadmap work; any reopening is evaluated by the autonomous decision policy without a human gate |
 | Runtime authority | not admitted |
-| Closeout decision | not yet recorded |
+| Closeout decision | `close_static_workstream`; see [Action 666FW](./action-666fw-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-security-closeout.md) and its evidence record |
 | Milestone A classification | unchanged; its bounded 15/15 gate does not imply runtime activation |
+
+Action 666FW's named roles and review language record the historical closeout
+evidence. They do not create a continuing manual approval requirement: this
+canonical policy governs every later reopen, extension or implementation.
 
 ## Closeout evidence checklist
 
@@ -82,12 +86,21 @@ environment or technical evidence source is unavailable, the controller records
 that technical block and takes the policy-selected non-activating decision; it
 does not wait for manual review.
 
+## Closed-workstream rule
+
+Action 666FW selected `close_static_workstream` for the current application.
+No static Action may start in this closed workstream. A future reopen is valid
+only when the Codex autonomous governance controller records a new policy
+evaluation and independent machine-verification; it never waits for a named
+human owner or reviewer. The automatic missing-evidence path above applies
+only after that governed reopen has been recorded.
+
 ## Anti-drift rule
 
-Action 666FU completed the immediate static review and did not admit proof
-execution. After it, no static security Action may begin unless it closes a
-named criterion below and the controller records its policy basis. A closeout
-decision is mandatory after at most two additional static Actions.
+For any governed reopen of this workstream, no static security Action may begin
+unless it closes a named criterion below and the controller records its policy
+basis. A closeout decision is mandatory after at most two additional static
+Actions.
 
 Each extension must name:
 
