@@ -386,6 +386,14 @@ validated, and no proof or integrity check runs. The next separate gate may
 define a static value-free witness-input contract only; all runtime authority
 remains fail-closed.
 
+Action 666FW closes this bounded static workstream under the security-closeout
+rule. It records `close_static_workstream` rather than extending the witness
+chain or admitting an implementation: all protected runtime prerequisites
+remain blocked and no concrete product capability would be enabled by another
+static contract. A reopening requires a fresh named product-owner and
+independent-review decision with a concrete outcome, bounded scope,
+rollback/containment and authority evidence.
+
 ## Security closeout governance
 
 This rule closes a bounded static security workstream with an explicit product

@@ -29,10 +29,10 @@ writer witness workstream:
 
 | Item | Status |
 | --- | --- |
-| Latest delivered boundary | Action 666FU static proof-admission review; it did not admit proof execution |
-| Immediate next boundary | Complete the closeout record and decision; any extension must meet the anti-drift rule |
+| Latest delivered boundary | Action 666FW recorded the closeout decision after Action 666FU's proof-admission refusal and Action 666FV's source contract |
+| Immediate next boundary | Return to separately prioritized roadmap work; reopening this static workstream requires a new governed decision |
 | Runtime authority | not admitted |
-| Closeout decision | not yet recorded |
+| Closeout decision | `close_static_workstream`; see [Action 666FW](./action-666fw-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-security-closeout.md) and its evidence record |
 | Milestone A classification | unchanged; its bounded 15/15 gate does not imply runtime activation |
 
 ## Closeout evidence checklist

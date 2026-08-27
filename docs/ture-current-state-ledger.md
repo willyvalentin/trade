@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666FW — V2 writer protected deployment metadata-receipt security closeout.**
+
+**Evidence timestamp:** 2026-08-27. Action 666FW records the named
+product-owner and independent-review roles and closes this bounded static
+workstream with `close_static_workstream`. It grants no runtime authority: the
+secret manager, least-privileged identity, private transport, writer invocation
+and route/UI binding remain blocked. No authentication, metadata or secret
+access, transport, connection, routine, writer, route/UI, broker, deployment
+or production action occurred.
+
 **ACTION 666FV — V2 writer protected deployment metadata-receipt negative-disclosure coverage-attestation witness-consistency-proof source contract.**
 
 **Evidence timestamp:** 2026-08-26. This receipt follows Action 666FU's green
@@ -177,11 +187,11 @@ authority.
 
 | Item | Current classification | Required next evidence or decision |
 | --- | --- | --- |
-| Static witness consistency design | Action 666FT designed the declarative, value-free boundary; Action 666FU reviewed it and did not admit proof execution | Record closeout evidence and one decision; any extension must obey the Action budget |
-| Workstream closeout | `open_no_closeout_decision` | Record all closeout criteria and one required decision in the canonical closeout record |
-| Protected runtime prerequisites | `not_admitted` | Classify secret manager, least-privileged identity, private transport, writer invocation and route/UI binding as `admitted`, `blocked` or `deferred` |
-| Residual-risk disposition | `not_recorded_for_closeout` | Named product owner and independent reviewer must accept, defer or redesign each residual risk |
-| Static-action budget | `starts_after_666FU` | No more than two additional static Actions without a recorded closeout decision |
+| Static witness consistency design | Action 666FT designed the declarative, value-free boundary; Action 666FU reviewed it and did not admit proof execution | Closed to further static extension; reopening requires a new governed decision |
+| Workstream closeout | `closed_static_workstream` | Preserve the Action 666FW record and return to separately prioritized roadmap work |
+| Protected runtime prerequisites | `blocked` | Secret manager, least-privileged identity, private transport, writer invocation and route/UI binding remain separately gated |
+| Residual-risk disposition | `deferred_no_runtime_authority` | Reassess only in a new separately authorized product outcome |
+| Static-action budget | `closed_after_666FW` | No further static Action in this workstream without a new recorded owner/reviewer decision |
 
 The closeout rule and decision-record template are canonical in
 [`security-closeout-governance.md`](./security-closeout-governance.md).
@@ -193,11 +203,11 @@ evidence records below and creates no activation authority.
 
 | Control | Current classification | Required review or update |
 | --- | --- | --- |
-| Highest-priority bounded outcome | `security_closeout_for_static_metadata_receipt_and_v2_writer_witness_workstream` | Complete the Action 666FU closeout record, then make one closeout decision |
-| Product capability enabled by current work | `none_yet` | The closeout record must state the next product outcome or explicitly stop static work |
-| Product owner | `unassigned_for_current_closeout` | Name one before recording a closeout decision |
-| Delivery owner | `unassigned_for_current_closeout` | Name one before beginning an approved extension or implementation |
-| Independent reviewer | `unassigned_for_current_closeout` | Name one before recording a closeout decision |
+| Highest-priority bounded outcome | `security_closeout_complete_static_workstream_closed` | Return to separately prioritized roadmap work; no witness-chain extension is open |
+| Product capability enabled by current work | `none_runtime_authorized` | A future server-owned writer capability remains separately gated and deferred |
+| Product owner | `Codex` | Reopen only with a new named decision and required authority evidence |
+| Delivery owner | `Codex` | Maintain the closeout record and fail-closed boundary |
+| Independent reviewer | `Willy Simonsson` | Reassess on any proposal to reopen or activate a runtime path |
 | Runtime blockers | `secret_manager_identity_transport_writer_route_ui_not_admitted` | Keep each fail-closed until separately classified and authorized |
 | Delivery-risk review | `open` | Review the initial risk register at the next Action boundary and every release/activation decision |
 | CI flow baseline | `observed_2026_08_26` | Classify failures and re-runs before changing required CI gates |
