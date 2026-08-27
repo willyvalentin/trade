@@ -1,5 +1,18 @@
 # Ture Current-State Ledger
 
+**ACTION 666GD — Immutable exit-decision explanation result contract.**
+
+**Evidence timestamp:** 2026-08-27. Action 666GD independently confirms the
+source-only explanation projection returns a frozen, fixed eight-key result
+shape. Projected classifications are fresh frozen values, rejected outputs
+contain only null classification/copy payloads, and all seven Swedish advisory
+strings are fixed table values with no caller-controlled interpolation. No
+evaluator, data, provider, secret, transport, database, writer, route/UI,
+deployment, broker or execution capability is added. Ready Full CI and
+exact-main Full CI remain unchanged and mandatory. The next action is a
+source-only rejected-result canonicality review; runtime integration remains
+blocked.
+
 **ACTION 666GC — Adversarial input contract for exit-decision explanation.**
 
 **Evidence timestamp:** 2026-08-27. Action 666GC contains failed own-descriptor

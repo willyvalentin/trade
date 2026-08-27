@@ -113,6 +113,7 @@ const foundationTests = [
   "tests/e2e/action-666ga-provider-free-exit-decision-explanation.spec.ts",
   "tests/e2e/action-666gb-exit-explanation-static-scope-review.spec.ts",
   "tests/e2e/action-666gc-exit-explanation-adversarial-input-contract.spec.ts",
+  "tests/e2e/action-666gd-immutable-exit-explanation-contract.spec.ts",
 ];
 
 const intelligenceTests = [

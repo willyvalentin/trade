@@ -102,7 +102,7 @@ test("666GC records only the source-only adversarial input boundary", () => {
   expect(documentation).toMatch(/throwing Proxy/i);
   expect(documentation).toMatch(/not inspected, read or mutated/i);
   expect(documentation).toMatch(/ACTION_666GD/);
-  expect(source(roadmapPath)).toMatch(/Action 666GC/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GC/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);
