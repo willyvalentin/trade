@@ -99,7 +99,7 @@ test("666GB binds the independent scope review into unchanged provider-free veri
   expect(documentation).toMatch(/no runtime\s+consumer/i);
   expect(documentation).toMatch(/no implementation change is necessary/i);
   expect(documentation).toMatch(/ACTION_666GC/);
-  expect(source(roadmapPath)).toMatch(/Action 666GB/);
+  expect(source(roadmapPath)).toMatch(/Current bounded workstream/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GB/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);
