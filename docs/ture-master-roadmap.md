@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority; Action 666FY also closes the Draft aggregate review as a non-change decision | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
-| Next decision | Select a separately prioritized product outcome under the autonomous policy | Do not reopen the closed static workstream or change CI merely to silence the known Draft aggregate |
+| Current bounded workstream | Action 666FZ selects one provider-free Milestone B advisory-clarity primitive while preserving every blocked runtime boundary | Implement only the selected pure explanation projection; any integration remains separately gated |
+| Next decision | Action 666GA may implement the pure exit-decision explanation projection | Do not invoke the evaluator, read data, wire UI/route, or reopen the closed static workstream |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -414,6 +414,14 @@ rule rather than changing any workflow: the known fast-green, matrix-skipped,
 aggregate-failed Draft shape is not a rerun trigger. The next action returns to
 a separately prioritized product outcome; it must not reopen the closed static
 workstream or make a CI change just to hide that visible Draft result.
+
+Action 666FZ performs that autonomous product selection. It rejects the blocked
+writer/transport path, required-check semantics changes and database/runtime
+capabilities, then selects exactly one provider-free advisory-clarity primitive:
+a pure exit-decision explanation projection. The following Action 666GA may
+implement only that default-off, runtime-unwired projection from the existing
+decision classifications. It may not invoke the evaluator, read data, attach to
+a route/UI, or claim execution authority.
 
 ## Security closeout governance
 

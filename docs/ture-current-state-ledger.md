@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666FZ — Autonomous Milestone B product-outcome selection.**
+
+**Evidence timestamp:** 2026-08-27. Action 666FZ selects exactly one
+provider-free advisory clarity outcome: a pure, default-off and runtime-unwired
+exit-decision explanation projection. It rejects reopening the blocked V2
+writer/transport workstream, changing CI semantics and any position, queue or
+market-observation runtime capability. The following Action 666GA may only
+implement that projection from three already-declared decision classifications;
+it may not invoke the evaluator, read data, wire a route/UI, or perform a
+provider, secret, transport, database, writer, deployment or execution action.
+Ready Full CI and exact-main Full CI remain unchanged and mandatory.
+
 **ACTION 666FY — Draft CI aggregate required-check impact review.**
 
 **Evidence timestamp:** 2026-08-27. Action 666FY reviews GitHub branch
