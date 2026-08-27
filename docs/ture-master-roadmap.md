@@ -10,10 +10,10 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
-| Next decision | Action 666FX records the post-closeout delivery-risk review and classifies the observed Draft aggregate result | Review Draft aggregate semantics only after required-check impact evidence is available |
+| Current bounded workstream | Action 666FW closed the static metadata-receipt and V2 writer witness workstream without admitting runtime authority; Action 666FY also closes the Draft aggregate review as a non-change decision | Return to separately prioritized roadmap work; any reopen follows the autonomous decision policy |
+| Next decision | Select a separately prioritized product outcome under the autonomous policy | Do not reopen the closed static workstream or change CI merely to silence the known Draft aggregate |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
-| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; PR #205's Draft aggregate result is classified as expected workflow semantics, not a test failure | Review Draft aggregate required-check impact before any workflow change; retain Ready and exact-main Full CI |
+| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
 The canonical operating rules, risk register, dependency map, quality metrics
@@ -404,6 +404,16 @@ required check, branch-protection rule, Netlify behavior or POC safety
 boundary. The next separate outcome is a required-check-impact review for the
 Draft aggregate; it must fail closed unless it proves Ready and exact-main Full
 CI remain fully required.
+
+Action 666FY completes that required-check-impact review against GitHub's
+actual main protection and two real Draft/Ready sequences. The required
+`provider-free-verification` context is strict and event-agnostic, so a Draft
+success under that name could not safely stand for six-shard Full CI. The action
+therefore retains all CI semantics and records a narrow agent interpretation
+rule rather than changing any workflow: the known fast-green, matrix-skipped,
+aggregate-failed Draft shape is not a rerun trigger. The next action returns to
+a separately prioritized product outcome; it must not reopen the closed static
+workstream or make a CI change just to hide that visible Draft result.
 
 ## Security closeout governance
 

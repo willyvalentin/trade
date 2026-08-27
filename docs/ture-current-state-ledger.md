@@ -1,5 +1,20 @@
 # Ture Current-State Ledger
 
+**ACTION 666FY — Draft CI aggregate required-check impact review.**
+
+**Evidence timestamp:** 2026-08-27. Action 666FY reviews GitHub branch
+protection and the actual Draft/Ready/main run shape. `main` strictly requires
+the event-agnostic `provider-free-verification` context, so a successful Draft
+aggregate would not safely prove six-shard Full CI. The decision therefore
+retains the current required-check binding and the expected Draft aggregate
+failure semantics. Delivery automation must classify only that known
+fast-green/matrix-skipped shape without rerunning Full CI; all other shapes
+remain fail-closed. No workflow, required check, branch protection, Netlify,
+secret, provider, transport, database, writer, route/UI, deployment or
+production action occurred. Ready Full CI and exact-main Full CI remain
+unchanged and mandatory. The next action must select separately prioritized
+product work under the autonomous policy.
+
 **ACTION 666FX — Post-closeout delivery-risk review and Draft CI classification.**
 
 **Evidence timestamp:** 2026-08-27. Action 666FX performs the first required

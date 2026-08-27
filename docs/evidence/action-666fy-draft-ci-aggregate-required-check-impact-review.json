@@ -1,0 +1,98 @@
+{
+  "contract_version": "trade.action666fy.draft-ci-aggregate-required-check-impact-review.v1",
+  "action_id": "ACTION_666FY",
+  "decision_id": "DRAFT_AGGREGATE_REQUIRED_CHECK_IMPACT_REVIEW_666FY",
+  "reviewed_revision": {
+    "protected_main_commit": "67dde40e21f668a22e87c41d215213077f960ff1",
+    "protected_main_tree": "3984d4e39dcd4aea87b26956772e3d261a8abe41",
+    "exact_main_ci_run": 33067498119,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666fy-draft-ci-aggregate-required-check-impact-review.spec.ts"
+  },
+  "autonomous_controls": {
+    "governance_controller": "codex_autonomous_governance_controller",
+    "delivery_automation": "codex_delivery_automation",
+    "independent_machine_verification": "github_branch_protection_api_exact_run_status_workflow_source_and_saved_provenance_artifact",
+    "decision_policy": "current_protected_main_autonomous_closeout_policy"
+  },
+  "branch_protection_observation": {
+    "branch": "main",
+    "strict": true,
+    "required_checks": [
+      {
+        "context": "provider-free-verification",
+        "app_id": 15368
+      }
+    ],
+    "enforce_admins": true,
+    "allow_force_pushes": false,
+    "allow_deletions": false,
+    "required_conversation_resolution": true
+  },
+  "workflow_semantics": {
+    "full_matrix_runs_when": "push_or_ready_pull_request",
+    "draft_fast_check_runs_when": "draft_pull_request",
+    "aggregate_context": "provider-free-verification",
+    "aggregate_requires_full_matrix_success": true,
+    "aggregate_runs_with_always": true,
+    "draft_matrix_result": "skipped",
+    "draft_aggregate_result": "failure"
+  },
+  "observed_runs": {
+    "pr_205_draft": {
+      "run_id": 33056752966,
+      "draft_fast_check": "success",
+      "full_matrix": "skipped",
+      "aggregate": "failure",
+      "classification": "expected_workflow_semantic_mismatch"
+    },
+    "pr_205_ready": {
+      "run_id": 33057037823,
+      "six_shards": "success",
+      "aggregate": "success",
+      "merge_candidate_poc": "success"
+    },
+    "pr_207_draft": {
+      "run_id": 33064576387,
+      "draft_fast_check": "success",
+      "full_matrix": "skipped",
+      "aggregate": "failure",
+      "classification": "expected_workflow_semantic_mismatch"
+    },
+    "pr_207_ready": {
+      "run_id": 33065072028,
+      "six_shards": "success",
+      "aggregate": "success",
+      "merge_candidate_poc": "success",
+      "total_runner_seconds": 7354
+    },
+    "pr_207_exact_main": {
+      "run_id": 33067498119,
+      "six_shards": "success",
+      "aggregate": "success",
+      "post_merge_poc": "success",
+      "candidate_tree": "3984d4e39dcd4aea87b26956772e3d261a8abe41",
+      "main_tree": "3984d4e39dcd4aea87b26956772e3d261a8abe41",
+      "total_runner_seconds": 7843
+    }
+  },
+  "decision": {
+    "type": "retain_current_required_check_binding_and_draft_failure_semantics",
+    "reason": "a successful Draft aggregate would share the strict required context name without proving six-shard Full CI",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "delivery_automation_rule": "classify_only_the_known_draft_shape_as_expected_and_do_not_rerun_full_ci",
+    "next_action": "select_separately_prioritized_product_outcome_under_autonomous_policy"
+  },
+  "protected_runtime_prerequisites": {
+    "secret_manager": "blocked",
+    "least_privileged_identity": "blocked",
+    "private_transport": "blocked",
+    "writer_invocation": "blocked",
+    "route_ui_binding": "blocked"
+  }
+}
