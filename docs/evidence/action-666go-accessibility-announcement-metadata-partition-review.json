@@ -1,0 +1,40 @@
+{
+  "contract_version": "trade.action666go.accessibility-announcement-metadata-partition-review.v1",
+  "action_id": "ACTION_666GO",
+  "reviewed_revision": {
+    "protected_main_commit": "92924b8626563dc4731c596639bbffa1823e0f61",
+    "protected_main_tree": "7de2b49d64b16772285f064372c0292aa9ffc317",
+    "exact_main_ci_run": 33163225284,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "883b4584d6770b58d26e2f3c810d09e7a00b2be4",
+    "candidate_tree": "7de2b49d64b16772285f064372c0292aa9ffc317",
+    "candidate_main_match": true,
+    "mismatches": []
+  },
+  "partition_review": {
+    "reviewed_action": "ACTION_666GM",
+    "accepted_key_count": 7,
+    "fixed_announcement_key_count": 7,
+    "unsupported_perturbation_count": 7,
+    "malformed_shape_count": 5,
+    "runtime_wired": false,
+    "evaluator_invocation_authorized": false,
+    "data_read_authorized": false,
+    "route_or_ui_authorized": false,
+    "provider_or_broker_authorized": false,
+    "writer_or_database_authorized": false,
+    "execution_authority": false,
+    "next_action": "ACTION_666GP"
+  },
+  "delivery_controls": {
+    "new_roadmap_action_cap": 10,
+    "current_action_number": 7,
+    "prior_static_review_cap_remains_closed": true,
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
