@@ -123,6 +123,7 @@ const foundationTests = [
   "tests/e2e/action-666gk-presentation-key-static-containment.spec.ts",
   "tests/e2e/action-666gl-advisory-accessibility-presentation-selection.spec.ts",
   "tests/e2e/action-666gm-provider-free-accessibility-announcement-metadata.spec.ts",
+  "tests/e2e/action-666gn-accessibility-announcement-metadata-static-containment.spec.ts",
 ];
 
 const intelligenceTests = [
