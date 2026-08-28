@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GO reviews the finite accepted-versus-rejected partition of Action 666GM's seven-key metadata projection as action seven of the newly authorized ten | Keep the seven existing presentation and announcement keys closed, source-only and without a runtime consumer or UI semantic binding |
-| Next decision | Action 666GP may review only Action 666GM's rejected-result immutability and canonical shape | Do not invoke the evaluator, read data, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666GP reviews the canonical rejected-result shape and immutability of Action 666GM's metadata projection as action eight of the newly authorized ten | Keep both rejection classes closed, input-free, frozen and without a runtime consumer or UI semantic binding |
+| Next decision | Action 666GQ may review only Action 666GM's accepted projected-result immutability and canonical shape | Do not invoke the evaluator, read data, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -22,8 +22,9 @@ implemented its source-only projection, and Action 666GK independently verified
 the seven-key static containment. Action 666GL selected the separately declared
 accessibility-metadata boundary, Action 666GM implements only its pure
 source-only metadata projection, Action 666GN independently confirms its
-static containment, and Action 666GO independently confirms its finite
-accepted-versus-rejected partition.
+static containment, Action 666GO independently confirms its finite
+accepted-versus-rejected partition, and Action 666GP independently confirms
+the canonical rejected-result shape and immutability.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GP — Accessibility-announcement metadata rejected-result review.**
+Action 666GP independently confirms malformed and unsupported Action 666GM
+inputs produce fresh frozen, closed seven-field rejected results with no
+retained caller-controlled input; only their fixed rejection code differs. It
+adds no production source, caller, rendered message, ARIA attribute, evaluator,
+data, provider, secret, transport, database, writer, route/UI, deployment,
+broker or execution capability. Only a separately bounded accepted-result
+review may follow; Ready Full CI and exact-main Full CI remain unchanged and
+mandatory.
+
 **ACTION 666GO — Accessibility-announcement metadata partition review.**
 Action 666GO independently confirms the seven admitted Action 666GM keys map
 to seven distinct fixed metadata keys, while seven nearby unsupported values

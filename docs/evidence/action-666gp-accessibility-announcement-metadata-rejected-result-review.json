@@ -1,0 +1,41 @@
+{
+  "contract_version": "trade.action666gp.accessibility-announcement-metadata-rejected-result-review.v1",
+  "action_id": "ACTION_666GP",
+  "reviewed_revision": {
+    "protected_main_commit": "6e0aa59ba9ace1f29fc547a5df6bcf35123c22c7",
+    "protected_main_tree": "2b77b46e6c60389467c46b6b36704961479ef84f",
+    "exact_main_ci_run": 33168767669,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "b980482634b0defc5fd596ffd82d152def103b1b",
+    "candidate_tree": "2b77b46e6c60389467c46b6b36704961479ef84f",
+    "candidate_main_match": true,
+    "mismatches": []
+  },
+  "rejected_result_review": {
+    "reviewed_action": "ACTION_666GM",
+    "fixed_field_count": 7,
+    "rejection_code_count": 2,
+    "malformed_input_count": 12,
+    "rejected_results_fresh": true,
+    "rejected_results_frozen": true,
+    "caller_controlled_input_retained": false,
+    "runtime_wired": false,
+    "evaluator_invocation_authorized": false,
+    "data_read_authorized": false,
+    "route_or_ui_authorized": false,
+    "provider_or_broker_authorized": false,
+    "writer_or_database_authorized": false,
+    "execution_authority": false,
+    "next_action": "ACTION_666GQ"
+  },
+  "delivery_controls": {
+    "new_roadmap_action_cap": 10,
+    "current_action_number": 8,
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
