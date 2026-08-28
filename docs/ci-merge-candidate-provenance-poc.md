@@ -31,9 +31,16 @@ the normal post-merge exact-main Full CI still runs.
 ## Post-merge observation
 
 After every `push` to `main`, the existing six-shard Full CI runs first and is
-not conditional on this POC. The POC then attempts to find a merged PR whose
-merge commit has exactly two parents. It derives the only acceptable receipt
-name from the actual main commit's first parent, second parent and tree SHA.
+not conditional on this POC. The POC first asks GitHub for pull requests
+associated with the main commit. If that endpoint returns no fully bound
+merged PR, it separately examines the recent closed `main` PRs. Both paths
+accept only the PR whose merge SHA, base SHA and head SHA exactly equal the
+main merge commit and its two parents. The fallback is an observation-only
+compatibility path for GitHub's incomplete commit-association response; it
+cannot select a partial match.
+
+It derives the only acceptable receipt name from the actual main commit's
+first parent, second parent and tree SHA.
 
 It reports `matched` only if all of the following hold:
 
