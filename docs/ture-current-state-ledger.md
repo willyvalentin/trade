@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GK — Presentation-key static containment review.**
+Action 666GK independently confirms that the unchanged Action 666GJ table has
+exactly seven fixed and unique classification/key tuples, zero module imports
+and zero direct project runtime consumers. It changes no production source and
+grants no evaluator, data, provider, secret, transport, database, writer,
+route/UI, deployment, broker or execution capability. Only a separately
+bounded advisory accessibility-presentation selection may follow; Ready Full
+CI and exact-main Full CI remain unchanged and mandatory.
+
 **ACTION 666GJ — Provider-free exit-explanation presentation keys.**
 Action 666GJ implements the selected finite projection for the seven existing
 exit-explanation tuples. It accepts only the closed classification triple and
