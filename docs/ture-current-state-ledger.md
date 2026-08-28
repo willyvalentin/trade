@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GI — Autonomous advisory presentation-key selection.**
+Action 666GI records the product owner's new ten-action continuation decision
+and selects one finite provider-free presentation-key projection for the seven
+already-fixed exit-explanation tuples. It adds no implementation, evaluator,
+data/provider/secret/transport/database/writer read, route/UI, deployment,
+broker or execution capability. The prior static review cap remains closed;
+only the separately bounded Action 666GJ implementation may follow. Ready Full
+CI and exact-main Full CI remain unchanged and mandatory.
+
 **ACTION 666GH — Exit-explanation result detachment.**
 Action 666GH independently verifies each accepted source-only projection returns
 a frozen classification detached from its caller-owned input. Mutating every

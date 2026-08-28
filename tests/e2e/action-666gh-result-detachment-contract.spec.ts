@@ -84,7 +84,7 @@ test("666GH binds detachment to the closed local copy rather than input identity
   expect(documentation).toMatch(/detaches every accepted result from caller-owned input/i);
   expect(documentation).toMatch(/no\s+implementation change is\s+necessary/i);
   expect(documentation).toMatch(/completes the authorized 15-action cap/i);
-  expect(source(roadmapPath)).toMatch(/Action 666GH/);
+  expect(source(roadmapPath)).toMatch(/Current operating dashboard/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GH/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);
