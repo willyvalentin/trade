@@ -1,0 +1,70 @@
+{
+  "contract_version": "trade.action666gs.autonomous-milestone-b-v2-command-digest-selection.v1",
+  "action_id": "ACTION_666GS",
+  "decision_id": "MILESTONE_B_V2_COMMAND_DIGEST_SELECTION_666GS",
+  "reviewed_revision": {
+    "protected_main_commit": "c1b64f8cc9017a942f61371eea6ff58178fa4be2",
+    "protected_main_tree": "d0ec9b78c62f1cb7ceadabb3b14908609c448340",
+    "exact_main_ci_run": 33187729952,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666gs-autonomous-milestone-b-v2-command-digest-selection.spec.ts"
+  },
+  "autonomous_controls": {
+    "governance_controller": "codex_autonomous_governance_controller",
+    "delivery_automation": "codex_delivery_automation",
+    "independent_machine_verification": "github_exact_run_status_and_saved_merge_candidate_provenance_artifact",
+    "decision_policy": "current_protected_main_roadmap_operating_governance"
+  },
+  "candidates": {
+    "v2_private_routine_runtime_transport_binding": "rejected_blocked_runtime_prerequisites",
+    "v2_committed_result_decoder_or_adapter": "deferred_transport_and_result_boundary_not_admitted",
+    "required_ci_or_branch_protection_change": "rejected_unchanged_six_shard_full_ci",
+    "position_version_lineage_v2_writer_canonical_command_digest_builder": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "position_version_lineage_v2_writer_canonical_command_digest_builder",
+    "implementation_action": "ACTION_666GT",
+    "accepted_input_fields": [
+      "contract_version",
+      "routine_signature",
+      "authenticated_server_owner",
+      "opaque_recommendation_reference"
+    ],
+    "forbidden_input_categories": [
+      "price",
+      "quantity",
+      "position_identity",
+      "policy",
+      "timestamp",
+      "caller_supplied_digest"
+    ],
+    "must_not": [
+      "credential_resolution",
+      "database_or_network_io",
+      "private_routine_invocation",
+      "result_decoder_implementation",
+      "route_or_ui_wiring",
+      "broker_or_execution_authority"
+    ],
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_dependency",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false,
+    "next_action": "action_666gt_position_version_lineage_v2_writer_canonical_command_digest_builder"
+  },
+  "protected_runtime_prerequisites": {
+    "secret_manager": "blocked",
+    "least_privileged_identity": "blocked",
+    "private_transport": "blocked",
+    "writer_invocation": "blocked",
+    "route_ui_binding": "blocked"
+  }
+}

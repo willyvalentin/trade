@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GS — Autonomous Milestone B deterministic V2 command-digest selection.**
+
+Action 666GS is the first bounded decision of the newly authorized twelve-action
+continuation. It selects exactly one source-only dependency for Milestone B's
+existing V2 private command-port contract: a deterministic canonical digest
+builder over its already frozen four-field projection. The selection is not a
+transport, credential, database, writer, route/UI, deployment, broker or
+runtime authority. Action 666GT may implement only that pure builder; all
+protected runtime prerequisites remain blocked and fail closed.
+
 **ACTION 666GR — Accessibility-announcement metadata cross-result detachment review.**
 Action 666GR independently confirms accepted and rejected Action 666GM results
 are separate frozen scalar-only values with no cross-result aliasing. It adds
