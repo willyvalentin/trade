@@ -127,6 +127,7 @@ const foundationTests = [
   "tests/e2e/action-666go-accessibility-announcement-metadata-partition-review.spec.ts",
   "tests/e2e/action-666gp-accessibility-announcement-metadata-rejected-result-review.spec.ts",
   "tests/e2e/action-666gq-accessibility-announcement-metadata-accepted-result-review.spec.ts",
+  "tests/e2e/action-666gr-accessibility-announcement-metadata-cross-result-detachment-review.spec.ts",
 ];
 
 const intelligenceTests = [
