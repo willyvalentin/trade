@@ -1,0 +1,52 @@
+{
+  "contract_version": "trade.action666gv.autonomous-milestone-b-v2-committed-result-decoder-selection.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "4371bea010bda751f91bddd0e9f82f0c85508ebf",
+    "protected_main_tree": "35e8d0e2a046c12acb43d953e8645fc1129845c1",
+    "exact_main_ci_run": 33210525123,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666gv-autonomous-milestone-b-v2-committed-result-decoder-selection.spec.ts"
+  },
+  "candidates": {
+    "v2_private_runtime_transport_or_writer_binding": "rejected_blocked_runtime_prerequisites",
+    "v2_adapter_or_private_routine_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_or_branch_protection_change": "rejected_unchanged_six_shard_full_ci",
+    "position_version_lineage_v2_writer_strict_committed_result_decoder": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "position_version_lineage_v2_writer_strict_committed_result_decoder",
+    "implementation_action": "ACTION_666GW",
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_wire_columns": [
+      "disposition",
+      "position_id",
+      "position_version",
+      "initial_history_identity"
+    ],
+    "permitted_dispositions": [
+      "created",
+      "replayed"
+    ],
+    "required_initial_position_version": 1,
+    "required_initial_history_identity_format": "position_id:authenticated_server_owner:initial_position_version",
+    "forbidden_input_categories": [
+      "legacy_snapshot_fields",
+      "extra_or_missing_wire_columns",
+      "inherited_or_accessor_values",
+      "multiple_result_rows",
+      "transport_response_or_connection",
+      "credential_or_identity_resolution",
+      "writer_or_runtime_binding"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_dependency",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}

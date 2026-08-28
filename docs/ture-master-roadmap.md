@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GU independently reviews the completed Action 666GT V2 command-digest builder | Preserve the closed accessibility workstream and test only fail-closed four-field containment, with no transport or runtime binding |
-| Next decision | After Action 666GU, select one separately bounded successor from protected main | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666GV selects the next source-only successor after the completed V2 command-digest sequence | Preserve the frozen committed-result mapping while admitting no caller, transport or runtime binding |
+| Next decision | Implement only the selected strict committed-result decoder after Action 666GV clears its delivery gate | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -41,6 +41,14 @@ Action 666GU independently reviews that completed local builder using reordered
 valid records and malicious widened or malformed input. The review makes no
 implementation change and cannot admit a caller, transport, credential,
 database, writer, route/UI or runtime path.
+
+Action 666GT completed the canonical command digest and Action 666GV now
+selects one separate pure successor: a strict decoder of the already frozen V2
+committed-result mapping. Its selected future implementation may validate only
+the four declared result columns, the two committed dispositions, version one
+and the owner-bound initial-history identity. The selection creates no
+transport, credential, database/writer, route/UI, provider, broker, deployment
+or runtime authority.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

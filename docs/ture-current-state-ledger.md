@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GV — Autonomous Milestone B V2 committed-result decoder selection.**
+
+Action 666GV selects one future pure strict decoder for the already frozen V2
+committed-result mapping after Action 666GU completed Ready/exact-main six-shard
+CI and matched post-merge provenance. It may validate only the existing four
+wire columns, committed disposition, version and owner-bound history identity.
+The selection is not a caller, transport, credential, database/writer, route/UI,
+provider, broker, deployment or runtime authority; malformed or widened input
+must remain fail-closed.
+
 **ACTION 666GU — Independent V2 command-digest containment review.**
 
 Action 666GU independently tests the completed Action 666GT builder against
