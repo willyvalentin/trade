@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GS selects the next source-only Milestone B dependency after the completed 666GI–666GR continuation | Preserve the closed accessibility workstream and advance only the deterministic V2 command-digest builder, with no transport or runtime binding |
-| Next decision | Action 666GT may implement the selected deterministic V2 command-digest builder | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666GT implements the deterministic V2 command-digest builder selected by completed Action 666GS | Preserve the closed accessibility workstream and advance only the pure four-field digest builder, with no transport or runtime binding |
+| Next decision | After Action 666GT, select one separately bounded successor from protected main | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -29,6 +29,13 @@ independently confirms the canonical accepted projected-result shape,
 immutability and caller-state detachment. Action 666GR independently confirms
 cross-result detachment between accepted and rejected outcomes; the ten-action
 continuation then closes pending exact-main Full CI and POC verification.
+
+Action 666GS then selected one source-only Milestone B successor and completed
+its Ready/exact-main six-shard CI plus matched post-merge provenance. Action
+666GT now implements only the selected deterministic V2 private command digest
+over the frozen four-field projection. It is server-only and unbound; neither
+the selection nor the builder grants transport, credential, database, writer,
+route/UI, provider, broker, deployment or runtime authority.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
