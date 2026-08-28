@@ -1,0 +1,47 @@
+{
+  "contract_version": "trade.action666gw.position-version-lineage-v2-writer-strict-committed-result-decoder.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "18888a7bc28a28d96ca059a328ded947e7be68a0",
+    "protected_main_tree": "74929caae798ad26f37f1cfd27b105a9fb679770",
+    "exact_main_ci_run": 33217044246,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666GV"
+  },
+  "implementation": {
+    "module": "lib/server/position-version-lineage-v2-writer-strict-committed-result-decoder.ts",
+    "export": "decodePositionVersionLineageV2WriterCommittedResult",
+    "server_only": true,
+    "runtime_unwired": true,
+    "accepted_wire_columns": [
+      "disposition",
+      "position_id",
+      "position_version",
+      "initial_history_identity"
+    ],
+    "permitted_dispositions": [
+      "created",
+      "replayed"
+    ],
+    "required_position_version": 1,
+    "required_initial_history_identity_format": "position_id:authenticated_server_owner:initial_position_version",
+    "returned_value": "new_frozen_committed_result",
+    "rejected_categories": [
+      "arrays_or_multiple_rows",
+      "extra_missing_symbol_inherited_or_accessor_properties",
+      "custom_prototype_or_noncanonical_uuid",
+      "wrong_disposition_version_or_history_identity",
+      "legacy_snapshot_fields"
+    ]
+  },
+  "containment": {
+    "transport_operation_present": false,
+    "credential_resolution_present": false,
+    "database_or_writer_operation_present": false,
+    "owner_resolution_present": false,
+    "adapter_route_ui_or_runtime_binding_present": false,
+    "provider_broker_deployment_or_execution_authority": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

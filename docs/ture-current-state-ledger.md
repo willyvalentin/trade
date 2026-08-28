@@ -1,5 +1,13 @@
 # Ture Current-State Ledger
 
+**ACTION 666GW — V2 strict committed-result decoder.**
+
+Action 666GW implements only the pure source-only successor selected by Action
+666GV. It converts one exact in-memory V2 committed-result shape into a fresh
+frozen value and rejects widened, inherited, accessor, malformed and legacy
+result material. It resolves no owner and opens no transport, credential,
+database/writer, route/UI, provider, broker, deployment or runtime authority.
+
 **ACTION 666GV — Autonomous Milestone B V2 committed-result decoder selection.**
 
 Action 666GV selects one future pure strict decoder for the already frozen V2
