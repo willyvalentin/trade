@@ -100,6 +100,7 @@
   "tests/e2e/action-666ge-canonical-rejected-result-contract.spec.ts",
   "tests/e2e/action-666gf-accepted-rejected-partition-contract.spec.ts",
   "tests/e2e/action-666gg-static-explanation-table-integrity.spec.ts",
+  "tests/e2e/action-666gh-result-detachment-contract.spec.ts",
   "tests/e2e/action-652-authentication-boundary.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts",
