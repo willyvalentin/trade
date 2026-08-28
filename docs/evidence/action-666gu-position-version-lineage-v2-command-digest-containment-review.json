@@ -1,0 +1,52 @@
+{
+  "contract_version": "trade.action666gu.position-version-lineage-v2-command-digest-containment-review.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "5d9247c28c0c3cbfb6887ab339d2f3164aa0c67b",
+    "protected_main_tree": "5f49194d3bc9d913fdca91e6f76e3d934099c92b",
+    "exact_main_ci_run": 33204485368,
+    "exact_main_ci_conclusion": "success",
+    "post_merge_candidate_provenance": "matched"
+  },
+  "predecessor": {
+    "action": "ACTION_666GT",
+    "builder_module": "lib/server/position-version-lineage-v2-writer-canonical-command-digest.ts",
+    "builder_version": "position_version_lineage_v2_writer_canonical_command_digest_builder_v1"
+  },
+  "review_scope": {
+    "accepted_input_fields": [
+      "contract_version",
+      "routine_signature",
+      "authenticated_server_owner",
+      "opaque_recommendation_reference"
+    ],
+    "required_rejections": [
+      "caller_supplied_digest",
+      "price",
+      "quantity",
+      "position_identity",
+      "policy",
+      "timestamp",
+      "missing_field",
+      "inherited_field",
+      "accessor_field",
+      "wrong_contract",
+      "wrong_routine",
+      "non_canonical_uuid"
+    ],
+    "runtime_unwired": true,
+    "execution_authority": false
+  },
+  "decision": {
+    "type": "independent_source_only_v2_command_digest_containment_review",
+    "builder_change_authorized": false,
+    "transport_implemented": false,
+    "credential_resolution_implemented": false,
+    "database_operation_present": false,
+    "writer_invocation_present": false,
+    "route_or_ui_binding_present": false,
+    "runtime_activation_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

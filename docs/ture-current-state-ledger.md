@@ -1,5 +1,13 @@
 # Ture Current-State Ledger
 
+**ACTION 666GU — Independent V2 command-digest containment review.**
+
+Action 666GU independently tests the completed Action 666GT builder against
+reordered valid records plus widened and malformed input. It adds no builder
+implementation and no source of production authority. The frozen preflight,
+private transport, credentials, database/writer, route/UI, deployment, broker
+and runtime binding all remain closed and malformed input remains fail-closed.
+
 **ACTION 666GT — V2 private command-digest builder.**
 
 Action 666GT is the active implementation step after Action 666GS completed
