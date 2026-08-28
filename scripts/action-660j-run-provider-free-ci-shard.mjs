@@ -119,6 +119,7 @@ const foundationTests = [
   "tests/e2e/action-666gg-static-explanation-table-integrity.spec.ts",
   "tests/e2e/action-666gh-result-detachment-contract.spec.ts",
   "tests/e2e/action-666gi-accessibility-contract-selection.spec.ts",
+  "tests/e2e/action-666gj-provider-free-exit-explanation-presentation-key.spec.ts",
 ];
 
 const intelligenceTests = [
