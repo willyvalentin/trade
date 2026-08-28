@@ -262,6 +262,22 @@ export function compareMainToCandidate({ main, record, exactMainResult }) {
   });
 }
 
+export function matchingMergedPullRequest(pullRequests, main) {
+  if (!Array.isArray(pullRequests)) return null;
+  const parents = main?.parent_shas;
+  if (!Array.isArray(parents) || parents.length !== 2) return null;
+  return (
+    pullRequests.find(
+      (candidate) =>
+        candidate?.state === "closed" &&
+        candidate?.merged_at &&
+        candidate?.merge_commit_sha === main.sha &&
+        candidate?.base?.sha === parents[0] &&
+        candidate?.head?.sha === parents[1],
+    ) ?? null
+  );
+}
+
 async function githubApi(pathname) {
   const token = process.env.GITHUB_TOKEN;
   const apiUrl = process.env.GITHUB_API_URL;
@@ -339,16 +355,26 @@ async function discoverCandidate(outputPath) {
     const pullRequests = await githubApi(
       `/repos/${process.env.GITHUB_REPOSITORY}/commits/${main.sha}/pulls`,
     );
-    const pullRequest = pullRequests.find(
-      (candidate) =>
-        candidate?.merged_at &&
-        candidate?.merge_commit_sha === main.sha &&
-        candidate?.head?.sha === main.parent_shas[1],
-    );
+    let pullRequest = matchingMergedPullRequest(pullRequests, main);
+    let pullRequestDiscoverySource = "commit_association";
+    if (!pullRequest) {
+      const recentlyClosedMainPullRequests = await githubApi(
+        `/repos/${process.env.GITHUB_REPOSITORY}/pulls?state=closed&base=main&sort=updated&direction=desc&per_page=100`,
+      );
+      pullRequest = matchingMergedPullRequest(
+        recentlyClosedMainPullRequests,
+        main,
+      );
+      pullRequestDiscoverySource = "closed_main_fallback";
+    }
     if (!pullRequest) {
       result = discovery("uncertain_no_matching_merged_pr", {
         main,
         exact_main_full_ci_result: exactMainResult,
+        pr_discovery_sources: [
+          "commit_association",
+          "closed_main_fallback",
+        ],
       });
     } else {
       const artifactName = candidateArtifactName({
@@ -380,12 +406,14 @@ async function discoverCandidate(outputPath) {
         ? discovery("candidate_artifact_found", {
             main,
             pr_number: pullRequest.number,
+            pr_discovery_source: pullRequestDiscoverySource,
             exact_main_full_ci_result: exactMainResult,
             ...match,
           })
         : discovery("uncertain_candidate_artifact_missing", {
             main,
             pr_number: pullRequest.number,
+            pr_discovery_source: pullRequestDiscoverySource,
             exact_main_full_ci_result: exactMainResult,
             artifact_name: artifactName,
           });

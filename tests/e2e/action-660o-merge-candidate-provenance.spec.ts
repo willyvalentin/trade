@@ -181,6 +181,38 @@ test("only accepts an exact main tree, parent set, workflow blob and successful 
   ).toContain("exact_main_full_ci_did_not_succeed");
 });
 
+test("uses only a fully bound merged PR when the commit association endpoint is empty", async () => {
+  const { matchingMergedPullRequest } = await provenanceModule();
+  const input = candidateInput();
+  const main = {
+    sha: sha("1"),
+    parent_shas: [input.baseSha, input.headSha],
+  };
+  const matching = {
+    number: 42,
+    state: "closed",
+    merged_at: "2026-08-26T00:00:00Z",
+    merge_commit_sha: main.sha,
+    base: { sha: input.baseSha },
+    head: { sha: input.headSha },
+  };
+
+  expect(matchingMergedPullRequest([], main)).toBeNull();
+  expect(matchingMergedPullRequest([matching], main)).toEqual(matching);
+  expect(
+    matchingMergedPullRequest(
+      [{ ...matching, base: { sha: sha("9") } }],
+      main,
+    ),
+  ).toBeNull();
+  expect(
+    matchingMergedPullRequest(
+      [{ ...matching, head: { sha: sha("8") } }],
+      main,
+    ),
+  ).toBeNull();
+});
+
 test("keeps Draft CI, required aggregate and exact-main Full CI unchanged while adding POC-only evidence jobs", async () => {
   const workflow = await source(workflowPath);
   const contract = await source(contractPath);
@@ -197,6 +229,10 @@ test("keeps Draft CI, required aggregate and exact-main Full CI unchanged while 
   expect(await source(scriptPath)).toContain(
     "exact_main_full_ci_retained_during_poc_no_deduplication_authorized",
   );
+  expect(await source(scriptPath)).toContain(
+    "pulls?state=closed&base=main&sort=updated&direction=desc&per_page=100",
+  );
+  expect(await source(scriptPath)).toContain("closed_main_fallback");
   expect(workflow).not.toContain("merge_group:");
   expect(contract).toContain("does not reduce, skip, replace, or authorize");
   expect(contract).toContain("mismatch_or_uncertain");
