@@ -144,6 +144,7 @@ const foundationTests = [
   "tests/e2e/action-666gf-accepted-rejected-partition-contract.spec.ts",
   "tests/e2e/action-666gg-static-explanation-table-integrity.spec.ts",
   "tests/e2e/action-666gh-result-detachment-contract.spec.ts",
+  "tests/e2e/action-666gi-accessibility-contract-selection.spec.ts",
 ];
 
 const intelligenceTests = [
