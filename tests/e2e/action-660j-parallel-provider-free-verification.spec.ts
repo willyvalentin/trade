@@ -148,6 +148,7 @@ const foundationTests = [
   "tests/e2e/action-666gj-provider-free-exit-explanation-presentation-key.spec.ts",
   "tests/e2e/action-666gk-presentation-key-static-containment.spec.ts",
   "tests/e2e/action-666gl-advisory-accessibility-presentation-selection.spec.ts",
+  "tests/e2e/action-666gm-provider-free-accessibility-announcement-metadata.spec.ts",
 ];
 
 const intelligenceTests = [
