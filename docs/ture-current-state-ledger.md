@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GQ — Accessibility-announcement metadata accepted-result review.**
+Action 666GQ independently confirms all seven Action 666GM admitted keys
+produce fresh frozen, closed seven-field projected results with fixed distinct
+announcement metadata keys and no retained caller state. It adds no production
+source, caller, rendered message, ARIA attribute, evaluator, data, provider,
+secret, transport, database, writer, route/UI, deployment, broker or execution
+capability. Only a separately bounded cross-result detachment review may
+follow; Ready Full CI and exact-main Full CI remain unchanged and mandatory.
+
 **ACTION 666GP — Accessibility-announcement metadata rejected-result review.**
 Action 666GP independently confirms malformed and unsupported Action 666GM
 inputs produce fresh frozen, closed seven-field rejected results with no
