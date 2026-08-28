@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GM — Provider-free accessibility-announcement metadata.**
+Action 666GM implements the Action 666GL selection as a standalone pure
+projection from only the seven fixed Action 666GJ presentation keys to fixed
+accessibility-announcement metadata keys. It returns a frozen key or an
+explicit fail-closed rejection, but has no caller, rendered message, ARIA
+attribute, evaluator, data, provider, secret, transport, database, writer,
+route/UI, deployment, broker or execution capability. Only a separately
+bounded static-containment review may follow; Ready Full CI and exact-main Full
+CI remain unchanged and mandatory.
+
 **ACTION 666GL — Advisory accessibility-presentation selection.**
 Action 666GL selects a finite provider-free accessibility-announcement metadata
 projection for only the seven fixed Action 666GJ presentation keys. It is a

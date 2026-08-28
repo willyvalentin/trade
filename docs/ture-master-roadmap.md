@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GL selects a finite provider-free accessibility-announcement metadata successor as action four of the newly authorized ten | Keep the seven existing presentation keys closed, source-only and without a runtime consumer or UI semantic binding |
-| Next decision | Action 666GM may implement only the selected pure accessibility-announcement metadata projection | Do not invoke the evaluator, read data, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666GM implements the finite provider-free accessibility-announcement metadata projection as action five of the newly authorized ten | Keep the seven existing presentation keys closed, source-only and without a runtime consumer or UI semantic binding |
+| Next decision | Action 666GN may review only Action 666GM's static table and source-containment properties | Do not invoke the evaluator, read data, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -19,8 +19,9 @@ database, deployment, secret, transport, writer, route or UI authority.
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
 implemented its source-only projection, and Action 666GK independently verified
-the seven-key static containment. Action 666GL advances only the separately
-declared accessibility-metadata selection above.
+the seven-key static containment. Action 666GL selected the separately declared
+accessibility-metadata boundary, and Action 666GM implements only its pure
+source-only metadata projection.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
