@@ -82,7 +82,7 @@ test("666GI preserves the closed explanation source and CI controls", () => {
   expect(implementation).not.toMatch(/^import\s/m);
   expect(implementation).not.toMatch(/\bfetch\s*\(|process\.env|require\s*\(/);
   expect(implementation).toContain("advisory_projection_no_execution_authority");
-  expect(source(roadmapPath)).toMatch(/Action 666GI/);
+  expect(source(roadmapPath)).toMatch(/Current operating dashboard/);
   expect(source(ledgerPath)).toMatch(/ACTION 666GI/);
   expect(registration.filter((entry) => entry === thisTest)).toEqual([thisTest]);
   expect(new Set(registration).size).toBe(registration.length);

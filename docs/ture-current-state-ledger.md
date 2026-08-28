@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GJ — Provider-free exit-explanation presentation keys.**
+Action 666GJ implements the selected finite projection for the seven existing
+exit-explanation tuples. It accepts only the closed classification triple and
+returns a frozen result containing a fixed semantic key or an explicit
+fail-closed rejection. It does not import or invoke the evaluator, read data,
+provider, secret, transport, database or writer state, wire a route/UI, deploy,
+call a broker or assert execution authority. The next bounded action is only
+static table-containment review; Ready Full CI and exact-main Full CI remain
+unchanged and mandatory.
+
 **ACTION 666GI — Autonomous advisory presentation-key selection.**
 Action 666GI records the product owner's new ten-action continuation decision
 and selects one finite provider-free presentation-key projection for the seven
