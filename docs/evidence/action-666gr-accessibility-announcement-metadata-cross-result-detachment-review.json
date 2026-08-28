@@ -1,0 +1,42 @@
+{
+  "contract_version": "trade.action666gr.accessibility-announcement-metadata-cross-result-detachment-review.v1",
+  "action_id": "ACTION_666GR",
+  "reviewed_revision": {
+    "protected_main_commit": "5abac0f5f79b378f723704bd2b65c8511aa88fb4",
+    "protected_main_tree": "3f58875af6391b45aa3a0a10022944e2804c95ff",
+    "exact_main_ci_run": 33181035282,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "0f4fd6ee6383ade56e5dd804e3d4a4738b9a64e1",
+    "candidate_tree": "3f58875af6391b45aa3a0a10022944e2804c95ff",
+    "candidate_main_match": true,
+    "mismatches": []
+  },
+  "cross_result_detachment_review": {
+    "reviewed_action": "ACTION_666GM",
+    "accepted_result_count": 2,
+    "rejected_result_count": 2,
+    "all_results_fresh": true,
+    "all_results_frozen": true,
+    "nested_mutable_result_values": false,
+    "cross_result_aliasing": false,
+    "runtime_wired": false,
+    "evaluator_invocation_authorized": false,
+    "data_read_authorized": false,
+    "route_or_ui_authorized": false,
+    "provider_or_broker_authorized": false,
+    "writer_or_database_authorized": false,
+    "execution_authority": false,
+    "successor_authorized": false
+  },
+  "delivery_controls": {
+    "new_roadmap_action_cap": 10,
+    "current_action_number": 10,
+    "authorized_sequence_complete_after_exact_main_poc": true,
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}

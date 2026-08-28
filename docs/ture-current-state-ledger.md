@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GR — Accessibility-announcement metadata cross-result detachment review.**
+Action 666GR independently confirms accepted and rejected Action 666GM results
+are separate frozen scalar-only values with no cross-result aliasing. It adds
+no production source, caller, rendered message, ARIA attribute, evaluator,
+data, provider, secret, transport, database, writer, route/UI, deployment,
+broker or execution capability. This is the tenth and final authorized action;
+no successor is admitted unless a new bounded owner authorization is recorded.
+Ready Full CI and exact-main Full CI remain unchanged and mandatory.
+
 **ACTION 666GQ — Accessibility-announcement metadata accepted-result review.**
 Action 666GQ independently confirms all seven Action 666GM admitted keys
 produce fresh frozen, closed seven-field projected results with fixed distinct
