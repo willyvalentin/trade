@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666GT — V2 private command-digest builder.**
+
+Action 666GT is the active implementation step after Action 666GS completed
+with Ready/exact-main six-shard CI and matched post-merge provenance. It builds
+only the deterministic, server-only SHA-256 digest for the frozen four-field V2
+private command projection. It accepts no caller digest, price, quantity,
+position identity, policy or timestamp, and remains unbound from credentials,
+transport, database, writer, route/UI, deployment, broker and runtime
+authority. Any malformed or widened input fails closed.
+
 **ACTION 666GS — Autonomous Milestone B deterministic V2 command-digest selection.**
 
 Action 666GS is the first bounded decision of the newly authorized twelve-action

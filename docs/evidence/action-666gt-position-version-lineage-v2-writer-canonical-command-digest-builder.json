@@ -1,0 +1,44 @@
+{
+  "contract_version": "trade.action666gt.position-version-lineage-v2-writer-canonical-command-digest-builder.v1",
+  "predecessor": {
+    "action": "ACTION_666GS",
+    "protected_main_commit": "c859f1782aed392242190bc5c7618a10f85e9f0c",
+    "exact_main_ci_run": 33197907825,
+    "exact_main_ci_conclusion": "success",
+    "post_merge_candidate_provenance": "matched"
+  },
+  "implementation": {
+    "module": "lib/server/position-version-lineage-v2-writer-canonical-command-digest.ts",
+    "server_only": true,
+    "runtime_unwired": true,
+    "accepted_input_fields": [
+      "contract_version",
+      "routine_signature",
+      "authenticated_server_owner",
+      "opaque_recommendation_reference"
+    ],
+    "serialization": "utf8_json_object_with_lexically_sorted_keys",
+    "digest": "sha256_lowercase_hex",
+    "forbidden_input_categories": [
+      "caller_supplied_digest",
+      "price",
+      "quantity",
+      "position_identity",
+      "policy",
+      "timestamp"
+    ]
+  },
+  "decision": {
+    "type": "implement_one_pure_source_only_milestone_b_dependency",
+    "transport_implemented": false,
+    "credential_resolution_implemented": false,
+    "database_operation_present": false,
+    "writer_invocation_present": false,
+    "result_decoder_present": false,
+    "route_or_ui_binding_present": false,
+    "runtime_activation_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
