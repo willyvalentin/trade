@@ -1,0 +1,40 @@
+{
+  "contract_version": "trade.action666gl.advisory-accessibility-presentation-selection.v1",
+  "action_id": "ACTION_666GL",
+  "reviewed_revision": {
+    "protected_main_commit": "d0a9498592bbeca167ad7f50beb2099e98d8991f",
+    "protected_main_tree": "8ab4ddfcb7075db90c5af40a89ddfd838bd5ab57",
+    "exact_main_ci_run": 33147061493,
+    "exact_main_ci_conclusion": "success",
+    "candidate_commit": "2c947cee82805c6e929b070b89d73e996ac45425",
+    "candidate_tree": "8ab4ddfcb7075db90c5af40a89ddfd838bd5ab57",
+    "candidate_main_match": true,
+    "mismatches": []
+  },
+  "selection": {
+    "selected_outcome": "finite_provider_free_accessibility_announcement_metadata_projection",
+    "input_vocabulary": "seven_fixed_action_666gj_presentation_keys",
+    "closed_key_count": 7,
+    "source_only": true,
+    "runtime_wired": false,
+    "accessibility_ui_semantics_bound": false,
+    "evaluator_invocation_authorized": false,
+    "data_read_authorized": false,
+    "route_or_ui_authorized": false,
+    "provider_or_broker_authorized": false,
+    "writer_or_database_authorized": false,
+    "execution_authority": false,
+    "next_action": "ACTION_666GM"
+  },
+  "delivery_controls": {
+    "new_roadmap_action_cap": 10,
+    "current_action_number": 4,
+    "prior_static_review_cap_remains_closed": true,
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}

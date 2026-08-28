@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GL — Advisory accessibility-presentation selection.**
+Action 666GL selects a finite provider-free accessibility-announcement metadata
+projection for only the seven fixed Action 666GJ presentation keys. It is a
+source-only selection: no caller, rendered message, ARIA attribute, evaluator,
+data, provider, secret, transport, database, writer, route/UI, deployment,
+broker or execution capability is admitted. Only the separately bounded Action
+666GM pure projection may follow; Ready Full CI and exact-main Full CI remain
+unchanged and mandatory.
+
 **ACTION 666GK — Presentation-key static containment review.**
 Action 666GK independently confirms that the unchanged Action 666GJ table has
 exactly seven fixed and unique classification/key tuples, zero module imports
