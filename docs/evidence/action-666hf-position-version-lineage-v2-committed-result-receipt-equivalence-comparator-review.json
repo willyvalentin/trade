@@ -1,0 +1,41 @@
+{
+  "contract_version": "trade.action666hf.position-version-lineage-v2-committed-result-receipt-equivalence-comparator-review.v1",
+  "action_id": "ACTION_666HF",
+  "reviewed_revision": {
+    "protected_main_commit": "ab3142a8a2b9bda8295127823932282f82146098",
+    "protected_main_tree": "20d272153489c723cddc81f30d9fa2df171e668d",
+    "exact_main_ci_run": 33268284810,
+    "exact_main_ci_conclusion": "success",
+    "reviewed_implementation_action": "ACTION_666HE"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_equivalence_comparator_review",
+    "implementation_source_changed": false,
+    "equivalent_distinct_receipts_return_true": true,
+    "valid_receipt_mismatches_return_false": true,
+    "position_version_outside_v1_fails_closed": true,
+    "verified_comparison_dimensions": [
+      "canonicalCommandDigest",
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId",
+      "positionVersion"
+    ],
+    "verdict_is_fresh_frozen_and_scalar_only": true,
+    "verdict_receipt_aliasing": false,
+    "retained_fail_closed_boundary": [
+      "mutable_or_widened_receipt",
+      "inherited_accessor_or_symbol_receipt_material",
+      "malformed_or_noncanonical_receipt_scalars"
+    ]
+  },
+  "containment": {
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
