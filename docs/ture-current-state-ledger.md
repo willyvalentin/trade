@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666HD — V2 committed-result receipt equivalence selection.**
+
+Action 666HD selects exactly one future pure source-only comparator for two
+already immutable V2 committed-result receipts. The selected comparator may
+compare only their five declared scalar fields and return a fresh frozen scalar
+equivalence verdict after fail-closing malformed receipt material. This is not
+a receipt consumer, storage, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority.
+
 **ACTION 666HC — V2 committed-result receipt cross-result detachment review.**
 
 Action 666HC independently tests two separately decoded immutable V2
