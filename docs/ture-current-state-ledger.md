@@ -1,5 +1,13 @@
 # Ture Current-State Ledger
 
+**ACTION 666HA — V2 committed-result receipt containment review.**
+
+Action 666HA independently tests Action 666GZ's pure immutable receipt
+projection against both permitted dispositions and malformed or widened input.
+It changes no production source and admits no owner resolution, transport,
+credential, database/writer, storage, route/UI, provider, broker, deployment or
+runtime authority; only a separately bounded selection may follow.
+
 **ACTION 666GZ — V2 immutable committed-result receipt projection.**
 
 Action 666GZ implements only a pure server-only receipt projection from a

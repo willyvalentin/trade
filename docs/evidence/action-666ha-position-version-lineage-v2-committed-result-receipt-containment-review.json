@@ -1,0 +1,35 @@
+{
+  "contract_version": "trade.action666ha.position-version-lineage-v2-committed-result-receipt-containment-review.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "ba5ea10fa975d05c1a47a08aba313bfe73d984f3",
+    "protected_main_tree": "2f0a73fe4064242df06780440274c56ccd4715b3",
+    "exact_main_ci_run": 33250948002,
+    "exact_main_ci_conclusion": "success",
+    "receipt_implementation_action": "ACTION_666GZ"
+  },
+  "review": {
+    "type": "independent_source_only_receipt_containment_review",
+    "implementation_source_changed": false,
+    "accepted_dispositions": [
+      "created",
+      "replayed"
+    ],
+    "verified_output": "fresh_frozen_five_scalar_in_memory_committed_result_receipt",
+    "rejected_input_categories": [
+      "mutable_or_widened_decoded_result",
+      "inherited_accessor_or_symbol_result_material",
+      "legacy_or_malformed_result_material",
+      "malformed_or_noncanonical_command_digest"
+    ]
+  },
+  "containment": {
+    "transport_operation_present": false,
+    "credential_or_identity_resolution_present": false,
+    "database_writer_or_durable_receipt_operation_present": false,
+    "adapter_route_ui_or_runtime_binding_present": false,
+    "provider_broker_deployment_or_execution_authority": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
