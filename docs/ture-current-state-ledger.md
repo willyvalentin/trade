@@ -1,5 +1,13 @@
 # Ture Current-State Ledger
 
+**ACTION 666GY — Autonomous Milestone B V2 committed-result receipt selection.**
+
+Action 666GY selects one future immutable local receipt projection over an
+already decoded V2 committed result and the canonical command digest. It is not
+storage, transport, credential, owner resolution, database/writer, route/UI,
+provider, broker, deployment or runtime authority; caller-supplied claims and
+malformed material must remain fail-closed.
+
 **ACTION 666GX — Independent V2 committed-result decoder containment review.**
 
 Action 666GX independently tests the completed Action 666GW decoder against

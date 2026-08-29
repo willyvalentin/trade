@@ -1,0 +1,45 @@
+{
+  "contract_version": "trade.action666gy.autonomous-milestone-b-v2-committed-result-receipt-selection.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "531b54d8cc572d089845cd6184f96efbd0f10490",
+    "protected_main_tree": "ec6ca3e2298d249983bea695929e6f734cb09157",
+    "exact_main_ci_run": 33244988766,
+    "exact_main_ci_conclusion": "success",
+    "focused_verification": "tests/e2e/action-666gy-autonomous-milestone-b-v2-committed-result-receipt-selection.spec.ts"
+  },
+  "candidates": {
+    "v2_private_transport_or_durable_receipt_storage_binding": "rejected_blocked_runtime_prerequisites",
+    "v2_adapter_owner_resolution_or_private_routine_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_or_branch_protection_change": "rejected_unchanged_six_shard_full_ci",
+    "position_version_lineage_v2_writer_immutable_committed_result_receipt_projection": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "position_version_lineage_v2_writer_immutable_committed_result_receipt_projection",
+    "implementation_action": "ACTION_666GZ",
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_inputs": [
+      "already_decoded_v2_committed_result",
+      "canonical_lowercase_command_digest"
+    ],
+    "returned_value": "new_frozen_in_memory_committed_result_receipt",
+    "forbidden_input_categories": [
+      "caller_supplied_digest_claim",
+      "unknown_raw_result_material",
+      "legacy_snapshot_fields",
+      "mutable_nested_state",
+      "transport_response_or_connection",
+      "credential_or_identity_resolution",
+      "durable_storage_writer_or_runtime_binding"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_dependency",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
