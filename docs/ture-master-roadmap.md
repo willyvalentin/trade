@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666HD selects a pure immutable V2 committed-result receipt equivalence comparator | Preserve receipt scalar containment and detachment while admitting no storage, caller, transport or runtime binding |
-| Next decision | Implement only the selected receipt equivalence comparator after Action 666HD clears its delivery gate | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666HE implements a strict pure immutable V2 committed-result receipt equivalence comparator | Preserve receipt scalar containment and detachment while admitting no storage, caller, transport or runtime binding |
+| Next decision | Independently review only the completed receipt equivalence comparator after Action 666HE clears its delivery gate | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -104,6 +104,16 @@ declared scalar fields and return a fresh frozen scalar-only equivalence
 verdict after fail-closing malformed receipt material. The selection creates no
 receipt consumer, storage, caller, transport, credential, owner resolution,
 database/writer, provider, broker, route/UI, deployment or runtime authority.
+
+Action 666HE implements only that pure server-only comparator. It accepts two
+already immutable receipts, independently validates their closed five-scalar
+boundary and returns a fresh frozen `{ equivalent: boolean }` verdict. It
+retains neither input and reconstructs no decoded result or command. Mutable,
+widened, inherited, accessor, symbol-bearing, malformed or noncanonical
+material fails closed; storage, caller, transport, credential, owner
+resolution, database/writer, provider, broker, route/UI, deployment and
+runtime authority remain closed. Only a separately bounded independent review
+may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
