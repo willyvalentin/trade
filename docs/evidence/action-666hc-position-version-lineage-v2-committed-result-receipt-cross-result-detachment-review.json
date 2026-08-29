@@ -1,0 +1,34 @@
+{
+  "contract_version": "trade.action666hc.position-version-lineage-v2-committed-result-receipt-cross-result-detachment-review.v1",
+  "action_id": "ACTION_666HC",
+  "reviewed_revision": {
+    "protected_main_commit": "890780febf87bfdc9ccfa8ed51992166401d2d9e",
+    "protected_main_tree": "2b2fb3e4c2ebb5be0b746a82d34ccf82c3d616b1",
+    "exact_main_ci_run": 33257591597,
+    "exact_main_ci_conclusion": "success",
+    "receipt_detachment_selection_action": "ACTION_666HB"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_cross_result_detachment_review",
+    "implementation_source_changed": false,
+    "reviewed_result_count": 2,
+    "distinct_canonical_digest_count": 2,
+    "all_receipts_fresh": true,
+    "all_receipts_frozen_and_scalar_only": true,
+    "receipt_input_aliasing": false,
+    "cross_receipt_aliasing": false,
+    "retained_fail_closed_boundary": [
+      "mutable_or_widened_decoded_result",
+      "malformed_or_noncanonical_command_digest"
+    ]
+  },
+  "containment": {
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
