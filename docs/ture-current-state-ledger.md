@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GZ — V2 immutable committed-result receipt projection.**
+
+Action 666GZ implements only a pure server-only receipt projection from a
+previously decoded frozen V2 committed result and a canonical lowercase command
+digest. It returns a new frozen scalar-only receipt and fail-closes mutable,
+widened or malformed inputs. It admits no owner resolution, transport,
+credential, database/writer, storage, route/UI, provider, broker, deployment or
+runtime authority; only a separately bounded independent review may follow.
+
 **ACTION 666GY — Autonomous Milestone B V2 committed-result receipt selection.**
 
 Action 666GY selects one future immutable local receipt projection over an

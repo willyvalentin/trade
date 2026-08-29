@@ -1,0 +1,36 @@
+{
+  "contract_version": "trade.action666gz.position-version-lineage-v2-writer-immutable-committed-result-receipt.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "d96861314792bb53ca5e092b78f6752cee67be8a",
+    "protected_main_tree": "39b24cfd56c7d5bd41ca907afd5c6118a778c433",
+    "exact_main_ci_run": 33247908969,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666GY"
+  },
+  "implementation": {
+    "module": "lib/server/position-version-lineage-v2-writer-immutable-committed-result-receipt.ts",
+    "export": "projectPositionVersionLineageV2WriterImmutableCommittedResultReceipt",
+    "accepted_inputs": [
+      "already_decoded_frozen_v2_committed_result",
+      "canonical_lowercase_sha256_command_digest"
+    ],
+    "returned_value": "new_frozen_five_scalar_in_memory_committed_result_receipt",
+    "receipt_fields": [
+      "canonicalCommandDigest",
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId",
+      "positionVersion"
+    ]
+  },
+  "containment": {
+    "transport_operation_present": false,
+    "credential_or_identity_resolution_present": false,
+    "database_writer_or_durable_receipt_operation_present": false,
+    "adapter_route_ui_or_runtime_binding_present": false,
+    "provider_broker_deployment_or_execution_authority": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
