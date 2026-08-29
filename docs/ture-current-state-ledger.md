@@ -1,5 +1,14 @@
 # Ture Current-State Ledger
 
+**ACTION 666GX — Independent V2 committed-result decoder containment review.**
+
+Action 666GX independently tests the completed Action 666GW decoder against
+reordered valid records plus widened and malformed result material. It adds no
+decoder implementation and no source of production authority. The frozen
+preflight, private transport, credentials, database/writer, owner resolution,
+route/UI, deployment, broker and runtime binding all remain closed and malformed
+input remains fail-closed.
+
 **ACTION 666GW — V2 strict committed-result decoder.**
 
 Action 666GW implements only the pure source-only successor selected by Action

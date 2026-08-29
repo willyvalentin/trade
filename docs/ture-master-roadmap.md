@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666GW implements only the selected strict V2 committed-result decoder | Preserve the frozen result mapping while admitting no transport, caller or runtime binding |
-| Next decision | Independently review decoder containment after Action 666GW clears its delivery gate | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666GX independently reviews the strict V2 committed-result decoder | Preserve the frozen result mapping while admitting no caller, transport or runtime binding |
+| Next decision | Select a separately authorized, evidence-backed successor only after Action 666GX clears its delivery gate | Do not invoke the writer, read data, configure a credential, open a transport, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -55,6 +55,12 @@ in-memory result record against the four frozen wire columns, permitted
 dispositions, canonical UUIDs, version one and the owner-bound initial-history
 identity. It resolves no identity and makes no transport, credential,
 database/writer, route/UI, provider, broker, deployment or runtime binding.
+
+Action 666GX independently reviews the completed decoder using reordered valid
+records plus widened and malformed result material. The review makes no decoder
+implementation change and cannot admit a caller, owner resolution, transport,
+credential, database/writer, route/UI, provider, broker, deployment or runtime
+path.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

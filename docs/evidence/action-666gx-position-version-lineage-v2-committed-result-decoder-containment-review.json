@@ -1,0 +1,53 @@
+{
+  "contract_version": "trade.action666gx.position-version-lineage-v2-committed-result-decoder-containment-review.v1",
+  "reviewed_revision": {
+    "protected_main_commit": "8d05408b9473196301c246e789be70781369c367",
+    "protected_main_tree": "026f61b41592ff5b29ce3bb7ca554b4e98f099f9",
+    "exact_main_ci_run": 33221899490,
+    "exact_main_ci_conclusion": "success",
+    "post_merge_candidate_provenance": "matched"
+  },
+  "predecessor": {
+    "action": "ACTION_666GW",
+    "decoder_module": "lib/server/position-version-lineage-v2-writer-strict-committed-result-decoder.ts",
+    "decoder_version": "position_version_lineage_v2_writer_strict_committed_result_decoder_v1"
+  },
+  "review_scope": {
+    "accepted_wire_columns": [
+      "disposition",
+      "position_id",
+      "position_version",
+      "initial_history_identity"
+    ],
+    "permitted_dispositions": [
+      "created",
+      "replayed"
+    ],
+    "returned_value": "new_frozen_committed_result",
+    "required_rejections": [
+      "legacy_or_extra_fields",
+      "missing_or_symbol_fields",
+      "arrays_or_multiple_rows",
+      "inherited_or_accessor_fields",
+      "custom_prototype",
+      "non_canonical_uuid",
+      "wrong_disposition_version_or_history_identity"
+    ],
+    "runtime_unwired": true,
+    "execution_authority": false
+  },
+  "decision": {
+    "type": "independent_source_only_v2_committed_result_decoder_containment_review",
+    "decoder_change_authorized": false,
+    "transport_implemented": false,
+    "credential_resolution_implemented": false,
+    "database_operation_present": false,
+    "writer_invocation_present": false,
+    "owner_resolution_present": false,
+    "route_or_ui_binding_present": false,
+    "runtime_activation_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
