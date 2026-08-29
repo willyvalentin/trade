@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HI — V2 committed-result receipt repeated-verdict detachment selection.**
+
+Action 666HI selects exactly one future independent source-only review of the
+completed comparator: repeated invocations over canonical frozen equal and
+valid non-equivalent receipt pairs in both argument orders. Its successor may
+prove boolean stability and fresh, distinct, frozen scalar-only verdicts with
+no input or cross-verdict aliasing. It is not a receipt consumer, storage,
+caller, transport, credential, owner resolution, database/writer, provider,
+broker, route/UI, deployment or runtime authority; only the separately bounded
+review may follow.
+
 **ACTION 666HH — V2 committed-result receipt scalar-isolation review.**
 
 Action 666HH independently reviews the completed comparator with separate
