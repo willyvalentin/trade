@@ -133,6 +133,7 @@ const foundationTests = [
   "tests/e2e/action-666gu-position-version-lineage-v2-command-digest-containment-review.spec.ts",
   "tests/e2e/action-666gv-autonomous-milestone-b-v2-committed-result-decoder-selection.spec.ts",
   "tests/e2e/action-666gw-position-version-lineage-v2-writer-strict-committed-result-decoder.spec.ts",
+  "tests/e2e/action-666gx-position-version-lineage-v2-committed-result-decoder-containment-review.spec.ts",
 ];
 
 const intelligenceTests = [
