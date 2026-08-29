@@ -1,0 +1,43 @@
+{
+  "contract_version": "trade.action666hb.position-version-lineage-v2-committed-result-receipt-detachment-selection.v1",
+  "action_id": "ACTION_666HB",
+  "reviewed_revision": {
+    "protected_main_commit": "cb13a87a55f40e37e356f3636aeddbad74eeae98",
+    "protected_main_tree": "d1f59fb49e8783fa13dc1cb55be18919bf3854e7",
+    "exact_main_ci_run": 33254105420,
+    "exact_main_ci_conclusion": "success",
+    "receipt_containment_review_action": "ACTION_666HA"
+  },
+  "selection": {
+    "type": "independent_source_only_immutable_committed_result_receipt_cross_result_detachment_review",
+    "selected_successor_action": "ACTION_666HC",
+    "implementation_source_changed": false,
+    "permitted_review_inputs": [
+      "two_separately_decoded_frozen_v2_committed_results",
+      "two_distinct_canonical_lowercase_command_digests"
+    ],
+    "required_findings": [
+      "each_receipt_is_fresh",
+      "each_receipt_is_frozen_and_scalar_only",
+      "no_receipt_aliases_its_input_result",
+      "no_cross_receipt_aliasing"
+    ],
+    "retained_fail_closed_boundary": [
+      "mutable_or_widened_decoded_result",
+      "inherited_accessor_or_symbol_result_material",
+      "legacy_or_malformed_result_material",
+      "malformed_or_noncanonical_command_digest"
+    ]
+  },
+  "containment": {
+    "storage_operation_present": false,
+    "transport_operation_present": false,
+    "credential_identity_or_owner_resolution_present": false,
+    "database_writer_or_durable_receipt_operation_present": false,
+    "provider_broker_route_ui_deployment_or_runtime_binding_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

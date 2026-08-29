@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666HB — V2 committed-result receipt detachment review selection.**
+
+Action 666HB selects exactly one future independent cross-result detachment
+review of the already immutable V2 committed-result receipt projection. Its
+successor may compare two separately decoded valid result records and canonical
+digests only to prove fresh frozen scalar receipts with no input or cross-result
+aliasing. This is not storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority;
+the closed malformed and noncanonical boundary remains fail-closed.
+
 **ACTION 666HA — V2 committed-result receipt containment review.**
 
 Action 666HA independently tests Action 666GZ's pure immutable receipt
