@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666HH — V2 committed-result receipt scalar-isolation review.**
+
+Action 666HH independently reviews the completed comparator with separate
+canonical frozen receipts in both argument orders. Digest, disposition and
+history identity isolate one literal valid scalar difference; a literal
+position-id-only mutation fails closed because canonical history identity is
+bound to that position. A canonical changed position identity therefore updates
+its dependent history identity and remains non-equivalent. No comparator source
+or receipt consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority is
+introduced; only a separately bounded decision may follow.
+
 **ACTION 666HG — V2 committed-result receipt equivalence scalar-isolation review selection.**
 
 Action 666HG selects exactly one future independent source-only review of the
