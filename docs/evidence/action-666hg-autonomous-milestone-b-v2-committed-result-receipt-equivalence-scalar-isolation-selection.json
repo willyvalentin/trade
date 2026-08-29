@@ -1,0 +1,54 @@
+{
+  "contract_version": "trade.action666hg.position-version-lineage-v2-committed-result-receipt-equivalence-scalar-isolation-selection.v1",
+  "action_id": "ACTION_666HG",
+  "reviewed_revision": {
+    "protected_main_commit": "7e326f1c4fb9d255c76cc4ed10b08c355aef9e66",
+    "protected_main_tree": "49cc48c99ad643e20bbcc3d2fc2308d124f66f26",
+    "exact_main_ci_run": 33272866589,
+    "exact_main_ci_conclusion": "success",
+    "receipt_equivalence_comparator_review_action": "ACTION_666HF"
+  },
+  "candidates": {
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_receipt_equivalence_scalar_isolation_and_symmetry_review": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_receipt_equivalence_scalar_isolation_and_symmetry_review",
+    "review_action": "ACTION_666HH",
+    "comparator_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_inputs": [
+      "two_already_immutable_canonical_v2_committed_result_receipts"
+    ],
+    "validly_varying_scalar_fields": [
+      "canonicalCommandDigest",
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId"
+    ],
+    "fixed_fail_closed_scalar_requirement": "positionVersion:1",
+    "required_observations": [
+      "each_non_equivalent_pair_differs_in_exactly_one_validly_varying_scalar",
+      "swapping_inputs_preserves_equivalence_boolean",
+      "each_verdict_is_new_frozen_and_scalar_only"
+    ],
+    "forbidden_input_categories": [
+      "decoded_result_or_command_reconstruction",
+      "receipt_consumer_or_durable_storage_binding",
+      "transport_credential_owner_resolution_or_writer_invocation"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_scalar_isolation_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}

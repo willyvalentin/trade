@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HG — V2 committed-result receipt equivalence scalar-isolation review selection.**
+
+Action 666HG selects exactly one future independent source-only review of the
+completed comparator: canonical receipt pairs that isolate one permitted
+scalar difference, evaluated in both argument orders. Its successor may prove
+the same boolean in either order and fresh frozen scalar-only verdicts without
+changing comparator source. It is not a receipt consumer, storage, caller,
+transport, credential, owner resolution, database/writer, provider, broker,
+route/UI, deployment or runtime authority; the malformed and noncanonical
+boundary remains fail-closed.
+
 **ACTION 666HF — V2 committed-result receipt equivalence comparator review.**
 
 Action 666HF independently tests the completed Action 666HE comparator with
