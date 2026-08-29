@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666HE — V2 committed-result receipt equivalence comparator.**
+
+Action 666HE implements only a pure server-only comparator for two already
+immutable V2 committed-result receipts. It independently fail-closes malformed
+material, compares only the five declared receipt scalars and returns a fresh
+frozen scalar-only equivalence verdict that retains neither input. It admits no
+receipt consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority;
+only a separately bounded independent review may follow.
+
 **ACTION 666HD — V2 committed-result receipt equivalence selection.**
 
 Action 666HD selects exactly one future pure source-only comparator for two
