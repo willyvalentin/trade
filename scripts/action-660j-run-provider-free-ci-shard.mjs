@@ -141,6 +141,7 @@ const foundationTests = [
   "tests/e2e/action-666hc-position-version-lineage-v2-committed-result-receipt-cross-result-detachment-review.spec.ts",
   "tests/e2e/action-666hd-autonomous-milestone-b-v2-committed-result-receipt-equivalence-selection.spec.ts",
   "tests/e2e/action-666he-position-version-lineage-v2-committed-result-receipt-equivalence-comparator.spec.ts",
+  "tests/e2e/action-666hf-position-version-lineage-v2-committed-result-receipt-equivalence-comparator-review.spec.ts",
 ];
 
 const intelligenceTests = [
