@@ -1,0 +1,55 @@
+{
+  "contract_version": "trade.action666hd.position-version-lineage-v2-committed-result-receipt-equivalence-selection.v1",
+  "action_id": "ACTION_666HD",
+  "reviewed_revision": {
+    "protected_main_commit": "acba47bc9e3b28b26e60dac259c0c2108a86eb71",
+    "protected_main_tree": "383cc2f3ed4cbb37793b7e2c4a410f02d4db4fb1",
+    "exact_main_ci_run": 33261002199,
+    "exact_main_ci_conclusion": "success",
+    "receipt_cross_result_detachment_review_action": "ACTION_666HC"
+  },
+  "candidates": {
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_committed_result_receipt_equivalence_comparator": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_committed_result_receipt_equivalence_comparator",
+    "implementation_action": "ACTION_666HE",
+    "implementation_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_inputs": [
+      "two_already_immutable_v2_committed_result_receipts"
+    ],
+    "compared_scalar_fields": [
+      "canonicalCommandDigest",
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId",
+      "positionVersion"
+    ],
+    "returned_value": "new_frozen_scalar_only_equivalence_verdict",
+    "forbidden_input_categories": [
+      "decoded_result_or_command_reconstruction",
+      "receipt_consumer_or_durable_storage_binding",
+      "transport_credential_owner_resolution_or_writer_invocation"
+    ],
+    "retained_fail_closed_boundary": [
+      "mutable_or_widened_receipt",
+      "inherited_accessor_or_symbol_receipt_material",
+      "malformed_or_noncanonical_receipt_scalars"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_dependency",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
