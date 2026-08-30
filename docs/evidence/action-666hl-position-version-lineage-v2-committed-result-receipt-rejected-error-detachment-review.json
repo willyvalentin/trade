@@ -1,0 +1,33 @@
+{
+  "contract_version": "trade.action666hl.position-version-lineage-v2-committed-result-receipt-rejected-error-detachment-review.v1",
+  "action_id": "ACTION_666HL",
+  "reviewed_revision": {
+    "protected_main_commit": "070563296187519880b1df6971a7e16ff04e0038",
+    "protected_main_tree": "8ddd40b3a29031d95898b269692e3146818ecd38",
+    "exact_main_ci_run": 33288400798,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HK"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_rejected_error_detachment_review",
+    "comparator_source_changed": false,
+    "rejected_input_variants": 4,
+    "calls_per_invalid_argument_order": 3,
+    "invalid_input_in_both_argument_slots": true,
+    "every_rejection_is_a_fresh_dedicated_comparator_error": true,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input",
+    "error_input_aliasing": false,
+    "cross_error_aliasing": false
+  },
+  "containment": {
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

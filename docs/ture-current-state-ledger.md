@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HL — V2 committed-result receipt rejected-error detachment review.**
+
+Action 666HL independently invokes the completed comparator with four
+malformed or noncanonical in-memory receipt variants in both argument orders,
+three times per order. Every rejection is a fresh dedicated comparator error
+with the stable public name and message, without input or cross-error aliasing.
+No comparator source or receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority is introduced; only a separately bounded
+decision may follow.
+
 **ACTION 666HK — V2 committed-result receipt rejected-error detachment selection.**
 
 Action 666HK selects exactly one future independent source-only review of the
