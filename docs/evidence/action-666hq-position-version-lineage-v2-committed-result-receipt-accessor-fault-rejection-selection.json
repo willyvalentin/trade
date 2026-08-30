@@ -1,0 +1,47 @@
+{
+  "contract_version": "trade.action666hq.position-version-lineage-v2-committed-result-receipt-accessor-fault-rejection-selection.v1",
+  "action_id": "ACTION_666HQ",
+  "reviewed_revision": {
+    "protected_main_commit": "1ba4c0f7ff488d81be9cd078d57bdc2818247cc4",
+    "protected_main_tree": "761d76498992ccda3c962f8fede12db2f19070c9",
+    "exact_main_ci_run": 33303023512,
+    "exact_main_ci_conclusion": "success",
+    "object_fault_rejection_review_action": "ACTION_666HP"
+  },
+  "candidates": {
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_receipt_equivalence_accessor_fault_rejection_review": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_receipt_equivalence_accessor_fault_rejection_review",
+    "review_action": "ACTION_666HR",
+    "comparator_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_inputs": [
+      "frozen_in_memory_receipt_shaped_inputs_with_own_throwing_accessor_descriptors"
+    ],
+    "required_observations": [
+      "every_accessor_descriptor_shape_is_rejected_before_getter_invocation",
+      "every_accessor_fault_rejection_is_a_fresh_dedicated_comparator_error",
+      "no_rejection_error_aliases_an_input_or_a_cross_invocation_error"
+    ],
+    "forbidden_input_categories": [
+      "decoded_result_or_command_reconstruction",
+      "receipt_consumer_or_durable_storage_binding",
+      "transport_credential_owner_resolution_or_writer_invocation"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_accessor_fault_rejection_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
