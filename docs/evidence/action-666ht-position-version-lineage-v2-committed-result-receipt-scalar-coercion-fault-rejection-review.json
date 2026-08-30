@@ -1,0 +1,43 @@
+{
+  "contract_version": "trade.action666ht.position-version-lineage-v2-committed-result-receipt-scalar-coercion-fault-rejection-review.v1",
+  "action_id": "ACTION_666HT",
+  "reviewed_revision": {
+    "protected_main_commit": "22342b84213b3bb53c8a8791dff4e486e1ac7bc1",
+    "protected_main_tree": "b595d80cd5403f09c97566963e7194b8b36f2fb2",
+    "exact_main_ci_run": 33313099125,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HS"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_scalar_coercion_fault_rejection_review",
+    "comparator_source_changed": false,
+    "scalar_coercion_fault_fields": [
+      "canonicalCommandDigest",
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId",
+      "positionVersion"
+    ],
+    "calls_per_field_and_argument_order": 3,
+    "argument_orders_per_field": 2,
+    "rejected_calls": 30,
+    "every_primitive_coercion_hook_invocation_count": 0,
+    "rejected_errors_are_fresh_dedicated_comparator_errors": true,
+    "invalid_input_in_both_argument_slots": true,
+    "outcome_input_aliasing": false,
+    "cross_error_aliasing": false,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input"
+  },
+  "containment": {
+    "decoded_result_or_command_reconstruction_present": false,
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

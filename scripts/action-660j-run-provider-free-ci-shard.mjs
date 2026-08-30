@@ -155,6 +155,7 @@ const foundationTests = [
   "tests/e2e/action-666hq-position-version-lineage-v2-committed-result-receipt-accessor-fault-rejection-selection.spec.ts",
   "tests/e2e/action-666hr-position-version-lineage-v2-committed-result-receipt-accessor-fault-rejection-review.spec.ts",
   "tests/e2e/action-666hs-position-version-lineage-v2-committed-result-receipt-scalar-coercion-fault-rejection-selection.spec.ts",
+  "tests/e2e/action-666ht-position-version-lineage-v2-committed-result-receipt-scalar-coercion-fault-rejection-review.spec.ts",
 ];
 
 const intelligenceTests = [
