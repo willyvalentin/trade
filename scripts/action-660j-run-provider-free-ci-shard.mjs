@@ -147,6 +147,7 @@ const foundationTests = [
   "tests/e2e/action-666hi-autonomous-milestone-b-v2-committed-result-receipt-repeated-verdict-detachment-selection.spec.ts",
   "tests/e2e/action-666hj-position-version-lineage-v2-committed-result-receipt-repeated-verdict-detachment-review.spec.ts",
   "tests/e2e/action-666hk-position-version-lineage-v2-committed-result-receipt-rejected-error-detachment-selection.spec.ts",
+  "tests/e2e/action-666hl-position-version-lineage-v2-committed-result-receipt-rejected-error-detachment-review.spec.ts",
 ];
 
 const intelligenceTests = [
