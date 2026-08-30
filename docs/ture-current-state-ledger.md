@@ -1,5 +1,21 @@
 # Ture Current-State Ledger
 
+**ACTION 666IA — V2 committed-result receipt non-enumerable own-data rejection review.**
+
+Action 666IA independently reviews the five frozen local ordinary
+receipt-shaped objects selected by Action 666HZ. Each has direct local
+Object.prototype, exactly the five canonical own data fields and canonical
+scalar values, with one declared field at a time non-enumerable. A valid
+ordinary local receipt remains admissible with a fresh frozen scalar-only
+verdict, while every non-enumerable receipt rejects with fresh dedicated errors
+in either comparator slot without input or cross-error aliasing. The review
+changes no comparator source and creates no proxy, accessor, symbol,
+foreign-realm material, null or custom prototype, prototype mutation,
+adaptation, normalization or import; it admits no receipt consumer, storage,
+caller, transport, credential, owner resolution, database/writer, provider,
+broker, route/UI, deployment or runtime authority. Only a separately bounded
+decision may follow.
+
 **ACTION 666HZ — V2 committed-result receipt non-enumerable own-data rejection selection.**
 
 Action 666HZ selects exactly one future independent source-only review of the

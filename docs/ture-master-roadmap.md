@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666HZ selects one future source-only review of frozen local receipt-shaped objects with one non-enumerable canonical own data field at a time | Preserve the comparator and runtime boundary while the selection keeps the later descriptor review separately bounded |
-| Next decision | Complete this bounded selection with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666IA independently reviews frozen local receipt-shaped objects with one non-enumerable canonical own data field at a time | Preserve the comparator and runtime boundary while the review keeps the descriptor boundary separately bounded |
+| Next decision | Complete this bounded review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -345,6 +345,21 @@ database/writer, provider, broker, route/UI, deployment or runtime authority.
 Ready and exact-main six-shard Full CI plus matched provenance remain mandatory;
 no CI deduplication is authorized. Only the separately bounded review may
 follow.
+
+Action 666IA independently reviews that selected frozen local ordinary receipt
+shape. It confirms that each fixture owns exactly the five canonical immutable
+data fields with canonical scalar values and direct local Object.prototype,
+while exactly one declared own data field at a time is non-enumerable. Ordinary
+local valid receipts remain admissible with fresh frozen scalar-only verdicts;
+every non-enumerable fixture rejects with a fresh dedicated comparator error
+three times in each argument order without input or cross-error aliasing. The
+review creates no proxy, accessor, symbol, foreign-realm material, null or
+custom prototype, prototype mutation, adaptation, normalization or import;
+changes no comparator source; and admits no receipt consumer, storage, caller,
+transport, credential, owner resolution, database/writer, provider, broker,
+route/UI, deployment or runtime authority. Ready and exact-main six-shard Full
+CI plus matched provenance remain mandatory; no CI deduplication is authorized.
+Only a separately bounded decision may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
