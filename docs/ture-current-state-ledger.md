@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HQ — V2 committed-result receipt accessor-fault rejection selection.**
+
+Action 666HQ selects exactly one future independent source-only review of the
+completed comparator: frozen in-memory receipt-shaped objects that contain one
+own throwing accessor descriptor rather than a declared scalar. Its successor
+may prove that rejection happens before getter invocation and is always a
+fresh dedicated comparator error without input or cross-error aliasing. It is
+not a receipt consumer, storage, caller, transport, credential, owner
+resolution, database/writer, provider, broker, route/UI, deployment or runtime
+authority; only the separately bounded review may follow.
+
 **ACTION 666HP — V2 committed-result receipt object-fault rejection review.**
 
 Action 666HP independently invokes the completed comparator with frozen

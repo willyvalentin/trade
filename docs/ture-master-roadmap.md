@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666HP independently reviews object-fault rejection for the completed immutable V2 committed-result receipt equivalence comparator | Invoke only in-memory objects with throwing prototype, key or descriptor introspection traps while admitting no storage, caller, transport or runtime binding |
-| Next decision | Complete this twelfth bounded action with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666HQ selects an independent accessor-fault rejection review for the completed immutable V2 committed-result receipt equivalence comparator | Select only frozen in-memory receipt-shaped inputs with own throwing accessor descriptors; admit no storage, caller, transport or runtime binding |
+| Next decision | Complete this bounded selection with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -224,6 +224,17 @@ source and admits no receipt consumer, storage, caller, transport, credential,
 owner resolution, database/writer, provider, broker, route/UI, deployment or
 runtime authority. It closes the current twelve-action continuation without
 selecting another successor.
+
+Action 666HQ selects one separate source-only successor: an independent strict
+accessor-fault rejection review of the completed immutable V2 committed-result
+receipt equivalence comparator. The future review may invoke only frozen
+in-memory receipt-shaped objects with one own throwing accessor descriptor in
+place of a declared scalar, proving rejection before getter invocation and
+fresh dedicated comparator errors without input or cross-error aliasing. It
+changes no comparator source and admits no receipt consumer, storage, caller,
+transport, credential, owner resolution, database/writer, provider, broker,
+route/UI, deployment or runtime authority. Only the separately bounded review
+may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
