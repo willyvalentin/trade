@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HU — V2 committed-result receipt cross-realm rejection selection.**
+
+Action 666HU selects exactly one future independent source-only review of the
+completed comparator: frozen receipt-shaped objects created in a foreign
+JavaScript realm. Its successor may prove fresh dedicated comparator errors in
+either argument slot, with the stable public name and message and without input
+or cross-error aliasing. It does not adapt foreign material or create a receipt
+consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority;
+only the separately bounded review may follow.
+
 **ACTION 666HT — V2 committed-result receipt scalar-coercion-fault rejection review.**
 
 Action 666HT independently invokes the completed comparator with frozen
