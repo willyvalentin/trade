@@ -1,0 +1,31 @@
+{
+  "contract_version": "trade.action666hj.position-version-lineage-v2-committed-result-receipt-repeated-verdict-detachment-review.v1",
+  "action_id": "ACTION_666HJ",
+  "reviewed_revision": {
+    "protected_main_commit": "e0e3a914ebca6ec2543d831ed5e6a14403fa5d7b",
+    "protected_main_tree": "df667b7ca20a9e8e7f2892a86dfce4e5af494e50",
+    "exact_main_ci_run": 33282570519,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HI"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_repeated_verdict_detachment_review",
+    "comparator_source_changed": false,
+    "equal_distinct_receipts_return_true_in_both_orders": true,
+    "valid_non_equivalent_receipts_return_false_in_both_orders": true,
+    "calls_per_argument_order": 3,
+    "every_verdict_is_distinct_frozen_and_scalar_only": true,
+    "verdict_receipt_aliasing": false,
+    "cross_verdict_aliasing": false
+  },
+  "containment": {
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
