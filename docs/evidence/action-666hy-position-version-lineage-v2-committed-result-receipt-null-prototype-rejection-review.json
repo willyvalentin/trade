@@ -1,0 +1,45 @@
+{
+  "contract_version": "trade.action666hy.position-version-lineage-v2-committed-result-receipt-null-prototype-rejection-review.v1",
+  "action_id": "ACTION_666HY",
+  "reviewed_revision": {
+    "protected_main_commit": "de4f3c84a3873abc8168dd4c842facc3f01af4ac",
+    "protected_main_tree": "13e1acd1ef25b1cf561780ea9829772cc99300bb",
+    "exact_main_ci_run": 33332452424,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HX",
+    "selection_pr_number": 263
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_null_prototype_rejection_review",
+    "comparator_source_changed": false,
+    "ordinary_local_realm_valid_receipts_remain_admitted": true,
+    "local_admission_verdict_is_fresh_frozen_and_scalar_only": true,
+    "null_prototype_receipt_is_local_in_memory": true,
+    "null_prototype_receipt_direct_prototype_is_null": true,
+    "null_prototype_receipt_exact_canonical_own_data_fields": true,
+    "null_prototype_receipt_scalar_shape_matches_local_control": true,
+    "frozen_null_prototype_receipts_rejected_in_either_argument_slot": true,
+    "calls_per_argument_order": 3,
+    "argument_orders": 2,
+    "rejected_calls": 6,
+    "rejection_errors_fresh": true,
+    "outcome_input_aliasing": false,
+    "cross_error_aliasing": false,
+    "proxy_accessor_symbol_foreign_realm_or_prototype_mutation_present": false,
+    "null_prototype_adaptation_import_or_normalization_present": false,
+    "runtime_unwired": true,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input"
+  },
+  "containment": {
+    "null_prototype_adaptation_import_or_normalization_present": false,
+    "receipt_consumer_or_storage_present": false,
+    "caller_writer_transport_or_credential_binding_present": false,
+    "database_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

@@ -1,5 +1,19 @@
 # Ture Current-State Ledger
 
+**ACTION 666HY — V2 committed-result receipt null-prototype rejection review.**
+
+Action 666HY independently reviews the single frozen local `Object.create(null)`
+receipt shape selected by Action 666HX. It confirms that the shape has direct
+prototype `null`, exactly the five canonical immutable own-data fields and no
+proxy, accessor, symbol, foreign-realm material, prototype mutation,
+adaptation, normalization or import. A valid ordinary local receipt remains
+admissible, while the null-prototype record rejects with fresh dedicated errors
+in either comparator slot without input or cross-error aliasing. The review
+changes no comparator source and admits no receipt consumer, storage, caller,
+transport, credential, owner resolution, database/writer, provider, broker,
+route/UI, deployment or runtime authority; only a separately bounded decision
+may follow.
+
 **ACTION 666HX — V2 committed-result receipt null-prototype rejection selection.**
 
 Action 666HX selects exactly one future independent source-only review of a
