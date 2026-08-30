@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HN — V2 committed-result receipt cross-invocation outcome-detachment review.**
+
+Action 666HN independently interleaves three cycles of canonical equal and
+non-equivalent comparisons with malformed and noncanonical in-memory receipt
+comparisons. Every valid call produces a fresh frozen scalar verdict and every
+rejection a fresh dedicated comparator error, with no input or cross-outcome
+aliasing. No comparator source or receipt consumer, storage, caller,
+transport, credential, owner resolution, database/writer, provider, broker,
+route/UI, deployment or runtime authority is introduced; only a separately
+bounded decision may follow.
+
 **ACTION 666HM — V2 committed-result receipt cross-invocation outcome-detachment selection.**
 
 Action 666HM selects exactly one future independent source-only review of the
