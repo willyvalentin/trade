@@ -44,10 +44,8 @@ function isExactFrozenReceipt(
       return false;
     }
 
-    const prototype = Object.getPrototypeOf(value);
     if (
-      prototype === null ||
-      Object.getPrototypeOf(prototype) !== null ||
+      Object.getPrototypeOf(value) !== Object.prototype ||
       !Object.isFrozen(value)
     ) {
       return false;

@@ -1,5 +1,20 @@
 # Ture Current-State Ledger
 
+**ACTION 666HV — V2 committed-result receipt cross-realm rejection policy implementation.**
+
+Action 666HV implements the explicitly authorized strict fail-closed
+local-realm policy after the unexecuted review selected by Action 666HU found
+that a valid frozen foreign-realm receipt-shaped object was admitted. The
+comparator now admits a receipt only when its direct prototype is exactly its
+own realm's `Object.prototype`; it retains the closed field, descriptor,
+scalar and dedicated-error checks. Local valid receipts remain admissible, and
+a separately created frozen foreign-realm object is rejected with a fresh
+dedicated error in either argument slot. This supersedes only the unexecuted
+review shape, not Action 666HU's historical selection evidence. It adds no
+foreign-material adaptation, receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority; only a separately bounded review may follow.
+
 **ACTION 666HU — V2 committed-result receipt cross-realm rejection selection.**
 
 Action 666HU selects exactly one future independent source-only review of the
