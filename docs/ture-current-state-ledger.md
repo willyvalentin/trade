@@ -1,5 +1,16 @@
 # Ture Current-State Ledger
 
+**ACTION 666HS — V2 committed-result receipt scalar-coercion-fault rejection selection.**
+
+Action 666HS selects exactly one future independent source-only review of the
+completed comparator: frozen in-memory receipt-shaped objects that replace one
+declared scalar at a time with a boxed or coercion-trapped object. Its
+successor may prove that rejection occurs without primitive coercion and is
+always a fresh dedicated comparator error without input or cross-error aliasing.
+It is not a receipt consumer, storage, caller, transport, credential, owner
+resolution, database/writer, provider, broker, route/UI, deployment or runtime
+authority; only the separately bounded review may follow.
+
 **ACTION 666HR — V2 committed-result receipt accessor-fault rejection review.**
 
 Action 666HR independently invokes the completed comparator with frozen
