@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666HO — V2 committed-result receipt object-fault rejection selection.**
+
+Action 666HO selects exactly one future independent source-only review of the
+completed comparator: rejected in-memory objects whose prototype, key or
+descriptor introspection traps throw. Its successor may prove fresh dedicated
+comparator errors without input or cross-error aliasing. It is not a receipt
+consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority;
+only the separately bounded review may follow.
+
 **ACTION 666HN — V2 committed-result receipt cross-invocation outcome-detachment review.**
 
 Action 666HN independently interleaves three cycles of canonical equal and
