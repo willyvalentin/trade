@@ -1,5 +1,19 @@
 # Ture Current-State Ledger
 
+**ACTION 666HZ — V2 committed-result receipt non-enumerable own-data rejection selection.**
+
+Action 666HZ selects exactly one future independent source-only review of the
+completed comparator: five frozen local ordinary receipt-shaped objects with
+direct local Object.prototype, exactly the five canonical own data fields and
+canonical scalar values, where one declared field at a time is non-enumerable.
+Its successor may prove fresh dedicated comparator errors in either argument
+slot without input or cross-error aliasing while ordinary local receipt
+controls remain admissible with fresh frozen scalar-only verdicts. It does not
+change the comparator or create a receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority; only the separately bounded review may
+follow.
+
 **ACTION 666HY — V2 committed-result receipt null-prototype rejection review.**
 
 Action 666HY independently reviews the single frozen local `Object.create(null)`
