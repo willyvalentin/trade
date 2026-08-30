@@ -1,5 +1,15 @@
 # Ture Current-State Ledger
 
+**ACTION 666HM — V2 committed-result receipt cross-invocation outcome-detachment selection.**
+
+Action 666HM selects exactly one future independent source-only review of the
+completed comparator: interleaved canonical and rejected in-memory receipt
+comparisons. Its successor may prove fresh frozen verdicts and fresh dedicated
+errors with no input or cross-outcome aliasing. It is not a receipt consumer,
+storage, caller, transport, credential, owner resolution, database/writer,
+provider, broker, route/UI, deployment or runtime authority; only the
+separately bounded review may follow.
+
 **ACTION 666HL — V2 committed-result receipt rejected-error detachment review.**
 
 Action 666HL independently invokes the completed comparator with four
