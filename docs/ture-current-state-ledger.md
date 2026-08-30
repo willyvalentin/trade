@@ -1,5 +1,17 @@
 # Ture Current-State Ledger
 
+**ACTION 666HX — V2 committed-result receipt null-prototype rejection selection.**
+
+Action 666HX selects exactly one future independent source-only review of a
+frozen local receipt-shaped object with a direct `null` prototype and otherwise
+canonical own data fields. Its successor may prove fresh dedicated comparator
+errors in either argument slot without input or cross-error aliasing while an
+ordinary local receipt control remains admissible. It does not change the
+comparator or create a receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority; only the separately bounded review may
+follow.
+
 **ACTION 666HW — V2 committed-result receipt cross-realm rejection policy review.**
 
 Action 666HW independently reviews the strict fail-closed local-realm policy
