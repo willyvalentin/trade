@@ -1,0 +1,44 @@
+{
+  "contract_version": "trade.action666hv.position-version-lineage-v2-committed-result-receipt-cross-realm-rejection-policy-implementation.v1",
+  "action_id": "ACTION_666HV",
+  "reviewed_revision": {
+    "protected_main_commit": "cfa19f1a365cb9daa2cc1f8e36fcebb81541710e",
+    "protected_main_tree": "54157e5c49a7cc30e4fe7fac789cd7668ae2326b",
+    "exact_main_ci_run": 33320462377,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HU"
+  },
+  "supersession": {
+    "supersedes_unexecuted_selected_review": true,
+    "selected_review_identifier": "v2_immutable_receipt_equivalence_cross_realm_rejection_review",
+    "selection_evidence_action": "ACTION_666HU",
+    "reason": "exact_main_observation_proved_valid_frozen_foreign_realm_receipts_were_admitted",
+    "replacement": "explicit_user_authorized_source_only_fail_closed_policy_implementation"
+  },
+  "implementation": {
+    "type": "pure_server_only_immutable_committed_result_receipt_cross_realm_fail_closed_policy",
+    "comparator_source_changed": true,
+    "local_realm_valid_receipts_remain_admitted": true,
+    "frozen_foreign_realm_receipts_rejected_in_either_argument_slot": true,
+    "calls_per_argument_order": 3,
+    "argument_orders": 2,
+    "rejected_calls": 6,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input",
+    "rejection_errors_fresh": true,
+    "outcome_input_aliasing": false,
+    "cross_error_aliasing": false,
+    "runtime_unwired": true
+  },
+  "containment": {
+    "foreign_material_adaptation_import_or_normalization_present": false,
+    "receipt_consumer_or_storage_present": false,
+    "caller_writer_transport_or_credential_binding_present": false,
+    "database_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}

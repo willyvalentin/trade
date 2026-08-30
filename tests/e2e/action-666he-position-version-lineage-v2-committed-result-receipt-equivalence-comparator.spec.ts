@@ -40,6 +40,7 @@ function loadComparator() {
     fileName: comparatorPath,
   }).outputText;
   const sandbox = {
+    Object,
     exports: {} as Record<string, unknown>,
     require: (specifier: string) => {
       if (specifier === "server-only") return {};
