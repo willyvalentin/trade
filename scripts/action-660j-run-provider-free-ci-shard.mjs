@@ -161,6 +161,7 @@ const foundationTests = [
   "tests/e2e/action-666hw-position-version-lineage-v2-committed-result-receipt-cross-realm-rejection-policy-review.spec.ts",
   "tests/e2e/action-666hx-position-version-lineage-v2-committed-result-receipt-null-prototype-rejection-selection.spec.ts",
   "tests/e2e/action-666hy-position-version-lineage-v2-committed-result-receipt-null-prototype-rejection-review.spec.ts",
+  "tests/e2e/action-666hz-position-version-lineage-v2-committed-result-receipt-non-enumerable-own-data-rejection-selection.spec.ts",
 ];
 
 const intelligenceTests = [

@@ -1,0 +1,41 @@
+{
+  "contract_version": "trade.action666hz.position-version-lineage-v2-committed-result-receipt-non-enumerable-own-data-rejection-selection.v1",
+  "action_id": "ACTION_666HZ",
+  "reviewed_revision": {
+    "protected_main_commit": "0b0ccdbec989553e070c17079821f0946cc1608c",
+    "protected_main_tree": "c691fe026bbcdd1e9bdfd34dcace9ae2909bc6fd",
+    "exact_main_ci_run": 33336919540,
+    "exact_main_ci_conclusion": "success",
+    "null_prototype_rejection_review_action": "ACTION_666HY"
+  },
+  "candidates": {
+    "v2_receipt_comparator_source_or_enumerability_adaptation": "rejected_no_implementation_or_runtime_authority",
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_receipt_equivalence_non_enumerable_own_data_rejection_review": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_receipt_equivalence_non_enumerable_own_data_rejection_review",
+    "review_action": "ACTION_666IA",
+    "comparator_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "required_observations": [
+      "five_frozen_local_object_prototype_receipts_with_exactly_one_non_enumerable_canonical_own_data_field_are_rejected_in_either_argument_slot",
+      "every_non_enumerable_own_data_rejection_is_a_fresh_dedicated_comparator_error_with_the_stable_public_name_and_message",
+      "no_rejection_error_aliases_an_input_or_a_cross_invocation_error",
+      "an_ordinary_local_realm_valid_receipt_control_remains_admissible_with_a_fresh_frozen_scalar_only_verdict"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_non_enumerable_own_data_rejection_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
