@@ -1,0 +1,37 @@
+{
+  "contract_version": "trade.action666hn.position-version-lineage-v2-committed-result-receipt-cross-invocation-detachment-review.v1",
+  "action_id": "ACTION_666HN",
+  "reviewed_revision": {
+    "protected_main_commit": "19da367f8f6c4869465820c2b972ee94947546c8",
+    "protected_main_tree": "c68875db6ab2fe18479bb2ee1c23e1b2af3a7960",
+    "exact_main_ci_run": 33294282312,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666HM"
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_cross_invocation_outcome_detachment_review",
+    "comparator_source_changed": false,
+    "interleaved_cycles": 3,
+    "calls_per_cycle": 4,
+    "valid_calls": 6,
+    "rejected_calls": 6,
+    "valid_verdicts_are_fresh_frozen_scalars": true,
+    "rejected_errors_are_fresh_dedicated_comparator_errors": true,
+    "invalid_input_in_both_argument_slots": true,
+    "outcome_input_aliasing": false,
+    "cross_outcome_aliasing": false,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input"
+  },
+  "containment": {
+    "decoded_result_or_command_reconstruction_present": false,
+    "receipt_consumer_or_storage_present": false,
+    "transport_credential_or_owner_resolution_present": false,
+    "database_writer_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
