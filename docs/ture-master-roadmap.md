@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666HJ independently reviews repeated verdict detachment for the completed immutable V2 committed-result receipt equivalence comparator | Verify only repeated canonical frozen receipt behavior while admitting no storage, caller, transport or runtime binding |
-| Next decision | Record the completed repeated-verdict review evidence before selecting any successor | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666HK selects a rejected-error-detachment review for the completed immutable V2 committed-result receipt equivalence comparator | Verify only in-memory malformed or noncanonical receipt rejection behavior while admitting no storage, caller, transport or runtime binding |
+| Next decision | Record the completed repeated-verdict review and select the strictly limited rejected-error review | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -164,6 +164,17 @@ cross-verdict aliasing. The review changes no comparator source and admits no
 receipt consumer, storage, caller, transport, credential, owner resolution,
 database/writer, provider, broker, route/UI, deployment or runtime authority.
 Only a separately bounded decision may follow.
+
+Action 666HK selects one separate source-only successor: an independent strict
+rejected-error-detachment review of the completed immutable V2 committed-result
+receipt equivalence comparator. The future review may invoke the comparator
+only with in-memory malformed or noncanonical receipt material in either
+argument slot, proving fresh dedicated comparator errors with a stable public
+name and message without input or cross-error aliasing. It changes no
+comparator source and admits no receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority. Only the separately bounded review may
+follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

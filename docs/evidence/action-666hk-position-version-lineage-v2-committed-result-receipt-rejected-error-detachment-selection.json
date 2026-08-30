@@ -1,0 +1,46 @@
+{
+  "contract_version": "trade.action666hk.position-version-lineage-v2-committed-result-receipt-rejected-error-detachment-selection.v1",
+  "action_id": "ACTION_666HK",
+  "reviewed_revision": {
+    "protected_main_commit": "d3d6c21ba50ea4c0e1c5d4543dae023ac232359d",
+    "protected_main_tree": "a58cf350ec1bc1ec82f5a0a6b847b3c902418f23",
+    "exact_main_ci_run": 33285600437,
+    "exact_main_ci_conclusion": "success",
+    "repeated_verdict_detachment_review_action": "ACTION_666HJ"
+  },
+  "candidates": {
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_receipt_equivalence_rejected_error_detachment_review": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_receipt_equivalence_rejected_error_detachment_review",
+    "review_action": "ACTION_666HL",
+    "comparator_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "accepted_inputs": [
+      "in_memory_malformed_or_noncanonical_v2_committed_result_receipt_material"
+    ],
+    "required_observations": [
+      "invalid_input_in_either_argument_slot_throws_a_fresh_dedicated_comparator_error",
+      "each_rejected_error_has_stable_public_name_and_message_without_input_or_cross_error_aliasing"
+    ],
+    "forbidden_input_categories": [
+      "decoded_result_or_command_reconstruction",
+      "receipt_consumer_or_durable_storage_binding",
+      "transport_credential_owner_resolution_or_writer_invocation"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_rejected_error_detachment_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
