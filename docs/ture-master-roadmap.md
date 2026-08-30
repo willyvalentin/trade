@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666HV implements the explicitly authorized strict local-realm policy for the immutable V2 committed-result receipt equivalence comparator | Reject frozen foreign-realm receipt-shaped material fail-closed in either comparator slot; admit no adaptation, storage, caller, transport or runtime binding |
-| Next decision | Complete this bounded policy implementation with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666HW independently reviews Action 666HV's strict local-realm policy for the immutable V2 committed-result receipt equivalence comparator | Confirm valid local admission and fail-closed foreign-realm rejection in either comparator slot; admit no adaptation, storage, caller, transport or runtime binding |
+| Next decision | Complete this bounded independent policy review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -294,6 +294,17 @@ resolution, database/writer, provider, broker, route/UI, deployment or runtime
 authority. Ready and exact-main six-shard Full CI plus matched provenance remain
 mandatory; no CI deduplication is authorized. Only a separately bounded
 independent review may follow.
+
+Action 666HW independently reviews the completed Action 666HV policy. It
+confirms a local valid frozen receipt remains admissible and that a separately
+created frozen foreign-realm receipt-shaped object rejects with a fresh
+dedicated comparator error three times in each argument order, without input
+or cross-error aliasing or foreign-material adaptation. The review changes no
+comparator source and admits no receipt consumer, storage, caller, transport,
+credential, owner resolution, database/writer, provider, broker, route/UI,
+deployment or runtime authority. Ready and exact-main six-shard Full CI plus
+matched provenance remain mandatory; no CI deduplication is authorized. Only a
+separately bounded decision may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
