@@ -1,5 +1,20 @@
 # Ture Current-State Ledger
 
+**ACTION 666IB — V2 committed-result receipt non-enumerable extra-own-data rejection selection.**
+
+Action 666IB selects exactly one future independent source-only review of the
+completed comparator: a frozen local ordinary receipt with direct local
+Object.prototype, the five canonical enumerable own data fields and canonical
+scalar values, plus one non-enumerable additional `legacySnapshotId` string own
+data key. Its successor may prove that the hidden extra key remains visible to
+`Reflect.ownKeys` exact-key-set validation and rejects with fresh dedicated
+comparator errors in either argument slot without input or cross-error aliasing,
+while ordinary local receipt controls remain admissible with fresh frozen
+scalar-only verdicts. It does not change the comparator or create a receipt
+consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority;
+only the separately bounded review may follow.
+
 **ACTION 666IA — V2 committed-result receipt non-enumerable own-data rejection review.**
 
 Action 666IA independently reviews the five frozen local ordinary
