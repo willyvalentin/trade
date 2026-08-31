@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IG reviews a frozen local four-key receipt that omits `canonicalCommandDigest` without a replacement key | Preserve the comparator and runtime boundary while the exact-cardinality omission rejection remains independently verified |
+| Current bounded workstream | Action 666II reviews a frozen local four-key receipt that omits `disposition` without a replacement key | Preserve the comparator and runtime boundary while the exact-cardinality omission rejection remains independently verified |
 | Next decision | Complete this bounded review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
@@ -483,6 +483,24 @@ extra-key, undefined-value, descriptor or prototype variation remain separate.
 Ready and exact-main six-shard Full CI plus matched provenance remain mandatory;
 no CI deduplication is authorized. Only the separately bounded review may
 follow.
+
+Action 666II independently reviews that selected frozen local ordinary receipt
+shape. It confirms direct local Object.prototype and exactly four enumerable
+immutable normal own data fields: `canonicalCommandDigest`,
+`initialHistoryIdentity`, `positionId` and `positionVersion`. Object.keys
+and Reflect.ownKeys expose this exact four-key shape while `disposition` is
+absent without a replacement, extra or hidden key. Ordinary local valid
+five-key receipts remain admissible with fresh frozen scalar-only verdicts; the
+omission fixture rejects with fresh dedicated comparator errors three times in
+each argument order without input or cross-error aliasing. The review creates
+no scalar-invalid, undefined-own-key, extra-key, non-enumerable-key,
+descriptor, accessor, proxy, symbol, foreign-realm, prototype, coercion,
+adaptation, normalization or import variation; changes no comparator source;
+and admits no receipt consumer, storage, caller, transport, credential, owner
+resolution, database/writer, provider, broker, route/UI, deployment or runtime
+authority. Ready and exact-main six-shard Full CI plus matched provenance remain
+mandatory; no CI deduplication is authorized. Only a separately bounded
+decision may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
