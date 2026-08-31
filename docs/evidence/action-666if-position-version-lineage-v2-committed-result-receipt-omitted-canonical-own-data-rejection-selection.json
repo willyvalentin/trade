@@ -1,0 +1,43 @@
+{
+  "contract_version": "trade.action666if.position-version-lineage-v2-committed-result-receipt-omitted-canonical-own-data-rejection-selection.v1",
+  "action_id": "ACTION_666IF",
+  "reviewed_revision": {
+    "protected_main_commit": "cd16d9abaa7f7a7fdf3cfecaeda6e705bdc77138",
+    "protected_main_tree": "9220f8a4fd42296b2fa66c892af8e38c3f6b17ee",
+    "exact_main_ci_run": 33363816965,
+    "exact_main_ci_conclusion": "success",
+    "wrong_name_substitution_rejection_review_action": "ACTION_666IE"
+  },
+  "candidates": {
+    "v2_receipt_comparator_source_or_omitted_key_adaptation": "rejected_no_implementation_or_runtime_authority",
+    "v2_receipt_consumer_storage_or_transport_binding": "rejected_no_runtime_or_durable_authority",
+    "v2_receipt_owner_resolution_or_writer_invocation": "rejected_no_caller_or_execution_authority",
+    "required_ci_branch_protection_or_netlify_change": "rejected_unchanged_six_shard_full_ci",
+    "v2_immutable_receipt_equivalence_omitted_canonical_own_data_rejection_review": "selected"
+  },
+  "selected_outcome": {
+    "identifier": "v2_immutable_receipt_equivalence_omitted_canonical_own_data_rejection_review",
+    "review_action": "ACTION_666IG",
+    "comparator_source_changed": false,
+    "server_only": true,
+    "runtime_unwired": true,
+    "execution_authority": false,
+    "review_fixture": "one_frozen_local_ordinary_receipt_with_exactly_four_enumerable_normal_own_data_fields_disposition_initialHistoryIdentity_positionId_and_positionVersion_while_canonicalCommandDigest_is_absent_without_a_replacement_key",
+    "required_observations": [
+      "object_keys_and_reflect_own_keys_expose_exactly_the_four_retained_canonical_data_keys_while_canonicalCommandDigest_is_absent",
+      "the_frozen_local_ordinary_omitted_canonical_own_data_receipt_is_rejected_in_either_argument_slot",
+      "every_omitted_canonical_own_data_rejection_is_a_fresh_dedicated_comparator_error_with_the_stable_public_name_and_message",
+      "no_rejection_error_aliases_an_input_or_a_cross_invocation_error",
+      "an_ordinary_local_realm_valid_five_key_receipt_control_remains_admissible_with_a_fresh_frozen_scalar_only_verdict"
+    ]
+  },
+  "decision": {
+    "type": "select_one_source_only_milestone_b_receipt_equivalence_omitted_canonical_own_data_rejection_review",
+    "workflow_change_authorized": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false,
+    "runtime_activation_authorized": false
+  }
+}
