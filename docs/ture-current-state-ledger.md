@@ -1,5 +1,22 @@
 # Ture Current-State Ledger
 
+**ACTION 666IC — V2 committed-result receipt non-enumerable extra-own-data rejection review.**
+
+Action 666IC independently reviews the single frozen local ordinary
+receipt-shaped object selected by Action 666IB. It has direct local
+Object.prototype, the five canonical enumerable own data fields and canonical
+scalar values, plus exactly one non-enumerable additional
+`legacySnapshotId` string own data key with literal `"forbidden"`.
+`Reflect.ownKeys` must expose the hidden extra key while ordinary local
+receipt controls remain admissible. The extra-own-data object rejects with
+fresh dedicated errors in either comparator slot without input or cross-error
+aliasing. The review changes no comparator source and creates no proxy,
+accessor, symbol, foreign-realm material, null or custom prototype, prototype
+mutation, coercion hook, adaptation, normalization or import; it admits no
+receipt consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority.
+Only a separately bounded decision may follow.
+
 **ACTION 666IB — V2 committed-result receipt non-enumerable extra-own-data rejection selection.**
 
 Action 666IB selects exactly one future independent source-only review of the
