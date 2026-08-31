@@ -1,5 +1,24 @@
 # Ture Current-State Ledger
 
+**ACTION 666IK — V2 committed-result receipt omitted initial-history-identity own-data rejection review.**
+
+Action 666IK independently reviews the single frozen local ordinary
+receipt-shaped object selected by Action 666IJ. It has direct local
+Object.prototype and exactly four enumerable immutable normal own data fields:
+`canonicalCommandDigest`, `disposition`, `positionId` and `positionVersion`.
+Object.keys and Reflect.ownKeys expose this exact four-key omission shape while
+`initialHistoryIdentity` is absent without a replacement, extra or hidden key.
+Valid ordinary local five-key receipt controls remain admissible with fresh
+frozen scalar-only verdicts. The omission fixture rejects with fresh dedicated
+errors in either comparator slot without input or cross-error aliasing. The
+review changes no comparator source and creates no scalar-invalid,
+undefined-own-key or inherited replacement, descriptor, accessor, proxy,
+symbol, foreign-realm, prototype, coercion, adaptation, normalization or import
+variation; it admits
+no receipt consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority.
+Only a separately bounded decision may follow.
+
 **ACTION 666IJ — V2 committed-result receipt omitted initial-history-identity own-data rejection selection.**
 
 Action 666IJ selects exactly one future independent source-only review of the
