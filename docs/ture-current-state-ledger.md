@@ -1,5 +1,22 @@
 # Ture Current-State Ledger
 
+**ACTION 666IE — V2 committed-result receipt wrong-name substitution rejection review.**
+
+Action 666IE independently reviews the single frozen local ordinary
+receipt-shaped object selected by Action 666ID. It has direct local
+Object.prototype and exactly five enumerable normal immutable own data fields,
+where `legacyCanonicalCommandDigest` replaces `canonicalCommandDigest`
+one-for-one with the same canonical digest scalar. Object.keys and
+Reflect.ownKeys expose this exact five-key wrong-name shape, while a valid
+ordinary local receipt remains admissible. The wrong-name object rejects with
+fresh dedicated errors in either comparator slot without input or cross-error
+aliasing. The review changes no comparator source and creates no proxy,
+accessor, symbol, foreign-realm material, null or custom prototype, prototype
+mutation, coercion hook, adaptation, normalization or import; it admits no
+receipt consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority.
+Only a separately bounded decision may follow.
+
 **ACTION 666ID — V2 committed-result receipt wrong-name substitution rejection selection.**
 
 Action 666ID selects exactly one future independent source-only review of the
