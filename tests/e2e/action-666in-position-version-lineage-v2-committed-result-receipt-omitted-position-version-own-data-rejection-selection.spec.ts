@@ -100,7 +100,7 @@ test("666IN retains the exact-cardinality position-version omission boundary wit
   expect(documentation).toMatch(/Reflect\.ownKeys/i);
   expect(documentation).toMatch(/no CI deduplication is\s+authorized/i);
   expect(source(roadmapPath)).toContain(
-    "| Current bounded workstream | Action 666IM reviews a frozen local four-key receipt that omits `positionId` without a replacement key |",
+    "| Current bounded workstream | Action 666IO reviews a frozen local four-key receipt that omits `positionVersion` without a replacement key |",
   );
   expect(source(roadmapPath)).toMatch(/Action 666IN/);
   expect(source(ledgerPath)).toMatch(/ACTION 666IN/);
