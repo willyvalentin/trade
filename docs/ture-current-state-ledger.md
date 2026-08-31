@@ -1,5 +1,21 @@
 # Ture Current-State Ledger
 
+**ACTION 666ID — V2 committed-result receipt wrong-name substitution rejection selection.**
+
+Action 666ID selects exactly one future independent source-only review of the
+completed comparator: a frozen local ordinary receipt with direct local
+Object.prototype and exactly five enumerable normal immutable own data fields,
+where `legacyCanonicalCommandDigest` replaces `canonicalCommandDigest`
+one-for-one with the same canonical digest scalar. Its successor may prove that
+Reflect.ownKeys exposes the exact five-key wrong-name shape and rejects with
+fresh dedicated comparator errors in either argument slot without input or
+cross-error aliasing, while ordinary local receipt controls remain admissible
+with fresh frozen scalar-only verdicts. It does not change the comparator or
+create a receipt consumer, storage, caller, transport, credential, owner
+resolution, database/writer, provider, broker, route/UI, deployment or runtime
+authority; a four-key omitted-canonical-field fixture remains separate. Only
+the separately bounded review may follow.
+
 **ACTION 666IC — V2 committed-result receipt non-enumerable extra-own-data rejection review.**
 
 Action 666IC independently reviews the single frozen local ordinary
