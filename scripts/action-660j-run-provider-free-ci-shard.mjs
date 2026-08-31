@@ -167,6 +167,7 @@ const foundationTests = [
   "tests/e2e/action-666ic-position-version-lineage-v2-committed-result-receipt-non-enumerable-extra-own-data-rejection-review.spec.ts",
   "tests/e2e/action-666id-position-version-lineage-v2-committed-result-receipt-wrong-name-substitution-rejection-selection.spec.ts",
   "tests/e2e/action-666ie-position-version-lineage-v2-committed-result-receipt-wrong-name-substitution-rejection-review.spec.ts",
+  "tests/e2e/action-666if-position-version-lineage-v2-committed-result-receipt-omitted-canonical-own-data-rejection-selection.spec.ts",
 ];
 
 const intelligenceTests = [

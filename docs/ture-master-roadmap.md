@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IE reviews a frozen local five-key receipt with `legacyCanonicalCommandDigest` replacing `canonicalCommandDigest` one-for-one | Preserve the comparator and runtime boundary while the exact-name-membership rejection remains independently verified |
-| Next decision | Complete this bounded review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666IF selects a frozen local four-key receipt that omits `canonicalCommandDigest` without a replacement key | Preserve the comparator and runtime boundary while the distinct exact-cardinality omission rejection is independently bounded |
+| Next decision | Complete this bounded selection with its required Ready/exact-main Full CI and matched provenance, then admit only its separately bounded review | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -427,6 +427,25 @@ resolution, database/writer, provider, broker, route/UI, deployment or runtime
 authority. Ready and exact-main six-shard Full CI plus matched provenance remain
 mandatory; no CI deduplication is authorized. Only a separately bounded
 decision may follow.
+
+Action 666IF selects one separate source-only successor: an independent strict
+omitted-canonical-own-data rejection review of the completed immutable V2
+committed-result receipt equivalence comparator. Its future review may compare
+only a frozen local ordinary receipt with direct local Object.prototype and
+exactly four enumerable immutable normal own data fields:
+`disposition`, `initialHistoryIdentity`, `positionId` and `positionVersion`.
+The canonical `canonicalCommandDigest` field is absent with no replacement,
+extra or hidden key. It must prove that Object.keys and Reflect.ownKeys expose
+the exact four-key omission shape, then reject with fresh dedicated comparator
+errors three times in each argument order without input or cross-error aliasing,
+while ordinary local five-key controls remain admissible with fresh frozen
+scalar-only verdicts. It changes no comparator source and admits no receipt
+consumer, storage, caller, transport, credential, owner resolution,
+database/writer, provider, broker, route/UI, deployment or runtime authority.
+Omission of another canonical field and every wrong-name, extra-key,
+descriptor or prototype variation remain separate. Ready and exact-main
+six-shard Full CI plus matched provenance remain mandatory; no CI deduplication
+is authorized. Only the separately bounded review may follow.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
