@@ -1,5 +1,23 @@
 # Ture Current-State Ledger
 
+**ACTION 666IG — V2 committed-result receipt omitted canonical own-data rejection review.**
+
+Action 666IG independently reviews the single frozen local ordinary
+receipt-shaped object selected by Action 666IF. It has direct local
+Object.prototype and exactly four enumerable immutable normal own data fields:
+`disposition`, `initialHistoryIdentity`, `positionId` and `positionVersion`.
+Object.keys and Reflect.ownKeys expose this exact four-key omission shape while
+`canonicalCommandDigest` is absent without a replacement, extra or hidden key.
+Valid ordinary local five-key receipt controls remain admissible with fresh
+frozen scalar-only verdicts. The omission fixture rejects with fresh dedicated
+errors in either comparator slot without input or cross-error aliasing. The
+review changes no comparator source and creates no proxy, accessor, symbol,
+foreign-realm material, null or custom prototype, prototype mutation, coercion
+hook, adaptation, normalization or import; it admits no receipt consumer,
+storage, caller, transport, credential, owner resolution, database/writer,
+provider, broker, route/UI, deployment or runtime authority. Only a separately
+bounded decision may follow.
+
 **ACTION 666IF — V2 committed-result receipt omitted canonical own-data rejection selection.**
 
 Action 666IF selects exactly one future independent source-only review of the

@@ -1,0 +1,54 @@
+{
+  "contract_version": "trade.action666ig.position-version-lineage-v2-committed-result-receipt-omitted-canonical-own-data-rejection-review.v1",
+  "action_id": "ACTION_666IG",
+  "reviewed_revision": {
+    "protected_main_commit": "49d7dfad8df6a3b5f1879732d276cfdc1f30ecba",
+    "protected_main_tree": "4a050300e6079236975e9b2a586aa98eb4a477c2",
+    "exact_main_ci_run": 33369772866,
+    "exact_main_ci_conclusion": "success",
+    "selection_action": "ACTION_666IF",
+    "selection_pr_number": 271
+  },
+  "review": {
+    "type": "independent_source_only_immutable_committed_result_receipt_omitted_canonical_own_data_rejection_review",
+    "comparator_source_changed": false,
+    "ordinary_local_realm_valid_receipts_remain_admitted": true,
+    "local_admission_verdict_is_fresh_frozen_and_scalar_only": true,
+    "review_fixture_is_one_local_frozen_ordinary_receipt": true,
+    "review_fixture_direct_prototype_is_local_object_prototype": true,
+    "review_fixture_exact_enumerable_own_data_fields": [
+      "disposition",
+      "initialHistoryIdentity",
+      "positionId",
+      "positionVersion"
+    ],
+    "review_fixture_omitted_canonical_field": "canonicalCommandDigest",
+    "review_fixture_omitted_canonical_field_is_absent": true,
+    "review_fixture_has_no_replacement_extra_or_hidden_own_key": true,
+    "object_keys_and_reflect_own_keys_expose_exact_four_key_omission_shape": true,
+    "normal_own_data_descriptors_only": true,
+    "omitted_canonical_own_data_receipt_rejected_in_either_argument_slot": true,
+    "calls_per_argument_order": 3,
+    "argument_orders": 2,
+    "rejected_calls": 6,
+    "rejection_errors_fresh": true,
+    "outcome_input_aliasing": false,
+    "cross_error_aliasing": false,
+    "proxy_accessor_symbol_foreign_realm_or_prototype_variation_present": false,
+    "coercion_adaptation_import_or_normalization_present": false,
+    "runtime_unwired": true,
+    "dedicated_error_public_name": "PositionVersionLineageV2WriterImmutableCommittedResultReceiptEquivalenceComparatorError",
+    "dedicated_error_message": "invalid_position_version_lineage_v2_writer_immutable_committed_result_receipt_equivalence_input"
+  },
+  "containment": {
+    "coercion_adaptation_import_or_normalization_present": false,
+    "receipt_consumer_or_storage_present": false,
+    "caller_writer_transport_or_credential_binding_present": false,
+    "database_provider_broker_or_runtime_binding_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "required_check_change_authorized": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
