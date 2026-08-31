@@ -464,6 +464,26 @@ runtime authority. Ready and exact-main six-shard Full CI plus matched
 provenance remain mandatory; no CI deduplication is authorized. Only a
 separately bounded decision may follow.
 
+Action 666IH selects one separate source-only successor: an independent strict
+omitted-disposition-own-data rejection review of the completed immutable V2
+committed-result receipt equivalence comparator. Its future review may compare
+only a frozen local ordinary receipt with direct local Object.prototype and
+exactly four enumerable immutable normal own data fields:
+`canonicalCommandDigest`, `initialHistoryIdentity`, `positionId` and
+`positionVersion`. The canonical `disposition` field is absent with no
+replacement, extra or hidden key. It must prove that Object.keys and
+Reflect.ownKeys expose the exact four-key omission shape, then reject with
+fresh dedicated comparator errors three times in each argument order without
+input or cross-error aliasing, while ordinary local five-key controls remain
+admissible with fresh frozen scalar-only verdicts. It changes no comparator
+source and admits no receipt consumer, storage, caller, transport, credential,
+owner resolution, database/writer, provider, broker, route/UI, deployment or
+runtime authority. Omission of another canonical field and every wrong-name,
+extra-key, undefined-value, descriptor or prototype variation remain separate.
+Ready and exact-main six-shard Full CI plus matched provenance remain mandatory;
+no CI deduplication is authorized. Only the separately bounded review may
+follow.
+
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
 [`roadmap-operating-governance.md`](./roadmap-operating-governance.md).
