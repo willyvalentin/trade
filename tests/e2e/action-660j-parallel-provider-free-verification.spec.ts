@@ -197,6 +197,7 @@ const foundationTests = [
   "tests/e2e/action-666ig-position-version-lineage-v2-committed-result-receipt-omitted-canonical-own-data-rejection-review.spec.ts",
   "tests/e2e/action-666ih-position-version-lineage-v2-committed-result-receipt-omitted-disposition-own-data-rejection-selection.spec.ts",
   "tests/e2e/action-666ii-position-version-lineage-v2-committed-result-receipt-omitted-disposition-own-data-rejection-review.spec.ts",
+  "tests/e2e/action-666ij-position-version-lineage-v2-committed-result-receipt-omitted-initial-history-identity-own-data-rejection-selection.spec.ts",
 ];
 
 const intelligenceTests = [
