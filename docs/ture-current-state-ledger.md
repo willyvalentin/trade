@@ -27,20 +27,23 @@ runtime slice requires a fresh explicit product decision and policy-admitted
 evidence; it cannot resume merely because staging becomes available. Notion is
 program tracking only.
 
-**REL-00 CI-B1 — Post-B CI change-classification taxonomy.**
+**REL-00 CI-B2 — Post-B CI raw name-status acquisition.**
 
 CI-B0 is verified on exact main after PR #290 merged as
 `8127c4d294a36d0e442fa1b10df451f15cdf0c28`. Ready run `33532291412` and
 exact-main run `33535472128` passed all six provider-free shards, the strict
 `provider-free-verification` aggregate and a matched post-merge provenance POC
-without mismatches or CI deduplication. CI-B1 now freezes a pure, source-only,
-unactivated change-classification taxonomy. It preserves the existing
-Draft/Ready/main topology and grants no selector, workflow, required-check or
-branch-protection authority.
+without mismatches or CI deduplication. CI-B1 is also verified on exact main
+after PR #291 merged as `7ca4543c3c4eea5503f047d1df4865e29b8b9ee2`; Ready
+run `33542525164` and exact-main run `33545954916` retained the same six
+shards and matched post-merge provenance with no mismatches. CI-B2 now starts
+only a source-only, unactivated raw NUL name-status acquisition seam. It
+preserves the existing Draft/Ready/main topology and grants no selector,
+workflow, required-check or branch-protection authority.
 
-REL-00 is in progress, not complete. CI-B1 through CI-B6 require source-only
+REL-00 is in progress, not complete. CI-B2 through CI-B6 require source-only
 deterministic design and shadow evidence, CI-B7 needs a separately authorized
-CI-policy decision, and CI-B8 needs a declared observation window. This CI-B1
+CI-policy decision, and CI-B8 needs a declared observation window. This CI-B2
 record neither re-activates staging nor grants any runtime, provider, broker,
 deployment or production authority.
 

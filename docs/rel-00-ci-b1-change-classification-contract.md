@@ -3,10 +3,10 @@
 ## Bounded objective
 
 CI-B1 freezes the source-only vocabulary and adversarial fixtures for a future
-risk-based CI selector. It adds a pure parser and classifier that is currently
-imported only by its contract test. It does not read Git state, the filesystem,
-environment variables, a network, credentials, a provider, a broker or any
-runtime service.
+risk-based CI selector. It adds a pure parser and classifier that is imported
+only by its contract test and CI-B2's named source-only acquisition contract.
+It does not read Git state, the filesystem, environment variables, a network,
+credentials, a provider, a broker or any runtime service.
 
 The classifier is not connected to the Draft selector or the Ready/main CI
 path. Its results are evidence for CI-B2 design only; they cannot execute a

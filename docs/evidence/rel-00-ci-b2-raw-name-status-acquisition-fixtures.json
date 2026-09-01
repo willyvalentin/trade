@@ -1,0 +1,87 @@
+{
+  "contract_version": "trade.rel00.ci-b2.raw-name-status-acquisition.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B2",
+  "status": "source_only_not_activated",
+  "baseline": {
+    "protected_main_commit": "7ca4543c3c4eea5503f047d1df4865e29b8b9ee2",
+    "protected_main_tree": "b122ec34ff947ceabcd5957a52e7049b624961eb",
+    "ci_b1_ready_run_id": 33542525164,
+    "ci_b1_exact_main_run_id": 33545954916,
+    "ci_b1_post_merge_provenance": "matched",
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "protected_check": "provider-free-verification",
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ]
+  },
+  "authority": {
+    "draft_selector_activation": false,
+    "workflow_change": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ready_main_full_ci_change": false,
+    "ci_deduplication_authorized": false,
+    "runtime_or_deployment_authority": false
+  },
+  "acquisition_policy": {
+    "revision_format": "exactly_40_lowercase_hex_characters",
+    "git_prefix": ["--no-pager", "--no-replace-objects"],
+    "trusted_git_executable": "/usr/bin/git",
+    "inherited_git_environment": false,
+    "commands": [
+      "rev-parse --verify --quiet <revision>^{commit}",
+      "merge-base --all <base_revision> <expected_revision>",
+      "diff --no-ext-diff --no-textconv --no-renames --name-status -z <merge_base> <expected_revision> --"
+    ],
+    "maximum_stdout_bytes": 1048576,
+    "empty_or_partial_output": "broad_containment_required",
+    "hostile_input_or_runner_access": "broad_containment_required",
+    "raw_byte_read_semantics": "fresh_detached_copy_per_read",
+    "all_verification_flags": false,
+    "fast_path_eligible": false,
+    "activation_eligible": false
+  },
+  "fixtures": [
+    {
+      "id": "modified-documentation-with-newline-path",
+      "base_revision": "1111111111111111111111111111111111111111",
+      "expected_revision": "2222222222222222222222222222222222222222",
+      "merge_base": "3333333333333333333333333333333333333333",
+      "raw_name_status_hex": "4d00646f63732f6c696e650a627265616b20616e642073706163652e6d6400",
+      "expected_statuses": ["M"]
+    },
+    {
+      "id": "rename-preserves-both-paths-even-though-policy-disables-rename-detection",
+      "base_revision": "4444444444444444444444444444444444444444",
+      "expected_revision": "5555555555555555555555555555555555555555",
+      "merge_base": "6666666666666666666666666666666666666666",
+      "raw_name_status_hex": "5231303000646f63732f6f6c642e6d64006170702f6170692f617574682f6c6f67696e2f726f7574652e747300",
+      "expected_statuses": ["R"]
+    },
+    {
+      "id": "c1-control-character-path-is-preserved-and-contained",
+      "base_revision": "7777777777777777777777777777777777777777",
+      "expected_revision": "8888888888888888888888888888888888888888",
+      "merge_base": "9999999999999999999999999999999999999999",
+      "raw_name_status_hex": "4d00646f63732f6c696e65c285627265616b2e6d6400",
+      "expected_statuses": ["M"]
+    }
+  ],
+  "rejected_cases": [
+    "noncanonical_revision",
+    "unresolved_commit",
+    "ambiguous_merge_base",
+    "runner_error_signal_or_nonzero_exit",
+    "stdout_not_bytes_or_exceeds_cap",
+    "empty_or_non_nul_terminated_output",
+    "invalid_utf8_or_malformed_name_status_record",
+    "truncated_rename_or_copy_record"
+  ]
+}
