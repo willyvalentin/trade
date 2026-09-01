@@ -76,6 +76,7 @@ the stated trigger occurs.
 | --- | --- | --- | --- |
 | Closed static metadata-receipt/witness workstream | Action 666FW closeout record | Preserved closeout record, exact-main CI and fail-closed runtime prerequisites | Return to separately prioritized work; any reopen needs one autonomous policy evaluation and independent automated verification |
 | One bounded V2 writer implementation | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI classifications | Policy-admitted authority, containment/rollback and required operational evidence | Exactly one pre-authorized implementation Action |
+| Local-sandbox milestone acceptance closeout | An explicit, versioned local-only acceptance profile plus verified bounded local evidence | Preserved historical runtime facts, exact evidence hashes, alternative/residual-risk record and an unchanged six-shard CI plan | Close only the named profile; defer live/runtime scope to a separately authorized future milestone |
 | Milestone B runtime capability | Canonical server-owned writer, durable identity, auditability and policy-admitted activation boundary | Behavior-level, idempotency and owner-bound evidence appropriate to the scope | One pre-authorized runtime trial or remain blocked by technical evidence |
 | Production publication | Exact deploy/main identity, required CI, applicable smoke/readback and a policy-admitted execution record | Release-specific evidence; source merge alone is insufficient | One pre-authorized release decision |
 

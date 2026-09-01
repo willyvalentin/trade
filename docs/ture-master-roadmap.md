@@ -9,10 +9,10 @@ database, deployment, secret, transport, writer, route or UI authority.
 
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
-| Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IW records that no independent non-secret B-03 staging principal-and-scope attestation reference was supplied within its static scope | Preserve application and all remote environments as closed while the decision remains `not_admitted` |
-| Next decision | A separately authorized, independent non-secret staging principal-and-scope attestation reference must establish every remote gate without contacting staging | Do not deploy, read protected material, contact a remote database/provider/broker, bind application runtime or wire UI/route before a later gate |
-| Current blockers | Named staging-only principal, protected non-public material provenance, least-privileged identity/grants, private transport, remote writer invocation and rollback evidence remain unattested | Reuse the local proof only as a pattern; retain default-deny behavior |
+| Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
+| Current bounded workstream | Action 666IX accepts the verified ephemeral local B-03 behavior proof as the complete evidence target for the named local-sandbox profile | Preserve application and all remote environments as closed; this profile grants no runtime authority |
+| Next decision | There is no automatic successor within the closed local-sandbox Milestone B profile | Do not restart staging, deploy, read protected material, contact a remote database/provider/broker, bind application runtime or wire UI/route without a new policy decision |
+| Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
@@ -753,6 +753,26 @@ authorized Action must supply an independent non-secret attestation reference
 for static review; it still cannot authorize a remote action by itself.
 Milestone B remains `not_complete`, and Notion remains program tracking only.
 
+Action 666IX is the later, superseding program-scope closeout decision selected
+by the user after staging was intentionally paused for cost control. It retains
+the historical facts in Actions 666IT, 666IU, 666IV and 666IW — including the
+original `not_complete` result and remote staging `not_admitted` — but changes
+the accepted Milestone B target to
+`milestone_b_local_sandbox_acceptance_v1`. The verified local, ephemeral B-03
+writer proof is sufficient for that profile only. Accordingly Milestone B is
+`complete_under_local_sandbox_acceptance_profile_v1`; B-01 and B-05 through
+B-12 are explicitly deferred and unverified follow-on runtime work, while
+B-02/B-04 remain completed foundations and B-03 is accepted only as a local
+sandbox behavior proof. This is not a statement that live server-owned trade
+management is implemented. Remote staging remains `not_admitted`, runtime,
+production, broker and deployment remain closed, and no staging restart,
+credential/material access, connection, query, migration, writer invocation,
+transport/runtime, route/UI, Netlify, provider, broker, branch-protection or
+CI-deduplication authority is created. A future runtime effort requires its
+own explicit product decision and policy-admitted evidence; it does not resume
+automatically when an environment becomes available. Notion remains program
+tracking only.
+
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
 [`roadmap-operating-governance.md`](./roadmap-operating-governance.md).
@@ -1436,8 +1456,9 @@ and observation contracts, a durable exit queue, transactional
 recommendation-to-position handoff and client projection rather than client
 truth. It depends on Milestone A.
 
-**Current activation boundary:** Milestone B planning is active while runtime
-remains closed. Action 655G in merged PR #84 supplies a pure, deterministic,
+**Current activation boundary:** Milestone B is closed only under
+`milestone_b_local_sandbox_acceptance_v1`; the original live-runtime product
+scope remains deferred and closed. Action 655G in merged PR #84 supplies a pure, deterministic,
 default-off and runtime-unwired exit evaluator. Action 666DB conditionally
 closes `current_main_position_version_schema_reconciliation` by proving the
 current schema gap and freezing an owner-bound durable positive position
