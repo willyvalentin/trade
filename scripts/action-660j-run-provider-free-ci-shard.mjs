@@ -186,6 +186,7 @@ const foundationTests = [
   "tests/e2e/action-666iv-b03-remote-staging-admission.spec.ts",
   "tests/e2e/action-666iw-b03-staging-principal-scope-attestation-availability.spec.ts",
   "tests/e2e/action-666ix-milestone-b-local-sandbox-acceptance-closeout.spec.ts",
+  "tests/e2e/rel-00-ci-b0-baseline-and-charter.spec.ts",
 ];
 
 const intelligenceTests = [

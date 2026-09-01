@@ -27,6 +27,24 @@ runtime slice requires a fresh explicit product decision and policy-admitted
 evidence; it cannot resume merely because staging becomes available. Notion is
 program tracking only.
 
+**REL-00 CI-B0 — Post-B CI baseline and admission reconciliation.**
+
+The current source-only CI-B0 baseline reconciliation follows the
+qualified Milestone B closeout. It freezes protected main
+`7814f677c5992535957e8e2765660fafa894db80`, the matched PR #289 Ready and
+exact-main evidence, and the existing Draft/Ready/main CI topology. The
+preserved Ready/main model is exactly six provider-free shards plus the strict
+`provider-free-verification` aggregate and provenance POC; no CI
+deduplication, workflow, required-check or branch-protection change is
+admitted.
+
+REL-00 is in progress, not complete. CI-B0 freezes its baseline and charter;
+CI-B1 through CI-B6 require source-only deterministic design and shadow
+evidence, CI-B7 needs a separately authorized CI-policy decision, and CI-B8
+needs a declared observation window. This CI-B0 record neither re-activates
+staging nor grants any runtime, provider, broker, deployment or production
+authority.
+
 **ACTION 666IW — B-03 staging principal-and-scope attestation availability decision.**
 
 Action 666IW records the precise availability outcome for Action 666IV's next
