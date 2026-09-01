@@ -1,0 +1,64 @@
+{
+  "contract_version": "trade.rel00.ci-b0-baseline-and-charter.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B0",
+  "reviewed_baseline": {
+    "protected_main_commit": "7814f677c5992535957e8e2765660fafa894db80",
+    "protected_main_tree": "7221ee7a8a130bb4db2ac60f8d77597b9cf56d0e",
+    "merged_pr_number": 289,
+    "merged_pr_head": "704532f2cc692014ef0dea26935e349396f00a90",
+    "merged_pr_base": "8decbb5fe4643cc43af480897f1aca30da13a811",
+    "ready_full_ci": {
+      "run_id": 33520256853,
+      "conclusion": "success",
+      "aggregate": "provider-free-verification",
+      "provenance_job": "merge-candidate-provenance / POC"
+    },
+    "exact_main_full_ci": {
+      "run_id": 33523670033,
+      "conclusion": "success",
+      "aggregate": "provider-free-verification",
+      "provenance_job": "post-merge-candidate-provenance / POC",
+      "post_merge_provenance_status": "matched",
+      "post_merge_provenance_mismatches": []
+    }
+  },
+  "preserved_workflow_contract": {
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "draft_job": "draft-provider-free-verification",
+    "strict_required_aggregate": "provider-free-verification",
+    "ready_and_main_full_ci_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ],
+    "ready_and_main_full_ci_shard_count": 6,
+    "exact_sha_checkout": true,
+    "clean_tree_verification": true,
+    "lockfile_bound_npm_download_cache": true,
+    "locked_npm_ci_ignore_scripts": true,
+    "concurrency_cancellation": true,
+    "full_ci_deduplication_authorized": false
+  },
+  "qualified_milestone_b_context": {
+    "disposition": "complete_under_local_sandbox_acceptance_profile_v1",
+    "live_runtime_disposition": "deferred_not_verified",
+    "b01_and_b05_through_b12": "deferred_not_verified_follow_on_runtime_milestone",
+    "remote_staging_admission": "not_admitted"
+  },
+  "transition_status": {
+    "ci_b0_baseline_and_charter": "in_progress",
+    "ci_b1_through_ci_b6": "not_started",
+    "ci_b7_activation": "requires_separate_explicit_authorization",
+    "ci_b8_observation": "requires_declared_measurement_window",
+    "full_rel00_transition": "in_progress_not_complete",
+    "authority_not_granted": [
+      "workflow trigger or job-condition change",
+      "required-check or branch-protection change",
+      "identity, transport, writer, provider, broker, deployment or production action"
+    ]
+  }
+}
