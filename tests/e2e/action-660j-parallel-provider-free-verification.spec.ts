@@ -214,6 +214,7 @@ const foundationTests = [
   "tests/e2e/action-666ix-milestone-b-local-sandbox-acceptance-closeout.spec.ts",
   "tests/e2e/rel-00-ci-b0-baseline-and-charter.spec.ts",
   "tests/e2e/rel-00-ci-b1-change-classification.spec.ts",
+  "tests/e2e/rel-00-ci-b2-raw-name-status-acquisition.spec.ts",
 ];
 
 const intelligenceTests = [
