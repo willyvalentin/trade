@@ -206,6 +206,7 @@ const foundationTests = [
   "tests/e2e/action-666ip-position-version-lineage-v2-committed-result-receipt-undefined-canonical-command-digest-own-data-rejection-selection.spec.ts",
   "tests/e2e/action-666iq-position-version-lineage-v2-committed-result-receipt-undefined-canonical-command-digest-own-data-rejection-review.spec.ts",
   "tests/e2e/action-666ir-position-version-lineage-v2-committed-result-receipt-undefined-disposition-own-data-rejection-selection.spec.ts",
+  "tests/e2e/action-666is-position-version-lineage-v2-committed-result-receipt-undefined-disposition-own-data-rejection-review.spec.ts",
 ];
 
 const intelligenceTests = [

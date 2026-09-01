@@ -100,7 +100,7 @@ test("666IN retains the exact-cardinality position-version omission boundary wit
   expect(documentation).toMatch(/Reflect\.ownKeys/i);
   expect(documentation).toMatch(/no CI deduplication is\s+authorized/i);
   expect(source(roadmapPath)).toContain(
-    "| Current bounded workstream | Action 666IR selects one frozen local five-key receipt whose own disposition data value is undefined for a later source-only review | Preserve the comparator and runtime boundary while this isolated scalar-invalidity selection is reviewed |",
+    "| Current bounded workstream | Action 666IS independently reviews one frozen local five-key receipt whose own disposition data value is undefined | Preserve the comparator and runtime boundary while this isolated scalar-invalidity rejection is reviewed |",
   );
   expect(source(roadmapPath)).toMatch(/Action 666IN/);
   expect(source(ledgerPath)).toMatch(/ACTION 666IN/);

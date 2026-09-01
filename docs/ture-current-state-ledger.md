@@ -1,5 +1,25 @@
 # Ture Current-State Ledger
 
+**ACTION 666IS — V2 committed-result receipt undefined disposition own-data rejection review.**
+
+Action 666IS independently reviews the single frozen local ordinary
+receipt-shaped object selected by Action 666IR. It has direct local
+Object.prototype and exactly five enumerable immutable normal own data fields:
+canonicalCommandDigest, disposition, initialHistoryIdentity, positionId and
+positionVersion. The disposition field remains an own data field but has the
+value undefined; no key is missing, replaced, extra or hidden. Object.keys and
+Reflect.ownKeys expose this exact five-key shape, and the direct immutable
+disposition descriptor exposes undefined. Valid ordinary local five-key receipt
+controls remain admissible with fresh frozen scalar-only verdicts. The
+undefined-value fixture rejects with fresh dedicated errors in either comparator
+slot without input or cross-error aliasing. The review changes no comparator
+source and creates no omitted-key, wrong-name, extra-key, non-enumerable-key,
+descriptor, accessor, proxy, symbol, foreign-realm, prototype, coercion,
+adaptation, normalization or import variation; it admits no receipt consumer,
+storage, caller, transport, credential, owner resolution, database/writer,
+provider, broker, route/UI, deployment or runtime authority. Only a separately
+bounded decision may follow.
+
 **ACTION 666IR — V2 committed-result receipt undefined disposition own-data rejection selection.**
 
 Action 666IR selects exactly one future independent source-only review of the
