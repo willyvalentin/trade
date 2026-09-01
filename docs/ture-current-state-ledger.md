@@ -1,5 +1,32 @@
 # Ture Current-State Ledger
 
+**ACTION 666IV — B-03 remote-staging admission prerequisites and containment decision.**
+
+Action 666IV is a static, value-free decision after Action 666IU's verified
+local Docker sandbox proof and its matched exact-main provenance. It records
+that the local proof does not establish a named staging-only principal,
+protected non-public material provenance, a dedicated least-privileged writer
+identity and grant matrix, a private non-data-API transport, or a remote
+rollback and containment plan. Each required remote gate is therefore
+unattested and remote staging is `not_admitted`.
+
+The prior disposable local identities and rollback receipt remain local only.
+Earlier isolated staging catalog proofs are historical context, not current
+B-03 administration authority. Action 666IV performed no staging
+authentication, material inspection or provisioning, role/grant change, remote
+connection, database action, migration or writer invocation; none is admitted
+by this decision. The planned private transport module is absent, and this
+decision creates no application transport, server caller, route/UI, runtime,
+provider, broker, deployment, Netlify or production authority.
+
+The only safe successor is a separately authorized, value-free staging
+principal-and-scope attestation. It must still not authenticate, read material,
+connect, mutate, invoke the writer or bind runtime. B-01 and B-03 remain in
+progress; B-05 through B-08 remain blocked; B-09 through B-12 remain planned;
+and Milestone B remains `not_complete`. Branch protection, required checks and
+the six-shard Full CI policy remain unchanged without deduplication. Notion is
+program tracking only.
+
 **ACTION 666IU — B-03 local sandbox private V2 writer capability proof.**
 
 Action 666IU is the first policy-admitted behavior-level slice after the
