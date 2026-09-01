@@ -1,5 +1,26 @@
 # Ture Current-State Ledger
 
+**ACTION 666IT — Milestone B capability reconciliation and closeout decision.**
+
+Action 666IT records the separately bounded decision required after the
+completed source-only `666GS`–`666IS` digest/decoder/receipt chain. It closes
+that chain for automatic extension and rejects another omitted-key,
+undefined-value, descriptor, prototype or receipt variant. The chain's local
+tests and CI evidence do not complete Milestone B's server-owned live trade
+model, deterministic exit/observation runtime contracts, durable exit queue,
+transactional handoff, client projection or bounded runtime trial.
+
+The program tracker is program tracking only: B-02 and B-04 remain completed
+foundations; B-01 and B-03 remain in progress; B-05 through B-08 are blocked;
+and B-09 through B-12 are planned. Milestone B is `not_complete` and runtime
+is closed. `redesign_or_stop` is the required disposition for further
+source-only receipt work. A future product action needs new explicit authority
+for a policy-admitted runtime slice and its protected-secret, least-privileged
+identity, private transport, writer-binding, durable-behavior,
+client-projection and owner-bound recovery evidence. This ledger record creates
+no credential, provider, broker, transport, database, writer, route/UI,
+deployment or production authority.
+
 **ACTION 666IS — V2 committed-result receipt undefined disposition own-data rejection review.**
 
 Action 666IS independently reviews the single frozen local ordinary

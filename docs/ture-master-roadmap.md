@@ -10,8 +10,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IS independently reviews one frozen local five-key receipt whose own disposition data value is undefined | Preserve the comparator and runtime boundary while this isolated scalar-invalidity rejection is reviewed |
-| Next decision | Complete this bounded review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
+| Current bounded workstream | Action 666IT reconciles the completed `666GS`–`666IS` source-only digest/decoder/receipt chain against Milestone B's capability definition of done | Close automatic receipt-chain extension and preserve the runtime boundary rather than selecting another receipt variation |
+| Next decision | Record `redesign_or_stop`: Milestone B remains incomplete until one policy-admitted runtime capability slice can produce behavior-level, owner-bound and recovery evidence | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -697,6 +697,19 @@ credential, owner resolution, database/writer, provider, broker, route/UI,
 deployment or runtime authority. Ready and exact-main six-shard Full CI plus
 matched provenance remain mandatory; no CI deduplication is authorized. Only a
 separately bounded decision may follow.
+
+Action 666IT is that separately bounded decision. It closes the `666GS`–`666IS`
+pure source chain for automatic extension, rejects another receipt permutation
+and reconciles the result against Milestone B's actual capability definition of
+done. B-02 append-only history and B-04's pure deterministic evaluator remain
+verified foundations, but B-01, B-03 and B-05 through B-12 remain unclosed
+capability gates. Milestone B is therefore `not_complete` and runtime remains
+closed. The decision is `redesign_or_stop` for additional source-only receipt
+work: the next product outcome must be one policy-admitted runtime capability
+slice with protected secrets, least-privileged identity, private transport,
+writer binding, durable behavior, client-projection containment and bounded
+owner-bound recovery evidence. This record grants none of that authority, and
+Notion remains program tracking rather than runtime or production evidence.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

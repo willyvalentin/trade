@@ -100,9 +100,11 @@ test("666IN retains the exact-cardinality position-version omission boundary wit
   expect(documentation).toMatch(/Reflect\.ownKeys/i);
   expect(documentation).toMatch(/no CI deduplication is\s+authorized/i);
   expect(source(roadmapPath)).toContain(
-    "| Current bounded workstream | Action 666IS independently reviews one frozen local five-key receipt whose own disposition data value is undefined | Preserve the comparator and runtime boundary while this isolated scalar-invalidity rejection is reviewed |",
+    "Action 666IN selects one separate source-only successor: an independent strict\nomitted-position-version-own-data rejection review",
   );
-  expect(source(roadmapPath)).toMatch(/Action 666IN/);
+  expect(source(roadmapPath)).toContain(
+    "The canonical positionVersion own data key is absent without a replacement",
+  );
   expect(source(ledgerPath)).toMatch(/ACTION 666IN/);
 });
 

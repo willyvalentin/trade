@@ -1,0 +1,67 @@
+{
+  "contract_version": "trade.action666it.milestone-b-capability-reconciliation-closeout-decision.v1",
+  "action_id": "ACTION_666IT",
+  "reviewed_revision": {
+    "protected_main_commit": "0ff18bf8a37fa8af407bc157a7843ab4bb7ed603",
+    "protected_main_tree": "57e7f28592b83d3630c047f1156920fd966d6443",
+    "merged_pr_number": 284,
+    "exact_main_ci_run": 33465854910,
+    "exact_main_ci_conclusion": "success",
+    "post_merge_poc_job": 99730685308,
+    "post_merge_poc_status": "matched",
+    "post_merge_poc_mismatches": [],
+    "candidate_commit": "b260e757eb33fc26934a73ba497a1a22fa1f092f",
+    "candidate_tree": "57e7f28592b83d3630c047f1156920fd966d6443"
+  },
+  "program_tracking_snapshot": {
+    "notion_is_program_tracking_only": true,
+    "complete_foundations": ["B-02", "B-04"],
+    "in_progress_capability_gates": ["B-01", "B-03"],
+    "blocked_capability_gates": ["B-05", "B-06", "B-07", "B-08"],
+    "planned_capability_gates": ["B-09", "B-10", "B-11", "B-12"]
+  },
+  "decision": {
+    "type": "milestone_b_capability_reconciliation_closeout",
+    "completed_source_chain": "ACTION_666GS_THROUGH_ACTION_666IS",
+    "source_chain_disposition": "closed_for_automatic_extension",
+    "milestone_b_disposition": "not_complete",
+    "runtime_disposition": "closed",
+    "decision": "redesign_or_stop",
+    "receipt_variant_successor_selected": false,
+    "required_next_product_outcome": "one_policy_admitted_runtime_capability_slice",
+    "future_runtime_slice_requires": [
+      "canonical_recommendation_position_identity_and_lineage",
+      "transactional_recommendation_to_position_handoff",
+      "protected_secret_management",
+      "least_privileged_runtime_identity",
+      "private_server_transport_and_concrete_command_port",
+      "runtime_writer_binding_and_invocation",
+      "durable_queue_and_retry_behavior",
+      "server_owned_runtime_integration",
+      "client_projection_not_truth",
+      "bounded_owner_bound_recoverable_runtime_trial"
+    ]
+  },
+  "milestone_b_definition_of_done": {
+    "server_owned_live_trade_model": false,
+    "deterministic_exit_and_observation_runtime_contracts": false,
+    "durable_exit_queue": false,
+    "transactional_recommendation_to_position_handoff": false,
+    "client_projection_not_truth": false,
+    "policy_admitted_activation_boundary": false,
+    "bounded_runtime_trial": false
+  },
+  "containment": {
+    "runtime_unwired": true,
+    "credential_operation_present": false,
+    "provider_or_broker_operation_present": false,
+    "transport_or_writer_invocation_present": false,
+    "database_query_or_mutation_present": false,
+    "receipt_persistence_present": false,
+    "route_ui_or_deployment_authority_present": false,
+    "branch_protection_change_authorized": false,
+    "netlify_change_authorized": false,
+    "required_check_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  }
+}
