@@ -1,5 +1,32 @@
 # Ture Current-State Ledger
 
+**ACTION 666IW — B-03 staging principal-and-scope attestation availability decision.**
+
+Action 666IW records the precise availability outcome for Action 666IV's next
+gate. No independent non-secret staging principal-and-scope attestation
+reference was supplied within this Action's static scope. This does not assert
+that an attestation is absent externally; it only rejects any attempt to
+replace it with a local proof, historical catalog, program tracker or invented
+placeholder.
+
+The required staging-only principal reference, protected non-public material
+provenance descriptor reference, dedicated writer identity and minimum grant
+matrix reference, private non-Data-API transport criteria reference, and
+rollback/containment-plan reference are each
+`not_supplied_in_action_scope`. Consequently remote staging remains
+`not_admitted`. Action 666IW performs no authentication, material inspection,
+provisioning, identity/grant change, remote connection, database action,
+migration, writer invocation, runtime binding, provider/broker contact,
+deployment, Netlify or production activity.
+
+The only safe successor is a separately authorized, independent non-secret
+attestation reference that binds all five fields to exact staging scope for
+static review. It does not itself permit remote operation. B-01 and B-03 remain
+in progress; B-05 through B-08 remain blocked; B-09 through B-12 remain
+planned; and Milestone B remains `not_complete`. Branch protection, required
+checks and the six-shard Full CI policy remain unchanged without deduplication.
+Notion is program tracking only.
+
 **ACTION 666IV — B-03 remote-staging admission prerequisites and containment decision.**
 
 Action 666IV is a static, value-free decision after Action 666IU's verified
