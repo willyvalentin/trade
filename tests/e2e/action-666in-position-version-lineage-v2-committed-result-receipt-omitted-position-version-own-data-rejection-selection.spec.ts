@@ -100,7 +100,7 @@ test("666IN retains the exact-cardinality position-version omission boundary wit
   expect(documentation).toMatch(/Reflect\.ownKeys/i);
   expect(documentation).toMatch(/no CI deduplication is\s+authorized/i);
   expect(source(roadmapPath)).toContain(
-    "| Current bounded workstream | Action 666IP selects a frozen local five-key receipt whose own `canonicalCommandDigest` data value is `undefined` |",
+    "| Current bounded workstream | Action 666IQ independently reviews a frozen local five-key receipt whose own canonicalCommandDigest data value is undefined |",
   );
   expect(source(roadmapPath)).toMatch(/Action 666IN/);
   expect(source(ledgerPath)).toMatch(/ACTION 666IN/);
