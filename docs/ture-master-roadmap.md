@@ -13,7 +13,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Current bounded workstream | Action 666IQ independently reviews a frozen local five-key receipt whose own canonicalCommandDigest data value is undefined | Preserve the comparator and runtime boundary while this isolated scalar-invalidity rejection is reviewed |
 | Next decision | Complete this bounded review with its required Ready/exact-main Full CI and matched provenance | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
 | Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
-| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
+| Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive through Milestone B; a post-B risk-based CI transition is now preplanned but inactive | Retain current Ready/exact-main Full CI until formal B closeout; then execute the separately evidenced CI-B0→CI-B8 transition |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
 The immediately preceding bounded sequence remains closed and recorded:
@@ -661,6 +661,59 @@ separately bounded decision may follow.
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
 [`roadmap-operating-governance.md`](./roadmap-operating-governance.md).
+
+## Planned post-Milestone B CI Cost & Throughput Transition
+
+**Status:** planned and explicitly inactive until Milestone B is formally
+closed. This section grants no workflow, required-check, branch-protection,
+release, runtime, broker or production authority today.
+
+Immediately after Milestone B closeout, Ture must run a bounded delivery-system
+transition before moving deeply into Milestone C. The objective is to preserve
+the safety properties established during Milestones A and B while reducing
+unnecessary Full-CI cost and wait during normal product development.
+
+The target model is risk-based:
+
+1. **Tier 1 — normal/isolated work:** documentation, UI, statistics,
+   research-only and Agent SDK shadow/eval work should use deterministic
+   affected-test CI plus critical smoke and fail-closed escalation.
+2. **Tier 2 — core state/intelligence:** canonical recommendation/position,
+   database/RLS, risk-adjacent and promoted-intelligence changes receive
+   expanded domain regression and escalate to Full CI whenever the applicable
+   safety property cannot be bounded confidently.
+3. **Tier 3 — execution/release authority:** broker, KÖP/SÄLJ, risk authority,
+   secrets, privileged identity, private transport, kill switches, production
+   trading-state migrations and CI/branch-protection changes retain the
+   strongest Full-CI and capability-specific release evidence.
+
+A central post-B objective is to determine whether the current duplicate
+`Ready Full CI → merge → exact-main Full CI` pattern can safely become exact
+merge-candidate verification plus smaller exact-main integrity/smoke for
+non-critical changes, while retaining Full CI for Tier 3, release/cadence or
+ambiguous changes. No such deduplication may activate until exact GitHub
+required-check, base-change, stale-run and revision-binding behavior is proven.
+
+Planning targets are **50–75% lower heavy Full-CI runner minutes during normal
+development** and **40–70% lower CI-induced wait for Tier 1 work**, with no
+weakening of execution/risk/release gates and no selector-attributable increase
+in escaped critical regressions.
+
+The required implementation sequence is:
+
+`CI-B0 baseline → CI-B1 risk taxonomy → CI-B2 selector/oracle → CI-B3 shadow
+classification → CI-B4 required-check design → CI-B5 workflow candidate →
+CI-B6 adversarial verification → CI-B7 bounded activation → CI-B8 cost/defect
+reconciliation`.
+
+Any ambiguity escalates. The transition must preserve an immediate rollback to
+the current conservative six-shard Ready/main Full CI model.
+
+Detailed contract, safety properties, metrics and rollback are frozen in
+[`post-milestone-b-ci-transition-plan.md`](./post-milestone-b-ci-transition-plan.md).
+
+**Permanent rule:** CI depth follows authority and risk, not the mere existence
+of a commit. Cost may never downgrade a risk classification.
 
 **ACTION 666EG — Position-version lineage production-apply decision and preflight.**
 
