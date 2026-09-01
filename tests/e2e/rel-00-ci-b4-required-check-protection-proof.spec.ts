@@ -307,7 +307,10 @@ test("REL-00 CI-B4 contains hostile access and non-data property shapes", () => 
   expectContainment(proof.buildRequiredCheckProtectionProof(nonEnumerableExtra));
 
   const symbolExtra = proposal();
-  symbolExtra[Symbol("hidden")] = true;
+  Object.defineProperty(symbolExtra, Symbol("hidden"), {
+    enumerable: true,
+    value: true,
+  });
   expectContainment(proof.buildRequiredCheckProtectionProof(symbolExtra));
 
   const arrayExtra = proposal();
