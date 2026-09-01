@@ -183,6 +183,7 @@ const foundationTests = [
   "tests/e2e/action-666is-position-version-lineage-v2-committed-result-receipt-undefined-disposition-own-data-rejection-review.spec.ts",
   "tests/e2e/action-666it-milestone-b-reconciliation-closeout-decision.spec.ts",
   "tests/e2e/action-666iu-b03-local-sandbox-v2-writer-capability-proof.spec.ts",
+  "tests/e2e/action-666iv-b03-remote-staging-admission.spec.ts",
 ];
 
 const intelligenceTests = [

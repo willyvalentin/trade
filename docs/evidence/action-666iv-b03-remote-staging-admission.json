@@ -1,0 +1,87 @@
+{
+  "contract_version": "trade.action666iv.b03-remote-staging-admission-prerequisites-and-containment.v1",
+  "action_id": "ACTION_666IV",
+  "reviewed_revision": {
+    "protected_main_commit": "0b8a4aca80399612159432a77c428d3d97d586bf",
+    "protected_main_tree": "dcad858c1c9c5d62c45ebdfc4abf5068f822e343",
+    "predecessor_merged_pr_number": 286,
+    "predecessor_ready_full_ci_run": 33489385288,
+    "predecessor_ready_full_ci_conclusion": "success",
+    "predecessor_exact_main_ci_run": 33492189251,
+    "predecessor_exact_main_ci_conclusion": "success",
+    "predecessor_post_merge_poc_job": 99814335305,
+    "predecessor_post_merge_poc_status": "matched",
+    "predecessor_post_merge_poc_mismatches": [],
+    "predecessor_candidate_commit": "d89d61eb35035a370ff50a33d6fd7faafedbd735",
+    "predecessor_candidate_tree": "dcad858c1c9c5d62c45ebdfc4abf5068f822e343"
+  },
+  "predecessor_local_sandbox_proof": {
+    "evidence_path": "docs/evidence/action-666iu-b03-local-sandbox-v2-writer-capability-proof.json",
+    "evidence_sha256": "ba0e9fdcc2dedf7582e18abdb5fa47b902aac0dc8e85e49b50b1881c14a5acf4",
+    "local_ephemeral_postgresql_sandbox_only": true,
+    "remote_staging_targeted": false,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false,
+    "application_runtime_bound": false,
+    "local_behavior_proof_completed": true
+  },
+  "remote_staging_admission_requirements": {
+    "named_staging_only_principal_attested": false,
+    "protected_non_public_material_provenance_attested": false,
+    "dedicated_least_privileged_writer_identity_and_grants_attested": false,
+    "private_non_data_api_transport_attested": false,
+    "remote_rollback_and_containment_plan_attested": false,
+    "remote_connection_admitted": false,
+    "action_666iv_remote_connection_executed": false,
+    "remote_writer_invocation_admitted": false,
+    "action_666iv_remote_writer_invocation_executed": false
+  },
+  "historical_context_boundary": {
+    "isolated_staging_catalog_proofs_reviewed": true,
+    "historical_catalog_proofs_grant_current_b03_administration_authority": false,
+    "historical_catalog_proofs_are_context_only": true
+  },
+  "writer_boundary": {
+    "future_private_routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
+    "future_argument_order": [
+      "owner_id",
+      "recommendation_id",
+      "canonical_command_digest"
+    ],
+    "existing_service_role_reuse_admitted": false,
+    "planned_private_transport_module_present": false
+  },
+  "authority_limits": {
+    "staging_authentication_admitted": false,
+    "protected_material_inspection_or_provisioning_admitted": false,
+    "remote_role_or_grant_change_admitted": false,
+    "remote_connection_admitted": false,
+    "database_query_or_mutation_admitted": false,
+    "migration_apply_admitted": false,
+    "writer_invocation_admitted": false,
+    "application_transport_or_runtime_binding_admitted": false,
+    "route_or_ui_binding_admitted": false,
+    "provider_or_broker_contact_admitted": false,
+    "netlify_or_deployment_change_admitted": false,
+    "production_authority_granted": false,
+    "branch_protection_change_authorized": false,
+    "required_check_change_authorized": false,
+    "full_ci_deduplication_authorized": false
+  },
+  "decision": {
+    "type": "b03_remote_staging_admission_prerequisites_and_containment",
+    "remote_staging_admission": "not_admitted",
+    "b03_disposition": "in_progress_local_proof_only",
+    "milestone_b_disposition": "not_complete",
+    "runtime_activation_authorized": false,
+    "next_bounded_objective": "separately_authorized_value_free_staging_principal_and_scope_attestation",
+    "reason": "local_behavior_proof_does_not_attest_current_remote_principal_material_provenance_least_privilege_private_transport_or_recovery_control"
+  },
+  "milestone_disposition": {
+    "b01": "in_progress",
+    "b03": "in_progress",
+    "b05_through_b08": "blocked_for_real_environment",
+    "b09_through_b12": "planned",
+    "notion_is_program_tracking_only": true
+  }
+}
