@@ -58,17 +58,25 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     rulesets: "must_be_empty",
   },
   fresh_readback_protocol: [
-    "GET /repos/{owner}/{repo}/branches/{branch}",
-    "GET /repos/{owner}/{repo}/branches/{branch}/protection",
-    "GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
-    "GET /repos/{owner}/{repo}/rulesets",
-    "GET /repos/{owner}/{repo}/pulls/{pr_number}",
+    "before GET /repos/{owner}/{repo}/branches/{branch}",
+    "before GET /repos/{owner}/{repo}/branches/{branch}/protection",
+    "before GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
+    "before GET /repos/{owner}/{repo}/rulesets",
+    "before GET /repos/{owner}/{repo}/pulls/{pr_number}",
+    "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
     "GET /repos/{owner}/{repo}/commits/{candidate_sha}",
     "GET /repos/{owner}/{repo}/contents/{workflow_path}?ref={candidate_sha}",
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+    "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}",
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}",
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100",
     "GET /repos/{owner}/{repo}/check-runs/{job_id}",
+    "after GET /repos/{owner}/{repo}/branches/{branch}",
+    "after GET /repos/{owner}/{repo}/branches/{branch}/protection",
+    "after GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
+    "after GET /repos/{owner}/{repo}/rulesets",
+    "after GET /repos/{owner}/{repo}/pulls/{pr_number}",
   ],
   authority: {
     workflow_change: false,
@@ -83,7 +91,7 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
 });
 
 function sameStrings(actual, expected) {
-  if (!Array.isArray(actual) || actual.length !== expected.length) {
+  if (actual.length !== expected.length) {
     return false;
   }
   for (let index = 0; index < expected.length; index += 1) {
@@ -94,19 +102,76 @@ function sameStrings(actual, expected) {
   return true;
 }
 
-function hasExactKeys(value, expected) {
+function hasOwnDataProperty(value, key, enumerable) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  return (
+    descriptor !== undefined &&
+    Object.prototype.hasOwnProperty.call(descriptor, "value") &&
+    descriptor.enumerable === enumerable
+  );
+}
+
+function hasExactOwnDataKeys(value, expected) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return false;
   }
-  const keys = Object.keys(value).sort();
-  return sameStrings(keys, [...expected].sort());
+  try {
+    const keys = Reflect.ownKeys(value);
+    if (
+      keys.some((key) => typeof key !== "string") ||
+      !sameStrings([...keys].sort(), [...expected].sort())
+    ) {
+      return false;
+    }
+    return keys.every((key) => hasOwnDataProperty(value, key, true));
+  } catch {
+    return false;
+  }
+}
+
+function hasExactDenseArray(value, expectedLength) {
+  if (!Array.isArray(value) || value.length !== expectedLength) {
+    return false;
+  }
+  try {
+    const keys = Reflect.ownKeys(value);
+    const expectedKeys = [
+      ...Array.from({ length: expectedLength }, (_, index) => String(index)),
+      "length",
+    ];
+    if (
+      keys.some((key) => typeof key !== "string") ||
+      !sameStrings([...keys].sort(), expectedKeys.sort()) ||
+      !hasOwnDataProperty(value, "length", false)
+    ) {
+      return false;
+    }
+    return Array.from({ length: expectedLength }, (_, index) =>
+      hasOwnDataProperty(value, String(index), true),
+    ).every(Boolean);
+  } catch {
+    return false;
+  }
+}
+
+function sameExactStringArray(actual, expected) {
+  if (!hasExactDenseArray(actual, expected.length)) {
+    return false;
+  }
+  for (let index = 0; index < expected.length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function sameRequiredChecks(actual) {
   return (
     Array.isArray(actual) &&
     actual.length === 1 &&
-    hasExactKeys(actual[0], ["context", "app_id"]) &&
+    hasExactDenseArray(actual, 1) &&
+    hasExactOwnDataKeys(actual[0], ["context", "app_id"]) &&
     actual[0].context === requiredCheckProtectionProofPolicy.protected_aggregate.context &&
     actual[0].app_id === requiredCheckProtectionProofPolicy.protected_aggregate.app_id
   );
@@ -120,7 +185,7 @@ function readContractProposal(proposal) {
   try {
     if (
       Array.isArray(proposal) ||
-      !hasExactKeys(proposal, [
+      !hasExactOwnDataKeys(proposal, [
         "contract_version",
         "source_only",
         "fresh_authenticated_readback_required",
@@ -165,7 +230,7 @@ function matchesExpectedContract(snapshot) {
       snapshot;
     const authority = snapshot.authority;
     if (
-      !hasExactKeys(snapshot, [
+      !hasExactOwnDataKeys(snapshot, [
         "contract_version",
         "source_only",
         "fresh_authenticated_readback_required",
@@ -183,16 +248,19 @@ function matchesExpectedContract(snapshot) {
       snapshot.fresh_authenticated_readback_required !== true ||
       snapshot.repository !== requiredCheckProtectionProofPolicy.expected_repository ||
       snapshot.branch !== requiredCheckProtectionProofPolicy.expected_branch ||
-      !hasExactKeys(workflow, ["path", "sha256", "blob_sha"]) ||
+      !hasExactOwnDataKeys(workflow, ["path", "sha256", "blob_sha"]) ||
       workflow.path !== requiredCheckProtectionProofPolicy.expected_workflow.path ||
       workflow.sha256 !== requiredCheckProtectionProofPolicy.expected_workflow.sha256 ||
       workflow.blob_sha !== requiredCheckProtectionProofPolicy.expected_workflow.blob_sha ||
-      !hasExactKeys(aggregate, ["context", "app_id", "app_slug"]) ||
+      !hasExactOwnDataKeys(aggregate, ["context", "app_id", "app_slug"]) ||
       aggregate.context !== requiredCheckProtectionProofPolicy.protected_aggregate.context ||
       aggregate.app_id !== requiredCheckProtectionProofPolicy.protected_aggregate.app_id ||
       aggregate.app_slug !== requiredCheckProtectionProofPolicy.protected_aggregate.app_slug ||
-      !sameStrings(snapshot.exact_shards, requiredCheckProtectionProofPolicy.exact_shards) ||
-      !hasExactKeys(profile, [
+      !sameExactStringArray(
+        snapshot.exact_shards,
+        requiredCheckProtectionProofPolicy.exact_shards,
+      ) ||
+      !hasExactOwnDataKeys(profile, [
         "strict_required_status_checks",
         "required_checks",
         "contexts",
@@ -211,7 +279,7 @@ function matchesExpectedContract(snapshot) {
       ]) ||
       profile.strict_required_status_checks !== true ||
       !sameRequiredChecks(profile.required_checks) ||
-      !sameStrings(profile.contexts, [
+      !sameExactStringArray(profile.contexts, [
         requiredCheckProtectionProofPolicy.protected_aggregate.context,
       ]) ||
       profile.admin_enforcement !== true ||
@@ -226,11 +294,11 @@ function matchesExpectedContract(snapshot) {
       profile.linear_history_required !== false ||
       profile.branch_locked !== false ||
       profile.rulesets !== "must_be_empty" ||
-      !sameStrings(
+      !sameExactStringArray(
         snapshot.fresh_readback_protocol,
         requiredCheckProtectionProofPolicy.fresh_readback_protocol,
       ) ||
-      !hasExactKeys(authority, [
+      !hasExactOwnDataKeys(authority, [
         "workflow_change",
         "required_check_change",
         "branch_protection_change",

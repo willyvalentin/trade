@@ -144,6 +144,18 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   expect(proof.requiredCheckProtectionProofPolicy.exact_shards).toEqual(
     evidence.baseline.full_shards,
   );
+  expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toEqual(
+    evidence.proof_contract_fixture.fresh_readback_protocol,
+  );
+  expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
+    "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
+  );
+  expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+  );
+  expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
+    "after GET /repos/{owner}/{repo}/pulls/{pr_number}",
+  );
   expect(contract).toContain("does not\nperform that readback");
   expect(contract).toContain("CI-B7 remains the separately authorized policy decision");
   expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
@@ -185,6 +197,8 @@ test("REL-00 CI-B4 produces only a detached fresh-readback requirement", () => {
         app_slug: "github-actions",
       },
       exact_shards: evidence.baseline.full_shards,
+      fresh_readback_protocol:
+        evidence.proof_contract_fixture.fresh_readback_protocol,
     },
     effective_tier: 3,
     effective_disposition: "broad_containment",
@@ -254,7 +268,7 @@ test("REL-00 CI-B4 fails closed for policy, protocol and authority drift", () =>
   }
 });
 
-test("REL-00 CI-B4 contains hostile access and nested extra fields", () => {
+test("REL-00 CI-B4 contains hostile access and non-data property shapes", () => {
   const throwingTopLevel = proposal();
   Object.defineProperty(throwingTopLevel, "repository", {
     enumerable: true,
@@ -273,9 +287,34 @@ test("REL-00 CI-B4 contains hostile access and nested extra fields", () => {
   });
   expectContainment(proof.buildRequiredCheckProtectionProof(throwingNested));
 
+  const benignAccessor = proposal();
+  Object.defineProperty(benignAccessor, "repository", {
+    enumerable: true,
+    get() {
+      return "willyvalentin/trade";
+    },
+  });
+  expectContainment(proof.buildRequiredCheckProtectionProof(benignAccessor));
+
   const nestedExtra = proposal();
   (nestedExtra.protected_aggregate as Record<string, unknown>).extra = "not allowed";
   expectContainment(proof.buildRequiredCheckProtectionProof(nestedExtra));
+
+  const nonEnumerableExtra = proposal();
+  Object.defineProperty(nonEnumerableExtra, "hidden", {
+    value: true,
+  });
+  expectContainment(proof.buildRequiredCheckProtectionProof(nonEnumerableExtra));
+
+  const symbolExtra = proposal();
+  symbolExtra[Symbol("hidden")] = true;
+  expectContainment(proof.buildRequiredCheckProtectionProof(symbolExtra));
+
+  const arrayExtra = proposal();
+  Object.defineProperty(arrayExtra.exact_shards as string[], "hidden", {
+    value: true,
+  });
+  expectContainment(proof.buildRequiredCheckProtectionProof(arrayExtra));
 
   const revocable = Proxy.revocable(proposal(), {});
   revocable.revoke();
