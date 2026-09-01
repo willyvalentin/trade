@@ -10,9 +10,9 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IT reconciles the completed `666GS`–`666IS` source-only digest/decoder/receipt chain against Milestone B's capability definition of done | Close automatic receipt-chain extension and preserve the runtime boundary rather than selecting another receipt variation |
-| Next decision | Record `redesign_or_stop`: Milestone B remains incomplete until one policy-admitted runtime capability slice can produce behavior-level, owner-bound and recovery evidence | Do not invoke the writer, read data, configure a credential, open a transport, persist a receipt, wire UI/route, change CI semantics or widen any runtime authority |
-| Current blockers | Protected secret management, least-privileged identity, private transport, writer invocation and route/UI binding are not admitted | Classify each prerequisite and preserve fail-closed behavior |
+| Current bounded workstream | Action 666IU proves one local-only B-03 V2 writer slice in a disposable internal Docker PostgreSQL sandbox | Preserve application and all remote environments as closed while collecting value-free created/replay, least-privilege and rollback evidence |
+| Next decision | Admit remote staging only when a named staging-only principal, non-public material path and rollback plan are separately recorded | Do not deploy, contact a remote database/provider/broker, bind application runtime or wire UI/route before that decision |
+| Current blockers | Real-environment protected material, least-privileged identity, private transport, writer invocation and route/UI binding remain unadmitted | Reuse the local proof only as a pattern; retain default-deny behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
@@ -710,6 +710,20 @@ slice with protected secrets, least-privileged identity, private transport,
 writer binding, durable behavior, client-projection containment and bounded
 owner-bound recovery evidence. This record grants none of that authority, and
 Notion remains program tracking rather than runtime or production evidence.
+
+Action 666IU is the separately authorized local B-03 behavior slice. It keeps
+the application unbound and all provider, broker, deployment, production and
+remote staging targets closed. A disposable internal Docker PostgreSQL database
+applies the immutable V2 writer source followed by a forward-only replay
+qualification repair after the first real sandbox replay exposed a PL/pgSQL
+output-parameter/column ambiguity. The sandbox then proves, without emitting
+row values, an exact created/replayed pair, denial of direct table access for
+the dedicated writer identity, atomic rollback of a rejected invocation and
+container/network destruction. This is local evidence only: B-01 and B-03
+remain in progress, B-05 through B-08 remain blocked for a real environment,
+and B-09 through B-12 remain planned. It authorizes neither remote staging nor
+production work, application transport, route/UI binding, Netlify, a broker
+order, branch-protection change or CI deduplication.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in

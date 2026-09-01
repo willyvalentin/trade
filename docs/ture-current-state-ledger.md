@@ -1,5 +1,34 @@
 # Ture Current-State Ledger
 
+**ACTION 666IU — B-03 local sandbox private V2 writer capability proof.**
+
+Action 666IU is the first policy-admitted behavior-level slice after the
+Action 666IT closeout. It creates a fresh local-only PostgreSQL sandbox inside
+an internal Docker network with no published host port, generated process-local
+authentication material, a `NOLOGIN` local security definer and a distinct
+login writer role. The writer has only database connect, `private` schema usage
+and execute on the exact V2 routine; it cannot read or mutate the underlying
+recommendation, position, history or receipt tables, assume the definer role,
+or retain access after the sandbox is destroyed.
+
+The first actual replay uncovered a PL/pgSQL output-parameter collision in the
+immutable Action 666ER routine source. Action 666IU therefore adds a
+forward-only V2 routine repair migration rather than rewriting history. In the
+fresh sandbox the repaired routine proves value-free created/replayed behavior,
+reuses the committed identifiers on retry, denies direct table access and
+rolls back an ineligible invocation with no residual receipt, position, history
+or state change. The container and internal network are removed before the
+receipt is emitted.
+
+This is not remote staging, production, provider, broker, deployment, Netlify
+or application-runtime work. B-01 and B-03 remain in progress; B-05 through
+B-08 remain blocked in a real environment pending a separately named
+staging-only principal and non-public material path; B-09 through B-12 remain
+planned. Milestone B remains `not_complete`; application runtime remains
+closed, and this record grants no route/UI, queue, broker, deploy,
+branch-protection or CI-deduplication authority. Notion remains program
+tracking only.
+
 **ACTION 666IT — Milestone B capability reconciliation and closeout decision.**
 
 Action 666IT records the separately bounded decision required after the
