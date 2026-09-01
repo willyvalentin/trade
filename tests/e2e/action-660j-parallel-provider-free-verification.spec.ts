@@ -210,6 +210,7 @@ const foundationTests = [
   "tests/e2e/action-666it-milestone-b-reconciliation-closeout-decision.spec.ts",
   "tests/e2e/action-666iu-b03-local-sandbox-v2-writer-capability-proof.spec.ts",
   "tests/e2e/action-666iv-b03-remote-staging-admission.spec.ts",
+  "tests/e2e/action-666iw-b03-staging-principal-scope-attestation-availability.spec.ts",
 ];
 
 const intelligenceTests = [

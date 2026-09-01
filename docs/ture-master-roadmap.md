@@ -10,9 +10,9 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B planning is active and runtime remains closed | Advance only a separately authorized, evidence-backed Milestone B capability |
-| Current bounded workstream | Action 666IU's local B-03 writer behavior proof is verified; Action 666IV records a value-free remote-staging admission decision | Preserve application and all remote environments as closed while the decision remains `not_admitted` |
-| Next decision | A separately authorized staging principal-and-scope attestation must establish every remote gate without contacting staging | Do not deploy, read protected material, contact a remote database/provider/broker, bind application runtime or wire UI/route before a later gate |
-| Current blockers | Named staging-only principal, protected non-public material provenance, least-privileged identity/grants, private transport, remote writer invocation and rollback evidence remain unadmitted | Reuse the local proof only as a pattern; retain default-deny behavior |
+| Current bounded workstream | Action 666IW records that no independent non-secret B-03 staging principal-and-scope attestation reference was supplied within its static scope | Preserve application and all remote environments as closed while the decision remains `not_admitted` |
+| Next decision | A separately authorized, independent non-secret staging principal-and-scope attestation reference must establish every remote gate without contacting staging | Do not deploy, read protected material, contact a remote database/provider/broker, bind application runtime or wire UI/route before a later gate |
+| Current blockers | Named staging-only principal, protected non-public material provenance, least-privileged identity/grants, private transport, remote writer invocation and rollback evidence remain unattested | Reuse the local proof only as a pattern; retain default-deny behavior |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 
@@ -738,6 +738,20 @@ action is allowed. A later action must first record a separately authorized
 value-free staging principal-and-scope attestation; it must still not contact
 the remote environment. Milestone B remains `not_complete`, and Notion remains
 program tracking only.
+
+Action 666IW makes that next gate explicit without mistaking an unavailable
+input for a negative external fact. No independent non-secret attestation
+reference was supplied in the Action's static scope for the named staging-only
+principal, protected-material provenance descriptor, writer grant matrix,
+private transport criteria or rollback/containment plan. Each field is
+therefore `not_supplied_in_action_scope`, not an invented placeholder or an
+assertion about the remote environment. The decision remains `not_admitted`:
+no staging authentication, protected-material access, identity/grant change,
+connection, database action, writer invocation, runtime binding, deployment,
+provider, broker or production activity is permitted. A later separately
+authorized Action must supply an independent non-secret attestation reference
+for static review; it still cannot authorize a remote action by itself.
+Milestone B remains `not_complete`, and Notion remains program tracking only.
 
 The canonical operating rules, risk register, dependency map, quality metrics
 and Action template are in
