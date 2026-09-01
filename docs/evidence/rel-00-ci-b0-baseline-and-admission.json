@@ -23,6 +23,17 @@
       "post_merge_provenance_mismatches": []
     }
   },
+  "ci_b0_completion_evidence": {
+    "merged_pr_number": 290,
+    "merge_commit": "8127c4d294a36d0e442fa1b10df451f15cdf0c28",
+    "merged_tree": "399b03831c5a2de9c5121e29603e6aeb79747505",
+    "ready_full_ci_run_id": 33532291412,
+    "exact_main_full_ci_run_id": 33535472128,
+    "exact_main_full_ci_conclusion": "success",
+    "post_merge_provenance_status": "matched",
+    "post_merge_provenance_mismatches": [],
+    "full_ci_deduplication_authorized": false
+  },
   "preserved_workflow_contract": {
     "workflow_path": ".github/workflows/milestone-a-ci.yml",
     "draft_job": "draft-provider-free-verification",
@@ -50,8 +61,8 @@
     "remote_staging_admission": "not_admitted"
   },
   "transition_status": {
-    "ci_b0_baseline_and_charter": "in_progress",
-    "ci_b1_through_ci_b6": "not_started",
+    "ci_b0_baseline_and_charter": "verified_on_exact_main",
+    "ci_b1_through_ci_b6": "in_progress",
     "ci_b7_activation": "requires_separate_explicit_authorization",
     "ci_b8_observation": "requires_declared_measurement_window",
     "full_rel00_transition": "in_progress_not_complete",

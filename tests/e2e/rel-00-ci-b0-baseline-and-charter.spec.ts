@@ -52,8 +52,8 @@ test("REL-00 CI-B0 freezes the baseline without weakening protected CI", () => {
       remote_staging_admission: "not_admitted",
     },
     transition_status: {
-      ci_b0_baseline_and_charter: "in_progress",
-      ci_b1_through_ci_b6: "not_started",
+      ci_b0_baseline_and_charter: "verified_on_exact_main",
+      ci_b1_through_ci_b6: "in_progress",
       ci_b7_activation: "requires_separate_explicit_authorization",
       ci_b8_observation: "requires_declared_measurement_window",
       full_rel00_transition: "in_progress_not_complete",
@@ -69,6 +69,17 @@ test("REL-00 CI-B0 freezes the baseline without weakening protected CI", () => {
     lockfile_bound_npm_download_cache: true,
     locked_npm_ci_ignore_scripts: true,
     concurrency_cancellation: true,
+    full_ci_deduplication_authorized: false,
+  });
+  expect(evidence.ci_b0_completion_evidence).toMatchObject({
+    merged_pr_number: 290,
+    merge_commit: "8127c4d294a36d0e442fa1b10df451f15cdf0c28",
+    merged_tree: "399b03831c5a2de9c5121e29603e6aeb79747505",
+    ready_full_ci_run_id: 33532291412,
+    exact_main_full_ci_run_id: 33535472128,
+    exact_main_full_ci_conclusion: "success",
+    post_merge_provenance_status: "matched",
+    post_merge_provenance_mismatches: [],
     full_ci_deduplication_authorized: false,
   });
   expect(
@@ -90,10 +101,10 @@ test("REL-00 CI-B0 freezes the baseline without weakening protected CI", () => {
     expect(workflow).toContain(`- ${shard}`);
   }
 
-  expect(baseline).toContain("REL-00 is in progress");
-  expect(baseline).toContain("CI-B7 requires an explicitly authorized workflow");
-  expect(source(roadmapPath)).toContain("REL-00 CI-B0 baseline");
-  expect(source(ledgerPath)).toContain("REL-00 CI-B0");
+  expect(baseline).toContain("CI-B0 is verified on exact main");
+  expect(baseline).toContain("CI-B7 requires an");
+  expect(source(roadmapPath)).toContain("CI-B0 is verified on exact main");
+  expect(source(ledgerPath)).toContain("CI-B0 is verified on exact main");
   expect(`${baseline}\n${evidenceRaw}`).not.toMatch(
     /https?:\/\/|sk-[A-Za-z0-9]|eyJ[a-zA-Z0-9_-]{20,}|(?:api[_ -]?key|authorization|bearer|password|credential)\s*[:=]\s*["']?\S+/i,
   );

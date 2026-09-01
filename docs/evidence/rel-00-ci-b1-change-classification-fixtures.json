@@ -1,0 +1,210 @@
+{
+  "contract_version": "trade.rel00.ci-b1.change-classification.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B1",
+  "status": "source_only_not_activated",
+  "baseline": {
+    "protected_main_commit": "8127c4d294a36d0e442fa1b10df451f15cdf0c28",
+    "protected_main_tree": "399b03831c5a2de9c5121e29603e6aeb79747505",
+    "ci_b0_exact_main_run_id": 33535472128,
+    "ci_b0_post_merge_provenance": "matched",
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "protected_check": "provider-free-verification",
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ]
+  },
+  "authority": {
+    "draft_selector_activation": false,
+    "workflow_change": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ready_main_full_ci_change": false,
+    "ci_deduplication_authorized": false,
+    "runtime_or_deployment_authority": false
+  },
+  "input_schema": {
+    "encoding": "normalized_name_status_z_v1",
+    "accepted_statuses": ["A", "M", "D", "R", "C", "T", "U", "X", "B"],
+    "record_fields": [
+      "status",
+      "old_path",
+      "new_path",
+      "old_mode",
+      "new_mode",
+      "content_kind",
+      "metadata_verified",
+      "reference_verified",
+      "import_graph_verified",
+      "owned_test_mapping_verified"
+    ],
+    "rename_and_copy_rule": "Both old_path and new_path are classified.",
+    "status_mode_consistency_rule": "A requires old_path and old_mode null; D requires new_path and new_mode null.",
+    "malformed_record_rule": "Reject the record; a future caller must contain broadly or stop."
+  },
+  "taxonomy": {
+    "tier_1": "candidate_only_plain_unreferenced_non_executable_documentation",
+    "tier_2": "candidate_only_registered_test_with_verified_import_graph_and_owned_mapping",
+    "tier_3": "default_for_control_runtime_data_external_ambiguous_metadata_and_change_status_risk",
+    "effective_tier_in_ci_b1": 3,
+    "fast_path_eligible": false
+  },
+  "parser_fixtures": [
+    {
+      "id": "nul-add-record",
+      "tokens": ["A", "docs/guide.md"],
+      "expected": {"status": "A", "old_path": null, "new_path": "docs/guide.md", "similarity_score": null}
+    },
+    {
+      "id": "nul-delete-record",
+      "tokens": ["D", "app/api/auth/login/route.ts"],
+      "expected": {"status": "D", "old_path": "app/api/auth/login/route.ts", "new_path": null, "similarity_score": null}
+    },
+    {
+      "id": "nul-rename-record",
+      "tokens": ["R100", "docs/evidence/old.json", "app/api/auth/login/route.ts"],
+      "expected": {"status": "R", "old_path": "docs/evidence/old.json", "new_path": "app/api/auth/login/route.ts", "similarity_score": 100}
+    },
+    {
+      "id": "nul-newline-and-space-path",
+      "tokens": ["M", "docs/line\nbreak and space.md"],
+      "expected": {"status": "M", "old_path": "docs/line\nbreak and space.md", "new_path": "docs/line\nbreak and space.md", "similarity_score": null}
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "plain-documentation-candidate",
+      "records": [{"status": "M", "old_path": "docs/guide.md", "new_path": "docs/guide.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["documentation_evidence"], "candidate_tier": "tier_1_candidate", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline"]}
+    },
+    {
+      "id": "docs-executable-script",
+      "records": [{"status": "M", "old_path": "docs/executable.md", "new_path": "docs/executable.md", "old_mode": "100755", "new_mode": "100755", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "docs-code-file",
+      "records": [{"status": "M", "old_path": "docs/runner.js", "new_path": "docs/runner.js", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline"]}
+    },
+    {
+      "id": "plain-documentation-missing-reference-verification",
+      "records": [{"status": "M", "old_path": "docs/guide.md", "new_path": "docs/guide.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline"]}
+    },
+    {
+      "id": "control-character-documentation-path",
+      "records": [{"status": "M", "old_path": "docs/line\nbreak.md", "new_path": "docs/line\nbreak.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "c1-control-character-documentation-path",
+      "records": [{"status": "M", "old_path": "docs/line\u0085break.md", "new_path": "docs/line\u0085break.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "docs-evidence-modified",
+      "records": [{"status": "M", "old_path": "docs/evidence/rel-00-ci-b0-baseline-and-admission.json", "new_path": "docs/evidence/rel-00-ci-b0-baseline-and-admission.json", "old_mode": null, "new_mode": null, "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline"]}
+    },
+    {
+      "id": "public-txt-not-docs",
+      "records": [{"status": "M", "old_path": "public/ping307i.txt", "new_path": "public/ping307i.txt", "old_mode": null, "new_mode": null, "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["public_runtime_asset"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "workflow-change",
+      "records": [{"status": "M", "old_path": ".github/workflows/milestone-a-ci.yml", "new_path": ".github/workflows/milestone-a-ci.yml", "old_mode": null, "new_mode": null, "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["ci_workflow"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline", "draft_ci_contract_smoke"]}
+    },
+    {
+      "id": "lockfile-change",
+      "records": [{"status": "M", "old_path": "package-lock.json", "new_path": "package-lock.json", "old_mode": null, "new_mode": null, "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["dependency_or_toolchain"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "toolchain_containment"]}
+    },
+    {
+      "id": "unknown-source",
+      "records": [{"status": "M", "old_path": "lib/new-unmapped-runtime.ts", "new_path": "lib/new-unmapped-runtime.ts", "old_mode": null, "new_mode": null, "content_kind": "unknown", "metadata_verified": true}],
+      "expected": {"classes": ["unknown_source"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "mixed-docs-and-unknown",
+      "records": [
+        {"status": "M", "old_path": "docs/guide.md", "new_path": "docs/guide.md", "old_mode": null, "new_mode": null, "content_kind": "text", "metadata_verified": true},
+        {"status": "M", "old_path": "lib/new-unmapped-runtime.ts", "new_path": "lib/new-unmapped-runtime.ts", "old_mode": null, "new_mode": null, "content_kind": "unknown", "metadata_verified": true}
+      ],
+      "expected": {"classes": ["documentation_evidence", "unknown_source"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "delete-auth-route",
+      "records": [{"status": "D", "old_path": "app/api/auth/login/route.ts", "new_path": null, "old_mode": "100644", "new_mode": null, "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "auth_boundary"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "authenticated_boundary", "browser_server_containment"]}
+    },
+    {
+      "id": "rename-docs-to-auth",
+      "records": [{"status": "R", "old_path": "docs/evidence/a.json", "new_path": "app/api/auth/login/route.ts", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "auth_boundary", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "authenticated_boundary", "browser_server_containment"]}
+    },
+    {
+      "id": "rename-auth-to-docs",
+      "records": [{"status": "R", "old_path": "app/api/auth/login/route.ts", "new_path": "docs/evidence/a.json", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "auth_boundary", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "authenticated_boundary", "browser_server_containment"]}
+    },
+    {
+      "id": "rename-docs-to-docs",
+      "records": [{"status": "R", "old_path": "docs/old-guide.md", "new_path": "docs/new-guide.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "copy-docs-to-docs",
+      "records": [{"status": "C", "old_path": "docs/guide.md", "new_path": "docs/guide-copy.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "rename-registered-test-away",
+      "records": [{"status": "R", "old_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "new_path": "docs/evidence/old.md", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "registered_test", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "modified-registered-test",
+      "records": [{"status": "M", "old_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "new_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true, "import_graph_verified": true, "owned_test_mapping_verified": true}],
+      "expected": {"classes": ["registered_test"], "candidate_tier": "tier_2_candidate", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline", "affected_registered_test:tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts"]}
+    },
+    {
+      "id": "registered-test-missing-import-graph-verification",
+      "records": [{"status": "M", "old_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "new_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true, "owned_test_mapping_verified": true}],
+      "expected": {"classes": ["registered_test"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline", "affected_registered_test:tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts"]}
+    },
+    {
+      "id": "registered-test-missing-owned-mapping-verification",
+      "records": [{"status": "M", "old_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "new_path": "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true, "reference_verified": true, "import_graph_verified": true}],
+      "expected": {"classes": ["registered_test"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline", "affected_registered_test:tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts"]}
+    },
+    {
+      "id": "binary-under-docs",
+      "records": [{"status": "M", "old_path": "docs/evidence/screenshot.png", "new_path": "docs/evidence/screenshot.png", "old_mode": "100644", "new_mode": "100644", "content_kind": "binary", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "symlink-under-docs",
+      "records": [{"status": "A", "old_path": null, "new_path": "docs/evidence/latest.md", "old_mode": null, "new_mode": "120000", "content_kind": "symlink", "metadata_verified": true}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    },
+    {
+      "id": "proxy-runtime-change",
+      "records": [{"status": "M", "old_path": "proxy.ts", "new_path": "proxy.ts", "old_mode": "100644", "new_mode": "100644", "content_kind": "text", "metadata_verified": true}],
+      "expected": {"classes": ["auth_boundary"], "candidate_tier": "tier_3_required", "effective_disposition": "manual_review_required", "candidate_action_ids": ["baseline", "authenticated_boundary"]}
+    },
+    {
+      "id": "unverified-record",
+      "records": [{"status": "M", "old_path": "docs/guide.md", "new_path": "docs/guide.md", "old_mode": null, "new_mode": null, "content_kind": "unknown", "metadata_verified": false}],
+      "expected": {"classes": ["unsafe_metadata", "documentation_evidence"], "candidate_tier": "tier_3_required", "effective_disposition": "broad_containment", "candidate_action_ids": ["baseline", "browser_server_containment"]}
+    }
+  ]
+}

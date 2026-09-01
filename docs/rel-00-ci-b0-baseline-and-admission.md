@@ -54,14 +54,21 @@ PR/SHA concurrency cancellation are already delivered controls. The known
 Draft fast-green/matrix-skipped/aggregate-failed shape remains an expected
 workflow semantic and is not a rerun trigger.
 
+CI-B0 itself merged as PR #290 commit
+`8127c4d294a36d0e442fa1b10df451f15cdf0c28`. Its Ready run `33532291412` and
+exact-main run `33535472128` both passed. The latter retained all six shards
+and strict aggregate; its post-merge POC reported `matched` for tree
+`399b03831c5a2de9c5121e29603e6aeb79747505` with no mismatches and no CI
+deduplication.
+
 ## Transition status
 
-REL-00 is in progress, with CI-B0 as its current source-only baseline and
-charter phase. This record does not claim that the complete cost-and-throughput
-transition is finished. CI-B1 through CI-B6 require their own deterministic
-design and shadow evidence; CI-B7 requires an explicitly authorized workflow
-or branch-protection activation decision; CI-B8 requires a declared observation
-window and measured reconciliation.
+REL-00 is in progress. CI-B0 is verified on exact main and CI-B1 is its
+current source-only taxonomy phase. This record does not claim that the
+complete cost-and-throughput transition is finished. CI-B1 through CI-B6
+require their own deterministic design and shadow evidence; CI-B7 requires an
+explicitly authorized workflow or branch-protection activation decision; CI-B8
+requires a declared observation window and measured reconciliation.
 
 The request to begin REL-00 does not re-open deferred Milestone B runtime
 work, staging, protected material, privileged identity, provider, broker,
