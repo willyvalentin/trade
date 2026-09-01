@@ -1,0 +1,59 @@
+{
+  "contract_version": "trade.action666iu.b03-local-sandbox-private-v2-writer-capability-proof.v1",
+  "action_id": "ACTION_666IU",
+  "scope": {
+    "local_ephemeral_postgresql_sandbox_only": true,
+    "remote_staging_targeted": false,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false,
+    "application_runtime_bound": false,
+    "route_or_ui_bound": false,
+    "deployment_or_netlify_changed": false
+  },
+  "reviewed_migration": {
+    "path": "supabase/migrations/20260824195409_position_version_lineage_v2_writer_storage_routine_package.sql",
+    "sha256": "c9564854dcb81989afd2ff3de2279cc0309a8366592835b56d842fc736ab9196",
+    "routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)"
+  },
+  "forward_replay_repair": {
+    "path": "supabase/migrations/20260901000000_fix_position_version_lineage_v2_writer_replay_qualification.sql",
+    "sha256": "1712e741ecec7775de49d8656f00aa24241b86839a1630ed9660fddaaccc1e71",
+    "original_replay_output_parameter_collision_detected_in_local_sandbox": true,
+    "historical_migration_rewritten": false
+  },
+  "sandbox_contract": {
+    "explicit_opt_in_environment_flag": "B03_LOCAL_SANDBOX=1",
+    "local_image": "postgres:16-alpine",
+    "image_pull_forbidden": true,
+    "local_image_selected_by_immutable_id": true,
+    "internal_docker_network": true,
+    "host_port_published": false,
+    "authentication_material": "process_scoped_not_logged_or_persisted_in_repository_or_receipt",
+    "security_definer_identity": "b03_sandbox_definer_nologin_owns_only_local_substrate",
+    "writer_identity": "b03_writer_login_no_table_privileges",
+    "writer_grants": [
+      "database_connect",
+      "private_schema_usage",
+      "exact_private_routine_execute"
+    ],
+    "writer_direct_table_access": false,
+    "writer_can_assume_definer": false,
+    "migration_service_role_execute_revoked_before_invocation": true
+  },
+  "execution_receipt": {
+    "status": "completed_value_free_local_sandbox_run",
+    "created_then_replayed": true,
+    "replay_reused_committed_identifiers": true,
+    "direct_table_access_denied": true,
+    "rejected_invocation_rejected_with_expected_sqlstate_and_message": true,
+    "rejected_invocation_rolled_back": true,
+    "container_and_network_destroyed": true
+  },
+  "milestone_disposition": {
+    "milestone_b": "not_complete",
+    "b01": "in_progress",
+    "b03": "in_progress_with_local_sandbox_behavior_proof_completed_remote_staging_still_blocked",
+    "b05_through_b08": "blocked_for_real_environment",
+    "b09_through_b12": "planned"
+  }
+}
