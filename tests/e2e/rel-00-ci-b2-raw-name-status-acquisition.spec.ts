@@ -48,14 +48,10 @@ function success(stdout: Uint8Array): GitResult {
 }
 
 function makeGitRunner({
-  baseRevision,
-  expectedRevision,
   mergeBase,
   rawNameStatus,
   override,
 }: {
-  baseRevision: string;
-  expectedRevision: string;
   mergeBase: string;
   rawNameStatus: Uint8Array;
   override?: (args: readonly string[]) => GitResult | null;
@@ -198,8 +194,6 @@ test("REL-00 CI-B2 captures byte-identical NUL output with fixed commands and Ti
     Buffer.from(fixture.raw_name_status_hex, "hex"),
   );
   const { calls, runner } = makeGitRunner({
-    baseRevision: fixture.base_revision,
-    expectedRevision: fixture.expected_revision,
     mergeBase: fixture.merge_base,
     rawNameStatus,
   });
@@ -301,8 +295,6 @@ test("REL-00 CI-B2 preserves dangerous R/C and control-character bytes as contai
       Buffer.from(fixture.raw_name_status_hex, "hex"),
     );
     const { runner } = makeGitRunner({
-      baseRevision: fixture.base_revision,
-      expectedRevision: fixture.expected_revision,
       mergeBase: fixture.merge_base,
       rawNameStatus,
     });
@@ -438,8 +430,6 @@ test("REL-00 CI-B2 fails closed for malformed identity, runner, merge-base and r
 
   for (const fixtureCase of cases) {
     const { runner } = makeGitRunner({
-      baseRevision: fixture.base_revision,
-      expectedRevision: fixture.expected_revision,
       mergeBase: fixture.merge_base,
       rawNameStatus: validRaw,
       override: fixtureCase.override,
@@ -461,8 +451,6 @@ test("REL-00 CI-B2 fails closed for malformed identity, runner, merge-base and r
   oversized[1] = 0;
   oversized[oversized.length - 1] = 0;
   const { runner } = makeGitRunner({
-    baseRevision: fixture.base_revision,
-    expectedRevision: fixture.expected_revision,
     mergeBase: fixture.merge_base,
     rawNameStatus: oversized,
   });
