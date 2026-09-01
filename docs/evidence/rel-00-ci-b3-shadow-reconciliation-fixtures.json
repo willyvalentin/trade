@@ -1,0 +1,91 @@
+{
+  "contract_version": "trade.rel00.ci-b3.shadow-reconciliation.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B3",
+  "status": "source_only_not_activated",
+  "baseline": {
+    "protected_main_commit": "5ceeb1e52b86d76a8e601096b9fbb979934240e7",
+    "protected_main_tree": "7f421d3ae6c4d5f3ea4a35ae370e8e71242b8006",
+    "ci_b2_ready_run_id": 33552767496,
+    "ci_b2_exact_main_run_id": 33555929549,
+    "ci_b2_post_merge_provenance": "matched",
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "protected_check": "provider-free-verification",
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ]
+  },
+  "authority": {
+    "draft_selector_activation": false,
+    "workflow_change": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ready_main_full_ci_change": false,
+    "ci_deduplication_authorized": false,
+    "runtime_or_deployment_authority": false
+  },
+  "shadow_policy": {
+    "b2_input_contract": "trade.rel00.ci-b2.raw-name-status-acquisition.v1",
+    "parser_contract": "trade.rel00.ci-b1.change-classification.v1",
+    "maximum_raw_name_status_bytes": 1048576,
+    "legacy_label_snapshot": "optional_printable_ascii_non_authoritative_not_comparable",
+    "raw_bytes_in_receipt": false,
+    "git_or_network_invocation": false,
+    "selector_or_test_plan": false,
+    "effective_tier": 3,
+    "effective_disposition": "broad_containment"
+  },
+  "fixtures": [
+    {
+      "id": "modified-documentation-with-newline-path",
+      "base_revision": "1111111111111111111111111111111111111111",
+      "expected_revision": "2222222222222222222222222222222222222222",
+      "merge_base": "3333333333333333333333333333333333333333",
+      "raw_name_status_hex": "4d00646f63732f6c696e650a627265616b20616e642073706163652e6d6400",
+      "legacy_labels": ["documentation"],
+      "expected_statuses": ["M"]
+    },
+    {
+      "id": "rename-preserves-both-paths",
+      "base_revision": "4444444444444444444444444444444444444444",
+      "expected_revision": "5555555555555555555555555555555555555555",
+      "merge_base": "6666666666666666666666666666666666666666",
+      "raw_name_status_hex": "5231303000646f63732f6f6c642e6d64006170702f6170692f617574682f6c6f67696e2f726f7574652e747300",
+      "legacy_labels": ["legacy-doc-only"],
+      "expected_statuses": ["R"]
+    },
+    {
+      "id": "copy-preserves-both-paths",
+      "base_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected_revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "merge_base": "cccccccccccccccccccccccccccccccccccccccc",
+      "raw_name_status_hex": "43393900646f63732f736f757263652e6d6400646f63732f636f70792e6d6400",
+      "legacy_labels": ["legacy-copy"],
+      "expected_statuses": ["C"]
+    },
+    {
+      "id": "c1-control-character-path-is-preserved-and-contained",
+      "base_revision": "7777777777777777777777777777777777777777",
+      "expected_revision": "8888888888888888888888888888888888888888",
+      "merge_base": "9999999999999999999999999999999999999999",
+      "raw_name_status_hex": "4d00646f63732f6c696e65c285627265616b2e6d6400",
+      "legacy_labels": [],
+      "expected_statuses": ["M"]
+    }
+  ],
+  "rejected_cases": [
+    "b2_contract_outcome_or_authority_flag_drift",
+    "noncanonical_revision_or_raw_digest_binding",
+    "empty_oversized_or_nonbyte_raw_input",
+    "getter_or_proxy_property_access_failure",
+    "malformed_reparse_or_classification_failure",
+    "invalid_or_duplicate_legacy_labels",
+    "raw_bytes_or_test_plan_disclosed_in_receipt"
+  ]
+}
