@@ -1,5 +1,32 @@
 # Ture Current-State Ledger
 
+**ACTION 666IX — Milestone B local-sandbox acceptance closeout.**
+
+Action 666IX is the user-selected program-scope closeout after the staging
+project was intentionally paused for cost control. It accepts the already
+verified Action 666IU ephemeral local B-03 behavior receipt as the complete
+evidence target for `milestone_b_local_sandbox_acceptance_v1`. Milestone B is
+therefore `complete_under_local_sandbox_acceptance_profile_v1`, never an
+unqualified assertion that the former live server-owned trade-management
+capability is complete.
+
+Actions 666IT, 666IV and 666IW remain immutable historical facts: the original
+live-runtime definition was `not_complete`, remote staging remains
+`not_admitted`, and the requested non-secret remote-attestation inputs were not
+supplied in their static scope. B-02 and B-04 remain completed foundations;
+B-03 is accepted only for the verified local sandbox behavior; B-01 and B-05
+through B-12 are deferred, unverified follow-on runtime work. They are not
+checked off or implied to be delivered by this closeout.
+
+No staging restart, authentication, material access, identity/grant change,
+remote connection, query, migration, writer invocation, transport/runtime or
+route/UI binding is admitted. Provider, broker, Netlify, deployment and
+production activity remain closed; branch protection, required checks and the
+six-shard Full CI remain unchanged without deduplication. A future remote or
+runtime slice requires a fresh explicit product decision and policy-admitted
+evidence; it cannot resume merely because staging becomes available. Notion is
+program tracking only.
+
 **ACTION 666IW — B-03 staging principal-and-scope attestation availability decision.**
 
 Action 666IW records the precise availability outcome for Action 666IV's next
@@ -1507,8 +1534,9 @@ default-off and runtime-unwired. Track 2 is
 `source_foundation_complete_holding`. Historical PR #72 and its review evidence
 remain non-authority.
 
-Milestone B planning is active while runtime remains closed. PR #84 / Action
-655G provides the pure default-off exit-evaluator foundation. Action 666DB
+Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`; the
+original live-runtime product scope is deferred, unverified and closed. PR #84
+/ Action 655G provides the pure default-off exit-evaluator foundation. Action 666DB
 conditionally closes `current_main_position_version_schema_reconciliation` by
 freezing `position_version_schema_v1`: owner-bound positive safe-integer
 position/recommendation versions, locked recommendation identity/digest lineage
@@ -1544,7 +1572,7 @@ separate blockers.
 | 2 | `source_foundation_complete_holding` | PRs #101 through #108, #110 through #113, #115 and #117 through #119 deliver `CJ -> CK -> CL -> CM -> CN -> CO -> CP -> CQ -> CS -> CT -> CU -> CV -> CW -> CX -> CY -> CZ`, all default-off and runtime-unwired. Historical PR #54 remains open, non-Draft and non-authority; PRs #55, #57, #58, #60, #63, #67 and #72 remain open Draft non-authority. |
 | 3 | `closed_holding`; Milestone A complete does not authorize execution | `D_keep_execution_gate_closed` remains current. R7-R1 is `completed_rejected`, permanently consumed, prefix `0`, non-retry. No usable GT2 authority or alternative trust root exists. |
 | Action 652 | source boundary delivered; V1 provenance historical | Source containment, authenticated server-owned boundary, evidence contract and canonical governance remain present on main. Action 660D V2 supersedes V1 for the post-MA05 schema. |
-| 4 / Milestone B | target, migration/preflight design, clean inventory, lineage contract, history schema apply, generated-types provenance and lineage production-apply decision proven; controlled implementation begins | PR #84 / Action 655G is the default-off foundation. Action 666DB freezes `position_version_schema_v1`; Action 666DC freezes a phased migration and aggregate-only read-only preflight; Action 666DD records its single authorized clean inventory; Action 666DE freezes deterministic lineage; Action 666DK records the exact history migration's production application; Action 666DL delivers privacy-preserving generated-types/MA-09 provenance; Actions 666DM through 666EB deliver source-only observation and transactional writer boundaries. Action 666EC implements an inert private adapter, Action 666ED makes the current v1 routine non-admissible as its concrete port, Action 666EE delivers additive nullable lineage bytes, Action 666EF proves those bytes only on isolated staging with rolled-back v1 compatibility, and Action 666EG records fresh aggregate-only production preflight that defers the exact additive DDL to a separate gate. Action 666FB separately refuses a concrete V2 port until its private transport, digest/result and replacement-adapter contracts are reviewed. No broker or client writer authority is granted by this delivery. |
+| 4 / Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; original live-runtime scope deferred, unverified and closed | Action 666IX accepts Action 666IU's ephemeral local B-03 writer behavior proof for this profile. B-02/B-04 remain completed foundations; B-01 and B-05 through B-12 are re-homed as unverified future runtime work, and B-03 is not remote/runtime evidence. The historical source foundations, migration/preflight records and default-off boundaries remain available as context only. Remote staging remains `not_admitted`; no broker, client writer, transport/runtime, deployment or production authority is granted. |
 | 5 | verified recovery; protected governance closure candidate | PR #99 makes Action 660G canonical, PR #100 preserves Action 660H and Action 660I records verified MA-13 enforcement while retaining the manual control. PR #45 remains stale non-authority and unmodified. |
 | 6 | source delivery complete, default-off holding | PR #85 is merged; five additive Session V2 paths remain runtime-unwired and provide no tenancy, database, broker or production authority. |
 
