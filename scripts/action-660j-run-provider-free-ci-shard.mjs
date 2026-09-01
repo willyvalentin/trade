@@ -190,6 +190,7 @@ const foundationTests = [
   "tests/e2e/rel-00-ci-b1-change-classification.spec.ts",
   "tests/e2e/rel-00-ci-b2-raw-name-status-acquisition.spec.ts",
   "tests/e2e/rel-00-ci-b3-shadow-reconciliation.spec.ts",
+  "tests/e2e/rel-00-ci-b4-required-check-protection-proof.spec.ts",
 ];
 
 const intelligenceTests = [
