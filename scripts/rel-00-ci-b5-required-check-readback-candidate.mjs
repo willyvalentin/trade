@@ -50,7 +50,7 @@ function deepFreeze(value, seen = new WeakSet()) {
 }
 
 export const requiredCheckReadbackCandidatePolicy = deepFreeze({
-  contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+  contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v3",
   source_only: true,
   external_readback_performed: false,
   serialized_input: {
@@ -61,7 +61,7 @@ export const requiredCheckReadbackCandidatePolicy = deepFreeze({
   expected_b4_contract_version:
     requiredCheckProtectionProofPolicy.contract_version,
   readback_shape: {
-    schema_version: "trade.rel00.ci-b5.readback-shape.v2",
+    schema_version: "trade.rel00.ci-b5.readback-shape.v3",
     required_reader_capability: "Administration:read",
     mode: "fresh_authenticated_read_only",
     raw_api_response_allowed: false,

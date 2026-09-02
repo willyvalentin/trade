@@ -1,11 +1,11 @@
 {
-  "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+  "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v3",
   "workstream": "REL-00",
   "substage": "CI-B5",
   "status": "source_only_not_activated",
   "amendment": {
-    "prior_contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v1",
-    "reason": "carry_b4_v2_fully_bound_check_run_collection_fallback",
+    "prior_contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    "reason": "carry_b4_v3_bound_check_suite_collection_target_scope",
     "scope": "source_only_protocol_and_validator"
   },
   "baseline": {
@@ -53,11 +53,11 @@
     "rollback": "discard_unexecuted_candidate_and_require_fresh_readback"
   },
   "candidate_contract_fixture": {
-    "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v3",
     "source_only": true,
     "external_readback_performed": false,
     "readback_shape": {
-      "schema_version": "trade.rel00.ci-b5.readback-shape.v2",
+      "schema_version": "trade.rel00.ci-b5.readback-shape.v3",
       "required_reader_capability": "Administration:read",
       "mode": "fresh_authenticated_read_only",
       "raw_api_response_allowed": false,
@@ -88,14 +88,15 @@
           "provider-free-verification / lossless-scalar",
           "provider-free-verification"
         ],
-        "target_selection": "exactly_one_collection_record_per_target_name_and_that_record_is_completed_success",
-        "non_target_records": "allowed_only_when_counted_but_never_selected_as_target_evidence",
+        "target_check_suite_scope": "bound_run_check_suite_only",
+        "target_selection": "exactly_one_collection_record_per_target_name_within_bound_run_check_suite_and_that_record_is_completed_success",
+        "non_target_records": "records_outside_bound_run_check_suite_are_counted_but_never_selected_as_target_evidence_and_duplicate_target_records_inside_bound_run_check_suite_fail_closed",
         "run_attempt": "must_equal_1",
         "job_check_run_url_binding": "attempt_job_check_run_url_equals_collection_check_run_url",
         "job_details_url_binding": "attempt_job_html_url_equals_collection_check_run_details_url",
         "canonical_check_run_url": "https://api.github.com/repos/{owner}/{repo}/check-runs/{check_run_id}",
         "canonical_details_url": "https://github.com/{owner}/{repo}/actions/runs/{run_id}/job/{job_id}",
-        "record_binding": "pr_head_sha_check_run_check_suite_app_and_terminal_state_must_match_bound_run",
+        "record_binding": "pr_head_sha_check_run_check_suite_app_and_terminal_state_must_match_bound_run_and_target_uniqueness_is_scoped_to_bound_run_check_suite",
         "historical_scope": "current_pr_head_and_bound_run_only"
       },
       "protocol": [
@@ -104,7 +105,7 @@
         "before GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
         "before GET /repos/{owner}/{repo}/rulesets",
         "before GET /repos/{owner}/{repo}/pulls/{pr_number}",
-        "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
+        "GET /repos/{owner}/{repo}/git/ref/pull/{pr_number}/merge",
         "GET /repos/{owner}/{repo}/commits/{candidate_sha}",
         "GET /repos/{owner}/{repo}/contents/{workflow_path}?ref={candidate_sha}",
         "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
