@@ -12,7 +12,6 @@ const evidencePath = "docs/evidence/action-666fr-position-version-lineage-v2-wri
 const modulePath = "lib/position-version-lineage-v2-writer-protected-deployment-metadata-receipt-negative-disclosure-coverage-attestation-witness-catalog-design.ts";
 const metadataChannelPath = "lib/server/position-version-lineage-v2-writer-deployment-metadata-channel.ts";
 const metadataRoutePath = "app/api/position-version-lineage-v2-writer/deployment-metadata/route.ts";
-const plannedTransportPath = "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
@@ -51,7 +50,7 @@ test("666FR binds green exact main and retains the fail-closed boundary", () => 
 
 test("666FR remains static and is registered in provider-free CI", () => {
   const documentation = [source(actionPath), source(evidencePath)].join("\n"); const moduleSource = source(modulePath); const registration = JSON.parse(source(registrationPath)) as string[];
-  expect(existsSync(resolve(root, metadataChannelPath))).toBe(false); expect(existsSync(resolve(root, metadataRoutePath))).toBe(false); expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
+  expect(existsSync(resolve(root, metadataChannelPath))).toBe(false); expect(existsSync(resolve(root, metadataRoutePath))).toBe(false);
   expect(moduleSource).not.toMatch(/\b(?:fetch|createClient|connect|query|execute_sql|insert|update|delete|select|login|provision|rotate)\s*\(/);
   expect(moduleSource).not.toMatch(/process\.env|Netlify\.env|from\s+['"](?:pg|@\/lib\/supabase|@supabase|node:net|node:https|node:http)/);
   expect(documentation).toMatch(/fail-closed/i); expect(source(roadmapPath)).toMatch(/action 666fr/i); expect(source(ledgerPath)).toMatch(/action 666fr/i);

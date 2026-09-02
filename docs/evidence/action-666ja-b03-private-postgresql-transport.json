@@ -1,0 +1,26 @@
+{
+  "contract_version": "trade.action666ja.b03-private-postgresql-transport.v1",
+  "action_id": "ACTION_666JA",
+  "scope": {
+    "source_only_transport_delivery": true,
+    "staging_connection_executed": false,
+    "secret_value_read_or_committed": false,
+    "runtime_or_route_bound": false,
+    "netlify_or_deployment_changed": false,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false
+  },
+  "transport": {
+    "module": "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts",
+    "server_only": true,
+    "driver": "pg@8.23.0",
+    "secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL",
+    "writer_role": "ture_staging_b03_writer",
+    "routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
+    "parameterized": true,
+    "short_lived_client": true,
+    "strict_result_cardinality": "exactly_one",
+    "immutable_receipt_projection": true
+  },
+  "next_required_staging_authority": "separately_approved_branch_deploy_scoped_secret_and_login_enabled_writer_identity"
+}

@@ -17,8 +17,6 @@ const metadataChannelPath =
   "lib/server/position-version-lineage-v2-writer-deployment-metadata-channel.ts";
 const metadataRoutePath =
   "app/api/position-version-lineage-v2-writer/deployment-metadata/route.ts";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
@@ -174,7 +172,6 @@ test("666FN remains static and registers its negative-disclosure contract", () =
 
   expect(existsSync(resolve(root, metadataChannelPath))).toBe(false);
   expect(existsSync(resolve(root, metadataRoutePath))).toBe(false);
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(contractSource).not.toMatch(
     /\b(?:fetch|createClient|connect|query|execute_sql|insert|update|delete|select|login|provision|rotate)\s*\(/,
   );

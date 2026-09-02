@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
@@ -11,8 +11,6 @@ const evidencePath =
   "docs/evidence/action-666ff-position-version-lineage-v2-writer-private-non-data-api-transport-dependency-lockfile-source-installation.json";
 const packagePath = "package.json";
 const packageLockPath = "package-lock.json";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const action666fcModulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
@@ -112,7 +110,6 @@ test("666FF binds the exact-main predecessor and confines authority to source de
 });
 
 test("666FF leaves the V2 transport runtime fail-closed", () => {
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(source(action666fcModulePath)).not.toMatch(
     /from\s+["']pg["']|require\(["']pg["']\)|process\.env|\b(?:connect|query)\s*\(/,
   );

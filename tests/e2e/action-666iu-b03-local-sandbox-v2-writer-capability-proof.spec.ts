@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
@@ -19,8 +19,6 @@ const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
-const plannedApplicationTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const thisTest =
   "tests/e2e/action-666iu-b03-local-sandbox-v2-writer-capability-proof.spec.ts";
 const evidenceSha256 = "ba0e9fdcc2dedf7582e18abdb5fa47b902aac0dc8e85e49b50b1881c14a5acf4";
@@ -139,7 +137,6 @@ test("666IU records one local-only replay repair and sandbox behavior proof", ()
   expect(harness).not.toContain("process.env.SUPABASE_");
   expect(harness).not.toContain("process.env.NEXT_PUBLIC_");
 
-  expect(existsSync(resolve(root, plannedApplicationTransportPath))).toBe(false);
   expect(`${action}\n${evidenceRaw}`).toMatch(/local.*sandbox/i);
   expect(`${action}\n${evidenceRaw}`).not.toMatch(
     /https?:\/\/|sk-[A-Za-z0-9]|eyJ[a-zA-Z0-9_-]{20,}|(?:api[_ -]?key|authorization|bearer|password|credential)\s*[:=]\s*["']?\S+/i,
