@@ -1,0 +1,87 @@
+{
+  "contract_version": "trade.rel00.ci-b6.adversarial-verification-fixtures.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B6",
+  "status": "source_only_not_activated",
+  "baseline": {
+    "ci_b5_merge_commit": "863a81ede42d095a931eeb7443581d5079f85ade",
+    "ci_b5_exact_main_full_ci_run_id": 33578075166,
+    "ci_b5_post_merge_provenance": "matched",
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "workflow_blob_sha": "29969e9dba4c909ae9b4695b2cd90725b0569e0e",
+    "protected_check": "provider-free-verification",
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ]
+  },
+  "fixture_sources": {
+    "ci_b4_proof_contract": "docs/evidence/rel-00-ci-b4-required-check-protection-proof.json",
+    "ci_b5_candidate_contract": "docs/evidence/rel-00-ci-b5-required-check-readback-candidate.json",
+    "ci_b5_validator": "scripts/rel-00-ci-b5-required-check-readback-candidate.mjs"
+  },
+  "positive_control": {
+    "outcome": "shadow_readback_shape_valid",
+    "effective_tier": 3,
+    "effective_disposition": "broad_containment",
+    "manual_review_required": true,
+    "candidate_status": "unactivated_not_connected",
+    "external_state_verified": false,
+    "activation_eligible": false
+  },
+  "adversarial_case_ids": [
+    "b4_repository_branch_workflow_aggregate_shard_and_protection_drift",
+    "b5_readback_shape_protocol_identity_pagination_and_ruleset_drift",
+    "authority_rollback_and_mutation_escalation",
+    "raw_response_credential_pagination_and_ruleset_surface",
+    "extra_missing_and_malformed_serialized_structure",
+    "duplicate_top_level_and_nested_semantic_json_keys",
+    "getter_proxy_symbol_and_revoked_object_boundary",
+    "strict_json_length_boundary"
+  ],
+  "containment": {
+    "outcome": "broad_containment_required",
+    "proof_binding": null,
+    "readback_requirement": null,
+    "rollback_requirement": null,
+    "candidate_status": "unactivated_not_connected",
+    "effective_tier": 3,
+    "effective_disposition": "broad_containment",
+    "manual_review_required": true,
+    "external_state_verified": false,
+    "metadata_verified": false,
+    "reference_verified": false,
+    "activation_eligible": false,
+    "selector_connected": false,
+    "execution_plan_emitted": false,
+    "mergeability_decision": false,
+    "workflow_change": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ci_deduplication_authorized": false,
+    "runtime_or_deployment_authority": false,
+    "reader_invocation": false,
+    "rollback_executed": false
+  },
+  "authority": {
+    "actual_readback_performed": false,
+    "github_api_or_gh_invocation": false,
+    "credential_or_token_use": false,
+    "workflow_change": false,
+    "draft_selector_activation": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ready_main_full_ci_change": false,
+    "netlify_or_runtime_change": false,
+    "ci_deduplication_authorized": false
+  },
+  "next_boundary": {
+    "ci_b7": "separately_authorized_ci_policy_decision",
+    "ci_b8": "declared_real_observation_window_required"
+  }
+}

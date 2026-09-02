@@ -175,6 +175,7 @@
   "tests/e2e/rel-00-ci-b3-shadow-reconciliation.spec.ts",
   "tests/e2e/rel-00-ci-b4-required-check-protection-proof.spec.ts",
   "tests/e2e/rel-00-ci-b5-required-check-readback-candidate.spec.ts",
+  "tests/e2e/rel-00-ci-b6-adversarial-verification.spec.ts",
   "tests/e2e/action-652-authentication-boundary.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5.spec.ts",
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-independent.spec.ts",
