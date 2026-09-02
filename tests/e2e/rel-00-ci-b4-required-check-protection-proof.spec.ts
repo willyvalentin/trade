@@ -176,10 +176,11 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
     (evidence.proof_contract_fixture as Record<string, unknown>)
       .check_run_collection_fallback,
   );
-  expect(
-    proof.requiredCheckProtectionProofPolicy.check_run_collection_fallback
-      .direct_per_check_run_endpoint,
-  ).toBe("GET /repos/{owner}/{repo}/check-runs/{check_run_id}");
+  const checkRunCollectionFallback = proof.requiredCheckProtectionProofPolicy
+    .check_run_collection_fallback as Record<string, unknown>;
+  expect(checkRunCollectionFallback.direct_per_check_run_endpoint).toBe(
+    "GET /repos/{owner}/{repo}/check-runs/{check_run_id}",
+  );
   expect(contract).toContain("does not\nperform that readback");
   expect(contract).toContain("two explicitly labelled, GET-only sources");
   expect(contract).toContain("parsed from the bound attempt job's `check_run_url`");
