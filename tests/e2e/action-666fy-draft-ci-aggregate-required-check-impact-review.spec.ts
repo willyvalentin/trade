@@ -83,7 +83,11 @@ test("666FY proves the Draft aggregate cannot safely satisfy the Full CI require
   expect(workflow).toContain("name: provider-free-verification");
   expect(workflow).toContain("if: ${{ always() }}");
   expect(workflow).toContain("SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}");
-  expect(workflow).toContain('run: test "$SHARD_RESULT" = "success"');
+  expect(workflow).toContain('test "$SHARD_RESULT" = "success"');
+  expect(workflow).toContain(
+    'if [ "$EVENT_NAME" = "pull_request" ] && [ "$PULL_REQUEST_DRAFT" = "false" ] && [ "$READY_DOCS_ONLY_DISPOSITION" = "docs_only" ]; then',
+  );
+  expect(workflow).toContain('test "$READY_DOCS_ONLY_RESULT" = "success"');
   expect(sha256(raw)).toMatch(/^[a-f0-9]{64}$/);
 });
 
