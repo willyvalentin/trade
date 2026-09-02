@@ -157,7 +157,7 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
     evidence.proof_contract_fixture.fresh_readback_protocol,
   );
   expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
-    "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
+    "GET /repos/{owner}/{repo}/git/ref/pull/{pr_number}/merge",
   );
   expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",

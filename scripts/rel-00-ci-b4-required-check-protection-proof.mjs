@@ -111,7 +111,7 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     "before GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
     "before GET /repos/{owner}/{repo}/rulesets",
     "before GET /repos/{owner}/{repo}/pulls/{pr_number}",
-    "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
+    "GET /repos/{owner}/{repo}/git/ref/pull/{pr_number}/merge",
     "GET /repos/{owner}/{repo}/commits/{candidate_sha}",
     "GET /repos/{owner}/{repo}/contents/{workflow_path}?ref={candidate_sha}",
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
