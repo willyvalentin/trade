@@ -1,0 +1,133 @@
+{
+  "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+  "workstream": "REL-00",
+  "substage": "CI-B5",
+  "status": "source_only_not_activated",
+  "baseline": {
+    "ci_b4_merge_commit": "a0a3a67d624c9ccc76f2e7eedbc1c93750abc564",
+    "ci_b4_merge_tree": "15e95f251c8412c95d8e82500c5b98c64f9798e8",
+    "ci_b4_ready_full_ci_run_id": 33568818621,
+    "ci_b4_exact_main_run_id": 33571060854,
+    "ci_b4_post_merge_provenance": "matched",
+    "workflow_path": ".github/workflows/milestone-a-ci.yml",
+    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "workflow_blob_sha": "29969e9dba4c909ae9b4695b2cd90725b0569e0e",
+    "protected_check": "provider-free-verification",
+    "full_shards": [
+      "foundation",
+      "replay-lineage",
+      "snapshot-admission",
+      "snapshot-issuance",
+      "non-forgeable-authority",
+      "lossless-scalar"
+    ]
+  },
+  "required_proof_contract_fixture_source": "docs/evidence/rel-00-ci-b4-required-check-protection-proof.json",
+  "authority": {
+    "draft_selector_activation": false,
+    "workflow_change": false,
+    "required_check_change": false,
+    "branch_protection_change": false,
+    "ready_main_full_ci_change": false,
+    "ci_deduplication_authorized": false,
+    "runtime_or_deployment_authority": false,
+    "reader_invocation": false
+  },
+  "candidate_policy": {
+    "source_only": true,
+    "actual_readback_performed": false,
+    "input_format": "strict_json_text",
+    "input_max_characters": 65536,
+    "object_input_accepted": false,
+    "untrusted_object_properties_read": false,
+    "required_reader_capability": "Administration:read",
+    "raw_api_response_allowed": false,
+    "mutation_methods_allowed": false,
+    "effective_tier": 3,
+    "effective_disposition": "broad_containment",
+    "rollback": "discard_unexecuted_candidate_and_require_fresh_readback"
+  },
+  "candidate_contract_fixture": {
+    "contract_version": "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+    "source_only": true,
+    "external_readback_performed": false,
+    "readback_shape": {
+      "schema_version": "trade.rel00.ci-b5.readback-shape.v1",
+      "required_reader_capability": "Administration:read",
+      "mode": "fresh_authenticated_read_only",
+      "raw_api_response_allowed": false,
+      "mutation_methods_allowed": false,
+      "protocol": [
+        "before GET /repos/{owner}/{repo}/branches/{branch}",
+        "before GET /repos/{owner}/{repo}/branches/{branch}/protection",
+        "before GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
+        "before GET /repos/{owner}/{repo}/rulesets",
+        "before GET /repos/{owner}/{repo}/pulls/{pr_number}",
+        "GET /repos/{owner}/{repo}/git/ref/pulls/{pr_number}/merge",
+        "GET /repos/{owner}/{repo}/commits/{candidate_sha}",
+        "GET /repos/{owner}/{repo}/contents/{workflow_path}?ref={candidate_sha}",
+        "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
+        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+        "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}",
+        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}",
+        "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100",
+        "GET /repos/{owner}/{repo}/check-runs/{job_id}",
+        "after GET /repos/{owner}/{repo}/branches/{branch}",
+        "after GET /repos/{owner}/{repo}/branches/{branch}/protection",
+        "after GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
+        "after GET /repos/{owner}/{repo}/rulesets",
+        "after GET /repos/{owner}/{repo}/pulls/{pr_number}"
+      ],
+      "identity_binding_fields": [
+        "pr_number",
+        "pr_base_sha",
+        "pr_head_sha",
+        "candidate_sha",
+        "candidate_tree_sha",
+        "candidate_parent_shas",
+        "workflow_blob_sha",
+        "run_id",
+        "run_attempt",
+        "check_suite_id",
+        "job_id",
+        "artifact_id",
+        "artifact_sha256"
+      ],
+      "terminal_check_result": "completed_success_only",
+      "pagination": "must_be_complete",
+      "rulesets": "must_be_empty"
+    },
+    "rollback": {
+      "activation_state": "unactivated_not_connected",
+      "on_readback_drift": "discard_unexecuted_candidate_and_require_fresh_readback",
+      "one_step": true,
+      "external_state_mutated": false,
+      "preserve_current_ready_main_full_ci": true,
+      "preserve_current_required_check": true,
+      "preserve_current_branch_protection": true,
+      "ci_deduplication_authorized": false
+    },
+    "authority": {
+      "workflow_change": false,
+      "required_check_change": false,
+      "branch_protection_change": false,
+      "selector_activation": false,
+      "execution_plan_emitted": false,
+      "mergeability_decision": false,
+      "ci_deduplication_authorized": false,
+      "runtime_or_deployment_authority": false,
+      "reader_invocation": false
+    }
+  },
+  "rejected_cases": [
+    "b4_proof_contract_drift_or_invalid_shape",
+    "workflow_or_full_ci_profile_drift",
+    "readback_protocol_or_identity_binding_drift",
+    "raw_api_response_credential_or_reader_invocation_field",
+    "workflow_selector_required_check_or_branch_protection_activation",
+    "non_declarative_or_external_state_rollback_claim",
+    "proposal_extra_or_missing_field",
+    "non_string_invalid_or_oversized_serialized_candidate",
+    "object_getter_or_proxy_input_without_property_access"
+  ]
+}
