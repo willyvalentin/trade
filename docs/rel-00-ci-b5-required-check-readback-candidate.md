@@ -2,7 +2,7 @@
 
 ## Bounded objective
 
-CI-B5 v2 adds a pure validator for static candidate JSON that could later be used
+CI-B5 v3 adds a pure validator for static candidate JSON that could later be used
 by an independently authorized, least-privileged reader. Its module boundary
 accepts only strict JSON text of at most 65,536 characters: it rejects every
 object before reflecting over, enumerating or reading any of its properties.
@@ -18,7 +18,7 @@ manual review.
 
 ## Frozen CI-B4 binding
 
-The candidate requires CI-B4 v2's complete static proof contract, including
+The candidate requires CI-B4 v3's complete static proof contract, including
 willyvalentin/trade main, the unchanged workflow path, SHA-256 and blob,
 GitHub Actions aggregate provider-free-verification, all six Full-CI shards,
 the complete branch-protection profile, and the ordered GET-only before/after
@@ -46,7 +46,10 @@ the bound attempt job's `check_run_url`, produces the declared access-denied
 precondition. It is limited to the exact Ready-PR head and the current bound
 run. It must return HTTP 200, a complete first page at
 most 100 records, and exactly one collection record for every six-shard target
-and the protected aggregate; each selected record must be successful.
+and the protected aggregate **within the bound run's check-suite**; each
+selected record must be successful. Records with those names in a different
+check-suite remain counted but cannot serve as target evidence; duplicate
+target records in the bound check-suite are containment.
 Attempt-job `check_run_url` and `html_url` must respectively equal the selected
 collection record's API URL and details URL, and the selected record's
 check-suite ID must equal the bound run's check-suite ID; job and check-run IDs

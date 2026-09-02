@@ -81,7 +81,7 @@ function expectDeeplyFrozen(value: unknown, seen = new WeakSet<object>()) {
 
 function expectContainment(receipt: Record<string, unknown>) {
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v3",
     outcome: "broad_containment_required",
     proof_binding: null,
     readback_requirement: null,
@@ -122,14 +122,14 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
   const candidateSource = source(candidatePath);
 
   expect(evidence).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v3",
     workstream: "REL-00",
     substage: "CI-B5",
     status: "source_only_not_activated",
     amendment: {
       prior_contract_version:
-        "trade.rel00.ci-b5.required-check-readback-candidate.v1",
-      reason: "carry_b4_v2_fully_bound_check_run_collection_fallback",
+        "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+      reason: "carry_b4_v3_bound_check_suite_collection_target_scope",
       scope: "source_only_protocol_and_validator",
     },
     baseline: {
@@ -175,7 +175,7 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
     },
   });
   expect(candidate.requiredCheckReadbackCandidatePolicy).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v3",
     source_only: true,
     external_readback_performed: false,
     serialized_input: {
@@ -184,9 +184,9 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
       object_input_accepted: false,
     },
     expected_b4_contract_version:
-      "trade.rel00.ci-b4.required-check-protection-proof.v2",
+      "trade.rel00.ci-b4.required-check-protection-proof.v3",
     readback_shape: {
-      schema_version: "trade.rel00.ci-b5.readback-shape.v2",
+      schema_version: "trade.rel00.ci-b5.readback-shape.v3",
       required_reader_capability: "Administration:read",
       mode: "fresh_authenticated_read_only",
       raw_api_response_allowed: false,
@@ -267,7 +267,7 @@ test("REL-00 CI-B5 produces only a detached unactivated readback candidate", () 
   );
 
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v3",
     outcome: "shadow_readback_shape_valid",
     reason: null,
     proof_binding: {
@@ -411,6 +411,12 @@ test("REL-00 CI-B5 fails closed for proof, shape, rollback and authority drift",
         (value.readback_shape as Record<string, unknown>)
           .check_run_collection_fallback as Record<string, unknown>
       ).target_selection = "one_success_record_per_target_name";
+    },
+    (value) => {
+      (
+        (value.readback_shape as Record<string, unknown>)
+          .check_run_collection_fallback as Record<string, unknown>
+      ).target_check_suite_scope = "any_pr_head_check_suite";
     },
     (value) => {
       (

@@ -62,7 +62,7 @@ function expectDeeplyFrozen(value: unknown, seen = new WeakSet<object>()) {
 
 function expectContainment(receipt: Record<string, unknown>) {
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v3",
     outcome: "broad_containment_required",
     policy_binding: null,
     effective_tier: 3,
@@ -91,14 +91,15 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   const proofSource = source(proofPath);
 
   expect(evidence).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v3",
     workstream: "REL-00",
     substage: "CI-B4",
     status: "source_only_not_activated",
     amendment: {
       prior_contract_version:
-        "trade.rel00.ci-b4.required-check-protection-proof.v1",
-      reason: "allow_fully_bound_pr_head_check_run_collection_fallback",
+        "trade.rel00.ci-b4.required-check-protection-proof.v2",
+      reason:
+        "correct_merge_ref_route_and_scope_collection_targets_to_bound_check_suite",
       scope: "source_only_protocol_and_validator",
     },
     baseline: {
@@ -139,7 +140,7 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
     },
   });
   expect(proof.requiredCheckProtectionProofPolicy).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v3",
     source_only: true,
     fresh_authenticated_readback_required: true,
     expected_repository: "willyvalentin/trade",
@@ -181,6 +182,9 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   expect(checkRunCollectionFallback.direct_per_check_run_endpoint).toBe(
     "GET /repos/{owner}/{repo}/check-runs/{check_run_id}",
   );
+  expect(checkRunCollectionFallback.target_check_suite_scope).toBe(
+    "bound_run_check_suite_only",
+  );
   expect(contract).toContain("does not\nperform that readback");
   expect(contract).toContain("two explicitly labelled, GET-only sources");
   expect(contract).toContain("parsed from the bound attempt job's `check_run_url`");
@@ -207,7 +211,7 @@ test("REL-00 CI-B4 produces only a detached fresh-readback requirement", () => {
   const receipt = proof.buildRequiredCheckProtectionProof(input);
 
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v3",
     outcome: "contract_only_fresh_readback_required",
     reason: null,
     policy_binding: {
@@ -310,6 +314,10 @@ test("REL-00 CI-B4 fails closed for policy, protocol and authority drift", () =>
     (value) => {
       (value.check_run_collection_fallback as Record<string, unknown>)
         .target_selection = "one_success_record_per_target_name";
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .target_check_suite_scope = "any_pr_head_check_suite";
     },
     (value) => {
       (value.check_run_collection_fallback as Record<string, unknown>)

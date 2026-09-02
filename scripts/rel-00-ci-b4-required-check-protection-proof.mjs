@@ -24,7 +24,7 @@ function deepFreeze(value, seen = new WeakSet()) {
 }
 
 export const requiredCheckProtectionProofPolicy = deepFreeze({
-  contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
+  contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v3",
   source_only: true,
   fresh_authenticated_readback_required: true,
   expected_repository: "willyvalentin/trade",
@@ -88,10 +88,11 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     collection_response:
       "http_200_total_count_equals_returned_count_and_is_at_most_100",
     target_check_run_names: expectedCheckRunTargetNames,
+    target_check_suite_scope: "bound_run_check_suite_only",
     target_selection:
-      "exactly_one_collection_record_per_target_name_and_that_record_is_completed_success",
+      "exactly_one_collection_record_per_target_name_within_bound_run_check_suite_and_that_record_is_completed_success",
     non_target_records:
-      "allowed_only_when_counted_but_never_selected_as_target_evidence",
+      "records_outside_bound_run_check_suite_are_counted_but_never_selected_as_target_evidence_and_duplicate_target_records_inside_bound_run_check_suite_fail_closed",
     run_attempt: "must_equal_1",
     job_check_run_url_binding:
       "attempt_job_check_run_url_equals_collection_check_run_url",
@@ -102,7 +103,7 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     canonical_details_url:
       "https://github.com/{owner}/{repo}/actions/runs/{run_id}/job/{job_id}",
     record_binding:
-      "pr_head_sha_check_run_check_suite_app_and_terminal_state_must_match_bound_run",
+      "pr_head_sha_check_run_check_suite_app_and_terminal_state_must_match_bound_run_and_target_uniqueness_is_scoped_to_bound_run_check_suite",
     historical_scope: "current_pr_head_and_bound_run_only",
   },
   fresh_readback_protocol: [

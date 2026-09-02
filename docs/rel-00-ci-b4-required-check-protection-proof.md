@@ -2,7 +2,7 @@
 
 ## Bounded objective
 
-CI-B4 v2 freezes a pure contract for a future, authenticated readback of the
+CI-B4 v3 freezes a pure contract for a future, authenticated readback of the
 protected `main` required check and branch-protection profile. It does not
 perform that readback. Its only positive result is
 `contract_only_fresh_readback_required`, which is an explicit statement that a
@@ -35,7 +35,7 @@ An independently authorized, least-privileged observer must obtain all values
 fresh in one bounded logical session. The normal path remains one source using
 the individual `GET /repos/{owner}/{repo}/check-runs/{check_run_id}` endpoint,
 where `check_run_id` is parsed from the bound attempt job's `check_run_url`.
-The v2 fallback is deliberately narrower: it is available only after the
+The v3 fallback is deliberately narrower: it is available only after the
 `Administration:read` policy source records a `403` from that endpoint for one
 attempt-job-bound check run, and it then uses exactly one check-run evidence
 source for every target job.
@@ -68,10 +68,13 @@ counted records; they cannot satisfy a target. `filter=all` prevents a latest-
 only response from hiding a rerun or duplicate.
 
 For each six-shard check-run name and `provider-free-verification`, exactly one
-collection record of that name must exist, and it must be `completed/success`,
-have that PR head, the bound check-suite, GitHub Actions app `15368` /
-`github-actions`, and be linked to its exact attempt job. The link is
-two-sided: `attempt_job.check_run_url` equals the collection record's API URL,
+collection record of that name must exist **within the bound run's
+check-suite**, and it must be `completed/success`, have that PR head, the bound
+check-suite, GitHub Actions app `15368` / `github-actions`, and be linked to
+its exact attempt job. Records with a target name in a different check-suite
+remain counted but can never satisfy a target; duplicate target records within
+the bound check-suite are containment. The link is two-sided:
+`attempt_job.check_run_url` equals the collection record's API URL,
 `attempt_job.html_url` equals its exact canonical details URL
 `https://github.com/{owner}/{repo}/actions/runs/{run_id}/job/{job_id}`, and
 the collection record's `check_suite.id` equals the run's bound check-suite ID.
