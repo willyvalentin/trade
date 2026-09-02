@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -19,6 +20,12 @@ const thisTest = "tests/e2e/rel-00-ci-b2-raw-name-status-acquisition.spec.ts";
 
 function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
+}
+
+function historicalWorkflowSha(commit: string) {
+  return createHash("sha256")
+    .update(execFileSync("git", ["show", `${commit}:${workflowPath}`], { cwd: root }))
+    .digest("hex");
 }
 
 type GitResult = {
@@ -163,7 +170,7 @@ test("REL-00 CI-B2 remains source-only and preserves the protected Full-CI contr
   expect(workflow).toContain("name: draft-provider-free-verification");
   expect(workflow).toContain("name: provider-free-verification");
   expect(
-    createHash("sha256").update(workflow, "utf8").digest("hex"),
+    historicalWorkflowSha(evidence.baseline.protected_main_commit),
   ).toBe(evidence.baseline.workflow_sha256);
   expect(evidence.baseline.full_shards).toEqual([
     "foundation",

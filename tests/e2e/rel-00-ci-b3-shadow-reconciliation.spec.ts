@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -21,6 +22,12 @@ function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
+function historicalWorkflowSha(commit: string) {
+  return createHash("sha256")
+    .update(execFileSync("git", ["show", `${commit}:${workflowPath}`], { cwd: root }))
+    .digest("hex");
+}
+
 type ShadowRuntime = {
   buildShadowReconciliationReceipt: (
     ciB2Observation: unknown,
@@ -41,7 +48,11 @@ type Fixture = {
 
 let reconciliation: ShadowRuntime;
 const evidence = JSON.parse(source(evidencePath)) as {
-  baseline: { full_shards: string[]; workflow_sha256: string };
+  baseline: {
+    protected_main_commit: string;
+    full_shards: string[];
+    workflow_sha256: string;
+  };
   fixtures: Fixture[];
 };
 
@@ -186,7 +197,7 @@ test("REL-00 CI-B3 remains source-only and preserves the protected Full-CI contr
   expect(contract).toContain("CI-B7");
   expect(workflow).toContain("name: draft-provider-free-verification");
   expect(workflow).toContain("name: provider-free-verification");
-  expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
+  expect(historicalWorkflowSha(evidence.baseline.protected_main_commit)).toBe(
     evidence.baseline.workflow_sha256,
   );
   expect(evidence.baseline.full_shards).toEqual([

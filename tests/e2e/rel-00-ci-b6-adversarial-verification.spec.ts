@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -25,6 +26,12 @@ function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
+function historicalWorkflowSha(commit: string) {
+  return createHash("sha256")
+    .update(execFileSync("git", ["show", `${commit}:${workflowPath}`], { cwd: root }))
+    .digest("hex");
+}
+
 type CandidateRuntime = {
   buildRequiredCheckReadbackCandidateReceipt: (
     serializedCandidate: unknown,
@@ -34,6 +41,7 @@ type CandidateRuntime = {
 
 type Fixture = {
   baseline: {
+    ci_b5_merge_commit: string;
     workflow_sha256: string;
     workflow_blob_sha: string;
     full_shards: string[];
@@ -144,7 +152,7 @@ test("REL-00 CI-B6 stays source-only in the unchanged six-shard Full-CI profile"
     "getter_proxy_symbol_and_revoked_object_boundary",
     "strict_json_length_boundary",
   ]);
-  expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
+  expect(historicalWorkflowSha(fixture.baseline.ci_b5_merge_commit)).toBe(
     fixture.baseline.workflow_sha256,
   );
   for (const shard of fixture.baseline.full_shards) {

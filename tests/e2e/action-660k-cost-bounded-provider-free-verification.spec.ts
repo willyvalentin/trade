@@ -175,8 +175,10 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
   expect(draftJob).not.toContain("name: provider-free-verification\n");
 
   expect(shardJob).toContain(
-    "if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}",
+    "if: ${{ always() && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}",
   );
+  expect(shardJob).toContain("needs:\n      - ready-docs-only-classification");
+  expect(shardJob).not.toContain("github.event.pull_request.draft == true");
   expect(shardJob).toContain("fail-fast: false");
   expect(shardJob).toContain("fetch-depth: 0");
   expect(workflow).not.toContain("fetch-depth: 1");
@@ -186,13 +188,20 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
 
   expect(aggregateJob).toContain("name: provider-free-verification");
   expect(aggregateJob).toContain("if: ${{ always() }}");
+  expect(aggregateJob).toContain("- ready-docs-only-classification");
   expect(aggregateJob).toContain("- provider-free-verification-shard");
   expect(aggregateJob).not.toContain("draft-provider-free-verification");
   expect(aggregateJob).toContain(
     "SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}",
   );
   expect(aggregateJob).toContain(
-    'run: test "$SHARD_RESULT" = "success"',
+    "READY_DOCS_ONLY_RESULT: ${{ needs.ready-docs-only-classification.result }}",
+  );
+  expect(aggregateJob).toContain(
+    "test \"$READY_DOCS_ONLY_RESULT\" = \"success\"",
+  );
+  expect(aggregateJob).toContain(
+    'test "$SHARD_RESULT" = "success"',
   );
   expect(aggregateJob).not.toContain("continue-on-error");
 

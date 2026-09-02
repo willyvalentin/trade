@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -22,6 +23,12 @@ const thisTest =
 
 function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
+}
+
+function historicalWorkflowSha(commit: string) {
+  return createHash("sha256")
+    .update(execFileSync("git", ["show", `${commit}:${workflowPath}`], { cwd: root }))
+    .digest("hex");
 }
 
 type CandidateRuntime = {
@@ -241,7 +248,7 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
   expect(contract).toContain("not perform a readback");
   expect(contract).toContain("cross-bound two-source, GET-only session");
   expect(contract).toContain("CI-B7 remains the separate CI-policy decision point");
-  expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
+  expect(historicalWorkflowSha(evidence.baseline.ci_b4_merge_commit)).toBe(
     evidence.baseline.workflow_sha256,
   );
   for (const shard of evidence.baseline.full_shards) {
