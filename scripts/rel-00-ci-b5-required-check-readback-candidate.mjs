@@ -193,6 +193,241 @@ function readCandidateProposal(proposal) {
   }
 }
 
+function scanStrictJsonForDuplicateObjectKeys(serializedCandidate) {
+  let index = 0;
+
+  function skipWhitespace() {
+    while (
+      serializedCandidate[index] === " " ||
+      serializedCandidate[index] === "\n" ||
+      serializedCandidate[index] === "\r" ||
+      serializedCandidate[index] === "\t"
+    ) {
+      index += 1;
+    }
+  }
+
+  function parseString() {
+    if (serializedCandidate[index] !== '"') {
+      return null;
+    }
+    const start = index;
+    index += 1;
+
+    while (index < serializedCandidate.length) {
+      const character = serializedCandidate[index];
+      const code = serializedCandidate.charCodeAt(index);
+      if (character === '"') {
+        index += 1;
+        try {
+          return JSON.parse(serializedCandidate.slice(start, index));
+        } catch {
+          return null;
+        }
+      }
+      if (character === "\\") {
+        index += 1;
+        const escaped = serializedCandidate[index];
+        if (!escaped) {
+          return null;
+        }
+        if (escaped === "u") {
+          const hexadecimal = serializedCandidate.slice(index + 1, index + 5);
+          if (!/^[0-9a-fA-F]{4}$/.test(hexadecimal)) {
+            return null;
+          }
+          index += 5;
+          continue;
+        }
+        if (!'"\\/bfnrt'.includes(escaped)) {
+          return null;
+        }
+        index += 1;
+        continue;
+      }
+      if (code < 0x20) {
+        return null;
+      }
+      index += 1;
+    }
+    return null;
+  }
+
+  function parseLiteral(literal) {
+    if (!serializedCandidate.startsWith(literal, index)) {
+      return false;
+    }
+    index += literal.length;
+    return true;
+  }
+
+  function parseNumber() {
+    if (serializedCandidate[index] === "-") {
+      index += 1;
+    }
+    if (serializedCandidate[index] === "0") {
+      index += 1;
+    } else if (
+      serializedCandidate[index] >= "1" &&
+      serializedCandidate[index] <= "9"
+    ) {
+      index += 1;
+      while (
+        serializedCandidate[index] >= "0" &&
+        serializedCandidate[index] <= "9"
+      ) {
+        index += 1;
+      }
+    } else {
+      return false;
+    }
+
+    if (serializedCandidate[index] === ".") {
+      index += 1;
+      const decimalStart = index;
+      while (
+        serializedCandidate[index] >= "0" &&
+        serializedCandidate[index] <= "9"
+      ) {
+        index += 1;
+      }
+      if (index === decimalStart) {
+        return false;
+      }
+    }
+
+    if (
+      serializedCandidate[index] === "e" ||
+      serializedCandidate[index] === "E"
+    ) {
+      index += 1;
+      if (
+        serializedCandidate[index] === "+" ||
+        serializedCandidate[index] === "-"
+      ) {
+        index += 1;
+      }
+      const exponentStart = index;
+      while (
+        serializedCandidate[index] >= "0" &&
+        serializedCandidate[index] <= "9"
+      ) {
+        index += 1;
+      }
+      if (index === exponentStart) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function parseArray() {
+    if (serializedCandidate[index] !== "[") {
+      return "invalid";
+    }
+    index += 1;
+    skipWhitespace();
+    if (serializedCandidate[index] === "]") {
+      index += 1;
+      return "valid";
+    }
+
+    while (index < serializedCandidate.length) {
+      const nested = parseValue();
+      if (nested !== "valid") {
+        return nested;
+      }
+      skipWhitespace();
+      if (serializedCandidate[index] === "]") {
+        index += 1;
+        return "valid";
+      }
+      if (serializedCandidate[index] !== ",") {
+        return "invalid";
+      }
+      index += 1;
+      skipWhitespace();
+    }
+    return "invalid";
+  }
+
+  function parseObject() {
+    if (serializedCandidate[index] !== "{") {
+      return "invalid";
+    }
+    index += 1;
+    skipWhitespace();
+    if (serializedCandidate[index] === "}") {
+      index += 1;
+      return "valid";
+    }
+
+    const keys = new Set();
+    while (index < serializedCandidate.length) {
+      const key = parseString();
+      if (key === null) {
+        return "invalid";
+      }
+      if (keys.has(key)) {
+        return "duplicate";
+      }
+      keys.add(key);
+      skipWhitespace();
+      if (serializedCandidate[index] !== ":") {
+        return "invalid";
+      }
+      index += 1;
+      skipWhitespace();
+      const nested = parseValue();
+      if (nested !== "valid") {
+        return nested;
+      }
+      skipWhitespace();
+      if (serializedCandidate[index] === "}") {
+        index += 1;
+        return "valid";
+      }
+      if (serializedCandidate[index] !== ",") {
+        return "invalid";
+      }
+      index += 1;
+      skipWhitespace();
+    }
+    return "invalid";
+  }
+
+  function parseValue() {
+    skipWhitespace();
+    switch (serializedCandidate[index]) {
+      case "{":
+        return parseObject();
+      case "[":
+        return parseArray();
+      case '"':
+        return parseString() === null ? "invalid" : "valid";
+      case "t":
+        return parseLiteral("true") ? "valid" : "invalid";
+      case "f":
+        return parseLiteral("false") ? "valid" : "invalid";
+      case "n":
+        return parseLiteral("null") ? "valid" : "invalid";
+      default:
+        return parseNumber() ? "valid" : "invalid";
+    }
+  }
+
+  try {
+    const outcome = parseValue();
+    skipWhitespace();
+    return outcome === "valid" && index === serializedCandidate.length
+      ? "valid"
+      : outcome;
+  } catch {
+    return "invalid";
+  }
+}
+
 function parseStaticCandidate(serializedCandidate) {
   if (typeof serializedCandidate !== "string") {
     return { ok: false, reason: "serialized_candidate_not_string" };
@@ -203,6 +438,18 @@ function parseStaticCandidate(serializedCandidate) {
       requiredCheckReadbackCandidatePolicy.serialized_input.max_characters
   ) {
     return { ok: false, reason: "serialized_candidate_length_invalid" };
+  }
+  const duplicateKeyScan = scanStrictJsonForDuplicateObjectKeys(
+    serializedCandidate,
+  );
+  if (duplicateKeyScan === "duplicate") {
+    return {
+      ok: false,
+      reason: "serialized_candidate_duplicate_object_key",
+    };
+  }
+  if (duplicateKeyScan !== "valid") {
+    return { ok: false, reason: "serialized_candidate_invalid_json" };
   }
   try {
     return {
