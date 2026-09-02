@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -20,6 +21,12 @@ const thisTest =
 
 function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
+}
+
+function historicalWorkflowSha(commit: string) {
+  return createHash("sha256")
+    .update(execFileSync("git", ["show", `${commit}:${workflowPath}`], { cwd: root }))
+    .digest("hex");
 }
 
 type ProofRuntime = {
@@ -189,7 +196,7 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   expect(contract).toContain("two explicitly labelled, GET-only sources");
   expect(contract).toContain("parsed from the bound attempt job's `check_run_url`");
   expect(contract).toContain("CI-B7 remains the separately authorized policy decision");
-  expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
+  expect(historicalWorkflowSha(evidence.baseline.ci_b3_merge_commit)).toBe(
     evidence.baseline.workflow_sha256,
   );
   for (const shard of evidence.baseline.full_shards) {

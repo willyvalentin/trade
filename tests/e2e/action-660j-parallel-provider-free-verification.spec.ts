@@ -55,6 +55,7 @@ const foundationTests = [
   "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts",
   "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts",
   "tests/e2e/action-660o-merge-candidate-provenance.spec.ts",
+  "tests/e2e/rel-00-ci-b7-docs-only-ready-activation.spec.ts",
   "tests/e2e/action-660l-next-security-release-gate.spec.ts",
   "tests/e2e/action-660m-current-production-reclosure.spec.ts",
   "tests/e2e/action-666cr-current-main-roadmap-ledger-reconciliation.spec.ts",
@@ -434,6 +435,7 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
     .map((line) => line.trim().slice(0, -1));
   expect(jobIds).toEqual([
     "draft-provider-free-verification",
+    "ready-docs-only-classification",
     "provider-free-verification-shard",
     "provider-free-verification",
     "merge-candidate-provenance",
@@ -443,6 +445,12 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
   const draftJob = blockBetween(
     workflow,
     "draft-provider-free-verification",
+    "ready-docs-only-classification",
+  );
+
+  const docsOnlyJob = blockBetween(
+    workflow,
+    "ready-docs-only-classification",
     "provider-free-verification-shard",
   );
 
@@ -460,9 +468,9 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
   expect(draftJob).toContain(
     "if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true }}",
   );
-  expect(shardJob).toContain(
-    "if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}",
-  );
+  expect(shardJob).toContain("needs.ready-docs-only-classification.outputs.disposition != 'docs_only'");
+  expect(shardJob).toContain("github.event_name == 'push'");
+  expect(shardJob).toContain("needs:\n      - ready-docs-only-classification");
   expect(shardJob).toContain("timeout-minutes: 60");
   expect(shardJob).toContain("fail-fast: false");
   const workflowShards = shardJob
@@ -489,12 +497,26 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
 
   expect(aggregateJob).toContain("name: provider-free-verification");
   expect(aggregateJob).toContain("if: ${{ always() }}");
+  expect(aggregateJob).toContain("- ready-docs-only-classification");
   expect(aggregateJob).toContain("- provider-free-verification-shard");
+  expect(aggregateJob).toContain(
+    "READY_DOCS_ONLY_RESULT: ${{ needs.ready-docs-only-classification.result }}",
+  );
+  expect(aggregateJob).toContain(
+    "READY_DOCS_ONLY_DISPOSITION: ${{ needs.ready-docs-only-classification.outputs.disposition }}",
+  );
   expect(aggregateJob).toContain(
     "SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}",
   );
-  expect(aggregateJob).toContain('run: test "$SHARD_RESULT" = "success"');
+  expect(aggregateJob).toContain('test "$READY_DOCS_ONLY_RESULT" = "success"');
+  expect(aggregateJob).toContain('test "$SHARD_RESULT" = "success"');
   expect(aggregateJob).not.toContain("continue-on-error");
+  expect(docsOnlyJob).toContain("ref: ${{ github.sha }}");
+  expect(docsOnlyJob).toContain("EXPECTED_REF: refs/pull/${{ github.event.pull_request.number }}/merge");
+  expect(docsOnlyJob).toContain("fetch-depth: 0");
+  expect(docsOnlyJob).toContain("persist-credentials: false");
+  expect(docsOnlyJob).toContain("node-version: 24.19.0");
+  expect(docsOnlyJob).toContain("rel-00-ci-b7-docs-only-classifier.mjs --github-output");
 
   for (const result of ["failure", "cancelled", "skipped", "timed_out"]) {
     const shellCheck = spawnSync(
@@ -516,7 +538,7 @@ test("binds npm download caching to the committed lockfile without weakening ver
   const draftJob = blockBetween(
     workflow,
     "draft-provider-free-verification",
-    "provider-free-verification-shard",
+    "ready-docs-only-classification",
   );
   const shardJob = blockBetween(
     workflow,
@@ -595,7 +617,7 @@ test("binds npm download caching to the committed lockfile without weakening ver
   }
 
   const aggregateJob = blockBetween(workflow, "provider-free-verification");
-  expect(aggregateJob).toContain('run: test "$SHARD_RESULT" = "success"');
+  expect(aggregateJob).toContain('test "$SHARD_RESULT" = "success"');
   expect(aggregateJob).not.toContain("continue-on-error");
 });
 

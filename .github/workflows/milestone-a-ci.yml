@@ -61,9 +61,48 @@ jobs:
           git diff --exit-code
           git diff --cached --exit-code
 
+  ready-docs-only-classification:
+    name: ready-docs-only-classification
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      disposition: ${{ steps.classify.outputs.disposition }}
+      reason: ${{ steps.classify.outputs.reason }}
+    steps:
+      - name: Checkout exact GitHub merge candidate with merge-base history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact GitHub merge candidate identity
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
+          EXPECTED_REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_REVISION"
+          test "$GITHUB_REF" = "$EXPECTED_REF"
+      - name: Set up Node.js 24.19.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.19.0
+      - name: Classify only exact plain-documentation changes
+        id: classify
+        env:
+          BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+          CANDIDATE_REVISION: ${{ github.sha }}
+        run: node scripts/rel-00-ci-b7-docs-only-classifier.mjs --github-output "$GITHUB_OUTPUT" "$BASE_REVISION" "$CANDIDATE_REVISION"
+      - name: Verify tracked source remained unchanged
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+
   provider-free-verification-shard:
     name: provider-free-verification / ${{ matrix.shard }}
-    if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }}
+    if: ${{ always() && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}
+    needs:
+      - ready-docs-only-classification
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -114,23 +153,34 @@ jobs:
     name: provider-free-verification
     if: ${{ always() }}
     needs:
+      - ready-docs-only-classification
       - provider-free-verification-shard
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Require every provider-free shard to succeed
+      - name: Require docs-only verification or every provider-free shard to succeed
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_DRAFT: ${{ github.event.pull_request.draft }}
+          READY_DOCS_ONLY_RESULT: ${{ needs.ready-docs-only-classification.result }}
+          READY_DOCS_ONLY_DISPOSITION: ${{ needs.ready-docs-only-classification.outputs.disposition }}
           SHARD_RESULT: ${{ needs.provider-free-verification-shard.result }}
-        run: test "$SHARD_RESULT" = "success"
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$PULL_REQUEST_DRAFT" = "false" ] && [ "$READY_DOCS_ONLY_DISPOSITION" = "docs_only" ]; then
+            test "$READY_DOCS_ONLY_RESULT" = "success"
+            exit 0
+          fi
+          test "$SHARD_RESULT" = "success"
 
   # POC only: this job records evidence after the unchanged six-shard Full CI.
   # It is deliberately not a required check, and exact-main Full CI remains
   # mandatory after every main push while the candidate model is being proven.
   merge-candidate-provenance:
     name: merge-candidate-provenance / POC
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.provider-free-verification.result == 'success' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.provider-free-verification.result == 'success' && needs.provider-free-verification-shard.result == 'success' }}
     needs:
       - provider-free-verification
+      - provider-free-verification-shard
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

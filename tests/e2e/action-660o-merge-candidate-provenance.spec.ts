@@ -225,7 +225,10 @@ test("keeps Draft CI, required aggregate and exact-main Full CI unchanged while 
   expect(workflow).toContain("post-merge-candidate-provenance:");
   expect(workflow).toContain("needs:\n      - provider-free-verification");
   expect(workflow).toContain("name: provider-free-verification");
-  expect(workflow).toContain('run: test "$SHARD_RESULT" = "success"');
+  expect(workflow).toContain('test "$SHARD_RESULT" = "success"');
+  expect(workflow).toContain(
+    "needs.provider-free-verification-shard.result == 'success'",
+  );
   expect(await source(scriptPath)).toContain(
     "exact_main_full_ci_retained_during_poc_no_deduplication_authorized",
   );

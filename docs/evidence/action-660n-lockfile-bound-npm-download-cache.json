@@ -11,7 +11,7 @@
     "cache_input": "npm",
     "cache_dependency_path": "package-lock.json",
     "package_lock_sha256": "19113dfa93671ddca7b5f2d4e01bb11794a5999d102408963727fbb1c7de0f40",
-    "workflow_sha256": "f41f286a04b0027438aa328afe118ab6a0b8287c609807fc919c9a8ab6cf7bb5",
+    "workflow_sha256": "e2d74101c154e28d4382389b5d18afc83691638fcea5a4544153d1a9ddf9ac48",
     "cached_material": "npm_download_cache_only",
     "node_modules_cached": false,
     "locked_install_command": "npm ci --ignore-scripts --no-audit --no-fund"
