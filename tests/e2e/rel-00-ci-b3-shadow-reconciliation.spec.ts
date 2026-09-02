@@ -48,7 +48,11 @@ type Fixture = {
 
 let reconciliation: ShadowRuntime;
 const evidence = JSON.parse(source(evidencePath)) as {
-  baseline: { full_shards: string[]; workflow_sha256: string };
+  baseline: {
+    protected_main_commit: string;
+    full_shards: string[];
+    workflow_sha256: string;
+  };
   fixtures: Fixture[];
 };
 

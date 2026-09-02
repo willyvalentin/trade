@@ -41,6 +41,7 @@ type CandidateRuntime = {
 
 type Fixture = {
   baseline: {
+    ci_b5_merge_commit: string;
     workflow_sha256: string;
     workflow_blob_sha: string;
     full_shards: string[];
