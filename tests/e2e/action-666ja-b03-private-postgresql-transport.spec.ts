@@ -36,6 +36,7 @@ type ClientFactory = (configuration: unknown) => {
 };
 
 type TransportModule = {
+  POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET: string;
   POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET: string;
   POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY: string;
   PositionVersionLineageV2WriterPrivatePostgresqlTransportCommandError: new () => Error;
@@ -93,7 +94,12 @@ function loadTransport(): TransportModule {
 
   return runModule(transportPath, (specifier) => {
     if (specifier === "server-only") return {};
-    if (specifier === "pg") return { Client: class Client {} };
+    if (specifier === "pg") {
+      return {
+        Client: class Client {},
+        types: { getTypeParser: () => (value: string) => value },
+      };
+    }
     if (specifier === "../position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract") {
       return sourceContract;
     }
@@ -130,14 +136,25 @@ function command() {
   };
 }
 
-function environment(transport: TransportModule, connectionString?: string) {
+function environment(
+  transport: TransportModule,
+  connectionString?: string,
+  certificateAuthority = validCertificateAuthority(),
+) {
   return connectionString
-    ? { [transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET]: connectionString }
+    ? {
+      [transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET]: connectionString,
+      [transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET]: certificateAuthority,
+    }
     : {};
 }
 
 function validConnectionString() {
   return "postgresql://ture_staging_b03_writer:not-a-real-password@db.pdvzyuhykomwfqyyztru.supabase.co:5432/postgres?sslmode=verify-full";
+}
+
+function validCertificateAuthority() {
+  return "-----BEGIN CERTIFICATE-----\nunit-test-certificate-authority\n-----END CERTIFICATE-----";
 }
 
 function factory(
@@ -180,6 +197,9 @@ test("666JA exposes one server-only, parameterized, fail-closed private V2 trans
   expect(transportSource.startsWith('import "server-only";')).toBe(true);
   expect(transportSource).toContain('from "pg"');
   expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET);
+  expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET);
+  expect(transportSource).toContain('url.searchParams.get("sslmode") !== "verify-full"');
+  expect(transportSource).toContain('url.searchParams.delete("sslmode")');
   expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY);
   expect(transportSource).not.toMatch(/NEXT_PUBLIC_/);
   expect(transportSource).not.toMatch(/createClient|fetch\s*\(|@\/lib\/supabase|@supabase/);
@@ -204,18 +224,18 @@ test("666JA exposes one server-only, parameterized, fail-closed private V2 trans
   expect(factoryCalls).toBe(0);
 });
 
-test("666JA records the approved staging attempt as rolled back, not as a live writer success", () => {
+test("666JA records the approved staging writer invocation and its verified rollback", () => {
   const documentation = source(documentationPath);
   const evidence = JSON.parse(source(evidencePath));
 
   expect(evidence).toMatchObject({
-    contract_version: "trade.action666ja.b03-private-postgresql-transport.v2",
+    contract_version: "trade.action666ja.b03-private-postgresql-transport.v3",
     action_id: "ACTION_666JA",
     scope: {
       source_only_transport_delivery: true,
       staging_connection_attempted: true,
-      staging_connection_executed: false,
-      writer_invoked: false,
+      staging_connection_executed: true,
+      writer_invoked: true,
       temporary_login_enabled_then_revoked: true,
       branch_deploy_secret_created_then_removed: true,
       synthetic_fixture_removed: true,
@@ -228,22 +248,29 @@ test("666JA records the approved staging attempt as rolled back, not as a live w
       provider_or_broker_contacted: false,
     },
     staging_attempt: {
-      result: "not_completed",
-      redacted_failure_class: "network_or_tls_pre_connection_failure",
-      authenticated_database_session_established: false,
-      writer_routine_invoked: false,
-      no_live_writer_result_is_claimed: true,
+      result: "created_then_rolled_back",
+      authenticated_database_session_established: true,
+      writer_routine_invoked: true,
+      committed_result_disposition: "created",
+      committed_result_position_version: 1,
+      client_transaction_rollback_executed: true,
+      no_durable_writer_result_remains: true,
     },
     preview_deployment: {
       context: "deploy-preview",
       transport_invoked: false,
       production_targeted: false,
     },
-    next_required_staging_authority:
-      "separately_approved_execution_environment_with_direct_verified_tls_staging_postgresql_reachability",
+    staging_completion: {
+      least_privileged_role_grants_revoked: true,
+      ipv4_addon_disabled_after_proof: true,
+      production_targeted: false,
+      provider_or_broker_contacted: false,
+    },
   });
   expect(documentation).toContain("`NOLOGIN`");
-  expect(documentation).toContain("`network_or_tls`");
+  expect(documentation).toContain("`created` receipt");
+  expect(documentation).toContain("`ROLLBACK`");
   expect(documentation).toContain("Netlify completed the normal PR preview");
   expect(documentation).toContain("deployment was triggered.");
 });
@@ -280,12 +307,18 @@ test("666JA sends only the frozen routine statement and projects one immutable c
   expect(trace.end).toBe(1);
   expect(trace.config).toEqual([
     expect.objectContaining({
+      connectionString: expect.not.stringContaining("sslmode"),
       connectionTimeoutMillis: 5_000,
       query_timeout: 5_000,
-      ssl: { rejectUnauthorized: true },
+      ssl: { ca: validCertificateAuthority(), rejectUnauthorized: true },
       statement_timeout: 5_000,
     }),
   ]);
+  const configuration = trace.config[0] as {
+    types: { getTypeParser: (oid: number, format?: "text" | "binary") => (value: string) => unknown };
+  };
+  expect(configuration.types.getTypeParser(20, "text")("1")).toBe(1);
+  expect(configuration.types.getTypeParser(20, "text")("2")).toBe("2");
   expect(trace.queries).toEqual([
     {
       name: "position-version-lineage-v2-writer-private-routine-v1",
@@ -313,6 +346,33 @@ test("666JA rejects widened or noncanonical input before connecting", async () =
   expect(trace.connect).toBe(0);
   expect(trace.end).toBe(0);
   expect(trace.queries).toEqual([]);
+});
+
+test("666JA rejects a missing or malformed certificate authority before connecting", async () => {
+  const transport = loadTransport();
+  const missingTrace = { config: [] as unknown[], connect: 0, end: 0, queries: [] as unknown[] };
+  expect(await rejection(
+    transport.executePositionVersionLineageV2WriterPrivatePostgresqlTransport(command(), {
+      environment: {
+        [transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET]: validConnectionString(),
+      },
+      clientFactory: factory({ rowCount: 1, rows: [] }, missingTrace),
+    }),
+  )).toBeInstanceOf(
+    transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
+  );
+  expect(missingTrace.config).toEqual([]);
+
+  const malformedTrace = { config: [] as unknown[], connect: 0, end: 0, queries: [] as unknown[] };
+  expect(await rejection(
+    transport.executePositionVersionLineageV2WriterPrivatePostgresqlTransport(command(), {
+      environment: environment(transport, validConnectionString(), "not-a-pem"),
+      clientFactory: factory({ rowCount: 1, rows: [] }, malformedTrace),
+    }),
+  )).toBeInstanceOf(
+    transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
+  );
+  expect(malformedTrace.config).toEqual([]);
 });
 
 test("666JA rejects non-staging credentials and ambiguous database results after cleanup", async () => {

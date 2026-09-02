@@ -23,16 +23,26 @@ client even when the database result is rejected.
 ## Approved staging exercise and rollback
 
 The separately approved 3 September 2026 staging exercise temporarily enabled
-LOGIN for `ture_staging_b03_writer` and created the protected, branch-deploy
-scoped `TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL` secret. Both
-were removed after the test; the role is again `NOLOGIN`, and all synthetic
-owner, recommendation, position, history, and idempotency records were
-verified absent.
+LOGIN for `ture_staging_b03_writer`, granted only `USAGE` on the private schema
+and `EXECUTE` on the one frozen writer routine, and created protected,
+branch-deploy scoped connection and project-CA values. The transport requires
+the CA value and keeps hostname-verifying TLS enabled; it does not weaken TLS
+to accommodate the project certificate chain.
 
-The isolated runtime probe reached neither an authenticated database session
-nor the writer routine: its redacted result was a pre-connection
-`network_or_tls` failure from this workstation. This is not treated as a
-successful writer invocation, replay, rejection, or database rollback proof.
+The isolated transport connected to staging, invoked exactly
+`private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)` for a
+fresh synthetic owner and recommendation, and received one `created` receipt
+with position version `1`. The invocation ran inside a client-owned
+transaction that executed `ROLLBACK` before the client closed. It therefore
+proved authenticated writer reachability and result decoding without leaving a
+position, history, idempotency receipt, recommendation state change, or other
+writer effect behind.
+
+Both branch-deploy values were removed after the test; the role is again
+`NOLOGIN` with neither private-schema usage nor writer execution. The
+synthetic user, recommendation, position, history, and idempotency counts were
+all verified as zero. The temporary IPv4 add-on was enabled only long enough
+to perform this direct-connection proof and was then disabled again.
 
 Netlify completed the normal PR preview for this branch. It did not invoke the
 transport because the source delivery has no runtime caller, and no production
@@ -45,10 +55,8 @@ provider, or broker binding. The approved exercise did not change branch
 protection, deploy an application, target production, or contact a provider or
 broker. Its local verification uses an injected fake client only.
 
-## Remaining staging proof
+## Closed staging proof
 
-Completing a live writer invocation requires separately approved execution
-from an environment with direct, verified-TLS reachability to staging
-PostgreSQL. That future proof must again use a temporary branch-deploy scoped
-secret and least-privileged login identity, then revoke both and verify the
-rollback. No production scope is implied.
+This completes the approved staging-login, least-privileged identity, private
+transport, writer-invocation, and rollback evidence for B-03. It grants no
+production, route, UI, queue, provider, or broker authority.

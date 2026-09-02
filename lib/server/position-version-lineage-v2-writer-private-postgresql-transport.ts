@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Client, type ClientConfig } from "pg";
+import { Client, types, type ClientConfig } from "pg";
 
 import {
   POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_NON_DATA_API_COMMAND_PORT_ROUTINE_SIGNATURE,
@@ -20,12 +20,16 @@ export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_VER
 export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET =
   "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL" as const;
 
+export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET =
+  "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_CA_PEM" as const;
+
 export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY =
   "select * from private.write_owner_bound_recommendation_position_v2($1, $2, $3)" as const;
 
 const CANONICAL_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const CANONICAL_COMMAND_DIGEST = /^[a-f0-9]{64}$/;
+const POSTGRES_INT8_OID = 20;
 const COMMAND_FIELDS = Object.freeze([
   "authenticatedServerOwner",
   "canonicalCommandDigest",
@@ -123,6 +127,26 @@ function readConnectionString(
   }
 }
 
+function readCertificateAuthority(
+  environment: Readonly<Record<string, string | undefined>>,
+): string {
+  const certificateAuthority =
+    environment[POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET];
+
+  if (
+    typeof certificateAuthority !== "string" ||
+    certificateAuthority.length === 0 ||
+    certificateAuthority.length > 16_384 ||
+    certificateAuthority.trim() !== certificateAuthority ||
+    !certificateAuthority.startsWith("-----BEGIN CERTIFICATE-----\n") ||
+    !certificateAuthority.endsWith("\n-----END CERTIFICATE-----")
+  ) {
+    return rejectConfiguration();
+  }
+
+  return certificateAuthority;
+}
+
 function readValidatedCommand(
   input: unknown,
 ): PositionVersionLineageV2WriterPrivateNonDataApiCommand {
@@ -188,13 +212,47 @@ function createDefaultClient(
   return new Client(configuration);
 }
 
-function connectionConfiguration(connectionString: string): Readonly<ClientConfig> {
+function parseWriterResultInt8(value: string): string | 1 {
+  // PostgreSQL's bigint wire type is parsed as a string by default. This
+  // frozen routine can only return the initial version (1); preserve every
+  // other value as text so the strict result decoder rejects it rather than
+  // accepting a widened value.
+  return value === "1" ? 1 : value;
+}
+
+const WRITER_RESULT_TYPE_OVERRIDES = Object.freeze({
+  getTypeParser: (...args: Parameters<typeof types.getTypeParser>) => {
+    const [oid, format] = args;
+
+    if (oid === POSTGRES_INT8_OID && (format === "text" || format === undefined)) {
+      return parseWriterResultInt8;
+    }
+
+    return types.getTypeParser(...args);
+  },
+});
+
+function connectionConfiguration(
+  connectionString: string,
+  certificateAuthority: string,
+): Readonly<ClientConfig> {
+  const url = new URL(connectionString);
+
+  // `pg` parses TLS options from a connection string after applying this
+  // explicit configuration. Passing `sslmode` through would therefore replace
+  // the supplied project CA with an empty TLS object. The input was already
+  // admitted only when it required verify-full; remove that parser control
+  // parameter so the explicit CA plus hostname-verifying TLS options remain
+  // authoritative for the actual connection.
+  url.searchParams.delete("sslmode");
+
   return Object.freeze({
-    connectionString,
+    connectionString: url.toString(),
     connectionTimeoutMillis: 5_000,
     query_timeout: 5_000,
     statement_timeout: 5_000,
-    ssl: Object.freeze({ rejectUnauthorized: true }),
+    ssl: Object.freeze({ ca: certificateAuthority, rejectUnauthorized: true }),
+    types: WRITER_RESULT_TYPE_OVERRIDES,
   });
 }
 
@@ -210,8 +268,9 @@ export async function executePositionVersionLineageV2WriterPrivatePostgresqlTran
 ): Promise<PositionVersionLineageV2WriterImmutableCommittedResultReceipt> {
   const command = readValidatedCommand(input);
   const connectionString = readConnectionString(options.environment ?? process.env);
+  const certificateAuthority = readCertificateAuthority(options.environment ?? process.env);
   const client = (options.clientFactory ?? createDefaultClient)(
-    connectionConfiguration(connectionString),
+    connectionConfiguration(connectionString, certificateAuthority),
   );
 
   let receipt: PositionVersionLineageV2WriterImmutableCommittedResultReceipt | null = null;
