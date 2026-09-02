@@ -7,6 +7,11 @@ const expectedShards = Object.freeze([
   "lossless-scalar",
 ]);
 
+const expectedCheckRunTargetNames = Object.freeze([
+  ...expectedShards.map((shard) => `provider-free-verification / ${shard}`),
+  "provider-free-verification",
+]);
+
 function deepFreeze(value, seen = new WeakSet()) {
   if (!value || typeof value !== "object" || seen.has(value)) {
     return value;
@@ -19,7 +24,7 @@ function deepFreeze(value, seen = new WeakSet()) {
 }
 
 export const requiredCheckProtectionProofPolicy = deepFreeze({
-  contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v1",
+  contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
   source_only: true,
   fresh_authenticated_readback_required: true,
   expected_repository: "willyvalentin/trade",
@@ -57,6 +62,49 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     branch_locked: false,
     rulesets: "must_be_empty",
   },
+  readback_source_topology: {
+    default_mode: "single_source_individual_job_endpoint",
+    fallback_mode: "cross_bound_two_authorized_get_only_sources",
+    policy_source_required_capability: "Administration:read",
+    collection_source_access:
+      "GET-only_check-run_collection_access_scope_not_introspected",
+    policy_source_observations:
+      "branch_protection_required_checks_rulesets_and_ready_pr_before_after",
+    collection_source_observations:
+      "ready_pr_before_after_merge_candidate_workflow_run_attempt_jobs_artifact_and_pr_head_check_runs",
+    cross_source_ready_pr_binding:
+      "same_repository_open_ready_pr_number_base_sha_head_sha_before_and_after",
+    source_labels_required: true,
+  },
+  check_run_collection_fallback: {
+    source_selection: "exactly_one_evidence_source_for_all_target_jobs",
+    fallback_precondition:
+      "direct_per_check_run_endpoint_403_for_one_attempt_job_bound_check_run_to_policy_source",
+    direct_per_check_run_endpoint:
+      "GET /repos/{owner}/{repo}/check-runs/{check_run_id}",
+    pr_head_collection_endpoint:
+      "GET /repos/{owner}/{repo}/commits/{pr_head_sha}/check-runs?filter=all&per_page=100&page=1",
+    collection_ref: "pr_head_sha_only",
+    collection_response:
+      "http_200_total_count_equals_returned_count_and_is_at_most_100",
+    target_check_run_names: expectedCheckRunTargetNames,
+    target_selection:
+      "exactly_one_collection_record_per_target_name_and_that_record_is_completed_success",
+    non_target_records:
+      "allowed_only_when_counted_but_never_selected_as_target_evidence",
+    run_attempt: "must_equal_1",
+    job_check_run_url_binding:
+      "attempt_job_check_run_url_equals_collection_check_run_url",
+    job_details_url_binding:
+      "attempt_job_html_url_equals_collection_check_run_details_url",
+    canonical_check_run_url:
+      "https://api.github.com/repos/{owner}/{repo}/check-runs/{check_run_id}",
+    canonical_details_url:
+      "https://github.com/{owner}/{repo}/actions/runs/{run_id}/job/{job_id}",
+    record_binding:
+      "pr_head_sha_check_run_check_suite_app_and_terminal_state_must_match_bound_run",
+    historical_scope: "current_pr_head_and_bound_run_only",
+  },
   fresh_readback_protocol: [
     "before GET /repos/{owner}/{repo}/branches/{branch}",
     "before GET /repos/{owner}/{repo}/branches/{branch}/protection",
@@ -70,8 +118,8 @@ export const requiredCheckProtectionProofPolicy = deepFreeze({
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
     "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}",
     "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}",
-    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100",
-    "GET /repos/{owner}/{repo}/check-runs/{job_id}",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100&page=1",
+    "GET-only check-run evidence under check_run_collection_fallback",
     "after GET /repos/{owner}/{repo}/branches/{branch}",
     "after GET /repos/{owner}/{repo}/branches/{branch}/protection",
     "after GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
@@ -177,6 +225,22 @@ function sameRequiredChecks(actual) {
   );
 }
 
+function sameExactFlatObject(actual, expected) {
+  try {
+    if (!hasExactOwnDataKeys(actual, Object.keys(expected))) {
+      return false;
+    }
+    return Object.entries(expected).every(([key, expectedValue]) => {
+      if (Array.isArray(expectedValue)) {
+        return sameExactStringArray(actual[key], expectedValue);
+      }
+      return actual[key] === expectedValue;
+    });
+  } catch {
+    return false;
+  }
+}
+
 function readContractProposal(proposal) {
   if (!proposal || typeof proposal !== "object") {
     return { ok: false, reason: "proof_contract_not_object" };
@@ -195,6 +259,8 @@ function readContractProposal(proposal) {
         "protected_aggregate",
         "exact_shards",
         "protection_profile",
+        "readback_source_topology",
+        "check_run_collection_fallback",
         "fresh_readback_protocol",
         "authority",
       ])
@@ -215,6 +281,8 @@ function readContractProposal(proposal) {
         protected_aggregate: proposal.protected_aggregate,
         exact_shards: proposal.exact_shards,
         protection_profile: proposal.protection_profile,
+        readback_source_topology: proposal.readback_source_topology,
+        check_run_collection_fallback: proposal.check_run_collection_fallback,
         fresh_readback_protocol: proposal.fresh_readback_protocol,
         authority: proposal.authority,
       },
@@ -226,8 +294,13 @@ function readContractProposal(proposal) {
 
 function matchesExpectedContract(snapshot) {
   try {
-    const { protection_profile: profile, workflow, protected_aggregate: aggregate } =
-      snapshot;
+    const {
+      protection_profile: profile,
+      workflow,
+      protected_aggregate: aggregate,
+      readback_source_topology: sourceTopology,
+      check_run_collection_fallback: checkRunCollectionFallback,
+    } = snapshot;
     const authority = snapshot.authority;
     if (
       !hasExactOwnDataKeys(snapshot, [
@@ -240,6 +313,8 @@ function matchesExpectedContract(snapshot) {
         "protected_aggregate",
         "exact_shards",
         "protection_profile",
+        "readback_source_topology",
+        "check_run_collection_fallback",
         "fresh_readback_protocol",
         "authority",
       ]) ||
@@ -294,6 +369,14 @@ function matchesExpectedContract(snapshot) {
       profile.linear_history_required !== false ||
       profile.branch_locked !== false ||
       profile.rulesets !== "must_be_empty" ||
+      !sameExactFlatObject(
+        sourceTopology,
+        requiredCheckProtectionProofPolicy.readback_source_topology,
+      ) ||
+      !sameExactFlatObject(
+        checkRunCollectionFallback,
+        requiredCheckProtectionProofPolicy.check_run_collection_fallback,
+      ) ||
       !sameExactStringArray(
         snapshot.fresh_readback_protocol,
         requiredCheckProtectionProofPolicy.fresh_readback_protocol,
@@ -359,6 +442,16 @@ function policyBinding() {
       app_slug: requiredCheckProtectionProofPolicy.protected_aggregate.app_slug,
     },
     exact_shards: [...requiredCheckProtectionProofPolicy.exact_shards],
+    readback_source_topology: {
+      ...requiredCheckProtectionProofPolicy.readback_source_topology,
+    },
+    check_run_collection_fallback: {
+      ...requiredCheckProtectionProofPolicy.check_run_collection_fallback,
+      target_check_run_names: [
+        ...requiredCheckProtectionProofPolicy.check_run_collection_fallback
+          .target_check_run_names,
+      ],
+    },
     fresh_readback_protocol: [
       ...requiredCheckProtectionProofPolicy.fresh_readback_protocol,
     ],
