@@ -12,7 +12,8 @@
     "rollback_verified": true,
     "secret_value_logged_or_committed": false,
     "runtime_or_route_bound": false,
-    "netlify_deployment_triggered": false,
+    "netlify_deploy_preview_completed": true,
+    "netlify_production_deploy_triggered": false,
     "production_targeted": false,
     "provider_or_broker_contacted": false
   },
@@ -22,6 +23,11 @@
     "authenticated_database_session_established": false,
     "writer_routine_invoked": false,
     "no_live_writer_result_is_claimed": true
+  },
+  "preview_deployment": {
+    "context": "deploy-preview",
+    "transport_invoked": false,
+    "production_targeted": false
   },
   "transport": {
     "module": "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts",

@@ -33,7 +33,10 @@ The isolated runtime probe reached neither an authenticated database session
 nor the writer routine: its redacted result was a pre-connection
 `network_or_tls` failure from this workstation. This is not treated as a
 successful writer invocation, replay, rejection, or database rollback proof.
-No Netlify deployment was triggered.
+
+Netlify completed the normal PR preview for this branch. It did not invoke the
+transport because the source delivery has no runtime caller, and no production
+deployment was triggered.
 
 ## Closed authority
 

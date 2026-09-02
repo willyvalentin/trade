@@ -222,7 +222,8 @@ test("666JA records the approved staging attempt as rolled back, not as a live w
       rollback_verified: true,
       secret_value_logged_or_committed: false,
       runtime_or_route_bound: false,
-      netlify_deployment_triggered: false,
+      netlify_deploy_preview_completed: true,
+      netlify_production_deploy_triggered: false,
       production_targeted: false,
       provider_or_broker_contacted: false,
     },
@@ -233,12 +234,18 @@ test("666JA records the approved staging attempt as rolled back, not as a live w
       writer_routine_invoked: false,
       no_live_writer_result_is_claimed: true,
     },
+    preview_deployment: {
+      context: "deploy-preview",
+      transport_invoked: false,
+      production_targeted: false,
+    },
     next_required_staging_authority:
       "separately_approved_execution_environment_with_direct_verified_tls_staging_postgresql_reachability",
   });
   expect(documentation).toContain("`NOLOGIN`");
   expect(documentation).toContain("`network_or_tls`");
-  expect(documentation).toContain("No Netlify deployment was triggered.");
+  expect(documentation).toContain("Netlify completed the normal PR preview");
+  expect(documentation).toContain("deployment was triggered.");
 });
 
 test("666JA sends only the frozen routine statement and projects one immutable created receipt", async () => {
