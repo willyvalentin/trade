@@ -81,7 +81,7 @@ function expectDeeplyFrozen(value: unknown, seen = new WeakSet<object>()) {
 
 function expectContainment(receipt: Record<string, unknown>) {
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
     outcome: "broad_containment_required",
     proof_binding: null,
     readback_requirement: null,
@@ -122,10 +122,16 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
   const candidateSource = source(candidatePath);
 
   expect(evidence).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
     workstream: "REL-00",
     substage: "CI-B5",
     status: "source_only_not_activated",
+    amendment: {
+      prior_contract_version:
+        "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+      reason: "carry_b4_v2_fully_bound_check_run_collection_fallback",
+      scope: "source_only_protocol_and_validator",
+    },
     baseline: {
       ci_b4_merge_commit: "a0a3a67d624c9ccc76f2e7eedbc1c93750abc564",
       ci_b4_merge_tree: "15e95f251c8412c95d8e82500c5b98c64f9798e8",
@@ -169,7 +175,7 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
     },
   });
   expect(candidate.requiredCheckReadbackCandidatePolicy).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
     source_only: true,
     external_readback_performed: false,
     serialized_input: {
@@ -178,8 +184,9 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
       object_input_accepted: false,
     },
     expected_b4_contract_version:
-      "trade.rel00.ci-b4.required-check-protection-proof.v1",
+      "trade.rel00.ci-b4.required-check-protection-proof.v2",
     readback_shape: {
+      schema_version: "trade.rel00.ci-b5.readback-shape.v2",
       required_reader_capability: "Administration:read",
       mode: "fresh_authenticated_read_only",
       raw_api_response_allowed: false,
@@ -200,8 +207,39 @@ test("REL-00 CI-B5 remains source-only and preserves the exact Full-CI profile",
     (b4Evidence.proof_contract_fixture as Record<string, unknown>)
       .fresh_readback_protocol,
   );
+  expect(
+    (
+      candidate.requiredCheckReadbackCandidatePolicy.readback_shape as Record<
+        string,
+        unknown
+      >
+    ).source_topology,
+  ).toEqual(
+    ((evidence.candidate_contract_fixture.readback_shape as Record<string, unknown>)
+      .source_topology),
+  );
+  expect(
+    (
+      candidate.requiredCheckReadbackCandidatePolicy.readback_shape as Record<
+        string,
+        unknown
+      >
+    ).check_run_collection_fallback,
+  ).toEqual(
+    ((evidence.candidate_contract_fixture.readback_shape as Record<string, unknown>)
+      .check_run_collection_fallback),
+  );
+  expect(
+    (
+      candidate.requiredCheckReadbackCandidatePolicy.readback_shape as Record<
+        string,
+        unknown
+      >
+    ).identity_binding_fields,
+  ).toContain("check_run_check_suite_id");
   expect(contract).toContain("strict JSON text");
   expect(contract).toContain("not perform a readback");
+  expect(contract).toContain("cross-bound two-source, GET-only session");
   expect(contract).toContain("CI-B7 remains the separate CI-policy decision point");
   expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
     evidence.baseline.workflow_sha256,
@@ -229,7 +267,7 @@ test("REL-00 CI-B5 produces only a detached unactivated readback candidate", () 
   );
 
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+    contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
     outcome: "shadow_readback_shape_valid",
     reason: null,
     proof_binding: {
@@ -246,6 +284,12 @@ test("REL-00 CI-B5 produces only a detached unactivated readback candidate", () 
         app_slug: "github-actions",
       },
       exact_shards: evidence.baseline.full_shards,
+      readback_source_topology: (
+        b4Evidence.proof_contract_fixture as Record<string, unknown>
+      ).readback_source_topology,
+      check_run_collection_fallback: (
+        b4Evidence.proof_contract_fixture as Record<string, unknown>
+      ).check_run_collection_fallback,
       fresh_readback_protocol:
         b4Evidence.proof_contract_fixture.fresh_readback_protocol,
     },
@@ -254,6 +298,12 @@ test("REL-00 CI-B5 produces only a detached unactivated readback candidate", () 
       mode: "fresh_authenticated_read_only",
       raw_api_response_allowed: false,
       mutation_methods_allowed: false,
+      source_topology: (
+        evidence.candidate_contract_fixture.readback_shape as Record<string, unknown>
+      ).source_topology,
+      check_run_collection_fallback: (
+        evidence.candidate_contract_fixture.readback_shape as Record<string, unknown>
+      ).check_run_collection_fallback,
       terminal_check_result: "completed_success_only",
       pagination: "must_be_complete",
       rulesets: "must_be_empty",
@@ -338,6 +388,35 @@ test("REL-00 CI-B5 fails closed for proof, shape, rollback and authority drift",
         (value.readback_shape as Record<string, unknown>)
           .identity_binding_fields as string[]
       )[0] = "candidate_sha";
+    },
+    (value) => {
+      (value.readback_shape as Record<string, unknown>).source_topology = {
+        mode: "unbound",
+      };
+    },
+    (value) => {
+      (value.readback_shape as Record<string, unknown>)
+        .check_run_collection_fallback = {
+        collection_ref: "candidate_sha",
+      };
+    },
+    (value) => {
+      (
+        (value.readback_shape as Record<string, unknown>)
+          .check_run_collection_fallback as Record<string, unknown>
+      ).collection_response = "partial_allowed";
+    },
+    (value) => {
+      (
+        (value.readback_shape as Record<string, unknown>)
+          .check_run_collection_fallback as Record<string, unknown>
+      ).target_selection = "one_success_record_per_target_name";
+    },
+    (value) => {
+      (
+        (value.readback_shape as Record<string, unknown>)
+          .check_run_collection_fallback as Record<string, unknown>
+      ).job_details_url_binding = "job_id_equals_check_run_id";
     },
     (value) => {
       (value.readback_shape as Record<string, unknown>)

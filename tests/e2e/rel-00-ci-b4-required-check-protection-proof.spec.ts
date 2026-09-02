@@ -62,7 +62,7 @@ function expectDeeplyFrozen(value: unknown, seen = new WeakSet<object>()) {
 
 function expectContainment(receipt: Record<string, unknown>) {
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v1",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
     outcome: "broad_containment_required",
     policy_binding: null,
     effective_tier: 3,
@@ -91,10 +91,16 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   const proofSource = source(proofPath);
 
   expect(evidence).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v1",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
     workstream: "REL-00",
     substage: "CI-B4",
     status: "source_only_not_activated",
+    amendment: {
+      prior_contract_version:
+        "trade.rel00.ci-b4.required-check-protection-proof.v1",
+      reason: "allow_fully_bound_pr_head_check_run_collection_fallback",
+      scope: "source_only_protocol_and_validator",
+    },
     baseline: {
       ci_b3_merge_commit: "87b44e139a600a9e26ff13b0f9a8944e29983470",
       ci_b3_merge_tree: "c8aba023a4696f4a90b5c0b2d68efaf05d704acd",
@@ -125,12 +131,15 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
       fresh_authenticated_readback_required: true,
       external_state_verified: false,
       candidate_sha_check_runs_authoritative: false,
+      check_run_collection_fallback: "pr_head_only_cross_bound_get_only",
+      required_binding:
+        "pr_head_sha_plus_run_id_plus_attempt_plus_check_suite_plus_job_and_check_run_url_pairs",
       effective_tier: 3,
       effective_disposition: "broad_containment",
     },
   });
   expect(proof.requiredCheckProtectionProofPolicy).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v1",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
     source_only: true,
     fresh_authenticated_readback_required: true,
     expected_repository: "willyvalentin/trade",
@@ -156,7 +165,24 @@ test("REL-00 CI-B4 remains source-only and freezes the unchanged protected profi
   expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
     "after GET /repos/{owner}/{repo}/pulls/{pr_number}",
   );
+  expect(proof.requiredCheckProtectionProofPolicy.fresh_readback_protocol).toContain(
+    "GET-only check-run evidence under check_run_collection_fallback",
+  );
+  expect(proof.requiredCheckProtectionProofPolicy.readback_source_topology).toEqual(
+    (evidence.proof_contract_fixture as Record<string, unknown>)
+      .readback_source_topology,
+  );
+  expect(proof.requiredCheckProtectionProofPolicy.check_run_collection_fallback).toEqual(
+    (evidence.proof_contract_fixture as Record<string, unknown>)
+      .check_run_collection_fallback,
+  );
+  expect(
+    proof.requiredCheckProtectionProofPolicy.check_run_collection_fallback
+      .direct_per_check_run_endpoint,
+  ).toBe("GET /repos/{owner}/{repo}/check-runs/{check_run_id}");
   expect(contract).toContain("does not\nperform that readback");
+  expect(contract).toContain("two explicitly labelled, GET-only sources");
+  expect(contract).toContain("parsed from the bound attempt job's `check_run_url`");
   expect(contract).toContain("CI-B7 remains the separately authorized policy decision");
   expect(createHash("sha256").update(workflow, "utf8").digest("hex")).toBe(
     evidence.baseline.workflow_sha256,
@@ -180,7 +206,7 @@ test("REL-00 CI-B4 produces only a detached fresh-readback requirement", () => {
   const receipt = proof.buildRequiredCheckProtectionProof(input);
 
   expect(receipt).toMatchObject({
-    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v1",
+    contract_version: "trade.rel00.ci-b4.required-check-protection-proof.v2",
     outcome: "contract_only_fresh_readback_required",
     reason: null,
     policy_binding: {
@@ -197,6 +223,12 @@ test("REL-00 CI-B4 produces only a detached fresh-readback requirement", () => {
         app_slug: "github-actions",
       },
       exact_shards: evidence.baseline.full_shards,
+      readback_source_topology: (
+        evidence.proof_contract_fixture as Record<string, unknown>
+      ).readback_source_topology,
+      check_run_collection_fallback: (
+        evidence.proof_contract_fixture as Record<string, unknown>
+      ).check_run_collection_fallback,
       fresh_readback_protocol:
         evidence.proof_contract_fixture.fresh_readback_protocol,
     },
@@ -252,6 +284,40 @@ test("REL-00 CI-B4 fails closed for policy, protocol and authority drift", () =>
     (value) => {
       (value.fresh_readback_protocol as string[])[0] =
         "POST /repos/{owner}/{repo}/branches/{branch}";
+    },
+    (value) => {
+      (value.readback_source_topology as Record<string, unknown>).fallback_mode =
+        "single_unbound_source";
+    },
+    (value) => {
+      (value.readback_source_topology as Record<string, unknown>)
+        .cross_source_ready_pr_binding = "head_only";
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .pr_head_collection_endpoint =
+        "GET /repos/{owner}/{repo}/commits/{candidate_sha}/check-runs?filter=all&per_page=100&page=1";
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .collection_response = "partial_allowed";
+    },
+    (value) => {
+      ((value.check_run_collection_fallback as Record<string, unknown>)
+        .target_check_run_names as string[]).reverse();
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .target_selection = "one_success_record_per_target_name";
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .direct_per_check_run_endpoint =
+        "GET /repos/{owner}/{repo}/check-runs/{job_id}";
+    },
+    (value) => {
+      (value.check_run_collection_fallback as Record<string, unknown>)
+        .job_check_run_url_binding = "check_run_id_equals_job_id";
     },
     (value) => {
       (value.authority as Record<string, unknown>).mergeability_decision = true;

@@ -15,6 +15,25 @@ const expectedIdentityBindingFields = Object.freeze([
   "run_attempt",
   "check_suite_id",
   "job_id",
+  "job_name",
+  "job_check_run_url",
+  "job_html_url",
+  "check_run_id",
+  "check_run_name",
+  "check_run_head_sha",
+  "check_run_check_suite_id",
+  "check_run_url",
+  "check_run_details_url",
+  "check_run_app_id",
+  "check_run_app_slug",
+  "check_run_status",
+  "check_run_conclusion",
+  "check_run_collection_ref",
+  "check_run_collection_filter",
+  "check_run_collection_per_page",
+  "check_run_collection_page",
+  "check_run_collection_total_count",
+  "check_run_collection_returned_count",
   "artifact_id",
   "artifact_sha256",
 ]);
@@ -31,7 +50,7 @@ function deepFreeze(value, seen = new WeakSet()) {
 }
 
 export const requiredCheckReadbackCandidatePolicy = deepFreeze({
-  contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v1",
+  contract_version: "trade.rel00.ci-b5.required-check-readback-candidate.v2",
   source_only: true,
   external_readback_performed: false,
   serialized_input: {
@@ -42,11 +61,21 @@ export const requiredCheckReadbackCandidatePolicy = deepFreeze({
   expected_b4_contract_version:
     requiredCheckProtectionProofPolicy.contract_version,
   readback_shape: {
-    schema_version: "trade.rel00.ci-b5.readback-shape.v1",
+    schema_version: "trade.rel00.ci-b5.readback-shape.v2",
     required_reader_capability: "Administration:read",
     mode: "fresh_authenticated_read_only",
     raw_api_response_allowed: false,
     mutation_methods_allowed: false,
+    source_topology: {
+      ...requiredCheckProtectionProofPolicy.readback_source_topology,
+    },
+    check_run_collection_fallback: {
+      ...requiredCheckProtectionProofPolicy.check_run_collection_fallback,
+      target_check_run_names: [
+        ...requiredCheckProtectionProofPolicy.check_run_collection_fallback
+          .target_check_run_names,
+      ],
+    },
     protocol: [...requiredCheckProtectionProofPolicy.fresh_readback_protocol],
     identity_binding_fields: [...expectedIdentityBindingFields],
     terminal_check_result: "completed_success_only",
@@ -152,6 +181,22 @@ function sameExactStringArray(actual, expected) {
       }
     }
     return true;
+  } catch {
+    return false;
+  }
+}
+
+function sameExactFlatObject(actual, expected) {
+  try {
+    if (!hasExactOwnDataKeys(actual, Object.keys(expected))) {
+      return false;
+    }
+    return Object.entries(expected).every(([key, expectedValue]) => {
+      if (Array.isArray(expectedValue)) {
+        return sameExactStringArray(actual[key], expectedValue);
+      }
+      return actual[key] === expectedValue;
+    });
   } catch {
     return false;
   }
@@ -473,6 +518,8 @@ function matchesReadbackShape(shape) {
         "mode",
         "raw_api_response_allowed",
         "mutation_methods_allowed",
+        "source_topology",
+        "check_run_collection_fallback",
         "protocol",
         "identity_binding_fields",
         "terminal_check_result",
@@ -486,6 +533,15 @@ function matchesReadbackShape(shape) {
       shape.mode !== requiredCheckReadbackCandidatePolicy.readback_shape.mode ||
       shape.raw_api_response_allowed !== false ||
       shape.mutation_methods_allowed !== false ||
+      !sameExactFlatObject(
+        shape.source_topology,
+        requiredCheckReadbackCandidatePolicy.readback_shape.source_topology,
+      ) ||
+      !sameExactFlatObject(
+        shape.check_run_collection_fallback,
+        requiredCheckReadbackCandidatePolicy.readback_shape
+          .check_run_collection_fallback,
+      ) ||
       !sameExactStringArray(
         shape.protocol,
         requiredCheckReadbackCandidatePolicy.readback_shape.protocol,
@@ -567,6 +623,16 @@ function requiredProofBinding() {
       app_slug: requiredCheckProtectionProofPolicy.protected_aggregate.app_slug,
     },
     exact_shards: [...requiredCheckProtectionProofPolicy.exact_shards],
+    readback_source_topology: {
+      ...requiredCheckProtectionProofPolicy.readback_source_topology,
+    },
+    check_run_collection_fallback: {
+      ...requiredCheckProtectionProofPolicy.check_run_collection_fallback,
+      target_check_run_names: [
+        ...requiredCheckProtectionProofPolicy.check_run_collection_fallback
+          .target_check_run_names,
+      ],
+    },
     fresh_readback_protocol: [
       ...requiredCheckProtectionProofPolicy.fresh_readback_protocol,
     ],
@@ -580,6 +646,17 @@ function readbackRequirement() {
     mode: requiredCheckReadbackCandidatePolicy.readback_shape.mode,
     raw_api_response_allowed: false,
     mutation_methods_allowed: false,
+    source_topology: {
+      ...requiredCheckReadbackCandidatePolicy.readback_shape.source_topology,
+    },
+    check_run_collection_fallback: {
+      ...requiredCheckReadbackCandidatePolicy.readback_shape
+        .check_run_collection_fallback,
+      target_check_run_names: [
+        ...requiredCheckReadbackCandidatePolicy.readback_shape
+          .check_run_collection_fallback.target_check_run_names,
+      ],
+    },
     identity_binding_fields: [
       ...requiredCheckReadbackCandidatePolicy.readback_shape.identity_binding_fields,
     ],

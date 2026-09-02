@@ -2,7 +2,7 @@
 
 ## Bounded objective
 
-CI-B4 freezes a pure contract for a future, authenticated readback of the
+CI-B4 v2 freezes a pure contract for a future, authenticated readback of the
 protected `main` required check and branch-protection profile. It does not
 perform that readback. Its only positive result is
 `contract_only_fresh_readback_required`, which is an explicit statement that a
@@ -31,26 +31,57 @@ unknown or nonempty ruleset is containment, not an equivalence claim.
 
 ## Future readback protocol
 
-An independently authorized, least-privileged reader must obtain all values
-fresh in one bounded session. It reads branch, protection,
-required-status-checks and rulesets before and after its other observations;
-it also reads the open Ready PR before and after. The repository, `main`, PR
-state, base SHA and head SHA must be identical in both observations.
+An independently authorized, least-privileged observer must obtain all values
+fresh in one bounded logical session. The normal path remains one source using
+the individual `GET /repos/{owner}/{repo}/check-runs/{check_run_id}` endpoint,
+where `check_run_id` is parsed from the bound attempt job's `check_run_url`.
+The v2 fallback is deliberately narrower: it is available only after the
+`Administration:read` policy source records a `403` from that endpoint for one
+attempt-job-bound check run, and it then uses exactly one check-run evidence
+source for every target job.
 
-While that PR remains open, it binds `refs/pull/{pr_number}/merge`, candidate
-SHA/tree and ordered parents `[base, head]`, then the workflow path/blob at the
-candidate. It binds the contemporaneous POC candidate identity to one exact
-Actions run, run attempt, check suite and job IDs. Each of the six shard jobs
-and the aggregate must occur exactly once and be literally
-`completed/success`, with the exact PR head and GitHub Actions application.
-A rerun, duplicate, pagination uncertainty, missing field, neutral, skipped,
-cancelled, timed-out, stale or merge-queue result is broad containment.
+The fallback permits two explicitly labelled, GET-only sources without
+claiming that the collection source's underlying scope can be introspected.
+The policy source is authoritative only for the branch, protection,
+required-status-checks, rulesets and Ready-PR before/after reads. The
+collection source independently reads the Ready PR before and after, candidate,
+workflow, run, attempt, jobs, artifact and the check-run collection. Both
+sources must observe the same repository, open Ready PR number, base SHA and
+head SHA before and after; the policy source's `main` must equal that PR base.
+Any source mismatch, source-label omission or state drift is broad containment.
+
+While that PR remains open, the collection source binds
+`refs/pull/{pr_number}/merge`, candidate SHA/tree and ordered parents
+`[base, head]`, then the workflow path/blob at the candidate. It binds the
+contemporaneous POC candidate identity to one exact Actions run, **attempt 1**,
+check suite and job IDs. The attempt-jobs listing is first-page
+`per_page=100&page=1` and must be complete. A rerun, duplicate, pagination
+uncertainty, missing field, neutral, skipped, cancelled, timed-out, stale or
+merge-queue result is broad containment.
+
+The sole collection fallback is
+`GET /repos/{owner}/{repo}/commits/{pr_head_sha}/check-runs?filter=all&per_page=100&page=1`.
+Its `pr_head_sha` is the exact Ready-PR head, never candidate SHA, `main` or a
+branch ref. It must return HTTP 200 with an integer `total_count` at most 100
+and exactly that many returned records. Non-target records are allowed only as
+counted records; they cannot satisfy a target. `filter=all` prevents a latest-
+only response from hiding a rerun or duplicate.
+
+For each six-shard check-run name and `provider-free-verification`, exactly one
+collection record of that name must exist, and it must be `completed/success`,
+have that PR head, the bound check-suite, GitHub Actions app `15368` /
+`github-actions`, and be linked to its exact attempt job. The link is
+two-sided: `attempt_job.check_run_url` equals the collection record's API URL,
+`attempt_job.html_url` equals its exact canonical details URL
+`https://github.com/{owner}/{repo}/actions/runs/{run_id}/job/{job_id}`, and
+the collection record's `check_suite.id` equals the run's bound check-suite ID.
+`check_run.id` and Actions `job.id` are never assumed equal. This fallback
+proves only the current PR-head and bound run, never historical check suites.
 
 Candidate-SHA check-run lookup is deliberately not a proof source. GitHub's
 synthetic merge candidate can have no check runs even while the PR-head run is
 valid. A name-only aggregate selection is also unsafe because historical PR
-heads can retain stale checks with the same name. The later readback therefore
-must bind PR head SHA + run ID + attempt + check suite + job ID/details URL.
+heads can retain stale checks with the same name.
 
 ## Deliberate non-activation
 
