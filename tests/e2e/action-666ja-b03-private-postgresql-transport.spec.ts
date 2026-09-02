@@ -20,6 +20,8 @@ const receiptPath =
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
+const documentationPath = "docs/action-666ja-b03-private-postgresql-transport.md";
+const evidencePath = "docs/evidence/action-666ja-b03-private-postgresql-transport.json";
 const thisTest =
   "tests/e2e/action-666ja-b03-private-postgresql-transport.spec.ts";
 
@@ -200,6 +202,43 @@ test("666JA exposes one server-only, parameterized, fail-closed private V2 trans
     transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
   );
   expect(factoryCalls).toBe(0);
+});
+
+test("666JA records the approved staging attempt as rolled back, not as a live writer success", () => {
+  const documentation = source(documentationPath);
+  const evidence = JSON.parse(source(evidencePath));
+
+  expect(evidence).toMatchObject({
+    contract_version: "trade.action666ja.b03-private-postgresql-transport.v2",
+    action_id: "ACTION_666JA",
+    scope: {
+      source_only_transport_delivery: true,
+      staging_connection_attempted: true,
+      staging_connection_executed: false,
+      writer_invoked: false,
+      temporary_login_enabled_then_revoked: true,
+      branch_deploy_secret_created_then_removed: true,
+      synthetic_fixture_removed: true,
+      rollback_verified: true,
+      secret_value_logged_or_committed: false,
+      runtime_or_route_bound: false,
+      netlify_deployment_triggered: false,
+      production_targeted: false,
+      provider_or_broker_contacted: false,
+    },
+    staging_attempt: {
+      result: "not_completed",
+      redacted_failure_class: "network_or_tls_pre_connection_failure",
+      authenticated_database_session_established: false,
+      writer_routine_invoked: false,
+      no_live_writer_result_is_claimed: true,
+    },
+    next_required_staging_authority:
+      "separately_approved_execution_environment_with_direct_verified_tls_staging_postgresql_reachability",
+  });
+  expect(documentation).toContain("`NOLOGIN`");
+  expect(documentation).toContain("`network_or_tls`");
+  expect(documentation).toContain("No Netlify deployment was triggered.");
 });
 
 test("666JA sends only the frozen routine statement and projects one immutable created receipt", async () => {

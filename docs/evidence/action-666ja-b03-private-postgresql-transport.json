@@ -1,14 +1,27 @@
 {
-  "contract_version": "trade.action666ja.b03-private-postgresql-transport.v1",
+  "contract_version": "trade.action666ja.b03-private-postgresql-transport.v2",
   "action_id": "ACTION_666JA",
   "scope": {
     "source_only_transport_delivery": true,
+    "staging_connection_attempted": true,
     "staging_connection_executed": false,
-    "secret_value_read_or_committed": false,
+    "writer_invoked": false,
+    "temporary_login_enabled_then_revoked": true,
+    "branch_deploy_secret_created_then_removed": true,
+    "synthetic_fixture_removed": true,
+    "rollback_verified": true,
+    "secret_value_logged_or_committed": false,
     "runtime_or_route_bound": false,
-    "netlify_or_deployment_changed": false,
+    "netlify_deployment_triggered": false,
     "production_targeted": false,
     "provider_or_broker_contacted": false
+  },
+  "staging_attempt": {
+    "result": "not_completed",
+    "redacted_failure_class": "network_or_tls_pre_connection_failure",
+    "authenticated_database_session_established": false,
+    "writer_routine_invoked": false,
+    "no_live_writer_result_is_claimed": true
   },
   "transport": {
     "module": "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts",
@@ -22,5 +35,5 @@
     "strict_result_cardinality": "exactly_one",
     "immutable_receipt_projection": true
   },
-  "next_required_staging_authority": "separately_approved_branch_deploy_scoped_secret_and_login_enabled_writer_identity"
+  "next_required_staging_authority": "separately_approved_execution_environment_with_direct_verified_tls_staging_postgresql_reachability"
 }

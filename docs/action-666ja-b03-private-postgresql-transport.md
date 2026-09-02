@@ -20,16 +20,32 @@ recomputes the canonical command digest, requires one result row, decodes the
 frozen result shape, returns a new immutable receipt, and closes its short-lived
 client even when the database result is rejected.
 
+## Approved staging exercise and rollback
+
+The separately approved 3 September 2026 staging exercise temporarily enabled
+LOGIN for `ture_staging_b03_writer` and created the protected, branch-deploy
+scoped `TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL` secret. Both
+were removed after the test; the role is again `NOLOGIN`, and all synthetic
+owner, recommendation, position, history, and idempotency records were
+verified absent.
+
+The isolated runtime probe reached neither an authenticated database session
+nor the writer routine: its redacted result was a pre-connection
+`network_or_tls` failure from this workstation. This is not treated as a
+successful writer invocation, replay, rejection, or database rollback proof.
+No Netlify deployment was triggered.
+
 ## Closed authority
 
-This source delivery does not create a Netlify variable, enable LOGIN on the
-staging role, create a database connection, invoke the writer against staging,
-bind a runtime caller, deploy, alter branch protection, or contact a provider
-or broker. Its local verification uses an injected fake client only.
+This source delivery has no runtime caller, route, UI, queue, deployment,
+provider, or broker binding. The approved exercise did not change branch
+protection, deploy an application, target production, or contact a provider or
+broker. Its local verification uses an injected fake client only.
 
 ## Remaining staging proof
 
-The next separately approved operation must create a protected, branch-deploy
-scoped staging connection secret and make the dedicated `ture_staging_b03_writer`
-role able to log in. Only then can a synthetic create/replay/rejection/rollback
-proof run through this transport. No production scope is implied.
+Completing a live writer invocation requires separately approved execution
+from an environment with direct, verified-TLS reachability to staging
+PostgreSQL. That future proof must again use a temporary branch-deploy scoped
+secret and least-privileged login identity, then revoke both and verify the
+rollback. No production scope is implied.
