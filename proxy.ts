@@ -57,6 +57,7 @@ function isAutomationOrPublicApi(pathname: string) {
     pathname === "/api/environment-boundary-audit/ping" ||
     pathname === "/api/route-publication-diagnostic" ||
     pathname === "/api/hb307c" ||
+    pathname === "/api/internal/staging-proof/position-version-lineage-v2-writer" ||
     pathname.startsWith("/api/historical-backfill/") ||
     pathname.startsWith("/api/automation/") ||
     pathname === "/api/recommendations/evaluate-outcomes" ||
