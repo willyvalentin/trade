@@ -49,6 +49,10 @@ type TransportModule = {
     input: unknown,
     options?: { environment?: Record<string, string | undefined>; clientFactory?: ClientFactory },
   ) => Promise<unknown>;
+  executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof: (
+    input: unknown,
+    options?: { environment?: Record<string, string | undefined>; clientFactory?: ClientFactory },
+  ) => Promise<unknown>;
 };
 
 type OwnerContextModule = {
@@ -393,6 +397,77 @@ test("666JA sends only the frozen routine statement and projects one immutable c
       values: [owner, recommendation, canonicalCommandDigest],
     },
   ]);
+});
+
+test("R-01 always rolls back the isolated staging-writer proof transaction", async () => {
+  const transport = loadTransport();
+  const trace = { config: [] as unknown[], connect: 0, end: 0, queries: [] as unknown[] };
+  const canonicalCommandDigest = command().canonicalCommandDigest;
+  const createdResult = {
+    rowCount: 1,
+    rows: [{
+      disposition: "created",
+      initial_history_identity: `${position}:${owner}:1`,
+      position_id: position,
+      position_version: 1,
+    }],
+  };
+  const result = await transport.executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof(
+    command(),
+    {
+      environment: environment(transport, validConnectionString()),
+      clientFactory: (configuration) => {
+        trace.config.push(configuration);
+        return {
+          connect: async () => { trace.connect += 1; },
+          end: async () => { trace.end += 1; },
+          query: async (query) => {
+            trace.queries.push(query);
+            return query === "BEGIN" || query === "ROLLBACK"
+              ? { rowCount: null, rows: [] }
+              : createdResult;
+          },
+        };
+      },
+    },
+  );
+
+  expect(result).toEqual(expect.objectContaining({
+    canonicalCommandDigest,
+    disposition: "created",
+  }));
+  expect(trace.connect).toBe(1);
+  expect(trace.end).toBe(1);
+  expect(trace.queries).toEqual([
+    "BEGIN",
+    expect.objectContaining({
+      name: "position-version-lineage-v2-writer-private-routine-v1",
+      values: [owner, recommendation, canonicalCommandDigest],
+    }),
+    "ROLLBACK",
+  ]);
+  expect(source(transportPath)).not.toContain('"COMMIT"');
+
+  const failedTrace: unknown[] = [];
+  expect(await rejection(
+    transport.executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof(command(), {
+      environment: environment(transport, validConnectionString()),
+      clientFactory: () => ({
+        connect: async () => undefined,
+        end: async () => undefined,
+        query: async (query) => {
+          failedTrace.push(query);
+          if (query === "BEGIN" || query === "ROLLBACK") {
+            return { rowCount: null, rows: [] };
+          }
+          throw new Error("writer_failed");
+        },
+      }),
+    }),
+  )).toBeInstanceOf(
+    transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError,
+  );
+  expect(failedTrace).toEqual(["BEGIN", expect.any(Object), "ROLLBACK"]);
 });
 
 test("666JA rejects widened or noncanonical input before connecting", async () => {
