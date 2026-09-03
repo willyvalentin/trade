@@ -1,5 +1,23 @@
 # Ture Current-State Ledger
 
+**AI-00.1 — Ture Setup Analyst contract freeze.**
+
+AI-00.1 is a separately selected, provider-free Agent Intelligence slice. It
+introduces only an immutable, default-off TypeScript request/assessment
+contract for a future `Ture Setup Analyst`. The request carries an already
+canonical candidate/recommendation identity and its existing entry/stop/target
+plan; the assessment can only be `shadow_only`. The contract declares six
+future read-only context tools but implements none, and it rebuilds accepted
+assessment authority to deny recommendation, ranking, risk, position,
+execution and broker/order changes. Malformed, widened or accessor-backed
+assessment material fails closed.
+
+No OpenAI or Agents SDK invocation, model selection, API key, environment
+variable, route, queue, database write, Netlify/deployment binding, provider or
+broker contact occurs. The next Agent Intelligence slice must stay separately
+bounded and may at most add a read-only tool boundary; it cannot create a
+direct Agent-to-Broker or Agent-to-canonical-state path.
+
 **ACTION 666IX — Milestone B local-sandbox acceptance closeout.**
 
 Action 666IX is the user-selected program-scope closeout after the staging
