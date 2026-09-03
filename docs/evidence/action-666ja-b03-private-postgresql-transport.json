@@ -1,0 +1,55 @@
+{
+  "contract_version": "trade.action666ja.b03-private-postgresql-transport.v3",
+  "action_id": "ACTION_666JA",
+  "scope": {
+    "source_only_transport_delivery": true,
+    "staging_connection_attempted": true,
+    "staging_connection_executed": true,
+    "writer_invoked": true,
+    "temporary_login_enabled_then_revoked": true,
+    "branch_deploy_secret_created_then_removed": true,
+    "synthetic_fixture_removed": true,
+    "rollback_verified": true,
+    "secret_value_logged_or_committed": false,
+    "runtime_or_route_bound": false,
+    "netlify_deploy_preview_completed": true,
+    "netlify_production_deploy_triggered": false,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false
+  },
+  "staging_attempt": {
+    "result": "created_then_rolled_back",
+    "authenticated_database_session_established": true,
+    "writer_routine_invoked": true,
+    "committed_result_disposition": "created",
+    "committed_result_position_version": 1,
+    "client_transaction_rollback_executed": true,
+    "no_durable_writer_result_remains": true
+  },
+  "preview_deployment": {
+    "context": "deploy-preview",
+    "transport_invoked": false,
+    "production_targeted": false
+  },
+  "transport": {
+    "module": "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts",
+    "server_only": true,
+    "driver": "pg@8.23.0",
+    "secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL",
+    "certificate_authority_secret_name": "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_CA_PEM",
+    "writer_role": "ture_staging_b03_writer",
+    "routine_signature": "private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)",
+    "parameterized": true,
+    "short_lived_client": true,
+    "strict_result_cardinality": "exactly_one",
+    "immutable_receipt_projection": true,
+    "verified_tls_with_project_ca": true,
+    "int8_result_normalization_accepts_only_initial_version_one": true
+  },
+  "staging_completion": {
+    "least_privileged_role_grants_revoked": true,
+    "ipv4_addon_disabled_after_proof": true,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false
+  }
+}

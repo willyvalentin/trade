@@ -18,8 +18,6 @@ const metadataChannelPath =
   "lib/server/position-version-lineage-v2-writer-deployment-metadata-channel.ts";
 const metadataRoutePath =
   "app/api/position-version-lineage-v2-writer/deployment-metadata/route.ts";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const thisTest =
   "tests/e2e/action-666fw-position-version-lineage-v2-writer-protected-deployment-metadata-receipt-security-closeout.spec.ts";
 
@@ -79,7 +77,6 @@ test("666FW retains every fail-closed boundary and provider-free CI registration
 
   expect(existsSync(resolve(root, metadataChannelPath))).toBe(false);
   expect(existsSync(resolve(root, metadataRoutePath))).toBe(false);
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(documentation).toMatch(/close_static_workstream/i);
   expect(documentation).toMatch(/no runtime capability/i);
   expect(source(governancePath)).toMatch(/close_static_workstream/i);

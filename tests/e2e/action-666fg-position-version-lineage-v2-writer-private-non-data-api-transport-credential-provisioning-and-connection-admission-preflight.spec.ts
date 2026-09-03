@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import vm from "node:vm";
 
@@ -14,8 +14,6 @@ const evidencePath =
 const modulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-transport-credential-provisioning-and-connection-admission-preflight.ts";
 const packagePath = "package.json";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const action666fcModulePath =
   "lib/position-version-lineage-v2-writer-private-non-data-api-command-port-source-contract.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
@@ -181,7 +179,6 @@ test("666FG preserves source-only transport and secret boundaries", () => {
 
   expect(manifest.dependencies?.pg).toBe("8.23.0");
   expect(manifest.devDependencies?.["@types/pg"]).toBe("8.23.1");
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(source(action666fcModulePath)).not.toMatch(
     /from\s+["']pg["']|require\(["']pg["']\)|process\.env|\b(?:connect|query)\s*\(/,
   );

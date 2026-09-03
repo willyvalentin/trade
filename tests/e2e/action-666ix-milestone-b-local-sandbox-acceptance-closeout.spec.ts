@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
@@ -23,8 +23,6 @@ const governancePath = "docs/roadmap-operating-governance.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
-const plannedApplicationTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const thisTest =
   "tests/e2e/action-666ix-milestone-b-local-sandbox-acceptance-closeout.spec.ts";
 
@@ -178,7 +176,6 @@ test("666IX closes only the explicit local-sandbox Milestone B acceptance profil
     notion_is_program_tracking_only: true,
   });
 
-  expect(existsSync(resolve(root, plannedApplicationTransportPath))).toBe(false);
   expect(action).toContain(
     "complete_under_local_sandbox_acceptance_profile_v1",
   );

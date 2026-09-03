@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import vm from "node:vm";
 
@@ -14,8 +14,6 @@ const evidencePath =
 const modulePath =
   "lib/position-version-lineage-v2-writer-protected-server-secret-manager-capability-and-named-secret-provisioning-admission-review.ts";
 const deploymentConfigPath = "netlify.toml";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
@@ -141,7 +139,6 @@ test("666FI remains static, value-free and source-only", () => {
   const deploymentConfig = source(deploymentConfigPath);
   const registration = JSON.parse(source(registrationPath)) as string[];
 
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(deploymentConfig).toMatch(/^\[functions\]\n\s*directory\s*=\s*"netlify\/functions"/m);
   expect(deploymentConfig).not.toMatch(
     /TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL|\[(?:build|context\.[^\]]+)\.environment\]/,

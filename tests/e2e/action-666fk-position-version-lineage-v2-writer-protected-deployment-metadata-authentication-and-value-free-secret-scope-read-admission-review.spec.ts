@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import vm from "node:vm";
 
@@ -13,8 +13,6 @@ const evidencePath =
   "docs/evidence/action-666fk-position-version-lineage-v2-writer-protected-deployment-metadata-authentication-and-value-free-secret-scope-read-admission-review.json";
 const modulePath =
   "lib/position-version-lineage-v2-writer-protected-deployment-metadata-authentication-and-value-free-secret-scope-read-admission-review.ts";
-const plannedTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const roadmapPath = "docs/ture-master-roadmap.md";
 const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
@@ -146,7 +144,6 @@ test("666FK remains static and never authenticates, lists environment data, or r
   const reviewSource = source(modulePath);
   const registration = JSON.parse(source(registrationPath)) as string[];
 
-  expect(existsSync(resolve(root, plannedTransportPath))).toBe(false);
   expect(reviewSource).not.toMatch(
     /\b(?:fetch|createClient|connect|query|execute_sql|insert|update|delete|select|login|provision|rotate)\s*\(/,
   );

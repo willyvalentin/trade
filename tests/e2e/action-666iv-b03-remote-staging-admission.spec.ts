@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
@@ -15,8 +15,6 @@ const ledgerPath = "docs/ture-current-state-ledger.md";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
-const plannedApplicationTransportPath =
-  "lib/server/position-version-lineage-v2-writer-private-postgresql-transport.ts";
 const thisTest =
   "tests/e2e/action-666iv-b03-remote-staging-admission.spec.ts";
 const predecessorEvidenceSha256 =
@@ -140,7 +138,6 @@ test("666IV retains remote B-03 staging as not admitted without contacting it", 
     notion_is_program_tracking_only: true,
   });
 
-  expect(existsSync(resolve(root, plannedApplicationTransportPath))).toBe(false);
   expect(`${action}\n${evidenceRaw}`).toContain("not_admitted");
   expect(`${action}\n${evidenceRaw}`).toContain("Notion remains program tracking only");
   expect(`${action}\n${evidenceRaw}`).not.toMatch(
