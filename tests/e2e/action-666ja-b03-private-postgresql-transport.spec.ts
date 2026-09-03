@@ -19,6 +19,9 @@ const receiptPath =
   "lib/server/position-version-lineage-v2-writer-immutable-committed-result-receipt.ts";
 const ownerContextPath =
   "lib/server/position-version-lineage-v2-writer-authenticated-server-owner-context.ts";
+const rollbackProofPath = "lib/server/b08-staging-writer-rollback-proof.ts";
+const rollbackProofRoutePath =
+  "app/api/automation/b08-staging-writer-rollback-proof/route.ts";
 const applicationSessionCorePath = "lib/application-session-core.ts";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
@@ -60,6 +63,21 @@ type OwnerContextModule = {
   resolvePositionVersionLineageV2WriterAuthenticatedServerOwnerContext: () => Promise<unknown>;
 };
 
+type RollbackProofModule = {
+  B08_STAGING_WRITER_ROLLBACK_PROOF_TOKEN_SECRET: string;
+  B08_STAGING_WRITER_ROLLBACK_PROOF_FIXTURE_OWNER: string;
+  B08_STAGING_WRITER_ROLLBACK_PROOF_FIXTURE_RECOMMENDATION: string;
+  B08StagingWriterRollbackProofAuthorizationError: new () => Error;
+  B08StagingWriterRollbackProofConfigurationError: new () => Error;
+  executeB08StagingWriterRollbackProof: (
+    suppliedToken: unknown,
+    options?: {
+      environment?: Record<string, string | undefined>;
+      dependencies?: { executeCommand: (input: unknown) => Promise<unknown> };
+    },
+  ) => Promise<unknown>;
+};
+
 function source(relativePath: string) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
@@ -75,9 +93,25 @@ function runModule(
   relativePath: string,
   require: (specifier: string) => unknown,
 ): Record<string, unknown> {
-  const sandbox = { exports: {} as Record<string, unknown>, require, URL };
+  const sandbox = { exports: {} as Record<string, unknown>, require, URL, Buffer };
   vm.runInNewContext(transpile(relativePath), sandbox, { filename: relativePath });
   return sandbox.exports;
+}
+
+function loadRollbackProof(): RollbackProofModule {
+  return runModule(rollbackProofPath, (specifier) => {
+    if (specifier === "server-only") return {};
+    if (specifier === "node:crypto") {
+      return { timingSafeEqual: (left: Buffer, right: Buffer) => left.equals(right) };
+    }
+    if (specifier === "./position-version-lineage-v2-writer-authenticated-server-command-port") {
+      return { executePositionVersionLineageV2WriterAuthenticatedServerCommandPort: async () => Object.freeze({}) };
+    }
+    if (specifier === "./position-version-lineage-v2-writer-private-postgresql-transport") {
+      return { executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof: async () => Object.freeze({}) };
+    }
+    throw new Error(`unexpected_rollback_proof_import:${specifier}`);
+  }) as unknown as RollbackProofModule;
 }
 
 function loadTransport(): TransportModule {
@@ -468,6 +502,47 @@ test("R-01 always rolls back the isolated staging-writer proof transaction", asy
     transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError,
   );
   expect(failedTrace).toEqual(["BEGIN", expect.any(Object), "ROLLBACK"]);
+});
+
+test("B-08 exposes a temporary token-only branch-deploy proof without a public write surface", async () => {
+  const proof = loadRollbackProof();
+  const proofSource = source(rollbackProofPath);
+  const routeSource = source(rollbackProofRoutePath);
+  const proofToken = "a".repeat(64);
+  const calls: unknown[] = [];
+
+  expect(proofSource.startsWith('import "server-only";')).toBe(true);
+  expect(proofSource).toContain("timingSafeEqual");
+  expect(proofSource).toContain("executePositionVersionLineageV2WriterAuthenticatedServerCommandPort");
+  expect(proofSource).toContain("executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof");
+  expect(proofSource).not.toMatch(/NEXT_PUBLIC_|fetch\s*\(|@supabase|createClient|broker|avanza|netlify/i);
+  expect(proof.B08_STAGING_WRITER_ROLLBACK_PROOF_FIXTURE_OWNER).toMatch(/^[0-9a-f-]{36}$/);
+  expect(proof.B08_STAGING_WRITER_ROLLBACK_PROOF_FIXTURE_RECOMMENDATION).toMatch(/^[0-9a-f-]{36}$/);
+
+  expect(await proof.executeB08StagingWriterRollbackProof(proofToken, {
+    environment: { [proof.B08_STAGING_WRITER_ROLLBACK_PROOF_TOKEN_SECRET]: proofToken },
+    dependencies: { executeCommand: async (input) => { calls.push(input); } },
+  })).toEqual({ outcome: "rolled_back" });
+  expect(calls).toEqual([{
+    opaqueRecommendationReference: proof.B08_STAGING_WRITER_ROLLBACK_PROOF_FIXTURE_RECOMMENDATION,
+  }]);
+
+  expect(await rejection(proof.executeB08StagingWriterRollbackProof("b".repeat(64), {
+    environment: { [proof.B08_STAGING_WRITER_ROLLBACK_PROOF_TOKEN_SECRET]: proofToken },
+  }))).toBeInstanceOf(proof.B08StagingWriterRollbackProofAuthorizationError);
+  expect(await rejection(proof.executeB08StagingWriterRollbackProof(proofToken, {
+    environment: {},
+  }))).toBeInstanceOf(
+    proof.B08StagingWriterRollbackProofConfigurationError,
+  );
+
+  expect(routeSource).toContain('export const runtime = "nodejs"');
+  expect(routeSource).toContain('request.headers.get(proofTokenHeader)');
+  expect(routeSource).toContain('"x-ture-staging-proof-token"');
+  expect(routeSource).toContain('"Cache-Control": "no-store"');
+  expect(routeSource).toContain("export async function POST");
+  expect(routeSource).toContain("export function GET");
+  expect(routeSource).not.toMatch(/request\.(?:json|text|formData|arrayBuffer)|NEXT_PUBLIC_|broker|avanza|netlify/i);
 });
 
 test("666JA rejects widened or noncanonical input before connecting", async () => {
