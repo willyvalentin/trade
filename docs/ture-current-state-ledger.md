@@ -41,9 +41,13 @@ only a source-only, unactivated raw NUL name-status acquisition seam. It
 preserves the existing Draft/Ready/main topology and grants no selector,
 workflow, required-check or branch-protection authority.
 
-REL-00 is in progress, not complete. CI-B2 through CI-B6 require source-only
-deterministic design and shadow evidence, CI-B7 needs a separately authorized
-CI-policy decision, and CI-B8 needs a declared observation window. This CI-B2
+REL-00 remains in progress, not complete. CI-B2 through CI-B6 are retained as
+the completed source-only design and shadow-evidence sequence. CI-B7 is merged
+as PR #300 and activates only the documented fail-closed Tier-1 Ready route;
+the protected required check, branch protection and exact-main six-shard suite
+remain unchanged. CI-B8 is now the declared observation period: no
+keep/adjust/rollback decision may be made before both 14 calendar days and 10
+eligible merged plain-documentation pull requests have been observed. This
 record neither re-activates staging nor grants any runtime, provider, broker,
 deployment or production authority.
 
