@@ -184,6 +184,7 @@
   "tests/e2e/action-652-current-catalog-migration-evidence-contract-v5-portability.spec.ts",
   "tests/e2e/action-652-generated-types-provenance-v1.spec.mjs",
   "tests/e2e/action-660-ma09-generated-types-provenance-v2.spec.mjs",
+  "tests/e2e/ai-00.1-ture-setup-analyst-contract-freeze.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
