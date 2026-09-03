@@ -17,6 +17,9 @@ const decoderPath =
   "lib/server/position-version-lineage-v2-writer-strict-committed-result-decoder.ts";
 const receiptPath =
   "lib/server/position-version-lineage-v2-writer-immutable-committed-result-receipt.ts";
+const ownerContextPath =
+  "lib/server/position-version-lineage-v2-writer-authenticated-server-owner-context.ts";
+const applicationSessionCorePath = "lib/application-session-core.ts";
 const registrationPath = "scripts/action-660j-provider-free-ci-registration.json";
 const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
@@ -46,6 +49,11 @@ type TransportModule = {
     input: unknown,
     options?: { environment?: Record<string, string | undefined>; clientFactory?: ClientFactory },
   ) => Promise<unknown>;
+};
+
+type OwnerContextModule = {
+  POSITION_VERSION_LINEAGE_V2_WRITER_AUTHENTICATED_SERVER_OWNER_CONTEXT_VERSION: string;
+  resolvePositionVersionLineageV2WriterAuthenticatedServerOwnerContext: () => Promise<unknown>;
 };
 
 function source(relativePath: string) {
@@ -114,6 +122,21 @@ function loadTransport(): TransportModule {
     }
     throw new Error(`unexpected_transport_import:${specifier}`);
   }) as unknown as TransportModule;
+}
+
+function loadOwnerContext(session: unknown): OwnerContextModule {
+  const applicationSessionCore = runModule(applicationSessionCorePath, () => {
+    throw new Error("application_session_core_has_no_runtime_imports");
+  });
+
+  return runModule(ownerContextPath, (specifier) => {
+    if (specifier === "server-only") return {};
+    if (specifier === "@/lib/application-session-core") return applicationSessionCore;
+    if (specifier === "@/lib/server/application-session") {
+      return { requireApplicationSession: async () => session };
+    }
+    throw new Error(`unexpected_owner_context_import:${specifier}`);
+  }) as unknown as OwnerContextModule;
 }
 
 function command() {
@@ -198,6 +221,9 @@ test("666JA exposes one server-only, parameterized, fail-closed private V2 trans
   expect(transportSource).toContain('from "pg"');
   expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CONNECTION_SECRET);
   expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET);
+  expect(transportSource).toContain('url.hostname !== POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_HOST');
+  expect(transportSource).toContain('url.port !== POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_PORT');
+  expect(transportSource).toContain('`/${POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_DATABASE}`');
   expect(transportSource).toContain('url.searchParams.get("sslmode") !== "verify-full"');
   expect(transportSource).toContain('url.searchParams.delete("sslmode")');
   expect(transportSource).toContain(transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY);
@@ -222,6 +248,47 @@ test("666JA exposes one server-only, parameterized, fail-closed private V2 trans
     transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
   );
   expect(factoryCalls).toBe(0);
+});
+
+test("R-01 resolves an unwired writer owner only from the verified server session", async () => {
+  const ownerContextSource = source(ownerContextPath);
+  const ownerContext = loadOwnerContext({
+    status: "authenticated",
+    owner_user_id: "3F2504E0-4F89-41D3-9A0C-0305E82C3301",
+  });
+
+  expect(ownerContextSource.startsWith('import "server-only";')).toBe(true);
+  expect(ownerContextSource).toContain('from "@/lib/server/application-session"');
+  expect(ownerContextSource).toContain("requireApplicationSession()");
+  expect(ownerContextSource).toContain("session.status !== \"authenticated\"");
+  expect(ownerContextSource).toContain("normalizeApplicationOwnerUserId(session.owner_user_id)");
+  expect(ownerContextSource).not.toMatch(/@supabase|createClient|fetch\s*\(|\.from\s*\(|\.rpc\s*\(|\.insert\s*\(/);
+  expect(ownerContext.POSITION_VERSION_LINEAGE_V2_WRITER_AUTHENTICATED_SERVER_OWNER_CONTEXT_VERSION).toBe(
+    "position_version_lineage_v2_writer_authenticated_server_owner_context_v1",
+  );
+
+  const resolved = await ownerContext.resolvePositionVersionLineageV2WriterAuthenticatedServerOwnerContext();
+  expect(resolved).toEqual({ authenticatedServerOwner: owner });
+  expect(Object.isFrozen(resolved)).toBe(true);
+
+  for (const session of [
+    null,
+    { status: "missing", owner_user_id: owner },
+    { status: "authenticated", owner_user_id: "not-a-uuid" },
+  ]) {
+    expect(
+      await loadOwnerContext(session).resolvePositionVersionLineageV2WriterAuthenticatedServerOwnerContext(),
+    ).toBeNull();
+  }
+
+  const appSources = [
+    "app/trade-app.tsx",
+    "app/api/app/positions/route.ts",
+    "app/api/post-trade/payload/validate/route.ts",
+  ].map(source);
+  for (const appSource of appSources) {
+    expect(appSource).not.toContain("position-version-lineage-v2-writer-authenticated-server-owner-context");
+  }
 });
 
 test("666JA records the approved staging writer invocation and its verified rollback", () => {
@@ -387,6 +454,35 @@ test("666JA rejects non-staging credentials and ambiguous database results after
     transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
   );
   expect(badRoleTrace.config).toEqual([]);
+
+  for (const connectionString of [
+    validConnectionString().replace(
+      "db.pdvzyuhykomwfqyyztru.supabase.co",
+      "db.ekdyopdrrkphlrsilyoo.supabase.co",
+    ),
+    validConnectionString().replace(":5432/", ":6543/"),
+    validConnectionString().replace("/postgres?", "/not-postgres?"),
+  ]) {
+    const targetMismatchTrace = {
+      config: [] as unknown[],
+      connect: 0,
+      end: 0,
+      queries: [] as unknown[],
+    };
+
+    expect(await rejection(
+      transport.executePositionVersionLineageV2WriterPrivatePostgresqlTransport(command(), {
+        environment: environment(transport, connectionString),
+        clientFactory: factory({ rowCount: 1, rows: [] }, targetMismatchTrace),
+      }),
+    )).toBeInstanceOf(
+      transport.PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError,
+    );
+    expect(targetMismatchTrace.config).toEqual([]);
+    expect(targetMismatchTrace.connect).toBe(0);
+    expect(targetMismatchTrace.end).toBe(0);
+    expect(targetMismatchTrace.queries).toEqual([]);
+  }
 
   const ambiguousTrace = { config: [] as unknown[], connect: 0, end: 0, queries: [] as unknown[] };
   expect(await rejection(

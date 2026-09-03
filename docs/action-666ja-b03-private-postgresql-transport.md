@@ -11,8 +11,11 @@ or broker binding.
 The transport reads only the non-public server variable
 `TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_URL` at invocation time. It
 fails before constructing a client unless the value names the staging writer
-role, targets a Supabase host, and requires verified TLS. The implementation
-does not store, log, export, or commit a value for that variable.
+role, targets exactly `ture-staging`'s direct PostgreSQL host, port and
+database, and requires verified TLS. It rejects the Trade production host,
+pooler ports and alternate database paths before a client can be constructed.
+The implementation does not store, log, export, or commit a value for that
+variable.
 
 It permits only the literal parameterized invocation of
 `private.write_owner_bound_recommendation_position_v2(uuid,uuid,text)`. It
@@ -60,3 +63,18 @@ broker. Its local verification uses an injected fake client only.
 This completes the approved staging-login, least-privileged identity, private
 transport, writer-invocation, and rollback evidence for B-03. It grants no
 production, route, UI, queue, provider, or broker authority.
+
+## R-01 source hardening
+
+The R-01 staging-runtime-admission baseline further narrows this existing,
+unwired transport to the one direct `ture-staging` PostgreSQL endpoint. Its
+target tests prove that a production-project host, a pooler port or an
+alternate database path fails before client construction. This is source-only
+hardening: it creates or reads no secret, changes no database identity or
+grant, opens no connection, invokes no writer and triggers no deployment.
+
+R-01 also adds an unwired server-only owner-context resolver. It accepts no
+client-projected owner; when a later action explicitly admits a consumer, that
+consumer must obtain the owner only from the existing verified application
+session. The resolver is not imported by any route, UI or writer adapter in
+this delivery, so it performs no session, identity-provider or database call.
