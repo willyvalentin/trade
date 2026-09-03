@@ -23,6 +23,15 @@ export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CON
 export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_CA_SECRET =
   "TURE_POSITION_VERSION_LINEAGE_V2_WRITER_POSTGRES_CA_PEM" as const;
 
+export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_HOST =
+  "db.pdvzyuhykomwfqyyztru.supabase.co" as const;
+
+export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_PORT =
+  "5432" as const;
+
+export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_DATABASE =
+  "postgres" as const;
+
 export const POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY =
   "select * from private.write_owner_bound_recommendation_position_v2($1, $2, $3)" as const;
 
@@ -115,7 +124,10 @@ function readConnectionString(
       (url.protocol !== "postgres:" && url.protocol !== "postgresql:") ||
       url.username !== "ture_staging_b03_writer" ||
       url.password.length === 0 ||
-      !url.hostname.endsWith(".supabase.co") ||
+      url.hostname !== POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_HOST ||
+      url.port !== POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_PORT ||
+      url.pathname !==
+        `/${POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_STAGING_DATABASE}` ||
       url.searchParams.get("sslmode") !== "verify-full"
     ) {
       return rejectConfiguration();
