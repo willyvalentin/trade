@@ -11,6 +11,11 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # A full independent regression sweep keeps a regular safety net without
+    # making every already-verified merge wait for the same six shards again.
+    - cron: "17 3 * * 1-5"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -100,7 +105,7 @@ jobs:
 
   provider-free-verification-shard:
     name: provider-free-verification / ${{ matrix.shard }}
-    if: ${{ always() && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}
+    if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}
     needs:
       - ready-docs-only-classification
     runs-on: ubuntu-24.04
@@ -123,8 +128,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # For a non-merged pull_request GitHub sets github.sha/github.ref to
-          # its immutable refs/pull/<number>/merge candidate. A push to main
-          # still checks out that exact pushed main revision.
+          # its immutable refs/pull/<number>/merge candidate. Scheduled and
+          # manual runs verify the exact main revision selected by GitHub.
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
@@ -158,7 +163,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Require docs-only verification or every provider-free shard to succeed
+      - name: Require the applicable verification route to succeed
         env:
           EVENT_NAME: ${{ github.event_name }}
           PULL_REQUEST_DRAFT: ${{ github.event.pull_request.draft }}
@@ -170,11 +175,18 @@ jobs:
             test "$READY_DOCS_ONLY_RESULT" = "success"
             exit 0
           fi
+          if [ "$EVENT_NAME" = "push" ]; then
+            # A protected Ready merge has already passed the exact immutable
+            # merge-candidate matrix. Post-merge attestation below binds that
+            # candidate to main; the independent full sweep runs nightly.
+            test "$SHARD_RESULT" = "skipped"
+            exit 0
+          fi
           test "$SHARD_RESULT" = "success"
 
-  # POC only: this job records evidence after the unchanged six-shard Full CI.
-  # It is deliberately not a required check, and exact-main Full CI remains
-  # mandatory after every main push while the candidate model is being proven.
+  # The candidate matrix is the merge gate. This records the immutable
+  # candidate identity so a later main push can prove it received that exact
+  # tested tree and workflow revision without paying for a duplicate matrix.
   merge-candidate-provenance:
     name: merge-candidate-provenance / POC
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.provider-free-verification.result == 'success' && needs.provider-free-verification-shard.result == 'success' }}
@@ -208,12 +220,13 @@ jobs:
           name: ${{ steps.capture.outputs.artifact_name }}
           path: .ci-provenance/merge-candidate-provenance.json
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
 
-  # POC only: this job always runs after the unchanged exact-main six-shard
-  # verification. It never authorizes a merge and cannot suppress Full CI.
+  # Keep a cheap post-merge attestation. Direct pushes, non-merge commits,
+  # missing provenance or workflow/tree drift are reported as uncertain; they
+  # never claim that the candidate matrix covered main.
   post-merge-candidate-provenance:
-    name: post-merge-candidate-provenance / POC
+    name: post-merge-candidate-provenance / POC (attestation)
     if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - provider-free-verification
@@ -234,7 +247,6 @@ jobs:
         id: discover
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          EXACT_MAIN_FULL_CI_RESULT: ${{ needs.provider-free-verification.result }}
         run: node scripts/action-660o-merge-candidate-provenance.mjs discover .ci-provenance/merge-candidate-discovery.json
       - name: Download matching candidate provenance
         if: ${{ steps.discover.outputs.provenance_run_id != '' }}
@@ -244,14 +256,13 @@ jobs:
           run-id: ${{ steps.discover.outputs.provenance_run_id }}
           github-token: ${{ github.token }}
           path: .ci-provenance/candidate
-      - name: Compare exact main with candidate provenance
+      - name: Attest exact main against candidate provenance
         if: ${{ steps.discover.outputs.provenance_run_id != '' && needs.provider-free-verification.result == 'success' }}
         id: compare
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          EXACT_MAIN_FULL_CI_RESULT: ${{ needs.provider-free-verification.result }}
         run: node scripts/action-660o-merge-candidate-provenance.mjs verify .ci-provenance/candidate/merge-candidate-provenance.json .ci-provenance/merge-candidate-discovery.json .ci-provenance/post-merge-candidate-provenance.json
-      - name: Store post-merge POC evidence
+      - name: Store post-merge attestation
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -259,4 +270,4 @@ jobs:
           path: .ci-provenance
           include-hidden-files: true
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7

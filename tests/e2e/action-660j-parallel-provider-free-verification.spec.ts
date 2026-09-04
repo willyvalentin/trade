@@ -476,7 +476,9 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
     "if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true }}",
   );
   expect(shardJob).toContain("needs.ready-docs-only-classification.outputs.disposition != 'docs_only'");
-  expect(shardJob).toContain("github.event_name == 'push'");
+  expect(shardJob).toContain("github.event_name == 'schedule'");
+  expect(shardJob).toContain("github.event_name == 'workflow_dispatch'");
+  expect(shardJob).not.toContain("github.event_name == 'push'");
   expect(shardJob).toContain("needs:\n      - ready-docs-only-classification");
   expect(shardJob).toContain("timeout-minutes: 60");
   expect(shardJob).toContain("fail-fast: false");
@@ -517,6 +519,8 @@ test("keeps the protected aggregate identity fail-closed over every shard", asyn
   );
   expect(aggregateJob).toContain('test "$READY_DOCS_ONLY_RESULT" = "success"');
   expect(aggregateJob).toContain('test "$SHARD_RESULT" = "success"');
+  expect(aggregateJob).toContain('if [ "$EVENT_NAME" = "push" ]; then');
+  expect(aggregateJob).toContain('test "$SHARD_RESULT" = "skipped"');
   expect(aggregateJob).not.toContain("continue-on-error");
   expect(docsOnlyJob).toContain("ref: ${{ github.sha }}");
   expect(docsOnlyJob).toContain("EXPECTED_REF: refs/pull/${{ github.event.pull_request.number }}/merge");

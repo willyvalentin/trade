@@ -11,8 +11,8 @@
   },
   "activation_candidate": {
     "workflow_path": ".github/workflows/milestone-a-ci.yml",
-    "workflow_sha256": "e2d74101c154e28d4382389b5d18afc83691638fcea5a4544153d1a9ddf9ac48",
-    "workflow_blob_sha": "f974866008a21cde595ee4f2838b56513f8be332",
+    "workflow_sha256": "2e8c08c6be408b1ea0657c0e69fb4ead666c9e641dd058cf292fc1b6cb771ef9",
+    "workflow_blob_sha": "19eafc4ea9df63eba8da066e2d53b5e85e18713e",
     "protected_aggregate": "provider-free-verification",
     "ready_docs_only_job": "ready-docs-only-classification",
     "ready_full_shards": [
@@ -23,7 +23,7 @@
       "non-forgeable-authority",
       "lossless-scalar"
     ],
-    "main_full_shards": [
+    "scheduled_full_shards": [
       "foundation",
       "replay-lineage",
       "snapshot-admission",
@@ -36,7 +36,7 @@
     "branch_protection_change": false,
     "required_check_rename_or_rebinding": false,
     "draft_route_change": false,
-    "ready_main_ci_deduplication_authorized": false,
+    "ready_main_ci_deduplication_authorized": true,
     "netlify_or_runtime_change": false,
     "provider_broker_deployment_or_production_authority": false
   },
