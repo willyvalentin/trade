@@ -165,7 +165,6 @@ test("only accepts an exact main tree, parent set and workflow blob covered by s
     compareMainToCandidate({
       main: { ...main, parent_shas: [input.headSha] },
       record,
-      exactMainResult: "success",
     }).mismatches,
   ).toContain("main_commit_is_not_a_two-parent_merge_commit");
   expect(compareMainToCandidate({ main, record: null }).status).toBe(
