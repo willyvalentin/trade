@@ -1,5 +1,20 @@
 # Ture Current-State Ledger
 
+**AI-00.3 — Ture Setup Analyst shadow trace privacy/cost contract.**
+
+AI-00.3 is a separately selected, provider-free Agent Intelligence slice. It
+defines one strict immutable metadata-only trace record for an accepted
+AI-00.1 shadow assessment. The record binds the assessment trace/version
+identities, declared AI-00.2 tool IDs, latency, token counts and estimated USD
+cost while retaining no raw prompt or model output. Its closed privacy
+declaration rejects secrets and unnecessary personal data; malformed,
+widened, accessor-backed or out-of-bound telemetry fails closed.
+
+The contract performs no agent/model/provider call, I/O, persistence or trace
+export. It grants no route/queue/UI binding and no recommendation, ranking,
+risk, position, execution, deployment or broker authority. A later trace sink,
+shadow runner or evaluation harness needs a separately bounded review.
+
 **AI-00.2 — Ture Setup Analyst read-only context-tool boundary.**
 
 AI-00.2 is a separately selected, provider-free Agent Intelligence slice. It
