@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-01.4 is a separately selected provider-free issuer-admission follow-on to the verified AI-01.1–AI-01.3 local evaluation adjunct; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
+| Current bounded workstream | AI-01.1–AI-01.4 are completed provider-free local-evaluation adjuncts on exact main; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
@@ -22,7 +22,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-01.1 | Completed provider-free, source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-01.2 | Completed provider-free adversarial review of AI-01.1's frozen fixture-array boundary on exact main as PR #318 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
 | Agent Intelligence AI-01.3 | Completed provider-free fixture identity-collision review on exact main as PR #319 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
-| Agent Intelligence AI-01.4 | Separately selected provider-free issuer-admission review for AI-01.1 | Verify that only exact in-process evaluator outputs are admitted; do not collect data or add any runtime path |
+| Agent Intelligence AI-01.4 | Completed provider-free issuer-admission review on exact main as PR #320 | Keep the check in-process and default-deny; a real dataset, measured result or human promotion needs a new decision |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -118,8 +118,8 @@ I/O, persistence, route/queue/UI, runtime binding, canonical-state change,
 execution, broker or promotion authority. A real dataset, measured evaluation
 or human promotion remains a separate decision.
 
-AI-01.4 is the separately selected, provider-free and source-only
-issuer-admission follow-on to AI-01.1 through AI-01.3. It may mark only an
+AI-01.4 was the separately selected, provider-free and source-only
+issuer-admission follow-on to AI-01.1 through AI-01.3. It marks only an
 exact, already frozen result emitted by the local fixture evaluator as
 admitted during that same process, so a structurally identical manually built
 lookalike fails closed before its shape is read. The marker is a private
@@ -128,6 +128,14 @@ mechanism or promotion evidence. It introduces no provider/model call,
 context-tool invocation, I/O, persistence, route/queue/UI, runtime binding,
 canonical-state change, execution, broker or promotion authority. A real
 dataset, measured evaluation or human promotion remains a separate decision.
+
+AI-01.4 closed on exact main after PR #320 merged as
+`49cc243a12b411405c0280577dc81969fb93c4b7`. Its Ready Full CI passed all six
+provider-free shards, the aggregate and merge-candidate POC; exact-main run
+`33928489483` then succeeded with the post-merge POC attestation. The
+in-process issuer marker is not cross-process trust, dataset or promotion
+evidence, and the completed AI-01.1–AI-01.4 local sequence has no automatic
+successor.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
