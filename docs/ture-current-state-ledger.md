@@ -1,5 +1,19 @@
 # Ture Current-State Ledger
 
+**AI-00.4 — Ture Setup Analyst in-process shadow runner.**
+
+AI-00.4 is a separately selected, provider-free Agent Intelligence slice. It
+defines only a deterministic in-process boundary for an already accepted frozen
+AI-00.1 shadow assessment and the closed AI-00.3 trace metadata. It returns a
+fresh immutable envelope containing the existing metadata-only trace; it does
+not retain the assessment, raw prompt or model output.
+
+The runner has no model/provider or context-tool invocation path, and its
+explicit authority denies I/O, persistence/export, route/queue/UI binding,
+canonical recommendation/ranking/risk/position/execution changes and broker
+actions. A later trace sink, tool adapter or evaluation harness requires its
+own separately bounded review.
+
 **AI-00.3 — Ture Setup Analyst shadow trace privacy/cost contract.**
 
 AI-00.3 is a separately selected, provider-free Agent Intelligence slice. It
