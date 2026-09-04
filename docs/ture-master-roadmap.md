@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | No automatic product successor is active after Action 666IX's qualified local-sandbox closeout; separately selected AI-01.1 is a provider-free, source-only evaluation adjunct and verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
+| Current bounded workstream | AI-01.3 is a separately selected provider-free integrity follow-on to the verified AI-01.1/AI-01.2 local evaluation adjunct; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
@@ -20,7 +20,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
 | Agent Intelligence AI-01.1 | Completed provider-free, source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
-| Agent Intelligence AI-01.2 | Separately selected provider-free adversarial review of AI-01.1's frozen fixture-array boundary | Verify fail-closed handling of hostile local container shapes without collecting data or adding any runtime path |
+| Agent Intelligence AI-01.2 | Completed provider-free adversarial review of AI-01.1's frozen fixture-array boundary on exact main as PR #318 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
+| Agent Intelligence AI-01.3 | Separately selected provider-free fixture identity-collision review for AI-01.1 | Verify local duplicate recommendation/trace rejection and output detachment without collecting data or adding any runtime path |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -105,6 +106,16 @@ provider/model call, context-tool invocation, I/O, persistence, route/queue/UI,
 runtime binding, canonical-state change, execution, broker or promotion
 authority. A real dataset, measured evaluation or human promotion remains a
 separate decision.
+
+AI-01.3 is the separately selected, provider-free and source-only identity
+integrity follow-on to AI-01.1 and AI-01.2. It may retain local
+recommendation/trace scalar identities only long enough to reject duplicate
+underlying evidence behind a distinct fixture label, then returns only the
+existing detached aggregate. It verifies scalar stability for reordered valid
+sets, but introduces no dataset, provider/model call, context-tool invocation,
+I/O, persistence, route/queue/UI, runtime binding, canonical-state change,
+execution, broker or promotion authority. A real dataset, measured evaluation
+or human promotion remains a separate decision.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
