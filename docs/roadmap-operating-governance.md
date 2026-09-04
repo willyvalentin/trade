@@ -74,9 +74,10 @@ the stated trigger occurs.
 | --- | --- | --- | --- | --- | --- |
 | RG-01 | Static security work can extend without reaching a product or activation decision | high delivery risk | Mitigated: Action 666FW closed the bounded static workstream and Action 666FX records its post-closeout review; reopening needs the autonomous security-closeout policy | Any proposed reopen after Action 666FW or extension of an active workstream | Codex autonomous governance controller |
 | RG-02 | Protected runtime prerequisites are not admitted, so an unsafe shortcut could bypass the intended boundary | high safety risk | Keep secret management, identity, transport, writer and route/UI fail-closed | Any proposal to implement or activate a runtime path | Independent automated verifier |
-| RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Action 666FY proves that main strictly requires the event-agnostic Full-CI aggregate context. Retain every gate and classify only the known fast-green/matrix-skipped Draft shape without rerunning Full CI. | A proposal for a distinct Full-CI-only required context or the declared cadence job | Codex delivery automation |
+| RG-03 | Full CI duration and repeated runs can reduce delivery throughput or hide a late-failure pattern | medium delivery risk | Action 666FY proves that the Full-CI aggregate context is protected. CI-B8 is superseded by the explicit development-profile decision; keep the protected Ready aggregate as the delivery gate, and implement and verify any reduced merge-path work, attestation or independent sweep in its own CI PR. | Any CI topology change, classifier/required-check drift, or failed independent sweep | Codex delivery automation |
 | RG-04 | Production and current-main identity can drift after a deployment or database change | high release risk | Reconcile exact identities and reopen the affected Milestone A evidence | Every production deploy/assertion or migration application | Policy-bound automation operator and independent automated verifier |
 | RG-05 | Historical status labels or unsynchronized program mirrors can misdirect prioritization | high delivery risk | Maintain one dated ledger snapshot and reconcile Notion status views to it; historic records remain evidence, not current control | Any milestone closeout, CI activation, runtime-admission decision or product-sequence change | Codex delivery automation |
+| RG-06 | A development-stage CI profile could be mistaken for a release-safety decision | high release risk | Require a separate CI re-hardening review before any external release, provider, broker or production authority; neither elapsed time nor a scheduled CI result supplies that authority | Any proposal for external access, release, provider/broker use, deployment or production authority | Codex autonomous governance controller and independent automated verifier |
 
 ## Dependency map
 
@@ -147,8 +148,9 @@ than extended by default. It must not wait for human review.
 - Re-evaluate the initial risk register automatically at every closeout,
   release or runtime-admission decision. Actions 666FX and 666FY classify the
   known Draft aggregate behavior and retain the strict Full-CI required
-  context. A later change still needs evidence for a distinct Full-CI-only
-  required context and verified GitHub behavior.
+  context. CI-B8's former 14-day observation is superseded by the explicit
+  development-profile decision; a later CI change still needs evidence for its
+  own required-context behavior and verified GitHub behavior.
 - Evaluate delivery-flow measures on their declared cadence while the full CI
   matrix remains the required merge gate.
 - Reassess this governance document after the first recorded closeout decision

@@ -13,16 +13,17 @@ authority.
 | --- | --- | --- |
 | Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
 | B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
-| REL-00 CI-B8 | Observation is active after CI-B7's bounded Ready docs-only activation | Do not make a keep/adjust/rollback decision before both 14 calendar days and 10 eligible merged plain-documentation pull requests are observed. |
+| REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
 
-- Preserve the qualified Milestone B closeout and the unchanged six-shard
-  Ready/main Full CI model.
-- Observe CI-B8 without treating elapsed time, a metric or a Notion update as
-  CI-policy authority.
+- Preserve the qualified Milestone B closeout and default-deny runtime boundary.
+- Treat REL-00 CI-B8 as superseded rather than completed. The selected
+  development CI profile is recorded in
+  [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
+  checked-in workflow, not this ledger, controls present CI behavior.
 
 ### Next
 
@@ -30,6 +31,9 @@ authority.
   Execution, learning or Agent Intelligence continuation needs a fresh,
   bounded product decision that names its outcome, authority boundary and
   evidence.
+- Before any external release, provider, broker or production authority,
+  select a separate CI re-hardening review. Development-stage throughput and
+  cost choices do not carry release authority.
 
 ### Blocked or deferred
 
