@@ -15,7 +15,8 @@ authority.
 | B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
-| Agent Intelligence AI-01.1 | Separately selected source-only multi-fixture baseline-comparison contract | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
+| Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
+| Agent Intelligence AI-01.2 | Separately selected source-only adversarial review of AI-01.1's frozen fixture-array input boundary | Verify local fail-closed container handling only; do not collect data or add a runtime path. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -25,9 +26,12 @@ authority.
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
   checked-in workflow, not this ledger, controls present CI behavior.
-- AI-01.1 may establish only an in-memory, provider-free comparison contract
-  over already-admitted local fixtures. It cannot collect or retain real
-  outcome data, invoke a model, bind runtime or promote a policy.
+- AI-01.1 is complete on exact main as a provider-free in-memory comparison
+  contract over already-admitted local fixtures. It cannot collect or retain
+  real outcome data, invoke a model, bind runtime or promote a policy.
+- AI-01.2 may only independently verify AI-01.1's local array boundary and
+  public fail-closed behavior for hostile in-memory containers. It cannot
+  collect data, invoke a model, bind runtime or promote a policy.
 
 ### Next
 
@@ -39,8 +43,8 @@ authority.
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
 - AI-01.1's future real dataset, measured evaluation and human promotion review
-  are separate decisions; the current source-only comparison cannot admit any
-  of them.
+  are separate decisions; neither the completed comparison nor AI-01.2's
+  local review can admit any of them.
 
 ### Blocked or deferred
 

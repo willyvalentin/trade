@@ -19,7 +19,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Delivery health | The executable workflow on protected `main` remains the authority. The selected development profile prioritizes a protected Full Ready gate, low merge-path duplication and independent regression coverage; this roadmap decision changes no workflow itself | Verify each CI change in its own protected PR. A scheduled or attested CI result never authorizes runtime, provider, broker, deployment or release activity. |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
-| Agent Intelligence AI-01.1 | Separately selected provider-free, source-only multi-fixture baseline-comparison contract | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
+| Agent Intelligence AI-01.1 | Completed provider-free, source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
+| Agent Intelligence AI-01.2 | Separately selected provider-free adversarial review of AI-01.1's frozen fixture-array boundary | Verify fail-closed handling of hostile local container shapes without collecting data or adding any runtime path |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -93,6 +94,17 @@ does not introduce a provider/model call, outcome source/sink, data collection,
 I/O, persistence, route/queue/UI, runtime binding, canonical-state change,
 execution or broker authority. A real evidence dataset, measured result or
 human promotion review requires another separately authorized decision.
+
+AI-01.2 is the separately selected, provider-free and source-only adversarial
+review of AI-01.1. It may inspect only already-admitted in-memory local fixture
+arrays and the comparator's detached result or public rejection. It proves that
+widened, symbol-bearing, sparse, nonstandard-prototype and accessor-backed
+containers fail closed without evaluating hostile getters, while ordinary
+frozen arrays yield fresh default-deny aggregates. It creates no dataset,
+provider/model call, context-tool invocation, I/O, persistence, route/queue/UI,
+runtime binding, canonical-state change, execution, broker or promotion
+authority. A real dataset, measured evaluation or human promotion remains a
+separate decision.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ

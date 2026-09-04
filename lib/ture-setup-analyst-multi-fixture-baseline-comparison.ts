@@ -278,19 +278,54 @@ function readFixtureEvaluation(value: unknown): FixtureSummary | null {
 }
 
 function readFixtureSet(value: unknown): readonly FixtureSummary[] | null {
-  if (!Array.isArray(value) || !Object.isFrozen(value)) return null;
-  if (value.length < 2 || value.length > 1_000) return null;
+  try {
+    if (
+      !Array.isArray(value) ||
+      !Object.isFrozen(value) ||
+      Object.getPrototypeOf(value) !== Array.prototype
+    ) {
+      return null;
+    }
 
-  const seenFixtureIds = new Set<string>();
-  const summaries: FixtureSummary[] = [];
-  for (const evaluation of value) {
-    const summary = readFixtureEvaluation(evaluation);
-    if (!summary || seenFixtureIds.has(summary.fixture_id)) return null;
-    seenFixtureIds.add(summary.fixture_id);
-    summaries.push(summary);
+    const lengthDescriptor = Object.getOwnPropertyDescriptor(value, "length");
+    const length = lengthDescriptor?.value;
+    if (!isBoundedInteger(length, 1_000) || length < 2) return null;
+
+    const ownKeys = Reflect.ownKeys(value);
+    if (ownKeys.length !== length + 1) return null;
+    if (!ownKeys.includes("length") || ownKeys.some((key) => typeof key === "symbol")) {
+      return null;
+    }
+    if (
+      !lengthDescriptor ||
+      lengthDescriptor.enumerable ||
+      !Object.prototype.hasOwnProperty.call(lengthDescriptor, "value")
+    ) {
+      return null;
+    }
+
+    const seenFixtureIds = new Set<string>();
+    const summaries: FixtureSummary[] = [];
+    for (let index = 0; index < length; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (
+        !descriptor ||
+        !descriptor.enumerable ||
+        !Object.prototype.hasOwnProperty.call(descriptor, "value")
+      ) {
+        return null;
+      }
+
+      const summary = readFixtureEvaluation(descriptor.value);
+      if (!summary || seenFixtureIds.has(summary.fixture_id)) return null;
+      seenFixtureIds.add(summary.fixture_id);
+      summaries.push(summary);
+    }
+
+    return Object.freeze(summaries);
+  } catch {
+    return null;
   }
-
-  return Object.freeze(summaries);
 }
 
 export function compareTureSetupAnalystMultiFixtureBaseline(
