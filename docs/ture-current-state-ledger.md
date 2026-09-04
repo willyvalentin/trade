@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Current control snapshot — synchronized 2026-09-04
+## Current control snapshot — synchronized 2026-09-05
 
 This is the canonical **Now / Next / Blocked** view for roadmap steering. It
 supersedes a conflicting status claim in the evidence and decision history
@@ -18,7 +18,7 @@ authority.
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
 | Agent Intelligence AI-01.3 | Completed source-only fixture identity-collision review on exact main as PR #319 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
-| Agent Intelligence AI-01.4 | Separately selected source-only issuer-admission review for AI-01.1 | Verify that only exact in-process evaluator outputs are admitted; do not collect data or add a runtime path. |
+| Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -38,10 +38,11 @@ authority.
 - AI-01.3 is complete on exact main as the independent review of duplicate
   local recommendation/trace rejection and detached output stability. It
   cannot collect data, invoke a model, bind runtime or promote a policy.
-- AI-01.4 may only independently verify that the local comparator accepts an
-  exact result emitted by the frozen fixture evaluator, not a structurally
-  identical manually built lookalike. It cannot collect data, invoke a model,
-  bind runtime or promote a policy.
+- AI-01.4 is complete on exact main as the independent issuer-admission review
+  of AI-01.1. It admits only an exact frozen result emitted by the local
+  fixture evaluator and rejects a structurally identical manually built
+  lookalike. It cannot collect data, invoke a model, bind runtime or promote a
+  policy.
 
 ### Next
 
@@ -53,8 +54,8 @@ authority.
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
 - AI-01.1's future real dataset, measured evaluation and human promotion review
-  are separate decisions; neither the completed comparison nor AI-01.2–AI-01.4
-  local reviews can admit any of them.
+  are separate decisions; none of the completed AI-01.1–AI-01.4 local reviews
+  can admit any of them.
 
 ### Blocked or deferred
 
