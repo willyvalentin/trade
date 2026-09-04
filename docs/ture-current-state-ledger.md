@@ -1,5 +1,19 @@
 # Ture Current-State Ledger
 
+**AI-00.6 — Ture Setup Analyst promotion evidence review.**
+
+AI-00.6 is a separately selected, provider-free Agent Intelligence slice. It
+accepts one exact frozen AI-00.5 fixture-evaluation record and returns only a
+fresh immutable evidence-incomplete review. It confirms that one local fixture
+is present while a current-Ture baseline, multi-fixture realized-outcome
+evidence, measurable incremental value and a human decision are not admitted.
+
+The review has no model/provider or context-tool path and no outcome
+source/sink, dataset, I/O, persistence, route/queue/UI, runtime binding,
+promotion mechanism, canonical-state, execution or broker authority. It cannot
+promote a model or policy. The fixture remains local evidence only and does
+not claim a live evaluation pipeline or incremental value.
+
 **AI-00.5 — Ture Setup Analyst fixture evaluation harness.**
 
 AI-00.5 is a separately selected, provider-free Agent Intelligence slice. It
