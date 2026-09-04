@@ -82,6 +82,8 @@ type BaselineDescriptor = Readonly<{
 
 type FixtureSummary = Readonly<{
   fixture_id: string;
+  recommendation_id: string;
+  trace_id: string;
   canonical_decision: "trade" | "no_trade";
   agent_assessment: "trade" | "no_trade" | "insufficient_evidence";
   outcome_direction: "favorable" | "flat" | "unfavorable";
@@ -245,6 +247,9 @@ function readFixtureEvaluation(value: unknown): FixtureSummary | null {
   const decisionAgreement = ownData(comparisonData, "decision_agreement");
   const agentConfidence = ownData(comparisonData, "agent_confidence");
   const outcomeDirection = ownData(outcomeData, "outcome_direction");
+  const candidateId = ownData(subjectData, "candidate_id");
+  const recommendationId = ownData(subjectData, "recommendation_id");
+  const traceId = ownData(traceData, "trace_id");
 
   if (
     !["trade", "no_trade"].includes(canonicalDecision as string) ||
@@ -254,9 +259,9 @@ function readFixtureEvaluation(value: unknown): FixtureSummary | null {
     !["match", "different"].includes(decisionAgreement as string) ||
     !isFiniteBoundedNumber(agentConfidence, 0, 1) ||
     !["favorable", "flat", "unfavorable"].includes(outcomeDirection as string) ||
-    !hasText(ownData(subjectData, "candidate_id")) ||
-    !hasText(ownData(subjectData, "recommendation_id")) ||
-    !hasText(ownData(traceData, "trace_id")) ||
+    !hasText(candidateId) ||
+    !hasText(recommendationId) ||
+    !hasText(traceId) ||
     !isBoundedInteger(ownData(traceData, "latency_ms"), 300_000) ||
     !isBoundedInteger(ownData(traceData, "input_tokens"), 1_000_000) ||
     !isBoundedInteger(ownData(traceData, "output_tokens"), 1_000_000) ||
@@ -271,6 +276,8 @@ function readFixtureEvaluation(value: unknown): FixtureSummary | null {
 
   return Object.freeze({
     fixture_id: fixtureId,
+    recommendation_id: recommendationId,
+    trace_id: traceId,
     canonical_decision: canonicalDecision as FixtureSummary["canonical_decision"],
     agent_assessment: agentAssessment as FixtureSummary["agent_assessment"],
     outcome_direction: outcomeDirection as FixtureSummary["outcome_direction"],
@@ -305,6 +312,8 @@ function readFixtureSet(value: unknown): readonly FixtureSummary[] | null {
     }
 
     const seenFixtureIds = new Set<string>();
+    const seenRecommendationIds = new Set<string>();
+    const seenTraceIds = new Set<string>();
     const summaries: FixtureSummary[] = [];
     for (let index = 0; index < length; index += 1) {
       const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
@@ -317,8 +326,17 @@ function readFixtureSet(value: unknown): readonly FixtureSummary[] | null {
       }
 
       const summary = readFixtureEvaluation(descriptor.value);
-      if (!summary || seenFixtureIds.has(summary.fixture_id)) return null;
+      if (
+        !summary ||
+        seenFixtureIds.has(summary.fixture_id) ||
+        seenRecommendationIds.has(summary.recommendation_id) ||
+        seenTraceIds.has(summary.trace_id)
+      ) {
+        return null;
+      }
       seenFixtureIds.add(summary.fixture_id);
+      seenRecommendationIds.add(summary.recommendation_id);
+      seenTraceIds.add(summary.trace_id);
       summaries.push(summary);
     }
 
