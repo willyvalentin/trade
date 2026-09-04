@@ -17,7 +17,8 @@ authority.
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
-| Agent Intelligence AI-01.3 | Separately selected source-only fixture identity-collision review for AI-01.1 | Verify local duplicate recommendation/trace rejection only; do not collect data or add a runtime path. |
+| Agent Intelligence AI-01.3 | Completed source-only fixture identity-collision review on exact main as PR #319 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
+| Agent Intelligence AI-01.4 | Separately selected source-only issuer-admission review for AI-01.1 | Verify that only exact in-process evaluator outputs are admitted; do not collect data or add a runtime path. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -34,9 +35,13 @@ authority.
   local array boundary and public fail-closed behavior for hostile in-memory
   containers. It cannot collect data, invoke a model, bind runtime or promote
   a policy.
-- AI-01.3 may only independently verify duplicate local recommendation/trace
-  rejection and detached output stability. It cannot collect data, invoke a
-  model, bind runtime or promote a policy.
+- AI-01.3 is complete on exact main as the independent review of duplicate
+  local recommendation/trace rejection and detached output stability. It
+  cannot collect data, invoke a model, bind runtime or promote a policy.
+- AI-01.4 may only independently verify that the local comparator accepts an
+  exact result emitted by the frozen fixture evaluator, not a structurally
+  identical manually built lookalike. It cannot collect data, invoke a model,
+  bind runtime or promote a policy.
 
 ### Next
 
@@ -48,7 +53,7 @@ authority.
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
 - AI-01.1's future real dataset, measured evaluation and human promotion review
-  are separate decisions; neither the completed comparison nor AI-01.2/AI-01.3
+  are separate decisions; neither the completed comparison nor AI-01.2–AI-01.4
   local reviews can admit any of them.
 
 ### Blocked or deferred

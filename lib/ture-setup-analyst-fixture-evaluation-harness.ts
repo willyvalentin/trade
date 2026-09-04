@@ -149,6 +149,11 @@ const traceVersionsKeys = [
 const traceTimingKeys = ["latency_ms"] as const;
 const traceUsageKeys = ["estimated_cost_usd", "input_tokens", "output_tokens"] as const;
 
+// The fixture-only evaluator is the sole issuer of comparison inputs. This is
+// intentionally process-local: neither an identifier nor a receipt escapes
+// into the result, and no persistence or cross-process authority is created.
+const issuedFixtureEvaluations = new WeakSet<object>();
+
 function hasExactOwnDataKeys(
   value: unknown,
   keys: readonly string[],
@@ -452,7 +457,7 @@ export function evaluateTureSetupAnalystFrozenFixture(
         ? "unfavorable"
         : "flat";
 
-  return Object.freeze({
+  const evaluation = Object.freeze({
     harness_version: TURE_SETUP_ANALYST_FIXTURE_EVALUATION_HARNESS_VERSION,
     mode: "fixture_only_shadow_evaluation",
     evaluation_status: "fixture_evaluated",
@@ -475,4 +480,22 @@ export function evaluateTureSetupAnalystFrozenFixture(
     trace_metrics: traceMetrics,
     authority: TURE_SETUP_ANALYST_FIXTURE_EVALUATION_AUTHORITY,
   });
+
+  issuedFixtureEvaluations.add(evaluation);
+  return evaluation;
+}
+
+/**
+ * Narrows admission to the exact frozen object emitted by this in-process
+ * fixture evaluator. It is not a durable receipt and grants no authority
+ * beyond the local comparison boundary.
+ */
+export function isTureSetupAnalystIssuedFixtureEvaluation(
+  value: unknown,
+): value is TureSetupAnalystFixtureEvaluation {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    issuedFixtureEvaluations.has(value)
+  );
 }
