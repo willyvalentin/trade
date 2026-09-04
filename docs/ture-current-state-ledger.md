@@ -2,6 +2,13 @@
 
 **AI-00.6 — Ture Setup Analyst promotion evidence review.**
 
+**Status: closed on exact main.** PR #310 merged as
+`11394ecf738e4bc6f50eb37fcbf7cb99db1aa079`; exact-main run `33843781339`
+passed the unchanged six-shard provider-free suite, aggregate and post-merge
+candidate-provenance POC. The run's single `foundation` retry resolved an
+unrelated `npm audit` network timeout. No source, CI-policy or authority change
+was made by that retry.
+
 AI-00.6 is a separately selected, provider-free Agent Intelligence slice. It
 accepts one exact frozen AI-00.5 fixture-evaluation record and returns only a
 fresh immutable evidence-incomplete review. It confirms that one local fixture
@@ -13,6 +20,11 @@ source/sink, dataset, I/O, persistence, route/queue/UI, runtime binding,
 promotion mechanism, canonical-state, execution or broker authority. It cannot
 promote a model or policy. The fixture remains local evidence only and does
 not claim a live evaluation pipeline or incremental value.
+
+AI-00.1 through AI-00.6 are therefore closed as a provider-free
+design/contract sequence. There is no automatic successor: any measured
+evaluation dataset, current-Ture baseline comparison or human review needs a
+fresh product decision and separately authorized boundary.
 
 **AI-00.5 — Ture Setup Analyst fixture evaluation harness.**
 

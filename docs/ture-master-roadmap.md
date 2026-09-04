@@ -16,7 +16,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
-| Agent Intelligence AI-00.6 | Provider-free, fail-closed promotion evidence review in progress | Report the single-fixture evidence gap only; do not add a baseline/outcome dataset, provider, runtime, promotion or execution authority without a separate slice |
+| Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -70,6 +70,16 @@ decision. It has no provider/model or context-tool invocation, I/O,
 persistence, outcome source/sink, route, queue, UI, runtime binding, promotion
 mechanism, canonical-state, execution or broker authority. A future evaluation
 dataset or human review requires its own separate bounded decision.
+
+AI-00.6 closed on exact main after PR #310 merged as
+`11394ecf738e4bc6f50eb37fcbf7cb99db1aa079`. Exact-main run `33843781339`
+completed the unchanged six-shard provider-free suite, aggregate and
+post-merge candidate-provenance POC. Its one `foundation` retry addressed an
+unrelated `npm audit` network timeout; it did not change source or CI policy.
+The completed AI-00.1–AI-00.6 sequence intentionally has no automatic
+successor: its local fixture demonstrates only evidence incompleteness. A
+measured evaluation dataset, baseline comparison or human review must first be
+selected as a new product decision with its own authority boundary.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
