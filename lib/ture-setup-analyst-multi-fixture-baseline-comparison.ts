@@ -1,6 +1,7 @@
 import {
   TURE_SETUP_ANALYST_FIXTURE_EVALUATION_AUTHORITY,
   TURE_SETUP_ANALYST_FIXTURE_EVALUATION_HARNESS_VERSION,
+  isTureSetupAnalystIssuedFixtureEvaluation,
 } from "./ture-setup-analyst-fixture-evaluation-harness";
 
 export const TURE_SETUP_ANALYST_MULTI_FIXTURE_BASELINE_COMPARISON_VERSION =
@@ -212,7 +213,12 @@ function readBaseline(value: unknown): BaselineDescriptor | null {
 }
 
 function readFixtureEvaluation(value: unknown): FixtureSummary | null {
-  if (!isFrozenExact(value, fixtureEvaluationKeys)) return null;
+  if (
+    !isTureSetupAnalystIssuedFixtureEvaluation(value) ||
+    !isFrozenExact(value, fixtureEvaluationKeys)
+  ) {
+    return null;
+  }
 
   const harnessVersion = ownData(value, "harness_version");
   const mode = ownData(value, "mode");
