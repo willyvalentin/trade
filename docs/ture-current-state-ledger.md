@@ -1,5 +1,20 @@
 # Ture Current-State Ledger
 
+**AI-00.5 — Ture Setup Analyst fixture evaluation harness.**
+
+AI-00.5 is a separately selected, provider-free Agent Intelligence slice. It
+defines a deterministic local fixture boundary for comparing one frozen
+canonical decision and realized-outcome sample with an accepted AI-00.1
+assessment and an admitted AI-00.4 metadata trace. It returns only an
+immutable scalar comparison; it retains no rich assessment evidence, prompt,
+model output or full trace.
+
+The harness has no model/provider or context-tool path and no outcome source,
+evaluation sink, batch runner, I/O, persistence, route/queue/UI binding,
+promotion decision, canonical-state, execution or broker authority. Frozen
+fixture material is local evidence only and does not claim live outcome
+infrastructure.
+
 **AI-00.4 — Ture Setup Analyst in-process shadow runner.**
 
 AI-00.4 is a separately selected, provider-free Agent Intelligence slice. It

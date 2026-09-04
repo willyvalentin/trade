@@ -202,6 +202,7 @@ const intelligenceTests = [
   "tests/e2e/ai-00.2-ture-setup-analyst-read-only-context-boundary.spec.ts",
   "tests/e2e/ai-00.3-ture-setup-analyst-shadow-trace-contract.spec.ts",
   "tests/e2e/ai-00.4-ture-setup-analyst-in-process-shadow-runner.spec.ts",
+  "tests/e2e/ai-00.5-ture-setup-analyst-fixture-evaluation-harness.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
