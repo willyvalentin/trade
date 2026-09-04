@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | No automatic product successor is active after Action 666IX's qualified local-sandbox closeout; verified B-01/B-03 follow-ons are source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
+| Current bounded workstream | No automatic product successor is active after Action 666IX's qualified local-sandbox closeout; separately selected AI-01.1 is a provider-free, source-only evaluation adjunct and verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
@@ -19,6 +19,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Delivery health | The executable workflow on protected `main` remains the authority. The selected development profile prioritizes a protected Full Ready gate, low merge-path duplication and independent regression coverage; this roadmap decision changes no workflow itself | Verify each CI change in its own protected PR. A scheduled or attested CI result never authorizes runtime, provider, broker, deployment or release activity. |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
+| Agent Intelligence AI-01.1 | Separately selected provider-free, source-only multi-fixture baseline-comparison contract | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -82,6 +83,16 @@ The completed AI-00.1–AI-00.6 sequence intentionally has no automatic
 successor: its local fixture demonstrates only evidence incompleteness. A
 measured evaluation dataset, baseline comparison or human review must first be
 selected as a new product decision with its own authority boundary.
+
+AI-01.1 is that separately selected, provider-free and source-only product
+slice. It may compare multiple already-admitted, frozen AI-00.5 local fixture
+evaluations against their represented current-Ture decision baseline and emit
+only a detached immutable aggregate. It retains `evidence_incomplete` and a
+default-deny promotion disposition regardless of the local fixture values. It
+does not introduce a provider/model call, outcome source/sink, data collection,
+I/O, persistence, route/queue/UI, runtime binding, canonical-state change,
+execution or broker authority. A real evidence dataset, measured result or
+human promotion review requires another separately authorized decision.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
