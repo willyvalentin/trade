@@ -225,6 +225,7 @@ const foundationTests = [
 
 const intelligenceTests = [
   "tests/e2e/ai-00.1-ture-setup-analyst-contract-freeze.spec.ts",
+  "tests/e2e/ai-00.2-ture-setup-analyst-read-only-context-boundary.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",

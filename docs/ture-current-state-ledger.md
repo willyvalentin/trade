@@ -1,5 +1,21 @@
 # Ture Current-State Ledger
 
+**AI-00.2 — Ture Setup Analyst read-only context-tool boundary.**
+
+AI-00.2 is a separately selected, provider-free Agent Intelligence slice. It
+defines a strict immutable request envelope for the six future Setup Analyst
+context tools. Each envelope is derived only from an already canonical,
+`shadow_only` AI-00.1 request, preserves the snapshot-time boundary, requires
+explicit provenance/freshness/unavailability on any future response, and
+passes only the policy-minimized candidate/recommendation identity where that
+tool needs it.
+
+The boundary is deliberately unbound: it performs no network or database I/O,
+does not read an environment variable, write context, call a provider/model,
+bind a route/queue/UI, alter recommendation/ranking/risk/position/execution
+state, deploy, or contact a broker. A future adapter, response validator,
+trace record or shadow runner requires its own separately bounded review.
+
 **AI-00.1 — Ture Setup Analyst contract freeze.**
 
 AI-00.1 is a separately selected, provider-free Agent Intelligence slice. It

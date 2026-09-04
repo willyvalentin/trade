@@ -16,7 +16,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
-| Agent Intelligence AI-00.1 | Selected as a provider-free, default-off Setup Analyst contract freeze | Keep it unbound and shadow-only; a later separate slice may implement read-only tool adapters, never execution authority |
+| Agent Intelligence AI-00.2 | Provider-free, default-off read-only context-tool boundary in progress | Keep it unbound and shadow-only; do not add an adapter, runtime caller, provider/database I/O or execution authority without a separate slice |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -25,8 +25,16 @@ six future read-only context-tool identifiers, validates a closed assessment
 shape and permanently rebuilds every accepted result with shadow-only authority.
 It implements no model or Agents SDK call, tool adapter, route, queue, database
 write, Netlify binding, recommendation/ranking mutation, risk change or broker
-path. The next Agent Intelligence slice may only add a separately reviewed
-read-only tool boundary or remain unbound.
+path.
+
+AI-00.2 is the separately selected, provider-free Agent Intelligence
+successor. It defines a strict default-off request boundary for those same six
+future context-tool identifiers. Each future request must be snapshot-time
+bound, provenance/freshness-aware and policy-minimized, but the boundary itself
+performs no I/O and grants no canonical recommendation, ranking, risk,
+position, execution or broker authority. A later separate slice may review a
+single adapter or response contract only; it cannot infer runtime authority
+from this boundary.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
