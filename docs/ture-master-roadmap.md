@@ -16,7 +16,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
-| Agent Intelligence AI-00.3 | Provider-free, metadata-only shadow-trace privacy/cost contract in progress | Keep it non-persistent and shadow-only; do not add a trace sink, runner, provider/database I/O or execution authority without a separate slice |
+| Agent Intelligence AI-00.4 | Provider-free, deterministic in-process shadow runner in progress | Keep it return-only and shadow-only; do not add a trace sink, provider/database I/O, tool adapter or execution authority without a separate slice |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -43,6 +43,14 @@ latency, token counts and estimated cost. It retains no raw prompt/model output
 and denies I/O, persistence/export and every canonical-state or broker action.
 A later separate slice may review a trace sink or shadow runner only; it cannot
 infer either runtime or execution authority from this record contract.
+
+AI-00.4 is the separately selected, provider-free Agent Intelligence
+successor. It defines one deterministic in-process-only boundary that consumes
+an accepted frozen assessment and returns only the existing AI-00.3
+metadata-only trace in a fresh immutable envelope. It invokes no provider or
+context tool and has no I/O, persistence/export, route, queue, UI, canonical
+state, execution or broker authority. A later adapter, trace sink or evaluation
+harness needs its own separate bounded review.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
