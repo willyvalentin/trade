@@ -1,5 +1,52 @@
 # Ture Current-State Ledger
 
+## Current control snapshot — synchronized 2026-09-04
+
+This is the canonical **Now / Next / Blocked** view for roadmap steering. It
+supersedes a conflicting status claim in the evidence and decision history
+below, but does not erase that history or create runtime, provider, broker,
+database, deployment, secret, transport, writer, route or UI authority.
+Executable source, exact-main CI and authorized readbacks remain the evidence
+authority.
+
+| Control | Current classification | Required next outcome or decision |
+| --- | --- | --- |
+| Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
+| B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
+| REL-00 CI-B8 | Observation is active after CI-B7's bounded Ready docs-only activation | Do not make a keep/adjust/rollback decision before both 14 calendar days and 10 eligible merged plain-documentation pull requests are observed. |
+| Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
+| Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
+
+### Now
+
+- Preserve the qualified Milestone B closeout and the unchanged six-shard
+  Ready/main Full CI model.
+- Observe CI-B8 without treating elapsed time, a metric or a Notion update as
+  CI-policy authority.
+
+### Next
+
+- There is no automatic product successor. Any runtime, Semi-Automatic
+  Execution, learning or Agent Intelligence continuation needs a fresh,
+  bounded product decision that names its outcome, authority boundary and
+  evidence.
+
+### Blocked or deferred
+
+- B-01 runtime capability and B-05 through B-12 are deferred, unverified
+  runtime work; the B-01/B-03 source evidence does not change that status.
+- No staging restart, protected-material access, identity/grant change, remote
+  connection, writer invocation, runtime binding, broker action, deployment or
+  production action is admitted by this ledger.
+
+## Evidence and decision history
+
+The entries below preserve the audit trail. A dated historical entry is not a
+current instruction merely because it uses a former `current`, `active` or
+`not_complete` label. When the snapshot and an older entry differ, use the
+snapshot and the linked exact-main evidence for steering; retain the older
+entry as historical context unless a new decision explicitly reopens it.
+
 **B-01 — Canonical position-lineage projection.**
 
 **Status: source-only increment complete on exact main; runtime remains closed.**
