@@ -1,5 +1,23 @@
 # Ture Current-State Ledger
 
+**B-01 — Canonical position-lineage projection.**
+
+**Status: source-only increment complete on exact main; runtime remains closed.**
+PR #312 merged as `e13f02e4375a77df9ce242c82cf06b5fe9985252` and adds a
+server-only, fail-closed projection of an already selected current position
+lineage and matching append-only history lineage. It emits only a detached,
+immutable scalar view after validating owner, version, recommendation, history
+and digest identity; it performs no database access, route/UI binding,
+transport, writer invocation, secret/configuration lookup, provider, broker or
+deployment action.
+
+Exact-main run `33871661438` passed the unchanged six provider-free shards,
+aggregate gate and post-merge candidate-provenance POC. Its first
+`lossless-scalar` result was rerun without source or CI-policy changes and
+passed; the focused local regression had also passed. This is evidence for the
+unbound source increment only. It does not make the B-01 runtime capability,
+canonical live state or any deferred Milestone B runtime gate complete.
+
 **AI-00.6 — Ture Setup Analyst promotion evidence review.**
 
 **Status: closed on exact main.** PR #310 merged as
