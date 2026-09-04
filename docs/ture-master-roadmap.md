@@ -16,7 +16,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
-| Agent Intelligence AI-00.5 | Provider-free, fixture-only evaluation harness in progress | Keep fixtures local and return-only; do not add an outcome source, sink, provider, promotion decision or execution authority without a separate slice |
+| Agent Intelligence AI-00.6 | Provider-free, fail-closed promotion evidence review in progress | Report the single-fixture evidence gap only; do not add a baseline/outcome dataset, provider, runtime, promotion or execution authority without a separate slice |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -60,6 +60,16 @@ it has no outcome source, sink, batch path, provider/model call, promotion
 decision, I/O, route, queue, UI, canonical state, execution or broker
 authority. A future measured evaluation dataset or promotion review needs its
 own separate bounded review.
+
+AI-00.6 is the separately selected, provider-free Agent Intelligence
+successor. It defines one fail-closed in-memory review over an already admitted
+AI-00.5 fixture evaluation. It reports that a lone local fixture cannot
+demonstrate measurable incremental value or admit promotion without a
+current-Ture baseline, a multi-fixture realized-outcome set and a human
+decision. It has no provider/model or context-tool invocation, I/O,
+persistence, outcome source/sink, route, queue, UI, runtime binding, promotion
+mechanism, canonical-state, execution or broker authority. A future evaluation
+dataset or human review requires its own separate bounded decision.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
