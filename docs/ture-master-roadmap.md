@@ -16,7 +16,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Deferred runtime gates | B-01 and B-05 through B-12 are re-homed as unverified follow-on runtime work; remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | Full Ready/main CI is safety-critical and deliberately comprehensive; Action 666FY verifies the strict required context makes the known Draft aggregate failure a safe non-change decision | Retain Ready and exact-main Full CI; classify only the known Draft shape before any rerun |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
-| Agent Intelligence AI-00.2 | Provider-free, default-off read-only context-tool boundary in progress | Keep it unbound and shadow-only; do not add an adapter, runtime caller, provider/database I/O or execution authority without a separate slice |
+| Agent Intelligence AI-00.3 | Provider-free, metadata-only shadow-trace privacy/cost contract in progress | Keep it non-persistent and shadow-only; do not add a trace sink, runner, provider/database I/O or execution authority without a separate slice |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -35,6 +35,14 @@ performs no I/O and grants no canonical recommendation, ranking, risk,
 position, execution or broker authority. A later separate slice may review a
 single adapter or response contract only; it cannot infer runtime authority
 from this boundary.
+
+AI-00.3 is the separately selected, provider-free Agent Intelligence
+successor. It defines one immutable metadata-only trace record for an accepted
+shadow assessment: bound identity and versions, declared tool identifiers,
+latency, token counts and estimated cost. It retains no raw prompt/model output
+and denies I/O, persistence/export and every canonical-state or broker action.
+A later separate slice may review a trace sink or shadow runner only; it cannot
+infer either runtime or execution authority from this record contract.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
