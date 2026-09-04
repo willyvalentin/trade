@@ -205,6 +205,7 @@ const intelligenceTests = [
   "tests/e2e/ai-00.5-ture-setup-analyst-fixture-evaluation-harness.spec.ts",
   "tests/e2e/ai-00.6-ture-setup-analyst-promotion-evidence-review.spec.ts",
   "tests/e2e/ai-01.1-ture-setup-analyst-multi-fixture-baseline-comparison.spec.ts",
+  "tests/e2e/ai-01.2-ture-setup-analyst-multi-fixture-baseline-adversarial-review.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
