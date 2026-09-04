@@ -111,7 +111,7 @@ test("binds a candidate artifact to PR, base, head, tree and successful six-shar
   ).toThrow("candidate parents");
 });
 
-test("only accepts an exact main tree, parent set, workflow blob and successful exact-main result", async () => {
+test("only accepts an exact main tree, parent set and workflow blob covered by successful candidate CI", async () => {
   const { buildCandidateProvenance, compareMainToCandidate, fullCiJobTimings } =
     await provenanceModule();
   const input = candidateInput();
@@ -141,27 +141,24 @@ test("only accepts an exact main tree, parent set, workflow blob and successful 
     workflow_blob_sha: input.workflowBlobSha,
   };
   expect(
-    compareMainToCandidate({ main, record, exactMainResult: "success" }).status,
+    compareMainToCandidate({ main, record }).status,
   ).toBe("matched");
   expect(
     compareMainToCandidate({
       main: { ...main, tree_sha: sha("2") },
       record,
-      exactMainResult: "success",
     }).mismatches,
   ).toContain("candidate_tree_does_not_match_main_tree");
   expect(
     compareMainToCandidate({
       main: { ...main, workflow_blob_sha: sha("3") },
       record,
-      exactMainResult: "success",
     }).mismatches,
   ).toContain("workflow_file_blob_does_not_match_candidate");
   expect(
     compareMainToCandidate({
       main: { ...main, parent_shas: [input.baseSha, sha("4")] },
       record,
-      exactMainResult: "success",
     }).mismatches,
   ).toContain("candidate_parents_do_not_match_main_parents");
   expect(
@@ -171,14 +168,9 @@ test("only accepts an exact main tree, parent set, workflow blob and successful 
       exactMainResult: "success",
     }).mismatches,
   ).toContain("main_commit_is_not_a_two-parent_merge_commit");
-  expect(
-    compareMainToCandidate({ main, record: null, exactMainResult: "success" })
-      .status,
-  ).toBe("mismatch_or_uncertain");
-  expect(
-    compareMainToCandidate({ main, record, exactMainResult: "failure" })
-      .mismatches,
-  ).toContain("exact_main_full_ci_did_not_succeed");
+  expect(compareMainToCandidate({ main, record: null }).status).toBe(
+    "mismatch_or_uncertain",
+  );
 });
 
 test("uses only a fully bound merged PR when the commit association endpoint is empty", async () => {
@@ -213,7 +205,7 @@ test("uses only a fully bound merged PR when the commit association endpoint is 
   ).toBeNull();
 });
 
-test("keeps Draft CI, required aggregate and exact-main Full CI unchanged while adding POC-only evidence jobs", async () => {
+test("keeps Ready CI as the merge gate while attesting main against the tested candidate", async () => {
   const workflow = await source(workflowPath);
   const contract = await source(contractPath);
   expect(workflow).toContain("actions: read");
@@ -229,16 +221,20 @@ test("keeps Draft CI, required aggregate and exact-main Full CI unchanged while 
   expect(workflow).toContain(
     "needs.provider-free-verification-shard.result == 'success'",
   );
+  expect(workflow).toContain('cron: "17 3 * * 1-5"');
+  expect(workflow).toContain("workflow_dispatch:");
+  expect(workflow).toContain("post-merge-candidate-provenance / POC (attestation)");
+  expect(workflow).toContain('test "$SHARD_RESULT" = "skipped"');
   expect(await source(scriptPath)).toContain(
-    "exact_main_full_ci_retained_during_poc_no_deduplication_authorized",
+    "candidate_full_ci_tree_and_workflow_attested",
   );
   expect(await source(scriptPath)).toContain(
     "pulls?state=closed&base=main&sort=updated&direction=desc&per_page=100",
   );
   expect(await source(scriptPath)).toContain("closed_main_fallback");
   expect(workflow).not.toContain("merge_group:");
-  expect(contract).toContain("does not reduce, skip, replace, or authorize");
+  expect(contract).toContain("same matrix is not run\na second time");
   expect(contract).toContain("mismatch_or_uncertain");
-  expect(contract).toContain("Full exact-main CI has already run");
+  expect(contract).toContain("weekday scheduled\nfull CI");
   expect(contract).toContain("Create a merge commit");
 });

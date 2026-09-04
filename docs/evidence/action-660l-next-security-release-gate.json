@@ -90,7 +90,7 @@
     "tests/e2e/action-652n-auth-route-origin-csrf-remediation.spec.ts": "df93d8389f163d2aa202bd3c6c93c231e6d5540e6682c5e033b08a6d62c4f86a",
     "tests/e2e/api-auth-middleware-boundary-audit.spec.ts": "0ff7215125f04a23766c1f2e78934161de3ed213aa50f40f621b9fdddc5bf043",
     "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts": "caa7bfaf463a0ebbc3c5dd3b75103332b1d6cd6cd5b1ebec4fd3fd716d7558a7",
-    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "670537890c0f544eaef77c9ce5decff5c6c8fb890cfe734520994a5be89c16b9",
+    "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "8275b7ecfe9486f31ebf36d2f4a48602aba7fb218735d8fafdccd2a53891f8f8",
     "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
     "docs/action-660l-next-security-release-gate.md": "9f48eff38211793bb0be6bd68facb452f537a71b5667f99ced17a7104e26da55",

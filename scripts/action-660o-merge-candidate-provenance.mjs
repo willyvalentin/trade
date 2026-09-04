@@ -187,7 +187,7 @@ export function buildCandidateProvenance({
     treeSha: candidateTreeSha,
   });
   return Object.freeze({
-    schema_version: "merge_candidate_provenance_poc_v1",
+    schema_version: "merge_candidate_provenance_v2",
     event: "pull_request",
     status: "candidate_full_ci_success",
     pr: Object.freeze({
@@ -215,7 +215,7 @@ export function buildCandidateProvenance({
   });
 }
 
-export function compareMainToCandidate({ main, record, exactMainResult }) {
+export function compareMainToCandidate({ main, record }) {
   const mismatches = [];
   const mainSha = expectSha(main?.sha, "main SHA");
   const mainTreeSha = expectSha(main?.tree_sha, "main tree SHA");
@@ -223,7 +223,7 @@ export function compareMainToCandidate({ main, record, exactMainResult }) {
   if (!Array.isArray(mainParents) || mainParents.length !== 2) {
     mismatches.push("main_commit_is_not_a_two-parent_merge_commit");
   }
-  if (record?.schema_version !== "merge_candidate_provenance_poc_v1") {
+  if (record?.schema_version !== "merge_candidate_provenance_v2") {
     mismatches.push("candidate_provenance_schema_is_unknown");
   }
   if (record?.full_ci?.result !== "success") {
@@ -241,14 +241,10 @@ export function compareMainToCandidate({ main, record, exactMainResult }) {
   if (record?.workflow?.file_blob_sha !== main?.workflow_blob_sha) {
     mismatches.push("workflow_file_blob_does_not_match_candidate");
   }
-  if (exactMainResult !== "success") {
-    mismatches.push("exact_main_full_ci_did_not_succeed");
-  }
   return Object.freeze({
-    schema_version: "merge_candidate_post_merge_poc_v1",
+    schema_version: "merge_candidate_post_merge_attestation_v2",
     status: mismatches.length === 0 ? "matched" : "mismatch_or_uncertain",
-    safety_disposition:
-      "exact_main_full_ci_retained_during_poc_no_deduplication_authorized",
+    safety_disposition: "candidate_full_ci_tree_and_workflow_attested",
     main: Object.freeze({
       sha: mainSha,
       tree_sha: mainTreeSha,
@@ -257,7 +253,6 @@ export function compareMainToCandidate({ main, record, exactMainResult }) {
         : [],
     }),
     candidate: record?.candidate ?? null,
-    exact_main_full_ci_result: exactMainResult,
     mismatches: Object.freeze(mismatches),
   });
 }
@@ -334,23 +329,18 @@ async function captureCandidate(outputPath) {
 
 function discovery(status, details = {}) {
   return {
-    schema_version: "merge_candidate_discovery_poc_v1",
+    schema_version: "merge_candidate_discovery_v2",
     status,
-    safety_disposition:
-      "exact_main_full_ci_retained_during_poc_no_deduplication_authorized",
+    safety_disposition: "candidate_attestation_requires_exact_tree_and_workflow",
     ...details,
   };
 }
 
 async function discoverCandidate(outputPath) {
   const main = commitMetadata();
-  const exactMainResult = process.env.EXACT_MAIN_FULL_CI_RESULT ?? "unknown";
   let result;
   if (main.parent_shas.length !== 2) {
-    result = discovery("uncertain_non_merge_commit", {
-      main,
-      exact_main_full_ci_result: exactMainResult,
-    });
+    result = discovery("uncertain_non_merge_commit", { main });
   } else {
     const pullRequests = await githubApi(
       `/repos/${process.env.GITHUB_REPOSITORY}/commits/${main.sha}/pulls`,
@@ -370,7 +360,6 @@ async function discoverCandidate(outputPath) {
     if (!pullRequest) {
       result = discovery("uncertain_no_matching_merged_pr", {
         main,
-        exact_main_full_ci_result: exactMainResult,
         pr_discovery_sources: [
           "commit_association",
           "closed_main_fallback",
@@ -407,14 +396,12 @@ async function discoverCandidate(outputPath) {
             main,
             pr_number: pullRequest.number,
             pr_discovery_source: pullRequestDiscoverySource,
-            exact_main_full_ci_result: exactMainResult,
             ...match,
           })
         : discovery("uncertain_candidate_artifact_missing", {
             main,
             pr_number: pullRequest.number,
             pr_discovery_source: pullRequestDiscoverySource,
-            exact_main_full_ci_result: exactMainResult,
             artifact_name: artifactName,
           });
     }
@@ -433,8 +420,6 @@ async function verifyMain(recordPath, discoveryPath, outputPath) {
   if (found.status !== "candidate_artifact_found") {
     report = discovery(found.status, {
       main: current,
-      exact_main_full_ci_result:
-        process.env.EXACT_MAIN_FULL_CI_RESULT ?? "unknown",
       discovery: found,
     });
   } else {
@@ -442,16 +427,12 @@ async function verifyMain(recordPath, discoveryPath, outputPath) {
     report = compareMainToCandidate({
       main: current,
       record,
-      exactMainResult: process.env.EXACT_MAIN_FULL_CI_RESULT ?? "unknown",
     });
     report = {
       ...report,
       pr_number: found.pr_number,
       candidate_full_ci_run_id: record.full_ci.run_id,
       candidate_full_ci_runner_seconds: record.full_ci.total_runner_seconds,
-      exact_main_full_ci_runner_seconds: fullCiJobTimings(
-        await workflowJobs(process.env.GITHUB_RUN_ID),
-      ).total_runner_seconds,
     };
   }
   writeJson(outputPath, report);

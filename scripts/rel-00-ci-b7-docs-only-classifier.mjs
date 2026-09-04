@@ -43,7 +43,7 @@ export const docsOnlyReadyPolicy = Object.freeze({
     "each changed path must have no static reference outside docs in the exact candidate",
   empty_or_ambiguous_change_rule: "full",
   ci_deduplication_authorized: false,
-  main_full_ci_required: true,
+  main_full_ci_required: false,
 });
 
 function result(disposition, reason, records = []) {
@@ -54,7 +54,7 @@ function result(disposition, reason, records = []) {
     records: Object.freeze(records.map((record) => Object.freeze({ ...record }))),
     exact_revision_verified: false,
     full_ci_deduplication_authorized: false,
-    main_full_ci_required: true,
+    main_full_ci_required: false,
   });
 }
 

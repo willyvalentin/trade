@@ -76,7 +76,7 @@ test.beforeAll(async () => {
   classifier = (await import(pathToFileURL(resolve(root, classifierPath)).href)) as ClassifierRuntime;
 });
 
-test("CI-B7 keeps an exact, fail-closed docs-only route while retaining main Full CI", () => {
+test("CI-B7 keeps an exact, fail-closed docs-only route with scheduled main Full CI", () => {
   const workflow = source(workflowPath);
   const contract = source(contractPath);
   const activationEvidence = JSON.parse(source(activationEvidencePath));
@@ -89,7 +89,7 @@ test("CI-B7 keeps an exact, fail-closed docs-only route while retaining main Ful
     accepted_statuses: ["A", "M"],
     content_rule: "git_numstat_must_not_report_binary_content",
     ci_deduplication_authorized: false,
-    main_full_ci_required: true,
+    main_full_ci_required: false,
   });
   expect(activationEvidence).toMatchObject({
     contract_version: "trade.rel00.ci-b7.docs-only-ready.v1",
@@ -101,7 +101,7 @@ test("CI-B7 keeps an exact, fail-closed docs-only route while retaining main Ful
     authority: {
       branch_protection_change: false,
       required_check_rename_or_rebinding: false,
-      ready_main_ci_deduplication_authorized: false,
+      ready_main_ci_deduplication_authorized: true,
       netlify_or_runtime_change: false,
       provider_broker_deployment_or_production_authority: false,
     },
@@ -137,7 +137,7 @@ test("CI-B7 keeps an exact, fail-closed docs-only route while retaining main Ful
   expect(workflow).not.toContain("merge_group:");
   expect(contract).toContain("14 calendar days");
   expect(contract).toContain("at least 10 eligible merged plain-documentation pull requests");
-  expect(contract).toMatch(/There is no Ready\/main\s+deduplication/);
+  expect(contract).toContain("post-merge attestation");
   expect(classifierSource).toContain('trustedGitExecutable = "/usr/bin/git"');
   expect(classifierSource).toContain("--no-renames");
   expect(classifierSource).toContain("--no-textconv");
@@ -160,7 +160,7 @@ test("CI-B7 admits only regular, unreferenced prose documentation", () => {
     reason: "verified_plain_documentation",
     exact_revision_verified: true,
     full_ci_deduplication_authorized: false,
-    main_full_ci_required: true,
+    main_full_ci_required: false,
     records: [{ status: "M", path: "docs/guide.md", old_mode: "100644", new_mode: "100644" }],
   });
 });

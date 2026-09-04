@@ -123,7 +123,7 @@ function aggregateStatus(result: string) {
   ).status;
 }
 
-test("routes Draft, Ready and main without allowing quick CI to authorize merge", async () => {
+test("routes Draft and Ready merge candidates through CI, with full main sweeps scheduled", async () => {
   const workflow = await source(workflowPath);
   expect(workflow).toContain("pull_request:\n    types:");
   for (const eventType of [
@@ -136,6 +136,9 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
     expect(workflow).toContain(`      - ${eventType}`);
   }
   expect(workflow).toContain("push:\n    branches:\n      - main");
+  expect(workflow).toContain('schedule:\n    # A full independent regression sweep');
+  expect(workflow).toContain('cron: "17 3 * * 1-5"');
+  expect(workflow).toContain("workflow_dispatch:");
   expect(workflow).toContain(
     "concurrency:\n  group: milestone-a-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}\n  cancel-in-progress: true",
   );
@@ -175,8 +178,9 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
   expect(draftJob).not.toContain("name: provider-free-verification\n");
 
   expect(shardJob).toContain(
-    "if: ${{ always() && (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}",
+    "if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && needs.ready-docs-only-classification.outputs.disposition != 'docs_only')) }}",
   );
+  expect(shardJob).not.toContain("github.event_name == 'push'");
   expect(shardJob).toContain("needs:\n      - ready-docs-only-classification");
   expect(shardJob).not.toContain("github.event.pull_request.draft == true");
   expect(shardJob).toContain("fail-fast: false");
@@ -203,6 +207,7 @@ test("routes Draft, Ready and main without allowing quick CI to authorize merge"
   expect(aggregateJob).toContain(
     'test "$SHARD_RESULT" = "success"',
   );
+  expect(aggregateJob).toContain('test "$SHARD_RESULT" = "skipped"');
   expect(aggregateJob).not.toContain("continue-on-error");
 
   expect(aggregateStatus("success")).toBe(0);
