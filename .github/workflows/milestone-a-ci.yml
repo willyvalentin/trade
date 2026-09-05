@@ -247,7 +247,18 @@ jobs:
         id: discover
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/action-660o-merge-candidate-provenance.mjs discover .ci-provenance/merge-candidate-discovery.json
+        run: |
+          workflow_output="$GITHUB_OUTPUT"
+          for attempt in 1 2 3 4; do
+            attempt_output="$RUNNER_TEMP/merge-candidate-discovery-${attempt}.output"
+            GITHUB_OUTPUT="$attempt_output" node scripts/action-660o-merge-candidate-provenance.mjs discover .ci-provenance/merge-candidate-discovery.json
+            status="$(node -p "JSON.parse(require('node:fs').readFileSync('.ci-provenance/merge-candidate-discovery.json', 'utf8')).status")"
+            if [ "$status" != "uncertain_candidate_artifact_missing" ] || [ "$attempt" = "4" ]; then
+              cat "$attempt_output" >> "$workflow_output"
+              break
+            fi
+            sleep 15
+          done
       - name: Download matching candidate provenance
         if: ${{ steps.discover.outputs.provenance_run_id != '' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

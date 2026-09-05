@@ -204,6 +204,24 @@ test("uses only a fully bound merged PR when the commit association endpoint is 
   ).toBeNull();
 });
 
+test("retries only a temporarily unavailable expected candidate artifact", async () => {
+  const { shouldRetryCandidateDiscovery } = await provenanceModule();
+
+  expect(
+    shouldRetryCandidateDiscovery({
+      status: "uncertain_candidate_artifact_missing",
+    }),
+  ).toBe(true);
+  expect(
+    shouldRetryCandidateDiscovery({
+      status: "uncertain_no_matching_merged_pr",
+    }),
+  ).toBe(false);
+  expect(shouldRetryCandidateDiscovery({ status: "candidate_artifact_found" })).toBe(
+    false,
+  );
+});
+
 test("keeps Ready CI as the merge gate while attesting main against the tested candidate", async () => {
   const workflow = await source(workflowPath);
   const contract = await source(contractPath);
@@ -223,6 +241,9 @@ test("keeps Ready CI as the merge gate while attesting main against the tested c
   expect(workflow).toContain('cron: "17 3 * * 1-5"');
   expect(workflow).toContain("workflow_dispatch:");
   expect(workflow).toContain("post-merge-candidate-provenance / POC (attestation)");
+  expect(workflow).toContain("for attempt in 1 2 3 4");
+  expect(workflow).toContain('sleep 15');
+  expect(workflow).toContain('"$status" != "uncertain_candidate_artifact_missing"');
   expect(workflow).toContain('test "$SHARD_RESULT" = "skipped"');
   expect(await source(scriptPath)).toContain(
     "candidate_full_ci_tree_and_workflow_attested",
@@ -231,6 +252,9 @@ test("keeps Ready CI as the merge gate while attesting main against the tested c
     "pulls?state=closed&base=main&sort=updated&direction=desc&per_page=100",
   );
   expect(await source(scriptPath)).toContain("closed_main_fallback");
+  expect(await source(scriptPath)).toContain(
+    "retryable_candidate_artifact_discovery",
+  );
   expect(workflow).not.toContain("merge_group:");
   expect(contract).toContain("same matrix is not run\na second time");
   expect(contract).toContain("mismatch_or_uncertain");

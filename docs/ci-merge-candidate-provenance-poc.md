@@ -45,6 +45,13 @@ cannot select a partial match.
 It derives the only acceptable receipt name from the actual main commit's
 first parent, second parent and tree SHA.
 
+Because GitHub can publish the `push` event a few seconds before the candidate
+job's artifact appears in the artifact listing, discovery retries only an
+otherwise fully identified, missing expected receipt. It makes at most four
+observations, fifteen seconds apart. A missing receipt after that bounded wait
+remains uncertain; no other discovery result is retried or converted into a
+match.
+
 It reports `matched` only if all of the following hold:
 
 1. the saved candidate receipt exists and its Full CI succeeded;
