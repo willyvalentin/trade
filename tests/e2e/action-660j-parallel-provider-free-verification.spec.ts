@@ -217,6 +217,7 @@ const foundationTests = [
   "tests/e2e/action-666iw-b03-staging-principal-scope-attestation-availability.spec.ts",
   "tests/e2e/action-666ix-milestone-b-local-sandbox-acceptance-closeout.spec.ts",
   "tests/e2e/action-666ja-b03-private-postgresql-transport.spec.ts",
+  "tests/e2e/r01-staging-writer-authenticated-server-command-port.spec.ts",
   "tests/e2e/rel-00-ci-b0-baseline-and-charter.spec.ts",
   "tests/e2e/rel-00-ci-b1-change-classification.spec.ts",
   "tests/e2e/rel-00-ci-b2-raw-name-status-acquisition.spec.ts",

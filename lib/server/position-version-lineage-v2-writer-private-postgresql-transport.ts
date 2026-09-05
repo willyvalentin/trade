@@ -50,10 +50,18 @@ type QueryResult = Readonly<{
   rows: readonly unknown[];
 }>;
 
+type TransactionControlQuery = "BEGIN" | "ROLLBACK";
+
+type WriterRoutineQuery = Readonly<{
+  name: string;
+  text: string;
+  values: readonly string[];
+}>;
+
 export type PositionVersionLineageV2WriterPrivatePostgresqlClient = Readonly<{
   connect: () => Promise<unknown>;
   end: () => Promise<void>;
-  query: (query: Readonly<{ name: string; text: string; values: readonly string[] }>) => Promise<QueryResult>;
+  query: (query: TransactionControlQuery | WriterRoutineQuery) => Promise<QueryResult>;
 }>;
 
 export type PositionVersionLineageV2WriterPrivatePostgresqlClientFactory = (
@@ -268,6 +276,38 @@ function connectionConfiguration(
   });
 }
 
+function writerRoutineQuery(
+  command: PositionVersionLineageV2WriterPrivateNonDataApiCommand,
+): WriterRoutineQuery {
+  return Object.freeze({
+    name: "position-version-lineage-v2-writer-private-routine-v1",
+    text: POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY,
+    values: [
+      command.authenticatedServerOwner,
+      command.opaqueRecommendationReference,
+      command.canonicalCommandDigest,
+    ],
+  });
+}
+
+function decodeExactlyOneWriterResult(
+  result: QueryResult,
+  command: PositionVersionLineageV2WriterPrivateNonDataApiCommand,
+) {
+  if (result.rowCount !== 1 || result.rows.length !== 1) {
+    throw new PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError();
+  }
+
+  const decodedResult = decodePositionVersionLineageV2WriterCommittedResult(
+    result.rows[0],
+    command.authenticatedServerOwner,
+  );
+  return projectPositionVersionLineageV2WriterImmutableCommittedResultReceipt(
+    decodedResult,
+    command.canonicalCommandDigest,
+  );
+}
+
 /**
  * Invokes exactly the frozen private V2 routine with a short-lived, server-only
  * PostgreSQL client. It has no route, UI, queue, deployment, or external-system
@@ -290,28 +330,9 @@ export async function executePositionVersionLineageV2WriterPrivatePostgresqlTran
 
   try {
     await client.connect();
-    const result = await client.query({
-      name: "position-version-lineage-v2-writer-private-routine-v1",
-      text: POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY,
-      values: [
-        command.authenticatedServerOwner,
-        command.opaqueRecommendationReference,
-        command.canonicalCommandDigest,
-      ],
-    });
-
-    if (result.rowCount !== 1 || result.rows.length !== 1) {
-      failed = true;
-      throw new PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError();
-    }
-
-    const decodedResult = decodePositionVersionLineageV2WriterCommittedResult(
-      result.rows[0],
-      command.authenticatedServerOwner,
-    );
-    receipt = projectPositionVersionLineageV2WriterImmutableCommittedResultReceipt(
-      decodedResult,
-      command.canonicalCommandDigest,
+    receipt = decodeExactlyOneWriterResult(
+      await client.query(writerRoutineQuery(command)),
+      command,
     );
   } catch {
     failed = true;
@@ -324,6 +345,62 @@ export async function executePositionVersionLineageV2WriterPrivatePostgresqlTran
   }
 
   if (failed || receipt === null) {
+    throw new PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError();
+  }
+
+  return receipt;
+}
+
+/**
+ * Runs the frozen private routine inside one transaction that is always rolled
+ * back. This is for a separately admitted, preview-only staging proof: it
+ * proves the private runtime path without leaving a recommendation transition,
+ * position, history row, or idempotency receipt behind. It never commits.
+ */
+export async function executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof(
+  input: unknown,
+  options: PositionVersionLineageV2WriterPrivatePostgresqlTransportOptions = {},
+): Promise<PositionVersionLineageV2WriterImmutableCommittedResultReceipt> {
+  const command = readValidatedCommand(input);
+  const connectionString = readConnectionString(options.environment ?? process.env);
+  const certificateAuthority = readCertificateAuthority(options.environment ?? process.env);
+  const client = (options.clientFactory ?? createDefaultClient)(
+    connectionConfiguration(connectionString, certificateAuthority),
+  );
+
+  let receipt: PositionVersionLineageV2WriterImmutableCommittedResultReceipt | null = null;
+  let transactionStarted = false;
+  let rollbackSucceeded = false;
+  let failed = false;
+
+  try {
+    await client.connect();
+    await client.query("BEGIN");
+    transactionStarted = true;
+    receipt = decodeExactlyOneWriterResult(
+      await client.query(writerRoutineQuery(command)),
+      command,
+    );
+  } catch {
+    failed = true;
+  }
+
+  if (transactionStarted) {
+    try {
+      await client.query("ROLLBACK");
+      rollbackSucceeded = true;
+    } catch {
+      failed = true;
+    }
+  }
+
+  try {
+    await client.end();
+  } catch {
+    failed = true;
+  }
+
+  if (failed || !rollbackSucceeded || receipt === null) {
     throw new PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError();
   }
 
