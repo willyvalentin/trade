@@ -23,7 +23,7 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
-| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; the authorized staging checks found both the canonical relation and the minimal legacy outcome projection empty. A savepoint-scoped synthetic fixture then verified acceptance and rollback with zero rows remaining | No canonical cohort or existing eligible source exists to read or evaluate. The rollback proof is not a cohort. A separate product decision must scope how eligible canonical evidence is created; the writer, runtime and all promotion paths remain closed. |
+| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; staging has no canonical rows. A production, outcome-minimized aggregate found legacy outcomes but none admissible for the canonical relation; a synthetic fixture verified staging rollback with zero rows remaining | No canonical cohort exists to read or evaluate. Neither legacy outcomes nor the rollback proof is a cohort. A separate decision may scope a staging-only redacted legacy-evidence relation; the writer, runtime and all promotion paths remain closed. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -86,6 +86,15 @@ authority.
   constraint acceptance plus rollback behavior; it leaves no fixture row or
   usable cohort and grants no writer, runtime, evaluator, provider/model,
   deployment, broker or production authority.
+- The separately authorized production GET-only assessment on 2026-09-06 read
+  only `recommendation_outcomes` metadata and an outcome-minimized aggregate.
+  It selected no owner identifier, ticker, source-record value, JSON payload,
+  warning, secret or broker data. The aggregate found 5,715 historical rows
+  (1,658 at 60 minutes) over 2026-06-05 through 2026-09-04, but zero rows with
+  the minimally complete 60-minute scalar needed for the proposed import. The
+  legacy schema also has no canonical identity, lineage, version,
+  confidence-semantics, reproducibility or immutable-envelope evidence. No
+  production or staging mutation occurred; staging canonical rows remain zero.
 
 ### Recent exact-main evidence
 
@@ -105,12 +114,13 @@ authority.
 
 ### Next
 
-- AI-02.3 is complete. No canonical-outcome cohort or existing eligible legacy
-  outcome source exists in staging to read or evaluate. The synthetic
-  savepoint/rollback proof is not a cohort and cannot become one. The next
-  meaningful Agent Intelligence decision must separately scope a staging-only
-  source of eligible canonical decision evidence; it must not infer writer,
-  runtime, evaluator, provider/model or promotion authority.
+- AI-02.3 is complete. No canonical-outcome cohort exists in staging to read
+  or evaluate. The synthetic savepoint/rollback proof and production legacy
+  outcomes cannot become one: the first did not persist and the latter lacks
+  complete canonical evidence. The next useful decision may separately scope a
+  staging-only, append-only redacted legacy-evidence relation; it must remain
+  ineligible for evaluation/promotion and must not infer writer, runtime,
+  evaluator, provider/model or production authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
