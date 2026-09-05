@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
-import { execFileSync, spawnSync } from "node:child_process";
-import { access, readFile } from "node:fs/promises";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
+import { access, chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
@@ -13,6 +15,7 @@ const contractPath = "docs/action-660j-parallel-provider-free-verification.md";
 const cacheContractPath = "docs/action-660n-lockfile-bound-npm-download-cache.md";
 const cacheEvidencePath =
   "docs/evidence/action-660n-lockfile-bound-npm-download-cache.json";
+const cancellationContractPath = "docs/ci-cancellation-reliability.md";
 const contractSha256 =
   "816d1353541e3a703791644c2354a2edf7e47252fd656eba420e98a1792cec40";
 
@@ -435,6 +438,90 @@ test("preserves exact serial coverage in six closed static shard plans", async (
   expect(invalid.stderr).toContain(
     "Unknown provider-free verification shard: unexpected-shard",
   );
+
+  const runner = await source(runnerPath);
+  expect(runner).toContain('import { spawn } from "node:child_process"');
+  expect(runner).not.toContain("spawnSync");
+  expect(runner).toContain('process.on(signal, handler)');
+  expect(runner).toContain('activeChild.kill(signal)');
+  expect(runner).toContain('exitStatusForCancellation(signal)');
+  expect(runner).toContain("shell: false");
+});
+
+test("forwards cancellation to the active command and exits before another command can start", async () => {
+  const fixtureDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "ture-ci-cancellation-"),
+  );
+  const fakeNpmPath = path.join(fixtureDirectory, "npm");
+  await writeFile(
+    fakeNpmPath,
+    "#!/bin/sh\nprintf 'fake-npm-started\\n'\ntrap \"printf 'fake-npm-terminated\\n'; exit 0\" TERM INT\nwhile :; do sleep 1; done\n",
+  );
+  await chmod(fakeNpmPath, 0o700);
+
+  const runner = spawn(
+    process.execPath,
+    [path.join(repositoryRoot, runnerPath), "foundation"],
+    {
+      cwd: repositoryRoot,
+      env: {
+        ...process.env,
+        PATH: `${fixtureDirectory}${path.delimiter}${process.env.PATH ?? ""}`,
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  let output = "";
+  let startSignal!: () => void;
+  let rejectStart!: (error: Error) => void;
+  const started = new Promise<void>((resolve, reject) => {
+    startSignal = resolve;
+    rejectStart = reject;
+  });
+  const timeout = setTimeout(
+    () => rejectStart(new Error("Timed out waiting for the fake command to start")),
+    10_000,
+  );
+  runner.stdout?.on("data", (chunk) => {
+    output += chunk.toString();
+    if (output.includes("fake-npm-started")) {
+      startSignal();
+    }
+  });
+  runner.stderr?.on("data", (chunk) => {
+    output += chunk.toString();
+  });
+  runner.once("error", rejectStart);
+
+  try {
+    await started;
+    const closed = once(runner, "close");
+    expect(runner.kill("SIGTERM")).toBe(true);
+    const [status, signal] = (await closed) as [number | null, NodeJS.Signals | null];
+
+    expect(status).toBe(143);
+    expect(signal).toBeNull();
+    expect(output).toContain("fake-npm-started");
+    expect(output).toContain("fake-npm-terminated");
+    expect(output).not.toContain("::group::TypeScript");
+  } finally {
+    clearTimeout(timeout);
+    if (runner.exitCode === null && runner.signalCode === null) {
+      runner.kill("SIGKILL");
+      await once(runner, "close");
+    }
+    await rm(fixtureDirectory, { force: true, recursive: true });
+  }
+});
+
+test("records cancellation forwarding as a source-only reliability boundary", async () => {
+  const contract = await source(cancellationContractPath);
+  expect(contract).toContain("the six-shard Full CI\nsuite and its required aggregate are unchanged");
+  expect(contract).toContain("forward `SIGINT` or `SIGTERM`");
+  expect(contract).toContain("without beginning a later command");
+  expect(contract).toContain("`shell: false`");
+  expect(contract).toContain("It creates no CI deduplication path.");
+  expect(contract).toContain("Netlify, application\nruntime, Supabase");
 });
 
 test("keeps the protected aggregate identity fail-closed over every shard", async () => {

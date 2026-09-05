@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -408,21 +408,9 @@ function executableFor(runner) {
   }
 }
 
-function runShard(shardName) {
-  if (!providerFreeVerificationShardNames.includes(shardName)) {
-    process.stderr.write(`Unknown provider-free verification shard: ${shardName}\n`);
-    return 2;
-  }
-
-  for (const plannedCommand of providerFreeVerificationPlan[shardName]) {
-    process.stdout.write(`::group::${plannedCommand.label}\n`);
-    const environment = { ...process.env };
-    if (plannedCommand.node_options === null) {
-      delete environment.NODE_OPTIONS;
-    } else {
-      environment.NODE_OPTIONS = plannedCommand.node_options;
-    }
-    const result = spawnSync(
+function runCommand(plannedCommand, environment, onChild) {
+  return new Promise((resolve) => {
+    const child = spawn(
       executableFor(plannedCommand.runner),
       plannedCommand.args,
       {
@@ -432,19 +420,85 @@ function runShard(shardName) {
         stdio: "inherit",
       },
     );
-    process.stdout.write("::endgroup::\n");
-    if (result.error) {
-      process.stderr.write(`${result.error.message}\n`);
-      return 1;
-    }
-    if (result.signal || result.status !== 0) {
-      return result.status ?? 1;
-    }
-  }
-  return 0;
+    onChild(child);
+    let settled = false;
+    const finish = (result) => {
+      if (!settled) {
+        settled = true;
+        resolve(result);
+      }
+    };
+    child.once("error", (error) => finish({ error, signal: null, status: null }));
+    child.once("close", (status, signal) => finish({ error: null, signal, status }));
+  });
 }
 
-function main() {
+function exitStatusForCancellation(signal) {
+  return signal === "SIGINT" ? 130 : 143;
+}
+
+async function runShard(shardName) {
+  if (!providerFreeVerificationShardNames.includes(shardName)) {
+    process.stderr.write(`Unknown provider-free verification shard: ${shardName}\n`);
+    return 2;
+  }
+
+  let activeChild = null;
+  let cancellationSignal = null;
+  const requestCancellation = (signal) => {
+    cancellationSignal ??= signal;
+    if (activeChild !== null && activeChild.exitCode === null) {
+      activeChild.kill(signal);
+    }
+  };
+  const signalHandlers = ["SIGINT", "SIGTERM"].map((signal) => [
+    signal,
+    () => requestCancellation(signal),
+  ]);
+  for (const [signal, handler] of signalHandlers) {
+    process.on(signal, handler);
+  }
+
+  try {
+    for (const plannedCommand of providerFreeVerificationPlan[shardName]) {
+      if (cancellationSignal !== null) {
+        return exitStatusForCancellation(cancellationSignal);
+      }
+      process.stdout.write(`::group::${plannedCommand.label}\n`);
+      const environment = { ...process.env };
+      if (plannedCommand.node_options === null) {
+        delete environment.NODE_OPTIONS;
+      } else {
+        environment.NODE_OPTIONS = plannedCommand.node_options;
+      }
+      const result = await runCommand(plannedCommand, environment, (child) => {
+        activeChild = child;
+        if (cancellationSignal !== null) {
+          child.kill(cancellationSignal);
+        }
+      });
+      activeChild = null;
+      process.stdout.write("::endgroup::\n");
+      if (cancellationSignal !== null) {
+        return exitStatusForCancellation(cancellationSignal);
+      }
+      if (result.error) {
+        process.stderr.write(`${result.error.message}\n`);
+        return 1;
+      }
+      if (result.signal || result.status !== 0) {
+        return result.status ?? 1;
+      }
+    }
+    return 0;
+  } finally {
+    for (const [signal, handler] of signalHandlers) {
+      process.off(signal, handler);
+    }
+  }
+}
+
+async function main() {
   assertRegisteredCoverage();
   if (process.argv[2] === "--plan") {
     process.stdout.write(`${JSON.stringify(providerFreeVerificationPlan)}\n`);
@@ -457,5 +511,12 @@ const invokedPath = process.argv[1]
   ? pathToFileURL(path.resolve(process.argv[1])).href
   : null;
 if (invokedPath === import.meta.url) {
-  process.exitCode = main();
+  main()
+    .then((status) => {
+      process.exitCode = status;
+    })
+    .catch((error) => {
+      process.stderr.write(`${error.message}\n`);
+      process.exitCode = 1;
+    });
 }
