@@ -237,6 +237,7 @@ const intelligenceTests = [
   "tests/e2e/ai-02.1-ture-setup-analyst-canonical-outcome-projection.spec.ts",
   "tests/e2e/ai-02.2-ture-setup-analyst-canonical-outcome-issuer.spec.ts",
   "tests/e2e/ai-02.3-ture-setup-analyst-local-outcome-cohort-admission.spec.ts",
+  "tests/e2e/ai-02.4-ture-setup-analyst-local-outcome-cohort-review.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
