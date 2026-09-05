@@ -17,7 +17,11 @@ const completeStagingEnvironment = {
 function runPreflight(environment: Record<string, string | undefined>) {
   const result = spawnSync(process.execPath, [script], {
     encoding: "utf8",
-    env: { PATH: process.env.PATH, ...environment },
+    env: {
+      PATH: process.env.PATH ?? "",
+      NODE_ENV: "test",
+      ...environment,
+    } as NodeJS.ProcessEnv,
   });
 
   return {
