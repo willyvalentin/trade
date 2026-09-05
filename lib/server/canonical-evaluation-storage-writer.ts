@@ -9,7 +9,6 @@ import {
   type CanonicalEvaluationPersistenceEnvelope,
   type CanonicalEvaluationStoragePayload,
 } from "@/lib/canonical-evaluation-persistence-contract";
-import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export const CANONICAL_EVALUATION_LINEAGE_CONTRACT_VERSION =
   "canonical_evaluation_lineage_v1" as const;
@@ -684,16 +683,6 @@ export function createCanonicalEvaluationSupabaseDatabase(
   };
 }
 
-function defaultCanonicalEvaluationStorageDatabase():
-  CanonicalEvaluationStorageDatabase | null {
-  const { client } = getServerSupabaseClient();
-  if (!client) return null;
-
-  return createCanonicalEvaluationSupabaseDatabase(
-    client as unknown as CanonicalEvaluationSupabaseClient,
-  );
-}
-
 export async function writeCanonicalEvaluationStorage(
   input: unknown,
   options: CanonicalEvaluationStorageWriterOptions = {},
@@ -741,7 +730,7 @@ export async function writeCanonicalEvaluationStorage(
   const database =
     options.database ??
     options.databaseFactory?.() ??
-    defaultCanonicalEvaluationStorageDatabase();
+    null;
 
   if (!database) {
     return {
