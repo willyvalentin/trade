@@ -10,12 +10,12 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-02.2 completed the provider-free, in-process issuer boundary for AI-02.1 canonical-outcome projections on exact main as PR #324; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed; select any later product slice through a fresh bounded decision |
+| Current bounded workstream | AI-02.2 completed the provider-free, in-process issuer boundary for AI-02.1 canonical-outcome projections on exact main as PR #324; a separately authorized exact-main migration now establishes an empty, server-owned canonical-evaluation relation in `ture-staging` | Preserve the closed application/runtime boundary; select any later product slice through a fresh bounded decision |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
-| Next decision | There is no automatic successor within the closed local-sandbox Milestone B profile | Do not restart staging, deploy, read protected material, contact a remote database/provider/broker, bind application runtime or wire UI/route without a new policy decision |
-| Deferred runtime gates | B-01's runtime capability and B-05 through B-12 are re-homed as unverified follow-on runtime work; PR #312's B-01 source projection does not alter that status, and remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
+| Next decision | There is no automatic successor after the scoped staging-schema proof; the one authorized source query yielded zero qualified rows | Do not read protected material, invoke a writer, bind application runtime, deploy or wire UI/route without a new policy decision |
+| Deferred runtime gates | B-01's runtime capability and B-05 through B-12 are re-homed as unverified follow-on runtime work; PR #312's B-01 source projection does not alter that status, and the staging admission is schema-only | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | The executable workflow on protected `main` remains the authority. The selected development profile prioritizes a protected Full Ready gate, low merge-path duplication and independent regression coverage; this roadmap decision changes no workflow itself | Verify each CI change in its own protected PR. A scheduled or attested CI result never authorizes runtime, provider, broker, deployment or release activity. |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
@@ -159,8 +159,18 @@ only process-local issuer provenance to AI-02.1's already redacted projection:
 a future in-memory consumer can distinguish that module's actual frozen output
 from a structural lookalike. It adds no serialized receipt, cross-process
 trust, data collection, query, evaluation, promotion or runtime authority.
-There is no automatic successor; select another product slice only through a
-fresh bounded decision.
+The later, separately authorized staging-only schema proof applied exact-main
+migration `20260726001000_create_canonical_evaluation_decisions.sql` as remote
+migration `20260905092130_create_canonical_evaluation_decisions`. Its
+readback verifies an empty 55-column relation owned by `postgres`, RLS enabled
+with zero policies, an update/delete-rejecting guard trigger and zero grants
+for browser-facing roles; `service_role` alone holds the server-side `SELECT`
+and `INSERT` grants. The proof invoked no writer and performed no application
+runtime, secret, deployment, production or broker operation. A separate
+authorized, minimised read-only source query yielded zero qualified rows, so
+there is no admitted canonical evaluation dataset or receipt. There is no
+automatic successor; select another product slice only through a fresh bounded
+decision.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ

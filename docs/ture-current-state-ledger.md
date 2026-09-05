@@ -21,7 +21,8 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
-| Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
+| Canonical-evaluation staging schema | `20260905092130_create_canonical_evaluation_decisions` is applied to `ture-staging`; the append-only, server-owned relation is empty, RLS-protected and has no browser-role grants | This admits only the verified schema. A capture writer, application runtime, data cohort, evaluation or promotion needs a new, bounded decision. |
+| Authority boundary | The narrowly admitted staging schema does not admit application runtime, provider, broker, Netlify, deployment or production | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
 
@@ -53,12 +54,20 @@ authority.
   boundary for AI-02.1's output. A frozen lookalike, clone or another module
   instance's projection remains rejected; this is not durable or cross-process
   trust.
+- The exact-main canonical-evaluation migration is applied once to
+  `ture-staging`. Readback verified 55 columns, the `postgres` owner, RLS
+  enabled with zero policies, one update/delete-rejecting guard trigger, zero
+  application rows and zero grants for browser-facing roles. `service_role`
+  alone has the server-side `SELECT` and `INSERT` grants. No writer, runtime,
+  deployment, secret, production or broker operation was performed.
 
 ### Next
 
-- There is no automatic successor after AI-02.2. Select any later product
-  slice through a fresh, bounded decision that names its outcome, authority
-  boundary and evidence.
+- There is no automatic successor after the verified schema admission. Select
+  any later product slice through a fresh, bounded decision that names its
+  outcome, authority boundary and evidence. The one authorized, read-only
+  source-cohort query returned zero qualified rows, so it admitted neither a
+  dataset nor a canonical evaluation receipt.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
@@ -71,9 +80,10 @@ authority.
 
 - B-01 runtime capability and B-05 through B-12 are deferred, unverified
   runtime work; the B-01/B-03 source evidence does not change that status.
-- No staging restart, protected-material access, identity/grant change, remote
-  connection, writer invocation, runtime binding, broker action, deployment or
-  production action is admitted by this ledger.
+- Apart from the recorded empty canonical-evaluation schema, no
+  protected-material access, identity/grant change, remote data access, writer
+  invocation, runtime binding, broker action, deployment or production action
+  is admitted by this ledger.
 
 ## Evidence and decision history
 
