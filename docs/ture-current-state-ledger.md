@@ -23,7 +23,7 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
-| Agent Intelligence AI-02.3 | Selected source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections | Require normal PR evidence before completion; it creates no query, dataset, evaluation, persistence, runtime or promotion authority. |
+| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332 | It returns frozen redacted metadata only; it creates no query, dataset, evaluation, persistence, runtime or promotion authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -64,10 +64,12 @@ authority.
   boundary for AI-02.1's output. A frozen lookalike, clone or another module
   instance's projection remains rejected; this is not durable or cross-process
   trust.
-- AI-02.3 is the selected provider-free successor. It may preflight only a
-  bounded in-memory batch of same-process AI-02.2-issued projections and
-  return redacted cohort metadata. It cannot query, collect or persist data,
-  form a dataset, evaluate, bind runtime or promote a model or policy.
+- AI-02.3 is complete on exact main as the provider-free preflight of a
+  bounded in-memory batch of same-process AI-02.2-issued projections. It
+  returns only frozen redacted cohort metadata and rejects lookalikes, foreign
+  issuers, duplicates, mixed cohorts, mutable or sparse arrays, and
+  accessor-backed inputs. It cannot query, collect or persist data, form a
+  dataset, evaluate, bind runtime or promote a model or policy.
 
 ### Recent exact-main evidence
 
@@ -80,13 +82,16 @@ authority.
   `33977814947` passed the same six shards, aggregate and candidate-provenance
   POC; exact-main run `33979271961` passed the verification gate and post-merge
   attestation.
+- PR #332 merged as `7509323f46b38bd6c4c96d89cc5c60fc5b367cba`. Ready Full CI
+  run `33982269276` passed the unchanged six provider-free shards, protected
+  aggregate and candidate-provenance POC; exact-main run `33983595731` then
+  passed the verification gate and post-merge attestation.
 
 ### Next
 
-- AI-02.3 is the selected bounded successor to AI-02.2. Keep it source-only:
-  normal Ready Full CI and exact-main verification are required before treating
-  its preflight boundary as complete; a later product slice still needs a fresh
-  bounded decision.
+- AI-02.3 is complete. The next meaningful Agent Intelligence slice is a
+  staging-only, read-only canonical-outcome cohort query; it requires a fresh
+  explicit external-scope decision before any protected data is read.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
