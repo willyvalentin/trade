@@ -11,8 +11,8 @@
   },
   "activation_candidate": {
     "workflow_path": ".github/workflows/milestone-a-ci.yml",
-    "workflow_sha256": "2e8c08c6be408b1ea0657c0e69fb4ead666c9e641dd058cf292fc1b6cb771ef9",
-    "workflow_blob_sha": "19eafc4ea9df63eba8da066e2d53b5e85e18713e",
+    "workflow_sha256": "dd6cbaea1b9562c071d81f3561f7446a7cba9f1c19ca6f3e4dbaf532a59cd90f",
+    "workflow_blob_sha": "f49297f2256e59e0b3a0f9a9e59a40b559c42f77",
     "protected_aggregate": "provider-free-verification",
     "ready_docs_only_job": "ready-docs-only-classification",
     "ready_full_shards": [
