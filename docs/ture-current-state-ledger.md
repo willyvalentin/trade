@@ -23,7 +23,7 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
-| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332 | It returns frozen redacted metadata only; it creates no query, dataset, evaluation, persistence, runtime or promotion authority. |
+| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; the authorized staging checks found both the canonical relation and the minimal legacy outcome projection empty | No canonical cohort or existing eligible source exists to read or evaluate. A separate product decision must scope how eligible canonical evidence is created; the writer, runtime and all promotion paths remain closed. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -70,6 +70,15 @@ authority.
   issuers, duplicates, mixed cohorts, mutable or sparse arrays, and
   accessor-backed inputs. It cannot query, collect or persist data, form a
   dataset, evaluate, bind runtime or promote a model or policy.
+- The authorized staging metadata preflight on 2026-09-05 found
+  `public.canonical_evaluation_decisions` present with RLS enabled but reporting
+  `0` rows. It read no row payload, owner identifier, JSON field or secret, and
+  changed neither schema nor data.
+- The single authorized staging read of `public.recommendation_outcomes` then
+  returned `0` rows for its minimal outcome-only projection. It selected no
+  owner identifier, source identifier, JSON field or secret and changed no
+  schema or data. It is an availability finding, not a writer, evaluator or
+  runtime admission.
 
 ### Recent exact-main evidence
 
@@ -89,9 +98,11 @@ authority.
 
 ### Next
 
-- AI-02.3 is complete. The next meaningful Agent Intelligence slice is a
-  staging-only, read-only canonical-outcome cohort query; it requires a fresh
-  explicit external-scope decision before any protected data is read.
+- AI-02.3 is complete. No canonical-outcome cohort or existing eligible legacy
+  outcome source exists in staging to read or evaluate. The next meaningful
+  Agent Intelligence decision must separately scope a staging-only source of
+  eligible canonical decision evidence; it must not infer writer, runtime,
+  evaluator, provider/model or promotion authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
@@ -107,6 +118,8 @@ authority.
 - No staging restart, protected-material access, identity/grant change, remote
   connection, writer invocation, runtime binding, broker action, deployment or
   production action is admitted by this ledger.
+- The empty canonical staging relation is an availability finding, not evidence
+  that a writer, evaluator or source-data path may be activated.
 
 ## Evidence and decision history
 
