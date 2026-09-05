@@ -727,10 +727,12 @@ export async function writeCanonicalEvaluationStorage(
     };
   }
 
-  const database =
-    options.database ??
-    options.databaseFactory?.() ??
-    null;
+  let database: CanonicalEvaluationStorageDatabase | null = null;
+  try {
+    database = options.database ?? options.databaseFactory?.() ?? null;
+  } catch {
+    database = null;
+  }
 
   if (!database) {
     return {
