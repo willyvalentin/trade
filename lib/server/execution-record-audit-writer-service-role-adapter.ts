@@ -75,7 +75,9 @@ export type ExecutionRecordAuditServiceRoleAdapterClient = {
 
 export type ExecutionRecordAuditServiceRoleAdapterClientFactoryResult = {
   client: ExecutionRecordAuditServiceRoleAdapterClient | null;
-  unavailable_reason: "supabase_missing_env" | "supabase_service_role_missing" | null;
+  unavailable_reason: ReturnType<
+    typeof getServerSupabaseClient
+  >["unavailable_reason"];
 };
 
 export type ExecutionRecordAuditServiceRoleAdapterClientFactory =
@@ -279,7 +281,7 @@ function sanitizeDiagnosticString(value: unknown): string | null {
   return trimmed
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted_jwt]")
     .replace(/service[_-]?role[=:]\s*['"]?[^'"\s]+/gi, "service_role=[redacted]")
-    .replace(/supabase[_-]?service[_-]?role[_-]?key[=:]\s*['"]?[^'"\s]+/gi, "supabase_service_role_key=[redacted]")
+    .replace(/supabase[_-]?service[_-]?role[_-]?key[=:]\s*['"]?[^'"\s]+/gi, "supabase_service_role_key:[redacted]")
     .slice(0, 500);
 }
 

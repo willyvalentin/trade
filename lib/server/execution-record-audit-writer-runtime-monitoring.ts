@@ -141,7 +141,7 @@ function sanitizeDiagnosticText(value: string | null | undefined) {
   return trimmed
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted_jwt]")
     .replace(/service[_-]?role[=:]\s*['"]?[^'"\s]+/gi, "service_role=[redacted]")
-    .replace(/supabase[_-]?service[_-]?role[_-]?key[=:]\s*['"]?[^'"\s]+/gi, "supabase_service_role_key=[redacted]")
+    .replace(/supabase[_-]?service[_-]?role[_-]?key[=:]\s*['"]?[^'"\s]+/gi, "supabase_service_role_key:[redacted]")
     .slice(0, 240);
 }
 
