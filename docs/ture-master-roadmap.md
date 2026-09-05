@@ -10,13 +10,13 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-02.3 is completed on exact main as a provider-free, source-only cohort preflight; authorized `ture-staging` checks found the RLS-protected canonical relation and the minimal legacy outcome projection empty. A staging-only synthetic rollback proof then accepted one fixture inside a savepoint and left zero rows after rollback | No canonical cohort or existing eligible source exists to query. The rollback proof is not product evidence; preserve application and all remote environments as closed until a separate product decision scopes creation of eligible canonical evidence |
+| Current bounded workstream | AI-02.3 is completed on exact main as a provider-free, source-only cohort preflight; `ture-staging` has no canonical rows. An authorized production, outcome-minimized aggregate found legacy rows but no admissible canonical evidence; the staging synthetic rollback proof remains non-persistent | Do not coerce legacy rows into canonical evidence. A separate decision must scope a redacted staging-only legacy-evidence relation, or a future canonical source with complete lineage/version evidence |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | D-01.1 credential alias boundary | PR #329 is merged and exact-main verified as a source-only fail-closed resolver for server service-role aliases | It selects no secret value and admits no remote call, staging, runtime, deployment, provider, broker or production authority |
 | CI cancellation reliability | PR #330 is merged and exact-main verified; it forwards cancellation to the active provider-free shard command and blocks later commands in that shard | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile are unchanged |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
-| Next decision | AI-02.3 is closed; staging has neither a canonical-outcome cohort nor an existing eligible legacy outcome source. The one synthetic rollback fixture did not persist and cannot become a cohort | Select a separately scoped staging-only evidence-source decision; do not infer writer, runtime, evaluator, provider/model, promotion, deployment or production authority |
+| Next decision | AI-02.3 is closed; staging has no canonical cohort. Production legacy outcomes exist, but their approved aggregate demonstrates that they lack the canonical lineage, version and complete outcome evidence required by the target relation | Separately scope a staging-only, append-only redacted legacy-evidence relation if preserving that history is useful; it must remain ineligible for evaluation or promotion and must not infer writer, runtime, provider/model, deployment or production authority |
 | Deferred runtime gates | B-01's runtime capability and B-05 through B-12 are re-homed as unverified follow-on runtime work; PR #312's B-01 source projection does not alter that status, and remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | The executable workflow on protected `main` remains the authority. The selected development profile prioritizes a protected Full Ready gate, low merge-path duplication and independent regression coverage; this roadmap decision changes no workflow itself | Verify each CI change in its own protected PR. A scheduled or attested CI result never authorizes runtime, provider, broker, deployment or release activity. |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -27,7 +27,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-01.4 | Completed provider-free issuer-admission review on exact main as PR #320 | Keep the check in-process and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority |
-| Agent Intelligence AI-02.3 | Completed source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections on exact main as PR #332; staging metadata reports no canonical rows. A savepoint-scoped synthetic fixture later verified acceptance and rollback without persistence | It returns redacted cohort metadata only. The rollback proof is not an eligible cohort; a separate decision must scope real eligible evidence creation before a dataset, evaluation or promotion can exist |
+| Agent Intelligence AI-02.3 | Completed source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections on exact main as PR #332; staging metadata reports no canonical rows. A production legacy-outcome aggregate found no row suitable for the canonical relation, and a staging synthetic fixture verified only rollback without persistence | It returns redacted cohort metadata only. Neither legacy outcomes nor the rollback proof are an eligible cohort; a separate decision must scope real eligible evidence creation before a dataset, evaluation or promotion can exist |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -189,6 +189,22 @@ legacy source to query or evaluate. The next meaningful product decision is a
 separately scoped staging-only source of eligible canonical decision evidence;
 that decision cannot infer writer, runtime, evaluator, provider/model or
 promotion authority.
+
+On 2026-09-06, a separately authorized production GET-only assessment read
+only the `recommendation_outcomes` schema plus an outcome-minimized aggregate:
+it selected no owner identifier, ticker, source-record value, JSON payload,
+warning, secret or broker data and made no production change. The aggregate
+reported 5,715 historical outcome rows spanning 2026-06-05 through 2026-09-04,
+including 1,658 60-minute rows, but zero rows with the minimally complete
+60-minute scalar used by the proposed import. More fundamentally, the legacy
+relation contains none of the canonical decision identity, lineage, version,
+confidence-semantics, reproducibility or immutable-envelope evidence required
+by `canonical_evaluation_decisions`. The staging relation remained at zero
+rows. No legacy row was coerced into a fabricated canonical decision, and no
+staging schema or data changed. If that history is to be preserved, a separate
+staging-only, append-only redacted legacy-evidence relation must be designed
+and explicitly kept ineligible for evaluation or promotion until a real
+canonical source exists.
 
 The separately authorized staging-only rollback proof on 2026-09-06 used the
 already locally validated `historical_synthetic` canonical-decision fixture.
