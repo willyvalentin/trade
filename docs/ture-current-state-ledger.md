@@ -13,6 +13,8 @@ authority.
 | --- | --- | --- |
 | Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
 | B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
+| D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
+| CI cancellation reliability | PR #330 is merged and exact-main verified; cancellation reaches the active provider-free shard command before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
@@ -30,6 +32,14 @@ authority.
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
   checked-in workflow, not this ledger, controls present CI behavior.
+- D-01.1 is complete on exact main as a source-only server credential-alias
+  boundary: zero or ambiguous aliases fail closed, and the audit-writer adapter
+  receives a typed unavailable result. It reads no secret value and makes no
+  remote call.
+- CI cancellation reliability is complete on exact main: a cancellation signal
+  is forwarded to the active provider-free shard command and prevents a later
+  command in that shard from starting. This changes no workflow topology,
+  required check, branch-protection policy or runtime authority.
 - AI-01.1 is complete on exact main as a provider-free in-memory comparison
   contract over already-admitted local fixtures. It cannot collect or retain
   real outcome data, invoke a model, bind runtime or promote a policy.
@@ -53,6 +63,18 @@ authority.
   boundary for AI-02.1's output. A frozen lookalike, clone or another module
   instance's projection remains rejected; this is not durable or cross-process
   trust.
+
+### Recent exact-main evidence
+
+- PR #329 merged as `7267b9bec15830a92d77f98a8cdcdccdecab0d36`. Its Ready
+  Full CI run `33971982832` passed all six provider-free shards, the protected
+  aggregate and candidate-provenance POC; exact-main run `33977532559` then
+  passed the verification gate and post-merge attestation.
+- PR #330 was rebased on that merged main, then merged as
+  `67450eac58f639bc080171245063e23e1540259d`. Refreshed Ready Full CI run
+  `33977814947` passed the same six shards, aggregate and candidate-provenance
+  POC; exact-main run `33979271961` passed the verification gate and post-merge
+  attestation.
 
 ### Next
 
