@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-02.2 completed the provider-free, in-process issuer boundary for AI-02.1 canonical-outcome projections on exact main as PR #324; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed; select any later product slice through a fresh bounded decision |
+| Current bounded workstream | AI-02.3 is the selected provider-free, source-only cohort-preflight successor to AI-02.2; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed; require normal PR and exact-main evidence before treating AI-02.3 as complete |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | D-01.1 credential alias boundary | PR #329 is merged and exact-main verified as a source-only fail-closed resolver for server service-role aliases | It selects no secret value and admits no remote call, staging, runtime, deployment, provider, broker or production authority |
@@ -27,6 +27,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-01.4 | Completed provider-free issuer-admission review on exact main as PR #320 | Keep the check in-process and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority |
+| Agent Intelligence AI-02.3 | Selected source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections | It may return redacted cohort metadata only; a repository query, dataset, evaluation or promotion still needs a separate decision |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -163,6 +164,13 @@ from a structural lookalike. It adds no serialized receipt, cross-process
 trust, data collection, query, evaluation, promotion or runtime authority.
 There is no automatic successor; select another product slice only through a
 fresh bounded decision.
+
+AI-02.3 is the separately selected successor. It validates only a bounded,
+caller-supplied in-memory batch of AI-02.2 projections that were issued by the
+same process, then returns redacted cohort metadata. It remains `not_admitted`
+for repository reads, a dataset, offline evaluation and policy or model
+promotion. Its implementation and normal PR evidence are required before it
+can be recorded as complete.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
