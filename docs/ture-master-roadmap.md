@@ -10,7 +10,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-02.1 completed as a provider-free canonical-outcome projection boundary on exact main as PR #322; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed until a fresh bounded product decision admits a new scope |
+| Current bounded workstream | AI-02.2 is selected as a provider-free, in-process issuer boundary for AI-02.1 canonical-outcome projections; verified B-01/B-03 follow-ons remain source-only evidence | Preserve application and all remote environments as closed; AI-02.2 cannot admit a data query, dataset, evaluation or promotion |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
@@ -24,6 +24,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-01.3 | Completed provider-free fixture identity-collision review on exact main as PR #319 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
 | Agent Intelligence AI-01.4 | Completed provider-free issuer-admission review on exact main as PR #320 | Keep the check in-process and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision |
+| Agent Intelligence AI-02.2 | Selected source-only issuer boundary for AI-02.1's redacted outcome projections | Keep provenance process-local and default-deny; it must not create a durable receipt, repository query, dataset, evaluation or promotion authority |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -148,6 +149,14 @@ repository query, provider/model or context-tool invocation, I/O, persistence,
 route/queue/UI or runtime binding. Its output remains `not_admitted` for
 offline evaluation and model/policy promotion. A read-only cohort query,
 frozen holdout, measured result or human review remains a separate decision.
+
+AI-02.2 is the fresh bounded successor selected under the autonomous decision
+policy. It adds only process-local issuer provenance to AI-02.1's already
+redacted projection: a future in-memory consumer can distinguish that module's
+actual frozen output from a structural lookalike. It adds no serialized
+receipt, cross-process trust, data collection, query, evaluation, promotion or
+runtime authority. Its focused source, negative tests, Ready Full CI and
+exact-main evidence must close before another successor is selected.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ

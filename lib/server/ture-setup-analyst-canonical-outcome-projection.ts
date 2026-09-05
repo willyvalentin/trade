@@ -120,6 +120,11 @@ const terminalOutcomes = [
   "neither",
 ] as const;
 
+// This is deliberately process-local. It lets a future in-memory consumer
+// distinguish this adapter's own frozen output from a structural lookalike,
+// without serializing a receipt or creating durable admission authority.
+const issuedTureSetupAnalystCanonicalOutcomeProjections = new WeakSet<object>();
+
 function hasExactOwnDataKeys(
   value: unknown,
   keys: readonly string[],
@@ -321,7 +326,7 @@ export function projectTureSetupAnalystCanonicalOutcome(
     throw new TypeError("Invalid Ture Setup Analyst canonical outcome projection input.");
   }
 
-  return Object.freeze({
+  const projection = Object.freeze({
     projection_version: TURE_SETUP_ANALYST_CANONICAL_OUTCOME_PROJECTION_VERSION,
     mode: "server_only_canonical_outcome_projection",
     projection_status: "source_only_projected",
@@ -332,4 +337,22 @@ export function projectTureSetupAnalystCanonicalOutcome(
     offline_evaluation_disposition: "not_admitted",
     authority: TURE_SETUP_ANALYST_CANONICAL_OUTCOME_PROJECTION_AUTHORITY,
   });
+
+  issuedTureSetupAnalystCanonicalOutcomeProjections.add(projection);
+  return projection;
+}
+
+/**
+ * Returns true only for a projection created by this module instance. This is
+ * not a durable receipt, is intentionally not serializable and grants no
+ * cross-process, dataset, evaluation or promotion authority.
+ */
+export function isTureSetupAnalystIssuedCanonicalOutcomeProjection(
+  value: unknown,
+): value is TureSetupAnalystCanonicalOutcomeProjection {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    issuedTureSetupAnalystCanonicalOutcomeProjections.has(value)
+  );
 }

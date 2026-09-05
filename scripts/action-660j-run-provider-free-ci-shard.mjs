@@ -209,6 +209,7 @@ const intelligenceTests = [
   "tests/e2e/ai-01.3-ture-setup-analyst-fixture-identity-collision-review.spec.ts",
   "tests/e2e/ai-01.4-ture-setup-analyst-issued-fixture-admission.spec.ts",
   "tests/e2e/ai-02.1-ture-setup-analyst-canonical-outcome-projection.spec.ts",
+  "tests/e2e/ai-02.2-ture-setup-analyst-canonical-outcome-issuer.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
