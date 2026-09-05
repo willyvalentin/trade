@@ -348,6 +348,28 @@ test("kill switch independently blocks an enabled feature flag", async () => {
   expect(databaseFactoryCalls).toBe(0);
 });
 
+test("enabled writer requires an explicitly injected database", async () => {
+  const result = await writeCanonicalEvaluationStorage(
+    readyStorage(action664cVisibleEnvelopeResult),
+    { env: enabledEnvironment },
+  );
+
+  expect(result).toMatchObject({
+    status: "service_unavailable",
+    database_read_performed: false,
+    insert_attempted: false,
+    inserted: false,
+    reason_codes: ["service_role_database_unavailable"],
+  });
+
+  const source = readFileSync(
+    "lib/server/canonical-evaluation-storage-writer.ts",
+    "utf8",
+  );
+  expect(source).not.toMatch(/getServerSupabaseClient|defaultCanonicalEvaluationStorageDatabase/);
+  expect(source).toContain("options.database ??\n    options.databaseFactory?.() ??\n    null");
+});
+
 test("enabled local writer inserts once and treats exact retry as no-effect", async () => {
   const database = new MemoryDatabase();
   const payload = readyStorage(action664cVisibleEnvelopeResult);
