@@ -19,7 +19,7 @@ authority.
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
 | Agent Intelligence AI-01.3 | Completed source-only fixture identity-collision review on exact main as PR #319 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
-| Agent Intelligence AI-02.1 | Selected server-only canonical-outcome projection boundary | Project only a supplied frozen eligible canonical snapshot; do not read a repository, collect data or admit offline evaluation/promotion. |
+| Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -44,9 +44,10 @@ authority.
   fixture evaluator and rejects a structurally identical manually built
   lookalike. It cannot collect data, invoke a model, bind runtime or promote a
   policy.
-- AI-02.1 is the selected source-only bridge to future offline evaluation. It
-  may redact one supplied frozen, eligible canonical outcome snapshot but
-  cannot read a repository, collect data, bind runtime or promote a policy.
+- AI-02.1 is complete on exact main as a source-only bridge to future offline
+  evaluation. It may redact one supplied frozen, eligible canonical outcome
+  snapshot but cannot read a repository, collect data, bind runtime or promote
+  a policy.
 
 ### Next
 
