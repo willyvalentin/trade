@@ -23,6 +23,7 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
+| Agent Intelligence AI-02.3 | Selected source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections | Require normal PR evidence before completion; it creates no query, dataset, evaluation, persistence, runtime or promotion authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -63,6 +64,10 @@ authority.
   boundary for AI-02.1's output. A frozen lookalike, clone or another module
   instance's projection remains rejected; this is not durable or cross-process
   trust.
+- AI-02.3 is the selected provider-free successor. It may preflight only a
+  bounded in-memory batch of same-process AI-02.2-issued projections and
+  return redacted cohort metadata. It cannot query, collect or persist data,
+  form a dataset, evaluate, bind runtime or promote a model or policy.
 
 ### Recent exact-main evidence
 
@@ -78,9 +83,10 @@ authority.
 
 ### Next
 
-- There is no automatic successor after AI-02.2. Select any later product
-  slice through a fresh, bounded decision that names its outcome, authority
-  boundary and evidence.
+- AI-02.3 is the selected bounded successor to AI-02.2. Keep it source-only:
+  normal Ready Full CI and exact-main verification are required before treating
+  its preflight boundary as complete; a later product slice still needs a fresh
+  bounded decision.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
