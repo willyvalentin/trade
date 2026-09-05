@@ -23,7 +23,7 @@ authority.
 | Agent Intelligence AI-01.4 | Completed source-only issuer-admission review on exact main as PR #320 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
-| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; the authorized staging checks found both the canonical relation and the minimal legacy outcome projection empty | No canonical cohort or existing eligible source exists to read or evaluate. A separate product decision must scope how eligible canonical evidence is created; the writer, runtime and all promotion paths remain closed. |
+| Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; the authorized staging checks found both the canonical relation and the minimal legacy outcome projection empty. A savepoint-scoped synthetic fixture then verified acceptance and rollback with zero rows remaining | No canonical cohort or existing eligible source exists to read or evaluate. The rollback proof is not a cohort. A separate product decision must scope how eligible canonical evidence is created; the writer, runtime and all promotion paths remain closed. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -79,6 +79,13 @@ authority.
   owner identifier, source identifier, JSON field or secret and changed no
   schema or data. It is an availability finding, not a writer, evaluator or
   runtime admission.
+- The separately authorized staging-only rollback proof on 2026-09-06 accepted
+  the locally validated `historical_synthetic` canonical-decision fixture
+  inside one savepoint-scoped transaction. Its matching-row count was zero
+  before the proof and zero after rollback. This confirms only schema and
+  constraint acceptance plus rollback behavior; it leaves no fixture row or
+  usable cohort and grants no writer, runtime, evaluator, provider/model,
+  deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -99,10 +106,11 @@ authority.
 ### Next
 
 - AI-02.3 is complete. No canonical-outcome cohort or existing eligible legacy
-  outcome source exists in staging to read or evaluate. The next meaningful
-  Agent Intelligence decision must separately scope a staging-only source of
-  eligible canonical decision evidence; it must not infer writer, runtime,
-  evaluator, provider/model or promotion authority.
+  outcome source exists in staging to read or evaluate. The synthetic
+  savepoint/rollback proof is not a cohort and cannot become one. The next
+  meaningful Agent Intelligence decision must separately scope a staging-only
+  source of eligible canonical decision evidence; it must not infer writer,
+  runtime, evaluator, provider/model or promotion authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
