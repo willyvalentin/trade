@@ -27,6 +27,12 @@ const writerPath = join(
   "lib/server/execution-record-audit-writer.ts",
 );
 
+type RuntimeAdapterUnavailableReason =
+  | "supabase_missing_env"
+  | "supabase_service_role_missing"
+  | "supabase_service_role_ambiguous"
+  | null;
+
 type RuntimeAdapterModule = {
   insertExecutionRecordAuditEventWithServiceRole: (input: {
     insert: {
@@ -40,7 +46,7 @@ type RuntimeAdapterModule = {
     };
     getClient: () => {
       client: ExecutionRecordAuditServiceRoleAdapterClient | null;
-      unavailable_reason: "supabase_missing_env" | "supabase_service_role_missing" | null;
+      unavailable_reason: RuntimeAdapterUnavailableReason;
     };
   }) => Promise<ExecutionRecordAuditServiceRoleAdapterLiveResult>;
 };
@@ -167,12 +173,17 @@ test("audit writer service-role adapter exposes blocked readiness shape only", (
 
 test("audit writer service-role live adapter maps insert outcomes without downstream mutation", async () => {
   const runtimeAdapter = loadRuntimeAdapterModule();
-  const run = (client: ExecutionRecordAuditServiceRoleAdapterClient | null) =>
+  const run = (
+    client: ExecutionRecordAuditServiceRoleAdapterClient | null,
+    unavailable_reason: RuntimeAdapterUnavailableReason = client
+      ? null
+      : "supabase_service_role_missing",
+  ) =>
     runtimeAdapter.insertExecutionRecordAuditEventWithServiceRole({
       insert: representativeInsert,
       getClient: () => ({
         client,
-        unavailable_reason: client ? null : "supabase_service_role_missing",
+        unavailable_reason,
       }),
     });
 
@@ -182,6 +193,7 @@ test("audit writer service-role live adapter maps insert outcomes without downst
   const unavailable = await run(createMockClient({ status: 503 }));
   const unknown = await run(createMockClient({ code: "PGRST999" }));
   const noClient = await run(null);
+  const ambiguousClient = await run(null, "supabase_service_role_ambiguous");
 
   expect(success.status).toBe("success");
   expect(success.ok).toBe(true);
@@ -203,6 +215,18 @@ test("audit writer service-role live adapter maps insert outcomes without downst
     hint: null,
     constraint: null,
   });
+  expect(ambiguousClient.status).toBe("service_unavailable");
+  expect(ambiguousClient.insertAttempted).toBe(false);
+  expect(ambiguousClient.serviceRoleUsed).toBe(false);
+  expect(ambiguousClient.errors).toEqual(["supabase_service_role_ambiguous"]);
+  expect(ambiguousClient.diagnostics).toMatchObject({
+    category: "service_unavailable",
+    code: "supabase_service_role_ambiguous",
+    message: "supabase_service_role_ambiguous",
+    details: null,
+    hint: null,
+    constraint: null,
+  });
 
   for (const result of [
     success,
@@ -211,6 +235,7 @@ test("audit writer service-role live adapter maps insert outcomes without downst
     unavailable,
     unknown,
     noClient,
+    ambiguousClient,
   ]) {
     expect(result.targetTable).toBe("public.execution_record_audit_events");
     expect(result.operation).toBe("insert");
