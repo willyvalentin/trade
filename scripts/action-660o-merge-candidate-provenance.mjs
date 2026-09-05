@@ -336,6 +336,10 @@ function discovery(status, details = {}) {
   };
 }
 
+export function shouldRetryCandidateDiscovery(result) {
+  return result?.status === "uncertain_candidate_artifact_missing";
+}
+
 async function discoverCandidate(outputPath) {
   const main = commitMetadata();
   let result;
@@ -408,6 +412,10 @@ async function discoverCandidate(outputPath) {
   }
   writeJson(outputPath, result);
   appendOutput("comparison_status", result.status);
+  appendOutput(
+    "retryable_candidate_artifact_discovery",
+    shouldRetryCandidateDiscovery(result) ? "true" : "false",
+  );
   appendOutput("provenance_run_id", result.run_id ?? "");
   appendOutput("provenance_artifact_name", result.artifact_name ?? "");
   console.log(JSON.stringify(result, null, 2));
