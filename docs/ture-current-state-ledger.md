@@ -17,6 +17,7 @@ authority.
 | CI cancellation reliability | PR #330 is merged and exact-main verified; cancellation reaches the active provider-free shard command before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Cross-cutting AI-00 / EXT-00 / CAT-00 governance | [Current-main refreeze](./ai-ext-cat-governance-refreeze.md) preserves historical AI-00, EXT-00 and CAT-00 product decisions without restoring their stale PR branches | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any follow-on needs a separate product and technical decision. |
+| CAT-00.1 WhyMove evidence envelope | PR #351 is exact-main verified as a provider-free validator for caller-supplied evidence fixtures | A discovery lead must be paired with attributable primary evidence and pass point-in-time checks, yet even a valid fixture remains `evidence_validated_not_admitted`; no external adapter, provider, runtime or product authority follows. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -39,6 +40,10 @@ authority.
   authority, no agent-to-broker path exists, external capability activation is
   evidence- and cost-gated, and WhyMove remains Ture-owned. It does not select
   a runtime or provider successor.
+- CAT-00.1 is complete on exact main as the source-only WhyMove
+  evidence-envelope boundary. It validates supplied plain-data fixtures only;
+  it does not read a live discovery or primary source, activate a provider or
+  alter a recommendation, risk, execution or canonical product state.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
@@ -199,6 +204,9 @@ authority.
   measured evaluation and human promotion review are still separate decisions;
   neither AI-02.1 nor the completed AI-01.1–AI-01.4 local reviews can admit
   any of them.
+- CAT-00.1 has no automatic external-data successor. Any source adapter,
+  collection, persistence, evaluation or advisory influence needs a separate
+  product decision, technical boundary and evidence plan.
 
 ### Blocked or deferred
 
