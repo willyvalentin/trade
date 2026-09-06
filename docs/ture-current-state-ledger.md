@@ -16,6 +16,7 @@ authority.
 | D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
 | CI cancellation reliability | PR #330 is merged and exact-main verified; cancellation reaches the active provider-free shard command before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
+| Cross-cutting AI-00 / EXT-00 / CAT-00 governance | [Current-main refreeze](./ai-ext-cat-governance-refreeze.md) preserves historical AI-00, EXT-00 and CAT-00 product decisions without restoring their stale PR branches | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any follow-on needs a separate product and technical decision. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -33,6 +34,11 @@ authority.
 ### Now
 
 - Preserve the qualified Milestone B closeout and default-deny runtime boundary.
+- Preserve the AI-00 / EXT-00 / CAT-00 current-main governance refreeze as
+  cross-cutting product direction only: deterministic Ture Core remains the
+  authority, no agent-to-broker path exists, external capability activation is
+  evidence- and cost-gated, and WhyMove remains Ture-owned. It does not select
+  a runtime or provider successor.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
