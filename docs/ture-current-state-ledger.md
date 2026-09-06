@@ -71,6 +71,13 @@ authority.
   validate-only/no-persistence and no runtime/advisory/broker disposition. It
   returns `sec_edgar_read_operation_plan_validated_not_executed`; it performs
   no SEC fetch, credential use, persistence or product-state change.
+- CAT-00.6 is a Draft, provider-free pre-read-authorization candidate for the
+  receipt-before-first-read planning circularity. It may bind only one
+  CAT-00.1-valid SEC primary-evidence ID to one exact SEC archive
+  locator/accession and the fixed GET/no-redirect/credential-omit,
+  validate-only/no-persistence and no runtime/advisory/broker posture. It
+  performs no request and, until exact-main verification, remains a candidate
+  with no authority.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
@@ -243,7 +250,7 @@ authority.
   measured evaluation and human promotion review are still separate decisions;
   neither AI-02.1 nor the completed AI-01.1–AI-01.4 local reviews can admit
   any of them.
-- CAT-00.1 through CAT-00.5 have no automatic external-data successor. Any
+- CAT-00.1 through CAT-00.6 create no automatic external-data successor. Any
   actual source read, collection, persistence, evaluation or advisory
   influence needs a separately selected product decision, exact
   machine-verifiable authority policy, independent readback evidence,
