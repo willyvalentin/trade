@@ -559,6 +559,16 @@ test("deterministic fallback reference metadata survives snapshot readback", () 
   expect(snapshot.payload_json.entry_type).toBe("breakout_stop");
   expect(trace.complete_reference_metadata_count).toBe(1);
   expect(trace.missing_reference_price_count).toBe(0);
+  expect(
+    trace.sample_traces[0]?.stage_parse_statuses.inline_confidence_metadata,
+  ).toBe("present_numeric");
+  expect(
+    trace.sample_traces[0]?.reference_price_candidate_values_found.some(
+      (value) =>
+        value.read_path.includes("confidence_meta") &&
+        value.parse_status === "present_numeric",
+    ),
+  ).toBe(true);
   expect(trace.first_missing_stage_counts).not.toHaveProperty(
     "generated_recommendation_object_before_persistence",
   );

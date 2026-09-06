@@ -191,8 +191,8 @@ function parseInlineMetadata(value: unknown): {
   const jsonStart =
     value.indexOf(recommendationConfidenceMetadataPrefix) +
     recommendationConfidenceMetadataPrefix.length;
-  const end = value.indexOf("]", jsonStart);
-  if (end === -1) {
+  const end = value.lastIndexOf("]");
+  if (end === -1 || end < jsonStart) {
     return { metadata: null, malformed: true };
   }
 
