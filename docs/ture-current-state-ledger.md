@@ -35,6 +35,7 @@ authority.
 | Agent Intelligence AI-02.4 | Completed provider-free, server-only legacy-evidence quality assessment on exact main as PR #341, with governance closeout PR #342 | It accepts only a frozen aggregate profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.5 | Completed provider-free, server-only source selection on exact main as PR #343, governance closeout PR #344, and one separately authorized staging append-only receipt proof | The persisted `historical_synthetic` receipt has deterministic digest/readback evidence, no primary outcome, zero diagnostic horizons and `inactive_readiness_only=true`. Its storage `quality_metrics_eligible` property is not evaluator, promotion, writer/runtime, provider/model, deployment, broker or production authority. |
 | Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only exact frozen metadata of the separately verified inactive receipt and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.7 | Completed [roadmap transition decision](./ai-02.7-canonical-evidence-creation-decision.md) on exact main | The AI-02 implementation queue is closed until a separately authorized staging-only evidence-creation slice supplies genuinely complete canonical decision-and-outcome evidence. The existing receipt and legacy-preservation records cannot be relabelled into a cohort. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -180,6 +181,13 @@ authority.
   `receipt_profiled_not_admitted`; it does not query staging or production,
   form or retain a cohort or dataset, evaluate, invoke a model or writer, bind
   runtime, or affect deployment, broker or production authority.
+- AI-02.7 closes the bounded AI-02 queue at its actual dependency. The current
+  synthetic receipt and legacy-preservation relation cannot form a cohort, and
+  the existing capture preparation cannot create authority by itself. Only a
+  separate exact staging-only evidence-creation scope with an append-only and
+  rollback containment plan plus independent minimal readback can unblock a
+  later cohort decision; evaluator, runtime, provider/model, deployment,
+  broker and production remain excluded.
 
 ### Recent exact-main evidence
 
@@ -239,12 +247,13 @@ authority.
 
 ### Next
 
-- AI-02.6's receipt profile is complete. No canonical-outcome cohort exists in
-  staging to read or evaluate: the one synthetic receipt has no primary outcome
-  or diagnostic horizons, is `inactive_readiness_only`, and profiles only as
-  `receipt_profiled_not_admitted`. Any read-only source-profile, cohort,
-  evaluation, promotion or runtime follow-on needs a separate decision and
-  must not infer authority from the receipt or its
+- AI-02.7 closes the AI-02 implementation queue. No canonical-outcome cohort
+  exists in staging to read or evaluate: the one synthetic receipt has no
+  primary outcome or diagnostic horizons, is `inactive_readiness_only`, and
+  profiles only as `receipt_profiled_not_admitted`. The only admissible next
+  product decision is a separately authorized, exact staging-only
+  evidence-creation slice with append-only/rollback containment and independent
+  minimal readback; it must not infer authority from the receipt or its
   `quality_metrics_eligible` storage property.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
