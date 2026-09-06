@@ -37,8 +37,9 @@ authority.
 | Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only exact frozen metadata of the separately verified inactive receipt and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.7 | Completed [roadmap transition decision](./ai-02.7-canonical-evidence-creation-decision.md) on exact main | The AI-02 implementation queue is closed until a separately authorized staging-only evidence-creation slice supplies genuinely complete canonical decision-and-outcome evidence. The existing receipt and legacy-preservation records cannot be relabelled into a cohort. |
 | Agent Intelligence AI-02.8 | Completed server-only, I/O-free [staging evidence-creation admission contract](./ai-02.8-staging-evidence-creation-admission.md) on exact main as PR #373; its separately authorized 2026-09-06 staging preflight stopped before DML because v1 requires `inactive_readiness_only=true` | It validates only one exact future staging-only plan and returns `staging_scope_validated_not_authorized_not_executed`; the plan cannot execute until an additive active-evidence contract and compatible schema migration are locally verified and separately authorized for staging. It cannot form a cohort, evaluate, invoke a writer/model, bind runtime, or affect deployment, broker or production authority. |
-| Agent Intelligence AI-02.9 | [Active-evidence schema compatibility blocker](./ai-02.9-active-evidence-schema-blocker.md) recorded from a staging-only metadata preflight and outcome-minimized aggregate: v1 requires inactive evidence and `recommendation_outcomes` has zero rows | Preserve the immutable v1 inactive contract. AI-02.10 has now passed its additive v2 migration proof in disposable local PostgreSQL; a bounded real server-owned completed-bundle source remains before any staging authorization. |
-| Agent Intelligence AI-02.10 | [Additive active-evidence v2 contract and local migration](./ai-02.10-active-evidence-contract-and-migration.md) define a separate `canonical_active_evaluation_evidence` relation, forced RLS, zero policies, no application-role grant and append-only semantics; its seven-scenario disposable local PostgreSQL matrix passed on 2026-09-06 | It is local only and default-deny. It cannot apply a migration to a shared database, bind a source, persist evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
+| Agent Intelligence AI-02.9 | [Active-evidence schema compatibility blocker](./ai-02.9-active-evidence-schema-blocker.md) recorded from a staging-only metadata preflight and outcome-minimized aggregate: v1 requires inactive evidence and `recommendation_outcomes` has zero rows | Preserve the immutable v1 inactive contract. AI-02.10 has closed the additive-v2 local compatibility work on exact main; AI-02.11 now names one bounded server-owned source shape, but its availability remains unobserved. |
+| Agent Intelligence AI-02.10 | Completed on exact main as PR #376: [additive active-evidence v2 contract and local migration](./ai-02.10-active-evidence-contract-and-migration.md) define a separate `canonical_active_evaluation_evidence` relation, forced RLS, zero policies, no application-role grant and append-only semantics; its seven-scenario disposable PostgreSQL matrix passed on 2026-09-06 | It remains default-deny. It cannot apply a migration to a shared database, bind a source, persist evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
+| Agent Intelligence AI-02.11 | [Server-owned completed-outcome source profile](./ai-02.11-server-owned-completed-outcome-source-profile.md) is locally implemented and I/O-free. It selects only the authenticated official scheduled outcome-evaluation shape over `public.recommendation_outcomes`, and returns `source_profile_selected_not_available_not_admitted` | A separately authorized staging-only availability preflight may establish only whether a real completed bundle exists. It cannot apply a migration, read a source row, write active evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -261,22 +262,25 @@ authority.
   `34044401928` passed the verification gate and completed the post-merge POC
   successfully. Under the selected development profile, the exact-main matrix
   is intentionally skipped; this is not a second six-shard claim.
+- PR #376 auto-merged as `37a81ce6875e15149aff217074183e574425952f`. Ready
+  Full CI run `34052939908` passed all six unchanged provider-free shards, the
+  protected aggregate and merge-candidate provenance POC. Exact-main run
+  `34054684565` passed the applicable verification gate and stored its
+  post-merge POC result. Under the selected development profile, the
+  exact-main matrix is intentionally skipped; the one-parent squash commit did
+  not claim a candidate-binding attestation.
 
 ### Next
 
-- AI-02.8 completes the plan-definition work for the AI-02 evidence boundary.
-  Its separately authorized 2026-09-06 staging-only preflight found that the
-  deployed v1 envelope check and the checked-in v1 builders require
-  `inactive_readiness_only=true`; the exact plan instead requires `false` for
-  new complete evidence. An outcome-minimized aggregate also found zero
-  `recommendation_outcomes` rows, so no real server-owned completed bundle is
-  available. No DML was attempted. The next prerequisite is the additive,
-  locally verified active-evidence contract, compatible schema migration and
-  bounded real source in [AI-02.9](./ai-02.9-active-evidence-schema-blocker.md),
-  while preserving the historic v1 receipt. A future staging migration and
-  exact AI-02.8 preflight/containment/readback operation each remain separate
-  decisions, and none admits a cohort, evaluator, promotion, runtime,
-  provider/model, deployment, broker or production capability.
+- AI-02.10 has closed the additive local v2 compatibility work on exact main
+  without applying a shared-database migration. AI-02.11 then selected the one
+  repository-owned completed-outcome producer shape that may be considered
+  next, but it did not read that relation and makes no availability claim. The
+  next prerequisite is therefore one separately authorized staging-only,
+  no-row/payload availability preflight. Even a positive result would not
+  authorize migration application, source-row reads beyond that exact scope,
+  active-evidence writing, containment/readback, cohort formation, evaluation,
+  promotion, runtime, provider/model, deployment, broker or production work.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
