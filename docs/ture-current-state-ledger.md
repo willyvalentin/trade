@@ -27,6 +27,7 @@ authority.
 | Agent Intelligence AI-02 legacy evidence | A separately authorized operation preserved 500 redacted historical rows in `ture-staging`'s private append-only relation; every row is fixed `legacy_incomplete` and `not_admitted` | It is non-canonical preservation evidence only. No evaluator, promotion, writer, runtime, provider/model, deployment, broker or production authority follows. |
 | Agent Intelligence AI-02.4 | Completed provider-free, server-only legacy-evidence quality assessment on exact main as PR #341, with governance closeout PR #342 | It accepts only a frozen aggregate profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.5 | Completed provider-free, server-only source selection on exact main as PR #343, governance closeout PR #344, and one separately authorized staging append-only receipt proof | The persisted `historical_synthetic` receipt has deterministic digest/readback evidence, no primary outcome, zero diagnostic horizons and `inactive_readiness_only=true`. Its storage `quality_metrics_eligible` property is not evaluator, promotion, writer/runtime, provider/model, deployment, broker or production authority. |
+| Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only exact frozen metadata of the separately verified inactive receipt and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -126,6 +127,11 @@ authority.
   diagnostic horizons. The fixture's `quality_metrics_eligible=true` is not
   evaluator, dataset, promotion, writer/runtime, provider/model, deployment,
   broker or production authority.
+- AI-02.6 is complete on exact main as a server-only, I/O-free profile of only
+  that exact frozen receipt metadata. It returns
+  `receipt_profiled_not_admitted`; it does not query staging or production,
+  form or retain a cohort or dataset, evaluate, invoke a model or writer, bind
+  runtime, or affect deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -166,15 +172,20 @@ authority.
   Full CI run `34007215887` passed all six unchanged provider-free shards, the
   protected aggregate and merge-candidate provenance POC; exact-main run
   `34008369130` passed the verification gate and post-merge attestation.
+- PR #346 auto-merged as `78f3866b1ea3f69b5d8e76f19572d9c312ef9ea6`. Ready
+  Full CI run `34010643544` passed all six unchanged provider-free shards, the
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34011826623` passed the verification gate and post-merge attestation.
 
 ### Next
 
-- AI-02.5's staging receipt proof is complete. No canonical-outcome cohort
-  exists in staging to read or evaluate: the one synthetic receipt has no
-  primary outcome or diagnostic horizons and is `inactive_readiness_only`.
-  Any read-only source-profile, cohort, evaluation, promotion or runtime
-  follow-on needs a separate decision and must not infer authority from the
-  receipt or its `quality_metrics_eligible` storage property.
+- AI-02.6's receipt profile is complete. No canonical-outcome cohort exists in
+  staging to read or evaluate: the one synthetic receipt has no primary outcome
+  or diagnostic horizons, is `inactive_readiness_only`, and profiles only as
+  `receipt_profiled_not_admitted`. Any read-only source-profile, cohort,
+  evaluation, promotion or runtime follow-on needs a separate decision and
+  must not infer authority from the receipt or its
+  `quality_metrics_eligible` storage property.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
