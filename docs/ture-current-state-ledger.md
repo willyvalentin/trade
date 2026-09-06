@@ -41,6 +41,7 @@ authority.
 | Agent Intelligence AI-02.10 | Completed on exact main as PR #376: [additive active-evidence v2 contract and local migration](./ai-02.10-active-evidence-contract-and-migration.md) define a separate `canonical_active_evaluation_evidence` relation, forced RLS, zero policies, no application-role grant and append-only semantics; its seven-scenario disposable PostgreSQL matrix passed on 2026-09-06 | It remains default-deny. It cannot apply a migration to a shared database, bind a source, persist evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
 | Agent Intelligence AI-02.11 | [Server-owned completed-outcome source profile](./ai-02.11-server-owned-completed-outcome-source-profile.md) is exact-main verified as PR #377. It is I/O-free, selects only the authenticated official scheduled outcome-evaluation shape over `public.recommendation_outcomes`, and its separately authorized [staging availability preflight](./ai-02.11-staging-availability-preflight.md) returned `no_completed_bundle_available` from a schema-qualified aggregate only | The selected source has no complete bundle today. A real server-owned source is a separate product and operational decision, not a permission to apply a migration, read a source row, write active evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
 | Agent Intelligence AI-02.12 | [Staging completed-outcome source-creation admission](./ai-02.12-staging-completed-outcome-source-creation-admission.md) is a server-only, provider-free validator for one future one-shot design of one server-owned snapshot; the existing five-batch/ten-snapshot scheduled function is not admitted | A separately authorized staging-only cost, credential-identity and one-shot-transport preflight may decide whether an isolated branch-deploy adapter can be prepared. It cannot access a source row or secret, invoke the provider/evaluator, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.13 | [Staging one-shot cost and transport admission](./ai-02.13-staging-one-shot-cost-transport-admission.md) is a server-only, provider-free candidate that accepts only the exact future one-snapshot/one-batch/deploy-preview shape and a maximum of one reused official candle request for the complete 15/30/60-minute bundle | A separately authorized staging-only, non-secret credential-presence and branch-transport preflight may determine only whether a temporary adapter can be prepared. It cannot read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -281,11 +282,14 @@ authority.
   only eligible future source-creation plan: one official, server-owned
   snapshot and at most one complete 15/30/60-minute outcome bundle. The
   existing scheduled function is not that operation: it defaults to five
-  batches and ten snapshots. The next prerequisite is a separately authorized
-  staging-only cost, credential-identity and one-shot-transport preflight. It
-  cannot invoke a provider or evaluator, persist an outcome, apply a
-  migration, write evidence, form a cohort, evaluate, promote, bind runtime or
-  affect deployment, broker or production.
+  batches and ten snapshots. AI-02.13 fixes the resulting future operation's
+  cost ceiling at one batch, one snapshot and one reused provider candle
+  request. The next prerequisite is a separately authorized staging-only,
+  non-secret credential-presence and branch-transport preflight. It cannot
+  invoke a provider or evaluator, read a credential value or source row,
+  deploy an adapter, persist an outcome, apply a migration, write evidence,
+  form a cohort, evaluate, promote, bind runtime or affect deployment, broker
+  or production.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
