@@ -25,7 +25,8 @@ authority.
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
 | Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; staging has no canonical rows. A production, outcome-minimized aggregate found legacy outcomes but none admissible for the canonical relation; a synthetic fixture verified staging rollback with zero rows remaining | No canonical cohort exists to read or evaluate. Neither legacy outcomes nor the rollback proof is a cohort. A separate decision may scope a staging-only redacted legacy-evidence relation; the writer, runtime and all promotion paths remain closed. |
 | Agent Intelligence AI-02 legacy evidence | A separately authorized operation preserved 500 redacted historical rows in `ture-staging`'s private append-only relation; every row is fixed `legacy_incomplete` and `not_admitted` | It is non-canonical preservation evidence only. No evaluator, promotion, writer, runtime, provider/model, deployment, broker or production authority follows. |
-| Agent Intelligence AI-02.4 | Completed provider-free, server-only legacy-evidence quality assessment on exact main as PR #341 | It accepts only a frozen aggregate profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.4 | Completed provider-free, server-only legacy-evidence quality assessment on exact main as PR #341, with governance closeout PR #342 | It accepts only a frozen aggregate profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.5 | Completed provider-free, server-only canonical-evidence-source selection on exact main as PR #343 | It selects only the frozen shape of a future staging `historical_synthetic` append-only source and remains `not_admitted`; no row, receipt, writer/runtime binding, evaluator, provider/model, deployment, broker or production authority follows. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -113,6 +114,12 @@ authority.
   only `noncanonical_preservation_confirmed` and `not_admitted`; it cannot
   query staging or production, form a dataset, evaluate, invoke a writer or
   model, bind runtime, or affect deployment, broker or production authority.
+- AI-02.5 is complete on exact main as a server-only, provider-free source
+  selection. It accepts only a frozen proposal for one future staging-only,
+  append-only `historical_synthetic` decision in
+  `public.canonical_evaluation_decisions`, then returns `not_admitted`. It
+  performs no I/O and creates no row, receipt, writer/runtime binding,
+  evaluator, provider/model, deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -142,15 +149,22 @@ authority.
   passed the verification gate and post-merge attestation. The extended
   replay-lineage regression remained intact and passed; its 27-minute duration
   is recorded as existing cost evidence, not a bypass or CI deduplication.
+- PR #342 merged as `b3438908a5c21367a16cc3158fcd1e182b1b6bef`. Its Ready
+  Full CI run `34003550932` and exact-main run `34004761818` passed the
+  protected verification and provenance gates without changing them.
+- PR #343 auto-merged as `f091b837bac8bf6649e7a364fe562e6818c1d27f`. Ready
+  Full CI run `34005658991` passed all six unchanged provider-free shards, the
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34006868489` passed the verification gate and post-merge attestation.
 
 ### Next
 
-- AI-02.4 is complete. No canonical-outcome cohort exists in staging to read
-  or evaluate. The quality assessment confirms that the private legacy-evidence
-  relation preserves 500 non-canonical, redacted historical records but remains
-  ineligible for evaluation or promotion. The next useful decision, if any,
-  must separately scope a source of eligible canonical evidence without
-  inferring writer, runtime, evaluator, provider/model or production authority.
+- AI-02.5 is complete. No canonical-outcome cohort exists in staging to read
+  or evaluate. AI-02.5 selects only the frozen future shape of one staging-only
+  append-only `historical_synthetic` canonical decision and leaves it
+  `not_admitted`. The next possible step is a separately scoped staging-only
+  receipt proof; it must not infer evaluator, promotion, writer/runtime,
+  provider/model, deployment, broker or production authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
