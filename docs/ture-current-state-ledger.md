@@ -37,9 +37,9 @@ authority.
 | Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only exact frozen metadata of the separately verified inactive receipt and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.7 | Completed [roadmap transition decision](./ai-02.7-canonical-evidence-creation-decision.md) on exact main | The AI-02 implementation queue is closed until a separately authorized staging-only evidence-creation slice supplies genuinely complete canonical decision-and-outcome evidence. The existing receipt and legacy-preservation records cannot be relabelled into a cohort. |
 | Agent Intelligence AI-02.8 | Completed server-only, I/O-free [staging evidence-creation admission contract](./ai-02.8-staging-evidence-creation-admission.md) on exact main as PR #373; its separately authorized 2026-09-06 staging preflight stopped before DML because v1 requires `inactive_readiness_only=true` | It validates only one exact future staging-only plan and returns `staging_scope_validated_not_authorized_not_executed`; the plan cannot execute until an additive active-evidence contract and compatible schema migration are locally verified and separately authorized for staging. It cannot form a cohort, evaluate, invoke a writer/model, bind runtime, or affect deployment, broker or production authority. |
-| Agent Intelligence AI-02.9 | [Active-evidence schema compatibility blocker](./ai-02.9-active-evidence-schema-blocker.md) recorded from a staging-only metadata preflight and outcome-minimized aggregate: v1 requires inactive evidence and `recommendation_outcomes` has zero rows | Preserve the immutable v1 inactive contract. AI-02.10 closed the additive-v2 local compatibility work on exact main; AI-02.11 is also exact-main verified and names one bounded server-owned source shape, but its availability remains unobserved. |
+| Agent Intelligence AI-02.9 | [Active-evidence schema compatibility blocker](./ai-02.9-active-evidence-schema-blocker.md) recorded from a staging-only metadata preflight and outcome-minimized aggregate: v1 requires inactive evidence and `recommendation_outcomes` has zero rows | Preserve the immutable v1 inactive contract. AI-02.10 closed the additive-v2 local compatibility work on exact main; AI-02.11's later aggregate-only availability preflight confirmed no completed bundle without returning source material. |
 | Agent Intelligence AI-02.10 | Completed on exact main as PR #376: [additive active-evidence v2 contract and local migration](./ai-02.10-active-evidence-contract-and-migration.md) define a separate `canonical_active_evaluation_evidence` relation, forced RLS, zero policies, no application-role grant and append-only semantics; its seven-scenario disposable PostgreSQL matrix passed on 2026-09-06 | It remains default-deny. It cannot apply a migration to a shared database, bind a source, persist evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
-| Agent Intelligence AI-02.11 | [Server-owned completed-outcome source profile](./ai-02.11-server-owned-completed-outcome-source-profile.md) is exact-main verified as PR #377. It is I/O-free, selects only the authenticated official scheduled outcome-evaluation shape over `public.recommendation_outcomes`, and returns `source_profile_selected_not_available_not_admitted` | A separately authorized staging-only availability preflight may establish only whether a real completed bundle exists. It cannot apply a migration, read a source row, write active evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
+| Agent Intelligence AI-02.11 | [Server-owned completed-outcome source profile](./ai-02.11-server-owned-completed-outcome-source-profile.md) is exact-main verified as PR #377. Its separately authorized [staging availability preflight](./ai-02.11-staging-availability-preflight.md) returned `no_completed_bundle_available` from a schema-qualified aggregate only | The selected source has no complete bundle today. A real server-owned source is a separate product and operational decision, not a permission to apply a migration, read a source row, write active evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -272,15 +272,16 @@ authority.
 
 ### Next
 
-- AI-02.10 has closed the additive local v2 compatibility work on exact main
+- AI-02.10 closed the additive local v2 compatibility work on exact main
   without applying a shared-database migration. AI-02.11 then selected the one
-  repository-owned completed-outcome producer shape that may be considered
-  next, but it did not read that relation and makes no availability claim. The
-  next prerequisite is therefore one separately authorized staging-only,
-  no-row/payload availability preflight. Even a positive result would not
-  authorize migration application, source-row reads beyond that exact scope,
-  active-evidence writing, containment/readback, cohort formation, evaluation,
-  promotion, runtime, provider/model, deployment, broker or production work.
+  repository-owned completed-outcome producer shape and its separately
+  authorized staging-only aggregate preflight returned
+  `no_completed_bundle_available`. No source row, count, owner, fingerprint or
+  JSON payload was returned. The next possible step is not automatic: creating
+  a real completed outcome bundle needs a fresh product and operational
+  decision that bounds the producer, provider cost/credentials, migration,
+  append-only containment and readback. It does not authorize cohort formation,
+  evaluation, promotion, runtime, deployment, broker or production work.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
