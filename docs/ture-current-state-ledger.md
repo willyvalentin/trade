@@ -36,6 +36,7 @@ authority.
 | Agent Intelligence AI-02.5 | Completed provider-free, server-only source selection on exact main as PR #343, governance closeout PR #344, and one separately authorized staging append-only receipt proof | The persisted `historical_synthetic` receipt has deterministic digest/readback evidence, no primary outcome, zero diagnostic horizons and `inactive_readiness_only=true`. Its storage `quality_metrics_eligible` property is not evaluator, promotion, writer/runtime, provider/model, deployment, broker or production authority. |
 | Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only exact frozen metadata of the separately verified inactive receipt and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.7 | Completed [roadmap transition decision](./ai-02.7-canonical-evidence-creation-decision.md) on exact main | The AI-02 implementation queue is closed until a separately authorized staging-only evidence-creation slice supplies genuinely complete canonical decision-and-outcome evidence. The existing receipt and legacy-preservation records cannot be relabelled into a cohort. |
+| Agent Intelligence AI-02.8 | Completed server-only, I/O-free [staging evidence-creation admission contract](./ai-02.8-staging-evidence-creation-admission.md) on exact main as PR #373 | It validates only one exact future staging-only plan and returns `staging_scope_validated_not_authorized_not_executed`; it cannot access an environment or database, form a cohort, evaluate, invoke a writer/model, bind runtime, or affect deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -188,6 +189,14 @@ authority.
   rollback containment plan plus independent minimal readback can unblock a
   later cohort decision; evaluator, runtime, provider/model, deployment,
   broker and production remain excluded.
+- AI-02.8 closes the remaining plan-definition ambiguity without performing
+  the proposed operation. Its server-only, I/O-free contract accepts only the
+  exact staging-only append-only plan for a complete server-owned
+  decision-and-outcome bundle, identity/digest idempotency, rollback proof and
+  independent minimized readback. A valid result remains
+  `staging_scope_validated_not_authorized_not_executed`: it cannot access
+  staging, persist data, create a cohort, evaluate, invoke a writer/model,
+  bind runtime, or affect deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -244,17 +253,25 @@ authority.
   `34024146282` passed provider-free verification and the post-merge
   attestation. Under the selected development profile, the exact-main matrix is
   intentionally skipped; this is not a second six-shard claim.
+- PR #373 auto-merged as `79cd7e1415ba09a3ca73f77826c5ee25f7c4dfa2`. Ready
+  Full CI run `34042959252` passed all six unchanged provider-free shards, the
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34044401928` passed the verification gate and completed the post-merge POC
+  successfully. Under the selected development profile, the exact-main matrix
+  is intentionally skipped; this is not a second six-shard claim.
 
 ### Next
 
-- AI-02.7 closes the AI-02 implementation queue. No canonical-outcome cohort
-  exists in staging to read or evaluate: the one synthetic receipt has no
-  primary outcome or diagnostic horizons, is `inactive_readiness_only`, and
-  profiles only as `receipt_profiled_not_admitted`. The only admissible next
-  product decision is a separately authorized, exact staging-only
-  evidence-creation slice with append-only/rollback containment and independent
-  minimal readback; it must not infer authority from the receipt or its
-  `quality_metrics_eligible` storage property.
+- AI-02.8 completes the plan-definition work for the AI-02 evidence boundary.
+  No canonical-outcome cohort exists in staging to read or evaluate: the one
+  synthetic receipt has no primary outcome or diagnostic horizons, is
+  `inactive_readiness_only`, and profiles only as
+  `receipt_profiled_not_admitted`. The only admissible next product decision
+  is separately authorized execution of AI-02.8's exact staging-only plan,
+  with identity/digest preflight, append-only/rollback containment and
+  independent minimal readback; a valid in-memory plan must not infer any
+  authority from the receipt or its `quality_metrics_eligible` storage
+  property.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
