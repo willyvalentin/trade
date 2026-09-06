@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Current control snapshot — synchronized 2026-09-05
+## Current control snapshot — synchronized 2026-09-06
 
 This is the canonical **Now / Next / Blocked** view for roadmap steering. It
 supersedes a conflicting status claim in the evidence and decision history
@@ -24,6 +24,7 @@ authority.
 | Agent Intelligence AI-02.1 | Completed server-only canonical-outcome projection boundary on exact main as PR #322 | Keep the projection source-only; a repository query, data collection or offline-evaluation/promotion admission needs a separate decision. |
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
 | Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; staging has no canonical rows. A production, outcome-minimized aggregate found legacy outcomes but none admissible for the canonical relation; a synthetic fixture verified staging rollback with zero rows remaining | No canonical cohort exists to read or evaluate. Neither legacy outcomes nor the rollback proof is a cohort. A separate decision may scope a staging-only redacted legacy-evidence relation; the writer, runtime and all promotion paths remain closed. |
+| Agent Intelligence AI-02 legacy evidence | A separately authorized operation preserved 500 redacted historical rows in `ture-staging`'s private append-only relation; every row is fixed `legacy_incomplete` and `not_admitted` | It is non-canonical preservation evidence only. No evaluator, promotion, writer, runtime, provider/model, deployment, broker or production authority follows. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -95,6 +96,17 @@ authority.
   legacy schema also has no canonical identity, lineage, version,
   confidence-semantics, reproducibility or immutable-envelope evidence. No
   production or staging mutation occurred; staging canonical rows remain zero.
+- The separately authorized AI-02 legacy-evidence operation then created only
+  `private.ai_02_legacy_outcome_evidence` in `ture-staging`, with RLS enabled,
+  no policy, external-role privileges revoked and an append-only mutation
+  trigger. A bounded redacted production outcome read was strictly validated
+  before a single append-only staging transaction imported 500 rows with 500
+  distinct opaque hashes. Every row is fixed `legacy_incomplete` and
+  `not_admitted`; the in-transaction update proof was rejected. No source
+  fingerprint, owner identifier, ticker, source-record identifier, JSON,
+  warning, secret or broker value was stored. This does not create a canonical
+  cohort, evaluator input, promotion path, writer, runtime, provider/model,
+  deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -111,15 +123,20 @@ authority.
   run `33982269276` passed the unchanged six provider-free shards, protected
   aggregate and candidate-provenance POC; exact-main run `33983595731` then
   passed the verification gate and post-merge attestation.
+- PR #339 merged as squash commit `89feeb71b4740e2ebab087a3614a188e3131466d`.
+  Its Ready Full CI run `33998572487` passed all six provider-free shards, the
+  protected aggregate and candidate-provenance POC. Exact-main run
+  `33999621542` passed the verification gate. Its supplemental post-merge POC
+  correctly reported no candidate binding for the one-parent squash commit;
+  it made no false exact-main-attestation claim.
 
 ### Next
 
 - AI-02.3 is complete. No canonical-outcome cohort exists in staging to read
-  or evaluate. The synthetic savepoint/rollback proof and production legacy
-  outcomes cannot become one: the first did not persist and the latter lacks
-  complete canonical evidence. The next useful decision may separately scope a
-  staging-only, append-only redacted legacy-evidence relation; it must remain
-  ineligible for evaluation/promotion and must not infer writer, runtime,
+  or evaluate. The private legacy-evidence relation now preserves 500
+  non-canonical, redacted historical records, but it remains ineligible for
+  evaluation or promotion. The next useful decision, if any, must separately
+  scope a data-quality assessment without inferring writer, runtime,
   evaluator, provider/model or production authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
