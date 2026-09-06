@@ -23,6 +23,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Cross-cutting AI-00 / EXT-00 / CAT-00 governance | The current-main refreeze in [AI-00 / EXT-00 / CAT-00 governance](./ai-ext-cat-governance-refreeze.md) preserves the one-agent, evidence-only Ture Core boundary; cost-gated external capabilities; and the Ture-owned WhyMove direction from historical PRs #122, #123 and #183 | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any such work needs a separate product and technical decision. |
 | CAT-00.1 WhyMove evidence envelope | Completed provider-free, caller-supplied evidence-envelope boundary on exact main as PR #351 | It distinguishes discovery leads from attributable primary evidence and returns `evidence_validated_not_admitted` even for a valid paired fixture; no external adapter or product authority is created. |
 | CAT-00.2 SEC EDGAR evidence receipt | Completed provider-free receipt validator on exact main as PR #354 | It binds only caller-supplied CAT-00.1 primary-evidence IDs to strict SEC archive locator, accession, digest and point-in-time receipt fields. A valid receipt remains `sec_edgar_receipts_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority is created. |
+| CAT-00.3 SEC EDGAR filing-content binding | Completed provider-free filing-content validator on exact main as PR #358 | It binds only dense caller-supplied UTF-8 filing text to an already valid CAT-00.2 receipt by exact digest and byte length. A valid result remains `sec_edgar_filing_content_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority is created. |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
 | Agent Intelligence AI-01.1 | Completed provider-free, source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-01.2 | Completed provider-free adversarial review of AI-01.1's frozen fixture-array boundary on exact main as PR #318 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
@@ -35,6 +36,19 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-02.4 | Completed provider-free, server-only quality assessment on exact main as PR #341, with governance closeout PR #342 | It accepts only a frozen aggregate legacy-evidence profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority |
 | Agent Intelligence AI-02.5 | Completed server-only, provider-free source selection on exact main as PR #343 and separately authorized staging receipt proof | One append-only `historical_synthetic` receipt now exists in staging with deterministic digest/readback evidence. It remains `inactive_readiness_only` and creates no evaluator, promotion, writer/runtime binding, model/provider, deployment, broker or production authority |
 | Agent Intelligence AI-02.6 | Completed server-only, I/O-free canonical-evidence receipt profile on exact main as PR #346 | It accepts only the exact separately verified inactive receipt metadata and returns `receipt_profiled_not_admitted`; it cannot query an environment, form a dataset, evaluate, invoke a model or writer, bind runtime, or affect deployment, broker or production authority |
+
+CAT-00.3 closed on exact main after PR #358 auto-merged as
+`669f8e2b3026b26a3982fbf6756d2af11af2173c`. Ready Full CI run
+`34022886991` passed all six unchanged provider-free shards, the protected
+aggregate and merge-candidate provenance POC; exact-main run `34024146282`
+passed provider-free verification and the post-merge provenance attestation
+for that exact commit. The local-only contract accepts only dense
+caller-supplied UTF-8 filing text whose digest and byte length match an
+already valid CAT-00.2 receipt. It rejects duplicate, missing, unexpected,
+accessor-backed, oversized and digest-mismatched input. Even a valid result
+remains `sec_edgar_filing_content_validated_not_admitted`; it performs no
+fetch, credential use, persistence, runtime, deployment, broker or production
+behavior. CAT-00.1 through CAT-00.3 have no automatic external-data successor.
 
 CAT-00.2 closed on exact main after PR #354 auto-merged as
 `2a596a565f36d1f29433918a1a4e094fb02c5286`. Ready Full CI run

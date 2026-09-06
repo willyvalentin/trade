@@ -19,6 +19,7 @@ authority.
 | Cross-cutting AI-00 / EXT-00 / CAT-00 governance | [Current-main refreeze](./ai-ext-cat-governance-refreeze.md) preserves historical AI-00, EXT-00 and CAT-00 product decisions without restoring their stale PR branches | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any follow-on needs a separate product and technical decision. |
 | CAT-00.1 WhyMove evidence envelope | PR #351 is exact-main verified as a provider-free validator for caller-supplied evidence fixtures | A discovery lead must be paired with attributable primary evidence and pass point-in-time checks, yet even a valid fixture remains `evidence_validated_not_admitted`; no external adapter, provider, runtime or product authority follows. |
 | CAT-00.2 SEC EDGAR evidence receipt | PR #354 is exact-main verified as a provider-free validator for caller-supplied SEC EDGAR receipt fixtures | It binds an already validated CAT-00.1 primary-evidence ID to strict archive locator, accession, digest and point-in-time receipt fields, yet even a valid receipt remains `sec_edgar_receipts_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
+| CAT-00.3 SEC EDGAR filing-content binding | PR #358 is exact-main verified as a provider-free validator for caller-supplied filing text bound to a CAT-00.2 receipt | It accepts only dense UTF-8 filing text whose SHA-256 and byte length match the supplied receipt, returning `sec_edgar_filing_content_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -49,6 +50,11 @@ authority.
   evidence-receipt boundary. It validates only a caller-supplied receipt bound
   to CAT-00.1's already validated primary evidence and returns
   `sec_edgar_receipts_validated_not_admitted`; it performs no SEC fetch,
+  credential use, persistence or product-state change.
+- CAT-00.3 is complete on exact main as the source-only SEC EDGAR
+  filing-content boundary. It validates only dense caller-supplied UTF-8 text
+  whose SHA-256 and byte length match CAT-00.2's receipt and returns
+  `sec_edgar_filing_content_validated_not_admitted`; it performs no SEC fetch,
   credential use, persistence or product-state change.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
@@ -199,6 +205,12 @@ authority.
   POC; exact-main run `34020920269` passed provider-free verification and the
   post-merge attestation. Under the selected development profile, the exact-main
   matrix is intentionally skipped; this is not a second six-shard claim.
+- PR #358 auto-merged as `669f8e2b3026b26a3982fbf6756d2af11af2173c`. Ready
+  Full CI run `34022886991` passed all six unchanged provider-free shards, the
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34024146282` passed provider-free verification and the post-merge
+  attestation. Under the selected development profile, the exact-main matrix is
+  intentionally skipped; this is not a second six-shard claim.
 
 ### Next
 
@@ -216,9 +228,9 @@ authority.
   measured evaluation and human promotion review are still separate decisions;
   neither AI-02.1 nor the completed AI-01.1–AI-01.4 local reviews can admit
   any of them.
-- CAT-00.1 and CAT-00.2 have no automatic external-data successor. Any source
-  adapter, collection, persistence, evaluation or advisory influence needs a
-  separate product decision, technical boundary and evidence plan.
+- CAT-00.1 through CAT-00.3 have no automatic external-data successor. Any
+  source adapter, collection, persistence, evaluation or advisory influence
+  needs a separate product decision, technical boundary and evidence plan.
 
 ### Blocked or deferred
 
