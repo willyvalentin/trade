@@ -25,6 +25,7 @@ authority.
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority. |
 | Agent Intelligence AI-02.3 | Completed source-only, same-process canonical-outcome cohort preflight on exact main as PR #332; staging has no canonical rows. A production, outcome-minimized aggregate found legacy outcomes but none admissible for the canonical relation; a synthetic fixture verified staging rollback with zero rows remaining | No canonical cohort exists to read or evaluate. Neither legacy outcomes nor the rollback proof is a cohort. A separate decision may scope a staging-only redacted legacy-evidence relation; the writer, runtime and all promotion paths remain closed. |
 | Agent Intelligence AI-02 legacy evidence | A separately authorized operation preserved 500 redacted historical rows in `ture-staging`'s private append-only relation; every row is fixed `legacy_incomplete` and `not_admitted` | It is non-canonical preservation evidence only. No evaluator, promotion, writer, runtime, provider/model, deployment, broker or production authority follows. |
+| Agent Intelligence AI-02.4 | Completed provider-free, server-only legacy-evidence quality assessment on exact main as PR #341 | It accepts only a frozen aggregate profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -107,6 +108,11 @@ authority.
   warning, secret or broker value was stored. This does not create a canonical
   cohort, evaluator input, promotion path, writer, runtime, provider/model,
   deployment, broker or production authority.
+- AI-02.4 is complete on exact main as a server-only, provider-free assessment
+  of a frozen aggregate profile for that legacy-evidence relation. It confirms
+  only `noncanonical_preservation_confirmed` and `not_admitted`; it cannot
+  query staging or production, form a dataset, evaluate, invoke a writer or
+  model, bind runtime, or affect deployment, broker or production authority.
 
 ### Recent exact-main evidence
 
@@ -129,15 +135,22 @@ authority.
   `33999621542` passed the verification gate. Its supplemental post-merge POC
   correctly reported no candidate binding for the one-parent squash commit;
   it made no false exact-main-attestation claim.
+- PR #341 merge-commit auto-merged as
+  `2158ed285a8d5d8156fba94fdee3604fc967af86`. Ready Full CI run
+  `34001756113` passed all six unchanged provider-free shards, the protected
+  aggregate and merge-candidate provenance POC; exact-main run `34002963284`
+  passed the verification gate and post-merge attestation. The extended
+  replay-lineage regression remained intact and passed; its 27-minute duration
+  is recorded as existing cost evidence, not a bypass or CI deduplication.
 
 ### Next
 
-- AI-02.3 is complete. No canonical-outcome cohort exists in staging to read
-  or evaluate. The private legacy-evidence relation now preserves 500
-  non-canonical, redacted historical records, but it remains ineligible for
-  evaluation or promotion. The next useful decision, if any, must separately
-  scope a data-quality assessment without inferring writer, runtime,
-  evaluator, provider/model or production authority.
+- AI-02.4 is complete. No canonical-outcome cohort exists in staging to read
+  or evaluate. The quality assessment confirms that the private legacy-evidence
+  relation preserves 500 non-canonical, redacted historical records but remains
+  ineligible for evaluation or promotion. The next useful decision, if any,
+  must separately scope a source of eligible canonical evidence without
+  inferring writer, runtime, evaluator, provider/model or production authority.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
