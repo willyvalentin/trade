@@ -21,6 +21,7 @@ authority.
 | CAT-00.2 SEC EDGAR evidence receipt | PR #354 is exact-main verified as a provider-free validator for caller-supplied SEC EDGAR receipt fixtures | It binds an already validated CAT-00.1 primary-evidence ID to strict archive locator, accession, digest and point-in-time receipt fields, yet even a valid receipt remains `sec_edgar_receipts_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
 | CAT-00.3 SEC EDGAR filing-content binding | PR #358 is exact-main verified as a provider-free validator for caller-supplied filing text bound to a CAT-00.2 receipt | It accepts only dense UTF-8 filing text whose SHA-256 and byte length match the supplied receipt, returning `sec_edgar_filing_content_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
 | CAT-00.4 SEC EDGAR retrieval evidence | PR #362 is exact-main verified as a provider-free validator for caller-supplied response capsules and filing bodies bound to CAT-00.2 receipts | It permits only one exact GET/no-redirect/credential-omit/200/text-HTML capsule per receipt and rechecks CAT-00.3 body integrity, returning `sec_edgar_retrieval_evidence_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
+| CAT-00.5 SEC EDGAR read-operation plan | PR #366 is exact-main verified as a provider-free validator for one caller-supplied plan bound to one CAT-00.2 receipt | It permits only exact receipt URL/identity, GET/no-redirect/credential-omit, 200/text-HTML and bounded response constraints with validate-only/no-persistence and no runtime/advisory/broker effect, returning `sec_edgar_read_operation_plan_validated_not_executed`; no request or authority follows. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -64,6 +65,12 @@ authority.
   match exactly, then rechecks CAT-00.3 body integrity. It returns
   `sec_edgar_retrieval_evidence_validated_not_admitted`; it performs no SEC
   fetch, credential use, persistence or product-state change.
+- CAT-00.5 is complete on exact main as the source-only SEC EDGAR read-plan
+  boundary. It permits only one exact CAT-00.2 receipt-bound GET/no-redirect/
+  credential-omit plan with 200/text-HTML and bounded response constraints,
+  validate-only/no-persistence and no runtime/advisory/broker disposition. It
+  returns `sec_edgar_read_operation_plan_validated_not_executed`; it performs
+  no SEC fetch, credential use, persistence or product-state change.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
@@ -236,10 +243,11 @@ authority.
   measured evaluation and human promotion review are still separate decisions;
   neither AI-02.1 nor the completed AI-01.1–AI-01.4 local reviews can admit
   any of them.
-- CAT-00.1 through CAT-00.4 have no automatic external-data successor. Any
-  source adapter, collection, persistence, evaluation or advisory influence
-  needs a separate product decision, technical boundary, evidence plan and
-  pre-authorized machine-verifiable operational policy.
+- CAT-00.1 through CAT-00.5 have no automatic external-data successor. Any
+  actual source read, collection, persistence, evaluation or advisory
+  influence needs a separately selected product decision, exact
+  machine-verifiable authority policy, independent readback evidence,
+  containment/rollback plan and CI re-hardening review.
 
 ### Blocked or deferred
 
