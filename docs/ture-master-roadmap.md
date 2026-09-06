@@ -10,13 +10,13 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Control | Current state | Next required outcome |
 | --- | --- | --- |
 | Product direction | Privacy-first trading decision support; Milestone B is `complete_under_local_sandbox_acceptance_profile_v1`, while live runtime remains closed and deferred | Start a separate, explicitly authorized runtime milestone only if that product outcome is later chosen |
-| Current bounded workstream | AI-02.3 and AI-02.4 are completed on exact main. `ture-staging` has no canonical rows; the private legacy-evidence relation preserves 500 redacted historical rows fixed as `legacy_incomplete` / `not_admitted`, and AI-02.4 confirms that preservation remains noncanonical | Do not coerce the relation into canonical evidence. Any future source of canonical decision evidence or evaluation needs its own separately authorized scope |
+| Current bounded workstream | AI-02.3 through AI-02.5 are completed on exact main. `ture-staging` has no canonical rows; the private legacy-evidence relation preserves 500 redacted historical rows fixed as `legacy_incomplete` / `not_admitted`, and AI-02.4 confirms that preservation remains noncanonical | AI-02.5 selects only the future source shape: one staging-only, append-only `historical_synthetic` decision. Do not create it without a separate receipt proof. |
 | B-01 source-only follow-on | PR #312 verifies an unbound canonical position-lineage projection on exact main; it is source evidence only, not canonical live state | No automatic successor; retain the closed runtime boundary unless a new product decision admits one |
 | B-03 source-only follow-on | PR #314 verifies only a server-side validator for opaque references to a future staging-admission package; a valid candidate remains `not_admitted` | Do not connect remotely, invoke a writer, bind runtime or infer production authority; independent evidence and a separately authorized gate remain required |
 | D-01.1 credential alias boundary | PR #329 is merged and exact-main verified as a source-only fail-closed resolver for server service-role aliases | It selects no secret value and admits no remote call, staging, runtime, deployment, provider, broker or production authority |
 | CI cancellation reliability | PR #330 is merged and exact-main verified; it forwards cancellation to the active provider-free shard command and blocks later commands in that shard | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile are unchanged |
 | REL-00 CI-B8 observation | CI-B0 is verified on exact main and CI-B7 is merged as PR #300. The former CI-B8 observation is superseded on 2026-09-04 by the explicit development-CI-profile decision; CI-B0 through CI-B7 and the partial CI-B8 record remain historical evidence, but CI-B8 is not claimed complete | Do not collect a further 14-day/10-PR CI-B8 decision record. Before any external release, provider, broker or production authority, start a separately authorized CI re-hardening review. |
-| Next decision | AI-02.4 is closed; staging has no canonical cohort. The quality assessment confirms that the private legacy-evidence relation preserves redacted history but cannot supply the canonical lineage, version or complete outcome evidence required for evaluation | Do not create an evaluator or promotion path automatically. A future canonical-evidence source needs a fresh bounded decision and must keep writer, runtime, provider/model, deployment and production authority closed |
+| Next decision | AI-02.5 is closed; it selects a future staging-only append-only canonical-decision receipt with `historical_synthetic` sample type, while the current relation remains empty | A separately scoped receipt proof is still required before any row can exist. Do not infer evaluator, promotion, runtime, provider/model, deployment or production authority. |
 | Deferred runtime gates | B-01's runtime capability and B-05 through B-12 are re-homed as unverified follow-on runtime work; PR #312's B-01 source projection does not alter that status, and remote staging remains `not_admitted` | Retain default-deny behavior and do not render the qualified closeout as live-capability completion |
 | Delivery health | The executable workflow on protected `main` remains the authority. The selected development profile prioritizes a protected Full Ready gate, low merge-path duplication and independent regression coverage; this roadmap decision changes no workflow itself | Verify each CI change in its own protected PR. A scheduled or attested CI result never authorizes runtime, provider, broker, deployment or release activity. |
 | Accountable controls | Codex autonomous governance controller, delivery automation and independent automated verification must be recorded in the next decision record | Apply the declared autonomous decision policy; do not infer authority from an Action, test, fixture or CI result |
@@ -29,7 +29,8 @@ database, deployment, secret, transport, writer, route or UI authority.
 | Agent Intelligence AI-02.2 | Completed source-only issuer boundary for AI-02.1's redacted outcome projections on exact main as PR #324 | Keep provenance process-local and default-deny; it creates no durable receipt, repository query, dataset, evaluation or promotion authority |
 | Agent Intelligence AI-02.3 | Completed source-only preflight for a bounded, in-memory cohort of AI-02.2-issued projections on exact main as PR #332; staging metadata reports no canonical rows. A production legacy-outcome aggregate found no row suitable for the canonical relation, and a staging synthetic fixture verified only rollback without persistence | It returns redacted cohort metadata only. Neither legacy outcomes nor the rollback proof are an eligible cohort; a separate decision must scope real eligible evidence creation before a dataset, evaluation or promotion can exist |
 | Agent Intelligence AI-02 legacy evidence | The separately authorized staging-only operation created a private append-only relation and imported 500 redacted historical outcome records, each with an opaque source hash and fixed `legacy_incomplete` / `not_admitted` disposition | It is preservation evidence only, not a canonical cohort, evaluator input, writer, runtime, provider/model, deployment, broker or production authority |
-| Agent Intelligence AI-02.4 | Completed provider-free, server-only quality assessment on exact main as PR #341. It accepts only a frozen aggregate legacy-evidence profile and confirms `noncanonical_preservation_confirmed` / `not_admitted` | It cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority |
+| Agent Intelligence AI-02.4 | Completed provider-free, server-only quality assessment on exact main as PR #341, with governance closeout PR #342 | It accepts only a frozen aggregate legacy-evidence profile and confirms `noncanonical_preservation_confirmed` / `not_admitted`; it cannot read an environment, form a dataset, evaluate, invoke a writer or model, bind runtime, or affect deployment, broker or production authority |
+| Agent Intelligence AI-02.5 | Completed server-only, provider-free canonical-evidence-source selection on exact main as PR #343 | It selects only a frozen future staging `historical_synthetic` append-only source shape and remains `not_admitted`; it creates no row, receipt, writer/runtime binding, evaluator, model/provider, deployment, broker or production authority |
 
 AI-00.1 is the separately selected, provider-free Agent Intelligence successor.
 It freezes only a typed `Ture Setup Analyst` request/assessment boundary around
@@ -244,6 +245,24 @@ writer or model, bind runtime, or affect deployment, broker or production.
 The extended replay-lineage regression was retained and passed unchanged;
 its 27-minute duration is recorded as existing test evidence, not a reason to
 weaken or deduplicate the safety gate.
+
+The AI-02.4 governance closeout then merged as documentation-only PR #342,
+commit `b3438908a5c21367a16cc3158fcd1e182b1b6bef`. Its Ready Full CI run
+`34003550932` and exact-main run `34004761818` passed the existing protected
+verification and provenance gates without changing them.
+
+AI-02.5 then closed the next bounded decision on exact main after PR #343
+auto-merged as `f091b837bac8bf6649e7a364fe562e6818c1d27f`. Ready Full CI run
+`34005658991` passed the unchanged six provider-free shards, protected
+aggregate and merge-candidate provenance POC; exact-main run `34006868489`
+passed the verification gate and post-merge candidate-provenance attestation.
+The server-only, provider-free selection accepts only a frozen proposal for
+one future staging-only `historical_synthetic` append-only decision in
+`public.canonical_evaluation_decisions`. It returns `not_admitted`, performs
+no I/O and creates no row, receipt, writer/runtime binding, evaluator,
+provider/model, deployment, broker or production authority. A separately
+scoped staging-only receipt proof remains required before such a row can
+exist.
 
 The immediately preceding bounded sequence remains closed and recorded:
 Action 666GI selected the finite presentation-key successor, Action 666GJ
