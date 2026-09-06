@@ -201,6 +201,7 @@
   "tests/e2e/ai-02.5-ture-setup-analyst-canonical-evidence-source-selection.spec.ts",
   "tests/e2e/ai-02.6-ture-setup-analyst-canonical-evidence-receipt-profile.spec.ts",
   "tests/e2e/ai-02.8-ture-setup-analyst-staging-evidence-creation-admission.spec.ts",
+  "tests/e2e/ai-02.10-ture-setup-analyst-active-evidence-contract.spec.ts",
   "tests/e2e/cat-00.2-sec-edgar-evidence-receipt.spec.ts",
   "tests/e2e/cat-00.3-sec-edgar-filing-content.spec.ts",
   "tests/e2e/cat-00.4-sec-edgar-retrieval-evidence.spec.ts",
