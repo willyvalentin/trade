@@ -170,3 +170,30 @@ test("the automation route uses the bounded resolver before its normal calendar 
   expect(route).toContain("getDefaultMarketStatus: getUsMarketStatus");
   expect(route).not.toContain("const marketStatus = await getUsMarketStatus();");
 });
+
+test("AI-02.17 disables every secondary market-data and regime path", async () => {
+  const [generator, scanner] = await Promise.all([
+    readFile(path.join(repositoryRoot, "lib/recommendation-generator.ts"), "utf8"),
+    readFile(path.join(repositoryRoot, "lib/scanner.ts"), "utf8"),
+  ]);
+
+  expect(generator).toContain(
+    "enabled: ai02StagingOneShotProviderBudget ? false : undefined",
+  );
+  expect(generator).toContain(
+    "maxFreshProviderCalls: diagnosticMode\n          ? Math.min(1, scannerBaseCandidates.length)\n          : ai02StagingOneShotProviderBudget\n            ? 1",
+  );
+  expect(generator).toContain(
+    "forceFreshProviderData: ai02StagingOneShotProviderBudget",
+  );
+  expect(generator).toContain(
+    "allowFreshIndicatorFetch: !ai02StagingOneShotProviderBudget",
+  );
+  expect(generator).toContain(
+    '"market_regime_lookup", "skipped_one_shot_provider_budget"',
+  );
+  expect(generator).toContain(
+    '"market_regime_snapshot",\n        "skipped_one_shot_provider_budget"',
+  );
+  expect(scanner).toContain("options.allowFreshIndicatorFetch !== false");
+});
