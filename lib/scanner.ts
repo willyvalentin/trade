@@ -126,6 +126,7 @@ export type ScannerSource = "manual" | "scheduled";
 export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
+  forceFreshProviderData?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
@@ -713,7 +714,12 @@ export async function scanMarket(
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
     const cachedValues = cachedRow ? scannerValuesFromCache(cachedRow) : null;
 
-    if (cachedRow && cachedValues && isCacheFresh(cachedRow, now)) {
+    if (
+      !options.forceFreshProviderData &&
+      cachedRow &&
+      cachedValues &&
+      isCacheFresh(cachedRow, now)
+    ) {
       cacheHits.push(baseCandidate.ticker);
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: 1,

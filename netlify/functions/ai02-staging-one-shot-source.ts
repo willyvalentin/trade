@@ -117,10 +117,13 @@ function scanReceipt(responseStatus: number, body: unknown) {
   const payload = objectOrNull(body);
   const activeTrace = objectOrNull(payload?.active_scan_trace);
   const persistence = objectOrNull(activeTrace?.persistence);
+  const marketDataFetch = objectOrNull(activeTrace?.market_data_fetch);
   const recommendationsCreated = boundedCount(payload?.recommendations_created);
   const snapshotsPersisted = boundedCount(
     persistence?.snapshots_persisted_count,
   );
+  const candleSuccesses = boundedCount(marketDataFetch?.candle_success_count);
+  const candleErrors = boundedCount(marketDataFetch?.candle_error_count);
   const decision = payload?.decision;
 
   if (
@@ -134,8 +137,11 @@ function scanReceipt(responseStatus: number, body: unknown) {
     ].includes(typeof decision === "string" ? decision : "") ||
     recommendationsCreated === null ||
     snapshotsPersisted === null ||
+    candleSuccesses === null ||
+    candleErrors === null ||
     recommendationsCreated > 1 ||
-    snapshotsPersisted > 1
+    snapshotsPersisted > 1 ||
+    candleSuccesses + candleErrors !== 1
   ) {
     return response(
       {
@@ -163,7 +169,12 @@ function scanReceipt(responseStatus: number, body: unknown) {
     scan_decision: decision,
     recommendations_created: recommendationsCreated,
     snapshots_persisted_count: snapshotsPersisted,
-    provider_data_access: "official_scan_route_invoked",
+    fresh_provider_candle_success_count: candleSuccesses,
+    fresh_provider_candle_error_count: candleErrors,
+    provider_data_access:
+      candleSuccesses === 1
+        ? "one_fresh_provider_dataset_confirmed"
+        : "one_fresh_provider_request_attempted_without_usable_dataset",
     source_rows: "not_returned",
     credential_values: "not_returned",
     provider_payload: "not_returned",
@@ -393,6 +404,7 @@ export default async function ai02StagingOneShotSource(
         max_tickers: 1,
         max_recommendations: 1,
         skip_openai: true,
+        ai02_staging_one_shot_provider_budget: true,
         timeout_ms: 25_000,
       }),
     });
