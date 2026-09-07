@@ -56,6 +56,11 @@ function safeUrl(value: string | undefined) {
   }
 }
 
+function safeDeployPreviewUrl(value: string | undefined) {
+  const url = safeUrl(value);
+  return url?.hostname.endsWith(".netlify.app") ? url : null;
+}
+
 /**
  * This narrow, verified-calendar gate avoids consuming the durable one-shot
  * marker when an official scan cannot generate source evidence. The
@@ -259,7 +264,7 @@ export default async function ai02StagingOneShotSource(
   }
 
   const supabaseUrl = safeUrl(Netlify.env.get("NEXT_PUBLIC_SUPABASE_URL"));
-  const previewUrl = safeUrl(Netlify.env.get("DEPLOY_PRIME_URL"));
+  const previewUrl = safeDeployPreviewUrl(Netlify.env.get("DEPLOY_PRIME_URL"));
   const serviceRoleCandidates = [
     Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY"),
     Netlify.env.get("SUPABASE_SERVICE_ROLE"),

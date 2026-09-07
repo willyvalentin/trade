@@ -57,6 +57,11 @@ function safeUrl(value: string | undefined) {
   }
 }
 
+function safeDeployPreviewUrl(value: string | undefined) {
+  const url = safeUrl(value);
+  return url?.hostname.endsWith(".netlify.app") ? url : null;
+}
+
 function objectOrNull(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -251,7 +256,7 @@ export default async function ai02StagingOneShotOutcome(
   }
 
   const supabaseUrl = safeUrl(Netlify.env.get("NEXT_PUBLIC_SUPABASE_URL"));
-  const previewUrl = safeUrl(Netlify.env.get("DEPLOY_PRIME_URL"));
+  const previewUrl = safeDeployPreviewUrl(Netlify.env.get("DEPLOY_PRIME_URL"));
   const serviceRoleCandidates = [
     Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY"),
     Netlify.env.get("SUPABASE_SERVICE_ROLE"),

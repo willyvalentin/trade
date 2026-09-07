@@ -106,7 +106,7 @@ function environment() {
   return {
     AI02_STAGING_PROOF_TOKEN: "one-shot-token",
     NEXT_PUBLIC_SUPABASE_URL: "https://staging.example.test",
-    DEPLOY_PRIME_URL: "https://preview.example.test",
+    DEPLOY_PRIME_URL: "https://deploy-preview-397--trade-vl.netlify.app",
     SUPABASE_SERVICE_ROLE_KEY: "service-role-secret",
     AUTOMATION_SECRET: "automation-secret",
     TURE_APPLICATION_OWNER_USER_ID: "0f4a6943-75d5-4414-9a2e-6d9941ac2a7e",
@@ -178,7 +178,7 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     "https://staging.example.test/rest/v1/scheduled_scan_attempts",
   );
   expect(calls[2]?.url).toBe(
-    "https://preview.example.test/api/automation/run-scan",
+    "https://deploy-preview-397--trade-vl.netlify.app/api/automation/run-scan",
   );
   expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({
     force: true,
@@ -353,7 +353,7 @@ test("AI-02.17 cannot replay an already consumed marker or run outside preview",
   }
 });
 
-test("AI-02.17 rejects a non-staging binding before it touches staging", async () => {
+test("AI-02.17 rejects a non-staging or non-Netlify-preview binding before it touches staging", async () => {
   let calls = 0;
   const handler = loadFunction({
     environment: environment(),
@@ -369,6 +369,30 @@ test("AI-02.17 rejects a non-staging binding before it touches staging", async (
 
   expect(response.status).toBe(503);
   expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_source_creation",
+    result: "runtime_prerequisite_unavailable",
+    credential_values: "not_returned",
+  });
+  expect(calls).toBe(0);
+
+  const nonNetlifyPreview = loadFunction({
+    environment: {
+      ...environment(),
+      DEPLOY_PRIME_URL: "https://preview.example.test",
+    },
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  });
+  const nonNetlifyPreviewResponse = await nonNetlifyPreview(
+    request(),
+    deployPreviewContext,
+  );
+  expect(nonNetlifyPreviewResponse.status).toBe(503);
+  expect(await nonNetlifyPreviewResponse.json()).toEqual({
     environment: "staging",
     operation: "ai02_one_shot_source_creation",
     result: "runtime_prerequisite_unavailable",

@@ -82,7 +82,7 @@ function environment() {
   return {
     AI02_STAGING_PROOF_TOKEN: "proof-token",
     NEXT_PUBLIC_SUPABASE_URL: "https://staging.example.test",
-    DEPLOY_PRIME_URL: "https://preview.example.test",
+    DEPLOY_PRIME_URL: "https://deploy-preview-397--trade-vl.netlify.app",
     SUPABASE_SERVICE_ROLE_KEY: "service-role-secret",
     AUTOMATION_SECRET: "automation-secret",
     TURE_APPLICATION_OWNER_USER_ID: ownerId,
@@ -152,7 +152,7 @@ test("AI-02.18 evaluates one mature exact source with one provider candle", asyn
     "https://staging.example.test/rest/v1/scheduled_scan_attempts",
   );
   expect(calls[2]?.url).toBe(
-    "https://preview.example.test/api/recommendations/evaluate-outcomes",
+    "https://deploy-preview-397--trade-vl.netlify.app/api/recommendations/evaluate-outcomes",
   );
   expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({
     mode: "official_live_today",
@@ -344,6 +344,30 @@ test("AI-02.18 fails closed when its staging or provider prerequisites are absen
     deployPreviewContext,
   );
   expect(ambiguousResponse.status).toBe(503);
+  expect(calls).toBe(0);
+
+  const nonNetlifyPreview = loadFunction({
+    environment: {
+      ...environment(),
+      DEPLOY_PRIME_URL: "https://preview.example.test",
+    },
+    now: "2026-09-07T13:01:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  });
+  const nonNetlifyPreviewResponse = await nonNetlifyPreview(
+    request(),
+    deployPreviewContext,
+  );
+  expect(nonNetlifyPreviewResponse.status).toBe(503);
+  expect(await nonNetlifyPreviewResponse.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_outcome_evaluation",
+    result: "runtime_prerequisite_unavailable",
+    credential_values: "not_returned",
+  });
   expect(calls).toBe(0);
 });
 
