@@ -312,7 +312,7 @@ function rulesetsMetadataMatches(value: unknown): boolean {
  * five GitHub GET readbacks. It never makes a request, reads a credential or
  * raw response, changes CI policy, or authorizes the later SEC operation.
  */
-export function validateWhyMoveSecEdgarGitHubEvidenceReceipt(
+function validateWhyMoveSecEdgarGitHubEvidenceReceiptInternal(
   input: unknown,
 ): WhyMoveSecEdgarGitHubEvidenceReceiptResult {
   if (!hasExactlyDataKeys(input, INPUT_KEYS)) {
@@ -477,4 +477,19 @@ export function validateWhyMoveSecEdgarGitHubEvidenceReceipt(
         "claimed_five_gets_complete_not_independently_verified" as const,
     }),
   );
+}
+
+/**
+ * Keeps malformed or proxy-backed caller input on the public fail-closed
+ * result path. The internal validator intentionally performs strict own-data
+ * inspection, which a hostile proxy can itself make throw.
+ */
+export function validateWhyMoveSecEdgarGitHubEvidenceReceipt(
+  input: unknown,
+): WhyMoveSecEdgarGitHubEvidenceReceiptResult {
+  try {
+    return validateWhyMoveSecEdgarGitHubEvidenceReceiptInternal(input);
+  } catch {
+    return result("invalid_input", ["accessor_or_non_plain_input"]);
+  }
 }

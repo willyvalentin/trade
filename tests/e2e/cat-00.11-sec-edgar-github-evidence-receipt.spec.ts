@@ -348,6 +348,25 @@ test("CAT-00.11 rejects accessor-backed receipt arrays before a value is read", 
   expect(getterReads).toBe(0);
 });
 
+test("CAT-00.11 converts faulting proxy input into a fail-closed result", () => {
+  const faultingProxy = new Proxy(
+    {},
+    {
+      getPrototypeOf() {
+        throw new Error("must not escape caller-controlled proxy faults");
+      },
+    },
+  );
+
+  expect(
+    validateWhyMoveSecEdgarGitHubEvidenceReceipt(faultingProxy),
+  ).toMatchObject({
+    disposition: "invalid_input",
+    reasons: ["accessor_or_non_plain_input"],
+    validated_receipt: null,
+  });
+});
+
 test("CAT-00.11 rejects an unretained raw-response field before it is read", () => {
   let rawResponseReads = 0;
   const receipt = validReceipt();

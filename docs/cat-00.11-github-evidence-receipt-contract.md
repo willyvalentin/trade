@@ -28,6 +28,10 @@ metadata. A locally valid result remains
 not proof that GitHub was contacted or that a policy claim is independently
 true.
 
+Malformed, accessor-backed or faulting proxy input is converted into a
+fail-closed invalid result. It cannot make an inspection failure escape into a
+caller or turn into a partial receipt.
+
 ## Authority boundary
 
 CAT-00.11 has no network, token, environment, persistence, CI-policy,
