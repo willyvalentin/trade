@@ -86,7 +86,10 @@ intentionally skipped; it is not a second six-shard claim.
 CAT-00.7 remains a local, one-request execution-scope validator: no actual SEC
 request, operator authority, CI re-hardening attestation, persistence or
 runtime binding is supplied by its output. Its separate contract records the
-exact future evidence and containment gate.
+exact future evidence and containment gate. The source-only
+[external-read CI re-hardening review](./cat-00-external-read-ci-rehardening-review.md)
+now fixes the future Ready/exact-main/readback/rollback evidence shape without
+changing the selected development CI profile or supplying external authority.
 
 CAT-00.6 is the bounded provider-free validator that resolves the first-read
 planning circularity without weakening that boundary. Unlike CAT-00.5's

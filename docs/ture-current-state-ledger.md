@@ -94,8 +94,11 @@ authority.
 - CAT-00.7 is complete on exact main as the provider-free SEC EDGAR
   execution-scope policy boundary (PR #384). It validates only one
   CAT-00.6-bound, one-request scope with independent readback, containment and
-  `not_authorized_not_executed`. It is not an operator authorization, CI
-  attestation or external read.
+  `not_authorized_not_executed`. The source-only
+  [external-read CI re-hardening review](./cat-00-external-read-ci-rehardening-review.md)
+  fixes the later Ready/exact-main/readback/rollback evidence shape without
+  changing CI. Neither record is an operator authorization, CI attestation or
+  external read.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
