@@ -196,6 +196,46 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
   expect(JSON.stringify(receipt)).not.toContain("automation-secret");
 });
 
+test("AI-02.17 rejects an upstream source receipt that exceeds its one-candle bound", async () => {
+  let calls = 0;
+  const handler = loadFunction({
+    environment: environment(),
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      if (calls === 1) return new Response(null, { status: 200 });
+      if (calls === 2) return new Response(null, { status: 201 });
+      return Response.json({
+        decision: "scanned",
+        recommendations_created: 1,
+        active_scan_trace: {
+          persistence: { snapshots_persisted_count: 1 },
+          market_data_fetch: {
+            candle_success_count: 2,
+            candle_error_count: 0,
+          },
+        },
+        provider_payload: { should_not_be_returned: true },
+      });
+    },
+  });
+
+  const response = await handler(request(), deployPreviewContext);
+
+  expect(response.status).toBe(502);
+  expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_source_creation",
+    one_shot_consumption: "consumed",
+    result: "bounded_receipt_rejected",
+    route_status_class: "2xx",
+    source_rows: "not_returned",
+    credential_values: "not_returned",
+    provider_payload: "not_returned",
+  });
+  expect(calls).toBe(3);
+});
+
 test("AI-02.17 rejects an unconfirmed staging owner before consuming its marker", async () => {
   const calls: FetchCall[] = [];
   const handler = loadFunction({
