@@ -35,3 +35,12 @@ A real GET-only read remains a new, separately authorized operation. It needs
 a dedicated least-privileged identity, an exact candidate/evidence binding,
 an independent policy decision, and an audit-safe receipt design before any
 network activity. CAT-00.10 neither supplies nor proves those prerequisites.
+
+## Delivery evidence
+
+PR #401 delivered this provider-free source contract as merge commit
+`b359c6917fa74d87b64deb7e5cfc25f1bd6ea121`. Ready Full CI run `34132001317`
+passed the unchanged six-shard suite and protected aggregate. Exact-main run
+`34134611027` passed the provider-free aggregate and post-merge candidate
+provenance attestation. Its matrix shards are intentionally skipped on this
+post-merge development profile; that result is not a second six-shard run.
