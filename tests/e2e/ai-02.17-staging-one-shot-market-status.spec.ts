@@ -166,6 +166,15 @@ test("the automation route uses the bounded resolver before its normal calendar 
   expect(route).toContain(
     "body.ai02_staging_one_shot_provider_budget === true",
   );
+  expect(route).toContain(
+    "const scheduledMaxTickers =\n    ai02StagingOneShotProviderBudget\n      ? 1",
+  );
+  expect(route).toContain(
+    "const scheduledSkipOpenAi =\n    ai02StagingOneShotProviderBudget ||",
+  );
+  expect(route).toContain(
+    "targetCount: scheduledRuntimeConfig.ai02_staging_one_shot_provider_budget\n        ? 1",
+  );
   expect(route).toContain("providerBudgetRequested:");
   expect(route).toContain("getDefaultMarketStatus: getUsMarketStatus");
   expect(route).not.toContain("const marketStatus = await getUsMarketStatus();");
