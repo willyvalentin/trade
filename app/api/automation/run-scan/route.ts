@@ -111,6 +111,7 @@ type AutomationRunRequestBody = {
   scheduled_function_fired_at_utc?: unknown;
   scheduled_scan_attempt_fingerprint?: unknown;
   max_tickers?: unknown;
+  max_recommendations?: unknown;
   skip_openai?: unknown;
   timeout_ms?: unknown;
 };
@@ -269,6 +270,7 @@ const DEFAULT_FAST_MODE_TIMEOUT_MS = 23_000;
 const MIN_SCHEDULED_TIMEOUT_MS = 5_000;
 const MAX_SCHEDULED_TIMEOUT_MS = 25_000;
 const MAX_SCHEDULED_SCAN_TICKERS = 50;
+const MAX_SCHEDULED_RECOMMENDATIONS = 10;
 const SCHEDULED_IN_PROGRESS_COOLDOWN_MINUTES = 4;
 
 function finiteInteger(value: unknown) {
@@ -298,6 +300,9 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const liveTrialFastMode =
     explicitFastMode ?? providerPlanProfile.effective_mode === "free";
   const routeMaxTickersOverride = finiteInteger(body.max_tickers);
+  const routeMaxRecommendationsOverride = finiteInteger(
+    body.max_recommendations,
+  );
   const envMaxTickersOverride = finiteInteger(
     process.env.TURE_SCHEDULED_SCAN_MAX_TICKERS,
   );
@@ -338,6 +343,13 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     1,
     Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
   );
+  const effectiveRecommendationCap =
+    routeMaxRecommendationsOverride === null
+      ? null
+      : Math.max(
+          1,
+          Math.min(MAX_SCHEDULED_RECOMMENDATIONS, routeMaxRecommendationsOverride),
+        );
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
@@ -357,6 +369,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     public_plan_mode: providerPlanProfile.public_plan_mode,
     plan_mode_mismatch: providerPlanProfile.plan_mode_mismatch,
     scheduled_max_tickers: effectiveScanTickerCap,
+    scheduled_max_recommendations: effectiveRecommendationCap,
     scheduled_skip_openai: scheduledSkipOpenAi,
     scheduled_timeout_ms: scheduledTimeoutMs,
     effective_scan_ticker_cap: effectiveScanTickerCap,
@@ -369,6 +382,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
       providerPlanProfile.profile_background_scan_cadence_minutes,
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
+    route_recommendation_override: routeMaxRecommendationsOverride,
     profile_notes: providerPlanProfile.profile_notes,
     profile_warnings: providerPlanProfile.profile_warnings,
   };
@@ -2671,6 +2685,8 @@ export async function POST(request: Request) {
     public_plan_mode: scheduledRuntimeConfig.public_plan_mode,
     plan_mode_mismatch: scheduledRuntimeConfig.plan_mode_mismatch,
     scheduled_max_tickers: scheduledRuntimeConfig.scheduled_max_tickers,
+    scheduled_max_recommendations:
+      scheduledRuntimeConfig.scheduled_max_recommendations,
     scheduled_skip_openai: scheduledRuntimeConfig.scheduled_skip_openai,
     scheduled_timeout_ms: scheduledRuntimeConfig.scheduled_timeout_ms,
     effective_scan_ticker_cap:
@@ -2690,6 +2706,8 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.env_scan_ticker_override,
     route_scan_ticker_override:
       scheduledRuntimeConfig.route_scan_ticker_override,
+    route_recommendation_override:
+      scheduledRuntimeConfig.route_recommendation_override,
     profile_notes: scheduledRuntimeConfig.profile_notes,
     profile_warnings: scheduledRuntimeConfig.profile_warnings,
     elapsed_ms: elapsedMs(routeStartedAtMs),
@@ -3800,9 +3818,8 @@ export async function POST(request: Request) {
       scanWindow: scanWindow.scanWindow,
       targetCount: scheduledRuntimeConfig.grow_max_learning_mode
         ? undefined
-        : scheduledRuntimeConfig.live_trial_fast_mode
-          ? 6
-          : undefined,
+        : scheduledRuntimeConfig.scheduled_max_recommendations ??
+          (scheduledRuntimeConfig.live_trial_fast_mode ? 6 : undefined),
       source: "scheduled",
       allowPowerHourRecommendationLogging:
         scanWindow.scanWindow === "power_hour"
