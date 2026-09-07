@@ -216,12 +216,11 @@ async function reserveOneShot(input: {
 
 /**
  * The canonical scan route refuses to run without a real, server-owned Auth
- * principal. This preview-only helper creates that deliberately credentialless
- * staging principal once, using the preconfigured UUID, before the durable
- * one-shot marker is consumed. Admin create-user never sends an invitation,
- * and the invalid-domain address cannot be used for interactive sign-in.
+ * principal. AI-02.17 may verify the preconfigured staging owner, but it must
+ * never provision an Auth identity as a side effect of its one-shot evidence
+ * operation. A missing owner fails closed before the durable marker.
  */
-async function ensureStagingApplicationOwner(input: {
+async function verifyStagingApplicationOwner(input: {
   supabaseUrl: URL;
   serviceRoleKey: string;
   userId: string;
@@ -238,25 +237,7 @@ async function ensureStagingApplicationOwner(input: {
     { headers },
   );
 
-  if (existing.status === 200) return "ready";
-  if (existing.status !== 404) return "unavailable";
-
-  const created = await fetch(new URL("/auth/v1/admin/users", input.supabaseUrl), {
-    method: "POST",
-    headers: {
-      ...headers,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      id: input.userId,
-      email: `ai02-staging-owner-${input.userId}@example.invalid`,
-      email_confirm: true,
-    }),
-  });
-
-  return created.status === 200 || created.status === 201
-    ? "created"
-    : "unavailable";
+  return existing.status === 200 ? "ready" : "unavailable";
 }
 
 /**
@@ -337,7 +318,7 @@ export default async function ai02StagingOneShotSource(
 
   let applicationOwner = "unavailable";
   try {
-    applicationOwner = await ensureStagingApplicationOwner({
+    applicationOwner = await verifyStagingApplicationOwner({
       supabaseUrl,
       serviceRoleKey,
       userId: applicationOwnerUserId,
