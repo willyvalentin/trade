@@ -19,7 +19,10 @@ import {
   MAX_DISCARD_REVIEWS_PER_RUN,
   reviewPendingDiscardedRecommendations,
 } from "@/lib/discard-review";
-import { resolveAutomationMarketStatus } from "@/lib/ai-02-staging-one-shot-market-status";
+import {
+  ai02StagingOneShotSource,
+  resolveAutomationMarketStatus,
+} from "@/lib/ai-02-staging-one-shot-market-status";
 import { getUsMarketStatus } from "@/lib/market-calendar";
 import {
   getIntradayScanPolicy,
@@ -298,7 +301,7 @@ function envBoolean(value: string | undefined) {
 
 function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
   const ai02StagingOneShotProviderBudget =
-    body.source === "ai02_staging_one_shot_source" &&
+    body.source === ai02StagingOneShotSource &&
     body.ai02_staging_one_shot_provider_budget === true;
   const providerPlanProfile = buildProviderPlanProfile();
   const explicitFastMode = envBoolean(process.env.TURE_LIVE_TRIAL_FAST_MODE);

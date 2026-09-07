@@ -161,7 +161,7 @@ test("the automation route uses the bounded resolver before its normal calendar 
   expect(route).toContain('from "@/lib/ai-02-staging-one-shot-market-status"');
   expect(route).toContain("const marketStatus = await resolveAutomationMarketStatus({");
   expect(route).toContain(
-    'body.source === "ai02_staging_one_shot_source"',
+    "body.source === ai02StagingOneShotSource",
   );
   expect(route).toContain(
     "body.ai02_staging_one_shot_provider_budget === true",
