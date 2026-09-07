@@ -47,7 +47,8 @@ authority.
 | Agent Intelligence AI-02.13 | [Staging one-shot cost and transport admission](./ai-02.13-staging-one-shot-cost-transport-admission.md) is exact-main verified as PR #381. It accepts only the exact future one-snapshot/one-batch/deploy-preview shape and a maximum of one reused official candle request for the complete 15/30/60-minute bundle | A separately authorized staging-only, non-secret credential-presence and branch-transport preflight may determine only whether a temporary adapter can be prepared. It cannot read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.14 | [Staging non-secret preflight admission](./ai-02.14-staging-nonsecret-preflight-admission.md) is exact-main verified as PR #382. It validates only the future staging metadata shape: non-secret credential presence, required application-owner confirmation and deploy-preview context | A separately authorized staging-only execution may return only minimized evidence under that exact shape. It cannot open a staging connection, read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.15 | [Staging nonsecret preflight receipt admission](./ai-02.15-staging-nonsecret-preflight-receipt-admission.md) is completed on exact main as PR #383; PR #386 closed its local implementation queue and recorded the failed CLI transport proof. On 2026-09-07, the first one-time Git deploy-preview proof built its temporary function artifact but sent an empty header through its inline shell form. A second fresh proof used the locally proven header form, built its temporary artifact and still returned no admissible fixed-redaction receipt; each proof's preview-only variables, Draft PR and remote branch were removed immediately | No proof admits the preflight or a future one-shot adapter. No credential value or name, owner, deploy or source identifier, source row, staging connection, provider/evaluator invocation, persistence, runtime, deployment, broker or production scope was returned or admitted. |
-| Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
+| Agent Intelligence AI-02.17 | The [staging actual-evidence operation decision](./ai-02.17-staging-actual-evidence-decision.md) records the product owner's separate authorization for one actual, staging-only source/evaluation proof. The temporary Draft adapter is calendar-gated and unexecuted because 2026-09-07 is Labor Day | It may make one forced-fresh source request and, only after 60 minutes, one complete 15/30/60-minute outcome bundle using one reused evaluator candle request (at most two provider requests total). Every receipt is redacted; success or definitive failure requires cleanup and grants no v2 write, cohort, promotion, runtime, deployment, broker or production authority. |
+| Authority boundary | Remote staging is `not_admitted` except for AI-02.17's exact temporary one-shot operation; application runtime, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
 
@@ -346,9 +347,10 @@ authority.
   temporary artifact and still returned no admissible receipt. Each proof's
   deploy-preview-only variables, Draft PR and remote branch were then removed
   immediately. This is not credential-value-or-name, owner, deploy, source-row
-  or staging-access evidence. Do not repeat the temporary request. A separately
-  authorized diagnostic, if any, must remain read-only and cannot make another
-  request, access a credential/source row or change configuration. It cannot
+  or staging-access evidence. Do not repeat the temporary *preflight* request.
+  AI-02.17 is the separately documented sole actual-evidence exception; any
+  other diagnostic must remain read-only and cannot make another request,
+  access a credential/source row or change configuration. It cannot
   open a
   staging connection, read a credential value or source row, invoke a
   provider or evaluator, deploy an adapter, persist an outcome, apply a
@@ -360,9 +362,10 @@ authority.
   signals; it did not prove the separate upload identity required for a deploy
   receipt. This is historical transport evidence only. The two later Git
   deploy-preview proofs are recorded above; do not launch a third temporary
-  function request. Any future diagnostic must remain read-only, make no
-  function request, access no credential or source row, open no staging
-  connection and change no configuration.
+  *preflight* function request. AI-02.17's separately documented one-shot
+  actual-evidence operation is the sole exception. Any other future diagnostic
+  must remain read-only, make no function request, access no credential or
+  source row, open no staging connection and change no configuration.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
