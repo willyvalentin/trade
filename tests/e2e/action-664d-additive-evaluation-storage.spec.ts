@@ -566,16 +566,19 @@ test("no live consumer imports the Action 664D writer", () => {
   expect(matches).toEqual([]);
 });
 
-test("local PostgreSQL harness is scoped to Docker and canonical origin/main", () => {
+test("local PostgreSQL harness is scoped to Docker and an immutable pre-target baseline", () => {
   const harness = readFileSync(
     "scripts/action-664d-local-postgres-matrix.mjs",
     "utf8",
   );
 
   expect(harness).toContain('"postgres:16-alpine"');
-  expect(harness).toContain('["show", `origin/main:${path}`]');
+  expect(harness).toContain('const baselineCommit = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33"');
+  expect(harness).toContain('["cat-file", "-e", `${baselineCommit}^{commit}`]');
+  expect(harness).toContain('["show", `${baselineCommit}:${path}`]');
   expect(harness).toContain("20260726001000_create_canonical_evaluation_decisions.sql");
   expect(harness).toContain("production_interaction: false");
+  expect(harness).not.toContain("origin/main");
   expect(harness).not.toMatch(/supabase\s+(?:db|migration|link|push)/i);
   expect(harness).not.toMatch(/postgres(?:ql)?:\/\//i);
 });

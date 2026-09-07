@@ -2,8 +2,8 @@
 /**
  * Action 664D disposable local PostgreSQL acceptance matrix.
  *
- * The harness replays the exact local origin/main migration baseline into a
- * disposable Docker PostgreSQL instance, applies only the local 664D
+ * The harness replays its exact historical pre-target migration baseline into
+ * a disposable Docker PostgreSQL instance, applies only the target
  * migration, and exercises catalog, ACL, constraint, idempotency, and rollback
  * behavior. It never connects to Supabase or any external database.
  */
@@ -13,7 +13,7 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const expectedBaselineSha = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
+const baselineCommit = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
 const migrationName =
   "20260726001000_create_canonical_evaluation_decisions.sql";
 const migrationPath = resolve(root, "supabase/migrations", migrationName);
@@ -181,7 +181,7 @@ const versions = {
   confidence_contract_version: "confidence-action-664d-v1",
   evaluator_version: "evaluator-action-664d-v1",
   provider_contract_version: "provider-action-664d-v1",
-  git_commit: expectedBaselineSha,
+  git_commit: baselineCommit,
   build_identity: "action-664d-local-postgres-fixture",
 };
 
@@ -264,7 +264,7 @@ function fixtureRow(sampleType, ordinal) {
           replay_id: `replay-${ordinal}`,
           replayed_at: decisionTimestamp,
           source_type: "historical_synthetic",
-          source_commit: expectedBaselineSha,
+          source_commit: baselineCommit,
           deterministic_input_hash: `sha256:action-664d-${ordinal}`,
           lookahead_safety_passed: true,
           provider_call_executed: false,
@@ -604,35 +604,32 @@ try {
     create role service_role nologin bypassrls;
   `);
 
-  const actualBaselineSha = run("git", ["rev-parse", "origin/main"]).trim();
-  assertEqual(
-    actualBaselineSha,
-    expectedBaselineSha,
-    "canonical origin/main baseline",
-  );
+  run("git", ["cat-file", "-e", `${baselineCommit}^{commit}`]);
+  const baselineSha = run("git", ["rev-parse", baselineCommit]).trim();
+  assertEqual(baselineSha, baselineCommit, "exact historical baseline");
   const baselineMigrationPaths = run("git", [
     "ls-tree",
     "-r",
     "--name-only",
-    "origin/main",
+    baselineCommit,
     "supabase/migrations",
   ])
     .trim()
     .split("\n")
     .filter((path) => path.endsWith(".sql"));
   assertTrue(
-    !baselineMigrationPaths.some((path) =>
-      path.includes("20260726001000"),
-    ),
-    "migration version absent from canonical baseline",
+    !baselineMigrationPaths.includes(`supabase/migrations/${migrationName}`),
+    "target migration absent from historical baseline",
   );
 
   for (const path of baselineMigrationPaths) {
-    const baselineSql = run("git", ["show", `origin/main:${path}`]);
+    const baselineSql = run("git", ["show", `${baselineCommit}:${path}`]);
     applySql(baselineSql, `baseline migration ${path}`);
   }
-  pass("canonical_origin_main_baseline", {
-    baseline_sha: actualBaselineSha,
+  pass("historical_pre_target_baseline", {
+    baseline_commit: baselineCommit,
+    baseline_sha: baselineSha,
+    target_migration: migrationName,
     migrations_applied: baselineMigrationPaths.length,
   });
 
@@ -1006,7 +1003,8 @@ try {
     JSON.stringify({
       status: "passed",
       action: "664D",
-      baseline_sha: expectedBaselineSha,
+      baseline_commit: baselineCommit,
+      baseline_sha: baselineSha,
       migration_version: "20260726001000",
       migration_sha256: migrationDigest,
       scenarios_passed: matrix.length,

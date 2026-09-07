@@ -15,6 +15,7 @@ authority.
 | B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
 | D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
 | CI cancellation reliability | PR #330 is merged and exact-main verified; cancellation reaches the active provider-free shard command before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
+| Action 664D/E/F local PostgreSQL verification | A source-only baseline repair candidate replays the named pre-target historical commit for `20260726001000` instead of claiming that moving `main` must still equal it | Verify the disposable-local matrix and integrations in protected CI; it cannot apply a shared migration, activate a writer or grant runtime, provider, deployment, broker or production authority. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Cross-cutting AI-00 / EXT-00 / CAT-00 governance | [Current-main refreeze](./ai-ext-cat-governance-refreeze.md) preserves historical AI-00, EXT-00 and CAT-00 product decisions without restoring their stale PR branches | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any follow-on needs a separate product and technical decision. |
 | CAT-00.1 WhyMove evidence envelope | PR #351 is exact-main verified as a provider-free validator for caller-supplied evidence fixtures | A discovery lead must be paired with attributable primary evidence and pass point-in-time checks, yet even a valid fixture remains `evidence_validated_not_admitted`; no external adapter, provider, runtime or product authority follows. |
@@ -108,6 +109,10 @@ authority.
   is forwarded to the active provider-free shard command and prevents a later
   command in that shard from starting. This changes no workflow topology,
   required check, branch-protection policy or runtime authority.
+- The Action 664D/E/F local PostgreSQL baseline repair is a source-only
+  candidate. It replays the named pre-target historical migration baseline,
+  so advancing main cannot mask the disposable-local database assertions; it
+  creates no shared database or writer authority.
 - AI-01.1 is complete on exact main as a provider-free in-memory comparison
   contract over already-admitted local fixtures. It cannot collect or retain
   real outcome data, invoke a model, bind runtime or promote a policy.
