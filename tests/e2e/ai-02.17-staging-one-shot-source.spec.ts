@@ -483,14 +483,19 @@ test("AI-02.17 keeps the temporary route server-only and free of runtime or brok
   const scanRoute = source("app/api/automation/run-scan/route.ts");
   const recommendationGenerator = source("lib/recommendation-generator.ts");
   const scanner = source("lib/scanner.ts");
+  const netlifyConfig = source("netlify.toml");
+  const gitignore = source(".gitignore");
 
   expect(implementation).toContain('import type { Config, Context } from "@netlify/functions"');
   expect(implementation).toContain("Netlify.env.get");
   expect(implementation).toContain("/auth/v1/admin/users");
   expect(implementation).not.toContain("email_confirm");
   expect(implementation).not.toContain("example.invalid");
+  expect(implementation).not.toContain('"one-shot-token"');
   expect(implementation).toContain("scheduled_scan_attempts");
   expect(implementation).not.toMatch(/console\.|process\.env|broker|production/i);
+  expect(netlifyConfig).not.toContain("ai02-staging-one-shot");
+  expect(gitignore).toContain(".env*");
   expect(scanRoute).toContain("max_recommendations?: unknown");
   expect(scanRoute).toContain("scheduled_max_recommendations");
   expect(recommendationGenerator).toContain(
