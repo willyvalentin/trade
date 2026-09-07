@@ -258,6 +258,7 @@ const intelligenceTests = [
   "tests/e2e/cat-00.7-sec-edgar-execution-scope-policy.spec.ts",
   "tests/e2e/cat-00.8-sec-edgar-external-read-operator-record.spec.ts",
   "tests/e2e/cat-00.9-sec-edgar-external-read-evidence-bundle.spec.ts",
+  "tests/e2e/cat-00.10-sec-edgar-github-evidence-read-plan.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
