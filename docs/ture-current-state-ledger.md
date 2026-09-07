@@ -310,6 +310,11 @@ authority.
   deploy an adapter, persist an outcome, apply a migration, write evidence,
   form a cohort, evaluate, promote, bind runtime or affect deployment, broker
   or production.
+- The temporary branch-deploy proof was fully cleaned after the linked Netlify
+  CLI returned no deploy ID, URL or HTTP response. It is not preflight
+  evidence. Do not repeat that deploy path without new deploy-identity
+  diagnostics; select a separately authorized viable staging-only transport
+  before attempting the minimized receipt again.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
