@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Current control snapshot — synchronized 2026-09-06
+## Current control snapshot — synchronized 2026-09-07
 
 This is the canonical **Now / Next / Blocked** view for roadmap steering. It
 supersedes a conflicting status claim in the evidence and decision history
@@ -42,7 +42,8 @@ authority.
 | Agent Intelligence AI-02.11 | [Server-owned completed-outcome source profile](./ai-02.11-server-owned-completed-outcome-source-profile.md) is exact-main verified as PR #377. It is I/O-free, selects only the authenticated official scheduled outcome-evaluation shape over `public.recommendation_outcomes`, and its separately authorized [staging availability preflight](./ai-02.11-staging-availability-preflight.md) returned `no_completed_bundle_available` from a schema-qualified aggregate only | The selected source has no complete bundle today. A real server-owned source is a separate product and operational decision, not a permission to apply a migration, read a source row, write active evidence, form a dataset, evaluate, bind runtime or affect provider/model, deployment, broker or production authority. |
 | Agent Intelligence AI-02.12 | [Staging completed-outcome source-creation admission](./ai-02.12-staging-completed-outcome-source-creation-admission.md) is a server-only, provider-free validator for one future one-shot design of one server-owned snapshot; the existing five-batch/ten-snapshot scheduled function is not admitted | A separately authorized staging-only cost, credential-identity and one-shot-transport preflight may decide whether an isolated branch-deploy adapter can be prepared. It cannot access a source row or secret, invoke the provider/evaluator, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.13 | [Staging one-shot cost and transport admission](./ai-02.13-staging-one-shot-cost-transport-admission.md) is exact-main verified as PR #381. It accepts only the exact future one-snapshot/one-batch/deploy-preview shape and a maximum of one reused official candle request for the complete 15/30/60-minute bundle | A separately authorized staging-only, non-secret credential-presence and branch-transport preflight may determine only whether a temporary adapter can be prepared. It cannot read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
-| Agent Intelligence AI-02.14 | [Staging non-secret preflight admission](./ai-02.14-staging-nonsecret-preflight-admission.md) is a server-only, provider-free candidate that validates only the future staging metadata shape: non-secret credential presence, required application-owner confirmation and deploy-preview context | A separately authorized staging-only execution may return only minimized evidence under that exact shape. It cannot open a staging connection, read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.14 | [Staging non-secret preflight admission](./ai-02.14-staging-nonsecret-preflight-admission.md) is exact-main verified as PR #382. It validates only the future staging metadata shape: non-secret credential presence, required application-owner confirmation and deploy-preview context | A separately authorized staging-only execution may return only minimized evidence under that exact shape. It cannot open a staging connection, read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
+| Agent Intelligence AI-02.15 | [Staging nonsecret preflight receipt admission](./ai-02.15-staging-nonsecret-preflight-receipt-admission.md) is a server-only, provider-free candidate for a fixed-redaction receipt of AI-02.14's three permitted facts | It neither executes nor authorizes that preflight. It rejects credential values and names, owner and deploy identifiers, source rows, connection and all provider, deployment, persistence, evaluation, runtime, broker and production scope. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -286,9 +287,11 @@ authority.
   batches and ten snapshots. AI-02.13 fixes the resulting future operation's
   cost ceiling at one batch, one snapshot and one reused provider candle
   request. AI-02.14 narrows the next preflight to non-secret credential
-  presence, application-owner confirmation and deploy-preview context. The
-  next prerequisite is a separately authorized staging-only execution that
-  returns only those minimized facts. It cannot open a staging connection,
+  presence, application-owner confirmation and deploy-preview context.
+  AI-02.15 admits only a fixed-redaction receipt of those three facts; it
+  does not perform or authorize the preflight. The next prerequisite remains
+  a separately authorized staging-only execution that returns only that
+  minimized receipt. It cannot open a staging connection,
   read a credential value or source row, invoke a provider or evaluator,
   deploy an adapter, persist an outcome, apply a migration, write evidence,
   form a cohort, evaluate, promote, bind runtime or affect deployment, broker
