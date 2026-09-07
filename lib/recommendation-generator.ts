@@ -3648,7 +3648,18 @@ export async function generateRecommendations({
     }
 
     logPipeline("market_regime", marketRegime);
-    await saveMarketRegimeSnapshot(marketRegime);
+    if (ai02StagingOneShotProviderBudget) {
+      // The one-shot source operation intentionally uses the neutral local
+      // fallback instead of a market-regime lookup. Do not turn that fallback
+      // into a second durable staging artifact; the only admitted creation is
+      // the single canonical recommendation snapshot.
+      logPipeline(
+        "market_regime_snapshot",
+        "skipped_one_shot_provider_budget",
+      );
+    } else {
+      await saveMarketRegimeSnapshot(marketRegime);
+    }
 
     const scannerRankByTicker = new Map(
       scannerCandidates.map((candidate, index) => [candidate.ticker, index]),

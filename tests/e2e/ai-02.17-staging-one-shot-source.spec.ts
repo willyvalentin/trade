@@ -424,6 +424,7 @@ test("AI-02.17 rejects missing or ambiguous canonical bindings before consuming 
 test("AI-02.17 keeps the temporary route server-only and free of runtime or broker bindings", () => {
   const implementation = source(functionPath);
   const scanRoute = source("app/api/automation/run-scan/route.ts");
+  const recommendationGenerator = source("lib/recommendation-generator.ts");
 
   expect(implementation).toContain('import type { Config, Context } from "@netlify/functions"');
   expect(implementation).toContain("Netlify.env.get");
@@ -434,4 +435,10 @@ test("AI-02.17 keeps the temporary route server-only and free of runtime or brok
   expect(implementation).not.toMatch(/console\.|process\.env|broker|production/i);
   expect(scanRoute).toContain("max_recommendations?: unknown");
   expect(scanRoute).toContain("scheduled_max_recommendations");
+  expect(recommendationGenerator).toContain(
+    '"market_regime_snapshot",\n        "skipped_one_shot_provider_budget"',
+  );
+  expect(recommendationGenerator).toMatch(
+    /if \(ai02StagingOneShotProviderBudget\) \{[\s\S]*?\} else \{\s+await saveMarketRegimeSnapshot\(marketRegime\);\s+\}/,
+  );
 });
