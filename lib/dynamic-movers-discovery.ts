@@ -51,6 +51,7 @@ export type DynamicMoversDiscoveryInput = {
   maxTickers?: number | null;
   previewCount?: number | null;
   now?: Date;
+  enabled?: boolean;
 };
 
 const defaultMaxTickers = 25;
@@ -60,7 +61,8 @@ export async function discoverDynamicMoversDiagnostics(
   input: DynamicMoversDiscoveryInput = {},
 ): Promise<DynamicMoversDiscoverySummary> {
   const now = input.now ?? new Date();
-  const enabled = process.env.TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED === "true";
+  const enabled =
+    input.enabled ?? (process.env.TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED === "true");
 
   if (!enabled) {
     return buildSummary({

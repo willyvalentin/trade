@@ -113,6 +113,7 @@ type AutomationRunRequestBody = {
   max_tickers?: unknown;
   max_recommendations?: unknown;
   skip_openai?: unknown;
+  ai02_staging_one_shot_provider_budget?: unknown;
   timeout_ms?: unknown;
 };
 
@@ -295,6 +296,9 @@ function envBoolean(value: string | undefined) {
 }
 
 function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
+  const ai02StagingOneShotProviderBudget =
+    body.source === "ai02_staging_one_shot_source" &&
+    body.ai02_staging_one_shot_provider_budget === true;
   const providerPlanProfile = buildProviderPlanProfile();
   const explicitFastMode = envBoolean(process.env.TURE_LIVE_TRIAL_FAST_MODE);
   const liveTrialFastMode =
@@ -318,7 +322,9 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     growMaxLearningModeEnabled: growMaxLearningMode.grow_max_learning_mode,
   });
   const scheduledMaxTickers =
-    routeMaxTickersOverride !== null
+    ai02StagingOneShotProviderBudget
+      ? 1
+      : routeMaxTickersOverride !== null
       ? routeMaxTickersOverride
       : envMaxTickersOverride !== null
         ? envMaxTickersOverride
@@ -334,7 +340,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     ),
   );
   const scheduledSkipOpenAi =
-    growMaxLearningMode.grow_max_learning_mode
+    ai02StagingOneShotProviderBudget || growMaxLearningMode.grow_max_learning_mode
       ? true
       : routeSkipOpenAiOverride ??
         envSkipOpenAiOverride ??
@@ -383,6 +389,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
     route_recommendation_override: routeMaxRecommendationsOverride,
+    ai02_staging_one_shot_provider_budget: ai02StagingOneShotProviderBudget,
     profile_notes: providerPlanProfile.profile_notes,
     profile_warnings: providerPlanProfile.profile_warnings,
   };
@@ -3816,7 +3823,9 @@ export async function POST(request: Request) {
       ownerUserId,
       sessionType,
       scanWindow: scanWindow.scanWindow,
-      targetCount: scheduledRuntimeConfig.grow_max_learning_mode
+      targetCount: scheduledRuntimeConfig.ai02_staging_one_shot_provider_budget
+        ? 1
+        : scheduledRuntimeConfig.grow_max_learning_mode
         ? undefined
         : scheduledRuntimeConfig.scheduled_max_recommendations ??
           (scheduledRuntimeConfig.live_trial_fast_mode ? 6 : undefined),
@@ -3829,6 +3838,8 @@ export async function POST(request: Request) {
       scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
       growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
       skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
+      ai02StagingOneShotProviderBudget:
+        scheduledRuntimeConfig.ai02_staging_one_shot_provider_budget,
       activeScanTrace,
     });
     const generationResult = await Promise.race([

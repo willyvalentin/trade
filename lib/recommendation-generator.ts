@@ -125,6 +125,7 @@ export type GenerateRecommendationsInput = {
   scheduledMaxTickers?: number | null;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
+  ai02StagingOneShotProviderBudget?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
@@ -3215,6 +3216,7 @@ export async function generateRecommendations({
   scheduledMaxTickers = null,
   growMaxLearningMode = false,
   skipOpenAi = false,
+  ai02StagingOneShotProviderBudget = false,
   activeScanTrace = null,
 }: GenerateRecommendationsInput) {
   try {
@@ -3260,6 +3262,10 @@ export async function generateRecommendations({
     logPipeline("scheduled_max_tickers", scheduledMaxTickers);
     logPipeline("grow_max_learning_mode", growMaxLearningMode);
     logPipeline("skip_openai", skipOpenAi);
+    logPipeline(
+      "ai02_staging_one_shot_provider_budget",
+      ai02StagingOneShotProviderBudget,
+    );
 
     if (scanWindow === "pre_market") {
       logPipeline("pre_market_mode", "watchlist_only");
@@ -3540,6 +3546,7 @@ export async function generateRecommendations({
         ? diagnosticMaxTickers
         : scheduledMaxTickers ?? undefined,
       now: new Date(),
+      enabled: ai02StagingOneShotProviderBudget ? false : undefined,
     });
 
     activeScanTrace?.markStage("universe", "completed");
@@ -3564,9 +3571,12 @@ export async function generateRecommendations({
         activeScanTrace,
         maxFreshProviderCalls: diagnosticMode
           ? Math.min(1, scannerBaseCandidates.length)
+          : ai02StagingOneShotProviderBudget
+            ? 1
           : typeof scheduledMaxTickers === "number"
             ? Math.min(1, scannerBaseCandidates.length)
           : undefined,
+        forceFreshProviderData: ai02StagingOneShotProviderBudget,
       },
     );
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);
@@ -3625,12 +3635,16 @@ export async function generateRecommendations({
 
     let marketRegime = neutralMarketRegimeFallback;
 
-    try {
-      marketRegime = await getMarketRegime();
-    } catch (error) {
-      console.error("[recommendations/generate] market_regime_error", {
-        error: normalizeUnknownError(error),
-      });
+    if (ai02StagingOneShotProviderBudget) {
+      logPipeline("market_regime_lookup", "skipped_one_shot_provider_budget");
+    } else {
+      try {
+        marketRegime = await getMarketRegime();
+      } catch (error) {
+        console.error("[recommendations/generate] market_regime_error", {
+          error: normalizeUnknownError(error),
+        });
+      }
     }
 
     logPipeline("market_regime", marketRegime);
@@ -3919,13 +3933,17 @@ export async function generateRecommendations({
       candidatesForOpenAI.length > 0
         ? await refreshSelectedCandidateReferences({
             candidates: candidatesForOpenAI,
-            maxAttempts: source === "scheduled" ? 10 : 3,
+            maxAttempts: ai02StagingOneShotProviderBudget
+              ? 1
+              : source === "scheduled"
+                ? 10
+                : 3,
             now: new Date(),
             fetchIntradayIndicators: (ticker) =>
               getOrRefreshIntradayIndicators(ticker, {
                 source: source === "scheduled" ? "scheduled" : "manual",
                 maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
-                allowFreshFetch: true,
+                allowFreshFetch: !ai02StagingOneShotProviderBudget,
               }),
           })
         : null;

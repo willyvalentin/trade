@@ -142,6 +142,10 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
         recommendations_created: 1,
         active_scan_trace: {
           persistence: { snapshots_persisted_count: 1 },
+          market_data_fetch: {
+            candle_success_count: 1,
+            candle_error_count: 0,
+          },
         },
       });
     },
@@ -160,7 +164,9 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     scan_decision: "scanned",
     recommendations_created: 1,
     snapshots_persisted_count: 1,
-    provider_data_access: "official_scan_route_invoked",
+    fresh_provider_candle_success_count: 1,
+    fresh_provider_candle_error_count: 0,
+    provider_data_access: "one_fresh_provider_dataset_confirmed",
     source_rows: "not_returned",
     credential_values: "not_returned",
     provider_payload: "not_returned",
@@ -192,6 +198,7 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     max_tickers: 1,
     max_recommendations: 1,
     skip_openai: true,
+    ai02_staging_one_shot_provider_budget: true,
     timeout_ms: 25_000,
   });
   expect(JSON.stringify(receipt)).not.toContain("service-role-secret");
