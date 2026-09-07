@@ -22,7 +22,7 @@ import {
   type CanonicalEvaluationStorageInsert,
 } from "@/lib/server/canonical-evaluation-storage-writer";
 
-const expectedBaselineSha = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
+const baselineCommit = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
 const migrationPath =
   "supabase/migrations/20260726001000_create_canonical_evaluation_decisions.sql";
 const relation = "public.canonical_evaluation_decisions";
@@ -201,6 +201,23 @@ function applySql(container: string, sql: string) {
   );
 }
 
+function selectHistoricalBaselineMigrations() {
+  command("git", ["cat-file", "-e", `${baselineCommit}^{commit}`]);
+  const paths = command("git", [
+    "ls-tree",
+    "-r",
+    "--name-only",
+    baselineCommit,
+    "supabase/migrations",
+  ])
+    .trim()
+    .split("\n")
+    .filter((path) => path.endsWith(".sql"));
+
+  expect(paths).not.toContain(migrationPath);
+  return paths;
+}
+
 test("completed bundles capture and read back through canonical adapters in disposable PostgreSQL", async () => {
   test.setTimeout(120_000);
   const container = `ture-action-664e-${randomUUID().slice(0, 12)}`;
@@ -277,26 +294,13 @@ test("completed bundles capture and read back through canonical adapters in disp
       container,
       "create extension if not exists pgcrypto; create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;",
     );
-    const baselineSha = command("git", ["rev-parse", "origin/main"]).trim();
-    expect(baselineSha).toBe(expectedBaselineSha);
-    const baselineMigrations = command("git", [
-      "ls-tree",
-      "-r",
-      "--name-only",
-      "origin/main",
-      "supabase/migrations",
-    ])
-      .trim()
-      .split("\n")
-      .filter((path) => path.endsWith(".sql"));
-    expect(
-      baselineMigrations.some((path) => path.includes("20260726001000")),
-    ).toBe(false);
+    const baselineMigrations = selectHistoricalBaselineMigrations();
+    expect(baselineMigrations).not.toContain(migrationPath);
 
     for (const path of baselineMigrations) {
       applySql(
         container,
-        command("git", ["show", `origin/main:${path}`]),
+        command("git", ["show", `${baselineCommit}:${path}`]),
       );
     }
     applySql(container, readFileSync(migrationPath, "utf8"));
