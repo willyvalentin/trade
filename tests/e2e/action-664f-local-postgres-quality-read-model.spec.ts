@@ -44,7 +44,7 @@ import {
   type CanonicalEvaluationStorageInsert,
 } from "@/lib/server/canonical-evaluation-storage-writer";
 
-const expectedBaselineSha = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
+const baselineCommit = "f578dd5bedeccb0f95b58c4f15ba2cb3dc1eea33";
 const migrationPath =
   "supabase/migrations/20260726001000_create_canonical_evaluation_decisions.sql";
 const relation = "public.canonical_evaluation_decisions";
@@ -97,6 +97,23 @@ function applySql(container: string, sql: string) {
     ],
     { input: sql },
   );
+}
+
+function selectHistoricalBaselineMigrations() {
+  command("git", ["cat-file", "-e", `${baselineCommit}^{commit}`]);
+  const paths = command("git", [
+    "ls-tree",
+    "-r",
+    "--name-only",
+    baselineCommit,
+    "supabase/migrations",
+  ])
+    .stdout.trim()
+    .split("\n")
+    .filter((path) => path.endsWith(".sql"));
+
+  expect(paths).not.toContain(migrationPath);
+  return paths;
 }
 
 class DisposablePostgresQualityDatabase
@@ -329,25 +346,12 @@ test("local PostgreSQL read model preserves one identity row and isolated cohort
       container,
       "create extension if not exists pgcrypto; create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;",
     );
-    const baselineSha = command("git", ["rev-parse", "origin/main"]).stdout.trim();
-    expect(baselineSha).toBe(expectedBaselineSha);
-    const migrations = command("git", [
-      "ls-tree",
-      "-r",
-      "--name-only",
-      "origin/main",
-      "supabase/migrations",
-    ])
-      .stdout.trim()
-      .split("\n")
-      .filter((path) => path.endsWith(".sql"));
-    expect(migrations.some((path) => path.includes("20260726001000"))).toBe(
-      false,
-    );
-    for (const path of migrations) {
+    const baselineMigrations = selectHistoricalBaselineMigrations();
+    expect(baselineMigrations).not.toContain(migrationPath);
+    for (const path of baselineMigrations) {
       applySql(
         container,
-        command("git", ["show", `origin/main:${path}`]).stdout,
+        command("git", ["show", `${baselineCommit}:${path}`]).stdout,
       );
     }
     applySql(container, readFileSync(migrationPath, "utf8"));
