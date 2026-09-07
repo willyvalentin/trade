@@ -1,6 +1,8 @@
 import type { Config, Context } from "@netlify/functions";
 import { createHash, timingSafeEqual } from "node:crypto";
 
+import { getUsEquityMarketSession } from "../../lib/us-equity-market-calendar";
+
 const tokenHeader = "x-ai02-staging-proof-token";
 const stagingSupabaseUrlSha256 =
   "e47565f4baf37880dd3b5ebf272980c521411e2b7b1533a955c5befb1bd721d1";
@@ -55,11 +57,34 @@ function safeUrl(value: string | undefined) {
 }
 
 /**
- * This narrow local-time gate avoids consuming the durable one-shot marker in
- * a known non-generation window. The authenticated scan route remains the
- * authoritative market-calendar gate.
+ * This narrow, verified-calendar gate avoids consuming the durable one-shot
+ * marker when an official scan cannot generate source evidence. The
+ * authenticated scan route remains authoritative, but this preflight must
+ * fail closed for a holiday, weekend, stale calendar, or after an early close.
  */
 export function isSourceWindowAdmitted(now: Date) {
+  const session = getUsEquityMarketSession(now);
+  if (
+    session.verification_status !== "verified" ||
+    (session.session_type !== "regular_session" &&
+      session.session_type !== "early_close_session") ||
+    !session.session_open ||
+    !session.session_close
+  ) {
+    return false;
+  }
+
+  const sessionOpen = new Date(session.session_open).getTime();
+  const sessionClose = new Date(session.session_close).getTime();
+  if (
+    !Number.isFinite(sessionOpen) ||
+    !Number.isFinite(sessionClose) ||
+    now.getTime() < sessionOpen + 15 * 60_000 ||
+    now.getTime() >= sessionClose
+  ) {
+    return false;
+  }
+
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
     weekday: "short",
@@ -69,17 +94,11 @@ export function isSourceWindowAdmitted(now: Date) {
     hourCycle: "h23",
   }).formatToParts(now);
   const values = new Map(parts.map((part) => [part.type, part.value]));
-  const weekday = values.get("weekday");
   const minutesAfterMidnight =
     Number(values.get("hour") ?? "0") * 60 +
     Number(values.get("minute") ?? "0");
 
-  return (
-    weekday !== "Sat" &&
-    weekday !== "Sun" &&
-    minutesAfterMidnight >= 9 * 60 + 45 &&
-    minutesAfterMidnight < 15 * 60
-  );
+  return minutesAfterMidnight < 15 * 60;
 }
 
 function boundedCount(value: unknown) {
