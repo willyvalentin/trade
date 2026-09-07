@@ -127,6 +127,29 @@ test("the AI-02 static status is not available without both exact request bindin
       providerBudgetRequested: true,
     }),
   ).toBeNull();
+  expect(
+    getAi02StagingOneShotMarketStatus({
+      now,
+      source: ai02StagingOneShotSource,
+      // Request bodies are untyped at the route boundary. Truthy values must
+      // never be treated as the explicit, one-shot provider-budget grant.
+      providerBudgetRequested: "true" as unknown as boolean,
+    }),
+  ).toBeNull();
+  expect(
+    getAi02StagingOneShotMarketStatus({
+      now,
+      source: ai02StagingOneShotSource,
+      providerBudgetRequested: 1 as unknown as boolean,
+    }),
+  ).toBeNull();
+  expect(
+    getAi02StagingOneShotMarketStatus({
+      now,
+      source: `${ai02StagingOneShotSource}_copy`,
+      providerBudgetRequested: true,
+    }),
+  ).toBeNull();
 });
 
 test("the automation route uses the bounded resolver before its normal calendar lookup", async () => {
@@ -137,6 +160,12 @@ test("the automation route uses the bounded resolver before its normal calendar 
 
   expect(route).toContain('from "@/lib/ai-02-staging-one-shot-market-status"');
   expect(route).toContain("const marketStatus = await resolveAutomationMarketStatus({");
+  expect(route).toContain(
+    'body.source === "ai02_staging_one_shot_source"',
+  );
+  expect(route).toContain(
+    "body.ai02_staging_one_shot_provider_budget === true",
+  );
   expect(route).toContain("providerBudgetRequested:");
   expect(route).toContain("getDefaultMarketStatus: getUsMarketStatus");
   expect(route).not.toContain("const marketStatus = await getUsMarketStatus();");
