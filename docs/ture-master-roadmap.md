@@ -27,7 +27,7 @@ database, deployment, secret, transport, writer, route or UI authority.
 | CAT-00.4 SEC EDGAR retrieval evidence | Completed provider-free retrieval-evidence validator on exact main as PR #362 | It binds one caller-supplied GET/no-redirect/credential-omit/200/text-HTML response capsule and filing body to each CAT-00.2 receipt, then rechecks CAT-00.3 body integrity. A valid result remains `sec_edgar_retrieval_evidence_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority is created. |
 | CAT-00.5 SEC EDGAR read-operation plan | Completed provider-free single-plan validator on exact main as PR #366 | It permits only one receipt-bound GET/no-redirect/credential-omit read plan with 200/text-HTML and response-cap constraints, and requires validate-only/no-persistence plus no runtime/advisory/broker effect. A valid result remains `sec_edgar_read_operation_plan_validated_not_executed`; no request or authority is created. |
 | CAT-00.6 SEC EDGAR pre-read authorization | Completed provider-free pre-read authorization validator on exact main as PR #370 | It resolves only the receipt-before-first-read planning circularity by binding one CAT-00.1 SEC primary-evidence ID to one exact SEC archive locator and fixed validate-only request constraints. It creates no request, credential, persistence, runtime or external authority; an actual public read still needs separately authorized, machine-verifiable execution scope. |
-| CAT-00.7 SEC EDGAR execution-scope policy | Draft provider-free candidate for the machine-verifiable one-request policy required before a distinct operator decision | It binds only a CAT-00.6-valid authorization to the same request constraints, one request, independent readback, containment and `not_authorized_not_executed`; it creates no request, credential, persistence, runtime or external authority. |
+| CAT-00.7 SEC EDGAR execution-scope policy | Completed provider-free execution-scope policy validator on exact main as PR #384 | It binds only a CAT-00.6-valid authorization to the same request constraints, one request, independent readback, containment and `not_authorized_not_executed`; a valid result creates no request, credential, persistence, runtime or external authority. |
 | Agent Intelligence AI-00.1–AI-00.6 | Closed provider-free design/contract sequence; AI-00.6 exact-main verification is complete | Do not create a follow-on automatically. A baseline/outcome dataset or human promotion review needs a fresh product decision and separately authorized scope |
 | Agent Intelligence AI-01.1 | Completed provider-free, source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep the comparison in memory and default-deny; a real dataset, measured result or human promotion needs a new decision |
 | Agent Intelligence AI-01.2 | Completed provider-free adversarial review of AI-01.1's frozen fixture-array boundary on exact main as PR #318 | Keep the comparison in memory and default-deny; no dataset, runtime or promotion authority is created |
@@ -75,11 +75,18 @@ passed provider-free verification and the post-merge provenance attestation
 for that exact commit. Under the selected development profile, the exact-main
 matrix is intentionally skipped; it is not a second six-shard claim.
 
-CAT-00.7 is the selected, source-only continuation of the CAT-00.6 public-read
-policy prerequisite. It must remain a local, one-request execution-scope
-validator: no actual SEC request, operator authority, CI re-hardening
-attestation, persistence or runtime binding is supplied by its output. Its
-separate contract records the exact future evidence and containment gate.
+CAT-00.7 closed on exact main after PR #384 auto-merged as
+`faedb0c1f351440fb28e4cb55d61068745eebb43`. Ready Full CI run
+`34071460193` passed all six unchanged provider-free shards, the protected
+aggregate and merge-candidate provenance POC; exact-main run `34072650899`
+passed the applicable aggregate and post-merge candidate-provenance
+attestation. Under the selected development profile, the exact-main matrix is
+intentionally skipped; it is not a second six-shard claim.
+
+CAT-00.7 remains a local, one-request execution-scope validator: no actual SEC
+request, operator authority, CI re-hardening attestation, persistence or
+runtime binding is supplied by its output. Its separate contract records the
+exact future evidence and containment gate.
 
 CAT-00.6 is the bounded provider-free validator that resolves the first-read
 planning circularity without weakening that boundary. Unlike CAT-00.5's
