@@ -167,6 +167,47 @@ test("AI-02.18 evaluates one mature exact source with one provider candle", asyn
   expect(JSON.stringify(receipt)).not.toContain("automation-secret");
 });
 
+test("AI-02.18 rejects an upstream receipt that exceeds either one-candle bound", async () => {
+  for (const overBudgetReceipt of [
+    { candle_requests_executed: 2, unique_candle_requests_count: 1 },
+    { candle_requests_executed: 1, unique_candle_requests_count: 2 },
+  ]) {
+    let calls = 0;
+    const handler = loadFunction({
+      environment: environment(),
+      now: "2026-09-07T13:01:00.000Z",
+      fetch: async () => {
+        calls += 1;
+        if (calls === 1) return Response.json([matureSource]);
+        if (calls === 2) return new Response(null, { status: 201 });
+        return Response.json({
+          status: "completed",
+          horizons: ["15m", "30m", "60m"],
+          evaluated_snapshot_count: 1,
+          persisted_outcome_count: 3,
+          ...overBudgetReceipt,
+          provider_payload: { should_not_be_returned: true },
+        });
+      },
+    });
+
+    const response = await handler(request(), deployPreviewContext);
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      environment: "staging",
+      operation: "ai02_one_shot_outcome_evaluation",
+      one_shot_consumption: "consumed",
+      result: "bounded_receipt_rejected",
+      route_status_class: "2xx",
+      source_rows: "not_returned",
+      credential_values: "not_returned",
+      provider_payload: "not_returned",
+    });
+    expect(calls).toBe(3);
+  }
+});
+
 test("AI-02.18 does not consume its outcome marker before the source reaches 60 minutes", async () => {
   let calls = 0;
   const handler = loadFunction({
