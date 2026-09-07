@@ -23,6 +23,7 @@ authority.
 | CAT-00.4 SEC EDGAR retrieval evidence | PR #362 is exact-main verified as a provider-free validator for caller-supplied response capsules and filing bodies bound to CAT-00.2 receipts | It permits only one exact GET/no-redirect/credential-omit/200/text-HTML capsule per receipt and rechecks CAT-00.3 body integrity, returning `sec_edgar_retrieval_evidence_validated_not_admitted`; no fetch, credential, persistence, runtime or product authority follows. |
 | CAT-00.5 SEC EDGAR read-operation plan | PR #366 is exact-main verified as a provider-free validator for one caller-supplied plan bound to one CAT-00.2 receipt | It permits only exact receipt URL/identity, GET/no-redirect/credential-omit, 200/text-HTML and bounded response constraints with validate-only/no-persistence and no runtime/advisory/broker effect, returning `sec_edgar_read_operation_plan_validated_not_executed`; no request or authority follows. |
 | CAT-00.6 SEC EDGAR pre-read authorization | PR #370 is exact-main verified as a provider-free validator for one CAT-00.1-valid SEC primary-evidence ID and exact archive locator | It resolves only the receipt-before-first-read planning circularity with a not-executed GET/no-redirect/credential-omit, validate-only/no-persistence posture and no runtime/advisory/broker effect, returning `sec_edgar_pre_read_authorization_validated_not_executed`; no request or authority follows. |
+| CAT-00.7 SEC EDGAR execution-scope policy | Draft provider-free candidate for the one-request, machine-verifiable policy that CAT-00.6 says a future public read needs | It binds only an already valid CAT-00.6 authorization to the same request constraints, one-request budget, independent readback, containment and `not_authorized_not_executed`; no request, credential, persistence, runtime, deployment, broker or production authority follows. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -90,6 +91,10 @@ authority.
   request and creates no authority. Any actual public read remains separately
   policy-gated and requires machine-verifiable execution scope, independent
   readback, containment/rollback evidence and CI re-hardening.
+- CAT-00.7 is the selected source-only response to that named policy
+  prerequisite. It can validate only one CAT-00.6-bound, one-request scope
+  with independent readback, containment and `not_authorized_not_executed`.
+  It is not an operator authorization, CI attestation or external read.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
