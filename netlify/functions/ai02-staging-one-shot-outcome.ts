@@ -57,9 +57,21 @@ function safeUrl(value: string | undefined) {
   }
 }
 
-function safeDeployPreviewUrl(value: string | undefined) {
+function safeDeployPreviewUrl(value: string | undefined, siteName: string | undefined) {
   const url = safeUrl(value);
-  return url?.hostname.endsWith(".netlify.app") ? url : null;
+  const normalizedSiteName = siteName?.trim().toLowerCase();
+  if (
+    !url ||
+    !normalizedSiteName ||
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSiteName)
+  ) {
+    return null;
+  }
+
+  return url.hostname.startsWith("deploy-preview-") &&
+    url.hostname.endsWith(`--${normalizedSiteName}.netlify.app`)
+    ? url
+    : null;
 }
 
 function objectOrNull(value: unknown): Record<string, unknown> | null {
@@ -256,7 +268,10 @@ export default async function ai02StagingOneShotOutcome(
   }
 
   const supabaseUrl = safeUrl(Netlify.env.get("NEXT_PUBLIC_SUPABASE_URL"));
-  const previewUrl = safeDeployPreviewUrl(Netlify.env.get("DEPLOY_PRIME_URL"));
+  const previewUrl = safeDeployPreviewUrl(
+    Netlify.env.get("DEPLOY_PRIME_URL"),
+    context.site.name,
+  );
   const serviceRoleCandidates = [
     Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY"),
     Netlify.env.get("SUPABASE_SERVICE_ROLE"),

@@ -100,7 +100,10 @@ function request(token = "proof-token") {
   );
 }
 
-const deployPreviewContext = { deploy: { context: "deploy-preview" } };
+const deployPreviewContext = {
+  deploy: { context: "deploy-preview" },
+  site: { name: "trade-vl" },
+};
 const matureSource = {
   batch_fingerprint: "internal-batch-fingerprint",
   scheduled_function_fired_at: "2026-09-07T12:00:00.000Z",
@@ -368,6 +371,35 @@ test("AI-02.18 fails closed when its staging or provider prerequisites are absen
     result: "runtime_prerequisite_unavailable",
     credential_values: "not_returned",
   });
+  expect(calls).toBe(0);
+
+  const foreignNetlifyPreview = loadFunction({
+    environment: {
+      ...environment(),
+      DEPLOY_PRIME_URL: "https://deploy-preview-11--other-site.netlify.app",
+    },
+    now: "2026-09-07T13:01:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  });
+  const foreignNetlifyPreviewResponse = await foreignNetlifyPreview(
+    request(),
+    deployPreviewContext,
+  );
+  expect(foreignNetlifyPreviewResponse.status).toBe(503);
+  expect(calls).toBe(0);
+
+  const missingSiteNameResponse = await loadFunction({
+    environment: environment(),
+    now: "2026-09-07T13:01:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  })(request(), { deploy: { context: "deploy-preview" }, site: {} });
+  expect(missingSiteNameResponse.status).toBe(503);
   expect(calls).toBe(0);
 });
 

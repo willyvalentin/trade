@@ -125,7 +125,10 @@ function request(token = "one-shot-token") {
   );
 }
 
-const deployPreviewContext = { deploy: { context: "deploy-preview" } };
+const deployPreviewContext = {
+  deploy: { context: "deploy-preview" },
+  site: { name: "trade-vl" },
+};
 
 test("AI-02.17 reserves one staging marker then invokes exactly one bounded official scan", async () => {
   const calls: FetchCall[] = [];
@@ -285,6 +288,7 @@ test("AI-02.17 fails closed before consuming its marker outside the admitted sou
     result: "source_window_not_admitted",
   });
   expect(calls).toBe(0);
+
 });
 
 test("AI-02.17 fails closed before its marker on a verified US-market holiday", async () => {
@@ -398,6 +402,35 @@ test("AI-02.17 rejects a non-staging or non-Netlify-preview binding before it to
     result: "runtime_prerequisite_unavailable",
     credential_values: "not_returned",
   });
+  expect(calls).toBe(0);
+
+  const foreignNetlifyPreview = loadFunction({
+    environment: {
+      ...environment(),
+      DEPLOY_PRIME_URL: "https://deploy-preview-11--other-site.netlify.app",
+    },
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  });
+  const foreignNetlifyPreviewResponse = await foreignNetlifyPreview(
+    request(),
+    deployPreviewContext,
+  );
+  expect(foreignNetlifyPreviewResponse.status).toBe(503);
+  expect(calls).toBe(0);
+
+  const missingSiteNameResponse = await loadFunction({
+    environment: environment(),
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  })(request(), { deploy: { context: "deploy-preview" }, site: {} });
+  expect(missingSiteNameResponse.status).toBe(503);
   expect(calls).toBe(0);
 });
 
