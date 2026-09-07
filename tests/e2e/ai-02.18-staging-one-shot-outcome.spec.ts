@@ -231,6 +231,34 @@ test("AI-02.18 does not consume its outcome marker before the source reaches 60 
   expect(calls).toBe(1);
 });
 
+test("AI-02.18 does not consume its outcome marker for incomplete or unavailable source evidence", async () => {
+  for (const sourceResponse of [
+    Response.json([{ ...matureSource, recommendations_created: 0 }]),
+    new Response(null, { status: 503 }),
+  ]) {
+    let calls = 0;
+    const handler = loadFunction({
+      environment: environment(),
+      now: "2026-09-07T13:01:00.000Z",
+      fetch: async () => {
+        calls += 1;
+        return sourceResponse;
+      },
+    });
+
+    const result = await handler(request(), deployPreviewContext);
+
+    expect(result.status).toBe(sourceResponse.status === 503 ? 503 : 409);
+    expect(await result.json()).toEqual({
+      environment: "staging",
+      operation: "ai02_one_shot_outcome_evaluation",
+      one_shot_consumption: "not_consumed",
+      result: "source_bundle_not_ready",
+    });
+    expect(calls).toBe(1);
+  }
+});
+
 test("AI-02.18 cannot replay its outcome marker or use another deploy context", async () => {
   const calls: FetchCall[] = [];
   const handler = loadFunction({
