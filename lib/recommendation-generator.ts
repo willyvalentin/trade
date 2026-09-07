@@ -3577,6 +3577,7 @@ export async function generateRecommendations({
             ? Math.min(1, scannerBaseCandidates.length)
           : undefined,
         forceFreshProviderData: ai02StagingOneShotProviderBudget,
+        allowFreshIndicatorFetch: !ai02StagingOneShotProviderBudget,
       },
     );
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);

@@ -425,6 +425,7 @@ test("AI-02.17 keeps the temporary route server-only and free of runtime or brok
   const implementation = source(functionPath);
   const scanRoute = source("app/api/automation/run-scan/route.ts");
   const recommendationGenerator = source("lib/recommendation-generator.ts");
+  const scanner = source("lib/scanner.ts");
 
   expect(implementation).toContain('import type { Config, Context } from "@netlify/functions"');
   expect(implementation).toContain("Netlify.env.get");
@@ -438,6 +439,10 @@ test("AI-02.17 keeps the temporary route server-only and free of runtime or brok
   expect(recommendationGenerator).toContain(
     '"market_regime_snapshot",\n        "skipped_one_shot_provider_budget"',
   );
+  expect(recommendationGenerator).toContain(
+    "allowFreshIndicatorFetch: !ai02StagingOneShotProviderBudget",
+  );
+  expect(scanner).toContain("options.allowFreshIndicatorFetch !== false");
   expect(recommendationGenerator).toMatch(
     /if \(ai02StagingOneShotProviderBudget\) \{[\s\S]*?\} else \{\s+await saveMarketRegimeSnapshot\(marketRegime\);\s+\}/,
   );

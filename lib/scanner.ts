@@ -127,6 +127,7 @@ export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
   forceFreshProviderData?: boolean;
+  allowFreshIndicatorFetch?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
 };
 
@@ -665,6 +666,7 @@ export async function scanMarket(
     candidate: ScannerCandidate,
   ): Promise<CandidateWithIndicatorCache> {
     const allowFreshFetch =
+      options.allowFreshIndicatorFetch !== false &&
       freshProviderCallsUsed < maxFreshProviderCalls &&
       freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN;
     const result = await getOrRefreshIntradayIndicators(candidate.ticker, {
