@@ -2,7 +2,7 @@
 
 ## Product outcome and bounded decision
 
-Status: `selected_local_provider_free_contract_pending_protected_delivery`.
+Status: `complete_on_exact_main_provider_free_contract`.
 
 CAT-00.9 is the independently selected, non-market-hours successor to the
 CAT-00.8 operator-record template. It implements only a local, fail-closed
@@ -15,6 +15,19 @@ is retained as `claimed_complete_not_independently_verified`. It never
 independently verifies a GitHub run, branch-protection state, ruleset, scheduled
 sweep or manual sweep, and a locally valid result remains
 `sec_edgar_external_read_evidence_bundle_locally_shaped_not_authorized_not_executed`.
+
+## Protected delivery evidence
+
+PR #399 merged as `ca1b27e2e40eae9c0b4707df7412239cc5f4762b` after
+Ready Full CI run `34123577717` passed the unchanged six provider-free shards,
+the protected aggregate and merge-candidate provenance. Exact-main run
+`34127254656` then passed the provider-free aggregate and the post-merge
+provenance attestation for that same commit.
+
+This proves only delivery of CAT-00.9's local source contract. It does not
+turn any fixed claim into independent CI, branch-protection or sweep evidence,
+does not prove a least-privileged GitHub identity, and does not authorize an
+external request.
 
 ## Accepted local shape
 
