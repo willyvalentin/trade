@@ -183,6 +183,11 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
   expect(calls[2]?.url).toBe(
     "https://deploy-preview-397--trade-vl.netlify.app/api/automation/run-scan",
   );
+  expect(calls.map((call) => call.init?.redirect)).toEqual([
+    "error",
+    "error",
+    "error",
+  ]);
   expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({
     force: true,
     ignore_existing_run: false,
@@ -265,6 +270,30 @@ test("AI-02.17 rejects an unconfirmed staging owner before consuming its marker"
     "https://staging.example.test/auth/v1/admin/users/0f4a6943-75d5-4414-9a2e-6d9941ac2a7e",
   );
   expect(calls[0]?.init?.method).toBeUndefined();
+});
+
+test("AI-02.17 fails closed when its marker reservation rejects a redirect", async () => {
+  let calls = 0;
+  const handler = loadFunction({
+    environment: environment(),
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      if (calls === 1) return new Response(null, { status: 200 });
+      throw new Error("redirect rejected");
+    },
+  });
+
+  const response = await handler(request(), deployPreviewContext);
+
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_source_creation",
+    one_shot_consumption: "not_consumed",
+    result: "runtime_prerequisite_unavailable",
+  });
+  expect(calls).toBe(2);
 });
 
 test("AI-02.17 fails closed before consuming its marker outside the admitted source window", async () => {

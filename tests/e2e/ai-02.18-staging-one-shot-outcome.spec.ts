@@ -157,6 +157,11 @@ test("AI-02.18 evaluates one mature exact source with one provider candle", asyn
   expect(calls[2]?.url).toBe(
     "https://deploy-preview-397--trade-vl.netlify.app/api/recommendations/evaluate-outcomes",
   );
+  expect(calls.map((call) => call.init?.redirect)).toEqual([
+    "error",
+    "error",
+    "error",
+  ]);
   expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({
     mode: "official_live_today",
     batch_fingerprint: "internal-batch-fingerprint",
@@ -260,6 +265,30 @@ test("AI-02.18 does not consume its outcome marker for incomplete or unavailable
     });
     expect(calls).toBe(1);
   }
+});
+
+test("AI-02.18 fails closed when its outcome reservation rejects a redirect", async () => {
+  let calls = 0;
+  const handler = loadFunction({
+    environment: environment(),
+    now: "2026-09-07T13:01:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      if (calls === 1) return Response.json([matureSource]);
+      throw new Error("redirect rejected");
+    },
+  });
+
+  const response = await handler(request(), deployPreviewContext);
+
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_outcome_evaluation",
+    one_shot_consumption: "not_consumed",
+    result: "runtime_prerequisite_unavailable",
+  });
+  expect(calls).toBe(2);
 });
 
 test("AI-02.18 cannot replay its outcome marker or use another deploy context", async () => {

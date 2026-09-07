@@ -122,6 +122,7 @@ async function readSourceReadiness(input: {
 
   try {
     const result = await fetch(endpoint, {
+      redirect: "error",
       headers: {
         apikey: input.serviceRoleKey,
         authorization: `Bearer ${input.serviceRoleKey}`,
@@ -160,32 +161,37 @@ async function reserveOutcome(input: {
   serviceRoleKey: string;
   now: Date;
 }) {
-  const result = await fetch(
-    new URL("/rest/v1/scheduled_scan_attempts", input.supabaseUrl),
-    {
-      method: "POST",
-      headers: {
-        apikey: input.serviceRoleKey,
-        authorization: `Bearer ${input.serviceRoleKey}`,
-        "content-type": "application/json",
-        prefer: "return=minimal",
+  try {
+    const result = await fetch(
+      new URL("/rest/v1/scheduled_scan_attempts", input.supabaseUrl),
+      {
+        method: "POST",
+        redirect: "error",
+        headers: {
+          apikey: input.serviceRoleKey,
+          authorization: `Bearer ${input.serviceRoleKey}`,
+          "content-type": "application/json",
+          prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          attempt_fingerprint: outcomeAttemptFingerprint,
+          source: outcomeSource,
+          mode: "diagnostic",
+          outcome: "scheduled_function_fired",
+          allowed: true,
+          scheduled_function_fired_at: input.now.toISOString(),
+          utc_timestamp: input.now.toISOString(),
+          payload_json: { operation: "ai02_one_shot_outcome_evaluation" },
+        }),
       },
-      body: JSON.stringify({
-        attempt_fingerprint: outcomeAttemptFingerprint,
-        source: outcomeSource,
-        mode: "diagnostic",
-        outcome: "scheduled_function_fired",
-        allowed: true,
-        scheduled_function_fired_at: input.now.toISOString(),
-        utc_timestamp: input.now.toISOString(),
-        payload_json: { operation: "ai02_one_shot_outcome_evaluation" },
-      }),
-    },
-  );
+    );
 
-  if (result.status === 201 || result.status === 200) return "reserved";
-  if (result.status === 409) return "consumed";
-  return "unavailable";
+    if (result.status === 201 || result.status === 200) return "reserved";
+    if (result.status === 409) return "consumed";
+    return "unavailable";
+  } catch {
+    return "unavailable";
+  }
 }
 
 function outcomeReceipt(responseStatus: number, body: unknown) {
@@ -365,6 +371,7 @@ export default async function ai02StagingOneShotOutcome(
       new URL("/api/recommendations/evaluate-outcomes", previewUrl),
       {
         method: "POST",
+        redirect: "error",
         headers: {
           "content-type": "application/json",
           "x-automation-secret": automationSecret,
