@@ -28,6 +28,7 @@ authority.
 | CAT-00.8 SEC EDGAR operator-record template | PR #388 is merged and exact-main verified as a provider-free, fail-closed operator-record validator bound to CAT-00.7 and the separate CI re-hardening review | Its required CI and containment fields remain `required_not_verified`; it neither proves those facts nor authorizes a request, network access, runtime, deployment, broker or production action. |
 | CAT-00.9 SEC EDGAR evidence-bundle contract | PR #399 is merged and exact-main verified as a provider-free evidence-bundle contract | It binds only CAT-00.8's locally valid record to four fixed `claimed_complete_not_independently_verified` CI/readback claims. Protected delivery proves the source contract, not GitHub policy, a sweep, credential scope or an external request; runtime, deployment, broker and production remain closed. |
 | CAT-00.10 GitHub evidence read-plan | PR #401 is merged as `b359c6917fa74d87b64deb7e5cfc25f1bd6ea121` and exact-main verified as a provider-free evidence-read plan | Ready Full CI run `34132001317` passed its unchanged six shards and protected aggregate; exact-main run `34134611027` passed its aggregate and post-merge provenance attestation. It creates only a fail-closed, fixed five-path GET plan and a stated least-privilege identity requirement. No GitHub call, response, credential, policy change, runtime, deployment, broker or production authority follows. |
+| CAT-00.11 GitHub evidence-receipt validator | Provider-free source contract for a caller-supplied, redacted five-readback receipt bound to CAT-00.10's exact plan | It retains no raw response and cannot request GitHub, use a credential, change CI/branch protection, persist, bind runtime, deploy, influence advice or invoke a broker. Protected delivery and exact-main verification are required before it is recorded as complete. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -384,6 +385,9 @@ authority.
   influence needs a separately selected product decision, exact
   machine-verifiable authority policy, independent readback evidence,
   containment/rollback plan and CI re-hardening review.
+- CAT-00.11 can validate only caller-supplied redacted metadata against
+  CAT-00.10's fixed plan. It remains provider-free and cannot make a GitHub
+  request or convert a local result into external authority.
 
 ### Blocked or deferred
 
