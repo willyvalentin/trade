@@ -25,7 +25,7 @@ authority.
 | CAT-00.5 SEC EDGAR read-operation plan | PR #366 is exact-main verified as a provider-free validator for one caller-supplied plan bound to one CAT-00.2 receipt | It permits only exact receipt URL/identity, GET/no-redirect/credential-omit, 200/text-HTML and bounded response constraints with validate-only/no-persistence and no runtime/advisory/broker effect, returning `sec_edgar_read_operation_plan_validated_not_executed`; no request or authority follows. |
 | CAT-00.6 SEC EDGAR pre-read authorization | PR #370 is exact-main verified as a provider-free validator for one CAT-00.1-valid SEC primary-evidence ID and exact archive locator | It resolves only the receipt-before-first-read planning circularity with a not-executed GET/no-redirect/credential-omit, validate-only/no-persistence posture and no runtime/advisory/broker effect, returning `sec_edgar_pre_read_authorization_validated_not_executed`; no request or authority follows. |
 | CAT-00.7 SEC EDGAR execution-scope policy | Completed provider-free execution-scope policy validator on exact main as PR #384 | It binds only an already valid CAT-00.6 authorization to the same request constraints, one-request budget, independent readback, containment and `not_authorized_not_executed`; no request, credential, persistence, runtime, deployment, broker or production authority follows. |
-| CAT-00.8 SEC EDGAR operator-record template | Source-delivery candidate bound to CAT-00.7 and the separate CI re-hardening review | It can represent only required-but-unverified CI and containment evidence; it neither proves those facts nor authorizes a request, network access, runtime, deployment, broker or production action. |
+| CAT-00.8 SEC EDGAR operator-record template | PR #388 is merged and exact-main verified as a provider-free, fail-closed operator-record validator bound to CAT-00.7 and the separate CI re-hardening review | Its required CI and containment fields remain `required_not_verified`; it neither proves those facts nor authorizes a request, network access, runtime, deployment, broker or production action. |
 | Agent Intelligence AI-00.1–AI-00.6 | Provider-free contract and fixture sequence closed on exact main | No automatic successor. A baseline/outcome dataset or human promotion review needs a fresh product decision. |
 | Agent Intelligence AI-01.1 | Completed source-only multi-fixture baseline-comparison contract on exact main as PR #317 | Keep all material local and default-deny; real data, a measured result or human promotion each need a separate decision. |
 | Agent Intelligence AI-01.2 | Completed source-only adversarial review of AI-01.1's frozen fixture-array input boundary on exact main as PR #318 | Keep all material local and default-deny; no dataset, runtime or promotion authority is created. |
@@ -46,7 +46,7 @@ authority.
 | Agent Intelligence AI-02.12 | [Staging completed-outcome source-creation admission](./ai-02.12-staging-completed-outcome-source-creation-admission.md) is a server-only, provider-free validator for one future one-shot design of one server-owned snapshot; the existing five-batch/ten-snapshot scheduled function is not admitted | A separately authorized staging-only cost, credential-identity and one-shot-transport preflight may decide whether an isolated branch-deploy adapter can be prepared. It cannot access a source row or secret, invoke the provider/evaluator, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.13 | [Staging one-shot cost and transport admission](./ai-02.13-staging-one-shot-cost-transport-admission.md) is exact-main verified as PR #381. It accepts only the exact future one-snapshot/one-batch/deploy-preview shape and a maximum of one reused official candle request for the complete 15/30/60-minute bundle | A separately authorized staging-only, non-secret credential-presence and branch-transport preflight may determine only whether a temporary adapter can be prepared. It cannot read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.14 | [Staging non-secret preflight admission](./ai-02.14-staging-nonsecret-preflight-admission.md) is exact-main verified as PR #382. It validates only the future staging metadata shape: non-secret credential presence, required application-owner confirmation and deploy-preview context | A separately authorized staging-only execution may return only minimized evidence under that exact shape. It cannot open a staging connection, read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
-| Agent Intelligence AI-02.15 | [Staging nonsecret preflight receipt admission](./ai-02.15-staging-nonsecret-preflight-receipt-admission.md) is completed on exact main as PR #383. It is server-only and provider-free and admits a fixed-redaction receipt of AI-02.14's three permitted facts | It neither executes nor authorizes that preflight. It rejects credential values and names, owner and deploy identifiers, source rows, connection and all provider, deployment, persistence, evaluation, runtime, broker and production scope. |
+| Agent Intelligence AI-02.15 | [Staging nonsecret preflight receipt admission](./ai-02.15-staging-nonsecret-preflight-receipt-admission.md) is completed on exact main as PR #383; PR #386 closed its local implementation queue and recorded the failed external transport proof | It neither executes nor authorizes that preflight. The temporary branch-deploy path returned no deploy ID, URL or HTTP response, so no source row, credential, provider/evaluator, persistence, runtime, deployment, broker or production scope was accessed or admitted. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, provider, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -101,10 +101,11 @@ authority.
   fixes the later Ready/exact-main/readback/rollback evidence shape without
   changing CI. Neither record is an operator authorization, CI attestation or
   external read.
-- CAT-00.8 is the pending provider-free operator-record template. It can bind
-  a valid CAT-00.7 scope to the four required CI evidence categories, but each
-  category is fixed `required_not_verified`; no workflow, GitHub policy,
-  operator identity or external action is observed or admitted.
+- CAT-00.8 is complete on exact main as PR #388's provider-free operator-record
+  validator. It can bind a valid CAT-00.7 scope to the four required CI
+  evidence categories, but each category is fixed `required_not_verified`; no
+  workflow, GitHub policy, operator identity or external action is observed or
+  admitted.
 - Treat REL-00 CI-B8 as superseded rather than completed. The selected
   development CI profile is recorded in
   [its closeout decision](./rel-00-development-ci-profile-closeout.md); the
@@ -235,6 +236,19 @@ authority.
   local Action 664D/E/F PostgreSQL baseline and creates no remote database,
   runtime, provider, deployment, broker or production authority.
 
+- PR #386 auto-merged as `bbb26dae7e4063ef39408b8bc4736e9e54b9cfba`. Ready
+  Full CI run `34079367079` passed the unchanged six provider-free shards,
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34081459607` passed for that exact commit. It records the AI-02.15 local
+  closeout and AI-02.16 transport blocker without staging access, provider,
+  persistence, runtime, deployment, broker or production authority.
+- PR #388 auto-merged as `099ffb0e6134b65fde28ebcf5d7836b600e86319`. Ready
+  Full CI run `34077639250` passed the unchanged six provider-free shards,
+  protected aggregate and merge-candidate provenance POC; exact-main run
+  `34079242325` passed for that exact commit. It provides only CAT-00.8's
+  provider-free `required_not_verified` operator-record boundary and creates
+  no external-read, runtime, deployment, broker or production authority.
+
 - PR #329 merged as `7267b9bec15830a92d77f98a8cdcdccdecab0d36`. Its Ready
   Full CI run `33971982832` passed all six provider-free shards, the protected
   aggregate and candidate-provenance POC; exact-main run `33977532559` then
@@ -323,14 +337,14 @@ authority.
   cost ceiling at one batch, one snapshot and one reused provider candle
   request. AI-02.14 narrows the next preflight to non-secret credential
   presence, application-owner confirmation and deploy-preview context.
-  AI-02.15 is completed on exact main as PR #383 and admits only a
-  fixed-redaction receipt of those three facts; it does not perform or
-  authorize the preflight. The next prerequisite remains a separately
-  authorized staging-only execution that returns only that
-  minimized receipt. It cannot open a staging connection,
-  read a credential value or source row, invoke a provider or evaluator,
-  deploy an adapter, persist an outcome, apply a migration, write evidence,
-  form a cohort, evaluate, promote, bind runtime or affect deployment, broker
+  AI-02.15 is completed on exact main as PR #383 and its implementation queue
+  is closed by PR #386. It admits only a fixed-redaction receipt of those three
+  facts; it does not perform or authorize the preflight. The next prerequisite
+  remains a separately authorized staging-only execution, using a viable
+  transport, that returns only that minimized receipt. It cannot open a
+  staging connection, read a credential value or source row, invoke a
+  provider or evaluator, deploy an adapter, persist an outcome, apply a
+  migration, write evidence, form a cohort, evaluate, promote, bind runtime or affect deployment, broker
   or production.
 - The temporary branch-deploy proof was fully cleaned after the linked Netlify
   CLI returned no deploy ID, URL or HTTP response. A later `netlify status`
