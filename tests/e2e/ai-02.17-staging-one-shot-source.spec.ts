@@ -134,9 +134,8 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     now: "2026-09-08T14:00:00.000Z",
     fetch: async (url, init) => {
       calls.push({ url: String(url), init });
-      if (calls.length === 1) return new Response(null, { status: 404 });
+      if (calls.length === 1) return new Response(null, { status: 200 });
       if (calls.length === 2) return new Response(null, { status: 201 });
-      if (calls.length === 3) return new Response(null, { status: 201 });
       return Response.json({
         decision: "scanned",
         recommendations_created: 1,
@@ -171,30 +170,22 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     credential_values: "not_returned",
     provider_payload: "not_returned",
   });
-  expect(calls).toHaveLength(4);
+  expect(calls).toHaveLength(3);
   expect(calls[0]?.url).toBe(
     "https://staging.example.test/auth/v1/admin/users/0f4a6943-75d5-4414-9a2e-6d9941ac2a7e",
   );
   expect(calls[1]?.url).toBe(
-    "https://staging.example.test/auth/v1/admin/users",
-  );
-  expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({
-    id: "0f4a6943-75d5-4414-9a2e-6d9941ac2a7e",
-    email: "ai02-staging-owner-0f4a6943-75d5-4414-9a2e-6d9941ac2a7e@example.invalid",
-    email_confirm: true,
-  });
-  expect(calls[2]?.url).toBe(
     "https://staging.example.test/rest/v1/scheduled_scan_attempts",
   );
-  expect(calls[3]?.url).toBe(
+  expect(calls[2]?.url).toBe(
     "https://preview.example.test/api/automation/run-scan",
   );
-  expect(JSON.parse(String(calls[3]?.init?.body))).toEqual({
+  expect(JSON.parse(String(calls[2]?.init?.body))).toEqual({
     force: true,
     ignore_existing_run: false,
     source: "ai02_staging_one_shot_source",
     scheduled_scan_attempt_fingerprint: "ai02_staging_one_shot_source_v1",
-        scheduled_function_fired_at_utc: "2026-09-08T14:00:00.000Z",
+    scheduled_function_fired_at_utc: "2026-09-08T14:00:00.000Z",
     max_tickers: 1,
     max_recommendations: 1,
     skip_openai: true,
@@ -203,6 +194,34 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
   });
   expect(JSON.stringify(receipt)).not.toContain("service-role-secret");
   expect(JSON.stringify(receipt)).not.toContain("automation-secret");
+});
+
+test("AI-02.17 rejects an unconfirmed staging owner before consuming its marker", async () => {
+  const calls: FetchCall[] = [];
+  const handler = loadFunction({
+    environment: environment(),
+    now: "2026-09-08T14:00:00.000Z",
+    fetch: async (url, init) => {
+      calls.push({ url: String(url), init });
+      return new Response(null, { status: 404 });
+    },
+  });
+
+  const response = await handler(request(), deployPreviewContext);
+
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_source_creation",
+    one_shot_consumption: "not_consumed",
+    result: "runtime_prerequisite_unavailable",
+    credential_values: "not_returned",
+  });
+  expect(calls).toHaveLength(1);
+  expect(calls[0]?.url).toBe(
+    "https://staging.example.test/auth/v1/admin/users/0f4a6943-75d5-4414-9a2e-6d9941ac2a7e",
+  );
+  expect(calls[0]?.init?.method).toBeUndefined();
 });
 
 test("AI-02.17 fails closed before consuming its marker outside the admitted source window", async () => {
@@ -369,6 +388,8 @@ test("AI-02.17 keeps the temporary route server-only and free of runtime or brok
   expect(implementation).toContain('import type { Config, Context } from "@netlify/functions"');
   expect(implementation).toContain("Netlify.env.get");
   expect(implementation).toContain("/auth/v1/admin/users");
+  expect(implementation).not.toContain("email_confirm");
+  expect(implementation).not.toContain("example.invalid");
   expect(implementation).toContain("scheduled_scan_attempts");
   expect(implementation).not.toMatch(/console\.|process\.env|broker|production/i);
   expect(scanRoute).toContain("max_recommendations?: unknown");
