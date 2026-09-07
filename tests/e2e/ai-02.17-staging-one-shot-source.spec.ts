@@ -6,6 +6,8 @@ import vm from "node:vm";
 import { expect, test } from "@playwright/test";
 import ts from "typescript";
 
+import { getUsEquityMarketSession } from "../../lib/us-equity-market-calendar";
+
 const root = resolve(__dirname, "../..");
 const functionPath = "netlify/functions/ai02-staging-one-shot-source.ts";
 const stagingUrlDigest =
@@ -72,6 +74,27 @@ function loadFunction(input: {
           },
         };
       }
+      if (specifier === "../../lib/us-equity-market-calendar") {
+        return {
+          getUsEquityMarketSession(value: Date | string) {
+            const date = new Date(value).toISOString().slice(0, 10);
+            if (date === "2026-09-07") {
+              return {
+                verification_status: "verified",
+                session_type: "closed_holiday",
+                session_open: null,
+                session_close: null,
+              };
+            }
+            return {
+              verification_status: "verified",
+              session_type: "regular_session",
+              session_open: `${date}T13:30:00.000Z`,
+              session_close: `${date}T20:00:00.000Z`,
+            };
+          },
+        };
+      }
       throw new Error(`unexpected import: ${specifier}`);
     },
   };
@@ -108,7 +131,7 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
   const calls: FetchCall[] = [];
   const handler = loadFunction({
     environment: environment(),
-    now: "2026-09-07T14:00:00.000Z",
+    now: "2026-09-08T14:00:00.000Z",
     fetch: async (url, init) => {
       calls.push({ url: String(url), init });
       if (calls.length === 1) return new Response(null, { status: 404 });
@@ -165,7 +188,7 @@ test("AI-02.17 reserves one staging marker then invokes exactly one bounded offi
     ignore_existing_run: false,
     source: "ai02_staging_one_shot_source",
     scheduled_scan_attempt_fingerprint: "ai02_staging_one_shot_source_v1",
-    scheduled_function_fired_at_utc: "2026-09-07T14:00:00.000Z",
+        scheduled_function_fired_at_utc: "2026-09-08T14:00:00.000Z",
     max_tickers: 1,
     max_recommendations: 1,
     skip_openai: true,
@@ -198,11 +221,40 @@ test("AI-02.17 fails closed before consuming its marker outside the admitted sou
   expect(calls).toBe(0);
 });
 
+test("AI-02.17 fails closed before its marker on a verified US-market holiday", async () => {
+  expect(getUsEquityMarketSession("2026-09-07T14:00:00.000Z")).toMatchObject({
+    verification_status: "verified",
+    session_type: "closed_holiday",
+    closed_reason: "Labor Day",
+  });
+
+  let calls = 0;
+  const handler = loadFunction({
+    environment: environment(),
+    now: "2026-09-07T14:00:00.000Z",
+    fetch: async () => {
+      calls += 1;
+      return new Response(null, { status: 500 });
+    },
+  });
+
+  const response = await handler(request(), deployPreviewContext);
+
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({
+    environment: "staging",
+    operation: "ai02_one_shot_source_creation",
+    one_shot_consumption: "not_consumed",
+    result: "source_window_not_admitted",
+  });
+  expect(calls).toBe(0);
+});
+
 test("AI-02.17 cannot replay an already consumed marker or run outside preview", async () => {
   const calls: FetchCall[] = [];
   const handler = loadFunction({
     environment: environment(),
-    now: "2026-09-07T14:00:00.000Z",
+    now: "2026-09-08T14:00:00.000Z",
     fetch: async (url, init) => {
       calls.push({ url: String(url), init });
       return new Response(null, { status: calls.length === 1 ? 200 : 409 });
@@ -239,7 +291,7 @@ test("AI-02.17 rejects a non-staging binding before it touches staging", async (
   let calls = 0;
   const handler = loadFunction({
     environment: environment(),
-    now: "2026-09-07T14:00:00.000Z",
+    now: "2026-09-08T14:00:00.000Z",
     digest: "not-the-staging-project",
     fetch: async () => {
       calls += 1;
@@ -266,7 +318,7 @@ test("AI-02.17 rejects missing or ambiguous canonical bindings before consuming 
       ...environment(),
       TWELVE_DATA_API_KEY: undefined,
     },
-    now: "2026-09-07T14:00:00.000Z",
+    now: "2026-09-08T14:00:00.000Z",
     fetch: async () => {
       calls += 1;
       return new Response(null, { status: 500 });
@@ -289,7 +341,7 @@ test("AI-02.17 rejects missing or ambiguous canonical bindings before consuming 
       ...environment(),
       SUPABASE_SERVICE_ROLE: "second-service-role-secret",
     },
-    now: "2026-09-07T14:00:00.000Z",
+    now: "2026-09-08T14:00:00.000Z",
     fetch: async () => {
       calls += 1;
       return new Response(null, { status: 500 });
