@@ -19,6 +19,7 @@ import {
   MAX_DISCARD_REVIEWS_PER_RUN,
   reviewPendingDiscardedRecommendations,
 } from "@/lib/discard-review";
+import { resolveAutomationMarketStatus } from "@/lib/ai-02-staging-one-shot-market-status";
 import { getUsMarketStatus } from "@/lib/market-calendar";
 import {
   getIntradayScanPolicy,
@@ -2729,7 +2730,13 @@ export async function POST(request: Request) {
   const scanClock =
     dateFromIsoOrNull(scheduledFunctionFiredAtUtc) ?? routeReceivedAt;
   const now = scanClock;
-  const marketStatus = await getUsMarketStatus();
+  const marketStatus = await resolveAutomationMarketStatus({
+    now: scanClock,
+    source: requestSource,
+    providerBudgetRequested:
+      scheduledRuntimeConfig.ai02_staging_one_shot_provider_budget,
+    getDefaultMarketStatus: getUsMarketStatus,
+  });
   const marketSession = buildMarketSessionEvaluation({
     now: scanClock,
     marketStatus,
