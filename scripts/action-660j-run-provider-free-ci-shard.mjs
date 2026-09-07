@@ -227,6 +227,7 @@ const intelligenceTests = [
   "tests/e2e/cat-00.5-sec-edgar-read-operation-plan.spec.ts",
   "tests/e2e/cat-00.6-sec-edgar-pre-read-authorization.spec.ts",
   "tests/e2e/cat-00.7-sec-edgar-execution-scope-policy.spec.ts",
+  "tests/e2e/cat-00.8-sec-edgar-external-read-operator-record.spec.ts",
   "tests/e2e/action-664a-canonical-recommendation-evaluation.spec.ts",
   "tests/e2e/action-664b-canonical-evaluation-projection-adapters.spec.ts",
   "tests/e2e/action-664c-canonical-evaluation-persistence-contract.spec.ts",
