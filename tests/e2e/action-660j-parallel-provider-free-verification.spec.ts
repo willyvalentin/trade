@@ -250,6 +250,7 @@ const intelligenceTests = [
   "tests/e2e/ai-02.13-staging-one-shot-cost-transport-admission.spec.ts",
   "tests/e2e/ai-02.14-staging-nonsecret-preflight-admission.spec.ts",
   "tests/e2e/ai-02.15-staging-nonsecret-preflight-receipt-admission.spec.ts",
+  "tests/e2e/ai-02.18-preview-route-attestation.spec.ts",
   "tests/e2e/cat-00.2-sec-edgar-evidence-receipt.spec.ts",
   "tests/e2e/cat-00.3-sec-edgar-filing-content.spec.ts",
   "tests/e2e/cat-00.4-sec-edgar-retrieval-evidence.spec.ts",
