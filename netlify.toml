@@ -1,6 +1,12 @@
 [functions]
   directory = "netlify/functions"
 
+# Next.js 16.3.4 can exceed Netlify's default ~2 GB V8 heap while it performs
+# its build-time TypeScript check. This applies only to the build process; it
+# does not alter the deployed runtime or expose any value to the application.
+[build.environment]
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
 [[redirects]]
   from = "https://trade-vl.netlify.app/*"
   to = "https://trade.valentinlabs.com/:splat"

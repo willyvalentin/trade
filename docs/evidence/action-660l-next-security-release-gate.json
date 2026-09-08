@@ -37,7 +37,8 @@
     "static_pages_generated": 33,
     "typescript_completed": true,
     "lint_errors": 0,
-    "lint_existing_warnings": 8
+    "lint_existing_warnings": 8,
+    "netlify_build_node_options": "--max-old-space-size=4096"
   },
   "proxy_reconciliation": {
     "baseline_passes": 21,
@@ -81,6 +82,7 @@
   "sources": {
     "package.json": "7c5c2e70db42a05a81253986cc01007a79780b84f2676ea0b1ba76ea063bcac9",
     "package-lock.json": "32e51a4fe80e4c1e4b11f373395d899fe9f7b391f11cc2b4ede320e197fa268e",
+    "netlify.toml": "5ec89d955dcca64ff2654b5d782318090e3622c0534bb322e6d2f70c18f940c9",
     "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
     "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",
@@ -94,7 +96,7 @@
     "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "8275b7ecfe9486f31ebf36d2f4a48602aba7fb218735d8fafdccd2a53891f8f8",
     "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
-    "docs/action-660l-next-security-release-gate.md": "64bd02ccbae383176e26438f3b163973b6a359d71fe1197cf76a1987bde6b114",
+    "docs/action-660l-next-security-release-gate.md": "d28aa989866e4a2e57786b72a43ce9c6735f1238f944c043626fde8b3783d8d8",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
   },

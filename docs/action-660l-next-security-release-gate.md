@@ -8,7 +8,9 @@ refreshed the exact npm lock graph to zero audit findings, corrected six stale
 proxy-contract expectations and added one full-Ready/main audit-and-build gate
 to the existing provider-free foundation shard. The current follow-on patch
 advances `next` and `eslint-config-next` from `16.3.1` to `16.3.4`, refreshes
-the exact npm lock graph again, and retains that same fail-closed gate.
+the exact npm lock graph again, retains that same fail-closed gate, and gives
+Netlify's build process an explicit 4 GB V8 heap for its build-time TypeScript
+check.
 
 This action does not authorize merge, production deployment, provider
 configuration, database mutation, broker execution or runtime activation.
@@ -44,6 +46,17 @@ same `postcss` and `nanoid` versions. The installed full audit reports zero
 vulnerabilities. The production build completes with all 33 static pages
 generated; TypeScript passes and lint reports zero errors with the eight
 pre-existing warnings.
+
+## Netlify build-memory boundary
+
+The first preview for the `16.3.4` follow-on compiled successfully but its
+build-time TypeScript check exhausted Netlify's default approximately 2 GB V8
+heap. `netlify.toml` therefore sets
+`NODE_OPTIONS=--max-old-space-size=4096` only in `[build.environment]`. It is
+committed configuration rather than a dashboard secret, changes neither the
+Next.js command nor application/runtime environment, and has no provider,
+database, broker or production-data effect. A later preview must independently
+prove the resulting build; this source change alone makes no deployment claim.
 
 ## Proxy-contract reconciliation
 

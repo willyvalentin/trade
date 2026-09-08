@@ -16,7 +16,7 @@ const draftCostControlTestPath =
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "a8919a011df4bd33b24fd878c59bee88b412ac4d4b35a0da4e873f46f7d83b01";
+  "bb5f62d41f9bd64956faa9612992105c360b68b10cc85e3e55254d3012279eac";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
@@ -25,6 +25,7 @@ const successionSourceCommit =
 const sourcePaths = [
   "package.json",
   "package-lock.json",
+  "netlify.toml",
   "AGENTS.md",
   ".github/workflows/milestone-a-ci.yml",
   "proxy.ts",
@@ -158,6 +159,7 @@ function expectedEvidence(sources: Record<string, string>) {
       typescript_completed: true,
       lint_errors: 0,
       lint_existing_warnings: 8,
+      netlify_build_node_options: "--max-old-space-size=4096",
     },
     proxy_reconciliation: {
       baseline_passes: 21,
@@ -229,6 +231,11 @@ test("pins exact security-release evidence and every governed source", async () 
   expect(lock.packages["node_modules/js-yaml"].version).toBe("4.3.2");
   expect(lock.packages["node_modules/postcss"].version).toBe("8.5.23");
   expect(lock.packages["node_modules/nanoid"].version).toBe("3.3.18");
+  const netlifyToml = await source("netlify.toml");
+  expect(netlifyToml).toContain("[build.environment]");
+  expect(netlifyToml).toContain(
+    'NODE_OPTIONS = "--max-old-space-size=4096"',
+  );
 });
 
 test("runs one full audit/build gate while keeping Draft feedback non-authoritative", async () => {
