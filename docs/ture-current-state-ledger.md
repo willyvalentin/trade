@@ -51,6 +51,7 @@ authority.
 | Agent Intelligence AI-02.14 | [Staging non-secret preflight admission](./ai-02.14-staging-nonsecret-preflight-admission.md) is exact-main verified as PR #382. It validates only the future staging metadata shape: non-secret credential presence, required application-owner confirmation and deploy-preview context | A separately authorized staging-only execution may return only minimized evidence under that exact shape. It cannot open a staging connection, read a credential value or source row, invoke a provider/evaluator, deploy an adapter, persist an outcome, apply v2, write evidence, form a dataset, evaluate, bind runtime or affect deployment, broker or production authority. |
 | Agent Intelligence AI-02.15 | [Staging nonsecret preflight receipt admission](./ai-02.15-staging-nonsecret-preflight-receipt-admission.md) is completed on exact main as PR #383; PR #386 closed its local implementation queue and recorded the failed CLI transport proof. On 2026-09-07, the first one-time Git deploy-preview proof built its temporary function artifact but sent an empty header through its inline shell form. A second fresh proof used the locally proven header form, built its temporary artifact and still returned no admissible fixed-redaction receipt; each proof's preview-only variables, Draft PR and remote branch were removed immediately | No proof admits the preflight or a future one-shot adapter. No credential value or name, owner, deploy or source identifier, source row, staging connection, provider/evaluator invocation, persistence, runtime, deployment, broker or production scope was returned or admitted. |
 | Agent Intelligence AI-02.17 | The [staging actual-evidence operation](./ai-02.17-staging-actual-evidence-decision.md) consumed its sole source call on 2026-09-08. Draft PR #405's targeted verification passed and its matching preview was ready, but the adapter returned only fail-closed HTTP 404 before marker reservation, canonical-route dispatch, provider use or durable source/outcome evidence. Its secret, local token, PR, remote branch and worktree were removed immediately | Closed. Do not retry, run the outcome step, or infer any staging cohort, v2 write, promotion, runtime, deployment, broker or production authority. A replacement requires a new separately authorized decision. |
+| Agent Intelligence AI-02.18 | [Preview-route attestation closeout](./ai-02.18-preview-route-attestation-closeout.md): temporary PR #409's exact matching Netlify deploy-preview received one branch-token-protected POST after Ready Full CI run `34253266199` passed all six unchanged shards, aggregate and merge-candidate POC | The request returned HTTP `401` before the isolated function could run. A later GET-only metadata read ruled out project password and team-SSO settings but did not identify the upstream layer. The temporary secret, PR, remote/local branch and worktree were removed. This admits no source, provider, database, outcome, evaluator, runtime, deployment, broker or production action. Do not retry it. |
 | Authority boundary | Remote staging is `not_admitted`; application runtime, broker, Netlify, deployment and production remain closed | Preserve default-deny. Notion is program tracking only and cannot admit an external or runtime action. |
 
 ### Now
@@ -60,6 +61,12 @@ authority.
   HTTP 404 before any marker, provider, source or outcome operation, and all
   temporary secret/preview/branch/worktree material was removed. Do not retry
   it; select an independent roadmap item until a fresh decision exists.
+- AI-02.18 is also closed: one dedicated preview-route request was rejected
+  with HTTP 401 before the temporary function ran. Project metadata rules out
+  password and team-SSO settings but leaves the upstream layer unidentified.
+  Its branch-scoped secret and all temporary source material were removed. A
+  future preview-transport effort needs its own narrowly authenticated access
+  decision; do not retry this proof.
 - Preserve the AI-00 / EXT-00 / CAT-00 current-main governance refreeze as
   cross-cutting product direction only: deterministic Ture Core remains the
   authority, no agent-to-broker path exists, external capability activation is
@@ -355,10 +362,13 @@ authority.
   deploy-preview-only variables, Draft PR and remote branch were then removed
   immediately. This is not credential-value-or-name, owner, deploy, source-row
   or staging-access evidence. Do not repeat the temporary *preflight* request.
-  AI-02.17 is the separately documented sole actual-evidence exception; any
-  other diagnostic must remain read-only and cannot make another request,
-  access a credential/source row or change configuration. It cannot
-  open a
+  AI-02.17 is the separately documented sole actual-evidence exception. Its
+  distinct AI-02.18 transport attestation also consumed one request, which
+  returned HTTP 401 before its function ran; project metadata rules out
+  password and team-SSO settings but leaves the upstream layer unidentified.
+  Both proofs are closed and cannot be retried. Any other diagnostic must
+  remain read-only and cannot make another request, access a credential/source
+  row or change configuration. It cannot open a
   staging connection, read a credential value or source row, invoke a
   provider or evaluator, deploy an adapter, persist an outcome, apply a
   migration, write evidence, form a cohort, evaluate, promote, bind runtime or affect deployment, broker
@@ -369,10 +379,11 @@ authority.
   signals; it did not prove the separate upload identity required for a deploy
   receipt. This is historical transport evidence only. The two later Git
   deploy-preview proofs are recorded above; do not launch a third temporary
-  *preflight* function request. AI-02.17's separately documented one-shot
-  actual-evidence operation is the sole exception. Any other future diagnostic
-  must remain read-only, make no function request, access no credential or
-  source row, open no staging connection and change no configuration.
+  *preflight* function request. AI-02.17's one-shot actual-evidence operation
+  and AI-02.18's separate route attestation are both consumed. Any other future
+  diagnostic must remain read-only, make no function request, access no
+  credential or source row, open no staging connection and change no
+  configuration unless a fresh decision admits a different bounded scope.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
