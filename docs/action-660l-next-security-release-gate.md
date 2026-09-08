@@ -2,11 +2,13 @@
 
 ## Decision
 
-Action 660L is a source-only security release candidate. It upgrades `next`
-and `eslint-config-next` from `16.2.6` to `16.3.1`, refreshes the exact npm
-lock graph to zero audit findings, corrects six stale proxy-contract
-expectations and adds one full-Ready/main audit-and-build gate to the existing
-provider-free foundation shard.
+Action 660L is a source-only security release candidate. Its original
+candidate upgraded `next` and `eslint-config-next` from `16.2.6` to `16.3.1`,
+refreshed the exact npm lock graph to zero audit findings, corrected six stale
+proxy-contract expectations and added one full-Ready/main audit-and-build gate
+to the existing provider-free foundation shard. The current follow-on patch
+advances `next` and `eslint-config-next` from `16.3.1` to `16.3.4`, refreshes
+the exact npm lock graph again, and retains that same fail-closed gate.
 
 This action does not authorize merge, production deployment, provider
 configuration, database mutation, broker execution or runtime activation.
@@ -34,11 +36,14 @@ authentication boundary, so the published Next.js middleware/proxy bypass
 advisory `GHSA-6gpp-xcg3-4w24` is release-blocking even though no i18n routing,
 Server Actions or rewrites were found in the repository.
 
-The candidate graph pins Next.js and `eslint-config-next` to `16.3.1` and
-resolves `sharp` `0.35.3`, `postcss` `8.5.23` and `nanoid` `3.3.18`. Both the
-lockfile-only audit and the installed full audit report zero vulnerabilities.
-The production build completes with all 33 static pages generated; TypeScript
-passes and lint reports zero errors with the seven pre-existing warnings.
+The original candidate graph pinned Next.js and `eslint-config-next` to
+`16.3.1` and resolved `sharp` `0.35.3`, `postcss` `8.5.23` and `nanoid`
+`3.3.18`. The current follow-on graph pins Next.js and `eslint-config-next` to
+`16.3.4`, resolves `sharp` `0.35.4` and `js-yaml` `4.3.2`, and retains the
+same `postcss` and `nanoid` versions. The installed full audit reports zero
+vulnerabilities. The production build completes with all 33 static pages
+generated; TypeScript passes and lint reports zero errors with the eight
+pre-existing warnings.
 
 ## Proxy-contract reconciliation
 

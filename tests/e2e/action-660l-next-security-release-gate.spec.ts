@@ -16,7 +16,7 @@ const draftCostControlTestPath =
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "0ae0f5931c4dcdc116e9ccdaa5b66aec34dec79721e5acd1a9504699fe73f721";
+  "a8919a011df4bd33b24fd878c59bee88b412ac4d4b35a0da4e873f46f7d83b01";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
@@ -146,9 +146,10 @@ function expectedEvidence(sources: Record<string, string>) {
       rewrites_present: false,
     },
     candidate: {
-      next: "16.3.1",
-      eslint_config_next: "16.3.1",
-      sharp: "0.35.3",
+      next: "16.3.4",
+      eslint_config_next: "16.3.4",
+      sharp: "0.35.4",
+      js_yaml: "4.3.2",
       postcss: "8.5.23",
       nanoid: "3.3.18",
       full_audit_total_findings: 0,
@@ -156,7 +157,7 @@ function expectedEvidence(sources: Record<string, string>) {
       static_pages_generated: 33,
       typescript_completed: true,
       lint_errors: 0,
-      lint_existing_warnings: 7,
+      lint_existing_warnings: 8,
     },
     proxy_reconciliation: {
       baseline_passes: 21,
@@ -221,10 +222,11 @@ test("pins exact security-release evidence and every governed source", async () 
 
   const packageJson = JSON.parse(await source("package.json"));
   const lock = JSON.parse(await source("package-lock.json"));
-  expect(packageJson.dependencies.next).toBe("16.3.1");
-  expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.1");
-  expect(lock.packages["node_modules/next"].version).toBe("16.3.1");
-  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.3");
+  expect(packageJson.dependencies.next).toBe("16.3.4");
+  expect(packageJson.devDependencies["eslint-config-next"]).toBe("16.3.4");
+  expect(lock.packages["node_modules/next"].version).toBe("16.3.4");
+  expect(lock.packages["node_modules/sharp"].version).toBe("0.35.4");
+  expect(lock.packages["node_modules/js-yaml"].version).toBe("4.3.2");
   expect(lock.packages["node_modules/postcss"].version).toBe("8.5.23");
   expect(lock.packages["node_modules/nanoid"].version).toBe("3.3.18");
 });
