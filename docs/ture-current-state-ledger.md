@@ -362,10 +362,13 @@ authority.
   deploy-preview-only variables, Draft PR and remote branch were then removed
   immediately. This is not credential-value-or-name, owner, deploy, source-row
   or staging-access evidence. Do not repeat the temporary *preflight* request.
-  AI-02.17 is the separately documented sole actual-evidence exception; any
-  other diagnostic must remain read-only and cannot make another request,
-  access a credential/source row or change configuration. It cannot
-  open a
+  AI-02.17 is the separately documented sole actual-evidence exception. Its
+  distinct AI-02.18 transport attestation also consumed one request, which
+  returned HTTP 401 before its function ran; project metadata rules out
+  password and team-SSO settings but leaves the upstream layer unidentified.
+  Both proofs are closed and cannot be retried. Any other diagnostic must
+  remain read-only and cannot make another request, access a credential/source
+  row or change configuration. It cannot open a
   staging connection, read a credential value or source row, invoke a
   provider or evaluator, deploy an adapter, persist an outcome, apply a
   migration, write evidence, form a cohort, evaluate, promote, bind runtime or affect deployment, broker
@@ -376,10 +379,11 @@ authority.
   signals; it did not prove the separate upload identity required for a deploy
   receipt. This is historical transport evidence only. The two later Git
   deploy-preview proofs are recorded above; do not launch a third temporary
-  *preflight* function request. AI-02.17's separately documented one-shot
-  actual-evidence operation is the sole exception. Any other future diagnostic
-  must remain read-only, make no function request, access no credential or
-  source row, open no staging connection and change no configuration.
+  *preflight* function request. AI-02.17's one-shot actual-evidence operation
+  and AI-02.18's separate route attestation are both consumed. Any other future
+  diagnostic must remain read-only, make no function request, access no
+  credential or source row, open no staging connection and change no
+  configuration unless a fresh decision admits a different bounded scope.
 - Before any external release, provider, broker or production authority,
   select a separate CI re-hardening review. Development-stage throughput and
   cost choices do not carry release authority.
