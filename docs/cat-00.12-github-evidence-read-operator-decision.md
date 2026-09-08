@@ -11,8 +11,10 @@ outcome is independently checkable CI and protected-branch evidence for a
 SEC request, collection, persistence of source material, advisory use, runtime
 binding, deployment, broker activity or production access.
 
-The decision is `pre_authorized_pending_identity_verification`: no token has
-been created or used, and no GitHub request has been made by this record.
+The decision was originally `pre_authorized_pending_identity_verification`.
+Its one permitted execution is now closed `fail_closed_not_verified`; see the
+execution closeout below. No token remains active under this record, and the
+decision cannot be retried.
 
 ## Exact allowed operation
 
@@ -93,10 +95,34 @@ stop_go_or_closeout_trigger: Stop and revoke after the fifth GET or first mismat
 rollback_or_containment: Revoke the disposable token immediately; retain only minimized receipt metadata when independently validated
 ```
 
+## Execution closeout — 2026-09-09
+
+The account's required identity check completed. One fine-grained token named
+for CAT-00.12 was then limited to the single `willyvalentin/trade` repository
+with exactly `Actions: read`, `Administration: read` and mandatory
+`Metadata: read`; no account permission or organization scope was granted.
+GitHub's shortest selectable expiry was seven days, but the operational limit
+remained immediate revocation.
+
+The in-memory operation initiated only the first fixed path,
+`/repos/willyvalentin/trade/actions/runs/34123577717`. It returned no
+admissible HTTP/metadata observation to the redaction boundary. The bounded
+classification is therefore `transport_or_runtime_failure_unclassified`, not
+an HTTP result or a claim that GitHub received the request. No raw response was
+retained, no CAT-00.11 receipt was created or locally validated, and the other
+four paths were not attempted. The containment rule stopped the action with no
+retry.
+
+GitHub then confirmed deletion of the disposable token and its CAT-00.12
+entry was absent from the token list. The provider's one-time creation UI did
+render the credential during the immediate-revocation sequence; no credential
+literal was added to repository content, shell history, environment files, CI
+secrets or this closeout. Treat the automation session trace as potentially
+sensitive despite the completed revocation.
+
 ## Next gate
 
-If the one-shot operation is independently validated, update the canonical
-ledger with its redacted receipt and reassess the remaining CAT-00 CI
-re-hardening and SEC-specific operator gates. If it fails, record only the
-bounded failure classification after token revocation and return to another
-roadmap item; it must not be retried under this decision.
+CAT-00.12 is consumed and supplies no GitHub CI/protection evidence. It cannot
+be retried under this decision and it never authorizes the SEC request. A
+future external-evidence path requires a new product decision, a fresh bounded
+operator record, new containment and a separately authorized execution scope.
