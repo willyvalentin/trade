@@ -26,9 +26,10 @@
     "rewrites_present": false
   },
   "candidate": {
-    "next": "16.3.1",
-    "eslint_config_next": "16.3.1",
-    "sharp": "0.35.3",
+    "next": "16.3.4",
+    "eslint_config_next": "16.3.4",
+    "sharp": "0.35.4",
+    "js_yaml": "4.3.2",
     "postcss": "8.5.23",
     "nanoid": "3.3.18",
     "full_audit_total_findings": 0,
@@ -36,7 +37,8 @@
     "static_pages_generated": 33,
     "typescript_completed": true,
     "lint_errors": 0,
-    "lint_existing_warnings": 7
+    "lint_existing_warnings": 8,
+    "netlify_build_node_options": "--max-old-space-size=4096"
   },
   "proxy_reconciliation": {
     "baseline_passes": 21,
@@ -78,8 +80,9 @@
     "registered_exactly_once": true
   },
   "sources": {
-    "package.json": "fda10942e26abade2c62032529d61f3080a927b825742b35f6fa0140022a0ad5",
-    "package-lock.json": "19113dfa93671ddca7b5f2d4e01bb11794a5999d102408963727fbb1c7de0f40",
+    "package.json": "7c5c2e70db42a05a81253986cc01007a79780b84f2676ea0b1ba76ea063bcac9",
+    "package-lock.json": "32e51a4fe80e4c1e4b11f373395d899fe9f7b391f11cc2b4ede320e197fa268e",
+    "netlify.toml": "f0146df1d24d95867972fb952eef3d2b8d836bebaed9a1924c8e34ff807c7c4a",
     "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
     "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",
@@ -93,7 +96,7 @@
     "tests/e2e/action-660k-cost-bounded-provider-free-verification.spec.ts": "8275b7ecfe9486f31ebf36d2f4a48602aba7fb218735d8fafdccd2a53891f8f8",
     "docs/evidence/action-666db-current-main-position-version-schema-reconciliation.json": "1a92b2a5db488179b96b9b798f56b05c026a414ca6ff829d384b14cc33a7a995",
     "tests/e2e/action-666db-current-main-position-version-schema-reconciliation.spec.ts": "a8c481e7204d43976347c300c5ea7381bef355db773c145da91e4ca8d38ca133",
-    "docs/action-660l-next-security-release-gate.md": "9f48eff38211793bb0be6bd68facb452f537a71b5667f99ced17a7104e26da55",
+    "docs/action-660l-next-security-release-gate.md": "0e9856f415f5bd2eeed693e7af452d7e8875ea8d9828978b5d6c70553fdb9210",
     "docs/ture-current-state-ledger.md": "04491ae74a9360e02dd9301cec418805796d8002ec5affaeceb90c5c28a5130f",
     "docs/ture-master-roadmap.md": "faf1ef5dcd69bddd4d60cec5a49de6d51c9f4774d71975e584bf3d47b7826b7c"
   },
