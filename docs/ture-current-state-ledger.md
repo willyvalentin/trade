@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Current control snapshot — synchronized 2026-09-08
+## Current control snapshot — synchronized 2026-09-09
 
 This is the canonical **Now / Next / Blocked** view for roadmap steering. It
 supersedes a conflicting status claim in the evidence and decision history
@@ -14,7 +14,7 @@ authority.
 | Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
 | B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
 | D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
-| CI cancellation reliability | PR #330 is merged and exact-main verified; cancellation reaches the active provider-free shard command before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
+| CI cancellation reliability | PR #330 established the command-level boundary; follow-up PR #417 is merged and exact-main verified, so cancellation reaches the active provider-free command's dedicated Unix process group before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | Action 664D/E/F local PostgreSQL verification | PR #389 is merged and exact-main verified as a source-only baseline repair: it replays the named pre-target historical commit for `20260726001000` instead of claiming that moving `main` must still equal it | No automatic successor. Preserve the immutable disposable-local baseline; any shared migration, writer, runtime, provider, deployment, broker or production scope needs its own separately admitted evidence. |
 | REL-00 CI-B8 | `superseded_by_development_ci_profile_decision` on 2026-09-04; CI-B0 through CI-B7 and partial CI-B8 observations remain auditable history, not a completed experiment | Do not collect further CI-B8 evidence or claim a keep/adjust/rollback outcome. Before external release, provider, broker or production authority, initiate a separately authorized CI re-hardening review. |
 | Cross-cutting AI-00 / EXT-00 / CAT-00 governance | [Current-main refreeze](./ai-ext-cat-governance-refreeze.md) preserves historical AI-00, EXT-00 and CAT-00 product decisions without restoring their stale PR branches | It creates no agent-to-broker path, provider, spend, runtime, source call, deployment or production authority. Any follow-on needs a separate product and technical decision. |
@@ -131,9 +131,10 @@ authority.
   boundary: zero or ambiguous aliases fail closed, and the audit-writer adapter
   receives a typed unavailable result. It reads no secret value and makes no
   remote call.
-- CI cancellation reliability is complete on exact main: a cancellation signal
-  is forwarded to the active provider-free shard command and prevents a later
-  command in that shard from starting. This changes no workflow topology,
+- CI cancellation reliability is complete on exact main: PR #330 forwards a
+  cancellation signal to the active provider-free shard command, and follow-up
+  PR #417 forwards it to that command's dedicated Unix process group before a
+  later command in the shard can start. This changes no workflow topology,
   required check, branch-protection policy or runtime authority.
 - Action 664D/E/F local PostgreSQL verification is complete on exact main as
   PR #389. Its source-only baseline repair replays the named pre-target
