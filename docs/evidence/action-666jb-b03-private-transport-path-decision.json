@@ -1,0 +1,41 @@
+{
+  "contract_version": "trade.action666jb.b03-private-transport-path-decision.v1",
+  "action_id": "ACTION_666JB",
+  "reviewed_revision": {
+    "protected_main_commit": "85c2794b621760558efb37389a7ba80465f5e21b"
+  },
+  "decision": {
+    "literal_private_transport_requirement_retained": true,
+    "selected_future_architecture": "supabase_privatelink_plus_same_region_aws_vpc",
+    "alternative_requirement_relaxation_selected": false,
+    "provisioning_state": "deferred_pending_external_subscription_and_aws_provisioning",
+    "remote_staging_admission": "not_admitted",
+    "automatic_remote_proof_permitted": false
+  },
+  "provider_prerequisites": {
+    "stated_current_subscription": "Pro",
+    "privatelink_subscription_requirement": "Team_or_Enterprise",
+    "same_region_aws_vpc_required": true,
+    "privatelink_or_vpc_lattice_endpoint_required": true,
+    "network_restrictions_are_private_transport": false,
+    "references": [
+      "https://supabase.com/docs/guides/platform/privatelink",
+      "https://supabase.com/docs/guides/platform/network-restrictions"
+    ]
+  },
+  "non_actions": {
+    "subscription_or_purchase": false,
+    "aws_resource_or_dns_change": false,
+    "supabase_or_netlify_setting_change": false,
+    "secret_or_credential_created_or_exposed": false,
+    "database_connection_or_writer_invocation": false,
+    "deployment_provider_broker_or_production_action": false
+  },
+  "future_admission_sequence": [
+    "explicit_external_provisioning",
+    "staging_only_nonpublic_path_verification_without_credential",
+    "separately_reviewed_secret_safe_server_caller",
+    "one_dedicated_principal_writer_call_with_unconditional_rollback",
+    "independent_zero_row_readback"
+  ]
+}
