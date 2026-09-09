@@ -31,7 +31,7 @@ four active-hour discovery budget.
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API and Netlify preview #430 sign-in/reload/sign-out evidence | Unverified: MVP-01a is verified; denied access and empty/error states remain |
+| MVP-01 | Existing session gate, owner-bound dashboard API, Netlify preview #430 sign-in/reload/sign-out evidence and anonymous/cross-owner rejection evidence | Unverified: MVP-01a and MVP-01b are verified; understandable loading, empty and error states remain |
 | MVP-02 | Recommendation generator, scan windows and market-calendar paths exist | Unverified: current-data/no-trade/stale/provider-failure behavior and clear plan/risk presentation |
 | MVP-03 | Authenticated position create/update endpoints and transaction-backed opening exist | Unverified: one manual entry→reload→exit journey, double-submit and retry correctness |
 | MVP-04 | History/statistics UI and persisted trade access exist | Unverified: reconcile displayed plan/actual values and realized result to the recorded trade |
@@ -45,15 +45,16 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Baseline: **1/18 verified for the new MVP candidate; 17 unverified, 0 active,
-0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a fresh verification
-baseline, not a claim that the existing product is 0% built. MVP-01a was
-verified after that baseline; the remaining rows still need behavior evidence.
+Current acceptance coverage: **2/18 verified for the new MVP candidate; 16
+unverified, 0 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+is a fresh verification baseline, not a claim that the existing product is 0%
+built. MVP-01a and MVP-01b were verified after that baseline; the remaining
+rows still need behavior evidence.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
-| MVP-01b | Anonymous and cross-owner access is rejected | unverified | — |
+| MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | — |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
@@ -95,9 +96,9 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 1/18, MVP-01a preview journey verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; next: MVP-01b access rejection | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Active product slices | 0; next: MVP-01c understandable loading, empty and failed states | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None identified yet | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
@@ -110,9 +111,8 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Verify MVP-01b: anonymous and cross-owner requests cannot reach the
-   dashboard or its owner-backed data surface in an identified supported
-   environment.
+1. Verify MVP-01c: dashboard loading, empty and failed states are
+   understandable in an identified supported environment.
 2. Close MVP-02/05 provider availability, freshness and operational visibility.
    PR #427 / REL-03 merged during this review with green main CI. It hardens
    source-only capacity planning; reuse it, but verify actual health/freshness
@@ -172,6 +172,19 @@ behavior_check_and_environment: Local Next 16.3.4 Chromium: action-652 authentic
 external_effects_and_existing_authority: The preview used its existing staging identity and a locally configured password without printing either value. It exercised only the existing login/logout session routes; no business row, provider, database, broker, runtime policy or production action was performed.
 blocker_or_fallback: None for MVP-01a. Draft CI run 34403258875 has an independent workflow-routing defect: its aggregate requires a successful shard even though the Draft route intentionally skips that shard. The log records SHARD_RESULT=skipped and the failure before project tests run. No CI-policy change is part of this product slice; the normal Ready full six-shard route remains required.
 result_and_remaining_gap: The previously missing customer sign-out path is implemented and preview-verified. MVP-01a is the first verified new-candidate checkpoint; MVP-01b and MVP-01c remain required before parent MVP-01 can be release-accepted.
+```
+
+#### MVP-01 access rejection — 2026-09-09 (preview verified)
+
+```text
+acceptance_id: MVP-01b
+user_behavior_or_reproduced_failure: An unauthenticated request or a session signed for a different configured owner must not reach the dashboard or its owner-backed data surface.
+smallest_change_and_reused_components: Added one focused Proxy regression case only; it reuses the existing owner-bound HMAC session verifier and Proxy responses. No route, cookie, identity, data-access or runtime behavior changed.
+active_hour_budget: Within the existing four-hour MVP discovery budget; exact active hours not tracked.
+behavior_check_and_environment: Netlify deploy preview #430, 2026-09-09: four staging-only requests passed—anonymous `/` redirected to login, anonymous `/api/app/dashboard` returned `401 application_session_required`, and the same two requests with a syntactically valid session for another UUID were rejected identically before data access. Local Next 16.3.4 Proxy coverage reproduces all four boundaries.
+external_effects_and_existing_authority: Preview verification used the established authenticated staging journey and made no business write, provider request, database mutation, broker action, runtime-policy or production change. No owner identifier, session value, payload or secret was recorded.
+blocker_or_fallback: None for MVP-01b. The controlled preview check for MVP-01c's empty state needs a fresh explicit credential-to-preview authorization from the execution safety boundary; it does not block this completed access-control row.
+result_and_remaining_gap: Anonymous and cross-owner access rejection is now verified in both a supported preview and repeatable local boundary coverage. MVP-01c still must prove understandable loading, empty and failed dashboard states before parent MVP-01 can be release-accepted.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
