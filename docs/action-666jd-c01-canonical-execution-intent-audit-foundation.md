@@ -29,6 +29,12 @@ The contract explicitly denies persistence, database reads and clients, routes,
 broker preparation/calls/submission, and automatic execution. It has no
 environment lookup, network call, Supabase client, or UI import.
 
+The proposed schema independently rejects blank or control-character market
+codes, a trigger priority that does not match its admitted trigger, and
+non-finite numeric quantity or price values. This keeps the future durable
+boundary fail-closed even if a later writer is malformed; it does not add that
+writer or apply the migration.
+
 `20260909100801_action_666jd_canonical_execution_intent_audit.sql` is a
 **source-only, unapplied** forward migration. Its proposed relation is distinct
 from `execution_records`: it represents immutable issuance before any broker
@@ -44,7 +50,8 @@ is introduced.
 The focused contract test proves deterministic normalization, identity and
 idempotency derivation, deep immutability, and fail-closed rejection of
 automatic, post-broker and lineage-incomplete inputs. It also statically
-asserts the server-only and zero-grant/zero-policy migration posture.
+asserts the server-only, exact trigger/priority, finite numeric, market-code,
+and zero-grant/zero-policy migration posture.
 
 This action does **not** apply the migration, generate database types, create
 an authenticated owner context, write or read an audit row, establish private

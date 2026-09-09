@@ -240,6 +240,10 @@ test("C-01 rejects automatic, post-broker and lineage-incomplete intents fail-cl
       source: "untrusted_runtime_value" as ExecutionIntent["source"],
     }),
   });
+  const mismatchedTriggerPriority = contract.prepareCanonicalExecutionIntentAudit({
+    ...base,
+    intent: makeIntent({ trigger_priority: 7 }),
+  });
   const malformedShape = contract.prepareCanonicalExecutionIntentAudit(
     null as unknown as { ownerUserId: string; intent: ExecutionIntent },
   );
@@ -248,6 +252,7 @@ test("C-01 rejects automatic, post-broker and lineage-incomplete intents fail-cl
   expect(postBroker.valid).toBe(false);
   expect(missingLineage.valid).toBe(false);
   expect(malformedRuntimeValue.valid).toBe(false);
+  expect(mismatchedTriggerPriority.valid).toBe(false);
   expect(malformedShape.valid).toBe(false);
 
   if (!automatic.valid) {
@@ -267,6 +272,12 @@ test("C-01 rejects automatic, post-broker and lineage-incomplete intents fail-cl
   if (!malformedRuntimeValue.valid) {
     expect(malformedRuntimeValue.errors).toContain("intent_source_not_admitted");
     expect(malformedRuntimeValue.persisted).toBe(false);
+  }
+  if (!mismatchedTriggerPriority.valid) {
+    expect(mismatchedTriggerPriority.errors).toContain(
+      "execution_intent_invalid:Execution trigger priority does not match trigger type.",
+    );
+    expect(mismatchedTriggerPriority.persisted).toBe(false);
   }
   if (!malformedShape.valid) {
     expect(malformedShape.errors).toContain(
@@ -298,6 +309,31 @@ test("C-01 source and migration retain server-only append-only containment", () 
   expect(migration).toContain("create table public.canonical_execution_intent_audits");
   expect(migration).toContain("canonical_execution_intent_audits_identity_check");
   expect(migration).toContain("'execution_intent:v1:' || semantic_payload_sha256");
+  expect(migration).toContain(
+    "canonical_execution_intent_audits_trigger_priority_consistency_check",
+  );
+  expect(migration).toContain(
+    "trigger_type = 'exit_stop_loss_reached' and trigger_priority = 1",
+  );
+  expect(migration).toContain(
+    "trigger_type = 'manual_entry_requested' and trigger_priority = 7",
+  );
+  expect(migration).toContain("canonical_execution_intent_audits_market_check");
+  expect(migration).toContain(
+    "length(pg_catalog.btrim(market)) between 1 and 32",
+  );
+  expect(migration).toContain("market ~ '[^[:space:]]'");
+  expect(migration).toContain("market !~ '[[:cntrl:]]'");
+  expect(migration).toContain("quantity::text not in ('NaN', 'Infinity', '-Infinity')");
+  expect(migration).toContain(
+    "limit_price::text not in ('NaN', 'Infinity', '-Infinity')",
+  );
+  expect(migration).toContain(
+    "stop_loss::text not in ('NaN', 'Infinity', '-Infinity')",
+  );
+  expect(migration).toContain(
+    "target_price::text not in ('NaN', 'Infinity', '-Infinity')",
+  );
   expect(migration).toContain("canonical_execution_intent_audits_payload_scalar_consistency_check");
   expect(migration).toContain("intent_payload #>> '{intent,created_at}'");
   expect(migration).toContain("enable row level security");
