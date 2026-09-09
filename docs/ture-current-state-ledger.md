@@ -12,7 +12,7 @@ authority.
 | Control | Current classification | Required next outcome or decision |
 | --- | --- | --- |
 | Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
-| B-01 and B-03 source-only follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies only an opaque-reference staging-admission candidate | Both are evidence-only. The B-03 candidate remains `not_admitted` and cannot authorize remote connection, writer invocation, runtime binding or production work. |
+| B-01 and B-03 runtime-readiness follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies an opaque-reference staging-admission candidate. ACTION 666IY then performed one staging-only catalog/permission audit: the reviewed private writer package and migration history are present, RLS is enabled, no policy exists on the idempotency relation and direct relation access is denied to `anon`, `authenticated` and `service_role` | B-03 remains `not_admitted`. The catalog receipt proves neither a dedicated least-privileged application writer identity (the routine is executable by `service_role`) nor private application transport, staging rollback, runtime binding or production work. |
 | D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
 | CI cancellation reliability | PR #330 established the command-level boundary; follow-up PR #417 is merged and exact-main verified, so cancellation reaches the active provider-free command's dedicated Unix process group before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | Action 664D/E/F local PostgreSQL verification | PR #389 is merged and exact-main verified as a source-only baseline repair: it replays the named pre-target historical commit for `20260726001000` instead of claiming that moving `main` must still equal it | No automatic successor. Preserve the immutable disposable-local baseline; any shared migration, writer, runtime, provider, deployment, broker or production scope needs its own separately admitted evidence. |
@@ -58,6 +58,12 @@ authority.
 ### Now
 
 - Preserve the qualified Milestone B closeout and default-deny runtime boundary.
+- ACTION 666IY supplied current staging catalog evidence without reading a row or
+  changing any remote state. The private V2 writer package is present and direct
+  idempotency-table access is denied, but the routine's callable role is still
+  broad `service_role`; this is a proven design gap, not an invocation or
+  runtime admission. The next B-03 scope must independently admit a dedicated
+  least-privileged application identity and private transport.
 - AI-02.17 is closed fail-closed: its one temporary function call returned
   HTTP 404 before any marker, provider, source or outcome operation, and all
   temporary secret/preview/branch/worktree material was removed. Do not retry
