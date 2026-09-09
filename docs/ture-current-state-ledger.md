@@ -201,6 +201,19 @@ blocker_or_fallback: The delivered UI mapping is not a provider-health, freshnes
 result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
 ```
 
+#### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04b, MVP-04c
+user_behavior_or_reproduced_failure: The partial-close calculator subtracted recorded commission and FX-fee values from USD price PnL even though the account-cost fields are SEK values. That silently mixed currencies and could present a false net realized result.
+smallest_change_and_reused_components: Existing partial-position accounting now preserves a gross USD price-result basis before fees, persists that basis with new execution metadata, and labels current history cards and fee entry fields explicitly. A closed record with the new basis warns that the result excludes broker fees; legacy stored exit-result values without a basis are marked for settlement review. No schema, route, provider, database, deploy, broker or production behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour budget; exact active hours not tracked.
+behavior_check_and_environment: Local Node/Playwright regression coverage verifies that SEK fee inputs cannot alter USD price PnL, that the gross basis persists into metadata and that History exposes the settlement warning. The existing live-position execution baseline passes 10/10; scoped ESLint, TypeScript and diff checks pass. The documented Webpack build compiles the slice, then stops at the unchanged pre-existing `app/api/hb307c/ping/route.ts` route-marker type error.
+external_effects_and_existing_authority: None. Tests use local synthetic values only; no provider, database, broker, deploy or production operation occurred.
+blocker_or_fallback: Actual net settlement remains unverified because the current stored fill contract lacks a broker-confirmed, currency-bound settlement record for both entry and exit costs. Do not infer net PnL or convert fees using an assumed FX rate.
+result_and_remaining_gap: The product no longer reports a number produced by subtracting SEK costs directly from USD price PnL. MVP-04b and MVP-04c remain unverified release checkpoints until a supported manual lifecycle supplies durable, currency-bound settlement evidence and history/statistics reconcile it end to end.
+```
+
 Authority reconciliation: the Notion program overview was synchronized on
 2026-09-09 to label its earlier C-01/AI focus as historical and surface the
 later explicit MVP-first policy. It remains a tracking mirror; GitHub main

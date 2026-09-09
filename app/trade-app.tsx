@@ -10946,6 +10946,7 @@ export function TradeApp({
           partial_position_status: partialState.status,
           average_exit_price: partialState.average_exit_price,
           realized_pnl_from_exits: partialState.realized_pnl_from_exits,
+          realized_pnl_basis: partialState.realized_pnl_basis,
         }
       : selectedPosition.executionMetadata;
 
@@ -28470,7 +28471,7 @@ function TradeModal({
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <label className="block">
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Preview Commission / Courtage
+                  Preview Commission / Courtage (SEK)
                 </span>
                 <input
                   type="number"
@@ -28483,7 +28484,7 @@ function TradeModal({
               </label>
               <label className="block">
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Preview FX Fee
+                  Preview FX Fee (SEK)
                 </span>
                 <input
                   type="number"
@@ -28496,7 +28497,7 @@ function TradeModal({
               </label>
               <label className="block">
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Preview Total Cost
+                  Preview Total Cost (SEK)
                 </span>
                 <input
                   type="number"
@@ -30944,7 +30945,7 @@ function ClosedTradeJournalSummary({
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Detail label="Realized PnL" value={formatSignedCurrency(summary.effective_pnl)} />
+        <Detail label="Gross Price Result" value={formatSignedCurrency(summary.effective_pnl)} />
         <Detail label="Realized R" value={formatSignedR(summary.effective_r)} />
         <Detail label="Average Exit" value={formatCurrency(summary.partial.average_exit_price)} />
         <Detail label="Close Reason" value={displayValue(summary.close_reason)} />
@@ -31224,8 +31225,9 @@ function ClosedTradePartialFillReview({
             Partial Fills / Exits
           </p>
           <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Exit-fill realized PnL is preferred when present. Remaining shares
-            are shown separately to avoid double-counting.
+            Exit-fill gross price result is preferred when present. Broker fees
+            are recorded in SEK and stay separate until settlement reconciliation.
+            Remaining shares are shown separately to avoid double-counting.
           </p>
         </div>
         <span
@@ -31244,7 +31246,7 @@ function ClosedTradePartialFillReview({
         <Detail label="Remaining Shares" value={formatShares(summary.partial.remaining_shares)} />
         <Detail label="Average Exit" value={formatCurrency(summary.partial.average_exit_price)} />
         <Detail
-          label="Exit-Fill PnL"
+          label="Gross Exit-Fill Result"
           value={formatSignedCurrency(summary.partial.realized_pnl_from_exits)}
         />
       </div>
@@ -34097,7 +34099,7 @@ function ClosePositionModal({
                 </label>
 
                 <label className="trade-close-modal-field">
-                  <span>Exit commission</span>
+                  <span>Exit commission (SEK)</span>
                   <input
                     type="number"
                     step="0.01"
@@ -34108,7 +34110,7 @@ function ClosePositionModal({
                 </label>
 
                 <label className="trade-close-modal-field">
-                  <span>Exit FX fee</span>
+                  <span>Exit FX fee (SEK)</span>
                   <input
                     type="number"
                     step="0.01"

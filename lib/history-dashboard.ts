@@ -62,6 +62,10 @@ export type HistoryExecutionMetadataSnapshot = {
   partial_position_status?: string | null;
   average_exit_price?: number | null;
   realized_pnl_from_exits?: number | null;
+  realized_pnl_basis?:
+    | "gross_price_difference_before_fees"
+    | "stored_amount_fee_basis_unknown"
+    | null;
   remaining_shares?: number | null;
   trade_planning_snapshot?: {
     snapshot_id?: string | null;
@@ -121,6 +125,9 @@ export type HistoryPartialCloseSummary = {
   remaining_shares: number | null;
   average_exit_price: number | null;
   realized_pnl_from_exits: number | null;
+  realized_pnl_basis:
+    | "gross_price_difference_before_fees"
+    | "stored_amount_fee_basis_unknown";
 };
 
 export type HistoryLearningInsight = {
@@ -281,6 +288,18 @@ function buildWarnings(trade: HistoryTradeInput) {
     warnings.push("Missing realized PnL/R outcome data.");
   }
 
+  if (finiteNumber(metadata?.realized_pnl_from_exits) !== null) {
+    if (metadata?.realized_pnl_basis === "gross_price_difference_before_fees") {
+      warnings.push(
+        "Gross price result excludes broker fees; review the SEK settlement before treating it as net PnL.",
+      );
+    } else {
+      warnings.push(
+        "The recorded PnL has no documented fee basis and needs settlement review.",
+      );
+    }
+  }
+
   if (metadata?.partial_position_status === "invalid") {
     warnings.push("Partial position accounting is invalid.");
   }
@@ -391,6 +410,10 @@ export function buildHistoryTradeSummary(
       remaining_shares: finiteNumber(metadata?.remaining_shares),
       average_exit_price: finiteNumber(metadata?.average_exit_price),
       realized_pnl_from_exits: finiteNumber(metadata?.realized_pnl_from_exits),
+      realized_pnl_basis:
+        metadata?.realized_pnl_basis === "gross_price_difference_before_fees"
+          ? "gross_price_difference_before_fees"
+          : "stored_amount_fee_basis_unknown",
     },
     execution_quality: buildExecutionQuality(trade),
     learning_insights: [],

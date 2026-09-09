@@ -4,6 +4,15 @@ export type PartialPositionStatus =
   | "fully_closed"
   | "invalid";
 
+/**
+ * Prices and price-result PnL are kept in the instrument currency (USD for
+ * the current MVP scope). Broker cost inputs belong to the account currency
+ * (SEK), so they must never be subtracted without an explicit FX settlement
+ * basis.
+ */
+export type PartialPositionRealizedPnlBasis =
+  "gross_price_difference_before_fees";
+
 export type TradeFill = {
   fill_id: string;
   side: "BUY";
@@ -48,6 +57,7 @@ export type PartialPositionState = {
   remaining_shares: number | null;
   average_exit_price: number | null;
   realized_pnl_from_exits: number | null;
+  realized_pnl_basis: PartialPositionRealizedPnlBasis;
   entry_fills: TradeFill[];
   exit_fills: TradeExitFill[];
 };
@@ -200,7 +210,11 @@ export function calculateRealizedPnlForExit({
     direction === "Short"
       ? (averageEntryPrice - exitFill.price) * exitFill.shares
       : (exitFill.price - averageEntryPrice) * exitFill.shares;
-  return gross - (exitFill.commission ?? 0) - (exitFill.fx_fee ?? 0);
+  // `commission` and `fx_fee` are stored as account-currency (SEK) values.
+  // The fill price is USD. Subtracting them here would silently mix currencies
+  // and produce a false net result. The UI calls this a gross price result and
+  // leaves actual net settlement to a future currency-bound reconciliation.
+  return gross;
 }
 
 export function calculateTotalRealizedPnl({
@@ -385,6 +399,7 @@ export function buildPartialPositionState({
         averageEntryPrice,
         exitFills: normalizedExitFills,
       }),
+      realized_pnl_basis: "gross_price_difference_before_fees",
       entry_fills: effectiveEntryFills,
       exit_fills: normalizedExitFills,
     },
