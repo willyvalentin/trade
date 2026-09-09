@@ -8,6 +8,7 @@ export type RecommendationEmptyStateStatus =
   | "has_recommendations"
   | "no_high_quality_setups"
   | "market_not_ideal"
+  | "provider_unavailable"
   | "data_unavailable"
   | "scan_degraded"
   | "risk_controls_blocking"
@@ -156,6 +157,25 @@ function hasReasonId(
   );
 }
 
+function latestScanResultIs(
+  observabilitySummary: ScanPipelineObservabilitySummary,
+  results: string[],
+) {
+  const latestResult = observabilitySummary.run_context.latest_scan_result;
+
+  return latestResult !== null && results.includes(latestResult);
+}
+
+function hasExplicitNoTradeResult(
+  observabilitySummary: ScanPipelineObservabilitySummary,
+) {
+  return latestScanResultIs(observabilitySummary, [
+    "no_high_quality_setup",
+    "openai_no_trade",
+    "pre_market_no_candidates",
+  ]);
+}
+
 function firstKnownReason(
   observabilitySummary: ScanPipelineObservabilitySummary,
 ) {
@@ -215,11 +235,25 @@ function chooseStatus({
   }
 
   if (
+    latestScanResultIs(input.observability_summary, [
+      "provider_error",
+      "provider_rate_limited",
+    ])
+  ) {
+    return "provider_unavailable";
+  }
+
+  if (
     observabilityStatus === "stale" ||
     input.observability_summary.stale_candidate_count > 0 ||
-    input.observability_summary.unknown_metrics.length > 0
+    observabilityStatus === "unknown" ||
+    latestScanResultIs(input.observability_summary, ["unknown", "openai_error"])
   ) {
     return "data_unavailable";
+  }
+
+  if (hasExplicitNoTradeResult(input.observability_summary)) {
+    return "no_high_quality_setups";
   }
 
   if (observabilityStatus === "degraded" || observabilityStatus === "incomplete") {
@@ -235,6 +269,9 @@ function chooseStatus({
 
 function titleForStatus(status: RecommendationEmptyStateStatus) {
   if (status === "market_not_ideal") return "Ture is staying selective";
+  if (status === "provider_unavailable") {
+    return "Market data provider is unavailable";
+  }
   if (status === "data_unavailable") return "Data is not clean enough right now";
   if (status === "scan_degraded") return "Scanner context needs review";
   if (status === "risk_controls_blocking") return "Risk controls are blocking setups";
@@ -250,6 +287,10 @@ function bodyForStatus(status: RecommendationEmptyStateStatus) {
 
   if (status === "data_unavailable") {
     return "Ture did not find enough fresh, coherent source data to present a high-quality setup.";
+  }
+
+  if (status === "provider_unavailable") {
+    return "The latest scan could not get usable market data, so Ture is not presenting a guessed or stale setup.";
   }
 
   if (status === "scan_degraded") {
@@ -307,6 +348,22 @@ function primaryReasonForStatus(
     );
   }
 
+  if (status === "provider_unavailable") {
+    const rateLimited = latestScanResultIs(input.observability_summary, [
+      "provider_rate_limited",
+    ]);
+
+    return reason(
+      rateLimited ? "provider_rate_limited" : "provider_unavailable",
+      rateLimited ? "Provider rate limit reached" : "Provider unavailable",
+      rateLimited
+        ? "The latest scan was rate limited by its market-data provider, so no current setup is being shown."
+        : "The latest scan could not reach usable market data, so no current setup is being shown.",
+      "warning",
+      "scan_observability",
+    );
+  }
+
   if (status === "scan_degraded") {
     return reason(
       "scan_pipeline_degraded",
@@ -337,6 +394,16 @@ function primaryReasonForStatus(
         "info",
         "intake_quality",
       )
+    );
+  }
+
+  if (hasExplicitNoTradeResult(input.observability_summary)) {
+    return reason(
+      "no_high_quality_setup",
+      "No high-quality setups",
+      "The latest completed scan found no setup that passed Ture's quality threshold.",
+      "info",
+      "scan_observability",
     );
   }
 
@@ -521,9 +588,9 @@ function buildSuggestedActions(
   if (input.has_refresh_control) {
     actions.push(
       action(
-        "refresh_scan",
-        "Refresh scan",
-        "Use the existing Recommendations refresh control to rerun or reload the scan.",
+        "reload_dashboard_data",
+        "Reload dashboard data",
+        "Use the existing Recommendations refresh control to reload the latest dashboard state. It does not create a new scan.",
       ),
     );
   }
