@@ -73,12 +73,17 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
   test("the server updates only an open owned position before checking a closed replay", async () => {
     const dataAccess = await source("lib/server/application-data-access.ts");
     const route = await source("app/api/app/positions/route.ts");
+    const partialUpdateSource = dataAccess.slice(
+      dataAccess.indexOf("export async function updateApplicationPosition"),
+      dataAccess.indexOf("export async function closeApplicationPosition"),
+    );
 
     expect(dataAccess).toContain("export async function closeApplicationPosition");
     expect(dataAccess).toContain('.eq("owner_user_id", owner)');
     expect(dataAccess).toContain('.eq("status", "open")');
     expect(dataAccess).toContain('.eq("status", "closed")');
     expect(dataAccess).toContain("ownedPositionCloseValuesMatch(existing.data, values)");
+    expect(partialUpdateSource).toContain('.eq("status", "open")');
     expect(route).toContain('body.operation === "close"');
     expect(route).toContain("closeApplicationPosition({");
     expect(route).toContain("session.owner_user_id");
