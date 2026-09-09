@@ -10,26 +10,28 @@ operations remain evidence and are not renewed by this decision.
 Delivery state: the user authorized publishing this change on 2026-09-09.
 Merge status is determined by the PR and exact-main evidence; publication alone
 is not adoption on main or a production deployment.
-Baseline inspected: GitHub main `dbbc596ff54f37510ea59cb3ec73b72f5737d05b`,
-which contains the merged MVP-first delivery policy. No new runtime or
-production test was performed by that policy revision.
+Baseline inspected: GitHub main `7327848851787e1e5247e7c90369bd03fab075de`,
+which contains the merged MVP-first delivery policy and the password-only
+login correction. No new runtime or production test was performed by that
+baseline.
 
 ### Now
 
 **Selected product slice: MVP-01 access and dashboard.** The first reproduced
-defect was a required username field that the login server never receives or
-verifies. This delivery removes that misleading blocker, makes the password the
-initial focus and adds a local browser check that submits only the server's
-accepted credential. It is deliberately not counted as an end-to-end session:
-the owner/provider-backed sign-in, dashboard reload and sign-out still need one
-supported-environment check. The wider MVP-01→04 investigation remains bounded
-by the original four active-hour discovery budget.
+defect—a required username the login server never receives or verifies—is fixed
+on main. The next journey gap is that an authenticated dashboard offered no
+user-facing sign-out, despite an existing origin-protected logout route. This
+delivery adds that missing control and a local regression check. It is
+deliberately not counted as an end-to-end session: the owner/provider-backed
+sign-in, dashboard reload and sign-out still need one supported-environment
+check. The wider MVP-01→04 investigation remains bounded by the original
+four active-hour discovery budget.
 
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API and historical Milestone A evidence | Unverified for the new MVP candidate: exercise login/reload/logout, denied access and empty/error states |
+| MVP-01 | Existing session gate, owner-bound dashboard API and Netlify preview #430 sign-in/reload/sign-out evidence | Unverified: MVP-01a is verified; denied access and empty/error states remain |
 | MVP-02 | Recommendation generator, scan windows and market-calendar paths exist | Unverified: current-data/no-trade/stale/provider-failure behavior and clear plan/risk presentation |
 | MVP-03 | Authenticated position create/update endpoints and transaction-backed opening exist | Unverified: one manual entry→reload→exit journey, double-submit and retry correctness |
 | MVP-04 | History/statistics UI and persisted trade access exist | Unverified: reconcile displayed plan/actual values and realized result to the recorded trade |
@@ -43,15 +45,14 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Baseline: **0/18 verified for the new MVP candidate; 18 unverified, 0 active,
+Baseline: **1/18 verified for the new MVP candidate; 17 unverified, 0 active,
 0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a fresh verification
-baseline, not a claim that the existing product is 0% built. Start the first
-implementation slice by verifying existing behavior and replacing unknowns with
-evidence. No application functionality was tested by this governance change.
+baseline, not a claim that the existing product is 0% built. MVP-01a was
+verified after that baseline; the remaining rows still need behavior evidence.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
 | --- | --- | --- | --- |
-| MVP-01a | Sign in, reload the dashboard and sign out successfully | unverified | Local Chromium, 2026-09-09: reproduced and corrected the ignored required-username form blocker; browser test confirms a password-only POST and visible error. A real owner-backed session, reload and sign-out remain untested. |
+| MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | unverified | — |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | — |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
@@ -94,9 +95,9 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 0/18, new candidate unverified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 1/18, MVP-01a preview journey verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; next slice selected | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Active product slices | 0; next: MVP-01b access rejection | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None identified yet | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
@@ -107,9 +108,11 @@ be compared. Do not generate a new metric contract, service or test just to
 maintain this Markdown table. More verified functionality per week and shorter
 blocking periods are the test of whether this delivery policy is helping.
 
-### Next — ordered, one product slice active
+### Next — ordered, next product slice
 
-1. Close the first MVP-01→04 failing behavior found by the selected journey.
+1. Verify MVP-01b: anonymous and cross-owner requests cannot reach the
+   dashboard or its owner-backed data surface in an identified supported
+   environment.
 2. Close MVP-02/05 provider availability, freshness and operational visibility.
    PR #427 / REL-03 merged during this review with green main CI. It hardens
    source-only capacity planning; reuse it, but verify actual health/freshness
@@ -145,7 +148,7 @@ age and product-linked versus overhead effort. Unknown hours stay unknown;
 commit count is not product progress. Replan if two completed slices produce no
 new verified behavior or necessary real integration result.
 
-#### MVP-01 form alignment — 2026-09-09 (pending merge)
+#### MVP-01 form alignment — 2026-09-09 (merged to main)
 
 ```text
 acceptance_id: MVP-01a
@@ -156,6 +159,19 @@ behavior_check_and_environment: Local Next 16.3.4 Chromium; intercepted /api/aut
 external_effects_and_existing_authority: None. The browser test uses a mocked route response; no credential, provider, database, deploy, broker or production action occurred.
 blocker_or_fallback: Full owner-backed sign-in → dashboard reload → sign-out remains unverified because this local check intentionally does not exercise the staging identity/data integration. Next useful check is that supported-environment behavior, not more form refactoring.
 result_and_remaining_gap: The user-visible misleading form requirement is fixed and regression-tested; MVP-01a remains unverified until the complete session journey passes.
+```
+
+#### MVP-01 dashboard sign-out control — 2026-09-09 (preview verified)
+
+```text
+acceptance_id: MVP-01a
+user_behavior_or_reproduced_failure: An authenticated user had no dashboard control to clear the bounded application session, although POST /api/auth/logout already cleared the HttpOnly cookie.
+smallest_change_and_reused_components: Added a small client-only header control that POSTs to the existing logout route with same-origin credentials and no-store caching, then uses Next navigation to return to /login. It shows a retryable visible failure state and does not change the route, cookie contract, identity, provider, database, deploy, broker or runtime policy.
+active_hour_budget: Within the existing four-hour MVP discovery budget; exact active hours not tracked.
+behavior_check_and_environment: Local Next 16.3.4 Chromium: action-652 authentication-boundary suite and password-only login browser check pass (11 checks); targeted ESLint passes; production build passes. Netlify deploy preview #430 at cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3: a headless browser completed owner-backed sign-in, dashboard reload, header sign-out and verified that trade_auth no longer remained in the browser context.
+external_effects_and_existing_authority: The preview used its existing staging identity and a locally configured password without printing either value. It exercised only the existing login/logout session routes; no business row, provider, database, broker, runtime policy or production action was performed.
+blocker_or_fallback: None for MVP-01a. Draft CI run 34403258875 has an independent workflow-routing defect: its aggregate requires a successful shard even though the Draft route intentionally skips that shard. The log records SHARD_RESULT=skipped and the failure before project tests run. No CI-policy change is part of this product slice; the normal Ready full six-shard route remains required.
+result_and_remaining_gap: The previously missing customer sign-out path is implemented and preview-verified. MVP-01a is the first verified new-candidate checkpoint; MVP-01b and MVP-01c remain required before parent MVP-01 can be release-accepted.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on

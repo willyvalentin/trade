@@ -566,6 +566,32 @@ main {
   color: #00b899;
 }
 
+.trade-topbar-link:disabled {
+  cursor: wait;
+  color: #626873;
+}
+
+.trade-logout-control {
+  position: relative;
+}
+
+.trade-logout-error {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  border: 1px solid rgb(252 165 165 / 0.4);
+  border-radius: 4px;
+  background: #241111;
+  color: #fecaca;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  text-transform: none;
+}
+
 .trade-stage {
   width: min(1214px, calc(100% - 40px));
   margin: 0 auto;

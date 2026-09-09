@@ -9,6 +9,7 @@ import {
 } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ApplicationLogoutButton } from "@/app/application-logout-button";
 import {
   getIntradayScanWindow,
   getIntradayScanWindowLabel,
@@ -15780,6 +15781,7 @@ export function TradeApp({
           <Link href="/settings" className="trade-topbar-link">
             Settings
           </Link>
+          <ApplicationLogoutButton />
         </nav>
       </header>
 
