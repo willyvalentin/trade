@@ -51,10 +51,10 @@ pre-existing warnings.
 
 The first preview for the `16.3.4` follow-on compiled successfully but its
 build-time TypeScript check exhausted Netlify's default approximately 2 GB V8
-heap. `netlify.toml` therefore sets
-`NODE_OPTIONS=--max-old-space-size=4096` only in `[build.environment]`. It is
-committed configuration rather than a dashboard secret, changes neither the
-Next.js command nor application/runtime environment, and has no provider,
+heap. `netlify.toml` therefore runs the existing `npm run build` command with
+an inline `NODE_OPTIONS=--max-old-space-size=4096` V8 limit. This is committed
+build configuration rather than a dashboard secret or deploy-environment
+value, preserves the underlying Next.js command, and has no provider,
 database, broker or production-data effect. A later preview must independently
 prove the resulting build; this source change alone makes no deployment claim.
 
