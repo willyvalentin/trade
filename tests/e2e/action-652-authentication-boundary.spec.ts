@@ -241,6 +241,46 @@ test("Proxy redirects protected pages and returns JSON 401 for protected APIs", 
   });
 });
 
+test("anonymous and cross-owner sessions are rejected before dashboard data access", async () => {
+  await withPassword(async () => {
+    const anonymousPage = await proxy(new NextRequest("http://localhost/"));
+    const anonymousApi = await proxy(
+      new NextRequest("http://localhost/api/app/dashboard"),
+    );
+
+    process.env.TURE_APPLICATION_OWNER_USER_ID =
+      "22222222-2222-4222-8222-222222222222";
+    const otherOwnerSession = await createApplicationSession();
+    expect(otherOwnerSession).not.toBeNull();
+
+    process.env.TURE_APPLICATION_OWNER_USER_ID = testOwnerUserId;
+    const foreignHeaders = {
+      cookie: `${TRADE_AUTH_COOKIE}=${otherOwnerSession}`,
+    };
+    const foreignPage = await proxy(
+      new NextRequest("http://localhost/", { headers: foreignHeaders }),
+    );
+    const foreignApi = await proxy(
+      new NextRequest("http://localhost/api/app/dashboard", {
+        headers: foreignHeaders,
+      }),
+    );
+
+    expect(anonymousPage.status).toBe(307);
+    expect(anonymousPage.headers.get("location")).toContain("/login");
+    expect(anonymousApi.status).toBe(401);
+    await expect(anonymousApi.json()).resolves.toMatchObject({
+      code: "application_session_required",
+    });
+    expect(foreignPage.status).toBe(307);
+    expect(foreignPage.headers.get("location")).toContain("/login");
+    expect(foreignApi.status).toBe(401);
+    await expect(foreignApi.json()).resolves.toMatchObject({
+      code: "application_session_required",
+    });
+  });
+});
+
 test("automation routes remain outside application-session authorization", async () => {
   await withPassword(async () => {
     const response = await proxy(
