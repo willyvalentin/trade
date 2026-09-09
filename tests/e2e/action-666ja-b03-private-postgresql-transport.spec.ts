@@ -25,6 +25,8 @@ const runnerPath = "scripts/action-660j-run-provider-free-ci-shard.mjs";
 const planPath = "tests/e2e/action-660j-parallel-provider-free-verification.spec.ts";
 const documentationPath = "docs/action-666ja-b03-private-postgresql-transport.md";
 const evidencePath = "docs/evidence/action-666ja-b03-private-postgresql-transport.json";
+const temporaryProofFunctionPath =
+  "netlify/functions/action-666iz-b03-rollback-proof.ts";
 const thisTest =
   "tests/e2e/action-666ja-b03-private-postgresql-transport.spec.ts";
 
@@ -46,6 +48,10 @@ type TransportModule = {
   PositionVersionLineageV2WriterPrivatePostgresqlTransportConfigurationError: new () => Error;
   PositionVersionLineageV2WriterPrivatePostgresqlTransportInvocationError: new () => Error;
   executePositionVersionLineageV2WriterPrivatePostgresqlTransport: (
+    input: unknown,
+    options?: { environment?: Record<string, string | undefined>; clientFactory?: ClientFactory },
+  ) => Promise<unknown>;
+  executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof: (
     input: unknown,
     options?: { environment?: Record<string, string | undefined>; clientFactory?: ClientFactory },
   ) => Promise<unknown>;
@@ -393,6 +399,69 @@ test("666JA sends only the frozen routine statement and projects one immutable c
       values: [owner, recommendation, canonicalCommandDigest],
     },
   ]);
+});
+
+test("666IZ rolls the one fixed writer invocation back without a commit path", async () => {
+  const transport = loadTransport();
+  const transportSource = source(transportPath);
+  const trace = { config: [] as unknown[], connect: 0, end: 0, queries: [] as unknown[] };
+
+  const receipt = await transport.executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof(
+    command(),
+    {
+      environment: environment(transport, validConnectionString()),
+      clientFactory: factory(
+        {
+          rowCount: 1,
+          rows: [{
+            disposition: "created",
+            initial_history_identity: `${position}:${owner}:1`,
+            position_id: position,
+            position_version: 1,
+          }],
+        },
+        trace,
+      ),
+    },
+  );
+
+  expect(receipt).toEqual({
+    canonicalCommandDigest: command().canonicalCommandDigest,
+    disposition: "created",
+    initialHistoryIdentity: `${position}:${owner}:1`,
+    positionId: position,
+    positionVersion: 1,
+  });
+  expect(trace.connect).toBe(1);
+  expect(trace.end).toBe(1);
+  expect(trace.queries).toEqual([
+    "BEGIN",
+    {
+      name: "position-version-lineage-v2-writer-private-routine-v1",
+      text: transport.POSITION_VERSION_LINEAGE_V2_WRITER_PRIVATE_POSTGRESQL_TRANSPORT_QUERY,
+      values: [owner, recommendation, command().canonicalCommandDigest],
+    },
+    "ROLLBACK",
+  ]);
+  expect(transportSource).not.toContain('"COMMIT"');
+});
+
+test("666IZ keeps the temporary preview function token-gated and identifier-closed", () => {
+  const proofSource = source(temporaryProofFunctionPath);
+
+  expect(proofSource).toContain('from "@netlify/functions"');
+  expect(proofSource).toContain("Netlify.env.get(proofTokenSecret)");
+  expect(proofSource).toContain("timingSafeEqual");
+  expect(proofSource).toContain('request.method !== "POST"');
+  expect(proofSource).toContain('"x-ture-b03-proof-token"');
+  expect(proofSource).toContain(
+    'executePositionVersionLineageV2WriterPrivatePostgresqlRollbackProof',
+  );
+  expect(proofSource).toContain('JSON.stringify({ outcome: "rolled_back" })');
+  expect(proofSource).not.toMatch(/request\.json|request\.text|process\.env|fetch\s*\(/);
+  expect(proofSource).not.toContain("COMMIT");
+  expect(proofSource).toContain('"0166617a-6661-4d00-8000-000000000001"');
+  expect(proofSource).toContain('"0166617a-6661-4d00-8000-000000000002"');
 });
 
 test("666JA rejects widened or noncanonical input before connecting", async () => {
