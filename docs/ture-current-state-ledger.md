@@ -12,7 +12,7 @@ authority.
 | Control | Current classification | Required next outcome or decision |
 | --- | --- | --- |
 | Milestone B | `complete_under_local_sandbox_acceptance_profile_v1`; the original live-runtime scope remains deferred and unverified | Do not infer live capability. A separately authorized runtime milestone needs its own product decision and policy-admitted evidence. |
-| B-01 and B-03 runtime-readiness follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies an opaque-reference staging-admission candidate. ACTION 666IY then performed one staging-only catalog/permission audit: the reviewed private writer package and migration history are present, RLS is enabled, no policy exists on the idempotency relation and direct relation access is denied to `anon`, `authenticated` and `service_role` | B-03 remains `not_admitted`. The catalog receipt proves neither a dedicated least-privileged application writer identity (the routine is executable by `service_role`) nor private application transport, staging rollback, runtime binding or production work. |
+| B-01 and B-03 runtime-readiness follow-ons | PR #312 verifies an unbound position-lineage projection; PR #314 verifies an opaque-reference staging-admission candidate. ACTION 666IY audited the private writer package and table containment. [ACTION 666IZ](./action-666iz-b03-staging-private-transport-proof-containment.md) then verified current metadata for an existing dedicated writer principal (login, private-schema usage and writer-only execution; no direct idempotency access or broad membership) and direct-port reachability, but did not establish an authenticated session. The direct host remains public: the stated Pro subscription is not eligible for Supabase PrivateLink, which also requires a same-region AWS VPC. | B-03 remains `not_admitted`. ACTION 666IZ's temporary preview proof stopped before invocation because it lacked a secret-safe outbound caller path; all temporary secrets, fixtures, branch and credential were removed and two zero-row readbacks passed. Do not treat public IP restrictions as private transport. A separate product/infrastructure decision must first provide an eligible PrivateLink/AWS-VPC path or explicitly revise the runtime requirement; only then may a future standalone proof supply a secret-safe caller path, mandatory rollback and independent readback. |
 | D-01.1 service-role alias boundary | PR #329 is merged and exact-main verified as a source-only, server-side fail-closed credential-alias resolver | It selects no secret value, makes no remote call, and does not admit staging, runtime, deployment, provider, broker or production work. |
 | CI cancellation reliability | PR #330 established the command-level boundary; follow-up PR #417 is merged and exact-main verified, so cancellation reaches the active provider-free command's dedicated Unix process group before later shard commands can start | The six-shard suite, required-check identity, fail-closed aggregate, branch protection and development CI profile remain unchanged. |
 | Action 664D/E/F local PostgreSQL verification | PR #389 is merged and exact-main verified as a source-only baseline repair: it replays the named pre-target historical commit for `20260726001000` instead of claiming that moving `main` must still equal it | No automatic successor. Preserve the immutable disposable-local baseline; any shared migration, writer, runtime, provider, deployment, broker or production scope needs its own separately admitted evidence. |
@@ -59,11 +59,20 @@ authority.
 
 - Preserve the qualified Milestone B closeout and default-deny runtime boundary.
 - ACTION 666IY supplied current staging catalog evidence without reading a row or
-  changing any remote state. The private V2 writer package is present and direct
-  idempotency-table access is denied, but the routine's callable role is still
-  broad `service_role`; this is a proven design gap, not an invocation or
-  runtime admission. The next B-03 scope must independently admit a dedicated
-  least-privileged application identity and private transport.
+  changing any remote state. ACTION 666IZ then verified that an existing
+  dedicated writer principal has the expected metadata boundary and that the
+  database port is reachable without sending a credential. Its
+  disposable preview proof stopped before an authenticated session because no
+  secret-safe caller transport was available; it was closed without merge and
+  all temporary secrets, fixtures and credential material were removed. This
+  is not a writer invocation or runtime admission. The reachable direct port
+  is public, not a private application transport. Under the stated Pro plan,
+  Supabase PrivateLink additionally needs Team/Enterprise and a same-region AWS
+  VPC; IP restrictions do not substitute. The next B-03 scope therefore first
+  needs a product/infrastructure decision that supplies that eligible private
+  path (or explicitly revises the requirement), then a separately reviewed
+  secret-safe caller path, mandatory rollback and independent zero-row
+  readback.
 - AI-02.17 is closed fail-closed: its one temporary function call returned
   HTTP 404 before any marker, provider, source or outcome operation, and all
   temporary secret/preview/branch/worktree material was removed. Do not retry

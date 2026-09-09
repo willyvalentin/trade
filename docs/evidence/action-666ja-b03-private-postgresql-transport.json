@@ -1,6 +1,15 @@
 {
   "contract_version": "trade.action666ja.b03-private-postgresql-transport.v3",
   "action_id": "ACTION_666JA",
+  "current_authority": {
+    "status": "historical_unreconciled_claim_not_current_admission_evidence",
+    "current_b03_disposition": "not_admitted",
+    "current_authoritative_closeout": "ACTION_666IZ",
+    "authenticated_session_reusable_as_current_evidence": false,
+    "writer_invocation_reusable_as_current_evidence": false,
+    "private_application_transport_inferred": false,
+    "runtime_or_production_authority_granted": false
+  },
   "scope": {
     "source_only_transport_delivery": true,
     "staging_connection_attempted": true,

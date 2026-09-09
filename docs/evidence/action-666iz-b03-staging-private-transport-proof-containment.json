@@ -1,0 +1,71 @@
+{
+  "contract_version": "trade.action666iz.b03-staging-private-transport-proof-containment.v1",
+  "action_id": "ACTION_666IZ",
+  "reviewed_revision": {
+    "protected_main_commit": "879a4f6bdbbf28113d767ac0d0fff50371797e23"
+  },
+  "scope": {
+    "target_environment": "staging",
+    "dedicated_principal_metadata_read": true,
+    "direct_tcp_preflight_completed": true,
+    "credential_sent_in_tcp_preflight": false,
+    "temporary_preview_deployed": true,
+    "temporary_preview_invoked": false,
+    "authenticated_database_session_established": false,
+    "writer_routine_invoked": false,
+    "product_runtime_or_route_bound": false,
+    "production_targeted": false,
+    "provider_or_broker_contacted": false
+  },
+  "dedicated_principal_metadata": {
+    "principal_present": true,
+    "can_login": true,
+    "has_private_schema_usage": true,
+    "has_only_writer_execute": true,
+    "has_direct_idempotency_relation_access": false,
+    "has_broad_role_membership": false
+  },
+  "network_preflight": {
+    "database_port_5432_reachable": true,
+    "private_application_transport_established": false,
+    "database_tls_session_established": false,
+    "public_ca_candidate_fingerprint_checked_locally": true
+  },
+  "private_transport_feasibility": {
+    "stated_current_subscription": "Pro",
+    "direct_database_host_routing_class": "public",
+    "network_restrictions_are_private_transport": false,
+    "private_link_required_for_literal_private_database_transport": true,
+    "private_link_subscription_requirement": "Team_or_Enterprise",
+    "private_link_infrastructure_requirement": "same_region_AWS_VPC_and_PrivateLink_or_VPC_Lattice_endpoint",
+    "available_without_new_product_or_infrastructure_decision": false,
+    "provider_references": [
+      "https://supabase.com/docs/guides/platform/privatelink",
+      "https://supabase.com/docs/guides/platform/network-restrictions"
+    ]
+  },
+  "temporary_preview": {
+    "draft_pr_number": 420,
+    "draft_pr_closed_without_merge": true,
+    "remote_branch_deleted": true,
+    "preview_only_secrets_deleted": true,
+    "synthetic_fixture_created_then_removed": true,
+    "disposable_writer_credential_expired": true
+  },
+  "independent_cleanup_readback": {
+    "readback_count": 2,
+    "synthetic_owner_absent": true,
+    "synthetic_recommendation_absent": true,
+    "synthetic_position_absent": true,
+    "synthetic_history_absent": true,
+    "synthetic_writer_receipt_absent": true,
+    "writer_credential_expired": true
+  },
+  "decision": {
+    "disposition": "not_executed_secure_caller_transport_unavailable",
+    "b03_remote_staging_admission": "not_admitted",
+    "milestone_b_disposition": "complete_under_local_sandbox_acceptance_profile_v1",
+    "automatic_retry_permitted": false,
+    "next_required_outcome": "separately_reviewed_secret_safe_caller_path_then_one_authenticated_private_transport_writer_call_with_mandatory_rollback_and_independent_zero_row_readback"
+  }
+}
