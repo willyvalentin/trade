@@ -7,8 +7,8 @@ suite and its required aggregate are unchanged**.
 
 When GitHub cancels a superseded workflow run, the provider-free shard runner
 must forward `SIGINT` or `SIGTERM` to the one command it is currently running,
-wait for that command to stop, and exit without beginning a later command in
-the same shard.
+including every descendant in its dedicated Unix process group, wait for that
+group to stop, and exit without beginning a later command in the same shard.
 
 The runner still executes the existing closed command plan serially within each
 of the same six shard identities. It still uses a direct executable with
@@ -24,7 +24,8 @@ runtime, Supabase, provider, broker, secret, staging, deployment, or
 production behavior. It creates no CI deduplication path.
 
 The regression test uses a disposable local fake `npm` executable only to hold
-the first foundation command until it receives a signal. It verifies that the
-child is terminated, the runner reports the normal signal-derived exit status,
+the first foundation command until it receives a signal. That fake command
+creates one disposable descendant, so the test verifies that the full process
+group is terminated, the runner reports the normal signal-derived exit status,
 and the next command never starts. It makes no network request and does not
 run the real CI plan.
