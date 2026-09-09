@@ -91,6 +91,16 @@ create table public.canonical_execution_intent_audits (
     ),
   constraint canonical_execution_intent_audits_trigger_priority_check
     check (trigger_priority between 1 and 7),
+  constraint canonical_execution_intent_audits_trigger_priority_consistency_check
+    check (
+      (trigger_type = 'exit_stop_loss_reached' and trigger_priority = 1)
+      or (trigger_type = 'exit_risk_required' and trigger_priority = 2)
+      or (trigger_type = 'exit_end_of_day' and trigger_priority = 3)
+      or (trigger_type = 'exit_target_reached' and trigger_priority = 4)
+      or (trigger_type = 'manual_exit_requested' and trigger_priority = 5)
+      or (trigger_type = 'entry_recommendation_ready' and trigger_priority = 6)
+      or (trigger_type = 'manual_entry_requested' and trigger_priority = 7)
+    ),
   constraint canonical_execution_intent_audits_trigger_action_check
     check (
       (trigger_type in (
@@ -119,22 +129,35 @@ create table public.canonical_execution_intent_audits (
     ),
   constraint canonical_execution_intent_audits_ticker_check
     check (length(pg_catalog.btrim(ticker)) between 1 and 32),
+  constraint canonical_execution_intent_audits_market_check
+    check (length(pg_catalog.btrim(market)) between 1 and 32),
   constraint canonical_execution_intent_audits_quantity_check
-    check (quantity > 0),
+    check (
+      quantity > 0
+      and quantity::text not in ('NaN', 'Infinity', '-Infinity')
+    ),
   constraint canonical_execution_intent_audits_order_type_check
     check (
       order_type in ('market', 'limit', 'market_reference', 'limit_reference')
     ),
   constraint canonical_execution_intent_audits_limit_price_check
     check (
-      (order_type in ('limit', 'limit_reference') and limit_price > 0)
+      (order_type in ('limit', 'limit_reference')
+        and limit_price > 0
+        and limit_price::text not in ('NaN', 'Infinity', '-Infinity'))
       or
       (order_type in ('market', 'market_reference') and limit_price is null)
     ),
   constraint canonical_execution_intent_audits_optional_price_check
     check (
-      (stop_loss is null or stop_loss > 0)
-      and (target_price is null or target_price > 0)
+      (stop_loss is null or (
+        stop_loss > 0
+        and stop_loss::text not in ('NaN', 'Infinity', '-Infinity')
+      ))
+      and (target_price is null or (
+        target_price > 0
+        and target_price::text not in ('NaN', 'Infinity', '-Infinity')
+      ))
     ),
   constraint canonical_execution_intent_audits_lineage_check
     check (
