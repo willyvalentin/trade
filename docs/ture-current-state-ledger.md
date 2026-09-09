@@ -214,6 +214,19 @@ blocker_or_fallback: Actual net settlement remains unverified because the curren
 result_and_remaining_gap: The product no longer reports a number produced by subtracting SEK costs directly from USD price PnL. MVP-04b and MVP-04c remain unverified release checkpoints until a supported manual lifecycle supplies durable, currency-bound settlement evidence and history/statistics reconcile it end to end.
 ```
 
+#### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03c
+user_behavior_or_reproduced_failure: Opening a manual position already uses an owner-bound transactional command, but the previous close path could issue a second owner-scoped update against a position that had already been closed. A duplicate request with different exit values could therefore replace the first manual record.
+smallest_change_and_reused_components: Retained the existing authenticated endpoint, owner filter and no-broker manual flow. A close now conditionally updates only an open owned position; when no open row remains it reads only that owner's closed position and accepts a replay only when every persisted exit field matches. A changed replay fails closed. Partial-close behavior is intentionally unchanged.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` locally proves complete exit parsing, semantic JSON metadata comparison, matching replay acceptance and divergent replay rejection. The source regression also asserts owner filtering plus `status = open` before update and a `status = closed` replay lookup. No database row, provider, broker, deployment or production action occurred.
+external_effects_and_existing_authority: None. This is an application-source and local-test change only. It neither creates a trade nor calls a broker.
+blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
+result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
+```
+
 Authority reconciliation: the Notion program overview was synchronized on
 2026-09-09 to label its earlier C-01/AI focus as historical and surface the
 later explicit MVP-first policy. It remains a tracking mirror; GitHub main
