@@ -1,0 +1,58 @@
+{
+  "contract_version": "trade.action666iy.b03-staging-catalog-audit.v1",
+  "action_id": "ACTION_666IY",
+  "reviewed_revision": {
+    "protected_main_commit": "b73a1b6a659e811a0da255ecf3bd7090dec651a1",
+    "protected_main_tree": "7937858646fd8618f78fda8ef4fc57afb25b5bc3"
+  },
+  "authorization": {
+    "controller": "codex_autonomous_governance_controller",
+    "operation": "one_staging_only_read_only_catalog_query",
+    "retry_authorized": false,
+    "raw_data_or_secret_retention": false
+  },
+  "receipt": {
+    "contract_version": "action_666iy_b03_staging_catalog_audit_receipt_v1",
+    "target_environment": "staging",
+    "project_class": "ture_staging",
+    "read_operation": "single_read_only_catalog_query",
+    "observations": {
+      "private_schema_present": true,
+      "writer_routine_present": true,
+      "writer_routine_security_definer": true,
+      "idempotency_relation_present": true,
+      "idempotency_relation_rls_enabled": true,
+      "idempotency_relation_has_zero_policies": true,
+      "anon_can_execute_writer": false,
+      "authenticated_can_execute_writer": false,
+      "service_role_can_execute_writer": true,
+      "anon_has_direct_relation_access": false,
+      "authenticated_has_direct_relation_access": false,
+      "service_role_has_direct_relation_access": false,
+      "writer_package_migration_observed": true,
+      "writer_repair_migration_observed": true,
+      "dedicated_writer_role_migration_observed": true
+    }
+  },
+  "authority_limits": {
+    "staging_connection_admitted": false,
+    "application_row_or_auth_user_read": false,
+    "secret_or_connection_material_read": false,
+    "identity_or_grant_change": false,
+    "migration_apply": false,
+    "writer_invocation": false,
+    "application_transport_or_runtime_binding": false,
+    "deployment": false,
+    "provider_or_broker_contact": false,
+    "production_access": false
+  },
+  "decision": {
+    "type": "b03_staging_catalog_and_permission_audit",
+    "staging_catalog_audit_disposition": "staging_catalog_audit_validated_not_admitted",
+    "remote_staging_admission": "not_admitted",
+    "milestone_b_disposition": "complete_under_local_sandbox_acceptance_profile_v1",
+    "observed_gap": "no_dedicated_least_privileged_application_writer_identity_or_private_application_transport_is_attested",
+    "next_bounded_objective": "separately_authorized_dedicated_application_writer_identity_and_private_transport_admission",
+    "notion_is_program_tracking_only": true
+  }
+}
