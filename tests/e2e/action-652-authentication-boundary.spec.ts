@@ -91,6 +91,8 @@ test("login and logout routes use the bounded HttpOnly session contract", async 
   const loginRoute = await source("app/api/auth/login/route.ts");
   const logoutRoute = await source("app/api/auth/logout/route.ts");
   const loginPage = await source("app/login/page.tsx");
+  const logoutButton = await source("app/application-logout-button.tsx");
+  const tradeApp = await source("app/trade-app.tsx");
   const sessionCore = await source("lib/application-session-core.ts");
 
   expect(loginRoute).toContain("createApplicationSession()");
@@ -103,6 +105,14 @@ test("login and logout routes use the bounded HttpOnly session contract", async 
   expect(loginPage).not.toContain("setUsername");
   expect(logoutRoute).toContain("applicationSessionCookieOptions()");
   expect(logoutRoute).toContain("maxAge: 0");
+  expect(logoutButton).toContain('fetch("/api/auth/logout"');
+  expect(logoutButton).toContain('method: "POST"');
+  expect(logoutButton).toContain('credentials: "same-origin"');
+  expect(logoutButton).toContain('cache: "no-store"');
+  expect(logoutButton).toContain('router.replace("/login")');
+  expect(logoutButton).toContain("router.refresh()");
+  expect(logoutButton).toContain('role="alert"');
+  expect(tradeApp).toContain("<ApplicationLogoutButton />");
   expect(sessionCore).toContain("httpOnly: true");
   expect(sessionCore).toContain('sameSite: "lax"');
   expect(sessionCore).toContain("maxAge: applicationSessionMaxAgeSeconds");
