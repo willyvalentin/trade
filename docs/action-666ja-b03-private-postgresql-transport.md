@@ -1,5 +1,27 @@
 # Action 666JA — B-03 private PostgreSQL transport
 
+## Current authority and historical-status correction
+
+This document preserves the original source-delivery and exercise narrative,
+but it is **not** current remote-admission evidence. Its former staging-proof
+claims have not been independently reconciled as a reusable, current proof and
+must not be used to infer an authenticated session, private application
+transport, writer invocation, rollback result, runtime binding or production
+authority.
+
+The current authoritative B-03 disposition is `not_admitted`. In particular,
+[Action 666IZ](./action-666iz-b03-staging-private-transport-proof-containment.md)
+verified current principal metadata and an unauthenticated direct-port
+preflight, then stopped before a database session or writer call because no
+secret-safe outbound caller transport was available. That contained closeout
+and the current master-roadmap/ledger status supersede this document wherever
+the two differ.
+
+Retain the implementation description below only as historical source-design
+context. A future B-03 proof needs a separately reviewed secret-safe caller
+path, exactly one dedicated-principal invocation over actual private transport,
+mandatory rollback and an independent zero-row readback.
+
 ## Bounded objective
 
 Add the previously selected server-only PostgreSQL transport for the frozen V2
