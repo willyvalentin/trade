@@ -130,7 +130,11 @@ create table public.canonical_execution_intent_audits (
   constraint canonical_execution_intent_audits_ticker_check
     check (length(pg_catalog.btrim(ticker)) between 1 and 32),
   constraint canonical_execution_intent_audits_market_check
-    check (length(pg_catalog.btrim(market)) between 1 and 32),
+    check (
+      length(pg_catalog.btrim(market)) between 1 and 32
+      and market ~ '[^[:space:]]'
+      and market !~ '[[:cntrl:]]'
+    ),
   constraint canonical_execution_intent_audits_quantity_check
     check (
       quantity > 0

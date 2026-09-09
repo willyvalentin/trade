@@ -322,6 +322,8 @@ test("C-01 source and migration retain server-only append-only containment", () 
   expect(migration).toContain(
     "length(pg_catalog.btrim(market)) between 1 and 32",
   );
+  expect(migration).toContain("market ~ '[^[:space:]]'");
+  expect(migration).toContain("market !~ '[[:cntrl:]]'");
   expect(migration).toContain("quantity::text not in ('NaN', 'Infinity', '-Infinity')");
   expect(migration).toContain(
     "limit_price::text not in ('NaN', 'Infinity', '-Infinity')",
