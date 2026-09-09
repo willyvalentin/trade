@@ -90,6 +90,7 @@ test("application sessions fail closed when the configured owner is absent or ch
 test("login and logout routes use the bounded HttpOnly session contract", async () => {
   const loginRoute = await source("app/api/auth/login/route.ts");
   const logoutRoute = await source("app/api/auth/logout/route.ts");
+  const loginPage = await source("app/login/page.tsx");
   const sessionCore = await source("lib/application-session-core.ts");
 
   expect(loginRoute).toContain("createApplicationSession()");
@@ -97,6 +98,9 @@ test("login and logout routes use the bounded HttpOnly session contract", async 
   expect(loginRoute).toContain("applicationSessionCookieOptions()");
   expect(loginRoute).toContain("name: TRADE_AUTH_COOKIE");
   expect(loginRoute).not.toContain("password: body.password");
+  expect(loginPage).toContain("body: JSON.stringify({ password })");
+  expect(loginPage).not.toContain("Enter Username");
+  expect(loginPage).not.toContain("setUsername");
   expect(logoutRoute).toContain("applicationSessionCookieOptions()");
   expect(logoutRoute).toContain("maxAge: 0");
   expect(sessionCore).toContain("httpOnly: true");

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,26 +65,13 @@ export default function LoginPage() {
 
         <form onSubmit={submitPassword} className="ture-login-card">
           <label className="ture-login-field">
-            <span>Enter Username</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              autoComplete="username"
-              autoFocus
-              required
-              placeholder="Enter username"
-              aria-label="Enter username"
-            />
-          </label>
-
-          <label className="ture-login-field">
             <span>Enter Password</span>
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
+              autoFocus
               required
               placeholder="Enter password"
               aria-label="Enter password"

@@ -10,22 +10,20 @@ operations remain evidence and are not renewed by this decision.
 Delivery state: the user authorized publishing this change on 2026-09-09.
 Merge status is determined by the PR and exact-main evidence; publication alone
 is not adoption on main or a production deployment.
-Baseline inspected: GitHub main `6a4cc53b7bae7b10bc83b9c52b8ad8b040ac69bf`,
-with successful latest-main CI. Change this delivery label only after actual
-merge evidence. No new runtime or production test was performed in this
-roadmap revision.
+Baseline inspected: GitHub main `dbbc596ff54f37510ea59cb3ec73b72f5737d05b`,
+which contains the merged MVP-first delivery policy. No new runtime or
+production test was performed by that policy revision.
 
 ### Now
 
-**Selected next implementation outcome: demonstrate the existing manual
-recommendation-to-history journey and fix its first blocking defect.** No MVP
-implementation claim is made by this documentation update. Start at current main
-in a clean dedicated branch, preserve unrelated work, and follow MVP-01→04.
-Investigation budget: four active hours. Reuse the authenticated dashboard,
-recommendation generator, application position endpoints and history surfaces.
-Record the supported environment and one reproducible test, then implement the
-smallest failing behavior. If the flow already passes, retain that evidence and
-move directly to MVP-02/05 instead of inventing refactoring work.
+**Selected product slice: MVP-01 access and dashboard.** The first reproduced
+defect was a required username field that the login server never receives or
+verifies. This delivery removes that misleading blocker, makes the password the
+initial focus and adds a local browser check that submits only the server's
+accepted credential. It is deliberately not counted as an end-to-end session:
+the owner/provider-backed sign-in, dashboard reload and sign-out still need one
+supported-environment check. The wider MVP-01→04 investigation remains bounded
+by the original four active-hour discovery budget.
 
 ### MVP acceptance board
 
@@ -53,7 +51,7 @@ evidence. No application functionality was tested by this governance change.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
 | --- | --- | --- | --- |
-| MVP-01a | Sign in, reload the dashboard and sign out successfully | unverified | — |
+| MVP-01a | Sign in, reload the dashboard and sign out successfully | unverified | Local Chromium, 2026-09-09: reproduced and corrected the ignored required-username form blocker; browser test confirms a password-only POST and visible error. A real owner-backed session, reload and sign-out remain untested. |
 | MVP-01b | Anonymous and cross-owner access is rejected | unverified | — |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | — |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
@@ -146,6 +144,25 @@ accepted behaviors, verified release criteria, median slice lead time, blocked
 age and product-linked versus overhead effort. Unknown hours stay unknown;
 commit count is not product progress. Replan if two completed slices produce no
 new verified behavior or necessary real integration result.
+
+#### MVP-01 form alignment — 2026-09-09 (pending merge)
+
+```text
+acceptance_id: MVP-01a
+user_behavior_or_reproduced_failure: The login page required a username even though its POST body contains only password; users could be blocked by an input that had no authentication effect.
+smallest_change_and_reused_components: Removed the unused username state/control, focused the password control, retained the existing POST route and its owner/session/abuse controls.
+active_hour_budget: Within the existing four-hour MVP discovery budget; exact active hours not tracked.
+behavior_check_and_environment: Local Next 16.3.4 Chromium; intercepted /api/auth/login response proves password-only form submission and visible error handling. Existing application-session boundary suite also passes.
+external_effects_and_existing_authority: None. The browser test uses a mocked route response; no credential, provider, database, deploy, broker or production action occurred.
+blocker_or_fallback: Full owner-backed sign-in → dashboard reload → sign-out remains unverified because this local check intentionally does not exercise the staging identity/data integration. Next useful check is that supported-environment behavior, not more form refactoring.
+result_and_remaining_gap: The user-visible misleading form requirement is fixed and regression-tested; MVP-01a remains unverified until the complete session journey passes.
+```
+
+Authority reconciliation: the Notion program overview was synchronized on
+2026-09-09 to label its earlier C-01/AI focus as historical and surface the
+later explicit MVP-first policy. It remains a tracking mirror; GitHub main
+governs this slice, and a Notion label is not runtime, provider or release
+authority.
 
 ### Operational adoption
 
