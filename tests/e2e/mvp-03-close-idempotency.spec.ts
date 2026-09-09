@@ -87,5 +87,7 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(route).toContain('body.operation === "close"');
     expect(route).toContain("closeApplicationPosition({");
     expect(route).toContain("session.owner_user_id");
+    expect(route).toContain('error: "Invalid position lifecycle values."');
+    expect(route).toContain("{ status: 400 }");
   });
 });

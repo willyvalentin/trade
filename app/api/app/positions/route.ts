@@ -58,6 +58,12 @@ export async function PATCH(request: Request) {
           operation: body.operation,
           values: body.values as Record<string, unknown>,
         });
+  if (result.status === "invalid") {
+    return NextResponse.json(
+      { error: "Invalid position lifecycle values." },
+      { status: 400 },
+    );
+  }
   return result.status === "available"
     ? NextResponse.json({ ok: true, ...("data" in result ? result.data : {}) })
     : NextResponse.json({ error: "Position update is unavailable." }, { status: 503 });
