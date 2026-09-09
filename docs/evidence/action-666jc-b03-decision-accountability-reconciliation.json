@@ -1,0 +1,61 @@
+{
+  "contract_version": "trade.action666jc.b03-decision-accountability-reconciliation.v1",
+  "action_id": "ACTION_666JC",
+  "reviewed_protected_main_revision": "323e560e237d85e793e689dcf9df1710d6bd916d",
+  "bounded_objective": "record_accountable_controls_for_b03_private_transport_decision",
+  "milestone_or_product_outcome": "future_b03_literal_private_transport_admission_review",
+  "delivery_risk_reduced": "ambiguous_decision_ownership_must_not_be_interpreted_as_runtime_authority",
+  "blocked_by": [
+    "supabase_team_or_enterprise_privatelink_not_provisioned",
+    "same_region_aws_vpc_not_provisioned"
+  ],
+  "accountable_controls": {
+    "autonomous_governance_controller": {
+      "identity": "codex_autonomous_governance_controller",
+      "decision_policy_version": "roadmap_operating_governance_v1",
+      "evaluation": "incomplete_runtime_prerequisites_require_defer_external_provisioning_and_retain_not_admitted"
+    },
+    "delivery_automation": {
+      "identity": "codex_delivery_automation",
+      "responsibilities": [
+        "maintain_protected_main_decision_revision",
+        "maintain_ledger_dependency_and_evidence_links",
+        "synchronize_notion_as_non_authoritative_program_tracking"
+      ],
+      "cannot": [
+        "provision_external_infrastructure",
+        "relax_private_transport_requirement",
+        "grant_runtime_authority"
+      ]
+    },
+    "independent_automated_verification": {
+      "controls": [
+        "focused_documentation_and_evidence_contract_verification",
+        "ready_full_ci_unchanged_six_shard_suite",
+        "exact_main_candidate_provenance_attestation"
+      ],
+      "authority_effect": "none"
+    }
+  },
+  "delivery_evidence": {
+    "merged_pull_request": 422,
+    "ready_full_ci": "passed_unchanged_six_shard_suite",
+    "exact_main_run": 34334543615,
+    "exact_main_result": "success"
+  },
+  "alternatives": {
+    "provision_or_invoke_now": "rejected_external_prerequisites_and_authority_absent",
+    "tls_or_ip_allowlisting_as_private_transport": "rejected_public_path_remains",
+    "defer_external_provisioning": "selected"
+  },
+  "decision": "defer_external_provisioning_and_retain_not_admitted",
+  "remote_staging_admission": "not_admitted",
+  "next_re_evaluation_trigger": "explicit_provisioning_record_for_supabase_privatelink_and_same_region_aws_vpc",
+  "non_actions": {
+    "subscription_or_purchase": false,
+    "aws_vpc_or_endpoint_change": false,
+    "secret_or_credential_action": false,
+    "database_connection_or_writer_invocation": false,
+    "runtime_deploy_provider_broker_or_production_action": false
+  }
+}
