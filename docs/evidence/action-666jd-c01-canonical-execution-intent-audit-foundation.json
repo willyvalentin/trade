@@ -1,0 +1,41 @@
+{
+  "contract_version": "trade.action666jd.c01-canonical-execution-intent-audit-foundation.v1",
+  "action_id": "ACTION_666JD",
+  "bounded_objective": "source_only_canonical_pre_broker_execution_intent_identity_and_append_only_audit_foundation",
+  "base_protected_main_revision": "226dd63f489d90fecebef261b6af8040b3d4fa8a",
+  "delivered_source": {
+    "server_contract": "lib/server/canonical-execution-intent-audit-contract.ts",
+    "migration": "supabase/migrations/20260909100801_action_666jd_canonical_execution_intent_audit.sql",
+    "focused_verification": "tests/e2e/canonical-execution-intent-audit-contract.spec.ts"
+  },
+  "canonical_identity": {
+    "payload_contract_version": "canonical_execution_intent_audit_v1",
+    "identity_format": "execution_intent:v1:sha256",
+    "idempotency_format": "execution_intent_audit:v1:execution_intent_identity",
+    "owner_binding": "auth.users_uuid_required",
+    "broker_result": "must_be_null"
+  },
+  "append_only_storage_posture": {
+    "relation": "public.canonical_execution_intent_audits",
+    "migration_application": "not_authorized_not_executed",
+    "row_level_security": "enabled_zero_policies",
+    "broad_and_application_role_privileges": "revoked",
+    "update_delete": "rejected_by_trigger"
+  },
+  "local_verification": {
+    "focused_typescript_check": "passed",
+    "focused_playwright_contract_test": "passed_3_of_3",
+    "diff_whitespace_check": "passed",
+    "database_application_or_row_operation": "not_run_not_authorized"
+  },
+  "explicit_non_actions": {
+    "database_read_or_write": false,
+    "database_client_or_secret": false,
+    "route_or_runtime_binding": false,
+    "provider_or_deployment_action": false,
+    "broker_prepare_call_or_submit": false,
+    "automatic_execution": false,
+    "production_action": false
+  },
+  "next_gate": "separately_reviewed_server_owned_writer_and_staging_apply_with_generated_types_private_transport_rollback_and_independent_readback"
+}
