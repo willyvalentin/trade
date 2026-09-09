@@ -398,10 +398,10 @@ function derivedDegradationLevel(input: {
   plannedCap: number;
   supplied: ContinuousIntelligenceDegradationLevel | null | undefined;
 }) {
-  if (input.supplied) return input.supplied;
   if (input.providerState === "provider_unavailable") return "provider_blocked";
   if (input.unknownSession) return "unknown";
   if (!input.capacityMetadataAvailable) return "unknown";
+  if (input.supplied) return input.supplied;
   if (input.requested > input.plannedCap) return "constrained";
   return "normal";
 }
@@ -873,8 +873,9 @@ export function buildContinuousIntelligenceBudgetPlan(
     (sum, workload) => sum + workload.requested_credit_count,
     0,
   );
-  const providerState = input.provider_state ?? "available";
-  const capacityMetadataAvailable = input.capacity_metadata_available !== false;
+  const providerState = input.provider_state ?? "unknown";
+  const capacityMetadataAvailable =
+    providerState === "available" && input.capacity_metadata_available === true;
   const degradation = derivedDegradationLevel({
     providerState,
     capacityMetadataAvailable,

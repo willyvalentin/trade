@@ -30,6 +30,7 @@ function baseInput(
     generated_at: "2026-07-21T12:00:00.000Z",
     session: "regular",
     provider_state: "available",
+    capacity_metadata_available: true,
     workloads: [],
     legacy_constraints: {
       grow_scan_ticker_cap: 25,
@@ -181,6 +182,49 @@ test.describe("Action 565 continuous market intelligence budget orchestrator", (
     expect(plan.allocation.allocated_credits).toBe(0);
     expect(plan.pause_reasons).toContain("provider_unavailable");
     expect(plan.websocket_hot_set.assigned_count).toBe(0);
+  });
+
+  test("does not let an optimistic caller override missing or unavailable provider capacity", () => {
+    const providerBlocked = buildContinuousIntelligenceBudgetPlan(
+      baseInput({
+        provider_state: "provider_unavailable",
+        capacity_metadata_available: false,
+        degradation_level: "normal",
+        workloads: [workload("critical_open_positions", "critical", "hot", 8)],
+      }),
+    );
+    const missingCapacity = buildContinuousIntelligenceBudgetPlan({
+      generated_at: "2026-07-21T12:00:00.000Z",
+      session: "regular",
+      degradation_level: "normal",
+      workloads: [workload("normal_universe", "normal", "broad", 8)],
+    });
+    const unavailableMetadata = buildContinuousIntelligenceBudgetPlan(
+      baseInput({
+        provider_state: "available",
+        capacity_metadata_available: false,
+        degradation_level: "normal",
+        workloads: [workload("normal_universe", "normal", "broad", 8)],
+      }),
+    );
+
+    expect(providerBlocked).toMatchObject({
+      status: "provider_blocked",
+      degradation_level: "provider_blocked",
+      allocation: { allocated_credits: 0 },
+    });
+    expect(providerBlocked.pause_reasons).toContain("provider_unavailable");
+    expect(missingCapacity).toMatchObject({
+      status: "unknown_capacity",
+      degradation_level: "unknown",
+      allocation: { allocated_credits: 0 },
+    });
+    expect(missingCapacity.pause_reasons).toContain("unknown_capacity_metadata");
+    expect(unavailableMetadata).toMatchObject({
+      status: "unknown_capacity",
+      degradation_level: "unknown",
+      allocation: { allocated_credits: 0 },
+    });
   });
 
   test("provider-budget status classification fails conservatively", () => {
