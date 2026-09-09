@@ -207,10 +207,102 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isInspectablePlainData(
+  value: unknown,
+  seen = new Set<object>(),
+): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+
+  if (typeof value !== "object") {
+    return typeof value !== "function";
+  }
+
+  const objectValue = value as object;
+  if (seen.has(objectValue)) {
+    return false;
+  }
+  seen.add(objectValue);
+
+  if (Array.isArray(objectValue)) {
+    const lengthDescriptor = Object.getOwnPropertyDescriptor(
+      objectValue,
+      "length",
+    );
+    if (
+      !lengthDescriptor ||
+      !("value" in lengthDescriptor) ||
+      typeof lengthDescriptor.value !== "number" ||
+      !Number.isSafeInteger(lengthDescriptor.value) ||
+      lengthDescriptor.value < 0
+    ) {
+      return false;
+    }
+
+    for (let index = 0; index < lengthDescriptor.value; index += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        objectValue,
+        String(index),
+      );
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        return false;
+      }
+      if (!isInspectablePlainData(descriptor.value, seen)) {
+        return false;
+      }
+    }
+
+    return Reflect.ownKeys(objectValue).every((key) => {
+      if (key === "length") {
+        return true;
+      }
+      if (typeof key !== "string" || !/^(?:0|[1-9][0-9]*)$/.test(key)) {
+        return false;
+      }
+      const index = Number(key);
+      return index >= 0 && index < lengthDescriptor.value;
+    });
+  }
+
+  const prototype = Object.getPrototypeOf(objectValue);
+  // Do not compare identity with this realm's Object.prototype: callers may
+  // legitimately cross a server/runtime realm boundary. A plain object's
+  // prototype is nevertheless itself a root prototype (its prototype is
+  // null); class, Date and custom-prototype instances do not satisfy that
+  // shape. Null-prototype records are rejected so every accepted record has
+  // the normal plain-data semantics expected by the canonicalizer.
+  if (!prototype || Object.getPrototypeOf(prototype) !== null) {
+    return false;
+  }
+
+  for (const key of Reflect.ownKeys(objectValue)) {
+    if (typeof key !== "string") {
+      return false;
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(objectValue, key);
+    if (
+      !descriptor ||
+      !descriptor.enumerable ||
+      !("value" in descriptor) ||
+      !isInspectablePlainData(descriptor.value, seen)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function hasInspectableExecutionIntentShape(
   value: unknown,
 ): value is ExecutionIntent {
-  if (!isRecord(value) || !isRecord(value.authority) || !isRecord(value.trading_package)) {
+  if (
+    !isInspectablePlainData(value) ||
+    !isRecord(value) ||
+    !isRecord(value.authority) ||
+    !isRecord(value.trading_package)
+  ) {
     return false;
   }
 
@@ -506,81 +598,89 @@ function canonicalizeIntent(
 export function prepareCanonicalExecutionIntentAudit(
   input: CanonicalExecutionIntentAuditInput,
 ): CanonicalExecutionIntentAuditResult {
-  if (!isRecord(input) || !hasInspectableExecutionIntentShape(input.intent)) {
+  try {
+    if (
+      !isInspectablePlainData(input) ||
+      !isRecord(input) ||
+      !hasInspectableExecutionIntentShape(input.intent)
+    ) {
+      return reject(["canonical_execution_intent_audit_input_invalid"]);
+    }
+
+    const { payload, errors } = canonicalizeIntent(input);
+
+    if (errors.length > 0) {
+      return reject([...new Set(errors)]);
+    }
+
+    const frozenPayload = deepFreeze(payload);
+    const semanticPayloadSha256 = createHash("sha256")
+      .update(JSON.stringify(frozenPayload), "utf8")
+      .digest("hex");
+    const canonicalIntentIdentity =
+      `execution_intent:v1:${semanticPayloadSha256}`;
+    const idempotencyKey =
+      `execution_intent_audit:v1:${canonicalIntentIdentity}`;
+    const auditEnvelope = deepFreeze({
+      contract_version: CANONICAL_EXECUTION_INTENT_AUDIT_CONTRACT_VERSION,
+      canonical_intent_identity: canonicalIntentIdentity,
+      semantic_payload_sha256: semanticPayloadSha256,
+      idempotency_key: idempotencyKey,
+      owner_user_id: frozenPayload.owner_user_id,
+      intent_id: frozenPayload.intent.intent_id,
+      audit_event_type: "intent_issued" as const,
+      audit_status: "prepared" as const,
+    });
+    const insertCandidate = deepFreeze({
+      owner_user_id: frozenPayload.owner_user_id,
+      canonical_intent_identity: canonicalIntentIdentity,
+      semantic_payload_sha256: semanticPayloadSha256,
+      idempotency_key: idempotencyKey,
+      authority_contract_version: CANONICAL_EXECUTION_INTENT_AUDIT_CONTRACT_VERSION,
+      audit_event_type: "intent_issued" as const,
+      audit_status: "prepared" as const,
+      intent_id: frozenPayload.intent.intent_id,
+      intent_created_at: frozenPayload.intent.created_at,
+      execution_mode: "semi_automatic" as const,
+      action: frozenPayload.intent.action,
+      trigger_type: frozenPayload.intent.trigger_type,
+      trigger_priority: frozenPayload.intent.trigger_priority,
+      broker_hint: "AVANZA" as const,
+      intent_source: frozenPayload.intent.source,
+      recommendation_id: frozenPayload.intent.trading_package.recommendation_id,
+      position_id: frozenPayload.intent.trading_package.live_position_id,
+      ticker: frozenPayload.intent.trading_package.ticker,
+      market: frozenPayload.intent.trading_package.market,
+      quantity: frozenPayload.intent.trading_package.quantity,
+      order_type: frozenPayload.intent.trading_package.order_type,
+      limit_price: frozenPayload.intent.trading_package.limit_price,
+      stop_loss: frozenPayload.intent.trading_package.stop_loss,
+      target_price: frozenPayload.intent.trading_package.target_price,
+      expires_at: frozenPayload.intent.trading_package.expires_at,
+      payload_id: frozenPayload.intent.trading_package.payload_id,
+      payload_fingerprint: frozenPayload.intent.trading_package.payload_fingerprint,
+      safety_warnings: [...frozenPayload.intent.safety_warnings],
+      intent_payload: frozenPayload,
+      audit_envelope: auditEnvelope,
+    });
+
+    return deepFreeze({
+      valid: true,
+      persisted: false,
+      disposition: CANONICAL_EXECUTION_INTENT_AUDIT_DISPOSITION,
+      errors: [],
+      warnings: [
+        "canonical_intent_audit_prepared_only",
+        "future_private_server_writer_required",
+      ],
+      payload: frozenPayload,
+      canonicalIntentIdentity,
+      semanticPayloadSha256,
+      idempotencyKey,
+      insertCandidate,
+      authority: CANONICAL_EXECUTION_INTENT_AUDIT_AUTHORITY_BOUNDARIES,
+    });
+  } catch {
     return reject(["canonical_execution_intent_audit_input_invalid"]);
   }
-
-  const { payload, errors } = canonicalizeIntent(input);
-
-  if (errors.length > 0) {
-    return reject([...new Set(errors)]);
-  }
-
-  const frozenPayload = deepFreeze(payload);
-  const semanticPayloadSha256 = createHash("sha256")
-    .update(JSON.stringify(frozenPayload), "utf8")
-    .digest("hex");
-  const canonicalIntentIdentity =
-    `execution_intent:v1:${semanticPayloadSha256}`;
-  const idempotencyKey =
-    `execution_intent_audit:v1:${canonicalIntentIdentity}`;
-  const auditEnvelope = deepFreeze({
-    contract_version: CANONICAL_EXECUTION_INTENT_AUDIT_CONTRACT_VERSION,
-    canonical_intent_identity: canonicalIntentIdentity,
-    semantic_payload_sha256: semanticPayloadSha256,
-    idempotency_key: idempotencyKey,
-    owner_user_id: frozenPayload.owner_user_id,
-    intent_id: frozenPayload.intent.intent_id,
-    audit_event_type: "intent_issued" as const,
-    audit_status: "prepared" as const,
-  });
-  const insertCandidate = deepFreeze({
-    owner_user_id: frozenPayload.owner_user_id,
-    canonical_intent_identity: canonicalIntentIdentity,
-    semantic_payload_sha256: semanticPayloadSha256,
-    idempotency_key: idempotencyKey,
-    authority_contract_version: CANONICAL_EXECUTION_INTENT_AUDIT_CONTRACT_VERSION,
-    audit_event_type: "intent_issued" as const,
-    audit_status: "prepared" as const,
-    intent_id: frozenPayload.intent.intent_id,
-    intent_created_at: frozenPayload.intent.created_at,
-    execution_mode: "semi_automatic" as const,
-    action: frozenPayload.intent.action,
-    trigger_type: frozenPayload.intent.trigger_type,
-    trigger_priority: frozenPayload.intent.trigger_priority,
-    broker_hint: "AVANZA" as const,
-    intent_source: frozenPayload.intent.source,
-    recommendation_id: frozenPayload.intent.trading_package.recommendation_id,
-    position_id: frozenPayload.intent.trading_package.live_position_id,
-    ticker: frozenPayload.intent.trading_package.ticker,
-    market: frozenPayload.intent.trading_package.market,
-    quantity: frozenPayload.intent.trading_package.quantity,
-    order_type: frozenPayload.intent.trading_package.order_type,
-    limit_price: frozenPayload.intent.trading_package.limit_price,
-    stop_loss: frozenPayload.intent.trading_package.stop_loss,
-    target_price: frozenPayload.intent.trading_package.target_price,
-    expires_at: frozenPayload.intent.trading_package.expires_at,
-    payload_id: frozenPayload.intent.trading_package.payload_id,
-    payload_fingerprint: frozenPayload.intent.trading_package.payload_fingerprint,
-    safety_warnings: [...frozenPayload.intent.safety_warnings],
-    intent_payload: frozenPayload,
-    audit_envelope: auditEnvelope,
-  });
-
-  return deepFreeze({
-    valid: true,
-    persisted: false,
-    disposition: CANONICAL_EXECUTION_INTENT_AUDIT_DISPOSITION,
-    errors: [],
-    warnings: [
-      "canonical_intent_audit_prepared_only",
-      "future_private_server_writer_required",
-    ],
-    payload: frozenPayload,
-    canonicalIntentIdentity,
-    semanticPayloadSha256,
-    idempotencyKey,
-    insertCandidate,
-    authority: CANONICAL_EXECUTION_INTENT_AUDIT_AUTHORITY_BOUNDARIES,
-  });
 }

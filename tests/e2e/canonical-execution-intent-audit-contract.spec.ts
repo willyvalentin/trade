@@ -18,6 +18,10 @@ const migrationPath = join(
   process.cwd(),
   "supabase/migrations/20260909100801_action_666jd_canonical_execution_intent_audit.sql",
 );
+const containmentActionPath = join(
+  process.cwd(),
+  "docs/action-666je-c01-adversarial-input-containment.md",
+);
 
 type LoadedContract = {
   CANONICAL_EXECUTION_INTENT_AUDIT_AUTHORITY_BOUNDARIES: Record<string, false>;
@@ -287,9 +291,86 @@ test("C-01 rejects automatic, post-broker and lineage-incomplete intents fail-cl
   }
 });
 
+test("C-01 rejects hostile object graphs without invoking accessors", () => {
+  const contract = loadContract();
+  const base = {
+    ownerUserId: "11111111-1111-4111-8111-111111111111",
+  };
+  const accessorIntent = makeIntent();
+  let accessorCalls = 0;
+  Object.defineProperty(accessorIntent.trading_package, "market", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      accessorCalls += 1;
+      throw new Error("hostile accessor must not be invoked");
+    },
+  });
+
+  let inputAccessorCalls = 0;
+  const accessorInput = {
+    ownerUserId: base.ownerUserId,
+  };
+  Object.defineProperty(accessorInput, "intent", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      inputAccessorCalls += 1;
+      throw new Error("hostile input accessor must not be invoked");
+    },
+  });
+
+  const cyclicIntent = makeIntent();
+  cyclicIntent.safety_warnings.push(cyclicIntent as never);
+
+  const customPrototypeIntent = makeIntent();
+  Object.setPrototypeOf(customPrototypeIntent.trading_package, {
+    inherited_market: "US",
+  });
+
+  const throwingProxyIntent = new Proxy(makeIntent(), {
+    get() {
+      throw new Error("hostile proxy getter must be contained");
+    },
+  });
+
+  for (const intent of [
+    accessorIntent,
+    cyclicIntent,
+    customPrototypeIntent,
+    throwingProxyIntent,
+  ]) {
+    const result = contract.prepareCanonicalExecutionIntentAudit({
+      ...base,
+      intent: intent as ExecutionIntent,
+    });
+
+    expect(result).toMatchObject({
+      valid: false,
+      persisted: false,
+      disposition: "canonical_intent_audit_rejected",
+      errors: ["canonical_execution_intent_audit_input_invalid"],
+    });
+  }
+
+  expect(accessorCalls).toBe(0);
+
+  const accessorInputResult = contract.prepareCanonicalExecutionIntentAudit(
+    accessorInput as unknown as { ownerUserId: string; intent: ExecutionIntent },
+  );
+  expect(accessorInputResult).toMatchObject({
+    valid: false,
+    persisted: false,
+    disposition: "canonical_intent_audit_rejected",
+    errors: ["canonical_execution_intent_audit_input_invalid"],
+  });
+  expect(inputAccessorCalls).toBe(0);
+});
+
 test("C-01 source and migration retain server-only append-only containment", () => {
   const contract = source(contractPath);
   const migration = readFileSync(migrationPath, "utf8");
+  const containmentAction = readFileSync(containmentActionPath, "utf8");
   const loaded = loadContract();
 
   expect(contract.startsWith('import "server-only";')).toBe(true);
@@ -305,6 +386,17 @@ test("C-01 source and migration retain server-only append-only containment", () 
   expect(contract).not.toContain(".insert(");
   expect(contract).not.toContain("localStorage");
   expect(contract).not.toContain("sessionStorage");
+  expect(contract).toContain("isInspectablePlainData");
+  expect(contract).toContain("Object.getOwnPropertyDescriptor");
+  expect(contract).toContain("Reflect.ownKeys");
+  expect(contract).toContain('return reject(["canonical_execution_intent_audit_input_invalid"])');
+
+  expect(containmentAction).toContain("action_or_decision_id: ACTION_666JE");
+  expect(containmentAction).toContain("source-only");
+  expect(containmentAction).toContain("no migration application");
+  expect(containmentAction).toContain("six-shard");
+  expect(containmentAction).toContain("no database");
+  expect(containmentAction).toContain("no broker");
 
   expect(migration).toContain("create table public.canonical_execution_intent_audits");
   expect(migration).toContain("canonical_execution_intent_audits_identity_check");
