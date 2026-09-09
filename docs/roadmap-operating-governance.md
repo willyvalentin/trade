@@ -105,6 +105,8 @@ At completion record what now works, evidence, actual hours only if tracked and
 the next useful slice. Review progress weekly, not with a new status Action per
 commit. Use verified behaviors, release criteria, cycle time and blocked age.
 Never optimize for Action count, document count, test count or commits/day.
+Use the ledger's 18 checkpoint rows and weekly scorecard directly. Evidence
+updates belong in the feature delivery; no new reporting infrastructure is needed.
 Notion and task/automation prompts are mirrors, not competing queues. Update
 only consumers within the authorized scope and report any unsynchronized ones.
 

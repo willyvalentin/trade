@@ -7,7 +7,9 @@ The user's 2026-09-09 product-direction decision supersedes the work selection
 in all older snapshots below. Historical restrictions on specific external
 operations remain evidence and are not renewed by this decision.
 
-Delivery state of this revision: **local proposal, not merged or deployed**.
+Delivery state: the user authorized publishing this change on 2026-09-09.
+Merge status is determined by the PR and exact-main evidence; publication alone
+is not adoption on main or a production deployment.
 Baseline inspected: GitHub main `6a4cc53b7bae7b10bc83b9c52b8ad8b040ac69bf`,
 with successful latest-main CI. Change this delivery label only after actual
 merge evidence. No new runtime or production test was performed in this
@@ -40,6 +42,72 @@ move directly to MVP-02/05 instead of inventing refactoring work.
 verification baseline, not 0% implemented. Prior engineering remains reusable.
 No effort-completion percentage is asserted. Historical Milestone A is bounded
 security evidence; Milestone B remains locally accepted, not live R1 completion.
+
+### Small milestone board — 18 behavior checkpoints
+
+Baseline: **0/18 verified for the new MVP candidate; 18 unverified, 0 active,
+0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a fresh verification
+baseline, not a claim that the existing product is 0% built. Start the first
+implementation slice by verifying existing behavior and replacing unknowns with
+evidence. No application functionality was tested by this governance change.
+
+| ID | Demonstrable result | State | Evidence: revision / environment / date / check |
+| --- | --- | --- | --- |
+| MVP-01a | Sign in, reload the dashboard and sign out successfully | unverified | — |
+| MVP-01b | Anonymous and cross-owner access is rejected | unverified | — |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | — |
+| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
+| MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
+| MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
+| MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | — |
+| MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
+| MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
+| MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
+| MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
+| MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
+| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | — |
+| MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | — |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
+| MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
+| MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
+
+State vocabulary: `unverified`, `active`, `blocked`, `verified`, `invalidated`.
+`verified` requires a passing behavior check and all evidence fields; source
+inspection alone cannot close a runtime checkpoint. For a blocked row, also
+record the observed cause, blocked-since date and next useful action. Relevant
+failure or evidence drift moves a verified row to `invalidated` until rechecked.
+A row is active only while its implementation/verification is actually underway.
+The existing four-hour discovery cap applies across the initial journey, not
+once per row. Multiple rows may be checked within one product slice.
+
+Progress calculation: verified-row count divided by 18, labelled **acceptance
+coverage in the stated environment**, never overall product completion. A parent
+criterion passes only when its three rows and the full roadmap criterion pass
+at the required release scope; all six are required for MVP acceptance. Preserve
+separate local/preview/production evidence in the evidence cell and do not pool
+incompatible environments into a claimed end-to-end release.
+
+### Lightweight weekly scorecard
+
+Update this table in the same delivery as checkpoint evidence; no standalone
+status PR is required. The initial baseline intentionally has no invented hours
+or delivery forecast.
+
+| Measure | Initial value | Update rule |
+| --- | --- | --- |
+| Verified behavior checkpoints | 0/18, new candidate unverified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
+| Active product slices | 0; next slice selected | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | None identified yet | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
+| Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
+| Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
+
+Keep one previous dated scorecard summary when updating, so weekly changes can
+be compared. Do not generate a new metric contract, service or test just to
+maintain this Markdown table. More verified functionality per week and shorter
+blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, one product slice active
 
@@ -81,7 +149,8 @@ new verified behavior or necessary real integration result.
 
 ### Operational adoption
 
-This proposal is not yet in protected main. After ordinary reviewed delivery,
+The new direction takes effect for repository consumers after ordinary reviewed
+delivery to protected main. After that delivery,
 new tasks must start from the updated AGENTS/roadmap/ledger. Existing task
 instructions and external tracking mirrors need explicit synchronization; this
 repository edit does not modify another task's prompt. No local automation TOML

@@ -57,6 +57,31 @@ product percent-complete from Actions, commits, fixtures or the historical
 Milestone A/B labels. A missing demonstration means **unverified**, not absent.
 Existing functionality should be verified and reused before it is rebuilt.
 
+### Measurable checkpoints
+
+The ledger divides the six MVP criteria into **18 fixed behavior checkpoints**
+(three per criterion). They are demonstrations of product behavior, not 18 new
+planning Actions. Verify existing functionality first and fix only observed gaps.
+A single implementation may close several checkpoints; never split work merely
+to increase the count. Parent acceptance still requires its complete definition
+above, including edge cases not repeated in the shorter checkpoint descriptions.
+
+Report two separate measures: **verified checkpoints / 18** for the named
+candidate/environment, and **release-accepted criteria / 6**. The optional
+percentage `100 × verified checkpoints / 18` is acceptance coverage, not work
+completed, hours saved or production readiness. Display unverified, active,
+blocked and invalidated counts beside it. Keep the denominator fixed; a scope
+change needs a recorded product decision and a comparable previous baseline.
+R1–R3 retain their outcome gates; break down only the next selected release,
+using the same behavior/evidence method, rather than maintaining speculative tasks.
+
+At each completed slice, update the existing ledger rows with revision,
+environment, date and behavior evidence. Reopen a checkpoint on a relevant
+regression or invalidated evidence. Carry evidence to a new release candidate
+only after relevant regression checks; MVP-06 verifies the complete journey on
+the actual release. Review weekly whether verified behaviors increase and
+blocked age falls. Do not create a separate reporting workstream.
+
 ### Immediate delivery order
 
 1. MVP-01→04: verify one existing end-to-end manual journey and fix its first
