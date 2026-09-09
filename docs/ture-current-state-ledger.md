@@ -113,10 +113,11 @@ blocking periods are the test of whether this delivery policy is helping.
 
 1. Verify MVP-01c: dashboard loading, empty and failed states are
    understandable in an identified supported environment.
-2. Close MVP-02/05 provider availability, freshness and operational visibility.
-   PR #427 / REL-03 merged during this review with green main CI. It hardens
-   source-only capacity planning; reuse it, but verify actual health/freshness
-   behavior separately rather than claiming an operational integration.
+2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
+   handling in an identified supported environment, then close remaining
+   provider health, freshness and operational-recovery behavior. PR #427 /
+   REL-03 remains source-only capacity planning; reuse it, but do not claim it
+   is an operational integration.
 3. Reconcile remaining MVP-04/05 history and outcome-status behavior.
 4. Complete MVP-06 release acceptance. Move to R1 only after MVP acceptance or
    an explicit product decision changing the release scope.
@@ -185,6 +186,19 @@ behavior_check_and_environment: Netlify deploy preview #430, 2026-09-09: four st
 external_effects_and_existing_authority: Preview verification used the established authenticated staging journey and made no business write, provider request, database mutation, broker action, runtime-policy or production change. No owner identifier, session value, payload or secret was recorded.
 blocker_or_fallback: None for MVP-01b. The controlled preview check for MVP-01c's empty state needs a fresh explicit credential-to-preview authorization from the execution safety boundary; it does not block this completed access-control row.
 result_and_remaining_gap: Anonymous and cross-owner access rejection is now verified in both a supported preview and repeatable local boundary coverage. MVP-01c still must prove understandable loading, empty and failed dashboard states before parent MVP-01 can be release-accepted.
+```
+
+#### MVP-02/05 provider and no-trade empty-state clarity — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02b, MVP-02c, MVP-05b
+user_behavior_or_reproduced_failure: A completed no-trade scan could be labelled as generic unavailable data merely because optional scan-duration diagnostics were absent; provider failure and provider rate-limit results likewise had no dedicated customer-facing state.
+smallest_change_and_reused_components: The existing recommendation empty-state summary now recognizes the latest persisted provider_error/provider_rate_limited, unclassified failure and explicit no-trade results. It uses a clear fail-closed provider-unavailable/data-unavailable explanation, retains a distinct no-high-quality-setup explanation, and truthfully labels the existing refresh control as a dashboard reload rather than a new scan. No route, scheduler, provider call, database access, identity, deployment, broker or production behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour budget; exact active hours not tracked.
+behavior_check_and_environment: Local Node/Playwright pure-summary coverage verifies provider error, provider rate-limit, unclassified scan failure, completed no-trade despite absent optional scan duration, and absent-scan behavior. Scoped ESLint passes. Ready Full CI remains the required clean build and delivery gate; a repeated local Next build is environment-blocked by Turbopack process/port permission, while its Webpack fallback isolates an unchanged pre-existing `app/api/hb307c/ping/route.ts` route-marker type error.
+external_effects_and_existing_authority: None. Test fixtures are local and no provider, database, deploy, broker or production system was contacted.
+blocker_or_fallback: The delivered UI mapping is not a provider-health, freshness, missed-run or recovery proof. It remains unverified until a supported environment exercises the real dashboard data path with safely bounded evidence.
+result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
