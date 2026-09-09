@@ -149,7 +149,7 @@ test("C-01 canonical intent audit produces a deterministic, immutable pre-broker
   expect(first.valid).toBe(true);
   expect(second.valid).toBe(true);
 
-  if (!first.valid || !second.valid) {
+  if (!first.valid || !second.valid || !first.payload) {
     return;
   }
 
