@@ -197,6 +197,7 @@ const foundationTests = [
   "tests/e2e/rel-00-ci-b5-required-check-readback-candidate.spec.ts",
   "tests/e2e/rel-00-ci-b6-adversarial-verification.spec.ts",
   "tests/e2e/canonical-execution-intent-audit-contract.spec.ts",
+  "tests/e2e/action-565-continuous-intelligence-budget-orchestrator.spec.ts",
 ];
 
 const intelligenceTests = [
