@@ -13001,6 +13001,10 @@ export function TradeApp({
   ]);
   const recommendationsStatusUpdatedAt =
     islandRefreshState.recommendations.lastUpdatedAt ?? recommendationsLastUpdatedAt;
+  const recommendationLoadError =
+    recommendationsStatusUpdatedAt === null
+      ? islandRefreshState.recommendations.error
+      : null;
   const liveTradesStatusUpdatedAt =
     islandRefreshState.live_trades.lastUpdatedAt ?? liveTradesLastUpdatedAt;
   const statsTodayStatusUpdatedAt =
@@ -15848,6 +15852,10 @@ export function TradeApp({
             }}
             isLoading={isLoading}
             learningModeEnabled={growMaxLearningModeEnabled}
+            loadError={recommendationLoadError}
+            onRetry={() => {
+              void refreshIslands(["market_status", "recommendations"], "manual");
+            }}
           >
             {dailyRecommendations.map((recommendation) => {
               const calibrationGuardrails =
@@ -39633,9 +39641,9 @@ function TradePrimaryStatusbar({
 
       {refreshError && (
         <div className="trade-primary-statusbar__meta" title={refreshError}>
-          <span>Refresh issue</span>
+          <span>{updatedAt ? "Refresh issue" : "Data unavailable"}</span>
           <span aria-hidden="true">·</span>
-          <span>Previous data kept</span>
+          <span>{updatedAt ? "Previous data kept" : "No current data shown"}</span>
       </div>
       )}
 
