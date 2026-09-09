@@ -1,5 +1,96 @@
 # Ture Current-State Ledger
 
+## Active Now / Next / Blocked — 2026-09-09 MVP direction
+
+This is the active work queue under the [master roadmap](./ture-master-roadmap.md).
+The user's 2026-09-09 product-direction decision supersedes the work selection
+in all older snapshots below. Historical restrictions on specific external
+operations remain evidence and are not renewed by this decision.
+
+Delivery state of this revision: **local proposal, not merged or deployed**.
+Baseline inspected: GitHub main `6a4cc53b7bae7b10bc83b9c52b8ad8b040ac69bf`,
+with successful latest-main CI. Change this delivery label only after actual
+merge evidence. No new runtime or production test was performed in this
+roadmap revision.
+
+### Now
+
+**Selected next implementation outcome: demonstrate the existing manual
+recommendation-to-history journey and fix its first blocking defect.** No MVP
+implementation claim is made by this documentation update. Start at current main
+in a clean dedicated branch, preserve unrelated work, and follow MVP-01→04.
+Investigation budget: four active hours. Reuse the authenticated dashboard,
+recommendation generator, application position endpoints and history surfaces.
+Record the supported environment and one reproducible test, then implement the
+smallest failing behavior. If the flow already passes, retain that evidence and
+move directly to MVP-02/05 instead of inventing refactoring work.
+
+### MVP acceptance board
+
+| Criterion | Current evidence | Release status / next check |
+| --- | --- | --- |
+| MVP-01 | Existing session gate, owner-bound dashboard API and historical Milestone A evidence | Unverified for the new MVP candidate: exercise login/reload/logout, denied access and empty/error states |
+| MVP-02 | Recommendation generator, scan windows and market-calendar paths exist | Unverified: current-data/no-trade/stale/provider-failure behavior and clear plan/risk presentation |
+| MVP-03 | Authenticated position create/update endpoints and transaction-backed opening exist | Unverified: one manual entry→reload→exit journey, double-submit and retry correctness |
+| MVP-04 | History/statistics UI and persisted trade access exist | Unverified: reconcile displayed plan/actual values and realized result to the recorded trade |
+| MVP-05 | Scheduled scanning/outcome infrastructure and historical operation evidence exist | Unverified: current licensed-data availability, day-long freshness, missed-run visibility and bounded recovery |
+| MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
+
+**0/6 newly verified MVP release criteria in this assessment** describes the
+verification baseline, not 0% implemented. Prior engineering remains reusable.
+No effort-completion percentage is asserted. Historical Milestone A is bounded
+security evidence; Milestone B remains locally accepted, not live R1 completion.
+
+### Next — ordered, one product slice active
+
+1. Close the first MVP-01→04 failing behavior found by the selected journey.
+2. Close MVP-02/05 provider availability, freshness and operational visibility.
+   PR #427 / REL-03 merged during this review with green main CI. It hardens
+   source-only capacity planning; reuse it, but verify actual health/freshness
+   behavior separately rather than claiming an operational integration.
+3. Reconcile remaining MVP-04/05 history and outcome-status behavior.
+4. Complete MVP-06 release acceptance. Move to R1 only after MVP acceptance or
+   an explicit product decision changing the release scope.
+
+For each item, keep one compact entry here or in its PR: acceptance ID, concrete
+failure, next implementation, 4–16 active-hour budget, behavior evidence,
+blocker and completion state. Do not create an Action-document chain to select
+these already selected outcomes.
+
+### Blocked / parked / decisions
+
+| Item | Disposition | Re-entry condition |
+| --- | --- | --- |
+| New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
+| B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
+| C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
+| AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
+| CAT / SEC / new external capabilities | Parked | A demonstrated MVP defect or later release criterion needs the capability and existing sources cannot meet it |
+| Consumed AI/CAT external proofs | Closed; no automatic retry | A genuinely different, bounded authorized operation addresses a diagnosed cause |
+| CI/governance-only optimization | No standing implementation queue | A measured delivery defect or critical regression blocks the selected slice; retain required checks |
+
+### Progress record
+
+At slice completion report: newly working user behavior, acceptance criterion,
+evidence/revision/environment, remaining defect, active hours if actually
+tracked, and next slice. At most one weekly roll-up while work is active:
+accepted behaviors, verified release criteria, median slice lead time, blocked
+age and product-linked versus overhead effort. Unknown hours stay unknown;
+commit count is not product progress. Replan if two completed slices produce no
+new verified behavior or necessary real integration result.
+
+### Operational adoption
+
+This proposal is not yet in protected main. After ordinary reviewed delivery,
+new tasks must start from the updated AGENTS/roadmap/ledger. Existing task
+instructions and external tracking mirrors need explicit synchronization; this
+repository edit does not modify another task's prompt. No local automation TOML
+files were found in the configured default automation directory during this
+review; other hosts and external schedulers were not verified. Notion remains a
+tracking mirror and was not changed. Do not claim those consumers are updated.
+
+## Historical control snapshots — superseded work selection, retained evidence
+
 ## Current control snapshot — synchronized 2026-09-09
 
 This is the canonical **Now / Next / Blocked** view for roadmap steering. It

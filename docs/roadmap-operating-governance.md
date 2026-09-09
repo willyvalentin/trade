@@ -1,5 +1,125 @@
 # Roadmap Operating Governance
 
+## Active delivery policy — MVP first, 2026-09-09
+
+This policy implements the user's explicit product-focus decision. It supersedes
+conflicting task-selection and process requirements in the historical operating
+policy below. It is an execution policy for development, not a blanket permit
+for production effects, spending or broker operations. The master roadmap owns
+release definitions; the ledger owns the only active work queue. Evidence wins
+over a completion label. User instructions prevail over repository procedures.
+
+### Select work by outcome
+
+- Work on the earliest unverified MVP criterion in the ledger. Keep **one
+  product slice in progress**; critical security incidents and a necessary
+  unblocker are the only interrupt classes. Do not open a second future-feature
+  workstream because the first has an integration blocker.
+- Each slice must identify a user-visible behavior or a concrete failure of
+  that behavior, the affected acceptance criterion, its smallest implementation
+  and how to demonstrate it. “Readiness”, “stronger evidence” or “enables a
+  later decision” without that direct dependency is not sufficient.
+- Reuse existing code, contracts and controls. A helper/validator/schema is
+  justified only by the selected flow's actual need. Include necessary tests,
+  documentation and verification with the feature; do not routinely split
+  plan→approval→contract→receipt→review→closeout into separate work items.
+- Routine reversible implementation, local tests and read-only repository
+  inspection proceed under the user's existing task authorization. Do not
+  invent human approval or independent-agent steps. Existing automated CI and
+  review controls still apply; no claim of independent verification without
+  actual independent evidence. The Codex autonomous governance controller
+  selects only work meeting this policy.
+
+### Bound effort and stop unproductive loops
+
+- Default slice budget: **4–16 active engineering hours**, including checks.
+  A discovery/spike is capped at **four active hours** and must produce a
+  reproducible failure, working experiment or concrete scope decision. These
+  are planning budgets, not permission to skip correctness checks.
+- No automatic static-only successor chain. After one preparatory slice, the
+  next slice must demonstrate the target behavior or exercise the actual
+  needed integration. If that cannot proceed, record `redesign_or_stop` and
+  choose a cheaper safe route, an independent criterion within the same MVP,
+  or one material product decision. A new Action number does not reset a budget.
+- After two failed attempts at the same integration cause, stop repeating the
+  mechanism, summarize the evidence and change the approach. This limit never
+  grants a second use of a single-use external authorization. Fresh proof names
+  are not progress; diagnose the underlying routing/auth/configuration problem.
+- At the budget boundary, keep finished work and record remaining work plus
+  a reasoned rescope. Do not silently extend. No new formal framework or
+  standalone governance PR is required for this short decision.
+- Target at least **80% of planned active effort** on acceptance-linked
+  functionality and its necessary testing/integration; at most 20% on general
+  process/CI/documentation optimization. This is a weekly planning guardrail,
+  not a security cap or an invented measured baseline. Required risk work
+  remains part of the feature's budget. Without hour tracking, report the
+  allocation as unknown rather than converting commits into hours.
+
+### Completion and quality
+
+A product slice is complete when its named behavior passes on its stated
+revision and environment, relevant tests pass and residual gaps are recorded.
+Distinguish `implemented_local`, `verified_preview` and `verified_production`.
+A fixture, source contract or local sandbox closes only its own scope.
+Milestone B runtime capability is still unverified despite historical sandbox
+acceptance. No release may be relabelled complete by shrinking acceptance
+criteria without an explicit product-scope decision retaining the original gap.
+
+Prefer behavior tests that catch user-flow, security, financial or data-integrity
+regressions. Do not add tests solely to freeze prose, Action numbers or planning
+status. Keep immutable historical evidence tests bound to their historical
+revision instead of forcing obsolete instructions into current documents.
+Run the existing applicable checks; changing CI topology, branch protection or
+external release controls needs its own scoped evidence and is not done here.
+
+### Blockers and authority
+
+For a blocker record the affected acceptance ID, observed cause, next diagnostic
+or implementation, active time spent, and a safe fallback. Fix the blocker;
+do not build a general framework around it. Retain owner isolation, private
+credentials, bounded provider use, idempotency, truthful data freshness and
+human final broker confirmation. The B-03 private transport restriction still
+applies to B-03, not automatically to every existing advisory operation.
+External calls, migrations, deployment, subscriptions and broker effects must
+use applicable existing authority. Where it is missing, prepare the concrete
+bounded action and explain the precise missing decision once. Do not repeatedly
+ask for already-granted permission or confuse a technical failure with approval.
+
+### Minimal slice brief and reporting
+
+Put these fields in the existing ledger entry or PR; no separate artifact is
+required:
+
+```text
+acceptance_id:
+user_behavior_or_reproduced_failure:
+smallest_change_and_reused_components:
+active_hour_budget:
+behavior_check_and_environment:
+external_effects_and_existing_authority:
+blocker_or_fallback:
+result_and_remaining_gap:
+```
+
+At completion record what now works, evidence, actual hours only if tracked and
+the next useful slice. Review progress weekly, not with a new status Action per
+commit. Use verified behaviors, release criteria, cycle time and blocked age.
+Never optimize for Action count, document count, test count or commits/day.
+Notion and task/automation prompts are mirrors, not competing queues. Update
+only consumers within the authorized scope and report any unsynchronized ones.
+
+### Priority and exception rule
+
+The active roadmap, active ledger and this policy govern new work. The older
+policy retained below explains past decisions; it cannot start a parallel queue,
+require a speculative evidence framework or override this selection policy.
+Security closeout applies to a demonstrated risk in a selected slice. A critical
+vulnerability may interrupt immediately; record its concrete failure and return
+to the selected product goal when contained. All other exceptions need one
+short reason tied to an acceptance criterion, not a new governance workstream.
+
+## Historical operating policy — retained for prior evidence, not task selection
+
 Status: canonical operating governance for roadmap execution.
 
 This document makes the roadmap easier to steer without weakening its existing
