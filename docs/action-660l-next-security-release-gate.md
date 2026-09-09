@@ -12,7 +12,7 @@ the exact npm lock graph again, retains that same fail-closed gate, and gives
 Netlify's build process an explicit 4 GB V8 heap for its build-time TypeScript
 check.
 
-This action does not authorize merge, production deployment, provider
+This action does not authorize merge, production deployment, provider-account
 configuration, database mutation, broker execution or runtime activation.
 Production remains at the last verified deploy until a later explicit operator
 approval names the exact delivered main commit and authorizes deployment.
@@ -54,7 +54,7 @@ build-time TypeScript check exhausted Netlify's default approximately 2 GB V8
 heap. `netlify.toml` therefore runs the existing `npm run build` command with
 an inline `NODE_OPTIONS=--max-old-space-size=4096` V8 limit. This is committed
 build configuration rather than a dashboard secret or deploy-environment
-value, preserves the underlying Next.js command, and has no provider,
+value, preserves the underlying Next.js command, and has no provider-account,
 database, broker or production-data effect. A later preview must independently
 prove the resulting build; this source change alone makes no deployment claim.
 
