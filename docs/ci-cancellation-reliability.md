@@ -3,6 +3,11 @@
 Status: **source-only throughput reliability increment; the six-shard Full CI
 suite and its required aggregate are unchanged**.
 
+PR #330 established the original command-level cancellation boundary. Follow-up
+PR #417 is merged and exact-main verified; it extends that boundary to each
+active command's dedicated Unix process group while retaining the direct-child
+fallback on platforms without that process-group delivery path.
+
 ## Objective
 
 When GitHub cancels a superseded workflow run, the provider-free shard runner
