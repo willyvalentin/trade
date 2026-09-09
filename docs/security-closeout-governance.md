@@ -1,5 +1,14 @@
 # Security Closeout Governance
 
+## MVP applicability — 2026-09-09
+
+The active [delivery policy](./roadmap-operating-governance.md) selects work.
+This closeout policy handles concrete risks within that selected scope and
+critical security interruptions; it does not supply an independent static-work
+queue. Keep applicable safety controls, but use one bounded criterion-closing
+implementation and check instead of automatic receipt or review successors.
+Historical Action budgets never reset the active slice budget.
+
 Status: canonical governance rule for bounded static security workstreams.
 
 This document defines how Ture ends a bounded security-evidence workstream

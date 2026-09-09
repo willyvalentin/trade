@@ -1,5 +1,120 @@
 # Ture Master Roadmap
 
+## Active product direction — 2026-09-09
+
+Decision: **MVP first, then the full product vision.** The user's 2026-09-09
+instruction selects useful product functionality as the organizing priority.
+This section supersedes conflicting sequencing, automatic successor selection
+and completion interpretations in the retained history below. It does not
+relabel historical evidence or waive access control, trading safety or release
+requirements. The active status and work queue live only in the
+[current-state ledger](./ture-current-state-ledger.md); delivery rules live in
+[roadmap operating governance](./roadmap-operating-governance.md).
+
+### Product destination
+
+Ture helps its user find a small number of understandable US day-trading
+opportunities, follow a risk-aware plan, record what happened and learn from
+reliable outcomes. First deliver dependable advisory use with manual broker
+execution. Then add server-owned trade management, evidence-based learning and
+bounded semi-automatic execution. Automatic execution remains a separate,
+deferred product decision; it is not a prerequisite for any of these releases.
+
+### Release sequence and acceptance
+
+| Release | User outcome | Required acceptance evidence |
+| --- | --- | --- |
+| MVP — dependable advisory and manual tracking | Sign in, understand a current recommendation or an honest no-trade state, register a manually executed trade, follow it, close it and see correct history | All MVP-01 through MVP-06 criteria below pass in one supported release environment; the real external-data path and durable owner-bound records are verified under the applicable release scope |
+| R1 — server-owned trade management | Follow positions with trustworthy market freshness, deterministic exit guidance and recoverable server-owned state | Canonical position lineage, monitor, exit queue, retry/idempotency, transactional handoff and restart recovery work end to end; legacy B's local sandbox acceptance alone is insufficient |
+| R2 — measured intelligence and learning | Understand why a setup was selected and whether recommendations improve against a baseline | Canonical completed outcomes, an evaluation plan frozen before measurement, an adequate held-out sample, cost/reliability measurements and shadow comparison; promote only on demonstrated value, with rollback |
+| R3 — semi-automatic broker assistance | Prepare one correct BUY or SELL and confirm it manually at the broker | Authenticated account/instrument binding, persistent audit, bounded BUY and SELL trials, reconciliation and recovery; final confirmation remains human |
+| Future — controlled automation | Consider additional automation only if useful and justified by R3 operating evidence | A separate product decision, risk limits, kill switch, incident handling and explicit execution authority; no current completion date or implementation queue |
+
+This sequence governs new work. An existing R1/R2/R3 component may be reused for
+MVP only when it is necessary for a named MVP criterion. A later release may
+change order through a concise product tradeoff decision; do not start it merely
+because the current release has a blocked integration.
+
+### MVP scope and definition of done
+
+MVP serves the existing user's supported account and market scope. It includes
+manual broker execution and manual trade recording. It excludes broker
+integration, autonomous orders, automatic ranking feedback, new research-source
+integrations, multi-account expansion and a full visual redesign.
+
+| ID | Acceptance criterion |
+| --- | --- |
+| MVP-01 — access and dashboard | The supported user can sign in, reload and sign out; private data requires an authenticated owner, cross-owner access fails, and dashboard loading/error/empty states are understandable. |
+| MVP-02 — actionable recommendations | During a supported trading window, show a bounded list with symbol, direction, entry, stop, target, risk/size assumptions, rationale, source timestamp and expiry. Show an explicit no-trade, market-closed, stale-data or provider-unavailable state when appropriate; never present stale or synthetic data as a current actionable signal. |
+| MVP-03 — manual trade lifecycle | From a recommendation, record an already manually executed entry, retain its plan, display the position, record an exit and reload the correct durable state. Retry/double-click does not duplicate the trade. No broker call is part of this flow. |
+| MVP-04 — useful history | Closed trades preserve plan versus actual entry/exit, quantity, timestamps and correctly calculated realized result with stated fee assumptions. History/statistics reconcile with the saved trades; unknown values are visibly unknown. |
+| MVP-05 — observable daily operation | Existing licensed data/scanning runs through the supported day, with bounded usage and visible last-success/freshness/error status. A failed or missed run is detectable and has a documented recovery path. Recommendation snapshots and outcomes are attributable; incomplete outcomes remain labelled and are not training evidence. |
+| MVP-06 — release acceptance | Exercise the complete MVP-01→05 journey on the same release candidate, then verify applicable production smoke and identity on the delivered revision. Critical security, data-integrity and trade-recording defects are resolved. Complete one supervised supported market session, or remain an explicitly labelled preview. |
+
+These six criteria define release acceptance, not equal-sized effort units.
+Report verified criteria as a count with evidence and environment; do not infer
+product percent-complete from Actions, commits, fixtures or the historical
+Milestone A/B labels. A missing demonstration means **unverified**, not absent.
+Existing functionality should be verified and reused before it is rebuilt.
+
+### Measurable checkpoints
+
+The ledger divides the six MVP criteria into **18 fixed behavior checkpoints**
+(three per criterion). They are demonstrations of product behavior, not 18 new
+planning Actions. Verify existing functionality first and fix only observed gaps.
+A single implementation may close several checkpoints; never split work merely
+to increase the count. Parent acceptance still requires its complete definition
+above, including edge cases not repeated in the shorter checkpoint descriptions.
+
+Report two separate measures: **verified checkpoints / 18** for the named
+candidate/environment, and **release-accepted criteria / 6**. The optional
+percentage `100 × verified checkpoints / 18` is acceptance coverage, not work
+completed, hours saved or production readiness. Display unverified, active,
+blocked and invalidated counts beside it. Keep the denominator fixed; a scope
+change needs a recorded product decision and a comparable previous baseline.
+R1–R3 retain their outcome gates; break down only the next selected release,
+using the same behavior/evidence method, rather than maintaining speculative tasks.
+
+At each completed slice, update the existing ledger rows with revision,
+environment, date and behavior evidence. Reopen a checkpoint on a relevant
+regression or invalidated evidence. Carry evidence to a new release candidate
+only after relevant regression checks; MVP-06 verifies the complete journey on
+the actual release. Review weekly whether verified behaviors increase and
+blocked age falls. Do not create a separate reporting workstream.
+
+### Immediate delivery order
+
+1. MVP-01→04: verify one existing end-to-end manual journey and fix its first
+   failing behavior. The initial investigation is capped at four active hours;
+   it must leave a reproducible failure or behavior evidence and one concrete
+   implementation slice, not a new readiness framework.
+2. MVP-02/05: resolve data freshness, provider capacity and daily-run recovery
+   gaps needed by that journey. Evaluate existing REL-03 work for this scope;
+   an open PR is not delivered functionality.
+3. MVP-04/05: close only the persistence/outcome/history gaps found in the
+   working path. A new learning dataset is not required to release manual
+   tracking; truthful outcome status is required.
+4. MVP-06: run release acceptance and address the resulting defects. External
+   operations use the applicable existing authorization; local implementation
+   and local tests should continue without a fresh permission cycle.
+
+B-03 PrivateLink/AWS provisioning, C-01 successors, CAT/SEC evidence chains,
+AI promotion contracts and broad CI optimization are outside the MVP queue
+unless a specific MVP acceptance failure proves they are indispensable. The
+existing private-transport requirement is preserved for the B-03 path; it is
+not silently removed or imposed on every already-supported advisory flow.
+
+### Delivery contract
+
+Prefer a vertical slice that reaches the UI, server, persistence and a
+behavior-level check when those layers are needed. Bundle its necessary
+validation, implementation and documentation in the same delivery. A source-only
+helper is a dependency, not a finished user capability. Follow the bounded-work,
+blocker and progress rules in the operating governance; preserve critical
+security, ownership, budget and human-confirmation controls.
+
+## Historical roadmap and technical evidence — not the active work queue
+
 ## Current operating dashboard
 
 This dashboard is the short operational view of the roadmap. The detailed

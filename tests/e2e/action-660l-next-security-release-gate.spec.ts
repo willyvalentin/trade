@@ -43,6 +43,8 @@ const sourcePaths = [
 ] as const;
 
 const historicalCurrentStateSources = {
+  // The release receipt binds the historical agent instructions, not future product policy.
+  "AGENTS.md": "AGENTS.md",
   ".github/workflows/milestone-a-ci.yml":
     ".github/workflows/milestone-a-ci.yml",
   [registrationPath]: registrationPath,

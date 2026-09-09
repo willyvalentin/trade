@@ -224,7 +224,12 @@ test("manual MA13 control preserves the historical accepted gap without gate cre
       source("docs/action-660h-manual-ma13-merge-control.md"),
       source("docs/ture-master-roadmap.md"),
       source("docs/ture-current-state-ledger.md"),
-      source(".github/PULL_REQUEST_TEMPLATE.md"),
+      // MA13's manual checklist is historical evidence, not the current delivery policy.
+      execFileSync(
+        "git",
+        ["show", "7738643b8323f5fd460b1f3e8fcfc1adb0736412:.github/PULL_REQUEST_TEMPLATE.md"],
+        { cwd: repositoryRoot, encoding: "utf8" },
+      ),
       source(".github/workflows/milestone-a-ci.yml"),
       source("scripts/action-660j-provider-free-ci-registration.json"),
       source("docs/evidence/action-660h-manual-ma13-merge-control.json"),

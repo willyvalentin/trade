@@ -1,3 +1,19 @@
+# Ture
+
+Ture is a privacy-first trading decision-support product. The current delivery
+goal is a dependable advisory MVP with manual trade recording and truthful
+history; broker assistance and measured learning follow after MVP acceptance.
+
+Start with the active sections of the [master roadmap](docs/ture-master-roadmap.md),
+[current queue](docs/ture-current-state-ledger.md) and
+[delivery policy](docs/roadmap-operating-governance.md). Historical Action
+records are evidence, not a competing backlog. See `AGENTS.md` before work.
+
+The MVP journey is: sign in → current recommendation or honest no-trade state →
+record a manually executed trade → follow and close it → correct durable history.
+
+## Framework development reference
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
