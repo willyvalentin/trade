@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
@@ -78,7 +79,7 @@ function loadContract(): LoadedContract {
     exports: {} as Record<string, unknown>,
     require: (specifier: string) => {
       if (specifier === "server-only") return {};
-      if (specifier === "node:crypto") return require("node:crypto");
+      if (specifier === "node:crypto") return { createHash };
       if (specifier === "@/lib/execution") return executionSandbox.exports;
       throw new Error(`unexpected import: ${specifier}`);
     },
