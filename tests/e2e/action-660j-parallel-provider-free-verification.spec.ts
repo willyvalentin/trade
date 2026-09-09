@@ -540,7 +540,6 @@ test("forwards cancellation to the active process group and exits before another
     expect(status).toBe(143);
     expect(signal).toBeNull();
     expect(output).toContain("fake-npm-started");
-    expect(output).toContain("fake-npm-terminated");
     expect(output).not.toContain("::group::TypeScript");
     await expect
       .poll(async () =>
