@@ -437,6 +437,10 @@ function runCommand(plannedCommand, environment, onChild) {
       {
         cwd: repositoryRoot,
         env: environment,
+        // A shell-free command may still create descendants (for example,
+        // npm spawning node). Keep them in a dedicated Unix process group so
+        // GitHub cancellation cannot leave them holding the runner open.
+        detached: process.platform !== "win32",
         shell: false,
         stdio: "inherit",
       },
@@ -458,6 +462,22 @@ function exitStatusForCancellation(signal) {
   return signal === "SIGINT" ? 130 : 143;
 }
 
+function terminateActiveChild(child, signal) {
+  if (process.platform !== "win32" && typeof child.pid === "number") {
+    try {
+      process.kill(-child.pid, signal);
+      return;
+    } catch (error) {
+      // The process can exit between the exit-code check and group delivery.
+      // Fall through to the direct-child fallback for other platform errors.
+      if (error?.code === "ESRCH") {
+        return;
+      }
+    }
+  }
+  child.kill(signal);
+}
+
 async function runShard(shardName) {
   if (!providerFreeVerificationShardNames.includes(shardName)) {
     process.stderr.write(`Unknown provider-free verification shard: ${shardName}\n`);
@@ -469,7 +489,7 @@ async function runShard(shardName) {
   const requestCancellation = (signal) => {
     cancellationSignal ??= signal;
     if (activeChild !== null && activeChild.exitCode === null) {
-      activeChild.kill(signal);
+      terminateActiveChild(activeChild, signal);
     }
   };
   const signalHandlers = ["SIGINT", "SIGTERM"].map((signal) => [
@@ -495,7 +515,7 @@ async function runShard(shardName) {
       const result = await runCommand(plannedCommand, environment, (child) => {
         activeChild = child;
         if (cancellationSignal !== null) {
-          child.kill(cancellationSignal);
+          terminateActiveChild(child, cancellationSignal);
         }
       });
       activeChild = null;

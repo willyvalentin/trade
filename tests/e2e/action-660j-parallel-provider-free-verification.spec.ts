@@ -464,19 +464,26 @@ test("preserves exact serial coverage in six closed static shard plans", async (
   expect(runner).toContain('import { spawn } from "node:child_process"');
   expect(runner).not.toContain("spawnSync");
   expect(runner).toContain('process.on(signal, handler)');
-  expect(runner).toContain('activeChild.kill(signal)');
+  expect(runner).toContain("detached: process.platform !== \"win32\"");
+  expect(runner).toContain("process.kill(-child.pid, signal)");
+  expect(runner).toContain("terminateActiveChild(activeChild, signal)");
   expect(runner).toContain('exitStatusForCancellation(signal)');
   expect(runner).toContain("shell: false");
 });
 
-test("forwards cancellation to the active command and exits before another command can start", async () => {
+test("forwards cancellation to the active process group and exits before another command can start", async () => {
   const fixtureDirectory = await mkdtemp(
     path.join(os.tmpdir(), "ture-ci-cancellation-"),
   );
   const fakeNpmPath = path.join(fixtureDirectory, "npm");
+  const childPidPath = path.join(fixtureDirectory, "fake-npm-child.pid");
+  const terminationMarkerPath = path.join(
+    fixtureDirectory,
+    "fake-npm-termination.log",
+  );
   await writeFile(
     fakeNpmPath,
-    "#!/bin/sh\nprintf 'fake-npm-started\\n'\ntrap \"printf 'fake-npm-terminated\\n'; exit 0\" TERM INT\nwhile :; do sleep 1; done\n",
+    "#!/bin/sh\n(\n  trap \"printf 'fake-npm-child-terminated\\n' >> \\\"$CANCELLATION_MARKER\\\"; exit 0\" TERM INT\n  while :; do sleep 1; done\n) &\nprintf '%s\\n' \"$!\" > \"$CANCELLATION_CHILD_PID_FILE\"\nprintf 'fake-npm-started\\n'\ntrap \"printf 'fake-npm-terminated\\n'; exit 0\" TERM INT\nwhile :; do sleep 1; done\n",
   );
   await chmod(fakeNpmPath, 0o700);
 
@@ -488,6 +495,8 @@ test("forwards cancellation to the active command and exits before another comma
       env: {
         ...process.env,
         PATH: `${fixtureDirectory}${path.delimiter}${process.env.PATH ?? ""}`,
+        CANCELLATION_CHILD_PID_FILE: childPidPath,
+        CANCELLATION_MARKER: terminationMarkerPath,
       },
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -518,18 +527,42 @@ test("forwards cancellation to the active command and exits before another comma
     await started;
     const closed = once(runner, "close");
     expect(runner.kill("SIGTERM")).toBe(true);
-    const [status, signal] = (await closed) as [number | null, NodeJS.Signals | null];
+    const [status, signal] = (await Promise.race([
+      closed,
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Timed out waiting for process-group cancellation")),
+          10_000,
+        ),
+      ),
+    ])) as [number | null, NodeJS.Signals | null];
 
     expect(status).toBe(143);
     expect(signal).toBeNull();
     expect(output).toContain("fake-npm-started");
-    expect(output).toContain("fake-npm-terminated");
     expect(output).not.toContain("::group::TypeScript");
+    await expect
+      .poll(async () =>
+        readFile(terminationMarkerPath, "utf8").catch(() => ""),
+      )
+      .toContain("fake-npm-child-terminated");
   } finally {
     clearTimeout(timeout);
     if (runner.exitCode === null && runner.signalCode === null) {
       runner.kill("SIGKILL");
       await once(runner, "close");
+    }
+    const childPid = Number(
+      await readFile(childPidPath, "utf8").catch(() => "0"),
+    );
+    if (Number.isSafeInteger(childPid) && childPid > 0) {
+      try {
+        process.kill(childPid, "SIGKILL");
+      } catch (error) {
+        if (error && typeof error === "object" && "code" in error && error.code !== "ESRCH") {
+          throw error;
+        }
+      }
     }
     await rm(fixtureDirectory, { force: true, recursive: true });
   }
