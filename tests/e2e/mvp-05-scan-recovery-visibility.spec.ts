@@ -161,6 +161,40 @@ test.describe("MVP-05 scan recovery visibility", () => {
     }
   });
 
+  test("uses revision time when imported observation timestamps are unavailable", () => {
+    const completed = {
+      ...scanRun("2026-09-10T15:00:00.000Z", "completed"),
+      id: "invalid-observed-completed",
+      run_fingerprint: "invalid-observed-completed",
+      observed_at: "not-a-timestamp",
+      updated_at: "2026-09-10T15:01:00.000Z",
+    };
+    const failed = {
+      ...scanRun("2026-09-10T15:00:00.000Z", "failed"),
+      id: "invalid-observed-failed",
+      run_fingerprint: "invalid-observed-failed",
+      observed_at: "not-a-timestamp",
+      updated_at: "2026-09-10T15:02:00.000Z",
+    };
+
+    for (const scanRuns of [[completed, failed], [failed, completed]]) {
+      const summary = buildRecommendationScanRunHistorySummary({
+        scan_runs: scanRuns,
+        now: "2026-09-10T15:05:00.000Z",
+      });
+
+      expect(summary).toMatchObject({
+        latest_run_status: "failed",
+        latest_run_recovery_state: "review_required",
+        last_successful_run_status: "completed",
+      });
+      expect(summary.recent_items.map((item) => item.id)).toEqual([
+        "invalid-observed-failed",
+        "invalid-observed-completed",
+      ]);
+    }
+  });
+
   test("renders the distinct last-successful and recovery labels in scan history", async () => {
     const appSource = await readFile(
       path.join(repositoryRoot, "app/trade-app.tsx"),
