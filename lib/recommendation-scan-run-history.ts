@@ -166,6 +166,11 @@ function recordRevisionTimestampMs(scanRun: RecommendationScanRun) {
   );
 }
 
+function compareTimestampMs(first: number, second: number) {
+  if (first === second) return 0;
+  return first > second ? 1 : -1;
+}
+
 /**
  * Establishes a stable, newest-first ordering without trusting the incidental
  * order in which persisted rows are returned. `observed_at` is the business
@@ -177,13 +182,16 @@ function compareScanRunRecency(
   first: RecommendationScanRun,
   second: RecommendationScanRun,
 ) {
-  const observedDifference =
-    (timestampMs(first.observed_at) ?? Number.NEGATIVE_INFINITY) -
-    (timestampMs(second.observed_at) ?? Number.NEGATIVE_INFINITY);
+  const observedDifference = compareTimestampMs(
+    timestampMs(first.observed_at) ?? Number.NEGATIVE_INFINITY,
+    timestampMs(second.observed_at) ?? Number.NEGATIVE_INFINITY,
+  );
   if (observedDifference !== 0) return observedDifference;
 
-  const revisionDifference =
-    recordRevisionTimestampMs(first) - recordRevisionTimestampMs(second);
+  const revisionDifference = compareTimestampMs(
+    recordRevisionTimestampMs(first),
+    recordRevisionTimestampMs(second),
+  );
   if (revisionDifference !== 0) return revisionDifference;
 
   return first.id.localeCompare(second.id);
