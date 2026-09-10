@@ -668,9 +668,22 @@ export function computeRecommendationOutcome(
   }
 
   const eodR = rFromPrice(eodPrice, entry, risk, side);
+  const suppliedDataCompleteness = textOrNull(input.data_completeness);
+  const observedDataCompleteness = hasCandles
+    ? "complete"
+    : currentPrice !== null || eodPrice !== null
+      ? "partial"
+      : "none";
   const dataCompleteness =
-    textOrNull(input.data_completeness) ??
-    (hasCandles ? "complete" : currentPrice !== null || eodPrice !== null ? "partial" : "none");
+    suppliedDataCompleteness === "complete" && !hasCandles
+      ? observedDataCompleteness
+      : suppliedDataCompleteness ?? observedDataCompleteness;
+
+  if (suppliedDataCompleteness === "complete" && !hasCandles) {
+    warnings.push(
+      "Complete outcome data was claimed without intraday candles; the outcome remains incomplete until candle evidence is available.",
+    );
+  }
   const planPriceFreshness = computePlanPriceFreshnessDiagnostics({
     snapshot,
     entry,
