@@ -69,7 +69,7 @@ rows still need behavior evidence.
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
-| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | — |
+| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | Local source evidence on `ba8ba7e4` distinguishes clean no-trade scans from runs that need recovery review; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | — |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
@@ -205,6 +205,19 @@ behavior_check_and_environment: Local Node/Playwright pure-summary coverage veri
 external_effects_and_existing_authority: None. Test fixtures are local and no provider, database, deploy, broker or production system was contacted.
 blocker_or_fallback: The delivered UI mapping is not a provider-health, freshness, missed-run or recovery proof. It remains unverified until a supported environment exercises the real dashboard data path with safely bounded evidence.
 result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
+```
+
+#### MVP-05 truthful clean no-trade recovery history — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05b
+user_behavior_or_reproduced_failure: The scan-history summary already defined a healthy, provider-clean empty scan as a successful no-trade result, but its aggregate “Degraded/Stale/Empty” counter and warning still counted that same result as degraded. A correct no-trade decision could therefore look like an operational failure.
+smallest_change_and_reused_components: Reused the existing successful-scan predicate for every recovery aggregate. History now reports “Runs Needing Review” for only runs that cannot be a current recovery point, while a healthy empty result counts as successful and zero review-required runs. The summary contract is explicitly advanced to 1.1 to make the changed field semantics clear. No scanner, provider, scheduler, route, database, identity, broker or production behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-05-scan-recovery-visibility.spec.ts` passes 6/6 locally, covering a later failed scan, clean no-trade, unobserved empty, provider-warning empty and the mixed clean-no-trade/failed aggregate. Scoped ESLint, full TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. The tests use local synthetic scan records only; no provider, database, deploy, broker or production system was contacted.
+blocker_or_fallback: This fixes the local presentation contract but does not establish a licensed provider run, a missed-run recovery or a supported-environment day-long operation. MVP-05b remains unverified until that behavior is exercised.
+result_and_remaining_gap: A valid no-trade outcome no longer creates a false operational alarm, while failed, stale, partial, unknown or provider-warning runs remain visible as requiring review.
 ```
 
 #### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
