@@ -34,7 +34,10 @@ import {
   applicationPositionCloseResultMessage,
   parseApplicationPositionCloseResult,
 } from "@/lib/application-position-close-result";
-import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
+import {
+  hasCoherentLongManualPositionPlan,
+  hasRecordableManualPositionPlan,
+} from "@/lib/manual-position-plan";
 import {
   aggregateRealizedPnlExplanation,
   aggregateRealizedPnlLabel,
@@ -10714,11 +10717,15 @@ export function TradeApp({
       return;
     }
 
-    if (
-      selectedRecommendation.stopLossValue !== null &&
-      selectedRecommendation.stopLossValue >= actualEntryPrice
-    ) {
-      setMessage("Stop loss must be below actual fill price for a long trade.");
+    if (!hasCoherentLongManualPositionPlan({
+      entryPrice: actualEntryPrice,
+      stopLoss: selectedRecommendation.stopLoss,
+      target1: selectedRecommendation.target1,
+      target2: selectedRecommendation.target2,
+    })) {
+      setMessage(
+        "This long plan must have stop below fill and two ascending targets above fill.",
+      );
       return;
     }
 

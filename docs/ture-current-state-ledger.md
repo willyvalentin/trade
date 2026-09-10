@@ -310,6 +310,19 @@ blocker_or_fallback: MVP-03a remains unverified until an identified supported en
 result_and_remaining_gap: Valid plan decimals emitted by the current UI no longer fail at the server input boundary, while malformed values remain fail-closed. MVP-03b and MVP-03c still require the full supported manual lifecycle, including retry and close/reload evidence.
 ```
 
+#### MVP-03 coherent long-plan admission — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03a
+user_behavior_or_reproduced_failure: The manual position writer accepted any individually positive fill, stop and two-target values. Since current recommendation generation is explicitly long-only, a stop above the fill or descending targets could otherwise be recorded as a durable but impossible long plan.
+smallest_change_and_reused_components: Added one shared pure validator at both the client submit boundary and the server-owned request parser. It requires `stop < actual fill < target 1 < target 2`, while retaining the existing authenticated route, owner binding, transactional RPC and replay behavior. No schema or database migration is needed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: Targeted local Playwright coverage passed 12/12 across recordable-plan, open-input and replay paths. The new assertions accept a coherent long plan and reject an above-fill stop, below-fill first target and non-ascending second target. Scoped ESLint, TypeScript no-emit and diff checks passed.
+external_effects_and_existing_authority: None. The change and tests use local synthetic values only; no credential, database row, provider, deployment, broker or production operation occurred.
+blocker_or_fallback: This does not add short trading: the current generator explicitly emits long recommendations only. MVP-03a remains unverified until an identified supported environment records a manually executed entry from a recommendation and reloads the durable position.
+result_and_remaining_gap: Impossible long plans are rejected consistently before persistence, so manual trade history cannot silently start with an inverted risk/reward structure. The complete manual entry → reload → exit → reload journey is still required for MVP acceptance.
+```
+
 #### MVP-03 manual-entry retry command stability — 2026-09-10 (local verified)
 
 ```text
