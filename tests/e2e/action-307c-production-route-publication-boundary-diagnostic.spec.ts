@@ -6,8 +6,8 @@ import { NextRequest } from "next/server";
 import { POST as hb307cPOST } from "../../app/api/hb307c/route";
 import {
   GET as hb307cPingGET,
-  hb307cCanaryRouteBuildMarker,
 } from "../../app/api/hb307c/ping/route";
+import { hb307cCanaryRouteBuildMarker } from "../../lib/hb307c-route-contract";
 import { GET as routePublicationGET } from "../../app/api/route-publication-diagnostic/route";
 import { firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker } from "../../lib/first-tiny-historical-replay-with-signal-package-dry-run-execute";
 import { proxy } from "../../proxy";
@@ -162,18 +162,24 @@ test("route publication diagnostic lists Action 307 original alias and canary ro
   expectNoEffects(body);
 });
 
-test("proxy boundary audit includes hb307c and route-publication diagnostic", async () => {
-  const paths = [
+test("proxy keeps canonical diagnostic paths public and aliases protected", async () => {
+  const publicPaths = [
     ["/api/hb307c", "POST"],
+    ["/api/route-publication-diagnostic", "GET"],
+  ] as const;
+  const protectedAliases = [
     ["/api/hb307c/", "POST"],
     ["/api/hb307c/ping", "GET"],
     ["/api/hb307c/ping/", "GET"],
-    ["/api/route-publication-diagnostic", "GET"],
     ["/api/route-publication-diagnostic/", "GET"],
   ] as const;
 
-  for (const [path, method] of paths) {
+  for (const [path, method] of publicPaths) {
     const response = await proxyStatus(path, method);
     expect(response.status, path).not.toBe(401);
+  }
+  for (const [path, method] of protectedAliases) {
+    const response = await proxyStatus(path, method);
+    expect(response.status, path).toBe(401);
   }
 });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { hb307cCanaryRouteBuildMarker } from "@/app/api/hb307c/ping/route";
+import { hb307cCanaryRouteBuildMarker } from "@/lib/hb307c-route-contract";
 import { firstTinyReplayWithSignalPackageDryRunExecuteBuildMarker } from "@/lib/first-tiny-historical-replay-with-signal-package-dry-run-execute";
 import { firstTinyHistoricalReplaySignalPackageDiscoveryReadbackMarker } from "@/lib/first-tiny-historical-replay-signal-package-discovery-readback";
 
