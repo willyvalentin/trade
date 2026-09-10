@@ -53,6 +53,39 @@ test.describe("MVP-04 plan-vs-actual completeness", () => {
     );
   });
 
+  test("requires review when metadata reports an impossible negative remaining-share count", () => {
+    const review = reviewForRemainingShares(-1);
+
+    expect(review.status).toBe("needs_review");
+    expect(review.grade).toBe("C");
+    expect(review.checks).toContainEqual(
+      expect.objectContaining({
+        check_id: "partial_position",
+        message: "Remaining shares cannot be negative and require review.",
+      }),
+    );
+    expect(review.deviations).toContainEqual(
+      expect.objectContaining({
+        deviation_id: "partial_close_needs_review",
+        message: "Invalid negative remaining-share metadata requires review.",
+      }),
+    );
+  });
+
+  test("requires review when metadata reports more remaining shares than the recorded entry", () => {
+    const review = reviewForRemainingShares(11);
+
+    expect(review.status).toBe("needs_review");
+    expect(review.grade).toBe("C");
+    expect(review.checks).toContainEqual(
+      expect.objectContaining({
+        check_id: "partial_position",
+        message:
+          "Remaining shares exceed the recorded entry shares and require review.",
+      }),
+    );
+  });
+
   test("retains a followed-plan result when the closed metadata has no remaining shares", () => {
     const review = reviewForRemainingShares(0);
 

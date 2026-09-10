@@ -254,6 +254,16 @@ export function buildPlanVsActualReview(
   const partialStatus = nullableString(metadata?.partial_position_status);
   const remainingShares = finiteNumber(metadata?.remaining_shares);
   const hasRemainingShares = remainingShares !== null && remainingShares > 0;
+  const remainingSharesIssue =
+    remainingShares !== null && remainingShares < 0
+      ? "negative"
+      : remainingShares !== null &&
+          actualEntryShares !== null &&
+          remainingShares > actualEntryShares
+        ? "exceeds_recorded_entry_shares"
+        : null;
+  const partialStateNeedsReview =
+    partialStatus === "partially_closed" || hasRemainingShares || remainingSharesIssue !== null;
   const quantityDeviationPercent = calculateQuantityDeviation({
     plannedQuantity,
     actualEntryShares,
@@ -409,23 +419,33 @@ export function buildPlanVsActualReview(
     );
   }
 
-  if (
-    partialStatus === "partially_closed" ||
-    hasRemainingShares
-  ) {
+  if (partialStateNeedsReview) {
+    const message =
+      remainingSharesIssue === "negative"
+        ? "Remaining shares cannot be negative and require review."
+        : remainingSharesIssue === "exceeds_recorded_entry_shares"
+          ? "Remaining shares exceed the recorded entry shares and require review."
+          : "Trade has partial-close state or remaining shares.";
+    const deviationMessage =
+      remainingSharesIssue === "negative"
+        ? "Invalid negative remaining-share metadata requires review."
+        : remainingSharesIssue === "exceeds_recorded_entry_shares"
+          ? "Remaining shares exceed the recorded entry shares and require review."
+          : "Partial close outcome should be reviewed separately from full-close outcomes.";
+
     checks.push(
       check(
         "partial_position",
         "Partial Position",
         "warning",
-        "Trade has partial-close state or remaining shares.",
+        message,
       ),
     );
     deviations.push(
       deviation(
         "partial_close_needs_review",
         "minor",
-        "Partial close outcome should be reviewed separately from full-close outcomes.",
+        deviationMessage,
       ),
     );
   }
@@ -456,7 +476,7 @@ export function buildPlanVsActualReview(
     ? "incomplete"
     : hasFailed || hasMajorDeviation
       ? "major_deviation"
-        : partialStatus === "partially_closed" || hasRemainingShares
+        : partialStateNeedsReview
         ? "needs_review"
         : hasMinorDeviation
           ? "minor_deviation"
