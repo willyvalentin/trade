@@ -14,6 +14,7 @@ function scanRun(observedAt: string, status: "completed" | "empty" | "failed") {
       visible_recommendations: status === "completed" ? [{ ticker: "TURE" }] : [],
     }),
     status,
+    scan_observability_status: "healthy",
   };
 }
 
@@ -47,6 +48,26 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "not_required",
       last_successful_run_status: "empty",
       last_successful_run_timestamp: "2026-09-10T14:00:00.000Z",
+    });
+  });
+
+  test("never treats an unobserved empty result as a clean recovery point", () => {
+    const summary = buildRecommendationScanRunHistorySummary({
+      scan_runs: [
+        scanRun("2026-09-10T13:00:00.000Z", "completed"),
+        {
+          ...scanRun("2026-09-10T14:00:00.000Z", "empty"),
+          scan_observability_status: "unknown",
+        },
+      ],
+      now: "2026-09-10T14:05:00.000Z",
+    });
+
+    expect(summary).toMatchObject({
+      latest_run_status: "empty",
+      latest_run_recovery_state: "review_required",
+      last_successful_run_status: "completed",
+      last_successful_run_timestamp: "2026-09-10T13:00:00.000Z",
     });
   });
 

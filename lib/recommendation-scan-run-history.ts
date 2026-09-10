@@ -291,7 +291,15 @@ function hasProviderWarning(scanRun: RecommendationScanRun) {
 function isSuccessfulScanRun(
   scanRun: RecommendationScanRun,
 ): scanRun is RecommendationScanRun & { status: "completed" | "empty" } {
-  return scanRun.status === "completed" || scanRun.status === "empty";
+  // A status alone is not enough to establish a trustworthy recovery point:
+  // historical imports can label a zero-result run as empty while its scan
+  // observability is still unknown. A clean no-trade result is only useful if
+  // the scan was healthy and no provider warning was recorded.
+  return (
+    (scanRun.status === "completed" || scanRun.status === "empty") &&
+    scanRun.scan_observability_status === "healthy" &&
+    !hasProviderWarning(scanRun)
+  );
 }
 
 function latestSuccessfulScanRun(scanRuns: RecommendationScanRun[]) {
