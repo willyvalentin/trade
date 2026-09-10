@@ -8,8 +8,10 @@ in all older snapshots below. Historical restrictions on specific external
 operations remain evidence and are not renewed by this decision.
 
 Delivery state: source-only MVP-02 and MVP-04 corrections are merged on
-GitHub main as PRs #442 and #441 respectively. MVP-01c's exact named
-staging-origin guard is also merged as PR #443. Its merge and exact-main
+GitHub main as PRs #442 and #441 respectively. Draft PR #452 holds a separate
+MVP-05 scan-history ordering correction; it is locally verified but neither
+merged nor deployed. MVP-01c's exact named staging-origin guard is also merged
+as PR #443. Its merge and exact-main
 attestation are delivery evidence only; no staging site was created or deployed,
 and the merge is not a production deployment or supported-environment proof.
 Baseline inspected: GitHub main `d0ce1e783869f0548d5778287264c1258310d7cf`,
@@ -69,7 +71,7 @@ rows still need behavior evidence.
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
-| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | — |
+| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | Draft PR #452 chooses the newest persisted revision for duplicate scan fingerprints, so source-row order cannot replace the dashboard's latest recovery point. Local recovery coverage passes 6/6; supported-environment recovery remains unverified. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | — |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
@@ -205,6 +207,19 @@ behavior_check_and_environment: Local Node/Playwright pure-summary coverage veri
 external_effects_and_existing_authority: None. Test fixtures are local and no provider, database, deploy, broker or production system was contacted.
 blocker_or_fallback: The delivered UI mapping is not a provider-health, freshness, missed-run or recovery proof. It remains unverified until a supported environment exercises the real dashboard data path with safely bounded evidence.
 result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
+```
+
+#### MVP-05 deterministic duplicate scan-history selection — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05b
+user_behavior_or_reproduced_failure: The scan-history summary deduplicated matching run fingerprints by retaining the last array element. A persistence response in a different order could therefore make an older failed revision replace a later clean revision as the dashboard's latest and recovery point.
+smallest_change_and_reused_components: Reused the existing immutable run fingerprint and persisted created/updated timestamps. The history summary now chooses the newest revision for each fingerprint before applying its existing latest-run and recovery rules. No scan, provider, scheduler, route, database or runtime behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: Draft PR #452 revision `51d35418` adds a reversed-input regression fixture with one duplicate fingerprint and proves that the newer completed revision stays the only displayed run and clean recovery point. The scoped scan-recovery suite passes 6/6; scoped ESLint and diff checks pass.
+external_effects_and_existing_authority: None. The test uses local synthetic scan-run records only; no provider, database, deployment, broker or production system was contacted.
+blocker_or_fallback: This corrects deterministic local state handling but does not prove a real provider's freshness, missed-run recovery or day-long operational behavior. Those remain supported-environment checks.
+result_and_remaining_gap: Dashboard recovery labels can no longer depend on the incidental delivery order of duplicate scan rows. MVP-05b remains unverified until the complete supported recovery behavior is observed.
 ```
 
 #### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
