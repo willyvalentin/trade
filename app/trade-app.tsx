@@ -39189,6 +39189,13 @@ function RecommendationScanRunHistoryPanel({
   summary: RecommendationScanRunHistorySummary;
   summaryJson: string;
 }) {
+  const degradedStaleEmptyCount = summary.status_breakdown
+    .filter((item) =>
+      item.status === "degraded" ||
+      item.status === "stale" ||
+      item.status === "empty",
+    )
+    .reduce((total, item) => total + item.count, 0);
   const visibleWindows = summary.window_breakdown.filter(
     (window) =>
       window.scan_run_count > 0 ||
@@ -39233,8 +39240,8 @@ function RecommendationScanRunHistoryPanel({
           )}
         />
         <SummaryCard
-          label="Runs Needing Review"
-          value={String(summary.recovery_review_run_count)}
+          label="Degraded/Stale/Empty"
+          value={String(degradedStaleEmptyCount)}
         />
         <SummaryCard
           label="Latest Run"
@@ -39402,7 +39409,6 @@ function RecommendationScanRunHistoryPanel({
         data-latest-run-recovery-state={summary.latest_run_recovery_state ?? "unknown"}
         data-provider-warning-run-count={summary.provider_warning_run_count}
         data-unknown-metric-run-count={summary.unknown_metric_run_count}
-        data-recovery-review-run-count={summary.recovery_review_run_count}
       >
         {summaryJson}
       </pre>
