@@ -98,6 +98,7 @@ export function RecommendationCardContainer<
       confidenceProjectionPreview={confidenceCalibrationProjectionPreview}
       confidenceTone={displayProps.confidenceTone}
       discardDisabled={displayProps.discardDisabled}
+      freshnessNotice={displayProps.freshnessNotice}
       identity={renderIdentity(recommendation)}
       metrics={displayProps.metrics}
       onAddTrade={() => onTakeTrade(recommendation)}

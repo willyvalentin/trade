@@ -53,6 +53,7 @@ export type RecommendationCardDisplayProps = {
   confidenceTone: RecommendationCardConfidenceTone;
   confirmation: RecommendationDetailsModalConfirmation;
   discardDisabled: boolean;
+  freshnessNotice: string | null;
   isExpired: boolean;
   keyReasons: RecommendationCardDisplayKeyReasons;
   metrics: RecommendationCardMetric[];
@@ -157,9 +158,19 @@ export function buildRecommendationCardDisplayProps({
           : `${recommendation.confidenceScore}/100`,
     },
   ];
+  const freshnessNotice =
+    freshness === "expired"
+      ? "EXPIRED — REVIEW ONLY"
+      : freshness === "stale"
+        ? "STALE DATA — REVALIDATE BEFORE TRADE"
+        : null;
   const addTradeLabel = isValidating
     ? "Validating Setup"
-    : "Make Trade";
+    : isExpired
+      ? "Setup Expired"
+      : freshness === "stale"
+        ? "Revalidate Setup"
+        : "Make Trade";
 
   return {
     addTradeDisabled: isSaving || isExpired || isValidating,
@@ -171,6 +182,7 @@ export function buildRecommendationCardDisplayProps({
     confidenceTone,
     confirmation: addTradeGate.confirmation,
     discardDisabled: isSaving,
+    freshnessNotice,
     isExpired,
     keyReasons,
     metrics,

@@ -245,6 +245,17 @@ blocker_or_fallback: A supported environment must still exercise the full manual
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
 ```
 
+#### MVP-02 stale recommendation presentation — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02c
+user_behavior_or_reproduced_failure: A stale recommendation could still render the ordinary “Make Trade” call to action in the main card. Its stale source badge and the revalidation instruction were available only after opening details, so an older data record could look like a current actionable signal before the existing validation boundary ran.
+smallest_change_and_reused_components: Reused the existing freshness classification and validation flow. The primary card now exposes an explicit stale-data status and changes its call to action to “Revalidate Setup”; expired records visibly say review only and retain the existing disabled state. Fresh cards retain the existing actionable wording. No recommendation score, scanner, provider, route, validation policy, persistence or broker behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-02-stale-recommendation-presentation.spec.ts` verifies stale labels and revalidation wording, unchanged fresh presentation, and visible disabled expired presentation. Targeted Playwright checks pass 2/2; scoped ESLint, local Next 16.3.4 production build and diff checks pass.
+external_effects_and_existing_authority: None. The test uses local display inputs only; no provider, database row, deploy, credential, broker or production action occurred.
+blocker_or_fallback: This source correction does not establish real provider freshness or an operational day-long recovery path. MVP-02c and MVP-05 remain unverified until supported-environment data and failure behavior are exercised with an identified permitted source.
+result_and_remaining_gap: Older recommendation data is no longer visually equivalent to a current trade signal. It stays reviewable only through the existing revalidation flow, while fresh data keeps the established manual-trade path.
 ```
 
 #### MVP-01c initial dashboard failure clarity — 2026-09-10 (local verified)
