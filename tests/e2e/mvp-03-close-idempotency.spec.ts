@@ -3,9 +3,15 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  calculateOwnedLongPositionCloseMetrics,
+  ownedLongPositionCloseMetricsMatch,
   ownedPositionCloseValuesMatch,
   parseOwnedPositionCloseValues,
 } from "../../lib/server/owned-position-close";
+import {
+  applicationPositionCloseResultMessage,
+  parseApplicationPositionCloseResult,
+} from "../../lib/application-position-close-result";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 
@@ -70,7 +76,65 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(parseOwnedPositionCloseValues({ ...closeValues, pnl: Infinity })).toBeNull();
   });
 
-  test("the server updates only an open owned position before checking a closed replay", async () => {
+  test("rejects client-supplied metrics that disagree with a fully open owned long position", () => {
+    const parsed = parseOwnedPositionCloseValues(closeValues);
+    const metrics = calculateOwnedLongPositionCloseMetrics(
+      {
+        entry_price: "100",
+        position_size: "10",
+        current_stop: "80",
+        execution_metadata: { entry_fills: [] },
+      },
+      closeValues.exit_price,
+    );
+
+    expect(metrics).toEqual({ pnl: 125, pnl_percent: 12.5, r_multiple: 0.625 });
+    expect(ownedLongPositionCloseMetricsMatch(parsed!, metrics!)).toBe(false);
+    expect(
+      ownedLongPositionCloseMetricsMatch(
+        { ...parsed!, pnl: 125, r_multiple: 0.625 },
+        metrics!,
+      ),
+    ).toBe(true);
+  });
+
+  test("leaves prior partial-exit accounting outside the one-fill close check", () => {
+    expect(
+      calculateOwnedLongPositionCloseMetrics(
+        {
+          entry_price: 100,
+          position_size: 5,
+          current_stop: 80,
+          execution_metadata: { exit_fills: [{ fill_id: "prior-exit" }] },
+        },
+        112.5,
+      ),
+    ).toBeNull();
+  });
+
+  test("keeps the server-owned closed-versus-reused outcome visible to a close retry", () => {
+    const reused = parseApplicationPositionCloseResult({
+      ok: true,
+      disposition: "reused",
+    });
+    const closed = parseApplicationPositionCloseResult({
+      ok: true,
+      disposition: "closed",
+    });
+
+    expect(reused).not.toBeNull();
+    expect(closed).not.toBeNull();
+    expect(applicationPositionCloseResultMessage(reused!, "ACME", null)).toContain(
+      "no duplicate close was recorded",
+    );
+    expect(applicationPositionCloseResultMessage(closed!, "ACME", "Fee pending")).toBe(
+      "ACME closed from broker exit fill. Fee pending",
+    );
+    expect(parseApplicationPositionCloseResult({ ok: true, disposition: "changed" })).toBeNull();
+    expect(parseApplicationPositionCloseResult({ disposition: "closed" })).toBeNull();
+  });
+
+  test("the server only shrinks an open owned position before checking a closed replay", async () => {
     const dataAccess = await source("lib/server/application-data-access.ts");
     const route = await source("app/api/app/positions/route.ts");
     const partialUpdateSource = dataAccess.slice(
@@ -83,11 +147,23 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(dataAccess).toContain('.eq("status", "open")');
     expect(dataAccess).toContain('.eq("status", "closed")');
     expect(dataAccess).toContain("ownedPositionCloseValuesMatch(existing.data, values)");
+    expect(dataAccess).toContain("calculateOwnedLongPositionCloseMetrics(");
+    expect(dataAccess).toContain("ownedLongPositionCloseMetricsMatch(values, metrics)");
     expect(partialUpdateSource).toContain('.eq("status", "open")');
+    expect(
+      partialUpdateSource.match(/\.gt\("position_size", values\.position_size\)/g),
+    ).toHaveLength(2);
     expect(route).toContain('body.operation === "close"');
     expect(route).toContain("closeApplicationPosition({");
     expect(route).toContain("session.owner_user_id");
     expect(route).toContain('error: "Invalid position lifecycle values."');
     expect(route).toContain("{ status: 400 }");
+    expect(dataAccess).toContain('disposition: "closed"');
+    expect(dataAccess).toContain('disposition: "reused"');
+    expect(route).toContain('"data" in result ? result.data : {}');
+    const tradeApp = await source("app/trade-app.tsx");
+    expect(tradeApp).toContain("parseApplicationPositionCloseResult(payload)");
+    expect(tradeApp).toContain('closeResult?.disposition === "closed"');
+    expect(tradeApp).toContain("applicationPositionCloseResultMessage(");
   });
 });

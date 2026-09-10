@@ -26,7 +26,19 @@ import {
   resolveOpenPositionReplay,
   type OpenPositionReplay,
 } from "@/lib/open-position-replay";
-import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
+import {
+  applicationPositionOpenResultMessage,
+  parseApplicationPositionOpenResult,
+} from "@/lib/application-position-open-result";
+import {
+  applicationPositionCloseResultMessage,
+  parseApplicationPositionCloseResult,
+} from "@/lib/application-position-close-result";
+import {
+  hasCoherentLongManualPositionPlan,
+  hasRecordableManualPositionPlan,
+} from "@/lib/manual-position-plan";
+import { resolveDashboardRefreshContention } from "@/lib/dashboard-refresh-contention";
 import {
   aggregateRealizedPnlExplanation,
   aggregateRealizedPnlLabel,
@@ -2585,8 +2597,27 @@ async function postApplicationPosition(position: Record<string, unknown>) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(position),
   });
-  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-  return { error: response.ok ? null : new Error(payload?.error ?? "Position could not be opened.") };
+  const payload = (await response.json().catch(() => null)) as unknown;
+
+  if (!response.ok) {
+    const error =
+      payload &&
+      typeof payload === "object" &&
+      !Array.isArray(payload) &&
+      typeof (payload as { error?: unknown }).error === "string"
+        ? (payload as { error: string }).error
+        : "Position could not be opened.";
+
+    return { data: null, error: new Error(error) };
+  }
+
+  const data = parseApplicationPositionOpenResult(payload);
+  return data
+    ? { data, error: null }
+    : {
+        data: null,
+        error: new Error("Position response could not be verified."),
+      };
 }
 
 async function patchApplicationPosition(
@@ -2599,8 +2630,26 @@ async function patchApplicationPosition(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ position_id: positionId, operation, values }),
   });
-  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-  return { error: response.ok ? null : new Error(payload?.error ?? "Position update is unavailable.") };
+  const payload = (await response.json().catch(() => null)) as unknown;
+  if (!response.ok) {
+    const error =
+      payload &&
+      typeof payload === "object" &&
+      !Array.isArray(payload) &&
+      typeof (payload as { error?: unknown }).error === "string"
+        ? (payload as { error: string }).error
+        : "Position update is unavailable.";
+    return { data: null, error: new Error(error) };
+  }
+
+  if (operation !== "close") {
+    return { data: null, error: null };
+  }
+
+  const data = parseApplicationPositionCloseResult(payload);
+  return data
+    ? { data, error: null }
+    : { data: null, error: new Error("Position close response could not be verified.") };
 }
 
 async function patchRecommendationLifecycle(input: Record<string, unknown>) {
@@ -8912,7 +8961,7 @@ export function TradeApp({
     Record<string, PositionUpdateUrgency["urgency"]>
   >({});
   const isUpdatingPositionsRef = useRef(false);
-  const dataRefreshInFlightRef = useRef(false);
+  const dataRefreshInFlightPromiseRef = useRef<Promise<void> | null>(null);
   const requestedSymbolMetadataRef = useRef<Set<string>>(new Set());
   const loadTradeDataRef = useRef<
     (options?: LoadTradeDataOptions) => Promise<void>
@@ -9038,10 +9087,37 @@ export function TradeApp({
   }
 
   async function loadTradeData(options: LoadTradeDataOptions = {}) {
-    await Promise.resolve();
-
     const mode = options.mode ?? "initial";
     const isInitialLoad = mode === "initial";
+
+    // A normal background refresh remains coalesced. An action refresh waits
+    // for the current read and then claims its own turn, so a just-recorded
+    // durable position is not hidden until the user manually reloads.
+    while (true) {
+      const existingRefresh = dataRefreshInFlightPromiseRef.current;
+      const contention = await resolveDashboardRefreshContention({
+        existingRefresh,
+        isInitialLoad,
+        source: options.source,
+      });
+
+      if (contention === "skip") {
+        return;
+      }
+
+      if (dataRefreshInFlightPromiseRef.current === existingRefresh) {
+        break;
+      }
+    }
+
+    let completeRefresh: () => void = () => {};
+    const currentRefresh = new Promise<void>((resolve) => {
+      completeRefresh = resolve;
+    });
+    dataRefreshInFlightPromiseRef.current = currentRefresh;
+
+    await Promise.resolve();
+
     const refreshedIslands = options.islands ?? refreshIslandIds;
     const refreshStartedAt = new Date().toISOString();
     const islandErrors: Partial<Record<RefreshIslandId, string>> = {};
@@ -9049,12 +9125,6 @@ export function TradeApp({
     const shouldUpdateGlobalMessage =
       options.clearMessage !== false &&
       (isInitialLoad || options.source === "manual" || options.source === "action");
-
-    if (!isInitialLoad && dataRefreshInFlightRef.current) {
-      return;
-    }
-
-    dataRefreshInFlightRef.current = true;
 
     if (isInitialLoad) {
       setIsLoading(true);
@@ -9807,7 +9877,10 @@ export function TradeApp({
         noteIslandError(islandId, error);
       }
     } finally {
-      dataRefreshInFlightRef.current = false;
+      if (dataRefreshInFlightPromiseRef.current === currentRefresh) {
+        dataRefreshInFlightPromiseRef.current = null;
+      }
+      completeRefresh();
       setIslandRefreshState((current) => {
         const next = { ...current };
 
@@ -10669,11 +10742,15 @@ export function TradeApp({
       return;
     }
 
-    if (
-      selectedRecommendation.stopLossValue !== null &&
-      selectedRecommendation.stopLossValue >= actualEntryPrice
-    ) {
-      setMessage("Stop loss must be below actual fill price for a long trade.");
+    if (!hasCoherentLongManualPositionPlan({
+      entryPrice: actualEntryPrice,
+      stopLoss: selectedRecommendation.stopLoss,
+      target1: selectedRecommendation.target1,
+      target2: selectedRecommendation.target2,
+    })) {
+      setMessage(
+        "This long plan must have stop below fill and two ascending targets above fill.",
+      );
       return;
     }
 
@@ -10846,15 +10923,18 @@ export function TradeApp({
       return;
     }
 
-    const { error: insertError } = await postApplicationPosition(positionInsert);
+    const { data: positionOpenResult, error: insertError } =
+      await postApplicationPosition(positionInsert);
 
-    if (insertError) {
-      setMessage(insertError.message);
+    if (insertError || !positionOpenResult) {
+      setMessage(
+        insertError?.message ?? "Position response could not be verified.",
+      );
       setIsSaving(false);
       return;
     }
 
-    if (brokerFill) {
+    if (brokerFill && positionOpenResult.disposition === "created") {
       logLiveDayTradeCreatedAfterBrokerConfirmation(
         selectedRecommendation,
         brokerFill,
@@ -10879,6 +10959,12 @@ export function TradeApp({
     await refreshIslands(
       ["recommendations", "live_trades", "stats_today"],
       "action",
+    );
+    setMessage(
+      applicationPositionOpenResultMessage(
+        positionOpenResult,
+        selectedRecommendation.ticker,
+      ),
     );
     setIsSaving(false);
   }
@@ -11186,7 +11272,7 @@ export function TradeApp({
       return;
     }
 
-    const { error } = await patchApplicationPosition(
+    const { data: closeResult, error } = await patchApplicationPosition(
       selectedPosition.id,
       "close",
       updatePayload,
@@ -11198,23 +11284,25 @@ export function TradeApp({
       return;
     }
 
-    logTradeClosedEvent({
-      position: selectedPosition,
-      closedAt,
-      pnl,
-      rMultiple,
-    });
-    if (brokerExitConfirmation) {
-      logBrokerExitConfirmationEvent(
-        "broker_exit_fill_captured",
-        selectedPosition,
-        brokerExitConfirmation,
-      );
-      logBrokerExitConfirmationEvent(
-        "live_day_trade_closed_after_broker_exit_confirmation",
-        selectedPosition,
-        brokerExitConfirmation,
-      );
+    if (closeResult?.disposition === "closed") {
+      logTradeClosedEvent({
+        position: selectedPosition,
+        closedAt,
+        pnl,
+        rMultiple,
+      });
+      if (brokerExitConfirmation) {
+        logBrokerExitConfirmationEvent(
+          "broker_exit_fill_captured",
+          selectedPosition,
+          brokerExitConfirmation,
+        );
+        logBrokerExitConfirmationEvent(
+          "live_day_trade_closed_after_broker_exit_confirmation",
+          selectedPosition,
+          brokerExitConfirmation,
+        );
+      }
     }
 
     setSelectedPosition(null);
@@ -11224,9 +11312,11 @@ export function TradeApp({
       "action",
     );
     setMessage(
-      confirmationValidation.warnings.length > 0
-        ? `${selectedPosition.ticker} closed from broker exit fill. ${confirmationValidation.warnings[0]}`
-        : `${selectedPosition.ticker} closed from broker exit fill.`,
+      applicationPositionCloseResultMessage(
+        closeResult!,
+        selectedPosition.ticker,
+        confirmationValidation.warnings[0] ?? null,
+      ),
     );
     setIsSaving(false);
   }
