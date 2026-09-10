@@ -233,6 +233,19 @@ blocker_or_fallback: This source correction does not establish a durable user jo
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
 ```
 
+#### MVP-04 invalid remaining-share containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a, MVP-04c
+user_behavior_or_reproduced_failure: A negative `remaining_shares` value is impossible for a closed long position, but the plan-versus-actual review treated it like zero remaining shares. Complete pricing and PnL fields could therefore yield a false followed-plan A grade.
+smallest_change_and_reused_components: Reused the existing partial-position review status and no new persistence contract. A negative remaining-share count now receives the existing needs-review/C outcome with a specific explanation, while valid zero and ordinary positive remaining-share paths retain their current behavior.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: Source revision `ed919238` adds the negative-count regression to `tests/e2e/mvp-04-plan-review-completeness.spec.ts`; targeted Playwright coverage passes 3/3. Scoped ESLint and `git diff --check` pass. The check is local and does not establish a supported-environment manual lifecycle.
+external_effects_and_existing_authority: None. The test uses local synthetic execution metadata only; no provider, database row, deployment, broker or production operation occurred.
+blocker_or_fallback: MVP-04a and MVP-04c remain unverified until an identified supported manual lifecycle records, closes and reloads a trade. Source validation cannot repair an already persisted impossible value; it makes the value visible for review rather than inventing a result.
+result_and_remaining_gap: Impossible remaining-share metadata no longer produces a misleading green history grade. The product surfaces the exception for human review, preserving the trustworthiness of the History and Statistics views.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
