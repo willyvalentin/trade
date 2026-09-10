@@ -26,8 +26,31 @@ type ClosedPositionRecord = Readonly<{
   execution_metadata: unknown;
 }>;
 
+type OpenLongPositionRecord = Readonly<{
+  entry_price: unknown;
+  position_size: unknown;
+  current_stop: unknown;
+  execution_metadata: unknown;
+}>;
+
+export type OwnedLongPositionCloseMetrics = Readonly<{
+  pnl: number;
+  pnl_percent: number;
+  r_multiple: number;
+}>;
+
 function finiteNumberOrNull(value: unknown): value is number | null {
   return value === null || (typeof value === "number" && Number.isFinite(value));
+}
+
+function positiveDatabaseNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 function plainRecord(value: unknown): value is Record<string, unknown> {
@@ -106,6 +129,57 @@ export function parseOwnedPositionCloseValues(
       ? {}
       : { execution_metadata: values.execution_metadata }),
   };
+}
+
+/**
+ * Validates the client-visible gross result of a fully open long position
+ * against the immutable pricing fields already stored for the owner. A prior
+ * partial exit is deliberately outside this small calculation: its aggregate
+ * must retain its existing exit-fill accounting instead of being overwritten
+ * with a one-fill formula.
+ */
+export function calculateOwnedLongPositionCloseMetrics(
+  position: OpenLongPositionRecord,
+  exitPrice: unknown,
+): OwnedLongPositionCloseMetrics | null {
+  const entryPrice = positiveDatabaseNumber(position.entry_price);
+  const positionSize = positiveDatabaseNumber(position.position_size);
+  const currentStop = positiveDatabaseNumber(position.current_stop);
+  const actualExitPrice = positiveDatabaseNumber(exitPrice);
+
+  if (
+    entryPrice === null ||
+    positionSize === null ||
+    currentStop === null ||
+    actualExitPrice === null ||
+    currentStop >= entryPrice ||
+    (plainRecord(position.execution_metadata) &&
+      Array.isArray(position.execution_metadata.exit_fills) &&
+      position.execution_metadata.exit_fills.length > 0)
+  ) {
+    return null;
+  }
+
+  const pnl = (actualExitPrice - entryPrice) * positionSize;
+  const pnlPercent = (pnl / (entryPrice * positionSize)) * 100;
+  const rMultiple = pnl / ((entryPrice - currentStop) * positionSize);
+
+  return Number.isFinite(pnl) &&
+    Number.isFinite(pnlPercent) &&
+    Number.isFinite(rMultiple)
+    ? { pnl, pnl_percent: pnlPercent, r_multiple: rMultiple }
+    : null;
+}
+
+export function ownedLongPositionCloseMetricsMatch(
+  values: OwnedPositionCloseValues,
+  metrics: OwnedLongPositionCloseMetrics,
+) {
+  return (
+    values.pnl === metrics.pnl &&
+    values.pnl_percent === metrics.pnl_percent &&
+    values.r_multiple === metrics.r_multiple
+  );
 }
 
 export function ownedPositionCloseValuesMatch(

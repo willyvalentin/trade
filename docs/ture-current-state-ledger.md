@@ -63,7 +63,7 @@ rows still need behavior evidence.
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
-| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | — |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
 | MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
@@ -272,6 +272,32 @@ blocker_or_fallback: A supported environment must still exercise the full manual
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
 ```
 
+#### MVP-03 partial-close quantity containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03b, MVP-04a
+user_behavior_or_reproduced_failure: The authenticated partial-close route required an owned open position and a positive replacement size, but could accept a size equal to or greater than the stored position. A malformed or replayed client request could therefore keep or increase the recorded share count while being labelled a partial close.
+smallest_change_and_reused_components: Reused the existing owner and open-status update boundary. Both the normal and legacy-metadata fallback updates now atomically require stored `position_size` to be greater than the requested remaining size. The full-close route, broker boundary and data schema are unchanged.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` verifies the owner/open guards and the strict atomic size-reduction predicate. Targeted local coverage passes 4/4; scoped ESLint and diff checks pass. No database row, provider, deployment, broker or production action occurred.
+external_effects_and_existing_authority: None. This is a server-source and local-regression change only; it does not record a trade or invoke a broker.
+blocker_or_fallback: A repeated partial-close request is safely rejected rather than allowed to mutate the position twice. The full user lifecycle still needs supported-environment evidence before this becomes a release claim.
+result_and_remaining_gap: A partial close can no longer make a stored position larger or silently repeat the same remaining-share state. MVP-03b and MVP-04a remain unverified until the durable manual lifecycle is demonstrated.
+```
+
+#### MVP-03 / MVP-04 full-long close metric containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03c, MVP-04b
+user_behavior_or_reproduced_failure: For a fully open long position, the browser computed gross PnL, percentage and R multiple from the saved plan but the authenticated close endpoint previously accepted any finite client-supplied values. An altered request could therefore save a result that did not reconcile with the owned entry, quantity, stop and exit price.
+smallest_change_and_reused_components: Before the existing owner-scoped close update, the server now reads only the open owned position's pricing fields and recomputes the one-fill long result. A mismatch is rejected as invalid input. Existing closed-replay comparison, owner/status filters, manual/no-broker flow and partial-exit accounting remain unchanged; positions with a prior recorded exit fill intentionally retain their existing aggregate accounting path.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` locally proves numeric database-shaped values calculate the exact gross PnL/percentage/R tuple, rejects an altered tuple and leaves prior partial accounting outside this narrow rule. The adjacent MVP-03 recordable-plan, input-normalization and entry-replay suites pass (17 checks); scoped ESLint and `git diff --check` pass. No database row, provider, broker, deployment or production action occurred.
+external_effects_and_existing_authority: None. This is source and local-test containment only; it does not create, close or modify a trade.
+blocker_or_fallback: The complete durable entry → reload → exit → reload journey in the supported staging environment remains required. This local calculation guard neither proves persisted behavior nor covers the existing multi-fill partial-accounting path.
+result_and_remaining_gap: A simple full-long close can no longer persist a client-forged realized result through the application endpoint. MVP-03c and MVP-04b remain unverified until the complete supported manual journey reconciles one saved trade in the environment.
+```
+
 #### MVP-02 stale recommendation presentation — 2026-09-10 (local verified)
 
 ```text
@@ -336,6 +362,19 @@ blocker_or_fallback: MVP-03a remains unverified until an identified supported en
 result_and_remaining_gap: Valid plan decimals emitted by the current UI no longer fail at the server input boundary, while malformed values remain fail-closed. MVP-03b and MVP-03c still require the full supported manual lifecycle, including retry and close/reload evidence.
 ```
 
+#### MVP-03 coherent long-plan admission — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03a
+user_behavior_or_reproduced_failure: The manual position writer accepted any individually positive fill, stop and two-target values. Since current recommendation generation is explicitly long-only, a stop above the fill or descending targets could otherwise be recorded as a durable but impossible long plan.
+smallest_change_and_reused_components: Added one shared pure validator at both the client submit boundary and the server-owned request parser. It requires `stop < actual fill < target 1 < target 2`, while retaining the existing authenticated route, owner binding, transactional RPC and replay behavior. No schema or database migration is needed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: Targeted local Playwright coverage passed 12/12 across recordable-plan, open-input and replay paths. The new assertions accept a coherent long plan and reject an above-fill stop, below-fill first target and non-ascending second target. Scoped ESLint, TypeScript no-emit and diff checks passed.
+external_effects_and_existing_authority: None. The change and tests use local synthetic values only; no credential, database row, provider, deployment, broker or production operation occurred.
+blocker_or_fallback: This does not add short trading: the current generator explicitly emits long recommendations only. MVP-03a remains unverified until an identified supported environment records a manually executed entry from a recommendation and reloads the durable position.
+result_and_remaining_gap: Impossible long plans are rejected consistently before persistence, so manual trade history cannot silently start with an inverted risk/reward structure. The complete manual entry → reload → exit → reload journey is still required for MVP acceptance.
+```
+
 #### MVP-03 manual-entry retry command stability — 2026-09-10 (local verified)
 
 ```text
@@ -348,6 +387,19 @@ delivery_evidence: PR #438 merged as `d9a5e447` after Ready Full CI run `3443268
 external_effects_and_existing_authority: None. The replay cache is client memory and local tests only; it performs no credential, provider, database-row, deployment, broker or production action.
 blocker_or_fallback: MVP-03b remains unverified until an identified supported environment proves entry → reload and a repeated request against the durable position. Do not substitute this local command-stability proof for the persisted lifecycle demonstration.
 result_and_remaining_gap: A duplicate click or safe retry no longer turns a timestamp-only difference into a new command. The server transaction still rejects changed command inputs and remains responsible for durable idempotency. MVP-03a, MVP-03b and MVP-03c remain unverified until the supported full lifecycle succeeds.
+```
+
+#### MVP-03 post-write dashboard refresh — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03a / MVP-03b
+user_behavior_or_reproduced_failure: The existing dashboard intentionally coalesced concurrent background reads. If a manually confirmed entry was durably accepted while another read was active, its follow-up action refresh could return immediately, leaving the just-recorded position absent from the Live Day Trades tab until a later manual reload.
+smallest_change_and_reused_components: Replaced the boolean refresh marker with a local promise-owned refresh claim. Ordinary background reads remain coalesced; a post-write `action` refresh waits for the existing read, rechecks ownership of the slot, then refreshes recommendations, live trades and today’s statistics. The existing authenticated owner-bound position transaction remains the sole persistence authority.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-03-action-refresh-after-write.spec.ts` proves background coalescing is retained, an action refresh waits for the prior read, and the position-open path uses the queued action refresh. It passed 3/3. Adjacent manual-plan, replay and transactional-boundary regressions passed 11/11; scoped ESLint, TypeScript no-emit and diff checks passed.
+external_effects_and_existing_authority: None. The change is local source and test evidence only; it performs no provider, database, deployment, broker or production operation.
+blocker_or_fallback: This does not prove an actual saved position in a supported environment. MVP-03a, MVP-03b and MVP-03c remain unverified until an identified manual entry → reload → exit → reload journey succeeds against durable owner-bound records.
+result_and_remaining_gap: A completed entry no longer loses its own dashboard-refresh turn merely because an earlier non-action read is running. The result is still deliberately fail-closed on a real refresh error, which the existing visible refresh-status surface reports.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
