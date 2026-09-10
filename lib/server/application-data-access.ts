@@ -59,14 +59,14 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     client
       .from("positions")
       .select(
-        "*, recommendations!positions_recommendation_owner_fkey(setup_type,invalidation)",
+        "*, recommendations!positions_recommendation_owner_fkey(setup_type,invalidation,direction)",
       )
       .eq("status", "open")
       .eq("owner_user_id", owner),
     client
       .from("positions")
       .select(
-        "*, recommendations!positions_recommendation_owner_fkey(setup_type)",
+        "*, recommendations!positions_recommendation_owner_fkey(setup_type,direction)",
       )
       .eq("status", "closed")
       .eq("owner_user_id", owner)

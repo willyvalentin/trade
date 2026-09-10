@@ -1,3 +1,5 @@
+import { normalizePositionDirection } from "@/lib/position-display-direction";
+
 export type LiveSellAction =
   | "hold"
   | "watch"
@@ -20,6 +22,7 @@ export type LiveSellTrigger =
   | "missing_stop"
   | "missing_target"
   | "missing_position_size"
+  | "missing_direction"
   | "position_losing"
   | "no_action_needed"
   | "demo_take_profit";
@@ -185,7 +188,34 @@ export function buildLiveSellGuidance(
   input: LiveSellGuidanceInput,
 ): LiveSellGuidance {
   const evaluatedAt = isoNow(input.now);
-  const direction = input.direction === "Short" ? "Short" : "Long";
+  const direction = normalizePositionDirection(input.direction);
+
+  if (direction === null) {
+    return buildResult({
+      action: "review_required",
+      urgency: "high",
+      primary_message: "Position direction is unavailable.",
+      next_step:
+        "Verify whether the position is long or short before reviewing an exit.",
+      trigger: "missing_direction",
+      trigger_price: null,
+      distance_to_target: null,
+      distance_to_stop: null,
+      unrealized_pnl: null,
+      unrealized_pnl_percent: null,
+      current_r: null,
+      confidence: "unknown",
+      blockers: ["Position direction is unavailable."],
+      warnings: input.is_demo
+        ? ["DEMO ONLY - no broker order is submitted."]
+        : [],
+      evaluated_at: evaluatedAt,
+      why_now:
+        "The position cannot be evaluated safely because its direction is unavailable.",
+      protective_action_reason:
+        "Ture will not calculate exit guidance or prepare a sell handoff without a verified position direction.",
+    });
+  }
   const currentPrice = finiteNumber(input.current_price);
   const entryPrice = finiteNumber(input.entry_price);
   const stopPrice = finiteNumber(input.stop_price);

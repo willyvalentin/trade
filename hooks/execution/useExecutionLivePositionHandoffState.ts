@@ -21,7 +21,7 @@ export type ExecutionLivePositionHandoffInput = {
   recommendationId: string | null;
   ticker: string;
   instrumentName: string;
-  direction: "Long" | "Short";
+  direction: "Long" | "Short" | "Unknown";
   isDemo: boolean;
   isMock: boolean;
   currentPrice: number | null;

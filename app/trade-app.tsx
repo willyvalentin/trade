@@ -633,6 +633,11 @@ import {
   type LiveSellAction,
 } from "@/lib/live-sell-guidance";
 import {
+  isKnownPositionDirection,
+  resolvePositionDisplayDirection,
+  type PositionDisplayDirection,
+} from "@/lib/position-display-direction";
+import {
   isAutomaticExecutionModeFeatureEnabled,
   isExecutionDevToolsEnabled,
   type ExecutionMode,
@@ -1022,7 +1027,11 @@ type UserSettingsRow = {
 type PositionRow = {
   id: string;
   recommendation_id?: string | null;
-  recommendations?: { setup_type: string | null; invalidation?: string | null } | null;
+  recommendations?: {
+    setup_type: string | null;
+    invalidation?: string | null;
+    direction?: string | null;
+  } | null;
   ticker: string;
   company_name: string | null;
   logo_url?: string | null;
@@ -1567,7 +1576,7 @@ type ActivePosition = {
   ticker: string;
   companyName: string;
   logoUrl?: string | null;
-  direction: Direction;
+  direction: PositionDisplayDirection;
   entryPrice: string;
   entryPriceValue: number | null;
   positionSize: string;
@@ -3931,6 +3940,17 @@ function getPositionUpdateUrgency({
   marketCloseWarning: string;
   eodSafetyStatus: EndOfDaySafetyStatus;
 }): PositionUpdateUrgency {
+  if (!isKnownPositionDirection(position.direction)) {
+    return {
+      urgency: "critical",
+      reasons: [
+        "Position direction is unavailable. Verify the broker position before acting.",
+      ],
+      shouldPlaySound: true,
+      soundType: "critical",
+    };
+  }
+
   const reasons: string[] = [];
   const action = latestUpdate?.action ?? "HOLD";
   let urgency: PositionUpdateUrgency["urgency"] = "normal";
@@ -4479,9 +4499,14 @@ function calculateCurrentR({
   entryPrice: number | null;
   stopLoss: number | null;
   currentPrice: number | null;
-  direction: Direction;
+  direction: PositionDisplayDirection;
 }) {
-  if (entryPrice === null || stopLoss === null || currentPrice === null) {
+  if (
+    !isKnownPositionDirection(direction) ||
+    entryPrice === null ||
+    stopLoss === null ||
+    currentPrice === null
+  ) {
     return null;
   }
 
@@ -4506,9 +4531,13 @@ function calculateUnrealizedPnl({
   entryPrice: number | null;
   currentPrice: number | null;
   shares: number | null;
-  direction: Direction;
+  direction: PositionDisplayDirection;
 }) {
-  if (entryPrice === null || currentPrice === null) {
+  if (
+    !isKnownPositionDirection(direction) ||
+    entryPrice === null ||
+    currentPrice === null
+  ) {
     return {
       pnl: null,
       percent: null,
@@ -4523,6 +4552,29 @@ function calculateUnrealizedPnl({
     pnl: shares === null ? null : priceMove * shares,
     percent,
   };
+}
+
+function currentPositionR({
+  entryPrice,
+  stopLoss,
+  currentPrice,
+  direction,
+  reportedCurrentR,
+}: {
+  entryPrice: number | null;
+  stopLoss: number | null;
+  currentPrice: number | null;
+  direction: PositionDisplayDirection;
+  reportedCurrentR: number | null | undefined;
+}) {
+  if (!isKnownPositionDirection(direction)) {
+    return null;
+  }
+
+  return (
+    reportedCurrentR ??
+    calculateCurrentR({ entryPrice, stopLoss, currentPrice, direction })
+  );
 }
 
 function formatSignedCurrency(value: number | null) {
@@ -5100,7 +5152,10 @@ function toActivePosition(row: PositionRow): ActivePosition {
     ticker: row.ticker,
     companyName: text(row.company_name),
     logoUrl: resolveCompanyLogoUrl(row),
-    direction: direction(row.direction),
+    direction: resolvePositionDisplayDirection({
+      positionDirection: row.direction,
+      recommendationDirection: row.recommendations?.direction,
+    }),
     entryPrice: money(row.entry_price),
     entryPriceValue,
     positionSize: formatShares(positionSizeValue),
@@ -6169,14 +6224,13 @@ function buildStatsTodaySummary({
       shares: position.positionSizeValue,
       direction: position.direction,
     }).pnl;
-    const currentR =
-      latestUpdate?.unrealizedRValue ??
-      calculateCurrentR({
-        entryPrice: position.entryPriceValue,
-        stopLoss: position.stopLossValue,
-        currentPrice: latestUpdate?.currentPriceValue ?? null,
-        direction: position.direction,
-      });
+    const currentR = currentPositionR({
+      entryPrice: position.entryPriceValue,
+      stopLoss: position.stopLossValue,
+      currentPrice: latestUpdate?.currentPriceValue ?? null,
+      direction: position.direction,
+      reportedCurrentR: latestUpdate?.unrealizedRValue,
+    });
 
     if (unrealizedPnl !== null) {
       openUnrealizedPnlValues.push(unrealizedPnl);
@@ -6218,14 +6272,13 @@ function buildStatsTodaySummary({
         shares: position.positionSizeValue,
         direction: position.direction,
       }).pnl;
-      const currentR =
-        latestUpdate?.unrealizedRValue ??
-        calculateCurrentR({
-          entryPrice: position.entryPriceValue,
-          stopLoss: position.stopLossValue,
-          currentPrice: latestUpdate?.currentPriceValue ?? null,
-          direction: position.direction,
-        });
+      const currentR = currentPositionR({
+        entryPrice: position.entryPriceValue,
+        stopLoss: position.stopLossValue,
+        currentPrice: latestUpdate?.currentPriceValue ?? null,
+        direction: position.direction,
+        reportedCurrentR: latestUpdate?.unrealizedRValue,
+      });
 
       return {
         id: position.id,
@@ -15784,15 +15837,15 @@ export function TradeApp({
           shares: selectedPosition.positionSizeValue,
           direction: selectedPosition.direction,
         }).pnl,
-        currentR:
-          latestPositionUpdates[selectedPosition.id]?.unrealizedRValue ??
-          calculateCurrentR({
-            entryPrice: selectedPosition.entryPriceValue,
-            stopLoss: selectedPosition.stopLossValue,
-            currentPrice:
-              latestPositionUpdates[selectedPosition.id]?.currentPriceValue ?? null,
-            direction: selectedPosition.direction,
-          }),
+        currentR: currentPositionR({
+          entryPrice: selectedPosition.entryPriceValue,
+          stopLoss: selectedPosition.stopLossValue,
+          currentPrice:
+            latestPositionUpdates[selectedPosition.id]?.currentPriceValue ?? null,
+          direction: selectedPosition.direction,
+          reportedCurrentR:
+            latestPositionUpdates[selectedPosition.id]?.unrealizedRValue,
+        }),
         lastLossClosedAt,
         now: currentTime,
       })
@@ -16110,14 +16163,13 @@ export function TradeApp({
                             shares: position.positionSizeValue,
                             direction: position.direction,
                           }).pnl,
-                          currentR:
-                            latestUpdate?.unrealizedRValue ??
-                            calculateCurrentR({
-                              entryPrice: position.entryPriceValue,
-                              stopLoss: position.stopLossValue,
-                              currentPrice: latestUpdate?.currentPriceValue ?? null,
-                              direction: position.direction,
-                            }),
+                          currentR: currentPositionR({
+                            entryPrice: position.entryPriceValue,
+                            stopLoss: position.stopLossValue,
+                            currentPrice: latestUpdate?.currentPriceValue ?? null,
+                            direction: position.direction,
+                            reportedCurrentR: latestUpdate?.unrealizedRValue,
+                          }),
                           lastLossClosedAt,
                           now: currentTime,
                         })}
@@ -16159,14 +16211,13 @@ export function TradeApp({
                       shares: position.positionSizeValue,
                       direction: position.direction,
                     }).pnl,
-                    currentR:
-                      latestUpdate?.unrealizedRValue ??
-                      calculateCurrentR({
-                        entryPrice: position.entryPriceValue,
-                        stopLoss: position.stopLossValue,
-                        currentPrice: latestUpdate?.currentPriceValue ?? null,
-                        direction: position.direction,
-                      }),
+                    currentR: currentPositionR({
+                      entryPrice: position.entryPriceValue,
+                      stopLoss: position.stopLossValue,
+                      currentPrice: latestUpdate?.currentPriceValue ?? null,
+                      direction: position.direction,
+                      reportedCurrentR: latestUpdate?.unrealizedRValue,
+                    }),
                     lastLossClosedAt,
                     now: currentTime,
                   })}
@@ -31817,13 +31868,13 @@ function ActivePositionCard({
   onClosePosition: (position: ActivePosition) => void;
 }) {
   const currentPriceValue = latestUpdate?.currentPriceValue ?? null;
-  const calculatedR = calculateCurrentR({
+  const currentR = currentPositionR({
     entryPrice: position.entryPriceValue,
     stopLoss: position.stopLossValue,
     currentPrice: currentPriceValue,
     direction: position.direction,
+    reportedCurrentR: latestUpdate?.unrealizedRValue,
   });
-  const currentR = latestUpdate?.unrealizedRValue ?? calculatedR;
   const unrealizedPnl = calculateUnrealizedPnl({
     entryPrice: position.entryPriceValue,
     currentPrice: currentPriceValue,
@@ -31847,7 +31898,9 @@ function ActivePositionCard({
   const previousBestPrice =
     position.direction === "Short"
       ? latestUpdate?.intradayIndicators?.recentLow ?? null
-      : latestUpdate?.intradayIndicators?.recentHigh ?? null;
+      : position.direction === "Long"
+        ? latestUpdate?.intradayIndicators?.recentHigh ?? null
+        : null;
   const liveSellGuidance = buildLiveSellGuidance({
     position_id: position.id,
     ticker: position.ticker,
@@ -31956,11 +32009,12 @@ function ActivePositionCard({
             position.positionSizeValue,
         )
       : "—";
-  const currentPercent =
-    latestUpdate?.unrealizedPercentValue !== null &&
-    latestUpdate?.unrealizedPercentValue !== undefined
+  const currentPercent = isKnownPositionDirection(position.direction)
+    ? latestUpdate?.unrealizedPercentValue !== null &&
+      latestUpdate?.unrealizedPercentValue !== undefined
       ? formatSignedPercent(latestUpdate.unrealizedPercentValue)
-      : formatSignedPercent(unrealizedPnl.percent);
+      : formatSignedPercent(unrealizedPnl.percent)
+    : "—";
   const executionQuality = calculateExecutionQuality(position.executionMetadata);
   const auditTimeline = buildExecutionTimeline({
     positionId: position.id,
@@ -32692,14 +32746,13 @@ function ClosePositionModal({
     : "Close this trade only after the broker exit has been manually confirmed.";
   const parsedExitPrice = parseNumber(exitPrice);
   const priceReference = latestUpdate?.currentPriceValue ?? parsedExitPrice;
-  const currentR =
-    latestUpdate?.unrealizedRValue ??
-    calculateCurrentR({
-      entryPrice: position.entryPriceValue,
-      stopLoss: position.stopLossValue,
-      currentPrice: priceReference,
-      direction: position.direction,
-    });
+  const currentR = currentPositionR({
+    entryPrice: position.entryPriceValue,
+    stopLoss: position.stopLossValue,
+    currentPrice: priceReference,
+    direction: position.direction,
+    reportedCurrentR: latestUpdate?.unrealizedRValue,
+  });
   const unrealizedPnl = calculateUnrealizedPnl({
     entryPrice: position.entryPriceValue,
     currentPrice: priceReference,
@@ -32725,8 +32778,9 @@ function ClosePositionModal({
     ruleAction: latestUpdate?.action ?? null,
     appRecommendedAction: latestUpdate?.recommendation ?? null,
     unrealizedPnl: unrealizedPnl.pnl,
-    unrealizedPnlPercent:
-      latestUpdate?.unrealizedPercentValue ?? unrealizedPnl.percent,
+    unrealizedPnlPercent: isKnownPositionDirection(position.direction)
+      ? latestUpdate?.unrealizedPercentValue ?? unrealizedPnl.percent
+      : null,
     currentR,
     createdAt: payloadCreatedAt,
     now: payloadNow,

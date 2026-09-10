@@ -9,9 +9,9 @@ operations remain evidence and are not renewed by this decision.
 
 Delivery state: source-only MVP-02 and MVP-04 corrections are merged on
 GitHub main as PRs #442 and #441 respectively. MVP-01c's exact named
-staging-origin guard is also merged as PR #443. Its merge and exact-main
-attestation are delivery evidence only; no staging site was created or deployed,
-and the merge is not a production deployment or supported-environment proof.
+staging-origin guard is also merged as PR #443. A separate private
+`ture-staging` site and staging sign-in are now established; that is not a
+production deployment or complete MVP-01c failure-state proof.
 Baseline inspected: GitHub main `d0ce1e783869f0548d5778287264c1258310d7cf`,
 which contains the merged MVP-first delivery policy plus the MVP-02/04
 corrections and MVP-01c origin admission. No new runtime or production test was
@@ -19,16 +19,15 @@ performed by that baseline.
 
 ### Now
 
-**Selected product slice: MVP-01c dedicated staging behavior evidence.** The
-initial-dashboard failure wording and the exact named staging-origin guard are
-merged and regression-tested. The guard recognizes only
-`https://ture-staging.netlify.app` when configured, runtime and browser origins
-match exactly; generic previews remain rejected. The remaining work is a
-separate staging site with the named host, function-scoped staging configuration
-and one bounded staging-only behavior demonstration of loading, ordinary
-empty/no-trade, and failed first-read states. MVP-02 stale-card presentation and
-MVP-04 incomplete-history classification are corrected on main, but are not
-supported-environment acceptance claims.
+**Selected product slice: MVP-03/04 position-direction truthfulness.** The
+initial-dashboard failure wording and exact named staging-origin guard are
+merged and regression-tested. The separate private `ture-staging` site now has
+working staging sign-in and an authenticated dashboard read. Its bounded
+configuration-only failure probe found no source reader for the temporary flag,
+so it did not create failure-state evidence and must not be repeated without a
+separately reviewed source/deploy scope. This slice prevents a reloaded position
+from silently becoming long when its linked recommendation is short, and keeps
+unknown direction from producing invented live metrics or a prepared handoff.
 
 ### MVP acceptance board
 
@@ -58,7 +57,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | active | Netlify deploy preview #439 exposed the strict-origin failure: its owner-login POST returned `403 application_authentication_origin_invalid` before any dashboard data was read. PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. A separate staging site and supported-environment evidence remain pending. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | active | PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. The separate private staging site, sign-in and one authenticated dashboard read now work. The temporary flag-only failure probe had no source reader, so controlled failed-read evidence remains pending a separate reviewed source/deploy scope. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -101,8 +100,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-01c dedicated staging behavior evidence | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | None; MVP-01c has a concrete external staging setup prerequisite, but its bounded behavior proof remains the active slice | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 1; MVP-03/04 position-direction truthfulness | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | None; MVP-01c staging sign-in is established, while its failed-read proof needs separately scoped source/deploy evidence | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -114,10 +113,11 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Provision the separate `ture-staging.netlify.app` Netlify site with its
-   function-scoped staging configuration, then perform one bounded staging-only
-   login plus dashboard-read proof. Do not use production or permit generic
-   deploy-preview origins.
+1. Complete only the missing MVP-01c controlled failed-read proof through a
+   separately reviewed temporary source/deploy scope. The private staging site,
+   function-scoped configuration, sign-in and one bounded dashboard read are
+   already established. Do not repeat the flag-only probe, use production or
+   permit generic deploy-preview origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -137,7 +137,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Active; source guard merged and exact-main attested, external staging setup remains | Provision `ture-staging.netlify.app` as a separate non-production site whose `TURE_APPLICATION_ORIGIN`, runtime URL and browser origin match. Use a staging-only session and one bounded dashboard-read proof; do not repurpose production or permit generic deploy-preview origins. |
+| MVP-01c supported-environment proof | Active; private staging login and one authenticated dashboard read are established, but no controlled failed-read evidence exists | A separately reviewed temporary source/deploy scope must create exactly one controlled failed dashboard read, then be rolled back. Do not repeat the flag-only probe, repurpose production or permit generic preview origins. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -322,6 +322,19 @@ delivery_evidence: PR #438 merged as `d9a5e447` after Ready Full CI run `3443268
 external_effects_and_existing_authority: None. The replay cache is client memory and local tests only; it performs no credential, provider, database-row, deployment, broker or production action.
 blocker_or_fallback: MVP-03b remains unverified until an identified supported environment proves entry → reload and a repeated request against the durable position. Do not substitute this local command-stability proof for the persisted lifecycle demonstration.
 result_and_remaining_gap: A duplicate click or safe retry no longer turns a timestamp-only difference into a new command. The server transaction still rejects changed command inputs and remains responsible for durable idempotency. MVP-03a, MVP-03b and MVP-03c remain unverified until the supported full lifecycle succeeds.
+```
+
+#### MVP-03/04 position-direction truthfulness — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03b, MVP-04c
+user_behavior_or_reproduced_failure: `positions` does not persist a direction, while the dashboard previously did not request the linked recommendation direction. A reloaded short position could therefore silently render as Long, and the long calculation path could produce invented live R, PnL, target/stop guidance or a handoff preview.
+smallest_change_and_reused_components: Dashboard reads now request only the linked recommendation `direction` already owned by the position relationship. A strict resolver prefers any future persisted position direction, then that linked direction, and otherwise displays `Unknown`. Existing live metrics return no calculated value for Unknown; sell guidance becomes an explicit review-required state and the existing handoff hook remains unavailable unless the direction is Long. No schema, row, route, provider, deployment, broker or production behavior changed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-position-direction-truthfulness.spec.ts` locally passes 3/3: persisted-direction precedence, linked-short fallback, Unknown for unsupported/missing values, fail-closed guidance with no sell handoff, and source wiring for open/closed dashboard reads. Scoped ESLint and TypeScript no-emit report no errors in the changed files; diff checks pass. The targeted Playwright suite required only its local test server and made no external request.
+external_effects_and_existing_authority: None. The check uses pure inputs and source assertions only; no credential, provider, database row, deployment, broker or production action occurred.
+blocker_or_fallback: This does not add short-position entry or execution support, and it does not prove a durable manual lifecycle. Those are separate vertical slices. MVP-03b and MVP-04c remain unverified until a supported environment demonstrates entry/reload/close/history behavior with real stored values.
+result_and_remaining_gap: A direction that cannot be established is visible as Unknown instead of being guessed as Long. A linked short recommendation stays short after dashboard reload, and untrusted live values cannot create a misleading exit calculation or prepared handoff.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
