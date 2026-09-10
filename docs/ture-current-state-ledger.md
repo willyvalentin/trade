@@ -18,10 +18,11 @@ operation. Baseline inspected: GitHub main
 `f843bbd63e3984bf2186ef339c55e27adc540714`. On 2026-09-10 two bounded
 first-read proofs were attempted only on `ture-staging`. The second used
 temporary commit `c6bc6c85` and the non-secret probe flag in exactly both
-Netlify Builds and Functions scopes; its one authenticated dashboard read
-again did not expose the expected unavailable-data state. The flag was deleted
-and revert `74ada3a5` reached `ready`. This is useful negative evidence, not a
-passing failure-state claim.
+Netlify Builds and Functions scopes, but mistakenly set its required value to
+`true` rather than `enabled`; its one authenticated dashboard read therefore
+did not test the failure branch. The flag was deleted and revert `74ada3a5`
+reached `ready`. This is configuration evidence, not a passing failure-state
+claim or a refutation of the scope hypothesis.
 
 ### Now
 
@@ -39,11 +40,12 @@ cost-bounded Draft verification passed. The protected aggregate is expected to
 remain red while the PR is Draft because that workflow skips the Ready shard
 matrix; this does not change CI policy or authorize promotion. A temporary,
 staging-only deployment and immediate rollback have now been exercised twice,
-but neither permitted authenticated read surfaced the failure state. The
-second attempt falsifies the earlier Functions-only scope hypothesis: it used
-the same flag in both Builds and Functions scopes. MVP-01c remains unverified;
-diagnose the delivered probe path with local source observability before any
-further bounded environment operation. MVP-02 stale-card presentation and MVP-04
+but neither permitted authenticated read surfaced the failure state. Local
+diagnosis establishes that the second attempt supplied `true`, whereas the
+default-deny probe requires the exact value `enabled`; it did not test the
+earlier Functions-only scope hypothesis. MVP-01c remains unverified; a fresh,
+separately authorized proof must use the explicit enabled value in both scopes.
+MVP-02 stale-card presentation and MVP-04
 incomplete-history classification are corrected on main, but are not
 supported-environment acceptance claims.
 
@@ -75,7 +77,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. One bounded authenticated `ture-staging.netlify.app` reload previously showed loading and the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-10, a second authorised one-shot probe used temporary staging commit `c6bc6c85`, the non-secret flag in exactly Builds plus Functions scopes, and one authenticated dashboard read; the page again did not expose unavailable-data wording. The flag was deleted and revert `74ada3a5` deployed `ready`. No data change, provider, broker, CI-policy or production action occurred. Diagnose the delivered probe path locally before any new bounded probe; do not count this negative result as a failure-state verification. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. One bounded authenticated `ture-staging.netlify.app` reload previously showed loading and the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-10, a second authorised one-shot probe used temporary staging commit `c6bc6c85`, the non-secret flag in exactly Builds plus Functions scopes, and one authenticated dashboard read; the page again did not expose unavailable-data wording. Local source diagnosis established that it used value `true`, while the default-deny probe accepts only `enabled`, so it did not test the scope hypothesis. The flag was deleted and revert `74ada3a5` deployed `ready`. No data change, provider, broker, CI-policy or production action occurred. A fresh proof must use the exact enabled value; do not count this run as a failure-state verification. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -118,8 +120,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; MVP-01c is held after two restored negative staging proofs | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10; the Builds-plus-Functions retry did not surface the expected failure state | Diagnose the delivered probe path locally before a fresh, bounded attempt |
+| Active product slices | 0; MVP-01c is held after one negative and one restored misconfigured staging proof | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10; the Builds-plus-Functions retry used the wrong enable value | A new bounded proof must use `enabled` in both scopes |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -131,12 +133,11 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Diagnose the delivered MVP-01c probe path locally. The second bounded proof
-   used the non-secret flag in exactly both Builds and Functions scopes yet did
-   not surface unavailable-data wording. Establish why the browser did not
-   exercise the intended first-read request before defining any further bounded
-   staging operation; do not retry blindly, use production or permit generic
-   deploy-preview origins.
+1. The MVP-01c local probe diagnosis is complete: the second bounded proof used
+   value `true`, while the default-deny helper accepts only `enabled`. Define
+   one fresh, separately authorized bounded proof using that exact non-secret
+   value in both Builds and Functions scopes; do not retry blindly, use
+   production or permit generic deploy-preview origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -156,7 +157,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked since 2026-09-10; two authorised staging probes deployed and were restored, but neither surfaced unavailable-data state. The second used the non-secret flag in both Builds and Functions scopes, so the earlier scope hypothesis is not supported. | Establish the delivered browser/request path locally, then define a genuinely different default-deny proof. It must stay unavailable to production, generic previews and ordinary reads. |
+| MVP-01c supported-environment proof | Blocked since 2026-09-10; its first authorised staging probe was restored without observing unavailable-data state. A second Builds-plus-Functions attempt also restored safely, but local source diagnosis found its value was `true` rather than the required `enabled`, so that run is not scope evidence. | Only a fresh default-deny proof may set the non-secret probe variable to exact `enabled` in both Builds and Functions scopes, then enable/deploy/read/rollback. It must stay unavailable to production, generic previews and ordinary reads. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -315,16 +316,16 @@ blocker_or_fallback: Do not retry with Functions only. A subsequent proof must b
 result_and_remaining_gap: The first actionable cause is now identified, so MVP-01c has a concrete safe re-entry path. Its failure-state behavior is still unverified until that different configuration is observed successfully.
 ```
 
-#### MVP-01c Builds-and-Functions staging retry — 2026-09-10 (negative; restored)
+#### MVP-01c Builds-and-Functions staging retry — 2026-09-10 (misconfigured; restored)
 
 ```text
 acceptance_id: MVP-01c
 user_behavior_or_reproduced_failure: The earlier dedicated staging probe did not make a deliberately failed first dashboard read visibly become the unavailable-data state. The source-and-vendor-documentation hypothesis was that the temporary flag needed both Netlify Builds and Functions scopes.
-smallest_change_and_reused_components: The existing default-deny probe alone was reintroduced on the isolated staging branch as temporary commit `c6bc6c85`; its targeted staging-base regression suite passed 4/4 before push. The same non-secret boolean was set only on `ture-staging`, only for branch deploys, and only in Builds plus Functions scopes. The exact staging host, authenticated dashboard route, query parameter and ordinary-read deny behavior were unchanged.
-behavior_check_and_environment: Netlify `ture-staging` built `c6bc6c85` ready. One authorized owner login and dashboard navigation completed. The browser showed the ordinary dashboard, including its normal refreshing presentation, rather than unavailable-data wording or a retry control. This is negative evidence only: it falsifies the earlier scope hypothesis but does not establish whether the intended browser request carried the probe parameter or whether the server branch ran.
+smallest_change_and_reused_components: The existing default-deny probe alone was reintroduced on the isolated staging branch as temporary commit `c6bc6c85`; its targeted staging-base regression suite passed 4/4 before push. The non-secret variable was set only on `ture-staging`, only for branch deploys, and only in Builds plus Functions scopes. The exact staging host, authenticated dashboard route, query parameter and ordinary-read deny behavior were unchanged.
+behavior_check_and_environment: Netlify `ture-staging` built `c6bc6c85` ready. One authorized owner login and dashboard navigation completed. The browser showed the ordinary dashboard rather than unavailable-data wording or a retry control. Local source diagnosis then found the configuration value was `true`, while `isMvp01cStagingDashboardFailureProbe` strictly accepts only `enabled`; the new regression names both the canonical enabled value and the rejected `true` near-miss. This run therefore does not test the Builds-plus-Functions hypothesis or establish a failure-presentation result.
 external_effects_and_existing_authority: Immediately after that single read, the project connector deleted `MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE`; revert `74ada3a5` removed the helper, route/client change and fixture from `staging`, and its Netlify deployment reached `ready`. No application row, provider request, broker operation, production app deploy, CI-policy change, secret disclosure or permanent configuration change occurred.
-blocker_or_fallback: Do not repeat this configuration, broaden the host guard, infer a passing state from local coverage or use production. First add and verify purely local source-level observability for the intended request/response path, then choose a materially different bounded staging proof only if the result identifies a specific cause.
-result_and_remaining_gap: Staging transport, both scope variants and rollback are now evidenced. The failed-first-read UI behavior remains unverified, so MVP-01c and parent MVP-01 cannot close.
+blocker_or_fallback: Do not repeat this configuration, broaden the host guard, infer a passing state from local coverage or use production. Any fresh bounded proof must use exact `enabled` in both scopes and retain the same host, authenticated route, one-read and immediate-cleanup bounds.
+result_and_remaining_gap: The configuration defect is now contained by source-level contract coverage, and staging transport/rollback remain evidenced. The failed-first-read UI behavior remains unverified, so MVP-01c and parent MVP-01 cannot close.
 ```
 
 #### MVP-01c supported-preview origin admission check — 2026-09-10 (blocked)

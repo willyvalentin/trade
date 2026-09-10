@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   applicationDashboardReadPath,
   isMvp01cStagingDashboardFailureProbe,
+  mvp01cDashboardFailureProbeEnabledValue,
   mvp01cDashboardFailureProbeEnvironmentVariable,
   mvp01cDashboardFailureProbeQueryParameter,
   mvp01cDashboardFailureProbeQueryValue,
@@ -26,7 +27,8 @@ test.describe("MVP-01 dashboard states", () => {
       NODE_ENV: "production",
       TURE_APPLICATION_ORIGIN: applicationCanonicalStagingOrigin,
       URL: applicationCanonicalStagingOrigin,
-      [mvp01cDashboardFailureProbeEnvironmentVariable]: "enabled",
+      [mvp01cDashboardFailureProbeEnvironmentVariable]:
+        mvp01cDashboardFailureProbeEnabledValue,
     };
     const failureSearch = `?${mvp01cDashboardFailureProbeQueryParameter}=${mvp01cDashboardFailureProbeQueryValue}`;
     const stagingRequest = new Request(
@@ -36,6 +38,12 @@ test.describe("MVP-01 dashboard states", () => {
     expect(
       isMvp01cStagingDashboardFailureProbe(stagingRequest, stagingEnvironment),
     ).toBe(true);
+    expect(
+      isMvp01cStagingDashboardFailureProbe(stagingRequest, {
+        ...stagingEnvironment,
+        [mvp01cDashboardFailureProbeEnvironmentVariable]: "true",
+      }),
+    ).toBe(false);
     expect(
       isMvp01cStagingDashboardFailureProbe(stagingRequest, {
         ...stagingEnvironment,

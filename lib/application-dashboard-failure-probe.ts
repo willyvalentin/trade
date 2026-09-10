@@ -5,6 +5,7 @@ import { applicationDeploymentContext } from "@/lib/application-mutation-guard-c
 
 export const mvp01cDashboardFailureProbeEnvironmentVariable =
   "MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE" as const;
+export const mvp01cDashboardFailureProbeEnabledValue = "enabled" as const;
 export const mvp01cDashboardFailureProbeQueryParameter =
   "mvp01c_dashboard_failure" as const;
 export const mvp01cDashboardFailureProbeQueryValue =
@@ -38,7 +39,8 @@ export function isMvp01cStagingDashboardFailureProbe(
   environment: Environment,
 ) {
   if (
-    environment[mvp01cDashboardFailureProbeEnvironmentVariable] !== "enabled" ||
+    environment[mvp01cDashboardFailureProbeEnvironmentVariable] !==
+      mvp01cDashboardFailureProbeEnabledValue ||
     applicationDeploymentContext(environment) !== "dedicated_staging"
   ) {
     return false;
