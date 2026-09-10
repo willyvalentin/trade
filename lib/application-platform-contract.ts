@@ -1,5 +1,10 @@
 export const applicationCanonicalProductionOrigin =
   "https://trade.valentinlabs.com" as const;
+// This is the primary host of a separate Netlify site, not a deploy-preview
+// hostname. Keeping it named here makes previews unable to opt themselves into
+// authenticated application behavior by merely supplying a matching header.
+export const applicationCanonicalStagingOrigin =
+  "https://ture-staging.netlify.app" as const;
 export const applicationNetlifyDefaultOrigin =
   "https://trade-vl.netlify.app" as const;
 export const applicationOriginEnvironmentVariable =
@@ -13,6 +18,13 @@ export const applicationEnvironmentScopeContract = Object.freeze({
     application_authentication: "enabled",
     authenticated_mutations: "enabled",
     secret_source: "production_only",
+    required_scope: "functions",
+  },
+  dedicated_staging: {
+    application_origin: "required_canonical_staging_origin",
+    application_authentication: "enabled",
+    authenticated_mutations: "enabled",
+    secret_source: "dedicated_staging_site_only",
     required_scope: "functions",
   },
   deploy_preview: {
@@ -37,6 +49,15 @@ export const applicationEnvironmentScopeContract = Object.freeze({
     required_scope: "none",
   },
 } as const);
+
+export const applicationCanonicalRuntimeOrigins: readonly string[] = Object.freeze([
+  applicationCanonicalProductionOrigin,
+  applicationCanonicalStagingOrigin,
+]);
+
+export function isCanonicalApplicationRuntimeOrigin(origin: string) {
+  return applicationCanonicalRuntimeOrigins.includes(origin);
+}
 
 export type ApplicationEnvironmentVariableMetadata = Readonly<{
   key: string;

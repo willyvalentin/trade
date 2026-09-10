@@ -4,6 +4,7 @@ import path from "node:path";
 
 import {
   applicationCanonicalProductionOrigin,
+  applicationCanonicalStagingOrigin,
   applicationEnvironmentScopeContract,
   buildCanonicalProductionHostRedirect,
   evaluateApplicationEnvironmentScopeMetadata,
@@ -106,6 +107,10 @@ test("production origin is canonical while preview and branch authentication sta
   expect(applicationEnvironmentScopeContract.branch_deploy.secret_source).toBe(
     "none",
   );
+  expect(applicationEnvironmentScopeContract.dedicated_staging).toMatchObject({
+    application_origin: "required_canonical_staging_origin",
+    secret_source: "dedicated_staging_site_only",
+  });
 });
 
 test("environment metadata evaluator detects preview credential exposure without values", () => {
@@ -185,6 +190,23 @@ test("temporary login runtime proof is production-only, authorized by successful
       {
         ...enabledProductionEnvironment,
         TURE_LOGIN_RUNTIME_PROOF_ENABLED: undefined,
+      },
+    ),
+  ).resolves.toBeNull();
+
+  await expect(
+    buildApplicationLoginRuntimeProof(
+      new Request(`${applicationCanonicalStagingOrigin}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          origin: applicationCanonicalStagingOrigin,
+          "x-nf-client-connection-ip": "203.0.113.10",
+        },
+      }),
+      {
+        ...enabledProductionEnvironment,
+        TURE_APPLICATION_ORIGIN: applicationCanonicalStagingOrigin,
+        URL: applicationCanonicalStagingOrigin,
       },
     ),
   ).resolves.toBeNull();

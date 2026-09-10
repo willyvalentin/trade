@@ -1,33 +1,33 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-09 MVP direction
+## Active Now / Next / Blocked — 2026-09-10 MVP direction
 
 This is the active work queue under the [master roadmap](./ture-master-roadmap.md).
 The user's 2026-09-09 product-direction decision supersedes the work selection
 in all older snapshots below. Historical restrictions on specific external
 operations remain evidence and are not renewed by this decision.
 
-Delivery state: the user authorized publishing this change on 2026-09-09.
-Merge status is determined by the PR and exact-main evidence; publication alone
-is not adoption on main or a production deployment.
-Baseline inspected: GitHub main `7327848851787e1e5247e7c90369bd03fab075de`,
-which contains the merged MVP-first delivery policy and the password-only
-login correction. No new runtime or production test was performed by that
-baseline.
+Delivery state: source-only MVP-02 and MVP-04 corrections are merged on
+GitHub main as PRs #442 and #441 respectively. The active MVP-01c
+dedicated-staging-origin candidate is not yet merged or deployed. Merge status
+is determined by its PR and exact-main evidence; publication alone is not
+adoption on main or a production deployment.
+Baseline inspected: GitHub main `3e5ae5091a60c690a50b4710bae05db61526415c`,
+which contains the merged MVP-first delivery policy plus the MVP-02/04
+corrections. No new runtime or production test was performed by that baseline.
 
 ### Now
 
-**Selected product slice: MVP-01c understandable dashboard states.** The
-initial-dashboard failure wording is fixed and locally regression-tested on
-main, but it still needs one supported-environment demonstration of loading,
-ordinary empty/no-trade, and failed first-read behavior. The next independent
-MVP-03a source defect is also fixed locally: the manual-entry UI serializes
-stored numeric plan values as strings, while the prior server boundary accepted
-only JavaScript numbers. MVP-03b's same-command retry stabilization is merged
-and CI-verified, but remains unverified as a supported-environment user
-journey. The wider MVP-01→04
-investigation remains bounded by the original four active-hour discovery budget;
-neither local result is a release-environment acceptance claim.
+**Selected product slice: MVP-01c dedicated staging-origin admission.** The
+initial-dashboard failure wording is fixed and locally regression-tested, but a
+preview login exposed that the strict guard accepted only the public production
+origin. The candidate now recognizes one named dedicated staging host while
+requiring configured, runtime and browser origins to match exactly; generic
+previews remain rejected. It needs CI, merge, a separate staging site with the
+named host and a bounded staging-only behavior demonstration of loading,
+ordinary empty/no-trade, and failed first-read behavior. MVP-02 stale-card
+presentation and MVP-04 incomplete-history classification are corrected on
+main, but are not supported-environment acceptance claims.
 
 ### MVP acceptance board
 
@@ -48,7 +48,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Current acceptance coverage: **2/18 verified for the new MVP candidate; 15
-unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
+unverified, 1 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -57,7 +57,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | Netlify deploy preview #439 has the same source tree as main `398a78cc` (`6f1a16a8…`), but its owner-login POST failed closed with `403 application_authentication_origin_invalid` on 2026-09-10. A deploy preview is not the dedicated staging origin required by the strict production-origin guard; no dashboard data was read. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | active | Netlify deploy preview #439 exposed the strict-origin failure: its owner-login POST returned `403 application_authentication_origin_invalid` before any dashboard data was read. The current source candidate admits only `https://ture-staging.netlify.app` when configured, runtime and browser origins match exactly; supported-environment evidence remains pending. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -100,8 +100,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; next: MVP-01c understandable loading, empty and failed states | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | None identified yet | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 1; MVP-01c dedicated staging-origin admission | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | None while the MVP-01c source candidate is active; external staging setup is its identified remaining dependency | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -113,10 +113,11 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Re-enter MVP-01c only after a dedicated non-production staging host has a
-   matching strict application origin and an explicitly scoped staging session.
-   Do not use production or weaken the origin guard to make a deploy preview
-   work.
+1. Complete MVP-01c's exact dedicated-staging-origin candidate, then provision
+   the separate `ture-staging.netlify.app` Netlify site with its function-scoped
+   staging configuration and perform one bounded staging-only login plus
+   dashboard-read proof. Do not use production or permit generic deploy-preview
+   origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -136,7 +137,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked since 2026-09-10 | Provision a dedicated non-production staging host whose strict configured application origin, runtime URL and browser origin match. Then perform one bounded staging-only login plus dashboard-read proof; do not repurpose production or permit generic deploy-preview origins. |
+| MVP-01c supported-environment proof | Active source candidate; external setup follows CI/merge | Merge the exact dedicated-origin guard, then provision `ture-staging.netlify.app` as a separate non-production site whose `TURE_APPLICATION_ORIGIN`, runtime URL and browser origin match. Use a staging-only session and one bounded dashboard-read proof; do not repurpose production or permit generic deploy-preview origins. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -280,6 +281,19 @@ smallest_change_and_reused_components: No application change was made. The previ
 behavior_check_and_environment: Netlify deploy preview #439 on 2026-09-10: the browser's actual `POST /api/auth/login` returned `403 application_authentication_origin_invalid`. The runtime's strict production-origin guard requires the configured application origin, runtime URL and request origin to agree; the deploy-preview hostname intentionally does not meet that contract.
 blocker_or_fallback: MVP-01c is blocked, not failed. A generic preview-origin allowlist or production-domain test would weaken or bypass the required boundary and is not an acceptable fallback. The next useful action is a dedicated non-production staging host with an exact, separately scoped origin configuration and staging session authority.
 result_and_remaining_gap: Loading, controlled empty/no-trade and controlled failed-first-read UI behavior remain locally covered but are not supported-environment evidence. Do not count this attempt as MVP-01c verification.
+```
+
+#### MVP-01c dedicated staging-origin admission — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: The prior supported-preview check correctly refused a generic deploy-preview origin, but source inspection then showed that every production build also rejected a separate staging host because only the public production origin was recognized.
+smallest_change_and_reused_components: The central origin guard now recognizes exactly one named dedicated staging origin, https://ture-staging.netlify.app. It still requires configured origin, runtime URL and browser origin to match exactly. The public production origin remains unchanged; generic previews, the default Netlify host and every other host stay rejected. The optional login runtime proof remains production-only.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: Local Playwright auth/origin/session boundary suites passed 25/25; TypeScript no-emit and scoped ESLint passed. A local Next 16.3.4 Turbopack build stopped before application compilation when its CSS worker could not bind a local port (Operation not permitted); this is recorded as a local-runner limitation, not a passing build claim. Ready Full CI remains required.
+external_effects_and_existing_authority: No staging site, environment variable, credential, database row, provider call, deployment, broker or production action occurred. A public GET-only hostname check returned Netlify HTTP 404; it created no resource and is not a claim that the site name is reserved.
+blocker_or_fallback: CI and merge must complete before staging setup. Afterward the remaining dependency is a separate Netlify staging site at the named origin with function-scoped staging values and an existing staging-only owner/session setup. Do not substitute a generic preview, production site or permissive origin allowlist.
+result_and_remaining_gap: The previous "provision a host" re-entry condition is now technically achievable without weakening the strict origin boundary. MVP-01c is not verified until the bounded staging login and dashboard-state behavior succeeds.
 ```
 
 #### MVP-03 manual entry plan-value normalization — 2026-09-10 (local verified)

@@ -5,9 +5,13 @@ import {
   evaluateApplicationMutationOrigin,
   evaluateApplicationProductionOrigin,
 } from "../../lib/application-mutation-guard-core";
-import { applicationCanonicalProductionOrigin } from "../../lib/application-platform-contract";
+import {
+  applicationCanonicalProductionOrigin,
+  applicationCanonicalStagingOrigin,
+} from "../../lib/application-platform-contract";
 
 const canonical = applicationCanonicalProductionOrigin;
+const staging = applicationCanonicalStagingOrigin;
 
 function productionEnvironment(overrides: Record<string, string | undefined> = {}) {
   return {
@@ -42,6 +46,45 @@ test("production identity requires canonical configured, runtime, and request or
       runtimeApplicationUrl,
     })).toMatchObject({ status: "forbidden", reason });
   }
+});
+
+test("only the designated dedicated-staging host may use the authenticated runtime boundary", () => {
+  const stagingEnvironment = {
+    NODE_ENV: "production",
+    TURE_APPLICATION_ORIGIN: staging,
+    URL: staging,
+  };
+  const stagingRequest = new Request(`${staging}/api/auth/login`, {
+    method: "POST",
+    headers: { origin: staging },
+  });
+
+  expect(evaluateApplicationAuthenticationOrigin(stagingRequest, stagingEnvironment)).toEqual({
+    status: "allowed",
+    category: "allowed",
+  });
+  expect(evaluateApplicationMutationOrigin(
+    new Request(`${staging}/api/app/settings`, {
+      method: "POST",
+      headers: { origin: staging },
+    }),
+    stagingEnvironment,
+  )).toEqual({ status: "allowed" });
+
+  const preview = "https://deploy-preview-46--ture-staging.netlify.app";
+  expect(evaluateApplicationAuthenticationOrigin(
+    new Request(`${preview}/api/auth/login`, {
+      method: "POST",
+      headers: { origin: preview },
+    }),
+    stagingEnvironment,
+  )).toEqual({ status: "forbidden", category: "origin_mismatch" });
+
+  expect(evaluateApplicationProductionOrigin({
+    requestOrigin: "https://other-staging.netlify.app",
+    configuredApplicationOrigin: "https://other-staging.netlify.app",
+    runtimeApplicationUrl: "https://other-staging.netlify.app",
+  })).toMatchObject({ status: "unavailable", reason: "configured_origin_mismatch" });
 });
 
 test("origin normalization is strict about authority but ignores safe URL decoration", () => {
