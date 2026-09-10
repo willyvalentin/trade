@@ -34,6 +34,7 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "review_required",
       last_successful_run_status: "empty",
       last_successful_run_timestamp: "2026-09-10T14:00:00.000Z",
+      recovery_review_run_count: 1,
     });
   });
 
@@ -48,7 +49,11 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "not_required",
       last_successful_run_status: "empty",
       last_successful_run_timestamp: "2026-09-10T14:00:00.000Z",
+      recovery_review_run_count: 0,
     });
+    expect(summary.warnings).not.toContainEqual(
+      expect.objectContaining({ warning_id: "scan_runs_need_recovery_review" }),
+    );
   });
 
   test("never treats an unobserved empty result as a clean recovery point", () => {
@@ -244,8 +249,10 @@ test.describe("MVP-05 scan recovery visibility", () => {
     );
 
     expect(appSource).toContain('label="Last Successful Scan"');
+    expect(appSource).toContain('label="Runs Needing Review"');
     expect(appSource).toContain("Latest scan needs review");
     expect(appSource).toContain("data-last-successful-run-timestamp");
+    expect(appSource).toContain("data-recovery-review-run-count");
     expect(appSource).toContain("Refreshing this dashboard reads the latest stored state");
   });
 });

@@ -29,6 +29,8 @@ export type RecommendationScanRunHistoryWindowBreakdown = {
   average_experimental_count: number | null;
   degraded_stale_empty_count: number;
   degraded_stale_empty_rate: number | null;
+  recovery_review_count: number;
+  recovery_review_rate: number | null;
   warning_count: number;
   sample_quality_note: string;
 };
@@ -102,6 +104,7 @@ export type RecommendationScanRunHistorySummary = {
   incomplete_data_run_count: number;
   provider_warning_run_count: number;
   unknown_metric_run_count: number;
+  recovery_review_run_count: number;
   status_breakdown: RecommendationScanRunHistoryStatusBreakdown[];
   window_breakdown: RecommendationScanRunHistoryWindowBreakdown[];
   top_warnings: Array<{
@@ -377,6 +380,10 @@ function latestRunRecoveryState(
   return isSuccessfulScanRun(latestRun) ? "not_required" : "review_required";
 }
 
+function needsRecoveryReview(scanRun: RecommendationScanRun) {
+  return !isSuccessfulScanRun(scanRun);
+}
+
 function statusBreakdown(
   scanRuns: RecommendationScanRun[],
 ): RecommendationScanRunHistoryStatusBreakdown[] {
@@ -420,6 +427,7 @@ function windowBreakdown(
         scanRun.status === "stale" ||
         scanRun.status === "empty",
     ).length;
+    const recoveryReviewCount = windowRuns.filter(needsRecoveryReview).length;
 
     return {
       window,
@@ -440,6 +448,8 @@ function windowBreakdown(
       ),
       degraded_stale_empty_count: degradedStaleEmptyCount,
       degraded_stale_empty_rate: rate(degradedStaleEmptyCount, windowRuns.length),
+      recovery_review_count: recoveryReviewCount,
+      recovery_review_rate: rate(recoveryReviewCount, windowRuns.length),
       warning_count: windowRuns.reduce(
         (total, scanRun) => total + scanRun.warnings.length,
         0,
@@ -519,7 +529,7 @@ function buildWarnings(
   scanRuns: RecommendationScanRun[],
   summary: {
     targetHitRate: number | null;
-    degradedStaleEmptyCount: number;
+    recoveryReviewRunCount: number;
     providerWarningRunCount: number;
     unknownMetricRunCount: number;
   },
@@ -548,11 +558,11 @@ function buildWarnings(
     });
   }
 
-  if (summary.degradedStaleEmptyCount > 0) {
+  if (summary.recoveryReviewRunCount > 0) {
     warnings.push({
-      warning_id: "degraded_stale_empty_runs_present",
+      warning_id: "scan_runs_need_recovery_review",
       severity: "warning",
-      message: "Some scan runs are degraded, stale, or empty. Review provider and freshness diagnostics.",
+      message: "Some scan runs need recovery review. Review provider and freshness diagnostics before treating an earlier result as current.",
     });
   }
 
@@ -622,6 +632,7 @@ export function buildRecommendationScanRunHistorySummary(
       scanRun.status === "stale" ||
       scanRun.status === "empty",
   ).length;
+  const recoveryReviewRunCount = filteredRuns.filter(needsRecoveryReview).length;
   const providerWarningRunCount = filteredRuns.filter(hasProviderWarning).length;
   const unknownMetricRunCount = filteredRuns.filter(
     (scanRun) => scanRun.unknown_metrics.length > 0,
@@ -652,7 +663,7 @@ export function buildRecommendationScanRunHistorySummary(
 
   const warningInputs = {
     targetHitRate,
-    degradedStaleEmptyCount,
+    recoveryReviewRunCount,
     providerWarningRunCount,
     unknownMetricRunCount,
   };
@@ -692,6 +703,7 @@ export function buildRecommendationScanRunHistorySummary(
     ).length,
     provider_warning_run_count: providerWarningRunCount,
     unknown_metric_run_count: unknownMetricRunCount,
+    recovery_review_run_count: recoveryReviewRunCount,
     status_breakdown: statusBreakdown(filteredRuns),
     window_breakdown: windowBreakdown(filteredRuns),
     top_warnings: topWarnings(filteredRuns),
