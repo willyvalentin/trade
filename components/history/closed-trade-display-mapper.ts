@@ -166,7 +166,7 @@ export function buildClosedTradeDisplayProps({
       (firstLearningFallback ||
         "History explanations are based on available structured data and may be incomplete."),
     metrics: [
-      { label: "PnL", value: formatSignedCurrency(summary.effective_pnl) },
+      { label: "Gross Price Result", value: formatSignedCurrency(summary.effective_pnl) },
       { label: "R", value: formatSignedR(summary.effective_r) },
       { label: "Entry", value: formatCurrency(summary.entry_price) },
       { label: "Exit", value: formatCurrency(summary.exit_price) },

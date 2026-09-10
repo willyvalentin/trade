@@ -26,6 +26,7 @@ import {
   buildPartialPositionState,
   normalizeEntryFill,
   normalizeExitFill,
+  type PartialPositionRealizedPnlBasis,
   type PartialPositionStatus,
   type TradeExitFill,
   type TradeFill,
@@ -89,6 +90,7 @@ export type BrokerExecutionMetadata = {
   partial_position_status: PartialPositionStatus;
   average_exit_price: number | null;
   realized_pnl_from_exits: number | null;
+  realized_pnl_basis: PartialPositionRealizedPnlBasis | "stored_amount_fee_basis_unknown";
   trade_planning_snapshot: TradePlanningSnapshot | null;
 };
 
@@ -154,6 +156,7 @@ type BrokerExecutionMetadataInput = {
   partialPositionStatus?: string | null;
   averageExitPrice?: number | null;
   realizedPnlFromExits?: number | null;
+  realizedPnlBasis?: unknown;
   tradePlanningSnapshot?: unknown;
 };
 
@@ -202,6 +205,14 @@ function normalizeWarningType(
   }
 
   return "none";
+}
+
+function normalizeRealizedPnlBasis(
+  value: unknown,
+): BrokerExecutionMetadata["realized_pnl_basis"] {
+  return value === "gross_price_difference_before_fees"
+    ? value
+    : "stored_amount_fee_basis_unknown";
 }
 
 export function buildBrokerOrderPreviewCapture(input: {
@@ -733,6 +744,10 @@ export function buildBrokerExecutionMetadata(
     realized_pnl_from_exits:
       finiteNumber(input.realizedPnlFromExits) ??
       partialState.realized_pnl_from_exits,
+    realized_pnl_basis:
+      finiteNumber(input.realizedPnlFromExits) === null
+        ? partialState.realized_pnl_basis
+        : normalizeRealizedPnlBasis(input.realizedPnlBasis),
     trade_planning_snapshot: tradePlanningSnapshot,
   };
 }
@@ -787,6 +802,7 @@ export function parseBrokerExecutionMetadata(
     partialPositionStatus: nullableString(raw.partial_position_status),
     averageExitPrice: finiteNumber(raw.average_exit_price),
     realizedPnlFromExits: finiteNumber(raw.realized_pnl_from_exits),
+    realizedPnlBasis: raw.realized_pnl_basis,
     tradePlanningSnapshot: raw.trade_planning_snapshot,
   });
 }
