@@ -1,10 +1,7 @@
-import type { Config } from "@netlify/functions";
-
-export const config: Config = {
-  // Netlify cron is UTC. This runs every 15 minutes on weekdays from
-  // 10:00-17:45 New York during US daylight-saving time.
-  schedule: "*/15 14-21 * * 1-5",
-};
+// Intentionally no Netlify `config.schedule` in this staging-validation
+// revision. It removes the cron trigger before synthetic MVP data is allowed
+// into this isolated environment; direct calls still fail closed without the
+// server-only automation secret.
 
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
