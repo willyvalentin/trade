@@ -597,10 +597,11 @@ function buildSuggestedActions(
 
   const phase = input.market_session?.phase;
   if (
-    status === "market_not_ideal" ||
     phase === "closed" ||
     phase === "pre_market" ||
-    phase === "after_hours"
+    phase === "after_hours" ||
+    phase === "closing_soon" ||
+    phase === "holiday"
   ) {
     actions.push(
       action(
