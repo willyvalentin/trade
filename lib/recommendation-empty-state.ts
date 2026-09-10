@@ -223,18 +223,6 @@ function chooseStatus({
   }
 
   if (
-    marketPhase === "closed" ||
-    marketPhase === "pre_market" ||
-    marketPhase === "after_hours" ||
-    marketPhase === "closing_soon" ||
-    marketPhase === "holiday" ||
-    input.market_session?.risk_level === "high" ||
-    input.market_session?.risk_level === "critical"
-  ) {
-    return "market_not_ideal";
-  }
-
-  if (
     latestScanResultIs(input.observability_summary, [
       "provider_error",
       "provider_rate_limited",
@@ -250,6 +238,18 @@ function chooseStatus({
     latestScanResultIs(input.observability_summary, ["unknown", "openai_error"])
   ) {
     return "data_unavailable";
+  }
+
+  if (
+    marketPhase === "closed" ||
+    marketPhase === "pre_market" ||
+    marketPhase === "after_hours" ||
+    marketPhase === "closing_soon" ||
+    marketPhase === "holiday" ||
+    input.market_session?.risk_level === "high" ||
+    input.market_session?.risk_level === "critical"
+  ) {
+    return "market_not_ideal";
   }
 
   if (hasExplicitNoTradeResult(input.observability_summary)) {

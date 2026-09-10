@@ -229,6 +229,19 @@ blocker_or_fallback: The delivered UI mapping is not a provider-health, freshnes
 result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
 ```
 
+#### MVP-02/05 provider-failure priority across market sessions — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02b, MVP-02c, MVP-05b
+user_behavior_or_reproduced_failure: A known provider failure or stale/unknown scan could be hidden behind the generic "staying selective" explanation whenever the market session was closed or high risk. The page remained fail-closed, but the stated reason was not the most important known fact.
+smallest_change_and_reused_components: Reordered only the existing empty-state classification: known provider failure and known unavailable/stale scan evidence now precede the market-session label. The existing market note and wait-for-regular-session guidance remain present as supporting context.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-02-provider-empty-state.spec.ts` passes 5/5, including a provider failure during a closed, high-risk session. Scoped ESLint, full TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. Tests use local synthetic scan metadata only; no provider, database, deployment, broker or production operation occurred.
+blocker_or_fallback: This source correction does not establish a real provider failure, missed-run recovery or day-long freshness observation. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints until a supported environment produces bounded operational evidence.
+result_and_remaining_gap: A user will now see the known unavailable-data reason instead of an overly generic market-session explanation, while still receiving the existing market-session next step. No stale or unavailable state becomes actionable.
+```
+
 #### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
 
 ```text

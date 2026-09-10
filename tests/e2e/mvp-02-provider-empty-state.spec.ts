@@ -71,6 +71,33 @@ test("MVP-02 surfaces the latest provider failure instead of a generic no-trade 
   });
 });
 
+test("MVP-02 keeps a known provider failure visible during a closed session", () => {
+  const emptyState = buildRecommendationEmptyStateSummary({
+    visible_recommendations: [],
+    intake_results: [],
+    observability_summary: observabilityForLatestScan("provider_error"),
+    market_session: {
+      phase: "closed",
+      risk_level: "high",
+      market_is_open: false,
+    },
+    has_refresh_control: true,
+    now: observedAt,
+  });
+
+  expect(emptyState).toMatchObject({
+    status: "provider_unavailable",
+    title: "Market data provider is unavailable",
+    primary_reason: { reason_id: "provider_unavailable" },
+  });
+  expect(emptyState.suggested_actions).toContainEqual({
+    action_id: "wait_for_regular_session",
+    label: "Wait for regular session",
+    message: "Let the regular intraday window reopen before forcing a new idea.",
+    priority: "secondary",
+  });
+});
+
 test("MVP-02 keeps a completed no-high-quality scan distinct from optional diagnostic gaps", () => {
   const observability = observabilityForLatestScan("no_high_quality_setup");
   const emptyState = buildRecommendationEmptyStateSummary({
