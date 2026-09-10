@@ -453,6 +453,7 @@ export async function updateApplicationPosition(input: {
     .eq("id", input.position_id)
     .eq("owner_user_id", owner)
     .eq("status", "open")
+    .gt("position_size", values.position_size)
     .select("id")
     .maybeSingle();
   if (result.error && "execution_metadata" in update) {
@@ -464,6 +465,7 @@ export async function updateApplicationPosition(input: {
       .eq("id", input.position_id)
       .eq("owner_user_id", owner)
       .eq("status", "open")
+      .gt("position_size", values.position_size)
       .select("id")
       .maybeSingle();
   }
