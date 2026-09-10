@@ -233,6 +233,19 @@ blocker_or_fallback: This source correction does not establish a durable user jo
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
 ```
 
+#### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a
+user_behavior_or_reproduced_failure: A closed-trade details view showed realized entry and exit prices, but its frozen planning snapshot omitted the original entry, stop, target and capture time. A reviewer therefore had to infer the plan from aggregate risk/reward fields instead of seeing the preserved values alongside the result.
+smallest_change_and_reused_components: Reused the existing immutable trade-planning snapshot and closed-history detail grid. The Planning Snapshot now renders its stored Plan Entry, Plan Stop, Plan Target and Plan Captured values; missing values continue to use the existing unavailable formatting. No plan is recomputed, and no schema, route, persistence, provider, broker or production behavior changed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-04-plan-review-completeness.spec.ts` now proves the snapshot retains the three frozen prices and timestamp and that the closed-history surface renders all four. Together with MVP-04 fee-basis and aggregate-basis regressions, targeted Playwright coverage passes 9/9. Scoped ESLint, TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. The test values are local and synthetic; no credential, database row, provider, deployment, broker or production system was contacted.
+blocker_or_fallback: This source correction does not establish a supported manual entry → close → reload journey. MVP-04a remains unverified until that journey demonstrates the durable values in an identified supported environment.
+result_and_remaining_gap: A reviewer can now compare the stored trade plan with realized values without guessing at the original stop, target or capture time. The broader history acceptance criterion still requires supported lifecycle evidence.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
