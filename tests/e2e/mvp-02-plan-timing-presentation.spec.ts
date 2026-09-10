@@ -67,6 +67,7 @@ test.describe("MVP-02 plan timing presentation", () => {
     );
 
     expect(details).toContain('title="Data Timing"');
+    expect(details).toContain('label: "Target 1", value: recommendation.target1');
     expect(details).toContain('label: "Target 2", value: recommendation.target2');
     expect(details).toContain('label: "Price Source"');
     expect(details).toContain('label: "Source Time"');

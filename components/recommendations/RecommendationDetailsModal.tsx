@@ -506,7 +506,7 @@ export function RecommendationDetailsModal({
                 metrics={[
                   { label: "Entry", value: recommendation.entryZone },
                   { label: "Stop", value: recommendation.stopLoss },
-                  { label: "Target", value: recommendation.target1 },
+                  { label: "Target 1", value: recommendation.target1 },
                   { label: "Target 2", value: recommendation.target2 },
                   { label: "Reward : Risk", value: recommendation.riskReward },
                   {
