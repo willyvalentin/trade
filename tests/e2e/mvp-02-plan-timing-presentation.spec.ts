@@ -57,7 +57,7 @@ test.describe("MVP-02 plan timing presentation", () => {
     });
   });
 
-  test("renders the data-timing labels and missing-data warning in recommendation details", async () => {
+  test("renders complete target and data-timing details before a manual trade is recorded", async () => {
     const details = await readFile(
       path.join(
         repositoryRoot,
@@ -67,6 +67,7 @@ test.describe("MVP-02 plan timing presentation", () => {
     );
 
     expect(details).toContain('title="Data Timing"');
+    expect(details).toContain('label: "Target 2", value: recommendation.target2');
     expect(details).toContain('label: "Price Source"');
     expect(details).toContain('label: "Source Time"');
     expect(details).toContain('"Expires (Derived)"');

@@ -40,6 +40,7 @@ export type RecommendationDetailsModalRecommendation = {
   setupType: unknown;
   stopLoss: string;
   target1: string;
+  target2: string;
   thesis: string;
   ticker: string;
 };
@@ -506,6 +507,7 @@ export function RecommendationDetailsModal({
                   { label: "Entry", value: recommendation.entryZone },
                   { label: "Stop", value: recommendation.stopLoss },
                   { label: "Target", value: recommendation.target1 },
+                  { label: "Target 2", value: recommendation.target2 },
                   { label: "Reward : Risk", value: recommendation.riskReward },
                   {
                     label: "Shares",
