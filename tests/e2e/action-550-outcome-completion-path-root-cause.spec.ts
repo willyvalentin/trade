@@ -222,6 +222,28 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
     );
   });
 
+  test("does not label an outcome partial when every observation input is missing", () => {
+    const snapshot = action550Snapshot();
+
+    const { outcome, warnings, can_compute_terminal_events } =
+      computeRecommendationOutcome({
+        snapshot,
+        horizon: "15m",
+        evaluated_at: "2026-07-17T14:00:00.000Z",
+        source: "intraday_candles",
+        provider: "fixture",
+        data_completeness: "complete",
+        candles: [],
+      });
+
+    expect(outcome.status).toBe("incomplete");
+    expect(outcome.data_completeness).toBe("none");
+    expect(can_compute_terminal_events).toBe(false);
+    expect(warnings).toContain(
+      "Complete outcome data was claimed without intraday candles; the outcome remains incomplete until candle evidence is available.",
+    );
+  });
+
   test("later explicit completed outcomes can supersede incomplete rows without losing contract identity", () => {
     const snapshot = action550Snapshot();
     const incomplete = computeRecommendationOutcome({
