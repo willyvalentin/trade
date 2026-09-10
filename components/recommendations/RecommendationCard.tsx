@@ -15,6 +15,7 @@ export type RecommendationCardProps = {
   detailsDialog?: ReactNode;
   discardDialog?: ReactNode;
   discardDisabled: boolean;
+  freshnessNotice?: string | null;
   identity: ReactNode;
   metrics: RecommendationCardMetric[];
   onAddTrade: () => void | Promise<void>;
@@ -92,6 +93,7 @@ export function RecommendationCard({
   detailsDialog,
   discardDialog,
   discardDisabled,
+  freshnessNotice = null,
   identity,
   metrics,
   onAddTrade,
@@ -113,6 +115,9 @@ export function RecommendationCard({
     >
       <div className="trade-recommendation-card__eyebrow">
         <span>TRADE RECOMMENDATION</span>
+        {freshnessNotice ? (
+          <span role="status">{freshnessNotice}</span>
+        ) : null}
         <button
           type="button"
           aria-label="Dismiss recommendation"
