@@ -166,6 +166,29 @@ function recordRevisionTimestampMs(scanRun: RecommendationScanRun) {
   );
 }
 
+/**
+ * Establishes a stable, newest-first ordering without trusting the incidental
+ * order in which persisted rows are returned. `observed_at` is the business
+ * time of the scan; an update time then distinguishes corrections to scans
+ * that were observed at the same instant. The immutable ID is only a stable
+ * final tie-breaker when neither timestamp can distinguish the rows.
+ */
+function compareScanRunRecency(
+  first: RecommendationScanRun,
+  second: RecommendationScanRun,
+) {
+  const observedDifference =
+    (timestampMs(first.observed_at) ?? Number.NEGATIVE_INFINITY) -
+    (timestampMs(second.observed_at) ?? Number.NEGATIVE_INFINITY);
+  if (observedDifference !== 0) return observedDifference;
+
+  const revisionDifference =
+    recordRevisionTimestampMs(first) - recordRevisionTimestampMs(second);
+  if (revisionDifference !== 0) return revisionDifference;
+
+  return first.id.localeCompare(second.id);
+}
+
 function deduplicateScanRuns(scanRuns: RecommendationScanRun[]) {
   const latestByFingerprint = new Map<string, RecommendationScanRun>();
 
@@ -174,7 +197,7 @@ function deduplicateScanRuns(scanRuns: RecommendationScanRun[]) {
 
     if (
       !existing ||
-      recordRevisionTimestampMs(scanRun) > recordRevisionTimestampMs(existing)
+      compareScanRunRecency(scanRun, existing) > 0
     ) {
       latestByFingerprint.set(scanRun.run_fingerprint, scanRun);
     }
@@ -331,11 +354,7 @@ function isSuccessfulScanRun(
 function latestSuccessfulScanRun(scanRuns: RecommendationScanRun[]) {
   return [...scanRuns]
     .filter(isSuccessfulScanRun)
-    .sort(
-      (first, second) =>
-        (timestampMs(second.observed_at) ?? 0) -
-        (timestampMs(first.observed_at) ?? 0),
-    )[0];
+    .sort((first, second) => compareScanRunRecency(second, first))[0];
 }
 
 function latestRunRecoveryState(
@@ -551,17 +570,12 @@ export function buildRecommendationScanRunHistorySummary(
         input.filter.status === "all" ||
         scanRun.status === input.filter.status,
     );
-  const sortedRuns = [...filteredRuns].sort((first, second) => {
-    const firstTimestamp = timestampMs(first.observed_at) ?? 0;
-    const secondTimestamp = timestampMs(second.observed_at) ?? 0;
-    return input.sort === "oldest"
-      ? firstTimestamp - secondTimestamp
-      : secondTimestamp - firstTimestamp;
-  });
-  const latestRun = [...filteredRuns].sort(
-    (first, second) =>
-      (timestampMs(second.observed_at) ?? 0) - (timestampMs(first.observed_at) ?? 0),
-  )[0];
+  const sortedRuns = [...filteredRuns].sort((first, second) =>
+    input.sort === "oldest"
+      ? compareScanRunRecency(first, second)
+      : compareScanRunRecency(second, first),
+  );
+  const latestRun = sortedRuns[0];
   const lastSuccessfulRun = latestSuccessfulScanRun(filteredRuns);
   const total = filteredRuns.length;
   const targetHitCount = filteredRuns.filter(targetHit).length;
