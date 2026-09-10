@@ -147,6 +147,7 @@ export function RecommendationCardContainer<
             sourceBadges={renderSourceBadges(
               displayProps.recommendationDetailsSourceBadges,
             )}
+            timing={displayProps.timing}
           />
         ) : null
       }

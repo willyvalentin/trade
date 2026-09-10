@@ -3,7 +3,10 @@ import {
   dataModeBadgeForExecutionReality,
   dataModeBadgeForMode,
 } from "@/lib/data-mode-clarity";
-import type { RecommendationFreshness } from "@/lib/recommendation-freshness";
+import {
+  getRecommendationExpiresAt,
+  type RecommendationFreshness,
+} from "@/lib/recommendation-freshness";
 import type { RecommendationCardMetric } from "@/components/recommendations/RecommendationCard";
 import type { RecommendationDetailsModalConfirmation } from "@/components/recommendations/RecommendationDetailsModal";
 
@@ -17,14 +20,30 @@ export type RecommendationCardDisplayConfidenceBreakdown = {
 };
 
 export type RecommendationCardDisplayRecommendation = {
+  createdAtRaw?: string | null;
   confidenceBreakdown: RecommendationCardDisplayConfidenceBreakdown | null;
   confidenceLabel: string;
   confidenceScore: number | null;
   entryZone: string;
+  expiresAtRaw?: string | null;
+  planReferencePrice?: {
+    reference_price_provider?: string | null;
+    reference_price_source?: string | null;
+    reference_price_timestamp?: string | null;
+  } | null;
   riskReward: string;
+  scanWindow?: string | null;
   stopLoss: string;
   target1: string;
   thesis: string;
+};
+
+export type RecommendationCardTiming = {
+  expiryLabel: string;
+  expiryStatus: "stored" | "derived" | "unavailable";
+  sourceLabel: string;
+  sourceTimestampLabel: string;
+  sourceTimestampStatus: "known" | "unavailable";
 };
 
 export type RecommendationCardDisplayKeyReasons = {
@@ -59,6 +78,7 @@ export type RecommendationCardDisplayProps = {
   metrics: RecommendationCardMetric[];
   recommendationDetailsSourceBadges: DataModeBadge[];
   recommendationSourceBadge: DataModeBadge;
+  timing: RecommendationCardTiming;
 };
 
 export type RecommendationCardConfidenceTone = "strong" | "medium" | "low";
@@ -95,6 +115,65 @@ export function recommendationCardConfidenceLabel(
   if (tone === "strong") return "HIGH CONFIDENCE";
   if (tone === "low") return "LOW CONFIDENCE";
   return "MEDIUM CONFIDENCE";
+}
+
+function nonBlankText(value: string | null | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+}
+
+function timestampMs(value: string | null | undefined) {
+  const parsed = value ? new Date(value).getTime() : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatNewYorkTimestamp(value: number | null) {
+  if (value === null) return "Not available";
+
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    month: "short",
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+export function buildRecommendationCardTiming(
+  recommendation: Pick<
+    RecommendationCardDisplayRecommendation,
+    "createdAtRaw" | "expiresAtRaw" | "planReferencePrice" | "scanWindow"
+  >,
+): RecommendationCardTiming {
+  const explicitExpiryMs = timestampMs(recommendation.expiresAtRaw);
+  const expiresAt = getRecommendationExpiresAt({
+    created_at: recommendation.createdAtRaw ?? null,
+    expires_at: recommendation.expiresAtRaw ?? null,
+    scan_window: recommendation.scanWindow ?? null,
+  });
+  const sourceTimestampMs = timestampMs(
+    recommendation.planReferencePrice?.reference_price_timestamp,
+  );
+  const sourceLabel =
+    nonBlankText(recommendation.planReferencePrice?.reference_price_provider) ??
+    nonBlankText(recommendation.planReferencePrice?.reference_price_source) ??
+    "Not available";
+
+  return {
+    expiryLabel: formatNewYorkTimestamp(expiresAt),
+    expiryStatus:
+      explicitExpiryMs !== null
+        ? "stored"
+        : expiresAt !== null
+          ? "derived"
+          : "unavailable",
+    sourceLabel,
+    sourceTimestampLabel: formatNewYorkTimestamp(sourceTimestampMs),
+    sourceTimestampStatus:
+      sourceTimestampMs === null ? "unavailable" : "known",
+  };
 }
 
 export function buildRecommendationCardDisplayProps({
@@ -145,6 +224,7 @@ export function buildRecommendationCardDisplayProps({
       isDemoRecommendation ? "demo_only" : "human_confirmed_required",
     ),
   ];
+  const timing = buildRecommendationCardTiming(recommendation);
   const metrics: RecommendationCardMetric[] = [
     { label: "Entry", value: recommendation.entryZone },
     { label: "Stop", value: recommendation.stopLoss },
@@ -188,5 +268,6 @@ export function buildRecommendationCardDisplayProps({
     metrics,
     recommendationDetailsSourceBadges,
     recommendationSourceBadge,
+    timing,
   };
 }
