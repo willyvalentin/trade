@@ -38,6 +38,7 @@ import {
   hasCoherentLongManualPositionPlan,
   hasRecordableManualPositionPlan,
 } from "@/lib/manual-position-plan";
+import { resolveDashboardRefreshContention } from "@/lib/dashboard-refresh-contention";
 import {
   aggregateRealizedPnlExplanation,
   aggregateRealizedPnlLabel,
@@ -8960,7 +8961,7 @@ export function TradeApp({
     Record<string, PositionUpdateUrgency["urgency"]>
   >({});
   const isUpdatingPositionsRef = useRef(false);
-  const dataRefreshInFlightRef = useRef(false);
+  const dataRefreshInFlightPromiseRef = useRef<Promise<void> | null>(null);
   const requestedSymbolMetadataRef = useRef<Set<string>>(new Set());
   const loadTradeDataRef = useRef<
     (options?: LoadTradeDataOptions) => Promise<void>
@@ -9086,10 +9087,37 @@ export function TradeApp({
   }
 
   async function loadTradeData(options: LoadTradeDataOptions = {}) {
-    await Promise.resolve();
-
     const mode = options.mode ?? "initial";
     const isInitialLoad = mode === "initial";
+
+    // A normal background refresh remains coalesced. An action refresh waits
+    // for the current read and then claims its own turn, so a just-recorded
+    // durable position is not hidden until the user manually reloads.
+    while (true) {
+      const existingRefresh = dataRefreshInFlightPromiseRef.current;
+      const contention = await resolveDashboardRefreshContention({
+        existingRefresh,
+        isInitialLoad,
+        source: options.source,
+      });
+
+      if (contention === "skip") {
+        return;
+      }
+
+      if (dataRefreshInFlightPromiseRef.current === existingRefresh) {
+        break;
+      }
+    }
+
+    let completeRefresh = () => undefined;
+    const currentRefresh = new Promise<void>((resolve) => {
+      completeRefresh = resolve;
+    });
+    dataRefreshInFlightPromiseRef.current = currentRefresh;
+
+    await Promise.resolve();
+
     const refreshedIslands = options.islands ?? refreshIslandIds;
     const refreshStartedAt = new Date().toISOString();
     const islandErrors: Partial<Record<RefreshIslandId, string>> = {};
@@ -9097,12 +9125,6 @@ export function TradeApp({
     const shouldUpdateGlobalMessage =
       options.clearMessage !== false &&
       (isInitialLoad || options.source === "manual" || options.source === "action");
-
-    if (!isInitialLoad && dataRefreshInFlightRef.current) {
-      return;
-    }
-
-    dataRefreshInFlightRef.current = true;
 
     if (isInitialLoad) {
       setIsLoading(true);
@@ -9855,7 +9877,10 @@ export function TradeApp({
         noteIslandError(islandId, error);
       }
     } finally {
-      dataRefreshInFlightRef.current = false;
+      if (dataRefreshInFlightPromiseRef.current === currentRefresh) {
+        dataRefreshInFlightPromiseRef.current = null;
+      }
+      completeRefresh();
       setIslandRefreshState((current) => {
         const next = { ...current };
 

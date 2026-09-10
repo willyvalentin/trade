@@ -363,6 +363,19 @@ blocker_or_fallback: MVP-03b remains unverified until an identified supported en
 result_and_remaining_gap: A duplicate click or safe retry no longer turns a timestamp-only difference into a new command. The server transaction still rejects changed command inputs and remains responsible for durable idempotency. MVP-03a, MVP-03b and MVP-03c remain unverified until the supported full lifecycle succeeds.
 ```
 
+#### MVP-03 post-write dashboard refresh — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03a / MVP-03b
+user_behavior_or_reproduced_failure: The existing dashboard intentionally coalesced concurrent background reads. If a manually confirmed entry was durably accepted while another read was active, its follow-up action refresh could return immediately, leaving the just-recorded position absent from the Live Day Trades tab until a later manual reload.
+smallest_change_and_reused_components: Replaced the boolean refresh marker with a local promise-owned refresh claim. Ordinary background reads remain coalesced; a post-write `action` refresh waits for the existing read, rechecks ownership of the slot, then refreshes recommendations, live trades and today’s statistics. The existing authenticated owner-bound position transaction remains the sole persistence authority.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-03-action-refresh-after-write.spec.ts` proves background coalescing is retained, an action refresh waits for the prior read, and the position-open path uses the queued action refresh. It passed 3/3. Adjacent manual-plan, replay and transactional-boundary regressions passed 11/11; scoped ESLint, TypeScript no-emit and diff checks passed.
+external_effects_and_existing_authority: None. The change is local source and test evidence only; it performs no provider, database, deployment, broker or production operation.
+blocker_or_fallback: This does not prove an actual saved position in a supported environment. MVP-03a, MVP-03b and MVP-03c remain unverified until an identified manual entry → reload → exit → reload journey succeeds against durable owner-bound records.
+result_and_remaining_gap: A completed entry no longer loses its own dashboard-refresh turn merely because an earlier non-action read is running. The result is still deliberately fail-closed on a real refresh error, which the existing visible refresh-status surface reports.
+```
+
 Authority reconciliation: the Notion program overview was synchronized on
 2026-09-10 to retain the MVP-first policy and record the merged MVP-02, MVP-04
 and MVP-01c source/CI deliveries. It remains a tracking mirror; GitHub main
