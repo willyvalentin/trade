@@ -130,6 +130,76 @@ test("MVP-02 never turns an unclassified completed scan into a no-trade claim", 
   });
 });
 
+test("MVP-02 explains a closed market and tells the user to wait for the regular session", () => {
+  const emptyState = buildRecommendationEmptyStateSummary({
+    visible_recommendations: [],
+    intake_results: [],
+    observability_summary: observabilityForLatestScan("no_high_quality_setup"),
+    market_session: {
+      phase: "closed",
+      risk_level: "low",
+      market_is_open: false,
+    },
+    has_refresh_control: true,
+    now: observedAt,
+  });
+
+  expect(emptyState).toMatchObject({
+    status: "market_not_ideal",
+    primary_reason: {
+      reason_id: "market_session_not_ideal",
+      message: "Current session is closed with low risk.",
+    },
+    market_session_note: "Current session: closed / low risk.",
+  });
+  expect(emptyState.suggested_actions).toContainEqual({
+    action_id: "wait_for_regular_session",
+    label: "Wait for regular session",
+    message: "Let the regular intraday window reopen before forcing a new idea.",
+    priority: "secondary",
+  });
+});
+
+test("MVP-02 treats closing-soon and holiday sessions as inactive", () => {
+  for (const phase of ["closing_soon", "holiday"] as const) {
+    const emptyState = buildRecommendationEmptyStateSummary({
+      visible_recommendations: [],
+      intake_results: [],
+      observability_summary: observabilityForLatestScan("no_high_quality_setup"),
+      market_session: {
+        phase,
+        risk_level: "low",
+        market_is_open: false,
+      },
+      now: observedAt,
+    });
+
+    expect(emptyState.status).toBe("market_not_ideal");
+    expect(emptyState.suggested_actions).toContainEqual(
+      expect.objectContaining({ action_id: "wait_for_regular_session" }),
+    );
+  }
+});
+
+test("MVP-02 does not tell the user to wait for an already-open regular session", () => {
+  const emptyState = buildRecommendationEmptyStateSummary({
+    visible_recommendations: [],
+    intake_results: [],
+    observability_summary: observabilityForLatestScan("no_high_quality_setup"),
+    market_session: {
+      phase: "regular",
+      risk_level: "high",
+      market_is_open: true,
+    },
+    now: observedAt,
+  });
+
+  expect(emptyState.status).toBe("market_not_ideal");
+  expect(emptyState.suggested_actions).not.toContainEqual(
+    expect.objectContaining({ action_id: "wait_for_regular_session" }),
+  );
+});
+
 test("MVP-02 keeps a static handoff fixture out of a no-trade dashboard", async () => {
   expect(
     shouldRenderReadOnlyHandoffPreviewInDashboard({
