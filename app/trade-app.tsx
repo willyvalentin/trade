@@ -30,6 +30,10 @@ import {
   applicationPositionOpenResultMessage,
   parseApplicationPositionOpenResult,
 } from "@/lib/application-position-open-result";
+import {
+  applicationPositionCloseResultMessage,
+  parseApplicationPositionCloseResult,
+} from "@/lib/application-position-close-result";
 import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
 import {
   aggregateRealizedPnlExplanation,
@@ -2622,8 +2626,26 @@ async function patchApplicationPosition(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ position_id: positionId, operation, values }),
   });
-  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-  return { error: response.ok ? null : new Error(payload?.error ?? "Position update is unavailable.") };
+  const payload = (await response.json().catch(() => null)) as unknown;
+  if (!response.ok) {
+    const error =
+      payload &&
+      typeof payload === "object" &&
+      !Array.isArray(payload) &&
+      typeof (payload as { error?: unknown }).error === "string"
+        ? (payload as { error: string }).error
+        : "Position update is unavailable.";
+    return { data: null, error: new Error(error) };
+  }
+
+  if (operation !== "close") {
+    return { data: null, error: null };
+  }
+
+  const data = parseApplicationPositionCloseResult(payload);
+  return data
+    ? { data, error: null }
+    : { data: null, error: new Error("Position close response could not be verified.") };
 }
 
 async function patchRecommendationLifecycle(input: Record<string, unknown>) {
@@ -11218,7 +11240,7 @@ export function TradeApp({
       return;
     }
 
-    const { error } = await patchApplicationPosition(
+    const { data: closeResult, error } = await patchApplicationPosition(
       selectedPosition.id,
       "close",
       updatePayload,
@@ -11230,23 +11252,25 @@ export function TradeApp({
       return;
     }
 
-    logTradeClosedEvent({
-      position: selectedPosition,
-      closedAt,
-      pnl,
-      rMultiple,
-    });
-    if (brokerExitConfirmation) {
-      logBrokerExitConfirmationEvent(
-        "broker_exit_fill_captured",
-        selectedPosition,
-        brokerExitConfirmation,
-      );
-      logBrokerExitConfirmationEvent(
-        "live_day_trade_closed_after_broker_exit_confirmation",
-        selectedPosition,
-        brokerExitConfirmation,
-      );
+    if (closeResult?.disposition === "closed") {
+      logTradeClosedEvent({
+        position: selectedPosition,
+        closedAt,
+        pnl,
+        rMultiple,
+      });
+      if (brokerExitConfirmation) {
+        logBrokerExitConfirmationEvent(
+          "broker_exit_fill_captured",
+          selectedPosition,
+          brokerExitConfirmation,
+        );
+        logBrokerExitConfirmationEvent(
+          "live_day_trade_closed_after_broker_exit_confirmation",
+          selectedPosition,
+          brokerExitConfirmation,
+        );
+      }
     }
 
     setSelectedPosition(null);
@@ -11256,9 +11280,11 @@ export function TradeApp({
       "action",
     );
     setMessage(
-      confirmationValidation.warnings.length > 0
-        ? `${selectedPosition.ticker} closed from broker exit fill. ${confirmationValidation.warnings[0]}`
-        : `${selectedPosition.ticker} closed from broker exit fill.`,
+      applicationPositionCloseResultMessage(
+        closeResult!,
+        selectedPosition.ticker,
+        confirmationValidation.warnings[0] ?? null,
+      ),
     );
     setIsSaving(false);
   }
