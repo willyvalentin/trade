@@ -253,6 +253,7 @@ export function buildPlanVsActualReview(
     finiteNumber(metadata?.average_exit_price) ?? finiteNumber(input.exitPrice);
   const partialStatus = nullableString(metadata?.partial_position_status);
   const remainingShares = finiteNumber(metadata?.remaining_shares);
+  const hasRemainingShares = remainingShares !== null && remainingShares > 0;
   const quantityDeviationPercent = calculateQuantityDeviation({
     plannedQuantity,
     actualEntryShares,
@@ -410,7 +411,7 @@ export function buildPlanVsActualReview(
 
   if (
     partialStatus === "partially_closed" ||
-    (remainingShares !== null && remainingShares > 0)
+    hasRemainingShares
   ) {
     checks.push(
       check(
@@ -455,7 +456,7 @@ export function buildPlanVsActualReview(
     ? "incomplete"
     : hasFailed || hasMajorDeviation
       ? "major_deviation"
-      : partialStatus === "partially_closed"
+        : partialStatus === "partially_closed" || hasRemainingShares
         ? "needs_review"
         : hasMinorDeviation
           ? "minor_deviation"

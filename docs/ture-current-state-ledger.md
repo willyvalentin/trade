@@ -219,6 +219,19 @@ blocker_or_fallback: Actual net settlement remains unverified because the curren
 result_and_remaining_gap: The product no longer reports a number produced by subtracting SEK costs directly from USD price PnL. MVP-04b and MVP-04c remain unverified release checkpoints until a supported manual lifecycle supplies durable, currency-bound settlement evidence and history/statistics reconcile it end to end.
 ```
 
+#### MVP-04 incomplete remaining-share review — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a, MVP-04c
+user_behavior_or_reproduced_failure: A stored history record could report a closed status and still contain a positive remaining-share count. The plan-vs-actual review added a partial-close warning, but could classify that contradictory, incomplete record as only a minor deviation.
+smallest_change_and_reused_components: Reused the existing plan-vs-actual review and partial-close warning. Any positive remaining-share value now produces the existing `needs_review` status and C grade even when the supplied partial-status label says `fully_closed`; a genuinely zero-remaining closed record retains the existing followed-plan path.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-04-plan-review-completeness.spec.ts` proves both the contradictory positive-remainder path and unchanged zero-remainder path. Together with `mvp-04-fee-basis.spec.ts`, 4/4 targeted checks pass; scoped ESLint, TypeScript, local Next 16.3.4 production build and diff checks pass.
+external_effects_and_existing_authority: None. The test uses local synthetic trade metadata only; no credential, provider, database row, deploy, broker or production operation occurred.
+blocker_or_fallback: This source correction does not establish a durable user journey. MVP-04a and MVP-04c remain unverified until an identified supported manual lifecycle records, closes and reloads a trade with truthful stored values.
+result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
@@ -230,6 +243,7 @@ behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` loc
 external_effects_and_existing_authority: None. This is an application-source and local-test change only. It neither creates a trade nor calls a broker.
 blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
+```
 
 ```
 
