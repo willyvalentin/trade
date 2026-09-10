@@ -254,6 +254,11 @@ export function buildPlanVsActualReview(
   const partialStatus = nullableString(metadata?.partial_position_status);
   const remainingShares = finiteNumber(metadata?.remaining_shares);
   const hasRemainingShares = remainingShares !== null && remainingShares > 0;
+  const hasInvalidRemainingShares = remainingShares !== null && remainingShares < 0;
+  const partialStateNeedsReview =
+    partialStatus === "partially_closed" ||
+    hasRemainingShares ||
+    hasInvalidRemainingShares;
   const quantityDeviationPercent = calculateQuantityDeviation({
     plannedQuantity,
     actualEntryShares,
@@ -409,23 +414,24 @@ export function buildPlanVsActualReview(
     );
   }
 
-  if (
-    partialStatus === "partially_closed" ||
-    hasRemainingShares
-  ) {
+  if (partialStateNeedsReview) {
     checks.push(
       check(
         "partial_position",
         "Partial Position",
         "warning",
-        "Trade has partial-close state or remaining shares.",
+        hasInvalidRemainingShares
+          ? "Remaining shares cannot be negative and require review."
+          : "Trade has partial-close state or remaining shares.",
       ),
     );
     deviations.push(
       deviation(
         "partial_close_needs_review",
         "minor",
-        "Partial close outcome should be reviewed separately from full-close outcomes.",
+        hasInvalidRemainingShares
+          ? "Invalid negative remaining-share metadata requires review."
+          : "Partial close outcome should be reviewed separately from full-close outcomes.",
       ),
     );
   }
@@ -456,7 +462,7 @@ export function buildPlanVsActualReview(
     ? "incomplete"
     : hasFailed || hasMajorDeviation
       ? "major_deviation"
-        : partialStatus === "partially_closed" || hasRemainingShares
+        : partialStateNeedsReview
         ? "needs_review"
         : hasMinorDeviation
           ? "minor_deviation"
