@@ -11,6 +11,7 @@ import {
   reserveSharedLoginAttempt,
 } from "@/lib/server/application-login-abuse-control";
 import { buildApplicationLoginRuntimeProof } from "@/lib/application-login-runtime-proof";
+import { getConfiguredApplicationSessionSecret } from "@/lib/application-session-core";
 import { authenticationOriginFailureResponse } from "@/lib/application-mutation-guard-core";
 import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   const originError = authenticationOriginFailureResponse(request);
   if (originError) return originError;
 
-  const appPassword = process.env.TRADE_APP_PASSWORD;
+  const appPassword = getConfiguredApplicationSessionSecret();
 
   if (!appPassword) {
     return NextResponse.json(
