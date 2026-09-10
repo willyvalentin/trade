@@ -220,6 +220,19 @@ blocker_or_fallback: This source correction does not establish a real provider f
 result_and_remaining_gap: A user will now see the known unavailable-data reason instead of an overly generic market-session explanation, while still receiving the existing market-session next step. No stale or unavailable state becomes actionable.
 ```
 
+#### MVP-02 readiness retains provider-failure warning — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02b, MVP-02c, MVP-05b
+user_behavior_or_reproduced_failure: After a later provider failure, the dashboard could correctly preserve an earlier accepted card and display its supporting failure warning, but the downstream live-test-readiness summary ignored the provider-unavailable empty state. Its recommendation-quality check could therefore appear clean despite the known provider failure.
+smallest_change_and_reused_components: Added provider_unavailable to the existing no-trade-context warning classification in the reused live-test-readiness summary. No recommendation is hidden or made actionable; the existing accepted card remains reviewable and the existing readiness warning now carries the same factual provider state.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-02-provider-empty-state.spec.ts` passes 7/7, including retained-card-to-readiness propagation; the adjacent stale-card regression suite passes 2/2. Scoped ESLint and diff checks pass. Repository-wide TypeScript no-emit reaches the unrelated local private-transport dependency gap (`pg` and its types are absent locally) after checking this slice; it reports no slice-specific diagnostic.
+external_effects_and_existing_authority: None. Tests use local synthetic scan metadata only; no provider, database, deployment, broker or production operation occurred.
+blocker_or_fallback: This source correction does not establish a real provider failure, missed-run recovery or day-long freshness observation. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints until a supported environment produces bounded operational evidence.
+result_and_remaining_gap: The live-test readiness view can no longer describe recommendation quality as clean when the latest known dashboard data says the provider is unavailable. The system remains fail-closed and no unavailable or stale state becomes actionable.
+```
+
 #### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
 
 ```text

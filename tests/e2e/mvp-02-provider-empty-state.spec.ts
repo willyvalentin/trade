@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+import { buildDataModeClaritySummary } from "../../lib/data-mode-clarity";
+import { buildLiveTestReadinessSummary } from "../../lib/live-test-readiness";
+import { buildMarketSessionEvaluation } from "../../lib/market-session";
 import type { RecommendationIntakeQualityResult } from "../../lib/recommendation-intake-quality";
 import { buildRecommendationEmptyStateSummary } from "../../lib/recommendation-empty-state";
+import { createDefaultRiskControlsSettings } from "../../lib/risk-controls";
 import { buildScanPipelineObservabilitySummary } from "../../lib/scan-pipeline-observability";
 
 const observedAt = "2026-09-10T14:05:00.000Z";
@@ -154,6 +158,74 @@ test("MVP-02 keeps the known provider failure visible beside a retained recommen
     show_supporting_empty_state: true,
     primary_reason: { reason_id: "provider_unavailable" },
   });
+});
+
+test("MVP-02 carries a known provider failure into live-test readiness", () => {
+  const intakeResult = acceptedIntakeResult();
+  const observability = buildScanPipelineObservabilitySummary({
+    visible_recommendations: [
+      { id: intakeResult.recommendation_id, ticker: intakeResult.ticker },
+    ],
+    intake_results: [intakeResult],
+    scan_logs: [
+      {
+        created_at: observedAt,
+        result: "provider_error",
+        candidates_scanned: 12,
+        pre_market_candidates: [],
+      },
+    ],
+    market_session: { phase: "regular", risk_level: "low" },
+    now: observedAt,
+  });
+  const emptyState = buildRecommendationEmptyStateSummary({
+    visible_recommendations: [
+      { id: intakeResult.recommendation_id, ticker: intakeResult.ticker },
+    ],
+    intake_results: [intakeResult],
+    observability_summary: observability,
+    market_session: {
+      phase: "regular",
+      risk_level: "low",
+      market_is_open: true,
+    },
+    now: observedAt,
+  });
+  const readiness = buildLiveTestReadinessSummary({
+    mode: "demo_rehearsal",
+    data_mode_clarity: buildDataModeClaritySummary({
+      environment: "test",
+      recommendations: { total: 1 },
+      scan_observability: {
+        status: observability.status,
+        data_age_minutes: observability.run_context.data_age_minutes,
+        unknown_metrics: observability.unknown_metrics,
+      },
+      now: observedAt,
+    }),
+    scan_observability: observability,
+    intake_results: [intakeResult],
+    empty_state_summary: emptyState,
+    risk_controls: createDefaultRiskControlsSettings(new Date(observedAt)),
+    market_session: buildMarketSessionEvaluation({ now: observedAt }),
+    now: observedAt,
+  });
+
+  expect(emptyState.status).toBe("provider_unavailable");
+  expect(
+    readiness.checks.find(
+      (item) => item.check_id === "recommendation_intake_quality",
+    ),
+  ).toMatchObject({
+    status: "warning",
+    warning_ids: ["empty_state_not_clean"],
+  });
+  expect(readiness.warnings).toContainEqual(
+    expect.objectContaining({
+      warning_id: "empty_state_not_clean",
+      category: "recommendation_quality",
+    }),
+  );
 });
 
 test("MVP-02 keeps a completed no-high-quality scan distinct from optional diagnostic gaps", () => {
