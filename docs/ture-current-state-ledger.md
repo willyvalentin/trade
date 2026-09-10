@@ -233,6 +233,19 @@ blocker_or_fallback: This source correction does not establish a durable user jo
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
 ```
 
+#### MVP-05 outcome-completeness evidence containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05c
+user_behavior_or_reproduced_failure: The outcome calculator accepted an upstream `data_completeness: complete` label even when it had no intraday candles. The computed status was incomplete, but the retained completeness field and its downstream coverage rank could still claim complete evidence.
+smallest_change_and_reused_components: Reused the existing candle normalization and outcome status calculation. A supplied `complete` label now fails closed to the observed `partial` or `none` level whenever no candles remain, and preserves a warning that the terminal evaluation cannot be trusted. Legitimate candle-backed complete outcomes retain their existing contract.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: Source revision `e968c84f` adds the regression to `tests/e2e/action-550-outcome-completion-path-root-cause.spec.ts`; targeted Playwright coverage passes 6/6, including the false-complete path. Scoped ESLint and `git diff --check` pass. The check is local and does not establish a supported-environment acceptance result.
+external_effects_and_existing_authority: None. The test uses local synthetic snapshot and candle inputs only; no provider, database, deployment, broker or production operation occurred.
+blocker_or_fallback: MVP-05c remains unverified until an identified supported evaluation path retains and presents an actual attributable outcome with its data evidence. Do not treat an upstream completeness label as a substitute for candle evidence.
+result_and_remaining_gap: A missing intraday series can no longer increase an outcome's apparent quality or displace an evidence-backed historical result. The product keeps the outcome reviewable while making its incompleteness explicit.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
