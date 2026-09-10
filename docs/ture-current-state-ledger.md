@@ -33,8 +33,9 @@ Its targeted local tests, scoped lint, local production build and cost-bounded
 Draft verification passed. The protected aggregate is expected to remain red
 while the PR is Draft because that workflow skips the Ready shard matrix; this
 does not change CI policy or authorize promotion. The candidate is not deployed
-or enabled. The remaining work is one separately authorized staging-only enable
-→ observed failure → disable/rollback proof. MVP-02
+to the dedicated staging site or enabled. The remaining work is one separately
+authorized staging-only enable → observed failure → disable/rollback proof.
+MVP-02
 stale-card presentation and MVP-04 incomplete-history classification are
 corrected on main, but are not supported-environment acceptance claims.
 
