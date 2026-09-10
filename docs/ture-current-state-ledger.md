@@ -16,15 +16,18 @@ no-trade state. The controlled failed-first-read remains unverified: Draft PR
 #450 supplies an inactive default-deny staging probe but is neither merged nor
 enabled. Baseline inspected: GitHub main
 `f843bbd63e3984bf2186ef339c55e27adc540714`. No production operation was
-performed.
+performed. Draft PR #451 contains a separate MVP-02b source correction for a
+misleading static handoff fixture; its targeted local suites, production build
+and Draft verifier run `34491198449` passed. It is neither merged nor deployed
+to the dedicated staging site.
 
 ### Now
 
-**Selected product slice: MVP-02b no-trade honesty.** An authenticated staging
+**Most recently completed source slice: MVP-02b no-trade honesty.** An authenticated staging
 read showed a clear ordinary no-trade explanation, but the same customer
 dashboard also rendered a large static GME/Avanza handoff fixture. Its controls
 were disabled, yet the fixture competed visually with the no-trade result. This
-candidate renders the handoff surface only for an explicitly admitted selected-
+Draft correction renders the handoff surface only for an explicitly admitted selected-
 recommendation preview and never while a dominant empty state is present. It
 does not enable a bridge, execution, provider, database, deploy or broker path.
 MVP-01c is now blocked only on its separately authorized staging-only
@@ -61,7 +64,7 @@ rows still need behavior evidence.
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. Draft PR #450's disabled probe is locally verified but needs a separately authorized staging-only configuration/deploy → observed failure → disable/rollback scope. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
-| MVP-02b | No-trade and market-closed situations explain why no action is offered | active | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. This candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present. Local MVP-02 coverage and the production build must pass; the market-closed behavior still needs supported-environment evidence. |
+| MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. Draft PR #451 suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present; its local coverage, production build and Draft verifier run `34491198449` pass. A dedicated staging delivery must recheck the correction, and the market-closed behavior still needs supported-environment evidence. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
 | MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | — |
@@ -115,12 +118,13 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Complete the MVP-02b candidate's focused verification and keep its Draft
-   separate from MVP-01c. A merge/deploy remains a separate release decision.
-2. With a separately authorized staging-only configuration/deploy scope, enable
+1. With a separately authorized staging-only configuration/deploy scope, enable
    MVP-01c's one bounded failure probe, observe its unavailable-data state, then
    immediately disable and roll it back. Do not use production or generic
    deploy-preview origins.
+2. With a separately authorized staging-only delivery scope, deploy the already
+   locally/CI-verified MVP-02b correction to the dedicated staging site and
+   recheck the ordinary no-trade screen. Do not merge it to protected `main`.
 3. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -165,10 +169,10 @@ acceptance_id: MVP-02b
 user_behavior_or_reproduced_failure: On the authenticated dedicated staging dashboard, the ordinary no-trade state clearly said that the data was not clean enough for a high-quality setup. The same screen nevertheless rendered a large static GME/Avanza handoff fixture. Its controls were disabled, but a fixed preview package can contradict a customer-facing no-trade result.
 smallest_change_and_reused_components: Added one pure UI-visibility boundary. The existing read-only Avanza handoff surface now renders only in the Recommendations tab when its existing selected-recommendation preview state is explicitly allowed and no dominant recommendation empty state is shown. The existing preview guard, disabled controls, static fixtures and all bridge/execution denials remain unchanged.
 active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
-behavior_check_and_environment: One bounded authenticated `ture-staging.netlify.app` read observed `Data is not clean enough right now` and the competing static preview. Local `mvp-02-provider-empty-state` coverage verifies no-trade/provider distinctions plus the new preview-visibility truth table and Trade UI wiring. The focused default-off Avanza preview regression suite and local Next 16.3.4 production build pass.
+behavior_check_and_environment: One bounded authenticated `ture-staging.netlify.app` read observed `Data is not clean enough right now` and the competing static preview. Local `mvp-02-provider-empty-state` coverage verifies no-trade/provider distinctions plus the new preview-visibility truth table and Trade UI wiring. The focused default-off Avanza preview regression suite and local Next 16.3.4 production build pass. Draft PR #451's exact revision `4256bdf9` also passed cost-bounded Draft verifier run `34491198449`; its red protected aggregate is the known Draft-policy route that waits for Ready shards, not a failed product test.
 external_effects_and_existing_authority: The staging observation was read-only. The source change neither creates a recommendation nor changes a database row, provider call, deployment, bridge, broker or production configuration.
 blocker_or_fallback: The market-closed behavior was not active in this observation, so it remains unverified. MVP-01c's separate failed-first-read probe is independently blocked only on an explicit staging-only configuration/deploy/rollback scope; it does not block this source correction.
-result_and_remaining_gap: A no-trade customer will no longer be presented with a static pseudo-trade package in the same dashboard surface. This is source/local verification only until a later separately authorized staging delivery rechecks the behavior.
+result_and_remaining_gap: A no-trade customer will no longer be presented with a static pseudo-trade package in the same dashboard surface. This is source/local/CI verification only until a later separately authorized staging delivery rechecks the behavior; the market-closed state remains unobserved.
 ```
 
 #### MVP-01 form alignment — 2026-09-09 (merged to main)
