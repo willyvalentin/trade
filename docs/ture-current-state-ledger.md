@@ -15,14 +15,15 @@ one bounded owner session has observed the initial dashboard loading state and
 the ordinary no-trade state there. This is supported-environment evidence for
 those two states only; it is not a provider, database, broker or production
 operation. Baseline inspected: GitHub main
-`f843bbd63e3984bf2186ef339c55e27adc540714`. On 2026-09-10 two bounded
-first-read proofs were attempted only on `ture-staging`. The second used
-temporary commit `c6bc6c85` and the non-secret probe flag in exactly both
-Netlify Builds and Functions scopes, but mistakenly set its required value to
-`true` rather than `enabled`; its one authenticated dashboard read therefore
-did not test the failure branch. The flag was deleted and revert `74ada3a5`
-reached `ready`. This is configuration evidence, not a passing failure-state
-claim or a refutation of the scope hypothesis.
+`f843bbd63e3984bf2186ef339c55e27adc540714`. On 2026-09-10 three bounded
+first-read proofs were attempted only on `ture-staging`. The second set the
+required flag value to `true` rather than `enabled`, and the third used
+`enabled` but placed the variable in Netlify's `branch-deploy` context. Staging
+is the repository branch of the separate staging site, so it uses that site's
+Netlify `production` context instead; neither attempt exercised the failure
+branch. The flag was deleted and revert `cc69d6a9` reached `ready`. This is
+configuration evidence, not a passing failure-state claim or a refutation of
+the scope hypothesis.
 
 ### Now
 
@@ -39,13 +40,15 @@ Its targeted local tests, scoped lint, Webpack production compilation and
 cost-bounded Draft verification passed. The protected aggregate is expected to
 remain red while the PR is Draft because that workflow skips the Ready shard
 matrix; this does not change CI policy or authorize promotion. A temporary,
-staging-only deployment and immediate rollback have now been exercised twice,
-but neither permitted authenticated read surfaced the failure state. Local
-diagnosis establishes that the second attempt supplied `true`, whereas the
-default-deny probe requires the exact value `enabled`; it did not test the
-earlier Functions-only scope hypothesis. MVP-01c remains unverified; a fresh,
-separately authorized proof must use the explicit enabled value in both scopes.
-MVP-02 stale-card presentation and MVP-04
+staging-only deployment and immediate rollback have now been exercised three
+times, but none surfaced the failure state. Local diagnosis establishes that
+the second attempt supplied `true`, whereas the default-deny probe requires
+`enabled`; the third used `enabled` in `branch-deploy`, while the staging site's
+configured repository branch uses its Netlify `production` context. Neither
+attempt tested the earlier Functions-only scope hypothesis. MVP-01c remains
+unverified; a fresh, separately authorized proof must use exact `enabled` in
+both scopes in the **staging site's** Netlify `production` context. MVP-02
+stale-card presentation and MVP-04
 incomplete-history classification are corrected on main, but are not
 supported-environment acceptance claims.
 
@@ -77,7 +80,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. One bounded authenticated `ture-staging.netlify.app` reload previously showed loading and the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-10, a second authorised one-shot probe used temporary staging commit `c6bc6c85`, the non-secret flag in exactly Builds plus Functions scopes, and one authenticated dashboard read; the page again did not expose unavailable-data wording. Local source diagnosis established that it used value `true`, while the default-deny probe accepts only `enabled`, so it did not test the scope hypothesis. The flag was deleted and revert `74ada3a5` deployed `ready`. No data change, provider, broker, CI-policy or production action occurred. A fresh proof must use the exact enabled value; do not count this run as a failure-state verification. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. One bounded authenticated `ture-staging.netlify.app` reload previously showed loading and the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-10, two further authorised one-shot probes used temporary commits `c6bc6c85` and `6146bdb4`; first `true` was rejected by the probe's exact `enabled` contract, then `enabled` was placed in Netlify `branch-deploy` despite `staging` being the separate staging site's configured repository branch. Neither read tested the scope hypothesis. The flag was deleted and revert `cc69d6a9` deployed `ready`. No data change, provider, broker, CI-policy or public-production action occurred. A fresh proof needs exact `enabled` in Builds plus Functions scopes under the staging site's Netlify `production` context; do not count these runs as failure-state verification. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -120,8 +123,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; MVP-01c is held after one negative and one restored misconfigured staging proof | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10; the Builds-plus-Functions retry used the wrong enable value | A new bounded proof must use `enabled` in both scopes |
+| Active product slices | 0; MVP-01c is held after one negative and two restored configuration-mismatched staging proofs | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10; the latest probe used the wrong Netlify context for the staging site's repository branch | A new bounded proof needs `enabled` in both scopes in staging-site `production` context |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -134,10 +137,12 @@ blocking periods are the test of whether this delivery policy is helping.
 ### Next — ordered, next product slice
 
 1. The MVP-01c local probe diagnosis is complete: the second bounded proof used
-   value `true`, while the default-deny helper accepts only `enabled`. Define
-   one fresh, separately authorized bounded proof using that exact non-secret
-   value in both Builds and Functions scopes; do not retry blindly, use
-   production or permit generic deploy-preview origins.
+   `true` instead of `enabled`, and the corrected third proof used
+   `branch-deploy` even though `staging` is the separate staging site's
+   repository branch. Define one fresh, separately authorized bounded proof
+   using exact `enabled` in Builds and Functions scopes under that staging
+   site's Netlify `production` context; do not touch the public production site
+   or permit generic deploy-preview origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -157,7 +162,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked since 2026-09-10; its first authorised staging probe was restored without observing unavailable-data state. A second Builds-plus-Functions attempt also restored safely, but local source diagnosis found its value was `true` rather than the required `enabled`, so that run is not scope evidence. | Only a fresh default-deny proof may set the non-secret probe variable to exact `enabled` in both Builds and Functions scopes, then enable/deploy/read/rollback. It must stay unavailable to production, generic previews and ordinary reads. |
+| MVP-01c supported-environment proof | Blocked since 2026-09-10; its first authorised staging probe was restored without observing unavailable-data state. The second used `true` rather than `enabled`; the third used `enabled` in `branch-deploy`, which does not apply because `staging` is the separate staging site's repository branch. Both restored safely but are not scope evidence. | Only a fresh default-deny proof may set the non-secret probe variable to exact `enabled` in both Builds and Functions scopes in the **staging site's** Netlify `production` context, then enable/deploy/read/rollback. It must stay unavailable to the public production site, generic previews and ordinary reads. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -326,6 +331,18 @@ behavior_check_and_environment: Netlify `ture-staging` built `c6bc6c85` ready. O
 external_effects_and_existing_authority: Immediately after that single read, the project connector deleted `MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE`; revert `74ada3a5` removed the helper, route/client change and fixture from `staging`, and its Netlify deployment reached `ready`. No application row, provider request, broker operation, production app deploy, CI-policy change, secret disclosure or permanent configuration change occurred.
 blocker_or_fallback: Do not repeat this configuration, broaden the host guard, infer a passing state from local coverage or use production. Any fresh bounded proof must use exact `enabled` in both scopes and retain the same host, authenticated route, one-read and immediate-cleanup bounds.
 result_and_remaining_gap: The configuration defect is now contained by source-level contract coverage, and staging transport/rollback remain evidenced. The failed-first-read UI behavior remains unverified, so MVP-01c and parent MVP-01 cannot close.
+```
+
+#### MVP-01c exact-enable staging retry — 2026-09-10 (wrong Netlify context; restored)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: The prior retry used the wrong flag value. A fresh, separately authorised retry therefore used exact `enabled` while preserving the named staging host, authenticated route, one-read and immediate-cleanup boundary.
+smallest_change_and_reused_components: The original default-deny probe alone was reintroduced on the isolated staging branch as temporary commit `6146bdb4`; its staging-base regression suite passed 4/4 before push. The non-secret flag was configured only for `ture-staging`, only in Builds plus Functions scopes, and only in Netlify `branch-deploy` context.
+behavior_check_and_environment: Netlify `ture-staging` built `6146bdb4` ready. One authenticated dashboard navigation with the exact query parameter retained it in the browser URL but showed the ordinary dashboard rather than unavailable-data wording. Read-only site metadata then established that this separate site's configured repository branch is `staging`; it is therefore a Netlify `production` deploy for that site, not a branch deploy. The `branch-deploy` flag was not applicable to this request, so this run does not test whether exact `enabled` in Builds plus Functions succeeds.
+external_effects_and_existing_authority: Immediately after the single read, the project connector deleted `MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE`; revert `cc69d6a9` removed the helper, route/client change and fixture from `staging`, and its Netlify deployment reached `ready`. No application row, provider request, broker operation, public production deploy, CI-policy change, secret disclosure or permanent configuration change occurred.
+blocker_or_fallback: Do not repeat the branch-deploy context, broaden the host guard, use the public production site or infer a passing state. A new separately authorised proof must identify that it sets exact `enabled` in both scopes in the **staging site's** Netlify `production` context, then retain the same one-read and immediate-cleanup bounds.
+result_and_remaining_gap: The staging deploy-context mismatch is now identified and safely contained. The controlled failed-first-read UI behavior remains unverified, so MVP-01c and parent MVP-01 cannot close.
 ```
 
 #### MVP-01c supported-preview origin admission check — 2026-09-10 (blocked)
