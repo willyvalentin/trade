@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { shouldRenderReadOnlyHandoffPreviewInDashboard } from "../../lib/avanza-read-only-handoff-preview-visibility";
+import type { RecommendationIntakeQualityResult } from "../../lib/recommendation-intake-quality";
 import { buildRecommendationEmptyStateSummary } from "../../lib/recommendation-empty-state";
 import { buildScanPipelineObservabilitySummary } from "../../lib/scan-pipeline-observability";
 
@@ -43,6 +44,28 @@ function emptyStateForLatestScan(result: string) {
     has_refresh_control: true,
     now: observedAt,
   });
+}
+
+function acceptedIntakeResult(): RecommendationIntakeQualityResult {
+  return {
+    result_id: "accepted-recommendation",
+    result_version: "1.0",
+    result_kind: "recommendation_intake_quality",
+    evaluated_at: observedAt,
+    recommendation_id: "recommendation-accepted",
+    ticker: "TURE",
+    status: "accepted",
+    grade: "A",
+    accepted_for_visible_list: true,
+    internal_only: true,
+    risk_reward_ratio: 2,
+    data_age_minutes: 0,
+    checks: [],
+    blockers: [],
+    warnings: [],
+    top_reasons: [],
+    summary: "Accepted local fixture.",
+  };
 }
 
 test("MVP-02 surfaces the latest provider failure instead of a generic no-trade state", () => {
@@ -95,6 +118,49 @@ test("MVP-02 keeps a known provider failure visible during a closed session", ()
     label: "Wait for regular session",
     message: "Let the regular intraday window reopen before forcing a new idea.",
     priority: "secondary",
+  });
+});
+
+test("MVP-02 keeps the known provider failure visible beside a retained recommendation", () => {
+  const intakeResult = acceptedIntakeResult();
+  const observability = buildScanPipelineObservabilitySummary({
+    visible_recommendations: [
+      {
+        id: intakeResult.recommendation_id,
+        ticker: intakeResult.ticker,
+      },
+    ],
+    intake_results: [intakeResult],
+    scan_logs: [
+      {
+        created_at: observedAt,
+        result: "provider_error",
+        candidates_scanned: 12,
+        pre_market_candidates: [],
+      },
+    ],
+    market_session: { phase: "regular", risk_level: "low" },
+    now: observedAt,
+  });
+  const emptyState = buildRecommendationEmptyStateSummary({
+    visible_recommendations: [
+      { id: intakeResult.recommendation_id, ticker: intakeResult.ticker },
+    ],
+    intake_results: [intakeResult],
+    observability_summary: observability,
+    market_session: {
+      phase: "regular",
+      risk_level: "low",
+      market_is_open: true,
+    },
+    now: observedAt,
+  });
+
+  expect(emptyState).toMatchObject({
+    status: "provider_unavailable",
+    show_dominant_empty_state: false,
+    show_supporting_empty_state: true,
+    primary_reason: { reason_id: "provider_unavailable" },
   });
 });
 

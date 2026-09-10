@@ -210,10 +210,6 @@ function chooseStatus({
   const marketPhase = input.market_session?.phase ?? null;
   const isDemoEmpty = input.demo_mode === true && visibleCount === 0;
 
-  if (visibleCount > 0 && acceptedCount > 0) {
-    return "has_recommendations";
-  }
-
   if (isDemoEmpty) {
     return "demo_empty";
   }
@@ -238,6 +234,10 @@ function chooseStatus({
     latestScanResultIs(input.observability_summary, ["unknown", "openai_error"])
   ) {
     return "data_unavailable";
+  }
+
+  if (visibleCount > 0 && acceptedCount > 0) {
+    return "has_recommendations";
   }
 
   if (
@@ -650,7 +650,8 @@ export function buildRecommendationEmptyStateSummary(
     hasRiskControlBlock,
   });
   const showDominantEmptyState = visibleCount === 0;
-  const showSupportingEmptyState = visibleCount > 0 && acceptedCount === 0;
+  const showSupportingEmptyState =
+    visibleCount > 0 && status !== "has_recommendations";
   const supportingReasons = buildSupportingReasons(input)
     .filter((item, index, list) =>
       list.findIndex((candidate) => candidate.reason_id === item.reason_id) === index,
