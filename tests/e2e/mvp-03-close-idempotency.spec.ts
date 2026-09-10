@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  calculateOwnedLongPositionCloseMetrics,
+  ownedLongPositionCloseMetricsMatch,
   ownedPositionCloseValuesMatch,
   parseOwnedPositionCloseValues,
 } from "../../lib/server/owned-position-close";
@@ -74,6 +76,42 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(parseOwnedPositionCloseValues({ ...closeValues, pnl: Infinity })).toBeNull();
   });
 
+  test("rejects client-supplied metrics that disagree with a fully open owned long position", () => {
+    const parsed = parseOwnedPositionCloseValues(closeValues);
+    const metrics = calculateOwnedLongPositionCloseMetrics(
+      {
+        entry_price: "100",
+        position_size: "10",
+        current_stop: "80",
+        execution_metadata: { entry_fills: [] },
+      },
+      closeValues.exit_price,
+    );
+
+    expect(metrics).toEqual({ pnl: 125, pnl_percent: 12.5, r_multiple: 0.625 });
+    expect(ownedLongPositionCloseMetricsMatch(parsed!, metrics!)).toBe(false);
+    expect(
+      ownedLongPositionCloseMetricsMatch(
+        { ...parsed!, pnl: 125, r_multiple: 0.625 },
+        metrics!,
+      ),
+    ).toBe(true);
+  });
+
+  test("leaves prior partial-exit accounting outside the one-fill close check", () => {
+    expect(
+      calculateOwnedLongPositionCloseMetrics(
+        {
+          entry_price: 100,
+          position_size: 5,
+          current_stop: 80,
+          execution_metadata: { exit_fills: [{ fill_id: "prior-exit" }] },
+        },
+        112.5,
+      ),
+    ).toBeNull();
+  });
+
   test("keeps the server-owned closed-versus-reused outcome visible to a close retry", () => {
     const reused = parseApplicationPositionCloseResult({
       ok: true,
@@ -109,6 +147,8 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(dataAccess).toContain('.eq("status", "open")');
     expect(dataAccess).toContain('.eq("status", "closed")');
     expect(dataAccess).toContain("ownedPositionCloseValuesMatch(existing.data, values)");
+    expect(dataAccess).toContain("calculateOwnedLongPositionCloseMetrics(");
+    expect(dataAccess).toContain("ownedLongPositionCloseMetricsMatch(values, metrics)");
     expect(partialUpdateSource).toContain('.eq("status", "open")');
     expect(
       partialUpdateSource.match(/\.gt\("position_size", values\.position_size\)/g),

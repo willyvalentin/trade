@@ -7,6 +7,8 @@ import {
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 import {
+  calculateOwnedLongPositionCloseMetrics,
+  ownedLongPositionCloseMetricsMatch,
   ownedPositionCloseValuesMatch,
   parseOwnedPositionCloseValues,
 } from "@/lib/server/owned-position-close";
@@ -490,6 +492,25 @@ export async function closeApplicationPosition(input: {
   if (!client || !owner) return { status: "unavailable" };
   if (!input.position_id || input.position_id.length > 160 || !values) {
     return { status: "invalid" };
+  }
+
+  const openPosition = await client
+    .from("positions")
+    .select("entry_price,position_size,current_stop,execution_metadata")
+    .eq("id", input.position_id)
+    .eq("owner_user_id", owner)
+    .eq("status", "open")
+    .maybeSingle();
+
+  if (openPosition.error) return { status: "failed" };
+  if (openPosition.data) {
+    const metrics = calculateOwnedLongPositionCloseMetrics(
+      openPosition.data,
+      values.exit_price,
+    );
+    if (metrics && !ownedLongPositionCloseMetricsMatch(values, metrics)) {
+      return { status: "invalid" };
+    }
   }
 
   const update = {
