@@ -39116,7 +39116,32 @@ function RecommendationScanRunHistoryPanel({
               : "—"
           }
         />
+        <SummaryCard
+          label="Last Successful Scan"
+          value={
+            summary.last_successful_run_timestamp
+              ? formatDate(summary.last_successful_run_timestamp)
+              : "—"
+          }
+        />
       </div>
+
+      {summary.latest_run_recovery_state === "review_required" && (
+        <div className="mt-4 rounded-md border border-amber-300/20 bg-amber-300/[0.06] p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+            Latest scan needs review
+          </p>
+          <p className="mt-2 text-sm leading-6 text-amber-50/80">
+            The latest scan did not complete as a clean result. Review its
+            warning and wait for a new successful scan before treating a prior
+            result as current.
+          </p>
+          <p className="mt-2 text-xs leading-5 text-amber-100/70">
+            Refreshing this dashboard reads the latest stored state; it does not
+            start a new scan.
+          </p>
+        </div>
+      )}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
@@ -39244,6 +39269,9 @@ function RecommendationScanRunHistoryPanel({
         data-total-scan-runs={summary.total_scan_runs}
         data-target-hit-rate={summary.target_hit_rate ?? ""}
         data-latest-run-status={summary.latest_run_status}
+        data-last-successful-run-status={summary.last_successful_run_status ?? "unknown"}
+        data-last-successful-run-timestamp={summary.last_successful_run_timestamp ?? ""}
+        data-latest-run-recovery-state={summary.latest_run_recovery_state ?? "unknown"}
         data-provider-warning-run-count={summary.provider_warning_run_count}
         data-unknown-metric-run-count={summary.unknown_metric_run_count}
       >

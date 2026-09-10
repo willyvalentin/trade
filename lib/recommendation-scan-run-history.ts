@@ -75,6 +75,15 @@ export type RecommendationScanRunHistorySummary = {
   total_scan_runs: number;
   latest_run_timestamp: string | null;
   latest_run_status: RecommendationScanRunStatus | "unknown";
+  /**
+   * The latest run that produced either a complete recommendation set or an
+   * explicit, clean no-trade result. This intentionally excludes partial,
+   * degraded, stale, failed, and unknown runs: none of those may be presented
+   * as a known-good recovery point.
+   */
+  last_successful_run_timestamp?: string | null;
+  last_successful_run_status?: "completed" | "empty" | "unknown";
+  latest_run_recovery_state?: "not_required" | "review_required" | "unknown";
   average_visible_recommendation_count: number | null;
   median_visible_recommendation_count: number | null;
   average_strong_count: number | null;
@@ -277,6 +286,29 @@ function hasProviderWarning(scanRun: RecommendationScanRun) {
     scanRun.provider_statuses.some((provider) => provider.status !== "available") ||
     scanRun.warnings.some((warning) => warning.source === "provider_status")
   );
+}
+
+function isSuccessfulScanRun(
+  scanRun: RecommendationScanRun,
+): scanRun is RecommendationScanRun & { status: "completed" | "empty" } {
+  return scanRun.status === "completed" || scanRun.status === "empty";
+}
+
+function latestSuccessfulScanRun(scanRuns: RecommendationScanRun[]) {
+  return [...scanRuns]
+    .filter(isSuccessfulScanRun)
+    .sort(
+      (first, second) =>
+        (timestampMs(second.observed_at) ?? 0) -
+        (timestampMs(first.observed_at) ?? 0),
+    )[0];
+}
+
+function latestRunRecoveryState(
+  latestRun: RecommendationScanRun | undefined,
+): "not_required" | "review_required" | "unknown" {
+  if (!latestRun) return "unknown";
+  return isSuccessfulScanRun(latestRun) ? "not_required" : "review_required";
 }
 
 function statusBreakdown(
@@ -500,6 +532,7 @@ export function buildRecommendationScanRunHistorySummary(
     (first, second) =>
       (timestampMs(second.observed_at) ?? 0) - (timestampMs(first.observed_at) ?? 0),
   )[0];
+  const lastSuccessfulRun = latestSuccessfulScanRun(filteredRuns);
   const total = filteredRuns.length;
   const targetHitCount = filteredRuns.filter(targetHit).length;
   const belowTargetCount = filteredRuns.filter(
@@ -558,6 +591,9 @@ export function buildRecommendationScanRunHistorySummary(
     total_scan_runs: total,
     latest_run_timestamp: latestRun?.observed_at ?? null,
     latest_run_status: latestRun?.status ?? "unknown",
+    last_successful_run_timestamp: lastSuccessfulRun?.observed_at ?? null,
+    last_successful_run_status: lastSuccessfulRun?.status ?? "unknown",
+    latest_run_recovery_state: latestRunRecoveryState(latestRun),
     average_visible_recommendation_count: avgVisible,
     median_visible_recommendation_count: medVisible,
     average_strong_count: avgStrong,
