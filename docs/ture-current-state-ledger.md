@@ -63,7 +63,7 @@ rows still need behavior evidence.
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
-| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | Draft PR #461 atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
 | MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
