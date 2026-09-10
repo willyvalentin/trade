@@ -4,7 +4,7 @@ import {
   hb307cCanaryPurpose,
   hb307cCanaryRouteBuildMarker,
   hb307cNoEffectResponse,
-} from "@/app/api/hb307c/ping/route";
+} from "@/lib/hb307c-route-contract";
 
 export const dynamic = "force-dynamic";
 
