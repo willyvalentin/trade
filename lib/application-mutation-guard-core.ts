@@ -1,4 +1,8 @@
-import { applicationCanonicalProductionOrigin } from "@/lib/application-platform-contract";
+import {
+  applicationCanonicalProductionOrigin,
+  applicationCanonicalStagingOrigin,
+  isCanonicalApplicationRuntimeOrigin,
+} from "@/lib/application-platform-contract";
 
 export type ApplicationMutationOriginResult =
   | { status: "allowed" }
@@ -94,9 +98,16 @@ export function applicationDeploymentContext(
   if (environment.NODE_ENV !== "production") return "local_development" as const;
   const configured = configuredApplicationOrigin(environment);
   const runtime = originValue(normalizedOrigin(environment.URL, { requireHttps: true }));
-  return configured && runtime === configured
-    ? "production"
-    : "production_context_unobserved" as const;
+  if (!configured || runtime !== configured) {
+    return "production_context_unobserved" as const;
+  }
+  if (configured === applicationCanonicalProductionOrigin) {
+    return "production" as const;
+  }
+  if (configured === applicationCanonicalStagingOrigin) {
+    return "dedicated_staging" as const;
+  }
+  return "production_context_unobserved" as const;
 }
 
 export function evaluateApplicationProductionOrigin(input: Readonly<{
@@ -121,7 +132,7 @@ export function evaluateApplicationProductionOrigin(input: Readonly<{
   if (configured.status === "malformed") {
     return { status: "unavailable", reason: "configured_origin_malformed", ...base };
   }
-  if (configured.origin !== applicationCanonicalProductionOrigin) {
+  if (!isCanonicalApplicationRuntimeOrigin(configured.origin)) {
     return { status: "unavailable", reason: "configured_origin_mismatch", ...base };
   }
   if (runtime.status === "missing") {

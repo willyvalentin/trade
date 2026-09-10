@@ -1,6 +1,9 @@
 import { isIP } from "node:net";
 
-import { evaluateApplicationAuthenticationOrigin } from "@/lib/application-mutation-guard-core";
+import {
+  applicationDeploymentContext,
+  evaluateApplicationAuthenticationOrigin,
+} from "@/lib/application-mutation-guard-core";
 
 function normalizedIp(value: string | null) {
   const candidate = value?.trim() ?? "";
@@ -36,7 +39,7 @@ export async function buildApplicationLoginRuntimeProof(
 ) {
   if (
     environment.TURE_LOGIN_RUNTIME_PROOF_ENABLED !== "true" ||
-    environment.NODE_ENV !== "production" ||
+    applicationDeploymentContext(environment) !== "production" ||
     evaluateApplicationAuthenticationOrigin(request, environment).status !== "allowed"
   ) {
     return null;
