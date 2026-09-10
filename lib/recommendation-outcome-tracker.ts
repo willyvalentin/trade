@@ -348,6 +348,9 @@ export function resolveRecommendationOutcomeSide(
     entry !== null &&
     stop !== null &&
     target !== null &&
+    entry > 0 &&
+    stop > 0 &&
+    target > 0 &&
     entry > stop &&
     target > entry;
 
@@ -396,6 +399,30 @@ function riskPerShare(entry: number | null, stop: number | null, side: string) {
 
   const risk = side === "short" ? stop - entry : entry - stop;
   return risk > 0 ? risk : null;
+}
+
+function hasCoherentOutcomePricePlan(
+  entry: number | null,
+  stop: number | null,
+  target: number | null,
+  side: string,
+) {
+  if (
+    entry === null ||
+    stop === null ||
+    target === null ||
+    entry <= 0 ||
+    stop <= 0 ||
+    target <= 0
+  ) {
+    return false;
+  }
+
+  return side === "short"
+    ? target < entry && entry < stop
+    : side === "long"
+      ? stop < entry && entry < target
+      : false;
 }
 
 function favorableMove(price: number, entry: number, side: string) {
@@ -545,8 +572,10 @@ export function computeRecommendationOutcome(
     blockers.push("Recommendation side is unavailable.");
   }
 
-  if (entry === null || stop === null || target === null || risk === null) {
-    blockers.push("Entry, stop, target, or valid risk per share is unavailable.");
+  if (!hasCoherentOutcomePricePlan(entry, stop, target, side) || risk === null) {
+    blockers.push(
+      "Entry, stop, and target must be positive and coherent for the recommendation side.",
+    );
   }
 
   let entryTriggered: boolean | null = null;

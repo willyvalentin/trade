@@ -70,7 +70,7 @@ rows still need behavior evidence.
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | — |
-| MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | — |
+| MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | Draft PR #453 local source evidence rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
@@ -237,13 +237,13 @@ result_and_remaining_gap: Incomplete remaining-share evidence can no longer look
 
 ```text
 acceptance_id: MVP-05c
-user_behavior_or_reproduced_failure: The outcome calculator accepted an upstream `data_completeness: complete` label even when it had no intraday candles. The computed status was incomplete, but the retained completeness field and its downstream coverage rank could still claim complete evidence.
-smallest_change_and_reused_components: Reused the existing candle normalization and outcome status calculation. A supplied `complete` label now fails closed to the observed `partial` or `none` level whenever no candles remain, and preserves a warning that the terminal evaluation cannot be trusted. Legitimate candle-backed complete outcomes retain their existing contract.
+user_behavior_or_reproduced_failure: The outcome calculator accepted an upstream `data_completeness: complete` label even when it had no intraday candles. The computed status was incomplete, but the retained completeness field and its downstream coverage rank could still claim complete evidence. It could also interpret candles against a contradictory long/short plan, potentially labelling a geometrically impossible target as reached.
+smallest_change_and_reused_components: Reused the existing candle normalization and outcome status calculation. A supplied `complete` label now fails closed to the observed `partial` or `none` level whenever no candles remain, and preserves a warning that the terminal evaluation cannot be trusted. Before interpreting terminal events, the plan must contain positive prices and the correct directional geometry (long: stop < entry < target; short: target < entry < stop). Legitimate candle-backed complete outcomes retain their existing contract.
 active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
-behavior_check_and_environment: Source revision `e968c84f` adds regressions to `tests/e2e/action-550-outcome-completion-path-root-cause.spec.ts`; targeted Playwright coverage passes 7/7, including false-complete paths with a partial current-price observation and with no observation input at all. Scoped ESLint, TypeScript no-emit and `git diff --check` pass. The check is local and does not establish a supported-environment acceptance result.
+behavior_check_and_environment: Draft PR #453 adds regressions to `tests/e2e/action-550-outcome-completion-path-root-cause.spec.ts`; targeted Playwright coverage passes 8/8, including false-complete paths with a partial current-price observation and with no observation input at all, plus impossible-plan rejection before a candle can create a terminal result. Scoped ESLint, TypeScript no-emit and `git diff --check` pass. The check is local and does not establish a supported-environment acceptance result.
 external_effects_and_existing_authority: None. The test uses local synthetic snapshot and candle inputs only; no provider, database, deployment, broker or production operation occurred.
 blocker_or_fallback: MVP-05c remains unverified until an identified supported evaluation path retains and presents an actual attributable outcome with its data evidence. Do not treat an upstream completeness label as a substitute for candle evidence.
-result_and_remaining_gap: A missing intraday series can no longer increase an outcome's apparent quality or displace an evidence-backed historical result. The product keeps the outcome reviewable while making its incompleteness explicit.
+result_and_remaining_gap: A missing intraday series can no longer increase an outcome's apparent quality or displace an evidence-backed historical result, and contradictory price geometry cannot create a terminal outcome. The product keeps the outcome reviewable while making invalid or incomplete evidence explicit.
 ```
 
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
