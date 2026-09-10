@@ -246,6 +246,19 @@ blocker_or_fallback: A supported environment must still exercise the full manual
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
 ```
 
+#### MVP-03 / MVP-04 full-long close metric containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03c, MVP-04b
+user_behavior_or_reproduced_failure: For a fully open long position, the browser computed gross PnL, percentage and R multiple from the saved plan but the authenticated close endpoint previously accepted any finite client-supplied values. An altered request could therefore save a result that did not reconcile with the owned entry, quantity, stop and exit price.
+smallest_change_and_reused_components: Before the existing owner-scoped close update, the server now reads only the open owned position's pricing fields and recomputes the one-fill long result. A mismatch is rejected as invalid input. Existing closed-replay comparison, owner/status filters, manual/no-broker flow and partial-exit accounting remain unchanged; positions with a prior recorded exit fill intentionally retain their existing aggregate accounting path.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` locally proves numeric database-shaped values calculate the exact gross PnL/percentage/R tuple, rejects an altered tuple and leaves prior partial accounting outside this narrow rule. The adjacent MVP-03 recordable-plan, input-normalization and entry-replay suites pass (17 checks); scoped ESLint and `git diff --check` pass. No database row, provider, broker, deployment or production action occurred.
+external_effects_and_existing_authority: None. This is source and local-test containment only; it does not create, close or modify a trade.
+blocker_or_fallback: The complete durable entry → reload → exit → reload journey in the supported staging environment remains required. This local calculation guard neither proves persisted behavior nor covers the existing multi-fill partial-accounting path.
+result_and_remaining_gap: A simple full-long close can no longer persist a client-forged realized result through the application endpoint. MVP-03c and MVP-04b remain unverified until the complete supported manual journey reconciles one saved trade in the environment.
+```
+
 #### MVP-02 stale recommendation presentation — 2026-09-10 (local verified)
 
 ```text
