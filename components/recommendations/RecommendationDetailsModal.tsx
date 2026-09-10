@@ -23,6 +23,7 @@ import {
   recommendationQuickDecisionToneFromEligibility,
   type RecommendationDetailsTone,
 } from "@/components/recommendations/recommendation-details-display-helpers";
+import type { RecommendationCardTiming } from "@/components/recommendations/recommendation-card-display-mapper";
 
 export type RecommendationDetailsModalRecommendation = {
   companyName: string;
@@ -74,6 +75,7 @@ export type RecommendationDetailsModalProps = {
   preTradeRiskContext: PreTradeRiskContextResult | null;
   recommendation: RecommendationDetailsModalRecommendation;
   sourceBadges: ReactNode;
+  timing: RecommendationCardTiming;
   tradeEligibility: TradeEligibilityResult | null;
 };
 
@@ -349,6 +351,7 @@ export function RecommendationDetailsModal({
   keyReasons,
   identity,
   sourceBadges,
+  timing,
   confidenceLabel,
   confidenceTone,
   onClose,
@@ -547,6 +550,35 @@ export function RecommendationDetailsModal({
                   },
                 ]}
               />
+            </div>
+          </RecommendationDetailsSection>
+
+          <RecommendationDetailsSection title="Data Timing">
+            <div className="trade-recommendation-details-stack">
+              <RecommendationDetailsMetricGrid
+                variant="wide"
+                metrics={[
+                  { label: "Price Source", value: timing.sourceLabel },
+                  {
+                    label: "Source Time",
+                    value: timing.sourceTimestampLabel,
+                  },
+                  {
+                    label:
+                      timing.expiryStatus === "derived"
+                        ? "Expires (Derived)"
+                        : "Expires",
+                    value: timing.expiryLabel,
+                  },
+                ]}
+              />
+              {timing.sourceTimestampStatus === "unavailable" ||
+              timing.expiryStatus === "unavailable" ? (
+                <p role="status">
+                  A source time or expiry is unavailable. Revalidate this setup
+                  before treating it as current.
+                </p>
+              ) : null}
             </div>
           </RecommendationDetailsSection>
 
