@@ -7,7 +7,7 @@ import { resolveDashboardRefreshContention } from "../../lib/dashboard-refresh-c
 const repositoryRoot = path.resolve(__dirname, "../..");
 
 function createDeferredRefresh() {
-  let resolve = () => undefined;
+  let resolve: () => void = () => {};
   const promise = new Promise<void>((complete) => {
     resolve = complete;
   });

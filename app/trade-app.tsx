@@ -9110,7 +9110,7 @@ export function TradeApp({
       }
     }
 
-    let completeRefresh = () => undefined;
+    let completeRefresh: () => void = () => {};
     const currentRefresh = new Promise<void>((resolve) => {
       completeRefresh = resolve;
     });
