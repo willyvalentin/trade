@@ -8,27 +8,28 @@ in all older snapshots below. Historical restrictions on specific external
 operations remain evidence and are not renewed by this decision.
 
 Delivery state: source-only MVP-02 and MVP-04 corrections are merged on
-GitHub main as PRs #442 and #441 respectively. MVP-01c's exact named
-staging-origin guard is also merged as PR #443. Its merge and exact-main
-attestation are delivery evidence only; no staging site was created or deployed,
-and the merge is not a production deployment or supported-environment proof.
-Baseline inspected: GitHub main `d0ce1e783869f0548d5778287264c1258310d7cf`,
-which contains the merged MVP-first delivery policy plus the MVP-02/04
-corrections and MVP-01c origin admission. No new runtime or production test was
-performed by that baseline.
+GitHub main as PRs #442 and #441 respectively; MVP-03's close-retry correction
+is merged as PR #449. MVP-01c's exact named staging-origin guard is merged as
+PR #443. A separate private `ture-staging.netlify.app` site now exists, and one
+bounded authenticated dashboard read observed loading then the ordinary
+no-trade state. The controlled failed-first-read remains unverified: Draft PR
+#450 supplies an inactive default-deny staging probe but is neither merged nor
+enabled. Baseline inspected: GitHub main
+`f843bbd63e3984bf2186ef339c55e27adc540714`. No production operation was
+performed.
 
 ### Now
 
-**Selected product slice: MVP-01c dedicated staging behavior evidence.** The
-initial-dashboard failure wording and the exact named staging-origin guard are
-merged and regression-tested. The guard recognizes only
-`https://ture-staging.netlify.app` when configured, runtime and browser origins
-match exactly; generic previews remain rejected. The remaining work is a
-separate staging site with the named host, function-scoped staging configuration
-and one bounded staging-only behavior demonstration of loading, ordinary
-empty/no-trade, and failed first-read states. MVP-02 stale-card presentation and
-MVP-04 incomplete-history classification are corrected on main, but are not
-supported-environment acceptance claims.
+**Selected product slice: MVP-02b no-trade honesty.** An authenticated staging
+read showed a clear ordinary no-trade explanation, but the same customer
+dashboard also rendered a large static GME/Avanza handoff fixture. Its controls
+were disabled, yet the fixture competed visually with the no-trade result. This
+candidate renders the handoff surface only for an explicitly admitted selected-
+recommendation preview and never while a dominant empty state is present. It
+does not enable a bridge, execution, provider, database, deploy or broker path.
+MVP-01c is now blocked only on its separately authorized staging-only
+enable → observed failure → disable/rollback scope; the strict named-origin
+guard continues to reject generic previews.
 
 ### MVP acceptance board
 
@@ -48,8 +49,8 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **2/18 verified for the new MVP candidate; 15
-unverified, 1 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+Current acceptance coverage: **2/18 verified for the new MVP candidate; 14
+unverified, 1 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -58,9 +59,9 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | active | Netlify deploy preview #439 exposed the strict-origin failure: its owner-login POST returned `403 application_authentication_origin_invalid` before any dashboard data was read. PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. A separate staging site and supported-environment evidence remain pending. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. Draft PR #450's disabled probe is locally verified but needs a separately authorized staging-only configuration/deploy → observed failure → disable/rollback scope. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
-| MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
+| MVP-02b | No-trade and market-closed situations explain why no action is offered | active | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. This candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present. Local MVP-02 coverage and the production build must pass; the market-closed behavior still needs supported-environment evidence. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
 | MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | — |
@@ -114,17 +115,19 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Provision the separate `ture-staging.netlify.app` Netlify site with its
-   function-scoped staging configuration, then perform one bounded staging-only
-   login plus dashboard-read proof. Do not use production or permit generic
+1. Complete the MVP-02b candidate's focused verification and keep its Draft
+   separate from MVP-01c. A merge/deploy remains a separate release decision.
+2. With a separately authorized staging-only configuration/deploy scope, enable
+   MVP-01c's one bounded failure probe, observe its unavailable-data state, then
+   immediately disable and roll it back. Do not use production or generic
    deploy-preview origins.
-2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
+3. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
    REL-03 remains source-only capacity planning; reuse it, but do not claim it
    is an operational integration.
-3. Reconcile remaining MVP-04/05 history and outcome-status behavior.
-4. Complete MVP-06 release acceptance. Move to R1 only after MVP acceptance or
+4. Reconcile remaining MVP-04/05 history and outcome-status behavior.
+5. Complete MVP-06 release acceptance. Move to R1 only after MVP acceptance or
    an explicit product decision changing the release scope.
 
 For each item, keep one compact entry here or in its PR: acceptance ID, concrete
@@ -137,7 +140,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Active; source guard merged and exact-main attested, external staging setup remains | Provision `ture-staging.netlify.app` as a separate non-production site whose `TURE_APPLICATION_ORIGIN`, runtime URL and browser origin match. Use a staging-only session and one bounded dashboard-read proof; do not repurpose production or permit generic deploy-preview origins. |
+| MVP-01c supported-environment proof | Blocked only on a one-time staging-only configuration/deploy scope; the named site/session, loading and no-trade evidence already exist | Enable Draft PR #450's function-scoped flag only on the dedicated staging site, observe its one failed first read and disable/roll back immediately. Do not repurpose production or permit generic deploy-preview origins. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -154,6 +157,19 @@ accepted behaviors, verified release criteria, median slice lead time, blocked
 age and product-linked versus overhead effort. Unknown hours stay unknown;
 commit count is not product progress. Replan if two completed slices produce no
 new verified behavior or necessary real integration result.
+
+#### MVP-02b no-trade handoff-fixture boundary — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02b
+user_behavior_or_reproduced_failure: On the authenticated dedicated staging dashboard, the ordinary no-trade state clearly said that the data was not clean enough for a high-quality setup. The same screen nevertheless rendered a large static GME/Avanza handoff fixture. Its controls were disabled, but a fixed preview package can contradict a customer-facing no-trade result.
+smallest_change_and_reused_components: Added one pure UI-visibility boundary. The existing read-only Avanza handoff surface now renders only in the Recommendations tab when its existing selected-recommendation preview state is explicitly allowed and no dominant recommendation empty state is shown. The existing preview guard, disabled controls, static fixtures and all bridge/execution denials remain unchanged.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: One bounded authenticated `ture-staging.netlify.app` read observed `Data is not clean enough right now` and the competing static preview. Local `mvp-02-provider-empty-state` coverage verifies no-trade/provider distinctions plus the new preview-visibility truth table and Trade UI wiring. The focused default-off Avanza preview regression suite and local Next 16.3.4 production build pass.
+external_effects_and_existing_authority: The staging observation was read-only. The source change neither creates a recommendation nor changes a database row, provider call, deployment, bridge, broker or production configuration.
+blocker_or_fallback: The market-closed behavior was not active in this observation, so it remains unverified. MVP-01c's separate failed-first-read probe is independently blocked only on an explicit staging-only configuration/deploy/rollback scope; it does not block this source correction.
+result_and_remaining_gap: A no-trade customer will no longer be presented with a static pseudo-trade package in the same dashboard surface. This is source/local verification only until a later separately authorized staging delivery rechecks the behavior.
+```
 
 #### MVP-01 form alignment — 2026-09-09 (merged to main)
 

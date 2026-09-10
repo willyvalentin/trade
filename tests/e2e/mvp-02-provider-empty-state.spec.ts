@@ -1,9 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
+import { shouldRenderReadOnlyHandoffPreviewInDashboard } from "../../lib/avanza-read-only-handoff-preview-visibility";
 import { buildRecommendationEmptyStateSummary } from "../../lib/recommendation-empty-state";
 import { buildScanPipelineObservabilitySummary } from "../../lib/scan-pipeline-observability";
 
 const observedAt = "2026-09-10T14:05:00.000Z";
+const repositoryRoot = path.resolve(__dirname, "../..");
+
+async function source(relativePath: string) {
+  return readFile(path.join(repositoryRoot, relativePath), "utf8");
+}
 
 function observabilityForLatestScan(result: string) {
   return buildScanPipelineObservabilitySummary({
@@ -120,4 +128,40 @@ test("MVP-02 never turns an unclassified completed scan into a no-trade claim", 
       reason_id: "source_data_unavailable",
     },
   });
+});
+
+test("MVP-02 keeps a static handoff fixture out of a no-trade dashboard", async () => {
+  expect(
+    shouldRenderReadOnlyHandoffPreviewInDashboard({
+      activeDashboardTab: "Recommendations",
+      hasSelectedRecommendationPreview: false,
+      showDominantRecommendationEmptyState: false,
+    }),
+  ).toBe(false);
+  expect(
+    shouldRenderReadOnlyHandoffPreviewInDashboard({
+      activeDashboardTab: "Recommendations",
+      hasSelectedRecommendationPreview: true,
+      showDominantRecommendationEmptyState: true,
+    }),
+  ).toBe(false);
+  expect(
+    shouldRenderReadOnlyHandoffPreviewInDashboard({
+      activeDashboardTab: "Live Day Trades",
+      hasSelectedRecommendationPreview: true,
+      showDominantRecommendationEmptyState: false,
+    }),
+  ).toBe(false);
+  expect(
+    shouldRenderReadOnlyHandoffPreviewInDashboard({
+      activeDashboardTab: "Recommendations",
+      hasSelectedRecommendationPreview: true,
+      showDominantRecommendationEmptyState: false,
+    }),
+  ).toBe(true);
+
+  const tradeApp = await source("app/trade-app.tsx");
+  expect(tradeApp).toContain("const shouldRenderAvanzaHandoffPreview =");
+  expect(tradeApp).toContain("shouldRenderReadOnlyHandoffPreviewInDashboard({");
+  expect(tradeApp).toContain("{shouldRenderAvanzaHandoffPreview && (");
 });
