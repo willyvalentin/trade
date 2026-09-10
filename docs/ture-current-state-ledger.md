@@ -59,7 +59,7 @@ rows still need behavior evidence.
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | active | Netlify deploy preview #439 exposed the strict-origin failure: its owner-login POST returned `403 application_authentication_origin_invalid` before any dashboard data was read. PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. A separate staging site and supported-environment evidence remain pending. |
-| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
+| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | Draft PR #455 exposes Target 2 in the existing recommendation-details trade plan before a user begins manual trade recording. Targeted local display coverage, lint and TypeScript pass; supported-environment behavior evidence remains required. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
@@ -192,6 +192,19 @@ behavior_check_and_environment: Netlify deploy preview #430, 2026-09-09: four st
 external_effects_and_existing_authority: Preview verification used the established authenticated staging journey and made no business write, provider request, database mutation, broker action, runtime-policy or production change. No owner identifier, session value, payload or secret was recorded.
 blocker_or_fallback: None for MVP-01b. The controlled preview check for MVP-01c's empty state needs a fresh explicit credential-to-preview authorization from the execution safety boundary; it does not block this completed access-control row.
 result_and_remaining_gap: Anonymous and cross-owner access rejection is now verified in both a supported preview and repeatable local boundary coverage. MVP-01c still must prove understandable loading, empty and failed dashboard states before parent MVP-01 can be release-accepted.
+```
+
+#### MVP-02 complete two-target plan visibility — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02a
+user_behavior_or_reproduced_failure: A recommendation can carry Target 1 and Target 2, and the manual-position writer requires both targets, but the existing recommendation-details trade plan showed only Target 1 before the user started manual trade recording.
+smallest_change_and_reused_components: Reused the existing Recommendation Details trade-plan metric grid and added Target 2 beside the existing entry, stop, Target 1 and risk/reward values. The recommendation model, validation gate, position writer, scanner, provider and broker boundaries are unchanged.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: Draft PR #455. Targeted `mvp-02-plan-timing-presentation` coverage passes 3/3, including the Target 2 rendering contract. Scoped ESLint, full TypeScript `--noEmit --incremental false` and diff checks pass in an isolated main-based worktree.
+external_effects_and_existing_authority: None. This is an application display and local-test correction only; no provider, database, deploy, credential, broker or production system was contacted.
+blocker_or_fallback: This source correction does not establish a supported current-data journey or provider freshness. MVP-02a remains unverified until an identified supported environment presents the complete plan and its risk assumptions.
+result_and_remaining_gap: A user can now inspect both stored targets in the ordinary recommendation details before deciding whether to record a manually executed fill. The full MVP-02 runtime behavior remains to be evidenced.
 ```
 
 #### MVP-02/05 provider and no-trade empty-state clarity — 2026-09-10 (local verified)
