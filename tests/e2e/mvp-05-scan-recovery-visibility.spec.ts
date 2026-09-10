@@ -195,6 +195,48 @@ test.describe("MVP-05 scan recovery visibility", () => {
     }
   });
 
+  test("keeps warning summaries deterministic and shows the highest-severity run warning", () => {
+    const critical = {
+      warning_id: "provider_unavailable",
+      severity: "critical" as const,
+      label: "Provider unavailable",
+      message: "The licensed provider did not return a current result.",
+      source: "provider_status",
+    };
+    const informative = {
+      warning_id: "thin_sample",
+      severity: "info" as const,
+      label: "Thin sample",
+      message: "Only a small sample is available.",
+      source: "history",
+    };
+    const older = {
+      ...scanRun("2026-09-10T14:00:00.000Z", "failed"),
+      id: "warning-older",
+      run_fingerprint: "warning-older",
+      warnings: [informative, critical],
+    };
+    const newer = {
+      ...scanRun("2026-09-10T15:00:00.000Z", "failed"),
+      id: "warning-newer",
+      run_fingerprint: "warning-newer",
+      warnings: [critical, informative],
+    };
+
+    for (const scanRuns of [[older, newer], [newer, older]]) {
+      const summary = buildRecommendationScanRunHistorySummary({
+        scan_runs: scanRuns,
+        now: "2026-09-10T15:05:00.000Z",
+      });
+
+      expect(summary.top_warnings.map((warning) => warning.warning_id)).toEqual([
+        "provider_unavailable",
+        "thin_sample",
+      ]);
+      expect(summary.recent_items[0]?.top_warning).toBe(critical.message);
+    }
+  });
+
   test("renders the distinct last-successful and recovery labels in scan history", async () => {
     const appSource = await readFile(
       path.join(repositoryRoot, "app/trade-app.tsx"),

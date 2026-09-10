@@ -171,6 +171,11 @@ function compareTimestampMs(first: number, second: number) {
   return first > second ? 1 : -1;
 }
 
+function compareText(first: string, second: string) {
+  if (first === second) return 0;
+  return first > second ? 1 : -1;
+}
+
 /**
  * Establishes a stable, newest-first ordering without trusting the incidental
  * order in which persisted rows are returned. `observed_at` is the business
@@ -194,7 +199,7 @@ function compareScanRunRecency(
   );
   if (revisionDifference !== 0) return revisionDifference;
 
-  return first.id.localeCompare(second.id);
+  return compareText(first.id, second.id);
 }
 
 function deduplicateScanRuns(scanRuns: RecommendationScanRun[]) {
@@ -467,8 +472,26 @@ function topWarnings(scanRuns: RecommendationScanRun[]) {
   }
 
   return Array.from(counts.values())
-    .sort((first, second) => second.count - first.count)
+    .sort(
+      (first, second) =>
+        second.count - first.count ||
+        compareText(first.warning_id, second.warning_id),
+    )
     .slice(0, 8);
+}
+
+function warningSeverityRank(severity: RecommendationScanRun["warnings"][number]["severity"]) {
+  if (severity === "critical") return 3;
+  if (severity === "warning") return 2;
+  return 1;
+}
+
+function topWarningMessage(scanRun: RecommendationScanRun) {
+  return [...scanRun.warnings].sort(
+    (first, second) =>
+      warningSeverityRank(second.severity) - warningSeverityRank(first.severity) ||
+      compareText(first.warning_id, second.warning_id),
+  )[0]?.message ?? null;
 }
 
 function toItem(scanRun: RecommendationScanRun): RecommendationScanRunHistoryItem {
@@ -488,7 +511,7 @@ function toItem(scanRun: RecommendationScanRun): RecommendationScanRunHistoryIte
     data_mode: scanRun.data_mode,
     source: scanRun.source,
     warning_count: scanRun.warnings.length,
-    top_warning: scanRun.warnings[0]?.message ?? null,
+    top_warning: topWarningMessage(scanRun),
   };
 }
 
