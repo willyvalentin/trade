@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ApplicationLogoutButton } from "@/app/application-logout-button";
+import { applicationDashboardReadPath } from "@/lib/application-dashboard-failure-probe";
 import {
   getIntradayScanWindow,
   getIntradayScanWindowLabel,
@@ -2533,7 +2534,13 @@ type ApplicationDashboardPayload = {
 };
 
 async function fetchApplicationDashboard() {
-  const response = await fetch("/api/app/dashboard", { cache: "no-store" });
+  const response = await fetch(
+    applicationDashboardReadPath({
+      origin: window.location.origin,
+      search: window.location.search,
+    }),
+    { cache: "no-store" },
+  );
   const payload = (await response.json().catch(() => null)) as
     | ApplicationDashboardPayload
     | { error?: string }
