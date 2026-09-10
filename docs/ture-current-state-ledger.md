@@ -23,9 +23,10 @@ main, but it still needs one supported-environment demonstration of loading,
 ordinary empty/no-trade, and failed first-read behavior. The next independent
 MVP-03a source defect is also fixed locally: the manual-entry UI serializes
 stored numeric plan values as strings, while the prior server boundary accepted
-only JavaScript numbers. The wider MVP-01→04 investigation remains bounded by
-the original four active-hour discovery budget; neither local result is a
-release-environment acceptance claim.
+only JavaScript numbers. MVP-03b's same-command retry stabilization is locally
+verified and pending ordinary reviewed delivery. The wider MVP-01→04
+investigation remains bounded by the original four active-hour discovery budget;
+neither local result is a release-environment acceptance claim.
 
 ### MVP acceptance board
 
@@ -250,6 +251,19 @@ behavior_check_and_environment: `tests/e2e/mvp-03-open-position-input.spec.ts` p
 external_effects_and_existing_authority: None. The parser and tests use local synthetic request values only; no credential, provider, database row, deployment, broker, or production action occurred.
 blocker_or_fallback: MVP-03a remains unverified until an identified supported environment records a manually executed entry from a recommendation and reloads the durable position. Do not treat local parsing proof as a persisted lifecycle demonstration.
 result_and_remaining_gap: Valid plan decimals emitted by the current UI no longer fail at the server input boundary, while malformed values remain fail-closed. MVP-03b and MVP-03c still require the full supported manual lifecycle, including retry and close/reload evidence.
+```
+
+#### MVP-03 manual-entry retry command stability — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03b
+user_behavior_or_reproduced_failure: A rapid repeat of the same manual-entry request could recreate captured execution metadata with a new confirmation timestamp. The existing owner-bound transaction correctly rejects changed metadata, but the retry was then reported as a conflict rather than being recognized as the same command.
+smallest_change_and_reused_components: The trade modal now keeps one in-memory, replay-safe command for an unchanged captured manual fill. A changed fill, reference, cost preview, warning or plan identity creates a new command; an unchanged retry reuses the exact prior metadata. The existing authenticated route and server-owned transactional RPC remain the only authority that creates or reuses a position.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-open-position-replay.spec.ts` proves same-fill command reuse, changed-fill separation, whitespace-stable keys and modal wiring. Together with the existing open-input, transactional-boundary and close-replay suites, 13 local checks pass. Scoped ESLint, TypeScript, diff checks and a complete Next 16.3.4 Webpack production build pass.
+external_effects_and_existing_authority: None. The replay cache is client memory and local tests only; it performs no credential, provider, database-row, deployment, broker or production action.
+blocker_or_fallback: MVP-03b remains unverified until an identified supported environment proves entry → reload and a repeated request against the durable position. Do not substitute this local command-stability proof for the persisted lifecycle demonstration.
+result_and_remaining_gap: A duplicate click or safe retry no longer turns a timestamp-only difference into a new command. The server transaction still rejects changed command inputs and remains responsible for durable idempotency. MVP-03a, MVP-03b and MVP-03c remain unverified until the supported full lifecycle succeeds.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
