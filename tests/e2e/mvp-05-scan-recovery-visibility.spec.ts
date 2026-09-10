@@ -98,6 +98,35 @@ test.describe("MVP-05 scan recovery visibility", () => {
     });
   });
 
+  test("keeps the newest revision for a duplicate scan fingerprint regardless of input order", () => {
+    const fingerprint = "rec_scan_run_duplicate";
+    const olderFailedRevision = {
+      ...scanRun("2026-09-10T14:00:00.000Z", "failed"),
+      id: fingerprint,
+      run_fingerprint: fingerprint,
+      updated_at: "2026-09-10T14:05:00.000Z",
+    };
+    const newerCompletedRevision = {
+      ...scanRun("2026-09-10T15:00:00.000Z", "completed"),
+      id: fingerprint,
+      run_fingerprint: fingerprint,
+      updated_at: "2026-09-10T15:05:00.000Z",
+    };
+
+    const summary = buildRecommendationScanRunHistorySummary({
+      scan_runs: [newerCompletedRevision, olderFailedRevision],
+      now: "2026-09-10T15:10:00.000Z",
+    });
+
+    expect(summary).toMatchObject({
+      total_scan_runs: 1,
+      latest_run_timestamp: "2026-09-10T15:00:00.000Z",
+      latest_run_status: "completed",
+      latest_run_recovery_state: "not_required",
+      last_successful_run_timestamp: "2026-09-10T15:00:00.000Z",
+    });
+  });
+
   test("renders the distinct last-successful and recovery labels in scan history", async () => {
     const appSource = await readFile(
       path.join(repositoryRoot, "app/trade-app.tsx"),
