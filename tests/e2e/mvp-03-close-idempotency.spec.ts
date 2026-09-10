@@ -6,6 +6,10 @@ import {
   ownedPositionCloseValuesMatch,
   parseOwnedPositionCloseValues,
 } from "../../lib/server/owned-position-close";
+import {
+  applicationPositionCloseResultMessage,
+  parseApplicationPositionCloseResult,
+} from "../../lib/application-position-close-result";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 
@@ -70,6 +74,28 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(parseOwnedPositionCloseValues({ ...closeValues, pnl: Infinity })).toBeNull();
   });
 
+  test("keeps the server-owned closed-versus-reused outcome visible to a close retry", () => {
+    const reused = parseApplicationPositionCloseResult({
+      ok: true,
+      disposition: "reused",
+    });
+    const closed = parseApplicationPositionCloseResult({
+      ok: true,
+      disposition: "closed",
+    });
+
+    expect(reused).not.toBeNull();
+    expect(closed).not.toBeNull();
+    expect(applicationPositionCloseResultMessage(reused!, "ACME", null)).toContain(
+      "no duplicate close was recorded",
+    );
+    expect(applicationPositionCloseResultMessage(closed!, "ACME", "Fee pending")).toBe(
+      "ACME closed from broker exit fill. Fee pending",
+    );
+    expect(parseApplicationPositionCloseResult({ ok: true, disposition: "changed" })).toBeNull();
+    expect(parseApplicationPositionCloseResult({ disposition: "closed" })).toBeNull();
+  });
+
   test("the server updates only an open owned position before checking a closed replay", async () => {
     const dataAccess = await source("lib/server/application-data-access.ts");
     const route = await source("app/api/app/positions/route.ts");
@@ -89,5 +115,12 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(route).toContain("session.owner_user_id");
     expect(route).toContain('error: "Invalid position lifecycle values."');
     expect(route).toContain("{ status: 400 }");
+    expect(dataAccess).toContain('disposition: "closed"');
+    expect(dataAccess).toContain('disposition: "reused"');
+    expect(route).toContain('"data" in result ? result.data : {}');
+    const tradeApp = await source("app/trade-app.tsx");
+    expect(tradeApp).toContain("parseApplicationPositionCloseResult(payload)");
+    expect(tradeApp).toContain('closeResult?.disposition === "closed"');
+    expect(tradeApp).toContain("applicationPositionCloseResultMessage(");
   });
 });
