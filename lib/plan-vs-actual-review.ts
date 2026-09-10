@@ -243,6 +243,12 @@ export function buildPlanVsActualReview(
     finiteNumber(metadata?.actual_shares) ??
     sumFillShares(metadata?.entry_fills) ??
     finiteNumber(input.shares);
+  const recordedEntryShares =
+    finiteNumber(metadata?.actual_entry_shares) ??
+    finiteNumber(metadata?.actual_shares) ??
+    finiteNumber(snapshot.actual_entry_shares) ??
+    sumFillShares(metadata?.entry_fills) ??
+    finiteNumber(input.shares);
   const plannedQuantity =
     finiteNumber(snapshot.planned_quantity) ?? finiteNumber(metadata?.planned_quantity);
   const recommendedQuantity = finiteNumber(snapshot.recommended_quantity);
@@ -258,8 +264,8 @@ export function buildPlanVsActualReview(
     remainingShares !== null && remainingShares < 0
       ? "negative"
       : remainingShares !== null &&
-          actualEntryShares !== null &&
-          remainingShares > actualEntryShares
+          recordedEntryShares !== null &&
+          remainingShares > recordedEntryShares
         ? "exceeds_recorded_entry_shares"
         : null;
   const partialStateNeedsReview =

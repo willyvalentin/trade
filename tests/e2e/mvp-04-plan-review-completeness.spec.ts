@@ -17,10 +17,10 @@ function planningSnapshot() {
   });
 }
 
-function reviewForRemainingShares(remainingShares: number) {
+function reviewForRemainingShares(remainingShares: number, actualEntryShares = 10) {
   const snapshot = planningSnapshot();
   const executionMetadata = buildBrokerExecutionMetadata({
-    actualEntryShares: 10,
+    actualEntryShares,
     actualFillPrice: 100,
     actualShares: 10,
     averageExitPrice: 110,
@@ -74,6 +74,20 @@ test.describe("MVP-04 plan-vs-actual completeness", () => {
 
   test("requires review when metadata reports more remaining shares than the recorded entry", () => {
     const review = reviewForRemainingShares(11);
+
+    expect(review.status).toBe("needs_review");
+    expect(review.grade).toBe("C");
+    expect(review.checks).toContainEqual(
+      expect.objectContaining({
+        check_id: "partial_position",
+        message:
+          "Remaining shares exceed the recorded entry shares and require review.",
+      }),
+    );
+  });
+
+  test("uses the stored actual entry ahead of a conflicting planning snapshot", () => {
+    const review = reviewForRemainingShares(9, 8);
 
     expect(review.status).toBe("needs_review");
     expect(review.grade).toBe("C");

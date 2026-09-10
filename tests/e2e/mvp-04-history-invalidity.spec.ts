@@ -34,6 +34,9 @@ function tradeWithRemainingShares(
     executionMetadata: {
       actual_entry_shares: actualEntryShares,
       remaining_shares: remainingShares,
+      trade_planning_snapshot: {
+        actual_entry_shares: 10,
+      },
     },
   };
 }
@@ -84,6 +87,15 @@ test.describe("MVP-04 invalid history containment", () => {
       remaining_shares: 11,
       status: "invalid",
     });
+    expect(history.warnings).toContain(
+      "Remaining shares exceed the recorded entry shares.",
+    );
+  });
+
+  test("uses the stored actual entry ahead of a conflicting planning snapshot", () => {
+    const history = buildHistoryTradeSummary(tradeWithRemainingShares(9, 8));
+
+    expect(history.outcome).toBe("invalid");
     expect(history.warnings).toContain(
       "Remaining shares exceed the recorded entry shares.",
     );

@@ -220,6 +220,9 @@ function recordedEntryShares(trade: HistoryTradeInput) {
   return (
     finiteNumber(trade.executionMetadata?.actual_entry_shares) ??
     finiteNumber(trade.executionMetadata?.actual_shares) ??
+    finiteNumber(
+      trade.executionMetadata?.trade_planning_snapshot?.actual_entry_shares,
+    ) ??
     finiteNumber(trade.shares)
   );
 }
