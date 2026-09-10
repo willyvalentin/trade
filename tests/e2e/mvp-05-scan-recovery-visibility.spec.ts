@@ -71,6 +71,33 @@ test.describe("MVP-05 scan recovery visibility", () => {
     });
   });
 
+  test("never treats a provider-warning result as a clean recovery point", () => {
+    const summary = buildRecommendationScanRunHistorySummary({
+      scan_runs: [
+        scanRun("2026-09-10T13:00:00.000Z", "completed"),
+        {
+          ...scanRun("2026-09-10T14:00:00.000Z", "empty"),
+          provider_statuses: [
+            {
+              source_id: "licensed-feed",
+              label: "Licensed feed",
+              status: "unavailable",
+              message: "The provider did not return a current result.",
+            },
+          ],
+        },
+      ],
+      now: "2026-09-10T14:05:00.000Z",
+    });
+
+    expect(summary).toMatchObject({
+      latest_run_status: "empty",
+      latest_run_recovery_state: "review_required",
+      last_successful_run_status: "completed",
+      last_successful_run_timestamp: "2026-09-10T13:00:00.000Z",
+    });
+  });
+
   test("renders the distinct last-successful and recovery labels in scan history", async () => {
     const appSource = await readFile(
       path.join(repositoryRoot, "app/trade-app.tsx"),
