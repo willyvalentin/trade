@@ -244,6 +244,30 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
     );
   });
 
+  test("rejects impossible plan geometry before it can create a terminal outcome", () => {
+    const snapshot = action550Snapshot();
+
+    const { outcome, blockers, can_compute_terminal_events } =
+      computeRecommendationOutcome({
+        snapshot,
+        target: 95,
+        horizon: "15m",
+        evaluated_at: "2026-07-17T14:00:00.000Z",
+        source: "intraday_candles",
+        provider: "fixture",
+        data_completeness: "complete",
+        candles: action550Candles(),
+      });
+
+    expect(outcome.status).toBe("invalid");
+    expect(outcome.target_hit).toBeNull();
+    expect(outcome.stop_hit).toBeNull();
+    expect(can_compute_terminal_events).toBe(false);
+    expect(blockers).toContain(
+      "Entry, stop, and target must be positive and coherent for the recommendation side.",
+    );
+  });
+
   test("later explicit completed outcomes can supersede incomplete rows without losing contract identity", () => {
     const snapshot = action550Snapshot();
     const incomplete = computeRecommendationOutcome({
