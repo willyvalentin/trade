@@ -26,6 +26,10 @@ import {
   resolveOpenPositionReplay,
   type OpenPositionReplay,
 } from "@/lib/open-position-replay";
+import {
+  applicationPositionOpenResultMessage,
+  parseApplicationPositionOpenResult,
+} from "@/lib/application-position-open-result";
 import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
 import {
   aggregateRealizedPnlExplanation,
@@ -2585,8 +2589,27 @@ async function postApplicationPosition(position: Record<string, unknown>) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(position),
   });
-  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-  return { error: response.ok ? null : new Error(payload?.error ?? "Position could not be opened.") };
+  const payload = (await response.json().catch(() => null)) as unknown;
+
+  if (!response.ok) {
+    const error =
+      payload &&
+      typeof payload === "object" &&
+      !Array.isArray(payload) &&
+      typeof (payload as { error?: unknown }).error === "string"
+        ? (payload as { error: string }).error
+        : "Position could not be opened.";
+
+    return { data: null, error: new Error(error) };
+  }
+
+  const data = parseApplicationPositionOpenResult(payload);
+  return data
+    ? { data, error: null }
+    : {
+        data: null,
+        error: new Error("Position response could not be verified."),
+      };
 }
 
 async function patchApplicationPosition(
@@ -10846,15 +10869,18 @@ export function TradeApp({
       return;
     }
 
-    const { error: insertError } = await postApplicationPosition(positionInsert);
+    const { data: positionOpenResult, error: insertError } =
+      await postApplicationPosition(positionInsert);
 
-    if (insertError) {
-      setMessage(insertError.message);
+    if (insertError || !positionOpenResult) {
+      setMessage(
+        insertError?.message ?? "Position response could not be verified.",
+      );
       setIsSaving(false);
       return;
     }
 
-    if (brokerFill) {
+    if (brokerFill && positionOpenResult.disposition === "created") {
       logLiveDayTradeCreatedAfterBrokerConfirmation(
         selectedRecommendation,
         brokerFill,
@@ -10879,6 +10905,12 @@ export function TradeApp({
     await refreshIslands(
       ["recommendations", "live_trades", "stats_today"],
       "action",
+    );
+    setMessage(
+      applicationPositionOpenResultMessage(
+        positionOpenResult,
+        selectedRecommendation.ticker,
+      ),
     );
     setIsSaving(false);
   }

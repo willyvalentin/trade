@@ -7,6 +7,10 @@ import {
   resolveOpenPositionReplay,
   type OpenPositionReplayKeyInput,
 } from "../../lib/open-position-replay";
+import {
+  applicationPositionOpenResultMessage,
+  parseApplicationPositionOpenResult,
+} from "../../lib/application-position-open-result";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 
@@ -68,6 +72,46 @@ test("insignificant whitespace cannot turn the same fill into a conflicting retr
   ).toBe(createOpenPositionReplayKey(replayInput()));
 });
 
+test("keeps the server-owned created-versus-reused outcome visible to a manual retry", () => {
+  const reused = parseApplicationPositionOpenResult({
+    position_id: "11111111-1111-4111-8111-111111111111",
+    disposition: "reused",
+    snapshot_link_count: 1,
+  });
+  const created = parseApplicationPositionOpenResult({
+    position_id: "22222222-2222-4222-8222-222222222222",
+    disposition: "created",
+    snapshot_link_count: 0,
+  });
+
+  expect(reused).not.toBeNull();
+  expect(created).not.toBeNull();
+  expect(applicationPositionOpenResultMessage(reused!, "ACME")).toContain(
+    "no duplicate position was created",
+  );
+  expect(applicationPositionOpenResultMessage(created!, "ACME")).toBe(
+    "ACME Live Day Trade recorded.",
+  );
+});
+
+test("rejects an incomplete or contradictory successful-position response", () => {
+  expect(
+    parseApplicationPositionOpenResult({
+      position_id: "11111111-1111-4111-8111-111111111111",
+      disposition: "created",
+      snapshot_link_count: -1,
+    }),
+  ).toBeNull();
+  expect(
+    parseApplicationPositionOpenResult({
+      position_id: "11111111-1111-4111-8111-111111111111",
+      disposition: "duplicate",
+      snapshot_link_count: 0,
+    }),
+  ).toBeNull();
+  expect(parseApplicationPositionOpenResult(null)).toBeNull();
+});
+
 test("the trade modal retains and reuses the replay-safe broker fill before the owner-bound request", async () => {
   const source = await readFile(path.join(repositoryRoot, "app/trade-app.tsx"), "utf8");
 
@@ -76,4 +120,7 @@ test("the trade modal retains and reuses the replay-safe broker fill before the 
   expect(source).toContain("resolveOpenPositionReplay(");
   expect(source).toContain("submittedBrokerFillRef.current = replay;");
   expect(source).toContain("onSubmit(event, replay.value);");
+  expect(source).toContain("parseApplicationPositionOpenResult(payload)");
+  expect(source).toContain('positionOpenResult.disposition === "created"');
+  expect(source).toContain("applicationPositionOpenResultMessage(");
 });
