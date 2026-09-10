@@ -110,7 +110,9 @@ test.describe("MVP-03 owner-bound close idempotency", () => {
     expect(dataAccess).toContain('.eq("status", "closed")');
     expect(dataAccess).toContain("ownedPositionCloseValuesMatch(existing.data, values)");
     expect(partialUpdateSource).toContain('.eq("status", "open")');
-    expect(partialUpdateSource).toContain('.gt("position_size", values.position_size)');
+    expect(
+      partialUpdateSource.match(/\.gt\("position_size", values\.position_size\)/g),
+    ).toHaveLength(2);
     expect(route).toContain('body.operation === "close"');
     expect(route).toContain("closeApplicationPosition({");
     expect(route).toContain("session.owner_user_id");
