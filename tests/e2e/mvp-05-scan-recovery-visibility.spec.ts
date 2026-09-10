@@ -11,6 +11,7 @@ function scanRun(observedAt: string, status: "completed" | "empty" | "failed") {
   return {
     ...buildRecommendationScanRun({
       observed_at: observedAt,
+      data_mode: "real_market_data",
       visible_recommendations: status === "completed" ? [{ ticker: "TURE" }] : [],
     }),
     status,
@@ -239,6 +240,39 @@ test.describe("MVP-05 scan recovery visibility", () => {
       ]);
       expect(summary.recent_items[0]?.top_warning).toBe(critical.message);
     }
+  });
+
+  test("never treats unknown or stale data as a clean recovery point", () => {
+    const summary = buildRecommendationScanRunHistorySummary({
+      scan_runs: [
+        {
+          ...scanRun("2026-09-10T13:00:00.000Z", "completed"),
+          id: "clean-current-run",
+          run_fingerprint: "clean-current-run",
+        },
+        {
+          ...scanRun("2026-09-10T14:00:00.000Z", "empty"),
+          id: "unknown-empty-run",
+          run_fingerprint: "unknown-empty-run",
+          data_mode: "unknown",
+        },
+        {
+          ...scanRun("2026-09-10T15:00:00.000Z", "completed"),
+          id: "stale-completed-run",
+          run_fingerprint: "stale-completed-run",
+          data_mode: "stale_market_data",
+        },
+      ],
+      now: "2026-09-10T15:05:00.000Z",
+    });
+
+    expect(summary).toMatchObject({
+      latest_run_status: "completed",
+      latest_run_recovery_state: "review_required",
+      last_successful_run_status: "completed",
+      last_successful_run_timestamp: "2026-09-10T13:00:00.000Z",
+      review_required_run_count: 2,
+    });
   });
 
   test("does not count a clean no-trade result as needing recovery review", () => {
