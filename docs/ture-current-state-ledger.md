@@ -39,9 +39,10 @@ remain red while the PR is Draft because that workflow skips the Ready shard
 matrix; this does not change CI policy or authorize promotion. A temporary,
 staging-only deployment and immediate rollback have now been exercised, but
 the one permitted authenticated read did not surface the failure state.
-MVP-01c remains unverified: do not retry its live probe without first
-diagnosing the staging function-variable/runtime path and defining a fresh,
-bounded evidence operation. MVP-02 stale-card presentation and MVP-04
+MVP-01c remains unverified: source review plus Netlify's current Next SSR
+guidance identifies the Functions-only scope as the likely cause, because SSR
+custom variables need both Builds and Functions scopes. Do not retry until a
+fresh bounded operation uses that corrected scope. MVP-02 stale-card presentation and MVP-04
 incomplete-history classification are corrected on main, but are not
 supported-environment acceptance claims.
 
@@ -129,10 +130,11 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Diagnose the restored MVP-01c staging function-variable/runtime path from
-   source and permitted metadata, then define one fresh bounded proof only if
-   the cause is established. Do not retry blindly, use production or permit
-   generic deploy-preview origins.
+1. The first MVP-01c diagnosis is complete: Netlify's current Next SSR guidance
+   requires custom variables to include both Builds and Functions scopes, while
+   the restored probe used Functions only. Define one fresh bounded proof using
+   that corrected scope; do not retry blindly, use production or permit generic
+   deploy-preview origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -152,7 +154,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked since 2026-09-10; its one authorised staging probe deployed and was restored, but did not surface the expected unavailable-data state | Read source and permitted staging metadata to diagnose the function-variable/runtime path. Only then use one fresh default-deny enable/deploy/read/rollback scope; it must stay unavailable to production, generic previews and ordinary reads. |
+| MVP-01c supported-environment proof | Blocked since 2026-09-10; its one authorised staging probe deployed and was restored, but did not surface the expected unavailable-data state. Source plus current Netlify Next SSR guidance identifies its Functions-only variable scope as the likely cause. | Only a fresh default-deny proof may set the non-secret probe variable with both Builds and Functions scopes, then enable/deploy/read/rollback. It must stay unavailable to production, generic previews and ordinary reads. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -297,6 +299,18 @@ behavior_check_and_environment: Netlify `ture-staging` built `c67fed33` ready. I
 external_effects_and_existing_authority: The operation used the explicitly authorised staging-only deploy, one authenticated dashboard read and immediate rollback. The flag was deleted immediately after the read. Ordinary revert commit `b54fe239` restored the exact staging-base code and its Netlify deployment reached `ready`. No application row, provider request, broker operation, production app deploy, secret disclosure or permanent configuration change occurred.
 blocker_or_fallback: The staging function-variable/runtime path is not yet diagnosed. Do not repeat the same live probe, loosen origin validation, add a generic preview host or infer a passing result from local tests. First inspect source and permitted non-secret deployment metadata, then define a fresh bounded operation only if it explains how the function runtime receives the flag.
 result_and_remaining_gap: Staging transport and rollback are now proven safe, but the controlled failed-first-read state remains unverified. MVP-01c and parent MVP-01 cannot close until the cause is diagnosed and a separate passing supported-environment observation is recorded.
+```
+
+#### MVP-01c staging-scope diagnosis — 2026-09-10 (evidence-backed hypothesis)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: The one-shot dedicated staging deployment contained the probe and received a connector-confirmed Functions-only flag upsert before build, yet its one authenticated query-parameter dashboard read did not surface the intended 503/UI state.
+smallest_change_and_reused_components: No product source, environment value or deployment was changed. Source review confirms the server route reads `process.env` at the Next SSR/function boundary. Current Netlify framework guidance says custom variables used by Next SSR/DSG need both Builds and Functions scopes; generic serverless guidance says Functions is sufficient for a plain function. The prior probe used only Functions.
+behavior_check_and_environment: The official scope guidance therefore explains the observed discrepancy without weakening the dedicated-origin guard: Next's generated server handler can require build-time availability in addition to function runtime availability. This remains a hypothesis until a fresh bounded staging proof uses the same non-secret boolean with exactly Builds plus Functions scopes and observes the expected state.
+external_effects_and_existing_authority: Read-only source and public vendor-documentation review only. No new staging variable, deployment, request, data change, provider, broker, secret, CI policy or production operation was performed.
+blocker_or_fallback: Do not retry with Functions only. A subsequent proof must be separately scoped, use only the named non-secret variable on `ture-staging`, include Builds and Functions scopes, make one authenticated read, and immediately delete/revert. It must not add a generic origin or production fallback.
+result_and_remaining_gap: The first actionable cause is now identified, so MVP-01c has a concrete safe re-entry path. Its failure-state behavior is still unverified until that different configuration is observed successfully.
 ```
 
 #### MVP-01c supported-preview origin admission check — 2026-09-10 (blocked)
