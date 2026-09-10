@@ -59,7 +59,7 @@ rows still need behavior evidence.
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | active | Netlify deploy preview #439 exposed the strict-origin failure: its owner-login POST returned `403 application_authentication_origin_invalid` before any dashboard data was read. PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. A separate staging site and supported-environment evidence remain pending. |
-| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
+| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | Local source evidence on `cc4c969c` makes the existing price-source, timestamp and expiry information visible on each recommendation card; a supported-environment journey remains required. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
@@ -244,6 +244,19 @@ behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` loc
 external_effects_and_existing_authority: None. This is an application-source and local-test change only. It neither creates a trade nor calls a broker.
 blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
+```
+
+#### MVP-02 recommendation-card timing transparency — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-02a
+user_behavior_or_reproduced_failure: The recommendation card showed an entry, stop and target, but its existing source, source timestamp and expiry information was available only after opening the details dialog. A user scanning the bounded recommendation list could not assess the age or provenance of a proposal before beginning the manual-trade path.
+smallest_change_and_reused_components: Reused the existing recommendation timing mapper and expiry classification. Each card now displays Price Source, Source Time and Expires directly below its existing plan metrics. Missing values remain “Not available”; a calculated rather than stored expiry is explicitly marked “Expires (derived)”. No score, scanner, provider, route, persistence, identity, broker or production behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-02-plan-timing-presentation.spec.ts` and `tests/e2e/mvp-02-stale-recommendation-presentation.spec.ts` pass 7/7 locally, covering known and unavailable source timing, stored and derived expiry, existing details timing and stale/expired card behavior. Scoped ESLint, full TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. The tests use local display values only; no provider, database, credential, deploy, broker or production system was contacted.
+blocker_or_fallback: This makes existing information legible but does not prove a live provider reading, a current scan or a supported user journey. MVP-02a remains unverified until that supported-environment behavior is exercised.
+result_and_remaining_gap: The list is now directly actionable in the narrow MVP sense: users can see where the plan price came from, when it was observed and when it expires before choosing the existing review/manual-record flow.
 ```
 
 #### MVP-02 stale recommendation presentation — 2026-09-10 (local verified)
