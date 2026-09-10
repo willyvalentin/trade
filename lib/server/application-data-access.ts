@@ -6,6 +6,10 @@ import {
 } from "@/lib/recent-recommendation-readback";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+import {
+  ownedPositionCloseValuesMatch,
+  parseOwnedPositionCloseValues,
+} from "@/lib/server/owned-position-close";
 
 export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
@@ -445,7 +449,7 @@ export async function openApplicationPosition(
 export async function updateApplicationPosition(input: {
   owner_user_id: string;
   position_id: string;
-  operation: "partial_close" | "close";
+  operation: "partial_close";
   values: Record<string, unknown>;
 }) {
   const owner = normalizeApplicationOwnerUserId(input.owner_user_id);
@@ -454,34 +458,14 @@ export async function updateApplicationPosition(input: {
   if (!input.position_id || input.position_id.length > 160) return failed<null>();
 
   const values = input.values;
-  const update =
-    input.operation === "partial_close"
-      ? {
-          status: "open",
-          position_size: values.position_size,
-          ...(values.execution_metadata && typeof values.execution_metadata === "object"
-            ? { execution_metadata: values.execution_metadata }
-            : {}),
-        }
-      : {
-          status: "closed",
-          exit_price: values.exit_price,
-          closed_at: values.closed_at,
-          pnl: values.pnl,
-          pnl_percent: values.pnl_percent,
-          r_multiple: values.r_multiple,
-          exit_notes: values.exit_notes,
-          ...(values.execution_metadata && typeof values.execution_metadata === "object"
-            ? { execution_metadata: values.execution_metadata }
-            : {}),
-        };
-  if (
-    (input.operation === "partial_close" && !validPositiveNumber(values.position_size)) ||
-    (input.operation === "close" &&
-      (!validPositiveNumber(values.exit_price) ||
-        typeof values.closed_at !== "string" ||
-        Number.isNaN(Date.parse(values.closed_at))))
-  ) {
+  const update = {
+    status: "open",
+    position_size: values.position_size,
+    ...(values.execution_metadata && typeof values.execution_metadata === "object"
+      ? { execution_metadata: values.execution_metadata }
+      : {}),
+  };
+  if (!validPositiveNumber(values.position_size)) {
     return failed<null>();
   }
 
@@ -490,6 +474,7 @@ export async function updateApplicationPosition(input: {
     .update(update)
     .eq("id", input.position_id)
     .eq("owner_user_id", owner)
+    .eq("status", "open")
     .select("id")
     .maybeSingle();
   if (result.error && "execution_metadata" in update) {
@@ -500,6 +485,7 @@ export async function updateApplicationPosition(input: {
       .update(fallback)
       .eq("id", input.position_id)
       .eq("owner_user_id", owner)
+      .eq("status", "open")
       .select("id")
       .maybeSingle();
   }
@@ -507,4 +493,68 @@ export async function updateApplicationPosition(input: {
   return result.error || !result.data
     ? failed<null>()
     : { status: "available" as const, data: null };
+}
+
+export type ApplicationClosePositionResult =
+  | { status: "available"; data: { disposition: "closed" | "reused" } }
+  | { status: "unavailable" | "failed" | "invalid" };
+
+export async function closeApplicationPosition(input: {
+  owner_user_id: string;
+  position_id: string;
+  values: Record<string, unknown>;
+}): Promise<ApplicationClosePositionResult> {
+  const owner = normalizeApplicationOwnerUserId(input.owner_user_id);
+  const values = parseOwnedPositionCloseValues(input.values);
+  const { client } = getServerSupabaseClient();
+  if (!client || !owner) return { status: "unavailable" };
+  if (!input.position_id || input.position_id.length > 160 || !values) {
+    return { status: "invalid" };
+  }
+
+  const update = {
+    status: "closed",
+    exit_price: values.exit_price,
+    closed_at: values.closed_at,
+    pnl: values.pnl,
+    pnl_percent: values.pnl_percent,
+    r_multiple: values.r_multiple,
+    exit_notes: values.exit_notes,
+    ...(values.execution_metadata === undefined
+      ? {}
+      : { execution_metadata: values.execution_metadata }),
+  };
+  const selectColumns =
+    "id,status,exit_price,closed_at,pnl,pnl_percent,r_multiple,exit_notes,execution_metadata";
+  const firstAttempt = await client
+    .from("positions")
+    .update(update)
+    .eq("id", input.position_id)
+    .eq("owner_user_id", owner)
+    .eq("status", "open")
+    .select(selectColumns)
+    .maybeSingle();
+
+  if (firstAttempt.error) return { status: "failed" };
+  if (firstAttempt.data) {
+    return { status: "available", data: { disposition: "closed" } };
+  }
+
+  const existing = await client
+    .from("positions")
+    .select(selectColumns)
+    .eq("id", input.position_id)
+    .eq("owner_user_id", owner)
+    .eq("status", "closed")
+    .maybeSingle();
+
+  if (
+    existing.error ||
+    !existing.data ||
+    !ownedPositionCloseValuesMatch(existing.data, values)
+  ) {
+    return { status: "failed" };
+  }
+
+  return { status: "available", data: { disposition: "reused" } };
 }

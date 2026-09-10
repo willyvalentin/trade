@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { openApplicationPosition, updateApplicationPosition } from "@/lib/server/application-data-access";
+import {
+  closeApplicationPosition,
+  openApplicationPosition,
+  updateApplicationPosition,
+} from "@/lib/server/application-data-access";
 import { applicationMutationForbiddenResponse, applicationSessionUnauthorizedResponse, requireApplicationSession } from "@/lib/server/application-session";
 
 export async function POST(request: Request) {
@@ -41,13 +45,26 @@ export async function PATCH(request: Request) {
   ) {
     return NextResponse.json({ error: "Invalid position lifecycle input." }, { status: 400 });
   }
-  const result = await updateApplicationPosition({
-    owner_user_id: session.owner_user_id,
-    position_id: body.position_id,
-    operation: body.operation,
-    values: body.values as Record<string, unknown>,
-  });
+  const result =
+    body.operation === "close"
+      ? await closeApplicationPosition({
+          owner_user_id: session.owner_user_id,
+          position_id: body.position_id,
+          values: body.values as Record<string, unknown>,
+        })
+      : await updateApplicationPosition({
+          owner_user_id: session.owner_user_id,
+          position_id: body.position_id,
+          operation: body.operation,
+          values: body.values as Record<string, unknown>,
+        });
+  if (result.status === "invalid") {
+    return NextResponse.json(
+      { error: "Invalid position lifecycle values." },
+      { status: 400 },
+    );
+  }
   return result.status === "available"
-    ? NextResponse.json({ ok: true })
+    ? NextResponse.json({ ok: true, ...("data" in result ? result.data : {}) })
     : NextResponse.json({ error: "Position update is unavailable." }, { status: 503 });
 }
