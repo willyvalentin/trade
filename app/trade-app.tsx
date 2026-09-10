@@ -27,6 +27,12 @@ import {
   type OpenPositionReplay,
 } from "@/lib/open-position-replay";
 import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
+import {
+  aggregateRealizedPnlExplanation,
+  aggregateRealizedPnlLabel,
+  determineAggregateRealizedPnlBasis,
+  type AggregateRealizedPnlBasis,
+} from "@/lib/aggregate-realized-pnl-basis";
 import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
 import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
 import {
@@ -1585,6 +1591,7 @@ type ClosedPosition = ActivePosition & {
 
 type PerformanceSummary = {
   totalPnl: number | null;
+  realizedPnlBasis: AggregateRealizedPnlBasis;
   totalClosedTrades: number;
   winningTrades: number;
   losingTrades: number;
@@ -1619,6 +1626,7 @@ type StatsTodaySummary = {
   tradesClosedToday: number;
   liveTradesToday: number;
   realizedPnl: number | null;
+  realizedPnlBasis: AggregateRealizedPnlBasis;
   realizedR: number | null;
   unrealizedPnl: number | null;
   unrealizedR: number | null;
@@ -5966,6 +5974,12 @@ function calculatePerformanceSummary(
   const losses = pnlValues.filter((value) => value < 0);
   const totalPnl =
     pnlValues.length > 0 ? pnlValues.reduce((sum, value) => sum + value, 0) : null;
+  const realizedPnlBasis = determineAggregateRealizedPnlBasis(
+    closedPositions.map((position) => ({
+      pnl: position.pnlValue,
+      realizedPnlBasis: position.executionMetadata?.realized_pnl_basis,
+    })),
+  );
   const estimatedCosts = closedPositions
     .map((position) => {
       const cost =
@@ -6001,6 +6015,7 @@ function calculatePerformanceSummary(
 
   return {
     totalPnl,
+    realizedPnlBasis,
     totalClosedTrades: closedPositions.length,
     winningTrades: wins.length,
     losingTrades: losses.length,
@@ -6088,6 +6103,12 @@ function buildStatsTodaySummary({
     dailyPnlValues.length > 0
       ? dailyPnlValues.reduce((sum, value) => sum + value, 0)
       : null;
+  const realizedPnlBasis = determineAggregateRealizedPnlBasis(
+    closedPositionsToday.map((position) => ({
+      pnl: position.pnlValue,
+      realizedPnlBasis: position.executionMetadata?.realized_pnl_basis,
+    })),
+  );
   const realizedR =
     dailyRValues.length > 0
       ? dailyRValues.reduce((sum, value) => sum + value, 0)
@@ -6219,16 +6240,18 @@ function buildStatsTodaySummary({
   const dailyRiskStatus = !riskControlsSettings.enabled
     ? "Risk controls disabled"
     : riskWarning
-      ? "Limit warning"
+      ? dailyLossAmountReached && realizedPnlBasis !== "not_available"
+        ? "Limit warning — PnL basis review"
+        : "Limit warning"
       : hasConfiguredDailyRisk
         ? "Within limits"
         : "No daily limits configured";
   const dailyRiskDetail = !riskControlsSettings.enabled
     ? "Risk controls are currently off."
     : dailyLossAmountReached
-      ? `Realized PnL reached ${formatSignedCurrency(
+      ? `${aggregateRealizedPnlLabel(realizedPnlBasis)} reached ${formatSignedCurrency(
           -riskControlsSettings.max_daily_loss_amount!,
-        )}.`
+        )}. ${aggregateRealizedPnlExplanation(realizedPnlBasis)}`
       : dailyLossRReached
         ? `Realized R reached ${formatSignedR(
             -riskControlsSettings.max_daily_loss_r!,
@@ -6293,6 +6316,7 @@ function buildStatsTodaySummary({
     tradesClosedToday: closedPositionsToday.length,
     liveTradesToday: openedActivePositions.length,
     realizedPnl,
+    realizedPnlBasis,
     realizedR,
     unrealizedPnl,
     unrealizedR,
@@ -18807,6 +18831,12 @@ function StatisticsDashboardPanel({
 }) {
   const metrics = dashboard.metrics;
   const hasClosedTrades = metrics.trades > 0;
+  const realizedPnlLabel = aggregateRealizedPnlLabel(
+    metrics.realizedPnlBasis,
+  );
+  const realizedPnlExplanation = aggregateRealizedPnlExplanation(
+    metrics.realizedPnlBasis,
+  );
 
   return (
     <StatisticsDashboardShell
@@ -18847,7 +18877,7 @@ function StatisticsDashboardPanel({
 
           <StatisticsSummaryGrid>
             <SummaryCard
-              label="Realized PnL"
+              label={realizedPnlLabel}
               value={formatSignedCurrency(metrics.realizedPnl)}
               tone={metrics.realizedPnl}
             />
@@ -18927,6 +18957,10 @@ function StatisticsDashboardPanel({
               value={formatStatisticsCount(metrics.tradeFrequencyPerDay)}
             />
           </StatisticsSummaryGrid>
+
+          <p className="text-sm leading-6 text-zinc-500">
+            {realizedPnlExplanation}
+          </p>
 
           <section className="rounded-lg border border-white/10 bg-black/20 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -19083,7 +19117,7 @@ function StatisticsDashboardPanel({
           )}
 
           <div className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
-            <StatisticsChartPanel title="Cumulative PnL">
+            <StatisticsChartPanel title={`Cumulative ${realizedPnlLabel}`}>
               <CumulativePnlChart dashboard={dashboard} />
             </StatisticsChartPanel>
             <StatisticsChartPanel title="Cumulative R">
@@ -19092,7 +19126,7 @@ function StatisticsDashboardPanel({
           </div>
 
           <div className="grid gap-4 xl:grid-cols-3">
-            <StatisticsChartPanel title="Daily PnL">
+            <StatisticsChartPanel title={`Daily ${realizedPnlLabel}`}>
               <DailyPnlBars dashboard={dashboard} />
             </StatisticsChartPanel>
             <StatisticsChartPanel title="Daily R">
@@ -23346,6 +23380,10 @@ function StatsTodayPanel({
     dailyTargets.actual_daily_trade_cap === null
       ? "unknown"
       : String(dailyTargets.actual_daily_trade_cap);
+  const realizedPnlLabel = aggregateRealizedPnlLabel(summary.realizedPnlBasis);
+  const realizedPnlExplanation = aggregateRealizedPnlExplanation(
+    summary.realizedPnlBasis,
+  );
 
   return (
     <section className="trade-stats-today-grid space-y-4">
@@ -23387,7 +23425,7 @@ function StatsTodayPanel({
         <>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryCard
-              label="Realized PnL"
+              label={realizedPnlLabel}
               value={formatSignedCurrency(summary.realizedPnl)}
               tone={summary.realizedPnl}
             />
@@ -23414,6 +23452,9 @@ function StatsTodayPanel({
             <div className="rounded-lg border border-white/10 bg-white/[0.025] p-4">
               <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                 Daily Performance
+              </p>
+              <p className="mt-2 text-xs leading-5 text-zinc-500">
+                {realizedPnlExplanation}
               </p>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <Detail
@@ -23507,6 +23548,10 @@ function StatsTodayPanel({
 
 function PerformanceSummaryCards({ summary }: { summary: PerformanceSummary }) {
   const hasClosedTrades = summary.totalClosedTrades > 0;
+  const realizedPnlLabel = aggregateRealizedPnlLabel(summary.realizedPnlBasis);
+  const realizedPnlExplanation = aggregateRealizedPnlExplanation(
+    summary.realizedPnlBasis,
+  );
 
   return (
     <div className="space-y-4">
@@ -23519,7 +23564,7 @@ function PerformanceSummaryCards({ summary }: { summary: PerformanceSummary }) {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
-          label="Total PnL"
+          label={realizedPnlLabel}
           value={formatPnl(summary.totalPnl)}
           tone={summary.totalPnl}
         />
@@ -23564,15 +23609,16 @@ function PerformanceSummaryCards({ summary }: { summary: PerformanceSummary }) {
           value={formatPnl(summary.estimatedAverageCostPerTrade)}
         />
         <SummaryCard
-          label="Est. Net PnL"
+          label="Est. PnL After Modeled Costs"
           value={formatPnl(summary.estimatedNetPnlAfterCosts)}
           tone={summary.estimatedNetPnlAfterCosts}
         />
       </div>
 
       <p className="text-sm leading-6 text-zinc-500">
-        Performance is based only on manually closed positions. Estimated costs
-        use saved broker-cost snapshots when available; gross PnL is unchanged.
+        Performance is based only on manually closed positions. {realizedPnlExplanation}{" "}
+        Estimated costs use saved broker-cost snapshots when available and are
+        not broker settlement.
       </p>
     </div>
   );

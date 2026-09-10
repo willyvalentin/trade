@@ -4,6 +4,10 @@ import {
 } from "@/lib/market-session";
 import type { BrokerExecutionMetadata } from "@/lib/broker-execution-metadata";
 import {
+  determineAggregateRealizedPnlBasis,
+  type AggregateRealizedPnlBasis,
+} from "@/lib/aggregate-realized-pnl-basis";
+import {
   buildPlanVsActualReview,
   type PlanVsActualGrade,
   type PlanVsActualReview,
@@ -55,6 +59,7 @@ export type StatisticsOpenPositionInput = {
 
 export type StatisticsMetricSummary = {
   realizedPnl: number | null;
+  realizedPnlBasis: AggregateRealizedPnlBasis;
   totalR: number | null;
   winRate: number | null;
   trades: number;
@@ -430,6 +435,12 @@ export function calculateStatisticsMetrics(
   const pnlValues = trades
     .map(effectivePnl)
     .filter((value): value is number => value !== null);
+  const realizedPnlBasis = determineAggregateRealizedPnlBasis(
+    trades.map((trade) => ({
+      pnl: effectivePnl(trade),
+      realizedPnlBasis: trade.executionMetadata?.realized_pnl_basis,
+    })),
+  );
   const rValues = trades
     .map(effectiveR)
     .filter((value): value is number => value !== null);
@@ -476,6 +487,7 @@ export function calculateStatisticsMetrics(
 
   return {
     realizedPnl: pnlValues.length > 0 ? sum(pnlValues) : null,
+    realizedPnlBasis,
     totalR: rValues.length > 0 ? sum(rValues) : null,
     winRate: trades.length > 0 ? (winners / trades.length) * 100 : null,
     trades: trades.length,
