@@ -244,7 +244,7 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
     );
   });
 
-  test("rejects impossible plan geometry before it can create a terminal outcome", () => {
+  test("rejects impossible long or short plan geometry before it can create a terminal outcome", () => {
     const snapshot = action550Snapshot();
 
     const { outcome, blockers, can_compute_terminal_events } =
@@ -264,6 +264,40 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
     expect(outcome.stop_hit).toBeNull();
     expect(can_compute_terminal_events).toBe(false);
     expect(blockers).toContain(
+      "Entry, stop, and target must be positive and coherent for the recommendation side.",
+    );
+
+    const shortSnapshot = {
+      ...snapshot,
+      side: "short" as const,
+      entry: 100,
+      stop: 104,
+      target: 96,
+    };
+    const validShort = computeRecommendationOutcome({
+      snapshot: shortSnapshot,
+      horizon: "15m",
+      evaluated_at: "2026-07-17T14:00:00.000Z",
+      source: "intraday_candles",
+      provider: "fixture",
+      data_completeness: "complete",
+      candles: action550Candles(),
+    });
+    const impossibleShort = computeRecommendationOutcome({
+      snapshot: shortSnapshot,
+      target: 105,
+      horizon: "15m",
+      evaluated_at: "2026-07-17T14:00:00.000Z",
+      source: "intraday_candles",
+      provider: "fixture",
+      data_completeness: "complete",
+      candles: action550Candles(),
+    });
+
+    expect(validShort.outcome.status).not.toBe("invalid");
+    expect(validShort.can_compute_terminal_events).toBe(true);
+    expect(impossibleShort.outcome.status).toBe("invalid");
+    expect(impossibleShort.blockers).toContain(
       "Entry, stop, and target must be positive and coherent for the recommendation side.",
     );
   });
