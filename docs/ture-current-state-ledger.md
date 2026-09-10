@@ -63,7 +63,7 @@ rows still need behavior evidence.
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
-| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | — |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | Draft PR #461 atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
 | MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
@@ -244,6 +244,19 @@ behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` loc
 external_effects_and_existing_authority: None. This is an application-source and local-test change only. It neither creates a trade nor calls a broker.
 blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
+```
+
+#### MVP-03 partial-close quantity containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03b, MVP-04a
+user_behavior_or_reproduced_failure: The authenticated partial-close route required an owned open position and a positive replacement size, but could accept a size equal to or greater than the stored position. A malformed or replayed client request could therefore keep or increase the recorded share count while being labelled a partial close.
+smallest_change_and_reused_components: Reused the existing owner and open-status update boundary. Both the normal and legacy-metadata fallback updates now atomically require stored `position_size` to be greater than the requested remaining size. The full-close route, broker boundary and data schema are unchanged.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` verifies the owner/open guards and the strict atomic size-reduction predicate. Targeted local coverage passes 4/4; scoped ESLint and diff checks pass. No database row, provider, deployment, broker or production action occurred.
+external_effects_and_existing_authority: None. This is a server-source and local-regression change only; it does not record a trade or invoke a broker.
+blocker_or_fallback: A repeated partial-close request is safely rejected rather than allowed to mutate the position twice. The full user lifecycle still needs supported-environment evidence before this becomes a release claim.
+result_and_remaining_gap: A partial close can no longer make a stored position larger or silently repeat the same remaining-share state. MVP-03b and MVP-04a remain unverified until the durable manual lifecycle is demonstrated.
 ```
 
 #### MVP-02 stale recommendation presentation — 2026-09-10 (local verified)
