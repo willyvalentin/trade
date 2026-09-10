@@ -13,6 +13,8 @@ export type RecommendationsTabProps = {
   emptyState: RecommendationsTabEmptyState;
   isLoading: boolean;
   learningModeEnabled: boolean;
+  loadError?: string | null;
+  onRetry?: () => void;
 };
 
 function RecommendationSkeletonCard() {
@@ -52,6 +54,8 @@ export function RecommendationsTab({
   emptyState,
   isLoading,
   learningModeEnabled,
+  loadError = null,
+  onRetry,
 }: RecommendationsTabProps) {
   return (
     <section className="trade-recommendations-section">
@@ -67,6 +71,28 @@ export function RecommendationsTab({
             <RecommendationSkeletonCard />
             <RecommendationSkeletonCard />
           </>
+        ) : loadError ? (
+          <div
+            className="rounded-lg border border-rose-300/30 bg-rose-300/[0.07] p-8 text-center"
+            role="alert"
+          >
+            <h3 className="font-mono text-lg font-semibold text-rose-100">
+              Recommendations are temporarily unavailable
+            </h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-300">
+              Trade could not load current recommendation data. No current setup is
+              shown, so wait for a successful refresh before making a manual trade.
+            </p>
+            {onRetry ? (
+              <button
+                className="mt-5 rounded-md border border-rose-200/30 bg-rose-200/10 px-4 py-2 font-mono text-xs font-bold tracking-[0.12em] text-rose-50 transition hover:bg-rose-200/20 disabled:cursor-not-allowed disabled:opacity-60"
+                type="button"
+                onClick={onRetry}
+              >
+                TRY AGAIN
+              </button>
+            ) : null}
+          </div>
         ) : emptyState.show ? (
           <EmptyState title={emptyState.title} message={emptyState.body} />
         ) : (

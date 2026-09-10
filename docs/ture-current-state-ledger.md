@@ -225,6 +225,18 @@ behavior_check_and_environment: `tests/e2e/mvp-03-close-idempotency.spec.ts` loc
 external_effects_and_existing_authority: None. This is an application-source and local-test change only. It neither creates a trade nor calls a broker.
 blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
+
+#### MVP-01c initial dashboard failure clarity — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: A failed first dashboard read set the recommendation refresh error, but the visible status language said “Previous data kept” even when no successful read existed. The recommendation surface could then appear to be an ordinary no-trade state rather than unavailable data.
+smallest_change_and_reused_components: Retained the existing loading skeleton, no-trade summary and refresh implementation. When no successful recommendation read exists, the recommendations surface now shows an accessible unavailable-data state with a retry control and explicit instruction not to act on the page. Once a successful read exists, a later refresh error preserves the existing data and retains the existing “previous data kept” behavior.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-01-dashboard-states.spec.ts` locally checks the distinct loading, unavailable-data and no-trade branches, the retry wiring, and the statusbar's no-data versus preserved-data wording. Targeted ESLint passes. The Webpack build compiles the changed source, then its generated full-project type check stops at the pre-existing `app/api/hb307c/ping/route.ts` extra-export marker; this slice does not change that route. No supported preview was exercised.
+external_effects_and_existing_authority: None. This is a client UI and local-test change only; it performs no credential, provider, database, deployment, broker or production action.
+blocker_or_fallback: MVP-01c remains unverified pending an identified supported-environment check covering loading, an ordinary empty/no-trade state and a controlled failed dashboard read. Do not substitute this local source check for that environment evidence.
+result_and_remaining_gap: The initial failure can no longer be mistaken for a no-trade decision, and a later failed refresh no longer claims nonexistent prior data. Parent MVP-01 still requires the supported-environment proof.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on
