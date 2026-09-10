@@ -47,8 +47,8 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **2/18 verified for the new MVP candidate; 16
-unverified, 0 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+Current acceptance coverage: **2/18 verified for the new MVP candidate; 15
+unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -57,7 +57,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | — |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | Netlify deploy preview #439 has the same source tree as main `398a78cc` (`6f1a16a8…`), but its owner-login POST failed closed with `403 application_authentication_origin_invalid` on 2026-09-10. A deploy preview is not the dedicated staging origin required by the strict production-origin guard; no dashboard data was read. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -113,8 +113,10 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Verify MVP-01c: dashboard loading, empty and failed states are
-   understandable in an identified supported environment.
+1. Re-enter MVP-01c only after a dedicated non-production staging host has a
+   matching strict application origin and an explicitly scoped staging session.
+   Do not use production or weaken the origin guard to make a deploy preview
+   work.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -134,6 +136,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
+| MVP-01c supported-environment proof | Blocked since 2026-09-10 | Provision a dedicated non-production staging host whose strict configured application origin, runtime URL and browser origin match. Then perform one bounded staging-only login plus dashboard-read proof; do not repurpose production or permit generic deploy-preview origins. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -228,6 +231,8 @@ external_effects_and_existing_authority: None. This is an application-source and
 blocker_or_fallback: A supported environment must still exercise the full manual entry → reload → close → reload journey. This local result is not a durable environment or release proof.
 result_and_remaining_gap: Repeated close requests can no longer silently overwrite an existing exit, and a stale partial request cannot reopen a closed position through the application endpoint. MVP-03a, MVP-03b and MVP-03c remain unverified until the complete supported manual journey succeeds.
 
+```
+
 #### MVP-01c initial dashboard failure clarity — 2026-09-10 (local verified)
 
 ```text
@@ -239,6 +244,17 @@ behavior_check_and_environment: `tests/e2e/mvp-01-dashboard-states.spec.ts` loca
 external_effects_and_existing_authority: None. This is a client UI and local-test change only; it performs no credential, provider, database, deployment, broker or production action.
 blocker_or_fallback: MVP-01c remains unverified pending an identified supported-environment check covering loading, an ordinary empty/no-trade state and a controlled failed dashboard read. Do not substitute this local source check for that environment evidence.
 result_and_remaining_gap: The initial failure can no longer be mistaken for a no-trade decision, and a later failed refresh no longer claims nonexistent prior data. Parent MVP-01 still requires the supported-environment proof.
+```
+
+#### MVP-01c supported-preview origin admission check — 2026-09-10 (blocked)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: The latest MVP source tree was available at Netlify deploy preview #439, but an owner-login attempt from that preview was rejected before the dashboard could load.
+smallest_change_and_reused_components: No application change was made. The preview tree was compared directly with main `398a78cc` and matched exactly (`6f1a16a876312177f27df01e68a0a797307db4c7`). The check used the existing password-only login route and a browser session; non-dashboard API reads were locally fulfilled, and no dashboard payload, provider response, database row, broker action or production surface was used.
+behavior_check_and_environment: Netlify deploy preview #439 on 2026-09-10: the browser's actual `POST /api/auth/login` returned `403 application_authentication_origin_invalid`. The runtime's strict production-origin guard requires the configured application origin, runtime URL and request origin to agree; the deploy-preview hostname intentionally does not meet that contract.
+blocker_or_fallback: MVP-01c is blocked, not failed. A generic preview-origin allowlist or production-domain test would weaken or bypass the required boundary and is not an acceptable fallback. The next useful action is a dedicated non-production staging host with an exact, separately scoped origin configuration and staging session authority.
+result_and_remaining_gap: Loading, controlled empty/no-trade and controlled failed-first-read UI behavior remain locally covered but are not supported-environment evidence. Do not count this attempt as MVP-01c verification.
 ```
 
 #### MVP-03 manual entry plan-value normalization — 2026-09-10 (local verified)
