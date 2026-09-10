@@ -27,8 +27,8 @@ export type RecommendationScanRunHistoryWindowBreakdown = {
   average_strong_count: number | null;
   average_valid_count: number | null;
   average_experimental_count: number | null;
-  degraded_stale_empty_count: number;
-  degraded_stale_empty_rate: number | null;
+  review_required_run_count: number;
+  review_required_run_rate: number | null;
   warning_count: number;
   sample_quality_note: string;
 };
@@ -68,7 +68,7 @@ export type RecommendationScanRunHistorySort = "newest" | "oldest";
 
 export type RecommendationScanRunHistorySummary = {
   summary_id: string;
-  summary_version: "1.0";
+  summary_version: "1.1";
   generated_at: string;
   source_scope: "supabase" | "localStorage" | "current_visible" | "mixed";
   range: StatisticsTimeRange;
@@ -84,6 +84,8 @@ export type RecommendationScanRunHistorySummary = {
   last_successful_run_timestamp?: string | null;
   last_successful_run_status?: "completed" | "empty" | "unknown";
   latest_run_recovery_state?: "not_required" | "review_required" | "unknown";
+  review_required_run_count: number;
+  review_required_run_rate: number | null;
   average_visible_recommendation_count: number | null;
   median_visible_recommendation_count: number | null;
   average_strong_count: number | null;
@@ -364,6 +366,10 @@ function isSuccessfulScanRun(
   );
 }
 
+function requiresRecoveryReview(scanRun: RecommendationScanRun) {
+  return !isSuccessfulScanRun(scanRun);
+}
+
 function latestSuccessfulScanRun(scanRuns: RecommendationScanRun[]) {
   return [...scanRuns]
     .filter(isSuccessfulScanRun)
@@ -414,11 +420,8 @@ function windowBreakdown(
   return windows.map((window) => {
     const windowRuns = scanRuns.filter((scanRun) => scanRun.window === window);
     const targetHitCount = windowRuns.filter(targetHit).length;
-    const degradedStaleEmptyCount = windowRuns.filter(
-      (scanRun) =>
-        scanRun.status === "degraded" ||
-        scanRun.status === "stale" ||
-        scanRun.status === "empty",
+    const reviewRequiredRunCount = windowRuns.filter(
+      requiresRecoveryReview,
     ).length;
 
     return {
@@ -438,8 +441,8 @@ function windowBreakdown(
       average_experimental_count: average(
         windowRuns.map((scanRun) => scanRun.counts.experimental_count),
       ),
-      degraded_stale_empty_count: degradedStaleEmptyCount,
-      degraded_stale_empty_rate: rate(degradedStaleEmptyCount, windowRuns.length),
+      review_required_run_count: reviewRequiredRunCount,
+      review_required_run_rate: rate(reviewRequiredRunCount, windowRuns.length),
       warning_count: windowRuns.reduce(
         (total, scanRun) => total + scanRun.warnings.length,
         0,
@@ -519,7 +522,7 @@ function buildWarnings(
   scanRuns: RecommendationScanRun[],
   summary: {
     targetHitRate: number | null;
-    degradedStaleEmptyCount: number;
+    reviewRequiredRunCount: number;
     providerWarningRunCount: number;
     unknownMetricRunCount: number;
   },
@@ -548,11 +551,12 @@ function buildWarnings(
     });
   }
 
-  if (summary.degradedStaleEmptyCount > 0) {
+  if (summary.reviewRequiredRunCount > 0) {
     warnings.push({
-      warning_id: "degraded_stale_empty_runs_present",
+      warning_id: "scan_runs_need_review",
       severity: "warning",
-      message: "Some scan runs are degraded, stale, or empty. Review provider and freshness diagnostics.",
+      message:
+        "Some scan runs need review before they can be used as a current recovery point. Review provider and freshness diagnostics.",
     });
   }
 
@@ -616,11 +620,8 @@ export function buildRecommendationScanRunHistorySummary(
   const aboveTargetCount = filteredRuns.filter(
     (scanRun) => scanRun.window_target_status === "above_target",
   ).length;
-  const degradedStaleEmptyCount = filteredRuns.filter(
-    (scanRun) =>
-      scanRun.status === "degraded" ||
-      scanRun.status === "stale" ||
-      scanRun.status === "empty",
+  const reviewRequiredRunCount = filteredRuns.filter(
+    requiresRecoveryReview,
   ).length;
   const providerWarningRunCount = filteredRuns.filter(hasProviderWarning).length;
   const unknownMetricRunCount = filteredRuns.filter(
@@ -652,14 +653,14 @@ export function buildRecommendationScanRunHistorySummary(
 
   const warningInputs = {
     targetHitRate,
-    degradedStaleEmptyCount,
+    reviewRequiredRunCount,
     providerWarningRunCount,
     unknownMetricRunCount,
   };
 
   return {
     summary_id: `recommendation_scan_run_history_${safeNow.toISOString()}`,
-    summary_version: "1.0",
+    summary_version: "1.1",
     generated_at: safeNow.toISOString(),
     source_scope: input.source_scope ?? "mixed",
     range,
@@ -669,6 +670,8 @@ export function buildRecommendationScanRunHistorySummary(
     last_successful_run_timestamp: lastSuccessfulRun?.observed_at ?? null,
     last_successful_run_status: lastSuccessfulRun?.status ?? "unknown",
     latest_run_recovery_state: latestRunRecoveryState(latestRun),
+    review_required_run_count: reviewRequiredRunCount,
+    review_required_run_rate: rate(reviewRequiredRunCount, total),
     average_visible_recommendation_count: avgVisible,
     median_visible_recommendation_count: medVisible,
     average_strong_count: avgStrong,
@@ -715,10 +718,10 @@ export function buildRecommendationScanRunHistorySummary(
         formatted_value: formatNumber(medVisible),
       },
       {
-        metric_id: "degraded_stale_empty_runs",
-        label: "Degraded/stale/empty runs",
-        value: degradedStaleEmptyCount,
-        formatted_value: String(degradedStaleEmptyCount),
+        metric_id: "review_required_runs",
+        label: "Runs needing review",
+        value: reviewRequiredRunCount,
+        formatted_value: String(reviewRequiredRunCount),
       },
     ],
     recent_items: sortedRuns.slice(0, 20).map(toItem),

@@ -34,6 +34,7 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "review_required",
       last_successful_run_status: "empty",
       last_successful_run_timestamp: "2026-09-10T14:00:00.000Z",
+      review_required_run_count: 1,
     });
   });
 
@@ -48,6 +49,7 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "not_required",
       last_successful_run_status: "empty",
       last_successful_run_timestamp: "2026-09-10T14:00:00.000Z",
+      review_required_run_count: 0,
     });
   });
 
@@ -68,6 +70,7 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "review_required",
       last_successful_run_status: "completed",
       last_successful_run_timestamp: "2026-09-10T13:00:00.000Z",
+      review_required_run_count: 1,
     });
   });
 
@@ -95,6 +98,7 @@ test.describe("MVP-05 scan recovery visibility", () => {
       latest_run_recovery_state: "review_required",
       last_successful_run_status: "completed",
       last_successful_run_timestamp: "2026-09-10T13:00:00.000Z",
+      review_required_run_count: 1,
     });
   });
 
@@ -237,6 +241,31 @@ test.describe("MVP-05 scan recovery visibility", () => {
     }
   });
 
+  test("does not count a clean no-trade result as needing recovery review", () => {
+    const summary = buildRecommendationScanRunHistorySummary({
+      scan_runs: [
+        scanRun("2026-09-10T13:00:00.000Z", "empty"),
+        scanRun("2026-09-10T14:00:00.000Z", "failed"),
+      ],
+      now: "2026-09-10T14:05:00.000Z",
+    });
+
+    expect(summary).toMatchObject({
+      review_required_run_count: 1,
+      review_required_run_rate: 50,
+      latest_run_recovery_state: "review_required",
+    });
+    expect(summary.metrics).toContainEqual({
+      metric_id: "review_required_runs",
+      label: "Runs needing review",
+      value: 1,
+      formatted_value: "1",
+    });
+    expect(summary.warnings).toContainEqual(
+      expect.objectContaining({ warning_id: "scan_runs_need_review" }),
+    );
+  });
+
   test("renders the distinct last-successful and recovery labels in scan history", async () => {
     const appSource = await readFile(
       path.join(repositoryRoot, "app/trade-app.tsx"),
@@ -244,6 +273,8 @@ test.describe("MVP-05 scan recovery visibility", () => {
     );
 
     expect(appSource).toContain('label="Last Successful Scan"');
+    expect(appSource).toContain('label="Runs Needing Review"');
+    expect(appSource).toContain("summary.review_required_run_count");
     expect(appSource).toContain("Latest scan needs review");
     expect(appSource).toContain("data-last-successful-run-timestamp");
     expect(appSource).toContain("Refreshing this dashboard reads the latest stored state");
