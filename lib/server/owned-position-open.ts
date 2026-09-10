@@ -1,3 +1,5 @@
+import { hasCoherentLongManualPositionPlan } from "@/lib/manual-position-plan";
+
 export type OwnedPositionOpenValues = {
   recommendation_id: string;
   ticker: string;
@@ -59,6 +61,12 @@ export function parseOwnedPositionOpenValues(
     currentStop === null ||
     target1 === null ||
     target2 === null ||
+    !hasCoherentLongManualPositionPlan({
+      entryPrice,
+      stopLoss: currentStop,
+      target1,
+      target2,
+    }) ||
     (executionMetadata !== undefined &&
       (typeof executionMetadata !== "object" ||
         executionMetadata === null ||

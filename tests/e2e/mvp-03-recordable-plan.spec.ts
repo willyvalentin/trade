@@ -2,7 +2,10 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { hasRecordableManualPositionPlan } from "../../lib/manual-position-plan";
+import {
+  hasCoherentLongManualPositionPlan,
+  hasRecordableManualPositionPlan,
+} from "../../lib/manual-position-plan";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 
@@ -40,5 +43,32 @@ test.describe("MVP-03 recordable manual position plan", () => {
     expect(tradeApp).toContain("hasRecordableManualPositionPlan");
     expect(tradeApp).toContain("if (!addTradeGate.recordableManualPositionPlan)");
     expect(tradeApp).toContain("!addTradeGate.recordableManualPositionPlan ||");
+  });
+
+  test("requires a coherent long fill, stop, and two-target sequence", () => {
+    expect(
+      hasCoherentLongManualPositionPlan({
+        entryPrice: 100,
+        stopLoss: "96.00",
+        target1: "108.00",
+        target2: "112.00",
+      }),
+    ).toBe(true);
+    expect(
+      hasCoherentLongManualPositionPlan({
+        entryPrice: 100,
+        stopLoss: "101.00",
+        target1: "108.00",
+        target2: "112.00",
+      }),
+    ).toBe(false);
+    expect(
+      hasCoherentLongManualPositionPlan({
+        entryPrice: 100,
+        stopLoss: "96.00",
+        target1: "112.00",
+        target2: "108.00",
+      }),
+    ).toBe(false);
   });
 });

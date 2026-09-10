@@ -41,6 +41,15 @@ test.describe("MVP-03 manual entry input", () => {
     expect(
       parseOwnedPositionOpenValues({ ...manualEntryPayload, execution_metadata: [] }),
     ).toBeNull();
+    expect(
+      parseOwnedPositionOpenValues({ ...manualEntryPayload, current_stop: 101 }),
+    ).toBeNull();
+    expect(
+      parseOwnedPositionOpenValues({ ...manualEntryPayload, target_1: 99 }),
+    ).toBeNull();
+    expect(
+      parseOwnedPositionOpenValues({ ...manualEntryPayload, target_2: 108 }),
+    ).toBeNull();
   });
 
   test("normalizes before the owner-bound transaction RPC", async () => {
@@ -55,5 +64,13 @@ test.describe("MVP-03 manual entry input", () => {
     expect(dataAccess).toContain("p_current_stop: values.current_stop");
     expect(dataAccess).toContain("p_target_1: values.target_1");
     expect(dataAccess).toContain("p_target_2: values.target_2");
+    const tradeApp = await readFile(
+      path.join(repositoryRoot, "app/trade-app.tsx"),
+      "utf8",
+    );
+    expect(tradeApp).toContain("hasCoherentLongManualPositionPlan");
+    expect(tradeApp).toContain(
+      "This long plan must have stop below fill and two ascending targets above fill.",
+    );
   });
 });
