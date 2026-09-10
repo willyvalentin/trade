@@ -17,9 +17,11 @@ no-trade state. The controlled failed-first-read remains unverified: Draft PR
 enabled. Baseline inspected: GitHub main
 `f843bbd63e3984bf2186ef339c55e27adc540714`. No production operation was
 performed. Draft PR #451 contains a separate MVP-02b source correction for a
-misleading static handoff fixture; its targeted local suites, production build
-and Draft verifier run `34491198449` passed. It is neither merged nor deployed
-to the dedicated staging site.
+misleading static handoff fixture. Its earlier visibility revision passed the
+targeted local suites, production build and Draft verifier run `34491198449`;
+the current inactive-market guidance revision `1e6eab08` passes its scoped
+local suite, lint and diff checks, while its new Draft verifier is queued. It
+is neither merged nor deployed to the dedicated staging site.
 
 ### Now
 
@@ -169,7 +171,7 @@ acceptance_id: MVP-02b
 user_behavior_or_reproduced_failure: On the authenticated dedicated staging dashboard, the ordinary no-trade state clearly said that the data was not clean enough for a high-quality setup. The same screen nevertheless rendered a large static GME/Avanza handoff fixture. Its controls were disabled, but a fixed preview package can contradict a customer-facing no-trade result.
 smallest_change_and_reused_components: Added one pure UI-visibility boundary. The existing read-only Avanza handoff surface now renders only in the Recommendations tab when its existing selected-recommendation preview state is explicitly allowed and no dominant recommendation empty state is shown. The existing preview guard, disabled controls, static fixtures and all bridge/execution denials remain unchanged.
 active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
-behavior_check_and_environment: One bounded authenticated `ture-staging.netlify.app` read observed `Data is not clean enough right now` and the competing static preview. Local `mvp-02-provider-empty-state` coverage verifies no-trade/provider distinctions, truthful closed/closing-soon/holiday wait guidance, no false “wait for regular session” instruction during a high-risk regular session, the new preview-visibility truth table and Trade UI wiring. The focused default-off Avanza preview regression suite and local Next 16.3.4 production build pass. Draft PR #451's exact revision `4256bdf9` also passed cost-bounded Draft verifier run `34491198449`; its red protected aggregate is the known Draft-policy route that waits for Ready shards, not a failed product test.
+behavior_check_and_environment: One bounded authenticated `ture-staging.netlify.app` read observed `Data is not clean enough right now` and the competing static preview. Local `mvp-02-provider-empty-state` coverage on current revision `1e6eab08` verifies no-trade/provider distinctions, truthful closed/closing-soon/holiday wait guidance, no false “wait for regular session” instruction during a high-risk regular session, the new preview-visibility truth table and Trade UI wiring; scoped lint and diff checks also pass. The focused default-off Avanza preview regression suite and local Next 16.3.4 production build passed for the earlier visibility revision `4256bdf9`, whose cost-bounded Draft verifier run `34491198449` also passed. The current Draft verifier is queued. Its protected aggregate is expected to remain red while Draft policy skips the Ready-only shards; that is not a product-test failure.
 external_effects_and_existing_authority: The staging observation was read-only. The source change neither creates a recommendation nor changes a database row, provider call, deployment, bridge, broker or production configuration.
 blocker_or_fallback: The market-closed behavior was not active in this observation, so it remains unverified. MVP-01c's separate failed-first-read probe is independently blocked only on an explicit staging-only configuration/deploy/rollback scope; it does not block this source correction.
 result_and_remaining_gap: A no-trade customer will no longer be presented with a static pseudo-trade package in the same dashboard surface. This is source/local/CI verification only until a later separately authorized staging delivery rechecks the behavior; the market-closed state remains unobserved.
