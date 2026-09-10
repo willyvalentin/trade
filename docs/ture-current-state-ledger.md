@@ -16,12 +16,11 @@ no-trade state. The controlled failed-first-read remains unverified: Draft PR
 #450 supplies an inactive default-deny staging probe but is neither merged nor
 enabled. Baseline inspected: GitHub main
 `f843bbd63e3984bf2186ef339c55e27adc540714`. No production operation was
-performed. Draft PR #451 contains a separate MVP-02b source correction for a
-misleading static handoff fixture. Its earlier visibility revision passed the
-targeted local suites, production build and Draft verifier run `34491198449`;
-the current inactive-market guidance revision `1e6eab08` passes its scoped
-local suite, lint and diff checks, while its new Draft verifier is queued. It
-is neither merged nor deployed to the dedicated staging site.
+performed. The MVP-02 delivery candidate contains the correction for the
+misleading static handoff fixture and consolidates
+that correction with card timing, complete target visibility and provider-data
+warnings. Its combined local suite, TypeScript check and production build pass;
+it is neither merged nor deployed to the dedicated staging site.
 
 ### Now
 
@@ -223,7 +222,7 @@ acceptance_id: MVP-02a
 user_behavior_or_reproduced_failure: A recommendation can carry Target 1 and Target 2, and the manual-position writer requires both targets, but the existing recommendation-details trade plan showed only Target 1 before the user started manual trade recording.
 smallest_change_and_reused_components: Reused the existing Recommendation Details trade-plan metric grid and added Target 2 beside the existing entry, stop, Target 1 and risk/reward values. The recommendation model, validation gate, position writer, scanner, provider and broker boundaries are unchanged.
 active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
-behavior_check_and_environment: Draft PR #455. Targeted `mvp-02-plan-timing-presentation` coverage passes 3/3, including the Target 2 rendering contract. Scoped ESLint, full TypeScript `--noEmit --incremental false` and diff checks pass in an isolated main-based worktree.
+behavior_check_and_environment: The combined MVP-02 delivery suite passes 18/18, including the Target 2 rendering contract, price source, timestamp and expiry presentation, no-trade/market-closed guidance, retained provider warnings and the static-handoff boundary. Scoped ESLint, TypeScript no-emit, local Next 16.3.4 production build and diff checks pass in an isolated main-based worktree.
 external_effects_and_existing_authority: None. This is an application display and local-test correction only; no provider, database, deploy, credential, broker or production system was contacted.
 blocker_or_fallback: This source correction does not establish a supported current-data journey or provider freshness. MVP-02a remains unverified until an identified supported environment presents the complete plan and its risk assumptions.
 result_and_remaining_gap: A user can now inspect both stored targets in the ordinary recommendation details before deciding whether to record a manually executed fill. The full MVP-02 runtime behavior remains to be evidenced.
