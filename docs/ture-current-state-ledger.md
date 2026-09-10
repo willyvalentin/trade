@@ -23,8 +23,9 @@ main, but it still needs one supported-environment demonstration of loading,
 ordinary empty/no-trade, and failed first-read behavior. The next independent
 MVP-03a source defect is also fixed locally: the manual-entry UI serializes
 stored numeric plan values as strings, while the prior server boundary accepted
-only JavaScript numbers. MVP-03b's same-command retry stabilization is locally
-verified and pending ordinary reviewed delivery. The wider MVP-01→04
+only JavaScript numbers. MVP-03b's same-command retry stabilization is merged
+and CI-verified, but remains unverified as a supported-environment user
+journey. The wider MVP-01→04
 investigation remains bounded by the original four active-hour discovery budget;
 neither local result is a release-environment acceptance claim.
 
@@ -261,6 +262,7 @@ user_behavior_or_reproduced_failure: A rapid repeat of the same manual-entry req
 smallest_change_and_reused_components: The trade modal now keeps one in-memory, replay-safe command for an unchanged captured manual fill. A changed fill, reference, cost preview, warning or plan identity creates a new command; an unchanged retry reuses the exact prior metadata. The existing authenticated route and server-owned transactional RPC remain the only authority that creates or reuses a position.
 active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
 behavior_check_and_environment: `tests/e2e/mvp-03-open-position-replay.spec.ts` proves same-fill command reuse, changed-fill separation, whitespace-stable keys and modal wiring. Together with the existing open-input, transactional-boundary and close-replay suites, 13 local checks pass. Scoped ESLint, TypeScript, diff checks and a complete Next 16.3.4 Webpack production build pass.
+delivery_evidence: PR #438 merged as `d9a5e447` after Ready Full CI run `34432687801` passed the unchanged six provider-free shards and aggregate. The automatic post-merge attestation run `34434155532` passed for the same main revision. Because the active workflow's ordinary push route attests rather than repeats the matrix, a separate exact-main Full CI run `34434636764` was dispatched for `d9a5e447`; all six unchanged shards and the aggregate passed.
 external_effects_and_existing_authority: None. The replay cache is client memory and local tests only; it performs no credential, provider, database-row, deployment, broker or production action.
 blocker_or_fallback: MVP-03b remains unverified until an identified supported environment proves entry → reload and a repeated request against the durable position. Do not substitute this local command-stability proof for the persisted lifecycle demonstration.
 result_and_remaining_gap: A duplicate click or safe retry no longer turns a timestamp-only difference into a new command. The server transaction still rejects changed command inputs and remains responsible for durable idempotency. MVP-03a, MVP-03b and MVP-03c remain unverified until the supported full lifecycle succeeds.
