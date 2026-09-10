@@ -6,6 +6,14 @@ export type RecommendationCardMetric = {
   value: string;
 };
 
+export type RecommendationCardTiming = {
+  expiryLabel: string;
+  expiryStatus: "stored" | "derived" | "unavailable";
+  sourceLabel: string;
+  sourceTimestampLabel: string;
+  sourceTimestampStatus: "known" | "unavailable";
+};
+
 export type RecommendationCardProps = {
   addTradeDisabled: boolean;
   addTradeLabel: string;
@@ -21,6 +29,7 @@ export type RecommendationCardProps = {
   onAddTrade: () => void | Promise<void>;
   onOpenDetails: () => void;
   onOpenDiscard: () => void;
+  timing?: RecommendationCardTiming;
 };
 
 function recommendationCardDisplayValue(value: unknown, fallback = "—") {
@@ -99,6 +108,7 @@ export function RecommendationCard({
   onAddTrade,
   onOpenDetails,
   onOpenDiscard,
+  timing,
 }: RecommendationCardProps) {
   return (
     <article
@@ -163,6 +173,25 @@ export function RecommendationCard({
       </div>
 
       <RecommendationCardMetricGrid metrics={metrics} />
+
+      {timing ? (
+        <dl className="trade-recommendation-card__timing" aria-label="Data timing">
+          <div>
+            <dt>Price source</dt>
+            <dd>{recommendationCardDisplayValue(timing.sourceLabel)}</dd>
+          </div>
+          <div>
+            <dt>Source time</dt>
+            <dd>{recommendationCardDisplayValue(timing.sourceTimestampLabel)}</dd>
+          </div>
+          <div>
+            <dt>
+              {timing.expiryStatus === "derived" ? "Expires (derived)" : "Expires"}
+            </dt>
+            <dd>{recommendationCardDisplayValue(timing.expiryLabel)}</dd>
+          </div>
+        </dl>
+      ) : null}
 
       <div className="trade-recommendation-card__footer">
         <button
