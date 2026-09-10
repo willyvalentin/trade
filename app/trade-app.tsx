@@ -21,6 +21,11 @@ import {
   getRecommendationFreshness,
   isRecommendationExpired,
 } from "@/lib/recommendation-freshness";
+import {
+  createOpenPositionReplayKey,
+  resolveOpenPositionReplay,
+  type OpenPositionReplay,
+} from "@/lib/open-position-replay";
 import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
 import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
 import {
@@ -26205,6 +26210,9 @@ function TradeModal({
   const generatedTureAgentCompletionPolicyRef = useRef<string | null>(null);
   const generatedAvanzaBuyFieldVerificationRef = useRef<string | null>(null);
   const generatedRiskControlsEvaluationRef = useRef<string | null>(null);
+  const submittedBrokerFillRef = useRef<OpenPositionReplay<BrokerFillConfirmation> | null>(
+    null,
+  );
   const [manualAvanzaVerificationNotes] = useState(() =>
     readManualAvanzaVerificationNotesForReport(),
   );
@@ -27363,60 +27371,88 @@ function TradeModal({
       return;
     }
 
-    const brokerConfirmedAt = new Date().toISOString();
-    const tradePlanningSnapshot = buildTradePlanningSnapshot({
+    const replayKey = createOpenPositionReplayKey({
+      recommendationId: recommendation.id,
       ticker: recommendation.ticker,
-      side: recommendation.direction,
-      entryPrice: payloadEntryPrice,
-      stopPrice: plannedStopLoss,
-      targetPrice: plannedTargetPrice,
-      plannedQuantity: payloadShares,
-      actualEntryShares: normalizedActualShares,
-      positionSizing: positionSizingResult,
-      tradePlanQuality: tradePlanQualityResult,
-      riskControls: riskControlsEvaluation,
-      marketSession: marketSessionEvaluation,
-      preflight: addTradePreflightSummary,
-      brokerFillStatus: brokerOrderStatus,
-      brokerReference: brokerReferenceNote,
-      demoOrRealSource: isDemoTrade
-        ? "demo"
-        : brokerReferenceNote.toLowerCase().includes("mock")
-          ? "mock"
-          : "real",
-      capturedAt: brokerConfirmedAt,
-    });
-
-    onSubmit(event, {
+      payloadId: payload.payload_id,
+      payloadFingerprint: payload.payload_fingerprint,
       brokerOrderStatus,
       actualFillPrice,
       actualShares: normalizedActualShares,
-      brokerReferenceNote: brokerReferenceNote.trim() || null,
-      brokerConfirmedAt,
-      plannedEntryPrice: payloadEntryPrice,
-      plannedShares: payloadShares,
-      plannedStopLoss,
-      plannedTargetPrice,
-      plannedPositionValue,
-      plannedMaxLossAtStop,
-      actualPositionValue,
-      actualMaxLossAtStop,
-      actualRiskPerShare,
-      payloadId: payload.payload_id,
-      payloadFingerprint: payload.payload_fingerprint,
-      handoffSessionId: payload.handoff_session_id,
-      setupType: payload.setup_type,
-      validationStatus: payload.validation_status,
-      executionPayloadVersion: payload.payload_version,
-      brokerCostModelSnapshot: brokerCostModel,
-      brokerCostEstimate: actualBrokerCostEstimate,
-      brokerOrderPreview,
-      handoffIntegrity: integrityResult,
-      agentHandoffCommand,
-      agentHardStopContract,
-      agentFormMappingPreview,
-      tradePlanningSnapshot,
+      brokerReferenceNote,
+      manualBrokerConfirmed,
+      brokerPlanMatches,
+      previewCommission: previewCommissionInput,
+      previewFxFee: previewFxFeeInput,
+      previewTotalCost: previewTotalCostInput,
+      buyingPowerStatus,
+      previewWarningType,
+      previewWarningText,
+      screenshotReferenceNote,
+      brokerCostModel: brokerCostModel ? JSON.stringify(brokerCostModel) : null,
     });
+    const replay = resolveOpenPositionReplay(
+      submittedBrokerFillRef.current,
+      replayKey,
+      () => {
+        const brokerConfirmedAt = new Date().toISOString();
+        const tradePlanningSnapshot = buildTradePlanningSnapshot({
+          ticker: recommendation.ticker,
+          side: recommendation.direction,
+          entryPrice: payloadEntryPrice,
+          stopPrice: plannedStopLoss,
+          targetPrice: plannedTargetPrice,
+          plannedQuantity: payloadShares,
+          actualEntryShares: normalizedActualShares,
+          positionSizing: positionSizingResult,
+          tradePlanQuality: tradePlanQualityResult,
+          riskControls: riskControlsEvaluation,
+          marketSession: marketSessionEvaluation,
+          preflight: addTradePreflightSummary,
+          brokerFillStatus: brokerOrderStatus,
+          brokerReference: brokerReferenceNote,
+          demoOrRealSource: isDemoTrade
+            ? "demo"
+            : brokerReferenceNote.toLowerCase().includes("mock")
+              ? "mock"
+              : "real",
+          capturedAt: brokerConfirmedAt,
+        });
+
+        return {
+          brokerOrderStatus,
+          actualFillPrice,
+          actualShares: normalizedActualShares,
+          brokerReferenceNote: brokerReferenceNote.trim() || null,
+          brokerConfirmedAt,
+          plannedEntryPrice: payloadEntryPrice,
+          plannedShares: payloadShares,
+          plannedStopLoss,
+          plannedTargetPrice,
+          plannedPositionValue,
+          plannedMaxLossAtStop,
+          actualPositionValue,
+          actualMaxLossAtStop,
+          actualRiskPerShare,
+          payloadId: payload.payload_id,
+          payloadFingerprint: payload.payload_fingerprint,
+          handoffSessionId: payload.handoff_session_id,
+          setupType: payload.setup_type,
+          validationStatus: payload.validation_status,
+          executionPayloadVersion: payload.payload_version,
+          brokerCostModelSnapshot: brokerCostModel,
+          brokerCostEstimate: actualBrokerCostEstimate,
+          brokerOrderPreview,
+          handoffIntegrity: integrityResult,
+          agentHandoffCommand,
+          agentHardStopContract,
+          agentFormMappingPreview,
+          tradePlanningSnapshot,
+        };
+      },
+    );
+    submittedBrokerFillRef.current = replay;
+    onSubmit(event, replay.value);
   }
 
   const confidenceTier = recommendationCardConfidenceTone(recommendation);
