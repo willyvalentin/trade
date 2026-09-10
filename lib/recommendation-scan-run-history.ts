@@ -157,6 +157,32 @@ function timestampMs(value: string | null | undefined) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function recordRevisionTimestampMs(scanRun: RecommendationScanRun) {
+  return (
+    timestampMs(scanRun.updated_at) ??
+    timestampMs(scanRun.created_at) ??
+    timestampMs(scanRun.observed_at) ??
+    Number.NEGATIVE_INFINITY
+  );
+}
+
+function deduplicateScanRuns(scanRuns: RecommendationScanRun[]) {
+  const latestByFingerprint = new Map<string, RecommendationScanRun>();
+
+  for (const scanRun of scanRuns) {
+    const existing = latestByFingerprint.get(scanRun.run_fingerprint);
+
+    if (
+      !existing ||
+      recordRevisionTimestampMs(scanRun) > recordRevisionTimestampMs(existing)
+    ) {
+      latestByFingerprint.set(scanRun.run_fingerprint, scanRun);
+    }
+  }
+
+  return Array.from(latestByFingerprint.values());
+}
+
 function finiteNumber(value: number | null | undefined) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
@@ -510,11 +536,7 @@ export function buildRecommendationScanRunHistorySummary(
         : new Date();
   const safeNow = Number.isFinite(now.getTime()) ? now : new Date();
   const range = input.filter?.range ?? input.range ?? "all";
-  const uniqueScanRuns = Array.from(
-    new Map(
-      input.scan_runs.map((scanRun) => [scanRun.run_fingerprint, scanRun]),
-    ).values(),
-  );
+  const uniqueScanRuns = deduplicateScanRuns(input.scan_runs);
   const rangedRuns = filterByRange(uniqueScanRuns, range, safeNow);
   const filteredRuns = rangedRuns
     .filter(
