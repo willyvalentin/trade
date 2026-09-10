@@ -233,6 +233,19 @@ blocker_or_fallback: This source correction does not establish a durable user jo
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
 ```
 
+#### MVP-04 invalid negative-share history outcome — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a, MVP-04c
+user_behavior_or_reproduced_failure: The plan-versus-actual panel already flagged a negative remaining-share value for review, but the History dashboard classified the same impossible record from its positive PnL as a winner. The invalid History filter also could not find the record because its stored partial status still said fully closed.
+smallest_change_and_reused_components: Reused the existing History outcome and partial-status contracts. A finite negative remaining-share value now classifies the history result and partial status as invalid, emits one explicit warning and remains visible through the existing invalid filter. Zero and positive values retain their ordinary full-close and partial paths. No schema, route, persistence, provider, broker or production behavior changed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-04-history-invalidity.spec.ts` proves negative counts cannot become winner results, valid zero closes remain ordinary and invalid filtering retains the record. Together with current MVP-04 plan-review, fee-basis and aggregate-basis checks, targeted Playwright coverage passes 10/10. Scoped ESLint, TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. Tests use local synthetic history inputs only; no credential, database row, provider, deployment, broker or production system was contacted.
+blocker_or_fallback: This only makes impossible historical metadata truthful and reviewable; it cannot repair an already persisted row or prove a supported manual lifecycle. MVP-04a and MVP-04c remain unverified until a durable supported entry → close → reload journey is observed.
+result_and_remaining_gap: A contradictory negative-share record can no longer look like a successful completed trade or disappear from the invalid-history filter. The product now fails visibly toward review rather than inventing a favorable outcome.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
