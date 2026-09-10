@@ -26,6 +26,7 @@ import {
   resolveOpenPositionReplay,
   type OpenPositionReplay,
 } from "@/lib/open-position-replay";
+import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
 import { buildConfidenceProjectionObservationPreview } from "@/lib/confidence-calibration-recommendation-advisory-projection-observation";
 import { isConfidenceCalibrationProjectionPreviewEnabled } from "@/lib/confidence-calibration-recommendation-advisory-projection-preview-flag";
 import {
@@ -4335,11 +4336,27 @@ function getAddTradeGate(
   freshness: ReturnType<typeof getRecommendationFreshness>,
 ) {
   const confirmation = getIntradayConfirmationStatus(recommendation);
+  const recordableManualPositionPlan = hasRecordableManualPositionPlan({
+    stopLoss: recommendation.stopLoss,
+    target1: recommendation.target1,
+    target2: recommendation.target2,
+  });
+
+  if (!recordableManualPositionPlan) {
+    return {
+      confirmation,
+      blocked: true,
+      recordableManualPositionPlan,
+      message:
+        "This setup is missing a complete position plan (stop, Target 1, or Target 2). Generate a fresh recommendation before recording a broker fill.",
+    };
+  }
 
   if (freshness === "expired") {
     return {
       confirmation,
       blocked: true,
+      recordableManualPositionPlan,
       message:
         "This setup has expired. Generate a fresh recommendation before taking the trade.",
     };
@@ -4352,6 +4369,7 @@ function getAddTradeGate(
     return {
       confirmation,
       blocked: true,
+      recordableManualPositionPlan,
       message:
         "Setup is stale and intraday confirmation is not clean. Refresh scanner or generate a fresh recommendation before entering.",
     };
@@ -4361,6 +4379,7 @@ function getAddTradeGate(
     return {
       confirmation,
       blocked: true,
+      recordableManualPositionPlan,
       message:
         "Setup has weak intraday confirmation. Refresh scanner or generate a fresh recommendation before adding this trade.",
     };
@@ -4370,6 +4389,7 @@ function getAddTradeGate(
     return {
       confirmation,
       blocked: false,
+      recordableManualPositionPlan,
       message: "Setup is stale. Confirm price action before entering.",
     };
   }
@@ -4378,6 +4398,7 @@ function getAddTradeGate(
     return {
       confirmation,
       blocked: false,
+      recordableManualPositionPlan,
       message:
         "Intraday confirmation is mixed. Review VWAP, momentum, and volume before entering.",
     };
@@ -4387,12 +4408,13 @@ function getAddTradeGate(
     return {
       confirmation,
       blocked: false,
+      recordableManualPositionPlan,
       message:
         "Intraday confirmation data is unavailable. Review manually before entering.",
     };
   }
 
-  return { confirmation, blocked: false, message: "" };
+  return { confirmation, blocked: false, recordableManualPositionPlan, message: "" };
 }
 
 function calculateCurrentR({
@@ -10323,6 +10345,11 @@ export function TradeApp({
       return;
     }
 
+    if (!addTradeGate.recordableManualPositionPlan) {
+      setMessage(addTradeGate.message);
+      return;
+    }
+
     if (isDemoRecommendation(recommendation)) {
       const positionSizing = calculatePositionSizing(recommendation, userSettings);
       const demoValidation: AddTradeValidationResult = {
@@ -10592,7 +10619,11 @@ export function TradeApp({
       selectedTradeValidationStatus === "warning" ||
       selectedTradeValidationStatus === "unavailable";
 
-    if (freshness === "expired" || (addTradeGate.blocked && !latestValidationAllowsTrade)) {
+    if (
+      freshness === "expired" ||
+      !addTradeGate.recordableManualPositionPlan ||
+      (addTradeGate.blocked && !latestValidationAllowsTrade)
+    ) {
       setSelectedRecommendation(null);
       setSelectedTradeValidationStatus(null);
       setSelectedTradeValidation(null);
@@ -13159,7 +13190,7 @@ export function TradeApp({
             has_required_fields:
               (recommendation.entryLowValue !== null ||
                 recommendation.entryHighValue !== null) &&
-              recommendation.stopLossValue !== null,
+              addTradeGate.recordableManualPositionPlan,
             has_active_position_same_ticker: hasActivePositionSameTicker,
           },
           preTradeRiskContext:
