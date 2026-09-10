@@ -17,15 +17,15 @@ baseline.
 
 ### Now
 
-**Selected product slice: MVP-01 access and dashboard.** The first reproduced
-defect—a required username the login server never receives or verifies—is fixed
-on main. The next journey gap is that an authenticated dashboard offered no
-user-facing sign-out, despite an existing origin-protected logout route. This
-delivery adds that missing control and a local regression check. It is
-deliberately not counted as an end-to-end session: the owner/provider-backed
-sign-in, dashboard reload and sign-out still need one supported-environment
-check. The wider MVP-01→04 investigation remains bounded by the original
-four active-hour discovery budget.
+**Selected product slice: MVP-01c understandable dashboard states.** The
+initial-dashboard failure wording is fixed and locally regression-tested on
+main, but it still needs one supported-environment demonstration of loading,
+ordinary empty/no-trade, and failed first-read behavior. The next independent
+MVP-03a source defect is also fixed locally: the manual-entry UI serializes
+stored numeric plan values as strings, while the prior server boundary accepted
+only JavaScript numbers. The wider MVP-01→04 investigation remains bounded by
+the original four active-hour discovery budget; neither local result is a
+release-environment acceptance claim.
 
 ### MVP acceptance board
 
@@ -237,6 +237,19 @@ behavior_check_and_environment: `tests/e2e/mvp-01-dashboard-states.spec.ts` loca
 external_effects_and_existing_authority: None. This is a client UI and local-test change only; it performs no credential, provider, database, deployment, broker or production action.
 blocker_or_fallback: MVP-01c remains unverified pending an identified supported-environment check covering loading, an ordinary empty/no-trade state and a controlled failed dashboard read. Do not substitute this local source check for that environment evidence.
 result_and_remaining_gap: The initial failure can no longer be mistaken for a no-trade decision, and a later failed refresh no longer claims nonexistent prior data. Parent MVP-01 still requires the supported-environment proof.
+```
+
+#### MVP-03 manual entry plan-value normalization — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-03a
+user_behavior_or_reproduced_failure: The manual-entry UI sends the recommendation's stored stop and target values as ordinary numeric strings (for example "96.00" and "108.00"), while the server command boundary previously accepted only JavaScript numbers. A valid manual entry could therefore be rejected before the existing owner-bound transactional command ran.
+smallest_change_and_reused_components: Added one strict server-side parser that accepts only finite positive JSON numbers or plain positive decimal strings, normalizes them to numbers, and leaves the existing authenticated route, owner binding, transactional RPC, recommendation linkage, and replay semantics unchanged.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-03-open-position-input.spec.ts` proves the exact UI-shaped payload reaches normalized numeric RPC arguments and rejects non-decimal, zero, infinite, incomplete, or array metadata inputs. The existing open-transaction and close-replay suites pass (9 checks total); scoped ESLint, TypeScript, diff checks, and a complete local Next 16.3.4 Webpack production build pass.
+external_effects_and_existing_authority: None. The parser and tests use local synthetic request values only; no credential, provider, database row, deployment, broker, or production action occurred.
+blocker_or_fallback: MVP-03a remains unverified until an identified supported environment records a manually executed entry from a recommendation and reloads the durable position. Do not treat local parsing proof as a persisted lifecycle demonstration.
+result_and_remaining_gap: Valid plan decimals emitted by the current UI no longer fail at the server input boundary, while malformed values remain fail-closed. MVP-03b and MVP-03c still require the full supported manual lifecycle, including retry and close/reload evidence.
 ```
 
 Authority reconciliation: the Notion program overview was synchronized on

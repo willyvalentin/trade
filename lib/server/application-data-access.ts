@@ -10,6 +10,7 @@ import {
   ownedPositionCloseValuesMatch,
   parseOwnedPositionCloseValues,
 } from "@/lib/server/owned-position-close";
+import { parseOwnedPositionOpenValues } from "@/lib/server/owned-position-open";
 
 export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
@@ -361,24 +362,6 @@ function validPositiveNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
-function validPositionInput(value: Record<string, unknown>) {
-  return (
-    typeof value.recommendation_id === "string" &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      value.recommendation_id,
-    ) &&
-    typeof value.ticker === "string" &&
-    /^[A-Z.]{1,16}$/.test(value.ticker) &&
-    typeof value.company_name === "string" &&
-    value.company_name.length <= 240 &&
-    validPositiveNumber(value.entry_price) &&
-    validPositiveNumber(value.position_size) &&
-    validPositiveNumber(value.current_stop) &&
-    validPositiveNumber(value.target_1) &&
-    validPositiveNumber(value.target_2)
-  );
-}
-
 export type ApplicationOpenPositionResult =
   | {
       status: "available";
@@ -395,29 +378,24 @@ export async function openApplicationPosition(
   input: Record<string, unknown>,
 ) {
   const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const values = parseOwnedPositionOpenValues(input);
   const { client } = getServerSupabaseClient();
   if (!client || !owner) return { status: "unavailable" } as const;
-  if (
-    !validPositionInput(input) ||
-    (input.execution_metadata !== undefined &&
-      (typeof input.execution_metadata !== "object" ||
-        input.execution_metadata === null ||
-        Array.isArray(input.execution_metadata)))
-  ) {
+  if (!values) {
     return { status: "invalid" } as const;
   }
 
   const { data, error } = await client.rpc("app_open_owned_position_transaction", {
     p_owner_user_id: owner,
-    p_recommendation_id: input.recommendation_id,
-    p_ticker: input.ticker,
-    p_company_name: input.company_name,
-    p_entry_price: input.entry_price,
-    p_position_size: input.position_size,
-    p_current_stop: input.current_stop,
-    p_target_1: input.target_1,
-    p_target_2: input.target_2,
-    p_execution_metadata: input.execution_metadata ?? null,
+    p_recommendation_id: values.recommendation_id,
+    p_ticker: values.ticker,
+    p_company_name: values.company_name,
+    p_entry_price: values.entry_price,
+    p_position_size: values.position_size,
+    p_current_stop: values.current_stop,
+    p_target_1: values.target_1,
+    p_target_2: values.target_2,
+    p_execution_metadata: values.execution_metadata ?? null,
     p_command_version: "application_open_owned_position_v1",
   });
   const row = Array.isArray(data) ? data[0] : data;
