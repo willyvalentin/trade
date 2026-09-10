@@ -5,7 +5,10 @@ import {
   buildHistoryTradeSummary,
 } from "@/lib/history-dashboard";
 
-function tradeWithRemainingShares(remainingShares: number) {
+function tradeWithRemainingShares(
+  remainingShares: number,
+  actualEntryShares = 10,
+) {
   return {
     id: `history-${remainingShares}`,
     ticker: "TURE",
@@ -22,6 +25,7 @@ function tradeWithRemainingShares(remainingShares: number) {
     closeReason: null,
     isDemo: false,
     executionMetadata: {
+      actual_entry_shares: actualEntryShares,
       remaining_shares: remainingShares,
     },
   };
@@ -47,6 +51,29 @@ test.describe("MVP-04 invalid history containment", () => {
     expect(history.warnings).not.toContain("Remaining shares cannot be negative.");
   });
 
+  test("does not present more remaining shares than the recorded entry as a partial close", () => {
+    const history = buildHistoryTradeSummary(tradeWithRemainingShares(11));
+
+    expect(history.outcome).toBe("invalid");
+    expect(history.partial).toMatchObject({
+      remaining_shares: 11,
+      status: "invalid",
+    });
+    expect(history.warnings).toContain(
+      "Remaining shares exceed the recorded entry shares.",
+    );
+  });
+
+  test("keeps a smaller remaining quantity in the ordinary partial-close path", () => {
+    const history = buildHistoryTradeSummary(tradeWithRemainingShares(1));
+
+    expect(history.outcome).toBe("partial");
+    expect(history.partial.status).toBe("partially_closed");
+    expect(history.warnings).toContain(
+      "Remaining shares are recorded after this history entry.",
+    );
+  });
+
   test("keeps an impossible remaining-share record in the invalid history filter", () => {
     const dashboard = buildHistoryDashboard({
       filters: {
@@ -55,10 +82,17 @@ test.describe("MVP-04 invalid history containment", () => {
         partial: "invalid",
         sort: "newest",
       },
-      trades: [tradeWithRemainingShares(-1), tradeWithRemainingShares(0)],
+      trades: [
+        tradeWithRemainingShares(-1),
+        tradeWithRemainingShares(11),
+        tradeWithRemainingShares(0),
+      ],
     });
 
-    expect(dashboard.filteredTrades).toHaveLength(1);
-    expect(dashboard.filteredTrades[0]?.id).toBe("history--1");
+    expect(dashboard.filteredTrades).toHaveLength(2);
+    expect(dashboard.filteredTrades.map((trade) => trade.id)).toEqual([
+      "history--1",
+      "history-11",
+    ]);
   });
 });
