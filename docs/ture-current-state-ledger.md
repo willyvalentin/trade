@@ -15,8 +15,12 @@ one bounded owner session has observed the initial dashboard loading state and
 the ordinary no-trade state there. This is supported-environment evidence for
 those two states only; it is not a provider, database, broker or production
 operation. Baseline inspected: GitHub main
-`f843bbd63e3984bf2186ef339c55e27adc540714`. The controlled first-read failure
-still needs its separately bounded staging proof.
+`f843bbd63e3984bf2186ef339c55e27adc540714`. On 2026-09-10 the controlled
+first-read proof was attempted only on `ture-staging`: temporary commit
+`c67fed33` deployed, one authenticated query-parameter read did not expose the
+expected unavailable-data state, the non-secret probe flag was removed, and
+revert `b54fe239` reached `ready`. It is useful negative evidence, not a
+passing failure-state claim.
 
 ### Now
 
@@ -29,21 +33,23 @@ proves loading and ordinary empty/no-trade behavior. This delivery candidate
 adds a default-deny controlled first-read failure probe: it requires an
 authenticated request, the exact staging host, the exact staging runtime
 context, an explicit function-scoped enablement flag, and one query parameter.
-Its targeted local tests, scoped lint, local production build and cost-bounded
-Draft verification passed. The protected aggregate is expected to remain red
-while the PR is Draft because that workflow skips the Ready shard matrix; this
-does not change CI policy or authorize promotion. The candidate is not deployed
-to the dedicated staging site or enabled. The remaining work is one separately
-authorized staging-only enable → observed failure → disable/rollback proof.
-MVP-02
-stale-card presentation and MVP-04 incomplete-history classification are
-corrected on main, but are not supported-environment acceptance claims.
+Its targeted local tests, scoped lint, Webpack production compilation and
+cost-bounded Draft verification passed. The protected aggregate is expected to
+remain red while the PR is Draft because that workflow skips the Ready shard
+matrix; this does not change CI policy or authorize promotion. A temporary,
+staging-only deployment and immediate rollback have now been exercised, but
+the one permitted authenticated read did not surface the failure state.
+MVP-01c remains unverified: do not retry its live probe without first
+diagnosing the staging function-variable/runtime path and defining a fresh,
+bounded evidence operation. MVP-02 stale-card presentation and MVP-04
+incomplete-history classification are corrected on main, but are not
+supported-environment acceptance claims.
 
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API, MVP-01a/01b preview evidence, and staging loading/no-trade observation | Unverified: only the controlled failed-first-read behavior remains before MVP-01c can close |
+| MVP-01 | Existing session gate, owner-bound dashboard API, MVP-01a/01b preview evidence, and staging loading/no-trade observation | Unverified: controlled failed-first-read behavior remains; its first staging attempt was restored without observing the expected failure state |
 | MVP-02 | Recommendation generator, scan windows and market-calendar paths exist | Unverified: current-data/no-trade/stale/provider-failure behavior and clear plan/risk presentation |
 | MVP-03 | Authenticated position create/update endpoints and transaction-backed opening exist | Unverified: one manual entry→reload→exit journey, double-submit and retry correctness |
 | MVP-04 | History/statistics UI and persisted trade access exist | Unverified: reconcile displayed plan/actual values and realized result to the recorded trade |
@@ -58,7 +64,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Current acceptance coverage: **2/18 verified for the new MVP candidate; 15
-unverified, 1 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -67,7 +73,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | active | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. Draft PR #450's disabled probe passed targeted local tests, scoped lint, a local production build and cost-bounded Draft verification. Its protected aggregate is red only because Draft skips the Ready shard matrix; no CI policy, staging failure flag, deploy, data change or provider/broker call has occurred. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. One bounded authenticated `ture-staging.netlify.app` reload previously showed loading and the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-10, the authorised one-shot probe used temporary staging commit `c67fed33`, an enabled non-secret function flag and one authenticated query-parameter read; the page did not expose the expected unavailable-data state. The flag was deleted and revert `b54fe239` deployed `ready`. No data change, provider, broker, CI-policy or production action occurred. Diagnose the staging function-variable/runtime path before any new bounded probe; do not count this negative result as a failure-state verification. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -110,8 +116,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-01c dedicated staging behavior evidence | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | None; MVP-01c has a concrete external staging setup prerequisite, but its bounded behavior proof remains the active slice | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; MVP-01c is held after a restored negative staging proof | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10; the first bounded probe did not surface the expected failure state | Diagnose the function-variable/runtime path before a fresh, bounded attempt |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -123,10 +129,10 @@ blocking periods are the test of whether this delivery policy is helping.
 
 ### Next — ordered, next product slice
 
-1. Review the MVP-01c candidate, then only with a separately authorized
-   staging-only configuration/deploy scope enable its one bounded failure probe,
-   observe the unavailable-data state, and immediately disable it. Do not use
-   production or permit generic deploy-preview origins.
+1. Diagnose the restored MVP-01c staging function-variable/runtime path from
+   source and permitted metadata, then define one fresh bounded proof only if
+   the cause is established. Do not retry blindly, use production or permit
+   generic deploy-preview origins.
 2. Verify the delivered MVP-02/05 provider-unavailable and no-trade state
    handling in an identified supported environment, then close remaining
    provider health, freshness and operational-recovery behavior. PR #427 /
@@ -146,7 +152,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Active; the exact staging site/session, loading and no-trade evidence now exist, while failed-first-read remains unobserved | Use only the candidate's default-deny staging probe under a separate one-time staging enable/deploy/rollback scope. It must stay unavailable to production, generic previews and ordinary reads. |
+| MVP-01c supported-environment proof | Blocked since 2026-09-10; its one authorised staging probe deployed and was restored, but did not surface the expected unavailable-data state | Read source and permitted staging metadata to diagnose the function-variable/runtime path. Only then use one fresh default-deny enable/deploy/read/rollback scope; it must stay unavailable to production, generic previews and ordinary reads. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
@@ -279,6 +285,18 @@ behavior_check_and_environment: `tests/e2e/mvp-01-dashboard-states.spec.ts` loca
 external_effects_and_existing_authority: None. This is a client UI and local-test change only; it performs no credential, provider, database, deployment, broker or production action.
 blocker_or_fallback: MVP-01c remains unverified pending an identified supported-environment check covering loading, an ordinary empty/no-trade state and a controlled failed dashboard read. Do not substitute this local source check for that environment evidence.
 result_and_remaining_gap: The initial failure can no longer be mistaken for a no-trade decision, and a later failed refresh no longer claims nonexistent prior data. Parent MVP-01 still requires the supported-environment proof.
+```
+
+#### MVP-01c one-shot dedicated staging probe — 2026-09-10 (negative; restored)
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: The remaining check was that a deliberately failed first dashboard read, with no prior successful recommendation read, visibly becomes the unavailable-data state rather than an ordinary no-trade decision.
+smallest_change_and_reused_components: PR #450's default-deny probe was transported only to the separate staging branch as temporary commit `c67fed33`. It retained the exact named staging host, authenticated dashboard route, query parameter and function-scoped boolean guard. Because staging lagged the candidate's parent, the transport contained only the probe route/client/helper/test files; the scoped staging-base regression suite passed 4/4 before push. No main branch, public production site, provider, database, broker, CI policy or secret was changed.
+behavior_check_and_environment: Netlify `ture-staging` built `c67fed33` ready. Its project connector accepted an upsert of non-secret function variable `MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE=enabled` before that deploy. One authenticated browser navigation to `https://ture-staging.netlify.app/?mvp01c_dashboard_failure=first_read` completed; the page stayed in its normal read-only dashboard presentation and did not expose the expected unavailable-data wording. This is negative evidence only: it does not establish that the probe executed or that failure presentation is correct.
+external_effects_and_existing_authority: The operation used the explicitly authorised staging-only deploy, one authenticated dashboard read and immediate rollback. The flag was deleted immediately after the read. Ordinary revert commit `b54fe239` restored the exact staging-base code and its Netlify deployment reached `ready`. No application row, provider request, broker operation, production app deploy, secret disclosure or permanent configuration change occurred.
+blocker_or_fallback: The staging function-variable/runtime path is not yet diagnosed. Do not repeat the same live probe, loosen origin validation, add a generic preview host or infer a passing result from local tests. First inspect source and permitted non-secret deployment metadata, then define a fresh bounded operation only if it explains how the function runtime receives the flag.
+result_and_remaining_gap: Staging transport and rollback are now proven safe, but the controlled failed-first-read state remains unverified. MVP-01c and parent MVP-01 cannot close until the cause is diagnosed and a separate passing supported-environment observation is recorded.
 ```
 
 #### MVP-01c supported-preview origin admission check — 2026-09-10 (blocked)
