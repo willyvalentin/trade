@@ -290,6 +290,17 @@ function hasProviderWarning(scanRun: RecommendationScanRun) {
   );
 }
 
+function hasTrustworthyDataMode(scanRun: RecommendationScanRun) {
+  // A mechanically healthy run cannot establish a recovery point when the
+  // recorded source mode is missing or already marked stale. Keep the other
+  // explicit modes visible as operational history, but never let unknown or
+  // stale data stand in for a current, trustworthy result.
+  return (
+    scanRun.data_mode !== "unknown" &&
+    scanRun.data_mode !== "stale_market_data"
+  );
+}
+
 function isSuccessfulScanRun(
   scanRun: RecommendationScanRun,
 ): scanRun is RecommendationScanRun & { status: "completed" | "empty" } {
@@ -300,7 +311,8 @@ function isSuccessfulScanRun(
   return (
     (scanRun.status === "completed" || scanRun.status === "empty") &&
     scanRun.scan_observability_status === "healthy" &&
-    !hasProviderWarning(scanRun)
+    !hasProviderWarning(scanRun) &&
+    hasTrustworthyDataMode(scanRun)
   );
 }
 
