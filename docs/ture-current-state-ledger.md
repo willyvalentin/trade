@@ -29,8 +29,12 @@ proves loading and ordinary empty/no-trade behavior. This delivery candidate
 adds a default-deny controlled first-read failure probe: it requires an
 authenticated request, the exact staging host, the exact staging runtime
 context, an explicit function-scoped enablement flag, and one query parameter.
-It is not deployed or enabled. The remaining work is one separately authorized
-staging-only enable → observed failure → disable/rollback proof. MVP-02
+Its targeted local tests, scoped lint, local production build and cost-bounded
+Draft verification passed. The protected aggregate is expected to remain red
+while the PR is Draft because that workflow skips the Ready shard matrix; this
+does not change CI policy or authorize promotion. The candidate is not deployed
+or enabled. The remaining work is one separately authorized staging-only enable
+→ observed failure → disable/rollback proof. MVP-02
 stale-card presentation and MVP-04 incomplete-history classification are
 corrected on main, but are not supported-environment acceptance claims.
 
@@ -62,7 +66,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | active | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. The current candidate's disabled probe is locally covered; no staging failure flag, deploy, data change or provider/broker call has occurred. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | active | PR #443 merged the strict dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. Draft PR #450's disabled probe passed targeted local tests, scoped lint, a local production build and cost-bounded Draft verification. Its protected aggregate is red only because Draft skips the Ready shard matrix; no CI policy, staging failure flag, deploy, data change or provider/broker call has occurred. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | — |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | — |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
