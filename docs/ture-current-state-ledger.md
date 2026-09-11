@@ -62,11 +62,11 @@ rows still need behavior evidence.
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. The MVP-02 delivery candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present; its local coverage and production build pass. A dedicated staging delivery must recheck the correction, and market-closed behavior still needs supported-environment evidence. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
-| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. On 2026-09-12, a staging-only synthetic `MVPSTG` command replay returned the existing position with `reused`, and the owner/recommendation pair still had exactly one stored position; an authenticated reload rendered that one 10-share card with its saved plan. This is server-command and read-path evidence, not a supported user entry-form journey, so the checkpoint remains unverified. |
 | MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
-| MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
+| MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | On 2026-09-12, the private staging card for the synthetic `MVPSTG` position rendered `CURRENT`, `UNREALIZED` and `CURRENT R` as unknown (`—`) together with `REVIEW REQUIRED`; it did not invent a live value. This is a narrow open-position observation, not closed-history/statistics acceptance, so the checkpoint remains unverified. |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
@@ -2810,11 +2810,32 @@ delivery queue. It is configuration evidence, not a production release claim.
   separately authorized release candidate, only after a future production
   release decision. No automatic publish route was re-enabled here.
 - `ture-staging` is a separate Netlify site using the exact staging origin and
-  staging Supabase project. Scheduled function triggers are absent; the
-  automation and provider runtime secrets are absent. The application uses
-  `STAGING_TRADE_APP_PASSWORD` exclusively when that dedicated origin is
-  configured, so a generic application password cannot silently authenticate a
-  staging session.
+  staging Supabase project. Its staging-only `TURE_DISABLE_SCHEDULED_FUNCTIONS`
+  control stops both scheduled handlers before database, secret or provider
+  work. Dedicated staging runtime secrets may therefore be configured without
+  enabling those handlers. The application uses `STAGING_TRADE_APP_PASSWORD`
+  exclusively when that dedicated origin is configured, so a generic
+  application password cannot silently authenticate a staging session.
 - This boundary change makes a staging-only MVP journey safe to exercise. It
   does not authorize a production deploy, production database change, provider
   read, broker order, or real trade.
+
+### MVP staging lifecycle containment — 2026-09-12
+
+- Private staging revision `653571b0` was authenticated and reloaded after the
+  temporary dashboard diagnostic was removed. The synthetic `MVPSTG` manual
+  tracking record remained visible with its stored 10-share plan and explicit
+  unknown/review-required live values.
+- Replaying the exact server-owned open-position command returned the original
+  record as `reused`; an independent count for that owner/recommendation pair
+  remained one. This is real staging idempotency evidence, but not a substitute
+  for the authenticated entry form.
+- The normal close dialog correctly refused to capture an exit until a manually
+  confirmed Avanza fill, exit status, price and matching-order attestation were
+  supplied. No one asserted a fictional broker fill, no partial or final close
+  was written and no broker/provider action was invoked.
+- Consequently, the entry/retry/read segment is evidenced, while MVP-03c and
+  MVP-04a/b history/statistics remain unverified. A future supported lifecycle
+  proof needs either a genuine manually confirmed broker fill or a separately
+  designed, visibly synthetic test-only exit-capture path that does not weaken
+  the human-confirmation production control.
