@@ -76,14 +76,19 @@ occurred. Source review found that the prior timeout path raced the generator
 without cancelling it, so staging candidate `91615b69` now propagates a single
 abort signal through provider fetches, scanner delays and generation guards,
 and reserves cleanup time before recording timeout. Its private staging deploy
-`6aa42c0cea605f0008491199` is ready for `91615b69`; local type, lint, bundled
-scheduled-runtime and 15 focused MVP-05 timeout/recovery checks pass. It still
-needs a natural staging cadence before MVP-05a can be accepted. The earlier
-MVP-01c probe rollback remains probe-free. Earlier in
-the same environment, a labelled
-synthetic position lifecycle was verified. One bounded provider-backed empty
-scan has now been observed; no broker or production action has occurred from
-the restored schedules. The
+`6aa42c0cea605f0008491199` is ready for `91615b69`. Follow-up staging revision
+`788dd1ef` added the recovery classification for a clean no-trade result, and
+its private deploy `6aa42e2b00dbe00008410bb2` completed naturally at 16:45 UTC:
+one raw candidate, zero ranked/selected/built/published recommendations, HTTP
+200 and no timeout. That run remains truthfully empty/incomplete because the
+bounded profile is still warming cache coverage with one fresh provider call
+per cadence; it is not yet a clean recovery point. Revision `26b50ad0` further
+requires complete scanner coverage with no stale, missing-price or warning
+signal before a no-trade result can be healthy. Local type, lint, bundled
+scheduled-runtime and 16 focused MVP-05 timeout/recovery checks pass for that
+follow-up. The earlier MVP-01c probe rollback remains probe-free. Earlier in
+the same environment, a labelled synthetic position lifecycle was verified.
+No broker or production action has occurred from the restored schedules. The
 earlier direct `401` was Netlify's private visitor gate on a non-browser
 request, not an application credential mismatch. Do not use the generic
 password, production or a broker to bypass this boundary.
@@ -96,7 +101,7 @@ password, production or a broker to bypass this boundary.
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
-| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: private staging's internal adapter reached the application, runtime loaded Twelve Data and Polygon-backed calendar metadata, and a natural midday scan recorded one raw candidate with no publish. A separate timeout exposed an uncancelled-generation defect; ready staging deploy `6aa42c0cea605f0008491199` for candidate `91615b69` fixes it and awaits one natural staging cadence. No manual bypass. |
+| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: private staging's internal adapter reached the application, runtime loaded Twelve Data and Polygon-backed calendar metadata, and the first post-timeout-fix natural cadence recorded one raw candidate with no publish and no timeout. The resulting empty run remains explicitly incomplete while the bounded cache warms; `26b50ad0` prevents such a thin sample from becoming a false recovery point. No manual bypass. |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
@@ -126,7 +131,7 @@ rows still need behavior evidence.
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | verified | Private `ture-staging` History readback showed the labelled synthetic record's entry 100, average exit 107.50, five remaining-share display, timestamps and `FULLY CLOSED AFTER PARTIAL` state before rollback. |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | verified | The same History readback reconciled synthetic gross price PnL 75.00 and 1.50R across the journal, performance summary and setup-performance table. The UI explicitly calls this gross price result before broker fees; the fixture was then deleted. |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | verified | Private `ture-staging` revision `cd3a7bec`, 2026-09-11: an exact labelled synthetic closed position with no exit, quantity, PnL, R or execution metadata appeared as `NEEDS REVIEW`, `Not available`, `UNKNOWN` and explicit missing-data notes in full History and its detail view. Statistics used `—` rather than a fabricated result. The position was then exactly deleted and a final reload returned to the clean no-trade state. No provider, broker or production action occurred. |
-| MVP-05a | A supported scan uses licensed data within its declared usage budget | active | Private `ture-staging` revision `8e205fcd`, 2026-09-11: the natural 10:45 America/New_York cadence entered the bundled Next route rather than receiving Netlify's private-login `401`, proving the private scheduler boundary works. `TWELVE_DATA_API_KEY` then loaded at runtime; `POLYGON_API_KEY` subsequently produced a safe cached trading-day calendar record. At the natural 12:00 America/New_York cadence, one attempt recorded `timeout_budget_exceeded`; a subsequent 16:02 UTC run recorded one raw candidate, zero ranked/selected/built/published recommendations and an empty/incomplete scan. This is real provider/runtime evidence but not acceptance evidence because the timeout path had only raced, not cancelled, generation. Ready private staging deploy `6aa42c0cea605f0008491199` for candidate `91615b69` now propagates cancellation through provider fetches, scanner delays and generation guards before it records timeout; `git diff --check`, focused lint, TypeScript, exact scheduled-runtime build and 15 MVP-05 timeout/recovery checks pass locally. Await its first natural cadence; no manual bypass, recommendation, broker or production request occurred. |
+| MVP-05a | A supported scan uses licensed data within its declared usage budget | active | Private `ture-staging` revision `8e205fcd`, 2026-09-11: the natural 10:45 America/New_York cadence entered the bundled Next route rather than receiving Netlify's private-login `401`, proving the private scheduler boundary works. `TWELVE_DATA_API_KEY` then loaded at runtime; `POLYGON_API_KEY` subsequently produced a safe cached trading-day calendar record. At the natural 12:00 America/New_York cadence, one attempt recorded `timeout_budget_exceeded`; a subsequent 16:02 UTC run recorded one raw candidate, zero ranked/selected/built/published recommendations and an empty/incomplete scan. This is real provider/runtime evidence but not acceptance evidence because the timeout path had only raced, not cancelled, generation. Private staging deploy `6aa42c0cea605f0008491199` for `91615b69` introduced cancellation; deploy `6aa42e2b00dbe00008410bb2` for follow-up `788dd1ef` then completed the natural 16:45 UTC cadence with one raw candidate, zero publish and no timeout. The run is still explicitly incomplete while the one-fresh-call-per-cadence budget warms cache coverage. Follow-up `26b50ad0` additionally requires complete, stale-free, warning-free scanner coverage before a no-trade run can count as healthy; `git diff --check`, focused lint, TypeScript, exact scheduled-runtime build and 16 MVP-05 timeout/recovery checks pass locally. No manual bypass, recommendation, broker or production request occurred. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
@@ -159,7 +164,7 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 12/18: prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c and MVP-04a/04b/04c synthetic behavior evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-05a has real Twelve Data/Polygon runtime evidence and one timeout defect repaired in ready staging deploy `6aa42c0cea605f0008491199`; its next check is a natural active-window cadence | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Active product slices | 1; MVP-05a has real Twelve Data/Polygon runtime evidence. The cancellation fix has completed one natural no-timeout staging cadence, while its bounded cache-coverage warm-up remains incomplete by design; its next check is the next natural active-window cadence after `26b50ad0` deploys. | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None in the active delivery; waiting for the next natural active-window cadence is an external time condition, not a technical blocker | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 10–28 active hours: MVP-05 supported provider/operational evidence 4–12 hours, then MVP-06 release-candidate journey and checks 6–16 hours; market/provider windows are external wait, not work time | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
@@ -196,9 +201,10 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 
 ### Next — ordered, next product slice
 
-1. Verify MVP-05's operational evidence: a supported licensed-data
-   scan, freshness/missed-run readback and truthful outcome completion remain
-   blocked on actual permitted provider evidence, not on staging access.
+1. Continue MVP-05's operational evidence through natural bounded active-window
+   cadences: establish complete provider-backed cache coverage, then read back
+   last-success/freshness and truthful outcome completion. This remains an
+   external-evidence need, not a staging-access blocker.
 2. Complete MVP-06 release acceptance only after the remaining behavior rows
    have compatible release-scope evidence. Move to R1 only after MVP acceptance
    or an explicit product decision changing the release scope.
