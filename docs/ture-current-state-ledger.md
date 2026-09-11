@@ -14,10 +14,11 @@ dedicated-staging session-secret selection. Its Ready Full CI run
 attestation `34555189908` passed for `37bbbc2e`. A separate private
 `ture-staging.netlify.app` site then served the staging-only evidence revisions,
 retaining the integrated main revision, staging-only scheduler and
-dedicated-session barriers. Its current rollback revision `a23da67e` is ready
-as Git deployment `6aa3825e04c20a00082a5a02`. This is not a production
-deployment; the public production release remains unchanged, while the new
-main candidate remains unpublished behind its deployment lock.
+dedicated-session barriers. Its last ready clean rollback revision `17e4c192`
+is Git deployment `6aa3858238c51c000816290b`; subsequent staging builds are
+currently rejected for exhausted Netlify account credits. This is not a
+production deployment; the public production release remains unchanged, while
+the new main candidate remains unpublished behind its deployment lock.
 
 ### Now
 
