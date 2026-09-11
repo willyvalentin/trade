@@ -1,11 +1,14 @@
 [functions]
   directory = "netlify/functions"
 
+[functions."scheduled-scan"]
+  included_files = ["netlify/.generated/scheduled-scan-runtime.cjs"]
+
 # Next.js 16.3.4 can exceed Netlify's default ~2 GB V8 heap while it performs
 # its build-time TypeScript check. The inline setting applies only to this
 # command; it neither defines a deploy environment value nor alters runtime.
 [build]
-  command = "NODE_OPTIONS=--max-old-space-size=4096 npm run build"
+  command = "npm run build:scheduled-scan-runtime && NODE_OPTIONS=--max-old-space-size=4096 npm run build"
 
 [[redirects]]
   from = "https://trade-vl.netlify.app/*"
