@@ -2795,3 +2795,26 @@ separate blockers.
 14. Treat market-observation provenance, durable exit-queue schema and
     transactional recommendation-to-position handoff as separate blockers; the
     Action 655G pure evaluator alone closes none of them.
+
+## MVP delivery boundary — 2026-09-11
+
+This record separates the currently published application from the MVP
+delivery queue. It is configuration evidence, not a production release claim.
+
+- The currently published `trade-vl` production deploy remains
+  `6a871d6b27fb2100082f16f9` at commit
+  `dbeed25f2074bff4dba8cee7f6d511cb17992efc` and is locked. A push or
+  protected merge to `main` can therefore complete GitHub checks without
+  replacing that published production revision.
+- The narrow restoration path is to unlock that exact deploy, or to publish a
+  separately authorized release candidate, only after a future production
+  release decision. No automatic publish route was re-enabled here.
+- `ture-staging` is a separate Netlify site using the exact staging origin and
+  staging Supabase project. Scheduled function triggers are absent; the
+  automation and provider runtime secrets are absent. The application uses
+  `STAGING_TRADE_APP_PASSWORD` exclusively when that dedicated origin is
+  configured, so a generic application password cannot silently authenticate a
+  staging session.
+- This boundary change makes a staging-only MVP journey safe to exercise. It
+  does not authorize a production deploy, production database change, provider
+  read, broker order, or real trade.

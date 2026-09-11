@@ -125,8 +125,13 @@ function loadTransport(): TransportModule {
 }
 
 function loadOwnerContext(session: unknown): OwnerContextModule {
-  const applicationSessionCore = runModule(applicationSessionCorePath, () => {
-    throw new Error("application_session_core_has_no_runtime_imports");
+  const applicationSessionCore = runModule(applicationSessionCorePath, (specifier) => {
+    if (specifier === "@/lib/application-platform-contract") {
+      return {
+        applicationCanonicalStagingOrigin: "https://ture-staging.netlify.app",
+      };
+    }
+    throw new Error(`unexpected_application_session_core_import:${specifier}`);
   });
 
   return runModule(ownerContextPath, (specifier) => {

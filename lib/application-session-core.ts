@@ -1,3 +1,5 @@
+import { applicationCanonicalStagingOrigin } from "@/lib/application-platform-contract";
+
 export const TRADE_AUTH_COOKIE = "trade_auth";
 export const applicationSessionContractVersion =
   "ture_application_session_v2_owner_bound" as const;
@@ -7,6 +9,9 @@ export const applicationOwnerUserIdEnvironmentKey =
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export const stagingApplicationSessionPasswordEnvironmentKey =
+  "STAGING_TRADE_APP_PASSWORD" as const;
 
 type ApplicationSessionPayload = {
   version: typeof applicationSessionContractVersion;
@@ -56,10 +61,28 @@ function decodeBase64Url(value: string) {
   }
 }
 
-function sessionSecret() {
-  const password = process.env.TRADE_APP_PASSWORD;
+function configuredSecret(value: string | undefined) {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
 
-  return typeof password === "string" && password.length > 0 ? password : null;
+export function getConfiguredApplicationSessionSecret(
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const origin = environment.TURE_APPLICATION_ORIGIN?.trim();
+
+  // A dedicated staging runtime must never fall back to the generic password:
+  // that would silently permit production credential reuse in the test site.
+  if (origin === applicationCanonicalStagingOrigin) {
+    return configuredSecret(
+      environment[stagingApplicationSessionPasswordEnvironmentKey],
+    );
+  }
+
+  return configuredSecret(environment.TRADE_APP_PASSWORD);
+}
+
+function sessionSecret() {
+  return getConfiguredApplicationSessionSecret();
 }
 
 async function sessionKey(secret: string) {

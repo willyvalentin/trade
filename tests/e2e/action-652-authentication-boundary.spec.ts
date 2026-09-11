@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import {
   applicationSessionMaxAgeSeconds,
   createApplicationSession,
+  getConfiguredApplicationSessionSecret,
   TRADE_AUTH_COOKIE,
   verifyApplicationSession,
 } from "../../lib/application-session-core";
@@ -67,6 +68,22 @@ test("signed application sessions are bounded, opaque, and fail closed", async (
       status: "malformed",
     });
   });
+});
+
+test("dedicated staging uses only its dedicated application password", () => {
+  expect(
+    getConfiguredApplicationSessionSecret({
+      TURE_APPLICATION_ORIGIN: "https://ture-staging.netlify.app",
+      STAGING_TRADE_APP_PASSWORD: "staging-only-password",
+      TRADE_APP_PASSWORD: "must-not-be-selected",
+    }),
+  ).toBe("staging-only-password");
+  expect(
+    getConfiguredApplicationSessionSecret({
+      TURE_APPLICATION_ORIGIN: "https://ture-staging.netlify.app",
+      TRADE_APP_PASSWORD: "must-not-be-selected",
+    }),
+  ).toBeNull();
 });
 
 test("application sessions fail closed when the configured owner is absent or changes", async () => {
