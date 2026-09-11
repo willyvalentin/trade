@@ -36,8 +36,10 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     const ignoredFiles = await source(".gitignore");
 
     expect(builder).toContain(
-      'entryPoints: ["app/api/automation/run-scan/route.ts"]',
+      'entryPoint: "app/api/automation/run-scan/route.ts"',
     );
+    expect(builder).toContain('outputFile: "scheduled-scan-runtime.cjs"');
+    expect(builder).toContain("entryPoints: [runtime.entryPoint]");
     expect(builder).toContain('conditions: ["react-server"]');
     expect(builder).toContain('platform: "node"');
     expect(netlifyConfig).toContain("npm run build:scheduled-scan-runtime &&");
