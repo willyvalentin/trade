@@ -132,6 +132,12 @@ cache row and temporary official-batch membership were immediately removed;
 aggregate readback confirmed zero remaining fixture rows, links or positions.
 MVP-06a is therefore blocked only on resuming the already-configured private
 staging site, not on data, identity, credentials or product behavior.
+Netlify's site API still reports `disabled=true` with `Account usage exceeded
+for credits`; its exact `enableSite` request returned HTTP 422 even after the
+team metadata reported fresh included credits. This is a Netlify account-state
+reconciliation issue: do not retry the same API call. Resolve it in the
+Netlify Usage & billing dashboard (or with Netlify support), then confirm the
+site is enabled before recreating the fixture.
 No broker or production action has occurred from the restored schedules. The
 earlier direct `401` was Netlify's private visitor gate on a non-browser
 request, not an application credential mismatch. Do not use the generic
