@@ -1,7 +1,10 @@
-// Intentionally no Netlify `config.schedule` in this staging-validation
-// revision. It removes the cron trigger before synthetic MVP data is allowed
-// into this isolated environment; direct calls still fail closed without the
-// server-only automation secret.
+import type { Config } from "@netlify/functions";
+
+export const config: Config = {
+  // Netlify cron is UTC. This covers 13:00-19:45 UTC weekdays,
+  // including all US daylight-saving regular-session scan windows.
+  schedule: "*/15 13-19 * * 1-5",
+};
 
 function stableHash(value: string) {
   let hash = 2166136261;

@@ -1,7 +1,10 @@
-// Intentionally no Netlify `config.schedule` in this staging-validation
-// revision. It removes the cron trigger before synthetic MVP data is allowed
-// into this isolated environment; direct calls still fail closed without the
-// server-only automation secret.
+import type { Config } from "@netlify/functions";
+
+export const config: Config = {
+  // Netlify cron is UTC. This covers the intraday outcome windows after the
+  // scanner's regular-session run, including US daylight-saving time.
+  schedule: "*/15 14-21 * * 1-5",
+};
 
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
