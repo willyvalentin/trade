@@ -88,6 +88,15 @@ signal before a no-trade result can be healthy. Local type, lint, bundled
 scheduled-runtime and 16 focused MVP-05 timeout/recovery checks pass for that
 follow-up. The earlier MVP-01c probe rollback remains probe-free. Earlier in
 the same environment, a labelled synthetic position lifecycle was verified.
+After `d06b7e2c` was ready, the next natural 17:00 UTC staging cadence again
+completed with HTTP 200 and one raw candidate, but zero ranked, selected,
+built or published recommendations. Its persisted run remains explicitly
+`empty`/`incomplete`, which is the required fail-closed result until the
+bounded cache has complete coverage. The staging calendar cache identifies
+Polygon as the provider for the current open trading day. That credential
+confirms market-calendar availability only; quote discovery remains deliberately
+bounded through the existing Twelve Data path, so no provider-call budget was
+expanded and no candidate acceptance is inferred from this run.
 No broker or production action has occurred from the restored schedules. The
 earlier direct `401` was Netlify's private visitor gate on a non-browser
 request, not an application credential mismatch. Do not use the generic
@@ -101,7 +110,7 @@ password, production or a broker to bypass this boundary.
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
-| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: private staging's internal adapter reached the application, runtime loaded Twelve Data and Polygon-backed calendar metadata, and the first post-timeout-fix natural cadence recorded one raw candidate with no publish and no timeout. The resulting empty run remains explicitly incomplete while the bounded cache warms; `26b50ad0` prevents such a thin sample from becoming a false recovery point. No manual bypass. |
+| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: private staging's internal adapter reached the application, runtime loaded Twelve Data and Polygon-backed calendar metadata, and consecutive post-timeout-fix natural cadences through 17:00 UTC recorded one raw candidate with no publish and no timeout. The resulting empty run remains explicitly incomplete while the bounded cache warms; `26b50ad0` prevents such a thin sample from becoming a false recovery point. Polygon confirms calendar metadata only, not a higher quote-discovery budget. No manual bypass. |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
