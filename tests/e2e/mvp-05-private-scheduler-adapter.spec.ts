@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import {
+  OperationAbortedError,
+  waitForAbortableDelay,
+} from "@/lib/operation-abort";
+
 const root = resolve(__dirname, "../..");
 
 async function source(path: string) {
@@ -40,5 +45,31 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
       'included_files = ["netlify/.generated/scheduled-scan-runtime.cjs"]',
     );
     expect(ignoredFiles).toContain("netlify/.generated/");
+  });
+
+  test("cancels generation before recording a scheduled timeout", async () => {
+    const route = await source("app/api/automation/run-scan/route.ts");
+    const generator = await source("lib/recommendation-generator.ts");
+    const scanner = await source("lib/scanner.ts");
+    const marketData = await source("lib/market-data.ts");
+
+    expect(route).toContain("const scheduledAbortController = new AbortController()");
+    expect(route).toContain("scheduledAbortController.abort()");
+    expect(route).toContain("SCHEDULED_TIMEOUT_CLEANUP_RESERVE_MS");
+    expect(route).not.toContain("const generationResult = await Promise.race([");
+    expect(route).toContain("signal: scheduledAbortController.signal");
+    expect(generator).toContain("throwIfAborted(signal)");
+    expect(scanner).toContain("waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal)");
+    expect(scanner).toContain("{ signal: options.signal }");
+    expect(marketData).toContain("signal: options?.signal");
+  });
+
+  test("releases a pending scan delay when its time budget is cancelled", async () => {
+    const controller = new AbortController();
+    const delay = waitForAbortableDelay(10_000, controller.signal);
+
+    controller.abort();
+
+    await expect(delay).rejects.toBeInstanceOf(OperationAbortedError);
   });
 });
