@@ -38,13 +38,21 @@ restored scan cadence from 15:15 to 15:30 CEST on 2026-09-11, confirming that
 the ordinary scheduler dispatched; the authenticated dashboard independently
 classified the 09:20 America/New_York observation as outside its active scan
 window and exposed no provider-backed result. At 09:45 America/New_York,
-Netlify again advanced `scheduled-scan` to its next cadence, but the staging
-environment-variable metadata has no `AUTOMATION_SECRET`. The scheduled
-function therefore returns before it can persist an attempt or call the
-authenticated scan route; the 09:50 dashboard correctly still showed no
-observed automation scan. This is a staging-only configuration blocker, not a
-provider failure or a reason to use a manual scan. The earlier MVP-01c probe
-rollback remains probe-free. Earlier in the same environment, a labelled
+Netlify again advanced `scheduled-scan` to its next cadence. A fresh
+staging-only `AUTOMATION_SECRET` was then added and a new private staging
+deploy was made live. At the natural 10:00 America/New_York cadence, the
+function logged its authenticated request to `/api/automation/run-scan` but
+received `401` and Netlify's private-login redirect before the Next route could
+inspect `x-automation-secret`. The secret is therefore no longer the blocker:
+private visitor access rejects this function's network callback before
+application authorization. This is neither a provider, owner-identity nor
+broker failure, and no provider request occurred. A direct Next-route import
+was rejected before deployment because the raw Netlify function runtime
+correctly enforces Next's `server-only` marker. Keep private visitor access
+intact; the next implementation slice must provide a raw-function-safe shared
+server execution boundary rather than use a network callback or weaken staging
+visibility. The earlier MVP-01c probe rollback remains probe-free. Earlier in
+the same environment, a labelled
 synthetic position lifecycle was verified. No provider result, broker or
 production action has yet been observed from the restored schedules. The
 earlier direct `401` was Netlify's private visitor gate on a non-browser
@@ -59,7 +67,7 @@ password, production or a broker to bypass this boundary.
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
-| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Blocked: `ture-staging` has no `AUTOMATION_SECRET`, so its scheduled function stops before the authorized scan route. Create one fresh staging-only value in Functions and Runtime scope, redeploy staging, then wait for the next natural active-window cadence; do not reuse production material or force a manual scan. |
+| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: a fresh staging-only `AUTOMATION_SECRET` is deployed, but private Netlify visitor access rejects the scheduler's HTTP callback before application authorization. Build a raw-function-safe shared server execution boundary; retain private visitor access, the same bounded cadence, and no manual/provider bypass. |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
@@ -89,7 +97,7 @@ rows still need behavior evidence.
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | verified | Private `ture-staging` History readback showed the labelled synthetic record's entry 100, average exit 107.50, five remaining-share display, timestamps and `FULLY CLOSED AFTER PARTIAL` state before rollback. |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | verified | The same History readback reconciled synthetic gross price PnL 75.00 and 1.50R across the journal, performance summary and setup-performance table. The UI explicitly calls this gross price result before broker fees; the fixture was then deleted. |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | verified | Private `ture-staging` revision `cd3a7bec`, 2026-09-11: an exact labelled synthetic closed position with no exit, quantity, PnL, R or execution metadata appeared as `NEEDS REVIEW`, `Not available`, `UNKNOWN` and explicit missing-data notes in full History and its detail view. Statistics used `—` rather than a fabricated result. The position was then exactly deleted and a final reload returned to the clean no-trade state. No provider, broker or production action occurred. |
-| MVP-05a | A supported scan uses licensed data within its declared usage budget | blocked | Private `ture-staging` revision `5672ebdd`, 2026-09-11: Netlify's `scheduled-scan` advanced from 15:45 to its next 16:00 CEST cadence, proving normal dispatch during the 09:45 America/New_York active window. The authenticated dashboard at 09:50 still showed no automation scan, no provider-backed candidate and `scheduled_function_fired_at_utc: null`. The exact staging environment metadata lists no `AUTOMATION_SECRET`; code returns before attempt persistence or the authenticated route when it is absent. Create a fresh staging-only secret with the same value in Functions and Runtime scope, redeploy, then observe the next natural active-window cadence. Do not copy production material or force a manual scan. The 23-check schedule/budget regression group and 19-check MVP-05 recovery/outcome group pass locally. |
+| MVP-05a | A supported scan uses licensed data within its declared usage budget | active | Private `ture-staging` revision `cafd9c6c`, 2026-09-11: after a fresh staging-only `AUTOMATION_SECRET` was configured and a new private staging deploy was live, the natural 10:00 America/New_York cadence logged its call to `/api/automation/run-scan` and received `401` from Netlify's private-login redirect. This proves ordinary dispatch and secret availability, while proving the HTTP callback cannot cross private visitor access. No provider, broker or production request occurred. A direct Next-route import was built locally but rejected before deployment because the raw Netlify function runtime enforces Next's `server-only` marker. Build a raw-function-safe shared server execution boundary, retain private visitor access, then observe the next natural active-window cadence. The 23-check schedule/budget regression group and 19-check MVP-05 recovery/outcome group pass locally. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
@@ -122,8 +130,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 12/18: prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c and MVP-04a/04b/04c synthetic behavior evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-05 staging operational-evidence slice restored the existing bounded schedules and awaits its first supported scan | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | None; the six remaining checkpoints are unverified rather than actively blocked | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 1; MVP-05 staging operational-evidence slice has verified scheduler dispatch and secret loading, and now needs a raw-function-safe internal execution boundary | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | None; MVP-05a remains active with a defined implementation path rather than a passively blocked external dependency | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 10–28 active hours: MVP-05 supported provider/operational evidence 4–12 hours, then MVP-06 release-candidate journey and checks 6–16 hours; market/provider windows are external wait, not work time | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
