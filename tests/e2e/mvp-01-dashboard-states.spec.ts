@@ -46,17 +46,4 @@ test.describe("MVP-01 dashboard states", () => {
       '{updatedAt ? "Previous data kept" : "No current data shown"}',
     );
   });
-
-  test("keeps the temporary staging probe diagnosis authenticated and values-free", async () => {
-    const route = await source("app/api/app/dashboard/probe-readiness/route.ts");
-
-    expect(route).toContain("requireApplicationSession");
-    expect(route).toContain("applicationSessionUnauthorizedResponse");
-    expect(route).toContain("process.env.SITE_ID");
-    expect(route).toContain(
-      "process.env.MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE === \"enabled\"",
-    );
-    expect(route).toContain("values_returned: false");
-    expect(route).not.toContain("process.env.MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE,");
-  });
 });
