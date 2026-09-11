@@ -28,6 +28,9 @@ test.describe("Action 552 official outcome evaluator schedule verification", () 
     expect(source).toContain('mode: "official_live_today"');
     expect(source).toContain('const officialIntradayHorizons = ["15m", "30m", "60m"] as const');
     expect(source).toContain("scheduled_outcome_evaluation_attempt_fingerprint");
+    expect(source).toContain("function outcomeLogSummary");
+    expect(source).toContain('"[scheduled-outcome-evaluation] Response summary:"');
+    expect(source).not.toContain('"[scheduled-outcome-evaluation] Response body:"');
     expect(source).not.toContain("/api/automation/run-scan");
   });
 

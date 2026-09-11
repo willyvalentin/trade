@@ -8,6 +8,48 @@ export const config: Config = {
 
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
+const knownOutcomeStatuses = new Set(["completed", "partial", "blocked", "failed"]);
+
+function finiteCount(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.round(value)
+    : null;
+}
+
+function outcomeLogSummary(responseStatus: number, body: string) {
+  try {
+    const parsed: unknown = JSON.parse(body);
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {
+        response_status: responseStatus,
+        response_body_format: "unstructured",
+      };
+    }
+
+    const response = parsed as Record<string, unknown>;
+    const routeStatus =
+      typeof response.status === "string" && knownOutcomeStatuses.has(response.status)
+        ? response.status
+        : "unknown";
+
+    return {
+      response_status: responseStatus,
+      response_body_format: "structured",
+      route_status: routeStatus,
+      eligible_snapshot_count: finiteCount(response.eligible_snapshot_count),
+      evaluated_snapshot_count: finiteCount(response.evaluated_snapshot_count),
+      incomplete_snapshot_count: finiteCount(response.incomplete_snapshot_count),
+      missing_candle_count: finiteCount(response.missing_candle_count),
+      persisted_outcome_count: finiteCount(response.persisted_outcome_count),
+    };
+  } catch {
+    return {
+      response_status: responseStatus,
+      response_body_format: "unstructured",
+    };
+  }
+}
 
 function stableHash(value: string) {
   let hash = 2166136261;
@@ -66,8 +108,10 @@ export default async function handler() {
     });
     const body = await response.text();
 
-    console.log("[scheduled-outcome-evaluation] Response status:", response.status);
-    console.log("[scheduled-outcome-evaluation] Response body:", body);
+    console.log(
+      "[scheduled-outcome-evaluation] Response summary:",
+      outcomeLogSummary(response.status, body),
+    );
 
     return new Response(body, {
       status: response.status,
