@@ -8,8 +8,10 @@ in all older snapshots below. Historical restrictions on specific external
 operations remain evidence and are not renewed by this decision.
 
 Delivery state: source-only MVP-02 and MVP-04 corrections are merged on
-GitHub main as PRs #442 and #441 respectively. MVP-01c's exact named
-staging-origin guard is also merged as PR #443. Its merge and exact-main
+GitHub main as PRs #442 and #441 respectively. The MVP-05 delivery candidate
+combines the scan-history ordering, recovery-truthfulness and outcome-evidence
+corrections; it is locally verified but neither merged nor deployed. MVP-01c's exact named staging-origin guard is also merged
+as PR #443. Its merge and exact-main
 attestation are delivery evidence only; no staging site was created or deployed,
 and the merge is not a production deployment or supported-environment proof.
 Baseline inspected: GitHub main `d0ce1e783869f0548d5778287264c1258310d7cf`,
@@ -69,8 +71,8 @@ rows still need behavior evidence.
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
-| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | — |
-| MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | — |
+| MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
+| MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
@@ -207,6 +209,32 @@ blocker_or_fallback: The delivered UI mapping is not a provider-health, freshnes
 result_and_remaining_gap: Users will not be shown a guessed or stale setup when the latest scan reports a provider failure, and a normal completed no-trade result is no longer confused with missing diagnostics. MVP-02b, MVP-02c and MVP-05b remain unverified release checkpoints pending supported-environment behavior evidence.
 ```
 
+#### MVP-05 deterministic duplicate scan-history selection — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05b
+user_behavior_or_reproduced_failure: The scan-history summary deduplicated matching run fingerprints by retaining the last array element. A persistence response in a different order could therefore make an older failed revision replace a later clean revision as the dashboard's latest and recovery point.
+smallest_change_and_reused_components: Reused the existing immutable run fingerprint and persisted created/updated timestamps. The history summary now chooses the newest revision for each fingerprint before applying its existing latest-run and recovery rules. No scan, provider, scheduler, route, database or runtime behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: The combined MVP-05 delivery suite proves that a reversed-input duplicate fingerprint retains the newer completed revision as the only displayed run and clean recovery point. It also proves that two distinct scans with the same observation timestamp, or unavailable imported observation timestamps, use their revision time rather than response order to choose the latest/recovery state and history order. Tied recurring warnings now use their stable warning ID and each run displays its highest-severity warning, not the incidental first array element. The 19-check combined scan/outcome Playwright suite, scoped ESLint, TypeScript no-emit, local Next 16.3.4 production build and diff checks pass.
+external_effects_and_existing_authority: None. The test uses local synthetic scan-run records only; no provider, database, deployment, broker or production system was contacted.
+blocker_or_fallback: This corrects deterministic local state handling but does not prove a real provider's freshness, missed-run recovery or day-long operational behavior. Those remain supported-environment checks.
+result_and_remaining_gap: Dashboard recovery labels can no longer depend on the incidental delivery order of duplicate scan rows. MVP-05b remains unverified until the complete supported recovery behavior is observed.
+```
+
+#### MVP-05 truthful clean no-trade recovery history — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05b
+user_behavior_or_reproduced_failure: The scan-history summary already defined a healthy, provider-clean empty scan as a successful no-trade result, but its aggregate “Degraded/Stale/Empty” counter and warning still counted that same result as degraded. A correct no-trade decision could therefore look like an operational failure.
+smallest_change_and_reused_components: Reused the existing successful-scan predicate for every recovery aggregate. History now reports “Runs Needing Review” for only runs that cannot be a current recovery point, while a healthy empty result counts as successful and zero review-required runs. A mechanically healthy result with unknown or explicitly stale data mode is also excluded from the recovery point, so history cannot substitute uncertain or stale input for a current trustworthy result. The summary contract is explicitly advanced to 1.1 to make the changed field semantics clear. No scanner, provider, scheduler, route, database, identity, broker or production behavior changed.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-05-scan-recovery-visibility.spec.ts` passes 11/11 locally, covering a later failed scan, clean no-trade, unobserved empty, provider-warning empty, unknown/stale data, duplicate revisions and the mixed clean-no-trade/failed aggregate. Scoped ESLint, full TypeScript no-emit, local Next 16.3.4 production build and diff checks pass.
+external_effects_and_existing_authority: None. The tests use local synthetic scan records only; no provider, database, deploy, broker or production system was contacted.
+blocker_or_fallback: This fixes the local presentation contract but does not establish a licensed provider run, a missed-run recovery or a supported-environment day-long operation. MVP-05b remains unverified until that behavior is exercised.
+result_and_remaining_gap: A valid no-trade outcome no longer creates a false operational alarm, while failed, stale, partial, unknown-data or provider-warning runs remain visible as requiring review.
+```
+
 #### MVP-04 fee-basis containment for closed history — 2026-09-10 (local verified)
 
 ```text
@@ -231,6 +259,19 @@ behavior_check_and_environment: New `tests/e2e/mvp-04-plan-review-completeness.s
 external_effects_and_existing_authority: None. The test uses local synthetic trade metadata only; no credential, provider, database row, deploy, broker or production operation occurred.
 blocker_or_fallback: This source correction does not establish a durable user journey. MVP-04a and MVP-04c remain unverified until an identified supported manual lifecycle records, closes and reloads a trade with truthful stored values.
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
+```
+
+#### MVP-05 outcome-completeness evidence containment — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-05c
+user_behavior_or_reproduced_failure: The outcome calculator accepted an upstream `data_completeness: complete` label even when it had no intraday candles. The computed status was incomplete, but the retained completeness field and its downstream coverage rank could still claim complete evidence. It could also interpret candles against a contradictory long/short plan, potentially labelling a geometrically impossible target as reached.
+smallest_change_and_reused_components: Reused the existing candle normalization and outcome status calculation. A supplied `complete` label now fails closed to the observed `partial` or `none` level whenever no candles remain, and preserves a warning that the terminal evaluation cannot be trusted. Before interpreting terminal events, the plan must contain positive prices and the correct directional geometry (long: stop < entry < target; short: target < entry < stop). Legitimate candle-backed complete outcomes retain their existing contract.
+active_hour_budget: Within the existing 4–16 active-hour MVP slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/action-550-outcome-completion-path-root-cause.spec.ts` passes 8/8 within the 19-check combined MVP-05 suite, including false-complete paths with a partial current-price observation and with no observation input at all, plus impossible long/short-plan rejection before a candle can create a terminal result. Scoped ESLint, TypeScript no-emit, local Next 16.3.4 production build and diff checks pass. The check is local and does not establish a supported-environment acceptance result.
+external_effects_and_existing_authority: None. The test uses local synthetic snapshot and candle inputs only; no provider, database, deployment, broker or production operation occurred.
+blocker_or_fallback: MVP-05c remains unverified until an identified supported evaluation path retains and presents an actual attributable outcome with its data evidence. Do not treat an upstream completeness label as a substitute for candle evidence.
+result_and_remaining_gap: A missing intraday series can no longer increase an outcome's apparent quality or displace an evidence-backed historical result, and contradictory price geometry cannot create a terminal outcome. The product keeps the outcome reviewable while making invalid or incomplete evidence explicit.
 ```
 
 #### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
