@@ -136,30 +136,8 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationOutcomes,
     marketRegime,
   ];
-  const resultNames = [
-    "recommendations",
-    "user_settings",
-    "open_positions",
-    "closed_positions",
-    "position_updates",
-    "scheduled_scan_runs",
-    "scheduled_scan_attempts",
-    "recommendation_scan_runs",
-    "recommendation_batches",
-    "recommendation_snapshots",
-    "recommendation_outcomes",
-    "market_regime",
-  ];
 
   if (results.some((result) => result.error)) {
-    const failedQueries = results.flatMap((result, index) =>
-      result.error
-        ? [{ name: resultNames[index], code: result.error.code }]
-        : [],
-    );
-    console.error("[application-dashboard] Supabase read failed", {
-      failed_queries: failedQueries,
-    });
     return failed<Record<string, unknown>>();
   }
 
