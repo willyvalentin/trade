@@ -80,9 +80,9 @@
     "registered_exactly_once": true
   },
   "sources": {
-    "package.json": "7c5c2e70db42a05a81253986cc01007a79780b84f2676ea0b1ba76ea063bcac9",
-    "package-lock.json": "32e51a4fe80e4c1e4b11f373395d899fe9f7b391f11cc2b4ede320e197fa268e",
-    "netlify.toml": "f0146df1d24d95867972fb952eef3d2b8d836bebaed9a1924c8e34ff807c7c4a",
+    "package.json": "1a3e7c9d819bbaf143a1174dca1b2de29d894cb197b4ff7806b0fbbd2470ce91",
+    "package-lock.json": "3530d354553264fa1a4c987ac0eb35901a6ac03e12397e3187340f8563bf93cf",
+    "netlify.toml": "524c9d08c4a275af7e87d7153a400f9b9a62ce37cf2d4979daee57bb2b229585",
     "AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
     ".github/workflows/milestone-a-ci.yml": "a4973db33a11b79453b7928bf0cb74ecad5847ab8b8c9f06f22d546dfffab55b",
     "proxy.ts": "cc0c2d2c60912a91855a4381d543c067ade0539a33c9208656419ccc2f555fb4",
