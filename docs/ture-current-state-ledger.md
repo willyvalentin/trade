@@ -135,6 +135,11 @@ MVP-06a is now blocked on stable authenticated browser transport (and then one
 fresh, exactly-cleaned synthetic fixture), not on Netlify capacity, the
 staging identity, credentials or product code. Do not use a production route,
 generic password, provider request or broker action to bypass that boundary.
+On the clean staging checkout, the applicable local regression baseline is
+green: 16 static server-boundary contracts, 40 MVP-03/MVP-04 position and
+history lifecycle checks, and ESLint all passed. This is useful candidate
+evidence for MVP-06b, but it does not substitute for MVP-06a's authenticated
+staging journey, a release deployment or a production smoke check.
 
 ### MVP acceptance board
 
