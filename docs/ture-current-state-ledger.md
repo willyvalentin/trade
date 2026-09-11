@@ -140,6 +140,10 @@ green: 16 static server-boundary contracts, 40 MVP-03/MVP-04 position and
 history lifecycle checks, and ESLint all passed. This is useful candidate
 evidence for MVP-06b, but it does not substitute for MVP-06a's authenticated
 staging journey, a release deployment or a production smoke check.
+The same clean checkout also completed `npm run build`: Next.js compiled,
+type-checked and generated all 33 static pages successfully. This confirms a
+local release build only; it does not assert runtime behavior beyond the
+separate staging evidence.
 Netlify independently reports staging commit `1ab61d28` as ready on the
 separate `ture-staging` site; its source difference from `b5cfd68d` is only
 this ledger. Netlify labels that site's branch head as `production` context,
