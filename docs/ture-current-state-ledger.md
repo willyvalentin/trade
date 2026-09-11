@@ -12,33 +12,33 @@ GitHub main as PRs #464, #465, #466 and #467 respectively. PR #468 merged the
 dedicated-staging session-secret selection. Its Ready Full CI run
 `34553013890` passed all six unchanged provider-free shards and its exact-main
 attestation `34555189908` passed for `37bbbc2e`. A separate private
-`ture-staging.netlify.app` site now serves staging revision `d75401ff`, which
+`ture-staging.netlify.app` site now serves staging revision `d1cb32f4`, which
 integrates that main revision while retaining the staging-only scheduler and
-dedicated-session barriers. This is not a production deployment or a
-supported-environment user-flow proof; the public production release remains
-unchanged, while the new main candidate remains unpublished behind its
+dedicated-session barriers. The Git deployment `6aa36eb109ce4b00080a862c` is
+ready. This is not a production deployment; the public production release
+remains unchanged, while the new main candidate remains unpublished behind its
 deployment lock.
 
 ### Now
 
-**Current verification boundary: dedicated staging authentication.** The
-private staging deployment has the expected canonical origin and its dedicated
-password resolves in Builds, Functions and Runtime. Its four deployed functions
-all report `schedule: null`. One bounded login using that same dedicated value
-returned `401` without issuing a session cookie, so the application is
-fail-closed but no authenticated dashboard, synthetic position or failure-state
-journey can yet be claimed. The prior disabled MVP-01c probe was closed rather
-than treated as evidence. Do not use the generic password, production, a
-provider or a broker to bypass this boundary.
+**Current verification boundary: authenticated, scheduler-contained staging.**
+The private staging deployment has the expected canonical origin and its
+dedicated password resolves in Builds, Functions and Runtime. Its four deployed
+functions all report `schedule: null`. An already authenticated browser session
+successfully read the dashboard and exercised an explicitly labelled synthetic
+position lifecycle; no provider, broker or production action occurred. The
+earlier direct `401` was Netlify's private visitor gate on a non-browser request,
+not evidence of an application credential mismatch. Do not use the generic
+password, production, a provider or a broker to bypass this boundary.
 
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API, Netlify preview #430 sign-in/reload/sign-out evidence and anonymous/cross-owner rejection evidence | Unverified: MVP-01a and MVP-01b are verified; understandable loading, empty and error states remain |
-| MVP-02 | Recommendation generator, scan windows and market-calendar paths exist | Unverified: current-data/no-trade/stale/provider-failure behavior and clear plan/risk presentation |
-| MVP-03 | Authenticated position create/update endpoints and transaction-backed opening exist | Unverified: one manual entry→reload→exit journey, double-submit and retry correctness |
-| MVP-04 | History/statistics UI and persisted trade access exist | Unverified: reconcile displayed plan/actual values and realized result to the recorded trade |
+| MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and authenticated private-staging dashboard readback | Unverified: MVP-01a and MVP-01b are verified; loading and empty states are observed, but a controlled failed-dashboard state remains |
+| MVP-02 | Staging showed the clear closed-window/no-trade state without an actionable fixture | Unverified: MVP-02b is verified; current-data plan and stale/provider-failure behavior remain |
+| MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
+| MVP-04 | The synthetic closed position reloaded in History with plan/actual values and reconciled gross price-result statistics | Unverified: MVP-04a and MVP-04b are verified in synthetic staging; unknown/incomplete-value handling remains |
 | MVP-05 | Scheduled scanning/outcome infrastructure and historical operation evidence exist | Unverified: current licensed-data availability, day-long freshness, missed-run visibility and bounded recovery |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
@@ -49,8 +49,8 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **2/18 verified for the new MVP candidate; 15
-unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
+Current acceptance coverage: **8/18 verified for the new MVP candidate; 10
+unverified, 0 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -59,15 +59,15 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #468 merged as main `37bbbc2e`; Ready Full CI `34553013890` and exact-main attestation `34555189908` passed. Staging revision `d75401ff` deployed on 2026-09-11 with all four function schedules absent. One dedicated-credential login returned `401` and no session cookie; therefore no new authenticated dashboard or failure-state evidence is claimed. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: authenticated readback showed the loading label `Refreshing…` and the clear empty no-trade explanation. The former direct `401` was the private Netlify visitor gate, not application-login evidence. A controlled failed-dashboard state is still untested. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | The MVP-02 delivery candidate exposes Target 2 in the existing recommendation-details trade plan and makes the existing price source, timestamp and expiry information visible on each recommendation card; supported-environment behavior evidence remains required. |
-| MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. The MVP-02 delivery candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present; its local coverage and production build pass. A dedicated staging delivery must recheck the correction, and market-closed behavior still needs supported-environment evidence. |
+| MVP-02b | No-trade and market-closed situations explain why no action is offered | verified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: authenticated dashboard readback showed `Day trade window · Closed` and `Data is not clean enough right now`, with no actionable handoff fixture. No provider, broker or production operation occurred. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
-| MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
-| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. Local regression coverage passes; a supported durable lifecycle remains required. |
-| MVP-03c | Record an exit and reload the correct closed state without a broker call | unverified | — |
-| MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | unverified | — |
-| MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | unverified | — |
+| MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | verified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: a clearly labelled synthetic recommendation opened through the existing owner-bound transaction with its 100/95/105/110 plan, then reloaded as one live position. The fixture declared no provider calls or broker orders and was removed after the check. |
+| MVP-03b | Reload and repeat an entry request without losing or duplicating the position | verified | The same private-staging fixture returned `created` once and `reused` for an identical retry, with the same position ID; a reload showed one position. Its partial-close mutation reduced 10 to 5 shares and an identical repeat updated zero rows. Local owner-bound regression coverage also passes. |
+| MVP-03c | Record an exit and reload the correct closed state without a broker call | verified | The synthetic staging position was final-closed, its duplicate guarded update affected zero rows, and a reload showed the persisted closed record. The 17 focused local contract tests for owner-bound opening, closing and replay passed. No broker or provider call occurred. |
+| MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | verified | Private `ture-staging` History readback showed the labelled synthetic record's entry 100, average exit 107.50, five remaining-share display, timestamps and `FULLY CLOSED AFTER PARTIAL` state before rollback. |
+| MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | verified | The same History readback reconciled synthetic gross price PnL 75.00 and 1.50R across the journal, performance summary and setup-performance table. The UI explicitly calls this gross price result before broker fees; the fixture was then deleted. |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | unverified | — |
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
@@ -100,10 +100,10 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 2/18, MVP-01a preview journey and MVP-01b access rejection verified | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 8/18: prior MVP-01a/01b plus staging MVP-02b, MVP-03a/03b/03c and MVP-04a/04b synthetic behavior evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; the prior MVP-01c staging behavior slice is fail-closed at authentication | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-11: the verified staging secret/origin configuration still returned `401` on its one bounded login | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; the authenticated staging lifecycle slice is complete and rolled back | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | None | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Unbaselined | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -113,34 +113,33 @@ be compared. Do not generate a new metric contract, service or test just to
 maintain this Markdown table. More verified functionality per week and shorter
 blocking periods are the test of whether this delivery policy is helping.
 
-#### MVP staging delivery and authentication boundary — 2026-09-11
+#### MVP staging authentication and synthetic lifecycle — 2026-09-11
 
 ```text
-acceptance_id: MVP-01c staging prerequisite; MVP-03/04 durable-journey prerequisite
-user_behavior_or_reproduced_failure: The new dedicated staging runtime was deployed, but one bounded POST to its existing login route with the dedicated staging credential returned 401 and set no application session cookie.
-smallest_change_and_reused_components: PR #468 selects STAGING_TRADE_APP_PASSWORD only when the exact canonical staging origin is configured. Staging commit d75401ff merges exact main 37bbbc2e while retaining the existing staging-only removal of scheduled scan and outcome triggers.
-behavior_check_and_environment: Ready Full CI 34553013890 passed all six unchanged provider-free shards for the source candidate; exact-main attestation 34555189908 passed for 37bbbc2e. Netlify deploy 6aa36b3c9f64c100085a066e is ready for d75401ff on the private staging site. Its four deployed functions each report schedule: null. Netlify resolves the canonical origin and the same dedicated secret in Builds, Functions and Runtime; a metadata-only comparison confirms the local and Netlify staging secret match. No authenticated dashboard read or synthetic lifecycle was attempted after the 401.
-external_effects_and_existing_authority: One Git-driven deployment occurred only on ture-staging. No production publish, database write, provider call, broker action, generic-password attempt or secret/session disclosure occurred.
-blocker_or_fallback: The application correctly fails closed, but the cause of the dedicated-credential mismatch is not yet evidenced. Do not retry credentials, use the generic password, or create a dashboard/failure-probe workaround. Re-enter only after a concrete staging credential/runtime reconciliation.
-result_and_remaining_gap: Staging isolation and scheduler containment are verified. MVP-01c and the end-to-end manual position/history/statistics journey remain unverified because no authenticated staging session exists.
+acceptance_id: MVP-01c partial state evidence; MVP-02b; MVP-03a/03b/03c; MVP-04a/04b
+user_behavior_or_reproduced_failure: The authenticated private staging dashboard first showed a loading label and then the closed-window no-trade explanation. A clearly labelled synthetic recommendation was read back as a complete plan, opened through the existing owner-bound position transaction, reloaded as one live position, reduced from 10 to 5 shares, final-closed, and read back in History and aggregate statistics. The first partial-fixture shape lacked normalized entry/exit fills and History truthfully marked it invalid; the fixture was corrected to the same normalized shape the existing UI expects before the final readback.
+smallest_change_and_reused_components: No product runtime code changed. Staging revision d1cb32f4 retains the PR #468 exact-origin staging-secret selection, the main 37bbbc2e integration and the existing schedule removals. The lifecycle used only the existing owner-bound open transaction, position schema and History/statistics projection; the synthetic fixture was then deleted by exact ID and marker.
+behavior_check_and_environment: Private Netlify deploy 6aa36eb109ce4b00080a862c is ready for d1cb32f4. Its four deployed functions report schedule: null. Authenticated browser readback verified the loading/empty state, no-trade copy, one live fixture, the five-share partial state, and the final history result: entry 100, average exit 107.50, gross price PnL 75.00, 1.50R and FULLY CLOSED AFTER PARTIAL. Opening retry returned reused with the same ID; repeated partial and close guarded mutations affected zero rows. Focused local Playwright contracts: 17/17 passing across the transaction boundary, MA05 ownership, MVP-03 open input and close idempotency suites.
+external_effects_and_existing_authority: One Git-driven staging deployment was already active. This verification created and then removed exactly one labelled recommendation and one labelled position in ture-staging. No production publish or production-database change, provider call, broker action, generic-password use or secret/session disclosure occurred.
+blocker_or_fallback: The prior direct 401 is now attributed to Netlify's private visitor gate for a non-browser request; the browser's authenticated application session worked. MVP-01c still lacks a separately controlled failed-dashboard-state check. The app intentionally prevents an agent from claiming a real Avanza fill, so the durable journey evidence is synthetic-only rather than broker evidence.
+result_and_remaining_gap: Staging isolation, authenticated dashboard access, no-trade clarity, durable synthetic position lifecycle, retry protection and history/statistics reconciliation are verified. The fixture cleanup returned zero matching recommendations, positions and position updates, and a final authenticated reload restored the clean no-trade state. No MVP parent criterion is release-accepted yet.
 ```
 
 ### Next — ordered, next product slice
 
-1. Reconcile the dedicated `ture-staging` login credential with the deployed
-   runtime, without trying the generic password or weakening the exact-origin
-   guard. Then rerun exactly one bounded staging login check before testing any
-   dashboard state or creating synthetic records.
-2. Once authenticated staging is restored, verify the delivered MVP-02/05
-   provider-unavailable and no-trade state
-   handling in an identified supported environment, then close remaining
-   provider health, freshness and operational-recovery behavior. PR #427 /
-   REL-03 remains source-only capacity planning; reuse it, but do not claim it
-   is an operational integration.
-3. Reconcile remaining MVP-03/04/05 manual-history and outcome-status behavior
-   only after the authenticated staging boundary is verified.
-4. Complete MVP-06 release acceptance. Move to R1 only after MVP acceptance or
-   an explicit product decision changing the release scope.
+1. Verify MVP-01c's controlled failed-dashboard state using an explicitly
+   authorized, reversible staging-only trigger; do not reuse a past one-shot
+   probe authorization or weaken the private visitor/authentication boundary.
+2. Verify MVP-02a/02c and MVP-04c in the authenticated staging environment:
+   a complete current-plan display and truthful stale, unavailable and
+   incomplete-data labelling. Reuse existing code and provider-free fixtures
+   where they demonstrate behavior without fabricating market data.
+3. Verify MVP-05's operational evidence separately: a supported licensed-data
+   scan, freshness/missed-run readback and truthful outcome completion remain
+   blocked on actual permitted provider evidence, not on staging access.
+4. Complete MVP-06 release acceptance only after the remaining behavior rows
+   have compatible release-scope evidence. Move to R1 only after MVP acceptance
+   or an explicit product decision changing the release scope.
 
 For each item, keep one compact entry here or in its PR: acceptance ID, concrete
 failure, next implementation, 4–16 active-hour budget, behavior evidence,
@@ -152,7 +151,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked: `ture-staging` at `d75401ff` has the canonical origin, dedicated secret in all relevant scopes and no scheduler, but its one bounded dedicated-credential login returned `401` with no session | Diagnose and reconcile the deployed runtime credential without using the generic password or changing the origin boundary; rerun one bounded login only after that concrete change. |
+| MVP-01c failed-state proof | Unverified, not blocked: private `ture-staging` at `d1cb32f4` has authenticated dashboard evidence, but no controlled failed-dashboard-state observation | Use a new explicitly authorized, reversible staging-only trigger; preserve the private visitor gate and exact-origin session boundary. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
