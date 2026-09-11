@@ -34,6 +34,7 @@ export type HistoryExecutionMetadataSnapshot = {
   broker_reference_note?: string | null;
   actual_fill_price?: number | null;
   actual_shares?: number | null;
+  actual_entry_shares?: number | null;
   planned_entry_price?: number | null;
   planned_shares?: number | null;
   broker_exit_confirmation?: {
@@ -210,15 +211,52 @@ function isPartialStatus(status: string | null | undefined) {
   return status === "partially_closed";
 }
 
+type RemainingSharesIntegrity =
+  | "valid"
+  | "negative"
+  | "exceeds_recorded_entry_shares";
+
+function recordedEntryShares(trade: HistoryTradeInput) {
+  return (
+    finiteNumber(trade.executionMetadata?.actual_entry_shares) ??
+    finiteNumber(trade.executionMetadata?.actual_shares) ??
+    finiteNumber(
+      trade.executionMetadata?.trade_planning_snapshot?.actual_entry_shares,
+    ) ??
+    finiteNumber(trade.shares)
+  );
+}
+
+function remainingSharesIntegrity(trade: HistoryTradeInput): RemainingSharesIntegrity {
+  const remainingShares = finiteNumber(trade.executionMetadata?.remaining_shares);
+
+  if (remainingShares === null) {
+    return "valid";
+  }
+
+  if (remainingShares < 0) {
+    return "negative";
+  }
+
+  const entryShares = recordedEntryShares(trade);
+  if (remainingShares > 0 && entryShares !== null && remainingShares > entryShares) {
+    return "exceeds_recorded_entry_shares";
+  }
+
+  return "valid";
+}
+
 function deriveOutcome(trade: HistoryTradeInput): HistoryTradeOutcome {
   const metadata = trade.executionMetadata;
   const partialStatus = metadata?.partial_position_status ?? null;
+  const remainingShares = finiteNumber(metadata?.remaining_shares);
+  const integrity = remainingSharesIntegrity(trade);
 
-  if (partialStatus === "invalid") {
+  if (partialStatus === "invalid" || integrity !== "valid") {
     return "invalid";
   }
 
-  if (isPartialStatus(partialStatus) || (finiteNumber(metadata?.remaining_shares) ?? 0) > 0) {
+  if (isPartialStatus(partialStatus) || (remainingShares ?? 0) > 0) {
     return "partial";
   }
 
@@ -279,6 +317,8 @@ function buildExecutionQuality(
 function buildWarnings(trade: HistoryTradeInput) {
   const warnings: string[] = [];
   const metadata = trade.executionMetadata;
+  const remainingShares = finiteNumber(metadata?.remaining_shares);
+  const integrity = remainingSharesIntegrity(trade);
 
   if (!metadata) {
     warnings.push("Missing execution metadata.");
@@ -304,7 +344,11 @@ function buildWarnings(trade: HistoryTradeInput) {
     warnings.push("Partial position accounting is invalid.");
   }
 
-  if ((finiteNumber(metadata?.remaining_shares) ?? 0) > 0) {
+  if (integrity === "negative") {
+    warnings.push("Remaining shares cannot be negative.");
+  } else if (integrity === "exceeds_recorded_entry_shares") {
+    warnings.push("Remaining shares exceed the recorded entry shares.");
+  } else if ((remainingShares ?? 0) > 0) {
     warnings.push("Remaining shares are recorded after this history entry.");
   }
 
@@ -377,6 +421,16 @@ export function buildHistoryTradeSummary(
   trade: HistoryTradeInput,
 ): HistoryTradeSummary {
   const metadata = trade.executionMetadata;
+  const remainingShares = finiteNumber(metadata?.remaining_shares);
+  const integrity = remainingSharesIntegrity(trade);
+  const partialStatus =
+    metadata?.partial_position_status === "invalid" ||
+    integrity !== "valid"
+      ? "invalid"
+      : isPartialStatus(metadata?.partial_position_status) ||
+          (remainingShares ?? 0) > 0
+        ? "partially_closed"
+      : metadata?.partial_position_status ?? "fully_closed";
   const outcome = deriveOutcome(trade);
   const warnings = buildWarnings(trade);
   const opened = timestampMs(trade.openedAt);
@@ -400,14 +454,14 @@ export function buildHistoryTradeSummary(
         : null,
     is_demo: trade.isDemo,
     partial: {
-      status: metadata?.partial_position_status ?? "fully_closed",
+      status: partialStatus,
       entry_fills_count: metadata?.entry_fills?.length ?? 0,
       exit_fills_count: metadata?.exit_fills?.length ?? 0,
       had_partial_exits:
         (metadata?.exit_fills?.length ?? 0) > 1 ||
         metadata?.exit_fills?.some((fill) => fill.status === "partially_filled") ===
           true,
-      remaining_shares: finiteNumber(metadata?.remaining_shares),
+      remaining_shares: remainingShares,
       average_exit_price: finiteNumber(metadata?.average_exit_price),
       realized_pnl_from_exits: finiteNumber(metadata?.realized_pnl_from_exits),
       realized_pnl_basis:

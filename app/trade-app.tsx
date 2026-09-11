@@ -31248,6 +31248,22 @@ function ClosedTradePlanningSnapshotPanel({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Detail
+          label="Plan Entry"
+          value={formatCurrency(snapshot.entry_price)}
+        />
+        <Detail
+          label="Plan Stop"
+          value={formatCurrency(snapshot.stop_price)}
+        />
+        <Detail
+          label="Plan Target"
+          value={formatCurrency(snapshot.target_price)}
+        />
+        <Detail
+          label="Plan Captured"
+          value={formatDate(snapshot.captured_at)}
+        />
+        <Detail
           label="Planned / Actual Shares"
           value={`${formatShares(snapshot.planned_quantity)} → ${formatShares(
             snapshot.actual_entry_shares,
