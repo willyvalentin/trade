@@ -46,4 +46,17 @@ test.describe("MVP-01 dashboard states", () => {
       '{updatedAt ? "Previous data kept" : "No current data shown"}',
     );
   });
+
+  test("keeps the temporary MVP-01c readiness diagnostic authenticated and values-free", async () => {
+    const readinessPage = await source("app/mvp-01c-probe-readiness/page.tsx");
+
+    expect(readinessPage).toContain("requireApplicationPageSession()");
+    expect(readinessPage).toContain("process.env.SITE_ID === stagingSiteId");
+    expect(readinessPage).toContain(
+      "process.env.MVP_01C_STAGING_DASHBOARD_FAILURE_PROBE === \"enabled\"",
+    );
+    expect(readinessPage).toContain("isCanonicalStagingHost(requestHeaders)");
+    expect(readinessPage).toContain("values_returned");
+    expect(readinessPage).not.toContain("readApplicationDashboardData");
+  });
 });
