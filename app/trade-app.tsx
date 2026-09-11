@@ -34,7 +34,11 @@ import {
   applicationPositionCloseResultMessage,
   parseApplicationPositionCloseResult,
 } from "@/lib/application-position-close-result";
-import { hasRecordableManualPositionPlan } from "@/lib/manual-position-plan";
+import {
+  hasCoherentLongManualPositionPlan,
+  hasRecordableManualPositionPlan,
+} from "@/lib/manual-position-plan";
+import { resolveDashboardRefreshContention } from "@/lib/dashboard-refresh-contention";
 import {
   aggregateRealizedPnlExplanation,
   aggregateRealizedPnlLabel,
@@ -8960,7 +8964,7 @@ export function TradeApp({
     Record<string, PositionUpdateUrgency["urgency"]>
   >({});
   const isUpdatingPositionsRef = useRef(false);
-  const dataRefreshInFlightRef = useRef(false);
+  const dataRefreshInFlightPromiseRef = useRef<Promise<void> | null>(null);
   const requestedSymbolMetadataRef = useRef<Set<string>>(new Set());
   const loadTradeDataRef = useRef<
     (options?: LoadTradeDataOptions) => Promise<void>
@@ -9086,10 +9090,37 @@ export function TradeApp({
   }
 
   async function loadTradeData(options: LoadTradeDataOptions = {}) {
-    await Promise.resolve();
-
     const mode = options.mode ?? "initial";
     const isInitialLoad = mode === "initial";
+
+    // A normal background refresh remains coalesced. An action refresh waits
+    // for the current read and then claims its own turn, so a just-recorded
+    // durable position is not hidden until the user manually reloads.
+    while (true) {
+      const existingRefresh = dataRefreshInFlightPromiseRef.current;
+      const contention = await resolveDashboardRefreshContention({
+        existingRefresh,
+        isInitialLoad,
+        source: options.source,
+      });
+
+      if (contention === "skip") {
+        return;
+      }
+
+      if (dataRefreshInFlightPromiseRef.current === existingRefresh) {
+        break;
+      }
+    }
+
+    let completeRefresh: () => void = () => {};
+    const currentRefresh = new Promise<void>((resolve) => {
+      completeRefresh = resolve;
+    });
+    dataRefreshInFlightPromiseRef.current = currentRefresh;
+
+    await Promise.resolve();
+
     const refreshedIslands = options.islands ?? refreshIslandIds;
     const refreshStartedAt = new Date().toISOString();
     const islandErrors: Partial<Record<RefreshIslandId, string>> = {};
@@ -9097,12 +9128,6 @@ export function TradeApp({
     const shouldUpdateGlobalMessage =
       options.clearMessage !== false &&
       (isInitialLoad || options.source === "manual" || options.source === "action");
-
-    if (!isInitialLoad && dataRefreshInFlightRef.current) {
-      return;
-    }
-
-    dataRefreshInFlightRef.current = true;
 
     if (isInitialLoad) {
       setIsLoading(true);
@@ -9855,7 +9880,10 @@ export function TradeApp({
         noteIslandError(islandId, error);
       }
     } finally {
-      dataRefreshInFlightRef.current = false;
+      if (dataRefreshInFlightPromiseRef.current === currentRefresh) {
+        dataRefreshInFlightPromiseRef.current = null;
+      }
+      completeRefresh();
       setIslandRefreshState((current) => {
         const next = { ...current };
 
@@ -10717,11 +10745,15 @@ export function TradeApp({
       return;
     }
 
-    if (
-      selectedRecommendation.stopLossValue !== null &&
-      selectedRecommendation.stopLossValue >= actualEntryPrice
-    ) {
-      setMessage("Stop loss must be below actual fill price for a long trade.");
+    if (!hasCoherentLongManualPositionPlan({
+      entryPrice: actualEntryPrice,
+      stopLoss: selectedRecommendation.stopLoss,
+      target1: selectedRecommendation.target1,
+      target2: selectedRecommendation.target2,
+    })) {
+      setMessage(
+        "This long plan must have stop below fill and two ascending targets above fill.",
+      );
       return;
     }
 
@@ -31227,6 +31259,22 @@ function ClosedTradePlanningSnapshotPanel({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Detail
+          label="Plan Entry"
+          value={formatCurrency(snapshot.entry_price)}
+        />
+        <Detail
+          label="Plan Stop"
+          value={formatCurrency(snapshot.stop_price)}
+        />
+        <Detail
+          label="Plan Target"
+          value={formatCurrency(snapshot.target_price)}
+        />
+        <Detail
+          label="Plan Captured"
+          value={formatDate(snapshot.captured_at)}
+        />
+        <Detail
           label="Planned / Actual Shares"
           value={`${formatShares(snapshot.planned_quantity)} → ${formatShares(
             snapshot.actual_entry_shares,
@@ -39200,13 +39248,6 @@ function RecommendationScanRunHistoryPanel({
   summary: RecommendationScanRunHistorySummary;
   summaryJson: string;
 }) {
-  const degradedStaleEmptyCount = summary.status_breakdown
-    .filter((item) =>
-      item.status === "degraded" ||
-      item.status === "stale" ||
-      item.status === "empty",
-    )
-    .reduce((total, item) => total + item.count, 0);
   const visibleWindows = summary.window_breakdown.filter(
     (window) =>
       window.scan_run_count > 0 ||
@@ -39251,8 +39292,8 @@ function RecommendationScanRunHistoryPanel({
           )}
         />
         <SummaryCard
-          label="Degraded/Stale/Empty"
-          value={String(degradedStaleEmptyCount)}
+          label="Runs Needing Review"
+          value={String(summary.review_required_run_count)}
         />
         <SummaryCard
           label="Latest Run"
