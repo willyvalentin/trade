@@ -81,6 +81,13 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(route).toContain('candidatesScanned > 0');
     expect(route).toContain('providerStatus === "available"');
     expect(route).toContain('scanLog.indicator_stale !== true');
+    expect(route).toContain('scannerGeneration?.status === "ready"');
+    expect(route).toContain('scannerGeneration.universe.stale_candidates === 0');
+    expect(route).toContain(
+      'scannerGeneration.universe.missing_required_price_candidates === 0',
+    );
+    expect(route).toContain('scannerGeneration.warnings.length === 0');
+    expect(route).toContain('scannerGeneration.gaps.length === 0');
     expect(route).toContain('(scanLog.top_candidate_warnings?.length ?? 0) === 0');
     expect(route).toContain('recommendations.length > 0 || hasObservedCleanNoTrade');
   });

@@ -1668,17 +1668,26 @@ function buildAutomationScanObservability({
       : scanLog.indicator_source || scanLog.real_scanner_candidate_generation
         ? "available"
         : "unknown";
+  const scannerGeneration = scanLog.real_scanner_candidate_generation ?? null;
   // A scheduled scan can truthfully complete with no published recommendations.
   // Keep that result usable as a recovery point only when the scanner actually
-  // inspected at least one candidate with current provider-backed metadata and
-  // recorded no stale-data or candidate-warning signal. Unknown, stale, and
-  // provider-failure paths stay incomplete or degraded below.
+  // completed its bounded candidate coverage with current provider-backed
+  // metadata and recorded no stale-data or candidate-warning signal. A thin
+  // cache-warming sample remains incomplete rather than becoming a false
+  // recovery point. Unknown, stale, and provider-failure paths stay incomplete
+  // or degraded below.
   const hasObservedCleanNoTrade =
     scanLog.result === "no_high_quality_setup" &&
     candidatesScanned !== null &&
     candidatesScanned > 0 &&
     providerStatus === "available" &&
     scanLog.indicator_stale !== true &&
+    scannerGeneration?.status === "ready" &&
+    scannerGeneration.universe.candidates_generated > 0 &&
+    scannerGeneration.universe.stale_candidates === 0 &&
+    scannerGeneration.universe.missing_required_price_candidates === 0 &&
+    scannerGeneration.warnings.length === 0 &&
+    scannerGeneration.gaps.length === 0 &&
     (scanLog.top_candidate_warnings?.length ?? 0) === 0;
   const status: ScanPipelineObservabilitySummary["status"] =
     scanLog.result === "provider_error" ||
