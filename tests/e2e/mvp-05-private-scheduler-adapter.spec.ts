@@ -72,4 +72,16 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
 
     await expect(delay).rejects.toBeInstanceOf(OperationAbortedError);
   });
+
+  test("keeps an observed clean no-trade scan available as a recovery point", async () => {
+    const route = await source("app/api/automation/run-scan/route.ts");
+
+    expect(route).toContain('const hasObservedCleanNoTrade =');
+    expect(route).toContain('scanLog.result === "no_high_quality_setup"');
+    expect(route).toContain('candidatesScanned > 0');
+    expect(route).toContain('providerStatus === "available"');
+    expect(route).toContain('scanLog.indicator_stale !== true');
+    expect(route).toContain('(scanLog.top_candidate_warnings?.length ?? 0) === 0');
+    expect(route).toContain('recommendations.length > 0 || hasObservedCleanNoTrade');
+  });
 });
