@@ -6,6 +6,8 @@ import { expect, test } from "@playwright/test";
 const functionPath = "netlify/functions/scheduled-outcome-evaluation.ts";
 const routePath = "app/api/recommendations/evaluate-outcomes/route.ts";
 const scheduledScanPath = "netlify/functions/scheduled-scan.ts";
+const runtimeBuildPath = "scripts/build-scheduled-scan-runtime.mjs";
+const netlifyTomlPath = "netlify.toml";
 const action550Path = "app/trade-app.tsx";
 
 function read(path: string) {
@@ -28,7 +30,28 @@ test.describe("Action 552 official outcome evaluator schedule verification", () 
     expect(source).toContain('mode: "official_live_today"');
     expect(source).toContain('const officialIntradayHorizons = ["15m", "30m", "60m"] as const');
     expect(source).toContain("scheduled_outcome_evaluation_attempt_fingerprint");
+    expect(source).toContain("function outcomeLogSummary");
+    expect(source).toContain('"[scheduled-outcome-evaluation] Response summary:"');
+    expect(source).not.toContain('"[scheduled-outcome-evaluation] Response body:"');
+    expect(source).toContain('"../.generated/scheduled-outcome-evaluation-runtime.cjs"');
+    expect(source).toContain("`http://internal${outcomeEvaluationRoute}`");
+    expect(source).toContain("Executing bundled internal route");
+    expect(source).not.toContain("DEPLOY_PRIME_URL");
     expect(source).not.toContain("/api/automation/run-scan");
+  });
+
+  test("scheduled outcome runtime is bundled with the function, avoiding the private visitor boundary", () => {
+    const buildSource = read(runtimeBuildPath);
+    const netlifyConfig = read(netlifyTomlPath);
+
+    expect(buildSource).toContain(
+      'entryPoint: "app/api/recommendations/evaluate-outcomes/route.ts"',
+    );
+    expect(buildSource).toContain('outputFile: "scheduled-outcome-evaluation-runtime.cjs"');
+    expect(netlifyConfig).toContain('[functions."scheduled-outcome-evaluation"]');
+    expect(netlifyConfig).toContain(
+      'included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]',
+    );
   });
 
   test("existing scheduled scan remains scan-only and does not call the outcome evaluator", () => {

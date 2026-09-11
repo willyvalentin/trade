@@ -1,5 +1,7 @@
 import "server-only";
 
+import { throwIfAborted } from "@/lib/operation-abort";
+
 const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
 
 export type DailyCandle = {
@@ -236,8 +238,9 @@ function getTwelveDataError(data: unknown) {
 async function fetchTwelveData<T>(
   path: string,
   params: Record<string, string | number>,
+  options?: { signal?: AbortSignal },
 ): Promise<T> {
-  const { data } = await fetchTwelveDataDetailed<T>(path, params);
+  const { data } = await fetchTwelveDataDetailed<T>(path, params, options);
 
   return data;
 }
@@ -252,6 +255,7 @@ async function fetchTwelveDataDetailed<T>(
   httpStatus: number;
   providerMessage: string | null;
 }> {
+  throwIfAborted(options?.signal);
   const url = new URL(`${TWELVE_DATA_BASE_URL}${path}`);
   const apiKey = getTwelveDataApiKey();
   const safeParams = { ...params };
@@ -267,6 +271,7 @@ async function fetchTwelveDataDetailed<T>(
   try {
     response = await fetch(url, { cache: "no-store", signal: options?.signal });
   } catch (error) {
+    throwIfAborted(options?.signal);
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
 
@@ -280,6 +285,8 @@ async function fetchTwelveDataDetailed<T>(
   } catch {
     throw new Error("Market data provider returned a response that was not valid JSON.");
   }
+
+  throwIfAborted(options?.signal);
 
   const providerError = getTwelveDataError(data);
 
@@ -300,6 +307,7 @@ async function fetchTwelveDataDetailed<T>(
 export async function getDailyCandles(
   symbol: string,
   days: number,
+  options?: { signal?: AbortSignal },
 ): Promise<DailyCandle[]> {
   if (!Number.isInteger(days) || days <= 0) {
     throw new Error("days must be a positive whole number.");
@@ -313,6 +321,7 @@ export async function getDailyCandles(
       outputsize: days,
       order: "ASC",
     },
+    options,
   );
 
   if (!Array.isArray(data.values)) {
@@ -340,12 +349,14 @@ export async function getIntradayCandles(
   interval: "5min" | "15min",
   start: Date,
   end: Date,
+  options?: { signal?: AbortSignal },
 ): Promise<IntradayCandle[]> {
   const result = await getIntradayCandlesWithDiagnostics(
     symbol,
     interval,
     start,
     end,
+    options,
   );
 
   return result.candles;
@@ -443,11 +454,14 @@ export async function getIntradayCandlesWithDiagnostics(
   };
 }
 
-export async function getQuote(symbol: string): Promise<MarketQuote> {
+export async function getQuote(
+  symbol: string,
+  options?: { signal?: AbortSignal },
+): Promise<MarketQuote> {
   const data = await fetchTwelveData<TwelveDataQuoteResponse>("/quote", {
     symbol: normalizeSymbol(symbol),
     interval: "1day",
-  });
+  }, options);
 
   return {
     current_price: numberField(data.close, "current price"),

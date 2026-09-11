@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build",
+    "build:scheduled-scan-runtime": "node scripts/build-scheduled-scan-runtime.mjs",
     "start": "next start",
     "lint": "eslint",
     "audit:api-publication": "node scripts/action-307f-netlify-api-publication-forensic-audit.mjs",
@@ -34,6 +35,7 @@
     "@types/pg": "8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",

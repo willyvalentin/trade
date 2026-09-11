@@ -268,6 +268,7 @@ const DEFAULT_FAST_MODE_MAX_TICKERS = 10;
 const DEFAULT_FAST_MODE_TIMEOUT_MS = 23_000;
 const MIN_SCHEDULED_TIMEOUT_MS = 5_000;
 const MAX_SCHEDULED_TIMEOUT_MS = 25_000;
+const SCHEDULED_TIMEOUT_CLEANUP_RESERVE_MS = 3_000;
 const MAX_SCHEDULED_SCAN_TICKERS = 50;
 const SCHEDULED_IN_PROGRESS_COOLDOWN_MINUTES = 4;
 
@@ -1667,12 +1668,33 @@ function buildAutomationScanObservability({
       : scanLog.indicator_source || scanLog.real_scanner_candidate_generation
         ? "available"
         : "unknown";
+  const scannerGeneration = scanLog.real_scanner_candidate_generation ?? null;
+  // A scheduled scan can truthfully complete with no published recommendations.
+  // Keep that result usable as a recovery point only when the scanner actually
+  // completed its bounded candidate coverage with current provider-backed
+  // metadata and recorded no stale-data or candidate-warning signal. A thin
+  // cache-warming sample remains incomplete rather than becoming a false
+  // recovery point. Unknown, stale, and provider-failure paths stay incomplete
+  // or degraded below.
+  const hasObservedCleanNoTrade =
+    scanLog.result === "no_high_quality_setup" &&
+    candidatesScanned !== null &&
+    candidatesScanned > 0 &&
+    providerStatus === "available" &&
+    scanLog.indicator_stale !== true &&
+    scannerGeneration?.status === "ready" &&
+    scannerGeneration.universe.candidates_generated > 0 &&
+    scannerGeneration.universe.stale_candidates === 0 &&
+    scannerGeneration.universe.missing_required_price_candidates === 0 &&
+    scannerGeneration.warnings.length === 0 &&
+    scannerGeneration.gaps.length === 0 &&
+    (scanLog.top_candidate_warnings?.length ?? 0) === 0;
   const status: ScanPipelineObservabilitySummary["status"] =
     scanLog.result === "provider_error" ||
     scanLog.result === "provider_rate_limited" ||
     scanLog.result === "openai_error"
       ? "degraded"
-      : recommendations.length > 0
+      : recommendations.length > 0 || hasObservedCleanNoTrade
         ? "healthy"
         : "incomplete";
 
@@ -3794,41 +3816,55 @@ export async function POST(request: Request) {
       });
     }
 
-    const generationPromise = generateRecommendations({
-      ownerUserId,
-      sessionType,
-      scanWindow: scanWindow.scanWindow,
-      targetCount: scheduledRuntimeConfig.grow_max_learning_mode
-        ? undefined
-        : scheduledRuntimeConfig.live_trial_fast_mode
-          ? 6
-          : undefined,
-      source: "scheduled",
-      allowPowerHourRecommendationLogging:
-        scanWindow.scanWindow === "power_hour"
-          ? powerHourTrialGate.power_hour_publish_allowed
-          : calendarFallbackAllowsScan,
-      powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
-      scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
-      growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
-      skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
-      activeScanTrace,
-    });
-    const generationResult = await Promise.race([
-      generationPromise,
-      new Promise<"scheduled_timeout">((resolve) => {
-        setTimeout(
-          () => resolve("scheduled_timeout"),
-          Math.max(
-            1,
-            scheduledRuntimeConfig.scheduled_timeout_ms -
-              elapsedMs(routeStartedAtMs),
-          ),
-        );
-      }),
-    ]);
+    const scheduledAbortController = new AbortController();
+    let scheduledTimeoutReached = false;
+    const remainingTimeoutBudgetMs = Math.max(
+      1,
+      scheduledRuntimeConfig.scheduled_timeout_ms - elapsedMs(routeStartedAtMs),
+    );
+    const scheduledAbortTimer = setTimeout(() => {
+      scheduledTimeoutReached = true;
+      scheduledAbortController.abort();
+    }, Math.max(
+      1,
+      remainingTimeoutBudgetMs - Math.min(
+        SCHEDULED_TIMEOUT_CLEANUP_RESERVE_MS,
+        Math.floor(remainingTimeoutBudgetMs / 2),
+      ),
+    ));
+    let generationResult: Awaited<ReturnType<typeof generateRecommendations>> | null = null;
 
-    if (generationResult === "scheduled_timeout") {
+    try {
+      generationResult = await generateRecommendations({
+        ownerUserId,
+        sessionType,
+        scanWindow: scanWindow.scanWindow,
+        targetCount: scheduledRuntimeConfig.grow_max_learning_mode
+          ? undefined
+          : scheduledRuntimeConfig.live_trial_fast_mode
+            ? 6
+            : undefined,
+        source: "scheduled",
+        allowPowerHourRecommendationLogging:
+          scanWindow.scanWindow === "power_hour"
+            ? powerHourTrialGate.power_hour_publish_allowed
+            : calendarFallbackAllowsScan,
+        powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
+        scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
+        growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
+        skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
+        activeScanTrace,
+        signal: scheduledAbortController.signal,
+      });
+    } catch (generationError) {
+      if (!scheduledTimeoutReached) {
+        throw generationError;
+      }
+    } finally {
+      clearTimeout(scheduledAbortTimer);
+    }
+
+    if (scheduledTimeoutReached) {
       const message =
         "Scheduled scan stopped before Netlify timeout. Partial trace returned.";
       const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
@@ -3923,6 +3959,15 @@ export async function POST(request: Request) {
         scan_run_fingerprint: null,
       });
     }
+
+    if (!generationResult) {
+      throw new RecommendationGenerationError(
+        "Scheduled scan completed without a generation result.",
+        500,
+        { persistence_error_type: "scheduled_generation_result_missing" },
+      );
+    }
+
     const generationScanLog =
       (generationResult.scan_log ?? null) as RecommendationScanLogDetails | null;
     const recommendationsCreated = generationResult.recommendations.length;

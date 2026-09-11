@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getQuote } from "@/lib/market-data";
+import { throwIfAborted } from "@/lib/operation-abort";
 import type { ScannerCandidate } from "@/lib/scanner";
 import { scannerUniverseTickers } from "@/lib/scanner-universe";
 
@@ -51,6 +52,7 @@ export type DynamicMoversDiscoveryInput = {
   maxTickers?: number | null;
   previewCount?: number | null;
   now?: Date;
+  signal?: AbortSignal;
 };
 
 const defaultMaxTickers = 25;
@@ -59,6 +61,7 @@ const defaultPreviewCount = 12;
 export async function discoverDynamicMoversDiagnostics(
   input: DynamicMoversDiscoveryInput = {},
 ): Promise<DynamicMoversDiscoverySummary> {
+  throwIfAborted(input.signal);
   const now = input.now ?? new Date();
   const enabled = process.env.TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED === "true";
 
@@ -109,7 +112,7 @@ export async function discoverDynamicMoversDiagnostics(
   const results = await Promise.all(
     symbols.map(async (ticker) => {
       try {
-        const quote = await getQuote(ticker);
+        const quote = await getQuote(ticker, { signal: input.signal });
         const gapPct = distancePct(quote.open, quote.previous_close);
         const volatilityProxyPct = distancePct(quote.high, quote.low, quote.open);
         const invalid =
@@ -148,6 +151,7 @@ export async function discoverDynamicMoversDiagnostics(
           hypothetical_scan_priority_score: score,
         } satisfies DynamicMoversDiscoveryMover;
       } catch {
+        throwIfAborted(input.signal);
         return {
           ticker,
           mover_source: "provider_error",

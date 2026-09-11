@@ -33,6 +33,7 @@ import {
   type SetupType,
 } from "@/lib/setup-types";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { throwIfAborted } from "@/lib/operation-abort";
 import { buildRecommendationOutputEnrichmentMetadata } from "@/lib/recommendation-output-enrichment";
 import {
   discoverDynamicMoversDiagnostics,
@@ -126,6 +127,7 @@ export type GenerateRecommendationsInput = {
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
+  signal?: AbortSignal;
 };
 
 export class RecommendationGenerationError extends Error {
@@ -3216,8 +3218,10 @@ export async function generateRecommendations({
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
+  signal,
 }: GenerateRecommendationsInput) {
   try {
+    throwIfAborted(signal);
     const owner = normalizeApplicationOwnerUserId(ownerUserId);
     if (!owner) {
       throw new RecommendationGenerationError(
@@ -3347,6 +3351,7 @@ export async function generateRecommendations({
           .gte("created_at", getDefaultRecommendationExpiryCutoff()),
         db.from("positions").select("ticker,status").eq("owner_user_id", owner),
       ]);
+    throwIfAborted(signal);
 
     if (settingsResult.error) {
       console.error("[recommendations/generate] settings_load_error", {
@@ -3540,7 +3545,9 @@ export async function generateRecommendations({
         ? diagnosticMaxTickers
         : scheduledMaxTickers ?? undefined,
       now: new Date(),
+      signal,
     });
+    throwIfAborted(signal);
 
     activeScanTrace?.markStage("universe", "completed");
     activeScanTrace?.updateUniverse({
@@ -3566,9 +3573,11 @@ export async function generateRecommendations({
           ? Math.min(1, scannerBaseCandidates.length)
           : typeof scheduledMaxTickers === "number"
             ? Math.min(1, scannerBaseCandidates.length)
-          : undefined,
+            : undefined,
+        signal,
       },
     );
+    throwIfAborted(signal);
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
@@ -3626,6 +3635,7 @@ export async function generateRecommendations({
     let marketRegime = neutralMarketRegimeFallback;
 
     try {
+      throwIfAborted(signal);
       marketRegime = await getMarketRegime();
     } catch (error) {
       console.error("[recommendations/generate] market_regime_error", {
@@ -3633,8 +3643,10 @@ export async function generateRecommendations({
       });
     }
 
+    throwIfAborted(signal);
     logPipeline("market_regime", marketRegime);
     await saveMarketRegimeSnapshot(marketRegime);
+    throwIfAborted(signal);
 
     const scannerRankByTicker = new Map(
       scannerCandidates.map((candidate, index) => [candidate.ticker, index]),
@@ -3926,9 +3938,11 @@ export async function generateRecommendations({
                 source: source === "scheduled" ? "scheduled" : "manual",
                 maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
                 allowFreshFetch: true,
+                signal,
               }),
           })
         : null;
+    throwIfAborted(signal);
     const referenceRefreshDiagnostics =
       referenceRefreshResult?.diagnostics ?? null;
     candidatesForOpenAI = referenceRefreshResult?.candidates ?? candidatesForOpenAI;
@@ -4131,6 +4145,7 @@ export async function generateRecommendations({
     }
 
     try {
+      throwIfAborted(signal);
       if (skipOpenAi) {
         activeScanTrace?.markStage("openai", "skipped");
         activeScanTrace?.updateOpenAi({
@@ -4157,6 +4172,7 @@ export async function generateRecommendations({
         openAiRealityGuardSummary = openAiResult.realityGuard;
       }
     } catch (openAiError) {
+      throwIfAborted(signal);
       activeScanTrace?.markStage("openai", "failed");
       activeScanTrace?.updateOpenAi({
         openai_error_type: errorType(openAiError),
@@ -4469,6 +4485,7 @@ export async function generateRecommendations({
       };
     }
 
+    throwIfAborted(signal);
     const insertResult = await db
       .from("recommendations")
       .insert(

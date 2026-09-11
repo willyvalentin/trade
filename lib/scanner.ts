@@ -8,6 +8,7 @@ import {
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -127,6 +128,7 @@ export type ScanMarketOptions = {
   source: ScannerSource;
   maxFreshProviderCalls?: number;
   activeScanTrace?: ActiveScanTraceRecorder | null;
+  signal?: AbortSignal;
 };
 
 const CACHE_TTL_MS = 45 * 60 * 1000;
@@ -225,12 +227,6 @@ function rawScannerValues(row: ScannerCacheRow) {
 
 function movingAverage(candles: DailyCandle[], length: number) {
   return round(average(candles.slice(-length).map((candle) => candle.close)));
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 }
 
 function getMaxFreshProviderCalls(options: ScanMarketOptions) {
@@ -642,9 +638,11 @@ export async function scanMarket(
   baseCandidates: ScannerCandidate[],
   options: ScanMarketOptions,
 ): Promise<ScannerCandidate[]> {
+  throwIfAborted(options.signal);
   const now = Date.now();
   const tickers = baseCandidates.map((candidate) => candidate.ticker);
   const cachedRowsByTicker = await getCachedRows(tickers);
+  throwIfAborted(options.signal);
   const candidates: ScannerCandidate[] = [];
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
   const cacheHits: string[] = [];
@@ -663,6 +661,7 @@ export async function scanMarket(
   async function attachIntradayIndicators(
     candidate: ScannerCandidate,
   ): Promise<CandidateWithIndicatorCache> {
+    throwIfAborted(options.signal);
     const allowFreshFetch =
       freshProviderCallsUsed < maxFreshProviderCalls &&
       freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN;
@@ -670,7 +669,9 @@ export async function scanMarket(
       source: options.source === "scheduled" ? "scheduled" : "manual",
       maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
       allowFreshFetch,
+      signal: options.signal,
     });
+    throwIfAborted(options.signal);
 
     if (result.source === "fresh") {
       freshProviderCallsUsed += 1;
@@ -710,6 +711,7 @@ export async function scanMarket(
   }
 
   for (const baseCandidate of baseCandidates) {
+    throwIfAborted(options.signal);
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
     const cachedValues = cachedRow ? scannerValuesFromCache(cachedRow) : null;
 
@@ -746,24 +748,31 @@ export async function scanMarket(
     }
 
     if (freshProviderCallsUsed > 0) {
-      await sleep(FRESH_CALL_DELAY_MS);
+      await waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal);
     }
 
     freshProviderCallsUsed += 1;
 
     try {
-      const candles = await getDailyCandles(baseCandidate.ticker, CANDLE_DAYS_NEEDED);
+      const candles = await getDailyCandles(
+        baseCandidate.ticker,
+        CANDLE_DAYS_NEEDED,
+        { signal: options.signal },
+      );
+      throwIfAborted(options.signal);
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: candles.length > 0 ? 1 : 0,
         empty_response_count: candles.length > 0 ? 0 : 1,
       });
       const scannerValues = calculateScannerValues(candles);
       await upsertCachedValues(baseCandidate, scannerValues);
+      throwIfAborted(options.signal);
       const { candidate } = await attachIntradayIndicators(
         buildCandidate(baseCandidate, scannerValues),
       );
       candidates.push(candidate);
     } catch (error) {
+      throwIfAborted(options.signal);
       console.error("[scanner] provider_call_error", {
         ticker: baseCandidate.ticker,
         error: normalizeUnknownError(error),
