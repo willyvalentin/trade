@@ -12,12 +12,12 @@ GitHub main as PRs #464, #465, #466 and #467 respectively. PR #468 merged the
 dedicated-staging session-secret selection. Its Ready Full CI run
 `34553013890` passed all six unchanged provider-free shards and its exact-main
 attestation `34555189908` passed for `37bbbc2e`. A separate private
-`ture-staging.netlify.app` site then served documentation-only staging revision
-`cd3a7bec`, retaining the integrated main revision, staging-only scheduler and
-dedicated-session barriers. The Git deployment `6aa3757687453500090f3de7` is
-ready. This is not a production deployment; the public production release
-remains unchanged, while the new main candidate remains unpublished behind its
-deployment lock.
+`ture-staging.netlify.app` site then served the staging-only evidence revisions,
+retaining the integrated main revision, staging-only scheduler and
+dedicated-session barriers. Its current rollback revision `4295664e` is ready
+as Git deployment `6aa37ac5db71a40008c4879a`. This is not a production
+deployment; the public production release remains unchanged, while the new
+main candidate remains unpublished behind its deployment lock.
 
 ### Now
 
@@ -35,7 +35,7 @@ password, production, a provider or a broker to bypass this boundary.
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and authenticated private-staging dashboard readback | Unverified: MVP-01a and MVP-01b are verified; loading and empty states are observed, but a controlled failed-dashboard state remains |
+| MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and authenticated private-staging dashboard readback | Unverified: MVP-01a and MVP-01b are verified; loading and empty states are observed. The one bounded MVP-01c attempt stayed normal because its deployment had already built before the Functions-only flag was added; it was fully rolled back without a controlled failed-dashboard observation. |
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
@@ -59,7 +59,7 @@ rows still need behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: authenticated readback showed the loading label `Refreshing…` and the clear empty no-trade explanation. The former direct `401` was the private Netlify visitor gate, not application-login evidence. A controlled failed-dashboard state is still untested. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | unverified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: authenticated readback showed the loading label `Refreshing…` and the clear empty no-trade explanation. A later single, staging-only query read against temporary revision `00015d14` remained normal because that deploy had built before the temporary Functions-only flag was added; it did not observe a failure state. The flag and all probe code were removed and rollback deploy `6aa37ac5db71a40008c4879a` returned to the normal clean no-trade state. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | verified | Private `ture-staging` revision `eec9cac8`, 2026-09-11: authenticated recommendation-details readback for a labelled synthetic plan showed entry 100–100.5, stop 95, Targets 1/2 at 105/110, 2R, thesis, invalidation and explicit unavailable-data/freshness warnings before any manual-trade action. The recommendation was then deleted and a reload returned to the clean no-trade state. No provider, broker or production action occurred. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | verified | Private `ture-staging` revision `d1cb32f4`, 2026-09-11: authenticated dashboard readback showed `Day trade window · Closed` and `Data is not clean enough right now`, with no actionable handoff fixture. No provider, broker or production operation occurred. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | verified | Private `ture-staging` revision `cd3a7bec`, 2026-09-11: a 50-minute labelled fixture showed `STALE DATA — REVALIDATE BEFORE TRADE` and `Revalidate Setup`, with detail guidance that normal validation still controls; a two-hour expired fixture was not rendered as an actionable card. A separate labelled local scheduled-scan record rendered `Market data provider is unavailable` with no guessed setup. All fixtures were then exactly deleted and the final reload returned to the clean no-trade state. No provider, broker or production action occurred. |
@@ -125,11 +125,25 @@ blocker_or_fallback: The prior direct 401 is now attributed to Netlify's private
 result_and_remaining_gap: Staging isolation, authenticated dashboard access, complete plan/risk presentation, stale/expired/provider-unavailable clarity, no-trade clarity, durable synthetic position lifecycle, retry protection, history/statistics reconciliation and truthful incomplete-data presentation are verified. The fixture cleanup returned zero matching recommendations, positions, position updates and scheduled-scan records, and a final authenticated reload restored the clean no-trade state. No MVP parent criterion is release-accepted yet.
 ```
 
+#### MVP-01c bounded staging probe and rollback — 2026-09-11
+
+```text
+acceptance_id: MVP-01c
+user_behavior_or_reproduced_failure: A controlled failed-dashboard read was still missing. The private staging dashboard already showed its loading and clear no-trade states, but no runtime failure had been observed.
+smallest_change_and_reused_components: Reused the previously rollbacked exact-origin probe implementation only on the `staging` branch. It could return the existing sanitized `503 application_data_unavailable` response only after an authenticated session, when all four conditions held: a non-secret enabled flag, dedicated-staging deployment context, canonical `ture-staging.netlify.app` origin and the explicit one-read query parameter. No code reached main.
+behavior_check_and_environment: Local Next 16.3.4 production build completed and the two focused dashboard suites passed 8/8. Temporary private staging deploy `6aa379739547a400085d04f4` for `00015d14` was ready. A single authenticated query read remained in the ordinary truthful no-trade state rather than reaching the failure branch. The deployment had built before the temporary Functions-only variable was added, so this is not failure-state evidence and does not determine the behavior of a correctly ordered Build-and-Functions probe. The flag was removed immediately, the code was reverted in `4295664e`, rollback deploy `6aa37ac5db71a40008c4879a` became ready, and a final authenticated normal read returned to the clean no-trade state.
+external_effects_and_existing_authority: Only the private `ture-staging` site and its staging branch were touched. The non-secret flag existed only in that site's production context and Functions scope, then was removed. No production site, production database, provider, broker, secret or synthetic business record was touched.
+blocker_or_fallback: The consumed one-read scope cannot be retried. A future proof needs a separately bounded staging authorization: set the non-secret flag before a temporary Build-and-Functions deploy, allow one new read, then perform the same immediate flag/code rollback. Do not widen this failed attempt silently.
+result_and_remaining_gap: The staging environment is clean and the probe is absent, but MVP-01c remains unverified because the controlled failed state was not actually observed. MVP-01 remains unaccepted at release scope.
+```
+
 ### Next — ordered, next product slice
 
-1. Verify MVP-01c's controlled failed-dashboard state using an explicitly
-   authorized, reversible staging-only trigger; do not reuse a past one-shot
-   probe authorization or weaken the private visitor/authentication boundary.
+1. Verify MVP-01c's controlled failed-dashboard state only under a newly
+   bounded, reversible staging-only scope that explicitly permits setting the
+   flag before a temporary Build-and-Functions deploy and one new read. Do not reuse the consumed
+   Functions-only attempt, weaken the private visitor/authentication boundary,
+   or retain a probe after verification.
 2. Verify MVP-05's operational evidence separately: a supported licensed-data
    scan, freshness/missed-run readback and truthful outcome completion remain
    blocked on actual permitted provider evidence, not on staging access.
@@ -147,7 +161,7 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c failed-state proof | Unverified, not blocked: private `ture-staging` at `d1cb32f4` has authenticated dashboard evidence, but no controlled failed-dashboard-state observation | Use a new explicitly authorized, reversible staging-only trigger; preserve the private visitor gate and exact-origin session boundary. |
+| MVP-01c failed-state proof | Unverified, not a product-runtime defect: temporary revision `00015d14` was built before its Functions-only flag was added, so its one read could not activate the probe; flag and probe were removed in `4295664e` | Use a newly authorized, reversible staging trigger: set the non-secret flag before a Build-and-Functions-scoped deploy, then allow one fresh read; preserve the private visitor gate and exact-origin session boundary. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
