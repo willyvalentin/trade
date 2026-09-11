@@ -120,6 +120,18 @@ current until a new successful scan exists. One ordinary `REFRESH` readback
 preserved that state and, as the UI declares, read stored data without starting
 a scan. This is isolated staging behavior only, not a release or production
 acceptance result.
+
+MVP-06a then identified the private candidate `b5cfd68d` and prepared exactly
+one labelled synthetic lifecycle fixture, including a fresh local staging
+indicator cache so no provider request would be needed for the manual UI flow.
+Before the fixture could be displayed, Netlify returned `Site not available`:
+the separate private `ture-staging` site had been paused after reaching its
+usage limit. The attempted flow was stopped before any manual position action,
+provider call or broker action. Its exact synthetic recommendation, snapshot,
+cache row and temporary official-batch membership were immediately removed;
+aggregate readback confirmed zero remaining fixture rows, links or positions.
+MVP-06a is therefore blocked only on resuming the already-configured private
+staging site, not on data, identity, credentials or product behavior.
 No broker or production action has occurred from the restored schedules. The
 earlier direct `401` was Netlify's private visitor gate on a non-browser
 request, not an application credential mismatch. Do not use the generic
@@ -134,7 +146,7 @@ password, production or a broker to bypass this boundary.
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; scan, recovery presentation and attributable outcome evidence are observed | MVP-05a/05b/05c verified in isolated staging: the natural 17:15 UTC scan completed/healthy with one accepted recommendation; the dashboard then distinguished that last-successful run from a later stale run requiring review; and the natural 18:45 UTC bundled outcome run retained three attributable `neither_hit` outcomes for its 15m/30m/60m horizons. Polygon confirms calendar metadata only, not a higher quote-discovery budget. No manual bypass. |
-| MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
+| MVP-06 | Private candidate `b5cfd68d` is identified; its first synthetic UI journey was safely rolled back before any action when the private site was paused | Blocked: resume `ture-staging`, then repeat the same-candidate journey; applicable release verification and supervised market session remain after it |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
 verification baseline, not 0% implemented. Prior engineering remains reusable.
@@ -144,7 +156,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Current acceptance coverage: **15/18 verified for the new MVP candidate; 3
-unverified, 0 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -166,7 +178,7 @@ rows still need behavior evidence.
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | verified | Private `ture-staging`, 2026-09-11: the natural 17:15 UTC scan recorded HTTP 200, one raw candidate, one ranked/selected/built/published recommendation and `recommendations_created=1`. Its persisted run is `completed/healthy` with one scanned, one accepted and zero incomplete candidates. This follows cancellation revision `91615b69` and complete-coverage guard `26b50ad0`; the prior 16:00 timeout is retained as historical evidence, while later natural cadences have no timeout. Runtime evidence confirms Twelve Data quote discovery and Polygon-backed calendar metadata under the existing one-fresh-call-per-cadence bound. No manual trigger, broker, production or provider-budget expansion occurred. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | verified | Private `ture-staging` deployment for `069a81b4`, 2026-09-11: an authenticated Engine Insights → Advanced scan diagnostics readback displayed `Last Successful Scan` for the natural 17:15 UTC completed/healthy run, together with a later stale latest run, `Runs Needing Review`, and the explicit `Latest scan needs review` recovery warning. The warning correctly says to wait for a new successful scan before treating the prior result as current. One ordinary `REFRESH` readback retained the same stored history and did not start a scan. This verifies the user-visible last-success/freshness and degraded/recovery behavior without a fabricated failure, manual scan, provider call, broker action or production effect. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | verified | Private `ture-staging`, ready deploy `6aa44a6d462970000850602f` for `513abe1b`, 2026-09-11: the natural 18:45 UTC scheduled outcome run created exactly three outcomes for one attributable snapshot — one each for 15m, 30m and 60m — all truthfully classified `neither_hit`. The internal bundled route avoided the private visitor boundary; no manual trigger, broker, production or provider-budget expansion occurred. |
-| MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | blocked | Private `ture-staging` candidate `b5cfd68d` was identified. Its one synthetic fixture was restored with zero residual rows when Netlify paused the site before the UI journey could begin. Resume that site, then repeat the same journey without a provider or broker call. |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
 
@@ -196,8 +208,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 15/18 (+1 from the prior 14/18 snapshot): prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c, MVP-04a/04b/04c and MVP-05a/05b/05c scan, recovery-presentation and outcome evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; MVP-05a/05b/05c are verified in isolated staging. The next selected product slice is MVP-06a, which must identify one candidate and repeat the complete manual journey without claiming production evidence. | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | None in the active delivery; waiting for the next natural active-window cadence is an external time condition, not a technical blocker | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; MVP-05a/05b/05c are verified in isolated staging. MVP-06a is selected but paused before its UI journey because the separate private site is unavailable. | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-06a, 2026-09-11: Netlify paused the private `ture-staging` site after it reached its usage limit. The fixture was fully removed; resuming the site is the only recovery action. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 6–16 active hours: MVP-06 candidate journey and applicable release checks; supervised market-session evidence has an external market-window dependency | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -233,10 +245,11 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 
 ### Next — ordered, next product slice
 
-1. Start MVP-06a by identifying the candidate and repeating the complete
-   owner-bound manual journey in private staging. Preserve the evidence
-   boundary: it may verify candidate behavior, but cannot claim production or
-   release acceptance.
+1. Resume the separate private `ture-staging` site, then restart MVP-06a on
+   the already identified candidate `b5cfd68d`: repeat the complete owner-bound
+   manual journey using one fresh labelled synthetic fixture and a cache-only
+   validation path. Preserve the evidence boundary: it may verify candidate
+   behavior, but cannot claim production or release acceptance.
 2. After that journey, assess MVP-06b's applicable checks and deployment
    identity. A production smoke remains out of scope unless separately
    authorized; do not substitute a staging readback for it.
@@ -459,6 +472,18 @@ behavior_check_and_environment: Private `ture-staging` deployment for `069a81b4`
 external_effects_and_existing_authority: The check used the existing private authenticated staging session and a read-only dashboard refresh. It created no synthetic record and made no manual scan, provider call, broker action, production change or secret read.
 blocker_or_fallback: None for the isolated staging checkpoint. A compatible release candidate, any production smoke and the supervised market-session check remain separate MVP-06 work.
 result_and_remaining_gap: MVP-05b is verified in isolated staging. All three MVP-05 behavior checkpoints now have bounded staging evidence, while the parent MVP-05 criterion remains unaccepted at release scope.
+```
+
+#### MVP-06a private staging availability rollback — 2026-09-11
+
+```text
+acceptance_id: MVP-06a
+user_behavior_or_reproduced_failure: The next acceptance journey needs one current, owner-bound synthetic recommendation to appear in the private dashboard so the normal manual open, reload, partial-close, close and history/statistics path can be exercised without a market or broker action.
+smallest_change_and_reused_components: No application code changed. On the already-ready private candidate `b5cfd68d`, one explicitly labelled staging-only recommendation was temporarily joined to the active official batch with its own snapshot. A fresh synthetic intraday-cache entry was added for only that ticker, so the existing validation route would read cache rather than request a provider.
+behavior_check_and_environment: Before the browser could display the fixture, a normal authenticated navigation returned Netlify's `Site not available` page: the separate private `ture-staging` site had been paused after reaching its usage limit. The journey was not started and is not claimed as behavior evidence. The recovery transaction removed exactly one recommendation, one snapshot, one cache row and one batch membership; aggregate readback then reported zero residual fixture recommendations, snapshots, cache rows, batch links and positions.
+external_effects_and_existing_authority: Staging only. No provider request, broker action, production site/database action, production deploy or secret read occurred.
+blocker_or_fallback: Resume the already-configured private `ture-staging` site, verify its candidate revision, then repeat this isolated cache-only manual journey with a fresh fixture. Do not substitute the earlier fixture preparation or a production readback for the acceptance check.
+result_and_remaining_gap: MVP-06a remains blocked and unverified. The test harness and cleanup boundary are now proven; only the private site's availability prevents the actual user journey.
 ```
 
 #### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
