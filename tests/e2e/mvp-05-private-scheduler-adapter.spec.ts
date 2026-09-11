@@ -30,6 +30,33 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(scheduledFunction).not.toContain("DEPLOY_PRIME_URL");
   });
 
+  test("can make published staging schedules inert before secrets or external work", async () => {
+    const scheduledScan = await source("netlify/functions/scheduled-scan.ts");
+    const scheduledOutcome = await source(
+      "netlify/functions/scheduled-outcome-evaluation.ts",
+    );
+
+    for (const scheduledFunction of [scheduledScan, scheduledOutcome]) {
+      expect(scheduledFunction).toContain(
+        'const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS"',
+      );
+      expect(scheduledFunction).toContain(
+        'Netlify.env.get(scheduledFunctionsDisableFlag) === "true"',
+      );
+      expect(scheduledFunction).toContain("if (scheduledExecutionIsDisabled())");
+      expect(scheduledFunction).toContain("return new Response(null, { status: 204 })");
+    }
+
+    expect(scheduledScan.indexOf("if (scheduledExecutionIsDisabled())")).toBeLessThan(
+      scheduledScan.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
+    );
+    expect(
+      scheduledOutcome.indexOf("if (scheduledExecutionIsDisabled())"),
+    ).toBeLessThan(
+      scheduledOutcome.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
+    );
+  });
+
   test("builds the isolated runtime with Next's server-only condition", async () => {
     const builder = await source("scripts/build-scheduled-scan-runtime.mjs");
     const netlifyConfig = await source("netlify.toml");

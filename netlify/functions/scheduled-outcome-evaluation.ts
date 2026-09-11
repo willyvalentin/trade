@@ -16,6 +16,11 @@ const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
 const knownOutcomeStatuses = new Set(["completed", "partial", "blocked", "failed"]);
 const runtimeRequire = createRequire(__filename);
+const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS";
+
+function scheduledExecutionIsDisabled() {
+  return Netlify.env.get(scheduledFunctionsDisableFlag) === "true";
+}
 
 function finiteCount(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0
@@ -106,6 +111,13 @@ async function invokeScheduledOutcomeRoute({
 }
 
 export default async function handler() {
+  // Keep a published staging candidate completely inert when explicitly
+  // disabled: no credentials, database writes, or outcome-provider work.
+  if (scheduledExecutionIsDisabled()) {
+    console.log("[scheduled-outcome-evaluation] Execution disabled by environment.");
+    return new Response(null, { status: 204 });
+  }
+
   const firedAtUtc = new Date().toISOString();
   const automationSecret = process.env.AUTOMATION_SECRET;
   const attemptFingerprint = `scheduled_outcome_evaluation_${stableHash(

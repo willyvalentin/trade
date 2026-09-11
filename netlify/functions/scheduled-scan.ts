@@ -13,6 +13,11 @@ type ScheduledScanRouteModule = {
 };
 
 const runtimeRequire = createRequire(__filename);
+const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS";
+
+function scheduledExecutionIsDisabled() {
+  return Netlify.env.get(scheduledFunctionsDisableFlag) === "true";
+}
 
 async function invokeScheduledScanRoute({
   automationSecret,
@@ -97,6 +102,14 @@ async function upsertScheduledScanAttempt(record: Record<string, unknown>) {
 }
 
 export default async function handler() {
+  // An explicit environment switch can make a published non-production site
+  // inert before it reads credentials, writes an attempt record, or reaches a
+  // market-data provider. Its absence preserves the established schedule.
+  if (scheduledExecutionIsDisabled()) {
+    console.log("[scheduled-scan] Execution disabled by environment.");
+    return new Response(null, { status: 204 });
+  }
+
   const firedAtUtc = new Date().toISOString();
   const attemptFingerprint = `scheduled_scan_attempt_${stableHash(
     `netlify_scheduled_function|${firedAtUtc}`,
