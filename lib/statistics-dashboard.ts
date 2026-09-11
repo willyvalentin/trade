@@ -272,6 +272,40 @@ function effectiveR(trade: StatisticsTradeInput) {
   return finiteNumber(trade.rMultiple);
 }
 
+function recordedRemainingShares(trade: StatisticsTradeInput) {
+  return (
+    finiteNumber(trade.remainingShares) ??
+    finiteNumber(trade.executionMetadata?.remaining_shares)
+  );
+}
+
+function recordedPartialStatus(trade: StatisticsTradeInput) {
+  return (
+    trade.partialPositionStatus ??
+    trade.executionMetadata?.partial_position_status ??
+    null
+  );
+}
+
+/**
+ * Preserve incomplete lifecycle rows for review, but do not let a partial or
+ * contradictory close alter cumulative or aggregate performance.
+ */
+function isMetricEligibleClosedTrade(trade: StatisticsTradeInput) {
+  const partialStatus = recordedPartialStatus(trade);
+  const remainingShares = recordedRemainingShares(trade);
+
+  return (
+    partialStatus !== "partially_closed" &&
+    partialStatus !== "invalid" &&
+    (remainingShares === null || remainingShares === 0)
+  );
+}
+
+function metricEligibleClosedTrades(trades: StatisticsTradeInput[]) {
+  return trades.filter(isMetricEligibleClosedTrade);
+}
+
 function timestampMs(value: string | null | undefined) {
   if (!value) {
     return null;
@@ -432,45 +466,46 @@ export function filterTradesByTimeRange(
 export function calculateStatisticsMetrics(
   trades: StatisticsTradeInput[],
 ): StatisticsMetricSummary {
-  const pnlValues = trades
+  const metricTrades = metricEligibleClosedTrades(trades);
+  const pnlValues = metricTrades
     .map(effectivePnl)
     .filter((value): value is number => value !== null);
   const realizedPnlBasis = determineAggregateRealizedPnlBasis(
-    trades.map((trade) => ({
+    metricTrades.map((trade) => ({
       pnl: effectivePnl(trade),
       realizedPnlBasis: trade.executionMetadata?.realized_pnl_basis,
     })),
   );
-  const rValues = trades
+  const rValues = metricTrades
     .map(effectiveR)
     .filter((value): value is number => value !== null);
-  const outcomes = trades.map(tradeOutcome);
+  const outcomes = metricTrades.map(tradeOutcome);
   const winners = outcomes.filter((outcome) => outcome === "winner").length;
   const losers = outcomes.filter((outcome) => outcome === "loser").length;
   const breakeven = outcomes.filter((outcome) => outcome === "breakeven").length;
-  const winningR = trades
+  const winningR = metricTrades
     .filter((trade) => tradeOutcome(trade) === "winner")
     .map(effectiveR)
     .filter((value): value is number => value !== null);
-  const losingR = trades
+  const losingR = metricTrades
     .filter((trade) => tradeOutcome(trade) === "loser")
     .map(effectiveR)
     .filter((value): value is number => value !== null);
-  const winningPnl = trades
+  const winningPnl = metricTrades
     .filter((trade) => tradeOutcome(trade) === "winner")
     .map(effectivePnl)
     .filter((value): value is number => value !== null);
-  const losingPnl = trades
+  const losingPnl = metricTrades
     .filter((trade) => tradeOutcome(trade) === "loser")
     .map(effectivePnl)
     .filter((value): value is number => value !== null);
   const grossProfit = sum(pnlValues.filter((value) => value > 0));
   const grossLoss = Math.abs(sum(pnlValues.filter((value) => value < 0)));
-  const dailySeries = buildDailyPnlSeries(trades);
+  const dailySeries = buildDailyPnlSeries(metricTrades);
   const dailyPnlValues = dailySeries.map((point) => point.pnl);
   const dailyGains = dailyPnlValues.filter((value) => value > 0);
   const dailyLosses = dailyPnlValues.filter((value) => value < 0);
-  const holdMinutes = trades
+  const holdMinutes = metricTrades
     .map((trade) => {
       const opened = timestampMs(trade.openedAt);
       const closed = timestampMs(trade.closedAt);
@@ -480,7 +515,7 @@ export function calculateStatisticsMetrics(
     })
     .filter((value): value is number => value !== null);
   const uniqueTradeDays = new Set(
-    trades
+    metricTrades
       .filter((trade) => tradeTimestamp(trade) !== null)
       .map((trade) => dateKey(trade.closedAt ?? trade.openedAt, new Date())),
   ).size;
@@ -489,8 +524,9 @@ export function calculateStatisticsMetrics(
     realizedPnl: pnlValues.length > 0 ? sum(pnlValues) : null,
     realizedPnlBasis,
     totalR: rValues.length > 0 ? sum(rValues) : null,
-    winRate: trades.length > 0 ? (winners / trades.length) * 100 : null,
-    trades: trades.length,
+    winRate:
+      metricTrades.length > 0 ? (winners / metricTrades.length) * 100 : null,
+    trades: metricTrades.length,
     winners,
     losers,
     breakeven,
@@ -514,7 +550,7 @@ export function calculateStatisticsMetrics(
     maxDailyGain: dailyGains.length > 0 ? Math.max(...dailyGains) : null,
     maxDailyLoss: dailyLosses.length > 0 ? Math.min(...dailyLosses) : null,
     tradeFrequencyPerDay:
-      uniqueTradeDays > 0 ? trades.length / uniqueTradeDays : null,
+      uniqueTradeDays > 0 ? metricTrades.length / uniqueTradeDays : null,
   };
 }
 
@@ -567,7 +603,7 @@ export function buildDailyPnlSeries(
 ): StatisticsSeriesPoint[] {
   const grouped = new Map<string, StatisticsSeriesPoint>();
 
-  for (const trade of trades) {
+  for (const trade of metricEligibleClosedTrades(trades)) {
     const pnl = effectivePnl(trade);
     const r = effectiveR(trade);
 
@@ -601,7 +637,7 @@ export function buildCumulativePnlSeries(
   let cumulativePnl = 0;
   let cumulativeR = 0;
 
-  return trades
+  return metricEligibleClosedTrades(trades)
     .filter((trade) => effectivePnl(trade) !== null || effectiveR(trade) !== null)
     .sort((first, second) => (tradeTimestamp(first) ?? 0) - (tradeTimestamp(second) ?? 0))
     .map((trade, index) => {
@@ -627,7 +663,7 @@ export function buildCumulativeRSeries(
 ): StatisticsCumulativePoint[] {
   let cumulativeR = 0;
 
-  return trades
+  return metricEligibleClosedTrades(trades)
     .filter((trade) => effectiveR(trade) !== null)
     .sort((first, second) => (tradeTimestamp(first) ?? 0) - (tradeTimestamp(second) ?? 0))
     .map((trade, index) => {
@@ -649,13 +685,14 @@ export function buildCumulativeRSeries(
 export function buildOutcomeBreakdown(
   trades: StatisticsTradeInput[],
 ): StatisticsOutcomeBreakdown {
-  const outcomes = trades.map(tradeOutcome);
+  const metricTrades = metricEligibleClosedTrades(trades);
+  const outcomes = metricTrades.map(tradeOutcome);
 
   return {
     winners: outcomes.filter((outcome) => outcome === "winner").length,
     losers: outcomes.filter((outcome) => outcome === "loser").length,
     breakeven: outcomes.filter((outcome) => outcome === "breakeven").length,
-    total: trades.length,
+    total: metricTrades.length,
   };
 }
 
@@ -664,7 +701,7 @@ export function buildSetupTypePerformance(
 ): StatisticsSetupTypePerformance[] {
   const grouped = new Map<string, StatisticsTradeInput[]>();
 
-  for (const trade of trades) {
+  for (const trade of metricEligibleClosedTrades(trades)) {
     const setupType = trade.setupType?.trim() || "UNKNOWN";
     grouped.set(setupType, [...(grouped.get(setupType) ?? []), trade]);
   }
@@ -703,7 +740,7 @@ export function buildSetupTypePerformance(
 }
 
 function buildRecentTrades(trades: StatisticsTradeInput[]) {
-  return [...trades]
+  return metricEligibleClosedTrades(trades)
     .sort((first, second) => (tradeTimestamp(second) ?? 0) - (tradeTimestamp(first) ?? 0))
     .slice(0, 8)
     .map((trade): StatisticsRecentTrade => {
@@ -815,7 +852,9 @@ function buildPeriodRiskSummary({
   now: Date;
 }): StatisticsPeriodRiskSummary {
   const todayKey = dateKey(now.toISOString(), now);
-  const todayClosedTrades = allClosedTrades.filter(
+  const metricClosedTrades = metricEligibleClosedTrades(allClosedTrades);
+  const metricFilteredTrades = metricEligibleClosedTrades(filteredTrades);
+  const todayClosedTrades = metricClosedTrades.filter(
     (trade) => dateKey(trade.closedAt ?? trade.openedAt, now) === todayKey,
   );
   const todayOpenedTrades =
@@ -829,7 +868,7 @@ function buildPeriodRiskSummary({
   const todayRValues = todayClosedTrades
     .map(effectiveR)
     .filter((value): value is number => value !== null);
-  const weekTrades = filterTradesByTimeRange(allClosedTrades, "this_week", now);
+  const weekTrades = filterTradesByTimeRange(metricClosedTrades, "this_week", now);
   const weekPnlValues = weekTrades
     .map(effectivePnl)
     .filter((value): value is number => value !== null);
@@ -854,9 +893,9 @@ function buildPeriodRiskSummary({
       realized_pnl: weekPnlValues.length > 0 ? sum(weekPnlValues) : null,
       realized_r: weekRValues.length > 0 ? sum(weekRValues) : null,
     },
-    demo_trade_count: filteredTrades.filter((trade) => trade.isDemo === true)
+    demo_trade_count: metricFilteredTrades.filter((trade) => trade.isDemo === true)
       .length,
-    real_trade_count: filteredTrades.filter((trade) => trade.isDemo !== true)
+    real_trade_count: metricFilteredTrades.filter((trade) => trade.isDemo !== true)
       .length,
   };
 }

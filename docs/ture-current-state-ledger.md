@@ -233,6 +233,32 @@ blocker_or_fallback: This source correction does not establish a durable user jo
 result_and_remaining_gap: Incomplete remaining-share evidence can no longer look like a small, routine deviation. Users are explicitly directed to manual review rather than receiving an overconfident plan-adherence grade.
 ```
 
+#### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a
+user_behavior_or_reproduced_failure: A closed-trade details view showed realized entry and exit prices, but its frozen planning snapshot omitted the original entry, stop, target and capture time. A reviewer therefore had to infer the plan from aggregate risk/reward fields instead of seeing the preserved values alongside the result.
+smallest_change_and_reused_components: Reused the existing immutable trade-planning snapshot and closed-history detail grid. The Planning Snapshot now renders its stored Plan Entry, Plan Stop, Plan Target and Plan Captured values; missing values continue to use the existing unavailable formatting. No plan is recomputed, and no schema, route, persistence, provider, broker or production behavior changed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: `tests/e2e/mvp-04-plan-review-completeness.spec.ts` now proves the snapshot retains the three frozen prices and timestamp and that the closed-history surface renders all four. Together with MVP-04 fee-basis and aggregate-basis regressions, targeted Playwright coverage passes 9/9. Scoped ESLint, TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. The test values are local and synthetic; no credential, database row, provider, deployment, broker or production system was contacted.
+blocker_or_fallback: This source correction does not establish a supported manual entry → close → reload journey. MVP-04a remains unverified until that journey demonstrates the durable values in an identified supported environment.
+result_and_remaining_gap: A reviewer can now compare the stored trade plan with realized values without guessing at the original stop, target or capture time. The broader history acceptance criterion still requires supported lifecycle evidence.
+```
+
+#### MVP-04 invalid negative-share history outcome — 2026-09-10 (local verified)
+
+```text
+acceptance_id: MVP-04a, MVP-04c
+user_behavior_or_reproduced_failure: The plan-versus-actual panel already flagged a negative remaining-share value for review, but the History dashboard classified the same impossible record from its positive PnL as a winner. It also treated a remaining quantity larger than the recorded entry as an ordinary partial close, and could retain a fully-closed status despite a positive remainder. The invalid History filter could not find those records because their stored partial status still said fully closed. Separately, Statistics still included partial or contradictory closed-history rows in total PnL, win rate and cumulative curves.
+smallest_change_and_reused_components: Reused the existing History outcome, partial-status, plan-versus-actual review and Statistics metric contracts. A finite negative remainder, or a positive remainder larger than the recorded actual entry quantity (falling back to the frozen snapshot and saved trade quantity), now classifies the history result and partial status as invalid with one explicit warning; the plan review independently produces its existing needs-review/C result with the same explicit reason. Both views prefer the stored actual entry over a conflicting planning snapshot. A positive valid remainder now derives the existing partially-closed status instead of preserving an incompatible fully-closed label. Statistics retain incomplete rows for review surfaces but exclude them from aggregate PnL, R, win rate, daily/cumulative series, setup performance, recent performance and period-risk metrics until their close record is coherent. Zero and bounded positive values retain their ordinary full-close and partial paths. No schema, route, persistence, provider, broker or production behavior changed.
+active_hour_budget: Local MVP discovery/fix slice; exact active hours not tracked.
+behavior_check_and_environment: New `tests/e2e/mvp-04-history-invalidity.spec.ts` proves negative counts and remainders exceeding recorded entry shares cannot become winner or ordinary partial results, bounded positive remainders retain the partial path, valid zero closes remain ordinary and invalid filtering retains both impossible records. It also proves the stored actual entry takes precedence over a conflicting snapshot. The plan-review suite proves the same impossible counts and conflicting-source case produce explicit needs-review/C results. It also proves partial/invalid close rows do not alter aggregate PnL, R, win rate, daily/cumulative series or outcome totals. Together with MVP-04 plan-review, fee-basis and aggregate-basis checks, targeted Playwright coverage passes 17/17. Scoped ESLint, TypeScript no-emit and diff checks pass.
+external_effects_and_existing_authority: None. Tests use local synthetic history inputs only; no credential, database row, provider, deployment, broker or production system was contacted.
+blocker_or_fallback: This only makes impossible historical metadata truthful and reviewable; it cannot repair an already persisted row or prove a supported manual lifecycle. MVP-04a and MVP-04c remain unverified until a durable supported entry → close → reload journey is observed.
+result_and_remaining_gap: A negative or over-counted remaining-share record can no longer look like a successful or ordinary partial trade, and a valid partial remainder no longer retains an incompatible fully-closed label. Incomplete/contradictory rows also cannot inflate performance metrics while they await review. The product now fails visibly toward review rather than inventing a favorable outcome. MVP-04a and MVP-04c still require a durable supported entry → close → reload journey.
+```
+
 #### MVP-03 owner-bound close replay containment — 2026-09-10 (local verified)
 
 ```text
