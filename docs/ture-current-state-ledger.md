@@ -1,6 +1,6 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-11 MVP delivery verification
+## Active Now / Next / Blocked — 2026-09-12 MVP delivery verification
 
 This is the active work queue under the [master roadmap](./ture-master-roadmap.md).
 The user's 2026-09-09 product-direction decision supersedes the work selection
@@ -121,27 +121,20 @@ preserved that state and, as the UI declares, read stored data without starting
 a scan. This is isolated staging behavior only, not a release or production
 acceptance result.
 
-MVP-06a then identified the private candidate `b5cfd68d` and prepared exactly
-one labelled synthetic lifecycle fixture, including a fresh local staging
-indicator cache so no provider request would be needed for the manual UI flow.
-Before the fixture could be displayed, Netlify returned `Site not available`:
-the separate private `ture-staging` site had been paused after reaching its
-usage limit. The attempted flow was stopped before any manual position action,
-provider call or broker action. Its exact synthetic recommendation, snapshot,
-cache row and temporary official-batch membership were immediately removed;
-aggregate readback confirmed zero remaining fixture rows, links or positions.
-MVP-06a is therefore blocked only on resuming the already-configured private
-staging site, not on data, identity, credentials or product behavior.
-Netlify's site API still reports `disabled=true` with `Account usage exceeded
-for credits`; its exact `enableSite` request returned HTTP 422 even after the
-team metadata reported fresh included credits. This is a Netlify account-state
-reconciliation issue: do not retry the same API call. Resolve it in the
-Netlify Usage & billing dashboard (or with Netlify support), then confirm the
-site is enabled before recreating the fixture.
-No broker or production action has occurred from the restored schedules. The
-earlier direct `401` was Netlify's private visitor gate on a non-browser
-request, not an application credential mismatch. Do not use the generic
-password, production or a broker to bypass this boundary.
+MVP-06a identified the private candidate `b5cfd68d` and its first fixture was
+removed exactly when the separate site paused. That historical site-capacity
+block is now resolved: on 2026-09-12 the canonical staging URL returned the
+expected private-visitor `401`, which proves the Netlify front door is online
+without weakening its access boundary. The already-authenticated in-app
+browser initially rendered a prior, expired MVP-06A test card, but its reload
+then failed locally with `ERR_SOCKET_NOT_CONNECTED`. A fresh aggregate
+staging-database readback found no matching active MVP-06A fixture, so neither
+the retained browser view nor the old fixture can be counted as a new journey.
+No provider, broker, production or new synthetic-record action was taken.
+MVP-06a is now blocked on stable authenticated browser transport (and then one
+fresh, exactly-cleaned synthetic fixture), not on Netlify capacity, the
+staging identity, credentials or product code. Do not use a production route,
+generic password, provider request or broker action to bypass that boundary.
 
 ### MVP acceptance board
 
@@ -152,7 +145,7 @@ password, production or a broker to bypass this boundary.
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; scan, recovery presentation and attributable outcome evidence are observed | MVP-05a/05b/05c verified in isolated staging: the natural 17:15 UTC scan completed/healthy with one accepted recommendation; the dashboard then distinguished that last-successful run from a later stale run requiring review; and the natural 18:45 UTC bundled outcome run retained three attributable `neither_hit` outcomes for its 15m/30m/60m horizons. Polygon confirms calendar metadata only, not a higher quote-discovery budget. No manual bypass. |
-| MVP-06 | Private candidate `b5cfd68d` is identified; its first synthetic UI journey was safely rolled back before any action when the private site was paused | Blocked: resume `ture-staging`, then repeat the same-candidate journey; applicable release verification and supervised market session remain after it |
+| MVP-06 | Private candidate `b5cfd68d` is identified; the former site-capacity block is resolved, but the fresh authenticated UI readback is not yet available | Blocked: restore stable authenticated browser transport, then repeat one exact-cleaned same-candidate synthetic journey; applicable release verification and supervised market session remain after it |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
 verification baseline, not 0% implemented. Prior engineering remains reusable.
@@ -162,7 +155,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Current acceptance coverage: **15/18 verified for the new MVP candidate; 3
-unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** This
+unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** The
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -214,8 +207,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 15/18 (+1 from the prior 14/18 snapshot): prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c, MVP-04a/04b/04c and MVP-05a/05b/05c scan, recovery-presentation and outcome evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; MVP-05a/05b/05c are verified in isolated staging. MVP-06a is selected but paused before its UI journey because the separate private site is unavailable. | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-06a, 2026-09-11: Netlify paused the private `ture-staging` site after it reached its usage limit. The fixture was fully removed; resuming the site is the only recovery action. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; MVP-05a/05b/05c are verified in isolated staging. MVP-06a is selected and waits only for a fresh authenticated UI transport. | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-06a, 2026-09-12: `ture-staging` is reachable behind its expected private `401`, but the existing authenticated browser transport failed on reload. The fixture remains absent; stable browser transport is the recovery action. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 6–16 active hours: MVP-06 candidate journey and applicable release checks; supervised market-session evidence has an external market-window dependency | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
@@ -251,11 +244,12 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 
 ### Next — ordered, next product slice
 
-1. Resume the separate private `ture-staging` site, then restart MVP-06a on
-   the already identified candidate `b5cfd68d`: repeat the complete owner-bound
-   manual journey using one fresh labelled synthetic fixture and a cache-only
-   validation path. Preserve the evidence boundary: it may verify candidate
-   behavior, but cannot claim production or release acceptance.
+1. Restore stable authenticated browser transport to the already online private
+   `ture-staging` site, then restart MVP-06a on candidate `b5cfd68d`: repeat
+   the complete owner-bound manual journey using one fresh labelled synthetic
+   fixture and a cache-only validation path. Preserve the evidence boundary:
+   it may verify candidate behavior, but cannot claim production or release
+   acceptance.
 2. After that journey, assess MVP-06b's applicable checks and deployment
    identity. A production smoke remains out of scope unless separately
    authorized; do not substitute a staging readback for it.
@@ -490,6 +484,18 @@ behavior_check_and_environment: Before the browser could display the fixture, a 
 external_effects_and_existing_authority: Staging only. No provider request, broker action, production site/database action, production deploy or secret read occurred.
 blocker_or_fallback: Resume the already-configured private `ture-staging` site, verify its candidate revision, then repeat this isolated cache-only manual journey with a fresh fixture. Do not substitute the earlier fixture preparation or a production readback for the acceptance check.
 result_and_remaining_gap: MVP-06a remains blocked and unverified. The test harness and cleanup boundary are now proven; only the private site's availability prevents the actual user journey.
+```
+
+#### MVP-06a private staging transport re-entry — 2026-09-12
+
+```text
+acceptance_id: MVP-06a
+user_behavior_or_reproduced_failure: The private staging site is no longer paused: a direct canonical URL read returned its expected Netlify private-visitor HTTP 401. An already-authenticated in-app browser initially showed an old, expired MVP-06A test card, but its first intentional reload failed with ERR_SOCKET_NOT_CONNECTED before a new dashboard result could be read.
+smallest_change_and_reused_components: No application, Netlify, database, provider or broker configuration changed. The check reused the canonical private staging URL and the existing authenticated browser session.
+behavior_check_and_environment: A staging aggregate database readback found no recommendation or position matching the old MVP-06A test marker. The displayed browser state therefore cannot establish current application behavior and is not used as acceptance evidence. The public HTTP result proves only that the private site is reachable and still protected, not that the app journey passed.
+external_effects_and_existing_authority: Read-only staging checks only. No production path, secret value, provider request, broker action, database write or synthetic fixture creation occurred.
+blocker_or_fallback: Do not retry the failed browser reload in a loop. Re-establish an authenticated browser transport, confirm the candidate revision, then create one fresh exact-cleaned synthetic fixture for the existing MVP-06a journey.
+result_and_remaining_gap: The former Netlify-capacity blocker is resolved. MVP-06a remains blocked and unverified because a current authenticated UI journey has not yet completed.
 ```
 
 #### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
