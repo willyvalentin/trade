@@ -140,6 +140,11 @@ green: 16 static server-boundary contracts, 40 MVP-03/MVP-04 position and
 history lifecycle checks, and ESLint all passed. This is useful candidate
 evidence for MVP-06b, but it does not substitute for MVP-06a's authenticated
 staging journey, a release deployment or a production smoke check.
+Netlify independently reports staging commit `1ab61d28` as ready on the
+separate `ture-staging` site; its source difference from `b5cfd68d` is only
+this ledger. Netlify labels that site's branch head as `production` context,
+which means the private staging site's own primary deploy — never `trade-vl`
+or public production.
 
 ### MVP acceptance board
 
