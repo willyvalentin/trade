@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 import type { Config } from "@netlify/functions";
 
 export const config: Config = {
@@ -6,9 +8,14 @@ export const config: Config = {
   schedule: "*/15 14-21 * * 1-5",
 };
 
+type ScheduledOutcomeRouteModule = {
+  POST?: (request: Request) => Promise<Response>;
+};
+
 const outcomeEvaluationRoute = "/api/recommendations/evaluate-outcomes";
 const officialIntradayHorizons = ["15m", "30m", "60m"] as const;
 const knownOutcomeStatuses = new Set(["completed", "partial", "blocked", "failed"]);
+const runtimeRequire = createRequire(__filename);
 
 function finiteCount(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0
@@ -62,11 +69,39 @@ function stableHash(value: string) {
   return (hash >>> 0).toString(36);
 }
 
-function siteUrl() {
-  return (
-    process.env.URL ||
-    process.env.DEPLOY_PRIME_URL ||
-    "https://trade.valentinlabs.com"
+async function invokeScheduledOutcomeRoute({
+  automationSecret,
+  firedAtUtc,
+  attemptFingerprint,
+}: {
+  automationSecret: string;
+  firedAtUtc: string;
+  attemptFingerprint: string;
+}) {
+  const routeModule = runtimeRequire(
+    "../.generated/scheduled-outcome-evaluation-runtime.cjs",
+  ) as ScheduledOutcomeRouteModule;
+
+  if (typeof routeModule.POST !== "function") {
+    throw new Error("Scheduled outcome runtime does not export POST.");
+  }
+
+  return routeModule.POST(
+    new Request(`http://internal${outcomeEvaluationRoute}`, {
+      method: "POST",
+      headers: {
+        "x-automation-secret": automationSecret,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        mode: "official_live_today",
+        horizons: officialIntradayHorizons,
+        max_batches: 5,
+        max_snapshots: 10,
+        scheduled_function_fired_at_utc: firedAtUtc,
+        scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
+      }),
+    }),
   );
 }
 
@@ -82,29 +117,17 @@ export default async function handler() {
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
   }
 
-  const endpoint = `${siteUrl()}${outcomeEvaluationRoute}`;
-
-  console.log("[scheduled-outcome-evaluation] Calling:", endpoint, {
+  console.log("[scheduled-outcome-evaluation] Executing bundled internal route", {
     scheduled_function_fired_at_utc: firedAtUtc,
     scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
     horizons: officialIntradayHorizons,
   });
 
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "x-automation-secret": automationSecret,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        mode: "official_live_today",
-        horizons: officialIntradayHorizons,
-        max_batches: 5,
-        max_snapshots: 10,
-        scheduled_function_fired_at_utc: firedAtUtc,
-        scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
-      }),
+    const response = await invokeScheduledOutcomeRoute({
+      automationSecret,
+      firedAtUtc,
+      attemptFingerprint,
     });
     const body = await response.text();
 
