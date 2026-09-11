@@ -210,28 +210,12 @@ function chooseStatus({
   const marketPhase = input.market_session?.phase ?? null;
   const isDemoEmpty = input.demo_mode === true && visibleCount === 0;
 
-  if (visibleCount > 0 && acceptedCount > 0) {
-    return "has_recommendations";
-  }
-
   if (isDemoEmpty) {
     return "demo_empty";
   }
 
   if (hasRiskControlBlock) {
     return "risk_controls_blocking";
-  }
-
-  if (
-    marketPhase === "closed" ||
-    marketPhase === "pre_market" ||
-    marketPhase === "after_hours" ||
-    marketPhase === "closing_soon" ||
-    marketPhase === "holiday" ||
-    input.market_session?.risk_level === "high" ||
-    input.market_session?.risk_level === "critical"
-  ) {
-    return "market_not_ideal";
   }
 
   if (
@@ -250,6 +234,22 @@ function chooseStatus({
     latestScanResultIs(input.observability_summary, ["unknown", "openai_error"])
   ) {
     return "data_unavailable";
+  }
+
+  if (visibleCount > 0 && acceptedCount > 0) {
+    return "has_recommendations";
+  }
+
+  if (
+    marketPhase === "closed" ||
+    marketPhase === "pre_market" ||
+    marketPhase === "after_hours" ||
+    marketPhase === "closing_soon" ||
+    marketPhase === "holiday" ||
+    input.market_session?.risk_level === "high" ||
+    input.market_session?.risk_level === "critical"
+  ) {
+    return "market_not_ideal";
   }
 
   if (hasExplicitNoTradeResult(input.observability_summary)) {
@@ -597,10 +597,11 @@ function buildSuggestedActions(
 
   const phase = input.market_session?.phase;
   if (
-    status === "market_not_ideal" ||
     phase === "closed" ||
     phase === "pre_market" ||
-    phase === "after_hours"
+    phase === "after_hours" ||
+    phase === "closing_soon" ||
+    phase === "holiday"
   ) {
     actions.push(
       action(
@@ -649,7 +650,8 @@ export function buildRecommendationEmptyStateSummary(
     hasRiskControlBlock,
   });
   const showDominantEmptyState = visibleCount === 0;
-  const showSupportingEmptyState = visibleCount > 0 && acceptedCount === 0;
+  const showSupportingEmptyState =
+    visibleCount > 0 && status !== "has_recommendations";
   const supportingReasons = buildSupportingReasons(input)
     .filter((item, index, list) =>
       list.findIndex((candidate) => candidate.reason_id === item.reason_id) === index,

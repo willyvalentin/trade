@@ -104,6 +104,7 @@ export function RecommendationCardContainer<
       onAddTrade={() => onTakeTrade(recommendation)}
       onOpenDetails={() => setIsDetailsOpen(true)}
       onOpenDiscard={() => setIsDiscardConfirmOpen(true)}
+      timing={displayProps.timing}
       discardDialog={
         isDiscardConfirmOpen ? (
           <DiscardRecommendationModal

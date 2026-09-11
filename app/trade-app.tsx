@@ -721,6 +721,9 @@ import {
   buildAvanzaSelectedRecommendationPreviewIntegrationGuard,
 } from "@/lib/avanza-selected-recommendation-preview-integration-guard";
 import {
+  shouldRenderReadOnlyHandoffPreviewInDashboard,
+} from "@/lib/avanza-read-only-handoff-preview-visibility";
+import {
   buildAvanzaHardDisabledSourceToPreviewIntegration,
 } from "@/lib/avanza-hard-disabled-source-to-preview-integration";
 import {
@@ -15830,6 +15833,14 @@ export function TradeApp({
       })
     : null;
   const activeDashboardTab = isDashboardTab(activeTab) ? activeTab : null;
+  const shouldRenderAvanzaHandoffPreview =
+    shouldRenderReadOnlyHandoffPreviewInDashboard({
+      activeDashboardTab,
+      hasSelectedRecommendationPreview:
+        avanzaSelectedRecommendationPreviewState !== null,
+      showDominantRecommendationEmptyState:
+        recommendationEmptyStateSummary.show_dominant_empty_state,
+    });
   const dashboardStatusbar =
     activeDashboardTab === "Recommendations" ? (
       <TradePrimaryStatusbar
@@ -15947,7 +15958,7 @@ export function TradeApp({
           statusbar={dashboardStatusbar}
         />
 
-        {activeDashboardTab && (
+        {shouldRenderAvanzaHandoffPreview && (
           <div className="trade-section grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
             <AvanzaReadOnlyReadinessBadge
               summary={avanzaTradeReadOnlyReadinessSummaryFixture}

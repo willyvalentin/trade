@@ -407,7 +407,8 @@ function buildRecommendationChecks(
 
   if (
     input.empty_state_summary.status === "data_unavailable" ||
-    input.empty_state_summary.status === "scan_degraded"
+    input.empty_state_summary.status === "scan_degraded" ||
+    input.empty_state_summary.status === "provider_unavailable"
   ) {
     warnings.push(
       warning(
