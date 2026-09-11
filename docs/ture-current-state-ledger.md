@@ -55,13 +55,19 @@ generated file. An extracted scheduled-function bundle with a temporary local
 secret reached the existing owner-identity `503` gate before any database,
 provider or broker work. Private staging revision `8e205fcd` then deployed
 this boundary. Its natural 10:45 America/New_York run reached the application
-but fail-closed before any provider request because staging lacks
+but fail-closed before any provider request because staging lacked
 `TWELVE_DATA_API_KEY`; the application recorded `Scheduled scan skipped:
 provider environment missing TWELVE_DATA_API_KEY.` with HTTP `200` and failed
-outcome. Keep private visitor access intact. The remaining MVP-05a blocker is
-a valid staging-only licensed provider credential; do not reuse a production
-secret or manually bypass the bounded scheduler. The earlier MVP-01c probe
-rollback remains probe-free. Earlier in
+outcome. That credential was then added only to private staging. The next
+natural 11:00 America/New_York cadence (15:00:46 UTC) no longer reported the
+Twelve Data environment as missing, proving that the staging runtime loads it.
+It instead safely skipped because the separate existing Polygon-backed market
+calendar resolved to `local_fallback` with `day_type=unknown`: this deployment
+lacks `POLYGON_API_KEY`. Keep private visitor access intact. The remaining
+MVP-05a blocker is therefore a valid staging-only licensed Polygon calendar
+credential; do not reuse a production secret, invent a local trading calendar
+or manually bypass the bounded scheduler. The earlier MVP-01c probe rollback
+remains probe-free. Earlier in
 the same environment, a labelled
 synthetic position lifecycle was verified. No provider result, broker or
 production action has yet been observed from the restored schedules. The
@@ -77,7 +83,7 @@ password, production or a broker to bypass this boundary.
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
-| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: private staging's internal adapter reached the application on its natural cadence, then fail-closed because `TWELVE_DATA_API_KEY` is absent. Configure only a valid staging-only licensed provider credential, retain the bounded cadence and observe the next natural active-window run; no manual bypass. |
+| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Blocked: private staging's internal adapter reached the application on natural cadence and now loads `TWELVE_DATA_API_KEY`, but the separate Polygon market-calendar client safely falls back to unknown status because `POLYGON_API_KEY` is absent. Configure only a valid staging-only Polygon credential, retain the bounded cadence and observe the next natural active-window run; no manual bypass. |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
@@ -107,7 +113,7 @@ rows still need behavior evidence.
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | verified | Private `ture-staging` History readback showed the labelled synthetic record's entry 100, average exit 107.50, five remaining-share display, timestamps and `FULLY CLOSED AFTER PARTIAL` state before rollback. |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | verified | The same History readback reconciled synthetic gross price PnL 75.00 and 1.50R across the journal, performance summary and setup-performance table. The UI explicitly calls this gross price result before broker fees; the fixture was then deleted. |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | verified | Private `ture-staging` revision `cd3a7bec`, 2026-09-11: an exact labelled synthetic closed position with no exit, quantity, PnL, R or execution metadata appeared as `NEEDS REVIEW`, `Not available`, `UNKNOWN` and explicit missing-data notes in full History and its detail view. Statistics used `—` rather than a fabricated result. The position was then exactly deleted and a final reload returned to the clean no-trade state. No provider, broker or production action occurred. |
-| MVP-05a | A supported scan uses licensed data within its declared usage budget | active | Private `ture-staging` revision `8e205fcd`, 2026-09-11: the natural 10:45 America/New_York cadence entered the bundled Next route rather than receiving Netlify's private-login `401`, proving the private scheduler boundary works. The application then deliberately skipped before a provider request: `TWELVE_DATA_API_KEY` is absent in staging. Its attempt journal records failed outcome, HTTP `200` and that explicit missing-environment reason. No provider, broker or production request occurred. Add a valid staging-only licensed provider credential, then observe the next natural active-window cadence. The 23-check schedule/budget group, 11-check MVP-05 recovery/outcome group and two adapter checks pass locally (36 checks total). |
+| MVP-05a | A supported scan uses licensed data within its declared usage budget | blocked | Private `ture-staging` revision `8e205fcd`, 2026-09-11: the natural 10:45 America/New_York cadence entered the bundled Next route rather than receiving Netlify's private-login `401`, proving the private scheduler boundary works. `TWELVE_DATA_API_KEY` was then added only to staging; the natural 11:00 cadence no longer reported that variable missing. It instead recorded HTTP `200`, skipped outcome and `US stock market status is unknown` because the existing Polygon market-calendar client safely fell back with `POLYGON_API_KEY` absent. No provider-backed scan, broker or production request occurred. Add a valid staging-only licensed Polygon calendar credential, then observe the next natural active-window cadence. The 23-check schedule/budget group, 11-check MVP-05 recovery/outcome group and two adapter checks pass locally (36 checks total). |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
@@ -140,8 +146,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 12/18: prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c and MVP-04a/04b/04c synthetic behavior evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-05 staging operational-evidence slice has verified scheduler dispatch, secret loading and its private-staging execution boundary; it now needs licensed provider evidence | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-05a, 2026-09-11: staging lacks `TWELVE_DATA_API_KEY`; a valid staging-only licensed credential is required before the next bounded natural run can create provider evidence | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; MVP-05a's private scheduler boundary and Twelve Data runtime loading are verified, but its next provider boundary is externally blocked | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-05a, 2026-09-11: staging's separate Polygon-backed market calendar lacks `POLYGON_API_KEY`; a valid staging-only licensed calendar credential is required before the next bounded natural run can create provider evidence | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 10–28 active hours: MVP-05 supported provider/operational evidence 4–12 hours, then MVP-06 release-candidate journey and checks 6–16 hours; market/provider windows are external wait, not work time | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
