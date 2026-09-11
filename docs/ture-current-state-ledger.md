@@ -13,31 +13,34 @@ dedicated-staging session-secret selection. Its Ready Full CI run
 `34553013890` passed all six unchanged provider-free shards and its exact-main
 attestation `34555189908` passed for `37bbbc2e`. A separate private
 `ture-staging.netlify.app` site then served the staging-only evidence revisions,
-retaining the integrated main revision, staging-only scheduler and
-dedicated-session barriers. Its last ready clean rollback revision `17e4c192`
-is Git deployment `6aa3858238c51c000816290b`. Netlify build capacity was
-restored on 2026-09-11: temporary MVP-01c revisions `92f21f1d`, `dcf90472`
-and `5a8ee171` built ready as `6aa3dac454f41d0008922e64`,
-`6aa3e6a53306fe000839ee10` and `6aa3eb5ca775030008e942f3`. The third,
-single authenticated staging read observed the intended safe failed-dashboard
-state. Its clean rollback `26188d0c` is ready as `6aa3eccc0b45110007ac6c34`.
-This is not a production deployment; the public production release remains
-unchanged, while the new main candidate remains unpublished behind its
-deployment lock.
+retaining the integrated main revision and dedicated-session barriers. Netlify
+build capacity was restored on 2026-09-11: temporary MVP-01c revisions
+`92f21f1d`, `dcf90472` and `5a8ee171` built ready as
+`6aa3dac454f41d0008922e64`, `6aa3e6a53306fe000839ee10` and
+`6aa3eb5ca775030008e942f3`. The third, single authenticated staging read
+observed the intended safe failed-dashboard state; its clean rollback
+`26188d0c` is ready as `6aa3eccc0b45110007ac6c34`. The existing bounded scan
+and outcome schedules were then restored only on the private staging branch in
+`13dd56be`; Netlify deploy `6aa3f05fb2b2500008bcf0be` is ready and reports
+the two UTC weekday schedules. This is not a production deployment; the public
+production release remains unchanged, while the new main candidate remains
+unpublished behind its deployment lock.
 
 ### Now
 
-**Current verification boundary: private, scheduler-contained staging.**
+**Current verification boundary: private, bounded-scheduler staging.**
 The private staging deployment has the expected canonical origin and its
 dedicated password resolves in Builds, Functions and Runtime. Its four deployed
-functions all report `schedule: null`. An authenticated browser session read
-the normal dashboard, then the one exact-site MVP-01c failure probe, and the
-ready rollback restored a probe-free staging revision. Earlier in the same
-environment, a labelled synthetic position lifecycle was verified. No provider,
-broker or production action occurred. The earlier direct `401` was Netlify's
-private visitor gate on a non-browser request, not an application credential
-mismatch. Do not use the generic password, production, a provider or a broker
-to bypass this boundary.
+functions now report the existing scan schedule `*/15 13-19 * * 1-5` and
+outcome schedule `*/15 14-21 * * 1-5`; both remain server-secret-gated and
+exist only on `ture-staging`. An authenticated browser session read the normal
+dashboard after the schedule deploy, and the earlier MVP-01c probe rollback
+remains probe-free. Earlier in the same environment, a labelled synthetic
+position lifecycle was verified. No provider result, broker or production
+action has yet been observed from the restored schedules. The earlier direct
+`401` was Netlify's private visitor gate on a non-browser request, not an
+application credential mismatch. Do not use the generic password, production
+or a broker to bypass this boundary.
 
 ### MVP acceptance board
 
@@ -47,7 +50,7 @@ to bypass this boundary.
 | MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
-| MVP-05 | Scheduled scanning/outcome infrastructure and historical operation evidence exist | Unverified: current licensed-data availability, day-long freshness, missed-run visibility and bounded recovery |
+| MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; local recovery/outcome contracts pass | Active: wait for a supported provider scan, then verify freshness, visible recovery and attributable outcome behavior without inferring success from configuration alone |
 | MVP-06 | Main CI is green at the inspected baseline | Not started: same-candidate journey, applicable release verification and supervised market session |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
@@ -57,8 +60,8 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **12/18 verified for the new MVP candidate; 6
-unverified, 0 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
+Current acceptance coverage: **12/18 verified for the new MVP candidate; 5
+unverified, 1 active, 0 blocked, 0 invalidated. Release acceptance: 0/6.** This
 is a fresh verification baseline, not a claim that the existing product is 0%
 built. MVP-01a and MVP-01b were verified after that baseline; the remaining
 rows still need behavior evidence.
@@ -77,7 +80,7 @@ rows still need behavior evidence.
 | MVP-04a | Closed history preserves plan versus actual prices, quantity and timestamps | verified | Private `ture-staging` History readback showed the labelled synthetic record's entry 100, average exit 107.50, five remaining-share display, timestamps and `FULLY CLOSED AFTER PARTIAL` state before rollback. |
 | MVP-04b | Realized result and aggregate statistics reconcile, with explicit fee assumptions | verified | The same History readback reconciled synthetic gross price PnL 75.00 and 1.50R across the journal, performance summary and setup-performance table. The UI explicitly calls this gross price result before broker fees; the fixture was then deleted. |
 | MVP-04c | Unknown and incomplete values remain labelled rather than becoming invented results | verified | Private `ture-staging` revision `cd3a7bec`, 2026-09-11: an exact labelled synthetic closed position with no exit, quantity, PnL, R or execution metadata appeared as `NEEDS REVIEW`, `Not available`, `UNKNOWN` and explicit missing-data notes in full History and its detail view. Statistics used `—` rather than a fabricated result. The position was then exactly deleted and a final reload returned to the clean no-trade state. No provider, broker or production action occurred. |
-| MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
+| MVP-05a | A supported scan uses licensed data within its declared usage budget | active | Private `ture-staging` revision `13dd56be`, 2026-09-11: Netlify deploy `6aa3f05fb2b2500008bcf0be` is ready and declares the existing weekday scan schedule. The 23-check schedule/budget regression group and 19-check MVP-05 recovery/outcome group pass locally. A supported provider result, bounded-usage diagnostic and UI readback remain required. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
 | MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
@@ -110,7 +113,7 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 12/18: prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c and MVP-04a/04b/04c synthetic behavior evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; the authenticated staging lifecycle slice is complete and rolled back | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Active product slices | 1; MVP-05 staging operational-evidence slice restored the existing bounded schedules and awaits its first supported scan | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None; the six remaining checkpoints are unverified rather than actively blocked | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 10–28 active hours: MVP-05 supported provider/operational evidence 4–12 hours, then MVP-06 release-candidate journey and checks 6–16 hours; market/provider windows are external wait, not work time | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
