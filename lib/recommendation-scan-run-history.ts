@@ -27,8 +27,8 @@ export type RecommendationScanRunHistoryWindowBreakdown = {
   average_strong_count: number | null;
   average_valid_count: number | null;
   average_experimental_count: number | null;
-  degraded_stale_empty_count: number;
-  degraded_stale_empty_rate: number | null;
+  review_required_run_count: number;
+  review_required_run_rate: number | null;
   warning_count: number;
   sample_quality_note: string;
 };
@@ -68,7 +68,7 @@ export type RecommendationScanRunHistorySort = "newest" | "oldest";
 
 export type RecommendationScanRunHistorySummary = {
   summary_id: string;
-  summary_version: "1.0";
+  summary_version: "1.1";
   generated_at: string;
   source_scope: "supabase" | "localStorage" | "current_visible" | "mixed";
   range: StatisticsTimeRange;
@@ -84,6 +84,8 @@ export type RecommendationScanRunHistorySummary = {
   last_successful_run_timestamp?: string | null;
   last_successful_run_status?: "completed" | "empty" | "unknown";
   latest_run_recovery_state?: "not_required" | "review_required" | "unknown";
+  review_required_run_count: number;
+  review_required_run_rate: number | null;
   average_visible_recommendation_count: number | null;
   median_visible_recommendation_count: number | null;
   average_strong_count: number | null;
@@ -155,6 +157,68 @@ function timestampMs(value: string | null | undefined) {
 
   const parsed = new Date(value).getTime();
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function recordRevisionTimestampMs(scanRun: RecommendationScanRun) {
+  return (
+    timestampMs(scanRun.updated_at) ??
+    timestampMs(scanRun.created_at) ??
+    timestampMs(scanRun.observed_at) ??
+    Number.NEGATIVE_INFINITY
+  );
+}
+
+function compareTimestampMs(first: number, second: number) {
+  if (first === second) return 0;
+  return first > second ? 1 : -1;
+}
+
+function compareText(first: string, second: string) {
+  if (first === second) return 0;
+  return first > second ? 1 : -1;
+}
+
+/**
+ * Establishes a stable, newest-first ordering without trusting the incidental
+ * order in which persisted rows are returned. `observed_at` is the business
+ * time of the scan; an update time then distinguishes corrections to scans
+ * that were observed at the same instant. The immutable ID is only a stable
+ * final tie-breaker when neither timestamp can distinguish the rows.
+ */
+function compareScanRunRecency(
+  first: RecommendationScanRun,
+  second: RecommendationScanRun,
+) {
+  const observedDifference = compareTimestampMs(
+    timestampMs(first.observed_at) ?? Number.NEGATIVE_INFINITY,
+    timestampMs(second.observed_at) ?? Number.NEGATIVE_INFINITY,
+  );
+  if (observedDifference !== 0) return observedDifference;
+
+  const revisionDifference = compareTimestampMs(
+    recordRevisionTimestampMs(first),
+    recordRevisionTimestampMs(second),
+  );
+  if (revisionDifference !== 0) return revisionDifference;
+
+  return compareText(first.id, second.id);
+}
+
+function deduplicateScanRuns(scanRuns: RecommendationScanRun[]) {
+  const latestByFingerprint = new Map<string, RecommendationScanRun>();
+
+  for (const scanRun of scanRuns) {
+    const existing = latestByFingerprint.get(scanRun.run_fingerprint);
+
+    if (
+      !existing ||
+      compareScanRunRecency(scanRun, existing) > 0
+    ) {
+      latestByFingerprint.set(scanRun.run_fingerprint, scanRun);
+    }
+  }
+
+  return Array.from(latestByFingerprint.values());
 }
 
 function finiteNumber(value: number | null | undefined) {
@@ -288,6 +352,17 @@ function hasProviderWarning(scanRun: RecommendationScanRun) {
   );
 }
 
+function hasTrustworthyDataMode(scanRun: RecommendationScanRun) {
+  // A mechanically healthy run cannot establish a recovery point when the
+  // recorded source mode is missing or already marked stale. Keep the other
+  // explicit modes visible as operational history, but never let unknown or
+  // stale data stand in for a current, trustworthy result.
+  return (
+    scanRun.data_mode !== "unknown" &&
+    scanRun.data_mode !== "stale_market_data"
+  );
+}
+
 function isSuccessfulScanRun(
   scanRun: RecommendationScanRun,
 ): scanRun is RecommendationScanRun & { status: "completed" | "empty" } {
@@ -298,18 +373,19 @@ function isSuccessfulScanRun(
   return (
     (scanRun.status === "completed" || scanRun.status === "empty") &&
     scanRun.scan_observability_status === "healthy" &&
-    !hasProviderWarning(scanRun)
+    !hasProviderWarning(scanRun) &&
+    hasTrustworthyDataMode(scanRun)
   );
+}
+
+function requiresRecoveryReview(scanRun: RecommendationScanRun) {
+  return !isSuccessfulScanRun(scanRun);
 }
 
 function latestSuccessfulScanRun(scanRuns: RecommendationScanRun[]) {
   return [...scanRuns]
     .filter(isSuccessfulScanRun)
-    .sort(
-      (first, second) =>
-        (timestampMs(second.observed_at) ?? 0) -
-        (timestampMs(first.observed_at) ?? 0),
-    )[0];
+    .sort((first, second) => compareScanRunRecency(second, first))[0];
 }
 
 function latestRunRecoveryState(
@@ -356,11 +432,8 @@ function windowBreakdown(
   return windows.map((window) => {
     const windowRuns = scanRuns.filter((scanRun) => scanRun.window === window);
     const targetHitCount = windowRuns.filter(targetHit).length;
-    const degradedStaleEmptyCount = windowRuns.filter(
-      (scanRun) =>
-        scanRun.status === "degraded" ||
-        scanRun.status === "stale" ||
-        scanRun.status === "empty",
+    const reviewRequiredRunCount = windowRuns.filter(
+      requiresRecoveryReview,
     ).length;
 
     return {
@@ -380,8 +453,8 @@ function windowBreakdown(
       average_experimental_count: average(
         windowRuns.map((scanRun) => scanRun.counts.experimental_count),
       ),
-      degraded_stale_empty_count: degradedStaleEmptyCount,
-      degraded_stale_empty_rate: rate(degradedStaleEmptyCount, windowRuns.length),
+      review_required_run_count: reviewRequiredRunCount,
+      review_required_run_rate: rate(reviewRequiredRunCount, windowRuns.length),
       warning_count: windowRuns.reduce(
         (total, scanRun) => total + scanRun.warnings.length,
         0,
@@ -414,8 +487,26 @@ function topWarnings(scanRuns: RecommendationScanRun[]) {
   }
 
   return Array.from(counts.values())
-    .sort((first, second) => second.count - first.count)
+    .sort(
+      (first, second) =>
+        second.count - first.count ||
+        compareText(first.warning_id, second.warning_id),
+    )
     .slice(0, 8);
+}
+
+function warningSeverityRank(severity: RecommendationScanRun["warnings"][number]["severity"]) {
+  if (severity === "critical") return 3;
+  if (severity === "warning") return 2;
+  return 1;
+}
+
+function topWarningMessage(scanRun: RecommendationScanRun) {
+  return [...scanRun.warnings].sort(
+    (first, second) =>
+      warningSeverityRank(second.severity) - warningSeverityRank(first.severity) ||
+      compareText(first.warning_id, second.warning_id),
+  )[0]?.message ?? null;
 }
 
 function toItem(scanRun: RecommendationScanRun): RecommendationScanRunHistoryItem {
@@ -435,7 +526,7 @@ function toItem(scanRun: RecommendationScanRun): RecommendationScanRunHistoryIte
     data_mode: scanRun.data_mode,
     source: scanRun.source,
     warning_count: scanRun.warnings.length,
-    top_warning: scanRun.warnings[0]?.message ?? null,
+    top_warning: topWarningMessage(scanRun),
   };
 }
 
@@ -443,7 +534,7 @@ function buildWarnings(
   scanRuns: RecommendationScanRun[],
   summary: {
     targetHitRate: number | null;
-    degradedStaleEmptyCount: number;
+    reviewRequiredRunCount: number;
     providerWarningRunCount: number;
     unknownMetricRunCount: number;
   },
@@ -472,11 +563,12 @@ function buildWarnings(
     });
   }
 
-  if (summary.degradedStaleEmptyCount > 0) {
+  if (summary.reviewRequiredRunCount > 0) {
     warnings.push({
-      warning_id: "degraded_stale_empty_runs_present",
+      warning_id: "scan_runs_need_review",
       severity: "warning",
-      message: "Some scan runs are degraded, stale, or empty. Review provider and freshness diagnostics.",
+      message:
+        "Some scan runs need review before they can be used as a current recovery point. Review provider and freshness diagnostics.",
     });
   }
 
@@ -510,11 +602,7 @@ export function buildRecommendationScanRunHistorySummary(
         : new Date();
   const safeNow = Number.isFinite(now.getTime()) ? now : new Date();
   const range = input.filter?.range ?? input.range ?? "all";
-  const uniqueScanRuns = Array.from(
-    new Map(
-      input.scan_runs.map((scanRun) => [scanRun.run_fingerprint, scanRun]),
-    ).values(),
-  );
+  const uniqueScanRuns = deduplicateScanRuns(input.scan_runs);
   const rangedRuns = filterByRange(uniqueScanRuns, range, safeNow);
   const filteredRuns = rangedRuns
     .filter(
@@ -529,17 +617,12 @@ export function buildRecommendationScanRunHistorySummary(
         input.filter.status === "all" ||
         scanRun.status === input.filter.status,
     );
-  const sortedRuns = [...filteredRuns].sort((first, second) => {
-    const firstTimestamp = timestampMs(first.observed_at) ?? 0;
-    const secondTimestamp = timestampMs(second.observed_at) ?? 0;
-    return input.sort === "oldest"
-      ? firstTimestamp - secondTimestamp
-      : secondTimestamp - firstTimestamp;
-  });
-  const latestRun = [...filteredRuns].sort(
-    (first, second) =>
-      (timestampMs(second.observed_at) ?? 0) - (timestampMs(first.observed_at) ?? 0),
-  )[0];
+  const sortedRuns = [...filteredRuns].sort((first, second) =>
+    input.sort === "oldest"
+      ? compareScanRunRecency(first, second)
+      : compareScanRunRecency(second, first),
+  );
+  const latestRun = sortedRuns[0];
   const lastSuccessfulRun = latestSuccessfulScanRun(filteredRuns);
   const total = filteredRuns.length;
   const targetHitCount = filteredRuns.filter(targetHit).length;
@@ -549,11 +632,8 @@ export function buildRecommendationScanRunHistorySummary(
   const aboveTargetCount = filteredRuns.filter(
     (scanRun) => scanRun.window_target_status === "above_target",
   ).length;
-  const degradedStaleEmptyCount = filteredRuns.filter(
-    (scanRun) =>
-      scanRun.status === "degraded" ||
-      scanRun.status === "stale" ||
-      scanRun.status === "empty",
+  const reviewRequiredRunCount = filteredRuns.filter(
+    requiresRecoveryReview,
   ).length;
   const providerWarningRunCount = filteredRuns.filter(hasProviderWarning).length;
   const unknownMetricRunCount = filteredRuns.filter(
@@ -585,14 +665,14 @@ export function buildRecommendationScanRunHistorySummary(
 
   const warningInputs = {
     targetHitRate,
-    degradedStaleEmptyCount,
+    reviewRequiredRunCount,
     providerWarningRunCount,
     unknownMetricRunCount,
   };
 
   return {
     summary_id: `recommendation_scan_run_history_${safeNow.toISOString()}`,
-    summary_version: "1.0",
+    summary_version: "1.1",
     generated_at: safeNow.toISOString(),
     source_scope: input.source_scope ?? "mixed",
     range,
@@ -602,6 +682,8 @@ export function buildRecommendationScanRunHistorySummary(
     last_successful_run_timestamp: lastSuccessfulRun?.observed_at ?? null,
     last_successful_run_status: lastSuccessfulRun?.status ?? "unknown",
     latest_run_recovery_state: latestRunRecoveryState(latestRun),
+    review_required_run_count: reviewRequiredRunCount,
+    review_required_run_rate: rate(reviewRequiredRunCount, total),
     average_visible_recommendation_count: avgVisible,
     median_visible_recommendation_count: medVisible,
     average_strong_count: avgStrong,
@@ -648,10 +730,10 @@ export function buildRecommendationScanRunHistorySummary(
         formatted_value: formatNumber(medVisible),
       },
       {
-        metric_id: "degraded_stale_empty_runs",
-        label: "Degraded/stale/empty runs",
-        value: degradedStaleEmptyCount,
-        formatted_value: String(degradedStaleEmptyCount),
+        metric_id: "review_required_runs",
+        label: "Runs needing review",
+        value: reviewRequiredRunCount,
+        formatted_value: String(reviewRequiredRunCount),
       },
     ],
     recent_items: sortedRuns.slice(0, 20).map(toItem),

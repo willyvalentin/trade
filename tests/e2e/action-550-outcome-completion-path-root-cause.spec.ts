@@ -199,6 +199,109 @@ test.describe("Action 550 outcome completion path root-cause investigation", () 
     expect(persisted[0]?.payload_json.pending_reason).toBe("missing_candles");
   });
 
+  test("does not label an outcome complete when its candle evidence is missing", () => {
+    const snapshot = action550Snapshot();
+
+    const { outcome, warnings, can_compute_terminal_events } =
+      computeRecommendationOutcome({
+        snapshot,
+        horizon: "15m",
+        evaluated_at: "2026-07-17T14:00:00.000Z",
+        source: "intraday_candles",
+        provider: "fixture",
+        current_price: 100.5,
+        data_completeness: "complete",
+        candles: [],
+      });
+
+    expect(outcome.status).toBe("incomplete");
+    expect(outcome.data_completeness).toBe("partial");
+    expect(can_compute_terminal_events).toBe(false);
+    expect(warnings).toContain(
+      "Complete outcome data was claimed without intraday candles; the outcome remains incomplete until candle evidence is available.",
+    );
+  });
+
+  test("does not label an outcome partial when every observation input is missing", () => {
+    const snapshot = action550Snapshot();
+
+    const { outcome, warnings, can_compute_terminal_events } =
+      computeRecommendationOutcome({
+        snapshot,
+        horizon: "15m",
+        evaluated_at: "2026-07-17T14:00:00.000Z",
+        source: "intraday_candles",
+        provider: "fixture",
+        data_completeness: "complete",
+        candles: [],
+      });
+
+    expect(outcome.status).toBe("incomplete");
+    expect(outcome.data_completeness).toBe("none");
+    expect(can_compute_terminal_events).toBe(false);
+    expect(warnings).toContain(
+      "Complete outcome data was claimed without intraday candles; the outcome remains incomplete until candle evidence is available.",
+    );
+  });
+
+  test("rejects impossible long or short plan geometry before it can create a terminal outcome", () => {
+    const snapshot = action550Snapshot();
+
+    const { outcome, blockers, can_compute_terminal_events } =
+      computeRecommendationOutcome({
+        snapshot,
+        target: 95,
+        horizon: "15m",
+        evaluated_at: "2026-07-17T14:00:00.000Z",
+        source: "intraday_candles",
+        provider: "fixture",
+        data_completeness: "complete",
+        candles: action550Candles(),
+      });
+
+    expect(outcome.status).toBe("invalid");
+    expect(outcome.target_hit).toBeNull();
+    expect(outcome.stop_hit).toBeNull();
+    expect(can_compute_terminal_events).toBe(false);
+    expect(blockers).toContain(
+      "Entry, stop, and target must be positive and coherent for the recommendation side.",
+    );
+
+    const shortSnapshot = {
+      ...snapshot,
+      side: "short" as const,
+      entry: 100,
+      stop: 104,
+      target: 96,
+    };
+    const validShort = computeRecommendationOutcome({
+      snapshot: shortSnapshot,
+      horizon: "15m",
+      evaluated_at: "2026-07-17T14:00:00.000Z",
+      source: "intraday_candles",
+      provider: "fixture",
+      data_completeness: "complete",
+      candles: action550Candles(),
+    });
+    const impossibleShort = computeRecommendationOutcome({
+      snapshot: shortSnapshot,
+      target: 105,
+      horizon: "15m",
+      evaluated_at: "2026-07-17T14:00:00.000Z",
+      source: "intraday_candles",
+      provider: "fixture",
+      data_completeness: "complete",
+      candles: action550Candles(),
+    });
+
+    expect(validShort.outcome.status).not.toBe("invalid");
+    expect(validShort.can_compute_terminal_events).toBe(true);
+    expect(impossibleShort.outcome.status).toBe("invalid");
+    expect(impossibleShort.blockers).toContain(
+      "Entry, stop, and target must be positive and coherent for the recommendation side.",
+    );
+  });
+
   test("later explicit completed outcomes can supersede incomplete rows without losing contract identity", () => {
     const snapshot = action550Snapshot();
     const incomplete = computeRecommendationOutcome({

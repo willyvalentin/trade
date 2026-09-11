@@ -1083,6 +1083,38 @@ main {
   color: #ffffff;
 }
 
+.trade-recommendation-card__timing {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 20px 20px;
+  padding: 12px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 8px;
+  background: rgb(9 11 15 / 0.3);
+}
+
+.trade-recommendation-card__timing dt {
+  color: rgb(143 153 151);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.trade-recommendation-card__timing dd {
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: #d6d6d6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .trade-recommendation-guidance {
   min-height: 82px;
   margin: 20px 20px 0;
@@ -3311,6 +3343,11 @@ main {
 
   .trade-recommendation-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .trade-recommendation-card__timing {
+    grid-template-columns: 1fr;
+    margin: 0 16px 16px;
   }
 
   .trade-recommendation-card__footer {

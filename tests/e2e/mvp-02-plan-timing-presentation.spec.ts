@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { buildRecommendationCardTiming } from "@/components/recommendations/recommendation-card-display-mapper";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
@@ -57,7 +58,7 @@ test.describe("MVP-02 plan timing presentation", () => {
     });
   });
 
-  test("renders the data-timing labels and missing-data warning in recommendation details", async () => {
+  test("renders complete target and data-timing details before a manual trade is recorded", async () => {
     const details = await readFile(
       path.join(
         repositoryRoot,
@@ -67,9 +68,71 @@ test.describe("MVP-02 plan timing presentation", () => {
     );
 
     expect(details).toContain('title="Data Timing"');
+    expect(details).toContain('label: "Target 1", value: recommendation.target1');
+    expect(details).toContain('label: "Target 2", value: recommendation.target2');
     expect(details).toContain('label: "Price Source"');
     expect(details).toContain('label: "Source Time"');
     expect(details).toContain('"Expires (Derived)"');
     expect(details).toContain("Revalidate this setup");
+  });
+
+  test("keeps the source, timestamp, and expiry visible on the recommendation card", () => {
+    const timing = buildRecommendationCardTiming({
+      createdAtRaw: "2026-09-10T13:00:00.000Z",
+      expiresAtRaw: "2026-09-10T14:15:00.000Z",
+      planReferencePrice: {
+        reference_price_provider: "Licensed market feed",
+        reference_price_timestamp: "2026-09-10T13:30:00.000Z",
+      },
+      scanWindow: "morning_momentum",
+    });
+    const card = RecommendationCard({
+      addTradeDisabled: false,
+      addTradeLabel: "Make Trade",
+      confidenceLabel: "HIGH CONFIDENCE",
+      confidenceTone: "strong",
+      discardDisabled: false,
+      identity: "TURE",
+      metrics: [],
+      onAddTrade: () => undefined,
+      onOpenDetails: () => undefined,
+      onOpenDiscard: () => undefined,
+      timing,
+    });
+    const cardText = JSON.stringify(card);
+
+    expect(cardText).toContain("Price source");
+    expect(cardText).toContain("Licensed market feed");
+    expect(cardText).toContain("Source time");
+    expect(cardText).toContain(timing.sourceTimestampLabel);
+    expect(cardText).toContain("Expires");
+    expect(cardText).toContain(timing.expiryLabel);
+  });
+
+  test("does not hide unavailable source timing or a derived expiry on the recommendation card", () => {
+    const timing = buildRecommendationCardTiming({
+      createdAtRaw: "2026-09-10T13:00:00.000Z",
+      expiresAtRaw: null,
+      planReferencePrice: null,
+      scanWindow: "opening",
+    });
+    const card = RecommendationCard({
+      addTradeDisabled: false,
+      addTradeLabel: "Make Trade",
+      confidenceLabel: "HIGH CONFIDENCE",
+      confidenceTone: "strong",
+      discardDisabled: false,
+      identity: "TURE",
+      metrics: [],
+      onAddTrade: () => undefined,
+      onOpenDetails: () => undefined,
+      onOpenDiscard: () => undefined,
+      timing,
+    });
+    const cardText = JSON.stringify(card);
+
+    expect(cardText).toContain("Not available");
+    expect(cardText).toContain("Expires (derived)");
+    expect(cardText).toContain(timing.expiryLabel);
   });
 });
