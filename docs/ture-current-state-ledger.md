@@ -251,6 +251,18 @@ MVP-02c isolated-staging probe): **8/18 verified, 10 unverified, 0 active,
 0 blocked and 0/6 release-accepted criteria.** The MVP-02c evidence below is
 the net one-checkpoint change from that snapshot.
 
+#### MVP-03 manual broker-attestation server boundary — 2026-09-12 (local verified)
+
+```text
+acceptance_id: MVP-03a, MVP-03b, MVP-03c; MVP-06 critical recording-defect prevention
+user_behavior_or_reproduced_failure: The ordinary buy and sell forms already required complete manual Avanza confirmations, but a direct authenticated call to the private position API could previously omit or weaken that same evidence before requesting a durable write.
+smallest_change_and_reused_components: Added one pure raw-payload validator at the existing server data-access boundary. An entry now requires the UI's full manual-attestation shape, matching recommendation, fill price, quantity and BUY fill. Partial and final exits require the matching manual SELL confirmation, price, exact reduced quantity and SELL fill. The previous partial-update fallback that silently retried without execution metadata was removed; the normal UI payload shape is unchanged.
+behavior_check_and_environment: Local candidate only, 2026-09-12: focused Playwright MVP-03 input, replay and new attestation suites passed 13/13; scoped ESLint, TypeScript `--noEmit`, `git diff --check` and Next.js 16.3.4 Webpack production build passed. The default Turbopack worktree build is not evidence because its shared node_modules symlink is rejected by that tool; the supported Webpack build completed the same compilation, type and static-page checks.
+external_effects_and_existing_authority: No database row, provider request, broker action, Netlify configuration, staging deploy, production deployment or secret read occurred. This boundary records a user's complete manual attestation; it does not claim broker-side cryptographic execution proof or create broker authority.
+blocker_or_fallback: The code change still needs the ordinary staging PR/CI/merge sequence. The full MVP-06 journey remains separately unverified and must use a supported market-session/provider path or the selected cache-only boundary; no test payload may be invented to bypass the form's manual broker attestation.
+result_and_remaining_gap: The current UI workflow remains compatible while incomplete direct API writes now fail closed. This is a security/data-integrity correction and does not change the 9/18 isolated-staging behavior count or release acceptance.
+```
+
 #### MVP-02c private provider-unavailable presentation and rollback — 2026-09-12
 
 ```text
