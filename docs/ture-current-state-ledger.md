@@ -17,20 +17,25 @@ or production database operation occurred in this delivery.
 
 ### Now
 
-**Current product slice: MVP-06a, complete a manual candidate journey in
-private staging.** Its authenticated recommendation-card, batch-membership and
-exact-cleanup precondition is verified. The remaining journey must use either a
-supported market-session/provider path or a separately scoped cache-only test
-boundary; it may never invent manual Avanza fill evidence. The staging-only
-scheduled-function disable control remains fail-closed, before any credential,
-database, provider or broker work. The presence of a staging Twelve Data key is
-a configuration prerequisite, not proof that a provider request ran.
+**Current product slice: MVP-06a, complete the ordinary manual candidate
+journey in private staging.** Finish the already bounded cache-only demo check,
+then verify the ordinary interface → authenticated server → durable owner-bound
+storage → reload → history/statistics flow on one identified candidate. Include
+entry retry, partial exit and final exit, and fix the first reproduced failure.
+Demo success alone cannot close MVP-06a. Additional demo work needs a concrete
+obstacle to this ordinary journey, not merely a better demo experience.
+
+Preserve manual broker-attestation requirements; synthetic test data must never
+claim a real Avanza fill. Record any required human confirmation or supported
+market-session dependency explicitly. Keep the staging scheduled-function
+control and applicable provider/broker boundaries; this documentation grants no
+new external-operation authority.
 
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
-| MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and private-staging loading, empty and safe failed-state readbacks | Unverified at release scope: MVP-01a/01b/01c are verified in isolated staging; a compatible release candidate remains required. |
+| MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and private-staging loading, empty and safe failed-state readbacks | Unverified at release scope: MVP-01a/01b have historical preview evidence and MVP-01c has private-staging evidence; a compatible release candidate remains required. |
 | MVP-02 | Private staging has fresh isolated evidence that expired and provider-unavailable data do not expose an actionable trade control | Unverified at release scope: MVP-02c is verified in isolated staging; MVP-02a and MVP-02b still require their separate supported-environment behavior evidence. |
 | MVP-03 | Server-owned manual broker-attestation boundary is merged to main; owner-bound synthetic staging lifecycle evidence is retained | Unverified: the complete supported entry/reload/exit journey requires genuine manual confirmation and cannot be fabricated. |
 | MVP-04 | Synthetic staging history reconciled complete plan/actual values and labels incomplete records without inventing a result | Unverified at release scope: MVP-04b is verified in isolated staging; a compatible release candidate remains required. |
@@ -44,8 +49,8 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **9/18 verified, 9 unverified, 1 active, 0
-blocked, 0 invalidated. Release acceptance: 0/6.** This is a behavior-evidence
+Recorded acceptance coverage across the individually stated environments:
+**9/18 verified, 9 unverified (including 1 active slice), 0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a behavior-evidence
 baseline, not a claim that the existing product is 0% built. The active slice
 is MVP-06a's remaining private-staging manual journey.
 
@@ -94,12 +99,12 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 9/18: MVP-01a/01b/01c, MVP-02c, MVP-03c, MVP-04b and MVP-05a/05b/05c are verified in isolated private staging. Historical local and preview claims remain distinct from this behavior evidence and none establish release acceptance. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 9/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other seven rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
 | Active product slices | 1; MVP-06a manual-journey evidence, using only its explicitly scoped staging boundary | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None: MVP-06a is the next unverified ordered slice; its authenticated staging readback and exact cleanup precondition are complete, while the full manual journey remains. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
-| Remaining active effort | 6–16 active hours: MVP-06 candidate journey and applicable release checks; supervised market-session evidence has an external market-window dependency | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
+| Remaining active effort | Preliminary 6–16 active hours for the remaining verification phase only, not a total MVP delivery commitment. Re-estimate after the ordinary durable journey exposes its remaining defects; human confirmation and supervised market-session waits are separate dependencies | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
 
 Keep one previous dated scorecard summary when updating, so weekly changes can
@@ -162,10 +167,12 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 
 ### Next — ordered, next product slice
 
-1. Complete MVP-06a on one identified private staging candidate, using a
-   fresh, clearly labelled synthetic fixture and its cache-only validation
-   path. Preserve the boundary: this can verify candidate behaviour, but cannot
-   claim production or release acceptance.
+1. Finish the already bounded labelled cache-only demo check and cleanup, then
+   complete MVP-06a through the ordinary UI, authenticated server and durable
+   owner-bound records on one identified private staging candidate. Verify
+   entry/retry, reload, partial/final exit and reconciled history/statistics.
+   Record any manual-confirmation dependency honestly; demo evidence closes
+   only its own local scope. Fix the first reproduced ordinary-flow failure.
 2. After that journey, assess MVP-06b's applicable checks and deployment
    identity. A production smoke remains out of scope unless separately
    authorized; do not substitute a staging readback for it.
@@ -182,7 +189,6 @@ these already selected outcomes.
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| MVP-01c supported-environment proof | Blocked only on a one-time staging-only configuration/deploy scope; the named site/session, loading and no-trade evidence already exist | Enable Draft PR #450's function-scoped flag only on the dedicated staging site, observe its one failed first read and disable/roll back immediately. Do not repurpose production or permit generic deploy-preview origins. |
 | B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
 | C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
 | AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
