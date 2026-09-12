@@ -3069,3 +3069,8 @@ delivery queue. It is configuration evidence, not a production release claim.
   No production site, database row, provider, broker or secret value was read
   or changed. A later attempt needs fresh scope with an independently reliable
   observation channel; it must not infer success from this inconclusive read.
+- A fresh authenticated staging dashboard read after the final documentation
+  revision loaded the ordinary application with its logout control and without
+  the `Data unavailable` / `No current data shown` failure copy. This confirms
+  rollback behaviour only; it does not replace the missing controlled-failure
+  observation or change MVP-01c's blocked status.
