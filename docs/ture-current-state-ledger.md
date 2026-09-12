@@ -3086,6 +3086,33 @@ delivery queue. It is configuration evidence, not a production release claim.
   designed, visibly synthetic test-only exit-capture path that does not weaken
   the human-confirmation production control.
 
+### MVP-03 server-owned broker-attestation boundary — 2026-09-12
+
+- PR #476 (`7d144457`) was squashed into `staging` as `082ecda`. Its Ready
+  Full CI run passed all six provider-free shards, their aggregate, and the
+  exact merge-candidate-provenance check. The Netlify `ture-staging` deploy
+  reports `ready` for that same `staging@082ecda` revision; no `main` merge or
+  public-production publication occurred.
+- The deployed server boundary accepts an application position only when the
+  raw UI attestation contains a complete manual Avanza fill, matching side,
+  recommendation, price, quantity, status, and timestamp. Partial and final
+  closes require the equivalent manual sell attestation, including the exact
+  sold quantity. A former retry path that could drop execution metadata is no
+  longer present.
+- Staging's non-secret `TURE_DISABLE_SCHEDULED_FUNCTIONS=true` control is set
+  in that site's Functions/production context. Both deployed scheduled
+  handlers check it before credentials, database writes, or provider work.
+  Direct unauthenticated endpoint requests received `401` from staging's SSO
+  boundary, so those requests are access-control evidence, not a claim that a
+  scheduled handler was invoked.
+- An authenticated staging dashboard reload reached the application revision,
+  but correctly reported the market closed and provider unavailable. No
+  synthetic position, provider request, broker order, database write, or
+  invented broker fill was created during this integration evidence.
+- This closes the server-side MVP-03 recording defect. It does not add live
+  broker verification or complete the still-required supported MVP journey;
+  formal accepted MVP behaviour coverage remains 9/18.
+
 ### MVP-05 scheduled timeout containment — 2026-09-12 (local verified)
 
 - Review found that the scheduled scan's timeout signal reached scanner and
