@@ -18,12 +18,14 @@ or production database operation occurred in this delivery.
 ### Now
 
 **Current product slice: MVP-06a, complete the ordinary manual candidate
-journey in private staging.** Finish the already bounded cache-only demo check,
-then verify the ordinary interface → authenticated server → durable owner-bound
-storage → reload → history/statistics flow on one identified candidate. Include
-entry retry, partial exit and final exit, and fix the first reproduced failure.
-Demo success alone cannot close MVP-06a. Additional demo work needs a concrete
-obstacle to this ordinary journey, not merely a better demo experience.
+journey in private staging.** The bounded cache-only demo contract passed
+locally on 2026-09-12; it confirms only the labelled local-data boundary and
+does not close a behavior checkpoint. Verify the ordinary interface →
+authenticated server → durable owner-bound storage → reload →
+history/statistics flow on one identified candidate. Include entry retry,
+partial exit and final exit, and fix the first reproduced failure. Demo success
+alone cannot close MVP-06a. Additional demo work needs a concrete obstacle to
+this ordinary journey, not merely a better demo experience.
 
 Preserve manual broker-attestation requirements; synthetic test data must never
 claim a real Avanza fill. Record any required human confirmation or supported
@@ -167,12 +169,13 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 
 ### Next — ordered, next product slice
 
-1. Finish the already bounded labelled cache-only demo check and cleanup, then
-   complete MVP-06a through the ordinary UI, authenticated server and durable
-   owner-bound records on one identified private staging candidate. Verify
-   entry/retry, reload, partial/final exit and reconciled history/statistics.
-   Record any manual-confirmation dependency honestly; demo evidence closes
-   only its own local scope. Fix the first reproduced ordinary-flow failure.
+1. Complete MVP-06a through the ordinary UI, authenticated server and durable
+   owner-bound records on one identified private staging candidate. The bounded
+   cache-only demo contract already passed locally (2/2) and remains only local
+   scope. Verify entry/retry, reload, partial/final exit and reconciled
+   history/statistics. Record any manual-confirmation dependency honestly; demo
+   evidence cannot substitute for the ordinary flow. Fix the first reproduced
+   ordinary-flow failure.
 2. After that journey, assess MVP-06b's applicable checks and deployment
    identity. A production smoke remains out of scope unless separately
    authorized; do not substitute a staging readback for it.
@@ -205,6 +208,18 @@ accepted behaviors, verified release criteria, median slice lead time, blocked
 age and product-linked versus overhead effort. Unknown hours stay unknown;
 commit count is not product progress. Replan if two completed slices produce no
 new verified behavior or necessary real integration result.
+
+#### MVP-06a cache-only local demo boundary — 2026-09-12 (local contract verified)
+
+```text
+acceptance_id: MVP-06a bounded cache-only demo subcheck; not an 18-checkpoint behavior acceptance
+user_behavior_or_reproduced_failure: The planned local demo route must never turn its test-data convenience into a broker, provider, durable-record or ordinary-journey claim. It must also retain only locally persisted demo state if the dashboard read is unavailable.
+smallest_change_and_reused_components: No source, deployment, configuration or fixture changed. Reused the existing labelled demo-flow implementation and its focused contract suite.
+behavior_check_and_environment: Current main source at bab505ae, local static containment only, 2026-09-12: `PLAYWRIGHT_SKIP_WEB_SERVER=true ./node_modules/.bin/playwright test tests/e2e/mvp-06a-demo-cache-only.spec.ts` passed 2/2. It checked the explicit demo-only quantity/default and no-broker wording, plus the cache merge/removal boundaries for recommendations, active/closed positions and latest updates.
+external_effects_and_existing_authority: The test read repository source only. No authenticated staging session, database row, provider request, broker action, Netlify deployment, secret or production operation occurred.
+blocker_or_fallback: This is a source-contract check, not browser behavior or durable-record proof. Do not extend it into a demo-improvement chain. The next useful operation is the separately scoped ordinary private-staging journey during a supported market session with actual manual confirmation.
+result_and_remaining_gap: The bounded cache-only subcheck is complete at local contract scope. MVP-06a and all 18-checkpoint/release counts remain unchanged until the ordinary candidate journey passes with its own evidence.
+```
 
 #### MVP-02b no-trade handoff-fixture boundary — 2026-09-10 (local verified)
 
