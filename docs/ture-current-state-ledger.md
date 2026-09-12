@@ -168,11 +168,11 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **15/18 verified for the new MVP candidate; 3
-unverified, 0 active, 1 blocked, 0 invalidated. Release acceptance: 0/6.** The
-is a fresh verification baseline, not a claim that the existing product is 0%
-built. MVP-01a and MVP-01b were verified after that baseline; the remaining
-rows still need behavior evidence.
+Current acceptance coverage: **2/18 verified, 15 unverified, 0 active, 1
+blocked, 0 invalidated. Release acceptance: 0/6.** This is a fresh verification
+baseline, not a claim that the existing product is 0% built. MVP-01a and
+MVP-01b were verified after that baseline; the remaining rows still need
+behavior evidence.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
 | --- | --- | --- | --- |
@@ -219,10 +219,10 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 15/18 (+1 from the prior 14/18 snapshot): prior MVP-01a/01b/01c plus staging MVP-02a/02b/02c, MVP-03a/03b/03c, MVP-04a/04b/04c and MVP-05a/05b/05c scan, recovery-presentation and outcome evidence | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 2/18: MVP-01a and MVP-01b. Historical staging claims are retained in Git history but are not accepted for this release candidate without repeatable supporting evidence. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 0; MVP-05a/05b/05c are verified in isolated staging. MVP-06a is selected and waits only for a fresh authenticated UI transport. | Normally at most one; checkpoint count does not authorize parallel workstreams |
-| Oldest blocked MVP checkpoint | MVP-06a, 2026-09-12: `ture-staging` is reachable behind its expected private `401`, but the existing authenticated browser transport failed on reload. The fixture remains absent; stable browser transport is the recovery action. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | 0; MVP-05 scheduler containment is locally verified and integrated into isolated staging, but no MVP-05 runtime checkpoint is accepted without supported-environment evidence. | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Oldest blocked MVP checkpoint | MVP-01c, 2026-09-10: a controlled failure-state observation and rollback must be repeated on the identified release candidate. The dedicated staging site is now ready; the closed, unmerged PR #450 is historical context, not release evidence. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | 6–16 active hours: MVP-06 candidate journey and applicable release checks; supervised market-session evidence has an external market-window dependency | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
