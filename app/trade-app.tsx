@@ -1779,6 +1779,7 @@ const demoTradingFlowEnabled =
   process.env.NEXT_PUBLIC_ENABLE_DEMO_TRADING_FLOW === "true";
 const demoStorageKeys = TRADE_DEMO_STORAGE_KEYS;
 const demoIdPrefix = "demo-";
+const demoTradeDefaultShares = 10;
 const confidenceMetadataPrefix = "\n\n[confidence_meta:";
 const discardMetadataPrefix = "\n\n[discard_meta:";
 
@@ -10471,7 +10472,7 @@ export function TradeApp({
       setEntryPrice("");
       setPositionSize(
         positionSizing.suggestedShares === null
-          ? "10"
+          ? String(demoTradeDefaultShares)
           : String(positionSizing.suggestedShares),
       );
       setMessage(
@@ -26343,7 +26344,9 @@ function TradeModal({
   const freshness = getRecommendationFreshness(toFreshnessInput(recommendation));
   const addTradeGate = getAddTradeGate(recommendation, freshness);
   const payloadEntryPrice = getRecommendationEntryFallback(recommendation);
-  const payloadShares = positionSizing.suggestedShares ?? null;
+  const payloadShares = isDemoTrade
+    ? demoTradeDefaultShares
+    : positionSizing.suggestedShares ?? null;
   const plannedStopLoss = recommendation.stopLossValue;
   const plannedTargetPrice = getPrimaryTargetPrice(recommendation);
   const [copyStatus, setCopyStatus] = useState("");
@@ -27342,7 +27345,7 @@ function TradeModal({
     }
 
     const demoFillPrice = payloadEntryPrice ?? recommendation.entryLowValue ?? 100;
-    const demoShares = payloadShares ?? 10;
+    const demoShares = payloadShares ?? demoTradeDefaultShares;
 
     setAgentPreparedOrderForm(true);
     setManualBrokerConfirmed(true);
