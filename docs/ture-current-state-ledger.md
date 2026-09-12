@@ -2839,3 +2839,14 @@ delivery queue. It is configuration evidence, not a production release claim.
   proof needs either a genuine manually confirmed broker fill or a separately
   designed, visibly synthetic test-only exit-capture path that does not weaken
   the human-confirmation production control.
+
+### MVP-05 scheduled timeout containment — 2026-09-12 (local verified)
+
+- Review found that the scheduled scan's timeout signal reached scanner and
+  indicator calls but not the SPY/QQQ market-regime fetches. The candidate now
+  propagates the same `AbortSignal` through both regime-candle reads.
+- The focused private-scheduler suite passed 6/6; repository TypeScript
+  no-emit, ESLint and diff checks passed. This local evidence made no provider,
+  database, staging, broker or production request.
+- The change strengthens bounded execution only. It neither enables the
+  staging schedules nor verifies MVP-05a/b/c supported-environment criteria.
