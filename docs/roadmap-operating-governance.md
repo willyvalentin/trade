@@ -30,6 +30,23 @@ over a completion label. User instructions prevail over repository procedures.
   actual independent evidence. The Codex autonomous governance controller
   selects only work meeting this policy.
 
+### Plan future releases without activating them
+
+- The post-MVP map in the master roadmap records the chosen R1 → R2 → R3
+  sequence and its acceptance outcomes. It does not create an active queue,
+  delivery date, implementation authority or parallel workstream.
+- Begin detailed release planning only when its predecessor has passed release
+  acceptance. Write one short release-start brief: the first user-visible
+  outcome, known reusable components, actual evidence gaps, environment,
+  acceptance check and 4–16 active-hour first slice.
+- R2 source selection is hypothesis-led. Start with the smallest attributable
+  source set that can test one stated improvement; collect source timestamp,
+  freshness, coverage, cost and provenance. Do not add a source, backfill or AI
+  capability merely because it appears in a historical data inventory.
+- A later release may be reconsidered only through a concise product decision
+  grounded in predecessor evidence. Preserve the `Agent → Ture Core →
+  deterministic risk/authorization → broker` boundary at every stage.
+
 ### Bound effort and stop unproductive loops
 
 - Default slice budget: **4–16 active engineering hours**, including checks.
@@ -65,12 +82,13 @@ Milestone B runtime capability is still unverified despite historical sandbox
 acceptance. No release may be relabelled complete by shrinking acceptance
 criteria without an explicit product-scope decision retaining the original gap.
 
-For MVP-06a, finish the bounded demo check and then exercise the ordinary
-interface, server and durable storage on one candidate. Cache restoration and
-source-string assertions cannot close this journey. Additional demo corrections
-must address a reproduced obstacle to that ordinary flow, within the existing
-slice budget. Fix its first actual failure, rerun the flow, then perform the
-applicable release checks; do not open a demo-improvement successor chain.
+For MVP-06a, the bounded cache-only demo check is complete; now exercise the
+ordinary interface, server and durable storage on one candidate. Cache
+restoration and source-string assertions cannot close this journey. Additional
+demo corrections must address a reproduced obstacle to that ordinary flow,
+within the existing slice budget. Fix its first actual failure, rerun the flow,
+then perform the applicable release checks; do not open a demo-improvement
+successor chain.
 
 Prefer behavior tests that catch user-flow, security, financial or data-integrity
 regressions. Do not add tests solely to freeze prose, Action numbers or planning
