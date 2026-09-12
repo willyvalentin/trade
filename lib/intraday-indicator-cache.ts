@@ -6,6 +6,7 @@ import {
 } from "@/lib/intraday-indicators";
 import { getIntradayCandles } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { throwIfAborted } from "@/lib/operation-abort";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type IntradayIndicatorCacheSource =
@@ -32,6 +33,7 @@ export type IntradayIndicatorCacheOptions = {
     | "position_update"
     | "scheduled"
     | "add_trade_validation";
+  signal?: AbortSignal;
 };
 
 type ScannerCacheRaw = {
@@ -310,6 +312,7 @@ export async function getOrRefreshIntradayIndicators(
   tickerInput: string,
   options: IntradayIndicatorCacheOptions = {},
 ): Promise<IntradayIndicatorCacheResult> {
+  throwIfAborted(options.signal);
   const ticker = normalizeTicker(tickerInput);
   const interval = options.interval ?? "5min";
   const maxAgeMinutes =
@@ -322,6 +325,7 @@ export async function getOrRefreshIntradayIndicators(
     interval,
     maxAgeMinutes,
   });
+  throwIfAborted(options.signal);
 
   if (cached.indicators && !cached.stale) {
     return cached;
@@ -341,7 +345,10 @@ export async function getOrRefreshIntradayIndicators(
 
   try {
     const { start, end } = getNewYorkTradingDayWindow();
-    const candles = await getIntradayCandles(ticker, interval, start, end);
+    const candles = await getIntradayCandles(ticker, interval, start, end, {
+      signal: options.signal,
+    });
+    throwIfAborted(options.signal);
     const indicators = calculateIntradayIndicators(candles);
     const cachedAt = new Date().toISOString();
 
@@ -350,6 +357,7 @@ export async function getOrRefreshIntradayIndicators(
       source: options.source,
       cached_at: cachedAt,
     });
+    throwIfAborted(options.signal);
 
     return {
       ticker,
@@ -360,6 +368,7 @@ export async function getOrRefreshIntradayIndicators(
       warnings: indicators.warnings,
     };
   } catch (error) {
+    throwIfAborted(options.signal);
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
     const warning = `Intraday indicator refresh failed: ${message}`;

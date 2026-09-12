@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 import type { Config } from "@netlify/functions";
 
 export const config: Config = {
@@ -5,6 +7,50 @@ export const config: Config = {
   // including all US daylight-saving regular-session scan windows.
   schedule: "*/15 13-19 * * 1-5",
 };
+
+type ScheduledScanRouteModule = {
+  POST?: (request: Request) => Promise<Response>;
+};
+
+const runtimeRequire = createRequire(__filename);
+const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS";
+
+function scheduledExecutionIsDisabled() {
+  return Netlify.env.get(scheduledFunctionsDisableFlag) === "true";
+}
+
+async function invokeScheduledScanRoute({
+  automationSecret,
+  firedAtUtc,
+  attemptFingerprint,
+}: {
+  automationSecret: string;
+  firedAtUtc: string;
+  attemptFingerprint: string;
+}) {
+  const routeModule = runtimeRequire(
+    "../.generated/scheduled-scan-runtime.cjs",
+  ) as ScheduledScanRouteModule;
+
+  if (typeof routeModule.POST !== "function") {
+    throw new Error("Scheduled scan runtime does not export POST.");
+  }
+
+  return routeModule.POST(
+    new Request("http://internal/api/automation/run-scan", {
+      method: "POST",
+      headers: {
+        "x-automation-secret": automationSecret,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        source: "netlify_scheduled_function",
+        scheduled_function_fired_at_utc: firedAtUtc,
+        scheduled_scan_attempt_fingerprint: attemptFingerprint,
+      }),
+    }),
+  );
+}
 
 function stableHash(value: string) {
   let hash = 2166136261;
@@ -56,6 +102,14 @@ async function upsertScheduledScanAttempt(record: Record<string, unknown>) {
 }
 
 export default async function handler() {
+  // An explicit environment switch can make a published non-production site
+  // inert before it reads credentials, writes an attempt record, or reaches a
+  // market-data provider. Its absence preserves the established schedule.
+  if (scheduledExecutionIsDisabled()) {
+    console.log("[scheduled-scan] Execution disabled by environment.");
+    return new Response(null, { status: 204 });
+  }
+
   const firedAtUtc = new Date().toISOString();
   const attemptFingerprint = `scheduled_scan_attempt_${stableHash(
     `netlify_scheduled_function|${firedAtUtc}`,
@@ -67,12 +121,6 @@ export default async function handler() {
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
   }
 
-  const siteUrl =
-    process.env.URL ||
-    process.env.DEPLOY_PRIME_URL ||
-    "https://trade.valentinlabs.com";
-
-  const endpoint = `${siteUrl}/api/automation/run-scan`;
   const nyTime = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
     weekday: "short",
@@ -85,7 +133,7 @@ export default async function handler() {
     hour12: false,
   }).format(new Date(firedAtUtc));
 
-  console.log("[scheduled-scan] Calling:", endpoint, {
+  console.log("[scheduled-scan] Executing bundled internal route", {
     scheduled_function_fired_at_utc: firedAtUtc,
     interpreted_ny_time: nyTime,
     scheduled_scan_attempt_fingerprint: attemptFingerprint,
@@ -100,22 +148,15 @@ export default async function handler() {
     utc_timestamp: firedAtUtc,
     ny_timestamp: `${nyTime} America/New_York`,
     payload_json: {
-      endpoint,
+      execution_boundary: "bundled_next_route",
     },
   });
 
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "x-automation-secret": automationSecret,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        source: "netlify_scheduled_function",
-        scheduled_function_fired_at_utc: firedAtUtc,
-        scheduled_scan_attempt_fingerprint: attemptFingerprint,
-      }),
+    const response = await invokeScheduledScanRoute({
+      automationSecret,
+      firedAtUtc,
+      attemptFingerprint,
     });
 
     const body = await response.text();
@@ -135,7 +176,7 @@ export default async function handler() {
         http_status: response.status,
         message: body.slice(0, 1000),
         payload_json: {
-          endpoint,
+          execution_boundary: "bundled_next_route",
         },
       });
     }
@@ -158,7 +199,7 @@ export default async function handler() {
       ny_timestamp: `${nyTime} America/New_York`,
       message: error instanceof Error ? error.message : String(error),
       payload_json: {
-        endpoint,
+        execution_boundary: "bundled_next_route",
       },
     });
 

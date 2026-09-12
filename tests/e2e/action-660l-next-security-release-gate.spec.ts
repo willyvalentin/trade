@@ -16,7 +16,7 @@ const draftCostControlTestPath =
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "5a4e43e3f474b3e0a92b7b21bdc3ddbfa1945b2b6fc747baaebbe7f82f087704";
+  "3dee5b2da87e1d397e6cbfbd49b7289771413545398e4ec080a4e3468961edd3";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
@@ -236,7 +236,7 @@ test("pins exact security-release evidence and every governed source", async () 
   const netlifyToml = await source("netlify.toml");
   expect(netlifyToml).toContain("[build]");
   expect(netlifyToml).toContain(
-    'command = "NODE_OPTIONS=--max-old-space-size=4096 npm run build"',
+    'command = "npm run build:scheduled-scan-runtime && NODE_OPTIONS=--max-old-space-size=4096 npm run build"',
   );
 });
 
