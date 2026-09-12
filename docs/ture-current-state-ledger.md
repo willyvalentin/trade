@@ -169,7 +169,7 @@ reuse this fixture to bypass either boundary.
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
 | MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and private-staging loading, empty and safe failed-state readbacks | Unverified at release scope: MVP-01a/01b/01c are verified in isolated staging; a compatible release candidate remains required. |
-| MVP-02 | Staging showed the complete synthetic plan, clear closed-window/no-trade state, and fail-closed stale/expired/provider-unavailable states without an actionable fixture | Unverified at release scope: MVP-02a/02b/02c are verified in isolated staging; a compatible release candidate remains required |
+| MVP-02 | Private staging has fresh isolated evidence that an expired item and a bounded provider-unavailable state do not expose an actionable trade control. The complete current-plan and clean no-trade paths remain separately unverified. | Unverified at release scope: MVP-02c is verified in isolated staging; MVP-02a and MVP-02b still require their separate supported-environment behavior evidence. |
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; scan, recovery presentation and attributable outcome evidence are observed | MVP-05a/05b/05c verified in isolated staging: the natural 17:15 UTC scan completed/healthy with one accepted recommendation; the dashboard then distinguished that last-successful run from a later stale run requiring review; and the natural 18:45 UTC bundled outcome run retained three attributable `neither_hit` outcomes for its 15m/30m/60m horizons. Polygon confirms calendar metadata only, not a higher quote-discovery budget. No manual bypass. |
@@ -182,7 +182,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 
 ### Small milestone board — 18 behavior checkpoints
 
-Current acceptance coverage: **8/18 verified, 10 unverified, 0 active, 0
+Current acceptance coverage: **9/18 verified, 9 unverified, 0 active, 0
 blocked, 0 invalidated. Release acceptance: 0/6.** This is a fresh verification
 baseline, not a claim that the existing product is 0% built. MVP-01a and
 MVP-01b were verified after that baseline; the remaining rows still need
@@ -195,7 +195,7 @@ behavior evidence.
 | MVP-01c | Loading, empty and failed dashboard states are understandable | verified | PR #443 merged the dedicated-origin guard as `d0ce1e78`; its Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-12, a fresh private `ture-staging` probe set only the non-secret failure flag in that site's production context with Builds and Functions scope. One authenticated dashboard read visibly showed **Data is not clean enough right now** and **REFRESH**. The flag was then deleted, the identical staging revision `4f975615` was rebuilt, and a normal authenticated dashboard showed no failure state. No database, provider, broker or public production operation occurred. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | The MVP-02 delivery candidate exposes Target 2 in the existing recommendation-details trade plan and makes the existing price source, timestamp and expiry information visible on each recommendation card; supported-environment behavior evidence remains required. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. The MVP-02 delivery candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present; its local coverage and production build pass. On 2026-09-12, authenticated current staging revision `390502a4` showed **US STOCK MARKET — CURRENTLY CLOSED** and **DAY TRADE WINDOW — CLOSED**. Its stored AAPL card was visibly **EXPIRED — REVIEW ONLY**, with only a disabled **Setup Expired** control, no `RECORD MANUAL TRADE`, no GME fixture and no Avanza handoff. This is supported market-closed/no-action evidence, but it does not cover a separate clean no-trade state, so the whole checkpoint remains unverified. |
-| MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | On 2026-09-12, authenticated current staging rendered an already stored AAPL item with its past expiry as **EXPIRED — REVIEW ONLY** and a disabled **Setup Expired** control; it exposed no manual-trade action. This proves the expired-data branch does not present that record as current actionable guidance. It does not yet cover stale or provider-unavailable behavior, so the full checkpoint remains unverified. |
+| MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | verified | Private `ture-staging`, 2026-09-12: an authenticated dashboard reload after exactly one labelled, synthetic `provider_error` scan-record probe visibly rendered **Market data provider is unavailable** and stated that Ture would not present a guessed or stale setup. No **RECORD MANUAL TRADE**, **Make Trade** or Avanza handoff was present. The probe made no provider call and its one staging row was then deleted; a separate readback confirmed zero residual marker rows. This verifies the UI's bounded provider-unavailable behavior in isolated staging, not a natural provider outage or release acceptance. |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
 | MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. On 2026-09-12, a staging-only synthetic `MVPSTG` command replay returned the existing position with `reused`, and the owner/recommendation pair still had exactly one stored position; an authenticated reload rendered that one 10-share card with its saved plan. This is server-command and read-path evidence, not a supported user entry-form journey, so the checkpoint remains unverified. |
 | MVP-03c | Record an exit and reload the correct closed state without a broker call | verified | On 2026-09-12, authenticated private staging used the ordinary Ture close form for the labelled synthetic `MVPSTG` position: a filled 5/10-share close at 103, reload showed the one durable 5-share open position, then a separate filled final 5-share close at 104. Readback showed exactly one closed row and no broker/provider call. |
@@ -233,7 +233,7 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 8/18: MVP-01a/01b/01c, MVP-03c, MVP-04b and MVP-05a/05b/05c are verified in isolated private staging. Historical local and preview claims remain distinct from this behavior evidence and none establish release acceptance. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 9/18: MVP-01a/01b/01c, MVP-02c, MVP-03c, MVP-04b and MVP-05a/05b/05c are verified in isolated private staging. Historical local and preview claims remain distinct from this behavior evidence and none establish release acceptance. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
 | Active product slices | 0; MVP-05 scheduler containment is locally verified and integrated into isolated staging, but no MVP-05 runtime checkpoint is accepted without supported-environment evidence. | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None: no checkpoint is actively blocked. MVP-06a is the next unverified ordered slice; its current authenticated staging readback and exact cleanup precondition are complete, while the full manual journey still remains. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
@@ -245,6 +245,23 @@ Keep one previous dated scorecard summary when updating, so weekly changes can
 be compared. Do not generate a new metric contract, service or test just to
 maintain this Markdown table. More verified functionality per week and shorter
 blocking periods are the test of whether this delivery policy is helping.
+
+Previous dated scorecard summary (2026-09-12, immediately before the
+MVP-02c isolated-staging probe): **8/18 verified, 10 unverified, 0 active,
+0 blocked and 0/6 release-accepted criteria.** The MVP-02c evidence below is
+the net one-checkpoint change from that snapshot.
+
+#### MVP-02c private provider-unavailable presentation and rollback — 2026-09-12
+
+```text
+acceptance_id: MVP-02c
+user_behavior_or_reproduced_failure: Current staging had fresh expired-data evidence, but no current isolated readback of the provider-unavailable presentation. The acceptance boundary requires unavailable data not to become an actionable signal.
+smallest_change_and_reused_components: No application, Netlify, provider or production configuration changed. Exactly one clearly-labelled `MVP-02C-STAGING` synthetic `scheduled_scan_runs` metadata row was created in private staging with the existing `provider_error` scan-log shape. It declared zero candidates and zero fresh provider calls; it did not invoke Twelve Data, Polygon, a scanner or a broker.
+behavior_check_and_environment: Private `ture-staging`, 2026-09-12: one authenticated dashboard reload visibly rendered `Market data provider is unavailable` and the existing fail-closed explanation that no guessed or stale setup would be presented. The rendered page contained no `RECORD MANUAL TRADE`, `Make Trade` or Avanza-handoff action. The one fixture row was deleted immediately afterward. A separate staging aggregate readback confirmed zero residual `MVP-02C-STAGING` rows.
+external_effects_and_existing_authority: Private staging database and its authenticated dashboard only. No production site/database/deploy, provider request, broker action, real market data, secret read or user-data mutation occurred.
+blocker_or_fallback: This is deliberately synthetic presentation evidence, not an assertion that Twelve Data was unavailable. A natural provider outage is not needed to re-enter the current MVP roadmap; the next ordered slice remains MVP-06a's separately bounded manual journey.
+result_and_remaining_gap: MVP-02c is verified in isolated staging. MVP-02a, MVP-02b and release-scope acceptance remain unverified and are not implied by this test.
+```
 
 #### MVP staging authentication and synthetic lifecycle — 2026-09-11
 
