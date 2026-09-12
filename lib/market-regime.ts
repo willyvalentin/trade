@@ -119,10 +119,10 @@ function buildSummary(
   return `Broad market conditions are mixed. Average SPY/QQQ 5-day change is ${averageFiveDayChange}%.`;
 }
 
-export async function getMarketRegime(): Promise<MarketRegime> {
+export async function getMarketRegime(options: { signal?: AbortSignal } = {}): Promise<MarketRegime> {
   const [spyCandles, qqqCandles] = await Promise.all([
-    getDailyCandles("SPY", 60),
-    getDailyCandles("QQQ", 60),
+    getDailyCandles("SPY", 60, options),
+    getDailyCandles("QQQ", 60, options),
   ]);
 
   const spy = analyzeSymbol(spyCandles);
