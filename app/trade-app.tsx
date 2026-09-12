@@ -1779,6 +1779,7 @@ const demoTradingFlowEnabled =
   process.env.NEXT_PUBLIC_ENABLE_DEMO_TRADING_FLOW === "true";
 const demoStorageKeys = TRADE_DEMO_STORAGE_KEYS;
 const demoIdPrefix = "demo-";
+const demoTradeDefaultShares = 10;
 const confidenceMetadataPrefix = "\n\n[confidence_meta:";
 const discardMetadataPrefix = "\n\n[discard_meta:";
 
@@ -2016,6 +2017,14 @@ function isDemoRecommendation(recommendation: Recommendation | null | undefined)
 
 function isDemoPosition(position: ActivePosition | ClosedPosition | null | undefined) {
   return isDemoId(position?.id) || isDemoId(position?.recommendationId);
+}
+
+function mergeDemoItems<T>(
+  demoItems: T[],
+  currentItems: T[],
+  isDemoItem: (item: T) => boolean,
+) {
+  return [...demoItems, ...currentItems.filter((item) => !isDemoItem(item))];
 }
 
 function isMockPosition(position: ActivePosition | ClosedPosition | null | undefined) {
@@ -2320,6 +2329,21 @@ function buildDemoLatestPositionUpdate(
     updatedAt: "Demo now",
     updatedAtRaw,
   };
+}
+
+function mergeDemoLatestPositionUpdates(
+  currentUpdates: Record<string, LatestPositionUpdate>,
+  demoActivePositions: ActivePosition[],
+) {
+  const nextUpdates = Object.fromEntries(
+    Object.entries(currentUpdates).filter(([positionId]) => !isDemoId(positionId)),
+  ) as Record<string, LatestPositionUpdate>;
+
+  for (const position of demoActivePositions) {
+    nextUpdates[position.id] = buildDemoLatestPositionUpdate(position);
+  }
+
+  return nextUpdates;
 }
 
 const enableSoundAlerts = true;
@@ -9246,6 +9270,13 @@ export function TradeApp({
 
       if (recommendationsResult.error) {
         noteIslandError("recommendations", recommendationsResult.error);
+        setRecommendations((current) =>
+          mergeDemoItems(
+            demoRecommendations,
+            current,
+            isDemoRecommendation,
+          ),
+        );
       } else {
         const loadedRecommendations = (
           recommendationsResult.data as RecommendationRow[]
@@ -9265,12 +9296,11 @@ export function TradeApp({
           !hasCurrentLoadedRecommendations
             ? [...buildDevPreviewRecommendations(), ...loadedRecommendations]
             : loadedRecommendations;
-        const nextRecommendations = [
-          ...demoRecommendations,
-          ...baseRecommendations.filter(
-            (recommendation) => !isDemoRecommendation(recommendation),
-          ),
-        ];
+        const nextRecommendations = mergeDemoItems(
+          demoRecommendations,
+          baseRecommendations,
+          isDemoRecommendation,
+        );
 
         changedItemIdsByIsland.recommendations = getNewIds(
           previousRecommendationIds,
@@ -9295,11 +9325,15 @@ export function TradeApp({
       if (positionsResult.error) {
         noteIslandError("live_trades", positionsResult.error);
         noteIslandError("stats_today", positionsResult.error);
+        setActivePositions((current) =>
+          mergeDemoItems(demoActivePositions, current, isDemoPosition),
+        );
       } else {
-        const nextActivePositions = [
-          ...demoActivePositions,
-          ...(positionsResult.data as PositionRow[]).map(toActivePosition),
-        ];
+        const nextActivePositions = mergeDemoItems(
+          demoActivePositions,
+          (positionsResult.data as PositionRow[]).map(toActivePosition),
+          isDemoPosition,
+        );
 
         changedItemIdsByIsland.live_trades = getNewIds(
           previousLiveTradeIds,
@@ -9312,11 +9346,15 @@ export function TradeApp({
       if (closedPositionsResult.error) {
         noteIslandError("stats_today", closedPositionsResult.error);
         noteIslandError("history_statistics", closedPositionsResult.error);
+        setClosedPositions((current) =>
+          mergeDemoItems(demoClosedPositions, current, isDemoPosition),
+        );
       } else {
-        const nextClosedPositions = [
-          ...demoClosedPositions,
-          ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
-        ];
+        const nextClosedPositions = mergeDemoItems(
+          demoClosedPositions,
+          (closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
+          isDemoPosition,
+        );
 
         setClosedPositions(nextClosedPositions);
         void hydrateSymbolMetadataForDisplay(nextClosedPositions);
@@ -9324,20 +9362,21 @@ export function TradeApp({
 
       if (positionUpdatesResult.error) {
         noteIslandError("live_trades", positionUpdatesResult.error);
+        setLatestPositionUpdates((current) =>
+          mergeDemoLatestPositionUpdates(current, demoActivePositions),
+        );
       } else {
-      const updatesByPosition: Record<string, LatestPositionUpdate> = {};
+        const updatesByPosition: Record<string, LatestPositionUpdate> = {};
 
-      for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
-        if (!updatesByPosition[update.position_id]) {
-          updatesByPosition[update.position_id] = toLatestPositionUpdate(update);
+        for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
+          if (!updatesByPosition[update.position_id]) {
+            updatesByPosition[update.position_id] = toLatestPositionUpdate(update);
+          }
         }
-      }
 
-      for (const position of demoActivePositions) {
-        updatesByPosition[position.id] = buildDemoLatestPositionUpdate(position);
-      }
-
-        setLatestPositionUpdates(updatesByPosition);
+        setLatestPositionUpdates(
+          mergeDemoLatestPositionUpdates(updatesByPosition, demoActivePositions),
+        );
       }
 
       if (scanLogsResult.error) {
@@ -10471,7 +10510,7 @@ export function TradeApp({
       setEntryPrice("");
       setPositionSize(
         positionSizing.suggestedShares === null
-          ? "10"
+          ? String(demoTradeDefaultShares)
           : String(positionSizing.suggestedShares),
       );
       setMessage(
@@ -26343,7 +26382,9 @@ function TradeModal({
   const freshness = getRecommendationFreshness(toFreshnessInput(recommendation));
   const addTradeGate = getAddTradeGate(recommendation, freshness);
   const payloadEntryPrice = getRecommendationEntryFallback(recommendation);
-  const payloadShares = positionSizing.suggestedShares ?? null;
+  const payloadShares = isDemoTrade
+    ? demoTradeDefaultShares
+    : positionSizing.suggestedShares ?? null;
   const plannedStopLoss = recommendation.stopLossValue;
   const plannedTargetPrice = getPrimaryTargetPrice(recommendation);
   const [copyStatus, setCopyStatus] = useState("");
@@ -27342,7 +27383,7 @@ function TradeModal({
     }
 
     const demoFillPrice = payloadEntryPrice ?? recommendation.entryLowValue ?? 100;
-    const demoShares = payloadShares ?? 10;
+    const demoShares = payloadShares ?? demoTradeDefaultShares;
 
     setAgentPreparedOrderForm(true);
     setManualBrokerConfirmed(true);
