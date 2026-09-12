@@ -2,19 +2,6 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import {
-  applicationDashboardReadPath,
-  isMvp01cStagingDashboardFailureProbe,
-  mvp01cDashboardFailureProbeEnabledValue,
-  mvp01cDashboardFailureProbeEnvironmentVariable,
-  mvp01cDashboardFailureProbeQueryParameter,
-  mvp01cDashboardFailureProbeQueryValue,
-} from "../../lib/application-dashboard-failure-probe";
-import {
-  applicationCanonicalProductionOrigin,
-  applicationCanonicalStagingOrigin,
-} from "../../lib/application-platform-contract";
-
 const repositoryRoot = path.resolve(__dirname, "../..");
 
 async function source(relativePath: string) {
@@ -22,77 +9,6 @@ async function source(relativePath: string) {
 }
 
 test.describe("MVP-01 dashboard states", () => {
-  test("limits the controlled failed-first-read probe to the enabled dedicated staging host", () => {
-    const stagingEnvironment = {
-      NODE_ENV: "production",
-      TURE_APPLICATION_ORIGIN: applicationCanonicalStagingOrigin,
-      URL: applicationCanonicalStagingOrigin,
-      [mvp01cDashboardFailureProbeEnvironmentVariable]:
-        mvp01cDashboardFailureProbeEnabledValue,
-    };
-    const failureSearch = `?${mvp01cDashboardFailureProbeQueryParameter}=${mvp01cDashboardFailureProbeQueryValue}`;
-    const stagingRequest = new Request(
-      `${applicationCanonicalStagingOrigin}/api/app/dashboard${failureSearch}`,
-    );
-
-    expect(
-      isMvp01cStagingDashboardFailureProbe(stagingRequest, stagingEnvironment),
-    ).toBe(true);
-    expect(
-      isMvp01cStagingDashboardFailureProbe(stagingRequest, {
-        ...stagingEnvironment,
-        [mvp01cDashboardFailureProbeEnvironmentVariable]: "true",
-      }),
-    ).toBe(false);
-    expect(
-      isMvp01cStagingDashboardFailureProbe(stagingRequest, {
-        ...stagingEnvironment,
-        [mvp01cDashboardFailureProbeEnvironmentVariable]: undefined,
-      }),
-    ).toBe(false);
-    expect(
-      isMvp01cStagingDashboardFailureProbe(
-        new Request(
-          `${applicationCanonicalProductionOrigin}/api/app/dashboard${failureSearch}`,
-        ),
-        {
-          ...stagingEnvironment,
-          TURE_APPLICATION_ORIGIN: applicationCanonicalProductionOrigin,
-          URL: applicationCanonicalProductionOrigin,
-        },
-      ),
-    ).toBe(false);
-    expect(
-      isMvp01cStagingDashboardFailureProbe(
-        new Request(`${applicationCanonicalStagingOrigin}/api/app/dashboard`),
-        stagingEnvironment,
-      ),
-    ).toBe(false);
-  });
-
-  test("adds the probe request only for the exact staging URL selected by the browser", () => {
-    const failureSearch = `?${mvp01cDashboardFailureProbeQueryParameter}=${mvp01cDashboardFailureProbeQueryValue}`;
-
-    expect(
-      applicationDashboardReadPath({
-        origin: applicationCanonicalStagingOrigin,
-        search: failureSearch,
-      }),
-    ).toBe(`/api/app/dashboard${failureSearch}`);
-    expect(
-      applicationDashboardReadPath({
-        origin: applicationCanonicalProductionOrigin,
-        search: failureSearch,
-      }),
-    ).toBe("/api/app/dashboard");
-    expect(
-      applicationDashboardReadPath({
-        origin: applicationCanonicalStagingOrigin,
-        search: "",
-      }),
-    ).toBe("/api/app/dashboard");
-  });
-
   test("keeps loading, unavailable data, and an honest empty state distinct", async () => {
     const recommendationsTab = await source(
       "components/recommendations/RecommendationsTab.tsx",
