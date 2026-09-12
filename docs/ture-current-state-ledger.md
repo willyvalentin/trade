@@ -36,7 +36,7 @@ new external-operation authority.
 | Criterion | Current evidence | Release status / next check |
 | --- | --- | --- |
 | MVP-01 | Existing session gate, owner-bound dashboard API, preview sign-in/reload/sign-out evidence and private-staging loading, empty and safe failed-state readbacks | Unverified at release scope: MVP-01a/01b have historical preview evidence and MVP-01c has private-staging evidence; a compatible release candidate remains required. |
-| MVP-02 | Private staging has fresh isolated evidence that expired and provider-unavailable data do not expose an actionable trade control | Unverified at release scope: MVP-02c is verified in isolated staging; MVP-02a and MVP-02b still require their separate supported-environment behavior evidence. |
+| MVP-02 | Private staging has isolated evidence that market-closed, expired and provider-unavailable data do not expose an actionable trade control | Unverified at release scope: MVP-02b and MVP-02c are verified in isolated staging; MVP-02a still requires its separate supported-environment behavior evidence. |
 | MVP-03 | Server-owned manual broker-attestation boundary is merged to main; owner-bound synthetic staging lifecycle evidence is retained | Unverified: the complete supported entry/reload/exit journey requires genuine manual confirmation and cannot be fabricated. |
 | MVP-04 | Synthetic staging history reconciled complete plan/actual values and labels incomplete records without inventing a result | Unverified at release scope: MVP-04b is verified in isolated staging; a compatible release candidate remains required. |
 | MVP-05 | Private staging observed bounded scanning, recovery presentation and attributable outcomes | MVP-05a/05b/05c are verified in isolated staging; they are not production or release acceptance. |
@@ -50,7 +50,7 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Recorded acceptance coverage across the individually stated environments:
-**9/18 verified, 9 unverified (including 1 active slice), 0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a behavior-evidence
+**10/18 verified, 8 unverified (including 1 active slice), 0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a behavior-evidence
 baseline, not a claim that the existing product is 0% built. The active slice
 is MVP-06a's remaining private-staging manual journey.
 
@@ -60,7 +60,7 @@ is MVP-06a's remaining private-staging manual journey.
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | verified | Private `ture-staging`, 2026-09-12: one bounded failure probe visibly rendered the unavailable-data state, then its flag, code and fixture were removed; a clean authenticated readback showed the ordinary state. No provider, broker, production or database operation occurred. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | The MVP-02 delivery candidate exposes Target 2 in the existing recommendation-details trade plan and makes the existing price source, timestamp and expiry information visible on each recommendation card; supported-environment behavior evidence remains required. |
-| MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | Private staging has supported market-closed/no-action evidence without a live manual-trade control, but a separate clean no-trade demonstration remains required. |
+| MVP-02b | No-trade and market-closed situations explain why no action is offered | verified | Private `ture-staging` deploy `6aa550cd31cf6b3dd2195519` at staging revision `4bebf72692e244ee046695e1b39548c3564da26b`, 2026-09-12 16:00 CEST: authenticated readback showed `US STOCK MARKET` / `CLOSED TODAY` and the no-high-quality-setup explanation; no Record Manual Trade, Make Trade, Avanza or Add Trade control was rendered. Navigation and reload only; no scan, provider, broker, database or production operation occurred. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | verified | Private `ture-staging`, 2026-09-12: one labelled provider-error metadata probe visibly rendered the fail-closed unavailable state with no manual-trade or Avanza action. The probe was deleted and a separate readback confirmed no residual marker row. |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
 | MVP-03b | Reload and repeat an entry request without losing or duplicating the position | unverified | The MVP-03 delivery candidate atomically permits a `partial_close` only when it strictly reduces the owner's current open position size; a client request cannot increase or leave that count unchanged. On 2026-09-12, a staging-only synthetic `MVPSTG` command replay returned the existing position with `reused`, and the owner/recommendation pair still had exactly one stored position; an authenticated reload rendered that one 10-share card with its saved plan. This is server-command and read-path evidence, not a supported user entry-form journey, so the checkpoint remains unverified. |
@@ -99,7 +99,7 @@ or delivery forecast.
 
 | Measure | Initial value | Update rule |
 | --- | --- | --- |
-| Verified behavior checkpoints | 9/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other seven rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
+| Verified behavior checkpoints | 10/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other eight rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
 | Active product slices | 1; MVP-06a manual-journey evidence, using only its explicitly scoped staging boundary | Normally at most one; checkpoint count does not authorize parallel workstreams |
 | Oldest blocked MVP checkpoint | None: MVP-06a is the next unverified ordered slice; its authenticated staging readback and exact cleanup precondition are complete, while the full manual journey remains. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
@@ -113,9 +113,9 @@ maintain this Markdown table. More verified functionality per week and shorter
 blocking periods are the test of whether this delivery policy is helping.
 
 Previous dated scorecard summary (2026-09-12, immediately before the
-MVP-02c isolated-staging probe): **8/18 verified, 10 unverified, 0 active,
-0 blocked and 0/6 release-accepted criteria.** The MVP-02c evidence below is
-the net one-checkpoint change from that snapshot.
+MVP-02b market-closed readback): **9/18 verified, 9 unverified, 1 active,
+0 blocked and 0/6 release-accepted criteria.** The MVP-02b evidence is the
+net one-checkpoint change from that snapshot.
 
 #### MVP-03 manual broker-attestation server boundary — 2026-09-12 (local verified)
 
