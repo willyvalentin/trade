@@ -187,14 +187,23 @@ failure, next implementation, 4–16 active-hour budget, behavior evidence,
 blocker and completion state. Do not create an Action-document chain to select
 these already selected outcomes.
 
+### Post-MVP planning boundary — 2026-09-12
+
+The [master roadmap's post-MVP delivery map](./ture-master-roadmap.md#post-mvp-delivery-map--2026-09-12-planning-direction)
+records the agreed R1, R2, R3 and future-automation sequence. It is a planning
+map, not an active work queue: no R1, R2 or R3 slice starts until MVP release
+acceptance is complete. At that point, select R1a's first observable position
+truth/recovery outcome against the actual MVP evidence and reuse existing work
+only where it passes that check.
+
 ### Blocked / parked / decisions
 
 | Item | Disposition | Re-entry condition |
 | --- | --- | --- |
 | New MVP candidate in real operation | Not yet verified, not known to be blocked | Establish the actual supported environment and first failed criterion; do not inherit every later-release restriction as an MVP blocker |
-| B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | R1 selects a concrete runtime slice and an authorized infrastructure/architecture decision resolves its prerequisite |
-| C-01 execution/audit successors | Parked for R3; existing source foundation retained | A selected broker-assistance slice needs them after its dependencies are met |
-| AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | A measured intelligence outcome is selected; genuine completed evidence and an evaluation plan exist |
+| B-03 private writer transport | Parked for R1; existing private-path requirement and missing infrastructure remain | After MVP acceptance, R1a assesses its actual canonical-position need. A concrete runtime slice and authorized infrastructure/architecture decision must resolve the private-path prerequisite. |
+| C-01 execution/audit successors | Parked for R3; existing source foundation retained | Start only after R2 acceptance selects a bounded broker-assistance outcome; retained source does not establish a writer, broker connection or execution authority. |
+| AI canonical dataset / promotion | Parked for R2; legacy 500-row preservation and inactive receipt are not eligible evaluation data | Start only after R1 acceptance with a measured intelligence outcome, canonical completed data and a frozen evaluation plan. |
 | CAT / SEC / new external capabilities | Parked | A demonstrated MVP defect or later release criterion needs the capability and existing sources cannot meet it |
 | Consumed AI/CAT external proofs | Closed; no automatic retry | A genuinely different, bounded authorized operation addresses a diagnosed cause |
 | CI/governance-only optimization | No standing implementation queue | A measured delivery defect or critical regression blocks the selected slice; retain required checks |

@@ -130,6 +130,116 @@ helper is a dependency, not a finished user capability. Follow the bounded-work,
 blocker and progress rules in the operating governance; preserve critical
 security, ownership, budget and human-confirmation controls.
 
+## Post-MVP delivery map — 2026-09-12 planning direction
+
+This map preserves the product's long-term direction without creating a second
+active queue. MVP remains the only selected release until its acceptance is
+complete. Start detailed planning for a release only after the preceding release
+has passed its acceptance evidence and record a short release-start brief with
+the first user outcome, reusable components, risks, environment and checks.
+Do not infer a delivery date, effort total or implementation authority from this
+map.
+
+### R1 — trustworthy server-owned trade management
+
+**User outcome:** a user can follow an open position using current, attributable
+market information and receive deterministic, recoverable exit guidance.
+
+1. **R1a — canonical position truth.** Reuse and verify existing position,
+   version-lineage and audit foundations to establish one server-owned source
+   for current state, transitions and actual manual fills. Resolve conflicts,
+   duplicates and owner boundaries before adding monitor behavior.
+2. **R1b — freshness-aware monitoring.** Monitor actual open positions and
+   expose market freshness, missing data and deterministic hold/attention
+   guidance. Unknown or stale data must fail closed to an explicit cannot-assess
+   state, never to a fabricated recommendation.
+3. **R1c — exit and recovery lifecycle.** Add deterministic exit guidance,
+   a recoverable exit queue, idempotent retries, transactional handoff and
+   restart recovery. Background work must not displace open-position and exit
+   monitoring.
+4. **R1d — supervised recovery proof.** Demonstrate a whole position journey,
+   including interruption or restart, recovery and correct durable history on a
+   supported candidate.
+
+**R1 acceptance:** canonical lineage, monitor, exit queue, retry/idempotency,
+transactional handoff and restart recovery pass end to end. Historical Milestone
+B local-sandbox evidence is reusable source material, not R1 completion. R1
+does not submit broker orders.
+
+### R2 — measured intelligence and learning
+
+**User outcome:** Ture can explain why a recommendation was selected and show
+that a proposed analysis improvement beats a frozen baseline without degrading
+data integrity, reliability or cost control.
+
+1. **R2a — canonical learning sample.** Complete the recommendation snapshot
+   and outcome path: stable identity, snapshot-time inputs, data class
+   (`live_visible`, research, shadow or historical synthetic), truthful outcome
+   completion and recommendation-level horizon deduplication. Preserve the
+   longest complete supported horizon for primary calibration.
+2. **R2b — staged context collection.** Reuse the existing intelligence data
+   plan in [Action 332](./action-332-intelligence-data-collection-readiness-map.md)
+   and start with the smallest source set that answers one measurement question:
+   existing licensed price/volume data; then SPY, QQQ and IWM context; then
+   sector ETFs and relative strength; then timestamped catalyst presence/type
+   and freshness. A news source begins with minimal attributable metadata, not
+   unrestricted text collection or NLP. Backfill starts with
+   recommendation-linked symbols and context before broad-universe collection;
+   see [Action 339](./action-339-historical-backfill-cost-and-provider-capacity-plan.md).
+3. **R2c — evaluation and shadow.** Freeze a baseline and an evaluation plan
+   before measuring. Test one hypothesis at a time, such as whether sector
+   relative strength improves precision among the top recommendations. Measure
+   coverage, missingness, provider cost/reliability, expectancy in R,
+   precision@K and confidence calibration across a held-out sample. The existing
+   [market-context shadow lab](./action-667a-market-context-intelligence-shadow-lab.md)
+   remains shadow-only until its data and evaluation boundary are admitted.
+4. **R2d — controlled promotion.** Run a winning candidate in shadow, make one
+   reversible, versioned policy change only after the evidence is sufficient,
+   and monitor against its baseline. AI may analyse, critique and propose; it
+   cannot change a live policy or trading authority by itself.
+
+**R2 acceptance:** canonical completed outcomes, a frozen evaluation plan, an
+adequate held-out sample, measured cost/reliability, shadow comparison and an
+explicit rollback-capable promotion decision. The legacy 500-row preservation
+and inactive receipt are not an eligible learning dataset.
+
+### R3 — bounded semi-automatic broker assistance
+
+**User outcome:** Ture prepares one correct BUY or SELL package, and the user
+gives final confirmation at the broker.
+
+1. **R3a — binding and preparation.** Bind the authenticated user, account and
+   instrument to a canonical, versioned execution intent and a complete order
+   package.
+2. **R3b — deterministic admission.** Check the prepared package against
+   position, market-session, price, quantity, exposure and risk limits through
+   Ture Core. Preserve durable audit and idempotency throughout.
+3. **R3c — bounded human-confirmed trials.** Exercise one narrow BUY and one
+   narrow SELL path with explicit human final confirmation, then reconcile the
+   broker result to the durable intent and position state.
+4. **R3d — recovery evidence.** Demonstrate safe handling of uncertain,
+   rejected, duplicate and interrupted broker results before expanding scope.
+
+**R3 acceptance:** authenticated account/instrument binding, persistent audit,
+bounded BUY/SELL trials, reconciliation and recovery all work end to end. The
+prohibited direct path remains `Agent → Broker`; every action passes through
+Ture Core and deterministic risk/authorization.
+
+### Future — controlled automation only after R3 evidence
+
+Automatic execution has no implementation queue or date. Consider it only via
+a separate product decision after sustained R3 operating evidence. That decision
+must define a narrow initial scope, explicit execution authority, risk limits,
+kill switch, incident handling, reconciliation, monitoring and rollback.
+
+### Planning and selection rule
+
+This map answers **where the product goes**, not what to build next today. Once
+MVP is accepted, assess the R1a starting state against existing code and evidence
+and select one 4–16 active-hour vertical slice. Use the same fixed,
+behavior-evidence method for the selected release; do not pre-create detailed
+R1–R3 Action chains or treat a source-only artifact as an accepted capability.
+
 ## Historical roadmap and technical evidence — not the active work queue
 
 ## Current operating dashboard
