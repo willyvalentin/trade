@@ -2109,28 +2109,57 @@ function isStatsTodayEligiblePosition(
   );
 }
 
-function readDemoList<T>(key: string): T[] {
+function getDemoBrowserStorages(): Storage[] {
   if (!demoTradingFlowEnabled || typeof window === "undefined") {
     return [];
   }
 
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(key) ?? "[]");
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
-  } catch {
-    return [];
+  const storages: Storage[] = [];
+
+  for (const resolveStorage of [
+    () => window.localStorage,
+    () => window.sessionStorage,
+  ]) {
+    try {
+      const storage = resolveStorage();
+
+      if (!storages.includes(storage)) {
+        storages.push(storage);
+      }
+    } catch {
+      // The cache-only demo journey remains local-only when one browser store
+      // is unavailable, so try the other scoped browser store instead.
+    }
   }
+
+  return storages;
+}
+
+function readDemoList<T>(key: string): T[] {
+  for (const storage of getDemoBrowserStorages()) {
+    try {
+      const parsed = JSON.parse(storage.getItem(key) ?? "[]");
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed as T[];
+      }
+    } catch {
+      // Try the session-scoped fallback without involving a server or provider.
+    }
+  }
+
+  return [];
 }
 
 function writeDemoList<T>(key: string, value: T[]) {
-  if (!demoTradingFlowEnabled || typeof window === "undefined") {
-    return;
-  }
+  const serializedValue = JSON.stringify(value.slice(0, 25));
 
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value.slice(0, 25)));
-  } catch {
-    // Demo tools are best-effort local UI only.
+  for (const storage of getDemoBrowserStorages()) {
+    try {
+      storage.setItem(key, serializedValue);
+    } catch {
+      // Demo tools are best-effort local UI only.
+    }
   }
 }
 
@@ -2174,45 +2203,43 @@ function writeDemoClosedPositions(positions: ClosedPosition[]) {
 }
 
 function clearStoredDemoTradeData() {
-  if (typeof window === "undefined") {
-    return;
+  for (const storage of getDemoBrowserStorages()) {
+    try {
+      storage.removeItem(demoStorageKeys.recommendations);
+      storage.removeItem(demoStorageKeys.activePositions);
+      storage.removeItem(demoStorageKeys.closedPositions);
+      storage.removeItem(demoStorageKeys.lastAction);
+    } catch {
+      // Demo clear must never affect normal app behavior.
+    }
   }
 
-  try {
-    window.localStorage.removeItem(demoStorageKeys.recommendations);
-    window.localStorage.removeItem(demoStorageKeys.activePositions);
-    window.localStorage.removeItem(demoStorageKeys.closedPositions);
-    window.localStorage.removeItem(demoStorageKeys.lastAction);
-    removeLatestMockBrokerFill();
-  } catch {
-    // Demo clear must never affect normal app behavior.
-  }
+  removeLatestMockBrokerFill();
 }
 
 function readDemoLastAction() {
-  if (!demoTradingFlowEnabled || typeof window === "undefined") {
-    return "No demo action yet.";
+  for (const storage of getDemoBrowserStorages()) {
+    try {
+      const lastAction = text(storage.getItem(demoStorageKeys.lastAction));
+
+      if (lastAction) {
+        return lastAction;
+      }
+    } catch {
+      // Try the session-scoped fallback without involving a server or provider.
+    }
   }
 
-  try {
-    return text(
-      window.localStorage.getItem(demoStorageKeys.lastAction),
-      "No demo action yet.",
-    );
-  } catch {
-    return "No demo action yet.";
-  }
+  return "No demo action yet.";
 }
 
 function writeDemoLastAction(value: string) {
-  if (!demoTradingFlowEnabled || typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(demoStorageKeys.lastAction, value);
-  } catch {
-    // Demo status is best-effort local UI only.
+  for (const storage of getDemoBrowserStorages()) {
+    try {
+      storage.setItem(demoStorageKeys.lastAction, value);
+    } catch {
+      // Demo status is best-effort local UI only.
+    }
   }
 }
 
