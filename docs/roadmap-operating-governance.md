@@ -30,15 +30,46 @@ over a completion label. User instructions prevail over repository procedures.
   actual independent evidence. The Codex autonomous governance controller
   selects only work meeting this policy.
 
+### Off-market capacity lane — decision 2026-09-12
+
+The single-slice rule protects product focus; it must not leave normal
+development capacity idle whenever a selected behavior can only be observed in
+a market session. When the primary slice is **currently and concretely blocked
+only by a verified external market/session window**, one preselected
+market-independent vertical slice may run alongside it. This is a narrow
+planning exception, not a second product release or a way to relabel fixture
+evidence as live evidence.
+
+- The off-market slice must name a separate user-visible behavior or reproduced
+  defect, its acceptance criterion, a 4–16 active-hour budget and a
+  behavior-level local or private-staging check. A source-only helper,
+  contract, demo extension or status document is not eligible by itself.
+- It must not require an unmet security, private-transport, identity, provider,
+  broker or production prerequisite; it must not create a second writer or an
+  alternate route around an existing fail-closed boundary.
+- Record the primary slice, observed external blocker, selected off-market
+  outcome, environment and return trigger in the ledger before implementation.
+  Keep at most one such slice. When the market-bound slice becomes runnable,
+  return to it before choosing another off-market outcome.
+- The exception changes neither release order nor acceptance scope. Synthetic
+  or historical data may exercise a stated local/staging behavior, but cannot
+  close a freshness, supported-session or actual-manual-confirmation claim.
+
+As of this decision, the off-market lane is empty: the nearest R1a writer is
+not eligible because its private B-03 transport prerequisite remains unmet;
+R1b, R2 and R3 retain their stated predecessor and evidence gates.
+
 ### Plan future releases without activating them
 
 - The post-MVP map in the master roadmap records the chosen R1 → R2 → R3
   sequence and its acceptance outcomes. It does not create an active queue,
   delivery date, implementation authority or parallel workstream.
 - Begin detailed release planning only when its predecessor has passed release
-  acceptance. Write one short release-start brief: the first user-visible
-  outcome, known reusable components, actual evidence gaps, environment,
-  acceptance check and 4–16 active-hour first slice.
+  acceptance, except for the bounded off-market capacity lane above. Write one
+  short release-start or off-market-slice brief: the first user-visible outcome,
+  known reusable components, actual evidence gaps, environment, acceptance
+  check and 4–16 active-hour first slice. The exception is unavailable when a
+  predecessor's security or external-operation gate is itself the missing work.
 - R2 source selection is hypothesis-led. Start with the smallest attributable
   source set that can test one stated improvement; collect source timestamp,
   freshness, coverage, cost and provenance. Do not add a source, backfill or AI

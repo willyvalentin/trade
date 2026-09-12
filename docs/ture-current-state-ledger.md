@@ -33,6 +33,15 @@ market-session dependency explicitly. Keep the staging scheduled-function
 control and applicable provider/broker boundaries; this documentation grants no
 new external-operation authority.
 
+**Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
+one independent, market-window-free vertical slice only while MVP-06a is
+observably waiting for a supported market session. It must have its own
+user-visible behavior and local/private-staging check, and may not bypass an
+unmet security, private-transport, identity, provider, broker or production
+gate. The reviewed R1a writer is not eligible: B-03 private transport remains
+unprovisioned. R1b, R2 and R3 retain their predecessor-evidence gates. Do not
+fill this lane with another demo, source-only contract or status task.
+
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
@@ -103,7 +112,7 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 10/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other eight rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | 1; MVP-06a manual-journey evidence, using only its explicitly scoped staging boundary | Normally at most one; checkpoint count does not authorize parallel workstreams |
+| Active product slices | Primary: 1; MVP-06a manual-journey evidence, using only its explicitly scoped staging boundary. Off-market capacity lane: 0 (empty; see current decision above). | Normally one primary slice. One independent, eligible off-market vertical slice is allowed only while the primary slice is observably waiting for a market/session window; checkpoint count alone never authorizes parallel workstreams. |
 | Oldest blocked MVP checkpoint | None: MVP-06a is the next unverified ordered slice; its authenticated staging readback and exact cleanup precondition are complete, while the full manual journey remains. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Preliminary 6–16 active hours for the remaining verification phase only, not a total MVP delivery commitment. Re-estimate after the ordinary durable journey exposes its remaining defects; human confirmation and supervised market-session waits are separate dependencies | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
@@ -182,6 +191,13 @@ result_and_remaining_gap: MVP-01c is verified in isolated private staging. MVP-0
 3. MVP-06c remains a supervised supported-market-session check. It must use the
    bounded staging provider path and never a broker action.
 
+When MVP-06a is observably waiting for a supported market/session window, the
+operating governance permits one separately selected off-market vertical slice.
+As of 2026-09-12 none is eligible: R1a would bypass its unprovisioned B-03
+private-transport prerequisite, while R1b, R2 and R3 retain predecessor gates.
+This is a deliberate empty queue, not authorization to create a mock-only
+successor.
+
 For each item, keep one compact entry here or in its PR: acceptance ID, concrete
 failure, next implementation, 4–16 active-hour budget, behavior evidence,
 blocker and completion state. Do not create an Action-document chain to select
@@ -192,7 +208,10 @@ these already selected outcomes.
 The [master roadmap's post-MVP delivery map](./ture-master-roadmap.md#post-mvp-delivery-map--2026-09-12-planning-direction)
 records the agreed R1, R2, R3 and future-automation sequence. It is a planning
 map, not an active work queue: no R1, R2 or R3 slice starts until MVP release
-acceptance is complete. At that point, select R1a's first observable position
+acceptance is complete, except for one operating-governance-compliant
+off-market vertical slice while MVP evidence is demonstrably waiting for a
+market session. The exception cannot bypass a predecessor security or external
+operation gate. At MVP acceptance, select R1a's first observable position
 truth/recovery outcome against the actual MVP evidence and reuse existing work
 only where it passes that check.
 
