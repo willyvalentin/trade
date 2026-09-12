@@ -46,4 +46,20 @@ test.describe("MVP-06a cache-only demo journey", () => {
       "currentItems.filter((item) => !isDemoItem(item))",
     );
   });
+
+  test("uses a session-scoped local fallback without introducing server storage", async () => {
+    const tradeApp = await readFile(
+      path.join(repositoryRoot, "app/trade-app.tsx"),
+      "utf8",
+    );
+
+    expect(tradeApp).toContain("function getDemoBrowserStorages(): Storage[]");
+    expect(tradeApp).toContain("() => window.localStorage");
+    expect(tradeApp).toContain("() => window.sessionStorage");
+    expect(tradeApp).toContain(
+      "Try the session-scoped fallback without involving a server or provider.",
+    );
+    expect(tradeApp).not.toContain("fetch(\"/api/demo");
+    expect(tradeApp).not.toContain("patchApplicationPosition(key");
+  });
 });
