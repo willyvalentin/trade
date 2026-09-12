@@ -178,7 +178,7 @@ behavior evidence.
 | --- | --- | --- | --- |
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
-| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. Draft PR #450's disabled probe is locally verified but needs a separately authorized staging-only configuration/deploy → observed failure → disable/rollback scope. |
+| MVP-01c | Loading, empty and failed dashboard states are understandable | blocked | PR #443 merged the exact dedicated-origin guard as `d0ce1e78`; Ready Full CI `34450726836` and exact-main attestation `34453120962` passed. On 2026-09-10, one bounded authenticated `ture-staging.netlify.app` reload visibly showed loading, then the ordinary **Data is not clean enough right now** no-trade state. On 2026-09-12, one current-candidate staging probe navigation was issued after the exact non-secret flag was enabled, but browser transport timed out before it produced observable failure-state evidence. The flag and code were immediately rolled back at `3fc81631`; a fresh independently observable scope is required. |
 | MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | The MVP-02 delivery candidate exposes Target 2 in the existing recommendation-details trade plan and makes the existing price source, timestamp and expiry information visible on each recommendation card; supported-environment behavior evidence remains required. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | unverified | On 2026-09-10, an authenticated staging dashboard clearly explained the ordinary no-trade state, but also showed a disabled static GME/Avanza handoff fixture. The MVP-02 delivery candidate suppresses that fixture unless an explicit selected-recommendation preview is allowed and no dominant empty state is present; its local coverage and production build pass. A dedicated staging delivery must recheck the correction, and market-closed behavior still needs supported-environment evidence. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | unverified | — |
@@ -3052,3 +3052,20 @@ delivery queue. It is configuration evidence, not a production release claim.
 - The MVP-05 scheduler safeguards were integrated into staging with that
   conservative status intact. This keeps staging behaviour current while
   avoiding an unsupported expansion of the accepted MVP surface.
+
+### MVP-01c temporary staging probe — 2026-09-12 (inconclusive, rolled back)
+
+- The isolated staging-only candidate `0a9da34f` reintroduced the preserved
+  probe guard only for the exact staging origin, exact query parameter and
+  literal non-secret `enabled` value. Its four focused tests, TypeScript,
+  ESLint and diff check passed locally before deployment.
+- The flag was then configured solely on the separate `ture-staging` site's
+  Builds and Functions scopes and a fresh staging deploy `5345ea7a` was ready.
+  One authenticated navigation to the designated dashboard URL was issued.
+  The browser transport timed out before it could record the resulting DOM or
+  response, so this is not MVP behavior evidence and was not retried.
+- The flag was deleted immediately. Commit `3fc81631` removed the probe code,
+  and ready staging deploy `6aa4b282692ceb00088b5ef3` confirms the rollback.
+  No production site, database row, provider, broker or secret value was read
+  or changed. A later attempt needs fresh scope with an independently reliable
+  observation channel; it must not infer success from this inconclusive read.
