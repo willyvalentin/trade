@@ -3636,7 +3636,7 @@ export async function generateRecommendations({
 
     try {
       throwIfAborted(signal);
-      marketRegime = await getMarketRegime();
+      marketRegime = await getMarketRegime({ signal });
     } catch (error) {
       console.error("[recommendations/generate] market_regime_error", {
         error: normalizeUnknownError(error),

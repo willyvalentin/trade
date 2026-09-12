@@ -81,6 +81,7 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     const generator = await source("lib/recommendation-generator.ts");
     const scanner = await source("lib/scanner.ts");
     const marketData = await source("lib/market-data.ts");
+    const marketRegime = await source("lib/market-regime.ts");
 
     expect(route).toContain("const scheduledAbortController = new AbortController()");
     expect(route).toContain("scheduledAbortController.abort()");
@@ -91,6 +92,9 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(scanner).toContain("waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal)");
     expect(scanner).toContain("{ signal: options.signal }");
     expect(marketData).toContain("signal: options?.signal");
+    expect(generator).toContain("marketRegime = await getMarketRegime({ signal })");
+    expect(marketRegime).toContain("getDailyCandles(\"SPY\", 60, options)");
+    expect(marketRegime).toContain("getDailyCandles(\"QQQ\", 60, options)");
   });
 
   test("releases a pending scan delay when its time budget is cancelled", async () => {
