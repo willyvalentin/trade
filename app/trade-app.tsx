@@ -2019,6 +2019,14 @@ function isDemoPosition(position: ActivePosition | ClosedPosition | null | undef
   return isDemoId(position?.id) || isDemoId(position?.recommendationId);
 }
 
+function mergeDemoItems<T>(
+  demoItems: T[],
+  currentItems: T[],
+  isDemoItem: (item: T) => boolean,
+) {
+  return [...demoItems, ...currentItems.filter((item) => !isDemoItem(item))];
+}
+
 function isMockPosition(position: ActivePosition | ClosedPosition | null | undefined) {
   if (!position) return false;
 
@@ -2321,6 +2329,21 @@ function buildDemoLatestPositionUpdate(
     updatedAt: "Demo now",
     updatedAtRaw,
   };
+}
+
+function mergeDemoLatestPositionUpdates(
+  currentUpdates: Record<string, LatestPositionUpdate>,
+  demoActivePositions: ActivePosition[],
+) {
+  const nextUpdates = Object.fromEntries(
+    Object.entries(currentUpdates).filter(([positionId]) => !isDemoId(positionId)),
+  ) as Record<string, LatestPositionUpdate>;
+
+  for (const position of demoActivePositions) {
+    nextUpdates[position.id] = buildDemoLatestPositionUpdate(position);
+  }
+
+  return nextUpdates;
 }
 
 const enableSoundAlerts = true;
@@ -9247,6 +9270,13 @@ export function TradeApp({
 
       if (recommendationsResult.error) {
         noteIslandError("recommendations", recommendationsResult.error);
+        setRecommendations((current) =>
+          mergeDemoItems(
+            demoRecommendations,
+            current,
+            isDemoRecommendation,
+          ),
+        );
       } else {
         const loadedRecommendations = (
           recommendationsResult.data as RecommendationRow[]
@@ -9266,12 +9296,11 @@ export function TradeApp({
           !hasCurrentLoadedRecommendations
             ? [...buildDevPreviewRecommendations(), ...loadedRecommendations]
             : loadedRecommendations;
-        const nextRecommendations = [
-          ...demoRecommendations,
-          ...baseRecommendations.filter(
-            (recommendation) => !isDemoRecommendation(recommendation),
-          ),
-        ];
+        const nextRecommendations = mergeDemoItems(
+          demoRecommendations,
+          baseRecommendations,
+          isDemoRecommendation,
+        );
 
         changedItemIdsByIsland.recommendations = getNewIds(
           previousRecommendationIds,
@@ -9296,11 +9325,15 @@ export function TradeApp({
       if (positionsResult.error) {
         noteIslandError("live_trades", positionsResult.error);
         noteIslandError("stats_today", positionsResult.error);
+        setActivePositions((current) =>
+          mergeDemoItems(demoActivePositions, current, isDemoPosition),
+        );
       } else {
-        const nextActivePositions = [
-          ...demoActivePositions,
-          ...(positionsResult.data as PositionRow[]).map(toActivePosition),
-        ];
+        const nextActivePositions = mergeDemoItems(
+          demoActivePositions,
+          (positionsResult.data as PositionRow[]).map(toActivePosition),
+          isDemoPosition,
+        );
 
         changedItemIdsByIsland.live_trades = getNewIds(
           previousLiveTradeIds,
@@ -9313,11 +9346,15 @@ export function TradeApp({
       if (closedPositionsResult.error) {
         noteIslandError("stats_today", closedPositionsResult.error);
         noteIslandError("history_statistics", closedPositionsResult.error);
+        setClosedPositions((current) =>
+          mergeDemoItems(demoClosedPositions, current, isDemoPosition),
+        );
       } else {
-        const nextClosedPositions = [
-          ...demoClosedPositions,
-          ...(closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
-        ];
+        const nextClosedPositions = mergeDemoItems(
+          demoClosedPositions,
+          (closedPositionsResult.data as PositionRow[]).map(toClosedPosition),
+          isDemoPosition,
+        );
 
         setClosedPositions(nextClosedPositions);
         void hydrateSymbolMetadataForDisplay(nextClosedPositions);
@@ -9325,20 +9362,21 @@ export function TradeApp({
 
       if (positionUpdatesResult.error) {
         noteIslandError("live_trades", positionUpdatesResult.error);
+        setLatestPositionUpdates((current) =>
+          mergeDemoLatestPositionUpdates(current, demoActivePositions),
+        );
       } else {
-      const updatesByPosition: Record<string, LatestPositionUpdate> = {};
+        const updatesByPosition: Record<string, LatestPositionUpdate> = {};
 
-      for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
-        if (!updatesByPosition[update.position_id]) {
-          updatesByPosition[update.position_id] = toLatestPositionUpdate(update);
+        for (const update of positionUpdatesResult.data as PositionUpdateRow[]) {
+          if (!updatesByPosition[update.position_id]) {
+            updatesByPosition[update.position_id] = toLatestPositionUpdate(update);
+          }
         }
-      }
 
-      for (const position of demoActivePositions) {
-        updatesByPosition[position.id] = buildDemoLatestPositionUpdate(position);
-      }
-
-        setLatestPositionUpdates(updatesByPosition);
+        setLatestPositionUpdates(
+          mergeDemoLatestPositionUpdates(updatesByPosition, demoActivePositions),
+        );
       }
 
       if (scanLogsResult.error) {
