@@ -57,6 +57,23 @@ product percent-complete from Actions, commits, fixtures or the historical
 Milestone A/B labels. A missing demonstration means **unverified**, not absent.
 Existing functionality should be verified and reused before it is rebuilt.
 
+### Ordinary journey acceptance — clarified 2026-09-12
+
+MVP-06a requires the ordinary interface → authenticated server → durable
+owner-bound storage → reload → history/statistics journey on one identified
+candidate. Include entry retry, partial exit and final exit; verify persisted
+records and reconciled results, not only the rendered page. Recheck relevant
+behavior after changes to the server recording boundary.
+
+A cache-only demo verifies only its labelled local UI behavior. Complete the
+already selected bounded demo check, then return to the ordinary journey.
+Further demo work requires a reproduced obstacle to that journey and the
+smallest necessary correction; it is not a separate product workstream.
+Synthetic evidence must remain labelled and cannot attest a real broker fill.
+If ordinary-path verification requires human confirmation or an unavailable
+supported session, record that specific remaining dependency and prepare the
+check; do not substitute demo success or weaken the recording controls.
+
 ### Measurable checkpoints
 
 The ledger divides the six MVP criteria into **18 fixed behavior checkpoints**

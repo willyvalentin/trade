@@ -65,6 +65,13 @@ Milestone B runtime capability is still unverified despite historical sandbox
 acceptance. No release may be relabelled complete by shrinking acceptance
 criteria without an explicit product-scope decision retaining the original gap.
 
+For MVP-06a, finish the bounded demo check and then exercise the ordinary
+interface, server and durable storage on one candidate. Cache restoration and
+source-string assertions cannot close this journey. Additional demo corrections
+must address a reproduced obstacle to that ordinary flow, within the existing
+slice budget. Fix its first actual failure, rerun the flow, then perform the
+applicable release checks; do not open a demo-improvement successor chain.
+
 Prefer behavior tests that catch user-flow, security, financial or data-integrity
 regressions. Do not add tests solely to freeze prose, Action numbers or planning
 status. Keep immutable historical evidence tests bound to their historical
