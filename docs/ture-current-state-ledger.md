@@ -150,6 +150,20 @@ this ledger. Netlify labels that site's branch head as `production` context,
 which means the private staging site's own primary deploy — never `trade-vl`
 or public production.
 
+**Latest MVP-06a staging evidence (2026-09-12):** authenticated browser
+transport is now available. On staging revision `062ab637`, one exact,
+clearly-labelled `MVPQASTG` recommendation plus its separate snapshot was
+read back in the current official batch and visibly rendered its complete plan
+and `Make Trade` control. The batch itself was not changed. Opening the normal
+form then correctly kept live-trade creation blocked after-hours and without a
+quantity, manual Avanza confirmation or broker fill; zero positions were
+created. The fixture was removed exactly afterward, with zero residual
+recommendation, snapshot, cache or position rows. This is useful MVP-06a
+precondition evidence, not the complete manual journey: the ordinary
+validation route permits a fresh provider fallback when cache data is stale,
+and the form deliberately refuses invented broker-fill attestation. Do not
+reuse this fixture to bypass either boundary.
+
 ### MVP acceptance board
 
 | Criterion | Current evidence | Release status / next check |
@@ -159,7 +173,7 @@ or public production.
 | MVP-03 | The owner-bound transaction created one labelled synthetic staging position, an exact retry reused it, and reloads showed its durable lifecycle | Unverified: the controlled synthetic journey verifies persistence; a real human-confirmed broker capture is deliberately outside this MVP evidence |
 | MVP-04 | Synthetic staging history both reconciled complete plan/actual values and labelled an intentionally incomplete record without inventing a result | Unverified at release scope: MVP-04a/04b/04c are verified in isolated staging; a compatible release candidate remains required |
 | MVP-05 | Private staging now has the existing bounded scan and outcome schedules deployed; scan, recovery presentation and attributable outcome evidence are observed | MVP-05a/05b/05c verified in isolated staging: the natural 17:15 UTC scan completed/healthy with one accepted recommendation; the dashboard then distinguished that last-successful run from a later stale run requiring review; and the natural 18:45 UTC bundled outcome run retained three attributable `neither_hit` outcomes for its 15m/30m/60m horizons. Polygon confirms calendar metadata only, not a higher quote-discovery budget. No manual bypass. |
-| MVP-06 | Private candidate `b5cfd68d` is identified; the former site-capacity block is resolved, but the fresh authenticated UI readback is not yet available | Blocked: restore stable authenticated browser transport, then repeat one exact-cleaned same-candidate synthetic journey; applicable release verification and supervised market session remain after it |
+| MVP-06 | Private staging can now complete a fresh authenticated recommendation-card readback and exact cleanup; the complete manual journey remains unverified | Blocked: use a supported market-session/provider path or a separately reviewed cache-only test boundary; never invent the broker-fill attestation. Applicable release verification and supervised market-session evidence remain after it |
 
 **0/6 newly verified MVP release criteria in this assessment** describes the
 verification baseline, not 0% implemented. Prior engineering remains reusable.
@@ -191,7 +205,7 @@ behavior evidence.
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | unverified | — |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | unverified | The MVP-05 delivery candidate deterministically chooses the newest revision for duplicate scan fingerprints, distinguishes clean no-trade scans from runs that need recovery review, and rejects unknown or stale data as recovery points. Local regression coverage passes; a supported scan/recovery journey remains required. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | unverified | The MVP-05 delivery candidate rejects false completeness without candles and impossible price-plan geometry; a supported attributable outcome still remains required. |
-| MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | Private staging revision `062ab637`, 2026-09-12: a current authenticated dashboard rendered one exact, labelled synthetic recommendation only after its independent snapshot was joined to the existing official batch; its complete plan and `Make Trade` control were visible. The normal form then blocked creation after-hours without quantity, manual Avanza confirmation or a broker fill. Zero positions were created and the exact fixture was removed. This verifies the browser/batch/readback/cleanup precondition, not the full entry → reload → close journey. |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
 
@@ -510,6 +524,18 @@ behavior_check_and_environment: A staging aggregate database readback found no r
 external_effects_and_existing_authority: Read-only staging checks only. No production path, secret value, provider request, broker action, database write or synthetic fixture creation occurred.
 blocker_or_fallback: Do not retry the failed browser reload in a loop. Re-establish an authenticated browser transport, confirm the candidate revision, then create one fresh exact-cleaned synthetic fixture for the existing MVP-06a journey.
 result_and_remaining_gap: The former Netlify-capacity blocker is resolved. MVP-06a remains blocked and unverified because a current authenticated UI journey has not yet completed.
+```
+
+#### MVP-06a authenticated current-batch fixture containment — 2026-09-12
+
+```text
+acceptance_id: MVP-06a (precondition evidence only)
+user_behavior_or_reproduced_failure: A fresh private-staging journey needed an authenticated dashboard readback of a current, owner-bound test recommendation. A direct synthetic recommendation alone was intentionally absent from the primary grid because that grid admits only members of the current official batch.
+smallest_change_and_reused_components: No application, Netlify or production configuration changed. One clearly-labelled staging-only recommendation (`MVPQASTG`), one cache row and one snapshot were created. The snapshot carried the existing official batch fingerprint, so the batch was not mutated and no existing member was replaced.
+behavior_check_and_environment: Private `ture-staging` at revision `062ab637`, 2026-09-12: an authenticated reload visibly rendered `MVP STAGING — SYNTHETIC TEST ONLY` with entry 100–100.5, stop 95, targets 105/110, 2R and an enabled `Make Trade` control. The normal form opened, proving the route and UI boundary are reachable. It then correctly reported after-hours risk and refused to create a live trade without a quantity, manual Avanza confirmation and an actual broker fill. Aggregate readback confirmed zero `MVPQASTG` positions. This is not a complete manual lifecycle or release acceptance.
+external_effects_and_existing_authority: Staging database and authenticated private browser only. No production route/database/deploy, broker order, broker fill, secret read or batch mutation occurred. The first form validation encountered a stale synthetic cache; because the ordinary route uses `allowFreshFetch: true`, a failed provider fallback cannot be ruled out, although no successful refreshed cache was persisted. A second cache-metadata correction still returned stale presentation. No further validation was attempted.
+blocker_or_fallback: Do not repeat this ordinary-form path as a claimed provider-free test. The normal route intentionally permits provider refresh when stale, while the manual lifecycle intentionally requires human broker-fill evidence. The next useful journey is either a supervised supported market-session run using the established staging provider path, or a separately reviewed staging-only cache-only test boundary that cannot alter production behavior. Do not fabricate fill attestation to obtain a synthetic close.
+result_and_remaining_gap: Browser transport, current-batch membership, current-card presentation and exact fixture cleanup are now evidenced. MVP-06a remains unverified because no position was created, reloaded, partially closed, closed or reconciled in History/Statistics through the supported UI path.
 ```
 
 #### MVP-04 frozen plan-price history — 2026-09-10 (local verified)
