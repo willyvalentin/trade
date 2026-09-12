@@ -13,6 +13,10 @@ import {
   parseOwnedPositionCloseValues,
 } from "@/lib/server/owned-position-close";
 import { parseOwnedPositionOpenValues } from "@/lib/server/owned-position-open";
+import {
+  hasManualBrokerEntryEvidence,
+  hasManualBrokerExitEvidence,
+} from "@/lib/server/manual-broker-evidence";
 
 export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
@@ -360,7 +364,7 @@ export async function updateRecommendationLifecycle(input: {
     : { status: "available" as const, data: null };
 }
 
-function validPositiveNumber(value: unknown) {
+function validPositiveNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
@@ -384,6 +388,16 @@ export async function openApplicationPosition(
   const { client } = getServerSupabaseClient();
   if (!client || !owner) return { status: "unavailable" } as const;
   if (!values) {
+    return { status: "invalid" } as const;
+  }
+  if (
+    !hasManualBrokerEntryEvidence({
+      recommendationId: values.recommendation_id,
+      entryPrice: values.entry_price,
+      positionSize: values.position_size,
+      executionMetadata: values.execution_metadata,
+    })
+  ) {
     return { status: "invalid" } as const;
   }
 
@@ -438,18 +452,39 @@ export async function updateApplicationPosition(input: {
   if (!input.position_id || input.position_id.length > 160) return failed<null>();
 
   const values = input.values;
+  if (!validPositiveNumber(values.position_size)) {
+    return { status: "invalid" } as const;
+  }
+
+  const openPosition = await client
+    .from("positions")
+    .select("position_size")
+    .eq("id", input.position_id)
+    .eq("owner_user_id", owner)
+    .eq("status", "open")
+    .maybeSingle();
+  if (openPosition.error || !openPosition.data) return failed<null>();
+
+  const previousSize = Number(openPosition.data.position_size);
+  const soldShares = previousSize - values.position_size;
+  if (
+    !validPositiveNumber(previousSize) ||
+    !validPositiveNumber(soldShares) ||
+    !hasManualBrokerExitEvidence({
+      expectedSoldShares: soldShares,
+      executionMetadata: values.execution_metadata,
+    })
+  ) {
+    return { status: "invalid" } as const;
+  }
+
   const update = {
     status: "open",
     position_size: values.position_size,
-    ...(values.execution_metadata && typeof values.execution_metadata === "object"
-      ? { execution_metadata: values.execution_metadata }
-      : {}),
+    execution_metadata: values.execution_metadata,
   };
-  if (!validPositiveNumber(values.position_size)) {
-    return failed<null>();
-  }
 
-  let result = await client
+  const result = await client
     .from("positions")
     .update(update)
     .eq("id", input.position_id)
@@ -458,19 +493,6 @@ export async function updateApplicationPosition(input: {
     .gt("position_size", values.position_size)
     .select("id")
     .maybeSingle();
-  if (result.error && "execution_metadata" in update) {
-    const fallback = { ...update } as Record<string, unknown>;
-    delete fallback.execution_metadata;
-    result = await client
-      .from("positions")
-      .update(fallback)
-      .eq("id", input.position_id)
-      .eq("owner_user_id", owner)
-      .eq("status", "open")
-      .gt("position_size", values.position_size)
-      .select("id")
-      .maybeSingle();
-  }
 
   return result.error || !result.data
     ? failed<null>()
@@ -493,6 +515,14 @@ export async function closeApplicationPosition(input: {
   if (!input.position_id || input.position_id.length > 160 || !values) {
     return { status: "invalid" };
   }
+  if (
+    !hasManualBrokerExitEvidence({
+      exitPrice: values.exit_price,
+      executionMetadata: values.execution_metadata,
+    })
+  ) {
+    return { status: "invalid" };
+  }
 
   const openPosition = await client
     .from("positions")
@@ -504,6 +534,17 @@ export async function closeApplicationPosition(input: {
 
   if (openPosition.error) return { status: "failed" };
   if (openPosition.data) {
+    const expectedSoldShares = Number(openPosition.data.position_size);
+    if (
+      !validPositiveNumber(expectedSoldShares) ||
+      !hasManualBrokerExitEvidence({
+        exitPrice: values.exit_price,
+        expectedSoldShares,
+        executionMetadata: values.execution_metadata,
+      })
+    ) {
+      return { status: "invalid" };
+    }
     const metrics = calculateOwnedLongPositionCloseMetrics(
       openPosition.data,
       values.exit_price,
