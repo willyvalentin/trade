@@ -134,11 +134,15 @@ security, ownership, budget and human-confirmation controls.
 
 This map preserves the product's long-term direction without creating a second
 active queue. MVP remains the only selected release until its acceptance is
-complete. Start detailed planning for a release only after the preceding release
-has passed its acceptance evidence and record a short release-start brief with
-the first user outcome, reusable components, risks, environment and checks.
-Do not infer a delivery date, effort total or implementation authority from this
-map.
+complete. Under the operating governance's narrowly bounded off-market capacity
+lane, one independent, market-window-free vertical slice may be selected while
+the active MVP behavior is demonstrably waiting for a supported market session.
+It must not bypass a predecessor's security, private-transport, identity,
+provider, broker or production gate. Start detailed planning for every other
+release only after the preceding release has passed its acceptance evidence and
+record a short release-start brief with the first user outcome, reusable
+components, risks, environment and checks. Do not infer a delivery date, effort
+total or implementation authority from this map.
 
 ### R1 — trustworthy server-owned trade management
 
@@ -236,9 +240,12 @@ kill switch, incident handling, reconciliation, monitoring and rollback.
 
 This map answers **where the product goes**, not what to build next today. Once
 MVP is accepted, assess the R1a starting state against existing code and evidence
-and select one 4–16 active-hour vertical slice. Use the same fixed,
-behavior-evidence method for the selected release; do not pre-create detailed
-R1–R3 Action chains or treat a source-only artifact as an accepted capability.
+and select one 4–16 active-hour vertical slice. Before then, the only exception
+is the operating governance's single off-market capacity lane: it needs a
+specific independent outcome and must remain clear of unmet security and
+external-operation gates. Use the same fixed, behavior-evidence method for the
+selected release; do not pre-create detailed R1–R3 Action chains or treat a
+source-only artifact as an accepted capability.
 
 ## Historical roadmap and technical evidence — not the active work queue
 
