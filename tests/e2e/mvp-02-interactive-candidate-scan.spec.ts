@@ -27,9 +27,9 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   expect(route).toContain("requireApplicationSession()");
   expect(route).toContain("applicationMutationForbiddenResponse(request)");
   expect(scanner).toContain("const MANUAL_MAX_FRESH_PROVIDER_CALLS = 1;");
-  expect(scanner).toContain("const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 6;");
+  expect(scanner).toContain("const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 2;");
   expect(generator).toContain(
-    "its own scheduled fresh-provider budget (currently six calls)",
+    "its own timeout-compatible scheduled fresh-provider budget",
   );
   expect(generator).not.toContain(
     'typeof scheduledMaxTickers === "number"\n            ? Math.min(1, scannerBaseCandidates.length)',

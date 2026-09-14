@@ -134,7 +134,10 @@ export type ScanMarketOptions = {
 const CACHE_TTL_MS = 45 * 60 * 1000;
 const FRESH_CALL_DELAY_MS = 8 * 1000;
 const MANUAL_MAX_FRESH_PROVIDER_CALLS = 1;
-const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 6;
+// The scheduled route reserves three seconds inside its 23-second free-safe
+// timeout. Two spaced fresh calls leave room for provider response, cache
+// persistence and ranking; a nominal six-call loop cannot complete safely.
+const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 2;
 const CANDLE_DAYS_NEEDED = 60;
 
 type CandidateWithIndicatorCache = {

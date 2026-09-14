@@ -3572,7 +3572,7 @@ export async function generateRecommendations({
         maxFreshProviderCalls: diagnosticMode
           ? Math.min(1, scannerBaseCandidates.length)
           // `scheduledMaxTickers` bounds the universe, while the scanner keeps
-          // its own scheduled fresh-provider budget (currently six calls).
+          // its own timeout-compatible scheduled fresh-provider budget.
           : undefined,
         signal,
       },
