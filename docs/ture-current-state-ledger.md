@@ -1,5 +1,90 @@
 # Ture Current-State Ledger
 
+## Active Now / Next / Blocked — 2026-09-15 intelligence-first reset
+
+This is the only active work queue under the
+[master roadmap](./ture-master-roadmap.md). Repository documents are the sole
+product-control source; Notion is not a roadmap, mirror or selection input.
+Every dated snapshot below this section is retained evidence, not an instruction
+to resume its former queue.
+
+### Now — IF-0 foundation reconciliation
+
+**Current slice:** bring two high-value staging safeguards into current `main`:
+
+1. classify provider credits/rate limits once and fail a scan precisely rather
+   than retrying into an ambiguous stale-data result; and
+2. rotate bounded scheduled universe batches so a provider-safe scan budget
+   covers the full current tradable universe over time instead of repeatedly
+   favouring the same first tickers.
+
+This is a reliability bridge, not market-wide discovery. It preserves provider
+budgets, never creates a broker action and does not claim that the static
+universe is sufficient. The one-ticker manual staging rotation is deliberately
+not transferred because it is incompatible with the intended broad discovery
+funnel.
+
+**Current acceptance:** the main-safe diff must be clean and the focused
+regressions must pass on this exact branch before the slice can merge. No
+deployment, provider request, database write or broker operation is part of
+this slice.
+
+### Next — IF-1 candidate decision record
+
+**User-visible outcome:** after every scan, Ture can show what it considered,
+which candidates were strongest, why each candidate was not trade-ready and
+why the correct result may be `no_trade`.
+
+**Smallest complete implementation:** persist a complete, pre-truncation
+candidate decision envelope with stable scan/candidate identities, universe and
+ranking versions, decision time, data source/freshness, structured
+eligibility/rejection codes, explicit no-trade disposition and scan-to-outcome
+lineage. Add a concise readback in the app's engine/diagnostics surface.
+
+**Acceptance:** a completed current-market scan either produces an attributable
+full decision record or a truthful, structured failure record. A user can
+inspect the coverage and the reason no trade-ready candidate was published.
+The slice does not tune thresholds, add a broker action or promote a learning
+policy.
+
+### Planned intelligence sequence
+
+| Order | Slice | Completion signal |
+| --- | --- | --- |
+| 1 | IF-1 — candidate decision record | Full candidate/reject/no-trade evidence survives scan → readback → outcome linkage |
+| 2 | IF-2 — market-wide discovery | Dynamic universe intake expands beyond static symbols with coverage, entitlement, freshness and cost evidence |
+| 3 | IF-3 — contextual quality engine | Point-in-time market, sector, relative-strength and catalyst context changes a transparent ranking policy |
+| 4 | IF-4 — measured learning dataset | A frozen baseline can evaluate visible, research, rejected and no-trade decisions without lookahead or double counting |
+| 5 | IF-5 — shadow learning and promotion | One policy change wins in shadow/held-out evaluation and is promoted reversibly |
+| 6 | EX-1 / EX-2 — Avanza execution | Begin only after sustained IF-5 evidence proves engine quality and all deterministic execution controls are ready |
+
+### Environment rule
+
+`main` is the sole product line. Use short branches and pull requests into
+`main`; do not use the long-lived `staging` branch as a second implementation
+queue. Use the staging environment only when an integration check genuinely
+needs private authentication, a provider, a scheduler, a migration or a live
+market session. Selected staging code must be ported and tested in `main`, never
+merged wholesale.
+
+### Historical MVP and execution status
+
+The prior manual-product board remains historical evidence: it recorded
+**10/18 behavior checks and 0/6 release-accepted MVP criteria** on 2026-09-12.
+It does not establish a production release and it no longer blocks intelligence
+work. Keep existing ownership, manual-attestation, freshness and no-trade
+safeguards intact. Do not spend primary product capacity on more broker or
+position features until the intelligence roadmap reaches its stated evidence
+gates.
+
+### Progress rule
+
+Each active slice records its user outcome, smallest end-to-end change, exact
+revision, focused verification, external effects and residual gap. Do not use
+candidate count, commit count, a single trading day or an LLM-generated score
+as evidence that Ture has improved. A policy is only improved after the frozen
+baseline and shadow gates in IF-4 and IF-5.
+
 ## Active Now / Next / Blocked — 2026-09-12 MVP delivery verification
 
 This is the active work queue under the [master roadmap](./ture-master-roadmap.md).

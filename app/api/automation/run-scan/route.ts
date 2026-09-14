@@ -88,6 +88,7 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
@@ -789,14 +790,7 @@ function isRateLimitLikeError(error: unknown) {
     typeof normalized.status === "number"
       ? normalized.status
       : null;
-  const message = JSON.stringify(normalized).toLowerCase();
-
-  return (
-    status === 429 ||
-    message.includes("rate limit") ||
-    message.includes("too many request") ||
-    message.includes("quota")
-  );
+  return status === 429 || isProviderRateLimitLikeError(normalized);
 }
 
 function errorScanResult(error: unknown): ScanLogResult {
