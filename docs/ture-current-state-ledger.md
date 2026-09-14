@@ -40,11 +40,13 @@ the Team Protection password prompt. No password was supplied, no staging
 session was created, and no dashboard, application route, provider, database or
 broker action was reached. This is an access prerequisite for the next
 MVP-06a readback, not evidence of a product failure or an authorization to
-handle a credential. The next useful action is for the supported staging
-operator to establish the existing protected session independently; then resume
-with a read-only candidate/no-trade observation. Any manual entry or exit still
-requires the user's genuine manual broker attestation and remains outside this
-automated pass.
+handle a credential. A final anonymous HTTPS recheck at
+2026-09-14T13:44:19Z returned the same Netlify `401`; no retry is scheduled.
+The next useful action is for the supported staging operator to establish the
+existing protected session independently; then resume with a read-only
+candidate/no-trade observation. Any manual entry or exit still requires the
+user's genuine manual broker attestation and remains outside this automated
+pass.
 
 **Local MVP-06a regression revalidation (2026-09-14): 38/38 passed, but does
 not replace staging evidence.** The current-main manual-flow boundary suite
