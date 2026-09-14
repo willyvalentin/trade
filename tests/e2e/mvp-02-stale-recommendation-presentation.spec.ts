@@ -141,6 +141,41 @@ test.describe("MVP-02 stale recommendation presentation", () => {
     );
   });
 
+  test("removes low-confidence review continuation when the setup becomes stale", () => {
+    const props = buildRecommendationCardDisplayProps({
+      addTradeGate: {
+        blocked: false,
+        confirmation: { reasons: [], status: "confirmed" },
+        message: "Current intraday confirmation is clean.",
+      },
+      decisionStack: null,
+      freshness: "stale",
+      isDemoRecommendation: false,
+      isSaving: false,
+      isValidating: false,
+      keyReasons: { positive: [], warnings: [] },
+      recommendation: {
+        confidenceBreakdown: null,
+        confidenceLabel: "LOW CONFIDENCE",
+        confidenceScore: 63,
+        entryZone: "$100.00",
+        riskReward: "2.0",
+        stopLoss: "$98.00",
+        target1: "$104.00",
+        thesis: "A formerly reviewable setup whose market data is now stale.",
+      },
+    });
+
+    expect(props.freshnessNotice).toBe(
+      "STALE DATA — REVALIDATE BEFORE TRADE",
+    );
+    expect(props.addTradeLabel).toBe("Revalidate Setup");
+    expect(props.requiresConfidenceReview).toBe(false);
+    expect(props.actionDescription).toBe(
+      "Revalidates current market data before opening manual trade recording. No broker order will be sent.",
+    );
+  });
+
   test("shows the existing intraday gate when a setup is blocked", () => {
     const props = buildRecommendationCardDisplayProps({
       addTradeGate: {
