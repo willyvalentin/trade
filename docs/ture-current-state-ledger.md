@@ -33,6 +33,24 @@ market-session dependency explicitly. Keep the staging scheduled-function
 control and applicable provider/broker boundaries; this documentation grants no
 new external-operation authority.
 
+**MVP-06a current-candidate and manual-boundary recheck (2026-09-14): active
+private-staging evidence, no trade or record action.** An authenticated
+readback of private `ture-staging.netlify.app` displayed NOW (ServiceNow, Inc.)
+as a current recommendation with `LOW CONFIDENCE` 68/100, a Twelve Data source
+time of Sep 14 2026, 2:05 PM EDT, and a derived expiry of 3:05 PM EDT. The
+surface explicitly said that evidence must be reviewed before continuing to a
+manual trade record, and offered only `Review Low Confidence`; that control was
+not pressed. No manual record, provider revalidation, broker interaction,
+position write, setting change or production action occurred. Separately, the
+focused current-main MVP-03 regression set passed 25/25: complete manual
+attestation is required, incomplete or mismatched evidence fails closed,
+owner-bound entry and close retries are idempotent, and completed actions
+refresh the dashboard projection. This is live candidate availability plus
+local source regression evidence, not a manual-fill attestation, a recommendation
+to trade, or MVP-06a acceptance. The ordinary journey remains pending a
+user-genuine manual confirmation if the user chooses to execute independently;
+that confirmation must not be fabricated.
+
 **Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
 one independent, market-window-free vertical slice only while MVP-06a is
 observably waiting for a supported market session. It must have its own
