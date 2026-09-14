@@ -67,12 +67,28 @@ broker or production operation occurred. This is the third consecutive
 observed no-candidate state across the opening-window checks; meaningful
 MVP-06a progress now requires a future external fresh/coherent candidate.
 
-This is fresh private-staging evidence that the product fails closed to an
-understandable no-trade state during the supported opening window. It does not
-identify the candidate required by MVP-06a, create a manual record or close a
-checkpoint. MVP-06a now waits on a future fresh/coherent candidate; any later
-entry or exit also requires the user's genuine manual broker attestation and
-remains outside this automated pass.
+**Scheduled-scan recovery and current candidate readback
+(2026-09-14T14:45:24Z): MVP-06a active.** Netlify's own function log showed
+the 14:30 UTC invocation stopping at the explicit
+`TURE_DISABLE_SCHEDULED_FUNCTIONS` environment guard. The flag was changed to
+`false` only for the `ture-staging` project's runtime context, then the
+existing `staging` branch (`4bebf726`) was redeployed as private staging deploy
+`6aa806e11c1c35496f78ffd2`; no separate non-staging product site was touched.
+The 14:45 UTC scheduled invocation then completed in 6.3 seconds: it scanned
+10 symbols, ranked two candidates, persisted its scan/batch artifacts and
+published one AAPL recommendation. Its provider-verified AAPL reference refresh
+was accepted at 14:45:24Z with zero-minute age. A fresh authenticated ordinary
+dashboard readback showed AAPL / Apple Inc., `LOW CONFIDENCE`, entry
+329.18–335.82, stop 319.20, target 360.75, 2.25 reward:risk, confidence 68/100,
+source `twelve_data`, source time 10:45 EDT and derived expiry 11:45 EDT. The
+browser console had no warning or error entries. No order, broker path or
+manual-trade record was used.
+
+The earlier no-trade observations remain valid fail-closed evidence, but the
+candidate-data blocker is resolved. MVP-06a is now active at its required next
+step: an independently executed manual fill must be genuinely attested by the
+user before any entry can be recorded; then the retry, reload, partial-exit,
+final-exit and history/statistics checks can proceed.
 
 **Local MVP-06a regression revalidation (2026-09-14): 38/38 passed, but does
 not replace staging evidence.** The current-main manual-flow boundary suite
@@ -94,8 +110,8 @@ cache-only demo boundary also passed 2/2. These are local source-contract
 checks only: they do not create a candidate, make a provider or staging
 request, or substitute for the required authenticated durable journey.
 
-**Off-market capacity lane: empty.** The current no-candidate condition is
-market-data-dependent, but no eligible independent vertical slice has been
+**Off-market capacity lane: empty.** The primary MVP-06a candidate journey is
+active in its supported market window, so no independent vertical slice is
 selected. The reviewed R1a writer remains ineligible because B-03 private
 transport is unprovisioned; R1b, R2 and R3 retain their predecessor-evidence
 gates. Do not fill this lane with another demo, source-only contract or status
@@ -120,9 +136,9 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Recorded acceptance coverage across the individually stated environments:
-**10/18 verified, 7 unverified, 1 blocked, 0 invalidated. Release acceptance:
+**10/18 verified, 7 unverified, 1 active, 0 invalidated. Release acceptance:
 0/6.** This is a behavior-evidence baseline, not a claim that the existing
-product is 0% built. The blocked slice is MVP-06a's remaining private-staging
+product is 0% built. The active slice is MVP-06a's remaining private-staging
 manual journey.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
@@ -142,7 +158,7 @@ manual journey.
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | verified | A natural private-staging cadence completed healthy with one accepted recommendation and zero incomplete candidates. The existing Twelve Data budget was unchanged and Polygon supplied calendar metadata only. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | verified | Private authenticated staging retained a completed run as Last Successful Scan, marked a later stale run as needing review, and preserved that state on an ordinary dashboard refresh without starting a scan. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | verified | Private staging retained one attributable snapshot and one truthful neither_hit outcome at each 15m, 30m and 60m horizon after its natural outcome cadence. No manual trigger, broker or public-production action occurred. |
-| MVP-06a | Complete the entire manual journey on one identified release candidate | blocked | Protected staging session loaded at 2026-09-14T13:50:58Z during `Currently open` / `Opening`; it displayed the clear fresh-data no-trade state, no candidate or manual/broker control, and no browser warning/error. The access block is resolved, but the journey is now blocked since 2026-09-14T13:50:58Z on an identified fresh/coherent candidate; next useful action is a later read-only observation in a supported window. A real manual record still needs the user's genuine broker attestation. |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | active | Private `ture-staging` scheduled scan at 2026-09-14T14:45:24Z published one authenticated AAPL recommendation with a provider-verified current reference, source time and derived expiry; the ordinary dashboard readback showed its complete visible entry/stop/target plan. The required next action is a user-genuine manual broker attestation before recording entry, retrying, reloading, partially exiting, finally exiting and reconciling history/statistics. |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
 
@@ -172,8 +188,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 10/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other eight rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | Primary: MVP-06a private-staging manual journey, blocked by the observed fresh-data no-trade state while market opening is active. Off-market capacity lane: 0; no eligible independent slice is selected. | Normally one primary slice. One independent, eligible off-market vertical slice is allowed only while the primary slice is observably waiting for a market/session window; checkpoint count alone never authorizes parallel workstreams. |
-| Oldest blocked MVP checkpoint | MVP-06a, blocked since 2026-09-14T13:50:58Z: authenticated staging showed `Data is not clean enough right now` during an open/Opening window, so there is no candidate to begin the required manual journey. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | Primary: MVP-06a private-staging manual journey, active on the 2026-09-14T14:45:24Z AAPL candidate with provider-verified current reference. Off-market capacity lane: 0; no eligible independent slice is selected. | Normally one primary slice. One independent, eligible off-market vertical slice is allowed only while the primary slice is observably waiting for a market/session window; checkpoint count alone never authorizes parallel workstreams. |
+| Oldest blocked MVP checkpoint | None in the active primary slice: the earlier candidate-data block was resolved by the scheduled 2026-09-14T14:45:24Z staging scan. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Preliminary 6–16 active hours for the remaining verification phase only, not a total MVP delivery commitment. Re-estimate after the ordinary durable journey exposes its remaining defects; human confirmation and supervised market-session waits are separate dependencies | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
