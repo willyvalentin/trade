@@ -3571,9 +3571,9 @@ export async function generateRecommendations({
         activeScanTrace,
         maxFreshProviderCalls: diagnosticMode
           ? Math.min(1, scannerBaseCandidates.length)
-          : typeof scheduledMaxTickers === "number"
-            ? Math.min(1, scannerBaseCandidates.length)
-            : undefined,
+          // `scheduledMaxTickers` bounds the universe, while the scanner keeps
+          // its own scheduled fresh-provider budget (currently six calls).
+          : undefined,
         signal,
       },
     );

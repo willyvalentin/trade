@@ -12,6 +12,7 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   const tradeApp = await source("app/trade-app.tsx");
   const route = await source("app/api/recommendations/generate/route.ts");
   const scanner = await source("lib/scanner.ts");
+  const generator = await source("lib/recommendation-generator.ts");
 
   expect(tradeApp).toContain('fetch("/api/recommendations/generate"');
   expect(tradeApp).toContain('target_count: 1');
@@ -26,4 +27,11 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   expect(route).toContain("requireApplicationSession()");
   expect(route).toContain("applicationMutationForbiddenResponse(request)");
   expect(scanner).toContain("const MANUAL_MAX_FRESH_PROVIDER_CALLS = 1;");
+  expect(scanner).toContain("const SCHEDULED_MAX_FRESH_PROVIDER_CALLS = 6;");
+  expect(generator).toContain(
+    "its own scheduled fresh-provider budget (currently six calls)",
+  );
+  expect(generator).not.toContain(
+    'typeof scheduledMaxTickers === "number"\n            ? Math.min(1, scannerBaseCandidates.length)',
+  );
 });
