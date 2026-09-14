@@ -84,11 +84,34 @@ source `twelve_data`, source time 10:45 EDT and derived expiry 11:45 EDT. The
 browser console had no warning or error entries. No order, broker path or
 manual-trade record was used.
 
-The earlier no-trade observations remain valid fail-closed evidence, but the
-candidate-data blocker is resolved. MVP-06a is now active at its required next
-step: an independently executed manual fill must be genuinely attested by the
-user before any entry can be recorded; then the retry, reload, partial-exit,
-final-exit and history/statistics checks can proceed.
+The earlier no-trade observations remain valid fail-closed evidence, and the
+candidate-data blocker is resolved. This AAPL row is not an entry-eligible
+candidate, however: its existing intraday snapshot gate is weak/blocked. A
+fresh candidate whose current gate permits the ordinary recording flow is still
+required before a user-genuine manual broker attestation can begin the entry,
+retry, reload, partial-exit, final-exit and history/statistics checks.
+
+**Blocked-recommendation UI correction (2026-09-14T15:02Z–15:12Z): current
+candidate truth is visible rather than a silent no-op.** A user click on AAPL's
+ordinary `Make Trade` control was reproduced in a fresh authenticated staging
+tab: the DOM did not change and the browser emitted no warning or error. The
+existing recommendation details correctly showed Target 1 360.75 and Target 2
+373.22, but also showed `Stack blocked`, `Not eligible right now`, weak
+intraday confirmation (below VWAP, down momentum and contracting volume) and
+the existing instruction to refresh or generate a fresh recommendation. The
+handler correctly retained that gate but put its explanation in a dismissible
+global message, so the primary card still appeared actionable.
+
+Revision `5c0eda0a67d451e3a89a36e6c34a0cb51d8bc818` changes only the existing
+card presentation: a blocked gate now renders `SETUP BLOCKED — REFRESH
+REQUIRED`, an explicitly disabled `Setup Blocked` control, and the existing
+gate reason on the card. The targeted card contract passed 3/3, scoped lint
+passed, and the local production build compiled the changed source successfully.
+The exact staging revision was
+published as ready deploy `6aa80e9a014c5500086bc2ed` at 15:12:32Z. A fresh
+authenticated readback then showed the disabled control and its weak-confirmation
+reason, with no browser warning or error. No broker, order, manual-trade record,
+database mutation, provider action or non-staging product deployment occurred.
 
 **Local MVP-06a regression revalidation (2026-09-14): 38/38 passed, but does
 not replace staging evidence.** The current-main manual-flow boundary suite
@@ -146,7 +169,7 @@ manual journey.
 | MVP-01a | Sign in, reload the dashboard and sign out successfully | verified | Netlify deploy preview #430 at `cff08b8d6d3dd8d5567dc6644ba1e473755f6aa3`, 2026-09-09: owner-backed browser sign-in, authenticated reload, header sign-out and cleared `trade_auth` cookie passed. Local Chromium/session-boundary evidence also passes. |
 | MVP-01b | Anonymous and cross-owner access is rejected | verified | Netlify deploy preview #430, 2026-09-09: anonymous and a syntactically valid other-owner session each redirected from `/` and received `401 application_session_required` from `/api/app/dashboard` before data access. Local Proxy regression coverage replays all four boundaries. |
 | MVP-01c | Loading, empty and failed dashboard states are understandable | verified | Private `ture-staging`, 2026-09-12: one bounded failure probe visibly rendered the unavailable-data state, then its flag, code and fixture were removed; a clean authenticated readback showed the ordinary state. No provider, broker, production or database operation occurred. |
-| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | The MVP-02 delivery candidate exposes Target 2 in the existing recommendation-details trade plan and makes the existing price source, timestamp and expiry information visible on each recommendation card; supported-environment behavior evidence remains required. |
+| MVP-02a | Current recommendation shows the complete actionable plan and risk assumptions | unverified | Private staging at `6aa80e9a014c5500086bc2ed`, 2026-09-14: authenticated AAPL details showed symbol, Long direction, entry, stop, both targets, reward:risk, rationale, source timestamp and derived expiry. Its shares, position value, max loss and risk/share were still `—`, so the full risk/size-assumption requirement is not yet demonstrated. The same current snapshot was truthfully marked blocked rather than actionable. |
 | MVP-02b | No-trade and market-closed situations explain why no action is offered | verified | Private `ture-staging` deploy `6aa550cd31cf6b3dd2195519` at staging revision `4bebf72692e244ee046695e1b39548c3564da26b`, 2026-09-12 16:00 CEST: authenticated readback showed `US STOCK MARKET` / `CLOSED TODAY` and the no-high-quality-setup explanation; no Record Manual Trade, Make Trade, Avanza or Add Trade control was rendered. Navigation and reload only; no scan, provider, broker, database or production operation occurred. |
 | MVP-02c | Stale, expired or unavailable provider data cannot appear as a current actionable signal | verified | Private `ture-staging`, 2026-09-12: one labelled provider-error metadata probe visibly rendered the fail-closed unavailable state with no manual-trade or Avanza action. The probe was deleted and a separate readback confirmed no residual marker row. |
 | MVP-03a | Record an already executed manual entry from a recommendation and retain its plan | unverified | — |
@@ -158,7 +181,7 @@ manual journey.
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | verified | A natural private-staging cadence completed healthy with one accepted recommendation and zero incomplete candidates. The existing Twelve Data budget was unchanged and Polygon supplied calendar metadata only. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | verified | Private authenticated staging retained a completed run as Last Successful Scan, marked a later stale run as needing review, and preserved that state on an ordinary dashboard refresh without starting a scan. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | verified | Private staging retained one attributable snapshot and one truthful neither_hit outcome at each 15m, 30m and 60m horizon after its natural outcome cadence. No manual trigger, broker or public-production action occurred. |
-| MVP-06a | Complete the entire manual journey on one identified release candidate | active | Private `ture-staging` scheduled scan at 2026-09-14T14:45:24Z published one authenticated AAPL recommendation with a provider-verified current reference, source time and derived expiry; the ordinary dashboard readback showed its complete visible entry/stop/target plan. The required next action is a user-genuine manual broker attestation before recording entry, retrying, reloading, partially exiting, finally exiting and reconciling history/statistics. |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | active | Private `ture-staging` scheduled scan at 2026-09-14T14:45:24Z published authenticated AAPL with a provider-verified current reference, source time and derived expiry. Its current intraday gate is weak/blocked, so staging deploy `6aa80e9a014c5500086bc2ed` visibly disables the recording control and explains why. The next action is a fresh entry-eligible candidate, then a user-genuine manual broker attestation before recording entry, retrying, reloading, partially exiting, finally exiting and reconciling history/statistics. |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
 
