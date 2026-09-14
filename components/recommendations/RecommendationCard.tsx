@@ -15,6 +15,7 @@ export type RecommendationCardTiming = {
 };
 
 export type RecommendationCardProps = {
+  actionDescription?: string | null;
   addTradeDisabled: boolean;
   addTradeLabel: string;
   confidenceLabel: string;
@@ -94,6 +95,7 @@ function isVisibleProjectionPreview(
 }
 
 export function RecommendationCard({
+  actionDescription = null,
   addTradeDisabled,
   addTradeLabel,
   confidenceLabel,
@@ -206,6 +208,15 @@ export function RecommendationCard({
           {addTradeLabel}
         </button>
       </div>
+
+      {actionDescription ? (
+        <p
+          className="trade-recommendation-card__action-description"
+          role="status"
+        >
+          {actionDescription}
+        </p>
+      ) : null}
 
       {discardDialog}
       {detailsDialog}

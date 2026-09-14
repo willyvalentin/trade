@@ -51,6 +51,24 @@ to trade, or MVP-06a acceptance. The ordinary journey remains pending a
 user-genuine manual confirmation if the user chooses to execute independently;
 that confirmation must not be fabricated.
 
+**Low-confidence recommendation safety parity (2026-09-14): local
+main-based correction, not deployed.** Source comparison found that the private
+staging revision displaying NOW had a low-confidence review boundary that was
+absent from the current `origin/main` recommendation-card source. The isolated
+main-based branch now restores that narrow boundary: a fresh low-confidence
+recommendation opens its detail review instead of manual-recording validation;
+only a deliberate review continuation can open the existing manual record flow.
+Stale or expired recommendations cannot use that continuation, and a blocked
+intraday gate renders `Setup Blocked` disabled. The card and details copy now
+state that the path is a manual record and never submits a broker order. Focused
+MVP-02 timing/freshness/provider and MVP-03 recordable-plan suites passed 25/25,
+and scoped ESLint passed. The isolated worktree lacks its own package install,
+so a repository-wide TypeScript check could not resolve Next/Node packages and
+is not counted as code evidence. No staging deploy, data mutation, provider
+request, broker action or production action occurred. This local correction
+must be reviewed, delivered and then rechecked in staging before it can be
+claimed as a delivered MVP behavior.
+
 **Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
 one independent, market-window-free vertical slice only while MVP-06a is
 observably waiting for a supported market session. It must have its own
