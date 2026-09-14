@@ -72,6 +72,7 @@ export type RecommendationDetailsModalProps = {
   identity: ReactNode;
   keyReasons: { positive: string[]; warnings: string[] };
   onClose: () => void;
+  onContinueToManualTrade?: () => void;
   positionSizing: RecommendationDetailsModalPositionSizing;
   preTradeRiskContext: PreTradeRiskContextResult | null;
   recommendation: RecommendationDetailsModalRecommendation;
@@ -356,6 +357,7 @@ export function RecommendationDetailsModal({
   confidenceLabel,
   confidenceTone,
   onClose,
+  onContinueToManualTrade,
 }: RecommendationDetailsModalProps) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -374,7 +376,7 @@ export function RecommendationDetailsModal({
     decisionStack?.summary ||
     keyReasons.positive[0] ||
     recommendation.thesis ||
-    "Review the trade plan, then use Make Trade for the existing validation flow.";
+    "Review the trade plan, then record it only after the manual broker fill is confirmed.";
   const indicators = recommendation.intradayIndicators;
   const confidenceScoreLabel =
     recommendation.confidenceScore === null
@@ -499,6 +501,24 @@ export function RecommendationDetailsModal({
               </div>
             </div>
           </RecommendationDetailsSection>
+
+          {onContinueToManualTrade ? (
+            <RecommendationDetailsSection title="Low Confidence Review">
+              <div className="trade-recommendation-details-low-confidence-review">
+                <p role="status">
+                  This is a low-confidence setup, not a trade instruction. Review
+                  the risks and current data independently before continuing.
+                </p>
+                <button
+                  type="button"
+                  className="trade-recommendation-details-continue-action"
+                  onClick={onContinueToManualTrade}
+                >
+                  Continue to Manual Trade Record
+                </button>
+              </div>
+            </RecommendationDetailsSection>
+          ) : null}
 
           <RecommendationDetailsSection title="Trade Plan">
             <div className="trade-recommendation-details-trade-plan">

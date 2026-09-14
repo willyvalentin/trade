@@ -92,6 +92,7 @@ export function RecommendationCardContainer<
 
   return (
     <RecommendationCardView
+      actionDescription={displayProps.actionDescription}
       actionMessage={displayProps.actionMessage}
       addTradeDisabled={displayProps.addTradeDisabled}
       addTradeLabel={displayProps.addTradeLabel}
@@ -102,7 +103,14 @@ export function RecommendationCardContainer<
       freshnessNotice={displayProps.freshnessNotice}
       identity={renderIdentity(recommendation)}
       metrics={displayProps.metrics}
-      onAddTrade={() => onTakeTrade(recommendation)}
+      onAddTrade={() => {
+        if (displayProps.requiresConfidenceReview) {
+          setIsDetailsOpen(true);
+          return;
+        }
+
+        return onTakeTrade(recommendation);
+      }}
       onOpenDetails={() => setIsDetailsOpen(true)}
       onOpenDiscard={() => setIsDiscardConfirmOpen(true)}
       timing={displayProps.timing}
@@ -146,6 +154,14 @@ export function RecommendationCardContainer<
             identity={renderIdentity(recommendation)}
             keyReasons={displayProps.keyReasons}
             onClose={() => setIsDetailsOpen(false)}
+            onContinueToManualTrade={
+              displayProps.requiresConfidenceReview
+                ? () => {
+                    setIsDetailsOpen(false);
+                    void onTakeTrade(recommendation);
+                  }
+                : undefined
+            }
             sourceBadges={renderSourceBadges(
               displayProps.recommendationDetailsSourceBadges,
             )}

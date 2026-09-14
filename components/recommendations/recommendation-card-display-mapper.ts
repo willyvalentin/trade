@@ -63,6 +63,7 @@ export type RecommendationCardDisplayAddTradeGate = {
 };
 
 export type RecommendationCardDisplayProps = {
+  actionDescription: string | null;
   actionMessage: string | null;
   addTradeDisabled: boolean;
   addTradeGateMessage: string;
@@ -77,6 +78,7 @@ export type RecommendationCardDisplayProps = {
   isExpired: boolean;
   keyReasons: RecommendationCardDisplayKeyReasons;
   metrics: RecommendationCardMetric[];
+  requiresConfidenceReview: boolean;
   recommendationDetailsSourceBadges: DataModeBadge[];
   recommendationSourceBadge: DataModeBadge;
   timing: RecommendationCardTiming;
@@ -247,6 +249,11 @@ export function buildRecommendationCardDisplayProps({
         : freshness === "stale"
           ? "STALE DATA — REVALIDATE BEFORE TRADE"
           : null;
+  const requiresConfidenceReview =
+    !isExpired &&
+    !addTradeGate.blocked &&
+    freshness === "fresh" &&
+    confidenceTone === "low";
   const addTradeLabel = isValidating
     ? "Validating Setup"
     : isExpired
@@ -255,9 +262,21 @@ export function buildRecommendationCardDisplayProps({
         ? "Setup Blocked"
         : freshness === "stale"
           ? "Revalidate Setup"
-          : "Make Trade";
+          : requiresConfidenceReview
+            ? "Review Low Confidence"
+            : "Record Manual Trade";
+  const actionDescription = isExpired || addTradeGate.blocked
+    ? null
+    : isValidating
+      ? "Checking current market data before opening manual trade recording. No broker order will be sent."
+      : freshness === "stale"
+        ? "Revalidates current market data before opening manual trade recording. No broker order will be sent."
+        : requiresConfidenceReview
+          ? "This setup is low confidence. Review its evidence before continuing to the manual trade record."
+        : "Opens manual trade recording after validation. It never submits a broker order.";
 
   return {
+    actionDescription,
     actionMessage: addTradeGate.blocked ? addTradeGate.message : null,
     addTradeDisabled:
       isSaving || isExpired || isValidating || addTradeGate.blocked,
@@ -273,6 +292,7 @@ export function buildRecommendationCardDisplayProps({
     isExpired,
     keyReasons,
     metrics,
+    requiresConfidenceReview,
     recommendationDetailsSourceBadges,
     recommendationSourceBadge,
     timing,

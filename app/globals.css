@@ -1210,6 +1210,44 @@ main {
   line-height: 1.5;
 }
 
+.trade-recommendation-card__action-description {
+  margin: -4px 20px 20px;
+  color: #aeb7c4;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.trade-recommendation-details-low-confidence-review {
+  display: grid;
+  gap: 14px;
+}
+
+.trade-recommendation-details-low-confidence-review p {
+  color: #f4c76a;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.trade-recommendation-details-continue-action {
+  min-height: 48px;
+  border: 1px solid rgb(244 199 106 / 0.55);
+  border-radius: 8px;
+  background: rgb(244 199 106 / 0.08);
+  color: #f8ddb0;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.trade-recommendation-details-continue-action:hover {
+  border-color: rgb(244 199 106 / 0.9);
+  background: rgb(244 199 106 / 0.16);
+}
+
 .trade-recommendation-action,
 .trade-live-close-button {
   min-height: 64px;
@@ -3408,6 +3446,10 @@ main {
   }
 
   .trade-recommendation-card__action-message {
+    margin: -4px 16px 16px;
+  }
+
+  .trade-recommendation-card__action-description {
     margin: -4px 16px 16px;
   }
 
