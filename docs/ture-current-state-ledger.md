@@ -46,13 +46,16 @@ with a read-only candidate/no-trade observation. Any manual entry or exit still
 requires the user's genuine manual broker attestation and remains outside this
 automated pass.
 
-**Local MVP-06a regression revalidation (2026-09-14): passed, but does not
-replace staging evidence.** The current-main manual-flow boundary suite passed
-19/19 checks: numeric plan validation, complete manual broker-entry and
+**Local MVP-06a regression revalidation (2026-09-14): 38/38 passed, but does
+not replace staging evidence.** The current-main manual-flow boundary suite
+passed 19/19 checks: numeric plan validation, complete manual broker-entry and
 broker-exit attestation, replay-safe entry handling, partial-close containment,
-final-close idempotency and server-owned outcome messaging. It made no staging,
-provider, database or broker request. This keeps the expected ordinary-flow
-recording contract regression-covered while the protected staging session is
+final-close idempotency and server-owned outcome messaging. The adjacent
+history/statistics suite then passed 19/19: explicit gross-price/fee basis,
+frozen plan-versus-actual values, invalid or incomplete-close containment and
+truthful aggregate performance. Neither check made a staging, provider,
+database or broker request. This keeps the expected ordinary-flow recording and
+history contract regression-covered while the protected staging session is
 unavailable; it neither identifies a current candidate nor closes any MVP-06a
 or release checkpoint.
 
