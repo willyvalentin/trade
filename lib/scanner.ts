@@ -10,6 +10,7 @@ import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
+import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type ScannerCandidate = {
@@ -784,6 +785,13 @@ export async function scanMarket(
         candle_error_count: 1,
         latest_provider_error_type: errorType(error),
       });
+
+      // A provider credit/rate limit cannot be recovered within this run.
+      // Propagate it so the scheduler records a precise, fail-closed state
+      // instead of waiting through its remaining timeout budget.
+      if (isProviderRateLimitLikeError(error)) {
+        throw error;
+      }
 
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
