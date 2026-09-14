@@ -140,6 +140,7 @@ type ScannerUniverseSelectionInput = {
 export const scannerUniverseDefaultScanBudget = 50;
 export const scannerUniverseMaxScanBudget = 100;
 export const scheduledScannerUniverseRotationCadenceMinutes = 15;
+export const manualScannerUniverseRotationCadenceMinutes = 1;
 
 export const scannerUniverseTickers = [
   ticker("AAPL", "Apple Inc.", "mega_cap", "Information Technology", "mega", "medium", "liquid mega-cap", ["liquid", "index_weight"]),
@@ -348,6 +349,16 @@ export function getScheduledScannerUniverseRotationBatch(now = new Date()) {
 
   return Math.floor(
     timestamp / (scheduledScannerUniverseRotationCadenceMinutes * 60 * 1000),
+  );
+}
+
+export function getManualScannerUniverseRotationBatch(now = new Date()) {
+  const timestamp = now.getTime();
+
+  if (!Number.isFinite(timestamp)) return 0;
+
+  return Math.floor(
+    timestamp / (manualScannerUniverseRotationCadenceMinutes * 60 * 1000),
   );
 }
 

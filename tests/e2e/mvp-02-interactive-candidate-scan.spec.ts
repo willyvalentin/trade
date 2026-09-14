@@ -31,6 +31,11 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   expect(generator).toContain(
     "its own timeout-compatible scheduled fresh-provider budget",
   );
+  expect(generator).toContain(
+    'source === "manual" && !diagnosticMode && targetCount === 1',
+  );
+  expect(generator).toContain('"manual_rotating"');
+  expect(generator).toContain("useManualSingleTickerRotation ? 1 : undefined");
   expect(generator).not.toContain(
     'typeof scheduledMaxTickers === "number"\n            ? Math.min(1, scannerBaseCandidates.length)',
   );

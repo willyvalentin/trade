@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 
 import { buildRealScannerBaseCandidateSelection } from "@/lib/real-scanner-candidate-generation";
 import {
+  getManualScannerUniverseRotationBatch,
   getScheduledScannerUniverseRotationBatch,
+  manualScannerUniverseRotationCadenceMinutes,
   scannerUniverseTickers,
   scheduledScannerUniverseRotationCadenceMinutes,
 } from "@/lib/scanner-universe";
@@ -87,6 +89,49 @@ test.describe("scheduled scanner universe rotation", () => {
     );
     expect(getScheduledScannerUniverseRotationBatch(nextSlot)).toBe(
       getScheduledScannerUniverseRotationBatch(sameSlot) + 1,
+    );
+  });
+
+  test("moves the one-ticker manual scan through the tradable universe every minute without raising its provider budget", () => {
+    const minuteSelections = Array.from({ length: scannerUniverseTickers.length }, (_, index) => {
+      const now = new Date(
+        rotationStart.getTime() +
+          index * manualScannerUniverseRotationCadenceMinutes * 60 * 1000,
+      );
+
+      return buildRealScannerBaseCandidateSelection({
+        scanWindow: "midday",
+        requestedScanBudget: 1,
+        selectionMode: "manual_rotating",
+        now,
+      });
+    });
+    const selectedTickers = minuteSelections.flatMap((selection) =>
+      selection.candidates.map((candidate) => candidate.ticker),
+    );
+    const tradableTickers = scannerUniverseTickers
+      .filter((ticker) => ticker.enabled && ticker.tradable)
+      .map((ticker) => ticker.ticker);
+    const firstMinute = rotationStart;
+    const nextMinute = new Date(
+      rotationStart.getTime() +
+        manualScannerUniverseRotationCadenceMinutes * 60 * 1000,
+    );
+
+    expect(minuteSelections.every((selection) => selection.candidates.length === 1)).toBe(
+      true,
+    );
+    expect(
+      minuteSelections.every(
+        (selection) => selection.coverage?.scan_budget.effective_tickers === 1,
+      ),
+    ).toBe(true);
+    expect(new Set(selectedTickers)).toEqual(new Set(tradableTickers));
+    expect(minuteSelections[0].candidates[0]?.ticker).not.toBe(
+      minuteSelections[1].candidates[0]?.ticker,
+    );
+    expect(getManualScannerUniverseRotationBatch(nextMinute)).toBe(
+      getManualScannerUniverseRotationBatch(firstMinute) + 1,
     );
   });
 });

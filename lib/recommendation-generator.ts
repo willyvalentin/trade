@@ -3528,14 +3528,19 @@ export async function generateRecommendations({
 
     const useScheduledUniverseRotation =
       source === "scheduled" && !diagnosticMode;
+    const useManualSingleTickerRotation =
+      source === "manual" && !diagnosticMode && targetCount === 1;
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
       requestedScanBudget: diagnosticMode
         ? diagnosticMaxTickers
-        : scheduledMaxTickers ?? undefined,
+        : scheduledMaxTickers ??
+          (useManualSingleTickerRotation ? 1 : undefined),
       selectionMode: useScheduledUniverseRotation
         ? "scheduled_rotating"
-        : "default",
+        : useManualSingleTickerRotation
+          ? "manual_rotating"
+          : "default",
     });
     const scannerBaseCandidates =
       diagnosticMode && typeof diagnosticMaxTickers === "number"
@@ -3584,6 +3589,8 @@ export async function generateRecommendations({
         activeScanTrace,
         maxFreshProviderCalls: diagnosticMode
           ? Math.min(1, scannerBaseCandidates.length)
+          : useManualSingleTickerRotation
+            ? Math.min(1, scannerBaseCandidates.length)
           // `scheduledMaxTickers` bounds the universe, while the scanner keeps
           // its own timeout-compatible scheduled fresh-provider budget.
           : undefined,

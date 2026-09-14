@@ -2,6 +2,7 @@ import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
 import {
+  getManualScannerUniverseRotationBatch,
   getScheduledScannerUniverseRotationBatch,
   scannerUniverseSelectionToBaseCandidates,
   selectScannerUniverse,
@@ -27,7 +28,8 @@ export type RealScannerCandidateTier =
 
 export type RealScannerUniverseSelectionMode =
   | "default"
-  | "scheduled_rotating";
+  | "scheduled_rotating"
+  | "manual_rotating";
 
 export type RealScannerCandidateSignal = {
   label: string;
@@ -160,7 +162,9 @@ export function buildRealScannerBaseCandidateSelection({
     const rotationBatch =
       selectionMode === "scheduled_rotating"
         ? getScheduledScannerUniverseRotationBatch(now)
-        : 0;
+        : selectionMode === "manual_rotating"
+          ? getManualScannerUniverseRotationBatch(now)
+          : 0;
     const selection = selectScannerUniverse({
       scanWindow,
       requestedScanBudget,
