@@ -108,7 +108,7 @@ test.describe("MVP-02 stale recommendation presentation", () => {
     );
   });
 
-  test("routes low-confidence fresh setups through review before manual recording", () => {
+  test("routes low-confidence active setups through review before manual recording", () => {
     const props = buildRecommendationCardDisplayProps({
       addTradeGate: {
         blocked: false,
@@ -116,7 +116,7 @@ test.describe("MVP-02 stale recommendation presentation", () => {
         message: "Current intraday confirmation is clean.",
       },
       decisionStack: null,
-      freshness: "fresh",
+      freshness: "aging",
       isDemoRecommendation: false,
       isSaving: false,
       isValidating: false,

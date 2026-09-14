@@ -252,7 +252,7 @@ export function buildRecommendationCardDisplayProps({
   const requiresConfidenceReview =
     !isExpired &&
     !addTradeGate.blocked &&
-    freshness === "fresh" &&
+    (freshness === "fresh" || freshness === "aging") &&
     confidenceTone === "low";
   const addTradeLabel = isValidating
     ? "Validating Setup"
