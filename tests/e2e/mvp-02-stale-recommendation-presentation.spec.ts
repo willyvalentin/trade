@@ -71,4 +71,55 @@ test.describe("MVP-02 stale recommendation presentation", () => {
     expect(expired.addTradeLabel).toBe("Setup Expired");
     expect(expired.addTradeDisabled).toBe(true);
   });
+
+  test("shows the existing intraday gate when a setup is blocked", () => {
+    const props = buildRecommendationCardDisplayProps({
+      addTradeGate: {
+        blocked: true,
+        confirmation: { reasons: ["Momentum is down."], status: "weak" },
+        message:
+          "Setup has weak intraday confirmation. Refresh scanner or generate a fresh recommendation before adding this trade.",
+      },
+      decisionStack: null,
+      freshness: "fresh",
+      isDemoRecommendation: false,
+      isSaving: false,
+      isValidating: false,
+      keyReasons: { positive: [], warnings: [] },
+      recommendation: {
+        confidenceBreakdown: null,
+        confidenceLabel: "LOWER CONFIDENCE",
+        confidenceScore: 55,
+        entryZone: "$100.00",
+        riskReward: "2.0",
+        stopLoss: "$98.00",
+        target1: "$104.00",
+        thesis: "A setup that the current gate has blocked.",
+      },
+    });
+
+    expect(props.freshnessNotice).toBe("SETUP BLOCKED — REFRESH REQUIRED");
+    expect(props.addTradeLabel).toBe("Setup Blocked");
+    expect(props.addTradeDisabled).toBe(true);
+    expect(props.actionMessage).toContain("weak intraday confirmation");
+
+    const card = RecommendationCard({
+      actionMessage: props.actionMessage,
+      addTradeDisabled: props.addTradeDisabled,
+      addTradeLabel: props.addTradeLabel,
+      confidenceLabel: props.confidenceLabel,
+      confidenceTone: props.confidenceTone,
+      discardDisabled: props.discardDisabled,
+      freshnessNotice: props.freshnessNotice,
+      identity: "TURE",
+      metrics: props.metrics,
+      onAddTrade: () => undefined,
+      onOpenDetails: () => undefined,
+      onOpenDiscard: () => undefined,
+    });
+
+    const cardText = JSON.stringify(card);
+    expect(cardText).toContain("Setup Blocked");
+    expect(cardText).toContain("weak intraday confirmation");
+  });
 });
