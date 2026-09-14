@@ -113,6 +113,25 @@ authenticated readback then showed the disabled control and its weak-confirmatio
 reason, with no browser warning or error. No broker, order, manual-trade record,
 database mutation, provider action or non-staging product deployment occurred.
 
+**Bounded fresh-candidate control (2026-09-14T15:26Z–15:29Z): ready in
+private staging, not yet invoked.** Revision
+`b4536e70e2768b9f5aff7235783b238ff6096e92` adds `SCAN NEW` only to the
+authenticated Recommendations status bar. It sends the existing, protected
+`POST /api/recommendations/generate` request with `target_count: 1`, is disabled
+outside an active intraday window or while the dashboard/scan is busy, and
+reloads the recommendation and diagnostics readback after completion. The
+server route retains the session and same-origin checks, and the scanner keeps
+its one-fresh-provider-call manual cap; the action explicitly says it sends no
+broker order and it reports a selective no-candidate result rather than
+inventing one. Targeted lint and four focused MVP-02 tests passed. The exact
+staging revision was published as deploy `6aa8123768c5700008a33034`; a fresh
+authenticated browser readback showed `Morning momentum`, enabled `SCAN NEW`,
+and the still-disabled AAPL gate. The control was not clicked for this
+verification: no manual scan, provider request, recommendation write, broker
+action or production deployment occurred. A user-initiated scan that yields a
+fresh, gate-permitted candidate remains the next required MVP-06a behavior
+evidence.
+
 **Local MVP-06a regression revalidation (2026-09-14): 38/38 passed, but does
 not replace staging evidence.** The current-main manual-flow boundary suite
 passed 19/19 checks: numeric plan validation, complete manual broker-entry and
