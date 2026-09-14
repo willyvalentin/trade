@@ -726,7 +726,8 @@ main {
   padding-left: 16px;
 }
 
-.trade-primary-statusbar__refresh {
+.trade-primary-statusbar__refresh,
+.trade-primary-statusbar__scan {
   display: inline-flex;
   width: 80px;
   height: 36px;
@@ -749,11 +750,13 @@ main {
   transition: background-color 0.16s ease;
 }
 
-.trade-primary-statusbar__refresh:hover {
+.trade-primary-statusbar__refresh:hover,
+.trade-primary-statusbar__scan:hover {
   background: rgb(146 255 237 / 0.16);
 }
 
-.trade-primary-statusbar__refresh:disabled {
+.trade-primary-statusbar__refresh:disabled,
+.trade-primary-statusbar__scan:disabled {
   background: rgb(146 255 237 / 0.08);
   color: rgb(0 184 153 / 0.42);
   cursor: not-allowed;
@@ -763,6 +766,26 @@ main {
 .trade-primary-statusbar__refresh--refreshing:disabled,
 .trade-primary-statusbar__refresh--refreshing:hover {
   width: 102px;
+  border: 1px solid rgb(146 255 237 / 0.1);
+  background: transparent;
+  color: #00b899;
+}
+
+.trade-primary-statusbar__scan {
+  width: 100px;
+  margin-left: auto;
+  background: rgb(0 184 153 / 0.2);
+  color: #8fffe9;
+}
+
+.trade-primary-statusbar__scan + .trade-primary-statusbar__refresh {
+  margin-left: 0;
+}
+
+.trade-primary-statusbar__scan--scanning,
+.trade-primary-statusbar__scan--scanning:disabled,
+.trade-primary-statusbar__scan--scanning:hover {
+  width: 112px;
   border: 1px solid rgb(146 255 237 / 0.1);
   background: transparent;
   color: #00b899;
@@ -3153,7 +3176,8 @@ main {
     white-space: normal;
   }
 
-  .trade-primary-statusbar__refresh {
+  .trade-primary-statusbar__refresh,
+  .trade-primary-statusbar__scan {
     grid-column: auto;
     width: 100%;
     margin-left: 0;
