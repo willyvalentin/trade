@@ -36,6 +36,9 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   );
   expect(generator).toContain('"manual_rotating"');
   expect(generator).toContain("useManualSingleTickerRotation ? 1 : undefined");
+  expect(tradeApp).toContain("newerUnbatchedActiveRecommendationIds");
+  expect(tradeApp).toContain("newer_unbatched_active_recommendation");
+  expect(tradeApp).toContain("createdAtMs > currentBatchReferenceMs");
   expect(generator).not.toContain(
     'typeof scheduledMaxTickers === "number"\n            ? Math.min(1, scannerBaseCandidates.length)',
   );
