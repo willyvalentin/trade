@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ApplicationLogoutButton } from "@/app/application-logout-button";
 import {
+  getIntradayScanPolicy,
   getIntradayScanWindow,
   getIntradayScanWindowLabel,
   getNewYorkDateString,
@@ -950,6 +951,14 @@ type LoadTradeDataOptions = {
   islands?: RefreshIslandId[];
   clearMessage?: boolean;
   source?: "initial" | "manual" | "auto" | "focus" | "action";
+};
+
+type CandidateScanResponse = {
+  recommendations?: unknown[];
+  inserted_count?: number;
+  message?: string;
+  error?: string;
+  scan_window_label?: string;
 };
 
 type ConfidenceLabel =
@@ -8777,6 +8786,7 @@ export function TradeApp({
     createInitialIslandRefreshState,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isScanningForCandidate, setIsScanningForCandidate] = useState(false);
   const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
   const [lastDemoAction, setLastDemoAction] = useState("No demo action yet.");
@@ -9960,6 +9970,65 @@ export function TradeApp({
 
   function refreshCurrentSurface(source: LoadTradeDataOptions["source"] = "manual") {
     return refreshIslands(refreshIslandsForTab(activeTab), source);
+  }
+
+  async function scanForNewCandidate() {
+    if (isScanningForCandidate) {
+      return;
+    }
+
+    setIsScanningForCandidate(true);
+    setMessage(
+      "Scanning for one new candidate with current market data. No broker order will be sent.",
+    );
+
+    try {
+      const response = await fetch("/api/recommendations/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({
+          scan_window: getIntradayScanWindow(new Date()),
+          target_count: 1,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | CandidateScanResponse
+        | null;
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ?? "Candidate scan could not be completed.",
+        );
+      }
+
+      await refreshIslands(
+        ["market_status", "recommendations", "market_diagnostics"],
+        "action",
+      );
+
+      const createdCount =
+        typeof payload?.inserted_count === "number"
+          ? payload.inserted_count
+          : payload?.recommendations?.length ?? 0;
+      const scanLabel = payload?.scan_window_label
+        ? `${payload.scan_window_label} scan`
+        : "Candidate scan";
+
+      setMessage(
+        createdCount > 0
+          ? `${scanLabel} found ${createdCount} new candidate${
+              createdCount === 1 ? "" : "s"
+            }. Review the plan and current intraday confirmation before recording anything.`
+          : payload?.message ??
+              `${scanLabel} found no new candidate that passed the quality checks.`,
+      );
+    } catch (error) {
+      setMessage(normalizeUnknownError(error).message);
+    } finally {
+      setIsScanningForCandidate(false);
+    }
   }
 
   loadTradeDataRef.current = loadTradeData;
@@ -12564,6 +12633,9 @@ export function TradeApp({
   const currentIntradayScanWindowLabel = getIntradayScanWindowLabel(
     currentIntradayScanWindow,
   );
+  const currentIntradayScanPolicy = getIntradayScanPolicy(
+    currentIntradayScanWindow,
+  );
   const performanceSummary = calculatePerformanceSummary(closedPositions);
   const setupPerformance = calculateSetupPerformance(closedPositions);
   const scanQualitySummary = calculateScanQualitySummary(scanLogs);
@@ -12650,6 +12722,8 @@ export function TradeApp({
   );
   const marketCloseWarning = getMarketCloseWarning(marketStatus, currentTime);
   const topMarketStatus = getTopMarketStatus(marketStatus, currentTime);
+  const canScanForNewCandidate =
+    topMarketStatus === "open" && currentIntradayScanPolicy.allowGeneration;
   const eodSafetyStatusesByPositionId = Object.fromEntries(
     activePositions.map((position) => [
       position.id,
@@ -15890,6 +15964,16 @@ export function TradeApp({
         onRefresh={() => {
           void refreshIslands(["market_status", "recommendations"], "manual");
         }}
+        onScanCandidate={() => {
+          void scanForNewCandidate();
+        }}
+        isScanningCandidate={isScanningForCandidate}
+        isCandidateScanEnabled={canScanForNewCandidate}
+        candidateScanUnavailableReason={
+          canScanForNewCandidate
+            ? null
+            : "Candidate scans are available only during an active intraday market window."
+        }
         isRefreshing={
           islandRefreshState.market_status.isRefreshing ||
           islandRefreshState.recommendations.isRefreshing
@@ -39895,6 +39979,10 @@ function TradePrimaryStatusbar({
   currentTime,
   scanWindowLabel,
   onRefresh,
+  onScanCandidate,
+  isScanningCandidate,
+  isCandidateScanEnabled,
+  candidateScanUnavailableReason = null,
   isRefreshing,
   isDisabled = false,
   refreshError = null,
@@ -39904,6 +39992,10 @@ function TradePrimaryStatusbar({
   currentTime: Date;
   scanWindowLabel: string;
   onRefresh: () => void;
+  onScanCandidate?: () => void;
+  isScanningCandidate?: boolean;
+  isCandidateScanEnabled?: boolean;
+  candidateScanUnavailableReason?: string | null;
   isRefreshing: boolean;
   isDisabled?: boolean;
   refreshError?: string | null;
@@ -39937,6 +40029,31 @@ function TradePrimaryStatusbar({
           <span aria-hidden="true">·</span>
           <span>{updatedAt ? "Previous data kept" : "No current data shown"}</span>
       </div>
+      )}
+
+      {onScanCandidate && (
+        <button
+          type="button"
+          className={`trade-primary-statusbar__scan ${
+            isScanningCandidate ? "trade-primary-statusbar__scan--scanning" : ""
+          }`}
+          aria-label={
+            isScanningCandidate
+              ? "Scanning for a new candidate"
+              : "Scan for a new candidate"
+          }
+          aria-busy={isScanningCandidate}
+          title={candidateScanUnavailableReason ?? undefined}
+          onClick={onScanCandidate}
+          disabled={
+            isDisabled ||
+            isRefreshing ||
+            isScanningCandidate ||
+            isCandidateScanEnabled === false
+          }
+        >
+          {isScanningCandidate ? "SCANNING..." : "SCAN NEW"}
+        </button>
       )}
 
       <button
