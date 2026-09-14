@@ -33,14 +33,27 @@ market-session dependency explicitly. Keep the staging scheduled-function
 control and applicable provider/broker boundaries; this documentation grants no
 new external-operation authority.
 
-**Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
-one independent, market-window-free vertical slice only while MVP-06a is
-observably waiting for a supported market session. It must have its own
-user-visible behavior and local/private-staging check, and may not bypass an
-unmet security, private-transport, identity, provider, broker or production
-gate. The reviewed R1a writer is not eligible: B-03 private transport remains
-unprovisioned. R1b, R2 and R3 retain their predecessor-evidence gates. Do not
-fill this lane with another demo, source-only contract or status task.
+**Current external boundary (2026-09-14T13:37Z): private staging is protected
+by Netlify Team Protection before the application can load.** A new anonymous
+HTTPS read received `401` from Netlify, and the connected browser rendered only
+the Team Protection password prompt. No password was supplied, no staging
+session was created, and no dashboard, application route, provider, database or
+broker action was reached. This is an access prerequisite for the next
+MVP-06a readback, not evidence of a product failure or an authorization to
+handle a credential. The next useful action is for the supported staging
+operator to establish the existing protected session independently; then resume
+with a read-only candidate/no-trade observation. Any manual entry or exit still
+requires the user's genuine manual broker attestation and remains outside this
+automated pass.
+
+**Off-market capacity lane: empty and not eligible for this access block.** The
+2026-09-12 planning decision permits one independent, market-window-free
+vertical slice only while MVP-06a is observably waiting *only* for a supported
+market session. The current protected-session prerequisite is separate, so it
+does not authorize a second slice. The reviewed R1a writer remains ineligible:
+B-03 private transport is unprovisioned. R1b, R2 and R3 retain their
+predecessor-evidence gates. Do not fill this lane with another demo,
+source-only contract or status task.
 
 ### MVP acceptance board
 
@@ -61,9 +74,10 @@ security evidence; Milestone B remains locally accepted, not live R1 completion.
 ### Small milestone board — 18 behavior checkpoints
 
 Recorded acceptance coverage across the individually stated environments:
-**10/18 verified, 8 unverified (including 1 active slice), 0 blocked, 0 invalidated. Release acceptance: 0/6.** This is a behavior-evidence
-baseline, not a claim that the existing product is 0% built. The active slice
-is MVP-06a's remaining private-staging manual journey.
+**10/18 verified, 7 unverified, 1 blocked, 0 invalidated. Release acceptance:
+0/6.** This is a behavior-evidence baseline, not a claim that the existing
+product is 0% built. The blocked slice is MVP-06a's remaining private-staging
+manual journey.
 
 | ID | Demonstrable result | State | Evidence: revision / environment / date / check |
 | --- | --- | --- | --- |
@@ -82,7 +96,7 @@ is MVP-06a's remaining private-staging manual journey.
 | MVP-05a | A supported scan uses licensed data within its declared usage budget | verified | A natural private-staging cadence completed healthy with one accepted recommendation and zero incomplete candidates. The existing Twelve Data budget was unchanged and Polygon supplied calendar metadata only. |
 | MVP-05b | Last success, freshness and a missed/failed run are visible with a working recovery path | verified | Private authenticated staging retained a completed run as Last Successful Scan, marked a later stale run as needing review, and preserved that state on an ordinary dashboard refresh without starting a scan. |
 | MVP-05c | Recommendation snapshots and outcomes retain attributable identity and truthful completion state | verified | Private staging retained one attributable snapshot and one truthful neither_hit outcome at each 15m, 30m and 60m horizon after its natural outcome cadence. No manual trigger, broker or public-production action occurred. |
-| MVP-06a | Complete the entire manual journey on one identified release candidate | unverified | — |
+| MVP-06a | Complete the entire manual journey on one identified release candidate | blocked | Private `ture-staging` returned Netlify Team Protection `401` at 2026-09-14T13:37Z before app load; browser showed only the password prompt. No credential was handled and no app/provider/database/broker action ran. Blocked since 2026-09-14; next useful action is an independently established supported staging session, followed by read-only candidate/no-trade observation. |
 | MVP-06b | Applicable release checks, deployment identity and production smoke pass without critical open defects | unverified | — |
 | MVP-06c | Complete one supervised supported market session and record the acceptance result | unverified | — |
 
@@ -112,8 +126,8 @@ or delivery forecast.
 | --- | --- | --- |
 | Verified behavior checkpoints | 10/18 recorded: MVP-01a/01b refer to preview #430 at `cff08b8d`; the other eight rows refer to their private-staging checks. This mixed-environment inventory is not same-candidate coverage or release acceptance. Preserve each check’s actual revision/deploy, date and environment; where identity is not recorded, recover it from retained evidence before carrying the check to a release candidate. Recheck recording behavior affected by PR #478. | Count rows with valid passing evidence; show net change from last week's dated snapshot |
 | Release-accepted criteria | 0/6 | Full parent criterion and release-scope evidence required |
-| Active product slices | Primary: 1; MVP-06a manual-journey evidence, using only its explicitly scoped staging boundary. Off-market capacity lane: 0 (empty; see current decision above). | Normally one primary slice. One independent, eligible off-market vertical slice is allowed only while the primary slice is observably waiting for a market/session window; checkpoint count alone never authorizes parallel workstreams. |
-| Oldest blocked MVP checkpoint | None: MVP-06a is the next unverified ordered slice; its authenticated staging readback and exact cleanup precondition are complete, while the full manual journey remains. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
+| Active product slices | Primary: MVP-06a private-staging manual journey, blocked by the observed Team Protection access prerequisite. Off-market capacity lane: 0 and unavailable because the block is not only a market/session window. | Normally one primary slice. One independent, eligible off-market vertical slice is allowed only while the primary slice is observably waiting for a market/session window; checkpoint count alone never authorizes parallel workstreams. |
+| Oldest blocked MVP checkpoint | MVP-06a, blocked since 2026-09-14T13:37Z by Team Protection `401` before the application session; resume only after the supported staging operator establishes the protected session. | Actual blocked-since date and elapsed days, not an assumed technical blocker |
 | Median slice lead time | Unknown | Elapsed time from actual start to verified completion; separate blocked time where recorded |
 | Remaining active effort | Preliminary 6–16 active hours for the remaining verification phase only, not a total MVP delivery commitment. Re-estimate after the ordinary durable journey exposes its remaining defects; human confirmation and supervised market-session waits are separate dependencies | After the first journey check, sum low/high estimates for remaining defect slices, avoiding duplicate estimates for shared work |
 | Calendar forecast | Unbaselined | Remaining effort divided by measured effective product hours/day; state external waits and uncertainty separately |
