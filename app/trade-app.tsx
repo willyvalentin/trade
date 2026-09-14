@@ -10034,7 +10034,8 @@ export function TradeApp({
 
       if (!response.ok) {
         throw new Error(
-          payload?.error ?? "Candidate scan could not be completed.",
+          payload?.error ??
+            `Candidate scan could not be completed (HTTP ${response.status}).`,
         );
       }
 
