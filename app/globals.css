@@ -791,6 +791,27 @@ main {
   color: #00b899;
 }
 
+.trade-primary-statusbar__scan-result {
+  margin: 10px 0 0;
+  border: 1px solid #464953;
+  border-radius: 6px;
+  background: #090b0f;
+  color: #aeb3bd;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 12px;
+}
+
+.trade-primary-statusbar__scan-result--positive {
+  border-color: rgb(0 184 153 / 0.5);
+  color: #8fffe9;
+}
+
+.trade-primary-statusbar__scan-result--danger {
+  border-color: rgb(248 113 113 / 0.5);
+  color: #fecaca;
+}
+
 .trade-learning-mode-banner {
   display: flex;
   width: fit-content;

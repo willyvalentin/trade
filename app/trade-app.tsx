@@ -961,6 +961,11 @@ type CandidateScanResponse = {
   scan_window_label?: string;
 };
 
+type CandidateScanResult = {
+  message: string;
+  tone: "positive" | "neutral" | "danger";
+};
+
 type ConfidenceLabel =
   | "HIGH CONVICTION"
   | "GOOD SETUP"
@@ -8787,6 +8792,8 @@ export function TradeApp({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isScanningForCandidate, setIsScanningForCandidate] = useState(false);
+  const [candidateScanResult, setCandidateScanResult] =
+    useState<CandidateScanResult | null>(null);
   const [isUpdatingPositions, setIsUpdatingPositions] = useState(false);
   const [message, setMessage] = useState("");
   const [lastDemoAction, setLastDemoAction] = useState("No demo action yet.");
@@ -9978,9 +9985,10 @@ export function TradeApp({
     }
 
     setIsScanningForCandidate(true);
-    setMessage(
-      "Scanning for one new candidate with current market data. No broker order will be sent.",
-    );
+    const scanningMessage =
+      "Scanning for one new candidate with current market data. No broker order will be sent.";
+    setCandidateScanResult({ message: scanningMessage, tone: "neutral" });
+    setMessage(scanningMessage);
 
     try {
       const response = await fetch("/api/recommendations/generate", {
@@ -10015,17 +10023,23 @@ export function TradeApp({
       const scanLabel = payload?.scan_window_label
         ? `${payload.scan_window_label} scan`
         : "Candidate scan";
-
-      setMessage(
+      const resultMessage =
         createdCount > 0
           ? `${scanLabel} found ${createdCount} new candidate${
               createdCount === 1 ? "" : "s"
             }. Review the plan and current intraday confirmation before recording anything.`
           : payload?.message ??
-              `${scanLabel} found no new candidate that passed the quality checks.`,
-      );
+            `${scanLabel} found no new candidate that passed the quality checks.`;
+
+      setCandidateScanResult({
+        message: resultMessage,
+        tone: createdCount > 0 ? "positive" : "neutral",
+      });
+      setMessage(resultMessage);
     } catch (error) {
-      setMessage(normalizeUnknownError(error).message);
+      const errorMessage = normalizeUnknownError(error).message;
+      setCandidateScanResult({ message: errorMessage, tone: "danger" });
+      setMessage(errorMessage);
     } finally {
       setIsScanningForCandidate(false);
     }
@@ -15968,6 +15982,7 @@ export function TradeApp({
           void scanForNewCandidate();
         }}
         isScanningCandidate={isScanningForCandidate}
+        candidateScanResult={candidateScanResult}
         isCandidateScanEnabled={canScanForNewCandidate}
         candidateScanUnavailableReason={
           canScanForNewCandidate
@@ -39981,6 +39996,7 @@ function TradePrimaryStatusbar({
   onRefresh,
   onScanCandidate,
   isScanningCandidate,
+  candidateScanResult = null,
   isCandidateScanEnabled,
   candidateScanUnavailableReason = null,
   isRefreshing,
@@ -39994,6 +40010,7 @@ function TradePrimaryStatusbar({
   onRefresh: () => void;
   onScanCandidate?: () => void;
   isScanningCandidate?: boolean;
+  candidateScanResult?: CandidateScanResult | null;
   isCandidateScanEnabled?: boolean;
   candidateScanUnavailableReason?: string | null;
   isRefreshing: boolean;
@@ -40001,78 +40018,89 @@ function TradePrimaryStatusbar({
   refreshError?: string | null;
 }) {
   return (
-    <div className="trade-primary-statusbar">
-      <div className="trade-primary-statusbar__analysis">
-        <DashboardStatusLottieIcon />
-        <span>Auto analyzing trades</span>
-      </div>
+    <>
+      <div className="trade-primary-statusbar">
+        <div className="trade-primary-statusbar__analysis">
+          <DashboardStatusLottieIcon />
+          <span>Auto analyzing trades</span>
+        </div>
 
-      <div className="trade-primary-statusbar__meta">
-        <span>Day trade window</span>
-        <span aria-hidden="true">·</span>
-        <span>{scanWindowLabel}</span>
-      </div>
-
-      <div className="trade-primary-statusbar__meta">
-        <span>{updateLabel}</span>
-        <span aria-hidden="true">·</span>
-        <span>
-          {isRefreshing
-            ? "Refreshing..."
-            : formatStatusbarUpdatedAt(updatedAt, currentTime)}
-        </span>
-      </div>
-
-      {refreshError && (
-        <div className="trade-primary-statusbar__meta" title={refreshError}>
-          <span>{updatedAt ? "Refresh issue" : "Data unavailable"}</span>
+        <div className="trade-primary-statusbar__meta">
+          <span>Day trade window</span>
           <span aria-hidden="true">·</span>
-          <span>{updatedAt ? "Previous data kept" : "No current data shown"}</span>
-      </div>
-      )}
+          <span>{scanWindowLabel}</span>
+        </div>
 
-      {onScanCandidate && (
+        <div className="trade-primary-statusbar__meta">
+          <span>{updateLabel}</span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {isRefreshing
+              ? "Refreshing..."
+              : formatStatusbarUpdatedAt(updatedAt, currentTime)}
+          </span>
+        </div>
+
+        {refreshError && (
+          <div className="trade-primary-statusbar__meta" title={refreshError}>
+            <span>{updatedAt ? "Refresh issue" : "Data unavailable"}</span>
+            <span aria-hidden="true">·</span>
+            <span>{updatedAt ? "Previous data kept" : "No current data shown"}</span>
+          </div>
+        )}
+
+        {onScanCandidate && (
+          <button
+            type="button"
+            className={`trade-primary-statusbar__scan ${
+              isScanningCandidate ? "trade-primary-statusbar__scan--scanning" : ""
+            }`}
+            aria-label={
+              isScanningCandidate
+                ? "Scanning for a new candidate"
+                : "Scan for a new candidate"
+            }
+            aria-busy={isScanningCandidate}
+            title={candidateScanUnavailableReason ?? undefined}
+            onClick={onScanCandidate}
+            disabled={
+              isDisabled ||
+              isRefreshing ||
+              isScanningCandidate ||
+              isCandidateScanEnabled === false
+            }
+          >
+            {isScanningCandidate ? "SCANNING..." : "SCAN NEW"}
+          </button>
+        )}
+
         <button
           type="button"
-          className={`trade-primary-statusbar__scan ${
-            isScanningCandidate ? "trade-primary-statusbar__scan--scanning" : ""
+          className={`trade-primary-statusbar__refresh ${
+            isRefreshing ? "trade-primary-statusbar__refresh--refreshing" : ""
           }`}
           aria-label={
-            isScanningCandidate
-              ? "Scanning for a new candidate"
-              : "Scan for a new candidate"
+            isRefreshing
+              ? "Refreshing dashboard data"
+              : "Refresh dashboard data"
           }
-          aria-busy={isScanningCandidate}
-          title={candidateScanUnavailableReason ?? undefined}
-          onClick={onScanCandidate}
-          disabled={
-            isDisabled ||
-            isRefreshing ||
-            isScanningCandidate ||
-            isCandidateScanEnabled === false
-          }
+          aria-busy={isRefreshing}
+          onClick={onRefresh}
+          disabled={isDisabled || isRefreshing}
         >
-          {isScanningCandidate ? "SCANNING..." : "SCAN NEW"}
+          {isRefreshing ? "REFRESHING" : "REFRESH"}
         </button>
-      )}
+      </div>
 
-      <button
-        type="button"
-        className={`trade-primary-statusbar__refresh ${
-          isRefreshing ? "trade-primary-statusbar__refresh--refreshing" : ""
-        }`}
-        aria-label={
-          isRefreshing
-            ? "Refreshing dashboard data"
-            : "Refresh dashboard data"
-        }
-        aria-busy={isRefreshing}
-        onClick={onRefresh}
-        disabled={isDisabled || isRefreshing}
-      >
-        {isRefreshing ? "REFRESHING" : "REFRESH"}
-      </button>
-    </div>
+      {candidateScanResult && (
+        <p
+          className={`trade-primary-statusbar__scan-result trade-primary-statusbar__scan-result--${candidateScanResult.tone}`}
+          role="status"
+        >
+          {candidateScanResult.message}
+        </p>
+      )}
+    </>
   );
 }
 
