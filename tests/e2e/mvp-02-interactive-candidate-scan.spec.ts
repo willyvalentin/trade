@@ -18,6 +18,8 @@ test("MVP-02 exposes a bounded, authenticated candidate scan separately from das
   expect(tradeApp).toContain('credentials: "same-origin"');
   expect(tradeApp).toContain('"SCAN NEW"');
   expect(tradeApp).toContain("No broker order will be sent.");
+  expect(tradeApp).toContain("candidateScanResult");
+  expect(tradeApp).toContain('role="status"');
   expect(tradeApp).toContain("currentIntradayScanPolicy.allowGeneration");
   expect(tradeApp).toContain('"recommendations", "market_diagnostics"');
 
