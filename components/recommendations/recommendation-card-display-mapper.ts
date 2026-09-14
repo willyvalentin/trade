@@ -63,6 +63,7 @@ export type RecommendationCardDisplayAddTradeGate = {
 };
 
 export type RecommendationCardDisplayProps = {
+  actionMessage: string | null;
   addTradeDisabled: boolean;
   addTradeGateMessage: string;
   addTradeLabel: string;
@@ -241,19 +242,25 @@ export function buildRecommendationCardDisplayProps({
   const freshnessNotice =
     freshness === "expired"
       ? "EXPIRED — REVIEW ONLY"
-      : freshness === "stale"
-        ? "STALE DATA — REVALIDATE BEFORE TRADE"
-        : null;
+      : addTradeGate.blocked
+        ? "SETUP BLOCKED — REFRESH REQUIRED"
+        : freshness === "stale"
+          ? "STALE DATA — REVALIDATE BEFORE TRADE"
+          : null;
   const addTradeLabel = isValidating
     ? "Validating Setup"
     : isExpired
       ? "Setup Expired"
-      : freshness === "stale"
-        ? "Revalidate Setup"
-        : "Make Trade";
+      : addTradeGate.blocked
+        ? "Setup Blocked"
+        : freshness === "stale"
+          ? "Revalidate Setup"
+          : "Make Trade";
 
   return {
-    addTradeDisabled: isSaving || isExpired || isValidating,
+    actionMessage: addTradeGate.blocked ? addTradeGate.message : null,
+    addTradeDisabled:
+      isSaving || isExpired || isValidating || addTradeGate.blocked,
     addTradeGateMessage: addTradeGate.message,
     addTradeLabel,
     cardSummary,

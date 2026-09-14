@@ -1158,6 +1158,14 @@ main {
   padding: 20px;
 }
 
+.trade-recommendation-card__action-message {
+  margin: -4px 20px 20px;
+  color: #f4c76a;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .trade-recommendation-action,
 .trade-live-close-button {
   min-height: 64px;
@@ -3352,6 +3360,10 @@ main {
 
   .trade-recommendation-card__footer {
     padding: 16px;
+  }
+
+  .trade-recommendation-card__action-message {
+    margin: -4px 16px 16px;
   }
 
   .trade-recommendation-card__dismiss {

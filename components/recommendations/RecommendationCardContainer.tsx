@@ -92,6 +92,7 @@ export function RecommendationCardContainer<
 
   return (
     <RecommendationCardView
+      actionMessage={displayProps.actionMessage}
       addTradeDisabled={displayProps.addTradeDisabled}
       addTradeLabel={displayProps.addTradeLabel}
       confidenceLabel={displayProps.confidenceLabel}
