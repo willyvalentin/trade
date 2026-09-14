@@ -56,6 +56,17 @@ connected and made no execution-readiness or order-action claim. No form,
 database, broker or production operation occurred, and the browser console
 again had no warning or error entries.
 
+**Second scheduled read-only recheck (2026-09-14T14:27:03Z): no state
+change.** The previous tab binding had expired and was replaced with a fresh
+tab in the same retained protected session; this was a browser-session detail,
+not a product error. The authenticated dashboard again rendered `Currently
+open`, `Morning momentum`, `Updated just now` and the same no-trade
+freshness-quality state, with no candidate, manual-trade control or console
+warning/error. No control was activated and no form, database, provider,
+broker or production operation occurred. This is the third consecutive
+observed no-candidate state across the opening-window checks; meaningful
+MVP-06a progress now requires a future external fresh/coherent candidate.
+
 This is fresh private-staging evidence that the product fails closed to an
 understandable no-trade state during the supported opening window. It does not
 identify the candidate required by MVP-06a, create a manual record or close a
