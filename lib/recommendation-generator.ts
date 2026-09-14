@@ -3526,11 +3526,16 @@ export async function generateRecommendations({
       );
     }
 
+    const useScheduledUniverseRotation =
+      source === "scheduled" && !diagnosticMode;
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
       requestedScanBudget: diagnosticMode
         ? diagnosticMaxTickers
         : scheduledMaxTickers ?? undefined,
+      selectionMode: useScheduledUniverseRotation
+        ? "scheduled_rotating"
+        : "default",
     });
     const scannerBaseCandidates =
       diagnosticMode && typeof diagnosticMaxTickers === "number"
@@ -3539,6 +3544,14 @@ export async function generateRecommendations({
           ? scannerUniverseSelection.candidates.slice(0, scheduledMaxTickers)
         : scannerUniverseSelection.candidates;
     const universeCoverage = scannerUniverseSelection.coverage;
+    logPipeline(
+      "scanner_universe_selection_mode",
+      scannerUniverseSelection.selectionMode,
+    );
+    logPipeline(
+      "scanner_universe_rotation_batch",
+      scannerUniverseSelection.rotationBatch,
+    );
     const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
       candidates: scannerBaseCandidates,
       maxTickers: diagnosticMode
