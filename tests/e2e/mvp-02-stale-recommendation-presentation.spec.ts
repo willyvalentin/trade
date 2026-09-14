@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { buildRecommendationCardDisplayProps } from "@/components/recommendations/recommendation-card-display-mapper";
 
-function displayProps(freshness: "fresh" | "stale" | "expired") {
+function displayProps(
+  freshness: "fresh" | "aging" | "stale" | "expired",
+) {
   return buildRecommendationCardDisplayProps({
     addTradeGate: {
       blocked: false,
@@ -108,7 +110,7 @@ test.describe("MVP-02 stale recommendation presentation", () => {
     );
   });
 
-  test("routes fresh low-confidence setups through review before manual recording", () => {
+  test("routes fresh and aging low-confidence setups through review before manual recording", () => {
     const props = buildRecommendationCardDisplayProps({
       addTradeGate: {
         blocked: false,
@@ -139,6 +141,34 @@ test.describe("MVP-02 stale recommendation presentation", () => {
     expect(props.actionDescription).toBe(
       "This setup is low confidence. Review its evidence before continuing to the manual trade record.",
     );
+
+    const agingProps = buildRecommendationCardDisplayProps({
+      addTradeGate: {
+        blocked: false,
+        confirmation: { reasons: [], status: "confirmed" },
+        message: "Current intraday confirmation is clean.",
+      },
+      decisionStack: null,
+      freshness: "aging",
+      isDemoRecommendation: false,
+      isSaving: false,
+      isValidating: false,
+      keyReasons: { positive: [], warnings: [] },
+      recommendation: {
+        confidenceBreakdown: null,
+        confidenceLabel: "LOW CONFIDENCE",
+        confidenceScore: 63,
+        entryZone: "$100.00",
+        riskReward: "2.0",
+        stopLoss: "$98.00",
+        target1: "$104.00",
+        thesis: "An aging setup that still needs independent review.",
+      },
+    });
+
+    expect(agingProps.addTradeLabel).toBe("Review Low Confidence");
+    expect(agingProps.addTradeDisabled).toBe(false);
+    expect(agingProps.requiresConfidenceReview).toBe(true);
   });
 
   test("never offers the low-confidence review continuation for stale data", () => {
@@ -200,6 +230,7 @@ test.describe("MVP-02 stale recommendation presentation", () => {
 
     expect(props.addTradeLabel).toBe("Setup Blocked");
     expect(props.addTradeDisabled).toBe(true);
+    expect(props.freshnessNotice).toBe("SETUP BLOCKED — REFRESH REQUIRED");
     expect(props.actionDescription).toBeNull();
     expect(props.requiresConfidenceReview).toBe(false);
   });

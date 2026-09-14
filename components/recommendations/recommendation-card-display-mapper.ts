@@ -243,13 +243,15 @@ export function buildRecommendationCardDisplayProps({
   const freshnessNotice =
     freshness === "expired"
       ? "EXPIRED — REVIEW ONLY"
-      : freshness === "stale"
-        ? "STALE DATA — REVALIDATE BEFORE TRADE"
-        : null;
+      : addTradeGate.blocked
+        ? "SETUP BLOCKED — REFRESH REQUIRED"
+        : freshness === "stale"
+          ? "STALE DATA — REVALIDATE BEFORE TRADE"
+          : null;
   const requiresConfidenceReview =
     !isExpired &&
     !addTradeGate.blocked &&
-    freshness === "fresh" &&
+    (freshness === "fresh" || freshness === "aging") &&
     confidenceTone === "low";
   const addTradeLabel = isValidating
     ? "Validating Setup"

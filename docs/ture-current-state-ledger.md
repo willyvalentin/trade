@@ -55,11 +55,12 @@ that confirmation must not be fabricated.
 main-based correction, not deployed.** Source comparison found that the private
 staging revision displaying NOW had a low-confidence review boundary that was
 absent from the current `origin/main` recommendation-card source. The isolated
-main-based branch now restores that narrow boundary: a fresh low-confidence
-recommendation opens its detail review instead of manual-recording validation;
-only a deliberate review continuation can open the existing manual record flow.
-Stale or expired recommendations cannot use that continuation, and a blocked
-intraday gate renders `Setup Blocked` disabled. The card and details copy now
+main-based branch now restores that narrow boundary: a fresh or aging
+low-confidence recommendation opens its detail review instead of
+manual-recording validation; only a deliberate review continuation can open the
+existing manual record flow. Stale or expired recommendations cannot use that
+continuation, and a blocked intraday gate renders `Setup Blocked` disabled. The
+card and details copy now
 state that the path is a manual record and never submits a broker order. Focused
 MVP-02 timing/freshness/provider and MVP-03 recordable-plan suites passed 25/25,
 and scoped ESLint passed. The isolated worktree lacks its own package install,
