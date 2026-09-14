@@ -45,6 +45,17 @@ surface; the existing dashboard-refresh control was not used. The browser
 console had no warning or error entries. No manual scan, dashboard refresh,
 database write or broker operation occurred.
 
+**First scheduled read-only recheck (2026-09-14T14:12:03Z): same no-trade
+state.** The retained authenticated session showed `Currently open`, `Morning
+momentum` and `Updated just now`, with no candidate and the same clear
+freshness-quality explanation. During this passive observation the UI briefly
+displayed `Refreshing...` before returning to the no-trade state; this delivery
+did not activate the refresh control or invoke a provider scan. The rendered
+read-only readiness summary also said that live Avanza readiness data was not
+connected and made no execution-readiness or order-action claim. No form,
+database, broker or production operation occurred, and the browser console
+again had no warning or error entries.
+
 This is fresh private-staging evidence that the product fails closed to an
 understandable no-trade state during the supported opening window. It does not
 identify the candidate required by MVP-06a, create a manual record or close a
