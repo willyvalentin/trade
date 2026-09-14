@@ -64,6 +64,14 @@ database or broker request. This keeps the expected ordinary-flow recording and
 history contract regression-covered before the opening observation; it neither
 identifies a current candidate nor closes any MVP-06a or release checkpoint.
 
+**Additional current-main recording-boundary check (2026-09-14): 8/8 passed.**
+The recordable-plan and post-write refresh contracts passed 6/6, confirming
+that a complete two-target plan is required and that the completed manual
+action follows the queued dashboard-refresh path. The explicitly labelled
+cache-only demo boundary also passed 2/2. These are local source-contract
+checks only: they do not create a candidate, make a provider or staging
+request, or substitute for the required authenticated durable journey.
+
 **Off-market capacity lane: empty.** The current no-candidate condition is
 market-data-dependent, but no eligible independent vertical slice has been
 selected. The reviewed R1a writer remains ineligible because B-03 private
