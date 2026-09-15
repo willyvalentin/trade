@@ -264,6 +264,10 @@ import {
   type RecommendationScanRunPersistenceResult,
 } from "@/lib/recommendation-scan-run";
 import {
+  candidateDecisionRecordFromUnknown,
+  summarizeCandidateDecisionRecord,
+} from "@/lib/candidate-decision-readback";
+import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
   recommendationBatchFromPersistenceRow,
@@ -11473,6 +11477,18 @@ export function TradeApp({
       .filter(isSuccessfulLiveRecommendationScanRun)
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const latestCandidateDecisionRecord =
+    [...liveStoredRecommendationScanRuns]
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
+      .map((scanRun) =>
+        candidateDecisionRecordFromUnknown(
+          scanRun.payload_json.candidate_decision_record,
+        ),
+      )
+      .find((record) => record !== null) ?? null;
+  const candidateDecisionRecordReadback = summarizeCandidateDecisionRecord(
+    latestCandidateDecisionRecord,
+  );
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -14683,6 +14699,7 @@ export function TradeApp({
       dynamic_movers: dynamicMarketMoversSummary,
       dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
+      candidate_decision_record: candidateDecisionRecordReadback,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
       historical_candle_storage_detection: historicalCandleStorageDetection,

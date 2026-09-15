@@ -98,6 +98,7 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import type { CandidateDecisionRecordReadback } from "@/lib/candidate-decision-readback";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -180,6 +181,7 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers?: DynamicMarketMoversSummary | null;
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
+  candidate_decision_record?: CandidateDecisionRecordReadback | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
@@ -3534,6 +3536,24 @@ function buildSections(
     buildAction307nProductionApiBoundaryRecoveryVerification();
   const minimalReplayWithSignalPackagePing =
     buildAction308MinimalReplayWithSignalPackagePing();
+  const candidateDecisionRecord = input.candidate_decision_record ?? {
+    status: "unavailable" as const,
+    decision_timestamp: null,
+    final_disposition: null,
+    candidate_count: 0,
+    observed_candidate_count: 0,
+    ranked_candidate_count: 0,
+    data_health: {
+      fresh_candidate_count: 0,
+      stale_candidate_count: 0,
+      gap_candidate_count: 0,
+      unknown_freshness_candidate_count: 0,
+    },
+    strongest_unpublished_candidates: [],
+    no_trade_reason: null,
+    published_tickers: [],
+    reason_codes: ["candidate_decision_record_missing"],
+  };
 
   return [
     section({
@@ -3577,6 +3597,106 @@ function buildSections(
         learning_source_batch_fingerprint:
           input.outcome_evaluation?.learning_insights_source_batch_fingerprint ??
           null,
+      },
+    }),
+    section({
+      section_id: "candidate_decision_record",
+      title: "Candidate decision record",
+      severity:
+        candidateDecisionRecord.status === "incomplete"
+          ? "critical"
+          : candidateDecisionRecord.status === "unavailable"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Coverage", candidateDecisionRecord.status),
+        lineValue(
+          "Candidates",
+          `${candidateDecisionRecord.candidate_count} total / ${candidateDecisionRecord.observed_candidate_count} observed / ${candidateDecisionRecord.ranked_candidate_count} ranked`,
+        ),
+        lineValue(
+          "Data health",
+          `${candidateDecisionRecord.data_health.fresh_candidate_count} fresh / ${candidateDecisionRecord.data_health.stale_candidate_count} stale / ${candidateDecisionRecord.data_health.gap_candidate_count} gap / ${candidateDecisionRecord.data_health.unknown_freshness_candidate_count} unknown`,
+        ),
+        lineValue(
+          "Strongest unpublished",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker} #${candidate.rank ?? "?"} / score ${candidate.score ?? "?"} / ${words(candidate.disposition)}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "all ranked candidates published"
+              : "none ranked",
+        ),
+        lineValue(
+          "Why not trade-ready",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker}: ${candidate.reason_codes.join(", ") || "no candidate-specific reason recorded"}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "not applicable: all ranked candidates were published"
+              : "none ranked",
+        ),
+        lineValue(
+          "Decision",
+          candidateDecisionRecord.final_disposition
+            ? words(candidateDecisionRecord.final_disposition)
+            : "no persisted record yet",
+        ),
+        lineValue(
+          "No-trade reason",
+          candidateDecisionRecord.no_trade_reason ?? "not applicable",
+        ),
+        lineValue(
+          "Record notes",
+          candidateDecisionRecord.reason_codes.join(", ") || "none",
+        ),
+      ],
+      metrics: {
+        status: candidateDecisionRecord.status,
+        decision_timestamp: candidateDecisionRecord.decision_timestamp,
+        final_disposition: candidateDecisionRecord.final_disposition,
+        candidate_count: candidateDecisionRecord.candidate_count,
+        observed_candidate_count: candidateDecisionRecord.observed_candidate_count,
+        ranked_candidate_count: candidateDecisionRecord.ranked_candidate_count,
+        data_health_fresh_candidate_count:
+          candidateDecisionRecord.data_health.fresh_candidate_count,
+        data_health_stale_candidate_count:
+          candidateDecisionRecord.data_health.stale_candidate_count,
+        data_health_gap_candidate_count:
+          candidateDecisionRecord.data_health.gap_candidate_count,
+        data_health_unknown_freshness_candidate_count:
+          candidateDecisionRecord.data_health.unknown_freshness_candidate_count,
+        strongest_unpublished_tickers:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.ticker)
+            .join(", "),
+        strongest_unpublished_ranks:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.rank ?? "?")
+            .join(", "),
+        strongest_unpublished_scores:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.score ?? "?")
+            .join(", "),
+        strongest_unpublished_dispositions:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.disposition)
+            .join(", "),
+        strongest_unpublished_reason_codes:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.reason_codes.join(", "))
+            .join("; "),
+        no_trade_reason: candidateDecisionRecord.no_trade_reason,
+        published_tickers: candidateDecisionRecord.published_tickers.join(", "),
+        record_reason_codes: candidateDecisionRecord.reason_codes.join(", "),
       },
     }),
     section({

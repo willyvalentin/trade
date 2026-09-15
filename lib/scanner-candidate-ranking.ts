@@ -195,7 +195,10 @@ export function buildScannerCandidateRankingSummary({
       ]),
     ),
     warnings,
-    results: results.slice(0, Math.max(20, targetMax)),
+    // Decision records must retain the full ranking. Consumers that need a
+    // compact display choose their own presentation limit; truncating here
+    // would erase the evidence needed to explain a no-trade decision.
+    results,
     selection,
   };
 }

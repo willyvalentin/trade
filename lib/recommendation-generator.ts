@@ -50,6 +50,11 @@ import {
   type ScannerCandidateRankingResult,
 } from "@/lib/scanner-candidate-ranking";
 import {
+  buildCandidateDecisionCapture,
+  type CandidateDecisionCapture,
+  type CandidateDecisionReasonCode,
+} from "@/lib/candidate-decision-record";
+import {
   buildOpenAiRecommendationRealityGuardSummary,
   finalizeOpenAiRecommendationRealityGuardSummary,
   type OpenAiRecommendationRealityCandidate,
@@ -280,6 +285,7 @@ export type RecommendationScanLogDetails = {
   power_hour_trial_enabled?: boolean | null;
   power_hour_publish_allowed?: boolean | null;
   power_hour_publish_block_reason?: string | null;
+  candidate_decision_capture?: CandidateDecisionCapture | null;
 };
 
 function publishVersionDetails() {
@@ -367,6 +373,7 @@ type ScoredCandidate = MockCandidate & {
 const dayTradeHorizon = "day_trade";
 const dayTradeTimeframe = "Intraday / day trade";
 const DEFAULT_DAY_TRADE_SCORE_THRESHOLD = 70;
+export const DAY_TRADE_SCORING_VERSION = "day_trade_score_v1" as const;
 const MANUAL_DAY_TRADE_SCORE_THRESHOLD = 62;
 const LEARNING_RECOMMENDATION_SCORE_THRESHOLD = 60;
 const MAX_CURRENT_RECOMMENDATIONS = 3;
@@ -3591,6 +3598,58 @@ export async function generateRecommendations({
       },
     );
     throwIfAborted(signal);
+    const candidateDecisionCaptureTimestamp = new Date().toISOString();
+    const candidateEligibilityRejectionCodes = new Map<
+      string,
+      Set<CandidateDecisionReasonCode>
+    >();
+    const recordCandidateEligibilityRejection = (
+      ticker: string,
+      reason: CandidateDecisionReasonCode,
+    ) => {
+      const normalizedTicker = normalizeTicker(ticker);
+      const reasons = candidateEligibilityRejectionCodes.get(normalizedTicker) ??
+        new Set<CandidateDecisionReasonCode>();
+      reasons.add(reason);
+      candidateEligibilityRejectionCodes.set(normalizedTicker, reasons);
+    };
+    const candidateDecisionCapture = ({
+      ranking = null,
+      eligibleCandidateTickers = [],
+      publishableThreshold = null,
+      noPublishReason = null,
+      recommendationBuildPath = null,
+      builtTickers = [],
+      publishedTickers = [],
+      selectedBuildDiagnostics = [],
+    }: {
+      ranking?: ScannerCandidateRankingSummary | null;
+      eligibleCandidateTickers?: string[];
+      publishableThreshold?: number | null;
+      noPublishReason?: string | null;
+      recommendationBuildPath?: string | null;
+      builtTickers?: string[];
+      publishedTickers?: string[];
+      selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[];
+    } = {}) =>
+      buildCandidateDecisionCapture({
+        captureTimestamp: candidateDecisionCaptureTimestamp,
+        universe: scannerBaseCandidates,
+        observedCandidates: scannerCandidates,
+        ranking,
+        eligibleCandidateTickers,
+        eligibilityRejectionCodes: Object.fromEntries(
+          Array.from(candidateEligibilityRejectionCodes.entries()).map(
+            ([ticker, reasons]) => [ticker, Array.from(reasons)],
+          ),
+        ),
+        publishableThreshold,
+        noPublishReason,
+        recommendationBuildPath,
+        builtTickers,
+        publishedTickers,
+        selectedBuildDiagnostics,
+      });
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
@@ -3629,6 +3688,10 @@ export async function generateRecommendations({
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
             dynamic_movers_discovery: dynamicMoversDiscovery,
+            candidate_decision_capture: candidateDecisionCapture({
+              noPublishReason: "no_raw_candidates",
+              recommendationBuildPath: "no_publish",
+            }),
           } satisfies RecommendationScanLogDetails,
         };
       }
@@ -3683,6 +3746,10 @@ export async function generateRecommendations({
       const maxTickerRecommendationsToday = growMaxLearningMode ? 3 : 2;
 
       if (counts.totalToday >= maxTickerRecommendationsToday) {
+        recordCandidateEligibilityRejection(
+          candidate.ticker,
+          "daily_candidate_limit",
+        );
         removedReasons.push(
           `${candidate.ticker}: recommended ${counts.totalToday} times today`,
         );
@@ -3690,6 +3757,10 @@ export async function generateRecommendations({
       }
 
       if (!allowSameSessionRepeat && counts.sameSessionToday >= 1) {
+        recordCandidateEligibilityRejection(
+          candidate.ticker,
+          "session_candidate_limit",
+        );
         removedReasons.push(
           `${candidate.ticker}: already recommended in ${sessionType} today`,
         );
@@ -3729,6 +3800,10 @@ export async function generateRecommendations({
     const freshCandidates = scannerCandidates
       .filter((candidate) => {
         if (openPositionTickerSet.has(candidate.ticker)) {
+          recordCandidateEligibilityRejection(
+            candidate.ticker,
+            "cooldown_active_position",
+          );
           freshCandidatesRemovedByCooldown.push(
             `${candidate.ticker}: Active position already exists for ticker. Skipping.`,
           );
@@ -3739,6 +3814,10 @@ export async function generateRecommendations({
           !growMaxLearningMode &&
           currentRecommendationTickerSet.has(candidate.ticker)
         ) {
+          recordCandidateEligibilityRejection(
+            candidate.ticker,
+            "current_recommendation_exists",
+          );
           freshCandidatesRemovedByCooldown.push(
             `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
           );
@@ -3759,6 +3838,10 @@ export async function generateRecommendations({
       ? scannerCandidates
           .filter((candidate) => {
             if (openPositionTickerSet.has(candidate.ticker)) {
+              recordCandidateEligibilityRejection(
+                candidate.ticker,
+                "cooldown_active_position",
+              );
               fallbackCandidatesRemovedByCooldown.push(
                 `${candidate.ticker}: Active position already exists for ticker. Skipping.`,
               );
@@ -3769,6 +3852,10 @@ export async function generateRecommendations({
               !growMaxLearningMode &&
               currentRecommendationTickerSet.has(candidate.ticker)
             ) {
+              recordCandidateEligibilityRejection(
+                candidate.ticker,
+                "current_recommendation_exists",
+              );
               fallbackCandidatesRemovedByCooldown.push(
                 `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
               );
@@ -3833,6 +3920,10 @@ export async function generateRecommendations({
           real_scanner_candidate_generation:
             initialRealScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          candidate_decision_capture: candidateDecisionCapture({
+            noPublishReason: "candidate_cooldown_filtered_all",
+            recommendationBuildPath: "no_publish",
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4103,6 +4194,17 @@ export async function generateRecommendations({
           reference_refresh: referenceRefreshDiagnostics,
           selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
           selected_to_built_drop_off: selectedToBuiltDropOff,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            noPublishReason:
+              qualifiedCandidates.length === 0
+                ? "no_publishable_ranked_candidates"
+                : "publish_limit_selected_zero_candidates",
+            recommendationBuildPath: "no_publish",
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4412,6 +4514,19 @@ export async function generateRecommendations({
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            noPublishReason: deterministicFallbackUsed
+              ? "deterministic_fallback_validation_failed"
+              : "recommendation_validation_failed",
+            recommendationBuildPath: "no_publish",
+            builtTickers: recommendationsToInsert.map(
+              (recommendation) => recommendation.ticker,
+            ),
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4494,6 +4609,16 @@ export async function generateRecommendations({
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            recommendationBuildPath,
+            builtTickers: recommendationsToInsert.map(
+              (recommendation) => recommendation.ticker,
+            ),
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4599,6 +4724,17 @@ export async function generateRecommendations({
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,
         openai_recommendation_reality_guard: openAiRealityGuardSummary,
+        candidate_decision_capture: candidateDecisionCapture({
+          ranking: scannerCandidateRankingSummary,
+          eligibleCandidateTickers: availableCandidateTickers,
+          publishableThreshold,
+          recommendationBuildPath,
+          builtTickers: recommendationsToInsert.map(
+            (recommendation) => recommendation.ticker,
+          ),
+          publishedTickers: insertedRecommendationTickers,
+          selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+        }),
       } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),
     };
