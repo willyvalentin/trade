@@ -191,6 +191,27 @@ passed locally before merge. No provider request, database migration, broker
 action or staging invocation was made. This is stricter publication behavior,
 not calibration or a measured quality improvement against a baseline.
 
+**Current local IF-3 sector-relative-strength admission:** a separate,
+provider-free contract now accepts candidate, explicit sector benchmark and
+SPY market-benchmark observations only when they are all complete, sourced by
+one provider, synchronized within 60 seconds, no more than five minutes old,
+from the declared New York market date and taken during a verified regular
+session. The sector identity must be supplied explicitly by a future source;
+the advisory static ticker map is never promoted to live context. Duplicate
+symbol identities, a non-SPY market anchor, stale, future, date-only,
+cross-provider, incomplete or non-finite observations all fail closed. The
+only derived values are stock-versus-sector and sector-versus-market session
+return deltas. They are context-only and cannot change ranking or publication.
+
+**IF-3 sector-relative-strength local evidence:** seven focused admission tests,
+`git diff --check`, targeted ESLint and `npx tsc --noEmit` passed. No provider
+request, persistence, scanner/ranking change, deployment, broker action or
+staging invocation is part of the delivery. Full foundation and production
+build verification passed; the provider-free intelligence foundation regression
+passed 166/166. A later adapter still requires explicit provider budget,
+persisted point-in-time receipt, readback and versioned baseline evaluation
+before it can affect selection quality.
+
 ### Sequencing rule — market-window evidence
 
 Build normal, provider-free IF-2 work off-market on isolated branches. Reserve
@@ -289,23 +310,23 @@ to trade, or MVP-06a acceptance. The ordinary journey remains pending a
 user-genuine manual confirmation if the user chooses to execute independently;
 that confirmation must not be fabricated.
 
-**Low-confidence recommendation safety parity (2026-09-14): local
-main-based correction, not deployed.** Source comparison found that the private
-staging revision displaying NOW had a low-confidence review boundary that was
-absent from the current `origin/main` recommendation-card source. The isolated
-main-based branch now restores that narrow boundary: a fresh or aging
-low-confidence recommendation opens its detail review instead of
+**Merged low-confidence recommendation safety boundary (2026-09-15):** source
+comparison found that the private staging revision displaying NOW had a
+low-confidence review boundary absent from the former `main`
+recommendation-card source. PR #489 restored that narrow boundary and merged as
+`efe043975f4d6c7fab0e0c26a71f248477d6b9d5`; exact-main CI run `34973856353`
+passed and the automatic production deploy `main @efe0439` completed. A fresh
+or aging low-confidence recommendation now opens its detail review instead of
 manual-recording validation; only a deliberate review continuation can open the
 existing manual record flow. Stale or expired recommendations cannot use that
 continuation, and a blocked intraday gate renders `Setup Blocked` disabled. The
-card and details copy now state that the path is a manual record and never
-submits a broker order. After a clean rebase to current `main`, the focused
-low-confidence presentation suite passed 6/6; repository TypeScript, scoped
-ESLint, `git diff --check`, and `npm run build -- --webpack` also passed. No
-provider request, data mutation, broker action or deployment occurred. The
-remaining evidence is the normal PR review/CI and visual verification from the
-resulting preview or deployed revision; this local correction is not evidence
-that recommendation quality has improved.
+card and details copy state that the path is a manual record and never submits a
+broker order. The focused presentation suite passed 6/6; repository TypeScript,
+scoped ESLint, `git diff --check`, and `npm run build -- --webpack` also passed.
+The preview reached the normal password sign-in, but the complete candidate flow
+still lacks an authorized-session visual check. No provider request, data
+mutation or broker action is part of this boundary; it is not evidence that
+recommendation quality improved.
 
 **Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
 one independent, market-window-free vertical slice only while MVP-06a is
