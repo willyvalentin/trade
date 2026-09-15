@@ -126,6 +126,45 @@ test.describe("market-wide symbol master contract", () => {
     ]);
   });
 
+  test("rejects an otherwise eligible ticker when any raw catalog row conflicts", () => {
+    const result = completeCatalog({
+      data: [
+        stock("DUPE"),
+        stock("DUPE", {
+          country: "Canada",
+          currency: "CAD",
+          type: "ETF",
+        }),
+      ],
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "complete",
+      eligible_record_count: 0,
+      rejected_by_reason: {
+        duplicate_symbol: 2,
+        not_us_equity: 1,
+        not_common_stock: 1,
+        not_usd: 1,
+      },
+    });
+    expect(result.rejected_entries).toEqual([
+      expect.objectContaining({
+        source_record_index: 0,
+        reasons: ["duplicate_symbol"],
+      }),
+      expect.objectContaining({
+        source_record_index: 1,
+        reasons: expect.arrayContaining([
+          "duplicate_symbol",
+          "not_us_equity",
+          "not_common_stock",
+          "not_usd",
+        ]),
+      }),
+    ]);
+  });
+
   test("treats missing response data or invalid collection time as invalid", () => {
     const result = buildMarketWideSymbolMaster({
       provider: "twelve_data",

@@ -109,12 +109,24 @@ export function buildMarketWideSymbolMaster(
   const sourceRecords = responseRecords(input.response);
   const records = sourceRecords ?? [];
   const rejections: MarketWideSymbolMasterRejection[] = [];
-  const provisionallyEligible: MarketWideSymbolMasterEntry[] = [];
+  const eligibleEntries: MarketWideSymbolMasterEntry[] = [];
+  const symbolCounts = new Map<string, number>();
+
+  for (const rawRecord of records) {
+    const record = isRecord(rawRecord) ? (rawRecord as SymbolMasterProviderRecord) : {};
+    const symbol = normalizeSymbol(record.symbol);
+
+    if (symbol) symbolCounts.set(symbol, (symbolCounts.get(symbol) ?? 0) + 1);
+  }
 
   for (const [index, rawRecord] of records.entries()) {
     const record = isRecord(rawRecord) ? (rawRecord as SymbolMasterProviderRecord) : {};
     const symbol = normalizeSymbol(record.symbol);
     const reasons = entryRejectionReasons(record, symbol);
+
+    if (symbol && (symbolCounts.get(symbol) ?? 0) > 1) {
+      reasons.push("duplicate_symbol");
+    }
 
     if (reasons.length > 0) {
       rejections.push({
@@ -125,7 +137,7 @@ export function buildMarketWideSymbolMaster(
       continue;
     }
 
-    provisionallyEligible.push({
+    eligibleEntries.push({
       symbol: symbol!,
       name: normalizedText(record.name)!,
       currency: "USD",
@@ -135,27 +147,6 @@ export function buildMarketWideSymbolMaster(
       instrument_type: "Common Stock",
       provider_access: normalizedText(record.access),
       source_record_index: index,
-    });
-  }
-
-  const duplicateSymbols = new Set<string>();
-  const seenSymbols = new Set<string>();
-
-  for (const entry of provisionallyEligible) {
-    if (seenSymbols.has(entry.symbol)) duplicateSymbols.add(entry.symbol);
-    seenSymbols.add(entry.symbol);
-  }
-
-  const eligibleEntries = provisionallyEligible.filter(
-    (entry) => !duplicateSymbols.has(entry.symbol),
-  );
-
-  for (const entry of provisionallyEligible) {
-    if (!duplicateSymbols.has(entry.symbol)) continue;
-    rejections.push({
-      source_record_index: entry.source_record_index,
-      symbol: entry.symbol,
-      reasons: ["duplicate_symbol"],
     });
   }
 
