@@ -154,7 +154,7 @@ selectivity and decision traceability; it does not make a confidence score a
 calibrated probability, change ranking, call a provider or establish a quality
 improvement against a baseline.
 
-**Publication-integrity local evidence:** four focused no-trade policy tests,
+**Publication-integrity local evidence:** five focused no-trade policy tests,
 targeted ESLint, `git diff --check` and the 166-test intelligence-foundation
 suite passed. The production build produced a fresh Next build artifact. No
 provider request, database migration, broker action or staging invocation was

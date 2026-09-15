@@ -4,6 +4,7 @@ import OpenAI from "openai";
 
 import {
   resolveAiRecommendationPublicationAction,
+  resolveSanitizedRecommendationPublicationAction,
   type AiNoTradeDecision,
 } from "@/lib/recommendation-publication-policy";
 
@@ -4420,16 +4421,20 @@ export async function generateRecommendations({
     });
     const recommendationsToInsert = sanitizedRecommendations.recommendations;
 
+    const sanitizedPublicationAction =
+      resolveSanitizedRecommendationPublicationAction({
+        model_recommendation_count: aiResponse.recommendations.length,
+        sanitized_recommendation_count: recommendationsToInsert.length,
+        deterministic_fallback_used: deterministicFallbackUsed,
+      });
     if (
-      recommendationsToInsert.length === 0 &&
-      !deterministicFallbackUsed &&
       !explicitNoTrade &&
-      !modelNoPublish
+      !modelNoPublish &&
+      sanitizedPublicationAction.kind === "preserve_no_publish"
     ) {
       modelNoPublish = {
-        reason: "openai_recommendation_validation_failed",
-        message:
-          "No trade: the model recommendations did not pass deterministic validation.",
+        reason: sanitizedPublicationAction.no_publish_reason,
+        message: sanitizedPublicationAction.message,
       };
       logPipeline("openai_no_publish_reason", modelNoPublish.reason);
       logPipeline(

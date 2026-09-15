@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   resolveAiRecommendationPublicationAction,
+  resolveSanitizedRecommendationPublicationAction,
 } from "@/lib/recommendation-publication-policy";
 
 test.describe("explicit no-trade publication policy", () => {
@@ -62,6 +63,21 @@ test.describe("explicit no-trade publication policy", () => {
       no_publish_reason: "openai_zero_recommendations",
       message:
         "No trade: the model returned no actionable recommendations for this scan.",
+    });
+  });
+
+  test("preserves model output that fails deterministic validation as no-publish", () => {
+    expect(
+      resolveSanitizedRecommendationPublicationAction({
+        model_recommendation_count: 1,
+        sanitized_recommendation_count: 0,
+        deterministic_fallback_used: false,
+      }),
+    ).toEqual({
+      kind: "preserve_no_publish",
+      no_publish_reason: "openai_recommendation_validation_failed",
+      message:
+        "No trade: the model recommendations did not pass deterministic validation.",
     });
   });
 });

@@ -19,6 +19,16 @@ export type AiRecommendationPublicationAction =
       kind: "evaluate_recommendations";
     };
 
+export type SanitizedRecommendationPublicationAction =
+  | {
+      kind: "preserve_no_publish";
+      no_publish_reason: "openai_recommendation_validation_failed";
+      message: string;
+    }
+  | {
+      kind: "continue";
+    };
+
 /**
  * An explicit model `no_trade` is a terminal quality decision. It must not be
  * converted into a recommendation-producing fallback merely to fill a batch.
@@ -50,4 +60,29 @@ export function resolveAiRecommendationPublicationAction(input: {
   }
 
   return { kind: "evaluate_recommendations" };
+}
+
+/**
+ * A model output that fails every deterministic safety check cannot be
+ * replaced by a new recommendation merely to fill the publishing batch.
+ */
+export function resolveSanitizedRecommendationPublicationAction(input: {
+  model_recommendation_count: number;
+  sanitized_recommendation_count: number;
+  deterministic_fallback_used: boolean;
+}): SanitizedRecommendationPublicationAction {
+  if (
+    !input.deterministic_fallback_used &&
+    input.model_recommendation_count > 0 &&
+    input.sanitized_recommendation_count === 0
+  ) {
+    return {
+      kind: "preserve_no_publish",
+      no_publish_reason: "openai_recommendation_validation_failed",
+      message:
+        "No trade: the model recommendations did not pass deterministic validation.",
+    };
+  }
+
+  return { kind: "continue" };
 }
