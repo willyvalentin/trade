@@ -10,42 +10,48 @@ to resume its former queue.
 
 ### Now — IF-1 candidate decision record
 
-**Delivered locally:** revision `6538681d` on the dependent intelligence-first
-branch persists a versioned candidate decision record inside the existing,
-owner-isolated `recommendation_scan_runs.payload_json` path. It records the
-selected scanner universe, observed members, full ranking (not a presentation
-top-K), candidate/scan identities, decision and source timestamps, freshness
-and data gaps, structured eligibility/rejection codes, engine/scoring/ranking/
-build versions, build outcome and explicit `no_trade` disposition. Revision
-`87ad2e94` corrects the browser readback to show coverage, aggregate data
-health and up to three strongest **unpublished** ranked candidates with their
-candidate-specific reasons. A published candidate is never represented as
-needing a trade-readiness explanation. Revision `8a043748` additionally makes
-the browser reject the entire record when any candidate's data-health payload
-cannot be validated, rather than presenting incomplete freshness information as
-complete. The browser accepts only the known record shape and exposes the final
-decision.
+**Merged and production verified:** IF-0 roadmap reconciliation merged as
+PR [#490](https://github.com/willyvalentin/trade/pull/490) at
+`398db704f0ea6a46d0dab02005f6096689e2b8be`. The initial IF-1 decision-record
+delivery merged as PR [#491](https://github.com/willyvalentin/trade/pull/491)
+at `a04f4b116640c3f9c5cbee4da473411247c13f63`. Exact-main CI passed for both.
+Netlify production deploy `6aa8ea15b2999d0009db286c` is `ready` on that IF-1
+revision. The versioned record lives in the existing owner-isolated
+`recommendation_scan_runs.payload_json` path and retains the full scanner
+universe, observed members, complete ranking, candidate/scan identities,
+decision and source timestamps, freshness/data gaps, structured reject reasons,
+versions, build outcome and explicit `no_trade` disposition. Browser readback
+shows coverage, aggregate data health and up to three strongest **unpublished**
+ranked candidates with their candidate-specific reasons. A published candidate
+is never represented as needing a trade-readiness explanation.
 
-**Focused local evidence:** for the current revision, `npx tsc --noEmit`,
-targeted ESLint, `npm run build -- --webpack` and the three focused Playwright
-specs `candidate-decision-record`, `mvp-05-provider-rate-limit-recovery` and
-`scheduled-scanner-universe-rotation` (9/9) passed. The focused contract proves
-that 25 ranked candidates survive a former presentation-sized cutoff, that a
-partially observed scan remains an explainable `no_trade`, that only
-unpublished candidates appear in the trade-readiness readback, and that
-malformed persisted payloads — including an invalid candidate data-health
-payload — fail closed in the browser. `npm run test:intelligence-foundation`
-(166/166) also passed on the current branch after the readback corrections.
+**Current locally tested IF-1 extension:** candidate decision history reads the
+same owner-isolated retained scan runs and compares the newest attributable
+decision to its predecessor. It accepts a record only when the versioned shape,
+scan-run ID, run fingerprint and timestamps all validate; missing, malformed or
+misbound payloads are counted as integrity exclusions and cannot be displayed
+as decision evidence. The UI makes the bounded history, decision mix, data
+health, recurring `no_trade` reasons and latest-versus-previous deltas visible.
+It does not change discovery, ranking, confidence, publication policy, provider
+usage, persistence schema or broker behavior.
 
-**External effects:** none. This delivery made no provider request, database
-migration, deployment, broker action or staging invocation. It is stacked on
-the still-open IF-0/roadmap PR #490; neither change is merged to `main`.
+**Focused local evidence:** `git diff --check`, `npx tsc --noEmit`, targeted
+ESLint, `npm run build -- --webpack`, the focused Playwright specs
+`candidate-decision-record` and `recommendation-build-diagnostics` (26/26), and
+`npm run test:intelligence-foundation` (166/166) passed. The new regression
+proves an identity-mismatched payload is excluded while earlier valid records
+remain ordered and comparable; the diagnostic export carries scalar comparison
+evidence only, never the untrusted payload.
 
-**Remaining acceptance:** after review and merge sequencing, an authorized
-current-market scan must persist and render one attributable record through the
-authenticated application. That is environment verification of the decision
-trace, not proof that the ranking policy is better. The local browser reached
-the application login boundary only; no credentials were used to bypass it.
+**External effects:** the local history extension made no provider request,
+database migration, deployment, broker action or staging invocation.
+
+**Remaining acceptance:** after the current history extension is reviewed and
+merged, an authorized current-market scan must persist and render one
+attributable record through the authenticated application. That is environment
+verification of the decision trace, not proof that the ranking policy is
+better. The local and production browser checks reached the application login
+boundary only; no credentials were used to bypass it.
 
 ### Next — IF-2 market-wide discovery
 

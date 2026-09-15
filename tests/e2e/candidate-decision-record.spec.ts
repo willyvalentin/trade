@@ -5,6 +5,8 @@ import {
   buildCandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
 import {
+  buildCandidateDecisionRecordHistory,
+  candidateDecisionRecordFromScanRun,
   candidateDecisionRecordFromUnknown,
   summarizeCandidateDecisionRecord,
 } from "@/lib/candidate-decision-readback";
@@ -60,16 +62,60 @@ function candidate(index: number): ScannerCandidate & { local_score: number } {
   };
 }
 
-function scanRun(candidateCount: number) {
+function scanRun(candidateCount: number, observedAt = CAPTURED_AT) {
   return buildRecommendationScanRun({
     trading_date: "2026-09-15",
-    observed_at: CAPTURED_AT,
-    completed_at: CAPTURED_AT,
+    observed_at: observedAt,
+    completed_at: observedAt,
     window: "morning",
     source: "supabase",
     scanned_ticker_count: candidateCount,
     raw_candidate_count: candidateCount,
   });
+}
+
+function captureFor({
+  candidates,
+  publishedTickers = [],
+}: {
+  candidates: Array<ScannerCandidate & { local_score: number }>;
+  publishedTickers?: string[];
+}) {
+  const ranking = buildScannerCandidateRankingSummary({
+    candidates,
+    targetMin: 1,
+    targetMax: 1,
+    now: new Date(CAPTURED_AT),
+  });
+
+  return buildCandidateDecisionCapture({
+    captureTimestamp: CAPTURED_AT,
+    universe: candidates,
+    observedCandidates: candidates,
+    ranking,
+    eligibleCandidateTickers: candidates.map((item) => item.ticker),
+    publishableThreshold: 70,
+    publishedTickers,
+    noPublishReason: "no_publishable_ranked_candidates",
+    recommendationBuildPath:
+      publishedTickers.length > 0 ? "published" : "no_publish",
+  });
+}
+
+function persistedScanRun({
+  run,
+  record,
+}: {
+  run: ReturnType<typeof scanRun>;
+  record: NonNullable<ReturnType<typeof buildCandidateDecisionRecord>>;
+}) {
+  return {
+    ...run,
+    payload_json: {
+      ...run.payload_json,
+      candidate_decision_record: record,
+    },
+  };
 }
 
 test.describe("candidate decision record", () => {
@@ -292,5 +338,76 @@ test.describe("candidate decision record", () => {
         },
       }),
     ).toBeNull();
+  });
+
+  test("keeps an attributable decision history ordered and omits identity-mismatched payloads", () => {
+    const olderCandidates = [candidate(1)];
+    const olderRun = scanRun(olderCandidates.length, "2026-09-15T14:00:00.000Z");
+    const olderRecord = buildCandidateDecisionRecord({
+      scanRun: olderRun,
+      capture: captureFor({ candidates: olderCandidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+    const newerCandidates = [candidate(1), candidate(2)];
+    const newerRun = scanRun(newerCandidates.length, CAPTURED_AT);
+    const newerRecord = buildCandidateDecisionRecord({
+      scanRun: newerRun,
+      capture: captureFor({
+        candidates: newerCandidates,
+        publishedTickers: ["T01"],
+      }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+    const mismatchedRun = {
+      ...scanRun(newerCandidates.length, "2026-09-15T14:45:00.000Z"),
+      id: "rec_scan_run_mismatched",
+      run_fingerprint: "rec_scan_fingerprint_mismatched",
+    };
+
+    expect(olderRecord).not.toBeNull();
+    expect(newerRecord).not.toBeNull();
+
+    const olderPersistedRun = persistedScanRun({
+      run: olderRun,
+      record: olderRecord!,
+    });
+    const newerPersistedRun = persistedScanRun({
+      run: newerRun,
+      record: newerRecord!,
+    });
+    const mismatchedPersistedRun = persistedScanRun({
+      run: mismatchedRun,
+      record: newerRecord!,
+    });
+    const history = buildCandidateDecisionRecordHistory({
+      scanRuns: [olderPersistedRun, mismatchedPersistedRun, newerPersistedRun],
+    });
+
+    expect(candidateDecisionRecordFromScanRun(mismatchedPersistedRun)).toBeNull();
+    expect(history).toMatchObject({
+      status: "partial",
+      considered_scan_run_count: 3,
+      valid_record_count: 2,
+      invalid_record_count: 1,
+      decision_mix: {
+        recommendations_published_count: 1,
+        no_trade_count: 1,
+      },
+      comparison_to_previous: {
+        candidate_count_delta: 1,
+        ranked_candidate_count_delta: 1,
+        fresh_candidate_count_delta: 1,
+        final_disposition_changed: true,
+      },
+      recurring_no_trade_reasons: [
+        { reason: "no_publishable_ranked_candidates", count: 1 },
+      ],
+    });
+    expect(history.entries.map((entry) => entry.scan_run_id)).toEqual([
+      newerRun.id,
+      olderRun.id,
+    ]);
   });
 });

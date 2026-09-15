@@ -1124,3 +1124,45 @@ test("post-eligibility diagnostics never leave eligible blocked runs reasonless"
     candle_request_planning_failed: 2,
   });
 });
+
+test("exports candidate decision history comparison without embedding untrusted payloads", () => {
+  const diagnostics = buildMarketDiagnosticsConsoleSummary(
+    baseMarketDiagnosticsInput({
+      candidate_decision_history: {
+        status: "partial",
+        considered_scan_run_count: 3,
+        valid_record_count: 2,
+        invalid_record_count: 1,
+        entries: [],
+        comparison_to_previous: {
+          previous_decision_timestamp: "2026-06-27T11:45:00.000Z",
+          candidate_count_delta: 2,
+          ranked_candidate_count_delta: 1,
+          fresh_candidate_count_delta: 1,
+          final_disposition_changed: true,
+        },
+        decision_mix: {
+          recommendations_published_count: 1,
+          no_trade_count: 1,
+        },
+        recurring_no_trade_reasons: [
+          { reason: "no_publishable_ranked_candidates", count: 1 },
+        ],
+      },
+    }),
+  );
+  const metrics = sectionMetrics(diagnostics, "candidate_decision_history");
+
+  expect(metrics).toMatchObject({
+    status: "partial",
+    considered_scan_run_count: 3,
+    valid_record_count: 2,
+    invalid_record_count: 1,
+    candidate_count_delta: 2,
+    ranked_candidate_count_delta: 1,
+    fresh_candidate_count_delta: 1,
+    final_disposition_changed: true,
+    recurring_no_trade_reasons: "no_publishable_ranked_candidates:1",
+  });
+  expect(JSON.stringify(metrics)).not.toContain("payload_json");
+});
