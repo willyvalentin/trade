@@ -3851,6 +3851,7 @@ export async function POST(request: Request) {
             ? 6
             : undefined,
         source: "scheduled",
+        discoveryInvocationId: scheduledScanAttemptFingerprint,
         allowPowerHourRecommendationLogging:
           scanWindow.scanWindow === "power_hour"
             ? powerHourTrialGate.power_hour_publish_allowed

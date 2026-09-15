@@ -141,6 +141,7 @@ export type GenerateRecommendationsInput = {
   powerHourTrialPublishing?: boolean;
   diagnosticMode?: boolean;
   diagnosticRunId?: string | null;
+  discoveryInvocationId?: string | null;
   diagnosticMaxTickers?: number | null;
   scheduledMaxTickers?: number | null;
   growMaxLearningMode?: boolean;
@@ -3230,6 +3231,7 @@ export async function generateRecommendations({
   powerHourTrialPublishing = false,
   diagnosticMode = false,
   diagnosticRunId = null,
+  discoveryInvocationId = null,
   diagnosticMaxTickers = null,
   scheduledMaxTickers = null,
   growMaxLearningMode = false,
@@ -3583,6 +3585,8 @@ export async function generateRecommendations({
       scanWindow,
       selectedBudget: requestedScanBudget,
       previousAttempt: previousMarketWideDiscoveryAttempt,
+      ownerUserId: owner,
+      executionFingerprint: discoveryInvocationId,
       // Diagnostics must stay provider-free even when the deployment enables
       // a real discovery lane. A simulated run is never market evidence.
       runtimeEnabled:
