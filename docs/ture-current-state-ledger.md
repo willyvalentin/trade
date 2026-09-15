@@ -188,28 +188,48 @@ generator or provider request ran, and no credits were spent. That is a valid
 fail-closed scheduling result, but it is not the IF-2 provider-response,
 freshness or bounded-selection acceptance receipt.
 
-**Active local IF-2 observation continuity:** between official publication
+**Merged IF-2 observation continuity:** between official publication
 windows, a normal scheduled scan can now invoke only the already bounded,
 default-off market-wide discovery intake. The new path has no import or route
 to ranking, recommendation construction, publication or execution. It requires
 the verified open market, an outside-official-window decision and an observable
-intraday window; the existing explicit runtime flag, Pro plan, daily budget,
+intraday window; the existing explicit runtime flag, plan capability, daily budget,
 reservation and backoff gates still decide whether any provider request is
 allowed. Its complete versioned receipt is persisted in the existing scheduled
 attempt ledger and shown by the existing browser readback. This changes no
-score, confidence, selection limit or publication rule. Local evidence:
-`git diff --check`, TypeScript, scoped ESLint, scheduled-runtime build, Next
-webpack build, focused discovery checks (15/15) and the full intelligence
-foundation regression (166/166) pass. It is local only until the associated
-reviewed PR reaches protected `main`; no additional production scan was run.
+score, confidence, selection limit or publication rule. It merged as PR
+[#505](https://github.com/willyvalentin/trade/pull/505) at
+`17065b8c0a56baae29b71d0faafa5d9a84856043`; required PR CI and exact-main
+CI `35015141270` passed, including post-merge candidate-provenance
+attestation. Netlify completed the automatic production deploy for `main@17065b8`
+in 1m 12s. No additional production scan was run.
 
-**Remaining IF-2 acceptance:** deploy the observation-continuity delivery,
-then use a separately authorized normal market-time run only after the actual
-provider entitlement and a deliberately approved credit budget are configured.
-Read back the persisted provider response, admission, freshness and bounded
-selection receipt. That result may still be a blocked admission, provider
-failure or valid `no_trade`; it does not by itself prove market-wide coverage or
-a better ranking policy.
+**Active local IF-2 Basic Free quota containment:** the user confirmed the
+Basic Free account with a daily allowance of 800 credits. Twelve Data's
+current official documentation records an eight-API-credit per-minute Basic
+quota and documents `/market_movers/stocks` as a 100-credit Pro-only endpoint.
+Ture therefore does not relabel Basic Free as Grow or Pro, and does not make a
+known-ineligible 100-credit request. The scheduled normal scanner now enforces
+the Basic Free eight-ticker cap even when a route or environment override asks
+for more; the existing Free-safe profile changed from ten to eight tickers and
+the decision is recorded in route diagnostics. This is quota containment, not
+market-wide discovery, entitlement proof, a provider request, a ranking change
+or a quality improvement.
+
+**IF-2 Basic Free local evidence:** `git diff --check`, TypeScript, scoped
+ESLint, scheduled-runtime build, Next webpack build, the focused Free-cap plus
+discovery Playwright checks (12/12) pass. No provider request, migration,
+deployment, broker action or staging invocation is part of this delivery.
+
+**Remaining IF-2 acceptance:** the original market-movers receipt cannot be
+accepted under Basic Free because its endpoint is Pro-only. The next active
+delivery is a Basic-compatible, default-off discovery route with an explicit
+coverage denominator, per-minute and daily budget admission, durable receipt
+and browser readback. It may use only a documented Basic-available endpoint;
+it must not claim market-wide coverage, change ranking or publish candidates
+until a current-market receipt proves exactly what was observed. A future Pro
+upgrade may re-enable the separate 100-credit market-movers path only after its
+actual provider entitlement is verified.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
