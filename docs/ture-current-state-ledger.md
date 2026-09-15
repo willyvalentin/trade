@@ -125,6 +125,24 @@ and a point-in-time relative-volume provider adapter be considered. They still
 need a coverage denominator, freshness/readback evidence and a bounded rollout;
 neither current contract claims coverage or a quality improvement.
 
+**Current local IF-3a context-admission foundation:** a provider-free intraday
+market-context contract accepts a future SPY, QQQ and IWM snapshot only when
+all three benchmarks are present, come from one provider, are point-in-time
+synchronized within 60 seconds, are individually no more than five minutes
+old, match the declared New York market date and carry verified regular-session
+context. A partial, stale, future, duplicate or cross-provider snapshot is
+explicitly unusable. Its derived regime is context-only and cannot change
+ranking or publication; the existing daily SPY/QQQ regime label is not
+reclassified as live intraday evidence by this delivery.
+
+**IF-3a local evidence:** four focused point-in-time context tests, `git diff
+--check`, targeted ESLint, `npx tsc --noEmit` and `npm run build -- --webpack`
+passed. No provider request, persistence, scanner/ranking change, deployment,
+broker action or staging invocation is part of the delivery. A later adapter
+requires an explicit provider budget, persisted point-in-time receipt and
+readback plus a versioned evaluation before context may affect selection
+quality.
+
 ### Sequencing rule — market-window evidence
 
 Build normal, provider-free IF-2 work off-market on isolated branches. Reserve
