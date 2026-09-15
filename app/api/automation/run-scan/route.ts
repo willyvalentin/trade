@@ -2215,6 +2215,7 @@ async function persistAutomationArtifacts({
       selected_candidate_build_diagnostics:
         learningAccelerationSelectedBuildDiagnostics,
       reference_refresh: scanLog.reference_refresh ?? null,
+      market_wide_discovery: scanLog.market_wide_discovery ?? null,
       empty_scan_reason: emptyScanReason,
       build_rejection_diagnostics: {
         selected_count:

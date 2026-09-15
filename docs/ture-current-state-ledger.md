@@ -8,7 +8,7 @@ product-control source; Notion is not a roadmap, mirror or selection input.
 Every dated snapshot below this section is retained evidence, not an instruction
 to resume its former queue.
 
-### Now — IF-1 candidate decision record
+### Now — IF-2 bounded market-wide discovery foundation
 
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at
@@ -25,7 +25,7 @@ shows coverage, aggregate data health and up to three strongest **unpublished**
 ranked candidates with their candidate-specific reasons. A published candidate
 is never represented as needing a trade-readiness explanation.
 
-**Current locally tested IF-1 extension:** candidate decision history reads the
+**Merged IF-1 decision-history extension:** candidate decision history reads the
 same owner-isolated retained scan runs and compares the newest attributable
 decision to its predecessor. It accepts a record only when the versioned shape,
 scan-run ID, run fingerprint and timestamps all validate; missing, malformed or
@@ -33,7 +33,9 @@ misbound payloads are counted as integrity exclusions and cannot be displayed
 as decision evidence. The UI makes the bounded history, decision mix, data
 health, recurring `no_trade` reasons and latest-versus-previous deltas visible.
 It does not change discovery, ranking, confidence, publication policy, provider
-usage, persistence schema or broker behavior.
+usage, persistence schema or broker behavior. It merged as PR
+[#492](https://github.com/willyvalentin/trade/pull/492) at
+`7f7b5796f462498bf95670ecc81d7456a6c74e48`; the required PR checks were green.
 
 **Focused local evidence:** `git diff --check`, `npx tsc --noEmit`, targeted
 ESLint, `npm run build -- --webpack`, the focused Playwright specs
@@ -46,20 +48,60 @@ evidence only, never the untrusted payload.
 **External effects:** the local history extension made no provider request,
 database migration, deployment, broker action or staging invocation.
 
-**Remaining acceptance:** after the current history extension is reviewed and
-merged, an authorized current-market scan must persist and render one
+**Remaining IF-1 acceptance:** an authorized current-market scan must persist and render one
 attributable record through the authenticated application. That is environment
 verification of the decision trace, not proof that the ranking policy is
 better. The local and production browser checks reached the application login
 boundary only; no credentials were used to bypass it.
 
-### Next — IF-2 market-wide discovery
+**Current locally tested IF-2 foundation:** the normal scan path now has a
+versioned, fail-closed discovery admission for a single bounded Twelve Data
+`gainers` request. It is disabled by default and requires all of: explicit
+runtime enablement, configured `pro` plan mode, and an explicit declared daily
+credit budget of at least 100 credits. A configured plan remains only a local
+configuration fact, not provider-entitlement evidence. IF-2 V1 makes at most
+one 100-credit request per admitted attempt, waits at least 15 minutes after a
+normal attempt and backs off for 30 minutes after a rate limit or provider
+error. Diagnostic/simulated scans cannot request the provider even if runtime
+discovery is enabled. A malformed prior receipt or unavailable receipt read
+fails closed into the same error backoff.
 
-After IF-1 has its accepted current-market decision-trace evidence, build a
-versioned eligible-US-equity symbol master and dynamic discovery intake with
-coverage, entitlement, freshness, cost and backoff evidence. Do not tune the
-publication threshold or promote a policy before the IF-4 baseline can measure
-the resulting decisions.
+The result feeds only the existing bounded scanner selection: a dynamically
+found symbol can enter beyond the static universe, but cannot increase the
+per-run selection budget, lower confidence, change ranking, or loosen a
+publication rule. Every normal scan persists a versioned discovery receipt in
+its existing owner-isolated scan-run payload. The app and diagnostics readback
+show whether no call was deliberate, which admission fact blocked it, whether
+a provider response was observed, request/credit facts, intake counts, retry
+time and the explicit V1 scope gaps. An unfamiliar payload is shown as no
+receipt, never as evidence that discovery ran.
+
+**Local IF-2 evidence:** `git diff --check`, targeted ESLint, `npx tsc
+--noEmit`, `npm run build -- --webpack`, focused decision/discovery Playwright
+tests (36/36), and `npm run test:intelligence-foundation` (166/166) passed.
+The regression suite proves default-off behavior, plan/budget admission,
+bounded backoff, safe browser readback, and a dynamic outside-static symbol
+entering a fixed-size selection without expanding it. No provider request,
+database migration, production deploy, broker action or staging invocation was
+made.
+
+**Remaining IF-2 acceptance:** this is an off-market implementation slice, not
+market-wide coverage or a measured quality improvement. During an active
+market window, first verify the actual provider entitlement and a deliberately
+approved credit budget, then run one normal authenticated non-diagnostic scan.
+Read back the persisted receipt and confirm its response/freshness/selection
+facts. Symbol-master coverage and real relative-volume intake remain separate
+IF-2 work; V1 explicitly reports both as unavailable rather than claiming
+coverage.
+
+### Sequencing rule — market-window evidence
+
+Build normal, provider-free IF-2 work off-market on isolated branches. Reserve
+provider calls, current-market scans, authenticated UI proof and other
+time-sensitive checks for US regular-session windows from 15:30 Stockholm time
+when the market calendar confirms it is open. Do not tune the publication
+threshold or promote a policy before the IF-4 baseline can measure the
+resulting decisions.
 
 ### Planned intelligence sequence
 

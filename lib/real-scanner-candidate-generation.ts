@@ -8,6 +8,7 @@ import {
   type ScannerUniverseCoverageSummary,
   type ScannerUniverseSelection,
 } from "@/lib/scanner-universe";
+import type { DynamicMarketMoversSelection } from "@/lib/dynamic-market-movers";
 
 export type RealScannerCandidateGenerationStatus =
   | "ready"
@@ -149,11 +150,13 @@ export function buildRealScannerBaseCandidateSelection({
   scanWindow = "unknown",
   requestedScanBudget,
   selectionMode = "default",
+  dynamicMovers = null,
   now = new Date(),
 }: {
   scanWindow?: IntradayScanWindow | "unknown";
   requestedScanBudget?: number | null;
   selectionMode?: RealScannerUniverseSelectionMode;
+  dynamicMovers?: DynamicMarketMoversSelection | null;
   now?: Date;
 } = {}) {
   try {
@@ -165,6 +168,7 @@ export function buildRealScannerBaseCandidateSelection({
       scanWindow,
       requestedScanBudget,
       rotationBatch,
+      dynamicMovers,
       now,
     });
     const candidates = scannerUniverseSelectionToBaseCandidates(selection);
