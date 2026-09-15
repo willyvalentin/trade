@@ -37,11 +37,20 @@ that path.
 
 ### Current delivery rule
 
-IF-0 is the current reconciliation slice. IF-1 is the next slice and must
-persist/read back a full candidate decision record before work begins on a new
-provider, broad backfill, score tuning or broker capability. Treat a day with
-no trade-ready candidate as an observation to explain and measure, never a
-reason to weaken the publication gate.
+IF-0 reconciliation and the initial IF-1 decision-record/readback deliveries
+are merged and main-verified. IF-2 bounded market-wide discovery is the active
+slice. Its next acceptance gate is one authorized normal current-market scan
+with a persisted, browser-readable receipt: record provider-response,
+admission, freshness and bounded-selection facts exactly as observed. That
+receipt may be a valid `no_trade`, a blocked admission or a provider failure;
+it is not evidence of market-wide coverage or a better ranking policy by
+itself.
+
+Until that evidence exists, do not expand provider scope, collect a broad
+catalog, attach a relative-volume adapter, tune a score or promote the
+provider-free IF-3 context contracts into ranking. Treat a day with no
+trade-ready candidate as an observation to explain and measure, never a reason
+to weaken the publication gate.
 
 ## Historical delivery policy — MVP first, 2026-09-09 (superseded)
 

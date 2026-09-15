@@ -118,7 +118,7 @@ CI `34970253350` passed, and Netlify showed its completed automatic production
 deployment `main @1221c3b`. This is delivery and traceability evidence, not
 current-market provider entitlement or a measured ranking improvement.
 
-**Current local IF-2b contract foundation:** a provider-free symbol-master
+**Merged IF-2b coverage and volume contracts:** a provider-free symbol-master
 contract accepts only caller-supplied catalog payloads and admits a symbol to a
 future discovery feed only when the full pagination receipt is proven, the row
 is a USD US `Common Stock`, and its exchange/MIC metadata is present. Conflicting
@@ -135,12 +135,15 @@ at most 15 minutes old. It returns explicit stale, incomplete or invalid
 reasons on every failure. It cannot change ranking or publication and is not
 yet connected to the scanner or a provider.
 
-**IF-2b local evidence:** focused symbol-master/relative-volume Playwright
-tests (9/9), `git diff --check`, targeted ESLint, `npx tsc --noEmit` and
-`npm run build -- --webpack` passed on the combined isolated branch. The
-provider-free intelligence foundation regression also passed (166/166). No
-provider request, persistence, production deploy, broker action or staging
-invocation is part of this delivery.
+**IF-2b delivery evidence:** PR [#494](https://github.com/willyvalentin/trade/pull/494)
+merged as `05128de2f62241dc85b20a6314135ae48dcf4a7b`. Its required PR CI and
+exact-main CI `34950726320` passed; Netlify completed the automatic production
+deployment `main @05128de` in 45 seconds. Before merge, focused
+symbol-master/relative-volume Playwright tests (9/9), `git diff --check`,
+targeted ESLint, `npx tsc --noEmit`, `npm run build -- --webpack` and the
+166-test provider-free intelligence foundation regression passed. No provider
+request, persistence, broker action or staging invocation is part of this
+delivery.
 
 **Remaining IF-2 acceptance:** this is an off-market implementation slice, not
 market-wide coverage or a measured quality improvement. During an active
@@ -152,7 +155,7 @@ and a point-in-time relative-volume provider adapter be considered. They still
 need a coverage denominator, freshness/readback evidence and a bounded rollout;
 neither current contract claims coverage or a quality improvement.
 
-**Current local IF-3a context-admission foundation:** a provider-free intraday
+**Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
 all three benchmarks are present, come from one provider, are point-in-time
 synchronized within 60 seconds, are individually no more than five minutes
@@ -162,13 +165,16 @@ explicitly unusable. Its derived regime is context-only and cannot change
 ranking or publication; the existing daily SPY/QQQ regime label is not
 reclassified as live intraday evidence by this delivery.
 
-**IF-3a local evidence:** four focused point-in-time context tests, `git diff
---check`, targeted ESLint, `npx tsc --noEmit` and `npm run build -- --webpack`
-passed. No provider request, persistence, scanner/ranking change, deployment,
-broker action or staging invocation is part of the delivery. A later adapter
-requires an explicit provider budget, persisted point-in-time receipt and
-readback plus a versioned evaluation before context may affect selection
-quality.
+**IF-3a delivery evidence:** PR [#495](https://github.com/willyvalentin/trade/pull/495)
+merged as `c4fc64642a7583218825bb01bf5ed91fb6164be9`; exact-main CI
+`34955783832` passed and Netlify completed the automatic production deployment
+`main @c4fc646` in 46 seconds. Four focused point-in-time context tests, `git
+diff --check`, targeted ESLint, `npx tsc --noEmit` and `npm run build --
+--webpack` passed locally before merge. No provider request, persistence,
+scanner/ranking change, broker action or staging invocation is part of the
+delivery. A later adapter requires an explicit provider budget, persisted
+point-in-time receipt and readback plus a versioned evaluation before context
+may affect selection quality.
 
 **Merged publication-integrity correction:** an explicit OpenAI
 `no_trade`, an empty model result or model output that fails deterministic
@@ -214,7 +220,7 @@ or staging invocation is part of the delivery. A later adapter still requires
 explicit provider budget, persisted point-in-time receipt, readback and
 versioned baseline evaluation before it can affect selection quality.
 
-**Current local IF-3 catalyst-presence admission:** a separate, provider-free
+**Merged IF-3 catalyst-presence admission:** a separate, provider-free
 contract recognizes a catalyst as present only when a complete, attributable
 24-hour candidate-specific search returns exactly one typed event. It recognizes
 absence only when that same complete search explicitly reports zero events.
@@ -226,14 +232,19 @@ unresolved multiple events, stale, future, date-only, mismatched or
 out-of-window evidence fail closed as unavailable. This is context-only and
 cannot change ranking or publication.
 
-**IF-3 catalyst-presence local evidence:** eight focused admission tests cover
-present, explicit absence, exact freshness/lookback limits, missing or partial
-coverage, unresolved multiple events, stale data, future/date-only/mismatched
-inputs and impossible coverage chronology. No provider request, persistence,
-scanner/ranking change, deployment, broker action or staging invocation is part
-of the delivery. A later adapter needs a documented provider entitlement and
-budget, persisted coverage receipt/readback, an event-selection policy and a
-versioned baseline evaluation before catalyst context can affect candidates.
+**IF-3 catalyst-presence delivery evidence:** PR
+[#501](https://github.com/willyvalentin/trade/pull/501) merged as
+`b94f952ec51d112df78b1002e7d5c1dea8cb66c7`. Its full PR CI
+`34979462205` and exact-main CI `34982822716` passed; Netlify completed the
+automatic production deployment `main @b94f952` in 43 seconds. Eight focused
+admission tests cover present, explicit absence, exact freshness/lookback
+limits, missing or partial coverage, unresolved multiple events, stale data,
+future/date-only/mismatched inputs and impossible coverage chronology. No
+provider request, persistence, scanner/ranking change, broker action or
+staging invocation is part of the delivery. A later adapter needs a documented
+provider entitlement and budget, persisted coverage receipt/readback, an
+event-selection policy and a versioned baseline evaluation before catalyst
+context may affect candidates.
 
 ### Sequencing rule — market-window evidence
 
