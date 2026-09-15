@@ -225,4 +225,40 @@ test.describe("scheduled scanner universe rotation", () => {
       last_updated_at: rotationStart.toISOString(),
     });
   });
+
+  test("withholds an entire mover payload when its provider declares failure", () => {
+    for (const status of ["error", "unavailable"] as const) {
+      const selection = buildDynamicMarketMoversSelection({
+        scanWindow: "midday",
+        selectedBudget: scheduledBudget,
+        now: rotationStart,
+        providerResult: {
+          provider: "twelve_data",
+          status,
+          fetched_at: rotationStart.toISOString(),
+          movers: [
+            {
+              ticker: "UNTRUSTED",
+              source: "top_gainer",
+              fetched_at: rotationStart.toISOString(),
+            },
+          ],
+        },
+      });
+
+      expect(selection.summary).toMatchObject({
+        status: "provider_unavailable",
+        fetched_count: 0,
+        selected_count: 0,
+        stale_count: 0,
+        selected_tickers: [],
+        last_updated_at: null,
+      });
+      expect(selection.fetched_movers).toEqual([]);
+      expect(selection.selected_movers).toEqual([]);
+      expect(selection.summary.warnings.map((warning) => warning.warning_id)).toContain(
+        "provider_unavailable",
+      );
+    }
+  });
 });
