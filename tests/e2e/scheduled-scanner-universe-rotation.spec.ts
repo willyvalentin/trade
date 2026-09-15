@@ -128,4 +128,69 @@ test.describe("scheduled scanner universe rotation", () => {
     expect(selection.coverage?.dynamic_mover_selected_count).toBe(1);
     expect(selection.coverage?.scan_budget.effective_tickers).toBe(scheduledBudget);
   });
+
+  test("withholds stale and future mover receipts from the scan universe", () => {
+    const selection = buildDynamicMarketMoversSelection({
+      scanWindow: "midday",
+      selectedBudget: scheduledBudget,
+      now: rotationStart,
+      providerResult: {
+        provider: "twelve_data",
+        status: "available",
+        movers: [
+          {
+            ticker: "FRESH",
+            source: "top_gainer",
+            fetched_at: rotationStart.toISOString(),
+          },
+          {
+            ticker: "FUTURE",
+            source: "top_gainer",
+            fetched_at: new Date(rotationStart.getTime() + 60_000).toISOString(),
+          },
+          {
+            ticker: "STALE",
+            source: "top_gainer",
+            fetched_at: new Date(
+              rotationStart.getTime() - 31 * 60_000,
+            ).toISOString(),
+          },
+        ],
+      },
+    });
+
+    expect(selection.summary).toMatchObject({
+      status: "available",
+      fetched_count: 3,
+      selected_count: 1,
+      stale_count: 2,
+      selected_tickers: ["FRESH"],
+      last_updated_at: rotationStart.toISOString(),
+    });
+
+    const futureOnly = buildDynamicMarketMoversSelection({
+      scanWindow: "midday",
+      selectedBudget: scheduledBudget,
+      now: rotationStart,
+      providerResult: {
+        provider: "twelve_data",
+        status: "available",
+        movers: [
+          {
+            ticker: "FUTURE",
+            source: "top_gainer",
+            fetched_at: new Date(rotationStart.getTime() + 60_000).toISOString(),
+          },
+        ],
+      },
+    });
+
+    expect(futureOnly.summary).toMatchObject({
+      status: "stale",
+      selected_count: 0,
+      stale_count: 1,
+      selected_tickers: [],
+      last_updated_at: null,
+    });
+  });
 });

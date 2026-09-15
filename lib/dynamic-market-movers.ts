@@ -179,6 +179,10 @@ export function buildDynamicMarketMoversSelection(
 
     seen.add(mover.ticker);
 
+    if (mover.stale) {
+      continue;
+    }
+
     if (mover.context_only || !mover.tradable) {
       contextOnlySkippedCount += 1;
       continue;
@@ -381,7 +385,11 @@ function buildSummary({
     budget_limit: budgetLimit,
     source_breakdown: buildSourceBreakdown(selectedMovers),
     selected_tickers: selectedMovers.map((mover) => mover.ticker),
-    last_updated_at: latestIso(fetchedMovers.map((mover) => mover.fetched_at)),
+    last_updated_at: latestIso(
+      fetchedMovers
+        .filter((mover) => !mover.stale)
+        .map((mover) => mover.fetched_at),
+    ),
     warnings,
     gaps,
   };
@@ -446,7 +454,7 @@ function buildWarnings({
       warning(
         "no_movers_selected",
         "info",
-        "Dynamic movers were fetched but none survived dedupe, context, or risk-control filters.",
+        "Dynamic movers were fetched but none survived freshness, dedupe, context, or risk-control filters.",
       ),
     );
   }
@@ -504,7 +512,7 @@ function buildGaps(
   }
 
   if (fetchedMovers.length > 0 && selectedMovers.length === 0) {
-    gaps.push("Dynamic movers were unavailable after dedupe and guardrail filters.");
+    gaps.push("Dynamic movers were unavailable after freshness, dedupe and guardrail filters.");
   }
 
   return gaps;
@@ -616,7 +624,10 @@ function isStale(fetchedAt: string | null, now: Date) {
 
   if (!Number.isFinite(timestamp)) return true;
 
-  return now.getTime() - timestamp > staleAfterMinutes * 60 * 1000;
+  return (
+    timestamp > now.getTime() ||
+    now.getTime() - timestamp > staleAfterMinutes * 60 * 1000
+  );
 }
 
 function stableHash(value: string) {
