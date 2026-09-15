@@ -278,12 +278,14 @@ function regimeFrom(
 }
 
 function validDate(value: Date | string | null | undefined) {
-  const date =
-    value instanceof Date
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? new Date(value)
-        : null;
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value : null;
+  }
+
+  const timestamp = typeof value === "string" ? value.trim() : "";
+  if (!isPointInTimeTimestamp(timestamp)) return null;
+
+  const date = new Date(timestamp);
   return date && Number.isFinite(date.getTime()) ? date : null;
 }
 
@@ -299,9 +301,18 @@ function newYorkDate(value: Date) {
 }
 
 function validMarketDate(value: string | null | undefined) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
     ? value
     : null;
+}
+
+function isPointInTimeTimestamp(value: string) {
+  return /^\d{4}-\d{2}-\d{2}T.+(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
 }
 
 function normalizedSymbol(value: string | null | undefined) {

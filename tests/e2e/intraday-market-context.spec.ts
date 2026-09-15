@@ -99,7 +99,7 @@ test.describe("intraday market context", () => {
 
   test("rejects duplicate, mismatched-provider, future and malformed observations", () => {
     const result = context({
-      market_date: "invalid",
+      market_date: "2026-13-40",
       observations: [
         observation("SPY"),
         observation("SPY", { provider: "other_provider" }),
@@ -124,6 +124,24 @@ test.describe("intraday market context", () => {
         "price_invalid",
         "session_return_invalid",
       ]),
+    });
+  });
+
+  test("rejects a date-only observation because it is not point-in-time evidence", () => {
+    const result = context({
+      observations: [
+        observation("SPY", { observed_at: "2026-09-15" }),
+        observation("QQQ"),
+        observation("IWM"),
+      ],
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "invalid",
+      regime: "unavailable",
+      admissible_for_context: false,
+      reason_codes: expect.arrayContaining(["observation_timestamp_invalid"]),
+      gaps: ["complete_spy_qqq_iwm_snapshot_unavailable"],
     });
   });
 });
