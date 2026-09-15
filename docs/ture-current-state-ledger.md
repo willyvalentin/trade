@@ -91,15 +91,29 @@ entering a fixed-size selection without expanding it. No provider request,
 database migration, production deploy, broker action or staging invocation was
 made.
 
-**Current local IF-2 failure-receipt containment:** a mover payload is now
+**Merged IF-2 failure-receipt containment:** a mover payload is now
 withheld in full when the provider itself declares `error` or `unavailable`.
 Symbols supplied alongside that failure are not counted as fetched, selected,
 fresh or last-updated evidence and cannot enter the bounded scanner universe.
 This is fail-closed input containment only; it does not change a successful
 provider path, ranking, confidence, publication policy, provider budget or
-deployment. Focused regressions cover both provider failure states; the
-provider-free intelligence foundation regression passed 166/166 and a fresh
-local production-build artifact was produced before review.
+deployment. It merged as PR [#498](https://github.com/willyvalentin/trade/pull/498)
+at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI and production
+verification remain separate evidence.
+
+**Current local IF-2 provider-response provenance:** discovery receipts now use
+summary version `market_wide_discovery_summary_v2` to distinguish a provider
+response from an outbound attempt. A connection failure is recorded as an
+attempted `provider_error` with `provider_response_observed: false`; an actual
+provider rate-limit, error response, invalid JSON response or invalid mover
+payload remains an observed response. V1 receipts remain readable only under
+their former semantics, so historic evidence is not silently reinterpreted.
+The diagnostics copy now distinguishes “no provider request attempted” from an
+attempt that received no provider response. This changes decision trace truth,
+not discovery admission, ranking, confidence, publication, provider budget or
+deployment. Focused receipt/classification tests passed locally and a fresh
+local production-build artifact was produced; the provider-free intelligence
+foundation regression passed 166/166 before review.
 
 **Current local IF-2b contract foundation:** a provider-free symbol-master
 contract accepts only caller-supplied catalog payloads and admits a symbol to a

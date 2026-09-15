@@ -1,6 +1,12 @@
 import "server-only";
 
 import { throwIfAborted } from "@/lib/operation-abort";
+import { MarketDataProviderResponseError } from "@/lib/provider-response-observation";
+
+export {
+  MarketDataProviderResponseError,
+  marketDataProviderResponseObserved,
+} from "@/lib/provider-response-observation";
 
 const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
 
@@ -296,7 +302,10 @@ async function fetchTwelveDataDetailed<T>(
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
 
-    throw new Error(`Could not reach market data provider: ${message}`);
+    throw new MarketDataProviderResponseError(
+      `Could not reach market data provider: ${message}`,
+      false,
+    );
   }
 
   let data: unknown;
@@ -304,7 +313,10 @@ async function fetchTwelveDataDetailed<T>(
   try {
     data = await response.json();
   } catch {
-    throw new Error("Market data provider returned a response that was not valid JSON.");
+    throw new MarketDataProviderResponseError(
+      "Market data provider returned a response that was not valid JSON.",
+      true,
+    );
   }
 
   throwIfAborted(options?.signal);
@@ -312,8 +324,9 @@ async function fetchTwelveDataDetailed<T>(
   const providerError = getTwelveDataError(data);
 
   if (!response.ok || providerError) {
-    throw new Error(
+    throw new MarketDataProviderResponseError(
       `Market data request failed: ${providerError || response.statusText}`,
+      true,
     );
   }
 
@@ -511,7 +524,10 @@ export async function getTwelveDataMarketMovers(
   );
 
   if (!Array.isArray(data.values)) {
-    throw new Error("Market movers provider returned invalid mover data.");
+    throw new MarketDataProviderResponseError(
+      "Market movers provider returned invalid mover data.",
+      true,
+    );
   }
 
   const fetchedAt = new Date().toISOString();

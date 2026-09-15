@@ -1,6 +1,9 @@
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 
-const summaryVersion = "market_wide_discovery_summary_v1";
+const summaryVersions = [
+  "market_wide_discovery_summary_v1",
+  "market_wide_discovery_summary_v2",
+] as const;
 const policyVersion = "us_equity_market_wide_discovery_v1";
 
 type ReceiptStatus =
@@ -162,6 +165,7 @@ export function marketWideDiscoveryReadbackFromUnknown(
   },
 ): MarketWideDiscoveryReadback {
   const summary = objectOrNull(value);
+  const receiptVersion = enumValue(summary?.summary_version, summaryVersions);
   const admission = objectOrNull(summary?.admission);
   const attempt = objectOrNull(summary?.attempt);
   const intake = objectOrNull(summary?.dynamic_intake);
@@ -228,8 +232,8 @@ export function marketWideDiscoveryReadbackFromUnknown(
   const providerResponseObserved = attempt?.provider_response_observed;
 
   if (
-    summary?.summary_version !== summaryVersion ||
-    summary.summary_kind !== "market_wide_discovery" ||
+    receiptVersion === null ||
+    summary?.summary_kind !== "market_wide_discovery" ||
     generatedAt === null ||
     scanWindow === null ||
     admission?.policy_version !== policyVersion ||
@@ -253,7 +257,12 @@ export function marketWideDiscoveryReadbackFromUnknown(
     attemptedAt === undefined ||
     typeof providerResponseObserved !== "boolean" ||
     (providerResponseObserved === false &&
-      (attemptOutcome !== "not_attempted" || attemptedAt !== null)) ||
+      !(
+        (attemptOutcome === "not_attempted" && attemptedAt === null) ||
+        (receiptVersion === "market_wide_discovery_summary_v2" &&
+          attemptOutcome === "provider_error" &&
+          attemptedAt !== null)
+      )) ||
     (providerResponseObserved === true &&
       (attemptOutcome === "not_attempted" || attemptedAt === null)) ||
     intake?.summary_version !== "1.0" ||

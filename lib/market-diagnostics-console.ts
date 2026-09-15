@@ -3849,7 +3849,10 @@ function buildSections(
           "Provider observation",
           marketWideDiscovery.attempt.provider_response_observed === true
             ? `${marketWideDiscovery.attempt.outcome ?? "unknown"} at ${marketWideDiscovery.attempt.attempted_at ?? "unknown time"}`
-            : "no provider response observed",
+            : marketWideDiscovery.attempt.outcome === "provider_error" &&
+                marketWideDiscovery.attempt.attempted_at
+              ? `provider error at ${marketWideDiscovery.attempt.attempted_at}; no provider response observed`
+              : "no provider request attempted",
         ),
         lineValue(
           "Intake",

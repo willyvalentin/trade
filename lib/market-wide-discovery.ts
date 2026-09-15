@@ -18,11 +18,11 @@ import {
 } from "@/lib/market-wide-discovery-policy";
 import { buildProviderPlanProfile, type ProviderPlanProfileEnv } from "@/lib/provider-plan-profile";
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
-import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
+import { classifyMarketDataProviderFailure } from "@/lib/provider-response-observation";
 import { throwIfAborted } from "@/lib/operation-abort";
 
 export const MARKET_WIDE_DISCOVERY_SUMMARY_VERSION =
-  "market_wide_discovery_summary_v1" as const;
+  "market_wide_discovery_summary_v2" as const;
 
 export type MarketWideDiscoverySummary = {
   summary_version: typeof MARKET_WIDE_DISCOVERY_SUMMARY_VERSION;
@@ -167,9 +167,8 @@ export async function discoverMarketWideDiscovery(
     });
   } catch (error) {
     throwIfAborted(input.signal);
-    const outcome: MarketWideDiscoveryAttemptOutcome = isProviderRateLimitLikeError(error)
-      ? "rate_limited"
-      : "provider_error";
+    const providerFailure = classifyMarketDataProviderFailure(error);
+    const outcome: MarketWideDiscoveryAttemptOutcome = providerFailure.outcome;
     const dynamicMovers = buildDynamicMarketMoversSelection({
       scanWindow,
       providerResult: {
@@ -189,7 +188,7 @@ export async function discoverMarketWideDiscovery(
       dynamicMovers,
       attemptedAt,
       outcome,
-      providerResponseObserved: true,
+      providerResponseObserved: providerFailure.provider_response_observed,
       warnings: [outcome],
       gaps: [outcome],
     });
