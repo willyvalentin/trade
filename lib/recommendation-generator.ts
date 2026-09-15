@@ -40,6 +40,14 @@ import {
   type DynamicMoversDiscoverySummary,
 } from "@/lib/dynamic-movers-discovery";
 import {
+  discoverMarketWideDiscovery,
+  type MarketWideDiscoverySummary,
+} from "@/lib/market-wide-discovery";
+import {
+  marketWideDiscoveryPreviousAttemptFromUnknown,
+  type MarketWideDiscoveryPreviousAttempt,
+} from "@/lib/market-wide-discovery-policy";
+import {
   buildRealScannerBaseCandidateSelection,
   buildRealScannerCandidateGenerationSummary,
   type RealScannerCandidateGenerationSummary,
@@ -257,6 +265,7 @@ export type RecommendationScanLogDetails = {
   pre_market_candidates?: PreMarketCandidate[] | null;
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
+  market_wide_discovery?: MarketWideDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   grow_max_learning_mode?: boolean | null;
@@ -3327,6 +3336,7 @@ export async function generateRecommendations({
       todaysRecommendationsResult,
       currentRecommendationsResult,
       openPositionsResult,
+      latestMarketWideDiscoveryResult,
     ] = await Promise.all([
         db
           .from("user_settings")
@@ -3357,6 +3367,13 @@ export async function generateRecommendations({
           .or("archived.eq.false,archived.is.null")
           .gte("created_at", getDefaultRecommendationExpiryCutoff()),
         db.from("positions").select("ticker,status").eq("owner_user_id", owner),
+        db
+          .from("recommendation_scan_runs")
+          .select("observed_at,payload_json")
+          .eq("owner_user_id", owner)
+          .order("observed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
     throwIfAborted(signal);
 
@@ -3407,6 +3424,29 @@ export async function generateRecommendations({
         500,
       );
     }
+
+    const latestMarketWideDiscoveryPayload = (
+      latestMarketWideDiscoveryResult.data as {
+        payload_json?: Record<string, unknown> | null;
+      } | null
+    )?.payload_json?.market_wide_discovery;
+    const parsedPreviousMarketWideDiscoveryAttempt =
+      marketWideDiscoveryPreviousAttemptFromUnknown(
+        latestMarketWideDiscoveryPayload,
+      );
+    const previousMarketWideDiscoveryAttempt: MarketWideDiscoveryPreviousAttempt | null =
+      latestMarketWideDiscoveryResult.error ||
+      (latestMarketWideDiscoveryPayload !== undefined &&
+        latestMarketWideDiscoveryPayload !== null &&
+        !parsedPreviousMarketWideDiscoveryAttempt)
+        ? {
+            // A database read or persisted receipt that cannot be interpreted
+            // is not evidence that a provider retry is safe. Treat both as a
+            // failed attempt and let the bounded error backoff fail closed.
+            attempted_at: new Date().toISOString(),
+            outcome: "provider_error",
+          }
+        : parsedPreviousMarketWideDiscoveryAttempt;
 
     const settingsRow = settingsResult.data as UserSettingsRow | null;
     const baseSettings = normalizeUserSettings(settingsRow);
@@ -3535,14 +3575,28 @@ export async function generateRecommendations({
 
     const useScheduledUniverseRotation =
       source === "scheduled" && !diagnosticMode;
+    const requestedScanBudget = diagnosticMode
+      ? diagnosticMaxTickers
+      : scheduledMaxTickers ?? undefined;
+    const marketWideDiscovery = await discoverMarketWideDiscovery({
+      scanWindow,
+      selectedBudget: requestedScanBudget,
+      previousAttempt: previousMarketWideDiscoveryAttempt,
+      // Diagnostics must stay provider-free even when the deployment enables
+      // a real discovery lane. A simulated run is never market evidence.
+      runtimeEnabled:
+        !diagnosticMode &&
+        process.env.TURE_MARKET_WIDE_DISCOVERY_ENABLED === "true",
+      signal,
+    });
+    throwIfAborted(signal);
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
-      requestedScanBudget: diagnosticMode
-        ? diagnosticMaxTickers
-        : scheduledMaxTickers ?? undefined,
+      requestedScanBudget,
       selectionMode: useScheduledUniverseRotation
         ? "scheduled_rotating"
         : "default",
+      dynamicMovers: marketWideDiscovery.dynamic_movers,
     });
     const scannerBaseCandidates =
       diagnosticMode && typeof diagnosticMaxTickers === "number"
@@ -3670,6 +3724,7 @@ export async function generateRecommendations({
       initialRealScannerCandidateGeneration,
     );
     logPipeline("dynamic_movers_discovery", dynamicMoversDiscovery);
+    logPipeline("market_wide_discovery", marketWideDiscovery.summary);
 
     if (scannerCandidates.length === 0) {
       if (source === "scheduled") {
@@ -3688,6 +3743,7 @@ export async function generateRecommendations({
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
             dynamic_movers_discovery: dynamicMoversDiscovery,
+            market_wide_discovery: marketWideDiscovery.summary,
             candidate_decision_capture: candidateDecisionCapture({
               noPublishReason: "no_raw_candidates",
               recommendationBuildPath: "no_publish",
@@ -3920,6 +3976,7 @@ export async function generateRecommendations({
           real_scanner_candidate_generation:
             initialRealScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           candidate_decision_capture: candidateDecisionCapture({
             noPublishReason: "candidate_cooldown_filtered_all",
             recommendationBuildPath: "no_publish",
@@ -4188,6 +4245,7 @@ export async function generateRecommendations({
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -4510,6 +4568,7 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -4605,6 +4664,7 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
@@ -4720,6 +4780,7 @@ export async function generateRecommendations({
           deterministicFallbackSkippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
         dynamic_movers_discovery: dynamicMoversDiscovery,
+        market_wide_discovery: marketWideDiscovery.summary,
         scanner_candidate_ranking: scannerCandidateRankingSummary,
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,

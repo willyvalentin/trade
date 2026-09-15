@@ -45,6 +45,23 @@ export type MarketQuote = {
   volume: number | null;
 };
 
+export type TwelveDataMarketMoverDirection = "gainers" | "losers";
+
+export type TwelveDataMarketMover = {
+  symbol: string;
+  name: string | null;
+  rank: number;
+  last: number | null;
+  volume: number | null;
+  percent_change: number | null;
+};
+
+export type TwelveDataMarketMoversResult = {
+  direction: TwelveDataMarketMoverDirection;
+  fetched_at: string;
+  movers: TwelveDataMarketMover[];
+};
+
 type TwelveDataErrorResponse = {
   status?: unknown;
   code?: unknown;
@@ -73,6 +90,10 @@ type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
   low?: unknown;
   previous_close?: unknown;
   volume?: unknown;
+};
+
+type TwelveDataMarketMoversResponse = TwelveDataErrorResponse & {
+  values?: unknown;
 };
 
 function getTwelveDataApiKey() {
@@ -472,5 +493,52 @@ export async function getQuote(
     low: numberField(data.low, "low"),
     previous_close: numberField(data.previous_close, "previous close"),
     volume: optionalNumberField(data.volume),
+  };
+}
+
+export async function getTwelveDataMarketMovers(
+  direction: TwelveDataMarketMoverDirection,
+  options?: { signal?: AbortSignal },
+): Promise<TwelveDataMarketMoversResult> {
+  const data = await fetchTwelveData<TwelveDataMarketMoversResponse>(
+    "/market_movers/stocks",
+    {
+      direction,
+      country: "United States",
+      outputsize: 50,
+    },
+    options,
+  );
+
+  if (!Array.isArray(data.values)) {
+    throw new Error("Market movers provider returned invalid mover data.");
+  }
+
+  const fetchedAt = new Date().toISOString();
+
+  return {
+    direction,
+    fetched_at: fetchedAt,
+    movers: data.values.flatMap((value, index) => {
+      if (typeof value !== "object" || value === null) return [];
+      const mover = value as Record<string, unknown>;
+      const symbol = typeof mover.symbol === "string" ? mover.symbol.trim().toUpperCase() : "";
+
+      if (!symbol) return [];
+
+      return [
+        {
+          symbol,
+          name:
+            typeof mover.name === "string" && mover.name.trim().length > 0
+              ? mover.name.trim()
+              : null,
+          rank: index + 1,
+          last: optionalNumberField(mover.last),
+          volume: optionalNumberField(mover.volume),
+          percent_change: optionalNumberField(mover.percent_change),
+        } satisfies TwelveDataMarketMover,
+      ];
+    }),
   };
 }

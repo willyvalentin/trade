@@ -6,6 +6,7 @@ import {
   scannerUniverseTickers,
   scheduledScannerUniverseRotationCadenceMinutes,
 } from "@/lib/scanner-universe";
+import { buildDynamicMarketMoversSelection } from "@/lib/dynamic-market-movers";
 
 const rotationStart = new Date("2026-09-14T13:30:00.000Z");
 const scheduledBudget = 10;
@@ -88,5 +89,43 @@ test.describe("scheduled scanner universe rotation", () => {
     expect(getScheduledScannerUniverseRotationBatch(nextSlot)).toBe(
       getScheduledScannerUniverseRotationBatch(sameSlot) + 1,
     );
+  });
+
+  test("admits a dynamic symbol beyond the static universe without increasing the scan budget", () => {
+    const dynamicMovers = buildDynamicMarketMoversSelection({
+      scanWindow: "midday",
+      selectedBudget: scheduledBudget,
+      providerResult: {
+        provider: "twelve_data",
+        status: "available",
+        fetched_at: rotationStart.toISOString(),
+        movers: [
+          {
+            ticker: "NEWM",
+            company_name: "New Mover, Inc.",
+            source: "top_gainer",
+            source_rank: 1,
+            percent_change: 12.4,
+            volume: 1_200_000,
+            price: 24.5,
+            tradable: true,
+          },
+        ],
+      },
+      now: rotationStart,
+    });
+    const selection = buildRealScannerBaseCandidateSelection({
+      scanWindow: "midday",
+      requestedScanBudget: scheduledBudget,
+      dynamicMovers,
+      now: rotationStart,
+    });
+
+    expect(selection.candidates).toHaveLength(scheduledBudget);
+    expect(selection.candidates.map((candidate) => candidate.ticker)).toContain(
+      "NEWM",
+    );
+    expect(selection.coverage?.dynamic_mover_selected_count).toBe(1);
+    expect(selection.coverage?.scan_budget.effective_tickers).toBe(scheduledBudget);
   });
 });
