@@ -164,7 +164,7 @@ or data integrity, but it is not the primary product investment.
 
 ## Historical roadmap and technical evidence — not the active work queue
 
-## Historical operating dashboard — legacy evidence only
+## Historical operating dashboard — legacy evidence only (formerly “Current operating dashboard”)
 
 This dashboard is the short operational view of the roadmap. The detailed
 Action history, source, exact-main CI and authorized readbacks remain the
