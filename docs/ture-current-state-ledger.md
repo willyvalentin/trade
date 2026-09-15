@@ -54,6 +54,16 @@ verification of the decision trace, not proof that the ranking policy is
 better. The local and production browser checks reached the application login
 boundary only; no credentials were used to bypass it.
 
+**Merged IF-2 scheduled-invocation containment:** Netlify delivered duplicate
+scheduled scan invocations within one 15-minute slot. PR
+[#503](https://github.com/willyvalentin/trade/pull/503) assigns every scheduled
+attempt a deterministic slot fingerprint and atomically claims it in the
+existing `scheduled_scan_attempts` ledger. A duplicate claim exits before the
+internal scan route or provider work; an unavailable claim fails closed. It
+merged at `d902c1657bc3227a3b948686442baee826222dec`; required PR checks and
+exact-main CI run `34995412120` passed. This is cost/reliability containment,
+not discovery coverage, entitlement evidence or a ranking improvement.
+
 **Merged IF-2a, exact-main CI verified:** the normal scan path now has a
 versioned, fail-closed discovery admission for a single bounded Twelve Data
 `gainers` request. It is disabled by default and requires all of: explicit
@@ -154,6 +164,22 @@ facts. Only after that receipt may a separately costed symbol-catalog collection
 and a point-in-time relative-volume provider adapter be considered. They still
 need a coverage denominator, freshness/readback evidence and a bounded rollout;
 neither current contract claims coverage or a quality improvement.
+
+**Active local IF-2 daily-credit reservation:** commit
+`3315ad47` adds a default-off, owner-and-New-York-day reservation before an
+admitted dynamic mover request can reach Twelve Data. The reservation performs
+an exact idempotent claim, a one-winner attempt transition and a terminal
+finalization; failed, timed-out or unfinalized attempts remain charged. The
+first admitted day budget is fixed for that day, so an environment change
+cannot silently increase spend. Summary version `market_wide_discovery_summary_v3`
+exposes only safe reservation facts in the existing browser receipt. Local
+evidence: `git diff --check`, TypeScript, scoped ESLint, a Next webpack build,
+15 focused Playwright checks and a disposable PostgreSQL 16 migration test
+proved claim → attempt → failed finalization → daily-cap block plus
+`anon=false` / `service_role=true` access control. It has made no provider
+call, remote migration, deployment or broker action. It is local only until a
+reviewed PR, protected main verification and separately authorized migration;
+it does not itself admit a current-market provider scan.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
