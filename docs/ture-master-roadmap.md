@@ -152,6 +152,20 @@ setup quality, entry geometry, catalyst context and data quality. A score is an
 internal ranking measure; confidence becomes a probability claim only after
 calibration evidence exists.
 
+**IF-3a — point-in-time market-context admission.** Before a regime can affect
+selection quality, require one synchronized SPY/QQQ/IWM snapshot from a single
+provider, verified regular-session and New York-date context, individual
+freshness and explicit observation-time skew. A partial, stale, future,
+duplicate or cross-provider snapshot must be unavailable rather than inferred
+from a daily label or neutral fallback. This admission layer is context-only;
+it does not fetch, persist or change ranking, confidence or publication.
+
+**IF-3a acceptance evidence.** Local tests must prove each freshness, session,
+timestamp, provider and benchmark-completeness boundary fails closed. A later
+provider adapter must carry an explicit budget, persisted point-in-time receipt,
+readback, a versioned ranking-policy change and comparable baseline evaluation
+before its regime can affect candidates.
+
 #### IF-4 — measured learning dataset
 
 Evaluate visible recommendations, research candidates, rejected candidates and
