@@ -54,7 +54,7 @@ verification of the decision trace, not proof that the ranking policy is
 better. The local and production browser checks reached the application login
 boundary only; no credentials were used to bypass it.
 
-**Current locally tested IF-2 foundation:** the normal scan path now has a
+**Merged IF-2a, exact-main CI verified:** the normal scan path now has a
 versioned, fail-closed discovery admission for a single bounded Twelve Data
 `gainers` request. It is disabled by default and requires all of: explicit
 runtime enablement, configured `pro` plan mode, and an explicit declared daily
@@ -76,7 +76,13 @@ a provider response was observed, request/credit facts, intake counts, retry
 time and the explicit V1 scope gaps. An unfamiliar payload is shown as no
 receipt, never as evidence that discovery ran.
 
-**Local IF-2 evidence:** `git diff --check`, targeted ESLint, `npx tsc
+It merged as PR [#493](https://github.com/willyvalentin/trade/pull/493) at
+`4ac457d88f361c5d9f03fe15a8b6abdf0d9a9152`. Required PR CI, merge-candidate
+provenance and exact-main CI all passed. Netlify's project API still reports
+the older production revision `dbeed25f…`, so production behavior for this
+revision is explicitly **not yet verified**.
+
+**IF-2a local evidence:** `git diff --check`, targeted ESLint, `npx tsc
 --noEmit`, `npm run build -- --webpack`, focused decision/discovery Playwright
 tests (36/36), and `npm run test:intelligence-foundation` (166/166) passed.
 The regression suite proves default-off behavior, plan/budget admission,
@@ -85,14 +91,39 @@ entering a fixed-size selection without expanding it. No provider request,
 database migration, production deploy, broker action or staging invocation was
 made.
 
+**Current local IF-2b contract foundation:** a provider-free symbol-master
+contract accepts only caller-supplied catalog payloads and admits a symbol to a
+future discovery feed only when the full pagination receipt is proven, the row
+is a USD US `Common Stock`, and its exchange/MIC metadata is present. Conflicting
+raw rows for the same ticker are excluded entirely with a structured
+`duplicate_symbol` reason. A configured `access` field is retained as source
+metadata, never treated as observed entitlement. No symbol catalog is fetched,
+persisted or connected to scanner selection yet.
+
+The adjacent relative-volume contract accepts a future discovery signal only
+when its regular session is calendar-verified, its New York market date and
+elapsed-session minute match the point-in-time baseline, the baseline has at
+least 20 sessions, the baseline predates the observation and the observation is
+at most 15 minutes old. It returns explicit stale, incomplete or invalid
+reasons on every failure. It cannot change ranking or publication and is not
+yet connected to the scanner or a provider.
+
+**IF-2b local evidence:** focused symbol-master/relative-volume Playwright
+tests (9/9), `git diff --check`, targeted ESLint, `npx tsc --noEmit` and
+`npm run build -- --webpack` passed on the combined isolated branch. The
+provider-free intelligence foundation regression also passed (166/166). No
+provider request, persistence, production deploy, broker action or staging
+invocation is part of this delivery.
+
 **Remaining IF-2 acceptance:** this is an off-market implementation slice, not
 market-wide coverage or a measured quality improvement. During an active
 market window, first verify the actual provider entitlement and a deliberately
 approved credit budget, then run one normal authenticated non-diagnostic scan.
 Read back the persisted receipt and confirm its response/freshness/selection
-facts. Symbol-master coverage and real relative-volume intake remain separate
-IF-2 work; V1 explicitly reports both as unavailable rather than claiming
-coverage.
+facts. Only after that receipt may a separately costed symbol-catalog collection
+and a point-in-time relative-volume provider adapter be considered. They still
+need a coverage denominator, freshness/readback evidence and a bounded rollout;
+neither current contract claims coverage or a quality improvement.
 
 ### Sequencing rule — market-window evidence
 

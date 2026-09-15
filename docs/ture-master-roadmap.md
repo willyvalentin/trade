@@ -125,6 +125,24 @@ in the relevant environment, followed by persisted receipt readback. Only then
 may IF-2 proceed to a real symbol master, explicit coverage denominator and
 relative-volume provider contract.
 
+**IF-2b — provider-free coverage and volume contracts.** Before any further
+provider request, make the future data boundaries explicit and fail closed in
+code. The symbol-master contract must preserve provider row lineage and access
+metadata, require complete pagination proof, and accept only the declared US
+common-stock scope with unambiguous ticker/exchange identity. The
+relative-volume contract must require a verified regular session, matching New
+York market date and elapsed-session minute, an adequate historical baseline,
+point-in-time ordering and an explicit freshness limit. These contracts may
+classify caller-supplied payloads but do not fetch, persist, alter scanner
+selection, ranking, confidence or publication.
+
+**IF-2b acceptance evidence.** Local tests must prove a partial catalog cannot
+expand discovery, conflicting tickers are excluded, and stale, unverified,
+misaligned or look-ahead volume data is not admissible. The later provider
+adapter needs its own documented entitlement, credit/frequency budget,
+coverage denominator, persisted receipt and current-market readback before it
+can supply discovery.
+
 #### IF-3 — contextual quality engine
 
 Promote the existing shadow ideas only after their inputs are live and
