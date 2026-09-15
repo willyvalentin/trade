@@ -37495,9 +37495,9 @@ function BasicFreeDiscoveryReceiptPanel({
                   {receipt.catalog_collection_plan.minimum_trading_days_from_observed_page} trading day(s).
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  At most {receipt.catalog_collection_plan.credits_available_today} more
-                  credits are available today; the current-day portion would take
-                  at least {" "}
+                  At the observed receipt, {receipt.catalog_collection_plan.credits_available_today} more
+                  credits remained for that trading day; its current-day portion
+                  would take at least {" "}
                   {receipt.catalog_collection_plan.minimum_request_minutes_for_current_day} request minute(s).
                 </p>
               </>
