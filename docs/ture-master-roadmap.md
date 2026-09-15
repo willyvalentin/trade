@@ -108,6 +108,23 @@ freshness contract, retry/backoff policy and coverage metric. Backfill begins
 with the decisions Ture actually made, then expands only when the capacity data
 supports it.
 
+**IF-2a — bounded mover-intake foundation.** Before expanding provider scope,
+ship a default-off, versioned admission for one explicitly costed mover request.
+It must distinguish configured plan mode from observed provider entitlement,
+require an explicit request budget, prevent diagnostic paths from spending
+credits, apply persisted refresh/error backoff and retain a browser-readable
+receipt. Dynamic intake may fill existing scanner capacity beyond static
+symbols; it may not expand the per-run candidate budget or change ranking,
+confidence or publication policy. This establishes reliable intake behavior;
+it is not evidence of market-wide coverage or better recommendations.
+
+**IF-2a acceptance evidence.** Local proof includes policy, budget, backoff,
+selection-boundary and untrusted-receipt tests. Market-session proof requires a
+normal authenticated scan with provider entitlement and credit budget observed
+in the relevant environment, followed by persisted receipt readback. Only then
+may IF-2 proceed to a real symbol master, explicit coverage denominator and
+relative-volume provider contract.
+
 #### IF-3 — contextual quality engine
 
 Promote the existing shadow ideas only after their inputs are live and

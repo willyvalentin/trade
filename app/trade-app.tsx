@@ -270,6 +270,10 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  marketWideDiscoveryReadbackFromScanRun,
+  type MarketWideDiscoveryReadback,
+} from "@/lib/market-wide-discovery-readback";
+import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
   recommendationBatchFromPersistenceRow,
@@ -11490,6 +11494,17 @@ export function TradeApp({
   const candidateDecisionRecordReadback = summarizeCandidateDecisionRecord(
     latestCandidateDecisionRecord,
   );
+  const latestMarketWideDiscoveryReadback =
+    [...liveStoredRecommendationScanRuns]
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
+      .map(marketWideDiscoveryReadbackFromScanRun)
+      .find((receipt) => receipt.status === "available") ??
+    marketWideDiscoveryReadbackFromScanRun({
+      observed_at: "",
+      trading_date: null,
+      window: "unknown",
+      payload_json: {},
+    });
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -14702,6 +14717,7 @@ export function TradeApp({
       scanner_ranking: scannerCandidateRankingSummary,
       candidate_decision_record: candidateDecisionRecordReadback,
       candidate_decision_history: candidateDecisionRecordHistory,
+      market_wide_discovery: latestMarketWideDiscoveryReadback,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
       historical_candle_storage_detection: historicalCandleStorageDetection,
@@ -16824,6 +16840,10 @@ export function TradeApp({
 
             <CandidateDecisionHistoryPanel
               history={candidateDecisionRecordHistory}
+            />
+
+            <MarketWideDiscoveryReceiptPanel
+              receipt={latestMarketWideDiscoveryReadback}
             />
 
             <ProviderBudgetGuardPanel
@@ -37198,6 +37218,121 @@ function candidateDecisionHistoryDispositionLabel(
   if (disposition === "recommendations_published") return "published";
   if (disposition === "no_trade") return "no trade";
   return "unavailable";
+}
+
+function marketWideDiscoveryReceiptTone(
+  receipt: MarketWideDiscoveryReadback,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (receipt.status === "unavailable") return "neutral";
+  if (
+    receipt.attempt.outcome === "provider_error" ||
+    receipt.attempt.outcome === "rate_limited"
+  ) {
+    return "warning";
+  }
+  if (receipt.attempt.provider_response_observed === true) return "positive";
+  return "warning";
+}
+
+function MarketWideDiscoveryReceiptPanel({
+  receipt,
+}: {
+  receipt: MarketWideDiscoveryReadback;
+}) {
+  const providerObserved = receipt.attempt.provider_response_observed === true;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Discovery trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Market-wide Discovery Receipt
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            This is an auditable intake receipt, not a recommendation. It
+            distinguishes a deliberate no-call from a provider response, and
+            keeps V1 coverage limits visible.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={
+            receipt.status === "unavailable"
+              ? "no receipt"
+              : providerObserved
+                ? receipt.attempt.outcome ?? "observed"
+                : receipt.admission.status ?? "not attempted"
+          }
+          tone={marketWideDiscoveryReceiptTone(receipt)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Admission"
+          value={receipt.admission.status ?? "unavailable"}
+        />
+        <SummaryCard
+          label="Provider Response"
+          value={providerObserved ? "observed" : "not observed"}
+        />
+        <SummaryCard
+          label="Intake"
+          value={`${receipt.intake.fetched_count ?? 0} fetched / ${receipt.intake.selected_count ?? 0} selected`}
+        />
+        <SummaryCard
+          label="Request Budget"
+          value={
+            receipt.admission.requested_credits === null
+              ? "not declared"
+              : `${receipt.admission.requested_credits} credits`
+          }
+        />
+      </div>
+
+      {receipt.status === "unavailable" ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No valid versioned discovery receipt exists in the retained live scan
+          history yet. This is not evidence that discovery ran or that it found
+          no candidate.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              What happened
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {providerObserved
+                ? `${receipt.attempt.outcome ?? "unknown"} provider result${receipt.attempt.attempted_at ? ` at ${formatDate(receipt.attempt.attempted_at)}` : ""}.`
+                : `No provider response was requested. Admission: ${receipt.admission.reason_codes.join(", ") || "not recorded"}.`}
+            </p>
+            {receipt.admission.next_retry_at && (
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                Next permitted retry: {formatDate(receipt.admission.next_retry_at)}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              V1 coverage boundary
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Symbol master: {receipt.admission.symbol_master_status ?? "unknown"}.
+              {" "}Relative volume: {receipt.admission.relative_volume_status ?? "unknown"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              A configured plan is not provider-entitlement evidence; only an
+              observed response establishes that a request was served.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 function CandidateDecisionHistoryPanel({

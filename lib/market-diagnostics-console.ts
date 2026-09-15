@@ -102,6 +102,7 @@ import type {
   CandidateDecisionRecordHistory,
   CandidateDecisionRecordReadback,
 } from "@/lib/candidate-decision-readback";
+import type { MarketWideDiscoveryReadback } from "@/lib/market-wide-discovery-readback";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -186,6 +187,7 @@ export type MarketDiagnosticsConsoleInput = {
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   candidate_decision_record?: CandidateDecisionRecordReadback | null;
   candidate_decision_history?: CandidateDecisionRecordHistory | null;
+  market_wide_discovery?: MarketWideDiscoveryReadback | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
@@ -3575,6 +3577,42 @@ function buildSections(
     },
     recurring_no_trade_reasons: [],
   };
+  const marketWideDiscovery = input.market_wide_discovery ?? {
+    status: "unavailable" as const,
+    generated_at: null,
+    scan_window: null,
+    source_scan: {
+      observed_at: null,
+      trading_date: null,
+      window: null,
+    },
+    admission: {
+      status: null,
+      runtime_enabled: null,
+      plan_eligibility: null,
+      requests_planned: null,
+      requested_credits: null,
+      declared_daily_credit_budget: null,
+      next_retry_at: null,
+      reason_codes: ["market_wide_discovery_receipt_missing_or_invalid"],
+      symbol_master_status: null,
+      relative_volume_status: null,
+    },
+    attempt: {
+      attempted_at: null,
+      outcome: null,
+      provider_response_observed: null,
+    },
+    intake: {
+      status: null,
+      fetched_count: null,
+      selected_count: null,
+      budget_limit: null,
+      selected_tickers: [],
+    },
+    warnings: [],
+    gaps: [],
+  };
 
   return [
     section({
@@ -3787,6 +3825,81 @@ function buildSections(
           candidateDecisionHistory.recurring_no_trade_reasons
             .map((item) => `${item.reason}:${item.count}`)
             .join(", "),
+      },
+    }),
+    section({
+      section_id: "market_wide_discovery",
+      title: "Market-wide discovery receipt",
+      severity:
+        marketWideDiscovery.status === "unavailable"
+          ? "warning"
+          : marketWideDiscovery.attempt.outcome === "provider_error" ||
+              marketWideDiscovery.attempt.outcome === "rate_limited"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Receipt", marketWideDiscovery.status),
+        lineValue(
+          "Admission",
+          marketWideDiscovery.status === "available"
+            ? `${marketWideDiscovery.admission.status ?? "unknown"} / runtime ${marketWideDiscovery.admission.runtime_enabled === null ? "unknown" : statusMark(marketWideDiscovery.admission.runtime_enabled)} / plan ${marketWideDiscovery.admission.plan_eligibility ?? "unknown"}`
+            : "no versioned receipt from a retained scan run",
+        ),
+        lineValue(
+          "Provider observation",
+          marketWideDiscovery.attempt.provider_response_observed === true
+            ? `${marketWideDiscovery.attempt.outcome ?? "unknown"} at ${marketWideDiscovery.attempt.attempted_at ?? "unknown time"}`
+            : "no provider response observed",
+        ),
+        lineValue(
+          "Intake",
+          marketWideDiscovery.status === "available"
+            ? `${marketWideDiscovery.intake.fetched_count ?? 0} fetched / ${marketWideDiscovery.intake.selected_count ?? 0} selected / budget ${marketWideDiscovery.intake.budget_limit ?? 0}`
+            : "not available",
+        ),
+        lineValue(
+          "Scope gaps",
+          `symbol master ${marketWideDiscovery.admission.symbol_master_status ?? "unknown"}; relative volume ${marketWideDiscovery.admission.relative_volume_status ?? "unknown"}`,
+        ),
+        lineValue(
+          "Reason codes",
+          marketWideDiscovery.admission.reason_codes.join(", ") || "none",
+        ),
+        lineValue(
+          "Receipt gaps",
+          marketWideDiscovery.gaps.join(", ") || "none",
+        ),
+      ],
+      metrics: {
+        receipt_status: marketWideDiscovery.status,
+        generated_at: marketWideDiscovery.generated_at,
+        source_scan_observed_at: marketWideDiscovery.source_scan.observed_at,
+        source_scan_trading_date: marketWideDiscovery.source_scan.trading_date,
+        source_scan_window: marketWideDiscovery.source_scan.window,
+        admission_status: marketWideDiscovery.admission.status,
+        runtime_enabled: marketWideDiscovery.admission.runtime_enabled,
+        plan_eligibility: marketWideDiscovery.admission.plan_eligibility,
+        requests_planned: marketWideDiscovery.admission.requests_planned,
+        requested_credits: marketWideDiscovery.admission.requested_credits,
+        declared_daily_credit_budget:
+          marketWideDiscovery.admission.declared_daily_credit_budget,
+        next_retry_at: marketWideDiscovery.admission.next_retry_at,
+        admission_reason_codes:
+          marketWideDiscovery.admission.reason_codes.join(", "),
+        provider_response_observed:
+          marketWideDiscovery.attempt.provider_response_observed,
+        attempt_outcome: marketWideDiscovery.attempt.outcome,
+        attempted_at: marketWideDiscovery.attempt.attempted_at,
+        intake_status: marketWideDiscovery.intake.status,
+        intake_fetched_count: marketWideDiscovery.intake.fetched_count,
+        intake_selected_count: marketWideDiscovery.intake.selected_count,
+        intake_budget_limit: marketWideDiscovery.intake.budget_limit,
+        intake_selected_tickers:
+          marketWideDiscovery.intake.selected_tickers.join(", "),
+        symbol_master_status: marketWideDiscovery.admission.symbol_master_status,
+        relative_volume_status:
+          marketWideDiscovery.admission.relative_volume_status,
+        gaps: marketWideDiscovery.gaps.join(", "),
       },
     }),
     section({

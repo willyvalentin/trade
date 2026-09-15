@@ -6,6 +6,8 @@ import {
   MARKET_WIDE_DISCOVERY_ERROR_BACKOFF_MINUTES,
   TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST,
 } from "@/lib/market-wide-discovery-policy";
+import { buildDynamicMarketMoversSelection } from "@/lib/dynamic-market-movers";
+import { marketWideDiscoveryReadbackFromUnknown } from "@/lib/market-wide-discovery-readback";
 
 const now = new Date("2026-09-15T15:30:00.000Z");
 
@@ -96,5 +98,70 @@ test.describe("market-wide discovery admission", () => {
         },
       }),
     ).toBeNull();
+  });
+
+  test("only presents a complete, versioned discovery receipt to the browser", () => {
+    const admission = buildMarketWideDiscoveryAdmission({
+      runtimeEnabled: true,
+      planMode: "pro",
+      dailyCreditBudget: TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST,
+      now,
+    });
+    const dynamicIntake = buildDynamicMarketMoversSelection({
+      scanWindow: "opening",
+      selectedBudget: 10,
+      now,
+      providerResult: {
+        provider: "twelve_data",
+        status: "available",
+        fetched_at: now,
+        movers: [{ ticker: "NEWM", source: "top_gainer" }],
+      },
+    }).summary;
+    const summary = {
+      summary_version: "market_wide_discovery_summary_v1",
+      summary_kind: "market_wide_discovery",
+      generated_at: now.toISOString(),
+      scan_window: "opening",
+      admission,
+      attempt: {
+        attempted_at: now.toISOString(),
+        outcome: "available",
+        provider_response_observed: true,
+      },
+      dynamic_intake: dynamicIntake,
+      warnings: [],
+      gaps: [],
+    };
+    const receipt = marketWideDiscoveryReadbackFromUnknown(summary);
+
+    expect(receipt).toMatchObject({
+      status: "available",
+      admission: {
+        status: "ready",
+        requested_credits: TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST,
+      },
+      attempt: {
+        outcome: "available",
+        provider_response_observed: true,
+      },
+      intake: {
+        fetched_count: 1,
+        selected_count: 1,
+        selected_tickers: ["NEWM"],
+      },
+    });
+    expect(
+      marketWideDiscoveryReadbackFromUnknown({
+        ...summary,
+        summary_version: "unversioned",
+      }).status,
+    ).toBe("unavailable");
+    expect(
+      marketWideDiscoveryReadbackFromUnknown({
+        ...summary,
+        scan_window: "future_window",
+      }).status,
+    ).toBe("unavailable");
   });
 });
