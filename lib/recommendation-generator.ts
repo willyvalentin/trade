@@ -3,6 +3,11 @@ import "server-only";
 import OpenAI from "openai";
 
 import {
+  resolveAiRecommendationPublicationAction,
+  type AiNoTradeDecision,
+} from "@/lib/recommendation-publication-policy";
+
+import {
   getMarketRegime,
   neutralMarketRegimeFallback,
   type MarketRegime,
@@ -227,13 +232,6 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   entry_type_warnings?: string[] | null;
 };
 
-type AiNoTradeDecision = {
-  reason: string;
-  confidence_score: number | null;
-  risk_flags: string[];
-  candidate_ticker: string | null;
-};
-
 type AiResponse = {
   result: "trade_recommendation" | "no_trade";
   recommendations: AiRecommendation[];
@@ -259,6 +257,8 @@ export type RecommendationScanLogDetails = {
   indicator_stale?: boolean | null;
   no_trade_reason?: string | null;
   no_trade_risk_flags?: string[] | null;
+  no_trade_candidate_ticker?: string | null;
+  no_trade_confidence_score?: number | null;
   threshold?: number | null;
   candidates_scanned?: number | null;
   skipped_tickers?: number | null;
@@ -4277,6 +4277,7 @@ export async function generateRecommendations({
     let deterministicFallbackReason: string | null = null;
     let deterministicFallbackSkippedReasons: string[] = [];
     let aiResponse: AiResponse;
+    let explicitNoTrade: AiNoTradeDecision | null = null;
     let openAiOutputRecommendationCount = 0;
     let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
       null;
@@ -4363,24 +4364,29 @@ export async function generateRecommendations({
       openAiRealityGuardSummary,
     );
 
-    if (aiResponse.result === "no_trade") {
-      const noTrade = aiResponse.no_trade;
+    const modelPublicationAction =
+      resolveAiRecommendationPublicationAction(aiResponse);
+    if (modelPublicationAction.kind === "preserve_no_trade") {
+      explicitNoTrade = modelPublicationAction.no_trade;
       const rejectedTicker =
-        noTrade?.candidate_ticker ||
+        explicitNoTrade.candidate_ticker ||
         topCandidate?.ticker ||
         candidateTickersForOpenAI[0] ||
         "candidate";
-      const rejectedReason =
-        noTrade?.reason || "OpenAI did not find an actionable day trade setup.";
-      const message = `OpenAI rejected candidate ${rejectedTicker}: ${rejectedReason}`;
+      const rejectedReason = explicitNoTrade.reason;
 
       logPipeline("openai_no_trade_ticker", rejectedTicker);
       logPipeline("openai_no_trade_reason", rejectedReason);
+      logPipeline("openai_no_trade_risk_flags", explicitNoTrade.risk_flags);
+      logPipeline(
+        "openai_no_trade_confidence_score",
+        explicitNoTrade.confidence_score,
+      );
       logPipeline("validated_recommendations_count", 0);
-      aiResponse = deterministicFallback(message);
+      logPipeline("explicit_no_trade_preserved", true);
     }
 
-    if (aiResponse.recommendations.length === 0) {
+    if (aiResponse.recommendations.length === 0 && !explicitNoTrade) {
       logPipeline("validated_recommendations_count", 0);
       logPipeline("skipped_recommendations_count", 0);
       logPipeline("skipped_recommendation_reasons", []);
@@ -4401,7 +4407,11 @@ export async function generateRecommendations({
     });
     let recommendationsToInsert = sanitizedRecommendations.recommendations;
 
-    if (recommendationsToInsert.length === 0 && !deterministicFallbackUsed) {
+    if (
+      recommendationsToInsert.length === 0 &&
+      !deterministicFallbackUsed &&
+      !explicitNoTrade
+    ) {
       aiResponse = deterministicFallback(
         `OpenAI recommendations rejected by sanitizer: ${sanitizedRecommendations.skippedReasons
           .slice(0, 3)
@@ -4509,12 +4519,20 @@ export async function generateRecommendations({
     if (recommendationsToInsert.length === 0) {
       logPipeline("inserted_recommendations_count", 0);
       logPipeline("inserted_recommendation_tickers", []);
+      const noPublishReason = explicitNoTrade
+        ? "openai_no_trade"
+        : deterministicFallbackUsed
+          ? "deterministic_fallback_validation_failed"
+          : "recommendation_validation_failed";
+      const noTradeReason = explicitNoTrade?.reason ?? null;
 
       return {
         recommendations: [],
-        message: duplicateFallbackUsed
-          ? duplicateFallbackMessage
-          : "Ranked learning candidates were available but failed recommendation validation.",
+        message: explicitNoTrade
+          ? `No trade: ${noTradeReason}`
+          : duplicateFallbackUsed
+            ? duplicateFallbackMessage
+            : "Ranked learning candidates were available but failed recommendation validation.",
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
@@ -4531,6 +4549,12 @@ export async function generateRecommendations({
           indicator_source: topCandidateIndicatorSource,
           indicator_cached_at: topCandidateIndicatorCachedAt,
           indicator_stale: topCandidateIndicatorStale,
+          no_trade_reason: noTradeReason,
+          no_trade_risk_flags: explicitNoTrade?.risk_flags ?? null,
+          no_trade_candidate_ticker:
+            explicitNoTrade?.candidate_ticker ?? null,
+          no_trade_confidence_score:
+            explicitNoTrade?.confidence_score ?? null,
           threshold: strongThreshold,
           strong_threshold: strongThreshold,
           publishable_threshold: publishableThreshold,
@@ -4542,13 +4566,12 @@ export async function generateRecommendations({
           valid_count: validQualifiedCount,
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason:
+            noTradeReason ??
             sanitizedRecommendations.skippedReasons[0] ??
             deterministicFallbackSkippedReasons[0] ??
             deterministicFallbackReason ??
             "Publishable candidates failed recommendation validation.",
-          no_publish_reason: deterministicFallbackUsed
-            ? "deterministic_fallback_validation_failed"
-            : "recommendation_validation_failed",
+          no_publish_reason: noPublishReason,
           power_hour_trial_enabled: powerHourTrialPublishing,
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
@@ -4577,9 +4600,7 @@ export async function generateRecommendations({
             ranking: scannerCandidateRankingSummary,
             eligibleCandidateTickers: availableCandidateTickers,
             publishableThreshold,
-            noPublishReason: deterministicFallbackUsed
-              ? "deterministic_fallback_validation_failed"
-              : "recommendation_validation_failed",
+            noPublishReason,
             recommendationBuildPath: "no_publish",
             builtTickers: recommendationsToInsert.map(
               (recommendation) => recommendation.ticker,

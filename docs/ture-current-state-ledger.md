@@ -143,6 +143,22 @@ requires an explicit provider budget, persisted point-in-time receipt and
 readback plus a versioned evaluation before context may affect selection
 quality.
 
+**Current local publication-integrity correction:** an explicit OpenAI
+`no_trade` is now a terminal no-publish decision, not an input to the
+deterministic recommendation fallback. The scan record preserves the model's
+reason, candidate, risk flags and optional confidence score, and the
+publication policy is versioned as
+`learning_tiers_82_72_60_v2_preserve_explicit_no_trade`. This improves
+selectivity and decision traceability; it does not make a confidence score a
+calibrated probability, change ranking, call a provider or establish a quality
+improvement against a baseline.
+
+**Publication-integrity local evidence:** three focused no-trade policy tests,
+targeted ESLint, `git diff --check` and the 166-test intelligence-foundation
+suite passed. The production build produced a fresh Next build artifact. No
+provider request, database migration, broker action or staging invocation was
+made.
+
 ### Sequencing rule — market-window evidence
 
 Build normal, provider-free IF-2 work off-market on isolated branches. Reserve
