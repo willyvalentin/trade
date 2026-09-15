@@ -12,6 +12,7 @@ import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ran
 import type { RealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
 import type { SetupType } from "@/lib/setup-types";
 import type { ActiveScanTrace } from "@/lib/active-scan-trace";
+import type { CandidateDecisionCapture } from "@/lib/candidate-decision-record";
 
 export type ScanLogResult =
   | "recommendation_created"
@@ -106,6 +107,7 @@ export type ScanLogEntry = {
   power_hour_trial_enabled?: boolean | null;
   power_hour_publish_allowed?: boolean | null;
   power_hour_publish_block_reason?: string | null;
+  candidate_decision_capture?: CandidateDecisionCapture | null;
   active_scan_trace?: ActiveScanTrace | null;
   day_trade_scan_orchestration?: DayTradeScanOrchestrationSummary | null;
   recommendation_serving_cadence?: RecommendationServingCadenceSummary | null;

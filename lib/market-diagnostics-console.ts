@@ -98,6 +98,7 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import type { CandidateDecisionRecordReadback } from "@/lib/candidate-decision-readback";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -180,6 +181,7 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers?: DynamicMarketMoversSummary | null;
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
+  candidate_decision_record?: CandidateDecisionRecordReadback | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
@@ -3534,6 +3536,18 @@ function buildSections(
     buildAction307nProductionApiBoundaryRecoveryVerification();
   const minimalReplayWithSignalPackagePing =
     buildAction308MinimalReplayWithSignalPackagePing();
+  const candidateDecisionRecord = input.candidate_decision_record ?? {
+    status: "unavailable" as const,
+    decision_timestamp: null,
+    final_disposition: null,
+    candidate_count: 0,
+    observed_candidate_count: 0,
+    ranked_candidate_count: 0,
+    strongest_candidate: null,
+    no_trade_reason: null,
+    published_tickers: [],
+    reason_codes: ["candidate_decision_record_missing"],
+  };
 
   return [
     section({
@@ -3577,6 +3591,67 @@ function buildSections(
         learning_source_batch_fingerprint:
           input.outcome_evaluation?.learning_insights_source_batch_fingerprint ??
           null,
+      },
+    }),
+    section({
+      section_id: "candidate_decision_record",
+      title: "Candidate decision record",
+      severity:
+        candidateDecisionRecord.status === "incomplete"
+          ? "critical"
+          : candidateDecisionRecord.status === "unavailable"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Coverage", candidateDecisionRecord.status),
+        lineValue(
+          "Candidates",
+          `${candidateDecisionRecord.candidate_count} total / ${candidateDecisionRecord.observed_candidate_count} observed / ${candidateDecisionRecord.ranked_candidate_count} ranked`,
+        ),
+        lineValue(
+          "Strongest",
+          candidateDecisionRecord.strongest_candidate
+            ? `${candidateDecisionRecord.strongest_candidate.ticker} #${candidateDecisionRecord.strongest_candidate.rank ?? "?"} / score ${candidateDecisionRecord.strongest_candidate.score ?? "?"} / ${words(candidateDecisionRecord.strongest_candidate.disposition)}`
+            : "none ranked",
+        ),
+        lineValue(
+          "Why not trade-ready",
+          candidateDecisionRecord.strongest_candidate?.reason_codes.join(", ") ||
+            "none recorded",
+        ),
+        lineValue(
+          "Decision",
+          candidateDecisionRecord.final_disposition
+            ? words(candidateDecisionRecord.final_disposition)
+            : "no persisted record yet",
+        ),
+        lineValue(
+          "No-trade reason",
+          candidateDecisionRecord.no_trade_reason ?? "not applicable",
+        ),
+        lineValue(
+          "Record notes",
+          candidateDecisionRecord.reason_codes.join(", ") || "none",
+        ),
+      ],
+      metrics: {
+        status: candidateDecisionRecord.status,
+        decision_timestamp: candidateDecisionRecord.decision_timestamp,
+        final_disposition: candidateDecisionRecord.final_disposition,
+        candidate_count: candidateDecisionRecord.candidate_count,
+        observed_candidate_count: candidateDecisionRecord.observed_candidate_count,
+        ranked_candidate_count: candidateDecisionRecord.ranked_candidate_count,
+        strongest_ticker: candidateDecisionRecord.strongest_candidate?.ticker ?? null,
+        strongest_rank: candidateDecisionRecord.strongest_candidate?.rank ?? null,
+        strongest_score: candidateDecisionRecord.strongest_candidate?.score ?? null,
+        strongest_disposition:
+          candidateDecisionRecord.strongest_candidate?.disposition ?? null,
+        strongest_reason_codes:
+          candidateDecisionRecord.strongest_candidate?.reason_codes.join(", ") ??
+          null,
+        no_trade_reason: candidateDecisionRecord.no_trade_reason,
+        published_tickers: candidateDecisionRecord.published_tickers.join(", "),
+        record_reason_codes: candidateDecisionRecord.reason_codes.join(", "),
       },
     }),
     section({

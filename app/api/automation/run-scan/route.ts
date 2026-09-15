@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   generateRecommendations,
+  DAY_TRADE_SCORING_VERSION,
   RecommendationGenerationError,
   type RecommendationScanLogDetails,
   type SessionType,
@@ -69,6 +70,7 @@ import {
 import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { buildCandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
@@ -2236,6 +2238,15 @@ async function persistAutomationArtifacts({
       },
     },
   });
+  const candidateDecisionRecord = buildCandidateDecisionRecord({
+    scanRun,
+    capture: scanLog.candidate_decision_capture,
+    scoringVersion: DAY_TRADE_SCORING_VERSION,
+    buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+  });
+  if (candidateDecisionRecord) {
+    scanRun.payload_json.candidate_decision_record = candidateDecisionRecord;
+  }
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
       supabaseClient: serverSupabase.client,
