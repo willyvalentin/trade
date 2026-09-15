@@ -106,6 +106,13 @@ type MarketWideDiscoveryScanRun = Pick<
   "observed_at" | "trading_date" | "window" | "payload_json"
 >;
 
+type MarketWideDiscoveryScheduledAttempt = {
+  utc_timestamp?: unknown;
+  trading_date?: unknown;
+  intraday_scan_window?: unknown;
+  payload_json?: unknown;
+};
+
 function objectOrNull(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -485,6 +492,31 @@ export function marketWideDiscoveryReadbackFromScanRun(
       observed_at: isoTimestampOrNull(scanRun.observed_at),
       trading_date: scanRun.trading_date,
       window: scanRun.window,
+    },
+  );
+}
+
+export function marketWideDiscoveryReadbackFromScheduledAttempt(
+  attempt: MarketWideDiscoveryScheduledAttempt,
+) {
+  const payload = objectOrNull(attempt.payload_json);
+  const window = enumValue(attempt.intraday_scan_window, [
+    "pre_market",
+    "opening",
+    "morning_momentum",
+    "midday",
+    "afternoon",
+    "power_hour",
+    "closed",
+    "unknown",
+  ] as const);
+
+  return marketWideDiscoveryReadbackFromUnknown(
+    payload?.market_wide_discovery,
+    {
+      observed_at: isoTimestampOrNull(attempt.utc_timestamp),
+      trading_date: dateStringOrNull(attempt.trading_date) ?? null,
+      window: window ?? null,
     },
   );
 }

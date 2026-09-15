@@ -165,21 +165,51 @@ and a point-in-time relative-volume provider adapter be considered. They still
 need a coverage denominator, freshness/readback evidence and a bounded rollout;
 neither current contract claims coverage or a quality improvement.
 
-**Active local IF-2 daily-credit reservation:** commit
-`8318651f` adds a default-off, owner-and-New-York-day reservation before an
-admitted dynamic mover request can reach Twelve Data. The reservation performs
-an exact idempotent claim, a one-winner attempt transition and a terminal
-finalization; failed, timed-out or unfinalized attempts remain charged. The
-first admitted day budget is fixed for that day, so an environment change
-cannot silently increase spend. Summary version `market_wide_discovery_summary_v3`
-exposes only safe reservation facts in the existing browser receipt. Local
-evidence: `git diff --check`, TypeScript, scoped ESLint, a Next webpack build,
-15 focused Playwright checks and a disposable PostgreSQL 16 migration test
-proved claim → attempt → failed finalization → daily-cap block plus
-`anon=false` / `service_role=true` access control. It has made no provider
-call, remote migration, deployment or broker action. It is local only until a
-reviewed PR, protected main verification and separately authorized migration;
-it does not itself admit a current-market provider scan.
+**Merged IF-2 daily-credit reservation:** PR
+[#504](https://github.com/willyvalentin/trade/pull/504) merged as
+`4822d0e4b998f96e85b80c8d16f556afc2e0c180`; required CI
+`35007793144` passed and Netlify completed production deploy
+`6aa98e82763cf000083c36f4` at `main @4822d0e`. The default-off,
+owner-and-New-York-day reservation performs an exact idempotent claim, a
+one-winner attempt transition and a terminal finalization; failed, timed-out or
+unfinalized attempts remain charged. The first admitted day budget is fixed for
+that day, so an environment change cannot silently increase spend. Summary
+version `market_wide_discovery_summary_v3` exposes only safe reservation facts
+in the existing browser receipt.
+
+The user authorized the additive
+`20260915162302_market_wide_discovery_credit_reservations.sql` migration in the
+Ture production project. Post-apply checks established RLS, no direct
+`anon`/`authenticated` table read or claim access, service-role-only claim /
+begin / finalize RPC access, and fixed `SECURITY DEFINER` search paths. One
+normal, non-diagnostic automation scan then ran at 14:43 EDT. It correctly
+stopped at the existing `not_official_scan_window` gate: no recommendation
+generator or provider request ran, and no credits were spent. That is a valid
+fail-closed scheduling result, but it is not the IF-2 provider-response,
+freshness or bounded-selection acceptance receipt.
+
+**Active local IF-2 observation continuity:** between official publication
+windows, a normal scheduled scan can now invoke only the already bounded,
+default-off market-wide discovery intake. The new path has no import or route
+to ranking, recommendation construction, publication or execution. It requires
+the verified open market, an outside-official-window decision and an observable
+intraday window; the existing explicit runtime flag, Pro plan, daily budget,
+reservation and backoff gates still decide whether any provider request is
+allowed. Its complete versioned receipt is persisted in the existing scheduled
+attempt ledger and shown by the existing browser readback. This changes no
+score, confidence, selection limit or publication rule. Local evidence:
+`git diff --check`, TypeScript, scoped ESLint, scheduled-runtime build, Next
+webpack build, focused discovery checks (15/15) and the full intelligence
+foundation regression (166/166) pass. It is local only until the associated
+reviewed PR reaches protected `main`; no additional production scan was run.
+
+**Remaining IF-2 acceptance:** deploy the observation-continuity delivery,
+then use a separately authorized normal market-time run only after the actual
+provider entitlement and a deliberately approved credit budget are configured.
+Read back the persisted provider response, admission, freshness and bounded
+selection receipt. That result may still be a blocked admission, provider
+failure or valid `no_trade`; it does not by itself prove market-wide coverage or
+a better ranking policy.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
