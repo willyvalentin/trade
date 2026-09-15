@@ -275,6 +275,10 @@ import {
   type MarketWideDiscoveryReadback,
 } from "@/lib/market-wide-discovery-readback";
 import {
+  basicFreeDiscoveryReadbackFromScheduledAttempt,
+  type BasicFreeDiscoveryReadback,
+} from "@/lib/basic-free-discovery-readback";
+import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
   recommendationBatchFromPersistenceRow,
@@ -11518,6 +11522,22 @@ export function TradeApp({
       window: "unknown",
       payload_json: {},
     });
+  const latestBasicFreeDiscoveryReadback =
+    [...scheduledScanAttempts.map(basicFreeDiscoveryReadbackFromScheduledAttempt)]
+      .filter((receipt) => receipt.status === "available")
+      .sort((first, second) => {
+        const firstObservedAt =
+          first.source_scan.observed_at ?? first.generated_at ?? "";
+        const secondObservedAt =
+          second.source_scan.observed_at ?? second.generated_at ?? "";
+        return secondObservedAt.localeCompare(firstObservedAt);
+      })[0] ??
+    basicFreeDiscoveryReadbackFromScheduledAttempt({
+      utc_timestamp: "",
+      trading_date: null,
+      intraday_scan_window: "unknown",
+      payload_json: {},
+    });
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -16857,6 +16877,10 @@ export function TradeApp({
 
             <MarketWideDiscoveryReceiptPanel
               receipt={latestMarketWideDiscoveryReadback}
+            />
+
+            <BasicFreeDiscoveryReceiptPanel
+              receipt={latestBasicFreeDiscoveryReadback}
             />
 
             <ProviderBudgetGuardPanel
@@ -37340,6 +37364,118 @@ function MarketWideDiscoveryReceiptPanel({
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               A configured plan is not provider-entitlement evidence; only an
               observed response establishes that a request was served.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function basicFreeDiscoveryReceiptTone(
+  receipt: BasicFreeDiscoveryReadback,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (receipt.status === "unavailable") return "neutral";
+  if (
+    receipt.attempt.outcome === "provider_error" ||
+    receipt.attempt.outcome === "rate_limited"
+  ) {
+    return "warning";
+  }
+  if (receipt.attempt.provider_response_observed === true) return "positive";
+  return "warning";
+}
+
+function BasicFreeDiscoveryReceiptPanel({
+  receipt,
+}: {
+  receipt: BasicFreeDiscoveryReadback;
+}) {
+  const providerObserved = receipt.attempt.provider_response_observed === true;
+  const coverage =
+    receipt.catalog.provider_catalog_count === null
+      ? `${receipt.catalog.observed_record_count ?? 0} observed / denominator unavailable`
+      : `${receipt.catalog.observed_record_count ?? 0}/${receipt.catalog.provider_catalog_count} catalog records`;
+  const creditBudget =
+    receipt.admission.declared_daily_credit_budget === null ||
+    receipt.admission.declared_per_minute_credit_budget === null
+      ? "not declared"
+      : `day ${receipt.credit_reservation.daily_reserved_credits ?? 0}/${receipt.admission.declared_daily_credit_budget} · minute ${receipt.credit_reservation.minute_reserved_credits ?? 0}/${receipt.admission.declared_per_minute_credit_budget}`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Discovery trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Basic Free Catalog Observation
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A bounded Twelve Data <code>/stocks</code> reference-page receipt.
+            It is never a candidate source, market-wide coverage claim, ranking
+            input, publication path, or execution instruction.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={
+            receipt.status === "unavailable"
+              ? "no receipt"
+              : providerObserved
+                ? receipt.attempt.outcome ?? "observed"
+                : receipt.admission.status ?? "not attempted"
+          }
+          tone={basicFreeDiscoveryReceiptTone(receipt)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Admission"
+          value={receipt.admission.status ?? "unavailable"}
+        />
+        <SummaryCard
+          label="Provider Response"
+          value={providerObserved ? "observed" : "not observed"}
+        />
+        <SummaryCard label="Catalog Coverage" value={coverage} />
+        <SummaryCard label="Reserved Credits" value={creditBudget} />
+      </div>
+
+      {receipt.status === "unavailable" ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No valid versioned Basic Free catalog receipt exists yet. This is not
+          evidence that a catalog page ran, that the full market was scanned, or
+          that no candidate exists.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Immutable boundary
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Collection complete: no. Discovery feed allowed: no. The page is
+              retained solely as a traceable reference observation.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Eligible records: {receipt.catalog.eligible_record_count ?? 0};
+              rejected: {receipt.catalog.rejected_record_count ?? 0}.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Request and reservation
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {providerObserved
+                ? `${receipt.attempt.outcome ?? "unknown"} provider result${receipt.attempt.attempted_at ? ` at ${formatDate(receipt.attempt.attempted_at)}` : ""}.`
+                : `No provider response was requested. Admission: ${receipt.admission.reason_codes.join(", ") || "not recorded"}.`}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Reservation finalization: {receipt.credit_reservation.finalization_status ?? "not recorded"}; proven: {receipt.credit_reservation.finalization_proven === true ? "yes" : receipt.credit_reservation.finalization_proven === false ? "no" : "not applicable"}.
             </p>
           </div>
         </div>

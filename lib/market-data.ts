@@ -68,6 +68,12 @@ export type TwelveDataMarketMoversResult = {
   movers: TwelveDataMarketMover[];
 };
 
+export type TwelveDataStockCatalogPage = {
+  fetched_at: string;
+  provider_catalog_count: number | null;
+  records: unknown[];
+};
+
 type TwelveDataErrorResponse = {
   status?: unknown;
   code?: unknown;
@@ -100,6 +106,11 @@ type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
 
 type TwelveDataMarketMoversResponse = TwelveDataErrorResponse & {
   values?: unknown;
+};
+
+type TwelveDataStocksResponse = TwelveDataErrorResponse & {
+  count?: unknown;
+  data?: unknown;
 };
 
 function getTwelveDataApiKey() {
@@ -556,5 +567,41 @@ export async function getTwelveDataMarketMovers(
         } satisfies TwelveDataMarketMover,
       ];
     }),
+  };
+}
+
+/**
+ * Retrieves one bounded page of Twelve Data's daily-updated US common-stock
+ * catalog. The result is deliberately reference-only: callers must not use a
+ * partial page to expand the scanner universe or represent it as market-wide
+ * discovery coverage.
+ */
+export async function getTwelveDataStockCatalogPage(
+  options?: { signal?: AbortSignal },
+): Promise<TwelveDataStockCatalogPage> {
+  const data = await fetchTwelveData<TwelveDataStocksResponse>("/stocks", {
+    country: "United States",
+    type: "Common Stock",
+    page: 1,
+    outputsize: 8,
+  }, options);
+
+  if (!Array.isArray(data.data)) {
+    throw new MarketDataProviderResponseError(
+      "Stock catalog provider returned invalid catalog data.",
+      true,
+    );
+  }
+
+  const count = optionalNumberField(data.count);
+  const providerCatalogCount =
+    count !== null && Number.isInteger(count) && count >= data.data.length
+      ? count
+      : null;
+
+  return {
+    fetched_at: new Date().toISOString(),
+    provider_catalog_count: providerCatalogCount,
+    records: data.data,
   };
 }

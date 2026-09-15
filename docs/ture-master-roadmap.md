@@ -125,6 +125,27 @@ in the relevant environment, followed by persisted receipt readback. Only then
 may IF-2 proceed to a real symbol master, explicit coverage denominator and
 relative-volume provider contract.
 
+**IF-2a Basic Free compatibility variant.** When the verified provider profile
+is Basic Free, do not reinterpret it as Grow or Pro and do not request the
+Pro-only market-movers endpoint. The only initial Basic-compatible intake is a
+default-off observation of one `/stocks` page filtered to US common stocks.
+It must reserve the documented one credit before the request under both an
+explicit daily allowance and per-minute allowance, retain the reservation after
+failure or timeout, capture the provider's catalog-count denominator, and show
+a versioned browser receipt. A single catalog page is reference-only: it must
+hard-code `collection_complete = false` and `discovery_feed_allowed = false`,
+and cannot alter the scanner universe, ranking, confidence, publication or
+execution.
+
+**IF-2a Basic Free acceptance evidence.** Local proof covers the default-off
+gate, exact one-winner reservation, daily and per-minute limits, untrusted
+receipt rejection and the immutable partial-catalog boundary. Relevant
+environment proof requires the additive reservation migration, a normal
+open-market scheduled observation with the explicit Basic runtime and two
+budget settings, persisted receipt readback and verification that no candidate
+or recommendation path ran. That receipt proves only the observed page and
+its denominator; it is never market-wide discovery acceptance.
+
 **IF-2b — provider-free coverage and volume contracts.** Before any further
 provider request, make the future data boundaries explicit and fail closed in
 code. The symbol-master contract must preserve provider row lineage and access

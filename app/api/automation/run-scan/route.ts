@@ -95,6 +95,8 @@ import {
   observeMarketWideDiscoveryBetweenPublicationWindows,
 } from "@/lib/market-wide-discovery-background-observation";
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
+import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
+import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
 import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
@@ -1130,6 +1132,39 @@ async function readLatestMarketWideDiscoveryAttempt() {
   return null;
 }
 
+async function readLatestBasicFreeDiscoveryAttempt() {
+  const { data, error } = await serverSupabase()
+    .from("scheduled_scan_attempts")
+    .select("payload_json")
+    .order("utc_timestamp", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error(
+      "[automation/run-scan] basic_free_discovery_previous_attempt_load_error",
+      {
+        source: "supabase.scheduled_scan_attempts",
+        operation: "select_recent_basic_free_discovery_attempts",
+        error: normalizeUnknownError(error),
+      },
+    );
+    return null;
+  }
+
+  for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+    const payload =
+      row.payload_json && typeof row.payload_json === "object"
+        ? (row.payload_json as Record<string, unknown>)
+        : null;
+    const previousAttempt = basicFreeDiscoveryPreviousAttemptFromUnknown(
+      payload?.basic_free_discovery,
+    );
+    if (previousAttempt) return previousAttempt;
+  }
+
+  return null;
+}
+
 function latestScheduledScanForWindow({
   runs,
   scanDate,
@@ -1420,6 +1455,7 @@ async function recordScheduledScanAttempt({
         [],
       reference_refresh: scanLog?.reference_refresh ?? null,
       market_wide_discovery: scanLog?.market_wide_discovery ?? null,
+      basic_free_discovery: scanLog?.basic_free_discovery ?? null,
     },
   });
   const { error } = await serverSupabase()
@@ -1553,6 +1589,11 @@ function createAutomationScanLog({
       typeof details?.market_wide_discovery === "object" &&
       details.market_wide_discovery !== null
         ? (details.market_wide_discovery as ScanLogEntry["market_wide_discovery"])
+        : null,
+    basic_free_discovery:
+      typeof details?.basic_free_discovery === "object" &&
+      details.basic_free_discovery !== null
+        ? (details.basic_free_discovery as ScanLogEntry["basic_free_discovery"])
         : null,
     scanner_candidate_ranking:
       typeof details?.scanner_candidate_ranking === "object" &&
@@ -3336,6 +3377,113 @@ export async function POST(request: Request) {
       );
 
       try {
+        if (scheduledRuntimeConfig.provider_plan_profile_mode === "free") {
+          const previousAttempt = await readLatestBasicFreeDiscoveryAttempt();
+          const observation =
+            await observeBasicFreeDiscoveryBetweenPublicationWindows({
+              scheduled: true,
+              marketOpen: true,
+              outsideOfficialPublicationWindow: true,
+              scanWindow: scanWindow.scanWindow,
+              ownerUserId,
+              executionFingerprint: scheduledScanAttemptFingerprint,
+              previousAttempt,
+              signal: observationAbortController.signal,
+            });
+
+          if (observation.status === "observed") {
+            const basicFreeDiscovery = observation.discovery.summary;
+            const providerResponseObserved =
+              basicFreeDiscovery.attempt.provider_response_observed;
+            const message = providerResponseObserved
+              ? "Basic Free catalog observation completed outside an official publication window. It is reference-only; recommendation generation was intentionally not run."
+              : "Basic Free catalog observation recorded a no-call admission outside an official publication window. It is reference-only; recommendation generation was intentionally not run.";
+            const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+              decision: "scanned",
+              status: "completed",
+              skipReason: "outside_official_window_basic_catalog_observation_only",
+              noPublishReason:
+                "outside_official_window_basic_catalog_observation_only",
+              zeroReason:
+                basicFreeDiscovery.admission.reason_codes[0] ??
+                "outside_official_window_basic_catalog_observation_only",
+              elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+              timeoutWasReached: false,
+            });
+            const scanLog = createAutomationScanLog({
+              source: "scheduled",
+              scanWindow: scanWindow.scanWindow,
+              marketStatus,
+              result: "skipped",
+              message,
+              recommendationsCreated: 0,
+              details: {
+                ...powerHourTrialGate,
+                no_publish_reason:
+                  "outside_official_window_basic_catalog_observation_only",
+                basic_free_discovery: basicFreeDiscovery,
+                day_trade_scan_orchestration: dayTradeScanOrchestration,
+                recommendation_serving_cadence: initialServingCadence,
+                active_scan_trace: activeScanTracePayload,
+              },
+            });
+
+            await recordAttempt({
+              outcome: "scanned",
+              allowed: false,
+              message,
+              skipReason:
+                "outside_official_window_basic_catalog_observation_only",
+              httpStatus: 200,
+              scanLog,
+              activeScanTrace: activeScanTracePayload,
+            });
+
+            return NextResponse.json({
+              ok: true,
+              message,
+              status: "observed",
+              decision: "scanned" satisfies AutomationScanDecision,
+              observation_only: true,
+              basic_free_discovery: basicFreeDiscovery,
+              ...automationVersionFields(),
+              ...powerHourTrialGate,
+              ...powerHourTrialCopyFields(),
+              ...scheduledRuntimeFields(),
+              skipped_in_progress: false,
+              active_scan_trace: activeScanTracePayload,
+              automation_diagnostics: automationDiagnostics({
+                decision: "scanned",
+                skippedReason:
+                  "outside_official_window_basic_catalog_observation_only",
+                currentScanLog: scanLog,
+              }),
+              forced: false,
+              scan_date: scanDate,
+              session_type: sessionType,
+              scan_window: scanWindow.scanWindow,
+              scan_window_label: scanWindowLabel,
+              market_status: marketStatus,
+              market_session: marketSession,
+              ...calendarFields(dayTradeScanOrchestration),
+              expired_recommendations: expiredRecommendations,
+              candidates_generated: 0,
+              recommendations_served: 0,
+              recommendations_created: 0,
+              batch_id: null,
+              batch_fingerprint: null,
+              scan_run_fingerprint: null,
+              warnings: [
+                ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+                ...basicFreeDiscovery.warnings,
+              ],
+              gaps: basicFreeDiscovery.gaps,
+              day_trade_scan_orchestration: dayTradeScanOrchestration,
+              recommendation_serving_cadence: initialServingCadence,
+            });
+          }
+        }
+
         const previousAttempt = await readLatestMarketWideDiscoveryAttempt();
         const observation =
           await observeMarketWideDiscoveryBetweenPublicationWindows({

@@ -204,7 +204,7 @@ CI `35015141270` passed, including post-merge candidate-provenance
 attestation. Netlify completed the automatic production deploy for `main@17065b8`
 in 1m 12s. No additional production scan was run.
 
-**Active local IF-2 Basic Free quota containment:** the user confirmed the
+**Merged IF-2 Basic Free quota containment:** the user confirmed the
 Basic Free account with a daily allowance of 800 credits. Twelve Data's
 current official documentation records an eight-API-credit per-minute Basic
 quota and documents `/market_movers/stocks` as a 100-credit Pro-only endpoint.
@@ -214,22 +214,45 @@ the Basic Free eight-ticker cap even when a route or environment override asks
 for more; the existing Free-safe profile changed from ten to eight tickers and
 the decision is recorded in route diagnostics. This is quota containment, not
 market-wide discovery, entitlement proof, a provider request, a ranking change
-or a quality improvement.
+or a quality improvement. It merged as PR
+[#506](https://github.com/willyvalentin/trade/pull/506) at
+`cc898584de95222671db9fc441cc587e58221ccf`; PR CI and exact-main CI
+`35030299128` passed, including post-merge candidate-provenance attestation.
+Netlify deployed `main@cc89858` successfully. The non-secret Netlify plan-mode
+configuration was also corrected from the unsupported `grow` label to `free`
+in every deploy context; no provider secret, discovery runtime switch or budget
+setting changed.
 
-**IF-2 Basic Free local evidence:** `git diff --check`, TypeScript, scoped
-ESLint, scheduled-runtime build, Next webpack build, the focused Free-cap plus
-discovery Playwright checks (12/12) pass. No provider request, migration,
-deployment, broker action or staging invocation is part of this delivery.
+**Active local IF-2 Basic Free catalog-observation receipt:** a new default-off
+route can observe exactly one Twelve Data `/stocks` page for US common stocks.
+It is a durable, server-owned, one-credit Basic Free observation with both the
+explicit daily (maximum 800) and per-minute (maximum 8) reservation enforced
+before a provider request. The request is charged even after failure, timeout
+or unproven finalization. The receipt records provider catalog count and the
+observed count, but hard-codes `collection_complete = false` and
+`discovery_feed_allowed = false`; it has no route to scanner-universe expansion,
+ranking, recommendation construction, publication or execution. The dashboard
+shows the versioned receipt and its credit, coverage and no-candidate boundary.
+
+**IF-2 Basic Free catalog local evidence:** `git diff --check`, TypeScript,
+scoped ESLint, Next webpack build and 9 focused Playwright tests pass. The local
+browser reached the authenticated-login boundary and compiled the app; the
+receipt panel was not authenticated visually because no credential was entered.
+The isolated worktree has no initialized local Supabase stack, so the additive
+SQL migration is string-contract tested but not locally applied. No provider
+request, production migration, deployment, broker action or staging invocation
+is part of this active local delivery.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
-delivery is a Basic-compatible, default-off discovery route with an explicit
-coverage denominator, per-minute and daily budget admission, durable receipt
-and browser readback. It may use only a documented Basic-available endpoint;
-it must not claim market-wide coverage, change ranking or publish candidates
-until a current-market receipt proves exactly what was observed. A future Pro
-upgrade may re-enable the separate 100-credit market-movers path only after its
-actual provider entitlement is verified.
+acceptance step is to review and apply the additive Basic Free reservation
+migration in production, then—during a normal open-market window and only with
+the explicit runtime switch and both budgets configured—run one normal
+scheduled observation and verify its persisted browser receipt. It may use only
+a documented Basic-available endpoint and must not claim market-wide coverage,
+change ranking or publish candidates. A future Pro upgrade may re-enable the
+separate 100-credit market-movers path only after its actual provider
+entitlement is verified.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
