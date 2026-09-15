@@ -163,5 +163,40 @@ test.describe("market-wide discovery admission", () => {
         scan_window: "future_window",
       }).status,
     ).toBe("unavailable");
+
+    const providerErrorWithoutResponse = marketWideDiscoveryReadbackFromUnknown({
+      ...summary,
+      summary_version: "market_wide_discovery_summary_v2",
+      attempt: {
+        attempted_at: now.toISOString(),
+        outcome: "provider_error",
+        provider_response_observed: false,
+      },
+      dynamic_intake: {
+        ...dynamicIntake,
+        status: "provider_unavailable",
+        fetched_count: 0,
+        selected_count: 0,
+        selected_tickers: [],
+        last_updated_at: null,
+      },
+    });
+    expect(providerErrorWithoutResponse).toMatchObject({
+      status: "available",
+      attempt: {
+        outcome: "provider_error",
+        provider_response_observed: false,
+      },
+    });
+    expect(
+      marketWideDiscoveryReadbackFromUnknown({
+        ...summary,
+        attempt: {
+          attempted_at: now.toISOString(),
+          outcome: "provider_error",
+          provider_response_observed: false,
+        },
+      }).status,
+    ).toBe("unavailable");
   });
 });
