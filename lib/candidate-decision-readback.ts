@@ -2,6 +2,10 @@ import type {
   CandidateDecisionDisposition,
   CandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
+import type {
+  RecommendationScanRun,
+  RecommendationScanRunWindow,
+} from "@/lib/recommendation-scan-run";
 
 export type CandidateDecisionRecordReadback = {
   status: "available" | "incomplete" | "unavailable";
@@ -28,6 +32,48 @@ export type CandidateDecisionRecordReadback = {
   reason_codes: string[];
 };
 
+export type CandidateDecisionRecordHistoryEntry = {
+  scan_run_id: string;
+  scan_run_fingerprint: string;
+  observed_at: string;
+  trading_date: string | null;
+  window: RecommendationScanRunWindow;
+  readback: CandidateDecisionRecordReadback;
+};
+
+export type CandidateDecisionRecordHistory = {
+  status: "available" | "partial" | "unavailable";
+  considered_scan_run_count: number;
+  valid_record_count: number;
+  invalid_record_count: number;
+  entries: CandidateDecisionRecordHistoryEntry[];
+  comparison_to_previous: {
+    previous_decision_timestamp: string;
+    candidate_count_delta: number;
+    ranked_candidate_count_delta: number;
+    fresh_candidate_count_delta: number;
+    final_disposition_changed: boolean;
+  } | null;
+  decision_mix: {
+    recommendations_published_count: number;
+    no_trade_count: number;
+  };
+  recurring_no_trade_reasons: Array<{
+    reason: string;
+    count: number;
+  }>;
+};
+
+type CandidateDecisionRecordScanRun = Pick<
+  RecommendationScanRun,
+  | "id"
+  | "run_fingerprint"
+  | "trading_date"
+  | "window"
+  | "observed_at"
+  | "payload_json"
+>;
+
 function objectOrNull(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -36,6 +82,15 @@ function objectOrNull(value: unknown): Record<string, unknown> | null {
 
 function stringOrNull(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function isoTimestampOrNull(value: unknown) {
+  const timestamp = stringOrNull(value);
+
+  if (!timestamp) return null;
+
+  const date = new Date(timestamp);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 }
 
 function stringArray(value: unknown) {
@@ -150,6 +205,31 @@ export function candidateDecisionRecordFromUnknown(
   return record as CandidateDecisionRecord;
 }
 
+/**
+ * A persisted payload is only attributable when its immutable scan identity
+ * agrees with the owner-isolated scan-run row that carried it. This prevents a
+ * structurally valid record from being displayed against the wrong scan.
+ */
+export function candidateDecisionRecordFromScanRun(
+  scanRun: CandidateDecisionRecordScanRun,
+): CandidateDecisionRecord | null {
+  const record = candidateDecisionRecordFromUnknown(
+    scanRun.payload_json.candidate_decision_record,
+  );
+
+  if (
+    !record ||
+    record.scan_run_id !== scanRun.id ||
+    record.scan_run_fingerprint !== scanRun.run_fingerprint ||
+    isoTimestampOrNull(record.decision_timestamp) === null ||
+    isoTimestampOrNull(scanRun.observed_at) === null
+  ) {
+    return null;
+  }
+
+  return record;
+}
+
 export function summarizeCandidateDecisionRecord(
   record: CandidateDecisionRecord | null | undefined,
 ): CandidateDecisionRecordReadback {
@@ -233,5 +313,100 @@ export function summarizeCandidateDecisionRecord(
     no_trade_reason: record.final_decision.no_trade_reason,
     published_tickers: stringArray(record.final_decision.published_tickers),
     reason_codes: stringArray(record.coverage.membership_reason_codes),
+  };
+}
+
+/**
+ * Turns the existing owner-isolated scan-run readback into a bounded audit
+ * history. Payloads which are missing, malformed or mismatched to their scan
+ * row are counted but never rendered as attributable decision evidence.
+ */
+export function buildCandidateDecisionRecordHistory({
+  scanRuns,
+  limit = 6,
+}: {
+  scanRuns: CandidateDecisionRecordScanRun[];
+  limit?: number;
+}): CandidateDecisionRecordHistory {
+  const safeLimit = Number.isFinite(limit)
+    ? Math.max(1, Math.floor(limit))
+    : 6;
+  const records = [...scanRuns].sort(
+    (first, second) => second.observed_at.localeCompare(first.observed_at),
+  );
+  const entries: CandidateDecisionRecordHistoryEntry[] = [];
+  let invalidRecordCount = 0;
+  const noTradeReasonCounts = new Map<string, number>();
+  let recommendationsPublishedCount = 0;
+  let noTradeCount = 0;
+
+  for (const scanRun of records) {
+    const record = candidateDecisionRecordFromScanRun(scanRun);
+
+    if (!record) {
+      invalidRecordCount += 1;
+      continue;
+    }
+
+    const readback = summarizeCandidateDecisionRecord(record);
+    entries.push({
+      scan_run_id: scanRun.id,
+      scan_run_fingerprint: scanRun.run_fingerprint,
+      observed_at: scanRun.observed_at,
+      trading_date: scanRun.trading_date,
+      window: scanRun.window,
+      readback,
+    });
+
+    if (readback.final_disposition === "recommendations_published") {
+      recommendationsPublishedCount += 1;
+    } else if (readback.final_disposition === "no_trade") {
+      noTradeCount += 1;
+      const reason = readback.no_trade_reason ?? "no_trade_reason_not_recorded";
+      noTradeReasonCounts.set(reason, (noTradeReasonCounts.get(reason) ?? 0) + 1);
+    }
+  }
+
+  const latest = entries[0] ?? null;
+  const previous = entries[1] ?? null;
+  const comparisonToPrevious = latest && previous
+    ? {
+        previous_decision_timestamp:
+          previous.readback.decision_timestamp ?? previous.observed_at,
+        candidate_count_delta:
+          latest.readback.candidate_count - previous.readback.candidate_count,
+        ranked_candidate_count_delta:
+          latest.readback.ranked_candidate_count -
+          previous.readback.ranked_candidate_count,
+        fresh_candidate_count_delta:
+          latest.readback.data_health.fresh_candidate_count -
+          previous.readback.data_health.fresh_candidate_count,
+        final_disposition_changed:
+          latest.readback.final_disposition !== previous.readback.final_disposition,
+      }
+    : null;
+
+  const validRecordCount = entries.length;
+
+  return {
+    status:
+      validRecordCount === 0
+        ? "unavailable"
+        : invalidRecordCount > 0
+          ? "partial"
+          : "available",
+    considered_scan_run_count: records.length,
+    valid_record_count: validRecordCount,
+    invalid_record_count: invalidRecordCount,
+    entries: entries.slice(0, safeLimit),
+    comparison_to_previous: comparisonToPrevious,
+    decision_mix: {
+      recommendations_published_count: recommendationsPublishedCount,
+      no_trade_count: noTradeCount,
+    },
+    recurring_no_trade_reasons: [...noTradeReasonCounts.entries()]
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((first, second) => second.count - first.count || first.reason.localeCompare(second.reason))
+      .slice(0, 3),
   };
 }

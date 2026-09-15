@@ -98,7 +98,10 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
-import type { CandidateDecisionRecordReadback } from "@/lib/candidate-decision-readback";
+import type {
+  CandidateDecisionRecordHistory,
+  CandidateDecisionRecordReadback,
+} from "@/lib/candidate-decision-readback";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -182,6 +185,7 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
   candidate_decision_record?: CandidateDecisionRecordReadback | null;
+  candidate_decision_history?: CandidateDecisionRecordHistory | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
@@ -606,6 +610,10 @@ function words(value: string | null | undefined) {
 function compact(value: string | null | undefined, fallback = "unknown") {
   const text = value?.trim() ?? "";
   return text.length > 0 ? text : fallback;
+}
+
+function signedNumber(value: number) {
+  return `${value >= 0 ? "+" : ""}${value}`;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -3554,6 +3562,19 @@ function buildSections(
     published_tickers: [],
     reason_codes: ["candidate_decision_record_missing"],
   };
+  const candidateDecisionHistory = input.candidate_decision_history ?? {
+    status: "unavailable" as const,
+    considered_scan_run_count: 0,
+    valid_record_count: 0,
+    invalid_record_count: 0,
+    entries: [],
+    comparison_to_previous: null,
+    decision_mix: {
+      recommendations_published_count: 0,
+      no_trade_count: 0,
+    },
+    recurring_no_trade_reasons: [],
+  };
 
   return [
     section({
@@ -3697,6 +3718,75 @@ function buildSections(
         no_trade_reason: candidateDecisionRecord.no_trade_reason,
         published_tickers: candidateDecisionRecord.published_tickers.join(", "),
         record_reason_codes: candidateDecisionRecord.reason_codes.join(", "),
+      },
+    }),
+    section({
+      section_id: "candidate_decision_history",
+      title: "Candidate decision history",
+      severity:
+        candidateDecisionHistory.status === "unavailable"
+          ? "warning"
+          : candidateDecisionHistory.status === "partial"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue(
+          "Attributable records",
+          `${candidateDecisionHistory.valid_record_count} valid / ${candidateDecisionHistory.considered_scan_run_count} scan runs considered`,
+        ),
+        lineValue(
+          "Integrity exclusions",
+          candidateDecisionHistory.invalid_record_count > 0
+            ? `${candidateDecisionHistory.invalid_record_count} payloads omitted because their scan identity, timestamp or record shape could not be verified`
+            : "none",
+        ),
+        lineValue(
+          "Decision mix",
+          `${candidateDecisionHistory.decision_mix.recommendations_published_count} published / ${candidateDecisionHistory.decision_mix.no_trade_count} no trade`,
+        ),
+        lineValue(
+          "Latest vs previous",
+          candidateDecisionHistory.comparison_to_previous
+            ? `candidates ${signedNumber(candidateDecisionHistory.comparison_to_previous.candidate_count_delta)} / ranked ${signedNumber(candidateDecisionHistory.comparison_to_previous.ranked_candidate_count_delta)} / fresh ${signedNumber(candidateDecisionHistory.comparison_to_previous.fresh_candidate_count_delta)} / decision ${candidateDecisionHistory.comparison_to_previous.final_disposition_changed ? "changed" : "unchanged"}`
+            : "one attributable record is needed before comparison",
+        ),
+        lineValue(
+          "Recurring no-trade reasons",
+          candidateDecisionHistory.recurring_no_trade_reasons.length > 0
+            ? candidateDecisionHistory.recurring_no_trade_reasons
+                .map((item) => `${item.reason} (${item.count})`)
+                .join("; ")
+            : "none recorded",
+        ),
+      ],
+      metrics: {
+        status: candidateDecisionHistory.status,
+        considered_scan_run_count: candidateDecisionHistory.considered_scan_run_count,
+        valid_record_count: candidateDecisionHistory.valid_record_count,
+        invalid_record_count: candidateDecisionHistory.invalid_record_count,
+        displayed_record_count: candidateDecisionHistory.entries.length,
+        recommendations_published_count:
+          candidateDecisionHistory.decision_mix.recommendations_published_count,
+        no_trade_count: candidateDecisionHistory.decision_mix.no_trade_count,
+        previous_decision_timestamp:
+          candidateDecisionHistory.comparison_to_previous
+            ?.previous_decision_timestamp ?? null,
+        candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.candidate_count_delta ?? null,
+        ranked_candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.ranked_candidate_count_delta ?? null,
+        fresh_candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.fresh_candidate_count_delta ?? null,
+        final_disposition_changed:
+          candidateDecisionHistory.comparison_to_previous
+            ?.final_disposition_changed ?? null,
+        recurring_no_trade_reasons:
+          candidateDecisionHistory.recurring_no_trade_reasons
+            .map((item) => `${item.reason}:${item.count}`)
+            .join(", "),
       },
     }),
     section({

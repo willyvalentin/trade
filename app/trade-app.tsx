@@ -264,8 +264,10 @@ import {
   type RecommendationScanRunPersistenceResult,
 } from "@/lib/recommendation-scan-run";
 import {
-  candidateDecisionRecordFromUnknown,
+  buildCandidateDecisionRecordHistory,
+  candidateDecisionRecordFromScanRun,
   summarizeCandidateDecisionRecord,
+  type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
   buildRecommendationBatch,
@@ -11477,14 +11479,13 @@ export function TradeApp({
       .filter(isSuccessfulLiveRecommendationScanRun)
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const candidateDecisionRecordHistory = buildCandidateDecisionRecordHistory({
+    scanRuns: liveStoredRecommendationScanRuns,
+  });
   const latestCandidateDecisionRecord =
     [...liveStoredRecommendationScanRuns]
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
-      .map((scanRun) =>
-        candidateDecisionRecordFromUnknown(
-          scanRun.payload_json.candidate_decision_record,
-        ),
-      )
+      .map(candidateDecisionRecordFromScanRun)
       .find((record) => record !== null) ?? null;
   const candidateDecisionRecordReadback = summarizeCandidateDecisionRecord(
     latestCandidateDecisionRecord,
@@ -14700,6 +14701,7 @@ export function TradeApp({
       dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
       candidate_decision_record: candidateDecisionRecordReadback,
+      candidate_decision_history: candidateDecisionRecordHistory,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
       historical_candle_storage_detection: historicalCandleStorageDetection,
@@ -16818,6 +16820,10 @@ export function TradeApp({
             <MarketDiagnosticsConsolePanel
               summary={marketDiagnosticsConsoleSummary}
               summaryJson={marketDiagnosticsConsoleSummaryJsonText}
+            />
+
+            <CandidateDecisionHistoryPanel
+              history={candidateDecisionRecordHistory}
             />
 
             <ProviderBudgetGuardPanel
@@ -37176,6 +37182,182 @@ function marketDiagnosticsConsoleStatusTone(
   }
 
   return "neutral";
+}
+
+function candidateDecisionHistoryTone(
+  status: CandidateDecisionRecordHistory["status"],
+): "positive" | "warning" | "danger" | "neutral" {
+  if (status === "available") return "positive";
+  if (status === "partial") return "warning";
+  return "neutral";
+}
+
+function candidateDecisionHistoryDispositionLabel(
+  disposition: "recommendations_published" | "no_trade" | null,
+) {
+  if (disposition === "recommendations_published") return "published";
+  if (disposition === "no_trade") return "no trade";
+  return "unavailable";
+}
+
+function CandidateDecisionHistoryPanel({
+  history,
+}: {
+  history: CandidateDecisionRecordHistory;
+}) {
+  const comparison = history.comparison_to_previous;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Candidate Decision History
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Compare attributable scan decisions over time. This is audit evidence,
+            not a recommendation feed or a signal to relax publication standards.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={history.status}
+          tone={candidateDecisionHistoryTone(history.status)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Attributable"
+          value={`${history.valid_record_count}/${history.considered_scan_run_count}`}
+        />
+        <SummaryCard
+          label="Integrity Excluded"
+          value={String(history.invalid_record_count)}
+        />
+        <SummaryCard
+          label="Published"
+          value={String(history.decision_mix.recommendations_published_count)}
+        />
+        <SummaryCard
+          label="No Trade"
+          value={String(history.decision_mix.no_trade_count)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest vs previous attributable decision
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {comparison
+              ? `Candidates ${comparison.candidate_count_delta >= 0 ? "+" : ""}${comparison.candidate_count_delta}; ranked ${comparison.ranked_candidate_count_delta >= 0 ? "+" : ""}${comparison.ranked_candidate_count_delta}; fresh ${comparison.fresh_candidate_count_delta >= 0 ? "+" : ""}${comparison.fresh_candidate_count_delta}; final decision ${comparison.final_disposition_changed ? "changed" : "unchanged"}.`
+              : "A second attributable scan decision is needed before Ture can compare movement."}
+          </p>
+          {comparison && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Previous decision: {formatDate(comparison.previous_decision_timestamp)}
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Recurring no-trade reasons
+          </h4>
+          {history.recurring_no_trade_reasons.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
+              {history.recurring_no_trade_reasons.map((item) => (
+                <li key={item.reason}>
+                  <span className="font-mono text-xs text-zinc-100">
+                    {item.reason}
+                  </span>{" "}
+                  <span className="text-zinc-500">×{item.count}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-zinc-500">
+              No attributable no-trade reason has been recorded yet.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Recent attributable decisions
+        </h4>
+        {history.entries.length === 0 ? (
+          <p className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+            No complete, identity-matched candidate decision record is available
+            in the retained scan-run history.
+          </p>
+        ) : (
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            {history.entries.map((entry) => {
+              const decision = entry.readback;
+              const strongestUnpublished =
+                decision.strongest_unpublished_candidates[0] ?? null;
+
+              return (
+                <article
+                  key={entry.scan_run_fingerprint}
+                  className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-sm font-semibold text-zinc-100">
+                        {formatDate(decision.decision_timestamp ?? entry.observed_at)}
+                      </p>
+                      <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+                        {entry.window} · {entry.trading_date ?? "unknown trading day"}
+                      </p>
+                    </div>
+                    <RecommendationDetailsPill
+                      label={candidateDecisionHistoryDispositionLabel(
+                        decision.final_disposition,
+                      )}
+                      tone={
+                        decision.final_disposition === "recommendations_published"
+                          ? "positive"
+                          : "neutral"
+                      }
+                    />
+                  </div>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <Detail
+                      label="Coverage"
+                      value={`${decision.candidate_count} total / ${decision.ranked_candidate_count} ranked`}
+                    />
+                    <Detail
+                      label="Data health"
+                      value={`${decision.data_health.fresh_candidate_count} fresh / ${decision.data_health.stale_candidate_count} stale / ${decision.data_health.gap_candidate_count} gap`}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-zinc-400">
+                    {decision.final_disposition === "no_trade"
+                      ? `No trade: ${decision.no_trade_reason ?? "reason not recorded"}.`
+                      : `Published: ${decision.published_tickers.join(", ") || "ticker not recorded"}.`}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">
+                    {strongestUnpublished
+                      ? `Strongest unpublished: ${strongestUnpublished.ticker} #${strongestUnpublished.rank ?? "?"} — ${strongestUnpublished.reason_codes.join(", ") || "no reason recorded"}.`
+                      : "No unpublished ranked candidate in this record."}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function MarketDiagnosticsConsolePanel({
