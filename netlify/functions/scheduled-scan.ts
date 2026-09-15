@@ -1,6 +1,10 @@
 import { createRequire } from "node:module";
 
 import type { Config } from "@netlify/functions";
+import {
+  buildScheduledScanInvocationFingerprint,
+  scheduledScanSlotStartedAt,
+} from "../../lib/scheduled-scan-invocation";
 
 export const config: Config = {
   // Netlify cron is UTC. This covers 13:00-19:45 UTC weekdays,
@@ -52,18 +56,7 @@ async function invokeScheduledScanRoute({
   );
 }
 
-function stableHash(value: string) {
-  let hash = 2166136261;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0).toString(36);
-}
-
-async function upsertScheduledScanAttempt(record: Record<string, unknown>) {
+async function claimScheduledScanInvocation(record: Record<string, unknown>) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -71,7 +64,63 @@ async function upsertScheduledScanAttempt(record: Record<string, unknown>) {
     process.env.SUPABASE_SERVICE_ROLE_SECRET;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.log("[scheduled-scan] Supabase attempt log skipped: missing env");
+    console.error("[scheduled-scan] Durable invocation claim unavailable: missing env");
+    return "unavailable" as const;
+  }
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/scheduled_scan_attempts?on_conflict=attempt_fingerprint`,
+      {
+        method: "POST",
+        headers: {
+          apikey: supabaseKey,
+          authorization: `Bearer ${supabaseKey}`,
+          "content-type": "application/json",
+          // The unique attempt fingerprint is the claim. A duplicate cron
+          // delivery receives an empty representation and must not reach the
+          // internal route, provider, or any recommendation side effect.
+          prefer: "resolution=ignore-duplicates,return=representation",
+        },
+        body: JSON.stringify(record),
+      },
+    );
+
+    if (!response.ok) {
+      console.error("[scheduled-scan] Durable invocation claim failed", {
+        status: response.status,
+        body: await response.text(),
+      });
+      return "unavailable" as const;
+    }
+
+    const rows = await response.json().catch(() => null);
+
+    if (Array.isArray(rows) && rows.length === 1) {
+      return "claimed" as const;
+    }
+
+    if (Array.isArray(rows) && rows.length === 0) {
+      return "duplicate" as const;
+    }
+
+    console.error("[scheduled-scan] Durable invocation claim response was ambiguous");
+    return "unavailable" as const;
+  } catch (error) {
+    console.error("[scheduled-scan] Durable invocation claim error", error);
+    return "unavailable" as const;
+  }
+}
+
+async function updateScheduledScanAttempt(record: Record<string, unknown>) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE ||
+    process.env.SUPABASE_SERVICE_ROLE_SECRET;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("[scheduled-scan] Attempt update skipped: missing env");
     return;
   }
 
@@ -91,13 +140,13 @@ async function upsertScheduledScanAttempt(record: Record<string, unknown>) {
     );
 
     if (!response.ok) {
-      console.error("[scheduled-scan] Supabase attempt log failed", {
+      console.error("[scheduled-scan] Attempt update failed", {
         status: response.status,
         body: await response.text(),
       });
     }
   } catch (error) {
-    console.error("[scheduled-scan] Supabase attempt log error", error);
+    console.error("[scheduled-scan] Attempt update error", error);
   }
 }
 
@@ -110,16 +159,10 @@ export default async function handler() {
     return new Response(null, { status: 204 });
   }
 
-  const firedAtUtc = new Date().toISOString();
-  const attemptFingerprint = `scheduled_scan_attempt_${stableHash(
-    `netlify_scheduled_function|${firedAtUtc}`,
-  )}`;
-  const automationSecret = process.env.AUTOMATION_SECRET;
-
-  if (!automationSecret) {
-    console.error("[scheduled-scan] Missing AUTOMATION_SECRET");
-    return new Response("Missing AUTOMATION_SECRET", { status: 500 });
-  }
+  const firedAt = new Date();
+  const firedAtUtc = firedAt.toISOString();
+  const scheduledSlotStartedAtUtc = scheduledScanSlotStartedAt(firedAt).toISOString();
+  const attemptFingerprint = buildScheduledScanInvocationFingerprint(firedAt);
 
   const nyTime = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -139,7 +182,7 @@ export default async function handler() {
     scheduled_scan_attempt_fingerprint: attemptFingerprint,
   });
 
-  await upsertScheduledScanAttempt({
+  const invocationClaim = await claimScheduledScanInvocation({
     attempt_fingerprint: attemptFingerprint,
     source: "netlify_scheduled_function",
     mode: "scheduled",
@@ -149,8 +192,42 @@ export default async function handler() {
     ny_timestamp: `${nyTime} America/New_York`,
     payload_json: {
       execution_boundary: "bundled_next_route",
+      scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
     },
   });
+
+  if (invocationClaim === "duplicate") {
+    console.log("[scheduled-scan] Duplicate scheduled slot skipped", {
+      scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+      scheduled_scan_attempt_fingerprint: attemptFingerprint,
+    });
+    return new Response(null, { status: 204 });
+  }
+
+  if (invocationClaim === "unavailable") {
+    return new Response("Scheduled scan claim unavailable", { status: 503 });
+  }
+
+  const automationSecret = process.env.AUTOMATION_SECRET;
+
+  if (!automationSecret) {
+    console.error("[scheduled-scan] Missing AUTOMATION_SECRET");
+    await updateScheduledScanAttempt({
+      attempt_fingerprint: attemptFingerprint,
+      source: "netlify_scheduled_function",
+      mode: "scheduled",
+      outcome: "request_failed",
+      scheduled_function_fired_at: firedAtUtc,
+      utc_timestamp: firedAtUtc,
+      ny_timestamp: `${nyTime} America/New_York`,
+      message: "Missing AUTOMATION_SECRET",
+      payload_json: {
+        execution_boundary: "bundled_next_route",
+        scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+      },
+    });
+    return new Response("Missing AUTOMATION_SECRET", { status: 500 });
+  }
 
   try {
     const response = await invokeScheduledScanRoute({
@@ -165,7 +242,7 @@ export default async function handler() {
     console.log("[scheduled-scan] Response body:", body);
 
     if (!response.ok) {
-      await upsertScheduledScanAttempt({
+      await updateScheduledScanAttempt({
         attempt_fingerprint: attemptFingerprint,
         source: "netlify_scheduled_function",
         mode: "scheduled",
@@ -177,6 +254,7 @@ export default async function handler() {
         message: body.slice(0, 1000),
         payload_json: {
           execution_boundary: "bundled_next_route",
+          scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
         },
       });
     }
@@ -189,7 +267,7 @@ export default async function handler() {
     });
   } catch (error) {
     console.error("[scheduled-scan] Failed:", error);
-    await upsertScheduledScanAttempt({
+    await updateScheduledScanAttempt({
       attempt_fingerprint: attemptFingerprint,
       source: "netlify_scheduled_function",
       mode: "scheduled",
@@ -200,6 +278,7 @@ export default async function handler() {
       message: error instanceof Error ? error.message : String(error),
       payload_json: {
         execution_boundary: "bundled_next_route",
+        scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
       },
     });
 
