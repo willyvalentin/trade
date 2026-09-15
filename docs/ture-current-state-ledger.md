@@ -78,9 +78,9 @@ receipt, never as evidence that discovery ran.
 
 It merged as PR [#493](https://github.com/willyvalentin/trade/pull/493) at
 `4ac457d88f361c5d9f03fe15a8b6abdf0d9a9152`. Required PR CI, merge-candidate
-provenance and exact-main CI all passed. Netlify's project API still reports
-the older production revision `dbeed25f…`, so production behavior for this
-revision is explicitly **not yet verified**.
+provenance and exact-main CI all passed. Netlify now shows a completed
+production `main @1221c3b` deployment that includes this revision. That proves
+delivery, not the still-pending current-market discovery acceptance.
 
 **IF-2a local evidence:** `git diff --check`, targeted ESLint, `npx tsc
 --noEmit`, `npm run build -- --webpack`, focused decision/discovery Playwright
@@ -98,10 +98,11 @@ fresh or last-updated evidence and cannot enter the bounded scanner universe.
 This is fail-closed input containment only; it does not change a successful
 provider path, ranking, confidence, publication policy, provider budget or
 deployment. It merged as PR [#498](https://github.com/willyvalentin/trade/pull/498)
-at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI and production
-verification remain separate evidence.
+at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI `34967554409`
+passed and Netlify showed its completed automatic production deployment
+`main @40bca28`.
 
-**Current local IF-2 provider-response provenance:** discovery receipts now use
+**Merged IF-2 provider-response provenance:** discovery receipts now use
 summary version `market_wide_discovery_summary_v2` to distinguish a provider
 response from an outbound attempt. A connection failure is recorded as an
 attempted `provider_error` with `provider_response_observed: false`; an actual
@@ -111,9 +112,11 @@ their former semantics, so historic evidence is not silently reinterpreted.
 The diagnostics copy now distinguishes “no provider request attempted” from an
 attempt that received no provider response. This changes decision trace truth,
 not discovery admission, ranking, confidence, publication, provider budget or
-deployment. Focused receipt/classification tests passed locally and a fresh
-local production-build artifact was produced; the provider-free intelligence
-foundation regression passed 166/166 before review.
+deployment. It merged as PR [#499](https://github.com/willyvalentin/trade/pull/499)
+at `1221c3b33bc340bba6c7ab1b681ebe208f6af45f`; required PR CI and exact-main
+CI `34970253350` passed, and Netlify showed its completed automatic production
+deployment `main @1221c3b`. This is delivery and traceability evidence, not
+current-market provider entitlement or a measured ranking improvement.
 
 **Current local IF-2b contract foundation:** a provider-free symbol-master
 contract accepts only caller-supplied catalog payloads and admits a symbol to a
@@ -167,7 +170,7 @@ requires an explicit provider budget, persisted point-in-time receipt and
 readback plus a versioned evaluation before context may affect selection
 quality.
 
-**Current local publication-integrity correction:** an explicit OpenAI
+**Merged publication-integrity correction:** an explicit OpenAI
 `no_trade`, an empty model result or model output that fails deterministic
 validation is now a terminal no-publish decision, not an input to the
 deterministic recommendation fallback. The scan record preserves the model's
@@ -178,11 +181,15 @@ selectivity and decision traceability; it does not make a confidence score a
 calibrated probability, change ranking, call a provider or establish a quality
 improvement against a baseline.
 
-**Publication-integrity local evidence:** five focused no-trade policy tests,
-targeted ESLint, `git diff --check` and the 166-test intelligence-foundation
-suite passed. The production build produced a fresh Next build artifact. No
-provider request, database migration, broker action or staging invocation was
-made.
+**Publication-integrity delivery evidence:** it merged as PR
+[#497](https://github.com/willyvalentin/trade/pull/497) at
+`f9f7662ddc020e3acade7dfd21959490b73fd844`. Required PR CI and exact-main CI
+`34964858361` passed, and Netlify showed its completed automatic production
+deployment `main @f9f7662`. Five focused no-trade policy tests, targeted
+ESLint, `git diff --check` and the 166-test intelligence-foundation suite also
+passed locally before merge. No provider request, database migration, broker
+action or staging invocation was made. This is stricter publication behavior,
+not calibration or a measured quality improvement against a baseline.
 
 ### Sequencing rule — market-window evidence
 
