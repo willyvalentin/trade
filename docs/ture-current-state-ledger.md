@@ -8,44 +8,43 @@ product-control source; Notion is not a roadmap, mirror or selection input.
 Every dated snapshot below this section is retained evidence, not an instruction
 to resume its former queue.
 
-### Now — IF-0 foundation reconciliation
+### Now — IF-1 candidate decision record
 
-**Current slice:** bring two high-value staging safeguards into current `main`:
+**Delivered locally:** revision `6538681d` on the dependent intelligence-first
+branch persists a versioned candidate decision record inside the existing,
+owner-isolated `recommendation_scan_runs.payload_json` path. It records the
+selected scanner universe, observed members, full ranking (not a presentation
+top-K), candidate/scan identities, decision and source timestamps, freshness
+and data gaps, structured eligibility/rejection codes, engine/scoring/ranking/
+build versions, build outcome and explicit `no_trade` disposition. The browser
+accepts only the known record shape and exposes a concise Market Diagnostics
+readback: coverage, observed/ranked counts, strongest candidate, trade-readiness
+reason and final decision.
 
-1. classify provider credits/rate limits once and fail a scan precisely rather
-   than retrying into an ambiguous stale-data result; and
-2. rotate bounded scheduled universe batches so a provider-safe scan budget
-   covers the full current tradable universe over time instead of repeatedly
-   favouring the same first tickers.
+**Focused local evidence:** `npx tsc --noEmit`, targeted ESLint, `npm run
+build`, `npx playwright test tests/e2e/candidate-decision-record.spec.ts`
+(4/4) and `npm run test:intelligence-foundation` (166/166) passed. The focused
+contract proves that 25 ranked candidates survive a former presentation-sized
+cutoff, that a partially observed scan remains an explainable `no_trade`, and
+that malformed persisted payloads fail closed in the browser.
 
-This is a reliability bridge, not market-wide discovery. It preserves provider
-budgets, never creates a broker action and does not claim that the static
-universe is sufficient. The one-ticker manual staging rotation is deliberately
-not transferred because it is incompatible with the intended broad discovery
-funnel.
+**External effects:** none. This delivery made no provider request, database
+migration, deployment, broker action or staging invocation. It is stacked on
+the still-open IF-0/roadmap PR #490; neither change is merged to `main`.
 
-**Current acceptance:** the main-safe diff must be clean and the focused
-regressions must pass on this exact branch before the slice can merge. No
-deployment, provider request, database write or broker operation is part of
-this slice.
+**Remaining acceptance:** after review and merge sequencing, an authorized
+current-market scan must persist and render one attributable record through the
+authenticated application. That is environment verification of the decision
+trace, not proof that the ranking policy is better. The local browser reached
+the application login boundary only; no credentials were used to bypass it.
 
-### Next — IF-1 candidate decision record
+### Next — IF-2 market-wide discovery
 
-**User-visible outcome:** after every scan, Ture can show what it considered,
-which candidates were strongest, why each candidate was not trade-ready and
-why the correct result may be `no_trade`.
-
-**Smallest complete implementation:** persist a complete, pre-truncation
-candidate decision envelope with stable scan/candidate identities, universe and
-ranking versions, decision time, data source/freshness, structured
-eligibility/rejection codes, explicit no-trade disposition and scan-to-outcome
-lineage. Add a concise readback in the app's engine/diagnostics surface.
-
-**Acceptance:** a completed current-market scan either produces an attributable
-full decision record or a truthful, structured failure record. A user can
-inspect the coverage and the reason no trade-ready candidate was published.
-The slice does not tune thresholds, add a broker action or promote a learning
-policy.
+After IF-1 has its accepted current-market decision-trace evidence, build a
+versioned eligible-US-equity symbol master and dynamic discovery intake with
+coverage, entitlement, freshness, cost and backoff evidence. Do not tune the
+publication threshold or promote a policy before the IF-4 baseline can measure
+the resulting decisions.
 
 ### Planned intelligence sequence
 
