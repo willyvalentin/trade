@@ -163,7 +163,12 @@ export function buildDynamicMarketMoversSelection(
     };
   }
 
-  const fetchedMovers = normalizeProviderMovers(providerResult, now);
+  // A provider error or unavailable status invalidates the whole payload. Do
+  // not surface potentially stale or partial symbols as discovery evidence,
+  // even if an untrusted caller supplied them alongside the failure status.
+  const fetchedMovers = providerResultIndicatesFailure(providerResult)
+    ? []
+    : normalizeProviderMovers(providerResult, now);
   const selectedMovers: DynamicMarketMover[] = [];
   const seen = new Set<string>();
   let dedupedCount = 0;
@@ -172,6 +177,12 @@ export function buildDynamicMarketMoversSelection(
   let contextOnlySkippedCount = 0;
 
   for (const mover of rankMoversForWindow(fetchedMovers, scanWindow)) {
+    // An unusable receipt must not reserve its ticker. A later fresh receipt
+    // from another source remains eligible for selection.
+    if (mover.stale) {
+      continue;
+    }
+
     if (seen.has(mover.ticker) || existingTickers.has(mover.ticker)) {
       dedupedCount += 1;
       continue;
@@ -381,7 +392,11 @@ function buildSummary({
     budget_limit: budgetLimit,
     source_breakdown: buildSourceBreakdown(selectedMovers),
     selected_tickers: selectedMovers.map((mover) => mover.ticker),
-    last_updated_at: latestIso(fetchedMovers.map((mover) => mover.fetched_at)),
+    last_updated_at: latestIso(
+      fetchedMovers
+        .filter((mover) => !mover.stale)
+        .map((mover) => mover.fetched_at),
+    ),
     warnings,
     gaps,
   };
@@ -392,10 +407,7 @@ function determineStatus(
   fetchedMovers: DynamicMarketMover[],
   selectedMovers: DynamicMarketMover[],
 ): DynamicMarketMoversStatus {
-  if (
-    providerResult.status === "unavailable" ||
-    providerResult.status === "error"
-  ) {
+  if (providerResultIndicatesFailure(providerResult)) {
     return "provider_unavailable";
   }
 
@@ -425,7 +437,7 @@ function buildWarnings({
 }) {
   const warnings: DynamicMarketMoversWarning[] = [];
 
-  if (providerResult.status === "unavailable" || providerResult.status === "error") {
+  if (providerResultIndicatesFailure(providerResult)) {
     warnings.push(
       warning(
         "provider_unavailable",
@@ -446,7 +458,7 @@ function buildWarnings({
       warning(
         "no_movers_selected",
         "info",
-        "Dynamic movers were fetched but none survived dedupe, context, or risk-control filters.",
+        "Dynamic movers were fetched but none survived freshness, dedupe, context, or risk-control filters.",
       ),
     );
   }
@@ -495,7 +507,7 @@ function buildGaps(
 ) {
   const gaps: string[] = [];
 
-  if (providerResult.status === "unavailable" || providerResult.status === "error") {
+  if (providerResultIndicatesFailure(providerResult)) {
     gaps.push("Dynamic market movers provider did not return usable data.");
   }
 
@@ -504,7 +516,7 @@ function buildGaps(
   }
 
   if (fetchedMovers.length > 0 && selectedMovers.length === 0) {
-    gaps.push("Dynamic movers were unavailable after dedupe and guardrail filters.");
+    gaps.push("Dynamic movers were unavailable after freshness, dedupe and guardrail filters.");
   }
 
   return gaps;
@@ -524,6 +536,12 @@ function buildSourceBreakdown(movers: DynamicMarketMover[]) {
   }
 
   return breakdown;
+}
+
+function providerResultIndicatesFailure(
+  providerResult: DynamicMarketMoversProviderResult,
+) {
+  return providerResult.status === "unavailable" || providerResult.status === "error";
 }
 
 function warning(
@@ -616,7 +634,10 @@ function isStale(fetchedAt: string | null, now: Date) {
 
   if (!Number.isFinite(timestamp)) return true;
 
-  return now.getTime() - timestamp > staleAfterMinutes * 60 * 1000;
+  return (
+    timestamp > now.getTime() ||
+    now.getTime() - timestamp > staleAfterMinutes * 60 * 1000
+  );
 }
 
 function stableHash(value: string) {

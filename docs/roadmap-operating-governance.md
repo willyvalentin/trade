@@ -1,6 +1,49 @@
 # Roadmap Operating Governance
 
-## Active delivery policy — MVP first, 2026-09-09
+## Active delivery policy — intelligence first, 2026-09-15
+
+This policy supersedes the MVP-first selection rule and every Notion-mirror
+instruction below it. The repository's master roadmap and current-state ledger
+are the only control sources for Ture. Do not update, consult or reconcile a
+Notion roadmap as part of delivery.
+
+### Select work by recommendation-engine value
+
+- Keep one active intelligence slice from the ledger. Its outcome must make
+  Ture better able to discover, qualify, explain, evaluate or safely promote
+  US-equity day-trading candidates.
+- Prefer a vertical slice reaching UI, runtime, durable evidence and a focused
+  behavior check. A static contract or dashboard alone is not a completed
+  engine capability.
+- Build against `main` through small reviewed branches and pull requests.
+  `staging` is an integration environment only; it is never a parallel product
+  roadmap or a wholesale merge source.
+- Preserve ownership, freshness, provider-budget, no-trade and execution
+  boundaries. Ambition does not authorize invented data, uncontrolled learning,
+  a new provider spend, deployment, migration or broker effect.
+
+### Intelligence progression gate
+
+The active sequence is `IF-0 → IF-1 → IF-2 → IF-3 → IF-4 → IF-5` from the
+master roadmap. An IF slice may advance only when its stated evidence exists.
+In particular, no score, confidence label, prompt or model output becomes a
+learning-driven live policy without a frozen baseline, held-out evaluation,
+shadow result, versioned rollback and post-promotion monitoring.
+
+Execution work remains parked until IF-5 demonstrates sustained useful engine
+quality. When execution begins, all orders still follow `AI → Ture Core →
+deterministic risk/authorization → Avanza`; no model or UI shortcut can bypass
+that path.
+
+### Current delivery rule
+
+IF-0 is the current reconciliation slice. IF-1 is the next slice and must
+persist/read back a full candidate decision record before work begins on a new
+provider, broad backfill, score tuning or broker capability. Treat a day with
+no trade-ready candidate as an observation to explain and measure, never a
+reason to weaken the publication gate.
+
+## Historical delivery policy — MVP first, 2026-09-09 (superseded)
 
 This policy implements the user's explicit product-focus decision. It supersedes
 conflicting task-selection and process requirements in the historical operating

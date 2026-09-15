@@ -98,6 +98,11 @@ import {
   buildBatchCandidateAuditSummary,
   type BatchCandidateAuditSummary,
 } from "@/lib/batch-candidate-audit";
+import type {
+  CandidateDecisionRecordHistory,
+  CandidateDecisionRecordReadback,
+} from "@/lib/candidate-decision-readback";
+import type { MarketWideDiscoveryReadback } from "@/lib/market-wide-discovery-readback";
 
 export type MarketDiagnosticsConsoleSeverity =
   | "info"
@@ -180,6 +185,9 @@ export type MarketDiagnosticsConsoleInput = {
   dynamic_movers?: DynamicMarketMoversSummary | null;
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   scanner_ranking?: ScannerCandidateRankingSummary | null;
+  candidate_decision_record?: CandidateDecisionRecordReadback | null;
+  candidate_decision_history?: CandidateDecisionRecordHistory | null;
+  market_wide_discovery?: MarketWideDiscoveryReadback | null;
   active_scan_trace?: ActiveScanTrace | null;
   continuous_intelligence_budget_plan?: ContinuousIntelligenceBudgetPlan | null;
   shared_candle_cache_rolling_rest_collector?: RollingRestCollectorShadowSummary | null;
@@ -604,6 +612,10 @@ function words(value: string | null | undefined) {
 function compact(value: string | null | undefined, fallback = "unknown") {
   const text = value?.trim() ?? "";
   return text.length > 0 ? text : fallback;
+}
+
+function signedNumber(value: number) {
+  return `${value >= 0 ? "+" : ""}${value}`;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -3534,6 +3546,73 @@ function buildSections(
     buildAction307nProductionApiBoundaryRecoveryVerification();
   const minimalReplayWithSignalPackagePing =
     buildAction308MinimalReplayWithSignalPackagePing();
+  const candidateDecisionRecord = input.candidate_decision_record ?? {
+    status: "unavailable" as const,
+    decision_timestamp: null,
+    final_disposition: null,
+    candidate_count: 0,
+    observed_candidate_count: 0,
+    ranked_candidate_count: 0,
+    data_health: {
+      fresh_candidate_count: 0,
+      stale_candidate_count: 0,
+      gap_candidate_count: 0,
+      unknown_freshness_candidate_count: 0,
+    },
+    strongest_unpublished_candidates: [],
+    no_trade_reason: null,
+    published_tickers: [],
+    reason_codes: ["candidate_decision_record_missing"],
+  };
+  const candidateDecisionHistory = input.candidate_decision_history ?? {
+    status: "unavailable" as const,
+    considered_scan_run_count: 0,
+    valid_record_count: 0,
+    invalid_record_count: 0,
+    entries: [],
+    comparison_to_previous: null,
+    decision_mix: {
+      recommendations_published_count: 0,
+      no_trade_count: 0,
+    },
+    recurring_no_trade_reasons: [],
+  };
+  const marketWideDiscovery = input.market_wide_discovery ?? {
+    status: "unavailable" as const,
+    generated_at: null,
+    scan_window: null,
+    source_scan: {
+      observed_at: null,
+      trading_date: null,
+      window: null,
+    },
+    admission: {
+      status: null,
+      runtime_enabled: null,
+      plan_eligibility: null,
+      requests_planned: null,
+      requested_credits: null,
+      declared_daily_credit_budget: null,
+      next_retry_at: null,
+      reason_codes: ["market_wide_discovery_receipt_missing_or_invalid"],
+      symbol_master_status: null,
+      relative_volume_status: null,
+    },
+    attempt: {
+      attempted_at: null,
+      outcome: null,
+      provider_response_observed: null,
+    },
+    intake: {
+      status: null,
+      fetched_count: null,
+      selected_count: null,
+      budget_limit: null,
+      selected_tickers: [],
+    },
+    warnings: [],
+    gaps: [],
+  };
 
   return [
     section({
@@ -3577,6 +3656,253 @@ function buildSections(
         learning_source_batch_fingerprint:
           input.outcome_evaluation?.learning_insights_source_batch_fingerprint ??
           null,
+      },
+    }),
+    section({
+      section_id: "candidate_decision_record",
+      title: "Candidate decision record",
+      severity:
+        candidateDecisionRecord.status === "incomplete"
+          ? "critical"
+          : candidateDecisionRecord.status === "unavailable"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Coverage", candidateDecisionRecord.status),
+        lineValue(
+          "Candidates",
+          `${candidateDecisionRecord.candidate_count} total / ${candidateDecisionRecord.observed_candidate_count} observed / ${candidateDecisionRecord.ranked_candidate_count} ranked`,
+        ),
+        lineValue(
+          "Data health",
+          `${candidateDecisionRecord.data_health.fresh_candidate_count} fresh / ${candidateDecisionRecord.data_health.stale_candidate_count} stale / ${candidateDecisionRecord.data_health.gap_candidate_count} gap / ${candidateDecisionRecord.data_health.unknown_freshness_candidate_count} unknown`,
+        ),
+        lineValue(
+          "Strongest unpublished",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker} #${candidate.rank ?? "?"} / score ${candidate.score ?? "?"} / ${words(candidate.disposition)}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "all ranked candidates published"
+              : "none ranked",
+        ),
+        lineValue(
+          "Why not trade-ready",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker}: ${candidate.reason_codes.join(", ") || "no candidate-specific reason recorded"}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "not applicable: all ranked candidates were published"
+              : "none ranked",
+        ),
+        lineValue(
+          "Decision",
+          candidateDecisionRecord.final_disposition
+            ? words(candidateDecisionRecord.final_disposition)
+            : "no persisted record yet",
+        ),
+        lineValue(
+          "No-trade reason",
+          candidateDecisionRecord.no_trade_reason ?? "not applicable",
+        ),
+        lineValue(
+          "Record notes",
+          candidateDecisionRecord.reason_codes.join(", ") || "none",
+        ),
+      ],
+      metrics: {
+        status: candidateDecisionRecord.status,
+        decision_timestamp: candidateDecisionRecord.decision_timestamp,
+        final_disposition: candidateDecisionRecord.final_disposition,
+        candidate_count: candidateDecisionRecord.candidate_count,
+        observed_candidate_count: candidateDecisionRecord.observed_candidate_count,
+        ranked_candidate_count: candidateDecisionRecord.ranked_candidate_count,
+        data_health_fresh_candidate_count:
+          candidateDecisionRecord.data_health.fresh_candidate_count,
+        data_health_stale_candidate_count:
+          candidateDecisionRecord.data_health.stale_candidate_count,
+        data_health_gap_candidate_count:
+          candidateDecisionRecord.data_health.gap_candidate_count,
+        data_health_unknown_freshness_candidate_count:
+          candidateDecisionRecord.data_health.unknown_freshness_candidate_count,
+        strongest_unpublished_tickers:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.ticker)
+            .join(", "),
+        strongest_unpublished_ranks:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.rank ?? "?")
+            .join(", "),
+        strongest_unpublished_scores:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.score ?? "?")
+            .join(", "),
+        strongest_unpublished_dispositions:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.disposition)
+            .join(", "),
+        strongest_unpublished_reason_codes:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.reason_codes.join(", "))
+            .join("; "),
+        no_trade_reason: candidateDecisionRecord.no_trade_reason,
+        published_tickers: candidateDecisionRecord.published_tickers.join(", "),
+        record_reason_codes: candidateDecisionRecord.reason_codes.join(", "),
+      },
+    }),
+    section({
+      section_id: "candidate_decision_history",
+      title: "Candidate decision history",
+      severity:
+        candidateDecisionHistory.status === "unavailable"
+          ? "warning"
+          : candidateDecisionHistory.status === "partial"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue(
+          "Attributable records",
+          `${candidateDecisionHistory.valid_record_count} valid / ${candidateDecisionHistory.considered_scan_run_count} scan runs considered`,
+        ),
+        lineValue(
+          "Integrity exclusions",
+          candidateDecisionHistory.invalid_record_count > 0
+            ? `${candidateDecisionHistory.invalid_record_count} payloads omitted because their scan identity, timestamp or record shape could not be verified`
+            : "none",
+        ),
+        lineValue(
+          "Decision mix",
+          `${candidateDecisionHistory.decision_mix.recommendations_published_count} published / ${candidateDecisionHistory.decision_mix.no_trade_count} no trade`,
+        ),
+        lineValue(
+          "Latest vs previous",
+          candidateDecisionHistory.comparison_to_previous
+            ? `candidates ${signedNumber(candidateDecisionHistory.comparison_to_previous.candidate_count_delta)} / ranked ${signedNumber(candidateDecisionHistory.comparison_to_previous.ranked_candidate_count_delta)} / fresh ${signedNumber(candidateDecisionHistory.comparison_to_previous.fresh_candidate_count_delta)} / decision ${candidateDecisionHistory.comparison_to_previous.final_disposition_changed ? "changed" : "unchanged"}`
+            : "one attributable record is needed before comparison",
+        ),
+        lineValue(
+          "Recurring no-trade reasons",
+          candidateDecisionHistory.recurring_no_trade_reasons.length > 0
+            ? candidateDecisionHistory.recurring_no_trade_reasons
+                .map((item) => `${item.reason} (${item.count})`)
+                .join("; ")
+            : "none recorded",
+        ),
+      ],
+      metrics: {
+        status: candidateDecisionHistory.status,
+        considered_scan_run_count: candidateDecisionHistory.considered_scan_run_count,
+        valid_record_count: candidateDecisionHistory.valid_record_count,
+        invalid_record_count: candidateDecisionHistory.invalid_record_count,
+        displayed_record_count: candidateDecisionHistory.entries.length,
+        recommendations_published_count:
+          candidateDecisionHistory.decision_mix.recommendations_published_count,
+        no_trade_count: candidateDecisionHistory.decision_mix.no_trade_count,
+        previous_decision_timestamp:
+          candidateDecisionHistory.comparison_to_previous
+            ?.previous_decision_timestamp ?? null,
+        candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.candidate_count_delta ?? null,
+        ranked_candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.ranked_candidate_count_delta ?? null,
+        fresh_candidate_count_delta:
+          candidateDecisionHistory.comparison_to_previous
+            ?.fresh_candidate_count_delta ?? null,
+        final_disposition_changed:
+          candidateDecisionHistory.comparison_to_previous
+            ?.final_disposition_changed ?? null,
+        recurring_no_trade_reasons:
+          candidateDecisionHistory.recurring_no_trade_reasons
+            .map((item) => `${item.reason}:${item.count}`)
+            .join(", "),
+      },
+    }),
+    section({
+      section_id: "market_wide_discovery",
+      title: "Market-wide discovery receipt",
+      severity:
+        marketWideDiscovery.status === "unavailable"
+          ? "warning"
+          : marketWideDiscovery.attempt.outcome === "provider_error" ||
+              marketWideDiscovery.attempt.outcome === "rate_limited"
+            ? "warning"
+            : "info",
+      lines: [
+        lineValue("Receipt", marketWideDiscovery.status),
+        lineValue(
+          "Admission",
+          marketWideDiscovery.status === "available"
+            ? `${marketWideDiscovery.admission.status ?? "unknown"} / runtime ${marketWideDiscovery.admission.runtime_enabled === null ? "unknown" : statusMark(marketWideDiscovery.admission.runtime_enabled)} / plan ${marketWideDiscovery.admission.plan_eligibility ?? "unknown"}`
+            : "no versioned receipt from a retained scan run",
+        ),
+        lineValue(
+          "Provider observation",
+          marketWideDiscovery.attempt.provider_response_observed === true
+            ? `${marketWideDiscovery.attempt.outcome ?? "unknown"} at ${marketWideDiscovery.attempt.attempted_at ?? "unknown time"}`
+            : marketWideDiscovery.attempt.outcome === "provider_error" &&
+                marketWideDiscovery.attempt.attempted_at
+              ? `provider error at ${marketWideDiscovery.attempt.attempted_at}; no provider response observed`
+              : "no provider request attempted",
+        ),
+        lineValue(
+          "Intake",
+          marketWideDiscovery.status === "available"
+            ? `${marketWideDiscovery.intake.fetched_count ?? 0} fetched / ${marketWideDiscovery.intake.selected_count ?? 0} selected / budget ${marketWideDiscovery.intake.budget_limit ?? 0}`
+            : "not available",
+        ),
+        lineValue(
+          "Scope gaps",
+          `symbol master ${marketWideDiscovery.admission.symbol_master_status ?? "unknown"}; relative volume ${marketWideDiscovery.admission.relative_volume_status ?? "unknown"}`,
+        ),
+        lineValue(
+          "Reason codes",
+          marketWideDiscovery.admission.reason_codes.join(", ") || "none",
+        ),
+        lineValue(
+          "Receipt gaps",
+          marketWideDiscovery.gaps.join(", ") || "none",
+        ),
+      ],
+      metrics: {
+        receipt_status: marketWideDiscovery.status,
+        generated_at: marketWideDiscovery.generated_at,
+        source_scan_observed_at: marketWideDiscovery.source_scan.observed_at,
+        source_scan_trading_date: marketWideDiscovery.source_scan.trading_date,
+        source_scan_window: marketWideDiscovery.source_scan.window,
+        admission_status: marketWideDiscovery.admission.status,
+        runtime_enabled: marketWideDiscovery.admission.runtime_enabled,
+        plan_eligibility: marketWideDiscovery.admission.plan_eligibility,
+        requests_planned: marketWideDiscovery.admission.requests_planned,
+        requested_credits: marketWideDiscovery.admission.requested_credits,
+        declared_daily_credit_budget:
+          marketWideDiscovery.admission.declared_daily_credit_budget,
+        next_retry_at: marketWideDiscovery.admission.next_retry_at,
+        admission_reason_codes:
+          marketWideDiscovery.admission.reason_codes.join(", "),
+        provider_response_observed:
+          marketWideDiscovery.attempt.provider_response_observed,
+        attempt_outcome: marketWideDiscovery.attempt.outcome,
+        attempted_at: marketWideDiscovery.attempt.attempted_at,
+        intake_status: marketWideDiscovery.intake.status,
+        intake_fetched_count: marketWideDiscovery.intake.fetched_count,
+        intake_selected_count: marketWideDiscovery.intake.selected_count,
+        intake_budget_limit: marketWideDiscovery.intake.budget_limit,
+        intake_selected_tickers:
+          marketWideDiscovery.intake.selected_tickers.join(", "),
+        symbol_master_status: marketWideDiscovery.admission.symbol_master_status,
+        relative_volume_status:
+          marketWideDiscovery.admission.relative_volume_status,
+        gaps: marketWideDiscovery.gaps.join(", "),
       },
     }),
     section({

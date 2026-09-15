@@ -1,5 +1,236 @@
 # Ture Current-State Ledger
 
+## Active Now / Next / Blocked — 2026-09-15 intelligence-first reset
+
+This is the only active work queue under the
+[master roadmap](./ture-master-roadmap.md). Repository documents are the sole
+product-control source; Notion is not a roadmap, mirror or selection input.
+Every dated snapshot below this section is retained evidence, not an instruction
+to resume its former queue.
+
+### Now — IF-2 bounded market-wide discovery foundation
+
+**Merged and production verified:** IF-0 roadmap reconciliation merged as
+PR [#490](https://github.com/willyvalentin/trade/pull/490) at
+`398db704f0ea6a46d0dab02005f6096689e2b8be`. The initial IF-1 decision-record
+delivery merged as PR [#491](https://github.com/willyvalentin/trade/pull/491)
+at `a04f4b116640c3f9c5cbee4da473411247c13f63`. Exact-main CI passed for both.
+Netlify production deploy `6aa8ea15b2999d0009db286c` is `ready` on that IF-1
+revision. The versioned record lives in the existing owner-isolated
+`recommendation_scan_runs.payload_json` path and retains the full scanner
+universe, observed members, complete ranking, candidate/scan identities,
+decision and source timestamps, freshness/data gaps, structured reject reasons,
+versions, build outcome and explicit `no_trade` disposition. Browser readback
+shows coverage, aggregate data health and up to three strongest **unpublished**
+ranked candidates with their candidate-specific reasons. A published candidate
+is never represented as needing a trade-readiness explanation.
+
+**Merged IF-1 decision-history extension:** candidate decision history reads the
+same owner-isolated retained scan runs and compares the newest attributable
+decision to its predecessor. It accepts a record only when the versioned shape,
+scan-run ID, run fingerprint and timestamps all validate; missing, malformed or
+misbound payloads are counted as integrity exclusions and cannot be displayed
+as decision evidence. The UI makes the bounded history, decision mix, data
+health, recurring `no_trade` reasons and latest-versus-previous deltas visible.
+It does not change discovery, ranking, confidence, publication policy, provider
+usage, persistence schema or broker behavior. It merged as PR
+[#492](https://github.com/willyvalentin/trade/pull/492) at
+`7f7b5796f462498bf95670ecc81d7456a6c74e48`; the required PR checks were green.
+
+**Focused local evidence:** `git diff --check`, `npx tsc --noEmit`, targeted
+ESLint, `npm run build -- --webpack`, the focused Playwright specs
+`candidate-decision-record` and `recommendation-build-diagnostics` (26/26), and
+`npm run test:intelligence-foundation` (166/166) passed. The new regression
+proves an identity-mismatched payload is excluded while earlier valid records
+remain ordered and comparable; the diagnostic export carries scalar comparison
+evidence only, never the untrusted payload.
+
+**External effects:** the local history extension made no provider request,
+database migration, deployment, broker action or staging invocation.
+
+**Remaining IF-1 acceptance:** an authorized current-market scan must persist and render one
+attributable record through the authenticated application. That is environment
+verification of the decision trace, not proof that the ranking policy is
+better. The local and production browser checks reached the application login
+boundary only; no credentials were used to bypass it.
+
+**Merged IF-2a, exact-main CI verified:** the normal scan path now has a
+versioned, fail-closed discovery admission for a single bounded Twelve Data
+`gainers` request. It is disabled by default and requires all of: explicit
+runtime enablement, configured `pro` plan mode, and an explicit declared daily
+credit budget of at least 100 credits. A configured plan remains only a local
+configuration fact, not provider-entitlement evidence. IF-2 V1 makes at most
+one 100-credit request per admitted attempt, waits at least 15 minutes after a
+normal attempt and backs off for 30 minutes after a rate limit or provider
+error. Diagnostic/simulated scans cannot request the provider even if runtime
+discovery is enabled. A malformed prior receipt or unavailable receipt read
+fails closed into the same error backoff.
+
+The result feeds only the existing bounded scanner selection: a dynamically
+found symbol can enter beyond the static universe, but cannot increase the
+per-run selection budget, lower confidence, change ranking, or loosen a
+publication rule. Every normal scan persists a versioned discovery receipt in
+its existing owner-isolated scan-run payload. The app and diagnostics readback
+show whether no call was deliberate, which admission fact blocked it, whether
+a provider response was observed, request/credit facts, intake counts, retry
+time and the explicit V1 scope gaps. An unfamiliar payload is shown as no
+receipt, never as evidence that discovery ran.
+
+It merged as PR [#493](https://github.com/willyvalentin/trade/pull/493) at
+`4ac457d88f361c5d9f03fe15a8b6abdf0d9a9152`. Required PR CI, merge-candidate
+provenance and exact-main CI all passed. Netlify's project API still reports
+the older production revision `dbeed25f…`, so production behavior for this
+revision is explicitly **not yet verified**.
+
+**IF-2a local evidence:** `git diff --check`, targeted ESLint, `npx tsc
+--noEmit`, `npm run build -- --webpack`, focused decision/discovery Playwright
+tests (36/36), and `npm run test:intelligence-foundation` (166/166) passed.
+The regression suite proves default-off behavior, plan/budget admission,
+bounded backoff, safe browser readback, and a dynamic outside-static symbol
+entering a fixed-size selection without expanding it. No provider request,
+database migration, production deploy, broker action or staging invocation was
+made.
+
+**Merged IF-2 failure-receipt containment:** a mover payload is now
+withheld in full when the provider itself declares `error` or `unavailable`.
+Symbols supplied alongside that failure are not counted as fetched, selected,
+fresh or last-updated evidence and cannot enter the bounded scanner universe.
+This is fail-closed input containment only; it does not change a successful
+provider path, ranking, confidence, publication policy, provider budget or
+deployment. It merged as PR [#498](https://github.com/willyvalentin/trade/pull/498)
+at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI and production
+verification remain separate evidence.
+
+**Current local IF-2 provider-response provenance:** discovery receipts now use
+summary version `market_wide_discovery_summary_v2` to distinguish a provider
+response from an outbound attempt. A connection failure is recorded as an
+attempted `provider_error` with `provider_response_observed: false`; an actual
+provider rate-limit, error response, invalid JSON response or invalid mover
+payload remains an observed response. V1 receipts remain readable only under
+their former semantics, so historic evidence is not silently reinterpreted.
+The diagnostics copy now distinguishes “no provider request attempted” from an
+attempt that received no provider response. This changes decision trace truth,
+not discovery admission, ranking, confidence, publication, provider budget or
+deployment. Focused receipt/classification tests passed locally and a fresh
+local production-build artifact was produced; the provider-free intelligence
+foundation regression passed 166/166 before review.
+
+**Current local IF-2b contract foundation:** a provider-free symbol-master
+contract accepts only caller-supplied catalog payloads and admits a symbol to a
+future discovery feed only when the full pagination receipt is proven, the row
+is a USD US `Common Stock`, and its exchange/MIC metadata is present. Conflicting
+raw rows for the same ticker are excluded entirely with a structured
+`duplicate_symbol` reason. A configured `access` field is retained as source
+metadata, never treated as observed entitlement. No symbol catalog is fetched,
+persisted or connected to scanner selection yet.
+
+The adjacent relative-volume contract accepts a future discovery signal only
+when its regular session is calendar-verified, its New York market date and
+elapsed-session minute match the point-in-time baseline, the baseline has at
+least 20 sessions, the baseline predates the observation and the observation is
+at most 15 minutes old. It returns explicit stale, incomplete or invalid
+reasons on every failure. It cannot change ranking or publication and is not
+yet connected to the scanner or a provider.
+
+**IF-2b local evidence:** focused symbol-master/relative-volume Playwright
+tests (9/9), `git diff --check`, targeted ESLint, `npx tsc --noEmit` and
+`npm run build -- --webpack` passed on the combined isolated branch. The
+provider-free intelligence foundation regression also passed (166/166). No
+provider request, persistence, production deploy, broker action or staging
+invocation is part of this delivery.
+
+**Remaining IF-2 acceptance:** this is an off-market implementation slice, not
+market-wide coverage or a measured quality improvement. During an active
+market window, first verify the actual provider entitlement and a deliberately
+approved credit budget, then run one normal authenticated non-diagnostic scan.
+Read back the persisted receipt and confirm its response/freshness/selection
+facts. Only after that receipt may a separately costed symbol-catalog collection
+and a point-in-time relative-volume provider adapter be considered. They still
+need a coverage denominator, freshness/readback evidence and a bounded rollout;
+neither current contract claims coverage or a quality improvement.
+
+**Current local IF-3a context-admission foundation:** a provider-free intraday
+market-context contract accepts a future SPY, QQQ and IWM snapshot only when
+all three benchmarks are present, come from one provider, are point-in-time
+synchronized within 60 seconds, are individually no more than five minutes
+old, match the declared New York market date and carry verified regular-session
+context. A partial, stale, future, duplicate or cross-provider snapshot is
+explicitly unusable. Its derived regime is context-only and cannot change
+ranking or publication; the existing daily SPY/QQQ regime label is not
+reclassified as live intraday evidence by this delivery.
+
+**IF-3a local evidence:** four focused point-in-time context tests, `git diff
+--check`, targeted ESLint, `npx tsc --noEmit` and `npm run build -- --webpack`
+passed. No provider request, persistence, scanner/ranking change, deployment,
+broker action or staging invocation is part of the delivery. A later adapter
+requires an explicit provider budget, persisted point-in-time receipt and
+readback plus a versioned evaluation before context may affect selection
+quality.
+
+**Current local publication-integrity correction:** an explicit OpenAI
+`no_trade`, an empty model result or model output that fails deterministic
+validation is now a terminal no-publish decision, not an input to the
+deterministic recommendation fallback. The scan record preserves the model's
+reason, candidate, risk flags and optional confidence score when present, and
+the publication policy is versioned as
+`learning_tiers_82_72_60_v2_preserve_explicit_no_trade`. This improves
+selectivity and decision traceability; it does not make a confidence score a
+calibrated probability, change ranking, call a provider or establish a quality
+improvement against a baseline.
+
+**Publication-integrity local evidence:** five focused no-trade policy tests,
+targeted ESLint, `git diff --check` and the 166-test intelligence-foundation
+suite passed. The production build produced a fresh Next build artifact. No
+provider request, database migration, broker action or staging invocation was
+made.
+
+### Sequencing rule — market-window evidence
+
+Build normal, provider-free IF-2 work off-market on isolated branches. Reserve
+provider calls, current-market scans, authenticated UI proof and other
+time-sensitive checks for US regular-session windows from 15:30 Stockholm time
+when the market calendar confirms it is open. Do not tune the publication
+threshold or promote a policy before the IF-4 baseline can measure the
+resulting decisions.
+
+### Planned intelligence sequence
+
+| Order | Slice | Completion signal |
+| --- | --- | --- |
+| 1 | IF-1 — candidate decision record | Full candidate/reject/no-trade evidence survives scan → readback → outcome linkage |
+| 2 | IF-2 — market-wide discovery | Dynamic universe intake expands beyond static symbols with coverage, entitlement, freshness and cost evidence |
+| 3 | IF-3 — contextual quality engine | Point-in-time market, sector, relative-strength and catalyst context changes a transparent ranking policy |
+| 4 | IF-4 — measured learning dataset | A frozen baseline can evaluate visible, research, rejected and no-trade decisions without lookahead or double counting |
+| 5 | IF-5 — shadow learning and promotion | One policy change wins in shadow/held-out evaluation and is promoted reversibly |
+| 6 | EX-1 / EX-2 — Avanza execution | Begin only after sustained IF-5 evidence proves engine quality and all deterministic execution controls are ready |
+
+### Environment rule
+
+`main` is the sole product line. Use short branches and pull requests into
+`main`; do not use the long-lived `staging` branch as a second implementation
+queue. Use the staging environment only when an integration check genuinely
+needs private authentication, a provider, a scheduler, a migration or a live
+market session. Selected staging code must be ported and tested in `main`, never
+merged wholesale.
+
+### Historical MVP and execution status
+
+The prior manual-product board remains historical evidence: it recorded
+**10/18 behavior checks and 0/6 release-accepted MVP criteria** on 2026-09-12.
+It does not establish a production release and it no longer blocks intelligence
+work. Keep existing ownership, manual-attestation, freshness and no-trade
+safeguards intact. Do not spend primary product capacity on more broker or
+position features until the intelligence roadmap reaches its stated evidence
+gates.
+
+### Progress rule
+
+Each active slice records its user outcome, smallest end-to-end change, exact
+revision, focused verification, external effects and residual gap. Do not use
+candidate count, commit count, a single trading day or an LLM-generated score
+as evidence that Ture has improved. A policy is only improved after the frozen
+baseline and shadow gates in IF-4 and IF-5.
+
 ## Active Now / Next / Blocked — 2026-09-12 MVP delivery verification
 
 This is the active work queue under the [master roadmap](./ture-master-roadmap.md).

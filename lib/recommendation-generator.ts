@@ -3,6 +3,12 @@ import "server-only";
 import OpenAI from "openai";
 
 import {
+  resolveAiRecommendationPublicationAction,
+  resolveSanitizedRecommendationPublicationAction,
+  type AiNoTradeDecision,
+} from "@/lib/recommendation-publication-policy";
+
+import {
   getMarketRegime,
   neutralMarketRegimeFallback,
   type MarketRegime,
@@ -40,6 +46,14 @@ import {
   type DynamicMoversDiscoverySummary,
 } from "@/lib/dynamic-movers-discovery";
 import {
+  discoverMarketWideDiscovery,
+  type MarketWideDiscoverySummary,
+} from "@/lib/market-wide-discovery";
+import {
+  marketWideDiscoveryPreviousAttemptFromUnknown,
+  type MarketWideDiscoveryPreviousAttempt,
+} from "@/lib/market-wide-discovery-policy";
+import {
   buildRealScannerBaseCandidateSelection,
   buildRealScannerCandidateGenerationSummary,
   type RealScannerCandidateGenerationSummary,
@@ -49,6 +63,11 @@ import {
   type ScannerCandidateRankingSummary,
   type ScannerCandidateRankingResult,
 } from "@/lib/scanner-candidate-ranking";
+import {
+  buildCandidateDecisionCapture,
+  type CandidateDecisionCapture,
+  type CandidateDecisionReasonCode,
+} from "@/lib/candidate-decision-record";
 import {
   buildOpenAiRecommendationRealityGuardSummary,
   finalizeOpenAiRecommendationRealityGuardSummary,
@@ -214,13 +233,6 @@ type AiRecommendation = Omit<RecommendationInsert, "session_type" | "status"> & 
   entry_type_warnings?: string[] | null;
 };
 
-type AiNoTradeDecision = {
-  reason: string;
-  confidence_score: number | null;
-  risk_flags: string[];
-  candidate_ticker: string | null;
-};
-
 type AiResponse = {
   result: "trade_recommendation" | "no_trade";
   recommendations: AiRecommendation[];
@@ -246,12 +258,15 @@ export type RecommendationScanLogDetails = {
   indicator_stale?: boolean | null;
   no_trade_reason?: string | null;
   no_trade_risk_flags?: string[] | null;
+  no_trade_candidate_ticker?: string | null;
+  no_trade_confidence_score?: number | null;
   threshold?: number | null;
   candidates_scanned?: number | null;
   skipped_tickers?: number | null;
   pre_market_candidates?: PreMarketCandidate[] | null;
   real_scanner_candidate_generation?: RealScannerCandidateGenerationSummary | null;
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
+  market_wide_discovery?: MarketWideDiscoverySummary | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;
   grow_max_learning_mode?: boolean | null;
@@ -280,6 +295,7 @@ export type RecommendationScanLogDetails = {
   power_hour_trial_enabled?: boolean | null;
   power_hour_publish_allowed?: boolean | null;
   power_hour_publish_block_reason?: string | null;
+  candidate_decision_capture?: CandidateDecisionCapture | null;
 };
 
 function publishVersionDetails() {
@@ -367,6 +383,7 @@ type ScoredCandidate = MockCandidate & {
 const dayTradeHorizon = "day_trade";
 const dayTradeTimeframe = "Intraday / day trade";
 const DEFAULT_DAY_TRADE_SCORE_THRESHOLD = 70;
+export const DAY_TRADE_SCORING_VERSION = "day_trade_score_v1" as const;
 const MANUAL_DAY_TRADE_SCORE_THRESHOLD = 62;
 const LEARNING_RECOMMENDATION_SCORE_THRESHOLD = 60;
 const MAX_CURRENT_RECOMMENDATIONS = 3;
@@ -3320,6 +3337,7 @@ export async function generateRecommendations({
       todaysRecommendationsResult,
       currentRecommendationsResult,
       openPositionsResult,
+      latestMarketWideDiscoveryResult,
     ] = await Promise.all([
         db
           .from("user_settings")
@@ -3350,6 +3368,13 @@ export async function generateRecommendations({
           .or("archived.eq.false,archived.is.null")
           .gte("created_at", getDefaultRecommendationExpiryCutoff()),
         db.from("positions").select("ticker,status").eq("owner_user_id", owner),
+        db
+          .from("recommendation_scan_runs")
+          .select("observed_at,payload_json")
+          .eq("owner_user_id", owner)
+          .order("observed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
     throwIfAborted(signal);
 
@@ -3400,6 +3425,29 @@ export async function generateRecommendations({
         500,
       );
     }
+
+    const latestMarketWideDiscoveryPayload = (
+      latestMarketWideDiscoveryResult.data as {
+        payload_json?: Record<string, unknown> | null;
+      } | null
+    )?.payload_json?.market_wide_discovery;
+    const parsedPreviousMarketWideDiscoveryAttempt =
+      marketWideDiscoveryPreviousAttemptFromUnknown(
+        latestMarketWideDiscoveryPayload,
+      );
+    const previousMarketWideDiscoveryAttempt: MarketWideDiscoveryPreviousAttempt | null =
+      latestMarketWideDiscoveryResult.error ||
+      (latestMarketWideDiscoveryPayload !== undefined &&
+        latestMarketWideDiscoveryPayload !== null &&
+        !parsedPreviousMarketWideDiscoveryAttempt)
+        ? {
+            // A database read or persisted receipt that cannot be interpreted
+            // is not evidence that a provider retry is safe. Treat both as a
+            // failed attempt and let the bounded error backoff fail closed.
+            attempted_at: new Date().toISOString(),
+            outcome: "provider_error",
+          }
+        : parsedPreviousMarketWideDiscoveryAttempt;
 
     const settingsRow = settingsResult.data as UserSettingsRow | null;
     const baseSettings = normalizeUserSettings(settingsRow);
@@ -3526,11 +3574,30 @@ export async function generateRecommendations({
       );
     }
 
+    const useScheduledUniverseRotation =
+      source === "scheduled" && !diagnosticMode;
+    const requestedScanBudget = diagnosticMode
+      ? diagnosticMaxTickers
+      : scheduledMaxTickers ?? undefined;
+    const marketWideDiscovery = await discoverMarketWideDiscovery({
+      scanWindow,
+      selectedBudget: requestedScanBudget,
+      previousAttempt: previousMarketWideDiscoveryAttempt,
+      // Diagnostics must stay provider-free even when the deployment enables
+      // a real discovery lane. A simulated run is never market evidence.
+      runtimeEnabled:
+        !diagnosticMode &&
+        process.env.TURE_MARKET_WIDE_DISCOVERY_ENABLED === "true",
+      signal,
+    });
+    throwIfAborted(signal);
     const scannerUniverseSelection = buildRealScannerBaseCandidateSelection({
       scanWindow,
-      requestedScanBudget: diagnosticMode
-        ? diagnosticMaxTickers
-        : scheduledMaxTickers ?? undefined,
+      requestedScanBudget,
+      selectionMode: useScheduledUniverseRotation
+        ? "scheduled_rotating"
+        : "default",
+      dynamicMovers: marketWideDiscovery.dynamic_movers,
     });
     const scannerBaseCandidates =
       diagnosticMode && typeof diagnosticMaxTickers === "number"
@@ -3539,6 +3606,14 @@ export async function generateRecommendations({
           ? scannerUniverseSelection.candidates.slice(0, scheduledMaxTickers)
         : scannerUniverseSelection.candidates;
     const universeCoverage = scannerUniverseSelection.coverage;
+    logPipeline(
+      "scanner_universe_selection_mode",
+      scannerUniverseSelection.selectionMode,
+    );
+    logPipeline(
+      "scanner_universe_rotation_batch",
+      scannerUniverseSelection.rotationBatch,
+    );
     const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
       candidates: scannerBaseCandidates,
       maxTickers: diagnosticMode
@@ -3578,6 +3653,58 @@ export async function generateRecommendations({
       },
     );
     throwIfAborted(signal);
+    const candidateDecisionCaptureTimestamp = new Date().toISOString();
+    const candidateEligibilityRejectionCodes = new Map<
+      string,
+      Set<CandidateDecisionReasonCode>
+    >();
+    const recordCandidateEligibilityRejection = (
+      ticker: string,
+      reason: CandidateDecisionReasonCode,
+    ) => {
+      const normalizedTicker = normalizeTicker(ticker);
+      const reasons = candidateEligibilityRejectionCodes.get(normalizedTicker) ??
+        new Set<CandidateDecisionReasonCode>();
+      reasons.add(reason);
+      candidateEligibilityRejectionCodes.set(normalizedTicker, reasons);
+    };
+    const candidateDecisionCapture = ({
+      ranking = null,
+      eligibleCandidateTickers = [],
+      publishableThreshold = null,
+      noPublishReason = null,
+      recommendationBuildPath = null,
+      builtTickers = [],
+      publishedTickers = [],
+      selectedBuildDiagnostics = [],
+    }: {
+      ranking?: ScannerCandidateRankingSummary | null;
+      eligibleCandidateTickers?: string[];
+      publishableThreshold?: number | null;
+      noPublishReason?: string | null;
+      recommendationBuildPath?: string | null;
+      builtTickers?: string[];
+      publishedTickers?: string[];
+      selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[];
+    } = {}) =>
+      buildCandidateDecisionCapture({
+        captureTimestamp: candidateDecisionCaptureTimestamp,
+        universe: scannerBaseCandidates,
+        observedCandidates: scannerCandidates,
+        ranking,
+        eligibleCandidateTickers,
+        eligibilityRejectionCodes: Object.fromEntries(
+          Array.from(candidateEligibilityRejectionCodes.entries()).map(
+            ([ticker, reasons]) => [ticker, Array.from(reasons)],
+          ),
+        ),
+        publishableThreshold,
+        noPublishReason,
+        recommendationBuildPath,
+        builtTickers,
+        publishedTickers,
+        selectedBuildDiagnostics,
+      });
     updateRawCandidateTrace(activeScanTrace, scannerCandidates);
     const initialRealScannerCandidateGeneration =
       buildRealScannerCandidateGenerationSummary({
@@ -3598,6 +3725,7 @@ export async function generateRecommendations({
       initialRealScannerCandidateGeneration,
     );
     logPipeline("dynamic_movers_discovery", dynamicMoversDiscovery);
+    logPipeline("market_wide_discovery", marketWideDiscovery.summary);
 
     if (scannerCandidates.length === 0) {
       if (source === "scheduled") {
@@ -3616,6 +3744,11 @@ export async function generateRecommendations({
             real_scanner_candidate_generation:
               initialRealScannerCandidateGeneration,
             dynamic_movers_discovery: dynamicMoversDiscovery,
+            market_wide_discovery: marketWideDiscovery.summary,
+            candidate_decision_capture: candidateDecisionCapture({
+              noPublishReason: "no_raw_candidates",
+              recommendationBuildPath: "no_publish",
+            }),
           } satisfies RecommendationScanLogDetails,
         };
       }
@@ -3670,6 +3803,10 @@ export async function generateRecommendations({
       const maxTickerRecommendationsToday = growMaxLearningMode ? 3 : 2;
 
       if (counts.totalToday >= maxTickerRecommendationsToday) {
+        recordCandidateEligibilityRejection(
+          candidate.ticker,
+          "daily_candidate_limit",
+        );
         removedReasons.push(
           `${candidate.ticker}: recommended ${counts.totalToday} times today`,
         );
@@ -3677,6 +3814,10 @@ export async function generateRecommendations({
       }
 
       if (!allowSameSessionRepeat && counts.sameSessionToday >= 1) {
+        recordCandidateEligibilityRejection(
+          candidate.ticker,
+          "session_candidate_limit",
+        );
         removedReasons.push(
           `${candidate.ticker}: already recommended in ${sessionType} today`,
         );
@@ -3716,6 +3857,10 @@ export async function generateRecommendations({
     const freshCandidates = scannerCandidates
       .filter((candidate) => {
         if (openPositionTickerSet.has(candidate.ticker)) {
+          recordCandidateEligibilityRejection(
+            candidate.ticker,
+            "cooldown_active_position",
+          );
           freshCandidatesRemovedByCooldown.push(
             `${candidate.ticker}: Active position already exists for ticker. Skipping.`,
           );
@@ -3726,6 +3871,10 @@ export async function generateRecommendations({
           !growMaxLearningMode &&
           currentRecommendationTickerSet.has(candidate.ticker)
         ) {
+          recordCandidateEligibilityRejection(
+            candidate.ticker,
+            "current_recommendation_exists",
+          );
           freshCandidatesRemovedByCooldown.push(
             `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
           );
@@ -3746,6 +3895,10 @@ export async function generateRecommendations({
       ? scannerCandidates
           .filter((candidate) => {
             if (openPositionTickerSet.has(candidate.ticker)) {
+              recordCandidateEligibilityRejection(
+                candidate.ticker,
+                "cooldown_active_position",
+              );
               fallbackCandidatesRemovedByCooldown.push(
                 `${candidate.ticker}: Active position already exists for ticker. Skipping.`,
               );
@@ -3756,6 +3909,10 @@ export async function generateRecommendations({
               !growMaxLearningMode &&
               currentRecommendationTickerSet.has(candidate.ticker)
             ) {
+              recordCandidateEligibilityRejection(
+                candidate.ticker,
+                "current_recommendation_exists",
+              );
               fallbackCandidatesRemovedByCooldown.push(
                 `${candidate.ticker}: Existing current setup found for ticker. Skipping duplicate.`,
               );
@@ -3820,6 +3977,11 @@ export async function generateRecommendations({
           real_scanner_candidate_generation:
             initialRealScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
+          candidate_decision_capture: candidateDecisionCapture({
+            noPublishReason: "candidate_cooldown_filtered_all",
+            recommendationBuildPath: "no_publish",
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4084,12 +4246,24 @@ export async function generateRecommendations({
           skipped_tickers: candidatesRemovedByCooldown.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           reference_refresh: referenceRefreshDiagnostics,
           selected_candidate_build_diagnostics: selectedCandidateBuildDiagnostics,
           selected_to_built_drop_off: selectedToBuiltDropOff,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            noPublishReason:
+              qualifiedCandidates.length === 0
+                ? "no_publishable_ranked_candidates"
+                : "publish_limit_selected_zero_candidates",
+            recommendationBuildPath: "no_publish",
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4104,6 +4278,13 @@ export async function generateRecommendations({
     let deterministicFallbackReason: string | null = null;
     let deterministicFallbackSkippedReasons: string[] = [];
     let aiResponse: AiResponse;
+    let explicitNoTrade: AiNoTradeDecision | null = null;
+    let modelNoPublish: {
+      reason:
+        | "openai_zero_recommendations"
+        | "openai_recommendation_validation_failed";
+      message: string;
+    } | null = null;
     let openAiOutputRecommendationCount = 0;
     let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
       null;
@@ -4190,31 +4371,43 @@ export async function generateRecommendations({
       openAiRealityGuardSummary,
     );
 
-    if (aiResponse.result === "no_trade") {
-      const noTrade = aiResponse.no_trade;
+    const modelPublicationAction =
+      resolveAiRecommendationPublicationAction({
+        result: aiResponse.result,
+        no_trade: aiResponse.no_trade,
+        recommendation_count: aiResponse.recommendations.length,
+      });
+    if (modelPublicationAction.kind === "preserve_no_trade") {
+      explicitNoTrade = modelPublicationAction.no_trade;
       const rejectedTicker =
-        noTrade?.candidate_ticker ||
+        explicitNoTrade.candidate_ticker ||
         topCandidate?.ticker ||
         candidateTickersForOpenAI[0] ||
         "candidate";
-      const rejectedReason =
-        noTrade?.reason || "OpenAI did not find an actionable day trade setup.";
-      const message = `OpenAI rejected candidate ${rejectedTicker}: ${rejectedReason}`;
+      const rejectedReason = explicitNoTrade.reason;
 
       logPipeline("openai_no_trade_ticker", rejectedTicker);
       logPipeline("openai_no_trade_reason", rejectedReason);
+      logPipeline("openai_no_trade_risk_flags", explicitNoTrade.risk_flags);
+      logPipeline(
+        "openai_no_trade_confidence_score",
+        explicitNoTrade.confidence_score,
+      );
       logPipeline("validated_recommendations_count", 0);
-      aiResponse = deterministicFallback(message);
+      logPipeline("explicit_no_trade_preserved", true);
     }
 
-    if (aiResponse.recommendations.length === 0) {
+    if (modelPublicationAction.kind === "preserve_no_publish") {
+      modelNoPublish = {
+        reason: modelPublicationAction.no_publish_reason,
+        message: modelPublicationAction.message,
+      };
       logPipeline("validated_recommendations_count", 0);
-      logPipeline("skipped_recommendations_count", 0);
-      logPipeline("skipped_recommendation_reasons", []);
-      aiResponse = deterministicFallback("OpenAI returned zero recommendations.");
+      logPipeline("openai_no_publish_reason", modelNoPublish.reason);
+      logPipeline("openai_no_publish_message", modelNoPublish.message);
     }
 
-    let sanitizedRecommendations = sanitizeRecommendations(
+    const sanitizedRecommendations = sanitizeRecommendations(
       aiResponse.recommendations,
       candidatesForOpenAI,
       sessionType,
@@ -4226,27 +4419,28 @@ export async function generateRecommendations({
     activeScanTrace?.updateOpenAi({
       parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
     });
-    let recommendationsToInsert = sanitizedRecommendations.recommendations;
+    const recommendationsToInsert = sanitizedRecommendations.recommendations;
 
-    if (recommendationsToInsert.length === 0 && !deterministicFallbackUsed) {
-      aiResponse = deterministicFallback(
-        `OpenAI recommendations rejected by sanitizer: ${sanitizedRecommendations.skippedReasons
-          .slice(0, 3)
-          .join(" ")}`,
-      );
-      sanitizedRecommendations = sanitizeRecommendations(
-        aiResponse.recommendations,
-        candidatesForOpenAI,
-        sessionType,
-        scanWindow,
-        source,
-        settings.max_recommendations_per_session,
-        powerHourTrial,
-      );
-      recommendationsToInsert = sanitizedRecommendations.recommendations;
-      activeScanTrace?.updateOpenAi({
-        parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
+    const sanitizedPublicationAction =
+      resolveSanitizedRecommendationPublicationAction({
+        model_recommendation_count: aiResponse.recommendations.length,
+        sanitized_recommendation_count: recommendationsToInsert.length,
+        deterministic_fallback_used: deterministicFallbackUsed,
       });
+    if (
+      !explicitNoTrade &&
+      !modelNoPublish &&
+      sanitizedPublicationAction.kind === "preserve_no_publish"
+    ) {
+      modelNoPublish = {
+        reason: sanitizedPublicationAction.no_publish_reason,
+        message: sanitizedPublicationAction.message,
+      };
+      logPipeline("openai_no_publish_reason", modelNoPublish.reason);
+      logPipeline(
+        "openai_no_publish_rejection_reasons",
+        sanitizedRecommendations.skippedReasons,
+      );
     }
 
     if (!deterministicFallbackUsed) {
@@ -4336,12 +4530,22 @@ export async function generateRecommendations({
     if (recommendationsToInsert.length === 0) {
       logPipeline("inserted_recommendations_count", 0);
       logPipeline("inserted_recommendation_tickers", []);
+      const noPublishReason = explicitNoTrade
+        ? "openai_no_trade"
+        : (modelNoPublish?.reason ??
+          (deterministicFallbackUsed
+            ? "deterministic_fallback_validation_failed"
+            : "recommendation_validation_failed"));
+      const noTradeReason = explicitNoTrade?.reason ?? null;
 
       return {
         recommendations: [],
-        message: duplicateFallbackUsed
-          ? duplicateFallbackMessage
-          : "Ranked learning candidates were available but failed recommendation validation.",
+        message: explicitNoTrade
+          ? `No trade: ${noTradeReason}`
+          : (modelNoPublish?.message ??
+            (duplicateFallbackUsed
+              ? duplicateFallbackMessage
+              : "Ranked learning candidates were available but failed recommendation validation.")),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,
@@ -4358,6 +4562,12 @@ export async function generateRecommendations({
           indicator_source: topCandidateIndicatorSource,
           indicator_cached_at: topCandidateIndicatorCachedAt,
           indicator_stale: topCandidateIndicatorStale,
+          no_trade_reason: noTradeReason,
+          no_trade_risk_flags: explicitNoTrade?.risk_flags ?? null,
+          no_trade_candidate_ticker:
+            explicitNoTrade?.candidate_ticker ?? null,
+          no_trade_confidence_score:
+            explicitNoTrade?.confidence_score ?? null,
           threshold: strongThreshold,
           strong_threshold: strongThreshold,
           publishable_threshold: publishableThreshold,
@@ -4369,13 +4579,12 @@ export async function generateRecommendations({
           valid_count: validQualifiedCount,
           experimental_count: experimentalQualifiedCount,
           ranked_candidates_not_published_reason:
+            noTradeReason ??
             sanitizedRecommendations.skippedReasons[0] ??
             deterministicFallbackSkippedReasons[0] ??
             deterministicFallbackReason ??
             "Publishable candidates failed recommendation validation.",
-          no_publish_reason: deterministicFallbackUsed
-            ? "deterministic_fallback_validation_failed"
-            : "recommendation_validation_failed",
+          no_publish_reason: noPublishReason,
           power_hour_trial_enabled: powerHourTrialPublishing,
           power_hour_publish_allowed: powerHourTrial,
           power_hour_publish_block_reason: null,
@@ -4395,10 +4604,22 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            noPublishReason,
+            recommendationBuildPath: "no_publish",
+            builtTickers: recommendationsToInsert.map(
+              (recommendation) => recommendation.ticker,
+            ),
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4477,10 +4698,21 @@ export async function generateRecommendations({
             deterministicFallbackSkippedReasons.length,
           real_scanner_candidate_generation: realScannerCandidateGeneration,
           dynamic_movers_discovery: dynamicMoversDiscovery,
+          market_wide_discovery: marketWideDiscovery.summary,
           scanner_candidate_ranking: scannerCandidateRankingSummary,
           grow_max_learning_mode: growMaxLearningMode,
           target_ideas_per_window: growMaxRecommendationTarget,
           openai_recommendation_reality_guard: openAiRealityGuardSummary,
+          candidate_decision_capture: candidateDecisionCapture({
+            ranking: scannerCandidateRankingSummary,
+            eligibleCandidateTickers: availableCandidateTickers,
+            publishableThreshold,
+            recommendationBuildPath,
+            builtTickers: recommendationsToInsert.map(
+              (recommendation) => recommendation.ticker,
+            ),
+            selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+          }),
         } satisfies RecommendationScanLogDetails,
       };
     }
@@ -4582,10 +4814,22 @@ export async function generateRecommendations({
           deterministicFallbackSkippedReasons.length,
         real_scanner_candidate_generation: realScannerCandidateGeneration,
         dynamic_movers_discovery: dynamicMoversDiscovery,
+        market_wide_discovery: marketWideDiscovery.summary,
         scanner_candidate_ranking: scannerCandidateRankingSummary,
         grow_max_learning_mode: growMaxLearningMode,
         target_ideas_per_window: growMaxRecommendationTarget,
         openai_recommendation_reality_guard: openAiRealityGuardSummary,
+        candidate_decision_capture: candidateDecisionCapture({
+          ranking: scannerCandidateRankingSummary,
+          eligibleCandidateTickers: availableCandidateTickers,
+          publishableThreshold,
+          recommendationBuildPath,
+          builtTickers: recommendationsToInsert.map(
+            (recommendation) => recommendation.ticker,
+          ),
+          publishedTickers: insertedRecommendationTickers,
+          selectedBuildDiagnostics: selectedCandidateBuildDiagnostics,
+        }),
       } satisfies RecommendationScanLogDetails,
       ...(duplicateFallbackUsed ? { message: duplicateFallbackMessage } : {}),
     };

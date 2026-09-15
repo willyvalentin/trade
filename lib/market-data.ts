@@ -1,6 +1,12 @@
 import "server-only";
 
 import { throwIfAborted } from "@/lib/operation-abort";
+import { MarketDataProviderResponseError } from "@/lib/provider-response-observation";
+
+export {
+  MarketDataProviderResponseError,
+  marketDataProviderResponseObserved,
+} from "@/lib/provider-response-observation";
 
 const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
 
@@ -45,6 +51,23 @@ export type MarketQuote = {
   volume: number | null;
 };
 
+export type TwelveDataMarketMoverDirection = "gainers" | "losers";
+
+export type TwelveDataMarketMover = {
+  symbol: string;
+  name: string | null;
+  rank: number;
+  last: number | null;
+  volume: number | null;
+  percent_change: number | null;
+};
+
+export type TwelveDataMarketMoversResult = {
+  direction: TwelveDataMarketMoverDirection;
+  fetched_at: string;
+  movers: TwelveDataMarketMover[];
+};
+
 type TwelveDataErrorResponse = {
   status?: unknown;
   code?: unknown;
@@ -73,6 +96,10 @@ type TwelveDataQuoteResponse = TwelveDataErrorResponse & {
   low?: unknown;
   previous_close?: unknown;
   volume?: unknown;
+};
+
+type TwelveDataMarketMoversResponse = TwelveDataErrorResponse & {
+  values?: unknown;
 };
 
 function getTwelveDataApiKey() {
@@ -275,7 +302,10 @@ async function fetchTwelveDataDetailed<T>(
     const message =
       error instanceof Error && error.message ? error.message : "Unknown error";
 
-    throw new Error(`Could not reach market data provider: ${message}`);
+    throw new MarketDataProviderResponseError(
+      `Could not reach market data provider: ${message}`,
+      false,
+    );
   }
 
   let data: unknown;
@@ -283,7 +313,10 @@ async function fetchTwelveDataDetailed<T>(
   try {
     data = await response.json();
   } catch {
-    throw new Error("Market data provider returned a response that was not valid JSON.");
+    throw new MarketDataProviderResponseError(
+      "Market data provider returned a response that was not valid JSON.",
+      true,
+    );
   }
 
   throwIfAborted(options?.signal);
@@ -291,8 +324,9 @@ async function fetchTwelveDataDetailed<T>(
   const providerError = getTwelveDataError(data);
 
   if (!response.ok || providerError) {
-    throw new Error(
+    throw new MarketDataProviderResponseError(
       `Market data request failed: ${providerError || response.statusText}`,
+      true,
     );
   }
 
@@ -472,5 +506,55 @@ export async function getQuote(
     low: numberField(data.low, "low"),
     previous_close: numberField(data.previous_close, "previous close"),
     volume: optionalNumberField(data.volume),
+  };
+}
+
+export async function getTwelveDataMarketMovers(
+  direction: TwelveDataMarketMoverDirection,
+  options?: { signal?: AbortSignal },
+): Promise<TwelveDataMarketMoversResult> {
+  const data = await fetchTwelveData<TwelveDataMarketMoversResponse>(
+    "/market_movers/stocks",
+    {
+      direction,
+      country: "United States",
+      outputsize: 50,
+    },
+    options,
+  );
+
+  if (!Array.isArray(data.values)) {
+    throw new MarketDataProviderResponseError(
+      "Market movers provider returned invalid mover data.",
+      true,
+    );
+  }
+
+  const fetchedAt = new Date().toISOString();
+
+  return {
+    direction,
+    fetched_at: fetchedAt,
+    movers: data.values.flatMap((value, index) => {
+      if (typeof value !== "object" || value === null) return [];
+      const mover = value as Record<string, unknown>;
+      const symbol = typeof mover.symbol === "string" ? mover.symbol.trim().toUpperCase() : "";
+
+      if (!symbol) return [];
+
+      return [
+        {
+          symbol,
+          name:
+            typeof mover.name === "string" && mover.name.trim().length > 0
+              ? mover.name.trim()
+              : null,
+          rank: index + 1,
+          last: optionalNumberField(mover.last),
+          volume: optionalNumberField(mover.volume),
+          percent_change: optionalNumberField(mover.percent_change),
+        } satisfies TwelveDataMarketMover,
+      ];
+    }),
   };
 }

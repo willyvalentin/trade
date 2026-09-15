@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   generateRecommendations,
+  DAY_TRADE_SCORING_VERSION,
   RecommendationGenerationError,
   type RecommendationScanLogDetails,
   type SessionType,
@@ -69,6 +70,7 @@ import {
 import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { buildCandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
@@ -88,6 +90,7 @@ import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { checkRecommendationLearningSchema } from "@/lib/recommendation-learning-schema";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
@@ -454,7 +457,7 @@ function buildPowerHourTrialGate({
   if (
     String(AUTOMATION_ROUTE_VERSION) !== "action_148_publish_path_v1" ||
     String(RECOMMENDATION_PUBLISH_POLICY_VERSION) !==
-      "learning_tiers_82_72_60_v1"
+      "learning_tiers_82_72_60_v2_preserve_explicit_no_trade"
   ) {
     return {
       power_hour_trial_enabled: true,
@@ -789,14 +792,7 @@ function isRateLimitLikeError(error: unknown) {
     typeof normalized.status === "number"
       ? normalized.status
       : null;
-  const message = JSON.stringify(normalized).toLowerCase();
-
-  return (
-    status === 429 ||
-    message.includes("rate limit") ||
-    message.includes("too many request") ||
-    message.includes("quota")
-  );
+  return status === 429 || isProviderRateLimitLikeError(normalized);
 }
 
 function errorScanResult(error: unknown): ScanLogResult {
@@ -2219,6 +2215,7 @@ async function persistAutomationArtifacts({
       selected_candidate_build_diagnostics:
         learningAccelerationSelectedBuildDiagnostics,
       reference_refresh: scanLog.reference_refresh ?? null,
+      market_wide_discovery: scanLog.market_wide_discovery ?? null,
       empty_scan_reason: emptyScanReason,
       build_rejection_diagnostics: {
         selected_count:
@@ -2242,6 +2239,15 @@ async function persistAutomationArtifacts({
       },
     },
   });
+  const candidateDecisionRecord = buildCandidateDecisionRecord({
+    scanRun,
+    capture: scanLog.candidate_decision_capture,
+    scoringVersion: DAY_TRADE_SCORING_VERSION,
+    buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+  });
+  if (candidateDecisionRecord) {
+    scanRun.payload_json.candidate_decision_record = candidateDecisionRecord;
+  }
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {
       supabaseClient: serverSupabase.client,

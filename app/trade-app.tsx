@@ -264,6 +264,16 @@ import {
   type RecommendationScanRunPersistenceResult,
 } from "@/lib/recommendation-scan-run";
 import {
+  buildCandidateDecisionRecordHistory,
+  candidateDecisionRecordFromScanRun,
+  summarizeCandidateDecisionRecord,
+  type CandidateDecisionRecordHistory,
+} from "@/lib/candidate-decision-readback";
+import {
+  marketWideDiscoveryReadbackFromScanRun,
+  type MarketWideDiscoveryReadback,
+} from "@/lib/market-wide-discovery-readback";
+import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
   recommendationBatchFromPersistenceRow,
@@ -11473,6 +11483,28 @@ export function TradeApp({
       .filter(isSuccessfulLiveRecommendationScanRun)
       .sort((first, second) => second.observed_at.localeCompare(first.observed_at))[0] ??
     null;
+  const candidateDecisionRecordHistory = buildCandidateDecisionRecordHistory({
+    scanRuns: liveStoredRecommendationScanRuns,
+  });
+  const latestCandidateDecisionRecord =
+    [...liveStoredRecommendationScanRuns]
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
+      .map(candidateDecisionRecordFromScanRun)
+      .find((record) => record !== null) ?? null;
+  const candidateDecisionRecordReadback = summarizeCandidateDecisionRecord(
+    latestCandidateDecisionRecord,
+  );
+  const latestMarketWideDiscoveryReadback =
+    [...liveStoredRecommendationScanRuns]
+      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
+      .map(marketWideDiscoveryReadbackFromScanRun)
+      .find((receipt) => receipt.status === "available") ??
+    marketWideDiscoveryReadbackFromScanRun({
+      observed_at: "",
+      trading_date: null,
+      window: "unknown",
+      payload_json: {},
+    });
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -14683,6 +14715,9 @@ export function TradeApp({
       dynamic_movers: dynamicMarketMoversSummary,
       dynamic_movers_discovery: dynamicMoversDiscoverySummary,
       scanner_ranking: scannerCandidateRankingSummary,
+      candidate_decision_record: candidateDecisionRecordReadback,
+      candidate_decision_history: candidateDecisionRecordHistory,
+      market_wide_discovery: latestMarketWideDiscoveryReadback,
       active_scan_trace: latestActiveScanTrace,
       learning_acceleration_config: learningAccelerationServerConfig,
       historical_candle_storage_detection: historicalCandleStorageDetection,
@@ -16801,6 +16836,14 @@ export function TradeApp({
             <MarketDiagnosticsConsolePanel
               summary={marketDiagnosticsConsoleSummary}
               summaryJson={marketDiagnosticsConsoleSummaryJsonText}
+            />
+
+            <CandidateDecisionHistoryPanel
+              history={candidateDecisionRecordHistory}
+            />
+
+            <MarketWideDiscoveryReceiptPanel
+              receipt={latestMarketWideDiscoveryReadback}
             />
 
             <ProviderBudgetGuardPanel
@@ -37159,6 +37202,297 @@ function marketDiagnosticsConsoleStatusTone(
   }
 
   return "neutral";
+}
+
+function candidateDecisionHistoryTone(
+  status: CandidateDecisionRecordHistory["status"],
+): "positive" | "warning" | "danger" | "neutral" {
+  if (status === "available") return "positive";
+  if (status === "partial") return "warning";
+  return "neutral";
+}
+
+function candidateDecisionHistoryDispositionLabel(
+  disposition: "recommendations_published" | "no_trade" | null,
+) {
+  if (disposition === "recommendations_published") return "published";
+  if (disposition === "no_trade") return "no trade";
+  return "unavailable";
+}
+
+function marketWideDiscoveryReceiptTone(
+  receipt: MarketWideDiscoveryReadback,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (receipt.status === "unavailable") return "neutral";
+  if (
+    receipt.attempt.outcome === "provider_error" ||
+    receipt.attempt.outcome === "rate_limited"
+  ) {
+    return "warning";
+  }
+  if (receipt.attempt.provider_response_observed === true) return "positive";
+  return "warning";
+}
+
+function MarketWideDiscoveryReceiptPanel({
+  receipt,
+}: {
+  receipt: MarketWideDiscoveryReadback;
+}) {
+  const providerObserved = receipt.attempt.provider_response_observed === true;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Discovery trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Market-wide Discovery Receipt
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            This is an auditable intake receipt, not a recommendation. It
+            distinguishes a deliberate no-call from a provider response, and
+            keeps V1 coverage limits visible.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={
+            receipt.status === "unavailable"
+              ? "no receipt"
+              : providerObserved
+                ? receipt.attempt.outcome ?? "observed"
+                : receipt.admission.status ?? "not attempted"
+          }
+          tone={marketWideDiscoveryReceiptTone(receipt)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Admission"
+          value={receipt.admission.status ?? "unavailable"}
+        />
+        <SummaryCard
+          label="Provider Response"
+          value={providerObserved ? "observed" : "not observed"}
+        />
+        <SummaryCard
+          label="Intake"
+          value={`${receipt.intake.fetched_count ?? 0} fetched / ${receipt.intake.selected_count ?? 0} selected`}
+        />
+        <SummaryCard
+          label="Request Budget"
+          value={
+            receipt.admission.requested_credits === null
+              ? "not declared"
+              : `${receipt.admission.requested_credits} credits`
+          }
+        />
+      </div>
+
+      {receipt.status === "unavailable" ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No valid versioned discovery receipt exists in the retained live scan
+          history yet. This is not evidence that discovery ran or that it found
+          no candidate.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              What happened
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {providerObserved
+                ? `${receipt.attempt.outcome ?? "unknown"} provider result${receipt.attempt.attempted_at ? ` at ${formatDate(receipt.attempt.attempted_at)}` : ""}.`
+                : `No provider response was requested. Admission: ${receipt.admission.reason_codes.join(", ") || "not recorded"}.`}
+            </p>
+            {receipt.admission.next_retry_at && (
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                Next permitted retry: {formatDate(receipt.admission.next_retry_at)}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              V1 coverage boundary
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Symbol master: {receipt.admission.symbol_master_status ?? "unknown"}.
+              {" "}Relative volume: {receipt.admission.relative_volume_status ?? "unknown"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              A configured plan is not provider-entitlement evidence; only an
+              observed response establishes that a request was served.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CandidateDecisionHistoryPanel({
+  history,
+}: {
+  history: CandidateDecisionRecordHistory;
+}) {
+  const comparison = history.comparison_to_previous;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Candidate Decision History
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Compare attributable scan decisions over time. This is audit evidence,
+            not a recommendation feed or a signal to relax publication standards.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={history.status}
+          tone={candidateDecisionHistoryTone(history.status)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Attributable"
+          value={`${history.valid_record_count}/${history.considered_scan_run_count}`}
+        />
+        <SummaryCard
+          label="Integrity Excluded"
+          value={String(history.invalid_record_count)}
+        />
+        <SummaryCard
+          label="Published"
+          value={String(history.decision_mix.recommendations_published_count)}
+        />
+        <SummaryCard
+          label="No Trade"
+          value={String(history.decision_mix.no_trade_count)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Latest vs previous attributable decision
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {comparison
+              ? `Candidates ${comparison.candidate_count_delta >= 0 ? "+" : ""}${comparison.candidate_count_delta}; ranked ${comparison.ranked_candidate_count_delta >= 0 ? "+" : ""}${comparison.ranked_candidate_count_delta}; fresh ${comparison.fresh_candidate_count_delta >= 0 ? "+" : ""}${comparison.fresh_candidate_count_delta}; final decision ${comparison.final_disposition_changed ? "changed" : "unchanged"}.`
+              : "A second attributable scan decision is needed before Ture can compare movement."}
+          </p>
+          {comparison && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Previous decision: {formatDate(comparison.previous_decision_timestamp)}
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Recurring no-trade reasons
+          </h4>
+          {history.recurring_no_trade_reasons.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
+              {history.recurring_no_trade_reasons.map((item) => (
+                <li key={item.reason}>
+                  <span className="font-mono text-xs text-zinc-100">
+                    {item.reason}
+                  </span>{" "}
+                  <span className="text-zinc-500">×{item.count}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm leading-6 text-zinc-500">
+              No attributable no-trade reason has been recorded yet.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Recent attributable decisions
+        </h4>
+        {history.entries.length === 0 ? (
+          <p className="mt-3 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+            No complete, identity-matched candidate decision record is available
+            in the retained scan-run history.
+          </p>
+        ) : (
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            {history.entries.map((entry) => {
+              const decision = entry.readback;
+              const strongestUnpublished =
+                decision.strongest_unpublished_candidates[0] ?? null;
+
+              return (
+                <article
+                  key={entry.scan_run_fingerprint}
+                  className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-sm font-semibold text-zinc-100">
+                        {formatDate(decision.decision_timestamp ?? entry.observed_at)}
+                      </p>
+                      <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+                        {entry.window} · {entry.trading_date ?? "unknown trading day"}
+                      </p>
+                    </div>
+                    <RecommendationDetailsPill
+                      label={candidateDecisionHistoryDispositionLabel(
+                        decision.final_disposition,
+                      )}
+                      tone={
+                        decision.final_disposition === "recommendations_published"
+                          ? "positive"
+                          : "neutral"
+                      }
+                    />
+                  </div>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <Detail
+                      label="Coverage"
+                      value={`${decision.candidate_count} total / ${decision.ranked_candidate_count} ranked`}
+                    />
+                    <Detail
+                      label="Data health"
+                      value={`${decision.data_health.fresh_candidate_count} fresh / ${decision.data_health.stale_candidate_count} stale / ${decision.data_health.gap_candidate_count} gap`}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-zinc-400">
+                    {decision.final_disposition === "no_trade"
+                      ? `No trade: ${decision.no_trade_reason ?? "reason not recorded"}.`
+                      : `Published: ${decision.published_tickers.join(", ") || "ticker not recorded"}.`}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">
+                    {strongestUnpublished
+                      ? `Strongest unpublished: ${strongestUnpublished.ticker} #${strongestUnpublished.rank ?? "?"} — ${strongestUnpublished.reason_codes.join(", ") || "no reason recorded"}.`
+                      : "No unpublished ranked candidate in this record."}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function MarketDiagnosticsConsolePanel({

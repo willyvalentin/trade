@@ -128,6 +128,7 @@ export type ScannerUniverseSelection = {
 type ScannerUniverseSelectionInput = {
   scanWindow?: IntradayScanWindow | "unknown" | null;
   requestedScanBudget?: number | null;
+  rotationBatch?: number | null;
   riskControlsSettings?: Pick<
     RiskControlsSettings,
     "allowed_tickers" | "blocked_tickers"
@@ -138,6 +139,7 @@ type ScannerUniverseSelectionInput = {
 
 export const scannerUniverseDefaultScanBudget = 50;
 export const scannerUniverseMaxScanBudget = 100;
+export const scheduledScannerUniverseRotationCadenceMinutes = 15;
 
 export const scannerUniverseTickers = [
   ticker("AAPL", "Apple Inc.", "mega_cap", "Information Technology", "mega", "medium", "liquid mega-cap", ["liquid", "index_weight"]),
@@ -290,10 +292,15 @@ export function selectScannerUniverse(
       })
     : [];
   const baseBudget = Math.max(0, budget.effective_tickers - dynamicTickers.length);
-  const baseTickers = selectBalancedTickers(
+  const balancedBaseTickers = selectBalancedTickers(
     eligibleTradable,
-    baseBudget,
+    eligibleTradable.length,
     getWeightedCategories(scanWindow),
+  );
+  const baseTickers = selectRotatingBatch(
+    balancedBaseTickers,
+    baseBudget,
+    input.rotationBatch,
   );
   const selectedTickers = [...dynamicTickers, ...baseTickers].slice(
     0,
@@ -332,6 +339,16 @@ export function scannerUniverseCoverageSummaryJson(
   summary: ScannerUniverseCoverageSummary,
 ) {
   return JSON.stringify(summary, null, 2);
+}
+
+export function getScheduledScannerUniverseRotationBatch(now = new Date()) {
+  const timestamp = now.getTime();
+
+  if (!Number.isFinite(timestamp)) return 0;
+
+  return Math.floor(
+    timestamp / (scheduledScannerUniverseRotationCadenceMinutes * 60 * 1000),
+  );
 }
 
 function ticker(
@@ -640,6 +657,26 @@ function selectBalancedTickers(
   }
 
   return selected;
+}
+
+function selectRotatingBatch(
+  candidates: ScannerUniverseTicker[],
+  batchSize: number,
+  rotationBatch: number | null | undefined,
+) {
+  if (batchSize <= 0 || candidates.length === 0) return [];
+
+  const normalizedBatch =
+    typeof rotationBatch === "number" && Number.isFinite(rotationBatch)
+      ? Math.max(0, Math.floor(rotationBatch))
+      : 0;
+  const selectionCount = Math.min(batchSize, candidates.length);
+  const startIndex = (normalizedBatch * selectionCount) % candidates.length;
+
+  return Array.from(
+    { length: selectionCount },
+    (_, index) => candidates[(startIndex + index) % candidates.length],
+  );
 }
 
 function buildCoverageSummary({
