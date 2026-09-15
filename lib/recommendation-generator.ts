@@ -4278,6 +4278,12 @@ export async function generateRecommendations({
     let deterministicFallbackSkippedReasons: string[] = [];
     let aiResponse: AiResponse;
     let explicitNoTrade: AiNoTradeDecision | null = null;
+    let modelNoPublish: {
+      reason:
+        | "openai_zero_recommendations"
+        | "openai_recommendation_validation_failed";
+      message: string;
+    } | null = null;
     let openAiOutputRecommendationCount = 0;
     let openAiRealityGuardSummary: OpenAiRecommendationRealityGuardSummary | null =
       null;
@@ -4365,7 +4371,11 @@ export async function generateRecommendations({
     );
 
     const modelPublicationAction =
-      resolveAiRecommendationPublicationAction(aiResponse);
+      resolveAiRecommendationPublicationAction({
+        result: aiResponse.result,
+        no_trade: aiResponse.no_trade,
+        recommendation_count: aiResponse.recommendations.length,
+      });
     if (modelPublicationAction.kind === "preserve_no_trade") {
       explicitNoTrade = modelPublicationAction.no_trade;
       const rejectedTicker =
@@ -4386,14 +4396,17 @@ export async function generateRecommendations({
       logPipeline("explicit_no_trade_preserved", true);
     }
 
-    if (aiResponse.recommendations.length === 0 && !explicitNoTrade) {
+    if (modelPublicationAction.kind === "preserve_no_publish") {
+      modelNoPublish = {
+        reason: modelPublicationAction.no_publish_reason,
+        message: modelPublicationAction.message,
+      };
       logPipeline("validated_recommendations_count", 0);
-      logPipeline("skipped_recommendations_count", 0);
-      logPipeline("skipped_recommendation_reasons", []);
-      aiResponse = deterministicFallback("OpenAI returned zero recommendations.");
+      logPipeline("openai_no_publish_reason", modelNoPublish.reason);
+      logPipeline("openai_no_publish_message", modelNoPublish.message);
     }
 
-    let sanitizedRecommendations = sanitizeRecommendations(
+    const sanitizedRecommendations = sanitizeRecommendations(
       aiResponse.recommendations,
       candidatesForOpenAI,
       sessionType,
@@ -4405,31 +4418,24 @@ export async function generateRecommendations({
     activeScanTrace?.updateOpenAi({
       parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
     });
-    let recommendationsToInsert = sanitizedRecommendations.recommendations;
+    const recommendationsToInsert = sanitizedRecommendations.recommendations;
 
     if (
       recommendationsToInsert.length === 0 &&
       !deterministicFallbackUsed &&
-      !explicitNoTrade
+      !explicitNoTrade &&
+      !modelNoPublish
     ) {
-      aiResponse = deterministicFallback(
-        `OpenAI recommendations rejected by sanitizer: ${sanitizedRecommendations.skippedReasons
-          .slice(0, 3)
-          .join(" ")}`,
+      modelNoPublish = {
+        reason: "openai_recommendation_validation_failed",
+        message:
+          "No trade: the model recommendations did not pass deterministic validation.",
+      };
+      logPipeline("openai_no_publish_reason", modelNoPublish.reason);
+      logPipeline(
+        "openai_no_publish_rejection_reasons",
+        sanitizedRecommendations.skippedReasons,
       );
-      sanitizedRecommendations = sanitizeRecommendations(
-        aiResponse.recommendations,
-        candidatesForOpenAI,
-        sessionType,
-        scanWindow,
-        source,
-        settings.max_recommendations_per_session,
-        powerHourTrial,
-      );
-      recommendationsToInsert = sanitizedRecommendations.recommendations;
-      activeScanTrace?.updateOpenAi({
-        parser_rejected_count: sanitizedRecommendations.skippedReasons.length,
-      });
     }
 
     if (!deterministicFallbackUsed) {
@@ -4521,18 +4527,20 @@ export async function generateRecommendations({
       logPipeline("inserted_recommendation_tickers", []);
       const noPublishReason = explicitNoTrade
         ? "openai_no_trade"
-        : deterministicFallbackUsed
-          ? "deterministic_fallback_validation_failed"
-          : "recommendation_validation_failed";
+        : (modelNoPublish?.reason ??
+          (deterministicFallbackUsed
+            ? "deterministic_fallback_validation_failed"
+            : "recommendation_validation_failed"));
       const noTradeReason = explicitNoTrade?.reason ?? null;
 
       return {
         recommendations: [],
         message: explicitNoTrade
           ? `No trade: ${noTradeReason}`
-          : duplicateFallbackUsed
-            ? duplicateFallbackMessage
-            : "Ranked learning candidates were available but failed recommendation validation.",
+          : (modelNoPublish?.message ??
+            (duplicateFallbackUsed
+              ? duplicateFallbackMessage
+              : "Ranked learning candidates were available but failed recommendation validation.")),
         duplicate_fallback_used: duplicateFallbackUsed,
         market_regime: marketRegime,
         scan_window: scanWindow,

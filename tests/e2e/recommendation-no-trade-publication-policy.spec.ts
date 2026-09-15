@@ -8,6 +8,7 @@ test.describe("explicit no-trade publication policy", () => {
   test("preserves an explicit model no-trade as a terminal no-publish decision", () => {
     const response = {
       result: "no_trade" as const,
+      recommendation_count: 0,
       no_trade: {
         reason: "Volume confirmation is insufficient for an intraday entry.",
         confidence_score: 61,
@@ -25,6 +26,7 @@ test.describe("explicit no-trade publication policy", () => {
   test("uses the conservative default when a no-trade response lacks details", () => {
     const response = {
       result: "no_trade" as const,
+      recommendation_count: 0,
     };
 
     expect(resolveAiRecommendationPublicationAction(response)).toEqual({
@@ -41,10 +43,25 @@ test.describe("explicit no-trade publication policy", () => {
   test("continues to evaluate actual recommendation output", () => {
     const response = {
       result: "trade_recommendation" as const,
+      recommendation_count: 1,
     };
 
     expect(resolveAiRecommendationPublicationAction(response)).toEqual({
       kind: "evaluate_recommendations",
+    });
+  });
+
+  test("preserves a zero-output model response as no-publish", () => {
+    expect(
+      resolveAiRecommendationPublicationAction({
+        result: "trade_recommendation",
+        recommendation_count: 0,
+      }),
+    ).toEqual({
+      kind: "preserve_no_publish",
+      no_publish_reason: "openai_zero_recommendations",
+      message:
+        "No trade: the model returned no actionable recommendations for this scan.",
     });
   });
 });

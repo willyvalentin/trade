@@ -11,6 +11,11 @@ export type AiRecommendationPublicationAction =
       no_trade: AiNoTradeDecision;
     }
   | {
+      kind: "preserve_no_publish";
+      no_publish_reason: "openai_zero_recommendations";
+      message: string;
+    }
+  | {
       kind: "evaluate_recommendations";
     };
 
@@ -21,6 +26,7 @@ export type AiRecommendationPublicationAction =
 export function resolveAiRecommendationPublicationAction(input: {
   result: "trade_recommendation" | "no_trade";
   no_trade?: AiNoTradeDecision;
+  recommendation_count: number;
 }): AiRecommendationPublicationAction {
   if (input.result === "no_trade") {
     return {
@@ -31,6 +37,15 @@ export function resolveAiRecommendationPublicationAction(input: {
         risk_flags: [],
         candidate_ticker: null,
       },
+    };
+  }
+
+  if (input.recommendation_count === 0) {
+    return {
+      kind: "preserve_no_publish",
+      no_publish_reason: "openai_zero_recommendations",
+      message:
+        "No trade: the model returned no actionable recommendations for this scan.",
     };
   }
 
