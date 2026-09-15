@@ -270,6 +270,7 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
   type MarketWideDiscoveryReadback,
 } from "@/lib/market-wide-discovery-readback";
@@ -11495,10 +11496,22 @@ export function TradeApp({
     latestCandidateDecisionRecord,
   );
   const latestMarketWideDiscoveryReadback =
-    [...liveStoredRecommendationScanRuns]
-      .sort((first, second) => second.observed_at.localeCompare(first.observed_at))
-      .map(marketWideDiscoveryReadbackFromScanRun)
-      .find((receipt) => receipt.status === "available") ??
+    [
+      ...liveStoredRecommendationScanRuns.map(
+        marketWideDiscoveryReadbackFromScanRun,
+      ),
+      ...scheduledScanAttempts.map(
+        marketWideDiscoveryReadbackFromScheduledAttempt,
+      ),
+    ]
+      .filter((receipt) => receipt.status === "available")
+      .sort((first, second) => {
+        const firstObservedAt =
+          first.source_scan.observed_at ?? first.generated_at ?? "";
+        const secondObservedAt =
+          second.source_scan.observed_at ?? second.generated_at ?? "";
+        return secondObservedAt.localeCompare(firstObservedAt);
+      })[0] ??
     marketWideDiscoveryReadbackFromScanRun({
       observed_at: "",
       trading_date: null,

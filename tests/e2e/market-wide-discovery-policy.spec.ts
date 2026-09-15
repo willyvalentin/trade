@@ -7,7 +7,10 @@ import {
   TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST,
 } from "@/lib/market-wide-discovery-policy";
 import { buildDynamicMarketMoversSelection } from "@/lib/dynamic-market-movers";
-import { marketWideDiscoveryReadbackFromUnknown } from "@/lib/market-wide-discovery-readback";
+import {
+  marketWideDiscoveryReadbackFromScheduledAttempt,
+  marketWideDiscoveryReadbackFromUnknown,
+} from "@/lib/market-wide-discovery-readback";
 
 const now = new Date("2026-09-15T15:30:00.000Z");
 
@@ -161,6 +164,21 @@ test.describe("market-wide discovery admission", () => {
         fetched_count: 1,
         selected_count: 1,
         selected_tickers: ["NEWM"],
+      },
+    });
+    expect(
+      marketWideDiscoveryReadbackFromScheduledAttempt({
+        utc_timestamp: now.toISOString(),
+        trading_date: "2026-09-15",
+        intraday_scan_window: "afternoon",
+        payload_json: { market_wide_discovery: summary },
+      }),
+    ).toMatchObject({
+      status: "available",
+      source_scan: {
+        observed_at: now.toISOString(),
+        trading_date: "2026-09-15",
+        window: "afternoon",
       },
     });
     expect(
