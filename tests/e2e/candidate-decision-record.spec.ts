@@ -169,10 +169,64 @@ test.describe("candidate decision record", () => {
       observed_candidate_count: 2,
       ranked_candidate_count: 2,
       no_trade_reason: "no_publishable_ranked_candidates",
-      strongest_candidate: {
-        ticker: "T01",
-        rank: 1,
+      data_health: {
+        fresh_candidate_count: 2,
+        stale_candidate_count: 0,
+        gap_candidate_count: 1,
+        unknown_freshness_candidate_count: 0,
       },
+      strongest_unpublished_candidates: [
+        {
+          ticker: "T01",
+          rank: 1,
+        },
+        {
+          ticker: "T02",
+          rank: 2,
+        },
+      ],
+    });
+  });
+
+  test("readback only presents ranked candidates that were not published", () => {
+    const candidates = [candidate(1), candidate(2), candidate(3)];
+    const ranking = buildScannerCandidateRankingSummary({
+      candidates,
+      targetMin: 1,
+      targetMax: 1,
+      now: new Date(CAPTURED_AT),
+    });
+    const capture = buildCandidateDecisionCapture({
+      captureTimestamp: CAPTURED_AT,
+      universe: candidates,
+      observedCandidates: candidates,
+      ranking,
+      eligibleCandidateTickers: candidates.map((item) => item.ticker),
+      publishableThreshold: 70,
+      publishedTickers: ["T01"],
+      recommendationBuildPath: "published",
+    });
+    const record = buildCandidateDecisionRecord({
+      scanRun: scanRun(candidates.length),
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+
+    expect(record?.final_decision.disposition).toBe("recommendations_published");
+    expect(summarizeCandidateDecisionRecord(record)).toMatchObject({
+      strongest_unpublished_candidates: [
+        {
+          ticker: "T02",
+          rank: 2,
+          disposition: "ranked_not_selected",
+          reason_codes: ["selection_capacity_exceeded"],
+        },
+        {
+          ticker: "T03",
+          rank: 3,
+        },
+      ],
     });
   });
 

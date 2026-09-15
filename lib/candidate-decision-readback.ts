@@ -10,13 +10,19 @@ export type CandidateDecisionRecordReadback = {
   candidate_count: number;
   observed_candidate_count: number;
   ranked_candidate_count: number;
-  strongest_candidate: {
+  data_health: {
+    fresh_candidate_count: number;
+    stale_candidate_count: number;
+    gap_candidate_count: number;
+    unknown_freshness_candidate_count: number;
+  };
+  strongest_unpublished_candidates: Array<{
     ticker: string;
     rank: number | null;
     score: number | null;
     disposition: CandidateDecisionDisposition;
     reason_codes: string[];
-  } | null;
+  }>;
   no_trade_reason: string | null;
   published_tickers: string[];
   reason_codes: string[];
@@ -125,21 +131,63 @@ export function summarizeCandidateDecisionRecord(
       candidate_count: 0,
       observed_candidate_count: 0,
       ranked_candidate_count: 0,
-      strongest_candidate: null,
+      data_health: {
+        fresh_candidate_count: 0,
+        stale_candidate_count: 0,
+        gap_candidate_count: 0,
+        unknown_freshness_candidate_count: 0,
+      },
+      strongest_unpublished_candidates: [],
       no_trade_reason: null,
       published_tickers: [],
       reason_codes: ["candidate_decision_record_missing"],
     };
   }
 
-  const strongest = [...record.candidates]
-    .filter((candidate) => candidate.ranking !== null)
+  const strongestUnpublishedCandidates = [...record.candidates]
+    .filter(
+      (candidate) =>
+        candidate.ranking !== null && candidate.disposition !== "published",
+    )
     .sort(
       (first, second) =>
         (first.ranking?.rank ?? Number.MAX_SAFE_INTEGER) -
           (second.ranking?.rank ?? Number.MAX_SAFE_INTEGER) ||
         first.ticker.localeCompare(second.ticker),
-    )[0] ?? null;
+    )
+    .slice(0, 3)
+    .map((candidate) => ({
+      ticker: candidate.ticker,
+      rank: candidate.ranking?.rank ?? null,
+      score: candidate.ranking?.score ?? null,
+      disposition: candidate.disposition,
+      reason_codes: stringArray(candidate.reason_codes),
+    }));
+  const dataHealth = record.candidates.reduce(
+    (summary, candidate) => {
+      switch (candidate.data.freshness) {
+        case "fresh":
+          summary.fresh_candidate_count += 1;
+          break;
+        case "stale":
+          summary.stale_candidate_count += 1;
+          break;
+        case "gap":
+          summary.gap_candidate_count += 1;
+          break;
+        case "unknown":
+          summary.unknown_freshness_candidate_count += 1;
+          break;
+      }
+      return summary;
+    },
+    {
+      fresh_candidate_count: 0,
+      stale_candidate_count: 0,
+      gap_candidate_count: 0,
+      unknown_freshness_candidate_count: 0,
+    },
+  );
 
   return {
     status: record.coverage.full_membership_captured
@@ -150,15 +198,8 @@ export function summarizeCandidateDecisionRecord(
     candidate_count: record.candidates.length,
     observed_candidate_count: record.coverage.observed_candidate_count,
     ranked_candidate_count: record.coverage.ranked_candidate_count,
-    strongest_candidate: strongest
-      ? {
-          ticker: strongest.ticker,
-          rank: strongest.ranking?.rank ?? null,
-          score: strongest.ranking?.score ?? null,
-          disposition: strongest.disposition,
-          reason_codes: stringArray(strongest.reason_codes),
-        }
-      : null,
+    data_health: dataHealth,
+    strongest_unpublished_candidates: strongestUnpublishedCandidates,
     no_trade_reason: record.final_decision.no_trade_reason,
     published_tickers: stringArray(record.final_decision.published_tickers),
     reason_codes: stringArray(record.coverage.membership_reason_codes),

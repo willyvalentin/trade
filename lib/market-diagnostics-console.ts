@@ -3543,7 +3543,13 @@ function buildSections(
     candidate_count: 0,
     observed_candidate_count: 0,
     ranked_candidate_count: 0,
-    strongest_candidate: null,
+    data_health: {
+      fresh_candidate_count: 0,
+      stale_candidate_count: 0,
+      gap_candidate_count: 0,
+      unknown_freshness_candidate_count: 0,
+    },
+    strongest_unpublished_candidates: [],
     no_trade_reason: null,
     published_tickers: [],
     reason_codes: ["candidate_decision_record_missing"],
@@ -3609,15 +3615,34 @@ function buildSections(
           `${candidateDecisionRecord.candidate_count} total / ${candidateDecisionRecord.observed_candidate_count} observed / ${candidateDecisionRecord.ranked_candidate_count} ranked`,
         ),
         lineValue(
-          "Strongest",
-          candidateDecisionRecord.strongest_candidate
-            ? `${candidateDecisionRecord.strongest_candidate.ticker} #${candidateDecisionRecord.strongest_candidate.rank ?? "?"} / score ${candidateDecisionRecord.strongest_candidate.score ?? "?"} / ${words(candidateDecisionRecord.strongest_candidate.disposition)}`
-            : "none ranked",
+          "Data health",
+          `${candidateDecisionRecord.data_health.fresh_candidate_count} fresh / ${candidateDecisionRecord.data_health.stale_candidate_count} stale / ${candidateDecisionRecord.data_health.gap_candidate_count} gap / ${candidateDecisionRecord.data_health.unknown_freshness_candidate_count} unknown`,
+        ),
+        lineValue(
+          "Strongest unpublished",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker} #${candidate.rank ?? "?"} / score ${candidate.score ?? "?"} / ${words(candidate.disposition)}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "all ranked candidates published"
+              : "none ranked",
         ),
         lineValue(
           "Why not trade-ready",
-          candidateDecisionRecord.strongest_candidate?.reason_codes.join(", ") ||
-            "none recorded",
+          candidateDecisionRecord.strongest_unpublished_candidates.length > 0
+            ? candidateDecisionRecord.strongest_unpublished_candidates
+                .map(
+                  (candidate) =>
+                    `${candidate.ticker}: ${candidate.reason_codes.join(", ") || "no candidate-specific reason recorded"}`,
+                )
+                .join("; ")
+            : candidateDecisionRecord.ranked_candidate_count > 0
+              ? "not applicable: all ranked candidates were published"
+              : "none ranked",
         ),
         lineValue(
           "Decision",
@@ -3641,14 +3666,34 @@ function buildSections(
         candidate_count: candidateDecisionRecord.candidate_count,
         observed_candidate_count: candidateDecisionRecord.observed_candidate_count,
         ranked_candidate_count: candidateDecisionRecord.ranked_candidate_count,
-        strongest_ticker: candidateDecisionRecord.strongest_candidate?.ticker ?? null,
-        strongest_rank: candidateDecisionRecord.strongest_candidate?.rank ?? null,
-        strongest_score: candidateDecisionRecord.strongest_candidate?.score ?? null,
-        strongest_disposition:
-          candidateDecisionRecord.strongest_candidate?.disposition ?? null,
-        strongest_reason_codes:
-          candidateDecisionRecord.strongest_candidate?.reason_codes.join(", ") ??
-          null,
+        data_health_fresh_candidate_count:
+          candidateDecisionRecord.data_health.fresh_candidate_count,
+        data_health_stale_candidate_count:
+          candidateDecisionRecord.data_health.stale_candidate_count,
+        data_health_gap_candidate_count:
+          candidateDecisionRecord.data_health.gap_candidate_count,
+        data_health_unknown_freshness_candidate_count:
+          candidateDecisionRecord.data_health.unknown_freshness_candidate_count,
+        strongest_unpublished_tickers:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.ticker)
+            .join(", "),
+        strongest_unpublished_ranks:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.rank ?? "?")
+            .join(", "),
+        strongest_unpublished_scores:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.score ?? "?")
+            .join(", "),
+        strongest_unpublished_dispositions:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.disposition)
+            .join(", "),
+        strongest_unpublished_reason_codes:
+          candidateDecisionRecord.strongest_unpublished_candidates
+            .map((candidate) => candidate.reason_codes.join(", "))
+            .join("; "),
         no_trade_reason: candidateDecisionRecord.no_trade_reason,
         published_tickers: candidateDecisionRecord.published_tickers.join(", "),
         record_reason_codes: candidateDecisionRecord.reason_codes.join(", "),
