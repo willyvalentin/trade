@@ -2,6 +2,7 @@ import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
 import {
+  getScheduledScannerUniverseRotationBatch,
   scannerUniverseSelectionToBaseCandidates,
   selectScannerUniverse,
   type ScannerUniverseCoverageSummary,
@@ -23,6 +24,10 @@ export type RealScannerCandidateTier =
   | "experimental"
   | "incomplete"
   | "rejected";
+
+export type RealScannerUniverseSelectionMode =
+  | "default"
+  | "scheduled_rotating";
 
 export type RealScannerCandidateSignal = {
   label: string;
@@ -143,14 +148,24 @@ export const realScannerStarterUniverse =
 export function buildRealScannerBaseCandidateSelection({
   scanWindow = "unknown",
   requestedScanBudget,
+  selectionMode = "default",
+  now = new Date(),
 }: {
   scanWindow?: IntradayScanWindow | "unknown";
   requestedScanBudget?: number | null;
+  selectionMode?: RealScannerUniverseSelectionMode;
+  now?: Date;
 } = {}) {
   try {
+    const rotationBatch =
+      selectionMode === "scheduled_rotating"
+        ? getScheduledScannerUniverseRotationBatch(now)
+        : 0;
     const selection = selectScannerUniverse({
       scanWindow,
       requestedScanBudget,
+      rotationBatch,
+      now,
     });
     const candidates = scannerUniverseSelectionToBaseCandidates(selection);
 
@@ -159,6 +174,8 @@ export function buildRealScannerBaseCandidateSelection({
         candidates,
         selection,
         coverage: selection.coverage_summary,
+        selectionMode,
+        rotationBatch,
       };
     }
   } catch (error) {
@@ -171,6 +188,8 @@ export function buildRealScannerBaseCandidateSelection({
     candidates: buildRealScannerBaseCandidates(realScannerFallbackUniverse),
     selection: null,
     coverage: null,
+    selectionMode,
+    rotationBatch: 0,
   };
 }
 

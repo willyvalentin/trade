@@ -1,255 +1,170 @@
 # Ture Master Roadmap
 
-## Active product direction — 2026-09-09
+## Active product direction — intelligence first, 2026-09-15
 
-Decision: **MVP first, then the full product vision.** The user's 2026-09-09
-instruction selects useful product functionality as the organizing priority.
-This section supersedes conflicting sequencing, automatic successor selection
-and completion interpretations in the retained history below. It does not
-relabel historical evidence or waive access control, trading safety or release
-requirements. The active status and work queue live only in the
-[current-state ledger](./ture-current-state-ledger.md); delivery rules live in
-[roadmap operating governance](./roadmap-operating-governance.md).
+Decision: **build the recommendation engine before expanding trade execution.**
+Ture's next product outcome is not a richer broker workflow. It is a genuinely
+useful US-equity day-trading engine: one that can discover opportunities beyond
+a static watchlist, rank them honestly, publish only the strongest few and
+become demonstrably better from its own attributable outcomes.
+
+The repository is the only current product-control surface. This master roadmap,
+the [current-state ledger](./ture-current-state-ledger.md) and
+[roadmap operating governance](./roadmap-operating-governance.md) supersede any
+Notion roadmap or status mirror. Do not update, reconcile or use Notion to pick
+work. Retained history below remains evidence, not an active instruction.
 
 ### Product destination
 
-Ture helps its user find a small number of understandable US day-trading
-opportunities, follow a risk-aware plan, record what happened and learn from
-reliable outcomes. First deliver dependable advisory use with manual broker
-execution. Then add server-owned trade management, evidence-based learning and
-bounded semi-automatic execution. Automatic execution remains a separate,
-deferred product decision; it is not a prerequisite for any of these releases.
+Ture continuously observes the eligible US equity market, identifies developing
+setups and surfaces **zero to three** trade-ready opportunities when the data
+supports them. It explains each decision, preserves an immutable decision-time
+record and learns which setups work for which ticker, sector, market regime and
+time window. A correct `no_trade` is a first-class product result.
 
-### Release sequence and acceptance
+“Market-wide discovery” means that no hand-maintained watchlist is the ceiling:
+the intended universe is every US-listed equity that is available from licensed
+sources and passes explicit availability, liquidity, price and tradability
+filters. It does not mean pretending that unavailable, stale or unlicensed data
+is coverage.
 
-| Release | User outcome | Required acceptance evidence |
+The final product phase is controlled autonomous execution: Ture may submit a
+BUY or SELL to Avanza only after the engine has proven useful and the order has
+passed deterministic Ture Core risk, authority, idempotency, reconciliation,
+monitoring and kill-switch controls. An AI model never has a direct broker path.
+
+### Non-negotiable product principles
+
+1. **Discover broadly, publish selectively.** Research candidates may be many;
+   trade-ready recommendations are scarce.
+2. **No fill quotas.** A weak candidate is never promoted merely to meet a
+   target count or an active time window.
+3. **Decision-time truth.** Every score, source timestamp, reject reason and
+   plan must be attributable to the moment Ture made the decision.
+4. **Research is not a recommendation.** Observing, developing, qualified,
+   trade-ready, rejected, expired and no-trade are separate states.
+5. **Measure before promotion.** A model, prompt, threshold or ranking change
+   remains shadow-only until it beats a frozen baseline on the stated evidence.
+6. **Deterministic authority surrounds probabilistic intelligence.** Ture Core
+   owns risk, data class, state, execution limits and broker authority.
+7. **Data quality is part of quality.** Missingness, freshness, source coverage,
+   cost and provider reliability are measured inputs, never silent fallbacks.
+
+### Delivery and environment model
+
+All product code and steering documents target `main` through small reviewed
+branches and pull requests. `staging` is an integration environment, not a
+second product line: use it only for bounded checks that need real provider,
+schedule, authentication, migration or market-session behavior. Do not merge
+the divergent staging branch wholesale; selectively transfer a change only when
+its scope, test and current-main compatibility are understood.
+
+The existing advisory, manual-recording, ownership and outcome infrastructure
+is retained as a reusable foundation. Its historical MVP acceptance board stays
+historical evidence; it no longer determines the next engine slice.
+
+### Intelligence-first release map
+
+| Release | User outcome | Acceptance evidence |
 | --- | --- | --- |
-| MVP — dependable advisory and manual tracking | Sign in, understand a current recommendation or an honest no-trade state, register a manually executed trade, follow it, close it and see correct history | All MVP-01 through MVP-06 criteria below pass in one supported release environment; the real external-data path and durable owner-bound records are verified under the applicable release scope |
-| R1 — server-owned trade management | Follow positions with trustworthy market freshness, deterministic exit guidance and recoverable server-owned state | Canonical position lineage, monitor, exit queue, retry/idempotency, transactional handoff and restart recovery work end to end; legacy B's local sandbox acceptance alone is insufficient |
-| R2 — measured intelligence and learning | Understand why a setup was selected and whether recommendations improve against a baseline | Canonical completed outcomes, an evaluation plan frozen before measurement, an adequate held-out sample, cost/reliability measurements and shadow comparison; promote only on demonstrated value, with rollback |
-| R3 — semi-automatic broker assistance | Prepare one correct BUY or SELL and confirm it manually at the broker | Authenticated account/instrument binding, persistent audit, bounded BUY and SELL trials, reconciliation and recovery; final confirmation remains human |
-| Future — controlled automation | Consider additional automation only if useful and justified by R3 operating evidence | A separate product decision, risk limits, kill switch, incident handling and explicit execution authority; no current completion date or implementation queue |
+| IF-0 — foundation reconciliation | One canonical main line can observe the whole existing scan flow safely and report provider limits precisely | Selected staging safeguards are ported with focused tests; no staging-only branch is required for ordinary product development |
+| IF-1 — candidate decision record | Ture can explain every scan: what was considered, what was rejected and why no strong candidate was published | Immutable scan/candidate identities, complete pre-truncation membership, structured reject/no-trade reasons, source/freshness/version metadata and readback in the app |
+| IF-2 — market-wide discovery | Ture can discover eligible movers beyond a static universe without exceeding provider capacity | Versioned universe policy, symbol coverage/readiness, dynamic mover and relative-volume intake, provider budget/coverage diagnostics and controlled backoff |
+| IF-3 — contextual quality engine | Ture ranks candidates using market, sector and ticker context rather than isolated chart signals | Point-in-time SPY/QQQ/IWM, sector/industry relative strength and catalyst-presence snapshots; one published quality policy with explainable components |
+| IF-4 — measured learning dataset | Ture has the right evidence to know whether its selections were good | Complete visible, research, rejected and explicit no-trade samples; canonical outcomes, deduplication, outcome coverage and frozen baseline plan |
+| IF-5 — shadow learning and promotion | Ture improves a policy only when evidence shows it helps | Held-out comparison, cost/reliability measures, shadow winner, versioned rollback-capable promotion and post-promotion monitoring |
+| EX-1 — execution preparation | A proven recommendation can become a correct, human-confirmed Avanza order package | Account/instrument binding, deterministic order admission, risk limits, durable intent, reconciliation and recovery |
+| EX-2 — controlled autonomous execution | Ture can submit and later close a narrowly scoped Avanza position automatically | Sustained engine evidence, explicit enablement, per-order and portfolio limits, kill switch, idempotency, audit, real-time monitoring, broker reconciliation and incident recovery |
 
-This sequence governs new work. An existing R1/R2/R3 component may be reused for
-MVP only when it is necessary for a named MVP criterion. A later release may
-change order through a concise product tradeoff decision; do not start it merely
-because the current release has a blocked integration.
+### Engine capability sequence
 
-### MVP scope and definition of done
+#### IF-0 — foundation reconciliation
 
-MVP serves the existing user's supported account and market scope. It includes
-manual broker execution and manual trade recording. It excludes broker
-integration, autonomous orders, automatic ranking feedback, new research-source
-integrations, multi-account expansion and a full visual redesign.
+Port only the current-main-compatible staging changes that improve discovery
+reliability: provider-credit/rate-limit classification and scheduled bounded
+universe rotation. Preserve their bounded provider budgets. Do not port the
+one-ticker manual rotation: it is a useful staging experiment but contradicts
+market-wide discovery as a product strategy.
 
-| ID | Acceptance criterion |
-| --- | --- |
-| MVP-01 — access and dashboard | The supported user can sign in, reload and sign out; private data requires an authenticated owner, cross-owner access fails, and dashboard loading/error/empty states are understandable. |
-| MVP-02 — actionable recommendations | During a supported trading window, show a bounded list with symbol, direction, entry, stop, target, risk/size assumptions, rationale, source timestamp and expiry. Show an explicit no-trade, market-closed, stale-data or provider-unavailable state when appropriate; never present stale or synthetic data as a current actionable signal. |
-| MVP-03 — manual trade lifecycle | From a recommendation, record an already manually executed entry, retain its plan, display the position, record an exit and reload the correct durable state. Retry/double-click does not duplicate the trade. No broker call is part of this flow. |
-| MVP-04 — useful history | Closed trades preserve plan versus actual entry/exit, quantity, timestamps and correctly calculated realized result with stated fee assumptions. History/statistics reconcile with the saved trades; unknown values are visibly unknown. |
-| MVP-05 — observable daily operation | Existing licensed data/scanning runs through the supported day, with bounded usage and visible last-success/freshness/error status. A failed or missed run is detectable and has a documented recovery path. Recommendation snapshots and outcomes are attributable; incomplete outcomes remain labelled and are not training evidence. |
-| MVP-06 — release acceptance | Exercise the complete MVP-01→05 journey on the same release candidate, then verify applicable production smoke and identity on the delivered revision. Critical security, data-integrity and trade-recording defects are resolved. Complete one supervised supported market session, or remain an explicitly labelled preview. |
+#### IF-1 — candidate decision record
 
-These six criteria define release acceptance, not equal-sized effort units.
-Report verified criteria as a count with evidence and environment; do not infer
-product percent-complete from Actions, commits, fixtures or the historical
-Milestone A/B labels. A missing demonstration means **unverified**, not absent.
-Existing functionality should be verified and reused before it is rebuilt.
+Persist one complete decision envelope per scan before ranking results are
+truncated or candidates are filtered. It must contain the universe/version,
+all members, ranking and tie-break evidence, structured eligibility/rejection
+codes, source/provider timestamps, freshness, data gaps, explicit no-trade
+disposition and the engine/scoring/ranking/build versions.
 
-### Ordinary journey acceptance — clarified 2026-09-12
+The UI must show a scan report that answers: coverage, data health, strongest
+unpublished candidates and why they did not become trade-ready. This is the
+next active vertical slice.
 
-MVP-06a requires the ordinary interface → authenticated server → durable
-owner-bound storage → reload → history/statistics journey on one identified
-candidate. Include entry retry, partial exit and final exit; verify persisted
-records and reconciled results, not only the rendered page. Recheck relevant
-behavior after changes to the server recording boundary.
+#### IF-2 — market-wide discovery
 
-A cache-only demo verifies only its labelled local UI behavior. Complete the
-already selected bounded demo check, then return to the ordinary journey.
-Further demo work requires a reproduced obstacle to that journey and the
-smallest necessary correction; it is not a separate product workstream.
-Synthetic evidence must remain labelled and cannot attest a real broker fill.
-If ordinary-path verification requires human confirmation or an unavailable
-supported session, record that specific remaining dependency and prepare the
-check; do not substitute demo success or weaken the recording controls.
+Build a versioned symbol master and discovery policy for eligible US equities.
+Add dynamic inputs in a deliberate order: real-time mover/relative-volume data,
+then timestamped catalyst presence/type, then broader sector and event context.
+Every provider decision needs a documented entitlement, rate/cost budget,
+freshness contract, retry/backoff policy and coverage metric. Backfill begins
+with the decisions Ture actually made, then expands only when the capacity data
+supports it.
 
-### Measurable checkpoints
+#### IF-3 — contextual quality engine
 
-The ledger divides the six MVP criteria into **18 fixed behavior checkpoints**
-(three per criterion). They are demonstrations of product behavior, not 18 new
-planning Actions. Verify existing functionality first and fix only observed gaps.
-A single implementation may close several checkpoints; never split work merely
-to increase the count. Parent acceptance still requires its complete definition
-above, including edge cases not repeated in the shorter checkpoint descriptions.
+Promote the existing shadow ideas only after their inputs are live and
+point-in-time safe. Rank each candidate with independent, inspectable evidence:
+market regime, sector/industry strength, relative strength, liquidity/volume,
+setup quality, entry geometry, catalyst context and data quality. A score is an
+internal ranking measure; confidence becomes a probability claim only after
+calibration evidence exists.
 
-Report two separate measures: **verified checkpoints / 18** for the named
-candidate/environment, and **release-accepted criteria / 6**. The optional
-percentage `100 × verified checkpoints / 18` is acceptance coverage, not work
-completed, hours saved or production readiness. Display unverified, active,
-blocked and invalidated counts beside it. Keep the denominator fixed; a scope
-change needs a recorded product decision and a comparable previous baseline.
-R1–R3 retain their outcome gates; break down only the next selected release,
-using the same behavior/evidence method, rather than maintaining speculative tasks.
+#### IF-4 — measured learning dataset
 
-At each completed slice, update the existing ledger rows with revision,
-environment, date and behavior evidence. Reopen a checkpoint on a relevant
-regression or invalidated evidence. Carry evidence to a new release candidate
-only after relevant regression checks; MVP-06 verifies the complete journey on
-the actual release. Review weekly whether verified behaviors increase and
-blocked age falls. Do not create a separate reporting workstream.
+Evaluate visible recommendations, research candidates, rejected candidates and
+explicit no-trade decisions without lookahead or horizon double counting. Keep
+15m/30m/60m diagnostics, use one canonical primary outcome per decision and
+measure MFE, MAE, R, trigger rate, outcome coverage and missingness. Freeze the
+baseline before changing a threshold, prompt, source weighting or strategy.
 
-### Immediate delivery order
+#### IF-5 — shadow learning and promotion
 
-1. MVP-01→04: verify one existing end-to-end manual journey and fix its first
-   failing behavior. The initial investigation is capped at four active hours;
-   it must leave a reproducible failure or behavior evidence and one concrete
-   implementation slice, not a new readiness framework.
-2. MVP-02/05: resolve data freshness, provider capacity and daily-run recovery
-   gaps needed by that journey. Evaluate existing REL-03 work for this scope;
-   an open PR is not delivered functionality.
-3. MVP-04/05: close only the persistence/outcome/history gaps found in the
-   working path. A new learning dataset is not required to release manual
-   tracking; truthful outcome status is required.
-4. MVP-06: run release acceptance and address the resulting defects. External
-   operations use the applicable existing authorization; local implementation
-   and local tests should continue without a fresh permission cycle.
+Test one hypothesis at a time against a held-out sample: for example, whether
+sector-relative strength improves precision among the top-ranked candidates.
+Compare precision@K, expectancy in R, calibration, coverage, provider cost and
+reliability. A winning version runs in shadow first; promotion is one versioned,
+reversible policy change with continuous post-promotion monitoring.
 
-B-03 PrivateLink/AWS provisioning, C-01 successors, CAT/SEC evidence chains,
-AI promotion contracts and broad CI optimization are outside the MVP queue
-unless a specific MVP acceptance failure proves they are indispensable. The
-existing private-transport requirement is preserved for the B-03 path; it is
-not silently removed or imposed on every already-supported advisory flow.
+### Publication quality bar
 
-### Delivery contract
+A trade-ready recommendation must have all of the following:
 
-Prefer a vertical slice that reaches the UI, server, persistence and a
-behavior-level check when those layers are needed. Bundle its necessary
-validation, implementation and documentation in the same delivery. A source-only
-helper is a dependency, not a finished user capability. Follow the bounded-work,
-blocker and progress rules in the operating governance; preserve critical
-security, ownership, budget and human-confirmation controls.
+- fresh, attributable market data and an eligible tradability/liquidity state;
+- a setup, timing rule, entry, invalidation, stop and target with valid risk
+  geometry;
+- an explainable market, sector and ticker context, with all material gaps
+  visible;
+- a current engine/ranking policy version and decision-time snapshot;
+- a score above the active publication gate; and
+- no dominant risk, freshness, provider, position or execution-policy blocker.
 
-## Post-MVP delivery map — 2026-09-12 planning direction
+Anything below that bar remains research, developing, rejected or no-trade. It
+must never be presented as a strong trade merely because the market is open.
 
-This map preserves the product's long-term direction without creating a second
-active queue. MVP remains the only selected release until its acceptance is
-complete. Under the operating governance's narrowly bounded off-market capacity
-lane, one independent, market-window-free vertical slice may be selected while
-the active MVP behavior is demonstrably waiting for a supported market session.
-It must not bypass a predecessor's security, private-transport, identity,
-provider, broker or production gate. Start detailed planning for every other
-release only after the preceding release has passed its acceptance evidence and
-record a short release-start brief with the first user outcome, reusable
-components, risks, environment and checks. Do not infer a delivery date, effort
-total or implementation authority from this map.
+### Planning and acceptance rules
 
-### R1 — trustworthy server-owned trade management
+Use 4–16 active-hour vertical slices, but do not break the engine into
+ceremonial contract-only work. Each slice reaches the UI, runtime and durable
+evidence whenever that is needed for its claim. Tests and a ledger update ship
+with the change. A lack of strong candidates on one market day is neither
+success nor failure; it becomes meaningful only against the decision record and
+outcome baseline.
 
-**User outcome:** a user can follow an open position using current, attributable
-market information and receive deterministic, recoverable exit guidance.
-
-1. **R1a — canonical position truth.** Reuse and verify existing position,
-   version-lineage and audit foundations to establish one server-owned source
-   for current state, transitions and actual manual fills. Resolve conflicts,
-   duplicates and owner boundaries before adding monitor behavior.
-2. **R1b — freshness-aware monitoring.** Monitor actual open positions and
-   expose market freshness, missing data and deterministic hold/attention
-   guidance. Unknown or stale data must fail closed to an explicit cannot-assess
-   state, never to a fabricated recommendation.
-3. **R1c — exit and recovery lifecycle.** Add deterministic exit guidance,
-   a recoverable exit queue, idempotent retries, transactional handoff and
-   restart recovery. Background work must not displace open-position and exit
-   monitoring.
-4. **R1d — supervised recovery proof.** Demonstrate a whole position journey,
-   including interruption or restart, recovery and correct durable history on a
-   supported candidate.
-
-**R1 acceptance:** canonical lineage, monitor, exit queue, retry/idempotency,
-transactional handoff and restart recovery pass end to end. Historical Milestone
-B local-sandbox evidence is reusable source material, not R1 completion. R1
-does not submit broker orders.
-
-### R2 — measured intelligence and learning
-
-**User outcome:** Ture can explain why a recommendation was selected and show
-that a proposed analysis improvement beats a frozen baseline without degrading
-data integrity, reliability or cost control.
-
-1. **R2a — canonical learning sample.** Complete the recommendation snapshot
-   and outcome path: stable identity, snapshot-time inputs, data class
-   (`live_visible`, research, shadow or historical synthetic), truthful outcome
-   completion and recommendation-level horizon deduplication. Preserve the
-   longest complete supported horizon for primary calibration.
-2. **R2b — staged context collection.** Reuse the existing intelligence data
-   plan in [Action 332](./action-332-intelligence-data-collection-readiness-map.md)
-   and start with the smallest source set that answers one measurement question:
-   existing licensed price/volume data; then SPY, QQQ and IWM context; then
-   sector ETFs and relative strength; then timestamped catalyst presence/type
-   and freshness. A news source begins with minimal attributable metadata, not
-   unrestricted text collection or NLP. Backfill starts with
-   recommendation-linked symbols and context before broad-universe collection;
-   see [Action 339](./action-339-historical-backfill-cost-and-provider-capacity-plan.md).
-3. **R2c — evaluation and shadow.** Freeze a baseline and an evaluation plan
-   before measuring. Test one hypothesis at a time, such as whether sector
-   relative strength improves precision among the top recommendations. Measure
-   coverage, missingness, provider cost/reliability, expectancy in R,
-   precision@K and confidence calibration across a held-out sample. The existing
-   [market-context shadow lab](./action-667a-market-context-intelligence-shadow-lab.md)
-   remains shadow-only until its data and evaluation boundary are admitted.
-4. **R2d — controlled promotion.** Run a winning candidate in shadow, make one
-   reversible, versioned policy change only after the evidence is sufficient,
-   and monitor against its baseline. AI may analyse, critique and propose; it
-   cannot change a live policy or trading authority by itself.
-
-**R2 acceptance:** canonical completed outcomes, a frozen evaluation plan, an
-adequate held-out sample, measured cost/reliability, shadow comparison and an
-explicit rollback-capable promotion decision. The legacy 500-row preservation
-and inactive receipt are not an eligible learning dataset.
-
-### R3 — bounded semi-automatic broker assistance
-
-**User outcome:** Ture prepares one correct BUY or SELL package, and the user
-gives final confirmation at the broker.
-
-1. **R3a — binding and preparation.** Bind the authenticated user, account and
-   instrument to a canonical, versioned execution intent and a complete order
-   package.
-2. **R3b — deterministic admission.** Check the prepared package against
-   position, market-session, price, quantity, exposure and risk limits through
-   Ture Core. Preserve durable audit and idempotency throughout.
-3. **R3c — bounded human-confirmed trials.** Exercise one narrow BUY and one
-   narrow SELL path with explicit human final confirmation, then reconcile the
-   broker result to the durable intent and position state.
-4. **R3d — recovery evidence.** Demonstrate safe handling of uncertain,
-   rejected, duplicate and interrupted broker results before expanding scope.
-
-**R3 acceptance:** authenticated account/instrument binding, persistent audit,
-bounded BUY/SELL trials, reconciliation and recovery all work end to end. The
-prohibited direct path remains `Agent → Broker`; every action passes through
-Ture Core and deterministic risk/authorization.
-
-### Future — controlled automation only after R3 evidence
-
-Automatic execution has no implementation queue or date. Consider it only via
-a separate product decision after sustained R3 operating evidence. That decision
-must define a narrow initial scope, explicit execution authority, risk limits,
-kill switch, incident handling, reconciliation, monitoring and rollback.
-
-### Planning and selection rule
-
-This map answers **where the product goes**, not what to build next today. Once
-MVP is accepted, assess the R1a starting state against existing code and evidence
-and select one 4–16 active-hour vertical slice. Before then, the only exception
-is the operating governance's single off-market capacity lane: it needs a
-specific independent outcome and must remain clear of unmet security and
-external-operation gates. Use the same fixed, behavior-evidence method for the
-selected release; do not pre-create detailed R1–R3 Action chains or treat a
-source-only artifact as an accepted capability.
+Do not begin EX-1 or EX-2 until IF-5 has demonstrated sustained, useful
+recommendation quality. Existing manual tracking may be maintained for safety
+or data integrity, but it is not the primary product investment.
 
 ## Historical roadmap and technical evidence — not the active work queue
 
-## Current operating dashboard
+## Historical operating dashboard — legacy evidence only (formerly “Current operating dashboard”)
 
 This dashboard is the short operational view of the roadmap. The detailed
 Action history, source, exact-main CI and authorized readbacks remain the

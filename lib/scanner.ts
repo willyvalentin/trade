@@ -10,6 +10,7 @@ import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
+import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 export type ScannerCandidate = {
@@ -781,6 +782,13 @@ export async function scanMarket(
         candle_error_count: 1,
         latest_provider_error_type: errorType(error),
       });
+
+      // Retrying cannot replenish a provider quota during this scan. Surface a
+      // precise, fail-closed outcome to the scheduler instead of timing out
+      // after the remaining candidates fall back to stale data.
+      if (isProviderRateLimitLikeError(error)) {
+        throw error;
+      }
 
       if (cachedValues) {
         staleFallbacks.push(baseCandidate.ticker);
