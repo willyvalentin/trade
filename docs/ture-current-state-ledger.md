@@ -16,17 +16,23 @@ owner-isolated `recommendation_scan_runs.payload_json` path. It records the
 selected scanner universe, observed members, full ranking (not a presentation
 top-K), candidate/scan identities, decision and source timestamps, freshness
 and data gaps, structured eligibility/rejection codes, engine/scoring/ranking/
-build versions, build outcome and explicit `no_trade` disposition. The browser
-accepts only the known record shape and exposes a concise Market Diagnostics
-readback: coverage, observed/ranked counts, strongest candidate, trade-readiness
-reason and final decision.
+build versions, build outcome and explicit `no_trade` disposition. Revision
+`87ad2e94` corrects the browser readback to show coverage, aggregate data
+health and up to three strongest **unpublished** ranked candidates with their
+candidate-specific reasons. A published candidate is never represented as
+needing a trade-readiness explanation. The browser accepts only the known
+record shape and exposes the final decision.
 
-**Focused local evidence:** `npx tsc --noEmit`, targeted ESLint, `npm run
-build`, `npx playwright test tests/e2e/candidate-decision-record.spec.ts`
-(4/4) and `npm run test:intelligence-foundation` (166/166) passed. The focused
-contract proves that 25 ranked candidates survive a former presentation-sized
-cutoff, that a partially observed scan remains an explainable `no_trade`, and
-that malformed persisted payloads fail closed in the browser.
+**Focused local evidence:** for the current revision, `npx tsc --noEmit`,
+targeted ESLint, `npm run build -- --webpack` and the three focused Playwright
+specs `candidate-decision-record`, `mvp-05-provider-rate-limit-recovery` and
+`scheduled-scanner-universe-rotation` (9/9) passed. The focused contract proves
+that 25 ranked candidates survive a former presentation-sized cutoff, that a
+partially observed scan remains an explainable `no_trade`, that only
+unpublished candidates appear in the trade-readiness readback, and that
+malformed persisted payloads fail closed in the browser. `npm run
+test:intelligence-foundation` (166/166) also passed for the underlying IF-1
+decision-record implementation before this display-only correction.
 
 **External effects:** none. This delivery made no provider request, database
 migration, deployment, broker action or staging invocation. It is stacked on
