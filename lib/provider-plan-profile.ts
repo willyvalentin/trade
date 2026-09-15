@@ -38,13 +38,15 @@ export type ProviderPlanProfile = {
 export type ProviderPlanProfileEnv = Record<string, string | undefined>;
 
 const freeSafeProfile = {
-  scanTickerCap: 10,
+  scanTickerCap: 8,
   outcomeCandleRequestsPerRun: 4,
   backgroundScanCadenceMinutes: 15,
   scheduledSkipOpenAi: true,
   scheduledTimeoutMs: 23_000,
   warningThreshold: 0.8,
-  notes: ["Free-safe provider profile. Small scans, reused candles, OpenAI skipped."],
+  notes: [
+    "Basic Free-safe provider profile. Scan cap matches the eight API-credit per-minute quota; reused candles and OpenAI remain bounded.",
+  ],
 };
 
 const profileDefaults: Record<

@@ -95,6 +95,7 @@ import {
   observeMarketWideDiscoveryBetweenPublicationWindows,
 } from "@/lib/market-wide-discovery-background-observation";
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
+import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
@@ -276,7 +277,6 @@ const DEFAULT_FAST_MODE_TIMEOUT_MS = 23_000;
 const MIN_SCHEDULED_TIMEOUT_MS = 5_000;
 const MAX_SCHEDULED_TIMEOUT_MS = 25_000;
 const SCHEDULED_TIMEOUT_CLEANUP_RESERVE_MS = 3_000;
-const MAX_SCHEDULED_SCAN_TICKERS = 50;
 const SCHEDULED_IN_PROGRESS_COOLDOWN_MINUTES = 4;
 
 function finiteInteger(value: unknown) {
@@ -342,10 +342,12 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
       : routeSkipOpenAiOverride ??
         envSkipOpenAiOverride ??
         providerPlanProfile.profile_scheduled_skip_openai;
-  const effectiveScanTickerCap = Math.max(
-    1,
-    Math.min(MAX_SCHEDULED_SCAN_TICKERS, scheduledMaxTickers),
-  );
+  const scheduledScanTickerCap = resolveScheduledScanTickerCap({
+    requestedCap: scheduledMaxTickers,
+    profileCap: providerPlanProfile.profile_scan_ticker_cap,
+    planMode: providerPlanProfile.effective_mode,
+  });
+  const effectiveScanTickerCap = scheduledScanTickerCap.effective_cap;
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
@@ -375,6 +377,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
       providerPlanProfile.profile_outcome_candle_requests_per_run,
     profile_background_scan_cadence_minutes:
       providerPlanProfile.profile_background_scan_cadence_minutes,
+    plan_scan_ticker_cap_applied: scheduledScanTickerCap.plan_cap_applied,
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
     profile_notes: providerPlanProfile.profile_notes,
