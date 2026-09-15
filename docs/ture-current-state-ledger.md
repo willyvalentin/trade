@@ -78,9 +78,9 @@ receipt, never as evidence that discovery ran.
 
 It merged as PR [#493](https://github.com/willyvalentin/trade/pull/493) at
 `4ac457d88f361c5d9f03fe15a8b6abdf0d9a9152`. Required PR CI, merge-candidate
-provenance and exact-main CI all passed. Netlify's project API still reports
-the older production revision `dbeed25f…`, so production behavior for this
-revision is explicitly **not yet verified**.
+provenance and exact-main CI all passed. Netlify now shows a completed
+production `main @1221c3b` deployment that includes this revision. That proves
+delivery, not the still-pending current-market discovery acceptance.
 
 **IF-2a local evidence:** `git diff --check`, targeted ESLint, `npx tsc
 --noEmit`, `npm run build -- --webpack`, focused decision/discovery Playwright
@@ -98,10 +98,11 @@ fresh or last-updated evidence and cannot enter the bounded scanner universe.
 This is fail-closed input containment only; it does not change a successful
 provider path, ranking, confidence, publication policy, provider budget or
 deployment. It merged as PR [#498](https://github.com/willyvalentin/trade/pull/498)
-at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI and production
-verification remain separate evidence.
+at `40bca287ba04755d69babfeac831dc70fc5a0bb4`; exact-main CI `34967554409`
+passed and Netlify showed its completed automatic production deployment
+`main @40bca28`.
 
-**Current local IF-2 provider-response provenance:** discovery receipts now use
+**Merged IF-2 provider-response provenance:** discovery receipts now use
 summary version `market_wide_discovery_summary_v2` to distinguish a provider
 response from an outbound attempt. A connection failure is recorded as an
 attempted `provider_error` with `provider_response_observed: false`; an actual
@@ -111,9 +112,11 @@ their former semantics, so historic evidence is not silently reinterpreted.
 The diagnostics copy now distinguishes “no provider request attempted” from an
 attempt that received no provider response. This changes decision trace truth,
 not discovery admission, ranking, confidence, publication, provider budget or
-deployment. Focused receipt/classification tests passed locally and a fresh
-local production-build artifact was produced; the provider-free intelligence
-foundation regression passed 166/166 before review.
+deployment. It merged as PR [#499](https://github.com/willyvalentin/trade/pull/499)
+at `1221c3b33bc340bba6c7ab1b681ebe208f6af45f`; required PR CI and exact-main
+CI `34970253350` passed, and Netlify showed its completed automatic production
+deployment `main @1221c3b`. This is delivery and traceability evidence, not
+current-market provider entitlement or a measured ranking improvement.
 
 **Current local IF-2b contract foundation:** a provider-free symbol-master
 contract accepts only caller-supplied catalog payloads and admits a symbol to a
@@ -167,7 +170,7 @@ requires an explicit provider budget, persisted point-in-time receipt and
 readback plus a versioned evaluation before context may affect selection
 quality.
 
-**Current local publication-integrity correction:** an explicit OpenAI
+**Merged publication-integrity correction:** an explicit OpenAI
 `no_trade`, an empty model result or model output that fails deterministic
 validation is now a terminal no-publish decision, not an input to the
 deterministic recommendation fallback. The scan record preserves the model's
@@ -178,11 +181,15 @@ selectivity and decision traceability; it does not make a confidence score a
 calibrated probability, change ranking, call a provider or establish a quality
 improvement against a baseline.
 
-**Publication-integrity local evidence:** five focused no-trade policy tests,
-targeted ESLint, `git diff --check` and the 166-test intelligence-foundation
-suite passed. The production build produced a fresh Next build artifact. No
-provider request, database migration, broker action or staging invocation was
-made.
+**Publication-integrity delivery evidence:** it merged as PR
+[#497](https://github.com/willyvalentin/trade/pull/497) at
+`f9f7662ddc020e3acade7dfd21959490b73fd844`. Required PR CI and exact-main CI
+`34964858361` passed, and Netlify showed its completed automatic production
+deployment `main @f9f7662`. Five focused no-trade policy tests, targeted
+ESLint, `git diff --check` and the 166-test intelligence-foundation suite also
+passed locally before merge. No provider request, database migration, broker
+action or staging invocation was made. This is stricter publication behavior,
+not calibration or a measured quality improvement against a baseline.
 
 ### Sequencing rule — market-window evidence
 
@@ -263,6 +270,42 @@ claim a real Avanza fill. Record any required human confirmation or supported
 market-session dependency explicitly. Keep the staging scheduled-function
 control and applicable provider/broker boundaries; this documentation grants no
 new external-operation authority.
+
+**MVP-06a current-candidate and manual-boundary recheck (2026-09-14): active
+private-staging evidence, no trade or record action.** An authenticated
+readback of private `ture-staging.netlify.app` displayed NOW (ServiceNow, Inc.)
+as a current recommendation with `LOW CONFIDENCE` 68/100, a Twelve Data source
+time of Sep 14 2026, 2:05 PM EDT, and a derived expiry of 3:05 PM EDT. The
+surface explicitly said that evidence must be reviewed before continuing to a
+manual trade record, and offered only `Review Low Confidence`; that control was
+not pressed. No manual record, provider revalidation, broker interaction,
+position write, setting change or production action occurred. Separately, the
+focused current-main MVP-03 regression set passed 25/25: complete manual
+attestation is required, incomplete or mismatched evidence fails closed,
+owner-bound entry and close retries are idempotent, and completed actions
+refresh the dashboard projection. This is live candidate availability plus
+local source regression evidence, not a manual-fill attestation, a recommendation
+to trade, or MVP-06a acceptance. The ordinary journey remains pending a
+user-genuine manual confirmation if the user chooses to execute independently;
+that confirmation must not be fabricated.
+
+**Low-confidence recommendation safety parity (2026-09-14): local
+main-based correction, not deployed.** Source comparison found that the private
+staging revision displaying NOW had a low-confidence review boundary that was
+absent from the current `origin/main` recommendation-card source. The isolated
+main-based branch now restores that narrow boundary: a fresh or aging
+low-confidence recommendation opens its detail review instead of
+manual-recording validation; only a deliberate review continuation can open the
+existing manual record flow. Stale or expired recommendations cannot use that
+continuation, and a blocked intraday gate renders `Setup Blocked` disabled. The
+card and details copy now state that the path is a manual record and never
+submits a broker order. After a clean rebase to current `main`, the focused
+low-confidence presentation suite passed 6/6; repository TypeScript, scoped
+ESLint, `git diff --check`, and `npm run build -- --webpack` also passed. No
+provider request, data mutation, broker action or deployment occurred. The
+remaining evidence is the normal PR review/CI and visual verification from the
+resulting preview or deployed revision; this local correction is not evidence
+that recommendation quality has improved.
 
 **Off-market capacity lane: empty.** The 2026-09-12 planning decision permits
 one independent, market-window-free vertical slice only while MVP-06a is
