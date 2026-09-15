@@ -35,8 +35,7 @@ partially observed scan remains an explainable `no_trade`, that only
 unpublished candidates appear in the trade-readiness readback, and that
 malformed persisted payloads — including an invalid candidate data-health
 payload — fail closed in the browser. `npm run test:intelligence-foundation`
-(166/166) also passed for the underlying IF-1 decision-record implementation
-before the readback corrections.
+(166/166) also passed on the current branch after the readback corrections.
 
 **External effects:** none. This delivery made no provider request, database
 migration, deployment, broker action or staging invocation. It is stacked on
