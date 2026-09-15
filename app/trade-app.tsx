@@ -37450,7 +37450,7 @@ function BasicFreeDiscoveryReceiptPanel({
           that no candidate exists.
         </p>
       ) : (
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
             <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
               Immutable boundary
@@ -37476,6 +37476,43 @@ function BasicFreeDiscoveryReceiptPanel({
             </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Reservation finalization: {receipt.credit_reservation.finalization_status ?? "not recorded"}; proven: {receipt.credit_reservation.finalization_proven === true ? "yes" : receipt.credit_reservation.finalization_proven === false ? "no" : "not applicable"}.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Complete catalog capacity
+            </h4>
+            {receipt.catalog_collection_plan.status ===
+            "ready_for_separate_admission" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  {receipt.catalog_collection_plan.total_pages_required} one-credit
+                  pages in total; {" "}
+                  {receipt.catalog_collection_plan.remaining_pages_after_observed_page} remain
+                  after this observed page. At the declared quota, the remaining
+                  work needs at least {" "}
+                  {receipt.catalog_collection_plan.minimum_trading_days_from_observed_page} trading day(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  At most {receipt.catalog_collection_plan.credits_available_today} more
+                  credits are available today; the current-day portion would take
+                  at least {" "}
+                  {receipt.catalog_collection_plan.minimum_request_minutes_for_current_day} request minute(s).
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                A complete-collection capacity plan needs a valid observed page,
+                catalog denominator and finalized reservation. It remains unavailable:{" "}
+                {receipt.catalog_collection_plan.reason_codes.join(", ") ||
+                  "not recorded"}.
+              </p>
+            )}
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Capacity math is not request authority. It cannot collect another
+              page, mark coverage complete, admit a discovery feed, or qualify a
+              candidate.
             </p>
           </div>
         </div>

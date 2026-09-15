@@ -1,3 +1,8 @@
+import {
+  buildBasicFreeCatalogCollectionPlan,
+  type BasicFreeCatalogCollectionPlan,
+} from "@/lib/basic-free-catalog-collection-plan";
+
 const summaryVersion = "basic_free_catalog_observation_summary_v1";
 const policyVersion = "basic_free_catalog_observation_v1";
 const reservationVersion = "basic_free_discovery_credit_reservation_v1";
@@ -80,6 +85,7 @@ export type BasicFreeDiscoveryReadback = {
     collection_complete: false | null;
     discovery_feed_allowed: false | null;
   };
+  catalog_collection_plan: BasicFreeCatalogCollectionPlan;
   warnings: string[];
   gaps: string[];
 };
@@ -186,6 +192,16 @@ function unavailableReadback(
       collection_complete: null,
       discovery_feed_allowed: null,
     },
+    catalog_collection_plan: buildBasicFreeCatalogCollectionPlan({
+      providerResponseObserved: null,
+      providerCatalogCount: null,
+      observedRecordCount: null,
+      requestedCredits: null,
+      dailyCreditBudget: null,
+      perMinuteCreditBudget: null,
+      dailyRemainingCredits: null,
+      reservationFinalizationProven: null,
+    }),
     warnings: [],
     gaps: [],
   };
@@ -395,6 +411,16 @@ export function basicFreeDiscoveryReadbackFromUnknown(
       collection_complete: false,
       discovery_feed_allowed: false,
     },
+    catalog_collection_plan: buildBasicFreeCatalogCollectionPlan({
+      providerResponseObserved,
+      providerCatalogCount,
+      observedRecordCount: catalogObservedCount,
+      requestedCredits: request.credits_per_request,
+      dailyCreditBudget: declaredDailyCreditBudget,
+      perMinuteCreditBudget: declaredPerMinuteCreditBudget,
+      dailyRemainingCredits,
+      reservationFinalizationProven: reservation.finalization_proven,
+    }),
     warnings,
     gaps,
   };
