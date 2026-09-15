@@ -192,5 +192,37 @@ test.describe("scheduled scanner universe rotation", () => {
       selected_tickers: [],
       last_updated_at: null,
     });
+
+    const staleDuplicateBeforeFresh = buildDynamicMarketMoversSelection({
+      scanWindow: "midday",
+      selectedBudget: scheduledBudget,
+      now: rotationStart,
+      providerResult: {
+        provider: "twelve_data",
+        status: "available",
+        movers: [
+          {
+            ticker: "RECOVER",
+            source: "top_volume",
+            fetched_at: new Date(
+              rotationStart.getTime() - 31 * 60_000,
+            ).toISOString(),
+          },
+          {
+            ticker: "RECOVER",
+            source: "top_gainer",
+            fetched_at: rotationStart.toISOString(),
+          },
+        ],
+      },
+    });
+
+    expect(staleDuplicateBeforeFresh.summary).toMatchObject({
+      status: "available",
+      selected_count: 1,
+      stale_count: 1,
+      selected_tickers: ["RECOVER"],
+      last_updated_at: rotationStart.toISOString(),
+    });
   });
 });

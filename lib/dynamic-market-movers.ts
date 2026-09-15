@@ -172,16 +172,18 @@ export function buildDynamicMarketMoversSelection(
   let contextOnlySkippedCount = 0;
 
   for (const mover of rankMoversForWindow(fetchedMovers, scanWindow)) {
+    // An unusable receipt must not reserve its ticker. A later fresh receipt
+    // from another source remains eligible for selection.
+    if (mover.stale) {
+      continue;
+    }
+
     if (seen.has(mover.ticker) || existingTickers.has(mover.ticker)) {
       dedupedCount += 1;
       continue;
     }
 
     seen.add(mover.ticker);
-
-    if (mover.stale) {
-      continue;
-    }
 
     if (mover.context_only || !mover.tradable) {
       contextOnlySkippedCount += 1;
