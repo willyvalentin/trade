@@ -119,7 +119,7 @@ test.describe("market-wide discovery admission", () => {
       },
     }).summary;
     const summary = {
-      summary_version: "market_wide_discovery_summary_v1",
+      summary_version: "market_wide_discovery_summary_v3",
       summary_kind: "market_wide_discovery",
       generated_at: now.toISOString(),
       scan_window: "opening",
@@ -128,6 +128,18 @@ test.describe("market-wide discovery admission", () => {
         attempted_at: now.toISOString(),
         outcome: "available",
         provider_response_observed: true,
+      },
+      credit_reservation: {
+        contract_version: "market_wide_discovery_credit_reservation_v1",
+        status: "provider_execution_allowed",
+        trading_date: "2026-09-15",
+        requested_credits: 100,
+        declared_daily_credit_budget: 100,
+        reserved_credits: 100,
+        remaining_credits: 0,
+        idempotent: false,
+        finalization_status: "finalized",
+        finalization_proven: true,
       },
       dynamic_intake: dynamicIntake,
       warnings: [],
@@ -166,11 +178,15 @@ test.describe("market-wide discovery admission", () => {
 
     const providerErrorWithoutResponse = marketWideDiscoveryReadbackFromUnknown({
       ...summary,
-      summary_version: "market_wide_discovery_summary_v2",
       attempt: {
         attempted_at: now.toISOString(),
         outcome: "provider_error",
         provider_response_observed: false,
+      },
+      credit_reservation: {
+        ...summary.credit_reservation,
+        finalization_status: "finalized",
+        finalization_proven: true,
       },
       dynamic_intake: {
         ...dynamicIntake,
@@ -191,6 +207,11 @@ test.describe("market-wide discovery admission", () => {
     expect(
       marketWideDiscoveryReadbackFromUnknown({
         ...summary,
+        summary_version: "market_wide_discovery_summary_v1",
+        admission: {
+          ...admission,
+          policy_version: "us_equity_market_wide_discovery_v1",
+        },
         attempt: {
           attempted_at: now.toISOString(),
           outcome: "provider_error",

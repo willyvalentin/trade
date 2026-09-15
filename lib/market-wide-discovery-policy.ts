@@ -1,7 +1,10 @@
+import {
+  MARKET_WIDE_DISCOVERY_MAX_DAILY_CREDITS,
+} from "@/lib/market-wide-discovery-credit-reservation-store";
 import type { ProviderPlanProfileMode } from "@/lib/provider-plan-profile";
 
 export const MARKET_WIDE_DISCOVERY_POLICY_VERSION =
-  "us_equity_market_wide_discovery_v1" as const;
+  "us_equity_market_wide_discovery_v2" as const;
 export const TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST = 100;
 export const TWELVE_DATA_SYMBOL_MASTER_CREDITS_PER_REQUEST = 1;
 export const MARKET_WIDE_DISCOVERY_MIN_REFRESH_MINUTES = 15;
@@ -21,6 +24,9 @@ export type MarketWideDiscoveryAdmissionStatus =
   | "plan_ineligible"
   | "budget_not_declared"
   | "budget_insufficient"
+  | "budget_invalid"
+  | "daily_credit_limit_reached"
+  | "budget_reservation_unavailable"
   | "refresh_interval_active"
   | "error_backoff_active"
   | "ready";
@@ -30,6 +36,11 @@ export type MarketWideDiscoveryReasonCode =
   | "plan_not_pro"
   | "daily_credit_budget_not_declared"
   | "daily_credit_budget_below_request"
+  | "daily_credit_budget_invalid"
+  | "daily_credit_limit_reached"
+  | "daily_credit_reservation_unavailable"
+  | "credit_reservation_attempt_in_progress"
+  | "credit_reservation_already_finalized"
   | "recent_discovery_refresh"
   | "recent_provider_error"
   | "admitted";
@@ -159,6 +170,18 @@ export function buildMarketWideDiscoveryAdmission(
     );
   }
 
+  if (
+    dailyCreditBudget > MARKET_WIDE_DISCOVERY_MAX_DAILY_CREDITS ||
+    dailyCreditBudget % TWELVE_DATA_MARKET_MOVERS_CREDITS_PER_REQUEST !== 0
+  ) {
+    return blocked(
+      base,
+      "budget_invalid",
+      "daily_credit_budget_invalid",
+      null,
+    );
+  }
+
   const previousAttempt = normalizePreviousAttempt(input.previousAttempt);
   const attemptedAt = previousAttempt?.attempted_at
     ? validDate(new Date(previousAttempt.attempted_at))
@@ -213,6 +236,31 @@ export function marketWideDiscoveryPreviousAttemptFromUnknown(
   return {
     attempted_at: parsedAttemptedAt.toISOString(),
     outcome,
+  };
+}
+
+/**
+ * Dynamic discovery does not reach a provider until the durable credit
+ * reservation has selected exactly one execution. Keep the original policy
+ * facts in the receipt while making the final admission fail closed.
+ */
+export function blockMarketWideDiscoveryAdmissionForReservation(
+  admission: MarketWideDiscoveryAdmission,
+  reason:
+    | "daily_credit_limit_reached"
+    | "daily_credit_reservation_unavailable"
+    | "credit_reservation_attempt_in_progress"
+    | "credit_reservation_already_finalized",
+): MarketWideDiscoveryAdmission {
+  return {
+    ...admission,
+    status:
+      reason === "daily_credit_limit_reached"
+        ? "daily_credit_limit_reached"
+        : "budget_reservation_unavailable",
+    safe_to_request_dynamic_movers: false,
+    next_retry_at: null,
+    reason_codes: [reason],
   };
 }
 

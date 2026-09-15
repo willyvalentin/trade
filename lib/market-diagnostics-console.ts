@@ -3603,6 +3603,17 @@ function buildSections(
       outcome: null,
       provider_response_observed: null,
     },
+    credit_reservation: {
+      status: null,
+      trading_date: null,
+      requested_credits: null,
+      declared_daily_credit_budget: null,
+      reserved_credits: null,
+      remaining_credits: null,
+      idempotent: null,
+      finalization_status: null,
+      finalization_proven: null,
+    },
     intake: {
       status: null,
       fetched_count: null,
@@ -3853,6 +3864,12 @@ function buildSections(
                 marketWideDiscovery.attempt.attempted_at
               ? `provider error at ${marketWideDiscovery.attempt.attempted_at}; no provider response observed`
               : "no provider request attempted",
+        ),
+        lineValue(
+          "Daily credit reservation",
+          marketWideDiscovery.credit_reservation.status === null
+            ? "not recorded by this receipt version"
+            : `${marketWideDiscovery.credit_reservation.status}; ${marketWideDiscovery.credit_reservation.reserved_credits ?? "unknown"} reserved / ${marketWideDiscovery.credit_reservation.remaining_credits ?? "unknown"} remaining; finalization ${marketWideDiscovery.credit_reservation.finalization_status ?? "unknown"}`,
         ),
         lineValue(
           "Intake",
