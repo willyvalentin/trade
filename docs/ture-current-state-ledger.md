@@ -91,6 +91,16 @@ entering a fixed-size selection without expanding it. No provider request,
 database migration, production deploy, broker action or staging invocation was
 made.
 
+**Current local IF-2 failure-receipt containment:** a mover payload is now
+withheld in full when the provider itself declares `error` or `unavailable`.
+Symbols supplied alongside that failure are not counted as fetched, selected,
+fresh or last-updated evidence and cannot enter the bounded scanner universe.
+This is fail-closed input containment only; it does not change a successful
+provider path, ranking, confidence, publication policy, provider budget or
+deployment. Focused regressions cover both provider failure states; the
+provider-free intelligence foundation regression passed 166/166 and a fresh
+local production-build artifact was produced before review.
+
 **Current local IF-2b contract foundation:** a provider-free symbol-master
 contract accepts only caller-supplied catalog payloads and admits a symbol to a
 future discovery feed only when the full pagination receipt is proven, the row

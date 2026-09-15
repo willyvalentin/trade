@@ -163,7 +163,12 @@ export function buildDynamicMarketMoversSelection(
     };
   }
 
-  const fetchedMovers = normalizeProviderMovers(providerResult, now);
+  // A provider error or unavailable status invalidates the whole payload. Do
+  // not surface potentially stale or partial symbols as discovery evidence,
+  // even if an untrusted caller supplied them alongside the failure status.
+  const fetchedMovers = providerResultIndicatesFailure(providerResult)
+    ? []
+    : normalizeProviderMovers(providerResult, now);
   const selectedMovers: DynamicMarketMover[] = [];
   const seen = new Set<string>();
   let dedupedCount = 0;
@@ -402,10 +407,7 @@ function determineStatus(
   fetchedMovers: DynamicMarketMover[],
   selectedMovers: DynamicMarketMover[],
 ): DynamicMarketMoversStatus {
-  if (
-    providerResult.status === "unavailable" ||
-    providerResult.status === "error"
-  ) {
+  if (providerResultIndicatesFailure(providerResult)) {
     return "provider_unavailable";
   }
 
@@ -435,7 +437,7 @@ function buildWarnings({
 }) {
   const warnings: DynamicMarketMoversWarning[] = [];
 
-  if (providerResult.status === "unavailable" || providerResult.status === "error") {
+  if (providerResultIndicatesFailure(providerResult)) {
     warnings.push(
       warning(
         "provider_unavailable",
@@ -505,7 +507,7 @@ function buildGaps(
 ) {
   const gaps: string[] = [];
 
-  if (providerResult.status === "unavailable" || providerResult.status === "error") {
+  if (providerResultIndicatesFailure(providerResult)) {
     gaps.push("Dynamic market movers provider did not return usable data.");
   }
 
@@ -534,6 +536,12 @@ function buildSourceBreakdown(movers: DynamicMarketMover[]) {
   }
 
   return breakdown;
+}
+
+function providerResultIndicatesFailure(
+  providerResult: DynamicMarketMoversProviderResult,
+) {
+  return providerResult.status === "unavailable" || providerResult.status === "error";
 }
 
 function warning(
