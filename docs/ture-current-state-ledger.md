@@ -191,7 +191,7 @@ passed locally before merge. No provider request, database migration, broker
 action or staging invocation was made. This is stricter publication behavior,
 not calibration or a measured quality improvement against a baseline.
 
-**Current local IF-3 sector-relative-strength admission:** a separate,
+**Merged IF-3 sector-relative-strength admission:** a separate,
 provider-free contract now accepts candidate, explicit sector benchmark and
 SPY market-benchmark observations only when they are all complete, sourced by
 one provider, synchronized within 60 seconds, no more than five minutes old,
@@ -203,14 +203,37 @@ cross-provider, incomplete or non-finite observations all fail closed. The
 only derived values are stock-versus-sector and sector-versus-market session
 return deltas. They are context-only and cannot change ranking or publication.
 
-**IF-3 sector-relative-strength local evidence:** seven focused admission tests,
-`git diff --check`, targeted ESLint and `npx tsc --noEmit` passed. No provider
-request, persistence, scanner/ranking change, deployment, broker action or
-staging invocation is part of the delivery. Full foundation and production
-build verification passed; the provider-free intelligence foundation regression
-passed 166/166. A later adapter still requires explicit provider budget,
-persisted point-in-time receipt, readback and versioned baseline evaluation
-before it can affect selection quality.
+**IF-3 sector-relative-strength delivery evidence:** PR #500 merged as
+`24ddcda41d6acad960cb7bec62ec8d00dc8e319b`. Its full PR CI run `34974509191`
+and exact-main CI run `34977696970` passed; Netlify completed the automatic
+production deployment `main @24ddcda`. Seven focused admission tests, `git
+diff --check`, targeted ESLint, `npx tsc --noEmit`, the 166-test
+intelligence-foundation suite and the production build passed locally before
+merge. No provider request, persistence, scanner/ranking change, broker action
+or staging invocation is part of the delivery. A later adapter still requires
+explicit provider budget, persisted point-in-time receipt, readback and
+versioned baseline evaluation before it can affect selection quality.
+
+**Current local IF-3 catalyst-presence admission:** a separate, provider-free
+contract recognizes a catalyst as present only when a complete, attributable
+24-hour candidate-specific search returns exactly one typed event. It recognizes
+absence only when that same complete search explicitly reports zero events.
+Both the search observation and any event must be point-in-time safe: the
+coverage is at most five minutes old, its New York date matches the declared
+market date, and an event is attributable to the same provider, was published
+before the observation and is no more than 24 hours old. Partial searches,
+unresolved multiple events, stale, future, date-only, mismatched or
+out-of-window evidence fail closed as unavailable. This is context-only and
+cannot change ranking or publication.
+
+**IF-3 catalyst-presence local evidence:** eight focused admission tests cover
+present, explicit absence, exact freshness/lookback limits, missing or partial
+coverage, unresolved multiple events, stale data, future/date-only/mismatched
+inputs and impossible coverage chronology. No provider request, persistence,
+scanner/ranking change, deployment, broker action or staging invocation is part
+of the delivery. A later adapter needs a documented provider entitlement and
+budget, persisted coverage receipt/readback, an event-selection policy and a
+versioned baseline evaluation before catalyst context can affect candidates.
 
 ### Sequencing rule — market-window evidence
 
