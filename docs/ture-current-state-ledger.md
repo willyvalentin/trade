@@ -166,7 +166,7 @@ need a coverage denominator, freshness/readback evidence and a bounded rollout;
 neither current contract claims coverage or a quality improvement.
 
 **Active local IF-2 daily-credit reservation:** commit
-`3315ad47` adds a default-off, owner-and-New-York-day reservation before an
+`8318651f` adds a default-off, owner-and-New-York-day reservation before an
 admitted dynamic mover request can reach Twelve Data. The reservation performs
 an exact idempotent claim, a one-winner attempt transition and a terminal
 finalization; failed, timed-out or unfinalized attempts remain charged. The
