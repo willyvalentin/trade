@@ -60,17 +60,47 @@ function isCandidateDisposition(
   );
 }
 
+function isCandidateFreshness(value: unknown) {
+  return (
+    value === "fresh" ||
+    value === "stale" ||
+    value === "gap" ||
+    value === "unknown"
+  );
+}
+
+function isNullableText(value: unknown) {
+  return value === null || stringOrNull(value) !== null;
+}
+
+function isIndicatorSource(value: unknown) {
+  return (
+    value === null ||
+    value === "cache" ||
+    value === "fresh" ||
+    value === "unavailable"
+  );
+}
+
 function hasKnownCandidateReadbackShape(value: unknown) {
   const candidate = objectOrNull(value);
   const ranking = candidate?.ranking === null
     ? null
     : objectOrNull(candidate?.ranking);
+  const data = objectOrNull(candidate?.data);
 
   return (
     stringOrNull(candidate?.ticker) !== null &&
     isCandidateDisposition(candidate?.disposition) &&
     Array.isArray(candidate?.reason_codes) &&
     stringArray(candidate.reason_codes).length === candidate.reason_codes.length &&
+    data !== null &&
+    isNullableText(data.provider_source) &&
+    isNullableText(data.source_timestamp) &&
+    isCandidateFreshness(data.freshness) &&
+    isIndicatorSource(data.indicator_source) &&
+    Array.isArray(data.gap_codes) &&
+    stringArray(data.gap_codes).length === data.gap_codes.length &&
     (candidate?.ranking === null ||
       (ranking !== null &&
         isFiniteNonNegativeNumber(ranking.rank) &&

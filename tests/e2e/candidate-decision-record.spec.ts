@@ -234,6 +234,43 @@ test.describe("candidate decision record", () => {
     expect(candidateDecisionRecordFromUnknown({ candidates: [] })).toBeNull();
   });
 
+  test("rejects a record whose candidate data health cannot be read safely", () => {
+    const candidates = [candidate(1)];
+    const ranking = buildScannerCandidateRankingSummary({
+      candidates,
+      targetMin: 1,
+      targetMax: 1,
+      now: new Date(CAPTURED_AT),
+    });
+    const capture = buildCandidateDecisionCapture({
+      captureTimestamp: CAPTURED_AT,
+      universe: candidates,
+      observedCandidates: candidates,
+      ranking,
+      eligibleCandidateTickers: candidates.map((item) => item.ticker),
+      publishableThreshold: 70,
+      noPublishReason: "no_publishable_ranked_candidates",
+      recommendationBuildPath: "no_publish",
+    });
+    const record = buildCandidateDecisionRecord({
+      scanRun: scanRun(candidates.length),
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+    const [firstCandidate] = record?.candidates ?? [];
+    const candidateWithoutData = Object.fromEntries(
+      Object.entries(firstCandidate ?? {}).filter(([key]) => key !== "data"),
+    );
+
+    expect(
+      candidateDecisionRecordFromUnknown({
+        ...record,
+        candidates: [candidateWithoutData],
+      }),
+    ).toBeNull();
+  });
+
   test("rejects a versioned payload that cannot support the displayed readback", () => {
     expect(
       candidateDecisionRecordFromUnknown({
