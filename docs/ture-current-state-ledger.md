@@ -261,17 +261,27 @@ remains the required build/type verification. No provider request, production
 migration, deployment, broker action or staging invocation is part of this
 active local delivery.
 
+**IF-2 Basic Free reservation migration, production verified:** the named
+additive migration
+`20260915222537_basic_free_discovery_credit_reservations.sql` is now applied to
+Ture production (`Trade` / `ekdyopdrrkphlrsilyoo`) and recorded under its exact
+repository version `20260915222537`. Readback verifies the RLS-protected
+reservation table and all three fixed-search-path `SECURITY DEFINER` functions.
+`anon` and `authenticated` cannot read the table or execute the functions;
+only `service_role` can execute the scoped claim, begin-attempt and
+finalize-attempt RPCs. This establishes the durable quota prerequisite. It did
+not create a reservation, call Twelve Data, run a scan, publish a candidate or
+invoke a broker.
+
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
-acceptance step requires the named additive Basic Free reservation migration
-`20260915222537_basic_free_discovery_credit_reservations.sql` in production,
-then—during a normal open-market window and only with the explicit runtime
-switch and both budgets configured—one normal scheduled observation and
-persisted browser-receipt verification. It may use only a documented
-Basic-available endpoint and must not claim market-wide coverage, change ranking
-or publish candidates. A future Pro upgrade may re-enable the separate
-100-credit market-movers path only after its actual provider entitlement is
-verified.
+acceptance step is—during a normal open-market window and only with the
+explicit runtime switch and both budgets configured—one normal scheduled
+observation and persisted browser-receipt verification. It may use only a
+documented Basic-available endpoint and must not claim market-wide coverage,
+change ranking or publish candidates. A future Pro upgrade may re-enable the
+separate 100-credit market-movers path only after its actual provider
+entitlement is verified.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
