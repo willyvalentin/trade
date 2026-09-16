@@ -253,15 +253,15 @@ explicitly `execution_authority = not_admitted` and
 `discovery_feed_allowed = false`: the readback cannot make a request, complete
 catalog coverage, alter scanner selection, rank, publish or execute.
 
-**IF-2 Basic Free capacity local evidence:** `git diff --check` passes. The
-focused suite includes multi-day quota math, unobserved/partial/invalid/
-inconsistent receipts, observed provider errors and invalid reservation lifecycle
-states; it also proves the readback boundary and absence of a provider-call path.
-The isolated worktree deliberately has no installed dependency tree, so its
-Playwright, ESLint, TypeScript and webpack commands cannot execute locally.
-Fresh exact-PR CI is therefore the required test, lint, type and build
-verification. No provider request, production migration, deployment, broker
-action or staging invocation is part of this active local delivery.
+**IF-2 Basic Free capacity local evidence:** `git diff --check`, targeted
+ESLint, `npx tsc --noEmit`, `npm run build -- --webpack` and the five focused
+Basic Free capacity Playwright tests pass. The suite covers multi-day quota
+math, unobserved/partial/invalid/inconsistent receipts, observed provider errors
+and invalid reservation lifecycle states; it also proves the readback boundary
+and absence of a provider-call path. Fresh exact-PR CI remains the independent
+candidate verification required before merge. No provider request, production
+migration, deployment, broker action or staging invocation is part of this
+active local delivery.
 
 **IF-2 Basic Free reservation migration, production verified:** the named
 additive migration
