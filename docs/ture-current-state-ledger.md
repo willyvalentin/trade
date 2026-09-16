@@ -336,17 +336,34 @@ open, outside-official and observable-window use; it does not enable a provider
 request, change the configured plan, ranking, confidence, publication or
 execution.
 
-**IF-2 open-market follow-up local evidence:** `git diff --check`, targeted
-ESLint, `npx tsc --noEmit`, the scheduled-function runtime build and the
-production webpack build pass. The 49-test relevant IF-2 Playwright suite and
-the 166-test provider-free intelligence-foundation regression pass. The route
-contract now proves that the background gate receives `marketOpenForScan`, so
-the only market-open fact used by this reference-only route matches the
-surrounding route decision. A later normal scheduled receipt is still required
-after this correction is delivered. The current production runtime reports its
-configured plan profile as `grow`, not the user-confirmed Basic Free profile;
-no environment value has been changed and this is not Basic Free admission or
-provider-entitlement evidence.
+**IF-2 open-market follow-up delivered:** PR
+[#512](https://github.com/willyvalentin/trade/pull/512) merged as
+`3953589390589deace6573008fc7077f732771be`; required CI `35113816991` passed
+and Netlify production deploy `6aaab931ec790e0008dbe289` is ready for that
+exact revision. Local `git diff --check`, targeted ESLint, `npx tsc --noEmit`,
+the scheduled-function runtime build, production webpack build, 49 relevant
+IF-2 Playwright checks and the 166-test provider-free intelligence-foundation
+regression passed. The route contract proves that the background gate receives
+`marketOpenForScan`, so the only market-open fact used by this reference-only
+route matches the surrounding route decision. Functions/production now has the
+non-secret, explicit Basic Free configuration: plan mode `free`, observation
+enabled, daily budget `800` and per-minute budget `8`; a normal Git-based
+production build `6aaabb7352c78883008c24fc` is ready for the same main
+revision. This configuration is not provider-entitlement, coverage or quality
+evidence, and no provider request, reservation, candidate or recommendation
+path ran while applying it.
+
+**IF-2 scheduled-invocation runtime discrepancy:** At 15:00 UTC the deployed
+scheduled function wrote two distinct raw-timestamp claim IDs,
+`scheduled_scan_attempt_11gtqfm` and `scheduled_scan_attempt_kow4oj`, for
+deliveries within the same 15-minute slot. The current source-level slot
+calculation deterministically maps both corresponding delivery timestamps to
+`scheduled_scan_attempt_fha3bx`, so the observed runtime did not use the
+intended slot-bound identity. Both receipts were still `skipped` before the
+Basic Free observation path, with no provider request, reservation, candidate
+or recommendation. The next normal Basic Free observation remains withheld
+until the scheduled-function entrypoint has been rebuilt with the slot-bound
+claim and that behavior is read back from production.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
