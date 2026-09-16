@@ -281,7 +281,7 @@ finalize-attempt RPCs. This establishes the durable quota prerequisite. It did
 not create a reservation, call Twelve Data, run a scan, publish a candidate or
 invoke a broker.
 
-**Active local IF-2 regular-session schedule coverage:** the scheduled scan
+**Merged IF-2 regular-session schedule coverage:** the scheduled scan
 cadence is now represented by one shared UTC cron contract,
 `*/15 13-20 * * 1-5`. It includes every 15-minute regular-session scan slot in
 New York daylight saving time (13:30–19:45 UTC) and standard time
@@ -292,13 +292,40 @@ The additional closed-session UTC slots remain provider-free because the
 existing market-calendar gate still returns before any observation, candidate,
 ranking, publication or execution path.
 
-**IF-2 schedule local evidence:** `git diff --check`, targeted ESLint,
+**IF-2 schedule delivery evidence:** PR
+[#509](https://github.com/willyvalentin/trade/pull/509) merged as
+`35820c34a1505480e19be716a8726665c38facab`. Exact-main CI
+`35047695104` passed and Netlify completed production deploy
+`6aa9fd46935da7000837a676`. Before merge, `git diff --check`, targeted ESLint,
 `npx tsc --noEmit`, `npm run build -- --webpack` and the scheduled-function
 runtime build pass. The 25 focused Playwright tests cover both New York offsets,
 the standard-time final slot, the excluded close boundary, the shared runtime /
 diagnostic contract and existing provider-free schedule guards. No provider
-request, production migration, deployment, broker action or staging invocation
-is part of this active local delivery.
+request, production migration, broker action or staging invocation was part of
+that delivery.
+
+**Active IF-2 open-market observation-gate correction:** the production
+scheduled route ran at `2026-09-16T13:30:18.726Z` and
+`2026-09-16T13:30:28.200Z`, after the regular market opened. Both persisted a
+normal HTTP `200` `skipped` receipt with `outside_window`,
+`not_official_scan_window`, `basic_free_discovery = null` and zero candidate /
+recommendation counts. That is a correct no-call record, but it exposed a route
+ordering defect: the generic outside-generation return occurred before the
+already declared reference-only background-observation branch. The active
+correction introduces one shared eligibility gate and allows it to bypass that
+generic return only for a scheduled run, verified open market, outside official
+publication window and an observable intraday window. It does not alter the
+Basic runtime switch, plan profile, two-credit-budget reservation, catalog
+scope, ranking, confidence, publication or execution.
+
+**IF-2 open-market gate local evidence:** `git diff --check`, targeted ESLint,
+`npx tsc --noEmit`, `npm run build -- --webpack` and the scheduled-function
+runtime build pass. The 64 focused Playwright tests cover the new admission
+truth table, its route wiring, Basic Free reservations/readback, existing
+market-wide fail-closed behavior, official scan windows and schedule
+idempotency/coverage. No additional provider call, database migration, broker
+action or staging invocation is part of this correction. Production deployment
+and a later normal scheduled receipt remain pending.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
