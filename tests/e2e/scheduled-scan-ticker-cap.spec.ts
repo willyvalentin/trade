@@ -1,6 +1,15 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
+import {
+  resolveScheduledScanProviderCreditBudget,
+  resolveScheduledScanTickerCap,
+} from "@/lib/scheduled-scan-ticker-cap";
+
+function source(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
 
 test("Basic Free cannot exceed its eight-credit scan cap through an override", () => {
   expect(
@@ -39,4 +48,44 @@ test("paid plan profiles retain their explicitly requested bounded cap", () => {
     effective_cap: 50,
     plan_cap_applied: false,
   });
+});
+
+test("Basic Free reserves known scan calls before allowing reference refreshes", () => {
+  expect(
+    resolveScheduledScanProviderCreditBudget({ planMode: "free" }),
+  ).toEqual({
+    policy_version: "scheduled_scan_provider_credit_budget_v1",
+    plan_mode: "free",
+    enforced: true,
+    per_minute_credit_cap: 8,
+    market_regime_credits_reserved: 2,
+    scanner_credits_reserved: 1,
+    reference_refresh_max_attempts: 5,
+    max_known_credits_per_scan: 8,
+  });
+});
+
+test("paid profiles preserve the existing reference-refresh limit", () => {
+  expect(
+    resolveScheduledScanProviderCreditBudget({ planMode: "grow" }),
+  ).toEqual({
+    policy_version: "scheduled_scan_provider_credit_budget_v1",
+    plan_mode: "grow",
+    enforced: false,
+    per_minute_credit_cap: null,
+    market_regime_credits_reserved: 0,
+    scanner_credits_reserved: 0,
+    reference_refresh_max_attempts: 10,
+    max_known_credits_per_scan: null,
+  });
+});
+
+test("the scheduled route carries its Free budget into reference refresh", () => {
+  const route = source("app/api/automation/run-scan/route.ts");
+  const generator = source("lib/recommendation-generator.ts");
+
+  expect(route).toContain("scheduled_provider_credit_budget");
+  expect(route).toContain("scheduledReferenceRefreshMaxAttempts:");
+  expect(generator).toContain("scheduledReferenceRefreshMaxAttempts");
+  expect(generator).toContain("maxAttempts: referenceRefreshMaxAttempts");
 });

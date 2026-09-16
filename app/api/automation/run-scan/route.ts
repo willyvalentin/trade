@@ -98,7 +98,10 @@ import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
 import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "@/lib/background-discovery-observation-gate";
-import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
+import {
+  resolveScheduledScanProviderCreditBudget,
+  resolveScheduledScanTickerCap,
+} from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
@@ -351,6 +354,10 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     planMode: providerPlanProfile.effective_mode,
   });
   const effectiveScanTickerCap = scheduledScanTickerCap.effective_cap;
+  const scheduledProviderCreditBudget =
+    resolveScheduledScanProviderCreditBudget({
+      planMode: providerPlanProfile.effective_mode,
+    });
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
@@ -381,6 +388,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     profile_background_scan_cadence_minutes:
       providerPlanProfile.profile_background_scan_cadence_minutes,
     plan_scan_ticker_cap_applied: scheduledScanTickerCap.plan_cap_applied,
+    scheduled_provider_credit_budget: scheduledProviderCreditBudget,
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
     profile_notes: providerPlanProfile.profile_notes,
@@ -2802,6 +2810,8 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.profile_outcome_candle_requests_per_run,
     profile_background_scan_cadence_minutes:
       scheduledRuntimeConfig.profile_background_scan_cadence_minutes,
+    scheduled_provider_credit_budget:
+      scheduledRuntimeConfig.scheduled_provider_credit_budget,
     env_scan_ticker_override:
       scheduledRuntimeConfig.env_scan_ticker_override,
     route_scan_ticker_override:
@@ -4189,6 +4199,9 @@ export async function POST(request: Request) {
             : calendarFallbackAllowsScan,
         powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
         scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
+        scheduledReferenceRefreshMaxAttempts:
+          scheduledRuntimeConfig.scheduled_provider_credit_budget
+            .reference_refresh_max_attempts,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,
