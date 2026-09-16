@@ -3627,6 +3627,93 @@ export async function POST(request: Request) {
               recommendation_serving_cadence: initialServingCadence,
             });
           }
+
+          // The current background observer always returns an `observed`
+          // receipt once it has been admitted. Keep this explicit terminal
+          // branch nevertheless: a future ineligible result must not let the
+          // intentionally bounded one-shot mode fall through to market-wide
+          // observation or the normal scheduled scan path.
+          if (basicFreeCatalogOneShot.catalog_only_enforced) {
+            const generationBlockReason =
+              "basic_free_catalog_one_shot_observation_not_recorded";
+            const message =
+              "Basic Free catalog one-shot mode withheld normal scanning because its reference-only observation did not produce a receipt.";
+            const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+              decision: "skipped_outside_window",
+              status: "skipped",
+              skipReason: generationBlockReason,
+              noPublishReason: generationBlockReason,
+              zeroReason: generationBlockReason,
+              elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+              timeoutWasReached: false,
+            });
+            const scanLog = createAutomationScanLog({
+              source: "scheduled",
+              scanWindow: scanWindow.scanWindow,
+              marketStatus,
+              result: "skipped",
+              message,
+              recommendationsCreated: 0,
+              details: {
+                ...powerHourTrialGate,
+                no_publish_reason: generationBlockReason,
+                basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+                day_trade_scan_orchestration: dayTradeScanOrchestration,
+                recommendation_serving_cadence: initialServingCadence,
+                active_scan_trace: activeScanTracePayload,
+              },
+            });
+            await recordAttempt({
+              outcome: "skipped",
+              allowed: false,
+              message,
+              skipReason: generationBlockReason,
+              httpStatus: 200,
+              scanLog,
+              activeScanTrace: activeScanTracePayload,
+            });
+
+            return NextResponse.json({
+              ok: true,
+              message,
+              status: "skipped",
+              decision: "skipped_outside_window" satisfies AutomationScanDecision,
+              basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+              ...automationVersionFields(),
+              ...powerHourTrialGate,
+              ...powerHourTrialCopyFields(),
+              ...scheduledRuntimeFields(),
+              skipped_in_progress: false,
+              active_scan_trace: activeScanTracePayload,
+              automation_diagnostics: automationDiagnostics({
+                decision: "skipped_outside_window",
+                skippedReason: generationBlockReason,
+                currentScanLog: scanLog,
+              }),
+              forced: false,
+              scan_date: scanDate,
+              session_type: sessionType,
+              scan_window: scanWindow.scanWindow,
+              scan_window_label: scanWindowLabel,
+              market_status: marketStatus,
+              market_session: marketSession,
+              ...calendarFields(dayTradeScanOrchestration),
+              expired_recommendations: expiredRecommendations,
+              candidates_generated: 0,
+              recommendations_served: 0,
+              recommendations_created: 0,
+              batch_id: null,
+              batch_fingerprint: null,
+              scan_run_fingerprint: null,
+              warnings: [
+                ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+                message,
+              ],
+              gaps: [generationBlockReason],
+              day_trade_scan_orchestration: dayTradeScanOrchestration,
+              recommendation_serving_cadence: initialServingCadence,
+            });
+          }
         }
 
         const previousAttempt = await readLatestMarketWideDiscoveryAttempt();

@@ -43,10 +43,16 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basicFreeCatalogOneShot.catalog_only_enforced");
   expect(route).toContain("basic_free_catalog_one_shot: basicFreeCatalogOneShot");
   expect(route).toContain("basic_free_catalog_one_shot_waiting_for_observable_window");
+  expect(route).toContain(
+    "basic_free_catalog_one_shot_observation_not_recorded",
+  );
   expect(route).toContain("scanLog?.basic_free_catalog_one_shot ?? null");
   expect(oneShotControl).toContain("TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_DATE");
   expect(oneShotControl).toContain("catalogOnlyEnforced: true");
   expect(
     route.indexOf("basicFreeCatalogOneShot.catalog_only_enforced"),
   ).toBeLessThan(route.indexOf("!scanPolicy.allowGeneration"));
+  expect(
+    route.indexOf("basic_free_catalog_one_shot_observation_not_recorded"),
+  ).toBeLessThan(route.lastIndexOf("readLatestMarketWideDiscoveryAttempt"));
 });
