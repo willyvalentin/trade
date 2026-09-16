@@ -258,10 +258,11 @@ ESLint, `npx tsc --noEmit`, `npm run build -- --webpack` and the five focused
 Basic Free capacity Playwright tests pass. The suite covers multi-day quota
 math, unobserved/partial/invalid/inconsistent receipts, observed provider errors
 and invalid reservation lifecycle states; it also proves the readback boundary
-and absence of a provider-call path. Fresh exact-PR CI remains the independent
-candidate verification required before merge. No provider request, production
-migration, deployment, broker action or staging invocation is part of this
-active local delivery.
+and absence of a provider-call path. The separate provider-free intelligence
+foundation regression also passes (166/166). Fresh exact-PR CI remains the
+independent candidate verification required before merge. No provider request,
+production migration, deployment, broker action or staging invocation is part
+of this active local delivery.
 
 **IF-2 Basic Free reservation migration, production verified:** the named
 additive migration
