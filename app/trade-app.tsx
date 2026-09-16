@@ -280,6 +280,10 @@ import {
   type BasicFreeDiscoveryReadback,
 } from "@/lib/basic-free-discovery-readback";
 import {
+  basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
+  type BasicFreeScheduledScanCreditReadback,
+} from "@/lib/basic-free-scheduled-scan-credit-readback";
+import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
   recommendationBatchFromPersistenceRow,
@@ -11539,6 +11543,28 @@ export function TradeApp({
       intraday_scan_window: "unknown",
       payload_json: {},
     });
+  const latestBasicFreeScheduledScanCreditReadback =
+    [
+      ...scheduledScanAttempts.map(
+        basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
+      ),
+    ]
+      .filter(
+        (receipt) =>
+          receipt.status === "available" &&
+          receipt.reservation.status !== "not_required",
+      )
+      .sort((first, second) => {
+        const firstObservedAt = first.source_attempt.observed_at ?? "";
+        const secondObservedAt = second.source_attempt.observed_at ?? "";
+        return secondObservedAt.localeCompare(firstObservedAt);
+      })[0] ??
+    basicFreeScheduledScanCreditReadbackFromScheduledAttempt({
+      utc_timestamp: "",
+      trading_date: null,
+      intraday_scan_window: "unknown",
+      payload_json: {},
+    });
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -16882,6 +16908,10 @@ export function TradeApp({
 
             <BasicFreeDiscoveryReceiptPanel
               receipt={latestBasicFreeDiscoveryReadback}
+            />
+
+            <BasicFreeScheduledScanCreditReceiptPanel
+              receipt={latestBasicFreeScheduledScanCreditReadback}
             />
 
             <ProviderBudgetGuardPanel
@@ -37514,6 +37544,140 @@ function BasicFreeDiscoveryReceiptPanel({
               Capacity math is not request authority. It cannot collect another
               page, mark coverage complete, admit a discovery feed, or qualify a
               candidate.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function basicFreeScheduledScanCreditReceiptTone(
+  receipt: BasicFreeScheduledScanCreditReadback,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (receipt.status === "unavailable") return "neutral";
+  if (receipt.reservation.finalization_proven === false) return "danger";
+  if (!receipt.reservation.provider_execution_allowed) return "warning";
+  return "positive";
+}
+
+function BasicFreeScheduledScanCreditReceiptPanel({
+  receipt,
+}: {
+  receipt: BasicFreeScheduledScanCreditReadback;
+}) {
+  const reservation = receipt.reservation;
+  const dailyCapacity =
+    reservation.daily_reserved_credits === null ||
+    reservation.declared_daily_credit_budget === null
+      ? "not reserved"
+      : `${reservation.daily_reserved_credits}/${reservation.declared_daily_credit_budget}`;
+  const minuteCapacity =
+    reservation.minute_reserved_credits === null ||
+    reservation.declared_per_minute_credit_budget === null
+      ? "not reserved"
+      : `${reservation.minute_reserved_credits}/${reservation.declared_per_minute_credit_budget}`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Scan budget trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Basic Free Normal Scan Guard
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A durable reservation receipt for the normal bounded scanner. It
+            explains whether the known Basic Free credit ceiling admitted that
+            scan; it is not a provider-response, discovery-coverage, candidate,
+            ranking, publication, or execution receipt.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={
+            receipt.status === "unavailable"
+              ? "no receipt"
+              : reservation.provider_execution_allowed
+                ? "admitted"
+                : reservation.safe_blocker ?? reservation.status ?? "blocked"
+          }
+          tone={basicFreeScheduledScanCreditReceiptTone(receipt)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Reservation"
+          value={reservation.status ?? "unavailable"}
+        />
+        <SummaryCard
+          label="Provider Budget"
+          value={
+            reservation.provider_execution_allowed === null
+              ? "unknown"
+              : reservation.provider_execution_allowed
+                ? "admitted"
+                : "blocked before scan"
+          }
+        />
+        <SummaryCard label="Daily Credits" value={dailyCapacity} />
+        <SummaryCard label="Minute Credits" value={minuteCapacity} />
+      </div>
+
+      {receipt.status === "unavailable" ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No valid versioned normal-scan credit receipt exists in the retained
+          scheduled-attempt history. This does not prove that a provider request
+          ran, that discovery covered the market, or that no candidate existed.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Exact budget scope
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Requested: {reservation.requested_credits ?? "not recorded"} credits.
+              {" "}Remaining after reservation — day: {reservation.daily_remaining_credits ?? "not recorded"}; minute: {reservation.minute_remaining_credits ?? "not recorded"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This guards only the known normal-scan ceiling for the persisted
+              Basic Free profile. It is not an account-wide reconciliation for
+              other provider consumers.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Terminal state
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Finalization: {reservation.finalization_status ?? "not recorded"};
+              {" "}proven: {reservation.finalization_proven === true ? "yes" : reservation.finalization_proven === false ? "no" : "not recorded"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Reused attempt identity: {reservation.idempotent === true ? "yes" : reservation.idempotent === false ? "no" : "not recorded"}.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Decision boundary
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {reservation.provider_execution_allowed
+                ? "The budget guard admitted the normal scan. Provider-response and candidate facts must be read from that scan's separate decision trace."
+                : [
+                    "The normal scan was withheld before provider work. Blocker: ",
+                    reservation.safe_blocker ?? reservation.status ?? "not recorded",
+                    ".",
+                  ].join("")}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              No reservation result can lower the publication bar or create a
+              trade recommendation.
             </p>
           </div>
         </div>
