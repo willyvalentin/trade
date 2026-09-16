@@ -1,10 +1,6 @@
 import { createRequire } from "node:module";
 
 import type { Config } from "@netlify/functions";
-import {
-  buildScheduledScanInvocationFingerprint,
-  scheduledScanSlotStartedAt,
-} from "../../lib/scheduled-scan-invocation";
 import { scheduledScanRegularSessionCron } from "../../lib/scheduled-scan-regular-session-coverage";
 
 export const config: Config = {
@@ -17,6 +13,41 @@ type ScheduledScanRouteModule = {
 
 const runtimeRequire = createRequire(__filename);
 const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS";
+
+// Keep the identity calculation in the scheduled-function entrypoint. Netlify
+// packages this file as the cron runtime, so a change here cannot leave the
+// duplicate-delivery guard behind an unrefreshed shared-module bundle.
+export const SCHEDULED_SCAN_SLOT_MINUTES = 15;
+
+export function scheduledScanSlotStartedAt(now: Date) {
+  const timestamp = now.getTime();
+
+  if (!Number.isFinite(timestamp)) {
+    throw new Error("Scheduled scan slot requires a valid timestamp.");
+  }
+
+  const slotMilliseconds = SCHEDULED_SCAN_SLOT_MINUTES * 60 * 1000;
+  return new Date(Math.floor(timestamp / slotMilliseconds) * slotMilliseconds);
+}
+
+export function buildScheduledScanInvocationFingerprint(now: Date) {
+  const slotStartedAt = scheduledScanSlotStartedAt(now).toISOString();
+
+  return `scheduled_scan_attempt_${stableHash(
+    `netlify_scheduled_function|${slotStartedAt}`,
+  )}`;
+}
+
+function stableHash(value: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(36);
+}
 
 function scheduledExecutionIsDisabled() {
   return Netlify.env.get(scheduledFunctionsDisableFlag) === "true";
