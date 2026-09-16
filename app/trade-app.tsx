@@ -182,6 +182,7 @@ import {
   scheduledScanAttemptFromRow,
   type ScheduledScanAttempt,
 } from "@/lib/scheduled-scan-attempts";
+import { scheduledScanRegularSessionCron } from "@/lib/scheduled-scan-regular-session-coverage";
 import {
   buildRecommendationEmptyStateSummary,
   recommendationEmptyStateSummaryJson,
@@ -14584,7 +14585,7 @@ export function TradeApp({
           scannerUniverseCoverageSummary.scan_budget.max_tickers_per_window,
         official_scan_windows_per_day:
           providerBudgetGuardSummary.totals.official_scan_windows_per_day,
-        scheduled_scan_cron: "*/15 13-19 * * 1-5",
+        scheduled_scan_cron: scheduledScanRegularSessionCron,
         scheduled_scan_gate: `${dayTradeScanOrchestrationSummary.active_window}:${dayTradeScanOrchestrationSummary.decision}`,
         outcome_max_batches: 5,
         outcome_max_snapshots: 10,

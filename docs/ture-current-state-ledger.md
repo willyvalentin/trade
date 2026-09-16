@@ -240,7 +240,9 @@ candidate-provenance attestation, passed. Netlify completed the automatic
 production deployment for `main@504770c`. This is production delivery, not an
 observed catalog page, market-wide coverage or recommendation-quality evidence.
 
-**Active local IF-2 Basic Free catalog capacity receipt:** a versioned,
+**Merged IF-2 Basic Free catalog capacity receipt:** PR
+[#508](https://github.com/willyvalentin/trade/pull/508) merged as
+`3795ccba0360575afe26ad77b97dbcaed4d379a3`. A versioned,
 provider-free readback now converts a valid first-page receipt into transparent
 capacity math: total and remaining one-credit pages, remaining credits, minimum
 trading days and minimum request minutes under the declared Basic Free limits.
@@ -253,16 +255,19 @@ explicitly `execution_authority = not_admitted` and
 `discovery_feed_allowed = false`: the readback cannot make a request, complete
 catalog coverage, alter scanner selection, rank, publish or execute.
 
-**IF-2 Basic Free capacity local evidence:** `git diff --check`, targeted
+**IF-2 Basic Free capacity delivery evidence:** `git diff --check`, targeted
 ESLint, `npx tsc --noEmit`, `npm run build -- --webpack` and the five focused
 Basic Free capacity Playwright tests pass. The suite covers multi-day quota
 math, unobserved/partial/invalid/inconsistent receipts, observed provider errors
 and invalid reservation lifecycle states; it also proves the readback boundary
 and absence of a provider-call path. The separate provider-free intelligence
-foundation regression also passes (166/166). Fresh exact-PR CI remains the
-independent candidate verification required before merge. No provider request,
-production migration, deployment, broker action or staging invocation is part
-of this active local delivery.
+foundation regression also passed (166/166). Exact PR CI `35042115515` passed
+all six provider-free shards, and post-merge provenance attestation
+`35044936461` passed. Netlify production deploy `6aa9f34871849200084f068e`
+is ready for `main@3795ccba0360575afe26ad77b97dbcaed4d379a3`; the protected
+production route returned the expected redirect to login. No authenticated UI
+flow, provider request, broker action or staging invocation was part of this
+delivery.
 
 **IF-2 Basic Free reservation migration, production verified:** the named
 additive migration
@@ -275,6 +280,25 @@ only `service_role` can execute the scoped claim, begin-attempt and
 finalize-attempt RPCs. This establishes the durable quota prerequisite. It did
 not create a reservation, call Twelve Data, run a scan, publish a candidate or
 invoke a broker.
+
+**Active local IF-2 regular-session schedule coverage:** the scheduled scan
+cadence is now represented by one shared UTC cron contract,
+`*/15 13-20 * * 1-5`. It includes every 15-minute regular-session scan slot in
+New York daylight saving time (13:30–19:45 UTC) and standard time
+(14:30–20:45 UTC). The former `13-19` hour range silently missed the final 75
+minutes of every standard-time trading day. The diagnostic readback and Netlify
+function consume the same constant, preventing future display/runtime drift.
+The additional closed-session UTC slots remain provider-free because the
+existing market-calendar gate still returns before any observation, candidate,
+ranking, publication or execution path.
+
+**IF-2 schedule local evidence:** `git diff --check`, targeted ESLint,
+`npx tsc --noEmit`, `npm run build -- --webpack` and the scheduled-function
+runtime build pass. The 25 focused Playwright tests cover both New York offsets,
+the standard-time final slot, the excluded close boundary, the shared runtime /
+diagnostic contract and existing provider-free schedule guards. No provider
+request, production migration, deployment, broker action or staging invocation
+is part of this active local delivery.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active

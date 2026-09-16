@@ -38,7 +38,7 @@ function baseInput(
       scanner_default_scan_budget: 50,
       scanner_max_scan_budget: 100,
       official_scan_windows_per_day: 3,
-      scheduled_scan_cron: "*/15 13-19 * * 1-5",
+      scheduled_scan_cron: "*/15 13-20 * * 1-5",
       scheduled_scan_gate: "morning:inside_scan_window",
       outcome_max_batches: 5,
       outcome_max_snapshots: 10,
@@ -519,7 +519,7 @@ test.describe("Action 565 continuous market intelligence budget orchestrator", (
     expect(first.horizons.next_15_minutes.active_rest_layers).toEqual(["broad"]);
   });
 
-  test("surfaces legacy constraints without changing old budget guards or schedules", () => {
+  test("surfaces legacy constraints with the current regular-session schedule", () => {
     const plan = buildContinuousIntelligenceBudgetPlan(
       baseInput({
         workloads: [workload("normal_universe", "normal", "broad", 10)],
@@ -544,7 +544,7 @@ test.describe("Action 565 continuous market intelligence budget orchestrator", (
       mismatch: true,
     });
     expect(read("netlify/functions/scheduled-scan.ts")).toContain(
-      'schedule: "*/15 13-19 * * 1-5"',
+      "schedule: scheduledScanRegularSessionCron",
     );
     expect(read("netlify/functions/scheduled-outcome-evaluation.ts")).toContain(
       'schedule: "*/15 14-21 * * 1-5"',
