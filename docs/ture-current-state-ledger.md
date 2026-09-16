@@ -223,33 +223,65 @@ configuration was also corrected from the unsupported `grow` label to `free`
 in every deploy context; no provider secret, discovery runtime switch or budget
 setting changed.
 
-**Active local IF-2 Basic Free catalog-observation receipt:** a new default-off
-route can observe exactly one Twelve Data `/stocks` page for US common stocks.
-It is a durable, server-owned, one-credit Basic Free observation with both the
-explicit daily (maximum 800) and per-minute (maximum 8) reservation enforced
-before a provider request. The request is charged even after failure, timeout
-or unproven finalization. The receipt records provider catalog count and the
+**Merged IF-2 Basic Free catalog-observation receipt:** PR
+[#507](https://github.com/willyvalentin/trade/pull/507) merged as
+`504770c3712b9a587c861824824b7b35f83b0ce0`. It adds a default-off route that
+can observe exactly one Twelve Data `/stocks` page for US common stocks. It is a
+durable, server-owned, one-credit Basic Free observation with both the explicit
+daily (maximum 800) and per-minute (maximum 8) reservation enforced before a
+provider request. The request remains charged after failure, timeout or
+unproven finalization. The receipt records provider catalog count and the
 observed count, but hard-codes `collection_complete = false` and
 `discovery_feed_allowed = false`; it has no route to scanner-universe expansion,
 ranking, recommendation construction, publication or execution. The dashboard
 shows the versioned receipt and its credit, coverage and no-candidate boundary.
+Required PR CI and exact-main CI `35035826549`, including post-merge
+candidate-provenance attestation, passed. Netlify completed the automatic
+production deployment for `main@504770c`. This is production delivery, not an
+observed catalog page, market-wide coverage or recommendation-quality evidence.
 
-**IF-2 Basic Free catalog local evidence:** `git diff --check`, TypeScript,
-scoped ESLint, Next webpack build and 9 focused Playwright tests pass. The local
-browser reached the authenticated-login boundary and compiled the app; the
-receipt panel was not authenticated visually because no credential was entered.
-The isolated worktree has no initialized local Supabase stack, so the additive
-SQL migration is string-contract tested but not locally applied. No provider
-request, production migration, deployment, broker action or staging invocation
-is part of this active local delivery.
+**Active local IF-2 Basic Free catalog capacity receipt:** a versioned,
+provider-free readback now converts a valid first-page receipt into transparent
+capacity math: total and remaining one-credit pages, remaining credits, minimum
+trading days and minimum request minutes under the declared Basic Free limits.
+It requires a successful `available` response, a full eight-row page when the
+denominator exceeds one page, the actual `provider_execution_allowed` claim
+with a `finalized` reservation and internally consistent daily credit facts.
+An observed error response, reused/incorrect reservation lifecycle state or any
+other invalid input fails closed with a reason code. It is
+explicitly `execution_authority = not_admitted` and
+`discovery_feed_allowed = false`: the readback cannot make a request, complete
+catalog coverage, alter scanner selection, rank, publish or execute.
+
+**IF-2 Basic Free capacity local evidence:** `git diff --check`, targeted
+ESLint, `npx tsc --noEmit`, `npm run build -- --webpack` and the five focused
+Basic Free capacity Playwright tests pass. The suite covers multi-day quota
+math, unobserved/partial/invalid/inconsistent receipts, observed provider errors
+and invalid reservation lifecycle states; it also proves the readback boundary
+and absence of a provider-call path. The separate provider-free intelligence
+foundation regression also passes (166/166). Fresh exact-PR CI remains the
+independent candidate verification required before merge. No provider request,
+production migration, deployment, broker action or staging invocation is part
+of this active local delivery.
+
+**IF-2 Basic Free reservation migration, production verified:** the named
+additive migration
+`20260915222537_basic_free_discovery_credit_reservations.sql` is now applied to
+Ture production (`Trade` / `ekdyopdrrkphlrsilyoo`) and recorded under its exact
+repository version `20260915222537`. Readback verifies the RLS-protected
+reservation table and all three fixed-search-path `SECURITY DEFINER` functions.
+`anon` and `authenticated` cannot read the table or execute the functions;
+only `service_role` can execute the scoped claim, begin-attempt and
+finalize-attempt RPCs. This establishes the durable quota prerequisite. It did
+not create a reservation, call Twelve Data, run a scan, publish a candidate or
+invoke a broker.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
-acceptance step is to review and apply the additive Basic Free reservation
-migration in production, then—during a normal open-market window and only with
-the explicit runtime switch and both budgets configured—run one normal
-scheduled observation and verify its persisted browser receipt. It may use only
-a documented Basic-available endpoint and must not claim market-wide coverage,
+acceptance step is—during a normal open-market window and only with the
+explicit runtime switch and both budgets configured—one normal scheduled
+observation and persisted browser-receipt verification. It may use only a
+documented Basic-available endpoint and must not claim market-wide coverage,
 change ranking or publish candidates. A future Pro upgrade may re-enable the
 separate 100-credit market-movers path only after its actual provider
 entitlement is verified.
