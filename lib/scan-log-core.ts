@@ -82,6 +82,7 @@ export type ScanLogEntry = {
   dynamic_movers_discovery?: DynamicMoversDiscoverySummary | null;
   market_wide_discovery?: Record<string, unknown> | null;
   basic_free_discovery?: Record<string, unknown> | null;
+  basic_free_catalog_one_shot?: Record<string, unknown> | null;
   basic_free_scheduled_scan_credit_reservation?: Record<string, unknown> | null;
   scanner_candidate_ranking?: ScannerCandidateRankingSummary | null;
   openai_recommendation_reality_guard?: OpenAiRecommendationRealityGuardSummary | null;

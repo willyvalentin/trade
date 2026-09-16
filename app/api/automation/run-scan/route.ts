@@ -97,6 +97,7 @@ import {
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
+import { buildBasicFreeCatalogOneShotControl } from "@/lib/basic-free-catalog-one-shot-control";
 import {
   finalizeBasicFreeScheduledScanCreditGuard,
   prepareBasicFreeScheduledScanCreditGuard,
@@ -1470,6 +1471,8 @@ async function recordScheduledScanAttempt({
       reference_refresh: scanLog?.reference_refresh ?? null,
       market_wide_discovery: scanLog?.market_wide_discovery ?? null,
       basic_free_discovery: scanLog?.basic_free_discovery ?? null,
+      basic_free_catalog_one_shot:
+        scanLog?.basic_free_catalog_one_shot ?? null,
       basic_free_scheduled_scan_credit_reservation:
         scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
     },
@@ -1610,6 +1613,11 @@ function createAutomationScanLog({
       typeof details?.basic_free_discovery === "object" &&
       details.basic_free_discovery !== null
         ? (details.basic_free_discovery as ScanLogEntry["basic_free_discovery"])
+        : null,
+    basic_free_catalog_one_shot:
+      typeof details?.basic_free_catalog_one_shot === "object" &&
+      details.basic_free_catalog_one_shot !== null
+        ? (details.basic_free_catalog_one_shot as ScanLogEntry["basic_free_catalog_one_shot"])
         : null,
     basic_free_scheduled_scan_credit_reservation:
       typeof details?.basic_free_scheduled_scan_credit_reservation === "object" &&
@@ -2915,6 +2923,9 @@ export async function POST(request: Request) {
   }
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
+  const basicFreeCatalogOneShot = buildBasicFreeCatalogOneShotControl({
+    tradingDate: scanWindow.scanDate,
+  });
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
   const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
     orchestration: dayTradeScanOrchestration,
@@ -3274,6 +3285,100 @@ export async function POST(request: Request) {
   }
 
   if (
+    basicFreeCatalogOneShot.catalog_only_enforced &&
+    (!backgroundDiscoveryObservationAllowed ||
+      !basicFreeCatalogOneShot.catalog_observation_may_proceed ||
+      scheduledRuntimeConfig.provider_plan_profile_mode !== "free")
+  ) {
+    generationBlockReason =
+      basicFreeCatalogOneShot.status !== "ready"
+        ? basicFreeCatalogOneShot.reason_codes[0] ??
+          "basic_free_catalog_one_shot_not_ready"
+        : scheduledRuntimeConfig.provider_plan_profile_mode !== "free"
+          ? "basic_free_catalog_one_shot_plan_not_free"
+          : "basic_free_catalog_one_shot_waiting_for_observable_window";
+    const message =
+      "Basic Free catalog one-shot mode withheld normal scanning. " +
+      "Only the configured date's reference-only /stocks observation may run; " +
+      "no candidate generation was started.";
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: "skipped_outside_window",
+      status: "skipped",
+      skipReason: generationBlockReason,
+      noPublishReason: generationBlockReason,
+      zeroReason: generationBlockReason,
+      elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+      timeoutWasReached: false,
+    });
+    const scanLog = createAutomationScanLog({
+      source: "scheduled",
+      scanWindow: scanWindow.scanWindow,
+      marketStatus,
+      result: "skipped",
+      message,
+      recommendationsCreated: 0,
+      details: {
+        ...powerHourTrialGate,
+        no_publish_reason: generationBlockReason,
+        basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+        active_scan_trace: activeScanTracePayload,
+      },
+    });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: generationBlockReason,
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message,
+      status: "skipped",
+      decision: "skipped_outside_window" satisfies AutomationScanDecision,
+      basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+      ...automationVersionFields(),
+      ...powerHourTrialGate,
+      ...powerHourTrialCopyFields(),
+      ...scheduledRuntimeFields(),
+      skipped_in_progress: false,
+      active_scan_trace: activeScanTracePayload,
+      automation_diagnostics: automationDiagnostics({
+        decision: "skipped_outside_window",
+        skippedReason: generationBlockReason,
+        currentScanLog: scanLog,
+      }),
+      forced: force,
+      session_type: scanWindow.sessionType,
+      scan_window: scanWindow.scanWindow,
+      scan_window_label: scanWindowLabel,
+      scan_date: scanWindow.scanDate,
+      market_status: marketStatus,
+      market_session: marketSession,
+      ...calendarFields(dayTradeScanOrchestration),
+      expired_recommendations: expiredRecommendations,
+      candidates_generated: 0,
+      recommendations_served: 0,
+      recommendations_created: 0,
+      batch_id: null,
+      batch_fingerprint: null,
+      scan_run_fingerprint: null,
+      warnings: [
+        ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+        message,
+      ],
+      gaps: [generationBlockReason],
+      day_trade_scan_orchestration: dayTradeScanOrchestration,
+      recommendation_serving_cadence: initialServingCadence,
+    });
+  }
+
+  if (
     !scanPolicy.allowGeneration &&
     scanWindow.scanWindow !== "pre_market" &&
     !disabledGenerationBypassAllowed
@@ -3454,6 +3559,10 @@ export async function POST(request: Request) {
                 no_publish_reason:
                   "outside_official_window_basic_catalog_observation_only",
                 basic_free_discovery: basicFreeDiscovery,
+                basic_free_catalog_one_shot:
+                  basicFreeCatalogOneShot.catalog_only_enforced
+                    ? basicFreeCatalogOneShot
+                    : null,
                 day_trade_scan_orchestration: dayTradeScanOrchestration,
                 recommendation_serving_cadence: initialServingCadence,
                 active_scan_trace: activeScanTracePayload,
@@ -3478,6 +3587,10 @@ export async function POST(request: Request) {
               decision: "scanned" satisfies AutomationScanDecision,
               observation_only: true,
               basic_free_discovery: basicFreeDiscovery,
+              basic_free_catalog_one_shot:
+                basicFreeCatalogOneShot.catalog_only_enforced
+                  ? basicFreeCatalogOneShot
+                  : null,
               ...automationVersionFields(),
               ...powerHourTrialGate,
               ...powerHourTrialCopyFields(),
@@ -3510,6 +3623,93 @@ export async function POST(request: Request) {
                 ...basicFreeDiscovery.warnings,
               ],
               gaps: basicFreeDiscovery.gaps,
+              day_trade_scan_orchestration: dayTradeScanOrchestration,
+              recommendation_serving_cadence: initialServingCadence,
+            });
+          }
+
+          // The current background observer always returns an `observed`
+          // receipt once it has been admitted. Keep this explicit terminal
+          // branch nevertheless: a future ineligible result must not let the
+          // intentionally bounded one-shot mode fall through to market-wide
+          // observation or the normal scheduled scan path.
+          if (basicFreeCatalogOneShot.catalog_only_enforced) {
+            const generationBlockReason =
+              "basic_free_catalog_one_shot_observation_not_recorded";
+            const message =
+              "Basic Free catalog one-shot mode withheld normal scanning because its reference-only observation did not produce a receipt.";
+            const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+              decision: "skipped_outside_window",
+              status: "skipped",
+              skipReason: generationBlockReason,
+              noPublishReason: generationBlockReason,
+              zeroReason: generationBlockReason,
+              elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+              timeoutWasReached: false,
+            });
+            const scanLog = createAutomationScanLog({
+              source: "scheduled",
+              scanWindow: scanWindow.scanWindow,
+              marketStatus,
+              result: "skipped",
+              message,
+              recommendationsCreated: 0,
+              details: {
+                ...powerHourTrialGate,
+                no_publish_reason: generationBlockReason,
+                basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+                day_trade_scan_orchestration: dayTradeScanOrchestration,
+                recommendation_serving_cadence: initialServingCadence,
+                active_scan_trace: activeScanTracePayload,
+              },
+            });
+            await recordAttempt({
+              outcome: "skipped",
+              allowed: false,
+              message,
+              skipReason: generationBlockReason,
+              httpStatus: 200,
+              scanLog,
+              activeScanTrace: activeScanTracePayload,
+            });
+
+            return NextResponse.json({
+              ok: true,
+              message,
+              status: "skipped",
+              decision: "skipped_outside_window" satisfies AutomationScanDecision,
+              basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+              ...automationVersionFields(),
+              ...powerHourTrialGate,
+              ...powerHourTrialCopyFields(),
+              ...scheduledRuntimeFields(),
+              skipped_in_progress: false,
+              active_scan_trace: activeScanTracePayload,
+              automation_diagnostics: automationDiagnostics({
+                decision: "skipped_outside_window",
+                skippedReason: generationBlockReason,
+                currentScanLog: scanLog,
+              }),
+              forced: false,
+              scan_date: scanDate,
+              session_type: sessionType,
+              scan_window: scanWindow.scanWindow,
+              scan_window_label: scanWindowLabel,
+              market_status: marketStatus,
+              market_session: marketSession,
+              ...calendarFields(dayTradeScanOrchestration),
+              expired_recommendations: expiredRecommendations,
+              candidates_generated: 0,
+              recommendations_served: 0,
+              recommendations_created: 0,
+              batch_id: null,
+              batch_fingerprint: null,
+              scan_run_fingerprint: null,
+              warnings: [
+                ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+                message,
+              ],
+              gaps: [generationBlockReason],
               day_trade_scan_orchestration: dayTradeScanOrchestration,
               recommendation_serving_cadence: initialServingCadence,
             });
