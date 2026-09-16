@@ -111,6 +111,7 @@ import {
   type ReferenceRefreshDiagnostics,
 } from "@/lib/reference-refresh-diagnostics";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
+import { SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS } from "@/lib/scheduled-scan-ticker-cap";
 
 export type SessionType = "morning" | "midday";
 export type RecommendationGenerationSource = "manual" | "scheduled";
@@ -144,6 +145,7 @@ export type GenerateRecommendationsInput = {
   discoveryInvocationId?: string | null;
   diagnosticMaxTickers?: number | null;
   scheduledMaxTickers?: number | null;
+  scheduledReferenceRefreshMaxAttempts?: number | null;
   growMaxLearningMode?: boolean;
   skipOpenAi?: boolean;
   activeScanTrace?: ActiveScanTraceRecorder | null;
@@ -3234,6 +3236,7 @@ export async function generateRecommendations({
   discoveryInvocationId = null,
   diagnosticMaxTickers = null,
   scheduledMaxTickers = null,
+  scheduledReferenceRefreshMaxAttempts = null,
   growMaxLearningMode = false,
   skipOpenAi = false,
   activeScanTrace = null,
@@ -4093,11 +4096,24 @@ export async function generateRecommendations({
         ? Math.max(1, settings.max_recommendations_per_session)
         : Math.max(6, settings.max_recommendations_per_session * 3);
     let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
+    const referenceRefreshMaxAttempts =
+      source === "scheduled"
+        ? typeof scheduledReferenceRefreshMaxAttempts === "number" &&
+            Number.isFinite(scheduledReferenceRefreshMaxAttempts)
+          ? Math.max(
+              0,
+              Math.min(
+                SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS,
+                Math.floor(scheduledReferenceRefreshMaxAttempts),
+              ),
+            )
+          : SCHEDULED_REFERENCE_REFRESH_DEFAULT_MAX_ATTEMPTS
+        : 3;
     const referenceRefreshResult =
       candidatesForOpenAI.length > 0
         ? await refreshSelectedCandidateReferences({
             candidates: candidatesForOpenAI,
-            maxAttempts: source === "scheduled" ? 10 : 3,
+            maxAttempts: referenceRefreshMaxAttempts,
             now: new Date(),
             fetchIntradayIndicators: (ticker) =>
               getOrRefreshIntradayIndicators(ticker, {
