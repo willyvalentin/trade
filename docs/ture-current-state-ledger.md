@@ -402,6 +402,23 @@ per-scan upper bound only; it is not a durable account-wide usage receipt. The
 scheduler kill switch remains enabled, so this delivery made no provider
 request, catalog observation, candidate publication or broker action.
 
+**IF-2 shared Basic Free credit reservation:** PR
+[#518](https://github.com/willyvalentin/trade/pull/518) merged as
+`72244f154f652b3391d0e69dcf14f5d6daac3bfe`; its full PR CI and exact-main
+CI `35152256303` passed. Netlify production deploy
+`6aab092b9056d8000872b9ad` published the exact revision. Before a normal
+Free scheduled scan may generate recommendations, it now claims all eight known
+Twelve Data credits through the same durable Basic Free reservation ledger used
+by the one-credit catalog observation. Missing/inconsistent Basic budgets,
+unknown normal-scan cost, or any day/minute capacity contention fails closed
+before provider work and records only a versioned safe receipt. Finalization is
+retained as charged when it cannot be proven. This scopes the reservation to
+the normal Free scheduled scan and the catalog observation; it is not an
+account-wide reconciliation for independent provider consumers. The scheduler
+kill switch remained enabled and a read-only post-deploy scan-log check found
+no scheduled attempt after deployment, so no provider request, catalog
+observation, candidate publication or broker action occurred.
+
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
 acceptance step is—during a normal open-market window and only with the
