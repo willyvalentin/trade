@@ -318,14 +318,35 @@ publication window and an observable intraday window. It does not alter the
 Basic runtime switch, plan profile, two-credit-budget reservation, catalog
 scope, ranking, confidence, publication or execution.
 
-**IF-2 open-market gate local evidence:** `git diff --check`, targeted ESLint,
-`npx tsc --noEmit`, `npm run build -- --webpack` and the scheduled-function
-runtime build pass. The 64 focused Playwright tests cover the new admission
-truth table, its route wiring, Basic Free reservations/readback, existing
-market-wide fail-closed behavior, official scan windows and schedule
-idempotency/coverage. No additional provider call, database migration, broker
-action or staging invocation is part of this correction. Production deployment
-and a later normal scheduled receipt remain pending.
+**IF-2 open-market gate production correction:** PR
+[#511](https://github.com/willyvalentin/trade/pull/511) merged as
+`3b08337841e5bc405909c2987f210f8cb379bcd9`. Required PR CI
+`35104333762` completed successfully and Netlify completed the automatic
+production deployment `6aaaa50522e6460008368af0` for that exact revision.
+At 15:00 UTC the deployed scheduled function produced two HTTP `200` outside
+official-window receipts (the duplicated delivery was not suppressed at the
+function layer), but neither entered the reference-only observation: both were
+`skipped`, `not_official_scan_window` with `basic_free_discovery = null`.
+No provider request, reservation or candidate path ran. The persistent trace
+also reported `market_status = open`, `market_session = regular` and
+`morning_momentum`, while the route still withheld the observation. The active
+follow-up aligns the observation gate to the exact `marketOpenForScan` decision
+that already allows the route to continue. It remains bounded to scheduled,
+open, outside-official and observable-window use; it does not enable a provider
+request, change the configured plan, ranking, confidence, publication or
+execution.
+
+**IF-2 open-market follow-up local evidence:** `git diff --check`, targeted
+ESLint, `npx tsc --noEmit`, the scheduled-function runtime build and the
+production webpack build pass. The 49-test relevant IF-2 Playwright suite and
+the 166-test provider-free intelligence-foundation regression pass. The route
+contract now proves that the background gate receives `marketOpenForScan`, so
+the only market-open fact used by this reference-only route matches the
+surrounding route decision. A later normal scheduled receipt is still required
+after this correction is delivered. The current production runtime reports its
+configured plan profile as `grow`, not the user-confirmed Basic Free profile;
+no environment value has been changed and this is not Basic Free admission or
+provider-entitlement evidence.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active

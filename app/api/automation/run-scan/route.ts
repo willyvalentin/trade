@@ -3138,7 +3138,11 @@ export async function POST(request: Request) {
   const backgroundDiscoveryObservationAllowed =
     canObserveBackgroundDiscoveryBetweenPublicationWindows({
       scheduled: !force,
-      marketOpen: isMarketOpenForIntradayTrading(marketStatus),
+      // Keep the reference-only observation aligned with the route's own
+      // verified-open decision. In particular, a calendar-confirmed fallback
+      // must not let the normal route proceed while withholding the bounded
+      // observation behind a stricter, duplicate market-status check.
+      marketOpen: marketOpenForScan,
       scheduledGateWindow: scheduledGateDiagnostics.scheduled_gate_window,
       scanWindow: scanWindow.scanWindow,
     });
