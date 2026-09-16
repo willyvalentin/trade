@@ -427,12 +427,15 @@ non-matching date remains catalog-only and withholds normal scheduled scanning;
 only the exact target date and the already existing observable background window
 can reach the existing one-credit catalog path. The control is persisted beside
 the bounded scan receipt, while candidate generation, ranking, publication and
-execution remain unavailable. Local evidence: targeted one-shot and route
-tests (4/4), Basic Free/scheduler regressions (30/30), TypeScript, scoped
-lint, scheduled-runtime build, Webpack production build and the 166-test
-intelligence-foundation suite all passed. This is local source evidence only:
-it has not been merged, deployed, configured, invoked against Twelve Data or
-read back in a browser.
+execution remain unavailable. Follow-on local revision
+`b2785dd9ac86204d54c861db478a8fc407340c53` makes an unexpected no-receipt
+from that catalog observer a persisted, terminal no-scan before the route can
+reach market-wide observation or normal scheduled scanning. Local evidence on
+the combined revisions: targeted one-shot and route tests (4/4), Basic
+Free/scheduler regressions (30/30), TypeScript, scoped lint, scheduled-runtime
+build, Webpack production build and the 166-test intelligence-foundation suite
+all passed. This is local source evidence only: it has not been merged,
+deployed, configured, invoked against Twelve Data or read back in a browser.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
