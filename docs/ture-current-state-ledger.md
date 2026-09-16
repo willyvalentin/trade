@@ -252,7 +252,7 @@ explicitly `execution_authority = not_admitted` and
 catalog coverage, alter scanner selection, rank, publish or execute.
 
 **IF-2 Basic Free capacity local evidence:** `git diff --check`, targeted
-ESLint and seven focused Basic Free Playwright tests pass. The tests cover
+ESLint and nine focused Basic Free Playwright tests pass. The tests cover
 multi-day quota math, unobserved/partial/invalid/inconsistent receipts, the
 readback boundary and absence of a provider-call path. The isolated worktree
 deliberately has no installed dependency tree: cross-worktree TypeScript and

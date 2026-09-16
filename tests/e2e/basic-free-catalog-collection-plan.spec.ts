@@ -14,6 +14,7 @@ function readyPlanInput() {
     dailyCreditBudget: 800,
     perMinuteCreditBudget: 8,
     dailyRemainingCredits: 799,
+    minuteRemainingCredits: 7,
     reservationFinalizationProven: true,
   };
 }
@@ -97,6 +98,39 @@ test("capacity plan accurately describes a multi-day Basic Free catalog collecti
   });
 });
 
+test("capacity plan does not invent current-day capacity after the observed day or minute is exhausted", () => {
+  expect(
+    buildBasicFreeCatalogCollectionPlan({
+      ...readyPlanInput(),
+      providerCatalogCount: 72,
+      dailyRemainingCredits: 0,
+      minuteRemainingCredits: 0,
+    }),
+  ).toMatchObject({
+    status: "ready_for_separate_admission",
+    total_pages_required: 9,
+    remaining_pages_after_observed_page: 8,
+    minimum_trading_days_from_observed_page: 1,
+    minimum_request_minutes_for_current_day: 0,
+  });
+});
+
+test("capacity plan accounts for the observed minute balance", () => {
+  expect(
+    buildBasicFreeCatalogCollectionPlan({
+      ...readyPlanInput(),
+      providerCatalogCount: 72,
+      dailyRemainingCredits: 8,
+      minuteRemainingCredits: 7,
+    }),
+  ).toMatchObject({
+    status: "ready_for_separate_admission",
+    remaining_pages_after_observed_page: 8,
+    minimum_trading_days_from_observed_page: 1,
+    minimum_request_minutes_for_current_day: 2,
+  });
+});
+
 test("capacity plan fails closed when the observed-page evidence cannot support a future collection", () => {
   for (const [input, reason] of [
     [
@@ -122,6 +156,10 @@ test("capacity plan fails closed when the observed-page evidence cannot support 
     [
       { ...readyPlanInput(), dailyRemainingCredits: 800 },
       "daily_credit_remaining_missing_or_invalid",
+    ],
+    [
+      { ...readyPlanInput(), minuteRemainingCredits: 8 },
+      "minute_credit_remaining_missing_or_invalid",
     ],
     [
       { ...readyPlanInput(), reservationFinalizationProven: false },

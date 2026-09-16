@@ -9,6 +9,7 @@ export type BasicFreeCatalogCollectionPlanReason =
   | "daily_credit_budget_missing_or_invalid"
   | "per_minute_credit_budget_missing_or_invalid"
   | "daily_credit_remaining_missing_or_invalid"
+  | "minute_credit_remaining_missing_or_invalid"
   | "catalog_reservation_not_finalized";
 
 export type BasicFreeCatalogCollectionPlan = {
@@ -36,6 +37,7 @@ export type BasicFreeCatalogCollectionPlanInput = {
   dailyCreditBudget: unknown;
   perMinuteCreditBudget: unknown;
   dailyRemainingCredits: unknown;
+  minuteRemainingCredits: unknown;
   reservationFinalizationProven: unknown;
 };
 
@@ -127,6 +129,14 @@ export function buildBasicFreeCatalogCollectionPlan(
   ) {
     return unavailable(input, "daily_credit_remaining_missing_or_invalid");
   }
+
+  const minuteRemainingCredits = finiteNonNegativeInteger(input.minuteRemainingCredits);
+  if (
+    minuteRemainingCredits === null ||
+    minuteRemainingCredits >= perMinuteCreditBudget
+  ) {
+    return unavailable(input, "minute_credit_remaining_missing_or_invalid");
+  }
   if (input.reservationFinalizationProven !== true) {
     return unavailable(input, "catalog_reservation_not_finalized");
   }
@@ -136,6 +146,10 @@ export function buildBasicFreeCatalogCollectionPlan(
   const creditsAvailableToday = dailyRemainingCredits;
   const currentDayRequests = Math.min(remainingPages, creditsAvailableToday);
   const additionalCreditsAfterToday = Math.max(0, remainingPages - currentDayRequests);
+  const currentMinuteRequests = Math.min(
+    currentDayRequests,
+    minuteRemainingCredits,
+  );
 
   return {
     plan_version: basicFreeCatalogCollectionPlanVersion,
@@ -152,11 +166,20 @@ export function buildBasicFreeCatalogCollectionPlan(
     minimum_trading_days_from_observed_page:
       remainingPages === 0
         ? 0
-        : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
+        : creditsAvailableToday === 0
+          ? Math.ceil(remainingPages / dailyCreditBudget)
+          : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
     minimum_request_minutes_for_current_day:
       currentDayRequests === 0
         ? 0
-        : Math.ceil(currentDayRequests / perMinuteCreditBudget),
+        : minuteRemainingCredits === 0
+          ? Math.ceil(currentDayRequests / perMinuteCreditBudget)
+          : 1 + Math.ceil(
+              Math.max(
+                0,
+                currentDayRequests - currentMinuteRequests,
+              ) / perMinuteCreditBudget,
+            ),
     reason_codes: [],
   };
 }
