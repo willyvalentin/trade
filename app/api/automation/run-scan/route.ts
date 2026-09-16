@@ -97,6 +97,11 @@ import {
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
+import {
+  finalizeBasicFreeScheduledScanCreditGuard,
+  prepareBasicFreeScheduledScanCreditGuard,
+  type BasicFreeScheduledScanCreditReservationSummary,
+} from "@/lib/basic-free-scheduled-scan-credit-guard";
 import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "@/lib/background-discovery-observation-gate";
 import {
   resolveScheduledScanProviderCreditBudget,
@@ -1465,6 +1470,8 @@ async function recordScheduledScanAttempt({
       reference_refresh: scanLog?.reference_refresh ?? null,
       market_wide_discovery: scanLog?.market_wide_discovery ?? null,
       basic_free_discovery: scanLog?.basic_free_discovery ?? null,
+      basic_free_scheduled_scan_credit_reservation:
+        scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
     },
   });
   const { error } = await serverSupabase()
@@ -1603,6 +1610,11 @@ function createAutomationScanLog({
       typeof details?.basic_free_discovery === "object" &&
       details.basic_free_discovery !== null
         ? (details.basic_free_discovery as ScanLogEntry["basic_free_discovery"])
+        : null,
+    basic_free_scheduled_scan_credit_reservation:
+      typeof details?.basic_free_scheduled_scan_credit_reservation === "object" &&
+      details.basic_free_scheduled_scan_credit_reservation !== null
+        ? (details.basic_free_scheduled_scan_credit_reservation as ScanLogEntry["basic_free_scheduled_scan_credit_reservation"])
         : null,
     scanner_candidate_ranking:
       typeof details?.scanner_candidate_ranking === "object" &&
@@ -3068,6 +3080,8 @@ export async function POST(request: Request) {
   });
 
   let expiredRecommendations = 0;
+  let basicFreeScheduledScanCreditReservation: BasicFreeScheduledScanCreditReservationSummary | null =
+    null;
 
   try {
     expiredRecommendations = await archiveExpiredRecommendations(ownerUserId);
@@ -4103,6 +4117,8 @@ export async function POST(request: Request) {
         details: {
           ...powerHourTrialGate,
           no_publish_reason: "timeout_budget_exceeded",
+          basic_free_scheduled_scan_credit_reservation:
+            basicFreeScheduledScanCreditReservation,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -4163,6 +4179,28 @@ export async function POST(request: Request) {
       });
     }
 
+    const basicFreeScheduledScanCreditGuard =
+      await prepareBasicFreeScheduledScanCreditGuard({
+        planMode: scheduledRuntimeConfig.provider_plan_profile_mode,
+        maximumKnownProviderCredits:
+          scheduledRuntimeConfig.scheduled_provider_credit_budget
+            .max_known_credits_per_scan,
+        ownerUserId,
+        executionFingerprint: scheduledScanAttemptFingerprint,
+      });
+    basicFreeScheduledScanCreditReservation =
+      basicFreeScheduledScanCreditGuard.summary;
+
+    if (!basicFreeScheduledScanCreditReservation.provider_execution_allowed) {
+      throw new RecommendationGenerationError(
+        `Scheduled scan skipped: Basic Free shared provider credit reservation blocked execution (${basicFreeScheduledScanCreditReservation.safe_blocker ?? basicFreeScheduledScanCreditReservation.status}).`,
+        503,
+        {
+          persistence_error_type: "basic_free_scheduled_scan_credit_reservation",
+        },
+      );
+    }
+
     const scheduledAbortController = new AbortController();
     let scheduledTimeoutReached = false;
     const remainingTimeoutBudgetMs = Math.max(
@@ -4207,7 +4245,17 @@ export async function POST(request: Request) {
         activeScanTrace,
         signal: scheduledAbortController.signal,
       });
+      basicFreeScheduledScanCreditReservation =
+        await finalizeBasicFreeScheduledScanCreditGuard(
+          basicFreeScheduledScanCreditGuard,
+          scheduledTimeoutReached ? "failed" : "completed",
+        );
     } catch (generationError) {
+      basicFreeScheduledScanCreditReservation =
+        await finalizeBasicFreeScheduledScanCreditGuard(
+          basicFreeScheduledScanCreditGuard,
+          "failed",
+        );
       if (!scheduledTimeoutReached) {
         throw generationError;
       }
@@ -4237,6 +4285,8 @@ export async function POST(request: Request) {
         details: {
           ...powerHourTrialGate,
           no_publish_reason: "timeout_budget_exceeded",
+          basic_free_scheduled_scan_credit_reservation:
+            basicFreeScheduledScanCreditReservation,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -4347,6 +4397,8 @@ export async function POST(request: Request) {
       details: {
         ...powerHourTrialGate,
         ...generationScanLog,
+        basic_free_scheduled_scan_credit_reservation:
+          basicFreeScheduledScanCreditReservation,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: servingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -4776,6 +4828,8 @@ export async function POST(request: Request) {
       recommendationsCreated: 0,
       details: {
         ...powerHourTrialGate,
+        basic_free_scheduled_scan_credit_reservation:
+          basicFreeScheduledScanCreditReservation,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,

@@ -377,6 +377,31 @@ or recommendation. The next normal Basic Free observation remains withheld
 until the scheduled-function entrypoint has been rebuilt with the slot-bound
 claim and that behavior is read back from production.
 
+**IF-2 scheduled slot identity correction:** PR
+[#516](https://github.com/willyvalentin/trade/pull/516) merged as
+`4d7d398f61595d8809316970b930317d09743fa1`; its full PR verification and
+exact-main CI `35143437486` passed. Netlify production deploy
+`6aaaf41e2d1503000967d988` published the exact revision. The scheduled
+function now derives the claim slot from Netlify's next-run timestamp minus one
+cadence interval, so an invocation delivered for 19:15 UTC claims 19:15 rather
+than the future 19:30 slot. Production's emergency scheduler kill switch stayed
+enabled throughout follow-up verification; no scheduled-scan attempt was
+recorded after that deployment. This is scheduling integrity evidence, not a
+provider response, catalog observation, coverage result or quality improvement.
+
+**IF-2 Basic Free normal-scan per-run credit cap:** PR
+[#517](https://github.com/willyvalentin/trade/pull/517) merged as
+`b560246d3509f22528cdc25a20ac41fc4c9f7878`; all six full provider-free CI
+shards and merge-candidate provenance passed, as did exact-main CI
+`35147738851`. Netlify production deploy `6aaafe37d76daa00098fb797` published
+the exact revision. A normal Free scheduled scan now reserves two known
+market-regime calls and one scanner call before permitting at most five
+selected-candidate reference refreshes: eight known Twelve Data calls at most.
+The receipt versions that policy and exposes it in route diagnostics. This is a
+per-scan upper bound only; it is not a durable account-wide usage receipt. The
+scheduler kill switch remains enabled, so this delivery made no provider
+request, catalog observation, candidate publication or broker action.
+
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
 acceptance step is—during a normal open-market window and only with the
