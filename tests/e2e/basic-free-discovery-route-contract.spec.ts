@@ -22,6 +22,7 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain(
     "calendarFallbackAllowsScan || backgroundDiscoveryObservationAllowed",
   );
+  expect(route).toContain("marketOpen: marketOpenForScan");
   expect(route).toContain("if (backgroundDiscoveryObservationAllowed)");
   expect(route).toContain("observeBasicFreeDiscoveryBetweenPublicationWindows");
   expect(route).toContain("basic_free_discovery: basicFreeDiscovery");
