@@ -16,6 +16,13 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   const catalogPlan = read("lib/basic-free-catalog-collection-plan.ts");
 
   expect(route).toContain('scheduledRuntimeConfig.provider_plan_profile_mode === "free"');
+  expect(route).toContain(
+    "canObserveBackgroundDiscoveryBetweenPublicationWindows",
+  );
+  expect(route).toContain(
+    "calendarFallbackAllowsScan || backgroundDiscoveryObservationAllowed",
+  );
+  expect(route).toContain("if (backgroundDiscoveryObservationAllowed)");
   expect(route).toContain("observeBasicFreeDiscoveryBetweenPublicationWindows");
   expect(route).toContain("basic_free_discovery: basicFreeDiscovery");
   expect(route).toContain("outside_official_window_basic_catalog_observation_only");

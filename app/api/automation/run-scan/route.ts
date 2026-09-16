@@ -97,6 +97,7 @@ import {
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
+import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "@/lib/background-discovery-observation-gate";
 import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
@@ -3134,6 +3135,13 @@ export async function POST(request: Request) {
     marketOpenForScan,
     orchestration: dayTradeScanOrchestration,
   });
+  const backgroundDiscoveryObservationAllowed =
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      scheduled: !force,
+      marketOpen: isMarketOpenForIntradayTrading(marketStatus),
+      scheduledGateWindow: scheduledGateDiagnostics.scheduled_gate_window,
+      scanWindow: scanWindow.scanWindow,
+    });
   activeScanTrace.update({
     power_hour_trial_enabled: powerHourTrialGate.power_hour_trial_enabled,
     power_hour_publish_allowed: powerHourTrialGate.power_hour_publish_allowed,
@@ -3143,7 +3151,7 @@ export async function POST(request: Request) {
   const disabledGenerationBypassAllowed =
     scanWindow.scanWindow === "power_hour"
       ? powerHourTrialGate.power_hour_publish_allowed
-      : calendarFallbackAllowsScan;
+      : calendarFallbackAllowsScan || backgroundDiscoveryObservationAllowed;
 
   if (!marketOpenForScan && !canRunPreMarketWatchlist) {
     const discardReview = await runDiscardReviewIfDue({
@@ -3354,11 +3362,7 @@ export async function POST(request: Request) {
   let startedScheduledRunId: string | number | null = null;
 
   try {
-    if (
-      !force &&
-      isMarketOpenForIntradayTrading(marketStatus) &&
-      scheduledGateDiagnostics.scheduled_gate_window === "outside_window"
-    ) {
+    if (backgroundDiscoveryObservationAllowed) {
       const observationAbortController = new AbortController();
       const observationRemainingTimeoutMs = Math.max(
         1,
