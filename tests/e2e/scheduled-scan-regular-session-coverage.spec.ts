@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 
 import { scheduledScanRegularSessionCron } from "@/lib/scheduled-scan-regular-session-coverage";
+import { config as scheduledScanFunctionConfig } from "../../netlify/functions/scheduled-scan";
 
 function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -36,8 +37,11 @@ test("scheduled scans cover US regular-session slots across daylight and standar
   }
 
   expect(isScheduledUtcSlot("2026-12-01T21:00:00.000Z")).toBe(false);
+  expect(scheduledScanFunctionConfig.schedule).toBe(
+    scheduledScanRegularSessionCron,
+  );
   expect(read("netlify/functions/scheduled-scan.ts")).toContain(
-    "schedule: scheduledScanRegularSessionCron",
+    'schedule: "*/15 13-20 * * 1-5"',
   );
   expect(read("app/trade-app.tsx")).toContain(
     "scheduled_scan_cron: scheduledScanRegularSessionCron",

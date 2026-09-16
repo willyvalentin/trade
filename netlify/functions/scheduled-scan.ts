@@ -1,10 +1,12 @@
 import { createRequire } from "node:module";
 
 import type { Config } from "@netlify/functions";
-import { scheduledScanRegularSessionCron } from "../../lib/scheduled-scan-regular-session-coverage";
 
 export const config: Config = {
-  schedule: scheduledScanRegularSessionCron,
+  // Netlify discovers scheduled functions from this entrypoint. Keep the
+  // expression literal so its deployment manifest registers the cron rather
+  // than retaining an older scheduled-function artifact.
+  schedule: "*/15 13-20 * * 1-5",
 };
 
 type ScheduledScanRouteModule = {

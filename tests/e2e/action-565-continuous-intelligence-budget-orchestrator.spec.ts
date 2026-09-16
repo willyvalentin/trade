@@ -544,7 +544,7 @@ test.describe("Action 565 continuous market intelligence budget orchestrator", (
       mismatch: true,
     });
     expect(read("netlify/functions/scheduled-scan.ts")).toContain(
-      "schedule: scheduledScanRegularSessionCron",
+      'schedule: "*/15 13-20 * * 1-5"',
     );
     expect(read("netlify/functions/scheduled-outcome-evaluation.ts")).toContain(
       'schedule: "*/15 14-21 * * 1-5"',
