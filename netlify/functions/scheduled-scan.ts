@@ -5,11 +5,10 @@ import {
   buildScheduledScanInvocationFingerprint,
   scheduledScanSlotStartedAt,
 } from "../../lib/scheduled-scan-invocation";
+import { scheduledScanRegularSessionCron } from "../../lib/scheduled-scan-regular-session-coverage";
 
 export const config: Config = {
-  // Netlify cron is UTC. This covers 13:00-19:45 UTC weekdays,
-  // including all US daylight-saving regular-session scan windows.
-  schedule: "*/15 13-19 * * 1-5",
+  schedule: scheduledScanRegularSessionCron,
 };
 
 type ScheduledScanRouteModule = {

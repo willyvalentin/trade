@@ -57,7 +57,7 @@ test.describe("Action 552 official outcome evaluator schedule verification", () 
   test("existing scheduled scan remains scan-only and does not call the outcome evaluator", () => {
     const source = read(scheduledScanPath);
 
-    expect(source).toContain('schedule: "*/15 13-19 * * 1-5"');
+    expect(source).toContain("schedule: scheduledScanRegularSessionCron");
     expect(source).toContain("/api/automation/run-scan");
     expect(source).not.toContain("/api/recommendations/evaluate-outcomes");
   });
