@@ -286,11 +286,13 @@ cadence is now represented by one shared UTC cron contract,
 `*/15 13-20 * * 1-5`. It includes every 15-minute regular-session scan slot in
 New York daylight saving time (13:30–19:45 UTC) and standard time
 (14:30–20:45 UTC). The former `13-19` hour range silently missed the final 75
-minutes of every standard-time trading day. The diagnostic readback and Netlify
-function consume the same constant, preventing future display/runtime drift.
-The additional closed-session UTC slots remain provider-free because the
-existing market-calendar gate still returns before any observation, candidate,
-ranking, publication or execution path.
+minutes of every standard-time trading day. The diagnostic readback consumes
+the shared cadence contract. Netlify's scheduled-function entrypoint must
+additionally expose the same cron as a literal configuration value, because its
+deployed-function manifest is the runtime source of truth for schedule
+registration. The additional closed-session UTC slots remain provider-free
+because the existing market-calendar gate still returns before any observation,
+candidate, ranking, publication or execution path.
 
 **IF-2 schedule delivery evidence:** PR
 [#509](https://github.com/willyvalentin/trade/pull/509) merged as
@@ -303,6 +305,16 @@ the standard-time final slot, the excluded close boundary, the shared runtime /
 diagnostic contract and existing provider-free schedule guards. No provider
 request, production migration, broker action or staging invocation was part of
 that delivery.
+
+**IF-2 schedule-manifest production discrepancy:** The production deploy
+started for `main@b1b11a349bbab069f6871e806b5d3d3e041636f5` reported only
+`scheduled-outcome-evaluation` in its deployed `function_schedules` manifest;
+`scheduled-scan` was present as a function but absent as a registered cron.
+The shared source contract alone is therefore not runtime schedule evidence.
+Until a deploy manifests `scheduled-scan` with the regular-session cron and a
+later receipt proves one slot-bound invocation, the Basic Free observation
+remains withheld. This observed discrepancy made no provider request,
+reservation, candidate, recommendation or broker action.
 
 **Active IF-2 open-market observation-gate correction:** the production
 scheduled route ran at `2026-09-16T13:30:18.726Z` and
