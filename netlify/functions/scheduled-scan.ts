@@ -72,8 +72,16 @@ export function scheduledScanSlotIdentity({
     typeof nextRun === "string" ? new Date(nextRun) : new Date(Number.NaN);
 
   if (Number.isFinite(scheduledNextRun.getTime())) {
+    // Netlify's scheduled-function event reports the *following* cron slot
+    // in `next_run`. The durable claim must identify the delivery that is
+    // executing now, not the future slot, otherwise every invocation claims
+    // the next quarter-hour and can suppress its successor.
+    const currentSlot = new Date(
+      scheduledNextRun.getTime() - SCHEDULED_SCAN_SLOT_MINUTES * 60 * 1000,
+    );
+
     return {
-      scheduledSlot: scheduledNextRun,
+      scheduledSlot: currentSlot,
       source: "netlify_event_next_run",
     };
   }
