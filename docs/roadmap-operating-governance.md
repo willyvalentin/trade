@@ -30,6 +30,29 @@ In particular, no score, confidence label, prompt or model output becomes a
 learning-driven live policy without a frozen baseline, held-out evaluation,
 shadow result, versioned rollback and post-promotion monitoring.
 
+### Recommendation-quality evidence control
+
+Before IF-4 or IF-5 work evaluates or compares a policy, create or update the
+versioned evaluation charter required by the master roadmap. It must predeclare
+the hypothesis, population, decision-time data and outcome rules, baseline,
+numeric pass/fail thresholds, minimum sample and time windows, setup/regime
+slices, concentration limits and feasibility assumptions. Do this before the
+policy's evaluation data is read; do not tune those values after observing an
+outcome.
+
+Evaluation evidence must include research, rejected and explicit `no_trade`
+decisions as well as visible recommendations. It must separately report
+coverage, missingness and quality by the charter's material setup, ticker,
+sector, regime and time-window slices. A result that relies on stale,
+look-ahead, incomplete or non-reproducible data is ineligible for promotion.
+
+No policy is a winner merely because it improves one aggregate score. A
+promotion requires its predeclared held-out and walk-forward improvement, no
+material regression in calibration, feasibility, coverage, data quality,
+provider cost or reliability, a completed shadow window and a versioned
+rollback path. Drift or feasibility-monitor failure narrows publication or
+returns the affected policy to `no_trade`; it never relaxes a quality gate.
+
 Execution work remains parked until IF-5 demonstrates sustained useful engine
 quality. When execution begins, all orders still follow `AI → Ture Core →
 deterministic risk/authorization → Avanza`; no model or UI shortcut can bypass
