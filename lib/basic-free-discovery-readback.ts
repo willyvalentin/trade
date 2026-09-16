@@ -194,6 +194,7 @@ function unavailableReadback(
     },
     catalog_collection_plan: buildBasicFreeCatalogCollectionPlan({
       providerResponseObserved: null,
+      observationOutcome: null,
       providerCatalogCount: null,
       observedRecordCount: null,
       requestedCredits: null,
@@ -201,6 +202,8 @@ function unavailableReadback(
       perMinuteCreditBudget: null,
       dailyRemainingCredits: null,
       minuteRemainingCredits: null,
+      reservationStatus: null,
+      reservationFinalizationStatus: null,
       reservationFinalizationProven: null,
     }),
     warnings: [],
@@ -414,6 +417,7 @@ export function basicFreeDiscoveryReadbackFromUnknown(
     },
     catalog_collection_plan: buildBasicFreeCatalogCollectionPlan({
       providerResponseObserved,
+      observationOutcome: attemptOutcome,
       providerCatalogCount,
       observedRecordCount: catalogObservedCount,
       requestedCredits: request.credits_per_request,
@@ -421,6 +425,8 @@ export function basicFreeDiscoveryReadbackFromUnknown(
       perMinuteCreditBudget: declaredPerMinuteCreditBudget,
       dailyRemainingCredits,
       minuteRemainingCredits,
+      reservationStatus,
+      reservationFinalizationStatus: finalizationStatus,
       reservationFinalizationProven: reservation.finalization_proven,
     }),
     warnings,

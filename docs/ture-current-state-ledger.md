@@ -244,22 +244,24 @@ observed catalog page, market-wide coverage or recommendation-quality evidence.
 provider-free readback now converts a valid first-page receipt into transparent
 capacity math: total and remaining one-credit pages, remaining credits, minimum
 trading days and minimum request minutes under the declared Basic Free limits.
-It requires an actually observed response, a full eight-row page when the
-denominator exceeds one page, a finalised reservation and internally consistent
-daily credit facts. Every other input fails closed with a reason code. It is
+It requires a successful `available` response, a full eight-row page when the
+denominator exceeds one page, the actual `provider_execution_allowed` claim
+with a `finalized` reservation and internally consistent daily credit facts.
+An observed error response, reused/incorrect reservation lifecycle state or any
+other invalid input fails closed with a reason code. It is
 explicitly `execution_authority = not_admitted` and
 `discovery_feed_allowed = false`: the readback cannot make a request, complete
 catalog coverage, alter scanner selection, rank, publish or execute.
 
-**IF-2 Basic Free capacity local evidence:** `git diff --check`, targeted
-ESLint and nine focused Basic Free Playwright tests pass. The tests cover
-multi-day quota math, unobserved/partial/invalid/inconsistent receipts, the
-readback boundary and absence of a provider-call path. The isolated worktree
-deliberately has no installed dependency tree: cross-worktree TypeScript and
-webpack invocations could not provide a clean full-build signal, so fresh PR CI
-remains the required build/type verification. No provider request, production
-migration, deployment, broker action or staging invocation is part of this
-active local delivery.
+**IF-2 Basic Free capacity local evidence:** `git diff --check` passes. The
+focused suite includes multi-day quota math, unobserved/partial/invalid/
+inconsistent receipts, observed provider errors and invalid reservation lifecycle
+states; it also proves the readback boundary and absence of a provider-call path.
+The isolated worktree deliberately has no installed dependency tree, so its
+Playwright, ESLint, TypeScript and webpack commands cannot execute locally.
+Fresh exact-PR CI is therefore the required test, lint, type and build
+verification. No provider request, production migration, deployment, broker
+action or staging invocation is part of this active local delivery.
 
 **IF-2 Basic Free reservation migration, production verified:** the named
 additive migration

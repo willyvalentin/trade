@@ -3,6 +3,7 @@ export const basicFreeCatalogCollectionPlanVersion =
 
 export type BasicFreeCatalogCollectionPlanReason =
   | "catalog_provider_response_not_observed"
+  | "catalog_observation_not_available"
   | "provider_catalog_denominator_missing"
   | "catalog_page_size_invalid"
   | "catalog_page_not_full"
@@ -31,6 +32,7 @@ export type BasicFreeCatalogCollectionPlan = {
 
 export type BasicFreeCatalogCollectionPlanInput = {
   providerResponseObserved: unknown;
+  observationOutcome: unknown;
   providerCatalogCount: unknown;
   observedRecordCount: unknown;
   requestedCredits: unknown;
@@ -38,6 +40,8 @@ export type BasicFreeCatalogCollectionPlanInput = {
   perMinuteCreditBudget: unknown;
   dailyRemainingCredits: unknown;
   minuteRemainingCredits: unknown;
+  reservationStatus: unknown;
+  reservationFinalizationStatus: unknown;
   reservationFinalizationProven: unknown;
 };
 
@@ -93,6 +97,9 @@ export function buildBasicFreeCatalogCollectionPlan(
   if (input.providerResponseObserved !== true) {
     return unavailable(input, "catalog_provider_response_not_observed");
   }
+  if (input.observationOutcome !== "available") {
+    return unavailable(input, "catalog_observation_not_available");
+  }
 
   const providerCatalogCount = finiteNonNegativeInteger(input.providerCatalogCount);
   if (providerCatalogCount === null || providerCatalogCount === 0) {
@@ -137,7 +144,11 @@ export function buildBasicFreeCatalogCollectionPlan(
   ) {
     return unavailable(input, "minute_credit_remaining_missing_or_invalid");
   }
-  if (input.reservationFinalizationProven !== true) {
+  if (
+    input.reservationStatus !== "provider_execution_allowed" ||
+    input.reservationFinalizationStatus !== "finalized" ||
+    input.reservationFinalizationProven !== true
+  ) {
     return unavailable(input, "catalog_reservation_not_finalized");
   }
 

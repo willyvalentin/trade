@@ -8,6 +8,7 @@ const observedAt = "2026-09-15T15:30:00.000Z";
 function readyPlanInput() {
   return {
     providerResponseObserved: true,
+    observationOutcome: "available",
     providerCatalogCount: 6408,
     observedRecordCount: 8,
     requestedCredits: 1,
@@ -15,6 +16,8 @@ function readyPlanInput() {
     perMinuteCreditBudget: 8,
     dailyRemainingCredits: 799,
     minuteRemainingCredits: 7,
+    reservationStatus: "provider_execution_allowed",
+    reservationFinalizationStatus: "finalized",
     reservationFinalizationProven: true,
   };
 }
@@ -138,6 +141,10 @@ test("capacity plan fails closed when the observed-page evidence cannot support 
       "catalog_provider_response_not_observed",
     ],
     [
+      { ...readyPlanInput(), observationOutcome: "provider_error" },
+      "catalog_observation_not_available",
+    ],
+    [
       { ...readyPlanInput(), providerCatalogCount: null },
       "provider_catalog_denominator_missing",
     ],
@@ -163,6 +170,17 @@ test("capacity plan fails closed when the observed-page evidence cannot support 
     ],
     [
       { ...readyPlanInput(), reservationFinalizationProven: false },
+      "catalog_reservation_not_finalized",
+    ],
+    [
+      { ...readyPlanInput(), reservationStatus: "not_required" },
+      "catalog_reservation_not_finalized",
+    ],
+    [
+      {
+        ...readyPlanInput(),
+        reservationFinalizationStatus: "already_completed",
+      },
       "catalog_reservation_not_finalized",
     ],
   ] as const) {
@@ -201,5 +219,38 @@ test("validated Basic Free readback exposes capacity math without turning it int
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
     reason_codes: ["catalog_provider_response_not_observed"],
+  });
+
+  expect(
+    basicFreeDiscoveryReadbackFromUnknown({
+      ...observedSummary(),
+      attempt: {
+        attempted_at: observedAt,
+        outcome: "provider_error",
+        provider_response_observed: true,
+      },
+    }).catalog_collection_plan,
+  ).toMatchObject({
+    status: "unavailable",
+    execution_authority: "not_admitted",
+    discovery_feed_allowed: false,
+    reason_codes: ["catalog_observation_not_available"],
+  });
+
+  expect(
+    basicFreeDiscoveryReadbackFromUnknown({
+      ...observedSummary(),
+      credit_reservation: {
+        ...observedSummary().credit_reservation,
+        status: "not_required",
+        finalization_status: "already_completed",
+        finalization_proven: true,
+      },
+    }).catalog_collection_plan,
+  ).toMatchObject({
+    status: "unavailable",
+    execution_authority: "not_admitted",
+    discovery_feed_allowed: false,
+    reason_codes: ["catalog_reservation_not_finalized"],
   });
 });
