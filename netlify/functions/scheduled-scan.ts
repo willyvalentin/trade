@@ -32,12 +32,72 @@ export function scheduledScanSlotStartedAt(now: Date) {
   return new Date(Math.floor(timestamp / slotMilliseconds) * slotMilliseconds);
 }
 
-export function buildScheduledScanInvocationFingerprint(now: Date) {
-  const slotStartedAt = scheduledScanSlotStartedAt(now).toISOString();
+export function buildScheduledScanInvocationFingerprintForSlot(
+  scheduledSlot: Date,
+) {
+  const timestamp = scheduledSlot.getTime();
+
+  if (!Number.isFinite(timestamp)) {
+    throw new Error("Scheduled scan fingerprint requires a valid slot.");
+  }
+
+  const slotStartedAt = scheduledSlot.toISOString();
 
   return `scheduled_scan_attempt_${stableHash(
     `netlify_scheduled_function|${slotStartedAt}`,
   )}`;
+}
+
+export function buildScheduledScanInvocationFingerprint(now: Date) {
+  return buildScheduledScanInvocationFingerprintForSlot(
+    scheduledScanSlotStartedAt(now),
+  );
+}
+
+type ScheduledScanSlotIdentitySource =
+  | "netlify_event_next_run"
+  | "delivery_quarter_hour_fallback";
+
+export function scheduledScanSlotIdentity({
+  nextRun,
+  deliveryTime,
+}: {
+  nextRun: unknown;
+  deliveryTime: Date;
+}): {
+  scheduledSlot: Date;
+  source: ScheduledScanSlotIdentitySource;
+} {
+  const scheduledNextRun =
+    typeof nextRun === "string" ? new Date(nextRun) : new Date(Number.NaN);
+
+  if (Number.isFinite(scheduledNextRun.getTime())) {
+    return {
+      scheduledSlot: scheduledNextRun,
+      source: "netlify_event_next_run",
+    };
+  }
+
+  return {
+    scheduledSlot: scheduledScanSlotStartedAt(deliveryTime),
+    source: "delivery_quarter_hour_fallback",
+  };
+}
+
+async function scheduledScanSlotIdentityFromEvent({
+  request,
+  deliveryTime,
+}: {
+  request: Request;
+  deliveryTime: Date;
+}) {
+  const payload = await request.clone().json().catch(() => null);
+  const nextRun =
+    payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as { next_run?: unknown }).next_run
+      : null;
+
+  return scheduledScanSlotIdentity({ nextRun, deliveryTime });
 }
 
 function stableHash(value: string) {
@@ -182,7 +242,7 @@ async function updateScheduledScanAttempt(record: Record<string, unknown>) {
   }
 }
 
-export default async function handler() {
+export default async function handler(request: Request) {
   // An explicit environment switch can make a published non-production site
   // inert before it reads credentials, writes an attempt record, or reaches a
   // market-data provider. Its absence preserves the established schedule.
@@ -193,8 +253,15 @@ export default async function handler() {
 
   const firedAt = new Date();
   const firedAtUtc = firedAt.toISOString();
-  const scheduledSlotStartedAtUtc = scheduledScanSlotStartedAt(firedAt).toISOString();
-  const attemptFingerprint = buildScheduledScanInvocationFingerprint(firedAt);
+  const scheduledSlotIdentity = await scheduledScanSlotIdentityFromEvent({
+    request,
+    deliveryTime: firedAt,
+  });
+  const scheduledSlotStartedAtUtc =
+    scheduledSlotIdentity.scheduledSlot.toISOString();
+  const attemptFingerprint = buildScheduledScanInvocationFingerprintForSlot(
+    scheduledSlotIdentity.scheduledSlot,
+  );
 
   const nyTime = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -225,6 +292,7 @@ export default async function handler() {
     payload_json: {
       execution_boundary: "bundled_next_route",
       scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+      scheduled_slot_identity_source: scheduledSlotIdentity.source,
     },
   });
 
@@ -256,6 +324,7 @@ export default async function handler() {
       payload_json: {
         execution_boundary: "bundled_next_route",
         scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+        scheduled_slot_identity_source: scheduledSlotIdentity.source,
       },
     });
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
@@ -287,6 +356,7 @@ export default async function handler() {
         payload_json: {
           execution_boundary: "bundled_next_route",
           scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+          scheduled_slot_identity_source: scheduledSlotIdentity.source,
         },
       });
     }
@@ -311,6 +381,7 @@ export default async function handler() {
       payload_json: {
         execution_boundary: "bundled_next_route",
         scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+        scheduled_slot_identity_source: scheduledSlotIdentity.source,
       },
     });
 

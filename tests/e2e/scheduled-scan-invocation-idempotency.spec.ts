@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 
 import {
   buildScheduledScanInvocationFingerprint,
+  buildScheduledScanInvocationFingerprintForSlot,
+  scheduledScanSlotIdentity,
   scheduledScanSlotStartedAt,
 } from "../../netlify/functions/scheduled-scan";
 
@@ -35,6 +37,53 @@ test.describe("scheduled scan invocation idempotency", () => {
     );
   });
 
+  test("uses Netlify's canonical next_run event timestamp across delayed duplicate deliveries", () => {
+    const firstDelivery = new Date("2026-09-16T18:00:14.231Z");
+    const delayedDuplicate = new Date("2026-09-16T18:00:35.535Z");
+    const nextRun = "2026-09-16T18:15:00.000Z";
+
+    const firstIdentity = scheduledScanSlotIdentity({
+      nextRun,
+      deliveryTime: firstDelivery,
+    });
+    const duplicateIdentity = scheduledScanSlotIdentity({
+      nextRun,
+      deliveryTime: delayedDuplicate,
+    });
+
+    expect(firstIdentity).toEqual({
+      scheduledSlot: new Date(nextRun),
+      source: "netlify_event_next_run",
+    });
+    expect(duplicateIdentity).toEqual(firstIdentity);
+    expect(
+      buildScheduledScanInvocationFingerprintForSlot(firstIdentity.scheduledSlot),
+    ).toBe(
+      buildScheduledScanInvocationFingerprintForSlot(
+        duplicateIdentity.scheduledSlot,
+      ),
+    );
+    expect(
+      buildScheduledScanInvocationFingerprintForSlot(firstIdentity.scheduledSlot),
+    ).not.toBe(buildScheduledScanInvocationFingerprint(firstDelivery));
+  });
+
+  test("fails closed to the established quarter-hour key when next_run is missing or invalid", () => {
+    const deliveryTime = new Date("2026-09-16T18:00:35.535Z");
+
+    for (const nextRun of [null, "", "not-a-date", 123]) {
+      const identity = scheduledScanSlotIdentity({ nextRun, deliveryTime });
+
+      expect(identity.source).toBe("delivery_quarter_hour_fallback");
+      expect(identity.scheduledSlot.toISOString()).toBe(
+        "2026-09-16T18:00:00.000Z",
+      );
+      expect(
+        buildScheduledScanInvocationFingerprintForSlot(identity.scheduledSlot),
+      ).toBe(buildScheduledScanInvocationFingerprint(deliveryTime));
+    }
+  });
+
   test("claims before reading the automation secret and fails closed on claim ambiguity", async () => {
     const scheduledFunction = await readFile(
       resolve(root, "netlify/functions/scheduled-scan.ts"),
@@ -46,6 +95,9 @@ test.describe("scheduled scan invocation idempotency", () => {
     expect(scheduledFunction).toContain("Scheduled scan claim unavailable");
     expect(scheduledFunction).toContain("Durable invocation claim response was ambiguous");
     expect(scheduledFunction).toContain("Keep the identity calculation in the scheduled-function entrypoint");
+    expect(scheduledFunction).toContain("netlify_event_next_run");
+    expect(scheduledFunction).toContain("delivery_quarter_hour_fallback");
+    expect(scheduledFunction).toContain("request.clone().json()");
     expect(scheduledFunction).not.toContain("../../lib/scheduled-scan-invocation");
     expect(scheduledFunction).toContain('return new Response(null, { status: 204 })');
     expect(scheduledFunction.indexOf("const invocationClaim = await claimScheduledScanInvocation(")).toBeLessThan(
