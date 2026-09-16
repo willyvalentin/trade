@@ -37,7 +37,7 @@ test.describe("scheduled scan invocation idempotency", () => {
     );
   });
 
-  test("uses Netlify's canonical next_run event timestamp across delayed duplicate deliveries", () => {
+  test("derives the current slot from Netlify's following next_run timestamp across delayed duplicate deliveries", () => {
     const firstDelivery = new Date("2026-09-16T18:00:14.231Z");
     const delayedDuplicate = new Date("2026-09-16T18:00:35.535Z");
     const nextRun = "2026-09-16T18:15:00.000Z";
@@ -52,7 +52,7 @@ test.describe("scheduled scan invocation idempotency", () => {
     });
 
     expect(firstIdentity).toEqual({
-      scheduledSlot: new Date(nextRun),
+      scheduledSlot: new Date("2026-09-16T18:00:00.000Z"),
       source: "netlify_event_next_run",
     });
     expect(duplicateIdentity).toEqual(firstIdentity);
@@ -65,7 +65,19 @@ test.describe("scheduled scan invocation idempotency", () => {
     );
     expect(
       buildScheduledScanInvocationFingerprintForSlot(firstIdentity.scheduledSlot),
-    ).not.toBe(buildScheduledScanInvocationFingerprint(firstDelivery));
+    ).toBe(buildScheduledScanInvocationFingerprint(firstDelivery));
+  });
+
+  test("does not claim the following quarter-hour when a live delivery carries next_run", () => {
+    const identity = scheduledScanSlotIdentity({
+      nextRun: "2026-09-16T19:30:00.000Z",
+      deliveryTime: new Date("2026-09-16T19:15:19.596Z"),
+    });
+
+    expect(identity).toEqual({
+      scheduledSlot: new Date("2026-09-16T19:15:00.000Z"),
+      source: "netlify_event_next_run",
+    });
   });
 
   test("fails closed to the established quarter-hour key when next_run is missing or invalid", () => {
