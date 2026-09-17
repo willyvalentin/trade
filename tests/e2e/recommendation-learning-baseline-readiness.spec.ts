@@ -17,10 +17,10 @@ import type { ScannerCandidate } from "@/lib/scanner";
 
 const DECIDED_AT = "2026-09-17T14:30:00.000Z";
 
-function candidate(): ScannerCandidate & { local_score: number } {
+function candidate(ticker = "TST"): ScannerCandidate & { local_score: number } {
   return {
-    ticker: "TST",
-    company_name: "Test Incorporated",
+    ticker,
+    company_name: `${ticker} Incorporated`,
     sector: "Technology",
     mock_current_price: 100,
     mock_trend: "uptrend",
@@ -126,10 +126,17 @@ function persistedPublishedScan() {
   };
 }
 
-function persistedResearchScan() {
-  const scannerCandidate = candidate();
+function persistedResearchScan({
+  additionalRankedCandidate = false,
+}: {
+  additionalRankedCandidate?: boolean;
+} = {}) {
+  const scannerCandidates = [
+    candidate(),
+    ...(additionalRankedCandidate ? [candidate("ALT")] : []),
+  ];
   const ranking = buildScannerCandidateRankingSummary({
-    candidates: [scannerCandidate],
+    candidates: scannerCandidates,
     targetMin: 1,
     targetMax: 1,
     now: new Date(DECIDED_AT),
@@ -140,15 +147,17 @@ function persistedResearchScan() {
     completed_at: DECIDED_AT,
     window: "morning",
     source: "supabase",
-    scanned_ticker_count: 1,
-    raw_candidate_count: 1,
+    scanned_ticker_count: scannerCandidates.length,
+    raw_candidate_count: scannerCandidates.length,
   });
   const capture = buildCandidateDecisionCapture({
     captureTimestamp: DECIDED_AT,
-    universe: [scannerCandidate],
-    observedCandidates: [scannerCandidate],
+    universe: scannerCandidates,
+    observedCandidates: scannerCandidates,
     ranking,
-    eligibleCandidateTickers: ["TST"],
+    eligibleCandidateTickers: scannerCandidates.map((scannerCandidate) =>
+      scannerCandidate.ticker,
+    ),
     publishableThreshold: 70,
     recommendationBuildPath: "no_publishable_candidate",
   });
@@ -161,7 +170,10 @@ function persistedResearchScan() {
   });
 
   expect(record).not.toBeNull();
-  expect(record?.candidates[0]?.disposition).toBe("selected_not_published");
+  expect(record?.candidates.some(
+    (candidateRecord) =>
+      candidateRecord.disposition === "selected_not_published",
+  )).toBe(true);
   return {
     run: {
       ...scanRun,
@@ -200,15 +212,19 @@ function snapshotFor(scanRunFingerprint: string) {
 function researchSnapshotFor({
   scanRunFingerprint,
   candidateId,
+  ticker = "TST",
+  candidateDisposition = "selected_not_published",
 }: {
   scanRunFingerprint: string;
   candidateId: string;
+  ticker?: string;
+  candidateDisposition?: "selected_not_published" | "ranked_not_selected";
 }) {
   return buildRecommendationSnapshot({
     recommendation_id: null,
     scan_run_id: scanRunFingerprint,
-    ticker: "TST",
-    company_name: "Test Incorporated",
+    ticker,
+    company_name: `${ticker} Incorporated`,
     recommended_at: DECIDED_AT,
     app_timestamp: DECIDED_AT,
     window: "morning",
@@ -228,7 +244,7 @@ function researchSnapshotFor({
       learning_scope: "research_only",
       candidate_id: candidateId,
       candidate_decision_id: candidateId,
-      candidate_decision_disposition: "selected_not_published",
+      candidate_decision_disposition: candidateDisposition,
       candidate_decision_linkage_version:
         RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
       candidate_decision_linkage_status: "verified",
@@ -515,12 +531,100 @@ test.describe("recommendation learning baseline readiness", () => {
       rejected_candidate_outcomes_required: 0,
       rejected_candidate_outcomes_collected: 0,
       no_trade_outcomes_required: 1,
-      no_trade_outcomes_collected: 0,
-      status: "partial",
+      no_trade_outcomes_collected: 1,
+      status: "complete",
     });
     expect(readiness.blockers).not.toContain(
       "research_candidate_counterfactual_outcomes_incomplete",
     );
+    expect(readiness.blockers).not.toContain(
+      "explicit_no_trade_counterfactual_outcomes_not_collected",
+    );
+  });
+
+  test("does not call an explicit no-trade covered until every ranked research candidate has an exact outcome", () => {
+    const { run, record } = persistedResearchScan({
+      additionalRankedCandidate: true,
+    });
+    expect(record.candidates).toHaveLength(2);
+    const firstCandidate = record.candidates.find(
+      (candidateRecord) =>
+        candidateRecord.disposition === "selected_not_published" ||
+        candidateRecord.disposition === "ranked_not_selected",
+    );
+    expect(firstCandidate).toBeDefined();
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: firstCandidate!.candidate_id,
+      ticker: firstCandidate!.ticker,
+      candidateDisposition: firstCandidate!.disposition as
+        | "selected_not_published"
+        | "ranked_not_selected",
+    });
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [completeOutcome(snapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toEqual({
+      research_candidate_outcomes_required: 2,
+      research_candidate_outcomes_collected: 1,
+      rejected_candidate_outcomes_required: 0,
+      rejected_candidate_outcomes_collected: 0,
+      no_trade_outcomes_required: 1,
+      no_trade_outcomes_collected: 0,
+      status: "partial",
+    });
+    expect(readiness.blockers).toContain(
+      "explicit_no_trade_counterfactual_outcomes_not_collected",
+    );
+  });
+
+  test("requires a complete captured candidate population before counting no-trade evidence", () => {
+    const { run, record } = persistedResearchScan({
+      additionalRankedCandidate: true,
+    });
+    const researchCandidates = record.candidates.filter(
+      (candidateRecord) =>
+        candidateRecord.disposition === "selected_not_published" ||
+        candidateRecord.disposition === "ranked_not_selected",
+    );
+    expect(researchCandidates).toHaveLength(2);
+    const snapshots = researchCandidates.map((candidateRecord) =>
+      researchSnapshotFor({
+        scanRunFingerprint: run.run_fingerprint,
+        candidateId: candidateRecord.candidate_id,
+        ticker: candidateRecord.ticker,
+        candidateDisposition: candidateRecord.disposition as
+          | "selected_not_published"
+          | "ranked_not_selected",
+      }),
+    );
+    const incompleteRecord = structuredClone(record);
+    incompleteRecord.candidates[0]!.disposition = "not_evaluated";
+    const incompleteRun = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: incompleteRecord,
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [incompleteRun],
+      snapshots,
+      outcomes: snapshots.map((snapshot) => completeOutcome(snapshot)),
+    });
+
+    expect(readiness.decision_records.incomplete_population_count).toBe(1);
+    expect(readiness.counterfactual_coverage).toMatchObject({
+      research_candidate_outcomes_required: 1,
+      research_candidate_outcomes_collected: 1,
+      no_trade_outcomes_required: 1,
+      no_trade_outcomes_collected: 0,
+      status: "partial",
+    });
+    expect(readiness.blockers).toContain("candidate_population_incomplete");
     expect(readiness.blockers).toContain(
       "explicit_no_trade_counterfactual_outcomes_not_collected",
     );
