@@ -439,23 +439,39 @@ beside the bounded scan receipt, while candidate generation, ranking,
 publication and execution remain unavailable. This delivery did not configure,
 invoke or read Twelve Data, and no browser receipt has yet been observed.
 
-**Local IF-2 one-shot dashboard receipt:** local commit
-`764c228990ac791426ae1ca76c2f28b7bd8afd74`, hardened by
-`6228f8bbfd1d3c628168b52bcfe67a87fedb2c1b`, and scan-date bound by
-`3a4f90106aa83d21df51cf93c4785fded75f99b2`, makes the existing Basic Free
-catalog panel show a strictly parsed versioned one-shot control envelope. A
-missing envelope is explicitly `not_recorded`; a malformed, contradictory or
-untrusted envelope is `invalid` and its values are withheld. The follow-on
-checks require the exact status/reason-code pair, and bind the envelope's
-evaluated New York date to the persisted scan's New York date, in addition to
-the version, booleans and target/evaluation date relation. A valid envelope
-shows its status, catalog-only boundary, observation permission and target
-versus evaluated New York dates, with an explicit statement that it cannot
-admit candidate generation, ranking, publication or execution. Local evidence:
-targeted readback/control contracts (8/8), Basic Free/scheduler regression
-(31/31), scoped lint, TypeScript, scheduled-runtime build and Webpack
-production build passed. This dashboard change is not yet merged, deployed or
-verified in an authenticated browser with a persisted one-shot receipt.
+**Merged IF-2 one-shot dashboard receipt:** PR
+[#522](https://github.com/willyvalentin/trade/pull/522) merged as
+`95b0c839e94fd43775286ef831d33e9b3d21d40e`. Its six provider-free CI shards,
+aggregate and merge-candidate provenance passed in run `35166526820`; exact-main
+run `35169693144` passed, including the post-merge candidate-provenance
+attestation. Netlify production deploy `6aab3ea586f7140008509dd4` is `ready`
+for that exact `main` revision. Local commits
+`764c228990ac791426ae1ca76c2f28b7bd8afd74`,
+`6228f8bbfd1d3c628168b52bcfe67a87fedb2c1b`, and
+`3a4f90106aa83d21df51cf93c4785fded75f99b2` make the existing Basic Free catalog
+panel show a strictly parsed versioned one-shot control envelope. A missing
+envelope is explicitly `not_recorded`; a malformed, contradictory or untrusted
+envelope is `invalid` and its values are withheld. The checks require the exact
+status/reason-code pair and bind the envelope's evaluated New York date to the
+persisted scan's New York date. A valid envelope shows its status, catalog-only
+boundary, observation permission and target versus evaluated New York dates,
+with an explicit statement that it cannot admit candidate generation, ranking,
+publication or execution. This is shipped decision-trace behavior, not an
+authenticated-browser verification of a persisted one-shot receipt.
+
+**Local IF-2 Basic Free observation readiness:** local commit
+`3716c1a14484ee948fd064ef37acb0a238536184` adds a server-owned, secret-free
+dashboard panel that projects only the current Basic Free configuration facts:
+effective plan source, runtime admission, declared two-credit budgets, the
+exact-date one-shot control and its fail-closed blockers. It has no action,
+provider call, durable reservation or request authority; the route must still
+validate market session, idempotency and durable reservation. This is the one
+off-market vertical slice while the active acceptance remains market-bound.
+Local evidence: readiness/default-off and existing Basic Free contracts (10/10),
+the Basic Free/scheduler regression (34/34), scoped lint, TypeScript and
+Webpack production build passed. It is not yet merged, deployed or browser
+verified. It does not change ranking, publication, execution, provider budgets
+or configuration.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
