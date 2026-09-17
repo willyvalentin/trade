@@ -32,6 +32,7 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basic_free_discovery: scanLog?.basic_free_discovery ?? null");
   expect(scanLog).toContain("basic_free_discovery?: Record<string, unknown> | null");
   expect(app).toContain("Basic Free Catalog Observation");
+  expect(app).toContain("One-shot containment");
   expect(app).toContain("Complete catalog capacity");
   expect(discovery).toContain("discovery_feed_allowed: false");
   expect(readback).toContain("catalog_collection_plan");
