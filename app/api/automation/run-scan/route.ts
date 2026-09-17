@@ -124,6 +124,10 @@ import {
   linkResearchSnapshotToCandidateDecision,
   type ResearchSnapshotCandidateDecisionLink,
 } from "@/lib/research-snapshot-candidate-linkage";
+import {
+  buildRejectedCandidateResearchSelection,
+  type RejectedCandidateResearchSample,
+} from "@/lib/rejected-candidate-research-selection";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -2121,7 +2125,7 @@ function buildSnapshotFromResearchSample({
   batchFingerprint,
 }: {
   candidateDecisionLink: ResearchSnapshotCandidateDecisionLink;
-  sample: LearningAccelerationResearchSample;
+  sample: LearningAccelerationResearchSample | RejectedCandidateResearchSample;
   scanRunId: string;
   scanWindow: IntradayScanWindow;
   now: Date;
@@ -2131,6 +2135,8 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode: string | null;
   batchFingerprint: string | null;
 }) {
+  const rejectedCandidateResearch =
+    candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
   const riskPerShare = sample.entry - sample.stop;
   const rewardPerShare = sample.target - sample.entry;
   const researchBatchFingerprint =
@@ -2169,8 +2175,12 @@ function buildSnapshotFromResearchSample({
     confidence: sample.score,
     score: sample.score,
     rating: sample.tier,
-    label: "learning only",
-    type: "RESEARCH_SAMPLE",
+    label: rejectedCandidateResearch
+      ? "rejected candidate research only"
+      : "learning only",
+    type: rejectedCandidateResearch
+      ? "REJECTED_CANDIDATE_RESEARCH_SAMPLE"
+      : "RESEARCH_SAMPLE",
     rationale: sample.ranking_reason,
     reason: sample.rejection_publish_reason,
     catalyst: sample.ranking_reason,
@@ -2188,6 +2198,13 @@ function buildSnapshotFromResearchSample({
       learning_acceleration_sample: true,
       research_only: true,
       learning_scope: "research_only",
+      counterfactual_cohort: rejectedCandidateResearch
+        ? "rejected_candidate"
+        : "research_candidate",
+      rejected_candidate_research: rejectedCandidateResearch,
+      scanner_plan_origin: rejectedCandidateResearch
+        ? "decision_time_scanner_geometry_v1"
+        : null,
       candidate_id: candidateDecisionLink.candidate_id,
       candidate_decision_id: candidateDecisionLink.candidate_id,
       candidate_decision_disposition:
@@ -2434,6 +2451,9 @@ async function persistAutomationArtifacts({
     research_snapshots: [] as Array<
       Awaited<ReturnType<typeof persistRecommendationSnapshot>>
     >,
+    rejected_research_snapshots: [] as Array<
+      Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+    >,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
   };
   const preliminarySnapshots = recommendations.map((recommendation) =>
@@ -2513,7 +2533,24 @@ async function persistAutomationArtifacts({
     maxSamples: learningAccelerationTargetSamples,
     inputSourceHint: learningAccelerationInputSource,
   });
+  const rejectedResearchSelection = buildRejectedCandidateResearchSelection({
+    enabled: learningAccelerationMode.learning_acceleration_enabled,
+    record: candidateDecisionRecord,
+    candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
+    scanWindow,
+    maxSamples: Math.max(
+      0,
+      learningAccelerationTargetSamples - researchSelection.samples.length,
+    ),
+    excludedTickers: [
+      ...recommendations
+        .map((recommendation) => recommendationTicker(recommendation))
+        .filter((ticker): ticker is string => ticker !== null),
+      ...researchSelection.samples.map((sample) => sample.ticker),
+    ],
+  });
   const researchSnapshots: RecommendationSnapshot[] = [];
+  const rejectedResearchSnapshots: RecommendationSnapshot[] = [];
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
@@ -2565,10 +2602,46 @@ async function persistAutomationArtifacts({
     );
   }
 
+  for (const sample of rejectedResearchSelection.samples) {
+    const candidateDecisionLink = linkResearchSnapshotToCandidateDecision({
+      record: candidateDecisionRecord,
+      ticker: sample.ticker,
+    });
+    if (
+      candidateDecisionLink.linkage_status !== "verified" ||
+      candidateDecisionLink.candidate_id !== sample.candidate_id ||
+      candidateDecisionLink.candidate_disposition !== "filtered_before_ranking"
+    ) {
+      continue;
+    }
+    const snapshot = buildSnapshotFromResearchSample({
+      candidateDecisionLink,
+      sample,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
+    });
+
+    rejectedResearchSnapshots.push(snapshot);
+    persistence.rejected_research_snapshots.push(
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
+    );
+  }
+
   const shadowSnapshotSummary =
     summarizeRecommendationSnapshotShadowEntryTrialMetadata([
       ...snapshots,
       ...researchSnapshots,
+      ...rejectedResearchSnapshots,
     ]);
   const persistedResearchSnapshotCount =
     persistence.research_snapshots.filter(
@@ -2713,7 +2786,9 @@ async function persistAutomationArtifacts({
     scan_run: scanRun,
     snapshots,
     research_snapshots: researchSnapshots,
+    rejected_research_snapshots: rejectedResearchSnapshots,
     learning_acceleration: researchSelection,
+    rejected_candidate_research: rejectedResearchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
