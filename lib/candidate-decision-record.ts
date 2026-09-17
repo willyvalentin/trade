@@ -166,6 +166,16 @@ function normalizeTicker(value: string) {
   return value.trim().toUpperCase();
 }
 
+/**
+ * Stable link used by research-only snapshots to prove which immutable scanner
+ * decision produced their hypothetical plan. Keeping this constructor beside
+ * the decision record prevents a later consumer from silently inventing a
+ * ticker-only relation.
+ */
+export function candidateDecisionCandidateId(scanRunId: string, ticker: string) {
+  return `scanner_candidate:v1:${scanRunId}:${normalizeTicker(ticker)}`;
+}
+
 function uniqueSorted<T extends string>(values: T[]) {
   return Array.from(new Set(values)).sort();
 }
@@ -346,8 +356,8 @@ export function buildCandidateDecisionRecord({
   const eligibleTickerSet = new Set(capture.eligible_candidate_tickers);
   const builtTickerSet = new Set(capture.built_tickers);
   const publishedTickerSet = new Set(capture.published_tickers);
-  const candidateIds = capture.universe.map(
-    (candidate) => `scanner_candidate:v1:${scanRun.id}:${candidate.ticker}`,
+  const candidateIds = capture.universe.map((candidate) =>
+    candidateDecisionCandidateId(scanRun.id, candidate.ticker),
   );
   const captureEvidence = buildPreTruncationCandidateCaptureEvidence({
     scan_identity: scanRun.id,
@@ -422,7 +432,7 @@ export function buildCandidateDecisionRecord({
               : "unknown";
 
     return {
-      candidate_id: `scanner_candidate:v1:${scanRun.id}:${candidate.ticker}`,
+      candidate_id: candidateDecisionCandidateId(scanRun.id, candidate.ticker),
       ticker: candidate.ticker,
       company_name: candidate.company_name,
       sector: candidate.sector,

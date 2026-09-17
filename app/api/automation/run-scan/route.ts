@@ -120,6 +120,10 @@ import {
   type LearningAccelerationModeEvaluation,
   type LearningAccelerationResearchSample,
 } from "@/lib/learning-acceleration-mode";
+import {
+  linkResearchSnapshotToCandidateDecision,
+  type ResearchSnapshotCandidateDecisionLink,
+} from "@/lib/research-snapshot-candidate-linkage";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -2105,6 +2109,7 @@ function buildSnapshotFromRecommendation({
 }
 
 function buildSnapshotFromResearchSample({
+  candidateDecisionLink,
   sample,
   scanRunId,
   scanWindow,
@@ -2115,6 +2120,7 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode,
   batchFingerprint,
 }: {
+  candidateDecisionLink: ResearchSnapshotCandidateDecisionLink;
   sample: LearningAccelerationResearchSample;
   scanRunId: string;
   scanWindow: IntradayScanWindow;
@@ -2182,6 +2188,13 @@ function buildSnapshotFromResearchSample({
       learning_acceleration_sample: true,
       research_only: true,
       learning_scope: "research_only",
+      candidate_id: candidateDecisionLink.candidate_id,
+      candidate_decision_id: candidateDecisionLink.candidate_id,
+      candidate_decision_disposition:
+        candidateDecisionLink.candidate_disposition,
+      candidate_decision_linkage_version:
+        candidateDecisionLink.linkage_version,
+      candidate_decision_linkage_status: candidateDecisionLink.linkage_status,
       source_window: scanWindow,
       scan_window: scanWindow,
       scan_run_fingerprint: scanRunId,
@@ -2501,7 +2514,6 @@ async function persistAutomationArtifacts({
     inputSourceHint: learningAccelerationInputSource,
   });
   const researchSnapshots: RecommendationSnapshot[] = [];
-
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
@@ -2528,6 +2540,10 @@ async function persistAutomationArtifacts({
 
   for (const sample of researchSelection.samples) {
     const snapshot = buildSnapshotFromResearchSample({
+      candidateDecisionLink: linkResearchSnapshotToCandidateDecision({
+        record: candidateDecisionRecord,
+        ticker: sample.ticker,
+      }),
       sample,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,

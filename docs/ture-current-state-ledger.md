@@ -571,23 +571,41 @@ neither ranking, confidence, publication, provider call count, database schema
 nor execution. It is deployed integrity infrastructure, not evidence that
 recommendation quality has improved or that a market outcome has been observed.
 
-**Local IF-4 decision-bound outcome-evaluation anchors:** future recommendation
-snapshots now durably record a versioned exact-decision anchor. An aligned
-decision begins at its own five-minute candle boundary; an unaligned decision
-begins at the *next* boundary, never inside a candle that contains information
-from before the decision. The outcome runner accepts only an exact recorded
-anchor derived from `recommended_at`, requests candles from that boundary, and
-refuses missing, shifted, malformed or fabricated anchors before a provider
-request. The v2 coverage receipt binds complete coverage to this same anchor;
-the deployed v1 receipt remains readable historical evidence but cannot satisfy
-the stricter primary-baseline coverage requirement. This changes neither
-ranking, confidence, publication, schedule, provider budget, database schema
-nor execution. Local evidence: diff check, strict TypeScript, scoped ESLint,
-Webpack production build, 15 focused anchor/baseline Playwright regressions, 32
-outcome-evaluator regressions and the 166-test intelligence-foundation suite
-passed. PR CI, merge and deploy remain outstanding. This is an
-evidence-integrity improvement, not proof that recommendation quality has
-improved.
+**Merged and production-deployed IF-4 decision-bound outcome-evaluation
+anchors:** PR [#529](https://github.com/willyvalentin/trade/pull/529) merged as
+`99388d3eb5722091ad1744060b471f0050f31544`. Future recommendation snapshots
+now durably record a versioned exact-decision anchor. An aligned decision begins
+at its own five-minute candle boundary; an unaligned decision begins at the
+*next* boundary, never inside a candle that contains information from before the
+decision. The outcome runner accepts only an exact recorded anchor derived from
+`recommended_at`, requests candles from that boundary, and refuses missing,
+shifted, malformed or fabricated anchors before a provider request. The v2
+coverage receipt binds complete coverage to this same anchor; the deployed v1
+receipt remains readable historical evidence but cannot satisfy the stricter
+primary-baseline coverage requirement. Required CI run `35267716438` passed all
+six provider-free shards and Netlify production deploy
+`6aac4c292789bb0008c86fc3` is ready on the exact main revision. This changes
+neither ranking, confidence, publication, schedule, provider budget, database
+schema nor execution. It is evidence-integrity infrastructure, not proof that
+recommendation quality has improved.
+
+**Local IF-4 research-candidate outcome lineage:** future research-only
+snapshots now carry a versioned, fail-closed link to exactly one immutable
+`selected_not_published` or `ranked_not_selected` candidate in their scan's
+decision record. The baseline readback admits such an outcome only when the
+candidate ID, disposition, scan fingerprint, research-only snapshot, recorded
+decision anchor and complete v2 provider-coverage receipt all agree exactly.
+Absent, published, ambiguous, tampered or legacy links remain evidence gaps;
+they cannot become counterfactual evidence. The Engine Insights baseline panel
+now reports collected/required research, rejected and explicit-no-trade evidence
+separately. Rejected and no-trade evidence is still not collected, and the
+delivery does not change ranking, confidence, publication, schedule, provider
+calls, database schema or execution. Local evidence: strict TypeScript, scoped
+ESLint, Webpack production build, 13 focused linkage/baseline Playwright
+regressions and the 166-test intelligence-foundation suite passed. The local
+browser reached the password gate; an authenticated UI readback and production
+verification remain outstanding. This makes future research outcomes auditable,
+not evidence that a recommendation policy is better.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when

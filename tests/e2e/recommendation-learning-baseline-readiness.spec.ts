@@ -9,6 +9,7 @@ import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendati
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
@@ -125,6 +126,54 @@ function persistedPublishedScan() {
   };
 }
 
+function persistedResearchScan() {
+  const scannerCandidate = candidate();
+  const ranking = buildScannerCandidateRankingSummary({
+    candidates: [scannerCandidate],
+    targetMin: 1,
+    targetMax: 1,
+    now: new Date(DECIDED_AT),
+  });
+  const scanRun = buildRecommendationScanRun({
+    trading_date: "2026-09-17",
+    observed_at: DECIDED_AT,
+    completed_at: DECIDED_AT,
+    window: "morning",
+    source: "supabase",
+    scanned_ticker_count: 1,
+    raw_candidate_count: 1,
+  });
+  const capture = buildCandidateDecisionCapture({
+    captureTimestamp: DECIDED_AT,
+    universe: [scannerCandidate],
+    observedCandidates: [scannerCandidate],
+    ranking,
+    eligibleCandidateTickers: ["TST"],
+    publishableThreshold: 70,
+    recommendationBuildPath: "no_publishable_candidate",
+  });
+  const record = buildCandidateDecisionRecord({
+    scanRun,
+    capture,
+    scoringVersion: "score_test_v1",
+    buildVersion: "test-build-v1",
+    learningAttribution: completeAttribution(),
+  });
+
+  expect(record).not.toBeNull();
+  expect(record?.candidates[0]?.disposition).toBe("selected_not_published");
+  return {
+    run: {
+      ...scanRun,
+      payload_json: {
+        ...scanRun.payload_json,
+        candidate_decision_record: record,
+      },
+    },
+    record: record!,
+  };
+}
+
 function snapshotFor(scanRunFingerprint: string) {
   return buildRecommendationSnapshot({
     recommendation_id: "rec_tst",
@@ -144,6 +193,45 @@ function snapshotFor(scanRunFingerprint: string) {
     confidence: 82,
     payload: {
       confidence_label: "high",
+    },
+  });
+}
+
+function researchSnapshotFor({
+  scanRunFingerprint,
+  candidateId,
+}: {
+  scanRunFingerprint: string;
+  candidateId: string;
+}) {
+  return buildRecommendationSnapshot({
+    recommendation_id: null,
+    scan_run_id: scanRunFingerprint,
+    ticker: "TST",
+    company_name: "Test Incorporated",
+    recommended_at: DECIDED_AT,
+    app_timestamp: DECIDED_AT,
+    window: "morning",
+    source_mode: "research_only",
+    data_mode: "research_only",
+    is_visible: false,
+    is_real: true,
+    entry: 100,
+    stop: 96,
+    target: 108,
+    side: "long",
+    confidence: 82,
+    payload: {
+      visibility_status: "research_only",
+      learning_acceleration_sample: true,
+      research_only: true,
+      learning_scope: "research_only",
+      candidate_id: candidateId,
+      candidate_decision_id: candidateId,
+      candidate_decision_disposition: "selected_not_published",
+      candidate_decision_linkage_version:
+        RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
+      candidate_decision_linkage_status: "verified",
     },
   });
 }
@@ -392,10 +480,13 @@ test.describe("recommendation learning baseline readiness", () => {
     });
 
     expect(readiness.counterfactual_coverage).toEqual({
+      research_candidate_outcomes_required: 0,
       research_candidate_outcomes_collected: 0,
+      rejected_candidate_outcomes_required: 0,
       rejected_candidate_outcomes_collected: 0,
+      no_trade_outcomes_required: 0,
       no_trade_outcomes_collected: 0,
-      status: "not_collected",
+      status: "not_required",
     });
     expect(readiness.decision_population).toMatchObject({
       published_candidate_count: 1,
@@ -403,5 +494,93 @@ test.describe("recommendation learning baseline readiness", () => {
       rejected_candidate_count: 0,
       explicit_no_trade_count: 0,
     });
+  });
+
+  test("counts only an exactly linked research snapshot with a decision-bound complete outcome", () => {
+    const { run, record } = persistedResearchScan();
+    const researchCandidate = record.candidates[0]!;
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: researchCandidate.candidate_id,
+    });
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [completeOutcome(snapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toEqual({
+      research_candidate_outcomes_required: 1,
+      research_candidate_outcomes_collected: 1,
+      rejected_candidate_outcomes_required: 0,
+      rejected_candidate_outcomes_collected: 0,
+      no_trade_outcomes_required: 1,
+      no_trade_outcomes_collected: 0,
+      status: "partial",
+    });
+    expect(readiness.blockers).not.toContain(
+      "research_candidate_counterfactual_outcomes_incomplete",
+    );
+    expect(readiness.blockers).toContain(
+      "explicit_no_trade_counterfactual_outcomes_not_collected",
+    );
+  });
+
+  test("fails closed when a research snapshot claims a different candidate identity", () => {
+    const { run, record } = persistedResearchScan();
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: record.candidates[0]!.candidate_id,
+    });
+    const tamperedSnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        candidate_decision_id: "scanner_candidate:v1:other:TST",
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [tamperedSnapshot],
+      outcomes: [completeOutcome(tamperedSnapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toMatchObject({
+      research_candidate_outcomes_required: 1,
+      research_candidate_outcomes_collected: 0,
+      status: "not_collected",
+    });
+    expect(readiness.blockers).toContain(
+      "research_candidate_counterfactual_outcomes_incomplete",
+    );
+  });
+
+  test("fails closed when a research snapshot claims a different candidate disposition", () => {
+    const { run, record } = persistedResearchScan();
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: record.candidates[0]!.candidate_id,
+    });
+    const tamperedSnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        candidate_decision_disposition: "ranked_not_selected",
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [tamperedSnapshot],
+      outcomes: [completeOutcome(tamperedSnapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toMatchObject({
+      research_candidate_outcomes_required: 1,
+      research_candidate_outcomes_collected: 0,
+      status: "not_collected",
+    });
+    expect(readiness.blockers).toContain(
+      "research_candidate_counterfactual_outcomes_incomplete",
+    );
   });
 });
