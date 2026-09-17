@@ -532,9 +532,10 @@ the ranking is calibrated or that recommendation quality improved against an
 IF-4 baseline. Production UI verification remains required after the normal PR
 and deploy.
 
-**Local IF-4 baseline-readiness foundation:** every new candidate decision
-record now carries a versioned learning-attribution envelope when the deployed
-build can prove its full commit, ranking/scoring/publish-policy and canonical
+**Local IF-4 baseline-readiness foundation:** local commit
+`5a205bed9e3c11c08156ca02918f244eb1423ccf` makes every new candidate decision
+record carry a versioned learning-attribution envelope when the deployed build
+can prove its full commit, ranking/scoring/publish-policy and canonical
 evaluation-version bundle. Older v1 records remain readable but are explicitly
 not policy-attributed. The envelope declares the current confidence as ordinal,
 not a calibrated probability; no score is converted into a probability. Engine
