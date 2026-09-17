@@ -589,23 +589,42 @@ neither ranking, confidence, publication, schedule, provider budget, database
 schema nor execution. It is evidence-integrity infrastructure, not proof that
 recommendation quality has improved.
 
-**Local IF-4 research-candidate outcome lineage:** future research-only
-snapshots now carry a versioned, fail-closed link to exactly one immutable
+**Merged and production-deployed IF-4 research-candidate outcome lineage:** PR
+[#530](https://github.com/willyvalentin/trade/pull/530) merged as
+`9b237c15923e1c241042f40e1d993da04c6b2926`. Future research-only snapshots
+carry a versioned, fail-closed link to exactly one immutable
 `selected_not_published` or `ranked_not_selected` candidate in their scan's
 decision record. The baseline readback admits such an outcome only when the
 candidate ID, disposition, scan fingerprint, research-only snapshot, recorded
 decision anchor and complete v2 provider-coverage receipt all agree exactly.
 Absent, published, ambiguous, tampered or legacy links remain evidence gaps;
 they cannot become counterfactual evidence. The Engine Insights baseline panel
-now reports collected/required research, rejected and explicit-no-trade evidence
-separately. Rejected and no-trade evidence is still not collected, and the
-delivery does not change ranking, confidence, publication, schedule, provider
-calls, database schema or execution. Local evidence: strict TypeScript, scoped
-ESLint, Webpack production build, 13 focused linkage/baseline Playwright
-regressions and the 166-test intelligence-foundation suite passed. The local
-browser reached the password gate; an authenticated UI readback and production
-verification remain outstanding. This makes future research outcomes auditable,
-not evidence that a recommendation policy is better.
+reports collected/required research, rejected and explicit-no-trade evidence
+separately. Required CI run `35272654068` passed all six provider-free shards,
+the aggregate and merge-candidate-provenance POC; Netlify production deploy
+`6aac57fddea6390008d78821` is ready on the exact main revision. The local
+browser reached the password gate, so authenticated UI behavior remains
+unverified. This delivery changes neither ranking, confidence, publication,
+schedule, provider calls, database schema nor execution. It makes future
+research outcomes auditable, not evidence that a recommendation policy is
+better.
+
+**Local IF-4 explicit-no-trade outcome coverage:** a no-trade decision can now
+count as covered only when its captured candidate population is complete and
+every non-published ranked candidate has its own exact research-only outcome
+with the same decision-bound anchor and complete v2 coverage receipt. It is a
+decision-level coverage fact, not a duplicate outcome row or a quality verdict.
+Missing, conflicting, pre-decision or incomplete research evidence leaves the
+no-trade decision uncovered. `filtered_before_ranking` candidates remain an
+independent rejected-evidence gap and still prevent an overall baseline freeze;
+no plan or market outcome is invented for them. This readback-only delivery
+does not change scanning, ranking, confidence, publication, provider usage,
+database schema, execution or broker authority. Local verification and PR CI
+are distinct: `git diff --check`, strict TypeScript, scoped ESLint, Webpack
+production build, 15 focused linkage/baseline Playwright regressions and the
+166-test intelligence-foundation suite passed locally. PR CI, merge and deploy
+remain outstanding. It improves the honesty of future learning evidence, not
+the engine's demonstrated recommendation quality.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
