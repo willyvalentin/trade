@@ -1,4 +1,5 @@
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { canonicalOutcomeProviderCoverageQuality } from "@/lib/recommendation-outcome-canonical-coverage";
 
 function finiteNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -96,6 +97,18 @@ export function hasBetterOutcomeCoverage(
     candleCount(existingOutcome);
 
   if (nextScore > existingScore) return true;
+  if (nextScore < existingScore) return false;
+
+  const nextCanonicalCoverageQuality = canonicalOutcomeProviderCoverageQuality(
+    nextOutcome.payload_json.canonical_provider_coverage,
+  );
+  const existingCanonicalCoverageQuality =
+    canonicalOutcomeProviderCoverageQuality(
+      existingOutcome.payload_json.canonical_provider_coverage,
+    );
+
+  if (nextCanonicalCoverageQuality > existingCanonicalCoverageQuality) return true;
+  if (nextCanonicalCoverageQuality < existingCanonicalCoverageQuality) return false;
 
   return (
     nextScore === existingScore &&

@@ -6,6 +6,7 @@ import {
 } from "@/lib/candidate-decision-record";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
+import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -176,6 +177,8 @@ function completeOutcome(
       ...(includeCanonicalCoverage
         ? {
             canonical_provider_coverage: {
+              contract_version:
+                CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
               provider_status: "available",
               freshness: "fresh",
               expected_candle_count: 1,
