@@ -29,6 +29,7 @@ import {
   buildPlanReferenceMetadataTrace,
   type PlanReferenceMetadataTraceSummary,
 } from "@/lib/plan-reference-metadata-trace";
+import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -1113,6 +1114,12 @@ export async function runRecommendationOutcomeEvaluation(
           provider_error:
             candleResult.status === "provider_error" ? reason : null,
           candle_request_debug: candleResult.diagnostics ?? null,
+          canonical_provider_coverage:
+            buildCanonicalOutcomeProviderCoverageReceipt({
+              candles: horizonCandles,
+              request: work.request,
+              result: candleResult,
+            }),
           ...horizonFilterDiagnostics,
         });
         const shouldRetainExistingCompleted =
@@ -1188,6 +1195,12 @@ export async function runRecommendationOutcomeEvaluation(
           outcome: result.outcome,
           candles: horizonCandles,
         }),
+        canonical_provider_coverage:
+          buildCanonicalOutcomeProviderCoverageReceipt({
+            candles: horizonCandles,
+            request: work.request,
+            result: candleResult,
+          }),
         ...horizonFilterDiagnostics,
         ...retainedCandlePayload(horizonCandles),
         ...shadowEntryTrialPayload({

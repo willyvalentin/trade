@@ -7,6 +7,7 @@ import {
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { hasVersionedCanonicalOutcomeProviderCoverage } from "@/lib/recommendation-outcome-canonical-coverage";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
@@ -263,13 +264,28 @@ export function buildRecommendationLearningBaselineReadiness({
         },
       });
       const primary = projection.projection.primary_outcome;
+      const selectedOutcome = primary
+        ? linkedOutcomes.find(
+            (outcome) => outcome.id === primary.primary_outcome?.outcome.id,
+          ) ?? null
+        : null;
 
-      if (primary?.status === "selected" && primary.primary_horizon) {
+      if (
+        primary?.status === "selected" &&
+        primary.primary_horizon &&
+        hasVersionedCanonicalOutcomeProviderCoverage(
+          selectedOutcome?.payload_json.canonical_provider_coverage,
+        )
+      ) {
         primaryOutcomeCount += 1;
         primaryOutcomeByHorizon[primary.primary_horizon] += 1;
       } else {
         incompleteOrConflictingOutcomeCount += 1;
-        blockers.add("published_candidate_primary_outcome_incomplete_or_conflicting");
+        blockers.add(
+          primary?.status === "selected"
+            ? "published_candidate_primary_outcome_coverage_receipt_missing_or_unversioned"
+            : "published_candidate_primary_outcome_incomplete_or_conflicting",
+        );
       }
     }
   }
