@@ -205,6 +205,7 @@ export async function observeBasicFreeCatalog(
     owner_user_id: ownerUserId,
     trading_date: tradingDate,
     minute_bucket: minuteBucket,
+    catalog_observation: true,
     requested_credits: admission.request.credits_per_request,
     declared_daily_credit_budget: declaredDailyCreditBudget,
     declared_per_minute_credit_budget: declaredPerMinuteCreditBudget,
@@ -518,6 +519,7 @@ function unavailablePreparation(): BasicFreeDiscoveryCreditReservationPreparatio
 function reservationBlocker(
   status: BasicFreeDiscoveryCreditReservationPreparation["status"],
 ) {
+  if (status === "daily_catalog_observation_already_claimed") return status;
   if (status === "daily_credit_limit_reached") return status;
   if (status === "per_minute_credit_limit_reached") return status;
   if (status === "attempt_in_progress") {
@@ -532,6 +534,7 @@ function reservationBlocker(
 function reservationGap(
   status: BasicFreeDiscoveryCreditReservationPreparation["status"],
 ) {
+  if (status === "daily_catalog_observation_already_claimed") return status;
   if (status === "daily_credit_limit_reached") return status;
   if (status === "per_minute_credit_limit_reached") return status;
   if (status === "attempt_in_progress") {
