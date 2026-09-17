@@ -552,8 +552,10 @@ primary outcomes and `insufficient_visible_primary_outcomes_for_baseline_freeze`
 That is an expected evidence gap, not a false intelligence claim or policy
 promotion.
 
-**Local IF-4 canonical-outcome coverage receipt:** every candle-backed future
-outcome now receives a versioned provider-coverage receipt in its existing
+**Merged and production-deployed IF-4 canonical-outcome coverage receipt:** PR
+[#528](https://github.com/willyvalentin/trade/pull/528) merged as
+`50a82a19e41bc0aa77a95099225d8d605110a86f`. Every candle-backed future outcome
+now receives a versioned v1 provider-coverage receipt in its existing
 owner-isolated payload before persistence. The receipt only calls a window
 complete when a supported 15m/30m/60m horizon has fully elapsed, the decision
 time is on the requested candle interval, every expected slot occurs exactly
@@ -562,13 +564,30 @@ duplicate, malformed, unaligned and failed-provider windows remain explicitly
 incomplete. Baseline readback rejects a selected outcome whose receipt is
 missing or unversioned; equal existing outcomes can be upgraded with this
 strictly better evidence, but a weaker receipt cannot overwrite stronger
-coverage. This changes neither ranking, confidence, publication, provider call
-count, database schema nor execution. Local evidence: diff check, strict
-TypeScript, scoped ESLint, Webpack production build, 11 focused baseline/receipt
-Playwright regressions, 32 outcome-evaluator regressions and the 166-test
-intelligence-foundation suite passed. This is locally implemented and tested,
-not yet merged, deployed or current-market verified; it is not evidence that
-recommendation quality has improved.
+coverage. The required CI run `35262711882` passed all six
+`provider-free-verification` shards, and Netlify production deploy
+`6aac40b90570f100082c4c5f` is ready on the exact main revision. This changes
+neither ranking, confidence, publication, provider call count, database schema
+nor execution. It is deployed integrity infrastructure, not evidence that
+recommendation quality has improved or that a market outcome has been observed.
+
+**Local IF-4 decision-bound outcome-evaluation anchors:** future recommendation
+snapshots now durably record a versioned exact-decision anchor. An aligned
+decision begins at its own five-minute candle boundary; an unaligned decision
+begins at the *next* boundary, never inside a candle that contains information
+from before the decision. The outcome runner accepts only an exact recorded
+anchor derived from `recommended_at`, requests candles from that boundary, and
+refuses missing, shifted, malformed or fabricated anchors before a provider
+request. The v2 coverage receipt binds complete coverage to this same anchor;
+the deployed v1 receipt remains readable historical evidence but cannot satisfy
+the stricter primary-baseline coverage requirement. This changes neither
+ranking, confidence, publication, schedule, provider budget, database schema
+nor execution. Local evidence: diff check, strict TypeScript, scoped ESLint,
+Webpack production build, 15 focused anchor/baseline Playwright regressions, 32
+outcome-evaluator regressions and the 166-test intelligence-foundation suite
+passed. PR CI, merge and deploy remain outstanding. This is an
+evidence-integrity improvement, not proof that recommendation quality has
+improved.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
