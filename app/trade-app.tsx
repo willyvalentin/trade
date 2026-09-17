@@ -22132,11 +22132,11 @@ function RecommendationSampleQualityPanel({
           )}`}
         />
         <Detail
-          label="Window Target Within"
+          label="Historical Count Range"
           value={String(summary.window_target_coverage.within_target_count)}
         />
         <Detail
-          label="Current Target"
+          label="Current Publication State"
           value={summary.window_target_coverage.current_window_status.replace(
             /_/g,
             " ",
@@ -24622,26 +24622,26 @@ function addTradePreflightCheckTone(status: AddTradePreflightCheckStatus) {
 function dayTradeWindowTargetStatusLabel(
   status: DayTradeWindowRecommendationTargetSummary["status"],
 ) {
-  if (status === "below_target") return "Below target";
-  if (status === "within_target") return "Within target";
-  if (status === "above_target") return "Above target";
-  if (status === "no_recommendations") return "No recommendations";
+  if (status === "below_target") return "Legacy count gap";
+  if (status === "within_target") return "Selective set";
+  if (status === "above_target") return "Cap exceeded";
+  if (status === "no_recommendations") return "No trade";
   return "Unknown";
 }
 
 function dayTradeWindowTargetStatusTone(
   status: DayTradeWindowRecommendationTargetSummary["status"],
 ) {
-  if (status === "within_target") {
+  if (status === "within_target" || status === "no_recommendations") {
     return "border-[#00db94]/25 bg-[#00db94]/10 text-emerald-100";
   }
 
-  if (status === "below_target" || status === "no_recommendations") {
+  if (status === "below_target") {
     return "border-amber-300/30 bg-amber-300/10 text-amber-100";
   }
 
   if (status === "above_target") {
-    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
   }
 
   return "border-white/10 bg-white/[0.04] text-zinc-400";
@@ -24661,11 +24661,13 @@ function DayTradeWindowRecommendationTargetPanel({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Window Target
+            Selective Publication
           </p>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {count.total} / {summary.ideal_min}-{summary.ideal_max}{" "}
-            recommendations in {summary.current_window.replace(/_/g, " ")}.
+            {count.total === 0
+              ? "No trade-ready candidates"
+              : `${count.total} of at most ${summary.ideal_max} trade-ready candidates`} {" "}
+            in {summary.current_window.replace(/_/g, " ")}.
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             {summary.copy.purpose} {summary.copy.experimental}
@@ -24685,22 +24687,22 @@ function DayTradeWindowRecommendationTargetPanel({
         <SummaryCard label="Valid" value={String(count.valid)} />
         <SummaryCard label="Experimental" value={String(count.experimental)} />
         <SummaryCard
-          label="Learning Samples"
-          value={summary.enough_learning_samples ? "Enough" : "Thin"}
+          label="Trade-ready"
+          value={summary.enough_learning_samples ? "Present" : "No trade"}
         />
       </div>
 
       <details className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
         <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-          Window target details
+          Publication details
         </summary>
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <Detail
-            label="Gap To 6"
-            value={String(summary.gap.gap_to_ideal_min)}
+            label="Publication Cap"
+            value={`0-${summary.ideal_max}`}
           />
           <Detail
-            label="Overflow Above 10"
+            label="Exceeds Cap"
             value={String(summary.gap.overflow_above_ideal_max)}
           />
           <Detail
@@ -24715,7 +24717,7 @@ function DayTradeWindowRecommendationTargetPanel({
         {summary.warnings.length > 0 && (
           <div className="mt-4 rounded-md border border-amber-300/15 bg-amber-300/[0.045] p-3">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-              Target Notes
+              Publication Notes
             </p>
             <ul className="mt-2 space-y-1 text-xs leading-5 text-amber-50/80">
               {summary.warnings.slice(0, 4).map((warning) => (
@@ -36069,7 +36071,7 @@ function RecommendationScanRunDiagnosticsPanel({
             value={String(diagnostics.visibleRecommendationCount)}
           />
           <SummaryCard
-            label="Window Target"
+            label="Publication State"
             value={diagnostics.windowTargetStatus.replaceAll("_", " ")}
           />
           <SummaryCard
@@ -36129,15 +36131,11 @@ function RecommendationScanRunDiagnosticsPanel({
                 }
               />
               <Detail
-                label="Gap to 6"
-                value={
-                  scanRun.gap_to_target === null
-                    ? "Unknown"
-                    : String(scanRun.gap_to_target)
-                }
+                label="No-fill policy"
+                value={scanRun.window_target_status.replaceAll("_", " ")}
               />
               <Detail
-                label="Overflow above 10"
+                label="Above cap"
                 value={
                   scanRun.overflow_above_target === null
                     ? "Unknown"
@@ -38618,7 +38616,8 @@ function realRecommendationOutputReadinessStatusTone(
 ): "positive" | "warning" | "danger" | "neutral" {
   if (
     status === "ready_for_real_data_observation" ||
-    status === "ready_with_warnings"
+    status === "ready_with_warnings" ||
+    status === "no_trade_valid"
   ) {
     return "positive";
   }
@@ -38694,8 +38693,12 @@ function RealRecommendationOutputReadinessPanel({
           </h4>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Detail
-              label="Output"
-              value={`${summary.coverage.current_window_count} / ${summary.coverage.ideal_window_min}-${summary.coverage.ideal_window_max}`}
+              label="Publication Set"
+              value={
+                summary.coverage.current_window_count === 0
+                  ? "No trade"
+                  : `${summary.coverage.current_window_count} / max ${summary.coverage.ideal_window_max}`
+              }
             />
             <Detail
               label="Tier Mix"
@@ -39256,7 +39259,7 @@ function DailyRecommendationTradeTargetsPanel({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Daily Targets
+            Daily Publication Policy
           </p>
           <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
             Recommendations and Trade Capacity
@@ -39277,12 +39280,12 @@ function DailyRecommendationTradeTargetsPanel({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
-          label="Window Target"
+          label="Per-window Cap"
           value={`${summary.per_window_target_min}-${summary.per_window_target_max}`}
         />
         <SummaryCard
           label="Today Recs"
-          value={`${summary.total_recommendations_today} / ${summary.applicable_recommendation_target_min}-${summary.applicable_recommendation_target_max}`}
+          value={`${summary.total_recommendations_today} / cap ${summary.applicable_recommendation_target_max}`}
         />
         <SummaryCard
           label="Trades Today"
@@ -39299,8 +39302,8 @@ function DailyRecommendationTradeTargetsPanel({
           }
         />
         <SummaryCard
-          label="Full-Day Target"
-          value={`${summary.full_day_recommendation_target_min}-${summary.full_day_recommendation_target_max}`}
+          label="Full-Day Cap"
+          value={`0-${summary.full_day_recommendation_target_max}`}
         />
       </div>
 
@@ -39339,7 +39342,7 @@ function DailyRecommendationTradeTargetsPanel({
       {(topWarning || summary.warnings.length > 1) && (
         <details className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
           <summary className="cursor-pointer font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Target notes
+            Publication notes
           </summary>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
             {summary.warnings.slice(0, 5).map((warning) => (

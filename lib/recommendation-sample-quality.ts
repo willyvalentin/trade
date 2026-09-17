@@ -900,15 +900,6 @@ export function buildRecommendationSampleQualitySummary(
     );
   }
 
-  if (input.day_trade_window_target?.status === "below_target") {
-    suggestions.push(
-      suggestion(
-        "window_target_below_target",
-        "Current window is below the 6-10 recommendation target; keep collecting samples without forcing weak trades.",
-      ),
-    );
-  }
-
   for (const learningWarning of input.learning_insights.warnings.slice(0, 2)) {
     warnings.push(
       warning(

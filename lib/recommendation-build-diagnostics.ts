@@ -202,7 +202,7 @@ export function buildSelectedCandidateBuildDiagnostic(input: {
 
 export function summarizeSelectedCandidateBuildDiagnostics(
   diagnostics: SelectedCandidateBuildDiagnostic[],
-  targetMin = 6,
+  targetMin = 0,
 ): SelectedToBuiltDropOffSummary {
   const selectedCount = diagnostics.length;
   const builtCount = diagnostics.filter((item) => item.built).length;

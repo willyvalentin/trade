@@ -507,6 +507,31 @@ result. Any broader catalog collection remains separately costed and requires
 explicit provider-request authority, a coverage denominator, durable progress
 and resume behavior, freshness/readback evidence and a bounded rollout.
 
+**Selective-publication policy correction:** production Engine Insights exposed
+an obsolete 6--10 recommendation output target. That conflicts with the master
+roadmap's zero-to-three trade-ready opportunities and its explicit prohibition
+on fill quotas. The versioned policy
+`selective_top_3_strong_valid_v3_preserve_explicit_no_trade` therefore retains
+the full ranked decision record, but selects only Strong then Valid candidates,
+with a hard public cap of three. Experimental candidates remain attributable
+research evidence and can never fill a public batch. One qualified candidate is
+now publishable; an empty window is a valid `no_trade` only when the scan's
+observability is healthy. The serving gate, run history, quality/readiness
+diagnostics and Engine Insights use that same cap and no longer mark a low count
+as degraded. This changes neither scoring thresholds nor provider admission,
+data freshness, database state, broker behavior or execution authority.
+
+**Selective-publication local evidence:** `git diff --check`, `npx tsc
+--noEmit`, scoped ESLint, `npm run build -- --webpack`, and 56 focused
+Playwright tests covering selective publication, scan-window orchestration and
+build diagnostics passed. The regressions prove that a single Strong candidate
+is selected and may publish, Experimental candidates cannot fill a batch, and a
+healthy empty window is rendered as `no_trade` rather than a count shortfall.
+This is an implemented and locally verified policy correction, not proof that
+the ranking is calibrated or that recommendation quality improved against an
+IF-4 baseline. Production UI verification remains required after the normal PR
+and deploy.
+
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
 all three benchmarks are present, come from one provider, are point-in-time

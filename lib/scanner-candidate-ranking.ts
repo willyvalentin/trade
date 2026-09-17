@@ -96,8 +96,8 @@ export function buildScannerCandidateRankingSummary({
   candidates,
   scanWindow = "unknown",
   universeCoverage = null,
-  targetMin = 6,
-  targetMax = 10,
+  targetMin: legacyTargetMin = 0,
+  targetMax = 3,
   now = new Date(),
 }: {
   candidates: RankingCandidate[];
@@ -107,6 +107,10 @@ export function buildScannerCandidateRankingSummary({
   targetMax?: number;
   now?: Date;
 }): ScannerCandidateRankingSummary {
+  // Accept the legacy argument so old callers and decision records remain
+  // readable, but never let a minimum output quota back into selection.
+  void legacyTargetMin;
+  const publicationCap = Math.min(3, Math.max(0, targetMax));
   const ranked = candidates
     .map((candidate) =>
       rankCandidate(candidate, {
@@ -125,7 +129,7 @@ export function buildScannerCandidateRankingSummary({
       ...result,
       rank: index + 1,
     }));
-  const selection = selectRankedCandidates(ranked, targetMin, targetMax);
+  const selection = selectRankedCandidates(ranked, publicationCap);
   const selectedTickerSet = new Set(selection.selected_tickers);
   const results: ScannerCandidateRankingResult[] = ranked.map((result) => {
     const selected = selectedTickerSet.has(result.ticker);
@@ -146,7 +150,7 @@ export function buildScannerCandidateRankingSummary({
   const scores = results.map((result) => result.score.normalized_score);
   const tierCounts = countBy(results, (result) => result.score.tier);
   const selectedResults = results.filter((result) => result.selected);
-  const warnings = buildSummaryWarnings(results, selection, targetMin);
+  const warnings = buildSummaryWarnings(results);
 
   return {
     summary_version: "1.0",
@@ -155,8 +159,8 @@ export function buildScannerCandidateRankingSummary({
     scan_window: scanWindow,
     candidates_ranked: results.length,
     selected_count: selectedResults.length,
-    target_min: targetMin,
-    target_max: targetMax,
+    target_min: 0,
+    target_max: publicationCap,
     target_status: selection.target_status,
     overflow_count: selection.overflow_count,
     strong_count: tierCounts.strong ?? 0,
@@ -262,7 +266,6 @@ function rankCandidate(
 
 function selectRankedCandidates(
   ranked: Array<Omit<ScannerCandidateRankingResult, "selected" | "selection_bucket">>,
-  targetMin: number,
   targetMax: number,
 ): ScannerCandidateSelectionResult {
   const structurallyValid = ranked.filter(
@@ -271,37 +274,28 @@ function selectRankedCandidates(
       result.score.tier === "valid" ||
       result.score.tier === "experimental",
   );
-  const strong = structurallyValid
+  // Publication is intentionally selective. Experimental candidates remain in
+  // the complete decision record for research, but never fill a public batch.
+  const tradeReady = structurallyValid.filter(
+    (result) =>
+      result.score.tier === "strong" || result.score.tier === "valid",
+  );
+  const strong = tradeReady
     .filter((result) => result.score.tier === "strong")
     .slice(0, 3);
   const strongSet = new Set(strong.map((result) => result.ticker));
-  const valid = structurallyValid
+  const valid = tradeReady
     .filter((result) => result.score.tier === "valid" && !strongSet.has(result.ticker))
-    .slice(0, 6);
-  const selected = [...strong, ...valid];
-  const selectedSet = new Set(selected.map((result) => result.ticker));
-
-  for (const result of structurallyValid) {
-    if (selected.length >= targetMin) break;
-    if (selectedSet.has(result.ticker)) continue;
-
-    selected.push(result);
-    selectedSet.add(result.ticker);
-  }
-
-  const capped = selected.slice(0, targetMax);
+    .slice(0, Math.max(0, targetMax - strong.length));
+  const capped = [...strong, ...valid].slice(0, targetMax);
 
   return {
     selected_tickers: capped.map((result) => result.ticker),
-    overflow_count: Math.max(0, structurallyValid.length - targetMax),
+    overflow_count: Math.max(0, tradeReady.length - targetMax),
     target_status:
       capped.length === 0
         ? "empty"
-        : capped.length < targetMin
-          ? "below_target"
-          : capped.length > targetMax
-            ? "above_target"
-            : "within_target",
+        : "within_target",
   };
 }
 
@@ -618,26 +612,12 @@ function buildRankReason(
     .join("; ");
 }
 
-function buildSummaryWarnings(
-  results: ScannerCandidateRankingResult[],
-  selection: ScannerCandidateSelectionResult,
-  targetMin: number,
-) {
+function buildSummaryWarnings(results: ScannerCandidateRankingResult[]) {
   const warnings: ScannerCandidateRankingWarning[] = [];
 
   if (results.length === 0) {
     warnings.push(
       warning("no_candidates_ranked", "blocked", "No scanner candidates were ranked."),
-    );
-  }
-
-  if (selection.selected_tickers.length > 0 && selection.selected_tickers.length < targetMin) {
-    warnings.push(
-      warning(
-        "below_selection_target",
-        "info",
-        "Fewer than six structurally valid candidates were available.",
-      ),
     );
   }
 

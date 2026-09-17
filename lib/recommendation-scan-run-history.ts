@@ -413,17 +413,20 @@ function sampleQualityNote(scanRuns: RecommendationScanRun[]) {
     return "Sample is thin. Use as early diagnostics only.";
   }
 
-  const targetRate = rate(scanRuns.filter(targetHit).length, scanRuns.length) ?? 0;
+  const reviewRate = rate(
+    scanRuns.filter(requiresRecoveryReview).length,
+    scanRuns.length,
+  ) ?? 0;
 
-  if (targetRate >= 70) {
-    return "Window is usually meeting the 6-10 recommendation target.";
+  if (reviewRate === 0) {
+    return "Stored runs are clean completed scans or explicit no-trade results.";
   }
 
-  if (targetRate < 40) {
-    return "Window is often outside the 6-10 recommendation target.";
+  if (reviewRate >= 40) {
+    return "Many stored runs need provider, freshness, or completeness review.";
   }
 
-  return "Window has mixed target coverage.";
+  return "Some stored runs need review; output quantity is not a quality target.";
 }
 
 function windowBreakdown(
@@ -552,14 +555,6 @@ function buildWarnings(
       warning_id: "thin_scan_run_history",
       severity: "info",
       message: "Scan-run history is still thin. Treat trends as early diagnostics only.",
-    });
-  }
-
-  if (summary.targetHitRate !== null && summary.targetHitRate < 50) {
-    warnings.push({
-      warning_id: "window_target_often_missed",
-      severity: "warning",
-      message: "Fewer than half of stored scan runs are meeting the 6-10 recommendation target.",
     });
   }
 

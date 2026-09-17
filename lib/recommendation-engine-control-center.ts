@@ -158,14 +158,18 @@ function targetStatus(
   target: DayTradeWindowRecommendationTargetSummary,
 ): RecommendationEngineControlCenterStatus {
   if (target.status === "within_target") {
-    return "healthy";
-  }
-
-  if (target.status === "above_target") {
     return "learning";
   }
 
-  if (target.status === "below_target" || target.status === "no_recommendations") {
+  if (target.status === "above_target") {
+    return "degraded";
+  }
+
+  if (target.status === "no_recommendations") {
+    return "learning";
+  }
+
+  if (target.status === "below_target") {
     return "thin_data";
   }
 
@@ -179,7 +183,6 @@ function scanTrendStatus(
     return "thin_data";
   }
 
-  const targetRate = history.target_hit_rate ?? 0;
   const degradedRate =
     history.status_breakdown
       .filter(
@@ -195,15 +198,7 @@ function scanTrendStatus(
     return "degraded";
   }
 
-  if (targetRate >= 70) {
-    return "healthy";
-  }
-
-  if (targetRate >= 45) {
-    return "learning";
-  }
-
-  return "thin_data";
+  return "learning";
 }
 
 function outcomeCoverageStatus(
@@ -666,37 +661,39 @@ export function buildRecommendationEngineControlCenterSummary(
     }),
     section({
       section_id: "window_target_health",
-      title: "Window target",
+      title: "Selective publication",
       status: windowHealthStatus,
       summary: marketWaitState
-        ? "Window targets are not applicable while the market is closed."
-        : `${currentWindow.total} / ${input.day_trade_window_target.ideal_min}-${input.day_trade_window_target.ideal_max} recommendations in the current window.`,
+        ? "Publication is not applicable while the market is closed."
+        : currentWindow.total === 0
+          ? "No trade-ready candidates in the current window; no_trade is valid."
+          : `${currentWindow.total} of at most ${input.day_trade_window_target.ideal_max} trade-ready candidates in the current window.`,
       signals: [
         signal({
           signal_id: "current_window_output",
-          label: "Current window output",
+          label: "Current publication set",
           value: currentWindow.total,
-          formatted_value: `${currentWindow.total} / ${input.day_trade_window_target.ideal_min}-${input.day_trade_window_target.ideal_max}`,
+          formatted_value:
+            currentWindow.total === 0
+              ? "No trade"
+              : `${currentWindow.total} / max ${input.day_trade_window_target.ideal_max}`,
           status: windowHealthStatus,
           message: marketWaitState
             ? "No active candidates are expected while the market is closed."
-            : `${currentWindow.strong} strong, ${currentWindow.valid} valid, ${currentWindow.experimental} experimental.`,
+            : currentWindow.total === 0
+              ? "No candidate was promoted merely to satisfy a count."
+              : `${currentWindow.strong} strong, ${currentWindow.valid} valid, ${currentWindow.experimental} experimental.`,
         }),
         signal({
-          signal_id: "window_gap",
-          label: "Gap or overflow",
-          value:
-            currentWindow.gap_to_ideal_min > 0
-              ? currentWindow.gap_to_ideal_min
-              : currentWindow.overflow_above_ideal_max,
-          formatted_value:
-            currentWindow.gap_to_ideal_min > 0
-              ? `${currentWindow.gap_to_ideal_min} below target`
-              : currentWindow.overflow_above_ideal_max > 0
-                ? `${currentWindow.overflow_above_ideal_max} above target`
-                : "Within target",
+          signal_id: "selective_publication_policy",
+          label: "Publication policy",
+          value: "no_fill_quota",
+          formatted_value: "0–3 cap",
           status: windowHealthStatus,
-          message: words(input.day_trade_window_target.status),
+          message:
+            currentWindow.overflow_above_ideal_max > 0
+              ? `${currentWindow.overflow_above_ideal_max} candidate(s) exceed the cap and require review.`
+              : "Only Strong or Valid candidates may enter the public batch.",
         }),
       ],
     }),
@@ -704,15 +701,16 @@ export function buildRecommendationEngineControlCenterSummary(
       section_id: "scan_run_trend",
       title: "Scan run trend",
       status: trendStatus,
-      summary: `${input.scan_run_history.total_scan_runs} stored scan runs with ${percent(input.scan_run_history.target_hit_rate)} target coverage.`,
+      summary: `${input.scan_run_history.total_scan_runs} stored scan runs; ${percent(input.scan_run_history.review_required_run_rate)} need recovery review.`,
       signals: [
         signal({
-          signal_id: "scan_run_target_hit_rate",
-          label: "Target hit rate",
-          value: input.scan_run_history.target_hit_rate,
-          formatted_value: percent(input.scan_run_history.target_hit_rate),
+          signal_id: "scan_run_recovery_review_rate",
+          label: "Runs needing review",
+          value: input.scan_run_history.review_required_run_rate,
+          formatted_value: `${input.scan_run_history.review_required_run_count} / ${input.scan_run_history.total_scan_runs}`,
           status: trendStatus,
-          message: "Share of stored scan runs meeting or exceeding the 6-10 output target.",
+          message:
+            "A clean completed scan or explicit no_trade is valid; output count is not a quality target.",
         }),
         signal({
           signal_id: "latest_scan_run_status",
