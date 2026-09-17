@@ -52,6 +52,15 @@ type OneShotControlStatus =
   | "evaluation_date_invalid"
   | "outside_target_date";
 
+const oneShotReasonCodeByStatus: Record<OneShotControlStatus, string> = {
+  disabled: "basic_free_catalog_one_shot_disabled",
+  ready: "basic_free_catalog_one_shot_ready",
+  target_date_missing: "basic_free_catalog_one_shot_target_date_missing",
+  target_date_invalid: "basic_free_catalog_one_shot_target_date_invalid",
+  evaluation_date_invalid: "basic_free_catalog_one_shot_evaluation_date_invalid",
+  outside_target_date: "basic_free_catalog_one_shot_outside_target_date",
+};
+
 export type BasicFreeCatalogOneShotReadback = {
   receipt_status: "not_recorded" | "available" | "invalid";
   control_version: typeof oneShotControlVersion | null;
@@ -226,7 +235,8 @@ function basicFreeCatalogOneShotReadbackFromUnknown(
     targetTradingDate === undefined ||
     evaluatedTradingDate === undefined ||
     reasonCodes === null ||
-    reasonCodes.length === 0
+    reasonCodes.length !== 1 ||
+    reasonCodes[0] !== oneShotReasonCodeByStatus[status]
   ) {
     return oneShotControlInvalid();
   }
