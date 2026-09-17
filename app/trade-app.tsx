@@ -275,6 +275,10 @@ import {
   type RecommendationLearningBaselineReadiness,
 } from "@/lib/recommendation-learning-baseline-readiness";
 import {
+  buildRecommendationLearningBaselineSegmentation,
+  type RecommendationLearningBaselineSegmentation,
+} from "@/lib/recommendation-learning-baseline-segments";
+import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
   type MarketWideDiscoveryReadback,
@@ -14349,6 +14353,12 @@ export function TradeApp({
       snapshots: recommendationBaselineSnapshots,
       outcomes: recommendationBaselineOutcomes,
     });
+  const recommendationLearningBaselineSegmentation =
+    buildRecommendationLearningBaselineSegmentation({
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
       snapshots: recommendationPerformanceSnapshots,
@@ -16940,6 +16950,7 @@ export function TradeApp({
 
             <RecommendationLearningBaselineReadinessPanel
               readiness={recommendationLearningBaselineReadiness}
+              segmentation={recommendationLearningBaselineSegmentation}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -38022,13 +38033,18 @@ function CandidateDecisionHistoryPanel({
 
 function RecommendationLearningBaselineReadinessPanel({
   readiness,
+  segmentation,
 }: {
   readiness: RecommendationLearningBaselineReadiness;
+  segmentation: RecommendationLearningBaselineSegmentation;
 }) {
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
   const counterfactual = readiness.counterfactual_coverage;
+  const eligibleSegmentCount = segmentation.segments.filter(
+    (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
+  ).length;
 
   return (
     <section className="rounded-lg border border-white/10 bg-black/20 p-4">
@@ -38122,6 +38138,33 @@ function RecommendationLearningBaselineReadinessPanel({
             calibration is blocked; this panel cannot freeze or promote a policy.
           </p>
         </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Comparable policy segments
+        </h4>
+        <p className="mt-3 text-sm leading-6 text-zinc-300">
+          {segmentation.segments.length} comparable segment
+          {segmentation.segments.length === 1 ? "" : "s"}; {eligibleSegmentCount} eligible for an explicit freeze.
+          {" "}Mixed or incomplete records are excluded instead of being blended
+          into a baseline.
+        </p>
+        <p className="mt-1 text-xs leading-5 text-zinc-500">
+          Comparable {segmentation.source_scan_runs.comparable_count}/
+          {segmentation.source_scan_runs.considered_count}; invalid records {segmentation.source_scan_runs.invalid_decision_record_count};
+          incomplete attribution {segmentation.source_scan_runs.incomplete_policy_attribution_count};
+          duplicate identities {segmentation.source_scan_runs.duplicate_scan_run_fingerprint_count}.
+        </p>
+        {segmentation.segments.length > 0 ? (
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-zinc-400">
+            {segmentation.segments.slice(0, 3).map((segment) => (
+              <li key={segment.segment_key}>
+                {segment.policy_attribution.recommendation_publish_policy_version}: {segment.decision_records.count} decisions, {segment.readiness.visible_outcomes.primary_outcome_count}/{segment.readiness.visible_outcomes.minimum_required_before_freeze} visible primary outcomes, {segment.readiness.status.replaceAll("_", " ")}.
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">

@@ -6,6 +6,7 @@ import {
 } from "@/lib/candidate-decision-record";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
+import { buildRecommendationLearningBaselineSegmentation } from "@/lib/recommendation-learning-baseline-segments";
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
@@ -61,9 +62,15 @@ function candidate(ticker = "TST"): ScannerCandidate & { local_score: number } {
   };
 }
 
-function completeAttribution() {
+function completeAttribution({
+  recommendationPublishPolicyVersion = "selective_policy_test_v1",
+  buildIdentity = "test-build-v1",
+}: {
+  recommendationPublishPolicyVersion?: string;
+  buildIdentity?: string;
+} = {}) {
   return buildCandidateDecisionLearningAttribution({
-    recommendationPublishPolicyVersion: "selective_policy_test_v1",
+    recommendationPublishPolicyVersion,
     canonicalEvaluationVersions: {
       engine_version: "ture_engine_test_v1",
       scoring_version: "score_test_v1",
@@ -73,13 +80,23 @@ function completeAttribution() {
       evaluator_version: "canonical_outcome_evaluator_v1",
       provider_contract_version: "provider_test_v1",
       git_commit: "a".repeat(40),
-      build_identity: "test-build-v1",
+      build_identity: buildIdentity,
     },
   });
 }
 
-function persistedPublishedScan() {
-  const scannerCandidate = candidate();
+function persistedPublishedScan({
+  ticker = "TST",
+  learningAttribution = completeAttribution(),
+  observedAt = DECIDED_AT,
+  scheduledScanRunId = null,
+}: {
+  ticker?: string;
+  learningAttribution?: ReturnType<typeof completeAttribution>;
+  observedAt?: string;
+  scheduledScanRunId?: string | null;
+} = {}) {
+  const scannerCandidate = candidate(ticker);
   const ranking = buildScannerCandidateRankingSummary({
     candidates: [scannerCandidate],
     targetMin: 1,
@@ -88,10 +105,11 @@ function persistedPublishedScan() {
   });
   const scanRun = buildRecommendationScanRun({
     trading_date: "2026-09-17",
-    observed_at: DECIDED_AT,
-    completed_at: DECIDED_AT,
+    observed_at: observedAt,
+    completed_at: observedAt,
     window: "morning",
     source: "supabase",
+    scheduled_scan_run_id: scheduledScanRunId,
     scanned_ticker_count: 1,
     raw_candidate_count: 1,
   });
@@ -100,9 +118,9 @@ function persistedPublishedScan() {
     universe: [scannerCandidate],
     observedCandidates: [scannerCandidate],
     ranking,
-    eligibleCandidateTickers: ["TST"],
+    eligibleCandidateTickers: [ticker],
     publishableThreshold: 70,
-    publishedTickers: ["TST"],
+    publishedTickers: [ticker],
     recommendationBuildPath: "published",
   });
   const record = buildCandidateDecisionRecord({
@@ -110,7 +128,7 @@ function persistedPublishedScan() {
     capture,
     scoringVersion: "score_test_v1",
     buildVersion: "test-build-v1",
-    learningAttribution: completeAttribution(),
+    learningAttribution,
   });
 
   expect(record).not.toBeNull();
@@ -232,12 +250,15 @@ function persistedRejectedScan() {
   };
 }
 
-function snapshotFor(scanRunFingerprint: string) {
+function snapshotFor(
+  scanRunFingerprint: string,
+  { ticker = "TST" }: { ticker?: string } = {},
+) {
   return buildRecommendationSnapshot({
-    recommendation_id: "rec_tst",
+    recommendation_id: `rec_${ticker.toLowerCase()}`,
     scan_run_id: scanRunFingerprint,
-    ticker: "TST",
-    company_name: "Test Incorporated",
+    ticker,
+    company_name: `${ticker} Incorporated`,
     recommended_at: DECIDED_AT,
     app_timestamp: DECIDED_AT,
     window: "morning",
@@ -366,6 +387,31 @@ function completeOutcome(
   };
 
   return result;
+}
+
+function publishedEvidenceForSegment({
+  index,
+  learningAttribution,
+}: {
+  index: number;
+  learningAttribution: ReturnType<typeof completeAttribution>;
+}) {
+  const ticker = `SEG${String(index).padStart(2, "0")}`;
+  const observedAt = new Date(DECIDED_AT);
+  observedAt.setUTCMinutes(observedAt.getUTCMinutes() + index);
+  const { run } = persistedPublishedScan({
+    ticker,
+    learningAttribution,
+    observedAt: observedAt.toISOString(),
+    scheduledScanRunId: `segment-${index}`,
+  });
+  const snapshot = snapshotFor(run.run_fingerprint, { ticker });
+
+  return {
+    run,
+    snapshot,
+    outcome: completeOutcome(snapshot),
+  };
 }
 
 test.describe("recommendation learning baseline readiness", () => {
@@ -790,5 +836,134 @@ test.describe("recommendation learning baseline readiness", () => {
     expect(readiness.blockers).toContain(
       "research_candidate_counterfactual_outcomes_incomplete",
     );
+  });
+
+  test("keeps policy-version populations separate so a comparable segment can become freeze-eligible", () => {
+    const baselineAttribution = completeAttribution();
+    const comparableEvidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({
+        index,
+        learningAttribution: baselineAttribution,
+      }),
+    );
+    const newerEvidence = publishedEvidenceForSegment({
+      index: 99,
+      learningAttribution: completeAttribution({
+        buildIdentity: "test-build-v2",
+      }),
+    });
+    const scanRuns = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.run,
+    );
+    const snapshots = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.snapshot,
+    );
+    const outcomes = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.outcome,
+    );
+
+    const mixedReadiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns,
+      snapshots,
+      outcomes,
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns,
+      snapshots,
+      outcomes,
+    });
+
+    expect(mixedReadiness.policy_attribution.status).toBe("mixed");
+    expect(mixedReadiness.status).toBe("not_ready");
+    expect(segmentation).toMatchObject({
+      status: "eligible_segments_require_explicit_freeze",
+      source_scan_runs: {
+        considered_count: 21,
+        comparable_count: 21,
+        invalid_decision_record_count: 0,
+        incomplete_policy_attribution_count: 0,
+        duplicate_scan_run_fingerprint_count: 0,
+      },
+    });
+    expect(segmentation.segments).toHaveLength(2);
+    expect(segmentation.segments[0]).toMatchObject({
+      decision_records: { count: 20 },
+      policy_attribution: {
+        recommendation_publish_policy_version: "selective_policy_test_v1",
+        canonical_evaluation_versions: { build_identity: "test-build-v1" },
+      },
+      readiness: {
+        status: "eligible_for_explicit_freeze",
+        visible_outcomes: { primary_outcome_count: 20 },
+      },
+    });
+    expect(segmentation.segments[1]).toMatchObject({
+      decision_records: { count: 1 },
+      policy_attribution: {
+        canonical_evaluation_versions: { build_identity: "test-build-v2" },
+      },
+      readiness: { status: "not_ready" },
+    });
+  });
+
+  test("excludes duplicate scan identities from every comparable baseline segment", () => {
+    const evidence = publishedEvidenceForSegment({
+      index: 1,
+      learningAttribution: completeAttribution(),
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [evidence.run, structuredClone(evidence.run)],
+      snapshots: [evidence.snapshot],
+      outcomes: [evidence.outcome],
+    });
+
+    expect(segmentation).toEqual({
+      contract_version: "recommendation_learning_baseline_segmentation_v1",
+      status: "no_comparable_segments",
+      source_scan_runs: {
+        considered_count: 2,
+        comparable_count: 0,
+        invalid_decision_record_count: 0,
+        incomplete_policy_attribution_count: 0,
+        duplicate_scan_run_fingerprint_count: 2,
+      },
+      segments: [],
+    });
+  });
+
+  test("excludes incomplete policy attribution instead of pooling it with a complete segment", () => {
+    const completeEvidence = publishedEvidenceForSegment({
+      index: 1,
+      learningAttribution: completeAttribution(),
+    });
+    const incompleteEvidence = publishedEvidenceForSegment({
+      index: 2,
+      learningAttribution: buildCandidateDecisionLearningAttribution({
+        recommendationPublishPolicyVersion: null,
+        canonicalEvaluationVersions: null,
+      }),
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [completeEvidence.run, incompleteEvidence.run],
+      snapshots: [completeEvidence.snapshot, incompleteEvidence.snapshot],
+      outcomes: [completeEvidence.outcome, incompleteEvidence.outcome],
+    });
+
+    expect(segmentation).toMatchObject({
+      status: "segments_not_ready",
+      source_scan_runs: {
+        considered_count: 2,
+        comparable_count: 1,
+        invalid_decision_record_count: 0,
+        incomplete_policy_attribution_count: 1,
+        duplicate_scan_run_fingerprint_count: 0,
+      },
+      segments: [
+        {
+          decision_records: { count: 1 },
+          readiness: { status: "not_ready" },
+        },
+      ],
+    });
   });
 });

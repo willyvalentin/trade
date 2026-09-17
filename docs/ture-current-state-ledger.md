@@ -625,23 +625,40 @@ aggregate and merge-candidate-provenance POC; Netlify production deploy
 the honesty of future learning evidence, not the engine's demonstrated
 recommendation quality.
 
-**Local IF-4 rejected-candidate outcome lineage:** a `filtered_before_ranking`
-candidate can now enter the non-live research path only through a versioned v2
-link to one immutable decision-record candidate and only when the matching
-scanner input is exact, fresh, provider-attributable, timestamp-equal to the
-decision record, no later than the decision, and already has valid long
-entry/stop/target geometry. The
-implementation never constructs a plan, infers a side, admits stale or
-provider-gap data, or reuses a legacy v1 linkage. It shares the existing total
-research sample cap, so it adds no new provider budget class or direct provider
-request. The baseline now counts a rejected candidate only after its exact
-linked snapshot has the same decision-bound anchor and a complete v2 coverage
-receipt; all other rejected candidates stay uncollected. Locally, `git diff
---check`, strict TypeScript, scoped ESLint, Webpack production build, 22 focused
-selection/linkage/baseline regressions and the 166-test intelligence-foundation
-suite passed. PR CI, merge, deploy and authenticated production readback remain
-outstanding. This creates a narrower future evidence path; it is not evidence
-that rejections, rankings or recommendation quality are correct.
+**Merged and production-deployed IF-4 rejected-candidate outcome lineage:** PR
+[#532](https://github.com/willyvalentin/trade/pull/532) merged as
+`42b54f400fd92fca510790141582a2bf1d081ada`. A `filtered_before_ranking`
+candidate can enter the non-live research path only through a versioned v2 link
+to one immutable decision-record candidate and only when the matching scanner
+input is exact, fresh, provider-attributable, timestamp-equal to the decision
+record, no later than the decision, and already has valid long entry/stop/target
+geometry. The implementation never constructs a plan, infers a side, admits
+stale or provider-gap data, or reuses a legacy v1 linkage. It shares the
+existing total research sample cap, so it adds no new provider budget class or
+direct provider request. The baseline counts a rejected candidate only after
+its exact linked snapshot has the same decision-bound anchor and a complete v2
+coverage receipt; all other rejected candidates stay uncollected. Required CI
+run `35281280923` passed the six provider-free shards, aggregate and
+merge-candidate-provenance POC; Netlify production deploy
+`6aac6e0e441f830008921155` is ready on that exact main revision. Authenticated
+production readback remains unverified. This creates a narrower future evidence
+path; it is not evidence that rejections, rankings or recommendation quality
+are correct.
+
+**Local IF-4 segmented baseline-readiness readback:** Engine Insights now
+partitions only complete, uniquely identified decision records into independent
+policy-plus-canonical-version segments. Mixed or incomplete attribution is
+excluded rather than pooled; duplicated scan fingerprints are excluded from
+every segment. A segment can therefore be shown as eligible for an explicit
+baseline-freeze decision while the global mixed population remains not ready.
+This is a read-only audit: it selects no policy, persists no freeze, changes no
+ranking/confidence/publication rule, calls no provider and cannot execute a
+trade. Locally on `codex/if4-baseline-freeze`, `git diff --check`, strict
+TypeScript, scoped ESLint, 18 focused baseline-readiness regressions, the full
+166-test intelligence-foundation suite (including local PostgreSQL contracts),
+and the Webpack production build passed. PR CI, merge, deploy and authenticated
+production UI readback remain outstanding. This makes future baseline evidence
+more honest; it is not a measured recommendation-quality improvement.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
