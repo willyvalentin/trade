@@ -14320,11 +14320,34 @@ export function TradeApp({
         outcome.snapshot_fingerprint,
       ),
   );
+  const recommendationBaselineSnapshots = Array.from(
+    new Map(
+      [
+        ...intelligenceEnrichmentRecommendationSnapshots,
+        ...recommendationPerformanceSnapshots,
+        ...visibleRecommendationSnapshots,
+      ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+    ).values(),
+  ).filter(isIntelligenceEnrichmentSnapshot);
+  const recommendationBaselineSnapshotFingerprints = new Set(
+    recommendationBaselineSnapshots.map(
+      (snapshot) => snapshot.snapshot_fingerprint,
+    ),
+  );
+  const recommendationBaselineOutcomes = dedupeRecommendationOutcomesForReadback(
+    [...storedRecommendationOutcomes, ...visibleRecommendationOutcomes],
+  ).outcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint !== null &&
+      recommendationBaselineSnapshotFingerprints.has(
+        outcome.snapshot_fingerprint,
+      ),
+  );
   const recommendationLearningBaselineReadiness =
     buildRecommendationLearningBaselineReadiness({
       scanRuns: liveStoredRecommendationScanRuns,
-      snapshots: recommendationPerformanceSnapshots,
-      outcomes: recommendationPerformanceOutcomes,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
     });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
@@ -38005,6 +38028,7 @@ function RecommendationLearningBaselineReadinessPanel({
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
+  const counterfactual = readiness.counterfactual_coverage;
 
   return (
     <section className="rounded-lg border border-white/10 bg-black/20 p-4">
@@ -38087,12 +38111,15 @@ function RecommendationLearningBaselineReadinessPanel({
             Learning limits
           </h4>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
-            Research, rejected and no-trade counterfactual outcomes are not yet
-            collected. Confidence is ordinal, not a calibrated probability.
+            Counterfactual coverage: research {counterfactual.research_candidate_outcomes_collected}/
+            {counterfactual.research_candidate_outcomes_required}; rejected {counterfactual.rejected_candidate_outcomes_collected}/
+            {counterfactual.rejected_candidate_outcomes_required}; explicit no trade {counterfactual.no_trade_outcomes_collected}/
+            {counterfactual.no_trade_outcomes_required}. Status: {counterfactual.status}.
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
-            Calibration remains blocked. A later freeze is explicit; this panel
-            cannot freeze or promote a policy by itself.
+            Research counts require an exact candidate decision link and a
+            decision-bound complete outcome. Confidence remains ordinal, so
+            calibration is blocked; this panel cannot freeze or promote a policy.
           </p>
         </div>
       </div>

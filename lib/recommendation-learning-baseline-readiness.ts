@@ -11,6 +11,7 @@ import {
   hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
 } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
@@ -62,10 +63,13 @@ export type RecommendationLearningBaselineReadiness = {
     status: "complete" | "incomplete" | "mixed" | "unavailable";
   };
   counterfactual_coverage: {
+    research_candidate_outcomes_required: number;
     research_candidate_outcomes_collected: number;
+    rejected_candidate_outcomes_required: number;
     rejected_candidate_outcomes_collected: number;
+    no_trade_outcomes_required: number;
     no_trade_outcomes_collected: number;
-    status: "not_collected";
+    status: "not_required" | "not_collected" | "partial" | "complete";
   };
   confidence_calibration: {
     status: "blocked_ordinal_confidence";
@@ -77,6 +81,87 @@ export type RecommendationLearningBaselineReadiness = {
 
 function normalizeTicker(value: string | null | undefined) {
   return value?.trim().toUpperCase() ?? "";
+}
+
+function textOrNull(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
+  const payload = snapshot.payload_json;
+
+  return (
+    snapshot.is_visible === false &&
+    snapshot.recommendation_id === null &&
+    (snapshot.source_mode === "research_only" ||
+      snapshot.data_mode === "research_only" ||
+      payload.visibility_status === "research_only" ||
+      payload.learning_acceleration_sample === true ||
+      payload.research_only === true ||
+      payload.learning_scope === "research_only")
+  );
+}
+
+function researchSnapshotForCandidate({
+  candidateId,
+  candidateDisposition,
+  scanRunFingerprint,
+  ticker,
+  snapshots,
+}: {
+  candidateId: string;
+  candidateDisposition: "selected_not_published" | "ranked_not_selected";
+  scanRunFingerprint: string;
+  ticker: string;
+  snapshots: RecommendationSnapshot[];
+}) {
+  const matches = snapshots.filter((snapshot) => {
+    const payload = snapshot.payload_json;
+
+    return (
+      isResearchOnlySnapshot(snapshot) &&
+      snapshot.scan_run_id === scanRunFingerprint &&
+      normalizeTicker(snapshot.ticker) === normalizeTicker(ticker) &&
+      textOrNull(payload.candidate_id) === candidateId &&
+      textOrNull(payload.candidate_decision_id) === candidateId &&
+      payload.candidate_decision_disposition === candidateDisposition &&
+      payload.candidate_decision_linkage_version ===
+        RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION &&
+      payload.candidate_decision_linkage_status === "verified"
+    );
+  });
+
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function exactLinkedOutcomes({
+  snapshot,
+  outcomes,
+}: {
+  snapshot: RecommendationSnapshot;
+  outcomes: RecommendationOutcome[];
+}) {
+  const sameFingerprint = outcomes.filter(
+    (outcome) => outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint,
+  );
+  const hasRelationConflict = sameFingerprint.some(
+    (outcome) =>
+      (outcome.snapshot_id !== null && outcome.snapshot_id !== snapshot.id) ||
+      (outcome.recommendation_id !== null &&
+        snapshot.recommendation_id !== null &&
+        outcome.recommendation_id !== snapshot.recommendation_id),
+  );
+  const linked = sameFingerprint.filter(
+    (outcome) =>
+      (outcome.snapshot_id === null || outcome.snapshot_id === snapshot.id) &&
+      (outcome.recommendation_id === null ||
+        snapshot.recommendation_id === null ||
+        outcome.recommendation_id === snapshot.recommendation_id),
+  );
+
+  return { hasRelationConflict, linked };
 }
 
 function isAfterOrEqual(left: string | null | undefined, right: string) {
@@ -133,6 +218,7 @@ export function buildRecommendationLearningBaselineReadiness({
   let rejectedCandidateCount = 0;
   let notEvaluatedCandidateCount = 0;
   let explicitNoTradeCount = 0;
+  let researchCandidateOutcomesCollected = 0;
   let completeAttributionCount = 0;
   let incompleteAttributionCount = 0;
   let exactSnapshotLinkCount = 0;
@@ -297,6 +383,72 @@ export function buildRecommendationLearningBaselineReadiness({
         );
       }
     }
+
+    for (const candidate of record.candidates) {
+      if (
+        candidate.disposition !== "selected_not_published" &&
+        candidate.disposition !== "ranked_not_selected"
+      ) {
+        continue;
+      }
+
+      const snapshot = researchSnapshotForCandidate({
+        candidateId: candidate.candidate_id,
+        candidateDisposition: candidate.disposition,
+        scanRunFingerprint: record.scan_run_fingerprint,
+        ticker: candidate.ticker,
+        snapshots,
+      });
+      if (!snapshot) continue;
+
+      const { hasRelationConflict, linked } = exactLinkedOutcomes({
+        snapshot,
+        outcomes,
+      });
+      if (
+        hasRelationConflict ||
+        linked.some(
+          (outcome) => !isAfterOrEqual(outcome.evaluated_at, record.decision_timestamp),
+        )
+      ) {
+        continue;
+      }
+
+      const projection = projectRecommendationOutcomeBundle({
+        snapshot,
+        outcomes: linked,
+        metadata: {
+          producer_decision_id: candidate.candidate_id,
+          decision_timestamp: record.decision_timestamp,
+          sample_type: "research_only",
+          numeric_confidence: null,
+          confidence_label: null,
+          versions: attribution.canonical_evaluation_versions,
+          candidate_id: candidate.candidate_id,
+          scan_run_id: record.scan_run_id,
+          scan_run_fingerprint: record.scan_run_fingerprint,
+        },
+      });
+      const primary = projection.projection.primary_outcome;
+      const selectedOutcome = primary
+        ? linked.find(
+            (outcome) => outcome.id === primary.primary_outcome?.outcome.id,
+          ) ?? null
+        : null;
+      const evaluationAnchor = recommendationOutcomeEvaluationAnchorFromSnapshot(
+        snapshot,
+      );
+
+      if (
+        primary?.status === "selected" &&
+        hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor(
+          selectedOutcome?.payload_json.canonical_provider_coverage,
+          evaluationAnchor,
+        )
+      ) {
+        researchCandidateOutcomesCollected += 1;
+      }
+    }
   }
 
   const policyAttributionStatus =
@@ -313,9 +465,27 @@ export function buildRecommendationLearningBaselineReadiness({
   if (primaryOutcomeCount < MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE) {
     blockers.add("insufficient_visible_primary_outcomes_for_baseline_freeze");
   }
-  if (researchCandidateCount > 0 || rejectedCandidateCount > 0 || explicitNoTradeCount > 0) {
-    blockers.add("research_rejected_and_no_trade_counterfactuals_not_collected");
+  if (researchCandidateOutcomesCollected < researchCandidateCount) {
+    blockers.add("research_candidate_counterfactual_outcomes_incomplete");
   }
+  if (rejectedCandidateCount > 0) {
+    blockers.add("rejected_candidate_counterfactual_outcomes_not_collected");
+  }
+  if (explicitNoTradeCount > 0) {
+    blockers.add("explicit_no_trade_counterfactual_outcomes_not_collected");
+  }
+
+  const counterfactualOutcomesRequired =
+    researchCandidateCount + rejectedCandidateCount + explicitNoTradeCount;
+  const counterfactualOutcomesCollected = researchCandidateOutcomesCollected;
+  const counterfactualCoverageStatus =
+    counterfactualOutcomesRequired === 0
+      ? "not_required"
+      : counterfactualOutcomesCollected === 0
+        ? "not_collected"
+        : counterfactualOutcomesCollected === counterfactualOutcomesRequired
+          ? "complete"
+          : "partial";
 
   const status =
     blockers.size === 0 &&
@@ -359,10 +529,13 @@ export function buildRecommendationLearningBaselineReadiness({
       status: policyAttributionStatus,
     },
     counterfactual_coverage: {
-      research_candidate_outcomes_collected: 0,
+      research_candidate_outcomes_required: researchCandidateCount,
+      research_candidate_outcomes_collected: researchCandidateOutcomesCollected,
+      rejected_candidate_outcomes_required: rejectedCandidateCount,
       rejected_candidate_outcomes_collected: 0,
+      no_trade_outcomes_required: explicitNoTradeCount,
       no_trade_outcomes_collected: 0,
-      status: "not_collected",
+      status: counterfactualCoverageStatus,
     },
     confidence_calibration: {
       status: "blocked_ordinal_confidence",
@@ -372,6 +545,7 @@ export function buildRecommendationLearningBaselineReadiness({
     notes: [
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
+      "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly; rejected and no-trade counterfactuals remain separate evidence gaps.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],
   };
