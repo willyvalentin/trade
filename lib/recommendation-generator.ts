@@ -3051,7 +3051,10 @@ async function generateRecommendationsWithOpenAI(
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  const maxRecommendations = settings.max_recommendations_per_session;
+  const maxRecommendations = Math.min(
+    3,
+    Math.max(1, settings.max_recommendations_per_session),
+  );
   const allowedDirections = ["long"];
   const batchContext = buildOpenAiBatchContext({
     scanWindow,
@@ -3077,7 +3080,7 @@ async function generateRecommendationsWithOpenAI(
       "Generate only intraday day trade recommendations.",
       "You are not required to create a trade recommendation.",
       source === "scheduled"
-        ? "For scheduled official scans, publish structurally valid strong, valid, or experimental learning candidates when the ranked candidate data supports a coherent same-day plan."
+        ? "For scheduled official scans, publish only Strong or Valid candidates when the ranked candidate data supports a coherent same-day plan. Experimental candidates are research-only and must not become a published recommendation."
         : "Prefer result=no_trade over a weak or unclear setup.",
       powerHourTrial ? POWER_HOUR_TRIAL_COPY.join(" ") : "",
       powerHourTrial
@@ -3092,7 +3095,7 @@ async function generateRecommendationsWithOpenAI(
       "If the setup requires holding overnight, reject it.",
       "Prioritize liquid US stocks, intraday momentum, volume confirmation, a clean entry trigger, tight invalidation, a realistic same-day target, and clear risk/reward.",
       source === "scheduled"
-        ? "Do not require every recommendation to be a high-confidence trade signal; Valid and Experimental candidates are allowed as learning recommendations when clearly labeled by tier."
+        ? "Do not fill a batch. Return fewer recommendations, or no_trade, whenever fewer than three Strong or Valid candidates meet the full same-day quality bar."
         : "Prefer no recommendation over a weak recommendation.",
       "Do not force a recommendation.",
       "Candidate passed local scan, but you must still reject it if risk/reward or intraday structure is weak.",
@@ -3113,7 +3116,7 @@ async function generateRecommendationsWithOpenAI(
       "Reject the setup if the structure does not support an actionable same-day trade.",
       "Return result=no_trade if entry trigger is unclear, stop loss/invalidation is unclear, same-day target is unrealistic, risk/reward is below threshold, setup is too late, too choppy, not actionable, market regime conflicts with the trade, or the candidate requires holding overnight.",
       source === "scheduled"
-        ? "For scheduled learning batches, weak volume or momentum should lower confidence and add warnings for Valid/Experimental candidates unless it makes the same-day plan structurally invalid."
+        ? "For scheduled batches, weak volume or momentum should result in no_trade unless the remaining Strong or Valid evidence still supports a coherent same-day plan."
         : "For manual generation, prefer no_trade when volume or momentum confirmation is weak.",
       "Only return result=trade_recommendation if the setup is actionable as an intraday day trade.",
       "If scan_window is pre_market or closed, do not return fresh active trade recommendations as tradable now.",
@@ -4010,14 +4013,6 @@ export async function generateRecommendations({
         candidates: initiallyScoredCandidates,
         scanWindow,
         universeCoverage: scannerUniverseSelection.coverage,
-        targetMin:
-          growMaxRecommendationTarget !== null
-            ? growMaxRecommendationTarget
-            : undefined,
-        targetMax:
-          growMaxRecommendationTarget !== null
-            ? growMaxRecommendationTarget
-            : undefined,
       });
     activeScanTrace?.markStage("ranking", "completed");
     activeScanTrace?.updateRanking({
@@ -4091,10 +4086,10 @@ export async function generateRecommendations({
       (candidate) =>
         rankingResultByTicker.get(candidate.ticker)?.score.tier === "experimental",
     ).length;
-    const candidateLimit =
-      source === "scheduled"
-        ? Math.max(1, settings.max_recommendations_per_session)
-        : Math.max(6, settings.max_recommendations_per_session * 3);
+    const candidateLimit = Math.min(
+      3,
+      Math.max(1, settings.max_recommendations_per_session),
+    );
     let candidatesForOpenAI = qualifiedCandidates.slice(0, candidateLimit);
     const referenceRefreshMaxAttempts =
       source === "scheduled"

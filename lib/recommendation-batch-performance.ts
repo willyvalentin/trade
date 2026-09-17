@@ -367,10 +367,6 @@ function qualityStatus(input: {
   incompleteCount: number;
   pendingCount: number;
 }) {
-  if (input.batch.recommendation_count < 3 && input.batch.status !== "no_trade_valid") {
-    return "too_thin" as const;
-  }
-
   if (input.evaluatedCount === 0) {
     return input.incompleteCount + input.pendingCount > 0
       ? ("incomplete" as const)
@@ -439,26 +435,6 @@ function buildBatchItem(
   const targetRate = percent(targetBeforeStopCount, evaluatedCount);
   const stopRate = percent(stopBeforeTargetCount, evaluatedCount);
   const itemWarnings: RecommendationBatchPerformanceWarning[] = [];
-
-  if (batch.recommendation_count < 6 && batch.status !== "no_trade_valid") {
-    itemWarnings.push(
-      warning(
-        "batch_too_few_recommendations",
-        "Batch has fewer than six recommendations.",
-        batch.batch_fingerprint,
-      ),
-    );
-  }
-
-  if (batch.target_status !== "within_target" && batch.status !== "no_trade_valid") {
-    itemWarnings.push(
-      warning(
-        "batch_target_missed",
-        "Batch did not meet the desired recommendation target.",
-        batch.batch_fingerprint,
-      ),
-    );
-  }
 
   if (snapshots.length === 0 && batch.recommendation_count > 0) {
     itemWarnings.push(
