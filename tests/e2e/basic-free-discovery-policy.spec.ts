@@ -136,6 +136,63 @@ test("browser readback preserves coverage denominator and rejects a partial page
   ).toBe("unavailable");
 });
 
+test("browser readback exposes only a valid persisted one-shot containment envelope", () => {
+  const summary = admittedSummary();
+  const receipt = basicFreeDiscoveryReadbackFromScheduledAttempt({
+    utc_timestamp: now.toISOString(),
+    trading_date: "2026-09-15",
+    intraday_scan_window: "opening",
+    payload_json: {
+      basic_free_discovery: summary,
+      basic_free_catalog_one_shot: {
+        control_version: "basic_free_catalog_one_shot_control_v1",
+        status: "ready",
+        catalog_only_enforced: true,
+        catalog_observation_may_proceed: true,
+        target_trading_date: "2026-09-15",
+        evaluated_trading_date: "2026-09-15",
+        reason_codes: ["basic_free_catalog_one_shot_ready"],
+      },
+    },
+  });
+
+  expect(receipt.one_shot_control).toMatchObject({
+    receipt_status: "available",
+    status: "ready",
+    catalog_only_enforced: true,
+    catalog_observation_may_proceed: true,
+    target_trading_date: "2026-09-15",
+    evaluated_trading_date: "2026-09-15",
+  });
+  expect(
+    basicFreeDiscoveryReadbackFromScheduledAttempt({
+      utc_timestamp: now.toISOString(),
+      trading_date: "2026-09-15",
+      intraday_scan_window: "opening",
+      payload_json: {
+        basic_free_discovery: summary,
+        basic_free_catalog_one_shot: {
+          control_version: "basic_free_catalog_one_shot_control_v1",
+          status: "ready",
+          catalog_only_enforced: true,
+          catalog_observation_may_proceed: true,
+          target_trading_date: "2026-09-15",
+          evaluated_trading_date: "2026-09-16",
+          reason_codes: ["basic_free_catalog_one_shot_ready"],
+        },
+      },
+    }).one_shot_control.receipt_status,
+  ).toBe("invalid");
+  expect(
+    basicFreeDiscoveryReadbackFromScheduledAttempt({
+      utc_timestamp: now.toISOString(),
+      trading_date: "2026-09-15",
+      intraday_scan_window: "opening",
+      payload_json: { basic_free_discovery: summary },
+    }).one_shot_control.receipt_status,
+  ).toBe("not_recorded");
+});
+
 test("previous-attempt parsing accepts only attributable versioned receipt facts", () => {
   expect(
     basicFreeDiscoveryPreviousAttemptFromUnknown(admittedSummary()),

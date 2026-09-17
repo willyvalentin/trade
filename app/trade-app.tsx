@@ -37423,6 +37423,7 @@ function BasicFreeDiscoveryReceiptPanel({
   receipt: BasicFreeDiscoveryReadback;
 }) {
   const providerObserved = receipt.attempt.provider_response_observed === true;
+  const oneShotControl = receipt.one_shot_control;
   const coverage =
     receipt.catalog.provider_catalog_count === null
       ? `${receipt.catalog.observed_record_count ?? 0} observed / denominator unavailable`
@@ -37494,6 +37495,33 @@ function BasicFreeDiscoveryReceiptPanel({
               Eligible records: {receipt.catalog.eligible_record_count ?? 0};
               rejected: {receipt.catalog.rejected_record_count ?? 0}.
             </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              One-shot containment
+            </h4>
+            {oneShotControl.receipt_status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  Control: {oneShotControl.status ?? "not recorded"}. Catalog-only:
+                  {" "}{oneShotControl.catalog_only_enforced ? "enforced" : "not enforced"}.
+                  {" "}Catalog observation may proceed: {oneShotControl.catalog_observation_may_proceed ? "yes" : "no"}.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Target date: {oneShotControl.target_trading_date ?? "not recorded"};
+                  {" "}evaluated date: {oneShotControl.evaluated_trading_date ?? "not recorded"}.
+                  This envelope cannot admit candidate generation, ranking,
+                  publication, or execution.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                {oneShotControl.receipt_status === "invalid"
+                  ? "A one-shot control payload was present but did not satisfy the versioned receipt contract."
+                  : "This catalog receipt was not produced under the one-shot containment envelope."}
+              </p>
+            )}
           </div>
 
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">

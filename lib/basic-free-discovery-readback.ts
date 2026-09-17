@@ -6,6 +6,7 @@ import {
 const summaryVersion = "basic_free_catalog_observation_summary_v1";
 const policyVersion = "basic_free_catalog_observation_v1";
 const reservationVersion = "basic_free_discovery_credit_reservation_v1";
+const oneShotControlVersion = "basic_free_catalog_one_shot_control_v1";
 
 type ReceiptStatus =
   | "disabled"
@@ -42,6 +43,25 @@ type FinalizationStatus =
   | "already_failed"
   | "invalid_transition"
   | "reservation_unavailable";
+
+type OneShotControlStatus =
+  | "disabled"
+  | "ready"
+  | "target_date_missing"
+  | "target_date_invalid"
+  | "evaluation_date_invalid"
+  | "outside_target_date";
+
+export type BasicFreeCatalogOneShotReadback = {
+  receipt_status: "not_recorded" | "available" | "invalid";
+  control_version: typeof oneShotControlVersion | null;
+  status: OneShotControlStatus | null;
+  catalog_only_enforced: boolean | null;
+  catalog_observation_may_proceed: boolean | null;
+  target_trading_date: string | null;
+  evaluated_trading_date: string | null;
+  reason_codes: string[];
+};
 
 export type BasicFreeDiscoveryReadback = {
   status: "available" | "unavailable";
@@ -86,6 +106,7 @@ export type BasicFreeDiscoveryReadback = {
     discovery_feed_allowed: false | null;
   };
   catalog_collection_plan: BasicFreeCatalogCollectionPlan;
+  one_shot_control: BasicFreeCatalogOneShotReadback;
   warnings: string[];
   gaps: string[];
 };
@@ -151,6 +172,104 @@ function enumValue<T extends string>(
     : null;
 }
 
+function oneShotControlNotRecorded(): BasicFreeCatalogOneShotReadback {
+  return {
+    receipt_status: "not_recorded",
+    control_version: null,
+    status: null,
+    catalog_only_enforced: null,
+    catalog_observation_may_proceed: null,
+    target_trading_date: null,
+    evaluated_trading_date: null,
+    reason_codes: [],
+  };
+}
+
+function oneShotControlInvalid(): BasicFreeCatalogOneShotReadback {
+  return {
+    receipt_status: "invalid",
+    control_version: null,
+    status: null,
+    catalog_only_enforced: null,
+    catalog_observation_may_proceed: null,
+    target_trading_date: null,
+    evaluated_trading_date: null,
+    reason_codes: ["basic_free_catalog_one_shot_receipt_invalid"],
+  };
+}
+
+function basicFreeCatalogOneShotReadbackFromUnknown(
+  value: unknown,
+): BasicFreeCatalogOneShotReadback {
+  if (value === null || value === undefined) return oneShotControlNotRecorded();
+
+  const control = objectOrNull(value);
+  const status = enumValue(control?.status, [
+    "disabled",
+    "ready",
+    "target_date_missing",
+    "target_date_invalid",
+    "evaluation_date_invalid",
+    "outside_target_date",
+  ] as const);
+  const targetTradingDate = dateStringOrNull(control?.target_trading_date);
+  const evaluatedTradingDate = dateStringOrNull(control?.evaluated_trading_date);
+  const reasonCodes = stringArray(control?.reason_codes);
+  const catalogOnlyEnforced = control?.catalog_only_enforced;
+  const catalogObservationMayProceed = control?.catalog_observation_may_proceed;
+
+  if (
+    control?.control_version !== oneShotControlVersion ||
+    status === null ||
+    typeof catalogOnlyEnforced !== "boolean" ||
+    typeof catalogObservationMayProceed !== "boolean" ||
+    targetTradingDate === undefined ||
+    evaluatedTradingDate === undefined ||
+    reasonCodes === null ||
+    reasonCodes.length === 0
+  ) {
+    return oneShotControlInvalid();
+  }
+
+  const validControl =
+    (status === "disabled" &&
+      !catalogOnlyEnforced &&
+      !catalogObservationMayProceed) ||
+    (status === "ready" &&
+      catalogOnlyEnforced &&
+      catalogObservationMayProceed &&
+      targetTradingDate !== null &&
+      targetTradingDate === evaluatedTradingDate) ||
+    ((status === "target_date_missing" || status === "target_date_invalid") &&
+      catalogOnlyEnforced &&
+      !catalogObservationMayProceed &&
+      targetTradingDate === null) ||
+    (status === "evaluation_date_invalid" &&
+      catalogOnlyEnforced &&
+      !catalogObservationMayProceed &&
+      targetTradingDate !== null &&
+      evaluatedTradingDate === null) ||
+    (status === "outside_target_date" &&
+      catalogOnlyEnforced &&
+      !catalogObservationMayProceed &&
+      targetTradingDate !== null &&
+      evaluatedTradingDate !== null &&
+      targetTradingDate !== evaluatedTradingDate);
+
+  if (!validControl) return oneShotControlInvalid();
+
+  return {
+    receipt_status: "available",
+    control_version: oneShotControlVersion,
+    status,
+    catalog_only_enforced: catalogOnlyEnforced,
+    catalog_observation_may_proceed: catalogObservationMayProceed,
+    target_trading_date: targetTradingDate,
+    evaluated_trading_date: evaluatedTradingDate,
+    reason_codes: reasonCodes,
+  };
+}
+
 function unavailableReadback(
   sourceScan: BasicFreeDiscoveryReadback["source_scan"],
 ): BasicFreeDiscoveryReadback {
@@ -206,6 +325,7 @@ function unavailableReadback(
       reservationFinalizationStatus: null,
       reservationFinalizationProven: null,
     }),
+    one_shot_control: oneShotControlNotRecorded(),
     warnings: [],
     gaps: [],
   };
@@ -429,6 +549,7 @@ export function basicFreeDiscoveryReadbackFromUnknown(
       reservationFinalizationStatus: finalizationStatus,
       reservationFinalizationProven: reservation.finalization_proven,
     }),
+    one_shot_control: oneShotControlNotRecorded(),
     warnings,
     gaps,
   };
@@ -448,9 +569,15 @@ export function basicFreeDiscoveryReadbackFromScheduledAttempt(
     "closed",
     "unknown",
   ] as const);
-  return basicFreeDiscoveryReadbackFromUnknown(payload?.basic_free_discovery, {
+  const readback = basicFreeDiscoveryReadbackFromUnknown(payload?.basic_free_discovery, {
     observed_at: isoTimestampOrNull(attempt.utc_timestamp),
     trading_date: dateStringOrNull(attempt.trading_date) ?? null,
     window: window ?? null,
   });
+  return {
+    ...readback,
+    one_shot_control: basicFreeCatalogOneShotReadbackFromUnknown(
+      payload?.basic_free_catalog_one_shot,
+    ),
+  };
 }
