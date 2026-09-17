@@ -37511,15 +37511,18 @@ function BasicFreeDiscoveryReceiptPanel({
             {oneShotControl.receipt_status === "available" ? (
               <>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  Control: {oneShotControl.status ?? "not recorded"}. Catalog-only:
-                  {" "}{oneShotControl.catalog_only_enforced ? "enforced" : "not enforced"}.
-                  {" "}Catalog observation may proceed: {oneShotControl.catalog_observation_may_proceed ? "yes" : "no"}.
+                  At receipt time, control: {oneShotControl.status ?? "not recorded"}.
+                  {" "}Catalog-only: {oneShotControl.catalog_only_enforced ? "enforced" : "not enforced"}.
+                  {" "}Receipt-time catalog admission: {oneShotControl.catalog_observation_may_proceed ? "yes" : "no"}.
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
                   Target date: {oneShotControl.target_trading_date ?? "not recorded"};
                   {" "}evaluated date: {oneShotControl.evaluated_trading_date ?? "not recorded"}.
-                  This envelope cannot admit candidate generation, ranking,
-                  publication, or execution.
+                  This records the decision that produced this receipt; it does
+                  not authorize a later observation. A later scheduled run must
+                  independently pass market-session, idempotency, and durable
+                  credit-reservation checks. It cannot admit candidate
+                  generation, ranking, publication, or execution.
                 </p>
               </>
             ) : (
@@ -37617,7 +37620,7 @@ function BasicFreeCatalogObservationReadinessPanel({
           </p>
         </div>
         <RecommendationDetailsPill
-          label={readiness.status === "contained_ready" ? "contained ready" : "blocked"}
+          label={readiness.status === "contained_ready" ? "configuration ready" : "blocked"}
           tone={readiness.status === "contained_ready" ? "warning" : "neutral"}
         />
       </div>
@@ -37641,13 +37644,15 @@ function BasicFreeCatalogObservationReadinessPanel({
             One-shot containment
           </h4>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
-            Control: {readiness.one_shot_control.status}. Catalog-only:
+            Configuration control: {readiness.one_shot_control.status}. Catalog-only:
             {" "}{readiness.one_shot_control.catalog_only_enforced ? "enforced" : "not enforced"}.
-            {" "}May proceed: {readiness.one_shot_control.catalog_observation_may_proceed ? "yes" : "no"}.
+            {" "}Configuration condition met: {readiness.one_shot_control.catalog_observation_may_proceed ? "yes" : "no"}.
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Target: {readiness.one_shot_control.target_trading_date ?? "not set"};
             {" "}evaluated: {readiness.one_shot_control.evaluated_trading_date ?? "invalid"}.
+            {" "}This projection does not read durable reservation state, so it
+            cannot say whether a request can run now.
           </p>
         </div>
 
