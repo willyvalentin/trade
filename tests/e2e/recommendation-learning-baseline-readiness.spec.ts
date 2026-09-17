@@ -7,6 +7,7 @@ import {
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -152,6 +153,8 @@ function completeOutcome(
   horizon = "60m",
   includeCanonicalCoverage = true,
 ) {
+  const evaluationAnchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot);
+  expect(evaluationAnchor).not.toBeNull();
   const outcome = computeRecommendationOutcome({
     snapshot,
     horizon,
@@ -185,6 +188,22 @@ function completeOutcome(
               observed_candle_count: 1,
               malformed_candle_count: 0,
               blockers: [],
+              candle_interval: "5min",
+              horizon,
+              request_start_at: evaluationAnchor!.evaluation_anchor_start_at,
+              request_end_at: "2026-09-17T15:30:00.000Z",
+              required_horizon_end_at: "2026-09-17T15:30:00.000Z",
+              horizon_elapsed: true,
+              response_status: "available",
+              evaluation_anchor_contract_version:
+                "recommendation_outcome_evaluation_anchor_v1",
+              decision_timestamp: evaluationAnchor!.decision_timestamp,
+              evaluation_anchor_start_at:
+                evaluationAnchor!.evaluation_anchor_start_at,
+              decision_to_anchor_seconds:
+                evaluationAnchor!.decision_to_anchor_seconds,
+              decision_timestamp_interval_aligned:
+                evaluationAnchor!.decision_timestamp_interval_aligned,
             },
           }
         : {}),
@@ -261,6 +280,32 @@ test.describe("recommendation learning baseline readiness", () => {
     });
     expect(readiness.blockers).toContain(
       "published_candidate_primary_outcome_incomplete_or_conflicting",
+    );
+  });
+
+  test("requires a decision-bound v2 coverage receipt instead of accepting an older unanchored receipt", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = completeOutcome(snapshot);
+    const legacyCoverageOutcome = {
+      ...outcome,
+      payload_json: {
+        ...outcome.payload_json,
+        canonical_provider_coverage: {
+          ...(outcome.payload_json.canonical_provider_coverage as Record<string, unknown>),
+          contract_version: "canonical_outcome_provider_coverage_receipt_v1",
+        },
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [legacyCoverageOutcome],
+    });
+
+    expect(readiness.visible_outcomes.primary_outcome_count).toBe(0);
+    expect(readiness.blockers).toContain(
+      "published_candidate_primary_outcome_coverage_receipt_missing_or_unversioned_or_unanchored",
     );
   });
 

@@ -5,6 +5,7 @@ import {
   planReferenceMetadataDiagnostics,
 } from "@/lib/recommendation-inline-metadata";
 import { buildConfidenceProjectionObservationSnapshotContract } from "@/lib/confidence-projection-observation-contract";
+import { buildRecommendationOutcomeEvaluationAnchor } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -505,6 +506,9 @@ export function buildRecommendationSnapshot(
   const snapshotFingerprint = buildRecommendationSnapshotFingerprint(input);
   const quality = input.quality ?? null;
   const inputPayload = input.payload ?? {};
+  const outcomeEvaluationAnchor = buildRecommendationOutcomeEvaluationAnchor(
+    input.recommended_at,
+  );
   const payloadRecommendation = objectOrNull(inputPayload.recommendation);
   const inlineMetadata = parseRecommendationConfidenceMetadata(
     typeof payloadRecommendation?.reason_to_avoid === "string"
@@ -525,6 +529,7 @@ export function buildRecommendationSnapshot(
   });
   const payloadJson = {
     ...inputPayload,
+    outcome_evaluation_anchor: outcomeEvaluationAnchor,
     ...(hasInlineReferencePrice ? planReferenceMetadata : {}),
     plan_reference_price: hasInlineReferencePrice
       ? {

@@ -7,7 +7,10 @@ import {
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
-import { hasVersionedCanonicalOutcomeProviderCoverage } from "@/lib/recommendation-outcome-canonical-coverage";
+import {
+  hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
+} from "@/lib/recommendation-outcome-canonical-coverage";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
@@ -269,12 +272,16 @@ export function buildRecommendationLearningBaselineReadiness({
             (outcome) => outcome.id === primary.primary_outcome?.outcome.id,
           ) ?? null
         : null;
+      const evaluationAnchor = recommendationOutcomeEvaluationAnchorFromSnapshot(
+        snapshot,
+      );
 
       if (
         primary?.status === "selected" &&
         primary.primary_horizon &&
-        hasVersionedCanonicalOutcomeProviderCoverage(
+        hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor(
           selectedOutcome?.payload_json.canonical_provider_coverage,
+          evaluationAnchor,
         )
       ) {
         primaryOutcomeCount += 1;
@@ -283,7 +290,9 @@ export function buildRecommendationLearningBaselineReadiness({
         incompleteOrConflictingOutcomeCount += 1;
         blockers.add(
           primary?.status === "selected"
-            ? "published_candidate_primary_outcome_coverage_receipt_missing_or_unversioned"
+            ? evaluationAnchor
+              ? "published_candidate_primary_outcome_coverage_receipt_missing_or_unversioned_or_unanchored"
+              : "published_candidate_primary_outcome_evaluation_anchor_missing_or_invalid"
             : "published_candidate_primary_outcome_incomplete_or_conflicting",
         );
       }

@@ -2,8 +2,13 @@ import type {
   RecommendationOutcomeCandle,
   RecommendationOutcomeHorizon,
 } from "@/lib/recommendation-outcome-tracker";
+import {
+  RECOMMENDATION_OUTCOME_EVALUATION_ANCHOR_VERSION,
+} from "@/lib/recommendation-outcome-evaluation-anchor";
 
 export const CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION =
+  "canonical_outcome_provider_coverage_receipt_v2" as const;
+export const LEGACY_CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION =
   "canonical_outcome_provider_coverage_receipt_v1" as const;
 
 type CandleRequest = {
@@ -11,6 +16,10 @@ type CandleRequest = {
   start_at: string;
   end_at: string;
   horizon: RecommendationOutcomeHorizon;
+  decision_timestamp: string;
+  evaluation_anchor_start_at: string;
+  decision_to_anchor_seconds: number;
+  decision_timestamp_interval_aligned: boolean;
 };
 
 type CandleResult = {
@@ -33,6 +42,11 @@ export type CanonicalOutcomeProviderCoverageReceipt = {
   required_horizon_end_at: string | null;
   horizon_elapsed: boolean;
   response_status: CandleResult["status"];
+  evaluation_anchor_contract_version: typeof RECOMMENDATION_OUTCOME_EVALUATION_ANCHOR_VERSION;
+  decision_timestamp: string;
+  evaluation_anchor_start_at: string;
+  decision_to_anchor_seconds: number;
+  decision_timestamp_interval_aligned: boolean;
 };
 
 function horizonMs(horizon: RecommendationOutcomeHorizon) {
@@ -44,6 +58,36 @@ function horizonMs(horizon: RecommendationOutcomeHorizon) {
 
 function intervalMs(interval: CandleRequest["interval"]) {
   return interval === "15min" ? 15 * 60 * 1000 : 5 * 60 * 1000;
+}
+
+function exactEvaluationAnchor({
+  request,
+  interval,
+}: {
+  request: CandleRequest;
+  interval: number;
+}) {
+  const decisionAt = Date.parse(request.decision_timestamp);
+  const anchorAt = Date.parse(request.evaluation_anchor_start_at);
+  const requestStart = Date.parse(request.start_at);
+
+  if (
+    !Number.isFinite(decisionAt) ||
+    !Number.isFinite(anchorAt) ||
+    !Number.isFinite(requestStart)
+  ) {
+    return false;
+  }
+
+  const expectedAnchor = Math.ceil(decisionAt / interval) * interval;
+  const expectedDelaySeconds = (expectedAnchor - decisionAt) / 1000;
+
+  return (
+    anchorAt === expectedAnchor &&
+    requestStart === anchorAt &&
+    request.decision_to_anchor_seconds === expectedDelaySeconds &&
+    request.decision_timestamp_interval_aligned === (decisionAt % interval === 0)
+  );
 }
 
 function candleTimestamp(value: RecommendationOutcomeCandle["timestamp"]) {
@@ -94,6 +138,7 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
   const status = providerStatus(result);
   const validStart = Number.isFinite(start);
   const validRequestEnd = Number.isFinite(requestEnd);
+  const validEvaluationAnchor = exactEvaluationAnchor({ request, interval });
   const requiredEnd =
     validStart && duration !== null ? start + duration : null;
   const alignedStart = validStart && start % interval === 0;
@@ -104,12 +149,18 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
 
   if (duration === null) blockers.add("unsupported_canonical_outcome_horizon");
   if (!validStart || !validRequestEnd) blockers.add("candle_request_window_invalid");
-  if (!alignedStart) blockers.add("recommendation_timestamp_not_candle_interval_aligned");
+  if (!validEvaluationAnchor) blockers.add("outcome_evaluation_anchor_invalid");
+  if (!alignedStart) blockers.add("outcome_evaluation_anchor_not_candle_interval_aligned");
   if (!horizonElapsed) blockers.add("outcome_horizon_not_fully_elapsed");
   if (status !== "available") blockers.add(`provider_${status}`);
 
   const expectedSlots = new Set<number>();
-  if (requiredEnd !== null && expectedCount !== null && alignedStart) {
+  if (
+    requiredEnd !== null &&
+    expectedCount !== null &&
+    alignedStart &&
+    validEvaluationAnchor
+  ) {
     for (let slot = start; slot < requiredEnd; slot += interval) {
       expectedSlots.add(slot);
     }
@@ -171,16 +222,55 @@ export function buildCanonicalOutcomeProviderCoverageReceipt({
       requiredEnd === null ? null : new Date(requiredEnd).toISOString(),
     horizon_elapsed: horizonElapsed,
     response_status: result.status,
+    evaluation_anchor_contract_version:
+      RECOMMENDATION_OUTCOME_EVALUATION_ANCHOR_VERSION,
+    decision_timestamp: request.decision_timestamp,
+    evaluation_anchor_start_at: request.evaluation_anchor_start_at,
+    decision_to_anchor_seconds: request.decision_to_anchor_seconds,
+    decision_timestamp_interval_aligned:
+      request.decision_timestamp_interval_aligned,
   };
 }
 
 export function hasVersionedCanonicalOutcomeProviderCoverage(value: unknown) {
+  const contractVersion =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>).contract_version
+      : null;
+
   return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    (value as Record<string, unknown>).contract_version ===
-      CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION
+    contractVersion === CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION ||
+    contractVersion === LEGACY_CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION
+  );
+}
+
+export function hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor(
+  value: unknown,
+  expectedAnchor: {
+    decision_timestamp: string;
+    evaluation_anchor_start_at: string;
+    decision_to_anchor_seconds: number;
+    decision_timestamp_interval_aligned: boolean;
+  } | null,
+) {
+  if (!expectedAnchor || !hasVersionedCanonicalOutcomeProviderCoverage(value)) {
+    return false;
+  }
+
+  const receipt = value as Record<string, unknown>;
+
+  return (
+    receipt.contract_version ===
+      CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION &&
+    receipt.evaluation_anchor_contract_version ===
+      RECOMMENDATION_OUTCOME_EVALUATION_ANCHOR_VERSION &&
+    receipt.decision_timestamp === expectedAnchor.decision_timestamp &&
+    receipt.evaluation_anchor_start_at ===
+      expectedAnchor.evaluation_anchor_start_at &&
+    receipt.decision_to_anchor_seconds ===
+      expectedAnchor.decision_to_anchor_seconds &&
+    receipt.decision_timestamp_interval_aligned ===
+      expectedAnchor.decision_timestamp_interval_aligned
   );
 }
 
@@ -188,6 +278,15 @@ export function canonicalOutcomeProviderCoverageQuality(value: unknown) {
   if (!hasVersionedCanonicalOutcomeProviderCoverage(value)) return 0;
 
   const receipt = value as Record<string, unknown>;
+  const isAnchored =
+    receipt.contract_version ===
+      CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION &&
+    receipt.evaluation_anchor_contract_version ===
+      RECOMMENDATION_OUTCOME_EVALUATION_ANCHOR_VERSION &&
+    typeof receipt.decision_timestamp === "string" &&
+    typeof receipt.evaluation_anchor_start_at === "string" &&
+    typeof receipt.decision_to_anchor_seconds === "number" &&
+    typeof receipt.decision_timestamp_interval_aligned === "boolean";
   const complete =
     receipt.provider_status === "available" &&
     receipt.freshness === "fresh" &&
@@ -199,5 +298,6 @@ export function canonicalOutcomeProviderCoverageQuality(value: unknown) {
     Array.isArray(receipt.blockers) &&
     receipt.blockers.length === 0;
 
-  return complete ? 2 : 1;
+  if (!complete) return 1;
+  return isAnchored ? 3 : 2;
 }
