@@ -14,7 +14,12 @@ export const MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE = 20;
 
 type LearningBaselineScanRun = Pick<
   RecommendationScanRun,
-  "id" | "run_fingerprint" | "observed_at" | "payload_json"
+  | "id"
+  | "run_fingerprint"
+  | "trading_date"
+  | "window"
+  | "observed_at"
+  | "payload_json"
 >;
 
 export type RecommendationLearningBaselineReadiness = {

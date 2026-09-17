@@ -178,11 +178,12 @@ function hasConsistentPublishedDecision(
 
   const publishedCandidateTickers = candidates
     .map(objectOrNull)
-    .flatMap((candidate) =>
-      candidate?.disposition === "published" && stringOrNull(candidate.ticker)
-        ? [candidate.ticker.trim().toUpperCase()]
-        : [],
-    );
+    .flatMap((candidate) => {
+      const ticker = stringOrNull(candidate?.ticker);
+      return candidate?.disposition === "published" && ticker
+        ? [ticker.trim().toUpperCase()]
+        : [];
+    });
   const normalizedPersistedTickers = persistedTickers.map((ticker) =>
     ticker.trim().toUpperCase(),
   );
@@ -234,7 +235,7 @@ export function candidateDecisionRecordFromUnknown(
 
   if (
     (!isLegacyRecord && !isCurrentRecord) ||
-    record.record_kind !== "candidate_decision_record" ||
+    record?.record_kind !== "candidate_decision_record" ||
     learningAttribution === null ||
     candidates === null ||
     coverage?.full_membership_declared !== true ||

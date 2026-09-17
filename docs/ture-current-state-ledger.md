@@ -548,8 +548,9 @@ ambiguous links fail closed. It also reports the real remaining gaps: no
 counterfactual outcome collection yet for research/rejected/no-trade samples,
 no calibrated confidence, and no implicit baseline freeze or policy promotion.
 This is a provider-free, no-write, no-ranking-change IF-4 traceability
-delivery. Focused local evidence: diff check, scoped ESLint, production build,
-and 13 Playwright decision-record/baseline-readiness regressions passed. The
+delivery. Focused local evidence: diff check, strict TypeScript, scoped ESLint,
+Webpack production build, 14 Playwright decision-record/baseline-readiness
+regressions, and the 166-test intelligence-foundation suite passed. The
 local app reached the password boundary before authenticated visual proof, so
 this remains unmerged, undeployed and not environment-verified. It is not
 evidence that the recommendation engine has improved.

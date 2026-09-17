@@ -52,13 +52,16 @@ export function buildCandidateDecisionLearningAttribution({
     ? validateCanonicalEvaluationVersions(canonicalEvaluationVersions)
     : null;
   const canonicalVersions = validation?.ok ? validation.value : null;
+  const versionErrors = validation && !validation.ok
+    ? validation.errors.map((error: string) => `canonical_versions_${error}`)
+    : [];
   const reasonCodes = uniqueSorted([
     "confidence_is_ordinal_not_probability",
     ...(policyVersion ? [] : ["recommendation_publish_policy_version_missing"]),
     ...(canonicalVersions
       ? []
       : validation
-        ? validation.errors.map((error) => `canonical_versions_${error}`)
+        ? versionErrors
         : ["canonical_evaluation_versions_missing"]),
   ]);
 
