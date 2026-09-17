@@ -440,17 +440,20 @@ publication and execution remain unavailable. This delivery did not configure,
 invoke or read Twelve Data, and no browser receipt has yet been observed.
 
 **Local IF-2 one-shot dashboard receipt:** local commit
-`764c228990ac791426ae1ca76c2f28b7bd8afd74` makes the existing Basic Free
+`764c228990ac791426ae1ca76c2f28b7bd8afd74`, hardened by
+`6228f8bbfd1d3c628168b52bcfe67a87fedb2c1b`, makes the existing Basic Free
 catalog panel show a strictly parsed versioned one-shot control envelope. A
 missing envelope is explicitly `not_recorded`; a malformed, contradictory or
-untrusted envelope is `invalid` and its values are withheld. A valid envelope
-shows its status, catalog-only boundary, observation permission and target versus
-evaluated New York dates, with an explicit statement that it cannot admit
-candidate generation, ranking, publication or execution. Local evidence:
-targeted readback/control contracts (8/8), Basic Free/scheduler regression
-(31/31), scoped lint, TypeScript, scheduled-runtime build and Webpack production
-build passed. This dashboard change is not yet merged, deployed or verified in
-an authenticated browser with a persisted one-shot receipt.
+untrusted envelope is `invalid` and its values are withheld. The follow-on
+check requires the exact status/reason-code pair in addition to the version,
+booleans and New York date relation. A valid envelope shows its status,
+catalog-only boundary, observation permission and target versus evaluated New
+York dates, with an explicit statement that it cannot admit candidate
+generation, ranking, publication or execution. Local evidence: targeted
+readback/control contracts (8/8), Basic Free/scheduler regression (31/31),
+scoped lint, TypeScript, scheduled-runtime build and Webpack production build
+passed. This dashboard change is not yet merged, deployed or verified in an
+authenticated browser with a persisted one-shot receipt.
 
 **Remaining IF-2 acceptance:** the original market-movers receipt cannot be
 accepted under Basic Free because its endpoint is Pro-only. The next active
