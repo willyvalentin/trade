@@ -279,6 +279,7 @@ import {
   basicFreeDiscoveryReadbackFromScheduledAttempt,
   type BasicFreeDiscoveryReadback,
 } from "@/lib/basic-free-discovery-readback";
+import type { BasicFreeCatalogObservationReadiness } from "@/lib/basic-free-catalog-observation-readiness";
 import {
   basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
   type BasicFreeScheduledScanCreditReadback,
@@ -8611,6 +8612,7 @@ function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
 }
 
 type TradeAppProps = {
+  basicFreeCatalogObservationReadiness?: BasicFreeCatalogObservationReadiness | null;
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
   learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
   historicalCandleStorageDetection?: {
@@ -8709,6 +8711,7 @@ function buildLivePositionTradeCardExecutionReadiness(
 }
 
 export function TradeApp({
+  basicFreeCatalogObservationReadiness = null,
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
     avanzaSelectedRecommendationPreviewDevConfig,
   learningAccelerationServerConfig = null,
@@ -16908,6 +16911,10 @@ export function TradeApp({
 
             <BasicFreeDiscoveryReceiptPanel
               receipt={latestBasicFreeDiscoveryReadback}
+            />
+
+            <BasicFreeCatalogObservationReadinessPanel
+              readiness={basicFreeCatalogObservationReadiness}
             />
 
             <BasicFreeScheduledScanCreditReceiptPanel
@@ -37576,6 +37583,105 @@ function BasicFreeDiscoveryReceiptPanel({
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+function BasicFreeCatalogObservationReadinessPanel({
+  readiness,
+}: {
+  readiness: BasicFreeCatalogObservationReadiness | null;
+}) {
+  if (!readiness) return null;
+
+  const budget =
+    readiness.admission.declared_daily_credit_budget === null ||
+    readiness.admission.declared_per_minute_credit_budget === null
+      ? "not declared"
+      : `day ${readiness.admission.declared_daily_credit_budget} · minute ${readiness.admission.declared_per_minute_credit_budget}`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Observation readiness
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Basic Free Catalog Guard
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Server-read configuration state for the next bounded catalog
+            observation. It never starts a scan, reserves credits, or grants a
+            provider request.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={readiness.status === "contained_ready" ? "contained ready" : "blocked"}
+          tone={readiness.status === "contained_ready" ? "warning" : "neutral"}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard label="Admission" value={readiness.admission.status} />
+        <SummaryCard
+          label="Plan"
+          value={`${readiness.provider_profile.effective_mode} / ${readiness.provider_profile.source}`}
+        />
+        <SummaryCard label="Declared Credits" value={budget} />
+        <SummaryCard
+          label="NY Date"
+          value={readiness.evaluated_trading_date}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            One-shot containment
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Control: {readiness.one_shot_control.status}. Catalog-only:
+            {" "}{readiness.one_shot_control.catalog_only_enforced ? "enforced" : "not enforced"}.
+            {" "}May proceed: {readiness.one_shot_control.catalog_observation_may_proceed ? "yes" : "no"}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Target: {readiness.one_shot_control.target_trading_date ?? "not set"};
+            {" "}evaluated: {readiness.one_shot_control.evaluated_trading_date ?? "invalid"}.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Active blockers
+          </h4>
+          <p className="mt-3 break-words text-sm leading-6 text-zinc-300">
+            {readiness.blockers.length > 0
+              ? readiness.blockers.join(", ")
+              : "No configuration blocker recorded."}
+          </p>
+          {readiness.provider_profile.plan_mode_mismatch && (
+            <p className="mt-1 text-xs leading-5 text-amber-300">
+              Server and public plan declarations disagree; the server profile is shown.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Boundary
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Request authority: not granted by readiness. The scheduled route
+            must still verify market session, idempotency and a durable credit
+            reservation before any provider call.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            This remains one catalog page only; discovery feed, ranking,
+            publication and execution stay unavailable.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
