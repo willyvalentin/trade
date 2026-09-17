@@ -22,7 +22,7 @@ export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
 export const MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE = 20;
 
-type LearningBaselineScanRun = Pick<
+export type LearningBaselineScanRun = Pick<
   RecommendationScanRun,
   | "id"
   | "run_fingerprint"
