@@ -60,6 +60,7 @@ export type RealScannerCandidate = {
   data_source: ScannerCandidate["intraday_indicator_source"] | "daily_only";
   provider_source: "twelve_data" | null;
   market_data_timestamp: string | null;
+  reference_price_timestamp: string | null;
   stale: boolean;
   entry_low: number | null;
   entry_high: number | null;
@@ -399,6 +400,10 @@ function toRealScannerCandidate(
         ? "twelve_data"
         : null,
     market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+    reference_price_timestamp:
+      candidate.reference_price_timestamp ??
+      candidate.intraday_indicator_cached_at ??
+      null,
     stale: candidate.intraday_indicator_stale === true,
     entry_low: entryLow,
     entry_high: entryHigh,

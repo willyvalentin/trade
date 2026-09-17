@@ -12,7 +12,11 @@ import {
   hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
 } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
-import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
+import {
+  RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
+  isSupportedResearchSnapshotCandidateDecisionLinkageVersion,
+  type ResearchSnapshotCandidateDecisionDisposition,
+} from "@/lib/research-snapshot-candidate-linkage";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
@@ -108,6 +112,18 @@ function isResearchOnlySnapshot(snapshot: RecommendationSnapshot) {
 type CandidateDecisionRecordCandidate =
   CandidateDecisionRecord["candidates"][number];
 
+function isCounterfactualCandidate(
+  candidate: CandidateDecisionRecordCandidate,
+): candidate is CandidateDecisionRecordCandidate & {
+  disposition: ResearchSnapshotCandidateDecisionDisposition;
+} {
+  return (
+    candidate.disposition === "selected_not_published" ||
+    candidate.disposition === "ranked_not_selected" ||
+    candidate.disposition === "filtered_before_ranking"
+  );
+}
+
 function isResearchCandidate(
   candidate: CandidateDecisionRecordCandidate,
 ): candidate is CandidateDecisionRecordCandidate & {
@@ -127,7 +143,7 @@ function researchSnapshotForCandidate({
   snapshots,
 }: {
   candidateId: string;
-  candidateDisposition: "selected_not_published" | "ranked_not_selected";
+  candidateDisposition: ResearchSnapshotCandidateDecisionDisposition;
   scanRunFingerprint: string;
   ticker: string;
   snapshots: RecommendationSnapshot[];
@@ -142,8 +158,12 @@ function researchSnapshotForCandidate({
       textOrNull(payload.candidate_id) === candidateId &&
       textOrNull(payload.candidate_decision_id) === candidateId &&
       payload.candidate_decision_disposition === candidateDisposition &&
-      payload.candidate_decision_linkage_version ===
-        RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION &&
+      isSupportedResearchSnapshotCandidateDecisionLinkageVersion(
+        payload.candidate_decision_linkage_version,
+      ) &&
+      (candidateDisposition !== "filtered_before_ranking" ||
+        payload.candidate_decision_linkage_version ===
+          RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION) &&
       payload.candidate_decision_linkage_status === "verified"
     );
   });
@@ -234,6 +254,7 @@ export function buildRecommendationLearningBaselineReadiness({
   let notEvaluatedCandidateCount = 0;
   let explicitNoTradeCount = 0;
   let researchCandidateOutcomesCollected = 0;
+  let rejectedCandidateOutcomesCollected = 0;
   let noTradeOutcomesCollected = 0;
   let completeAttributionCount = 0;
   let incompleteAttributionCount = 0;
@@ -401,9 +422,12 @@ export function buildRecommendationLearningBaselineReadiness({
     }
 
     const researchCandidates = record.candidates.filter(isResearchCandidate);
+    const counterfactualCandidates = record.candidates.filter(
+      isCounterfactualCandidate,
+    );
     const researchCandidatesWithCompleteOutcomes = new Set<string>();
 
-    for (const candidate of researchCandidates) {
+    for (const candidate of counterfactualCandidates) {
 
       const snapshot = researchSnapshotForCandidate({
         candidateId: candidate.candidate_id,
@@ -459,8 +483,12 @@ export function buildRecommendationLearningBaselineReadiness({
           evaluationAnchor,
         )
       ) {
-        researchCandidateOutcomesCollected += 1;
-        researchCandidatesWithCompleteOutcomes.add(candidate.candidate_id);
+        if (candidate.disposition === "filtered_before_ranking") {
+          rejectedCandidateOutcomesCollected += 1;
+        } else {
+          researchCandidateOutcomesCollected += 1;
+          researchCandidatesWithCompleteOutcomes.add(candidate.candidate_id);
+        }
       }
     }
 
@@ -498,7 +526,7 @@ export function buildRecommendationLearningBaselineReadiness({
   if (researchCandidateOutcomesCollected < researchCandidateCount) {
     blockers.add("research_candidate_counterfactual_outcomes_incomplete");
   }
-  if (rejectedCandidateCount > 0) {
+  if (rejectedCandidateOutcomesCollected < rejectedCandidateCount) {
     blockers.add("rejected_candidate_counterfactual_outcomes_not_collected");
   }
   if (noTradeOutcomesCollected < explicitNoTradeCount) {
@@ -508,7 +536,9 @@ export function buildRecommendationLearningBaselineReadiness({
   const counterfactualOutcomesRequired =
     researchCandidateCount + rejectedCandidateCount + explicitNoTradeCount;
   const counterfactualOutcomesCollected =
-    researchCandidateOutcomesCollected + noTradeOutcomesCollected;
+    researchCandidateOutcomesCollected +
+    rejectedCandidateOutcomesCollected +
+    noTradeOutcomesCollected;
   const counterfactualCoverageStatus =
     counterfactualOutcomesRequired === 0
       ? "not_required"
@@ -563,7 +593,7 @@ export function buildRecommendationLearningBaselineReadiness({
       research_candidate_outcomes_required: researchCandidateCount,
       research_candidate_outcomes_collected: researchCandidateOutcomesCollected,
       rejected_candidate_outcomes_required: rejectedCandidateCount,
-      rejected_candidate_outcomes_collected: 0,
+      rejected_candidate_outcomes_collected: rejectedCandidateOutcomesCollected,
       no_trade_outcomes_required: explicitNoTradeCount,
       no_trade_outcomes_collected: noTradeOutcomesCollected,
       status: counterfactualCoverageStatus,
@@ -576,7 +606,7 @@ export function buildRecommendationLearningBaselineReadiness({
     notes: [
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
-      "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence; rejected candidates remain a separate evidence gap.",
+      "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],
   };

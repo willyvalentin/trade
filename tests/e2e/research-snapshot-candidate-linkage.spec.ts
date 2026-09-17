@@ -18,6 +18,11 @@ const record = {
       ticker: "XYZ",
       disposition: "published" as const,
     },
+    {
+      candidate_id: "scanner_candidate:v1:scan-1:REJ",
+      ticker: "REJ",
+      disposition: "filtered_before_ranking" as const,
+    },
   ],
 } as unknown as CandidateDecisionRecord;
 
@@ -37,6 +42,15 @@ test("research snapshot linkage is exact, normalized, and excludes published can
     linkage_status: "unavailable",
     candidate_id: null,
     candidate_disposition: null,
+  });
+
+  expect(
+    linkResearchSnapshotToCandidateDecision({ record, ticker: "rej" }),
+  ).toEqual({
+    linkage_version: RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
+    linkage_status: "verified",
+    candidate_id: "scanner_candidate:v1:scan-1:REJ",
+    candidate_disposition: "filtered_before_ranking",
   });
 });
 

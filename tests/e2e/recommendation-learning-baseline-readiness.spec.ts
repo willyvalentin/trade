@@ -186,6 +186,52 @@ function persistedResearchScan({
   };
 }
 
+function persistedRejectedScan() {
+  const scannerCandidate = candidate("REJ");
+  const scanRun = buildRecommendationScanRun({
+    trading_date: "2026-09-17",
+    observed_at: DECIDED_AT,
+    completed_at: DECIDED_AT,
+    window: "morning",
+    source: "supabase",
+    scanned_ticker_count: 1,
+    raw_candidate_count: 1,
+  });
+  const capture = buildCandidateDecisionCapture({
+    captureTimestamp: DECIDED_AT,
+    universe: [scannerCandidate],
+    observedCandidates: [scannerCandidate],
+    ranking: null,
+    eligibleCandidateTickers: [],
+    eligibilityRejectionCodes: {
+      REJ: ["current_recommendation_exists"],
+    },
+    recommendationBuildPath: "no_publishable_candidate",
+  });
+  const record = buildCandidateDecisionRecord({
+    scanRun,
+    capture,
+    scoringVersion: "score_test_v1",
+    buildVersion: "test-build-v1",
+    learningAttribution: completeAttribution(),
+  });
+
+  expect(record).not.toBeNull();
+  expect(record?.candidates).toMatchObject([
+    { ticker: "REJ", disposition: "filtered_before_ranking" },
+  ]);
+  return {
+    run: {
+      ...scanRun,
+      payload_json: {
+        ...scanRun.payload_json,
+        candidate_decision_record: record,
+      },
+    },
+    record: record!,
+  };
+}
+
 function snapshotFor(scanRunFingerprint: string) {
   return buildRecommendationSnapshot({
     recommendation_id: "rec_tst",
@@ -214,11 +260,16 @@ function researchSnapshotFor({
   candidateId,
   ticker = "TST",
   candidateDisposition = "selected_not_published",
+  linkageVersion,
 }: {
   scanRunFingerprint: string;
   candidateId: string;
   ticker?: string;
-  candidateDisposition?: "selected_not_published" | "ranked_not_selected";
+  candidateDisposition?:
+    | "selected_not_published"
+    | "ranked_not_selected"
+    | "filtered_before_ranking";
+  linkageVersion?: string;
 }) {
   return buildRecommendationSnapshot({
     recommendation_id: null,
@@ -246,7 +297,7 @@ function researchSnapshotFor({
       candidate_decision_id: candidateId,
       candidate_decision_disposition: candidateDisposition,
       candidate_decision_linkage_version:
-        RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
+        linkageVersion ?? RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
       candidate_decision_linkage_status: "verified",
     },
   });
@@ -539,6 +590,59 @@ test.describe("recommendation learning baseline readiness", () => {
     );
     expect(readiness.blockers).not.toContain(
       "explicit_no_trade_counterfactual_outcomes_not_collected",
+    );
+  });
+
+  test("counts a rejected candidate only through a v2 exact link to its recorded scanner plan", () => {
+    const { run, record } = persistedRejectedScan();
+    const rejectedCandidate = record.candidates[0]!;
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: rejectedCandidate.candidate_id,
+      ticker: rejectedCandidate.ticker,
+      candidateDisposition: "filtered_before_ranking",
+    });
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [completeOutcome(snapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toMatchObject({
+      research_candidate_outcomes_required: 0,
+      rejected_candidate_outcomes_required: 1,
+      rejected_candidate_outcomes_collected: 1,
+      no_trade_outcomes_required: 1,
+      no_trade_outcomes_collected: 0,
+      status: "partial",
+    });
+    expect(readiness.blockers).not.toContain(
+      "rejected_candidate_counterfactual_outcomes_not_collected",
+    );
+  });
+
+  test("does not allow a legacy research link to cover a filtered candidate", () => {
+    const { run, record } = persistedRejectedScan();
+    const rejectedCandidate = record.candidates[0]!;
+    const snapshot = researchSnapshotFor({
+      scanRunFingerprint: run.run_fingerprint,
+      candidateId: rejectedCandidate.candidate_id,
+      ticker: rejectedCandidate.ticker,
+      candidateDisposition: "filtered_before_ranking",
+      linkageVersion: "research_snapshot_candidate_decision_linkage_v1",
+    });
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [completeOutcome(snapshot)],
+    });
+
+    expect(readiness.counterfactual_coverage).toMatchObject({
+      rejected_candidate_outcomes_required: 1,
+      rejected_candidate_outcomes_collected: 0,
+    });
+    expect(readiness.blockers).toContain(
+      "rejected_candidate_counterfactual_outcomes_not_collected",
     );
   });
 

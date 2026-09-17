@@ -609,22 +609,39 @@ schedule, provider calls, database schema nor execution. It makes future
 research outcomes auditable, not evidence that a recommendation policy is
 better.
 
-**Local IF-4 explicit-no-trade outcome coverage:** a no-trade decision can now
-count as covered only when its captured candidate population is complete and
-every non-published ranked candidate has its own exact research-only outcome
-with the same decision-bound anchor and complete v2 coverage receipt. It is a
+**Merged and production-deployed IF-4 explicit-no-trade outcome coverage:** PR
+[#531](https://github.com/willyvalentin/trade/pull/531) merged as
+`4bed05635c7e5341c695043bbe4dd815e3583c2a`. A no-trade decision counts as
+covered only when its captured candidate population is complete and every
+non-published ranked candidate has its own exact research-only outcome with the
+same decision-bound anchor and complete v2 coverage receipt. It is a
 decision-level coverage fact, not a duplicate outcome row or a quality verdict.
 Missing, conflicting, pre-decision or incomplete research evidence leaves the
-no-trade decision uncovered. `filtered_before_ranking` candidates remain an
-independent rejected-evidence gap and still prevent an overall baseline freeze;
-no plan or market outcome is invented for them. This readback-only delivery
-does not change scanning, ranking, confidence, publication, provider usage,
-database schema, execution or broker authority. Local verification and PR CI
-are distinct: `git diff --check`, strict TypeScript, scoped ESLint, Webpack
-production build, 15 focused linkage/baseline Playwright regressions and the
-166-test intelligence-foundation suite passed locally. PR CI, merge and deploy
-remain outstanding. It improves the honesty of future learning evidence, not
-the engine's demonstrated recommendation quality.
+no-trade decision uncovered. `filtered_before_ranking` candidates remained an
+independent rejected-evidence gap and continued to prevent an overall baseline
+freeze. Required CI run `35276640883` passed all six provider-free shards, the
+aggregate and merge-candidate-provenance POC; Netlify production deploy
+`6aac6084edfd870008097ab2` is ready on the exact main revision. This improves
+the honesty of future learning evidence, not the engine's demonstrated
+recommendation quality.
+
+**Local IF-4 rejected-candidate outcome lineage:** a `filtered_before_ranking`
+candidate can now enter the non-live research path only through a versioned v2
+link to one immutable decision-record candidate and only when the matching
+scanner input is exact, fresh, provider-attributable, timestamp-equal to the
+decision record, no later than the decision, and already has valid long
+entry/stop/target geometry. The
+implementation never constructs a plan, infers a side, admits stale or
+provider-gap data, or reuses a legacy v1 linkage. It shares the existing total
+research sample cap, so it adds no new provider budget class or direct provider
+request. The baseline now counts a rejected candidate only after its exact
+linked snapshot has the same decision-bound anchor and a complete v2 coverage
+receipt; all other rejected candidates stay uncollected. Locally, `git diff
+--check`, strict TypeScript, scoped ESLint, Webpack production build, 22 focused
+selection/linkage/baseline regressions and the 166-test intelligence-foundation
+suite passed. PR CI, merge, deploy and authenticated production readback remain
+outstanding. This creates a narrower future evidence path; it is not evidence
+that rejections, rankings or recommendation quality are correct.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
