@@ -81,6 +81,7 @@ test("normal Basic Free scheduled scans claim the whole known provider ceiling b
           owner_user_id: ownerUserId,
           trading_date: "2026-09-16",
           minute_bucket: "2026-09-16T15:30:00.000Z",
+          catalog_observation: false,
           requested_credits: 8,
           declared_daily_credit_budget: 800,
           declared_per_minute_credit_budget: 8,

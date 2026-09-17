@@ -30,6 +30,7 @@ function database(
           p_owner_user_id: input.owner_user_id,
           p_trading_date: input.trading_date,
           p_minute_bucket: input.minute_bucket,
+          p_catalog_observation: input.catalog_observation,
           p_requested_credits: input.requested_credits,
           p_declared_daily_credit_budget: input.declared_daily_credit_budget,
           p_declared_per_minute_credit_budget:

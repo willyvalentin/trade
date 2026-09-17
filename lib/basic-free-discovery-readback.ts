@@ -29,6 +29,7 @@ type AttemptOutcome =
 type ReservationStatus =
   | "not_required"
   | "provider_execution_allowed"
+  | "daily_catalog_observation_already_claimed"
   | "daily_credit_limit_reached"
   | "per_minute_credit_limit_reached"
   | "attempt_in_progress"
@@ -393,6 +394,7 @@ export function basicFreeDiscoveryReadbackFromUnknown(
   const reservationStatus = enumValue(reservation?.status, [
     "not_required",
     "provider_execution_allowed",
+    "daily_catalog_observation_already_claimed",
     "daily_credit_limit_reached",
     "per_minute_credit_limit_reached",
     "attempt_in_progress",

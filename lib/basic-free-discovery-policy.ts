@@ -37,6 +37,7 @@ export type BasicFreeDiscoveryReasonCode =
   | "daily_credit_budget_invalid"
   | "per_minute_credit_budget_invalid"
   | "daily_catalog_already_observed"
+  | "daily_catalog_observation_already_claimed"
   | "daily_credit_limit_reached"
   | "per_minute_credit_limit_reached"
   | "basic_free_credit_reservation_unavailable"
@@ -234,6 +235,7 @@ export function basicFreeDiscoveryPreviousAttemptFromUnknown(
 export function blockBasicFreeDiscoveryAdmissionForReservation(
   admission: BasicFreeDiscoveryAdmission,
   reason:
+    | "daily_catalog_observation_already_claimed"
     | "daily_credit_limit_reached"
     | "per_minute_credit_limit_reached"
     | "basic_free_credit_reservation_unavailable"
@@ -243,7 +245,9 @@ export function blockBasicFreeDiscoveryAdmissionForReservation(
   return {
     ...admission,
     status:
-      reason === "daily_credit_limit_reached"
+      reason === "daily_catalog_observation_already_claimed"
+        ? "refresh_interval_active"
+        : reason === "daily_credit_limit_reached"
         ? "daily_credit_limit_reached"
         : reason === "per_minute_credit_limit_reached"
           ? "per_minute_credit_limit_reached"

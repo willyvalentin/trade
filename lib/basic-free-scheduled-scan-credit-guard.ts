@@ -116,6 +116,9 @@ export async function prepareBasicFreeScheduledScanCreditGuard(input: {
     owner_user_id: input.ownerUserId,
     trading_date: tradingDate,
     minute_bucket: minuteBucket,
+    // This guard reserves the ordinary scan ceiling. It must never consume
+    // the separately bounded one-page catalog-observation admission.
+    catalog_observation: false,
     requested_credits: requestedCredits,
     declared_daily_credit_budget: dailyBudget,
     declared_per_minute_credit_budget: perMinuteBudget,
