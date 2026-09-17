@@ -271,6 +271,10 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  buildRecommendationLearningBaselineReadiness,
+  type RecommendationLearningBaselineReadiness,
+} from "@/lib/recommendation-learning-baseline-readiness";
+import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
   type MarketWideDiscoveryReadback,
@@ -14316,6 +14320,12 @@ export function TradeApp({
         outcome.snapshot_fingerprint,
       ),
   );
+  const recommendationLearningBaselineReadiness =
+    buildRecommendationLearningBaselineReadiness({
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationPerformanceSnapshots,
+      outcomes: recommendationPerformanceOutcomes,
+    });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
       snapshots: recommendationPerformanceSnapshots,
@@ -16903,6 +16913,10 @@ export function TradeApp({
 
             <CandidateDecisionHistoryPanel
               history={candidateDecisionRecordHistory}
+            />
+
+            <RecommendationLearningBaselineReadinessPanel
+              readiness={recommendationLearningBaselineReadiness}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -37977,6 +37991,129 @@ function CandidateDecisionHistoryPanel({
               );
             })}
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function RecommendationLearningBaselineReadinessPanel({
+  readiness,
+}: {
+  readiness: RecommendationLearningBaselineReadiness;
+}) {
+  const canFreeze = readiness.status === "eligible_for_explicit_freeze";
+  const visibleOutcomes = readiness.visible_outcomes;
+  const policy = readiness.policy_attribution;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Measured learning
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Learning Baseline Readiness
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A read-only audit of whether persisted decisions can become a
+            comparable learning baseline. It never tunes ranking, relaxes
+            publication, calls a provider, or executes a trade.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={canFreeze ? "eligible for explicit freeze" : "not ready"}
+          tone={canFreeze ? "positive" : "warning"}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Traceable Decisions"
+          value={`${readiness.decision_records.attributable_count}/${readiness.decision_records.considered_count}`}
+        />
+        <SummaryCard
+          label="Complete Populations"
+          value={`${readiness.decision_records.complete_population_count}/${readiness.decision_records.attributable_count}`}
+        />
+        <SummaryCard
+          label="Visible Primary Outcomes"
+          value={`${visibleOutcomes.primary_outcome_count}/${visibleOutcomes.minimum_required_before_freeze}`}
+        />
+        <SummaryCard
+          label="Policy Attribution"
+          value={policy.status}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision population
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Published {readiness.decision_population.published_candidate_count};
+            research {readiness.decision_population.research_candidate_count};
+            rejected {readiness.decision_population.rejected_candidate_count};
+            explicit no trade {readiness.decision_population.explicit_no_trade_count}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Not evaluated: {readiness.decision_population.not_evaluated_candidate_count}.
+            Missing or identity-invalid records are excluded rather than inferred.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Visible outcome linkage
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Exact snapshot links {visibleOutcomes.exact_snapshot_link_count}/
+            {visibleOutcomes.published_candidate_count}; primary: 60m {visibleOutcomes.primary_outcome_by_horizon["60m"]},
+            {" "}30m {visibleOutcomes.primary_outcome_by_horizon["30m"]},
+            {" "}15m {visibleOutcomes.primary_outcome_by_horizon["15m"]}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Missing links {visibleOutcomes.missing_snapshot_link_count}; ambiguous
+            {" "}{visibleOutcomes.ambiguous_snapshot_link_count}; pre-decision
+            outcome rows {visibleOutcomes.pre_decision_outcome_count}; incomplete
+            or conflicting primary outcomes {visibleOutcomes.incomplete_or_conflicting_outcome_count}.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Learning limits
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Research, rejected and no-trade counterfactual outcomes are not yet
+            collected. Confidence is ordinal, not a calibrated probability.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Calibration remains blocked. A later freeze is explicit; this panel
+            cannot freeze or promote a policy by itself.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Current baseline blockers
+        </h4>
+        {readiness.blockers.length > 0 ? (
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
+            {readiness.blockers.map((blocker) => (
+              <li key={blocker} className="font-mono text-xs text-zinc-400">
+                {blocker}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            The data is eligible for an explicit baseline-freeze decision. That
+            decision remains separate from this readback.
+          </p>
         )}
       </div>
     </section>

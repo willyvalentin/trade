@@ -532,6 +532,29 @@ the ranking is calibrated or that recommendation quality improved against an
 IF-4 baseline. Production UI verification remains required after the normal PR
 and deploy.
 
+**Local IF-4 baseline-readiness foundation:** local commit
+`5a205bed9e3c11c08156ca02918f244eb1423ccf` makes every new candidate decision
+record carry a versioned learning-attribution envelope when the deployed build
+can prove its full commit, ranking/scoring/publish-policy and canonical
+evaluation-version bundle. Older v1 records remain readable but are explicitly
+not policy-attributed. The envelope declares the current confidence as ordinal,
+not a calibrated probability; no score is converted into a probability. Engine
+Insights now has a read-only *Learning Baseline Readiness* panel that counts
+the attributable published/research/rejected/no-trade population, requires an
+exact published-candidate → snapshot link, excludes an outcome that predates
+its decision, and selects at most one complete 60m/30m/15m primary outcome.
+Duplicate horizons, missing canonical coverage, malformed version evidence and
+ambiguous links fail closed. It also reports the real remaining gaps: no
+counterfactual outcome collection yet for research/rejected/no-trade samples,
+no calibrated confidence, and no implicit baseline freeze or policy promotion.
+This is a provider-free, no-write, no-ranking-change IF-4 traceability
+delivery. Focused local evidence: diff check, strict TypeScript, scoped ESLint,
+Webpack production build, 14 Playwright decision-record/baseline-readiness
+regressions, and the 166-test intelligence-foundation suite passed. The
+local app reached the password boundary before authenticated visual proof, so
+this remains unmerged, undeployed and not environment-verified. It is not
+evidence that the recommendation engine has improved.
+
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
 all three benchmarks are present, come from one provider, are point-in-time

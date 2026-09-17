@@ -1,0 +1,359 @@
+import { expect, test } from "@playwright/test";
+
+import {
+  buildCandidateDecisionCapture,
+  buildCandidateDecisionRecord,
+} from "@/lib/candidate-decision-record";
+import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
+import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
+import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
+import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
+import type { ScannerCandidate } from "@/lib/scanner";
+
+const DECIDED_AT = "2026-09-17T14:30:00.000Z";
+
+function candidate(): ScannerCandidate & { local_score: number } {
+  return {
+    ticker: "TST",
+    company_name: "Test Incorporated",
+    sector: "Technology",
+    mock_current_price: 100,
+    mock_trend: "uptrend",
+    mock_volume_context: "expanding volume",
+    mock_support: 96,
+    mock_resistance: 110,
+    mock_news_context: "No adverse news",
+    latest_close: 100,
+    volume_ratio: 1.8,
+    recent_volume_ratio: 1.8,
+    proposed_entry_low: 99,
+    proposed_entry_high: 100,
+    proposed_stop_loss: 96,
+    proposed_target_1: 106,
+    proposed_target_2: 110,
+    proposed_risk_reward: 2.5,
+    intraday_indicators: {
+      vwap: 99,
+      latestPrice: 100,
+      priceVsVwapPercent: 1,
+      isAboveVwap: true,
+      recentHigh: 101,
+      recentLow: 98,
+      recentRangePercent: 3,
+      momentumPercent: 2,
+      momentumDirection: "up",
+      volumeTrend: "expanding",
+      latestVolume: 1800,
+      averageVolume: 1000,
+      warnings: [],
+    },
+    intraday_indicator_source: "fresh",
+    intraday_indicator_cached_at: DECIDED_AT,
+    intraday_indicator_stale: false,
+    reference_price_timestamp: DECIDED_AT,
+    reference_price_provider: "twelve_data",
+    local_score: 96,
+  };
+}
+
+function completeAttribution() {
+  return buildCandidateDecisionLearningAttribution({
+    recommendationPublishPolicyVersion: "selective_policy_test_v1",
+    canonicalEvaluationVersions: {
+      engine_version: "ture_engine_test_v1",
+      scoring_version: "score_test_v1",
+      ranking_version: "ranking_test_v1",
+      setup_taxonomy_version: "setup_taxonomy_not_recorded_v1",
+      confidence_contract_version: "ordinal_confidence_not_calibrated_v1",
+      evaluator_version: "canonical_outcome_evaluator_v1",
+      provider_contract_version: "provider_test_v1",
+      git_commit: "a".repeat(40),
+      build_identity: "test-build-v1",
+    },
+  });
+}
+
+function persistedPublishedScan() {
+  const scannerCandidate = candidate();
+  const ranking = buildScannerCandidateRankingSummary({
+    candidates: [scannerCandidate],
+    targetMin: 1,
+    targetMax: 1,
+    now: new Date(DECIDED_AT),
+  });
+  const scanRun = buildRecommendationScanRun({
+    trading_date: "2026-09-17",
+    observed_at: DECIDED_AT,
+    completed_at: DECIDED_AT,
+    window: "morning",
+    source: "supabase",
+    scanned_ticker_count: 1,
+    raw_candidate_count: 1,
+  });
+  const capture = buildCandidateDecisionCapture({
+    captureTimestamp: DECIDED_AT,
+    universe: [scannerCandidate],
+    observedCandidates: [scannerCandidate],
+    ranking,
+    eligibleCandidateTickers: ["TST"],
+    publishableThreshold: 70,
+    publishedTickers: ["TST"],
+    recommendationBuildPath: "published",
+  });
+  const record = buildCandidateDecisionRecord({
+    scanRun,
+    capture,
+    scoringVersion: "score_test_v1",
+    buildVersion: "test-build-v1",
+    learningAttribution: completeAttribution(),
+  });
+
+  expect(record).not.toBeNull();
+  return {
+    run: {
+      ...scanRun,
+      payload_json: {
+        ...scanRun.payload_json,
+        candidate_decision_record: record,
+      },
+    },
+    record: record!,
+  };
+}
+
+function snapshotFor(scanRunFingerprint: string) {
+  return buildRecommendationSnapshot({
+    recommendation_id: "rec_tst",
+    scan_run_id: scanRunFingerprint,
+    ticker: "TST",
+    company_name: "Test Incorporated",
+    recommended_at: DECIDED_AT,
+    app_timestamp: DECIDED_AT,
+    window: "morning",
+    source_mode: "supabase",
+    is_visible: true,
+    is_real: true,
+    entry: 100,
+    stop: 96,
+    target: 108,
+    side: "long",
+    confidence: 82,
+    payload: {
+      confidence_label: "high",
+    },
+  });
+}
+
+function completeOutcome(
+  snapshot: ReturnType<typeof snapshotFor>,
+  horizon = "60m",
+  includeCanonicalCoverage = true,
+) {
+  const outcome = computeRecommendationOutcome({
+    snapshot,
+    horizon,
+    evaluated_at: "2026-09-17T15:35:00.000Z",
+    source: "intraday_candles",
+    provider: "twelve_data",
+    data_completeness: "complete",
+    candles: [
+      {
+        timestamp: "2026-09-17T14:31:00.000Z",
+        open: 100,
+        high: 109,
+        low: 99,
+        close: 108,
+      },
+    ],
+  }).outcome;
+
+  const result = {
+    ...outcome,
+    payload_json: {
+      ...outcome.payload_json,
+      ...(includeCanonicalCoverage
+        ? {
+            canonical_provider_coverage: {
+              provider_status: "available",
+              freshness: "fresh",
+              expected_candle_count: 1,
+              observed_candle_count: 1,
+              malformed_candle_count: 0,
+              blockers: [],
+            },
+          }
+        : {}),
+    },
+  };
+
+  return result;
+}
+
+test.describe("recommendation learning baseline readiness", () => {
+  test("selects one 60m primary outcome from an exactly linked published decision without treating ordinal confidence as probability", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = completeOutcome(snapshot);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [outcome],
+    });
+
+    expect(readiness.decision_records).toMatchObject({
+      attributable_count: 1,
+      complete_population_count: 1,
+    });
+    expect(readiness.policy_attribution.status).toBe("complete");
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 1,
+      primary_outcome_count: 1,
+      primary_outcome_by_horizon: { "15m": 0, "30m": 0, "60m": 1 },
+    });
+    expect(readiness.confidence_calibration).toEqual({
+      status: "blocked_ordinal_confidence",
+      numeric_probability_sample_count: 0,
+    });
+    expect(readiness.status).toBe("not_ready");
+    expect(readiness.blockers).toContain(
+      "insufficient_visible_primary_outcomes_for_baseline_freeze",
+    );
+  });
+
+  test("fails closed when a published candidate has duplicate primary-horizon rows", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = completeOutcome(snapshot);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [outcome, { ...outcome, id: "duplicate_60m_outcome" }],
+    });
+
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 1,
+      primary_outcome_count: 0,
+      incomplete_or_conflicting_outcome_count: 1,
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_primary_outcome_incomplete_or_conflicting",
+    );
+  });
+
+  test("does not call a complete legacy candle outcome a canonical primary outcome without persisted coverage evidence", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [completeOutcome(snapshot, "60m", false)],
+    });
+
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 1,
+      primary_outcome_count: 0,
+      incomplete_or_conflicting_outcome_count: 1,
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_primary_outcome_incomplete_or_conflicting",
+    );
+  });
+
+  test("fails closed when a linked outcome predates the decision", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = {
+      ...completeOutcome(snapshot),
+      evaluated_at: "2026-09-17T14:00:00.000Z",
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [outcome],
+    });
+
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 0,
+      pre_decision_outcome_count: 1,
+      primary_outcome_count: 0,
+    });
+    expect(readiness.blockers).toContain("outcome_precedes_candidate_decision");
+  });
+
+  test("fails closed when an outcome fingerprint is paired with a conflicting snapshot identity", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [snapshot],
+      outcomes: [
+        {
+          ...completeOutcome(snapshot),
+          snapshot_id: "conflicting_snapshot_id",
+        },
+      ],
+    });
+
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 1,
+      primary_outcome_count: 0,
+      incomplete_or_conflicting_outcome_count: 1,
+    });
+    expect(readiness.blockers).toContain(
+      "outcome_snapshot_or_recommendation_relation_conflict",
+    );
+  });
+
+  test("keeps legacy decision records out of a policy-attributed learning baseline", () => {
+    const { run, record } = persistedPublishedScan();
+    const legacyRecord = {
+      ...record,
+      record_version: "candidate_decision_record_v1",
+    };
+    delete (legacyRecord as { learning_attribution?: unknown }).learning_attribution;
+    const legacyRun = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: legacyRecord,
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [legacyRun],
+      snapshots: [],
+      outcomes: [],
+    });
+
+    expect(readiness.decision_records.attributable_count).toBe(1);
+    expect(readiness.policy_attribution).toMatchObject({
+      status: "incomplete",
+      complete_record_count: 0,
+      incomplete_record_count: 1,
+    });
+    expect(readiness.blockers).toContain("canonical_policy_attribution_incomplete");
+  });
+
+  test("does not turn research, rejected, or no-trade decisions into invented outcomes", () => {
+    const { run } = persistedPublishedScan();
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [],
+      outcomes: [],
+    });
+
+    expect(readiness.counterfactual_coverage).toEqual({
+      research_candidate_outcomes_collected: 0,
+      rejected_candidate_outcomes_collected: 0,
+      no_trade_outcomes_collected: 0,
+      status: "not_collected",
+    });
+    expect(readiness.decision_population).toMatchObject({
+      published_candidate_count: 1,
+      research_candidate_count: 0,
+      rejected_candidate_count: 0,
+      explicit_no_trade_count: 0,
+    });
+  });
+});

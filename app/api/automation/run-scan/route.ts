@@ -70,7 +70,12 @@ import {
 import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
-import { buildCandidateDecisionRecord } from "@/lib/candidate-decision-record";
+import {
+  buildCandidateDecisionRecord,
+  type CandidateDecisionCapture,
+} from "@/lib/candidate-decision-record";
+import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
+import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
@@ -263,6 +268,45 @@ function automationVersionFields() {
     recommendation_publish_policy_version: RECOMMENDATION_PUBLISH_POLICY_VERSION,
     build_marker: BUILD_MARKER,
   };
+}
+
+function currentBuildGitCommit() {
+  for (const value of [process.env.COMMIT_REF, process.env.GITHUB_SHA]) {
+    const commit = value?.trim() ?? "";
+    if (/^[a-f0-9]{40}$/i.test(commit)) {
+      return commit.toLowerCase();
+    }
+  }
+
+  return null;
+}
+
+function buildCandidateDecisionLearningAttributionForScan(
+  capture: CandidateDecisionCapture | null | undefined,
+) {
+  const gitCommit = currentBuildGitCommit();
+  const rankingVersion = capture?.ranking
+    ? `scanner_candidate_ranking_v${capture.ranking.summary_version}`
+    : null;
+  const canonicalEvaluationVersions =
+    gitCommit && rankingVersion && capture
+      ? {
+          engine_version: "ture_intelligence_engine_v1",
+          scoring_version: DAY_TRADE_SCORING_VERSION,
+          ranking_version: rankingVersion,
+          setup_taxonomy_version: "setup_taxonomy_not_recorded_v1",
+          confidence_contract_version: "ordinal_confidence_not_calibrated_v1",
+          evaluator_version: CANONICAL_OUTCOME_EVALUATOR_VERSION,
+          provider_contract_version: capture.provider_contract_version,
+          git_commit: gitCommit,
+          build_identity: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+        }
+      : null;
+
+  return buildCandidateDecisionLearningAttribution({
+    recommendationPublishPolicyVersion: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    canonicalEvaluationVersions,
+  });
 }
 
 function powerHourTrialCopyFields() {
@@ -2360,6 +2404,9 @@ async function persistAutomationArtifacts({
     capture: scanLog.candidate_decision_capture,
     scoringVersion: DAY_TRADE_SCORING_VERSION,
     buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+    learningAttribution: buildCandidateDecisionLearningAttributionForScan(
+      scanLog.candidate_decision_capture,
+    ),
   });
   if (candidateDecisionRecord) {
     scanRun.payload_json.candidate_decision_record = candidateDecisionRecord;
