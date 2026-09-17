@@ -579,15 +579,26 @@ export function basicFreeDiscoveryReadbackFromScheduledAttempt(
     "closed",
     "unknown",
   ] as const);
-  const readback = basicFreeDiscoveryReadbackFromUnknown(payload?.basic_free_discovery, {
+  const sourceScan = {
     observed_at: isoTimestampOrNull(attempt.utc_timestamp),
     trading_date: dateStringOrNull(attempt.trading_date) ?? null,
     window: window ?? null,
-  });
+  };
+  const readback = basicFreeDiscoveryReadbackFromUnknown(
+    payload?.basic_free_discovery,
+    sourceScan,
+  );
+  const oneShotControl = basicFreeCatalogOneShotReadbackFromUnknown(
+    payload?.basic_free_catalog_one_shot,
+  );
+
   return {
     ...readback,
-    one_shot_control: basicFreeCatalogOneShotReadbackFromUnknown(
-      payload?.basic_free_catalog_one_shot,
-    ),
+    one_shot_control:
+      oneShotControl.receipt_status === "available" &&
+      sourceScan.trading_date !== null &&
+      oneShotControl.evaluated_trading_date !== sourceScan.trading_date
+        ? oneShotControlInvalid()
+        : oneShotControl,
   };
 }
