@@ -473,15 +473,39 @@ Webpack production build passed. It is not yet merged, deployed or browser
 verified. It does not change ranking, publication, execution, provider budgets
 or configuration.
 
-**Remaining IF-2 acceptance:** the original market-movers receipt cannot be
-accepted under Basic Free because its endpoint is Pro-only. The next active
-acceptance step is—during a normal open-market window and only with the
-explicit runtime switch and both budgets configured—one normal scheduled
-observation and persisted browser-receipt verification. It may use only a
-documented Basic-available endpoint and must not claim market-wide coverage,
+**IF-2 Basic Free acceptance scope:** the original market-movers receipt cannot
+be accepted under Basic Free because its endpoint is Pro-only. The compatibility
+variant may use only the documented `/stocks` page observation with its explicit
+runtime switch and declared budgets; it cannot claim market-wide coverage,
 change ranking or publish candidates. A future Pro upgrade may re-enable the
 separate 100-credit market-movers path only after its actual provider
 entitlement is verified.
+
+**IF-2a Basic Free environment acceptance, production verified:** PR
+[#524](https://github.com/willyvalentin/trade/pull/524) merged as
+`6c77b2637a4d2cce9a9d3ccebe57d4d4e49c6f05`; exact-main CI
+`35235274697` passed. The approved additive migration
+`20260917135646_if2_basic_free_daily_observation_claim.sql` is applied to
+production and its per-owner/per-New-York-day `catalog_observation` guard,
+partial unique index and fixed-search-path service-role RPC were read back.
+At 17:15 CEST on 2026-09-17, one ordinary `scheduled-scan` performed the
+explicitly authorized, reference-only Twelve Data `/stocks` observation: eight
+US common-stock records observed from a 16,401-record denominator; exactly one
+of the declared 800 daily credits reserved and finalized. The authenticated
+product UI rendered the persisted receipt. The observer retained
+`collection_complete = false` and `discovery_feed_allowed = false`, and did
+not enter candidate generation, ranking, publication, execution or a broker
+path. The scheduler stop was restored after that one observation; production
+deploy `6aac0517b785bc3140f54574` from the same exact main revision logged
+`Execution disabled by environment.` at the next ordinary 17:30 CEST slot in
+90.49 ms, with no second provider request or credit use.
+
+**Next IF-2 decision:** this closes only the Basic Free compatibility variant's
+single-page receipt gate. It is not market-wide discovery, a complete symbol
+catalog, a relative-volume adapter, a candidate-quality result or a learning
+result. Any broader catalog collection remains separately costed and requires
+explicit provider-request authority, a coverage denominator, durable progress
+and resume behavior, freshness/readback evidence and a bounded rollout.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
