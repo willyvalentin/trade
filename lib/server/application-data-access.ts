@@ -52,6 +52,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationBatches,
     recommendationSnapshots,
     recommendationOutcomes,
+    scheduledOutcomeEvaluationAttempts,
     marketRegime,
   ] = await Promise.all([
     client.from("recommendations").select("*").eq("owner_user_id", owner),
@@ -119,6 +120,12 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .order("evaluated_at", { ascending: false })
       .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
     client
+      .from("scheduled_outcome_evaluation_attempts")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("scheduled_slot_at", { ascending: false })
+      .limit(50),
+    client
       .from("market_regime_snapshots")
       .select("*")
       .order("created_at", { ascending: false })
@@ -138,6 +145,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationBatches,
     recommendationSnapshots,
     recommendationOutcomes,
+    scheduledOutcomeEvaluationAttempts,
     marketRegime,
   ];
 
@@ -159,6 +167,8 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       recommendation_batches: recommendationBatches.data ?? [],
       recommendation_snapshots: recommendationSnapshots.data ?? [],
       recommendation_outcomes: recommendationOutcomes.data ?? [],
+      scheduled_outcome_evaluation_attempts:
+        scheduledOutcomeEvaluationAttempts.data ?? [],
       market_regime: marketRegime.data,
     },
   };
