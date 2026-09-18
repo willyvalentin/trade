@@ -127,9 +127,12 @@ session outside an official publication window remains explicitly non-publish
 but cannot be described as closed. The correction does not alter scheduling,
 provider admission, credit reservation, ranking, confidence, publication or
 execution. Three focused Playwright regressions, targeted ESLint, TypeScript
-and the Webpack production build passed locally. It is not yet merged,
-production-deployed or environment-behavior verified; it is a decision-trace
-truth correction, not evidence of stronger recommendation quality.
+and the Webpack production build passed locally. PR
+[#546](https://github.com/willyvalentin/trade/pull/546) carries the change;
+merge/deploy status must be read from its protected CI and deployment evidence.
+An authenticated production behavior readback after a production refresh
+remains required. This is a decision-trace truth correction, not evidence of
+stronger recommendation quality.
 
 **Merged and production-verified IF-2b relative-volume temporal-admissibility
 hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged
