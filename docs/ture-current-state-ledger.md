@@ -79,13 +79,16 @@ provider evidence before it can change the collection design. Local focused
 capacity/readback/route-contract tests passed; the authenticated UI remains
 unverified because no login credentials were used.
 
-**Local IF-2b fixed-size catalog capability-probe delivery:** a separate,
-default-off, exact-New-York-date control can admit one reference-only
-`/stocks` probe with fixed `outputsize = 100`, after a future explicitly
-authorized production configuration change. The size is a chosen measurement
-target, not a claimed Basic Free maximum. The normal eight-record catalog
-observation cannot use it: the versioned admission contract rejects every
-reference-mode/output-size mismatch before either durable reservation or
+**Merged and production-verified IF-2b fixed-size catalog capability probe:**
+PR [#543](https://github.com/willyvalentin/trade/pull/543) merged as
+`962468d5347edb62eee8ab268fb76e22961a715a`; Netlify production deploy
+`6aad7e84cbe58600082bd27e` became ready at 2026-09-18 18:11:28 UTC on that
+revision. A separate, default-off, exact-New-York-date control can admit one
+reference-only `/stocks` probe with fixed `outputsize = 100`, after a future
+explicitly authorized production configuration change. The size is a chosen
+measurement target, not a claimed Basic Free maximum. The normal eight-record
+catalog observation cannot use it: the versioned admission contract rejects
+every reference-mode/output-size mismatch before either durable reservation or
 provider access. The existing one-credit reservation and finalization path is
 reused, while the versioned v2 receipt records the reference mode, fixed
 request size, decoded response JSON byte count, observed record count and
@@ -94,10 +97,11 @@ semantics. Browser readback labels the result as a capability probe and
 explicitly withholds both catalog-collection planning and market-wide capacity
 inference. It remains reference-only: no scanner, ranking, publication,
 execution, migration, provider request or production configuration change has
-occurred. Local evidence: 30 focused Basic Free tests, the 166-test
+occurred. Before merge, 30 focused Basic Free tests, the 166-test
 provider-free intelligence-foundation regression, TypeScript, targeted lint and
-the Webpack production build pass. The authenticated UI is not
-environment-verified because no login credentials were used.
+the Webpack production build passed. The authenticated production UI was read
+without a new probe receipt; it must not be represented as an environment-run
+probe verification.
 
 **Merged and production-verified IF-2b relative-volume temporal-admissibility
 hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged

@@ -173,6 +173,7 @@ export type LiveMarketTrialReadinessSummary = {
     profitability_boundary: string;
     execution_boundary: string;
     closed_market: string;
+    market_window_context: string;
   };
 };
 
@@ -308,6 +309,10 @@ function isMarketWaitState(input: LiveMarketTrialReadinessInput) {
     return false;
   }
 
+  if (input.scan_orchestration.market_is_open) {
+    return false;
+  }
+
   return (
     input.scan_orchestration.active_window === "closed" ||
     input.scan_orchestration.active_window === "outside_window" ||
@@ -318,6 +323,40 @@ function isMarketWaitState(input: LiveMarketTrialReadinessInput) {
     input.market_session.phase === "closed" ||
     input.market_session.phase === "holiday"
   );
+}
+
+function isMarketOpenBetweenOfficialPublicationWindows(
+  input: LiveMarketTrialReadinessInput,
+) {
+  return (
+    input.scan_orchestration.market_is_open &&
+    !isActiveTrialWindow(input.scan_orchestration.active_window) &&
+    (input.scan_orchestration.active_window === "outside_window" ||
+      input.scan_orchestration.decision === "outside_scan_window")
+  );
+}
+
+function marketWindowContext(input: {
+  activeWindow: boolean;
+  marketOpenBetweenOfficialPublicationWindows: boolean;
+  marketWaitState: boolean;
+  nextWindow: LiveMarketTrialReadinessSummary["next_active_window"];
+}) {
+  if (input.activeWindow) {
+    return "US market is open and Ture is inside a configured official publication window.";
+  }
+
+  if (input.marketOpenBetweenOfficialPublicationWindows) {
+    return "US market is open, but Ture is between configured official publication windows. Background observation remains separately gated; no recommendation is due merely because the market is open.";
+  }
+
+  if (input.marketWaitState) {
+    return input.nextWindow === null
+      ? "Closed market is a wait state. Recheck when the next active scan window is available."
+      : `Market is closed. Ture is waiting for ${input.nextWindow.label}.`;
+  }
+
+  return "No active or next recommendation window is available.";
 }
 
 function buildNextWindow(input: LiveMarketTrialReadinessInput) {
@@ -347,6 +386,7 @@ function buildSuggestedAction(input: {
   blockers: LiveMarketTrialReadinessBlocker[];
   warnings: LiveMarketTrialReadinessWarning[];
   nextWindow: LiveMarketTrialReadinessSummary["next_active_window"];
+  marketOpenBetweenOfficialPublicationWindows: boolean;
   canLogRecommendations: boolean;
 }): LiveMarketTrialReadinessNextAction {
   const firstBlocker = input.blockers[0];
@@ -381,6 +421,16 @@ function buildSuggestedAction(input: {
         input.nextWindow === null
           ? "Closed market is a wait state. Recheck when the next active scan window is available."
           : `Market is closed. Ture is waiting for ${input.nextWindow.label}.`,
+    };
+  }
+
+  if (input.marketOpenBetweenOfficialPublicationWindows) {
+    return {
+      action_id: "between_official_publication_windows",
+      priority: "watch",
+      label: "Official publication is between windows",
+      message:
+        "US market is open. A background observation must independently pass its scheduled, market-session and credit-admission checks; no recommendation scan is due in this interval.",
     };
   }
 
@@ -532,6 +582,8 @@ export function buildLiveMarketTrialReadinessSummary(
       : "unknown";
   const activeWindow = isActiveTrialWindow(input.scan_orchestration.active_window);
   const marketWaitState = isMarketWaitState(input);
+  const marketOpenBetweenOfficialPublicationWindows =
+    isMarketOpenBetweenOfficialPublicationWindows(input);
   const marketClosedWithNextWindow =
     marketWaitState &&
     (input.scan_orchestration.active_window === "closed" ||
@@ -627,7 +679,9 @@ export function buildLiveMarketTrialReadinessSummary(
       check_id: "market_window",
       label: "Active window classification",
       status:
-        activeWindow || marketClosedWithNextWindow
+        activeWindow ||
+        marketOpenBetweenOfficialPublicationWindows ||
+        marketClosedWithNextWindow
           ? "pass"
           : marketClosedWithoutNextWindow
             ? "warning"
@@ -635,6 +689,8 @@ export function buildLiveMarketTrialReadinessSummary(
       source: "market_session",
       message: activeWindow
         ? `Current live trial window is ${words(input.scan_orchestration.active_window)}.`
+        : marketOpenBetweenOfficialPublicationWindows
+          ? "US market is open outside the configured official publication windows. Background observation is separately scheduled and gated."
         : marketClosedWithNextWindow
           ? `Market is closed. Ture is waiting for ${nextWindow?.label ?? "the next active scan window"}.`
           : "No active or next recommendation window is available.",
@@ -691,8 +747,10 @@ export function buildLiveMarketTrialReadinessSummary(
       message:
         scannerRanking === null && successfulLiveBatchObserved
           ? `Candidate ranking is observed through the latest official batch with ${latestBatch.recommendation_count} recommendations.`
-          : !activeWindow && scannerRanking === null
-            ? "Candidate ranking is not expected while the market is closed; scanner output will be evaluated during the next active window."
+        : !activeWindow && scannerRanking === null
+            ? marketOpenBetweenOfficialPublicationWindows
+              ? "Candidate ranking is not scheduled between official publication windows; background observation remains separately gated."
+              : "Candidate ranking is not expected while the market is closed; scanner output will be evaluated during the next active window."
             : scannerRanking === null
               ? "Candidate ranking has not been observed in the latest scan yet."
               : `${scannerRanking.selected_count} candidates selected from ${scannerRanking.candidates_ranked} ranked candidates.`,
@@ -714,8 +772,10 @@ export function buildLiveMarketTrialReadinessSummary(
       message:
         successfulLiveBatchObserved
           ? `Scanner output is observed through the latest official live batch with ${latestBatch.recommendation_count} recommendations.`
-          : input.scanner_qa.overall_status === "blocked" && !activeWindow
-            ? "No active scanner candidates are expected while market is closed. Scanner output will be evaluated during the next active window."
+        : input.scanner_qa.overall_status === "blocked" && !activeWindow
+            ? marketOpenBetweenOfficialPublicationWindows
+              ? "No official scanner candidates are expected between publication windows. Background observation remains separately gated."
+              : "No active scanner candidates are expected while market is closed. Scanner output will be evaluated during the next active window."
             : input.scanner_qa.summary,
     }),
     check({
@@ -867,7 +927,14 @@ export function buildLiveMarketTrialReadinessSummary(
     blockers,
     warnings,
     nextWindow,
+    marketOpenBetweenOfficialPublicationWindows,
     canLogRecommendations,
+  });
+  const currentMarketWindowContext = marketWindowContext({
+    activeWindow,
+    marketOpenBetweenOfficialPublicationWindows,
+    marketWaitState,
+    nextWindow,
   });
 
   return {
@@ -985,6 +1052,7 @@ export function buildLiveMarketTrialReadinessSummary(
       execution_boundary: "Ture does not send broker orders.",
       closed_market:
         "Closed market is a wait state, not a scanner failure. No active candidates are expected while the market is closed.",
+      market_window_context: currentMarketWindowContext,
     },
   };
 }

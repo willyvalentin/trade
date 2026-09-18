@@ -89,6 +89,8 @@ export type RecommendationEngineControlCenterInput = {
   data_mode_clarity?: DataModeClaritySummary | null;
   market_wait_state?: {
     is_wait_state?: boolean | null;
+    market_is_open?: boolean | null;
+    outside_official_publication_window?: boolean | null;
     next_window_label?: string | null;
     reason?: string | null;
   } | null;
@@ -426,6 +428,19 @@ function waitStateStatus(
   return marketWaitState && status === "blocked" ? "thin_data" : status;
 }
 
+function isMarketOpenBetweenOfficialPublicationWindows(
+  marketWaitState: RecommendationEngineControlCenterInput["market_wait_state"],
+) {
+  return (
+    marketWaitState?.market_is_open === true &&
+    marketWaitState.outside_official_publication_window === true
+  );
+}
+
+function openMarketBetweenWindowsMessage() {
+  return "US market is open, but Ture is between configured official publication windows. Background observation remains separately gated; no published recommendation is due merely because the market is open.";
+}
+
 function waitStateMessage(input: RecommendationEngineControlCenterInput) {
   const nextWindow = input.market_wait_state?.next_window_label?.trim();
 
@@ -440,7 +455,10 @@ function buildNextAction(
   sampleQuality: RecommendationSampleQualitySummary,
   marketWaitState?: RecommendationEngineControlCenterInput["market_wait_state"],
 ): RecommendationEngineControlCenterNextAction {
-  if (marketWaitState?.is_wait_state) {
+  if (
+    marketWaitState?.is_wait_state &&
+    !isMarketOpenBetweenOfficialPublicationWindows(marketWaitState)
+  ) {
     return {
       action_id: "wait_for_next_active_window",
       label: "Wait for next active window",
@@ -449,6 +467,16 @@ function buildNextAction(
         marketWaitState.next_window_label?.trim()
           ? `Market is closed. Ture is waiting for ${marketWaitState.next_window_label}.`
           : "Market is closed. Ture is waiting for the next active scan window.",
+      destination: "market",
+    };
+  }
+
+  if (isMarketOpenBetweenOfficialPublicationWindows(marketWaitState)) {
+    return {
+      action_id: "between_official_publication_windows",
+      label: "Official publication is between windows",
+      priority: "watch",
+      message: openMarketBetweenWindowsMessage(),
       destination: "market",
     };
   }
@@ -583,12 +611,17 @@ export function buildRecommendationEngineControlCenterSummary(
   const now = toDate(input.now) ?? new Date();
   const performance = input.performance.summary;
   const currentWindow = input.day_trade_window_target.current_window_count;
-  const marketWaitState = input.market_wait_state?.is_wait_state === true;
+  const marketOpenBetweenOfficialPublicationWindows =
+    isMarketOpenBetweenOfficialPublicationWindows(input.market_wait_state);
+  const marketWaitState =
+    input.market_wait_state?.is_wait_state === true &&
+    !marketOpenBetweenOfficialPublicationWindows;
   const scanHealthStatus = waitStateStatus(
     scanStatus(input.scan_observability),
     marketWaitState,
   );
-  const windowHealthStatus = marketWaitState
+  const windowHealthStatus =
+    marketWaitState || marketOpenBetweenOfficialPublicationWindows
     ? "learning"
     : targetStatus(input.day_trade_window_target);
   const trendStatus = waitStateStatus(
@@ -634,6 +667,8 @@ export function buildRecommendationEngineControlCenterSummary(
       status: scanHealthStatus,
       summary: marketWaitState
         ? waitStateMessage(input)
+        : marketOpenBetweenOfficialPublicationWindows
+          ? openMarketBetweenWindowsMessage()
         : `${words(input.scan_observability.status)} scan state with ${input.scan_observability.visible_recommendation_count} visible recommendations.`,
       signals: [
         signal({
@@ -644,6 +679,8 @@ export function buildRecommendationEngineControlCenterSummary(
           status: scanHealthStatus,
           message: marketWaitState
             ? "Scanner output will be evaluated during the next active window."
+            : marketOpenBetweenOfficialPublicationWindows
+              ? "No official candidate publication is due in this interval."
             : input.scan_observability.summary,
         }),
         signal({
@@ -665,6 +702,8 @@ export function buildRecommendationEngineControlCenterSummary(
       status: windowHealthStatus,
       summary: marketWaitState
         ? "Publication is not applicable while the market is closed."
+        : marketOpenBetweenOfficialPublicationWindows
+          ? "The market is open, but Ture is between configured official publication windows."
         : currentWindow.total === 0
           ? "No trade-ready candidates in the current window; no_trade is valid."
           : `${currentWindow.total} of at most ${input.day_trade_window_target.ideal_max} trade-ready candidates in the current window.`,
@@ -674,12 +713,16 @@ export function buildRecommendationEngineControlCenterSummary(
           label: "Current publication set",
           value: currentWindow.total,
           formatted_value:
-            currentWindow.total === 0
+            marketOpenBetweenOfficialPublicationWindows
+              ? "Between windows"
+              : currentWindow.total === 0
               ? "No trade"
               : `${currentWindow.total} / max ${input.day_trade_window_target.ideal_max}`,
           status: windowHealthStatus,
           message: marketWaitState
             ? "No active candidates are expected while the market is closed."
+            : marketOpenBetweenOfficialPublicationWindows
+              ? "No recommendation outcome is implied before the next official publication window."
             : currentWindow.total === 0
               ? "No candidate was promoted merely to satisfy a count."
               : `${currentWindow.strong} strong, ${currentWindow.valid} valid, ${currentWindow.experimental} experimental.`,
@@ -872,7 +915,11 @@ export function buildRecommendationEngineControlCenterSummary(
     summary_version: "1.0",
     generated_at: now.toISOString(),
     overall_status: overall,
-    overall_message: marketWaitState ? waitStateMessage(input) : statusMessage(overall),
+    overall_message: marketWaitState
+      ? waitStateMessage(input)
+      : marketOpenBetweenOfficialPublicationWindows
+        ? openMarketBetweenWindowsMessage()
+        : statusMessage(overall),
     top_signals: topSignals.slice(0, 6),
     warnings: collectWarnings(input),
     next_action: nextAction,
@@ -895,6 +942,8 @@ export function buildRecommendationEngineControlCenterSummary(
       data_first:
         marketWaitState
           ? "Closed market is a wait state, not a scanner failure."
+          : marketOpenBetweenOfficialPublicationWindows
+            ? "An open market outside the official publication windows is not a closed-market state."
           : "When data is thin, the best next step is usually more clean evaluated samples.",
     },
   };
