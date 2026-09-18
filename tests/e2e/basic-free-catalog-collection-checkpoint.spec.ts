@@ -27,7 +27,9 @@ function startInput() {
   };
 }
 
-function checkpoint(overrides: Partial<BasicFreeCatalogCollectionCheckpoint> = {}) {
+function checkpoint(
+  overrides: Partial<BasicFreeCatalogCollectionCheckpoint> = {},
+): BasicFreeCatalogCollectionCheckpoint {
   return {
     collection_id: collectionId,
     collection_fingerprint: fingerprint,
