@@ -380,6 +380,7 @@ function catalogSummary(
     provider: "twelve_data",
     fetched_at: page.fetched_at,
     response: { data: page.records },
+    provider_catalog_count: page.provider_catalog_count,
     pagination: {
       first_page: 1,
       last_page: null,

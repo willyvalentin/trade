@@ -8,10 +8,18 @@ import {
 const fetchedAt = "2026-09-15T14:00:00.000Z";
 
 function completeCatalog(response: unknown) {
+  const records =
+    typeof response === "object" &&
+    response !== null &&
+    Array.isArray((response as { data?: unknown }).data)
+      ? (response as { data: unknown[] }).data
+      : null;
+
   return buildMarketWideSymbolMaster({
     provider: "twelve_data",
     fetched_at: fetchedAt,
     response,
+    provider_catalog_count: records?.length ?? null,
     pagination: {
       first_page: 1,
       last_page: 2,
@@ -60,6 +68,11 @@ test.describe("market-wide symbol master contract", () => {
         not_us_equity: 1,
         not_usd: 1,
       },
+      coverage: {
+        provider_catalog_count: 4,
+        observed_record_count: 4,
+        observed_record_count_matches_denominator: true,
+      },
     });
     expect(result.eligible_entries).toEqual([
       expect.objectContaining({ symbol: "AAPL", provider_access: "Global" }),
@@ -72,6 +85,7 @@ test.describe("market-wide symbol master contract", () => {
       provider: "twelve_data",
       fetched_at: fetchedAt,
       response: { data: [stock("AAPL")] },
+      provider_catalog_count: 1,
       pagination: {
         first_page: 1,
         last_page: 1,
@@ -87,6 +101,67 @@ test.describe("market-wide symbol master contract", () => {
       discovery_feed_allowed: false,
       eligible_record_count: 1,
       blockers: ["catalog_collection_not_complete"],
+    });
+  });
+
+  test("fails closed when the provider does not supply a catalog denominator", () => {
+    const result = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      response: { data: [stock("AAPL")] },
+      pagination: {
+        first_page: 1,
+        last_page: 1,
+        pages_fetched: 1,
+        total_pages: 1,
+        has_next_page: false,
+      },
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      coverage: {
+        provider_catalog_count: null,
+        observed_record_count: 1,
+        observed_record_count_matches_denominator: false,
+      },
+      blockers: expect.arrayContaining([
+        "catalog_coverage_denominator_missing",
+        "catalog_collection_not_complete",
+      ]),
+    });
+  });
+
+  test("fails closed when collected records do not match the provider denominator", () => {
+    const result = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      response: { data: [stock("AAPL"), stock("MSFT")] },
+      provider_catalog_count: 3,
+      pagination: {
+        first_page: 1,
+        last_page: 1,
+        pages_fetched: 1,
+        total_pages: 1,
+        has_next_page: false,
+      },
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      coverage: {
+        provider_catalog_count: 3,
+        observed_record_count: 2,
+        observed_record_count_matches_denominator: false,
+      },
+      blockers: expect.arrayContaining([
+        "catalog_coverage_denominator_mismatch",
+        "catalog_collection_not_complete",
+      ]),
     });
   });
 

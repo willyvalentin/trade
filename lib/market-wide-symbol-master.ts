@@ -1,5 +1,5 @@
 export const marketWideSymbolMasterPolicyVersion =
-  "us_equity_symbol_master_contract_v1" as const;
+  "us_equity_symbol_master_contract_v2" as const;
 
 export type MarketWideSymbolMasterStatus =
   | "complete"
@@ -29,6 +29,7 @@ export type MarketWideSymbolMasterInput = {
   provider: "twelve_data";
   fetched_at: Date | string | null | undefined;
   response: unknown;
+  provider_catalog_count?: unknown;
   pagination?: Partial<MarketWideSymbolMasterPagination> | null;
 };
 
@@ -51,11 +52,16 @@ export type MarketWideSymbolMasterRejection = {
 };
 
 export type MarketWideSymbolMasterSummary = {
-  summary_version: "1.0";
+  summary_version: "2.0";
   summary_kind: "market_wide_symbol_master";
   policy_version: typeof marketWideSymbolMasterPolicyVersion;
   provider: "twelve_data";
   fetched_at: string | null;
+  coverage: {
+    provider_catalog_count: number | null;
+    observed_record_count: number;
+    observed_record_count_matches_denominator: boolean;
+  };
   status: MarketWideSymbolMasterStatus;
   collection_complete: boolean;
   discovery_feed_allowed: boolean;
@@ -108,6 +114,11 @@ export function buildMarketWideSymbolMaster(
   const pagination = normalizePagination(input.pagination);
   const sourceRecords = responseRecords(input.response);
   const records = sourceRecords ?? [];
+  const providerCatalogCount = nonNegativeInteger(input.provider_catalog_count);
+  const observedRecordCountMatchesDenominator =
+    providerCatalogCount !== null &&
+    sourceRecords !== null &&
+    providerCatalogCount === records.length;
   const rejections: MarketWideSymbolMasterRejection[] = [];
   const eligibleEntries: MarketWideSymbolMasterEntry[] = [];
   const symbolCounts = new Map<string, number>();
@@ -154,6 +165,7 @@ export function buildMarketWideSymbolMaster(
     pagination,
     fetchedAt,
     records: sourceRecords,
+    observedRecordCountMatchesDenominator,
   });
   const status = collectionStatus({
     records: sourceRecords,
@@ -165,6 +177,17 @@ export function buildMarketWideSymbolMaster(
 
   if (!fetchedAt) blockers.push("catalog_fetched_at_invalid");
   if (!sourceRecords) blockers.push("catalog_response_data_missing");
+  if (providerCatalogCount === null) {
+    blockers.push("catalog_coverage_denominator_missing");
+    gaps.push(
+      "A complete symbol catalog requires the provider's scoped record-count denominator.",
+    );
+  } else if (sourceRecords && !observedRecordCountMatchesDenominator) {
+    blockers.push("catalog_coverage_denominator_mismatch");
+    gaps.push(
+      "Collected raw catalog records do not match the provider's scoped record-count denominator.",
+    );
+  }
   if (status !== "complete") {
     blockers.push("catalog_collection_not_complete");
     gaps.push(
@@ -186,11 +209,17 @@ export function buildMarketWideSymbolMaster(
 
   return {
     summary: {
-      summary_version: "1.0",
+      summary_version: "2.0",
       summary_kind: "market_wide_symbol_master",
       policy_version: marketWideSymbolMasterPolicyVersion,
       provider: input.provider,
       fetched_at: fetchedAt,
+      coverage: {
+        provider_catalog_count: providerCatalogCount,
+        observed_record_count: records.length,
+        observed_record_count_matches_denominator:
+          observedRecordCountMatchesDenominator,
+      },
       status,
       collection_complete: collectionComplete,
       discovery_feed_allowed:
@@ -258,14 +287,17 @@ function isCompleteCollection({
   pagination,
   fetchedAt,
   records,
+  observedRecordCountMatchesDenominator,
 }: {
   pagination: MarketWideSymbolMasterPagination;
   fetchedAt: string | null;
   records: unknown[] | null;
+  observedRecordCountMatchesDenominator: boolean;
 }) {
   if (!fetchedAt || !records || records.length === 0) return false;
 
   return (
+    observedRecordCountMatchesDenominator &&
     pagination.first_page === 1 &&
     pagination.last_page !== null &&
     pagination.pages_fetched !== null &&
@@ -316,6 +348,14 @@ function pageNumber(value: unknown) {
     Number.isInteger(value) &&
     Number.isSafeInteger(value) &&
     value > 0
+    ? value
+    : null;
+}
+
+function nonNegativeInteger(value: unknown) {
+  return typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0
     ? value
     : null;
 }
