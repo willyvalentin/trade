@@ -52,6 +52,13 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basicFreeCatalogOneShot.catalog_only_enforced");
   expect(route).toContain("basic_free_catalog_one_shot: basicFreeCatalogOneShot");
   expect(route).toContain("basic_free_catalog_one_shot_waiting_for_observable_window");
+  expect(route).toContain("readyBasicFreeCatalogOnlyOneShot");
+  expect(route).toContain(
+    "catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot",
+  );
+  expect(route).toContain(
+    'scheduledGateDiagnostics.scheduled_gate_window ===\n                "outside_window"',
+  );
   expect(route).toContain(
     "basic_free_catalog_one_shot_observation_not_recorded",
   );

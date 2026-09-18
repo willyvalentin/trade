@@ -5,7 +5,39 @@ export type BackgroundDiscoveryObservationGateInput = {
   marketOpen: boolean;
   scheduledGateWindow: string;
   scanWindow: IntradayScanWindow;
+  /**
+   * A ready, exact-date Basic Free catalog one-shot is a separate
+   * reference-only path. It cannot fall through to normal candidate
+   * generation, and is therefore allowed during an official scan window.
+   */
+  catalogOnlyOneShotReady?: boolean;
 };
+
+function isBetweenPublicationWindowsScanWindow(window: IntradayScanWindow) {
+  return (
+    window === "opening" ||
+    window === "morning_momentum" ||
+    window === "afternoon"
+  );
+}
+
+function isCatalogOnlyOneShotScanWindow(window: IntradayScanWindow) {
+  return (
+    isBetweenPublicationWindowsScanWindow(window) ||
+    window === "midday" ||
+    window === "power_hour"
+  );
+}
+
+function isOpenScheduledGateWindow(window: string) {
+  return (
+    window === "opening" ||
+    window === "morning" ||
+    window === "midday" ||
+    window === "power_hour" ||
+    window === "outside_window"
+  );
+}
 
 /**
  * Keeps reference-only discovery observation on its own narrow path. The
@@ -15,12 +47,18 @@ export type BackgroundDiscoveryObservationGateInput = {
 export function canObserveBackgroundDiscoveryBetweenPublicationWindows(
   input: BackgroundDiscoveryObservationGateInput,
 ) {
+  if (!input.scheduled || !input.marketOpen) return false;
+
+  if (
+    input.catalogOnlyOneShotReady === true &&
+    isOpenScheduledGateWindow(input.scheduledGateWindow) &&
+    isCatalogOnlyOneShotScanWindow(input.scanWindow)
+  ) {
+    return true;
+  }
+
   return (
-    input.scheduled &&
-    input.marketOpen &&
     input.scheduledGateWindow === "outside_window" &&
-    (input.scanWindow === "opening" ||
-      input.scanWindow === "morning_momentum" ||
-      input.scanWindow === "afternoon")
+    isBetweenPublicationWindowsScanWindow(input.scanWindow)
   );
 }

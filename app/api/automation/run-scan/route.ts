@@ -3308,6 +3308,10 @@ export async function POST(request: Request) {
     marketOpenForScan,
     orchestration: dayTradeScanOrchestration,
   });
+  const readyBasicFreeCatalogOnlyOneShot =
+    basicFreeCatalogOneShot.catalog_only_enforced &&
+    basicFreeCatalogOneShot.catalog_observation_may_proceed &&
+    scheduledRuntimeConfig.provider_plan_profile_mode === "free";
   const backgroundDiscoveryObservationAllowed =
     canObserveBackgroundDiscoveryBetweenPublicationWindows({
       scheduled: !force,
@@ -3318,6 +3322,7 @@ export async function POST(request: Request) {
       marketOpen: marketOpenForScan,
       scheduledGateWindow: scheduledGateDiagnostics.scheduled_gate_window,
       scanWindow: scanWindow.scanWindow,
+      catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot,
     });
   activeScanTrace.update({
     power_hour_trial_enabled: powerHourTrialGate.power_hour_trial_enabled,
@@ -3658,7 +3663,10 @@ export async function POST(request: Request) {
             await observeBasicFreeDiscoveryBetweenPublicationWindows({
               scheduled: true,
               marketOpen: true,
-              outsideOfficialPublicationWindow: true,
+              outsideOfficialPublicationWindow:
+                scheduledGateDiagnostics.scheduled_gate_window ===
+                "outside_window",
+              catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot,
               scanWindow: scanWindow.scanWindow,
               ownerUserId,
               executionFingerprint: scheduledScanAttemptFingerprint,

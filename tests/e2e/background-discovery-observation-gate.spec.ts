@@ -52,3 +52,42 @@ test("keeps diagnostic, closed, official-window and unobservable routes fail clo
     }),
   ).toBe(false);
 });
+
+test("admits a ready catalog-only one-shot in every supported open-market scan window", () => {
+  for (const [scheduledGateWindow, scanWindow] of [
+    ["opening", "opening"],
+    ["morning", "morning_momentum"],
+    ["midday", "midday"],
+    ["outside_window", "afternoon"],
+    ["power_hour", "power_hour"],
+  ] as const) {
+    expect(
+      canObserveBackgroundDiscoveryBetweenPublicationWindows({
+        scheduled: true,
+        marketOpen: true,
+        scheduledGateWindow,
+        scanWindow,
+        catalogOnlyOneShotReady: true,
+      }),
+    ).toBe(true);
+  }
+
+  expect(
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      scheduled: true,
+      marketOpen: true,
+      scheduledGateWindow: "closed",
+      scanWindow: "opening",
+      catalogOnlyOneShotReady: true,
+    }),
+  ).toBe(false);
+  expect(
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      scheduled: true,
+      marketOpen: true,
+      scheduledGateWindow: "morning",
+      scanWindow: "morning_momentum",
+      catalogOnlyOneShotReady: false,
+    }),
+  ).toBe(false);
+});
