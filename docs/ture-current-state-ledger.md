@@ -45,6 +45,36 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
+
+**Implemented and locally verified, not merged or deployed, 2026-09-19:**
+Revision `ea4ddf2a` adds a durable, owner-bound receipt for the existing
+quarter-hour scheduled outcome evaluator. The server claims the exact
+`(owner_user_id, attempt_fingerprint)` slot before it loads snapshots or can
+request candles; a duplicate delivery returns the retained claim or receipt
+without repeating provider work. Terminal, blocked and unexpected-failure
+paths finalize a versioned `scheduled_outcome_evaluation_receipt_v1` with the
+selected batch, policy/runner versions, coverage and missingness, candle cost,
+persistence result, first blocker and research-only disposition. Engine
+Insights reads the most recent receipt but does not infer recommendation
+quality from it.
+
+The delivery is confined to `supabase/migrations/20260918233411_if4_after_market_outcome_evaluation_receipts.sql`, the existing server-owned
+outcome route and its scheduler. It cannot change ranking, confidence,
+publication, positions or broker execution. Seventeen focused schedule,
+outcome and receipt tests, strict TypeScript, targeted ESLint, and the Webpack
+production build passed locally. The migration was separately applied to a
+temporary local PostgreSQL instance: the slot and receipt constraints held and
+`anon`/`authenticated` had no table access. No production migration, deploy,
+provider call, candidate or broker action occurred.
+
+**Remaining IF-4a evidence gap:** this receipt proves traceability for the
+existing evaluator, not outcome quality, historical replay validity or an
+improved policy. A production migration requires separate explicit approval;
+only then may a normal scheduled job be environment-verified. Monday's active
+market-bound return remains the authorized IF-2 Basic Free capability probe,
+not an IF-4 quality claim.
+
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as
 `2568bf983bfb2f55e18a3b534a0e63e5aececb1f`. The symbol-master contract is now
