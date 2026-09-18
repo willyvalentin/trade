@@ -10,42 +10,40 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
-**Active off-market vertical slice — historical Basic Free receipt clarity, 2026-09-18:**
-the authorized normal Basic Free catalog observation is concretely waiting for
-the regular US-market slot. In the meantime, the latest valid catalog receipt
-is selected across all trading dates and can render an observed/positive state
-without a prominent declaration that it is historical. This is a user-facing
-freshness ambiguity: a reference-only page must never look like current market
-evidence merely because it remains the latest durable receipt.
+**Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
+PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
+`3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
+clarity behavior was locally tested and production-deployed. PR
+[#539](https://github.com/willyvalentin/trade/pull/539) then merged at
+`855cf4076bbf31aa8dcd91496d52f826475c01c9`. It keeps ordinary background
+observation outside publication windows, while a ready, exact-date Basic Free
+catalog-only one-shot may run in a verified open scheduled window. The route
+still returns through the reference-only path before normal generation.
 
-```text
-acceptance_id: IF-2 receipt freshness/readback support
-user_behavior_or_reproduced_failure: When the newest valid Basic Free catalog
-  receipt belongs to an earlier New York trading date, a user can see that it
-  is historical reference evidence, not current market information. A same-day
-  valid receipt remains distinguishable as the current-day reference receipt.
-smallest_change_and_reused_components: Reuse the existing receipt's source
-  trading date and the dashboard's existing dailySessionDate; add a
-  fail-closed historical/undated presentation state to the existing Basic Free
-  receipt panel. Do not alter receipt parsing, provider admission, collection,
-  ranking, publication, or execution.
-active_hour_budget: 4
-behavior_check_and_environment: Focused local UI behavior regression with
-  current-day, prior-day and missing-date receipt states; local production
-  build if dependencies are available.
-external_effects_and_existing_authority: None. No provider request, database
-  migration, deployment, broker action, or environment mutation.
-blocker_or_fallback: If a receipt date cannot be attributed, present it as
-  undated/historical rather than current; return immediately to the authorized
-  market observation when its 15:30 CEST slot becomes runnable.
-result_and_remaining_gap: Implemented and locally verified on
-  codex/if2-historical-receipt-clarity: 8 focused Basic Free regressions,
-  TypeScript no-emit, scoped ESLint and the Next 16.3.4 webpack production
-  build pass. PR CI/review, merge and production behavior remain outstanding.
-  This improves truthfulness of a durable receipt only; it cannot establish
-  coverage, freshness of a provider response, candidate quality, or IF-2
-  acceptance.
-```
+At the normal 17:00 CEST scheduled slot on 2026-09-18, production recorded one
+versioned `basic_free_catalog_observation_summary_v1` receipt: admission was
+`ready`, the Twelve Data `/stocks` provider response was observed, exactly one
+credit was reserved and finalized, and eight records were observed against the
+provider's 16,401-record denominator. The receipt retained
+`collection_complete = false` and `discovery_feed_allowed = false`; it created,
+built and published zero recommendations. No broker path ran. Production
+function scheduling was restored to disabled immediately afterward in ready
+deploy `6aad52a5367fc010da9b50fb` on the same main revision.
+
+This is IF-2a Basic Free environment acceptance for one bounded reference page,
+not market-wide coverage, a complete symbol master, a relative-volume adapter,
+candidate-quality evidence, calibration evidence or learning evidence. The
+persisted server receipt was verified directly. The current authenticated UI
+readback was not rechecked after a production refresh because the available
+browser session reached the sign-in boundary; it must not be claimed as
+environment-verified from this run.
+
+**Next IF-2 decision:** no further Basic Free provider request is authorized by
+this receipt. The existing provider-free IF-2b contracts and durable
+collection-checkpoint foundation can be reviewed against this evidence, but a
+broader catalog collection still requires separate explicit provider-request
+and production-migration authority, a bounded rollout, and fresh receipt
+readback.
 
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at
