@@ -521,7 +521,10 @@ diagnostics and Engine Insights use that same cap and no longer mark a low count
 as degraded. This changes neither scoring thresholds nor provider admission,
 data freshness, database state, broker behavior or execution authority.
 
-**Selective-publication local evidence:** `git diff --check`, `npx tsc
+**Selective-publication main-delivery evidence:** the implementation is in
+`main` at `78e03d3e`. Its selective, explicit-`no_trade` behavior is therefore
+also present in the exact production revision `1a702d3`, deployed as
+`6aac9243fdfb1d0008c043b2`. `git diff --check`, `npx tsc
 --noEmit`, scoped ESLint, `npm run build -- --webpack`, and 56 focused
 Playwright tests covering selective publication, scan-window orchestration and
 build diagnostics passed. The regressions prove that a single Strong candidate
@@ -529,8 +532,7 @@ is selected and may publish, Experimental candidates cannot fill a batch, and a
 healthy empty window is rendered as `no_trade` rather than a count shortfall.
 This is an implemented and locally verified policy correction, not proof that
 the ranking is calibrated or that recommendation quality improved against an
-IF-4 baseline. Production UI verification remains required after the normal PR
-and deploy.
+IF-4 baseline. Authenticated production UI verification remains outstanding.
 
 **Merged and production-verified IF-4 baseline-readiness foundation:** PR
 [#527](https://github.com/willyvalentin/trade/pull/527) merged as
@@ -689,8 +691,11 @@ production UI readback remains unverified. This is a fixed measurement
 definition for a later explicit durable freeze, not a quality claim or an IF-5
 policy promotion.
 
-**Local IF-4 entry-bound excursion evidence:** on
-`codex/if4-entry-bound-excursion`, every newly computed outcome carries the
+**Merged and production-deployed IF-4 entry-bound excursion evidence:** PR
+[#535](https://github.com/willyvalentin/trade/pull/535) merged as
+`1a702d308c7710a0094d0e298827b1f813c2a38d`; Netlify production deploy
+`6aac9243fdfb1d0008c043b2` is ready on that exact revision. Every newly
+computed outcome carries the
 versioned `recommendation_outcome_entry_bound_excursion_v1` receipt in its
 existing server-owned payload. Its MFE/MAE window begins strictly after the
 entry-trigger candle: it never repurposes legacy `best_r`/`worst_r`, which can
@@ -702,13 +707,28 @@ receipts rather than reconstructing a value. The evaluation plan joins only a
 unique raw outcome by its canonical primary-outcome ID, reports measured values
 and explicit missingness per segment, and the Engine Insights copy renders that
 distinction. This changes neither ranking, confidence, publication, provider
-use, execution nor schema. Local evidence: `git diff --check`, strict
-TypeScript, scoped ESLint, 23 focused baseline/evaluation-plan regressions,
-the full 166-test intelligence-foundation suite (including local PostgreSQL)
-and the Webpack production build passed. The local route reached its password
-boundary without console errors; authenticated Engine Insights, PR CI, merge,
-production deploy and market-data evidence remain outstanding. This makes a
-future baseline more honest, not presently better.
+use, execution nor schema. Local `git diff --check`, strict TypeScript, scoped
+ESLint, 23 focused baseline/evaluation-plan regressions, the full 166-test
+intelligence-foundation suite (including local PostgreSQL) and the Webpack
+production build passed. Required CI `35293424258` passed the six provider-free
+shards, aggregate and merge-candidate-provenance check. Authenticated Engine
+Insights and market-data evidence remain outstanding. This makes a future
+baseline more honest, not presently better.
+
+**Local IF-2b coverage-denominator contract:** the symbol-master contract is
+now version `us_equity_symbol_master_contract_v2`. It can mark a supplied US
+common-stock catalog complete only when complete pagination is present *and*
+the provider's scoped catalog denominator exactly equals the collected raw
+record count. A missing, malformed or mismatched denominator remains partial,
+records a specific blocker and cannot expand discovery. The existing one-page
+Basic Free observer now passes its denominator into this contract but retains
+its immutable partial-catalog boundary. Local `git diff --check` and 17 focused
+provider-free Playwright regressions passed, covering a valid complete catalog,
+missing/mismatched denominators, partial pagination, Basic Free capacity and
+reference-only receipt behavior. This delivery makes future collection claims
+more falsifiable; it adds no provider request, persistence, runtime activation,
+ranking, publication or execution authority. PR, required CI, merge and
+production verification remain outstanding.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
