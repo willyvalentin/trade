@@ -2,6 +2,10 @@ import type {
   CandidateDecisionDisposition,
   CandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
+import {
+  buildCandidateDecisionLearningAttribution,
+  candidateDecisionLearningAttributionFromUnknown,
+} from "@/lib/candidate-decision-learning-attribution";
 import type {
   RecommendationScanRun,
   RecommendationScanRunWindow,
@@ -145,6 +149,7 @@ function hasKnownCandidateReadbackShape(value: unknown) {
   const data = objectOrNull(candidate?.data);
 
   return (
+    stringOrNull(candidate?.candidate_id) !== null &&
     stringOrNull(candidate?.ticker) !== null &&
     isCandidateDisposition(candidate?.disposition) &&
     Array.isArray(candidate?.reason_codes) &&
@@ -164,6 +169,45 @@ function hasKnownCandidateReadbackShape(value: unknown) {
   );
 }
 
+function hasConsistentPublishedDecision(
+  candidates: unknown[],
+  finalDecision: Record<string, unknown> | null,
+) {
+  const persistedTickers = stringArray(finalDecision?.published_tickers);
+  if (!finalDecision || !persistedTickers) return false;
+
+  const publishedCandidateTickers = candidates
+    .map(objectOrNull)
+    .flatMap((candidate) => {
+      const ticker = stringOrNull(candidate?.ticker);
+      return candidate?.disposition === "published" && ticker
+        ? [ticker.trim().toUpperCase()]
+        : [];
+    });
+  const normalizedPersistedTickers = persistedTickers.map((ticker) =>
+    ticker.trim().toUpperCase(),
+  );
+  const publishedSet = new Set(publishedCandidateTickers);
+  const persistedSet = new Set(normalizedPersistedTickers);
+
+  if (
+    publishedSet.size !== publishedCandidateTickers.length ||
+    persistedSet.size !== normalizedPersistedTickers.length
+  ) {
+    return false;
+  }
+  if (finalDecision.disposition === "no_trade") {
+    return publishedSet.size === 0 && persistedSet.size === 0;
+  }
+
+  return (
+    finalDecision.disposition === "recommendations_published" &&
+    publishedSet.size > 0 &&
+    publishedSet.size === persistedSet.size &&
+    [...publishedSet].every((ticker) => persistedSet.has(ticker))
+  );
+}
+
 /**
  * Stored scan-run payloads are untrusted at the browser boundary. Only accept
  * the versioned record shape this client knows how to explain.
@@ -177,9 +221,22 @@ export function candidateDecisionRecordFromUnknown(
   const candidates = Array.isArray(record?.candidates) ? record.candidates : null;
   const expectedCandidateCount = coverage?.expected_candidate_count;
 
+  const recordVersion = record?.record_version;
+  const isLegacyRecord = recordVersion === "candidate_decision_record_v1";
+  const isCurrentRecord = recordVersion === "candidate_decision_record_v2";
+  const learningAttribution = isCurrentRecord
+    ? candidateDecisionLearningAttributionFromUnknown(record?.learning_attribution)
+    : isLegacyRecord
+      ? buildCandidateDecisionLearningAttribution({
+          recommendationPublishPolicyVersion: null,
+          canonicalEvaluationVersions: null,
+        })
+      : null;
+
   if (
-    record?.record_version !== "candidate_decision_record_v1" ||
-    record.record_kind !== "candidate_decision_record" ||
+    (!isLegacyRecord && !isCurrentRecord) ||
+    record?.record_kind !== "candidate_decision_record" ||
+    learningAttribution === null ||
     candidates === null ||
     coverage?.full_membership_declared !== true ||
     typeof coverage.full_membership_captured !== "boolean" ||
@@ -196,13 +253,17 @@ export function candidateDecisionRecordFromUnknown(
     !Array.isArray(finalDecision?.published_tickers) ||
     stringArray(finalDecision.published_tickers).length !==
       finalDecision.published_tickers.length ||
+    !hasConsistentPublishedDecision(candidates, finalDecision) ||
     (finalDecision.no_trade_reason !== null &&
       stringOrNull(finalDecision.no_trade_reason) === null)
   ) {
     return null;
   }
 
-  return record as CandidateDecisionRecord;
+  return {
+    ...(record as Omit<CandidateDecisionRecord, "learning_attribution">),
+    learning_attribution: learningAttribution,
+  };
 }
 
 /**

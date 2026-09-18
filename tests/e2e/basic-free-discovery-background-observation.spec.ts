@@ -30,6 +30,9 @@ async function loadObservationRuntime() {
       scheduled: boolean;
       marketOpen: boolean;
       outsideOfficialPublicationWindow: boolean;
+      catalogOnlyOneShotReady?: boolean;
+      referenceMode?: "catalog_observation" | "capability_probe";
+      catalogOutputSize?: 8 | 100;
       scanWindow: string;
       ownerUserId: string;
       executionFingerprint: string;
@@ -97,6 +100,48 @@ test("Basic Free observation is scheduled-only and retains its reference-only bo
       status: "not_eligible",
       blocker: "official_publication_window",
       discovery: null,
+    });
+
+    const catalogOnlyOfficial = await runtime.observe({
+      scheduled: true,
+      marketOpen: true,
+      outsideOfficialPublicationWindow: false,
+      catalogOnlyOneShotReady: true,
+      scanWindow: "midday",
+      ownerUserId,
+      executionFingerprint,
+      observe: async (input) => {
+        calls.push(input);
+        return { summary: {} };
+      },
+    });
+    expect(catalogOnlyOfficial).toMatchObject({
+      status: "observed",
+      blocker: null,
+    });
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toMatchObject({ scanWindow: "midday" });
+
+    const capabilityProbe = await runtime.observe({
+      scheduled: true,
+      marketOpen: true,
+      outsideOfficialPublicationWindow: false,
+      catalogOnlyOneShotReady: true,
+      referenceMode: "capability_probe",
+      catalogOutputSize: 100,
+      scanWindow: "power_hour",
+      ownerUserId,
+      executionFingerprint,
+      observe: async (input) => {
+        calls.push(input);
+        return { summary: {} };
+      },
+    });
+    expect(capabilityProbe).toMatchObject({ status: "observed", blocker: null });
+    expect(calls[2]).toMatchObject({
+      scanWindow: "power_hour",
+      referenceMode: "capability_probe",
+      catalogOutputSize: 100,
     });
   } finally {
     runtime.dispose();

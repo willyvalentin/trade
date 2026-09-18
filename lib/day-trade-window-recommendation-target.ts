@@ -104,7 +104,7 @@ export type DayTradeWindowRecommendationTargetItem = {
 
 export type DayTradeWindowRecommendationTargetSummary = {
   summary_id: string;
-  summary_version: "1.0";
+  summary_version: "1.1";
   generated_at: string;
   current_window: DayTradeWindowRecommendationWindow;
   status: DayTradeWindowRecommendationTargetStatus;
@@ -156,12 +156,12 @@ export type DayTradeWindowRecommendationTargetInput = {
   now?: Date | string | null;
 };
 
-const idealMin = 6;
-const idealMax = 10;
-const strongTargetMin = 1;
+const idealMin = 0;
+const idealMax = 3;
+const strongTargetMin = 0;
 const strongTargetMax = 3;
-const validTargetMin = 3;
-const validTargetMax = 6;
+const validTargetMin = 0;
+const validTargetMax = 3;
 
 function toDate(value: Date | string | null | undefined) {
   if (value instanceof Date && Number.isFinite(value.getTime())) {
@@ -230,10 +230,6 @@ function normalizeWindow(
 function targetStatus(count: number): DayTradeWindowRecommendationTargetStatus {
   if (count <= 0) {
     return "no_recommendations";
-  }
-
-  if (count < idealMin) {
-    return "below_target";
   }
 
   if (count > idealMax) {
@@ -642,20 +638,11 @@ export function buildDayTradeWindowRecommendationTargetSummary(
       ? currentWindowCount.experimental / nonRejectedCurrent
       : 0;
 
-  if (currentWindowCount.target_status === "below_target") {
-    warnings.push(
-      warning(
-        "too_few_recommendations_for_learning",
-        `Current window is ${currentWindowCount.gap_to_ideal_min} recommendation${currentWindowCount.gap_to_ideal_min === 1 ? "" : "s"} below the 6-10 learning sample target.`,
-      ),
-    );
-  }
-
   if (currentWindowCount.target_status === "above_target") {
     warnings.push(
       warning(
-        "above_window_target",
-        `Current window is ${currentWindowCount.overflow_above_ideal_max} recommendation${currentWindowCount.overflow_above_ideal_max === 1 ? "" : "s"} above the calm 6-10 target.`,
+        "publication_cap_exceeded",
+        `Current window has ${currentWindowCount.overflow_above_ideal_max} recommendation${currentWindowCount.overflow_above_ideal_max === 1 ? "" : "s"} above the selective three-candidate publication cap.`,
         "info",
       ),
     );
@@ -714,12 +701,11 @@ export function buildDayTradeWindowRecommendationTargetSummary(
   }
 
   const enoughLearningSamples =
-    currentWindowCount.target_status === "within_target" ||
-    currentWindowCount.target_status === "above_target";
+    currentWindowCount.strong + currentWindowCount.valid > 0;
 
   return {
     summary_id: `day_trade_window_recommendation_target:${currentWindow}:${now.toISOString()}`,
-    summary_version: "1.0",
+    summary_version: "1.1",
     generated_at: now.toISOString(),
     current_window: currentWindow,
     status: currentWindowCount.target_status,
@@ -730,7 +716,7 @@ export function buildDayTradeWindowRecommendationTargetSummary(
     valid_target_min: validTargetMin,
     valid_target_max: validTargetMax,
     experimental_target_note:
-      "Experimental/watchlist recommendations fill remaining learning slots up to 10.",
+      "Experimental candidates remain research-only and never fill a public recommendation batch.",
     total_recommendations: items.length,
     current_window_count: currentWindowCount,
     counts_by_window: countsByWindow,
@@ -752,9 +738,9 @@ export function buildDayTradeWindowRecommendationTargetSummary(
     items,
     copy: {
       purpose:
-        "Ture aims to build enough recommendation samples to learn, without forcing trades.",
+        "Ture publishes zero to three trade-ready candidates and never fills a quota.",
       experimental:
-        "Experimental recommendations are learning candidates, not strong trade signals.",
+        "Experimental candidates are research-only, not published trade signals.",
       disclaimer: "Recommendation tiers do not guarantee profitability.",
     },
   };

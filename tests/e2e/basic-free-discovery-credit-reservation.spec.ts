@@ -16,6 +16,8 @@ const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const executionFingerprint = "scheduled_scan_attempt_20260915_1530";
 const migrationPath =
   "supabase/migrations/20260915222537_basic_free_discovery_credit_reservations.sql";
+const dailyClaimMigrationPath =
+  "supabase/migrations/20260917135646_if2_basic_free_daily_observation_claim.sql";
 
 function read(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -39,6 +41,7 @@ async function loadBasicFreeDiscoveryRuntime() {
         attempt: Record<string, unknown>;
         credit_reservation: Record<string, unknown>;
         catalog: Record<string, unknown>;
+        reference_mode: string;
         gaps: string[];
       };
     }>;
@@ -114,13 +117,15 @@ test("Basic catalog observation enters the provider only after one durable reser
   const runtime = await loadBasicFreeDiscoveryRuntime();
   const fixture = allowedLifecycle();
   let providerCalls = 0;
+  const providerOptions: Array<Record<string, unknown>> = [];
 
   try {
     const result = await runtime.observe({
       ...discoveryInput(),
       creditReservation: fixture.lifecycle,
-      fetchCatalogPage: async () => {
+      fetchCatalogPage: async (options: Record<string, unknown>) => {
         providerCalls += 1;
+        providerOptions.push(options);
         return {
           fetched_at: now.toISOString(),
           provider_catalog_count: 4200,
@@ -130,6 +135,7 @@ test("Basic catalog observation enters the provider only after one durable reser
     });
 
     expect(providerCalls).toBe(1);
+    expect(providerOptions).toEqual([{ signal: undefined, outputSize: 8 }]);
     expect(fixture.calls).toEqual({ prepared: 1, finalized: 1 });
     expect(result.summary.attempt).toEqual({
       attempted_at: now.toISOString(),
@@ -154,6 +160,85 @@ test("Basic catalog observation enters the provider only after one durable reser
     expect(result.summary.gaps).toContain(
       "catalog_observation_is_not_candidate_discovery",
     );
+  } finally {
+    runtime.dispose();
+  }
+});
+
+test("a fixed-size capability probe remains one credit and is never a catalog collection request", async () => {
+  const runtime = await loadBasicFreeDiscoveryRuntime();
+  const fixture = allowedLifecycle();
+  const providerOptions: Array<Record<string, unknown>> = [];
+  try {
+    const result = await runtime.observe({
+      ...discoveryInput(),
+      referenceMode: "capability_probe",
+      catalogOutputSize: 100,
+      creditReservation: fixture.lifecycle,
+      fetchCatalogPage: async (options: Record<string, unknown>) => {
+        providerOptions.push(options);
+        return {
+          fetched_at: now.toISOString(),
+          provider_catalog_count: 4200,
+          records: Array.from({ length: 100 }, (_, index) =>
+            stockRecord(`PROBE${index}`),
+          ),
+          requested_output_size: 100,
+          decoded_response_json_bytes: 19876,
+        };
+      },
+    });
+
+    expect(providerOptions).toEqual([{ signal: undefined, outputSize: 100 }]);
+    expect(fixture.calls).toEqual({ prepared: 1, finalized: 1 });
+    expect(result.summary.reference_mode).toBe("capability_probe");
+    expect(result.summary.admission).toMatchObject({
+      request: { outputsize: 100, credits_per_request: 1 },
+      safe_to_request_catalog: true,
+    });
+    expect(result.summary.catalog).toMatchObject({
+      requested_output_size: 100,
+      decoded_response_json_bytes: 19876,
+      observed_record_count: 100,
+      collection_complete: false,
+      discovery_feed_allowed: false,
+    });
+  } finally {
+    runtime.dispose();
+  }
+});
+
+test("an output-size and reference-mode mismatch is blocked before reservation or provider access", async () => {
+  const runtime = await loadBasicFreeDiscoveryRuntime();
+  let reservationCalls = 0;
+  let providerCalls = 0;
+  try {
+    const result = await runtime.observe({
+      ...discoveryInput(),
+      referenceMode: "catalog_observation",
+      catalogOutputSize: 100,
+      creditReservation: {
+        async prepare() {
+          reservationCalls += 1;
+          throw new Error("reservation must not run");
+        },
+        async finalize() {
+          throw new Error("finalization must not run");
+        },
+      },
+      fetchCatalogPage: async () => {
+        providerCalls += 1;
+        throw new Error("provider must not run");
+      },
+    });
+
+    expect(reservationCalls).toBe(0);
+    expect(providerCalls).toBe(0);
+    expect(result.summary.admission).toMatchObject({
+      status: "request_invalid",
+      safe_to_request_catalog: false,
+      reason_codes: ["catalog_reference_mode_output_size_mismatch"],
+    });
   } finally {
     runtime.dispose();
   }
@@ -213,6 +298,54 @@ test("a quota or missing explicit enablement prevents the provider request", asy
   }
 });
 
+test("a prior daily catalog claim blocks a new provider request even without a terminal receipt", async () => {
+  const runtime = await loadBasicFreeDiscoveryRuntime();
+  let providerCalls = 0;
+  try {
+    const result = await runtime.observe({
+      ...discoveryInput(),
+      creditReservation: {
+        async prepare() {
+          return {
+            status: "daily_catalog_observation_already_claimed" as const,
+            provider_execution_allowed: false,
+            claim_id: null,
+            idempotent: false,
+            daily_reserved_credits: 1,
+            daily_remaining_credits: 799,
+            minute_reserved_credits: 1,
+            minute_remaining_credits: 7,
+            safe_blocker: "daily_catalog_observation_already_claimed",
+          };
+        },
+        async finalize() {
+          throw new Error("must not finalize an unstarted attempt");
+        },
+      },
+      fetchCatalogPage: async () => {
+        providerCalls += 1;
+        throw new Error("provider must not be called");
+      },
+    });
+
+    expect(providerCalls).toBe(0);
+    expect(result.summary.admission).toMatchObject({
+      status: "refresh_interval_active",
+      safe_to_request_catalog: false,
+      reason_codes: ["daily_catalog_observation_already_claimed"],
+    });
+    expect(result.summary.credit_reservation).toMatchObject({
+      status: "daily_catalog_observation_already_claimed",
+      finalization_status: "not_started",
+    });
+    expect(result.summary.gaps).toContain(
+      "daily_catalog_observation_already_claimed",
+    );
+  } finally {
+    runtime.dispose();
+  }
+});
+
 test("store accepts only an exact durable claim and preserves both budget dimensions", async () => {
   const database: BasicFreeDiscoveryCreditReservationDatabase = {
     async claim() {
@@ -261,6 +394,7 @@ test("store accepts only an exact durable claim and preserves both budget dimens
     owner_user_id: ownerUserId,
     trading_date: "2026-09-15",
     minute_bucket: now.toISOString(),
+    catalog_observation: true,
     requested_credits: 1,
     declared_daily_credit_budget: 800,
     declared_per_minute_credit_budget: 8,
@@ -281,6 +415,53 @@ test("store accepts only an exact durable claim and preserves both budget dimens
   ).toMatchObject({ status: "finalized", finalization_proven: true });
 });
 
+test("store denies a daily catalog claim before beginning a provider attempt", async () => {
+  let beginCalls = 0;
+  const store = createBasicFreeDiscoveryCreditReservationStore({
+    async claim() {
+      return {
+        data: {
+          claim_status: "daily_catalog_observation_already_claimed",
+          claim_id: null,
+          reservation_status: null,
+          idempotent: false,
+          daily_reserved_credits: 1,
+          daily_remaining_credits: 799,
+          minute_reserved_credits: 1,
+          minute_remaining_credits: 7,
+          blocker: "daily_catalog_observation_already_claimed",
+        },
+        error: null,
+      };
+    },
+    async beginAttempt() {
+      beginCalls += 1;
+      throw new Error("must not begin a blocked provider attempt");
+    },
+    async finalize() {
+      throw new Error("must not finalize a blocked provider attempt");
+    },
+  });
+
+  await expect(
+    store.prepare({
+      claim_id: "claim-2",
+      execution_fingerprint: "scheduled_scan_attempt_20260915_1545",
+      owner_user_id: ownerUserId,
+      trading_date: "2026-09-15",
+      minute_bucket: now.toISOString(),
+      catalog_observation: true,
+      requested_credits: 1,
+      declared_daily_credit_budget: 800,
+      declared_per_minute_credit_budget: 8,
+    }),
+  ).resolves.toMatchObject({
+    status: "daily_catalog_observation_already_claimed",
+    provider_execution_allowed: false,
+  });
+  expect(beginCalls).toBe(0);
+});
+
 test("migration locks and retains Basic Free reservations under server-only access", () => {
   const migration = read(migrationPath);
 
@@ -298,6 +479,20 @@ test("migration locks and retains Basic Free reservations under server-only acce
   expect(migration).toContain(
     "grant execute on function public.claim_basic_free_discovery_credit_reservation",
   );
+  expect(migration).toContain("to service_role");
+  expect(migration).not.toContain(
+    "delete from public.basic_free_discovery_credit_reservations",
+  );
+});
+
+test("daily catalog claim migration preserves normal scan capacity and fails closed", () => {
+  const migration = read(dailyClaimMigrationPath);
+
+  expect(migration).toContain("catalog_observation boolean not null default false");
+  expect(migration).toContain("where catalog_observation;");
+  expect(migration).toContain("p_catalog_observation boolean");
+  expect(migration).toContain("daily_catalog_observation_already_claimed");
+  expect(migration).toContain("pg_advisory_xact_lock");
   expect(migration).toContain("to service_role");
   expect(migration).not.toContain(
     "delete from public.basic_free_discovery_credit_reservations",

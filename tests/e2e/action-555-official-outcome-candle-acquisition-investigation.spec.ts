@@ -102,7 +102,7 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
       snapshots: [snapshot],
       existingOutcomes: [],
       horizons: ["15m", "30m", "60m"],
-      now: "2026-07-20T16:47:16.811Z",
+      now: "2026-07-20T17:09:49.737Z",
       source: "api",
       provider: "twelve_data",
       maxSnapshots: 1,
@@ -160,7 +160,7 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
       snapshots: [snapshot],
       existingOutcomes: [],
       horizons: ["15m", "30m", "60m"],
-      now: "2026-07-20T16:47:16.811Z",
+      now: "2026-07-20T17:09:49.737Z",
       source: "api",
       provider: "twelve_data",
       maxSnapshots: 1,
@@ -227,7 +227,7 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
       secondRunOutcomes.map(
         (outcome) => outcome.payload_json.horizon_filtered_candle_count,
       ),
-    ).toEqual([3, 4, 4]);
+    ).toEqual([4, 4, 4]);
     expect(
       secondRunOutcomes.every(
         (outcome) =>
@@ -284,7 +284,7 @@ test.describe("Action 555 official outcome candle acquisition investigation", ()
       {
         ticker: "AAPL",
         interval: "5min",
-        start_at: "2026-07-20T16:45:41.799Z",
+        start_at: "2026-07-20T16:50:00.000Z",
         end_at: "2026-07-20T17:09:49.737Z",
       },
     ]);

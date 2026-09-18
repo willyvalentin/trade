@@ -35,6 +35,7 @@ function candidate(
     data_source: "fresh",
     provider_source: "twelve_data",
     market_data_timestamp: "2026-06-29T14:00:00.000Z",
+    reference_price_timestamp: "2026-06-29T14:00:00.000Z",
     stale: false,
     entry_low: 100,
     entry_high: 101,

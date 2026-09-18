@@ -44,6 +44,40 @@ export type RecommendationOutcomeSource =
   | "supabase"
   | "unknown";
 
+/**
+ * Unlike the legacy best_r/worst_r fields, this contract never includes the
+ * candle that established a pending entry. A candle high/low cannot say which
+ * part of that candle happened before the entry was filled, so calling it MFE
+ * or MAE would introduce lookahead.
+ */
+export const RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION =
+  "recommendation_outcome_entry_bound_excursion_v1" as const;
+
+export type RecommendationOutcomeEntryBoundExcursionMetric = {
+  status: "measured" | "not_measurable";
+  r: number | null;
+  reason: string | null;
+};
+
+export type RecommendationOutcomeEntryBoundExcursion = {
+  contract_version: typeof RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION;
+  measurement_window: "strictly_after_entry_trigger_candle";
+  status: "measured" | "partially_measured" | "not_measurable";
+  side: "long" | "short";
+  entry: number;
+  stop: number;
+  risk_per_share: number;
+  entry_triggered: boolean | null;
+  entry_triggered_at: string | null;
+  entry_trigger_candle_at: string | null;
+  terminal_event: RecommendationOutcomeEvent;
+  terminal_event_candle_at: string | null;
+  post_entry_complete_candle_count: number;
+  mfe_r: RecommendationOutcomeEntryBoundExcursionMetric;
+  mae_r: RecommendationOutcomeEntryBoundExcursionMetric;
+  blockers: string[];
+};
+
 export type RecommendationOutcomeCandle = {
   timestamp: string | Date | number;
   open?: number | null;
@@ -517,6 +551,344 @@ function priceTouchesStop(
   return side === "short" ? candle.high >= stop : candle.low <= stop;
 }
 
+type NormalizedOutcomeCandle = {
+  timestamp: string;
+  time: number;
+  open: number | null;
+  high: number;
+  low: number;
+  close: number;
+  volume: number | null;
+};
+
+function hasStrictlyIncreasingCandleTimes(
+  candles: Array<{ time: number | null }>,
+) {
+  return candles.every(
+    (candle, index) =>
+      index === 0 ||
+      candle.time !== null &&
+        candles[index - 1]?.time !== null &&
+        candle.time > candles[index - 1]!.time!,
+  );
+}
+
+function notMeasurableEntryBoundExcursionMetric(reason: string) {
+  return {
+    status: "not_measurable" as const,
+    r: null,
+    reason,
+  } satisfies RecommendationOutcomeEntryBoundExcursionMetric;
+}
+
+function measuredEntryBoundExcursionMetric(value: number) {
+  return {
+    status: "measured" as const,
+    r: value,
+    reason: null,
+  } satisfies RecommendationOutcomeEntryBoundExcursionMetric;
+}
+
+function entryBoundExcursionStatus({
+  mfe,
+  mae,
+}: {
+  mfe: RecommendationOutcomeEntryBoundExcursionMetric;
+  mae: RecommendationOutcomeEntryBoundExcursionMetric;
+}) {
+  return mfe.status === "measured" && mae.status === "measured"
+    ? "measured"
+    : mfe.status === "measured" || mae.status === "measured"
+      ? "partially_measured"
+      : "not_measurable";
+}
+
+function buildEntryBoundExcursion({
+  candles,
+  entry,
+  stop,
+  target,
+  risk,
+  side,
+  entryTriggered,
+  entryIndex,
+  entryTriggeredAt,
+  firstTerminalEvent,
+  terminalEventIndex,
+}: {
+  candles: Array<{
+    timestamp: string | null;
+    time: number | null;
+    high: number | null;
+    low: number | null;
+  }>;
+  entry: number;
+  stop: number;
+  target: number;
+  risk: number;
+  side: "long" | "short";
+  entryTriggered: boolean | null;
+  entryIndex: number | null;
+  entryTriggeredAt: string | null;
+  firstTerminalEvent: RecommendationOutcomeEvent;
+  terminalEventIndex: number | null;
+}): RecommendationOutcomeEntryBoundExcursion {
+  const base = {
+    contract_version: RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION,
+    measurement_window: "strictly_after_entry_trigger_candle" as const,
+    side,
+    entry,
+    stop,
+    risk_per_share: risk,
+    entry_triggered: entryTriggered,
+    entry_triggered_at: entryTriggeredAt,
+    entry_trigger_candle_at:
+      entryIndex === null ? null : candles[entryIndex]?.timestamp ?? null,
+    terminal_event: firstTerminalEvent,
+    terminal_event_candle_at:
+      terminalEventIndex === null
+        ? null
+        : candles[terminalEventIndex]?.timestamp ?? null,
+  };
+
+  const unavailable = (reason: string, blockers = [reason]) => {
+    const mfe = notMeasurableEntryBoundExcursionMetric(reason);
+    const mae = notMeasurableEntryBoundExcursionMetric(reason);
+
+    return {
+      ...base,
+      status: "not_measurable" as const,
+      post_entry_complete_candle_count: 0,
+      mfe_r: mfe,
+      mae_r: mae,
+      blockers,
+    } satisfies RecommendationOutcomeEntryBoundExcursion;
+  };
+
+  if (entryTriggered !== true || entryIndex === null) {
+    return unavailable(
+      entryTriggered === false ? "entry_not_triggered" : "entry_trigger_unknown",
+    );
+  }
+
+  if (!hasStrictlyIncreasingCandleTimes(candles)) {
+    return unavailable("candle_timestamps_not_strictly_increasing");
+  }
+
+  if (terminalEventIndex === entryIndex) {
+    return unavailable("terminal_event_in_entry_trigger_candle");
+  }
+
+  if (firstTerminalEvent === "unknown" && terminalEventIndex !== null) {
+    return unavailable("terminal_event_intrabar_order_unknown");
+  }
+
+  const postEntryCandles = candles.slice(
+    entryIndex + 1,
+    terminalEventIndex === null ? undefined : terminalEventIndex,
+  );
+  const normalizedPostEntryCandles = postEntryCandles.filter(
+    (candle): candle is NormalizedOutcomeCandle =>
+      candle.timestamp !== null &&
+      candle.time !== null &&
+      candle.high !== null &&
+      candle.low !== null,
+  );
+  const favorablePrices = normalizedPostEntryCandles.map((candle) =>
+    side === "short" ? candle.low : candle.high,
+  );
+  const adversePrices = normalizedPostEntryCandles.map((candle) =>
+    side === "short" ? candle.high : candle.low,
+  );
+  const priorMfe = favorablePrices.length === 0
+    ? 0
+    : Math.max(
+        0,
+        ...favorablePrices.map((price) => rFromPrice(price, entry, risk, side) ?? 0),
+      );
+  const priorMae = adversePrices.length === 0
+    ? 0
+    : Math.min(
+        0,
+        ...adversePrices.map((price) => rFromPrice(price, entry, risk, side) ?? 0),
+      );
+
+  let mfe: RecommendationOutcomeEntryBoundExcursionMetric = notMeasurableEntryBoundExcursionMetric(
+    "no_complete_candle_strictly_after_entry_trigger_candle",
+  );
+  let mae: RecommendationOutcomeEntryBoundExcursionMetric = notMeasurableEntryBoundExcursionMetric(
+    "no_complete_candle_strictly_after_entry_trigger_candle",
+  );
+
+  if (terminalEventIndex === null) {
+    if (normalizedPostEntryCandles.length > 0) {
+      mfe = measuredEntryBoundExcursionMetric(priorMfe);
+      mae = measuredEntryBoundExcursionMetric(priorMae);
+    }
+  } else if (firstTerminalEvent === "target_hit") {
+    // The target itself is the exact favorable excursion at exit. The opposite
+    // side of the terminal candle remains unknowable without tick ordering.
+    mfe = measuredEntryBoundExcursionMetric(
+      Math.max(0, priorMfe, rFromPrice(target, entry, risk, side) ?? 0),
+    );
+    mae = notMeasurableEntryBoundExcursionMetric(
+      "target_terminal_candle_intrabar_order_unknown",
+    );
+  } else if (firstTerminalEvent === "stop_hit") {
+    mfe = notMeasurableEntryBoundExcursionMetric(
+      "stop_terminal_candle_intrabar_order_unknown",
+    );
+    mae = measuredEntryBoundExcursionMetric(
+      Math.min(0, priorMae, rFromPrice(stop, entry, risk, side) ?? 0),
+    );
+  }
+
+  return {
+    ...base,
+    status: entryBoundExcursionStatus({ mfe, mae }),
+    post_entry_complete_candle_count: normalizedPostEntryCandles.length,
+    mfe_r: mfe,
+    mae_r: mae,
+    blockers: Array.from(new Set([mfe.reason, mae.reason].filter(Boolean))) as string[],
+  } satisfies RecommendationOutcomeEntryBoundExcursion;
+}
+
+function entryBoundExcursionMetricFromPayload(
+  value: unknown,
+): RecommendationOutcomeEntryBoundExcursionMetric | null {
+  const record = objectValue(value);
+  const status = record?.status;
+  const reason = record?.reason;
+  const metricR = finiteNumber(record?.r);
+
+  if (status === "measured") {
+    return metricR === null || reason !== null
+      ? null
+      : { status, r: metricR, reason: null };
+  }
+
+  if (status === "not_measurable") {
+    const normalizedReason = textOrNull(
+      typeof reason === "string" ? reason : null,
+    );
+    return metricR !== null || normalizedReason === null
+      ? null
+      : { status, r: null, reason: normalizedReason };
+  }
+
+  return null;
+}
+
+function isoTimestampOrNull(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  if (typeof value !== "string") return undefined;
+  return toIso(value) === value ? value : undefined;
+}
+
+/**
+ * Reads only a self-consistent entry-bound excursion receipt. Old outcomes and
+ * malformed payloads intentionally remain unavailable rather than being
+ * reconstructed from legacy best_r/worst_r fields.
+ */
+export function entryBoundExcursionFromOutcome(
+  outcome: RecommendationOutcome,
+): RecommendationOutcomeEntryBoundExcursion | null {
+  const record = objectValue(outcome.payload_json.entry_bound_excursion);
+  const side = normalizeSide(outcome.side);
+  const risk = riskPerShare(outcome.entry, outcome.stop, side);
+  const entryTriggered = record?.entry_triggered;
+  const entryTriggeredAt = isoTimestampOrNull(record?.entry_triggered_at);
+  const entryTriggerCandleAt = isoTimestampOrNull(record?.entry_trigger_candle_at);
+  const terminalEventCandleAt = isoTimestampOrNull(record?.terminal_event_candle_at);
+  const mfe = entryBoundExcursionMetricFromPayload(record?.mfe_r);
+  const mae = entryBoundExcursionMetricFromPayload(record?.mae_r);
+  const terminalEvent = normalizeEvent(record?.terminal_event);
+  const postEntryCompleteCandleCount = record?.post_entry_complete_candle_count;
+  const blockers = Array.isArray(record?.blockers)
+    ? record.blockers.filter((blocker): blocker is string => typeof blocker === "string")
+    : null;
+  const expectedBlockers = !mfe || !mae
+    ? null
+    : Array.from(
+        new Set(
+          [mfe.reason, mae.reason].filter(
+            (reason): reason is string => typeof reason === "string",
+          ),
+        ),
+      );
+  const terminalEventMatchesOutcome =
+    terminalEvent === "target_hit"
+      ? terminalEventCandleAt === outcome.target_hit_at
+      : terminalEvent === "stop_hit"
+        ? terminalEventCandleAt === outcome.stop_hit_at
+        : terminalEvent === "unknown"
+          ? outcome.target_hit_at !== null &&
+            outcome.target_hit_at === outcome.stop_hit_at &&
+            terminalEventCandleAt === outcome.target_hit_at
+          : terminalEvent === "neither"
+            ? terminalEventCandleAt === null
+            : false;
+
+  if (
+    !record ||
+    record.contract_version !==
+      RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION ||
+    record.measurement_window !== "strictly_after_entry_trigger_candle" ||
+    (side !== "long" && side !== "short") ||
+    risk === null ||
+    outcome.entry === null ||
+    outcome.stop === null ||
+    (entryTriggered !== true && entryTriggered !== false && entryTriggered !== null) ||
+    entryTriggeredAt === undefined ||
+    entryTriggerCandleAt === undefined ||
+    terminalEventCandleAt === undefined ||
+    !mfe ||
+    !mae ||
+    terminalEvent !== outcome.first_terminal_event ||
+    !terminalEventMatchesOutcome ||
+    record.side !== side ||
+    finiteNumber(record.entry) !== outcome.entry ||
+    finiteNumber(record.stop) !== outcome.stop ||
+    finiteNumber(record.risk_per_share) !== risk ||
+    entryTriggered !== outcome.entry_triggered ||
+    entryTriggeredAt !== outcome.entry_triggered_at ||
+    (entryTriggered === true && entryTriggerCandleAt !== entryTriggeredAt) ||
+    typeof postEntryCompleteCandleCount !== "number" ||
+    !Number.isInteger(postEntryCompleteCandleCount) ||
+    postEntryCompleteCandleCount < 0 ||
+    blockers === null ||
+    expectedBlockers === null ||
+    blockers.length !== expectedBlockers.length ||
+    blockers.some((blocker, index) => blocker !== expectedBlockers[index]) ||
+    (mfe.status === "measured" && (mfe.r === null || mfe.r < 0)) ||
+    (mae.status === "measured" && (mae.r === null || mae.r > 0))
+  ) {
+    return null;
+  }
+
+  const status = entryBoundExcursionStatus({ mfe, mae });
+  if (record.status !== status) return null;
+
+  return {
+    contract_version: RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION,
+    measurement_window: "strictly_after_entry_trigger_candle",
+    status,
+    side,
+    entry: outcome.entry,
+    stop: outcome.stop,
+    risk_per_share: risk,
+    entry_triggered: entryTriggered,
+    entry_triggered_at: entryTriggeredAt,
+    entry_trigger_candle_at: entryTriggerCandleAt,
+    terminal_event: terminalEvent,
+    terminal_event_candle_at: terminalEventCandleAt,
+    post_entry_complete_candle_count: postEntryCompleteCandleCount,
+    mfe_r: mfe,
+    mae_r: mae,
+    blockers,
+  };
+}
+
 export function computeRecommendationOutcome(
   input: RecommendationOutcomeInput,
 ): RecommendationOutcomeComputationResult {
@@ -592,6 +964,8 @@ export function computeRecommendationOutcome(
   let worstR: number | null = null;
   let maxFavorableExcursion: number | null = null;
   let maxAdverseExcursion: number | null = null;
+  let entryIndex: number | null = null;
+  let terminalEventIndex: number | null = null;
 
   if (blockers.length === 0 && entry !== null && stop !== null && target !== null && risk !== null) {
     if (hasCandles) {
@@ -610,7 +984,7 @@ export function computeRecommendationOutcome(
       const legacyEntryIndex = candles.findIndex((candle) =>
         priceTouchesEntry(candle, entry),
       );
-      const entryIndex =
+      entryIndex =
         officialTriggerSemantics === "immediate_reference"
           ? 0
           : legacyEntryIndex;
@@ -643,6 +1017,7 @@ export function computeRecommendationOutcome(
           }
 
           if (targetTouched || stopTouched) {
+            terminalEventIndex = index;
             if (targetTouched && stopTouched) {
               firstTerminalEvent = "unknown";
               status = "unknown";
@@ -695,6 +1070,27 @@ export function computeRecommendationOutcome(
       );
     }
   }
+
+  const entryBoundExcursion =
+    entry !== null &&
+    stop !== null &&
+    target !== null &&
+    risk !== null &&
+    (side === "long" || side === "short")
+      ? buildEntryBoundExcursion({
+          candles,
+          entry,
+          stop,
+          target,
+          risk,
+          side,
+          entryTriggered,
+          entryIndex,
+          entryTriggeredAt,
+          firstTerminalEvent,
+          terminalEventIndex,
+        })
+      : null;
 
   const eodR = rFromPrice(eodPrice, entry, risk, side);
   const suppliedDataCompleteness = textOrNull(input.data_completeness);
@@ -807,6 +1203,7 @@ export function computeRecommendationOutcome(
       entry_type_metadata: entryTypeMetadata,
       ...entryTypeTriggerDiagnostics,
       entry_type_trigger_diagnostics: entryTypeTriggerDiagnostics,
+      entry_bound_excursion: entryBoundExcursion,
     },
     created_at: toIso(input.created_at) ?? evaluatedAt,
     updated_at: toIso(input.updated_at) ?? evaluatedAt,

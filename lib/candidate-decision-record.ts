@@ -2,6 +2,10 @@ import {
   buildPreTruncationCandidateCaptureEvidence,
   type PreTruncationCandidateCaptureEvidence,
 } from "@/lib/pre-truncation-candidate-capture-evidence";
+import {
+  buildCandidateDecisionLearningAttribution,
+  type CandidateDecisionLearningAttribution,
+} from "@/lib/candidate-decision-learning-attribution";
 import type { SelectedCandidateBuildDiagnostic } from "@/lib/recommendation-build-diagnostics";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { ScannerCandidate } from "@/lib/scanner";
@@ -12,8 +16,10 @@ import type {
 
 export const CANDIDATE_DECISION_CAPTURE_VERSION =
   "candidate_decision_capture_v1" as const;
-export const CANDIDATE_DECISION_RECORD_VERSION =
+export const LEGACY_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v1" as const;
+export const CANDIDATE_DECISION_RECORD_VERSION =
+  "candidate_decision_record_v2" as const;
 export const CANDIDATE_DECISION_SCANNER_VERSION = "scanner_v1" as const;
 export const CANDIDATE_DECISION_UNIVERSE_VERSION =
   "scanner_universe_v1" as const;
@@ -82,7 +88,9 @@ export type CandidateDecisionCapture = {
 };
 
 export type CandidateDecisionRecord = {
-  record_version: typeof CANDIDATE_DECISION_RECORD_VERSION;
+  record_version:
+    | typeof LEGACY_CANDIDATE_DECISION_RECORD_VERSION
+    | typeof CANDIDATE_DECISION_RECORD_VERSION;
   record_kind: "candidate_decision_record";
   scan_run_id: string;
   scan_run_fingerprint: string;
@@ -95,6 +103,7 @@ export type CandidateDecisionRecord = {
     build_version: string;
     provider_contract_version: string;
   };
+  learning_attribution: CandidateDecisionLearningAttribution;
   coverage: {
     expected_candidate_count: number;
     observed_candidate_count: number;
@@ -155,6 +164,16 @@ function text(value: unknown) {
 
 function normalizeTicker(value: string) {
   return value.trim().toUpperCase();
+}
+
+/**
+ * Stable link used by research-only snapshots to prove which immutable scanner
+ * decision produced their hypothetical plan. Keeping this constructor beside
+ * the decision record prevents a later consumer from silently inventing a
+ * ticker-only relation.
+ */
+export function candidateDecisionCandidateId(scanRunId: string, ticker: string) {
+  return `scanner_candidate:v1:${scanRunId}:${normalizeTicker(ticker)}`;
 }
 
 function uniqueSorted<T extends string>(values: T[]) {
@@ -307,11 +326,13 @@ export function buildCandidateDecisionRecord({
   capture,
   scoringVersion,
   buildVersion,
+  learningAttribution,
 }: {
   scanRun: RecommendationScanRun;
   capture: CandidateDecisionCapture | null | undefined;
   scoringVersion: string;
   buildVersion: string;
+  learningAttribution?: CandidateDecisionLearningAttribution | null;
 }): CandidateDecisionRecord | null {
   if (!capture) return null;
 
@@ -335,8 +356,8 @@ export function buildCandidateDecisionRecord({
   const eligibleTickerSet = new Set(capture.eligible_candidate_tickers);
   const builtTickerSet = new Set(capture.built_tickers);
   const publishedTickerSet = new Set(capture.published_tickers);
-  const candidateIds = capture.universe.map(
-    (candidate) => `scanner_candidate:v1:${scanRun.id}:${candidate.ticker}`,
+  const candidateIds = capture.universe.map((candidate) =>
+    candidateDecisionCandidateId(scanRun.id, candidate.ticker),
   );
   const captureEvidence = buildPreTruncationCandidateCaptureEvidence({
     scan_identity: scanRun.id,
@@ -411,7 +432,7 @@ export function buildCandidateDecisionRecord({
               : "unknown";
 
     return {
-      candidate_id: `scanner_candidate:v1:${scanRun.id}:${candidate.ticker}`,
+      candidate_id: candidateDecisionCandidateId(scanRun.id, candidate.ticker),
       ticker: candidate.ticker,
       company_name: candidate.company_name,
       sector: candidate.sector,
@@ -467,6 +488,12 @@ export function buildCandidateDecisionRecord({
       build_version: buildVersion,
       provider_contract_version: capture.provider_contract_version,
     },
+    learning_attribution:
+      learningAttribution ??
+      buildCandidateDecisionLearningAttribution({
+        recommendationPublishPolicyVersion: null,
+        canonicalEvaluationVersions: null,
+      }),
     coverage: {
       expected_candidate_count: capture.universe.length,
       observed_candidate_count: capture.observed_candidates.length,

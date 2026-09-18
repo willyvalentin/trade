@@ -173,6 +173,22 @@ adapter needs its own documented entitlement, credit/frequency budget,
 coverage denominator, persisted receipt and current-market readback before it
 can supply discovery.
 
+**IF-2b Basic Free dynamic-coverage boundary.** A finalized `/stocks` receipt
+can establish only the historical catalog denominator; it cannot make a Basic
+Free profile market-wide dynamic discovery. Before any collector is admitted,
+the product must retain a versioned capacity disclosure that derives the
+one-credit-per-symbol lower bound from that receipt and its declared daily
+budget, marks the Pro-only market-movers path unavailable on the configured
+Basic Free profile, and hard-codes `discovery_feed_allowed = false`. This
+disclosure must be pure and historical: it cannot read a current quote, infer
+entitlement from configuration, request a page, choose a symbol, alter ranking
+or publication, or authorize execution. A larger catalog page size is not
+proven merely because the bounded eight-record observation succeeded; the
+[provider documentation](https://twelvedata.com/docs) exposes `outputsize` but
+does not itself prove a Basic-Free-safe page-size ceiling or storage envelope.
+A future collection design needs separate provider-capability evidence and a
+bounded, explicitly authorized rollout.
+
 #### IF-3 — contextual quality engine
 
 Promote the existing shadow ideas only after their inputs are live and

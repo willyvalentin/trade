@@ -490,15 +490,12 @@ export function buildRecommendationEngineImprovementBacklog({
   const weakWindows = tier_performance.window_breakdowns.filter(
     (window) =>
       window.window !== "unknown" &&
-      (window.window_target_status === "below_target" ||
-        window.window_target_status === "above_target" ||
-        (window.evaluated_count >= 5 &&
-          (window.stop_before_target_rate ?? 0) > 35)),
+      window.evaluated_count >= 5 &&
+      (window.stop_before_target_rate ?? 0) > 35,
   );
 
   if (
     weakWindows.length > 0 ||
-    sample_quality.window_target_coverage.below_target_count > 0 ||
     sample_quality.window_coverage.status === "skewed"
   ) {
     items.push(
@@ -506,20 +503,15 @@ export function buildRecommendationEngineImprovementBacklog({
         category: "window_targeting",
         priority: "medium",
         status: evaluatedRecommendations >= 30 ? "ready_to_investigate" : "needs_more_data",
-        title: "Review day-trade-window targeting",
+        title: "Review day-trade-window behavior",
         summary:
-          "Some windows are underfilled, overfilled, skewed, or showing weak evaluated behavior.",
+          "Some windows are skewed or showing weak evaluated behavior.",
         evidence: [
-          evidence(
-            "Below target windows",
-            sample_quality.window_target_coverage.below_target_count,
-            "count",
-          ),
           evidence("Window coverage", sample_quality.window_coverage.status, "text"),
           evidence("Flagged windows", weakWindows.length, "count"),
         ],
         suggested_next_action:
-          "Review scan-window history before changing generation strategy for any specific window.",
+          "Review scan-window outcomes before changing generation strategy for any specific window.",
       }),
     );
   }

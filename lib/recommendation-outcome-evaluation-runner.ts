@@ -29,6 +29,8 @@ import {
   buildPlanReferenceMetadataTrace,
   type PlanReferenceMetadataTraceSummary,
 } from "@/lib/plan-reference-metadata-trace";
+import { buildCanonicalOutcomeProviderCoverageReceipt } from "@/lib/recommendation-outcome-canonical-coverage";
+import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 
 export type RecommendationOutcomeEvaluationRunStatus =
   | "idle"
@@ -70,6 +72,10 @@ export type RecommendationOutcomeCandleRequest = {
   start_at: string;
   end_at: string;
   interval: "5min" | "15min";
+  decision_timestamp: string;
+  evaluation_anchor_start_at: string;
+  decision_to_anchor_seconds: number;
+  decision_timestamp_interval_aligned: boolean;
 };
 
 export type RecommendationOutcomeCandleResult = {
@@ -548,7 +554,10 @@ function buildCandleRequest({
 }): { request: RecommendationOutcomeCandleRequest | null; warnings: string[] } {
   const warnings: string[] = [];
   const ticker = snapshot.ticker?.trim().toUpperCase() ?? "";
-  const recommendedAt = toDate(snapshot.recommended_at);
+  const anchor = recommendationOutcomeEvaluationAnchorFromSnapshot(snapshot);
+  const recommendedAt = anchor
+    ? toDate(anchor.evaluation_anchor_start_at)
+    : null;
   const fixedHorizonMs = horizonMs(horizon);
 
   if (horizon === "eod") {
@@ -565,9 +574,14 @@ function buildCandleRequest({
     return { request: null, warnings };
   }
 
-  if (!ticker || !recommendedAt || !fixedHorizonMs) {
+  if (!ticker || !recommendedAt || !fixedHorizonMs || !anchor) {
     if (!fixedHorizonMs) {
       warnings.push("Evaluation horizon is unknown.");
+    }
+    if (!anchor) {
+      warnings.push(
+        "Outcome evaluation anchor is missing, invalid, or not bound to the decision timestamp.",
+      );
     }
     return { request: null, warnings };
   }
@@ -593,6 +607,11 @@ function buildCandleRequest({
       start_at: recommendedAt.toISOString(),
       end_at: end.toISOString(),
       interval: "5min",
+      decision_timestamp: anchor.decision_timestamp!,
+      evaluation_anchor_start_at: anchor.evaluation_anchor_start_at!,
+      decision_to_anchor_seconds: anchor.decision_to_anchor_seconds!,
+      decision_timestamp_interval_aligned:
+        anchor.decision_timestamp_interval_aligned,
     },
     warnings,
   };
@@ -1113,6 +1132,12 @@ export async function runRecommendationOutcomeEvaluation(
           provider_error:
             candleResult.status === "provider_error" ? reason : null,
           candle_request_debug: candleResult.diagnostics ?? null,
+          canonical_provider_coverage:
+            buildCanonicalOutcomeProviderCoverageReceipt({
+              candles: horizonCandles,
+              request: work.request,
+              result: candleResult,
+            }),
           ...horizonFilterDiagnostics,
         });
         const shouldRetainExistingCompleted =
@@ -1188,6 +1213,12 @@ export async function runRecommendationOutcomeEvaluation(
           outcome: result.outcome,
           candles: horizonCandles,
         }),
+        canonical_provider_coverage:
+          buildCanonicalOutcomeProviderCoverageReceipt({
+            candles: horizonCandles,
+            request: work.request,
+            result: candleResult,
+          }),
         ...horizonFilterDiagnostics,
         ...retainedCandlePayload(horizonCandles),
         ...shadowEntryTrialPayload({

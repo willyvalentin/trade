@@ -1,7 +1,12 @@
 export const basicFreeCatalogCollectionPlanVersion =
-  "basic_free_catalog_collection_plan_v1" as const;
+  "basic_free_catalog_collection_plan_v3" as const;
+
+export type BasicFreeCatalogSnapshotCoherenceReason =
+  | "source_snapshot_coherence_not_observed"
+  | "page_collection_spans_multiple_quota_days";
 
 export type BasicFreeCatalogCollectionPlanReason =
+  | "catalog_capability_probe_not_collection_admitted"
   | "catalog_provider_response_not_observed"
   | "catalog_observation_not_available"
   | "provider_catalog_denominator_missing"
@@ -15,22 +20,27 @@ export type BasicFreeCatalogCollectionPlanReason =
 
 export type BasicFreeCatalogCollectionPlan = {
   plan_version: typeof basicFreeCatalogCollectionPlanVersion;
-  status: "ready_for_separate_admission" | "unavailable";
+  status: "reference_estimate_available" | "unavailable";
   execution_authority: "not_admitted";
   discovery_feed_allowed: false;
+  fresh_snapshot_required: true;
+  reference_page_reusable_for_collection: false;
   provider_catalog_count: number | null;
-  page_size: number | null;
-  total_pages_required: number | null;
-  remaining_pages_after_observed_page: number | null;
-  total_credits_required: number | null;
-  remaining_credits_after_observed_page: number | null;
-  credits_available_today: number | null;
-  minimum_trading_days_from_observed_page: number | null;
-  minimum_request_minutes_for_current_day: number | null;
+  observed_page_size: number | null;
+  page_collection_pages_required: number | null;
+  page_collection_credits_required: number | null;
+  credits_available_at_observation: number | null;
+  minimum_quota_days_for_page_collection: number | null;
+  minimum_request_minutes_for_observed_day_page_collection: number | null;
+  snapshot_coherence_status: "not_proven";
+  same_quota_day_page_collection_feasible: boolean | null;
+  page_collection_must_span_quota_days: boolean | null;
+  snapshot_coherence_reason_codes: BasicFreeCatalogSnapshotCoherenceReason[];
   reason_codes: BasicFreeCatalogCollectionPlanReason[];
 };
 
 export type BasicFreeCatalogCollectionPlanInput = {
+  referenceMode?: unknown;
   providerResponseObserved: unknown;
   observationOutcome: unknown;
   providerCatalogCount: unknown;
@@ -73,27 +83,38 @@ function unavailable(
     status: "unavailable",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
-    page_size: pageSize,
-    total_pages_required: null,
-    remaining_pages_after_observed_page: null,
-    total_credits_required: null,
-    remaining_credits_after_observed_page: null,
-    credits_available_today: null,
-    minimum_trading_days_from_observed_page: null,
-    minimum_request_minutes_for_current_day: null,
+    observed_page_size: pageSize,
+    page_collection_pages_required: null,
+    page_collection_credits_required: null,
+    credits_available_at_observation: null,
+    minimum_quota_days_for_page_collection: null,
+    minimum_request_minutes_for_observed_day_page_collection: null,
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible: null,
+    page_collection_must_span_quota_days: null,
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
     reason_codes: [reason],
   };
 }
 
 /**
- * Computes capacity requirements from one already-observed Basic Free catalog
- * page. This is capacity math only: it cannot make a provider request, mark a
- * catalog complete, expand discovery, or authorize a future collection.
+ * Computes a historical capacity estimate from one already-observed Basic Free
+ * catalog reference page. It distinguishes the number of pages from proof of a
+ * coherent fresh catalog snapshot: a multi-quota-day schedule cannot establish
+ * that snapshot. A separately admitted collection must start from a new
+ * snapshot; the reference page can never reduce its page or credit count. This
+ * is capacity math only: it cannot make a provider request, mark a catalog
+ * complete, expand discovery, or authorize a future collection.
  */
 export function buildBasicFreeCatalogCollectionPlan(
   input: BasicFreeCatalogCollectionPlanInput,
 ): BasicFreeCatalogCollectionPlan {
+  if (input.referenceMode === "capability_probe") {
+    return unavailable(input, "catalog_capability_probe_not_collection_admitted");
+  }
   if (input.providerResponseObserved !== true) {
     return unavailable(input, "catalog_provider_response_not_observed");
   }
@@ -152,35 +173,42 @@ export function buildBasicFreeCatalogCollectionPlan(
     return unavailable(input, "catalog_reservation_not_finalized");
   }
 
-  const totalPagesRequired = Math.ceil(providerCatalogCount / pageSize);
-  const remainingPages = Math.max(0, totalPagesRequired - 1);
+  const pageCollectionPagesRequired = Math.ceil(providerCatalogCount / pageSize);
   const creditsAvailableToday = dailyRemainingCredits;
-  const currentDayRequests = Math.min(remainingPages, creditsAvailableToday);
-  const additionalCreditsAfterToday = Math.max(0, remainingPages - currentDayRequests);
+  const currentDayRequests = Math.min(
+    pageCollectionPagesRequired,
+    creditsAvailableToday,
+  );
+  const additionalCreditsAfterToday = Math.max(
+    0,
+    pageCollectionPagesRequired - currentDayRequests,
+  );
   const currentMinuteRequests = Math.min(
     currentDayRequests,
     minuteRemainingCredits,
   );
+  const sameQuotaDayPageCollectionFeasible =
+    pageCollectionPagesRequired <= dailyCreditBudget;
+  const pageCollectionMustSpanQuotaDays =
+    !sameQuotaDayPageCollectionFeasible;
 
   return {
     plan_version: basicFreeCatalogCollectionPlanVersion,
-    status: "ready_for_separate_admission",
+    status: "reference_estimate_available",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
-    page_size: pageSize,
-    total_pages_required: totalPagesRequired,
-    remaining_pages_after_observed_page: remainingPages,
-    total_credits_required: totalPagesRequired,
-    remaining_credits_after_observed_page: remainingPages,
-    credits_available_today: creditsAvailableToday,
-    minimum_trading_days_from_observed_page:
-      remainingPages === 0
-        ? 0
-        : creditsAvailableToday === 0
-          ? Math.ceil(remainingPages / dailyCreditBudget)
-          : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
-    minimum_request_minutes_for_current_day:
+    observed_page_size: pageSize,
+    page_collection_pages_required: pageCollectionPagesRequired,
+    page_collection_credits_required: pageCollectionPagesRequired,
+    credits_available_at_observation: creditsAvailableToday,
+    minimum_quota_days_for_page_collection:
+      currentDayRequests === 0
+        ? Math.ceil(pageCollectionPagesRequired / dailyCreditBudget)
+        : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
+    minimum_request_minutes_for_observed_day_page_collection:
       currentDayRequests === 0
         ? 0
         : minuteRemainingCredits === 0
@@ -191,6 +219,16 @@ export function buildBasicFreeCatalogCollectionPlan(
                 currentDayRequests - currentMinuteRequests,
               ) / perMinuteCreditBudget,
             ),
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible:
+      sameQuotaDayPageCollectionFeasible,
+    page_collection_must_span_quota_days: pageCollectionMustSpanQuotaDays,
+    snapshot_coherence_reason_codes: [
+      "source_snapshot_coherence_not_observed",
+      ...(pageCollectionMustSpanQuotaDays
+        ? (["page_collection_spans_multiple_quota_days"] as const)
+        : []),
+    ],
     reason_codes: [],
   };
 }

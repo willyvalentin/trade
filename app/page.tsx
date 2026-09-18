@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import { getLearningAccelerationConfig } from "@/lib/learning-acceleration-mode";
+import { buildBasicFreeCatalogObservationReadiness } from "@/lib/basic-free-catalog-observation-readiness";
 import {
   historicalCandleStorageReadbackToDetection,
   readHistoricalCandleStorageSchema,
@@ -22,6 +23,8 @@ export default async function Home() {
   const learningAccelerationConfig = getLearningAccelerationConfig({
     growMaxLearningModeEnabled: growMaxLearningMode.grow_max_learning_mode,
   });
+  const basicFreeCatalogObservationReadiness =
+    buildBasicFreeCatalogObservationReadiness();
   await connection();
   const historicalCandleStorageReadback =
     await readHistoricalCandleStorageSchema();
@@ -44,6 +47,7 @@ export default async function Home() {
         </div>
       </section>
       <TradeApp
+        basicFreeCatalogObservationReadiness={basicFreeCatalogObservationReadiness}
         learningAccelerationServerConfig={learningAccelerationConfig}
         historicalCandleStorageDetection={historicalCandleStorageDetection}
       />
