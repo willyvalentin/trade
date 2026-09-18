@@ -447,6 +447,7 @@ import {
   type RecommendationEngineControlCenterStatus,
   type RecommendationEngineControlCenterSummary,
 } from "@/lib/recommendation-engine-control-center";
+import { deriveDayTradeMarketWaitState } from "@/lib/day-trade-market-wait-state";
 import {
   buildLiveMarketTrialReadinessSummary,
   liveMarketTrialReadinessSummaryJson,
@@ -14573,16 +14574,7 @@ export function TradeApp({
       scan_run_history: recommendationScanRunHistorySummary,
       data_mode_clarity: dataModeClaritySummary,
       market_wait_state: {
-        is_wait_state:
-          !dayTradeScanOrchestrationSummary.market_is_open ||
-          dayTradeScanOrchestrationSummary.decision === "market_closed" ||
-          dayTradeScanOrchestrationSummary.active_window === "closed",
-        market_is_open: dayTradeScanOrchestrationSummary.market_is_open,
-        outside_official_publication_window:
-          dayTradeScanOrchestrationSummary.market_is_open &&
-          (dayTradeScanOrchestrationSummary.decision ===
-            "outside_scan_window" ||
-            dayTradeScanOrchestrationSummary.active_window === "outside_window"),
+        ...deriveDayTradeMarketWaitState(dayTradeScanOrchestrationSummary),
         next_window_label: dayTradeScanOrchestrationSummary.next_window_label,
         reason: dayTradeScanOrchestrationSummary.scan_reason,
       },

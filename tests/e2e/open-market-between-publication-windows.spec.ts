@@ -2,8 +2,33 @@ import { expect, test } from "@playwright/test";
 
 import { buildLiveMarketTrialReadinessSummary } from "../../lib/live-market-trial-readiness";
 import { buildRecommendationEngineControlCenterSummary } from "../../lib/recommendation-engine-control-center";
+import { deriveDayTradeMarketWaitState } from "../../lib/day-trade-market-wait-state";
 
-test("Engine Insights does not call an open market between publication windows closed", () => {
+test("market wait state keeps a positively open market outside publication windows", () => {
+  expect(
+    deriveDayTradeMarketWaitState({
+      market_is_open: true,
+      active_window: "closed",
+    }),
+  ).toEqual({
+    is_wait_state: false,
+    market_is_open: true,
+    outside_official_publication_window: true,
+  });
+
+  expect(
+    deriveDayTradeMarketWaitState({
+      market_is_open: true,
+      active_window: "morning",
+    }),
+  ).toEqual({
+    is_wait_state: false,
+    market_is_open: true,
+    outside_official_publication_window: false,
+  });
+});
+
+test("Engine Insights does not call a positively open market closed when a stale wait flag disagrees", () => {
   const summary = buildRecommendationEngineControlCenterSummary({
     scan_observability: {
       status: "healthy",
@@ -62,7 +87,7 @@ test("Engine Insights does not call an open market between publication windows c
     market_wait_state: {
       is_wait_state: true,
       market_is_open: true,
-      outside_official_publication_window: true,
+      outside_official_publication_window: false,
       next_window_label: "Power hour",
     },
     now: "2026-09-18T18:14:00.000Z",
@@ -89,21 +114,21 @@ test("Engine Insights does not call an open market between publication windows c
   });
 });
 
-test("live trial readiness labels an open off-window interval truthfully", () => {
+test("live trial readiness labels an open interval truthfully when a stale window says closed", () => {
   const summary = buildLiveMarketTrialReadinessSummary({
     supabase_public_env_available: true,
     market_session: { phase: "regular" },
     market_status: { dayType: "open", provider: "polygon" },
     scan_orchestration: {
-      active_window: "outside_window",
-      decision: "outside_scan_window",
+      active_window: "closed",
+      decision: "market_closed",
       market_is_open: true,
-      next_window: "power_hour",
-      next_window_starts_at: "15:00",
-      next_window_label: "Power hour",
+      next_window: "closed",
+      next_window_starts_at: null,
+      next_window_label: "Next trading day",
       fallback_calendar_scan_allowed: false,
       calendar_confidence: "provider_confirmed",
-      scan_reason: "Outside official window.",
+      scan_reason: "Legacy closed-window label.",
       trading_date: "2026-09-18",
       ny_time: "14:14",
     },

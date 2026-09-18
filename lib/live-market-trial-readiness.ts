@@ -330,9 +330,7 @@ function isMarketOpenBetweenOfficialPublicationWindows(
 ) {
   return (
     input.scan_orchestration.market_is_open &&
-    !isActiveTrialWindow(input.scan_orchestration.active_window) &&
-    (input.scan_orchestration.active_window === "outside_window" ||
-      input.scan_orchestration.decision === "outside_scan_window")
+    !isActiveTrialWindow(input.scan_orchestration.active_window)
   );
 }
 
