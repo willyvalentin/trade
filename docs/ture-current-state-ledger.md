@@ -45,7 +45,11 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
-**Local IF-2b Basic Free dynamic-coverage disclosure:** the client-safe,
+**Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
+PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as
+`3e4f42c1ca082eecbd750e03559a86df14b93c57`; required exact-main CI
+`35365789987` passed, and Netlify production deploy
+`6aad66a2188fc00008a794f3` is ready on that revision. The client-safe,
 versioned `basic_free_market_wide_capacity_v1` contract now turns only a
 finalized observed Basic Free catalog receipt into a historical capacity
 statement. It requires the configured Basic Free profile, the provider's
@@ -74,6 +78,23 @@ market-wide collector. A larger-page capability needs separate authorized
 provider evidence before it can change the collection design. Local focused
 capacity/readback/route-contract tests passed; the authenticated UI remains
 unverified because no login credentials were used.
+
+**Local IF-2b relative-volume temporal-admissibility hardening:** the pure,
+unwired relative-volume boundary now versions its policy as
+`us_equity_relative_volume_intake_v2`. A future signal must supply the named
+market-calendar source plus its verified New York regular-session open and
+close instants. The contract independently derives the elapsed session minute
+from those instants, requires it to match both the observation and its
+historical baseline, and rejects a claimed regular-session observation outside
+that window. Invalid calendar dates and session windows on another New York
+date are also inadmissible. The result records the supplied calendar lineage,
+session bounds and independently expected elapsed minute for readback. It
+still has no provider, persistence, scanner, ranking, publication or execution
+path; this is stricter input admission, not an observed live volume feed or
+quality result. Local evidence: six focused contract scenarios plus the
+166-test intelligence-foundation regression, targeted lint, TypeScript and the
+Webpack production build passed. This source-only delivery is eligible for
+review; it remains unmerged, provider-free and not environment-verified.
 
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at

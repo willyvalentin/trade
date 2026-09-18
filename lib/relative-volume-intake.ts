@@ -1,5 +1,5 @@
 export const relativeVolumeIntakePolicyVersion =
-  "us_equity_relative_volume_intake_v1" as const;
+  "us_equity_relative_volume_intake_v2" as const;
 
 export type RelativeVolumeIntakeStatus =
   | "usable"
@@ -20,9 +20,16 @@ export type RelativeVolumeIntakeReason =
   | "observed_at_in_future"
   | "observation_stale"
   | "regular_session_not_verified"
+  | "market_calendar_source_missing"
+  | "regular_session_opened_at_invalid"
+  | "regular_session_closed_at_invalid"
+  | "regular_session_window_invalid"
+  | "regular_session_market_date_mismatch"
+  | "observation_outside_regular_session"
   | "market_date_invalid"
   | "market_date_mismatch"
   | "elapsed_session_minutes_invalid"
+  | "elapsed_session_minutes_mismatch"
   | "baseline_elapsed_minutes_invalid"
   | "baseline_elapsed_minutes_mismatch"
   | "current_volume_invalid"
@@ -38,6 +45,9 @@ export type RelativeVolumeIntakeInput = {
   observed_at: Date | string | null | undefined;
   market_date: string | null | undefined;
   regular_session_verified: boolean | null | undefined;
+  market_calendar_source: string | null | undefined;
+  regular_session_opened_at: Date | string | null | undefined;
+  regular_session_closed_at: Date | string | null | undefined;
   elapsed_regular_session_minutes: number | null | undefined;
   cumulative_regular_session_volume: number | null | undefined;
   baseline: {
@@ -49,18 +59,22 @@ export type RelativeVolumeIntakeInput = {
 };
 
 export type RelativeVolumeIntakeSummary = {
-  summary_version: "1.0";
+  summary_version: "2.0";
   summary_kind: "relative_volume_intake";
   policy_version: typeof relativeVolumeIntakePolicyVersion;
   symbol: string | null;
   provider: string | null;
   observed_at: string | null;
   market_date: string | null;
+  market_calendar_source: string | null;
+  regular_session_opened_at: string | null;
+  regular_session_closed_at: string | null;
   status: RelativeVolumeIntakeStatus;
   admissible_for_discovery: boolean;
   can_change_ranking_or_publication: false;
   age_minutes: number | null;
   elapsed_regular_session_minutes: number | null;
+  expected_elapsed_regular_session_minutes: number | null;
   baseline_elapsed_regular_session_minutes: number | null;
   baseline_sample_session_count: number | null;
   current_cumulative_volume: number | null;
@@ -87,6 +101,9 @@ export function buildRelativeVolumeIntake(
   const provider = text(input.provider);
   const observedAt = validDate(input.observed_at);
   const marketDate = validMarketDate(input.market_date);
+  const marketCalendarSource = text(input.market_calendar_source);
+  const regularSessionOpenedAt = validDate(input.regular_session_opened_at);
+  const regularSessionClosedAt = validDate(input.regular_session_closed_at);
   const baseline = input.baseline ?? null;
   const baselineAsOf = validDate(baseline?.as_of);
   const elapsedMinutes = positiveWholeNumber(input.elapsed_regular_session_minutes);
@@ -111,6 +128,20 @@ export function buildRelativeVolumeIntake(
     reasons.push("observed_at_in_future");
   }
   if (!input.regular_session_verified) reasons.push("regular_session_not_verified");
+  if (!marketCalendarSource) reasons.push("market_calendar_source_missing");
+  if (!regularSessionOpenedAt) {
+    reasons.push("regular_session_opened_at_invalid");
+  }
+  if (!regularSessionClosedAt) {
+    reasons.push("regular_session_closed_at_invalid");
+  }
+  if (
+    regularSessionOpenedAt &&
+    regularSessionClosedAt &&
+    regularSessionClosedAt.getTime() <= regularSessionOpenedAt.getTime()
+  ) {
+    reasons.push("regular_session_window_invalid");
+  }
   if (!marketDate) reasons.push("market_date_invalid");
   if (
     observedAt &&
@@ -119,7 +150,36 @@ export function buildRelativeVolumeIntake(
   ) {
     reasons.push("market_date_mismatch");
   }
+  if (
+    marketDate &&
+    ((regularSessionOpenedAt && newYorkDate(regularSessionOpenedAt) !== marketDate) ||
+      (regularSessionClosedAt && newYorkDate(regularSessionClosedAt) !== marketDate))
+  ) {
+    reasons.push("regular_session_market_date_mismatch");
+  }
+  if (
+    observedAt &&
+    regularSessionOpenedAt &&
+    regularSessionClosedAt &&
+    regularSessionClosedAt.getTime() > regularSessionOpenedAt.getTime() &&
+    (observedAt.getTime() < regularSessionOpenedAt.getTime() ||
+      observedAt.getTime() > regularSessionClosedAt.getTime())
+  ) {
+    reasons.push("observation_outside_regular_session");
+  }
   if (!elapsedMinutes) reasons.push("elapsed_session_minutes_invalid");
+  const expectedElapsedMinutes = elapsedRegularSessionMinutes({
+    observedAt,
+    regularSessionOpenedAt,
+    regularSessionClosedAt,
+  });
+  if (
+    elapsedMinutes &&
+    expectedElapsedMinutes !== null &&
+    elapsedMinutes !== expectedElapsedMinutes
+  ) {
+    reasons.push("elapsed_session_minutes_mismatch");
+  }
   if (!baselineElapsedMinutes) {
     reasons.push("baseline_elapsed_minutes_invalid");
   }
@@ -166,18 +226,22 @@ export function buildRelativeVolumeIntake(
 
   return {
     summary: {
-      summary_version: "1.0",
+      summary_version: "2.0",
       summary_kind: "relative_volume_intake",
       policy_version: relativeVolumeIntakePolicyVersion,
       symbol,
       provider,
       observed_at: observedAt?.toISOString() ?? null,
       market_date: marketDate,
+      market_calendar_source: marketCalendarSource,
+      regular_session_opened_at: regularSessionOpenedAt?.toISOString() ?? null,
+      regular_session_closed_at: regularSessionClosedAt?.toISOString() ?? null,
       status,
       admissible_for_discovery: admissible,
       can_change_ranking_or_publication: false,
       age_minutes: ageMinutes === null ? null : round(ageMinutes),
       elapsed_regular_session_minutes: elapsedMinutes,
+      expected_elapsed_regular_session_minutes: expectedElapsedMinutes,
       baseline_elapsed_regular_session_minutes: baselineElapsedMinutes,
       baseline_sample_session_count: sampleSessionCount,
       current_cumulative_volume: currentVolume,
@@ -200,9 +264,15 @@ function statusFromReasons(
         "symbol_missing",
         "observed_at_invalid",
         "observed_at_in_future",
+        "regular_session_opened_at_invalid",
+        "regular_session_closed_at_invalid",
+        "regular_session_window_invalid",
+        "regular_session_market_date_mismatch",
+        "observation_outside_regular_session",
         "market_date_invalid",
         "market_date_mismatch",
         "elapsed_session_minutes_invalid",
+        "elapsed_session_minutes_mismatch",
         "baseline_elapsed_minutes_invalid",
         "current_volume_invalid",
         "baseline_volume_invalid",
@@ -219,6 +289,7 @@ function statusFromReasons(
     reasons.some((reason) =>
       [
         "regular_session_not_verified",
+        "market_calendar_source_missing",
         "baseline_elapsed_minutes_mismatch",
         "baseline_sample_insufficient",
       ].includes(reason),
@@ -246,6 +317,31 @@ function validDate(value: Date | string | null | undefined) {
   return date && Number.isFinite(date.getTime()) ? date : null;
 }
 
+function elapsedRegularSessionMinutes({
+  observedAt,
+  regularSessionOpenedAt,
+  regularSessionClosedAt,
+}: {
+  observedAt: Date | null;
+  regularSessionOpenedAt: Date | null;
+  regularSessionClosedAt: Date | null;
+}) {
+  if (
+    !observedAt ||
+    !regularSessionOpenedAt ||
+    !regularSessionClosedAt ||
+    regularSessionClosedAt.getTime() <= regularSessionOpenedAt.getTime() ||
+    observedAt.getTime() < regularSessionOpenedAt.getTime() ||
+    observedAt.getTime() > regularSessionClosedAt.getTime()
+  ) {
+    return null;
+  }
+
+  return Math.floor(
+    (observedAt.getTime() - regularSessionOpenedAt.getTime()) / 60_000,
+  );
+}
+
 function newYorkDate(value: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/New_York",
@@ -271,7 +367,17 @@ function text(value: unknown) {
 }
 
 function validMarketDate(value: string | null | undefined) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  )
     ? value
     : null;
 }
