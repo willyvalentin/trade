@@ -645,7 +645,9 @@ production readback remains unverified. This creates a narrower future evidence
 path; it is not evidence that rejections, rankings or recommendation quality
 are correct.
 
-**Local IF-4 segmented baseline-readiness readback:** Engine Insights now
+**Merged and production-deployed IF-4 segmented baseline-readiness readback:** PR
+[#533](https://github.com/willyvalentin/trade/pull/533) merged as
+`bb26203c5b7fe64a294187b683b1a4de915f99d3`. Engine Insights now
 partitions only complete, uniquely identified decision records into independent
 policy-plus-canonical-version segments. Mixed or incomplete attribution is
 excluded rather than pooled; duplicated scan fingerprints are excluded from
@@ -656,9 +658,31 @@ ranking/confidence/publication rule, calls no provider and cannot execute a
 trade. Locally on `codex/if4-baseline-freeze`, `git diff --check`, strict
 TypeScript, scoped ESLint, 18 focused baseline-readiness regressions, the full
 166-test intelligence-foundation suite (including local PostgreSQL contracts),
-and the Webpack production build passed. PR CI, merge, deploy and authenticated
-production UI readback remain outstanding. This makes future baseline evidence
-more honest; it is not a measured recommendation-quality improvement.
+and the Webpack production build passed. Required CI `35285363943` passed all
+six provider-free shards, the aggregate and merge-candidate-provenance POC;
+Netlify production deploy `6aac79e5e5835d0008a8aad4` is ready on that exact
+main revision. Authenticated production UI readback remains unverified. This
+makes future baseline evidence more honest; it is not a measured
+recommendation-quality improvement.
+
+**Local IF-4 fixed baseline evaluation plan:** Engine Insights now derives a
+versioned, read-only evaluation plan separately for every policy-plus-canonical-
+version segment. It admits at most one exact, decision-bound, complete primary
+outcome for each visible, research or rejected candidate, keeps explicit
+no-trade coverage decision-level, and exposes only observed entry-trigger,
+post-entry terminal-event and selected-horizon R summaries. Existing `best_r`
+and `worst_r` are deliberately not presented as MFE/MAE: their excursion window
+can begin before a pending entry triggers, so MFE/MAE remain an explicit
+measurement gap until an entry-bound excursion contract exists. A missing,
+ambiguous, pre-decision, policy-mismatched, duplicate or incomplete outcome
+makes the plan ineligible rather than inventing a return. The plan never
+selects or persists a baseline, treats confidence as calibrated, changes
+ranking/publication, calls a provider or executes a trade. Locally on
+`codex/if4-evaluation-plan`, `git diff --check`, strict TypeScript, scoped
+ESLint and 20 focused baseline-readiness/evaluation-plan regressions passed.
+PR CI, merge, deploy and authenticated UI verification remain outstanding. This
+is a fixed measurement definition for a later explicit durable freeze, not a
+quality claim or an IF-5 policy promotion.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when

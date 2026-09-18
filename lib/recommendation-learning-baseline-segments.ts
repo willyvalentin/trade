@@ -46,6 +46,10 @@ export type RecommendationLearningBaselineSegment = {
     count: number;
     earliest_decision_timestamp: string;
     latest_decision_timestamp: string;
+    // The complete, sorted immutable decision identities in this segment. A
+    // future explicit freeze must bind to these exact records rather than a
+    // ticker list or whichever rows happen to be visible later.
+    scan_run_fingerprints: string[];
   };
   readiness: RecommendationLearningBaselineReadiness;
 };
@@ -201,6 +205,9 @@ export function buildRecommendationLearningBaselineSegmentation({
           count: orderedRuns.length,
           earliest_decision_timestamp: first.decisionTimestamp,
           latest_decision_timestamp: last.decisionTimestamp,
+          scan_run_fingerprints: orderedRuns.map(
+            (run) => run.scanRunFingerprint,
+          ),
         },
         readiness: buildRecommendationLearningBaselineReadiness({
           scanRuns: orderedRuns.map((run) => run.scanRun),
