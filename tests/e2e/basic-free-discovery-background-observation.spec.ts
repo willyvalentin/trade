@@ -30,6 +30,7 @@ async function loadObservationRuntime() {
       scheduled: boolean;
       marketOpen: boolean;
       outsideOfficialPublicationWindow: boolean;
+      catalogOnlyOneShotReady?: boolean;
       scanWindow: string;
       ownerUserId: string;
       executionFingerprint: string;
@@ -98,6 +99,26 @@ test("Basic Free observation is scheduled-only and retains its reference-only bo
       blocker: "official_publication_window",
       discovery: null,
     });
+
+    const catalogOnlyOfficial = await runtime.observe({
+      scheduled: true,
+      marketOpen: true,
+      outsideOfficialPublicationWindow: false,
+      catalogOnlyOneShotReady: true,
+      scanWindow: "midday",
+      ownerUserId,
+      executionFingerprint,
+      observe: async (input) => {
+        calls.push(input);
+        return { summary: {} };
+      },
+    });
+    expect(catalogOnlyOfficial).toMatchObject({
+      status: "observed",
+      blocker: null,
+    });
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toMatchObject({ scanWindow: "midday" });
   } finally {
     runtime.dispose();
   }
