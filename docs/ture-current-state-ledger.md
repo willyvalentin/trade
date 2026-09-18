@@ -103,6 +103,21 @@ the Webpack production build passed. The authenticated production UI was read
 without a new probe receipt; it must not be represented as an environment-run
 probe verification.
 
+**Merged and production-deployed open-market publication-window readback:** PR
+[#544](https://github.com/willyvalentin/trade/pull/544) merged as
+`32d3a09e688dad5febc8ff0a358772690f5d35eb`; required CI
+`35380132341` passed, and Netlify production deploy
+`6aad88bc188fc00008afdbfe` is ready on that exact revision. When the US
+regular session is open but no official publication window is active, Dashboard
+and Engine Insights now distinguish that state from a closed market. The
+readback says that background observation remains separately gated and that
+market-open status alone cannot publish a recommendation. This corrects
+decision-trace truth only: it does not make a provider request, broaden
+discovery, change ranking/confidence/publication criteria, apply a migration
+or open an execution path. The authenticated production UI was not rechecked
+after deploy because the available browser session reached the sign-in
+boundary; production deploy readiness is not UI-behavior verification.
+
 **Merged and production-verified IF-2b relative-volume temporal-admissibility
 hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged
 as `c7d3e7ac155a112c49b7047a26567cd9dae20787`; required CI
@@ -846,25 +861,30 @@ capacity and reference-only receipt behavior. This makes future collection
 claims more falsifiable; it adds no provider request, persistence, runtime
 activation, ranking, publication or execution authority.
 
-**Local IF-2b durable Basic Free catalog-checkpoint foundation:** the additive,
-not-yet-applied migration `20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`
-defines owner-isolated, RLS-protected raw-page lineage and three service-role
-RPCs for an eventual separately authorized collector. It records a fixed US
-common-stock scope, provider denominator and sequential page state; only the
-exact final-page remainder can transition a collection to `complete`. An exact
-replayed raw page is idempotent, whereas a changed denominator, conflicting
-page, gap or ambiguous persistence receipt fails closed. The matching
-server-only TypeScript boundary has no import from the observation or scanner
-runtime, so it cannot itself request Twelve Data, consume a credit, expand the
-universe or publish a candidate. Local `git diff --check` and 25 focused
-provider-free Playwright regressions passed. A clean, network-isolated local
-Postgres 17 proof applied the migration and confirmed that `service_role` has
-no direct table read/write grant, but can use the fixed RPCs; synthetic 8+1
-pages completed exactly once, replay returned one idempotent receipt, and a
-denominator change remained blocked. Required CI, PR review, merge, production
-migration approval/application and any collector runtime/readback remain
-outstanding. This is durable resume evidence only, not market coverage,
-provider entitlement, candidate quality or learning evidence.
+**Merged and production-deployed IF-2b durable Basic Free catalog-checkpoint
+foundation:** PR [#537](https://github.com/willyvalentin/trade/pull/537) merged
+as `73ea12d72e7d7b482f3fcaebab844e7b8b986925`; required CI
+`35300241795` passed. Its code is included in ready production deploy
+`6aad88bc188fc00008afdbfe` on current `main`, although its additive,
+not-yet-applied migration
+`20260918020603_if2_basic_free_catalog_collection_checkpoint.sql` has no
+database effect until separately authorized. The code defines owner-isolated,
+RLS-protected raw-page lineage and three service-role RPCs for an eventual
+separately authorized collector. It records a fixed US common-stock scope,
+provider denominator and sequential page state; only the exact final-page
+remainder can transition a collection to `complete`. An exact replayed raw page
+is idempotent, whereas a changed denominator, conflicting page, gap or
+ambiguous persistence receipt fails closed. The matching server-only TypeScript
+boundary has no import from the observation or scanner runtime, so it cannot
+itself request Twelve Data, consume a credit, expand the universe or publish a
+candidate. Local `git diff --check` and 25 focused provider-free Playwright
+regressions passed. A clean, network-isolated local Postgres 17 proof applied
+the migration and confirmed that `service_role` has no direct table read/write
+grant, but can use the fixed RPCs; synthetic 8+1 pages completed exactly once,
+replay returned one idempotent receipt, and a denominator change remained
+blocked. Production-migration approval/application and any collector
+runtime/readback remain outstanding. This is durable resume evidence only, not
+market coverage, provider entitlement, candidate quality or learning evidence.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when

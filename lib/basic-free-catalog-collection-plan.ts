@@ -1,5 +1,5 @@
 export const basicFreeCatalogCollectionPlanVersion =
-  "basic_free_catalog_collection_plan_v1" as const;
+  "basic_free_catalog_collection_plan_v2" as const;
 
 export type BasicFreeCatalogCollectionPlanReason =
   | "catalog_capability_probe_not_collection_admitted"
@@ -16,18 +16,18 @@ export type BasicFreeCatalogCollectionPlanReason =
 
 export type BasicFreeCatalogCollectionPlan = {
   plan_version: typeof basicFreeCatalogCollectionPlanVersion;
-  status: "ready_for_separate_admission" | "unavailable";
+  status: "reference_estimate_available" | "unavailable";
   execution_authority: "not_admitted";
   discovery_feed_allowed: false;
+  fresh_snapshot_required: true;
+  reference_page_reusable_for_collection: false;
   provider_catalog_count: number | null;
-  page_size: number | null;
-  total_pages_required: number | null;
-  remaining_pages_after_observed_page: number | null;
-  total_credits_required: number | null;
-  remaining_credits_after_observed_page: number | null;
-  credits_available_today: number | null;
-  minimum_trading_days_from_observed_page: number | null;
-  minimum_request_minutes_for_current_day: number | null;
+  observed_page_size: number | null;
+  fresh_collection_pages_required: number | null;
+  fresh_collection_credits_required: number | null;
+  credits_available_at_observation: number | null;
+  minimum_trading_days_for_fresh_collection: number | null;
+  minimum_request_minutes_for_fresh_collection_today: number | null;
   reason_codes: BasicFreeCatalogCollectionPlanReason[];
 };
 
@@ -75,23 +75,25 @@ function unavailable(
     status: "unavailable",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
-    page_size: pageSize,
-    total_pages_required: null,
-    remaining_pages_after_observed_page: null,
-    total_credits_required: null,
-    remaining_credits_after_observed_page: null,
-    credits_available_today: null,
-    minimum_trading_days_from_observed_page: null,
-    minimum_request_minutes_for_current_day: null,
+    observed_page_size: pageSize,
+    fresh_collection_pages_required: null,
+    fresh_collection_credits_required: null,
+    credits_available_at_observation: null,
+    minimum_trading_days_for_fresh_collection: null,
+    minimum_request_minutes_for_fresh_collection_today: null,
     reason_codes: [reason],
   };
 }
 
 /**
- * Computes capacity requirements from one already-observed Basic Free catalog
- * page. This is capacity math only: it cannot make a provider request, mark a
- * catalog complete, expand discovery, or authorize a future collection.
+ * Computes a historical capacity estimate from one already-observed Basic Free
+ * catalog reference page. A separately admitted collection must start from a
+ * new snapshot; the reference page can never reduce its page or credit count.
+ * This is capacity math only: it cannot make a provider request, mark a catalog
+ * complete, expand discovery, or authorize a future collection.
  */
 export function buildBasicFreeCatalogCollectionPlan(
   input: BasicFreeCatalogCollectionPlanInput,
@@ -157,11 +159,16 @@ export function buildBasicFreeCatalogCollectionPlan(
     return unavailable(input, "catalog_reservation_not_finalized");
   }
 
-  const totalPagesRequired = Math.ceil(providerCatalogCount / pageSize);
-  const remainingPages = Math.max(0, totalPagesRequired - 1);
+  const freshCollectionPagesRequired = Math.ceil(providerCatalogCount / pageSize);
   const creditsAvailableToday = dailyRemainingCredits;
-  const currentDayRequests = Math.min(remainingPages, creditsAvailableToday);
-  const additionalCreditsAfterToday = Math.max(0, remainingPages - currentDayRequests);
+  const currentDayRequests = Math.min(
+    freshCollectionPagesRequired,
+    creditsAvailableToday,
+  );
+  const additionalCreditsAfterToday = Math.max(
+    0,
+    freshCollectionPagesRequired - currentDayRequests,
+  );
   const currentMinuteRequests = Math.min(
     currentDayRequests,
     minuteRemainingCredits,
@@ -169,23 +176,21 @@ export function buildBasicFreeCatalogCollectionPlan(
 
   return {
     plan_version: basicFreeCatalogCollectionPlanVersion,
-    status: "ready_for_separate_admission",
+    status: "reference_estimate_available",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
-    page_size: pageSize,
-    total_pages_required: totalPagesRequired,
-    remaining_pages_after_observed_page: remainingPages,
-    total_credits_required: totalPagesRequired,
-    remaining_credits_after_observed_page: remainingPages,
-    credits_available_today: creditsAvailableToday,
-    minimum_trading_days_from_observed_page:
-      remainingPages === 0
-        ? 0
-        : creditsAvailableToday === 0
-          ? Math.ceil(remainingPages / dailyCreditBudget)
-          : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
-    minimum_request_minutes_for_current_day:
+    observed_page_size: pageSize,
+    fresh_collection_pages_required: freshCollectionPagesRequired,
+    fresh_collection_credits_required: freshCollectionPagesRequired,
+    credits_available_at_observation: creditsAvailableToday,
+    minimum_trading_days_for_fresh_collection:
+      currentDayRequests === 0
+        ? Math.ceil(freshCollectionPagesRequired / dailyCreditBudget)
+        : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
+    minimum_request_minutes_for_fresh_collection_today:
       currentDayRequests === 0
         ? 0
         : minuteRemainingCredits === 0

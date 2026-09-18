@@ -37706,24 +37706,25 @@ function BasicFreeDiscoveryReceiptPanel({
 
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
             <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-              Complete catalog capacity
+              Reference-page collection estimate
             </h4>
             {receipt.catalog_collection_plan.status ===
-            "ready_for_separate_admission" ? (
+            "reference_estimate_available" ? (
               <>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  {receipt.catalog_collection_plan.total_pages_required} one-credit
-                  pages in total; {" "}
-                  {receipt.catalog_collection_plan.remaining_pages_after_observed_page} remain
-                  after this observed page. At the declared quota, the remaining
-                  work needs at least {" "}
-                  {receipt.catalog_collection_plan.minimum_trading_days_from_observed_page} trading day(s).
+                  A new catalog snapshot would need {" "}
+                  {receipt.catalog_collection_plan.fresh_collection_pages_required} one-credit
+                  pages in total. This observed reference page is not reusable,
+                  so it does not reduce that requirement. At the declared quota,
+                  a fresh collection needs at least {" "}
+                  {receipt.catalog_collection_plan.minimum_trading_days_for_fresh_collection} trading day(s).
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  At the observed receipt, {receipt.catalog_collection_plan.credits_available_today} more
-                  credits remained for that trading day; its current-day portion
-                  would take at least {" "}
-                  {receipt.catalog_collection_plan.minimum_request_minutes_for_current_day} request minute(s).
+                  At this receipt, {receipt.catalog_collection_plan.credits_available_at_observation} credits
+                  remained for that trading day. If a separately authorized fresh
+                  collection could start then, its current-day portion would take
+                  at least {" "}
+                  {receipt.catalog_collection_plan.minimum_request_minutes_for_fresh_collection_today} request minute(s).
                 </p>
               </>
             ) : (
@@ -37735,6 +37736,8 @@ function BasicFreeDiscoveryReceiptPanel({
               </p>
             )}
             <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This estimate uses the observed {receipt.catalog_collection_plan.observed_page_size ?? "unknown"}-row
+              reference page; it is not a page-size maximum or a collection snapshot.
               Capacity math is not request authority. It cannot collect another
               page, mark coverage complete, admit a discovery feed, or qualify a
               candidate.
