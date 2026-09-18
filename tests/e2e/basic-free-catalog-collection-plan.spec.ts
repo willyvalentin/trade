@@ -82,9 +82,9 @@ function observedSummary() {
   };
 }
 
-test("reference estimate excludes the observed page from a future fresh catalog collection", () => {
+test("reference estimate separates page capacity from unproven snapshot coherence", () => {
   expect(buildBasicFreeCatalogCollectionPlan(readyPlanInput())).toEqual({
-    plan_version: "basic_free_catalog_collection_plan_v2",
+    plan_version: "basic_free_catalog_collection_plan_v3",
     status: "reference_estimate_available",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
@@ -92,11 +92,18 @@ test("reference estimate excludes the observed page from a future fresh catalog 
     reference_page_reusable_for_collection: false,
     provider_catalog_count: 6408,
     observed_page_size: 8,
-    fresh_collection_pages_required: 801,
-    fresh_collection_credits_required: 801,
+    page_collection_pages_required: 801,
+    page_collection_credits_required: 801,
     credits_available_at_observation: 799,
-    minimum_trading_days_for_fresh_collection: 2,
-    minimum_request_minutes_for_fresh_collection_today: 100,
+    minimum_quota_days_for_page_collection: 2,
+    minimum_request_minutes_for_observed_day_page_collection: 100,
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible: false,
+    page_collection_must_span_quota_days: true,
+    snapshot_coherence_reason_codes: [
+      "source_snapshot_coherence_not_observed",
+      "page_collection_spans_multiple_quota_days",
+    ],
     reason_codes: [],
   });
 });
@@ -111,10 +118,14 @@ test("capacity plan does not invent current-day capacity after the observed day 
     }),
   ).toMatchObject({
     status: "reference_estimate_available",
-    fresh_collection_pages_required: 9,
-    fresh_collection_credits_required: 9,
-    minimum_trading_days_for_fresh_collection: 1,
-    minimum_request_minutes_for_fresh_collection_today: 0,
+    page_collection_pages_required: 9,
+    page_collection_credits_required: 9,
+    minimum_quota_days_for_page_collection: 1,
+    minimum_request_minutes_for_observed_day_page_collection: 0,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
+    snapshot_coherence_status: "not_proven",
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
   });
 });
 
@@ -128,9 +139,13 @@ test("capacity plan accounts for the observed minute balance", () => {
     }),
   ).toMatchObject({
     status: "reference_estimate_available",
-    fresh_collection_pages_required: 9,
-    minimum_trading_days_for_fresh_collection: 2,
-    minimum_request_minutes_for_fresh_collection_today: 2,
+    page_collection_pages_required: 9,
+    minimum_quota_days_for_page_collection: 2,
+    minimum_request_minutes_for_observed_day_page_collection: 2,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
+    snapshot_coherence_status: "not_proven",
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
   });
 });
 
@@ -144,9 +159,11 @@ test("even a one-page catalog needs a new collection page", () => {
     status: "reference_estimate_available",
     fresh_snapshot_required: true,
     reference_page_reusable_for_collection: false,
-    fresh_collection_pages_required: 1,
-    fresh_collection_credits_required: 1,
-    minimum_trading_days_for_fresh_collection: 1,
+    page_collection_pages_required: 1,
+    page_collection_credits_required: 1,
+    minimum_quota_days_for_page_collection: 1,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
   });
 });
 
@@ -233,8 +250,10 @@ test("validated Basic Free readback exposes capacity math without turning it int
       discovery_feed_allowed: false,
       fresh_snapshot_required: true,
       reference_page_reusable_for_collection: false,
-      fresh_collection_pages_required: 801,
-      fresh_collection_credits_required: 801,
+      page_collection_pages_required: 801,
+      page_collection_credits_required: 801,
+      page_collection_must_span_quota_days: true,
+      snapshot_coherence_status: "not_proven",
     },
   });
 

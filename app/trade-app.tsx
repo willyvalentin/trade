@@ -37704,19 +37704,24 @@ function BasicFreeDiscoveryReceiptPanel({
             "reference_estimate_available" ? (
               <>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  A new catalog snapshot would need {" "}
-                  {receipt.catalog_collection_plan.fresh_collection_pages_required} one-credit
+                  A complete page collection would need {" "}
+                  {receipt.catalog_collection_plan.page_collection_pages_required} one-credit
                   pages in total. This observed reference page is not reusable,
-                  so it does not reduce that requirement. At the declared quota,
-                  a fresh collection needs at least {" "}
-                  {receipt.catalog_collection_plan.minimum_trading_days_for_fresh_collection} trading day(s).
+                  so it does not reduce that requirement. Starting from the
+                  observed remaining quota, page collection needs at least {" "}
+                  {receipt.catalog_collection_plan.minimum_quota_days_for_page_collection} quota day(s).
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
                   At this receipt, {receipt.catalog_collection_plan.credits_available_at_observation} credits
-                  remained for that trading day. If a separately authorized fresh
-                  collection could start then, its current-day portion would take
+                  remained for that trading day. If a separately authorized page
+                  collection could start then, its observed-day portion would take
                   at least {" "}
-                  {receipt.catalog_collection_plan.minimum_request_minutes_for_fresh_collection_today} request minute(s).
+                  {receipt.catalog_collection_plan.minimum_request_minutes_for_observed_day_page_collection} request minute(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  {receipt.catalog_collection_plan.page_collection_must_span_quota_days
+                    ? "Because this page schedule must span quota days, it cannot establish one coherent fresh catalog snapshot."
+                    : "The page schedule fits the declared daily quota, but a coherent full-catalog source snapshot has not been observed or admitted."}
                 </p>
               </>
             ) : (

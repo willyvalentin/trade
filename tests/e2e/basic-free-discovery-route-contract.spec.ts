@@ -42,6 +42,11 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(app).toContain("Undated reference");
   expect(app).toContain("One-shot containment");
   expect(app).toContain("Reference-page collection estimate");
+  expect(app).toContain("A complete page collection would need");
+  expect(app).toMatch(/Starting from the\s+observed remaining quota/);
+  expect(app).toContain(
+    "it cannot establish one coherent fresh catalog snapshot.",
+  );
   expect(discovery).toContain("discovery_feed_allowed: false");
   expect(discovery).toContain(
     "provider_catalog_count: page.provider_catalog_count",
@@ -53,6 +58,8 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(catalogPlan).toContain('execution_authority: "not_admitted"');
   expect(catalogPlan).toContain("discovery_feed_allowed: false");
   expect(catalogPlan).toContain("fresh_snapshot_required: true");
+  expect(catalogPlan).toContain('snapshot_coherence_status: "not_proven"');
+  expect(catalogPlan).toContain("page_collection_must_span_quota_days");
   expect(catalogPlan).toContain("reference_page_reusable_for_collection: false");
   expect(catalogPlan).not.toContain("fetch(");
   expect(route).toContain("buildBasicFreeCatalogOneShotControl");
