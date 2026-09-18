@@ -433,7 +433,8 @@ function isMarketOpenBetweenOfficialPublicationWindows(
 ) {
   return (
     marketWaitState?.market_is_open === true &&
-    marketWaitState.outside_official_publication_window === true
+    (marketWaitState.outside_official_publication_window === true ||
+      marketWaitState.is_wait_state === true)
   );
 }
 

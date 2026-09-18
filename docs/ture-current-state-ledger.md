@@ -118,6 +118,19 @@ or open an execution path. The authenticated production UI was not rechecked
 after deploy because the available browser session reached the sign-in
 boundary; production deploy readiness is not UI-behavior verification.
 
+**Current local IF-1 decision-trace correction, 2026-09-18:** A later
+production browser readback during the US regular session showed a positive
+`market_is_open` fact alongside an older closed-window label in Engine
+Insights. Branch `codex/open-market-window-reconciliation` now derives the
+display-only wait state from that authoritative open-market fact, so an open
+session outside an official publication window remains explicitly non-publish
+but cannot be described as closed. The correction does not alter scheduling,
+provider admission, credit reservation, ranking, confidence, publication or
+execution. Three focused Playwright regressions, targeted ESLint, TypeScript
+and the Webpack production build passed locally. It is not yet merged,
+production-deployed or environment-behavior verified; it is a decision-trace
+truth correction, not evidence of stronger recommendation quality.
+
 **Merged and production-verified IF-2b relative-volume temporal-admissibility
 hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged
 as `c7d3e7ac155a112c49b7047a26567cd9dae20787`; required CI
