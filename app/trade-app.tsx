@@ -291,6 +291,10 @@ import {
   basicFreeDiscoveryReadbackFromScheduledAttempt,
   type BasicFreeDiscoveryReadback,
 } from "@/lib/basic-free-discovery-readback";
+import {
+  basicFreeDiscoveryReceiptCurrentness,
+  type BasicFreeDiscoveryReceiptCurrentness,
+} from "@/lib/basic-free-discovery-receipt-currentness";
 import type { BasicFreeCatalogObservationReadiness } from "@/lib/basic-free-catalog-observation-readiness";
 import {
   basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
@@ -16971,6 +16975,7 @@ export function TradeApp({
 
             <BasicFreeDiscoveryReceiptPanel
               receipt={latestBasicFreeDiscoveryReadback}
+              currentTradingDate={dailySessionDate}
             />
 
             <BasicFreeCatalogObservationReadinessPanel
@@ -37470,8 +37475,10 @@ function MarketWideDiscoveryReceiptPanel({
 
 function basicFreeDiscoveryReceiptTone(
   receipt: BasicFreeDiscoveryReadback,
+  currentness: BasicFreeDiscoveryReceiptCurrentness,
 ): "positive" | "warning" | "danger" | "neutral" {
   if (receipt.status === "unavailable") return "neutral";
+  if (currentness.state !== "current_trading_day") return "warning";
   if (
     receipt.attempt.outcome === "provider_error" ||
     receipt.attempt.outcome === "rate_limited"
@@ -37484,10 +37491,17 @@ function basicFreeDiscoveryReceiptTone(
 
 function BasicFreeDiscoveryReceiptPanel({
   receipt,
+  currentTradingDate,
 }: {
   receipt: BasicFreeDiscoveryReadback;
+  currentTradingDate: string;
 }) {
   const providerObserved = receipt.attempt.provider_response_observed === true;
+  const currentness = basicFreeDiscoveryReceiptCurrentness({
+    receiptAvailable: receipt.status === "available",
+    receiptTradingDate: receipt.source_scan.trading_date,
+    currentTradingDate,
+  });
   const oneShotControl = receipt.one_shot_control;
   const coverage =
     receipt.catalog.provider_catalog_count === null
@@ -37519,11 +37533,15 @@ function BasicFreeDiscoveryReceiptPanel({
           label={
             receipt.status === "unavailable"
               ? "no receipt"
-              : providerObserved
-                ? receipt.attempt.outcome ?? "observed"
-                : receipt.admission.status ?? "not attempted"
+              : currentness.state === "historical_reference"
+                ? "historical reference"
+                : currentness.state === "undated_reference"
+                  ? "undated reference"
+                : providerObserved
+                  ? receipt.attempt.outcome ?? "observed"
+                  : receipt.admission.status ?? "not attempted"
           }
-          tone={basicFreeDiscoveryReceiptTone(receipt)}
+          tone={basicFreeDiscoveryReceiptTone(receipt, currentness)}
         />
       </div>
 
@@ -37535,6 +37553,18 @@ function BasicFreeDiscoveryReceiptPanel({
         <SummaryCard
           label="Provider Response"
           value={providerObserved ? "observed" : "not observed"}
+        />
+        <SummaryCard
+          label="Reference Date"
+          value={
+            currentness.state === "current_trading_day"
+              ? `current NY day · ${currentTradingDate}`
+              : currentness.state === "historical_reference"
+                ? `historical · ${currentness.receipt_trading_date}`
+                : currentness.state === "undated_reference"
+                  ? "not attributable"
+                  : "no receipt"
+          }
         />
         <SummaryCard label="Catalog Coverage" value={coverage} />
         <SummaryCard label="Reserved Credits" value={creditBudget} />
@@ -37548,6 +37578,22 @@ function BasicFreeDiscoveryReceiptPanel({
         </p>
       ) : (
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {currentness.state === "historical_reference" && (
+            <p className="lg:col-span-3 rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100">
+              Historical reference: this receipt is from {currentness.receipt_trading_date},
+              not the dashboard&apos;s current New York trading day ({currentTradingDate}).
+              It is not current-market information and cannot support a candidate,
+              ranking, publication, or execution decision.
+            </p>
+          )}
+          {currentness.state === "undated_reference" && (
+            <p className="lg:col-span-3 rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100">
+              Undated reference: the receipt cannot be attributed to the dashboard&apos;s
+              current New York trading day. It is withheld from current-market
+              interpretation and cannot support a candidate, ranking, publication,
+              or execution decision.
+            </p>
+          )}
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
             <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
               Immutable boundary

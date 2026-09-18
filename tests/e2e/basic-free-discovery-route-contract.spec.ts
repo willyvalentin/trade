@@ -13,6 +13,7 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   const app = read("app/trade-app.tsx");
   const discovery = read("lib/basic-free-discovery.ts");
   const readback = read("lib/basic-free-discovery-readback.ts");
+  const currentness = read("lib/basic-free-discovery-receipt-currentness.ts");
   const catalogPlan = read("lib/basic-free-catalog-collection-plan.ts");
   const oneShotControl = read("lib/basic-free-catalog-one-shot-control.ts");
 
@@ -32,6 +33,8 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basic_free_discovery: scanLog?.basic_free_discovery ?? null");
   expect(scanLog).toContain("basic_free_discovery?: Record<string, unknown> | null");
   expect(app).toContain("Basic Free Catalog Observation");
+  expect(app).toContain("Historical reference");
+  expect(app).toContain("Undated reference");
   expect(app).toContain("One-shot containment");
   expect(app).toContain("Complete catalog capacity");
   expect(discovery).toContain("discovery_feed_allowed: false");
@@ -39,6 +42,8 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
     "provider_catalog_count: page.provider_catalog_count",
   );
   expect(readback).toContain("catalog_collection_plan");
+  expect(currentness).toContain("historical_reference");
+  expect(currentness).toContain("undated_reference");
   expect(readback).toContain("buildBasicFreeCatalogCollectionPlan");
   expect(catalogPlan).toContain('execution_authority: "not_admitted"');
   expect(catalogPlan).toContain("discovery_feed_allowed: false");
