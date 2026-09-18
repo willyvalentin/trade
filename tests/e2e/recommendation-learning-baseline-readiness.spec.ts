@@ -7,6 +7,7 @@ import {
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationLearningBaselineReadiness } from "@/lib/recommendation-learning-baseline-readiness";
 import { buildRecommendationLearningBaselineSegmentation } from "@/lib/recommendation-learning-baseline-segments";
+import { buildRecommendationLearningEvaluationPlans } from "@/lib/recommendation-learning-evaluation-plan";
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
 import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
@@ -903,6 +904,105 @@ test.describe("recommendation learning baseline readiness", () => {
         canonical_evaluation_versions: { build_identity: "test-build-v2" },
       },
       readiness: { status: "not_ready" },
+    });
+  });
+
+  test("uses only one canonical primary outcome per exact candidate when preparing fixed baseline metrics", () => {
+    const baselineAttribution = completeAttribution();
+    const comparableEvidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({
+        index,
+        learningAttribution: baselineAttribution,
+      }),
+    );
+    const newerEvidence = publishedEvidenceForSegment({
+      index: 99,
+      learningAttribution: completeAttribution({
+        buildIdentity: "test-build-v2",
+      }),
+    });
+    const scanRuns = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.run,
+    );
+    const snapshots = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.snapshot,
+    );
+    const outcomes = [...comparableEvidence, newerEvidence].map(
+      (evidence) => evidence.outcome,
+    );
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns,
+      snapshots,
+      outcomes,
+    });
+    const plans = buildRecommendationLearningEvaluationPlans({
+      segmentation,
+      scanRuns,
+      snapshots,
+      outcomes,
+    });
+
+    expect(plans).toMatchObject({
+      contract_version: "recommendation_learning_evaluation_plan_v1",
+      status: "eligible_segments_require_explicit_freeze",
+    });
+    expect(plans.plans).toHaveLength(2);
+    expect(plans.plans[0]).toMatchObject({
+      status: "ready_for_explicit_freeze",
+      decision_records: {
+        count: 20,
+        scan_run_fingerprints: expect.arrayContaining([
+          comparableEvidence[0]!.run.run_fingerprint,
+        ]),
+      },
+      outcome_population: {
+        visible_primary_outcome_count: 20,
+        research_primary_outcome_count: 0,
+        rejected_primary_outcome_count: 0,
+        primary_outcome_by_horizon: { "15m": 0, "30m": 0, "60m": 20 },
+      },
+      metrics: {
+        entry: {
+          known_count: 20,
+          triggered_count: 20,
+          not_triggered_count: 0,
+          unknown_count: 0,
+          triggered_rate: 1,
+        },
+        horizon_r: { observed_count: 0, mean: null, median: null },
+        excursion: {
+          status: "not_measurable_until_entry_bound_excursion_contract",
+        },
+      },
+    });
+    expect(plans.plans[1]).toMatchObject({
+      status: "not_freeze_eligible",
+      metrics: null,
+    });
+  });
+
+  test("does not create metrics for a duplicate decision identity excluded from every segment", () => {
+    const evidence = publishedEvidenceForSegment({
+      index: 1,
+      learningAttribution: completeAttribution(),
+    });
+    const scanRuns = [evidence.run, structuredClone(evidence.run)];
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns,
+      snapshots: [evidence.snapshot],
+      outcomes: [evidence.outcome],
+    });
+    const plans = buildRecommendationLearningEvaluationPlans({
+      segmentation,
+      scanRuns,
+      snapshots: [evidence.snapshot],
+      outcomes: [evidence.outcome],
+    });
+
+    expect(plans).toEqual({
+      contract_version: "recommendation_learning_evaluation_plan_v1",
+      status: "no_comparable_segments",
+      plans: [],
     });
   });
 

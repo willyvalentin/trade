@@ -279,6 +279,10 @@ import {
   type RecommendationLearningBaselineSegmentation,
 } from "@/lib/recommendation-learning-baseline-segments";
 import {
+  buildRecommendationLearningEvaluationPlans,
+  type RecommendationLearningEvaluationPlans,
+} from "@/lib/recommendation-learning-evaluation-plan";
+import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
   type MarketWideDiscoveryReadback,
@@ -14359,6 +14363,13 @@ export function TradeApp({
       snapshots: recommendationBaselineSnapshots,
       outcomes: recommendationBaselineOutcomes,
     });
+  const recommendationLearningEvaluationPlans =
+    buildRecommendationLearningEvaluationPlans({
+      segmentation: recommendationLearningBaselineSegmentation,
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
       snapshots: recommendationPerformanceSnapshots,
@@ -16951,6 +16962,7 @@ export function TradeApp({
             <RecommendationLearningBaselineReadinessPanel
               readiness={recommendationLearningBaselineReadiness}
               segmentation={recommendationLearningBaselineSegmentation}
+              evaluationPlans={recommendationLearningEvaluationPlans}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -38034,9 +38046,11 @@ function CandidateDecisionHistoryPanel({
 function RecommendationLearningBaselineReadinessPanel({
   readiness,
   segmentation,
+  evaluationPlans,
 }: {
   readiness: RecommendationLearningBaselineReadiness;
   segmentation: RecommendationLearningBaselineSegmentation;
+  evaluationPlans: RecommendationLearningEvaluationPlans;
 }) {
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
@@ -38045,6 +38059,11 @@ function RecommendationLearningBaselineReadinessPanel({
   const eligibleSegmentCount = segmentation.segments.filter(
     (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
   ).length;
+  const readyEvaluationPlans = evaluationPlans.plans.filter(
+    (plan) => plan.status === "ready_for_explicit_freeze",
+  );
+  const formatR = (value: number | null) =>
+    value === null ? "not observed" : `${value.toFixed(2)}R`;
 
   return (
     <section className="rounded-lg border border-white/10 bg-black/20 p-4">
@@ -38165,6 +38184,63 @@ function RecommendationLearningBaselineReadinessPanel({
             ))}
           </ul>
         ) : null}
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Fixed baseline evaluation plan
+        </h4>
+        {readyEvaluationPlans.length > 0 ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {readyEvaluationPlans.length} policy/version-homogeneous segment
+              {readyEvaluationPlans.length === 1 ? " is" : "s are"} eligible
+              for an explicit freeze. They remain separate; this panel does not
+              choose a baseline segment.
+            </p>
+            <ul className="mt-3 space-y-3 text-xs leading-5 text-zinc-400">
+              {readyEvaluationPlans.slice(0, 3).map((plan) => {
+                const metrics = plan.metrics!;
+                return (
+                  <li key={plan.segment_key} className="rounded border border-white/10 p-2">
+                    <p>
+                      {plan.policy_attribution.recommendation_publish_policy_version}: {plan.outcome_population.visible_primary_outcome_count} visible,
+                      {" "}{plan.outcome_population.research_primary_outcome_count} research and
+                      {" "}{plan.outcome_population.rejected_primary_outcome_count} rejected primary outcomes;
+                      {" "}{plan.outcome_population.explicit_no_trade_decision_count} explicit no-trade decisions covered.
+                    </p>
+                    <p className="mt-1">
+                      Entry trigger: {metrics.entry.triggered_count}/{metrics.entry.known_count} known
+                      {metrics.entry.triggered_rate === null
+                        ? " (not observed)"
+                        : ` (${(metrics.entry.triggered_rate * 100).toFixed(1)}%)`}. Horizon R mean/median:
+                      {" "}{formatR(metrics.horizon_r.mean)} / {formatR(metrics.horizon_r.median)}.
+                    </p>
+                    <p className="mt-1">
+                      MFE/MAE: not measurable until the outcome contract records
+                      entry-bound excursions. Terminal events after entry: target {metrics.terminal.target_first_count}; stop {metrics.terminal.stop_first_count}; neither {metrics.terminal.neither_count}; unknown {metrics.terminal.unknown_count}.
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-2 text-xs leading-5 text-zinc-500">
+              These are point-in-time outcome diagnostics, not realized broker
+              P&amp;L or a policy-quality verdict.
+            </p>
+          </>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            No comparable segment currently has a complete enough receipt for
+            fixed baseline metrics. Ture preserves the evidence gap instead of
+            inferring returns or selecting a policy.
+          </p>
+        )}
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          This is a versioned, read-only evaluation plan. It neither chooses nor
+          persists a baseline freeze, calibrates confidence, changes ranking,
+          calls a provider, or executes a trade.
+        </p>
       </div>
 
       <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
