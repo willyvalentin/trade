@@ -10,7 +10,10 @@ import { buildRecommendationLearningBaselineSegmentation } from "@/lib/recommend
 import { buildRecommendationLearningEvaluationPlans } from "@/lib/recommendation-learning-evaluation-plan";
 import { CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
-import { computeRecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import {
+  computeRecommendationOutcome,
+  entryBoundExcursionFromOutcome,
+} from "@/lib/recommendation-outcome-tracker";
 import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -343,9 +346,23 @@ function completeOutcome(
       {
         timestamp: "2026-09-17T14:31:00.000Z",
         open: 100,
-        high: 109,
+        high: 101,
         low: 99,
-        close: 108,
+        close: 100,
+      },
+      {
+        timestamp: "2026-09-17T14:36:00.000Z",
+        open: 100,
+        high: 106,
+        low: 98,
+        close: 104,
+      },
+      {
+        timestamp: "2026-09-17T14:41:00.000Z",
+        open: 104,
+        high: 107,
+        low: 99,
+        close: 105,
       },
     ],
   }).outcome;
@@ -361,8 +378,8 @@ function completeOutcome(
                 CANONICAL_OUTCOME_PROVIDER_COVERAGE_RECEIPT_VERSION,
               provider_status: "available",
               freshness: "fresh",
-              expected_candle_count: 1,
-              observed_candle_count: 1,
+              expected_candle_count: 3,
+              observed_candle_count: 3,
               malformed_candle_count: 0,
               blockers: [],
               candle_interval: "5min",
@@ -971,7 +988,15 @@ test.describe("recommendation learning baseline readiness", () => {
         },
         horizon_r: { observed_count: 0, mean: null, median: null },
         excursion: {
-          status: "not_measurable_until_entry_bound_excursion_contract",
+          contract_version: "recommendation_outcome_entry_bound_excursion_v1",
+          status: "entry_bound_excursion_measured_with_explicit_missingness",
+          triggered_outcome_count: 20,
+          contract_missing_count: 0,
+          mfe_r: { observed_count: 20, mean: 1.75, median: 1.75 },
+          mae_r: { observed_count: 20, mean: -0.5, median: -0.5 },
+          paired_mfe_mae_count: 20,
+          mfe_missing_count: 0,
+          mae_missing_count: 0,
         },
       },
     });
@@ -979,6 +1004,149 @@ test.describe("recommendation learning baseline readiness", () => {
       status: "not_freeze_eligible",
       metrics: null,
     });
+  });
+
+  test("measures MFE and MAE only from candles strictly after a pending entry trigger", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = computeRecommendationOutcome({
+      snapshot,
+      horizon: "60m",
+      evaluated_at: "2026-09-17T15:35:00.000Z",
+      source: "intraday_candles",
+      provider: "twelve_data",
+      data_completeness: "complete",
+      candles: [
+        {
+          timestamp: "2026-09-17T14:31:00.000Z",
+          open: 105,
+          high: 110,
+          low: 101,
+          close: 103,
+        },
+        {
+          timestamp: "2026-09-17T14:36:00.000Z",
+          open: 103,
+          high: 101,
+          low: 99,
+          close: 100,
+        },
+        {
+          timestamp: "2026-09-17T14:41:00.000Z",
+          open: 100,
+          high: 106,
+          low: 97,
+          close: 104,
+        },
+      ],
+    }).outcome;
+    const excursion = entryBoundExcursionFromOutcome(outcome);
+
+    expect(outcome.best_r).toBe(2.5);
+    expect(excursion).toMatchObject({
+      contract_version: "recommendation_outcome_entry_bound_excursion_v1",
+      status: "measured",
+      entry_triggered_at: "2026-09-17T14:36:00.000Z",
+      post_entry_complete_candle_count: 1,
+      mfe_r: { status: "measured", r: 1.5 },
+      mae_r: { status: "measured", r: -0.75 },
+    });
+  });
+
+  test("withholds an excursion when the trigger or terminal candle has unresolved intrabar order", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const triggeredAndTargetedTogether = computeRecommendationOutcome({
+      snapshot,
+      horizon: "60m",
+      evaluated_at: "2026-09-17T15:35:00.000Z",
+      source: "intraday_candles",
+      provider: "twelve_data",
+      data_completeness: "complete",
+      candles: [
+        {
+          timestamp: "2026-09-17T14:31:00.000Z",
+          open: 100,
+          high: 109,
+          low: 99,
+          close: 108,
+        },
+      ],
+    }).outcome;
+    const targetAfterEntry = computeRecommendationOutcome({
+      snapshot,
+      horizon: "60m",
+      evaluated_at: "2026-09-17T15:35:00.000Z",
+      source: "intraday_candles",
+      provider: "twelve_data",
+      data_completeness: "complete",
+      candles: [
+        {
+          timestamp: "2026-09-17T14:31:00.000Z",
+          open: 100,
+          high: 101,
+          low: 99,
+          close: 100,
+        },
+        {
+          timestamp: "2026-09-17T14:36:00.000Z",
+          open: 100,
+          high: 109,
+          low: 97,
+          close: 108,
+        },
+      ],
+    }).outcome;
+
+    expect(entryBoundExcursionFromOutcome(triggeredAndTargetedTogether)).toMatchObject({
+      status: "not_measurable",
+      mfe_r: {
+        status: "not_measurable",
+        reason: "terminal_event_in_entry_trigger_candle",
+      },
+      mae_r: {
+        status: "not_measurable",
+        reason: "terminal_event_in_entry_trigger_candle",
+      },
+    });
+    expect(entryBoundExcursionFromOutcome(targetAfterEntry)).toMatchObject({
+      status: "partially_measured",
+      mfe_r: { status: "measured", r: 2 },
+      mae_r: {
+        status: "not_measurable",
+        reason: "target_terminal_candle_intrabar_order_unknown",
+      },
+    });
+  });
+
+  test("rejects a malformed entry-bound receipt instead of falling back to legacy excursion fields", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const outcome = completeOutcome(snapshot);
+    const outcomePayload = outcome.payload_json as Record<string, unknown>;
+    const forgedTrace = {
+      ...outcome,
+      payload_json: {
+        ...outcomePayload,
+        entry_bound_excursion: {
+          ...(outcomePayload.entry_bound_excursion as Record<string, unknown>),
+          blockers: ["forged_blocker"],
+        },
+      },
+    };
+    const tampered = {
+      ...outcome,
+      payload_json: {
+        ...outcomePayload,
+        entry_bound_excursion: {
+          ...(outcomePayload.entry_bound_excursion as Record<string, unknown>),
+          mfe_r: { status: "measured", r: -1, reason: null },
+        },
+      },
+    };
+
+    expect(entryBoundExcursionFromOutcome(forgedTrace)).toBeNull();
+    expect(entryBoundExcursionFromOutcome(tampered)).toBeNull();
   });
 
   test("does not create metrics for a duplicate decision identity excluded from every segment", () => {

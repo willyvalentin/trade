@@ -665,7 +665,9 @@ main revision. Authenticated production UI readback remains unverified. This
 makes future baseline evidence more honest; it is not a measured
 recommendation-quality improvement.
 
-**Local IF-4 fixed baseline evaluation plan:** Engine Insights now derives a
+**Merged and production-deployed IF-4 fixed baseline evaluation plan:** PR
+[#534](https://github.com/willyvalentin/trade/pull/534) merged as
+`4b41d3ffd85ddc0244c76a5238e2854572116fbf`. Engine Insights now derives a
 versioned, read-only evaluation plan separately for every policy-plus-canonical-
 version segment. It admits at most one exact, decision-bound, complete primary
 outcome for each visible, research or rejected candidate, keeps explicit
@@ -680,9 +682,33 @@ selects or persists a baseline, treats confidence as calibrated, changes
 ranking/publication, calls a provider or executes a trade. Locally on
 `codex/if4-evaluation-plan`, `git diff --check`, strict TypeScript, scoped
 ESLint and 20 focused baseline-readiness/evaluation-plan regressions passed.
-PR CI, merge, deploy and authenticated UI verification remain outstanding. This
-is a fixed measurement definition for a later explicit durable freeze, not a
-quality claim or an IF-5 policy promotion.
+Required CI `35289310879` passed the six provider-free shards, aggregate and
+merge-candidate-provenance POC; Netlify production deploy
+`6aac85b3a140ec00077554a3` is ready on that exact main revision. Authenticated
+production UI readback remains unverified. This is a fixed measurement
+definition for a later explicit durable freeze, not a quality claim or an IF-5
+policy promotion.
+
+**Local IF-4 entry-bound excursion evidence:** on
+`codex/if4-entry-bound-excursion`, every newly computed outcome carries the
+versioned `recommendation_outcome_entry_bound_excursion_v1` receipt in its
+existing server-owned payload. Its MFE/MAE window begins strictly after the
+entry-trigger candle: it never repurposes legacy `best_r`/`worst_r`, which can
+include pre-entry movement. A target or stop in the trigger candle therefore
+remains not measurable; a later target measures only MFE and a later stop only
+MAE, because the terminal candle's opposite excursion has unknown intrabar
+ordering. The parser refuses malformed, mismatched, duplicate or missing
+receipts rather than reconstructing a value. The evaluation plan joins only a
+unique raw outcome by its canonical primary-outcome ID, reports measured values
+and explicit missingness per segment, and the Engine Insights copy renders that
+distinction. This changes neither ranking, confidence, publication, provider
+use, execution nor schema. Local evidence: `git diff --check`, strict
+TypeScript, scoped ESLint, 23 focused baseline/evaluation-plan regressions,
+the full 166-test intelligence-foundation suite (including local PostgreSQL)
+and the Webpack production build passed. The local route reached its password
+boundary without console errors; authenticated Engine Insights, PR CI, merge,
+production deploy and market-data evidence remain outstanding. This makes a
+future baseline more honest, not presently better.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when

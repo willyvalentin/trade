@@ -15,7 +15,11 @@ import {
   hasCanonicalOutcomeProviderCoverageWithEvaluationAnchor,
 } from "@/lib/recommendation-outcome-canonical-coverage";
 import { recommendationOutcomeEvaluationAnchorFromSnapshot } from "@/lib/recommendation-outcome-evaluation-anchor";
-import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
+import {
+  entryBoundExcursionFromOutcome,
+  RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION,
+  type RecommendationOutcome,
+} from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
   RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION,
@@ -68,8 +72,15 @@ export type RecommendationLearningEvaluationPlan = {
     };
     horizon_r: NumericSummary;
     excursion: {
-      status: "not_measurable_until_entry_bound_excursion_contract";
-      reason: string;
+      contract_version: typeof RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION;
+      status: "entry_bound_excursion_measured_with_explicit_missingness";
+      triggered_outcome_count: number;
+      contract_missing_count: number;
+      mfe_r: NumericSummary;
+      mae_r: NumericSummary;
+      paired_mfe_mae_count: number;
+      mfe_missing_count: number;
+      mae_missing_count: number;
     };
   } | null;
   blockers: string[];
@@ -453,12 +464,34 @@ function evaluationPlanForSegment({
   const canEvaluate =
     segment.readiness.status === "eligible_for_explicit_freeze" &&
     blockers.size === 0;
+  const outcomesById = new Map<string, RecommendationOutcome | null>();
+  for (const outcome of outcomes) {
+    outcomesById.set(
+      outcome.id,
+      outcomesById.has(outcome.id) ? null : outcome,
+    );
+  }
   const primaryOutcomes = samples.map((sample) => sample.primary_outcome);
   const entryKnown = primaryOutcomes.filter(
     (outcome) => typeof outcome.entry_triggered === "boolean",
   );
   const enteredOutcomes = primaryOutcomes.filter(
     (outcome) => outcome.entry_triggered === true,
+  );
+  const entryBoundExcursions = enteredOutcomes.map((outcome) => {
+    const persistedOutcome = outcomesById.get(outcome.id) ?? null;
+    return persistedOutcome ? entryBoundExcursionFromOutcome(persistedOutcome) : null;
+  });
+  const measuredMfe = entryBoundExcursions.filter(
+    (excursion) => excursion?.mfe_r.status === "measured",
+  );
+  const measuredMae = entryBoundExcursions.filter(
+    (excursion) => excursion?.mae_r.status === "measured",
+  );
+  const pairedExcursions = entryBoundExcursions.filter(
+    (excursion) =>
+      excursion?.mfe_r.status === "measured" &&
+      excursion.mae_r.status === "measured",
   );
 
   return {
@@ -503,9 +536,22 @@ function evaluationPlanForSegment({
             enteredOutcomes.map((outcome) => outcome.current_r),
           ),
           excursion: {
-            status: "not_measurable_until_entry_bound_excursion_contract",
-            reason:
-              "Existing best_r and worst_r can span candles before a pending entry triggered, so they are not admitted as baseline MFE or MAE.",
+            contract_version:
+              RECOMMENDATION_OUTCOME_ENTRY_BOUND_EXCURSION_CONTRACT_VERSION,
+            status: "entry_bound_excursion_measured_with_explicit_missingness",
+            triggered_outcome_count: enteredOutcomes.length,
+            contract_missing_count: entryBoundExcursions.filter(
+              (excursion) => excursion === null,
+            ).length,
+            mfe_r: numericSummary(
+              measuredMfe.map((excursion) => excursion!.mfe_r.r),
+            ),
+            mae_r: numericSummary(
+              measuredMae.map((excursion) => excursion!.mae_r.r),
+            ),
+            paired_mfe_mae_count: pairedExcursions.length,
+            mfe_missing_count: enteredOutcomes.length - measuredMfe.length,
+            mae_missing_count: enteredOutcomes.length - measuredMae.length,
           },
         }
       : null,
@@ -516,7 +562,7 @@ function evaluationPlanForSegment({
     notes: [
       "Read-only evaluation plan: it neither persists a freeze nor changes ranking, confidence, publication, provider usage, or execution.",
       "Each metric uses at most one complete, decision-bound canonical primary outcome per exact candidate snapshot; visible, research, rejected, and no-trade evidence remain distinct.",
-      "Horizon R uses current_r only after an observed entry trigger. Existing best_r and worst_r are deliberately excluded from MFE/MAE until outcome evidence proves the excursion starts at entry; no value is inferred.",
+      "Horizon R uses current_r only after an observed entry trigger. MFE/MAE use only the versioned entry-bound receipt, which excludes the entry-trigger candle and refuses an intrabar-ambiguous terminal candle; legacy best_r and worst_r remain excluded.",
       "Confidence is ordinal and excluded from calibration. An explicit durable freeze and held-out comparison remain required before IF-5 can consider a policy change.",
     ],
   };
