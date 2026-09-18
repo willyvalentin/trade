@@ -38217,8 +38217,7 @@ function RecommendationLearningBaselineReadinessPanel({
                       {" "}{formatR(metrics.horizon_r.mean)} / {formatR(metrics.horizon_r.median)}.
                     </p>
                     <p className="mt-1">
-                      MFE/MAE: not measurable until the outcome contract records
-                      entry-bound excursions. Terminal events after entry: target {metrics.terminal.target_first_count}; stop {metrics.terminal.stop_first_count}; neither {metrics.terminal.neither_count}; unknown {metrics.terminal.unknown_count}.
+                      Entry-bound MFE mean/median: {formatR(metrics.excursion.mfe_r.mean)} / {formatR(metrics.excursion.mfe_r.median)} ({metrics.excursion.mfe_r.observed_count} measured, {metrics.excursion.mfe_missing_count} unavailable). MAE mean/median: {formatR(metrics.excursion.mae_r.mean)} / {formatR(metrics.excursion.mae_r.median)} ({metrics.excursion.mae_r.observed_count} measured, {metrics.excursion.mae_missing_count} unavailable). Paired MFE/MAE: {metrics.excursion.paired_mfe_mae_count}; missing receipt: {metrics.excursion.contract_missing_count}. Terminal events after entry: target {metrics.terminal.target_first_count}; stop {metrics.terminal.stop_first_count}; neither {metrics.terminal.neither_count}; unknown {metrics.terminal.unknown_count}.
                     </p>
                   </li>
                 );
