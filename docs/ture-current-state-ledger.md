@@ -45,6 +45,36 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+**Local IF-2b Basic Free dynamic-coverage disclosure:** the client-safe,
+versioned `basic_free_market_wide_capacity_v1` contract now turns only a
+finalized observed Basic Free catalog receipt into a historical capacity
+statement. It requires the configured Basic Free profile, the provider's
+positive catalog denominator, the declared daily ceiling and the finalized
+one-credit reservation; malformed, unfinalized or non-Basic inputs fail
+closed. For the verified 2026-09-18 receipt, it reports that a documented
+one-credit-per-symbol dynamic pass can cover at most 800 of 16,401 symbols per
+declared quota day and needs a lower bound of 21 quota days for one complete
+pass.
+It separately marks the Pro-only market-movers path as configured-profile
+ineligible. The contract is pure, historical and `not_admitted`: it has no
+provider, scanner, ranking, publication, execution or persistence capability,
+and it hard-codes `discovery_feed_allowed = false`.
+
+This corrects a material direction risk: the observed `outputsize = 8` is a
+deliberately bounded reference request, not evidence that eight is Twelve
+Data's Basic Free page-size maximum. [Twelve Data's symbol-reference
+guidance](https://support.twelvedata.com/en/articles/5620513-how-to-find-all-available-symbols-at-twelve-data)
+describes `/stocks` as data refreshed every three hours, while its
+[credit documentation](https://support.twelvedata.com/en/articles/5615854-credits)
+defines per-symbol dynamic-request accounting; the public endpoint docs expose
+an `outputsize` parameter but do not establish a Basic-Free-safe maximum or raw
+storage envelope. Therefore neither the eight-record page checkpoint source
+nor its not-yet-applied production migration may be represented as an optimized
+market-wide collector. A larger-page capability needs separate authorized
+provider evidence before it can change the collection design. Local focused
+capacity/readback/route-contract tests passed; the authenticated UI remains
+unverified because no login credentials were used.
+
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at
 `398db704f0ea6a46d0dab02005f6096689e2b8be`. The initial IF-1 decision-record

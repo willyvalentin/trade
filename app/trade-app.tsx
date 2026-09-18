@@ -37688,6 +37688,29 @@ function BasicFreeDiscoveryReceiptPanel({
               candidate.
             </p>
           </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Dynamic market-wide capacity
+            </h4>
+            {receipt.market_wide_dynamic_capacity.status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  At most {receipt.market_wide_dynamic_capacity.maximum_dynamic_symbols_per_quota_day} of {receipt.market_wide_dynamic_capacity.provider_catalog_count} catalog symbols could receive one documented one-credit dynamic-data request per declared quota day. A single full dynamic pass needs at least {receipt.market_wide_dynamic_capacity.minimum_quota_days_for_one_full_dynamic_catalog_pass} quota day(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Market movers: {receipt.market_wide_dynamic_capacity.market_movers_status.replaceAll("_", " ")}. This is historical receipt-based capacity math, not a current quote, request authority, complete symbol master, or discovery-feed admission.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                An honest market-wide capacity statement needs a finalized observed Basic Free catalog receipt. It remains unavailable: {receipt.market_wide_dynamic_capacity.reason_codes.join(", ") || "not recorded"}.
+              </p>
+            )}
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This card cannot collect a page, query a symbol, expand discovery, change ranking, publish a candidate, or authorize execution.
+            </p>
+          </div>
         </div>
       )}
     </section>
