@@ -10,6 +10,30 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Current local IF-4 durable baseline-freeze delivery, 2026-09-19:** The
+active IF-2 acceptance remains the separately authorized Monday Basic Free
+capability probe; no additional provider action is permitted before then. This
+off-market vertical slice preserves an explicit, immutable evaluation baseline
+without changing IF-2: Engine Insights can offer a freeze only for an existing
+policy/version-homogeneous plan that is already eligible, and read back the
+exact decision identities, metric plan and provenance that were frozen. The
+authenticated route recomputes that plan from owner-bound server evidence; it
+rejects not-ready, changed, duplicate, cross-owner or malformed attempts. It
+also refuses to freeze a truncated owner history: complete input data must fit
+the current deliberate 10,000-row non-paginated bound, otherwise a later
+paginated reader is required.
+
+The local migration supplies a least-privileged, RLS-protected table with
+service-role-only, contract-validated RPCs. Local evidence is 27 focused
+baseline-readiness/freeze regressions, targeted ESLint, strict TypeScript, a
+full Webpack production build and isolated PostgreSQL proof of first freeze,
+exact idempotent replay, changed-baseline rejection, cross-owner rejection and
+direct-table denial. There was no provider request, scheduler, ranking,
+candidate publication, broker action, production migration, production deploy
+or authenticated-environment UI verification. The additive production migration
+remains separately authorized and is not part of this local delivery; PR and
+protected CI are pending.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
@@ -65,28 +89,25 @@ configuration, candidate, publication or broker effect occurred. This is
 coverage-truth hardening, not evidence of a complete catalog or stronger
 candidates.
 
-**Current local IF-2b snapshot-feasibility delivery, 2026-09-18:** The US
-regular session is closed and the next authorized market action remains the
-separately bounded Monday Basic Free capability probe. Engine Insights formerly
-called a projected Basic Free multi-quota-day page schedule a “fresh
-collection”, even though a schedule that exceeds the declared daily
-page-credit capacity cannot establish one coherent fresh catalog snapshot. The
-versioned `basic_free_catalog_collection_plan_v3` now separates page-coverage
-capacity from snapshot coherence: it names the page count and quota-day
-estimate, marks whether the page schedule must span quota days, and withholds
-any coherent-snapshot claim because one has not been separately observed and
-admitted. The panel tells the user that a multi-day page schedule cannot
-establish one coherent fresh catalog snapshot; even a one-day-fit schedule is
-not presented as one. Local verification passed: eight focused plan/readback
-tests, 26 affected Basic Free discovery/collection regressions, targeted ESLint,
-strict TypeScript, the Webpack production build and the 166-test
-intelligence-foundation suite (including isolated PostgreSQL checks). The
-authenticated browser readback itself was not exercised because no local
-credentials were read or entered; the route/readback contract asserts the
-panel's exact user-facing branch text. There is no provider, migration,
-configuration, candidate, publication or broker effect. PR, protected CI,
-exact-main and production-deploy verification remain pending; return to
-current-market acceptance at the Monday scheduled window.
+**Merged and production-verified IF-2b snapshot-feasibility disclosure:** PR
+[#548](https://github.com/willyvalentin/trade/pull/548) merged as
+`33a6f409921883529a2334d2b4bef4d9a520b135`; protected CI `35399515325` and
+the subsequent exact-main provenance checks passed, and the approved Netlify
+production deploy was verified on that revision. The versioned
+`basic_free_catalog_collection_plan_v3` separates page-coverage capacity from
+snapshot coherence: it names the page count and quota-day estimate, marks
+whether the page schedule must span quota days, and withholds any coherent
+snapshot claim because one has not been separately observed and admitted. The
+panel tells the user that a multi-day page schedule cannot establish one
+coherent fresh catalog snapshot; even a one-day-fit schedule is not presented
+as one. Before merge, eight focused plan/readback tests, 26 affected Basic Free
+discovery/collection regressions, targeted ESLint, strict TypeScript, the
+Webpack production build and the 166-test intelligence-foundation suite
+(including isolated PostgreSQL checks) passed. The authenticated browser
+readback was not exercised because no local credentials were read or entered.
+There was no provider, migration, configuration, candidate, publication or
+broker effect. The next current-market acceptance remains the separately
+bounded Monday Basic Free capability probe.
 
 **Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
 PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as

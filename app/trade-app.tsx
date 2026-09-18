@@ -282,6 +282,7 @@ import {
   buildRecommendationLearningEvaluationPlans,
   type RecommendationLearningEvaluationPlans,
 } from "@/lib/recommendation-learning-evaluation-plan";
+import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
@@ -2628,6 +2629,65 @@ async function fetchApplicationDashboard() {
   }
 
   return { data: payload, error: null };
+}
+
+type RecommendationLearningBaselineFreezePayload = {
+  status?: "available" | "not_found" | "frozen" | "already_frozen";
+  freeze?: RecommendationLearningBaselineFreeze | null;
+  error?: string;
+  blocker?: string;
+};
+
+async function fetchRecommendationLearningBaselineFreeze() {
+  try {
+    const response = await fetch("/api/app/learning-baseline-freeze", {
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationLearningBaselineFreezePayload
+      | null;
+
+    if (!response.ok || !payload) {
+      return {
+        freeze: null,
+        error: payload?.error ?? "Durable baseline storage is unavailable.",
+      };
+    }
+
+    return { freeze: payload.freeze ?? null, error: "" };
+  } catch {
+    return {
+      freeze: null,
+      error: "Durable baseline storage is unavailable.",
+    };
+  }
+}
+
+async function postRecommendationLearningBaselineFreeze(segmentKey: string) {
+  try {
+    const response = await fetch("/api/app/learning-baseline-freeze", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ segment_key: segmentKey }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationLearningBaselineFreezePayload
+      | null;
+
+    return {
+      freeze: payload?.freeze ?? null,
+      status: payload?.status ?? null,
+      error: response.ok
+        ? ""
+        : payload?.error ?? "Durable baseline storage is unavailable.",
+    };
+  } catch {
+    return {
+      freeze: null,
+      status: null,
+      error: "Durable baseline storage is unavailable.",
+    };
+  }
 }
 
 type OutcomeBackfillOperation =
@@ -8843,6 +8903,12 @@ export function TradeApp({
     useState<RecommendationBatch[]>([]);
   const [storedRecommendationOutcomes, setStoredRecommendationOutcomes] =
     useState<RecommendationOutcome[]>([]);
+  const [learningBaselineFreeze, setLearningBaselineFreeze] =
+    useState<RecommendationLearningBaselineFreeze | null>(null);
+  const [learningBaselineFreezeError, setLearningBaselineFreezeError] =
+    useState("");
+  const [isFreezingLearningBaseline, setIsFreezingLearningBaseline] =
+    useState(false);
   const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
@@ -10002,6 +10068,27 @@ export function TradeApp({
     return refreshIslands(refreshIslandsForTab(activeTab), source);
   }
 
+  async function freezeLearningBaseline(segmentKey: string) {
+    if (isFreezingLearningBaseline) return;
+
+    setIsFreezingLearningBaseline(true);
+    setLearningBaselineFreezeError("");
+    const result = await postRecommendationLearningBaselineFreeze(segmentKey);
+    if (result.error || !result.freeze) {
+      setLearningBaselineFreezeError(
+        result.error || "Durable baseline storage did not return a receipt.",
+      );
+    } else {
+      setLearningBaselineFreeze(result.freeze);
+      setMessage(
+        result.status === "already_frozen"
+          ? "This exact learning baseline was already frozen."
+          : "Learning baseline frozen with an immutable decision receipt.",
+      );
+    }
+    setIsFreezingLearningBaseline(false);
+  }
+
   loadTradeDataRef.current = loadTradeData;
   refreshCurrentSurfaceRef.current = refreshCurrentSurface;
 
@@ -10042,6 +10129,20 @@ export function TradeApp({
     }, 0);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchRecommendationLearningBaselineFreeze().then((result) => {
+      if (cancelled) return;
+      setLearningBaselineFreeze(result.freeze);
+      setLearningBaselineFreezeError(result.error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -16964,6 +17065,10 @@ export function TradeApp({
               readiness={recommendationLearningBaselineReadiness}
               segmentation={recommendationLearningBaselineSegmentation}
               evaluationPlans={recommendationLearningEvaluationPlans}
+              freeze={learningBaselineFreeze}
+              freezeError={learningBaselineFreezeError}
+              isFreezing={isFreezingLearningBaseline}
+              onFreeze={freezeLearningBaseline}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -38168,10 +38273,18 @@ function RecommendationLearningBaselineReadinessPanel({
   readiness,
   segmentation,
   evaluationPlans,
+  freeze,
+  freezeError,
+  isFreezing,
+  onFreeze,
 }: {
   readiness: RecommendationLearningBaselineReadiness;
   segmentation: RecommendationLearningBaselineSegmentation;
   evaluationPlans: RecommendationLearningEvaluationPlans;
+  freeze: RecommendationLearningBaselineFreeze | null;
+  freezeError: string;
+  isFreezing: boolean;
+  onFreeze: (segmentKey: string) => void;
 }) {
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
@@ -38198,8 +38311,9 @@ function RecommendationLearningBaselineReadinessPanel({
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
             A read-only audit of whether persisted decisions can become a
-            comparable learning baseline. It never tunes ranking, relaxes
-            publication, calls a provider, or executes a trade.
+            comparable learning baseline. A separate explicit action may freeze
+            an already eligible, server-recomputed receipt; neither path tunes
+            ranking, relaxes publication, calls a provider, or executes a trade.
           </p>
         </div>
         <RecommendationDetailsPill
@@ -38275,7 +38389,8 @@ function RecommendationLearningBaselineReadinessPanel({
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Research counts require an exact candidate decision link and a
             decision-bound complete outcome. Confidence remains ordinal, so
-            calibration is blocked; this panel cannot freeze or promote a policy.
+            calibration is blocked; readiness alone cannot freeze or promote a
+            policy.
           </p>
         </div>
       </div>
@@ -38357,10 +38472,61 @@ function RecommendationLearningBaselineReadinessPanel({
           </p>
         )}
         <p className="mt-2 text-xs leading-5 text-zinc-500">
-          This is a versioned, read-only evaluation plan. It neither chooses nor
-          persists a baseline freeze, calibrates confidence, changes ranking,
-          calls a provider, or executes a trade.
+          This versioned evaluation plan is read-only. A later explicit freeze
+          can only persist the server-recomputed receipt; it cannot choose a
+          policy, calibrate confidence, change ranking, call a provider, or
+          execute a trade.
         </p>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Durable baseline receipt
+        </h4>
+        {freeze ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Frozen {formatDate(freeze.frozen_at)} with {freeze.decision_record_fingerprints.length}
+              {" "}exact decision record{freeze.decision_record_fingerprints.length === 1 ? "" : "s"}.
+            </p>
+            <p className="mt-1 break-all font-mono text-xs leading-5 text-zinc-500">
+              {freeze.baseline_fingerprint}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This immutable receipt is a comparison point only. It does not
+              declare the policy good or permit a promotion.
+            </p>
+          </>
+        ) : readyEvaluationPlans.length > 0 ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              An explicit freeze will store one selected, ready policy/version
+              segment and its exact decision identities. The server recomputes
+              eligibility before writing; it will reject changed or no-longer-ready evidence.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {readyEvaluationPlans.slice(0, 3).map((plan) => (
+                <button
+                  key={plan.segment_key}
+                  type="button"
+                  disabled={isFreezing}
+                  onClick={() => onFreeze(plan.segment_key)}
+                  className="rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isFreezing ? "Freezing baseline…" : "Freeze this baseline"}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            No segment is ready to freeze. Ture will retain the evidence gap
+            instead of locking a partial or mixed population.
+          </p>
+        )}
+        {freezeError ? (
+          <p className="mt-3 text-xs leading-5 text-amber-200">{freezeError}</p>
+        ) : null}
       </div>
 
       <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
