@@ -715,20 +715,42 @@ shards, aggregate and merge-candidate-provenance check. Authenticated Engine
 Insights and market-data evidence remain outstanding. This makes a future
 baseline more honest, not presently better.
 
-**Local IF-2b coverage-denominator contract:** the symbol-master contract is
+**Merged IF-2b coverage-denominator contract:** the symbol-master contract is
 now version `us_equity_symbol_master_contract_v2`. It can mark a supplied US
 common-stock catalog complete only when complete pagination is present *and*
 the provider's scoped catalog denominator exactly equals the collected raw
 record count. A missing, malformed or mismatched denominator remains partial,
 records a specific blocker and cannot expand discovery. The existing one-page
 Basic Free observer now passes its denominator into this contract but retains
-its immutable partial-catalog boundary. Local `git diff --check` and 17 focused
-provider-free Playwright regressions passed, covering a valid complete catalog,
-missing/mismatched denominators, partial pagination, Basic Free capacity and
-reference-only receipt behavior. This delivery makes future collection claims
-more falsifiable; it adds no provider request, persistence, runtime activation,
-ranking, publication or execution authority. PR, required CI, merge and
-production verification remain outstanding.
+its immutable partial-catalog boundary. PR [#536](https://github.com/willyvalentin/trade/pull/536)
+merged as `7dc18f969d3d8e2989e8598057efda7c8b0283ee`; required CI
+`35296281887` passed, and Netlify production deploy `6aac9b82dd5afa00080b3c93`
+is ready on that exact revision. Before merge, `git diff --check` and 17
+focused provider-free Playwright regressions passed, covering a valid complete
+catalog, missing/mismatched denominators, partial pagination, Basic Free
+capacity and reference-only receipt behavior. This makes future collection
+claims more falsifiable; it adds no provider request, persistence, runtime
+activation, ranking, publication or execution authority.
+
+**Local IF-2b durable Basic Free catalog-checkpoint foundation:** the additive,
+not-yet-applied migration `20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`
+defines owner-isolated, RLS-protected raw-page lineage and three service-role
+RPCs for an eventual separately authorized collector. It records a fixed US
+common-stock scope, provider denominator and sequential page state; only the
+exact final-page remainder can transition a collection to `complete`. An exact
+replayed raw page is idempotent, whereas a changed denominator, conflicting
+page, gap or ambiguous persistence receipt fails closed. The matching
+server-only TypeScript boundary has no import from the observation or scanner
+runtime, so it cannot itself request Twelve Data, consume a credit, expand the
+universe or publish a candidate. Local `git diff --check` and 25 focused
+provider-free Playwright regressions passed. A clean, network-isolated local
+Postgres 17 proof applied the migration and confirmed that `service_role` has
+no direct table read/write grant, but can use the fixed RPCs; synthetic 8+1
+pages completed exactly once, replay returned one idempotent receipt, and a
+denominator change remained blocked. Required CI, PR review, merge, production
+migration approval/application and any collector runtime/readback remain
+outstanding. This is durable resume evidence only, not market coverage,
+provider entitlement, candidate quality or learning evidence.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when
