@@ -10,6 +10,43 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Active off-market vertical slice — historical Basic Free receipt clarity, 2026-09-18:**
+the authorized normal Basic Free catalog observation is concretely waiting for
+the regular US-market slot. In the meantime, the latest valid catalog receipt
+is selected across all trading dates and can render an observed/positive state
+without a prominent declaration that it is historical. This is a user-facing
+freshness ambiguity: a reference-only page must never look like current market
+evidence merely because it remains the latest durable receipt.
+
+```text
+acceptance_id: IF-2 receipt freshness/readback support
+user_behavior_or_reproduced_failure: When the newest valid Basic Free catalog
+  receipt belongs to an earlier New York trading date, a user can see that it
+  is historical reference evidence, not current market information. A same-day
+  valid receipt remains distinguishable as the current-day reference receipt.
+smallest_change_and_reused_components: Reuse the existing receipt's source
+  trading date and the dashboard's existing dailySessionDate; add a
+  fail-closed historical/undated presentation state to the existing Basic Free
+  receipt panel. Do not alter receipt parsing, provider admission, collection,
+  ranking, publication, or execution.
+active_hour_budget: 4
+behavior_check_and_environment: Focused local UI behavior regression with
+  current-day, prior-day and missing-date receipt states; local production
+  build if dependencies are available.
+external_effects_and_existing_authority: None. No provider request, database
+  migration, deployment, broker action, or environment mutation.
+blocker_or_fallback: If a receipt date cannot be attributed, present it as
+  undated/historical rather than current; return immediately to the authorized
+  market observation when its 15:30 CEST slot becomes runnable.
+result_and_remaining_gap: Implemented and locally verified on
+  codex/if2-historical-receipt-clarity: 8 focused Basic Free regressions,
+  TypeScript no-emit, scoped ESLint and the Next 16.3.4 webpack production
+  build pass. PR CI/review, merge and production behavior remain outstanding.
+  This improves truthfulness of a durable receipt only; it cannot establish
+  coverage, freshness of a provider response, candidate quality, or IF-2
+  acceptance.
+```
+
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at
 `398db704f0ea6a46d0dab02005f6096689e2b8be`. The initial IF-1 decision-record
