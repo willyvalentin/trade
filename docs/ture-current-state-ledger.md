@@ -45,6 +45,24 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+**Current local IF-2b catalog-lineage integrity delivery, 2026-09-18:** While
+the US regular session is closed and the next authorized market action remains
+the separately bounded Monday Basic Free capability probe, the symbol-master
+contract was advanced to `us_equity_symbol_master_contract_v3`. The former
+aggregate page counters and catalog denominator are no longer enough to report
+`complete`: a complete catalog now needs one raw response for every contiguous
+page from 1 through N, the exact declared page count, and the same provider
+denominator on every page. Eligible and rejected rows retain source page and
+within-page indexes. Aggregate-only, missing, duplicate and
+denominator-conflicting lineages remain partial and cannot become a discovery
+feed. Local provider-free verification passed: nine focused symbol-master
+regressions, 26 affected Basic Free/collection regressions, strict TypeScript,
+targeted ESLint, the Webpack production build and the 166-test
+intelligence-foundation suite (including isolated PostgreSQL checks). There is
+no provider request, migration, configuration, candidate, publication or broker
+effect. PR, exact-main CI and production deployment/readback remain pending;
+return to the current-market acceptance path at the Monday scheduled window.
+
 **Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
 PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as
 `3e4f42c1ca082eecbd750e03559a86df14b93c57`; required exact-main CI
