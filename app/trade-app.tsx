@@ -14574,10 +14574,15 @@ export function TradeApp({
       data_mode_clarity: dataModeClaritySummary,
       market_wait_state: {
         is_wait_state:
+          !dayTradeScanOrchestrationSummary.market_is_open ||
           dayTradeScanOrchestrationSummary.decision === "market_closed" ||
-          dayTradeScanOrchestrationSummary.decision === "outside_scan_window" ||
-          dayTradeScanOrchestrationSummary.active_window === "closed" ||
-          dayTradeScanOrchestrationSummary.active_window === "outside_window",
+          dayTradeScanOrchestrationSummary.active_window === "closed",
+        market_is_open: dayTradeScanOrchestrationSummary.market_is_open,
+        outside_official_publication_window:
+          dayTradeScanOrchestrationSummary.market_is_open &&
+          (dayTradeScanOrchestrationSummary.decision ===
+            "outside_scan_window" ||
+            dayTradeScanOrchestrationSummary.active_window === "outside_window"),
         next_window_label: dayTradeScanOrchestrationSummary.next_window_label,
         reason: dayTradeScanOrchestrationSummary.scan_reason,
       },
@@ -36768,7 +36773,7 @@ function LiveMarketTrialReadinessPanel({
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             {summary.next_active_window?.starts_at ??
-              summary.copy.closed_market}
+              summary.copy.market_window_context}
           </p>
         </div>
 
@@ -36972,7 +36977,7 @@ function LiveMarketTrialReadinessPanel({
       </div>
 
       <p className="mt-4 text-xs leading-5 text-zinc-500">
-        {summary.copy.profitability_boundary} {summary.copy.closed_market}
+        {summary.copy.profitability_boundary} {summary.copy.market_window_context}
       </p>
 
       <pre
