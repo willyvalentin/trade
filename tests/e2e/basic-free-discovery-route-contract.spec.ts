@@ -41,7 +41,7 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(app).toContain("Historical reference");
   expect(app).toContain("Undated reference");
   expect(app).toContain("One-shot containment");
-  expect(app).toContain("Complete catalog capacity");
+  expect(app).toContain("Reference-page collection estimate");
   expect(discovery).toContain("discovery_feed_allowed: false");
   expect(discovery).toContain(
     "provider_catalog_count: page.provider_catalog_count",
@@ -52,6 +52,8 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(readback).toContain("buildBasicFreeCatalogCollectionPlan");
   expect(catalogPlan).toContain('execution_authority: "not_admitted"');
   expect(catalogPlan).toContain("discovery_feed_allowed: false");
+  expect(catalogPlan).toContain("fresh_snapshot_required: true");
+  expect(catalogPlan).toContain("reference_page_reusable_for_collection: false");
   expect(catalogPlan).not.toContain("fetch(");
   expect(route).toContain("buildBasicFreeCatalogOneShotControl");
   expect(route).toContain("basicFreeCatalogOneShot.catalog_only_enforced");
