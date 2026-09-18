@@ -2,6 +2,10 @@ import {
   buildBasicFreeCatalogCollectionPlan,
   type BasicFreeCatalogCollectionPlan,
 } from "@/lib/basic-free-catalog-collection-plan";
+import {
+  buildBasicFreeMarketWideCapacity,
+  type BasicFreeMarketWideCapacity,
+} from "@/lib/basic-free-market-wide-capacity";
 
 const summaryVersion = "basic_free_catalog_observation_summary_v1";
 const policyVersion = "basic_free_catalog_observation_v1";
@@ -116,6 +120,7 @@ export type BasicFreeDiscoveryReadback = {
     discovery_feed_allowed: false | null;
   };
   catalog_collection_plan: BasicFreeCatalogCollectionPlan;
+  market_wide_dynamic_capacity: BasicFreeMarketWideCapacity;
   one_shot_control: BasicFreeCatalogOneShotReadback;
   warnings: string[];
   gaps: string[];
@@ -332,6 +337,16 @@ function unavailableReadback(
       perMinuteCreditBudget: null,
       dailyRemainingCredits: null,
       minuteRemainingCredits: null,
+      reservationStatus: null,
+      reservationFinalizationStatus: null,
+      reservationFinalizationProven: null,
+    }),
+    market_wide_dynamic_capacity: buildBasicFreeMarketWideCapacity({
+      providerResponseObserved: null,
+      observationOutcome: null,
+      configuredProfile: null,
+      providerCatalogCount: null,
+      dailyCreditBudget: null,
       reservationStatus: null,
       reservationFinalizationStatus: null,
       reservationFinalizationProven: null,
@@ -557,6 +572,16 @@ export function basicFreeDiscoveryReadbackFromUnknown(
       perMinuteCreditBudget: declaredPerMinuteCreditBudget,
       dailyRemainingCredits,
       minuteRemainingCredits,
+      reservationStatus,
+      reservationFinalizationStatus: finalizationStatus,
+      reservationFinalizationProven: reservation.finalization_proven,
+    }),
+    market_wide_dynamic_capacity: buildBasicFreeMarketWideCapacity({
+      providerResponseObserved,
+      observationOutcome: attemptOutcome,
+      configuredProfile: planEligibility,
+      providerCatalogCount,
+      dailyCreditBudget: declaredDailyCreditBudget,
       reservationStatus,
       reservationFinalizationStatus: finalizationStatus,
       reservationFinalizationProven: reservation.finalization_proven,
