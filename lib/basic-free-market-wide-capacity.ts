@@ -13,6 +13,7 @@ export const BASIC_FREE_DYNAMIC_CREDITS_PER_SYMBOL = 1 as const;
 export const BASIC_FREE_MAX_DAILY_API_CREDITS = 800 as const;
 
 export type BasicFreeMarketWideCapacityReason =
+  | "catalog_capability_probe_not_capacity_evidence"
   | "catalog_provider_response_not_observed"
   | "catalog_observation_not_available"
   | "configured_profile_not_basic_free"
@@ -36,6 +37,7 @@ export type BasicFreeMarketWideCapacity = {
 };
 
 export type BasicFreeMarketWideCapacityInput = {
+  referenceMode?: unknown;
   providerResponseObserved: unknown;
   observationOutcome: unknown;
   configuredProfile: unknown;
@@ -86,6 +88,9 @@ function unavailable(
 export function buildBasicFreeMarketWideCapacity(
   input: BasicFreeMarketWideCapacityInput,
 ): BasicFreeMarketWideCapacity {
+  if (input.referenceMode === "capability_probe") {
+    return unavailable(input, "catalog_capability_probe_not_capacity_evidence");
+  }
   if (input.providerResponseObserved !== true) {
     return unavailable(input, "catalog_provider_response_not_observed");
   }

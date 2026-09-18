@@ -2,6 +2,7 @@ export const basicFreeCatalogCollectionPlanVersion =
   "basic_free_catalog_collection_plan_v1" as const;
 
 export type BasicFreeCatalogCollectionPlanReason =
+  | "catalog_capability_probe_not_collection_admitted"
   | "catalog_provider_response_not_observed"
   | "catalog_observation_not_available"
   | "provider_catalog_denominator_missing"
@@ -31,6 +32,7 @@ export type BasicFreeCatalogCollectionPlan = {
 };
 
 export type BasicFreeCatalogCollectionPlanInput = {
+  referenceMode?: unknown;
   providerResponseObserved: unknown;
   observationOutcome: unknown;
   providerCatalogCount: unknown;
@@ -94,6 +96,9 @@ function unavailable(
 export function buildBasicFreeCatalogCollectionPlan(
   input: BasicFreeCatalogCollectionPlanInput,
 ): BasicFreeCatalogCollectionPlan {
+  if (input.referenceMode === "capability_probe") {
+    return unavailable(input, "catalog_capability_probe_not_collection_admitted");
+  }
   if (input.providerResponseObserved !== true) {
     return unavailable(input, "catalog_provider_response_not_observed");
   }

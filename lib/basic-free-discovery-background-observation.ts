@@ -5,6 +5,8 @@ import {
   type BasicFreeDiscoveryResult,
   type DiscoverBasicFreeCatalogObservationInput,
 } from "@/lib/basic-free-discovery";
+import type { BasicFreeCatalogOutputSize } from "@/lib/basic-free-discovery-policy";
+import type { BasicFreeCatalogReferenceMode } from "@/lib/basic-free-discovery-policy";
 import type { BasicFreeDiscoveryPreviousAttempt } from "@/lib/basic-free-discovery-policy";
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 
@@ -23,6 +25,8 @@ export type BasicFreeDiscoveryBackgroundObservationInput = {
    * This is not candidate-discovery authority.
    */
   catalogOnlyOneShotReady?: boolean;
+  referenceMode?: BasicFreeCatalogReferenceMode;
+  catalogOutputSize?: BasicFreeCatalogOutputSize;
   scanWindow: IntradayScanWindow;
   ownerUserId: string;
   executionFingerprint: string;
@@ -92,6 +96,10 @@ export async function observeBasicFreeDiscoveryBetweenPublicationWindows(
     ownerUserId: input.ownerUserId,
     executionFingerprint: input.executionFingerprint,
     previousAttempt: input.previousAttempt ?? null,
+    ...(input.referenceMode ? { referenceMode: input.referenceMode } : {}),
+    ...(input.catalogOutputSize
+      ? { catalogOutputSize: input.catalogOutputSize }
+      : {}),
     signal: input.signal,
   });
   return { status: "observed", blocker: null, discovery };

@@ -79,8 +79,32 @@ provider evidence before it can change the collection design. Local focused
 capacity/readback/route-contract tests passed; the authenticated UI remains
 unverified because no login credentials were used.
 
-**Local IF-2b relative-volume temporal-admissibility hardening:** the pure,
-unwired relative-volume boundary now versions its policy as
+**Local IF-2b fixed-size catalog capability-probe delivery:** a separate,
+default-off, exact-New-York-date control can admit one reference-only
+`/stocks` probe with fixed `outputsize = 100`, after a future explicitly
+authorized production configuration change. The size is a chosen measurement
+target, not a claimed Basic Free maximum. The normal eight-record catalog
+observation cannot use it: the versioned admission contract rejects every
+reference-mode/output-size mismatch before either durable reservation or
+provider access. The existing one-credit reservation and finalization path is
+reused, while the versioned v2 receipt records the reference mode, fixed
+request size, decoded response JSON byte count, observed record count and
+provider denominator. Historic v1 receipts remain readable under their former
+semantics. Browser readback labels the result as a capability probe and
+explicitly withholds both catalog-collection planning and market-wide capacity
+inference. It remains reference-only: no scanner, ranking, publication,
+execution, migration, provider request or production configuration change has
+occurred. Local evidence: 30 focused Basic Free tests, the 166-test
+provider-free intelligence-foundation regression, TypeScript, targeted lint and
+the Webpack production build pass. The authenticated UI is not
+environment-verified because no login credentials were used.
+
+**Merged and production-verified IF-2b relative-volume temporal-admissibility
+hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged
+as `c7d3e7ac155a112c49b7047a26567cd9dae20787`; required CI
+`35370170956` passed, and Netlify production deploy
+`6aad710e21fe8300089f9726` became ready at 2026-09-18 17:13:34 UTC. The pure,
+unwired relative-volume boundary versions its policy as
 `us_equity_relative_volume_intake_v2`. A future signal must supply the named
 market-calendar source plus its verified New York regular-session open and
 close instants. The contract independently derives the elapsed session minute
@@ -91,10 +115,10 @@ date are also inadmissible. The result records the supplied calendar lineage,
 session bounds and independently expected elapsed minute for readback. It
 still has no provider, persistence, scanner, ranking, publication or execution
 path; this is stricter input admission, not an observed live volume feed or
-quality result. Local evidence: six focused contract scenarios plus the
-166-test intelligence-foundation regression, targeted lint, TypeScript and the
-Webpack production build passed. This source-only delivery is eligible for
-review; it remains unmerged, provider-free and not environment-verified.
+quality result. Before merge, six focused contract scenarios plus the 166-test
+intelligence-foundation regression, targeted lint, TypeScript and the Webpack
+production build passed. This remains provider-free and is not a measured
+recommendation-quality improvement.
 
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at

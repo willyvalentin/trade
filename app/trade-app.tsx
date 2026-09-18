@@ -37503,6 +37503,11 @@ function BasicFreeDiscoveryReceiptPanel({
     currentTradingDate,
   });
   const oneShotControl = receipt.one_shot_control;
+  const capabilityProbeControl = receipt.capability_probe_control;
+  const capabilityProbe = receipt.reference_mode === "capability_probe";
+  const receiptTitle = capabilityProbe
+    ? "Basic Free Catalog Capability Probe"
+    : "Basic Free Catalog Observation";
   const coverage =
     receipt.catalog.provider_catalog_count === null
       ? `${receipt.catalog.observed_record_count ?? 0} observed / denominator unavailable`
@@ -37521,10 +37526,12 @@ function BasicFreeDiscoveryReceiptPanel({
             Discovery trace
           </p>
           <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
-            Basic Free Catalog Observation
+            {receiptTitle}
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-            A bounded Twelve Data <code>/stocks</code> reference-page receipt.
+            {capabilityProbe
+              ? "One fixed-size Twelve Data /stocks response measurement. It establishes neither a safe provider maximum nor catalog coverage."
+              : "A bounded Twelve Data /stocks reference-page receipt."}{" "}
             It is never a candidate source, market-wide coverage claim, ranking
             input, publication path, or execution instruction.
           </p>
@@ -37567,6 +37574,18 @@ function BasicFreeDiscoveryReceiptPanel({
           }
         />
         <SummaryCard label="Catalog Coverage" value={coverage} />
+        <SummaryCard
+          label="Reference Mode"
+          value={receipt.reference_mode ?? "not recorded"}
+        />
+        <SummaryCard
+          label="Requested Page"
+          value={
+            receipt.catalog.requested_output_size === null
+              ? "not recorded"
+              : `${receipt.catalog.requested_output_size} records`
+          }
+        />
         <SummaryCard label="Reserved Credits" value={creditBudget} />
       </div>
 
@@ -37599,13 +37618,40 @@ function BasicFreeDiscoveryReceiptPanel({
               Immutable boundary
             </h4>
             <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Collection complete: no. Discovery feed allowed: no. The page is
-              retained solely as a traceable reference observation.
+              Collection complete: no. Discovery feed allowed: no. {capabilityProbe
+                ? "This fixed-size probe is retained only as a traceable response measurement."
+                : "The page is retained solely as a traceable reference observation."}
             </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Eligible records: {receipt.catalog.eligible_record_count ?? 0};
               rejected: {receipt.catalog.rejected_record_count ?? 0}.
             </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Capability-probe containment
+            </h4>
+            {capabilityProbeControl.receipt_status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  At receipt time, control: {capabilityProbeControl.status ?? "not recorded"}.
+                  {" "}Catalog-only: {capabilityProbeControl.catalog_only_enforced ? "enforced" : "not enforced"}.
+                  {" "}Fixed request: {capabilityProbeControl.requested_output_size ?? "not recorded"}; maximum credits: {capabilityProbeControl.maximum_provider_credits ?? "not recorded"}.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  This is a single, date-bound measurement. It does not establish
+                  a provider maximum, authorize another request, or admit collection,
+                  a discovery feed, ranking, publication, or execution.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                {capabilityProbeControl.receipt_status === "invalid"
+                  ? "A capability-probe control payload was present but did not satisfy the versioned receipt contract."
+                  : "This receipt was not produced under the fixed-size capability-probe envelope."}
+              </p>
+            )}
           </div>
 
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
@@ -37649,6 +37695,7 @@ function BasicFreeDiscoveryReceiptPanel({
             </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Reservation finalization: {receipt.credit_reservation.finalization_status ?? "not recorded"}; proven: {receipt.credit_reservation.finalization_proven === true ? "yes" : receipt.credit_reservation.finalization_proven === false ? "no" : "not applicable"}.
+              {" "}Decoded response JSON: {receipt.catalog.decoded_response_json_bytes === null ? "not recorded" : `${receipt.catalog.decoded_response_json_bytes} bytes`}.
             </p>
           </div>
 
