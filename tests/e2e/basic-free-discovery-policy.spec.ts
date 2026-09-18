@@ -20,8 +20,9 @@ function admittedSummary() {
     tradingDate: "2026-09-15",
   });
   return {
-    summary_version: "basic_free_catalog_observation_summary_v1",
+    summary_version: "basic_free_catalog_observation_summary_v2",
     summary_kind: "basic_free_catalog_observation",
+    reference_mode: "catalog_observation",
     generated_at: now.toISOString(),
     trading_date: "2026-09-15",
     scan_window: "opening",
@@ -50,6 +51,8 @@ function admittedSummary() {
     catalog: {
       provider: "twelve_data",
       endpoint: "/stocks",
+      requested_output_size: 8,
+      decoded_response_json_bytes: 1267,
       observed_record_count: 8,
       provider_catalog_count: 4200,
       eligible_record_count: 8,
@@ -62,6 +65,32 @@ function admittedSummary() {
       "catalog_observation_is_not_candidate_discovery",
       "catalog_collection_not_complete",
     ],
+  };
+}
+
+function historicalAdmittedSummary() {
+  const summary = admittedSummary();
+  const { reference_mode: _referenceMode, ...historicalSummary } = summary;
+  const { reference_mode: _admissionReferenceMode, ...historicalAdmission } =
+    summary.admission;
+  const {
+    requested_output_size: _requestedOutputSize,
+    decoded_response_json_bytes: _decodedResponseJsonBytes,
+    ...historicalCatalog
+  } = summary.catalog;
+  void _referenceMode;
+  void _admissionReferenceMode;
+  void _requestedOutputSize;
+  void _decodedResponseJsonBytes;
+
+  return {
+    ...historicalSummary,
+    summary_version: "basic_free_catalog_observation_summary_v1",
+    admission: {
+      ...historicalAdmission,
+      policy_version: "basic_free_catalog_observation_v1",
+    },
+    catalog: historicalCatalog,
   };
 }
 
@@ -98,6 +127,22 @@ test("Basic Free admission requires its distinct plan, explicit dual budgets, an
     safe_to_request_catalog: false,
     reason_codes: ["daily_catalog_already_observed"],
   });
+
+  expect(
+    buildBasicFreeDiscoveryAdmission({
+      runtimeEnabled: true,
+      planMode: "free",
+      dailyCreditBudget: 800,
+      perMinuteCreditBudget: 8,
+      referenceMode: "catalog_observation",
+      catalogOutputSize: 100,
+      tradingDate: "2026-09-15",
+    }),
+  ).toMatchObject({
+    status: "request_invalid",
+    safe_to_request_catalog: false,
+    reason_codes: ["catalog_reference_mode_output_size_mismatch"],
+  });
 });
 
 test("browser readback preserves coverage denominator and rejects a partial page that claims feed eligibility", () => {
@@ -109,6 +154,14 @@ test("browser readback preserves coverage denominator and rejects a partial page
       provider_catalog_count: 4200,
       collection_complete: false,
       discovery_feed_allowed: false,
+    },
+  });
+  expect(basicFreeDiscoveryReadbackFromUnknown(historicalAdmittedSummary())).toMatchObject({
+    status: "available",
+    reference_mode: "catalog_observation",
+    catalog: {
+      requested_output_size: 8,
+      decoded_response_json_bytes: null,
     },
   });
   expect(
@@ -229,6 +282,96 @@ test("browser readback exposes only a valid persisted one-shot containment envel
       payload_json: { basic_free_discovery: summary },
     }).one_shot_control.receipt_status,
   ).toBe("not_recorded");
+});
+
+test("browser readback accepts only a fixed-size capability probe and keeps it out of collection planning", () => {
+  const standard = admittedSummary();
+  const probe = {
+    ...standard,
+    reference_mode: "capability_probe",
+    admission: {
+      ...standard.admission,
+      reference_mode: "capability_probe",
+      request: { ...standard.admission.request, outputsize: 100 },
+    },
+    catalog: {
+      ...standard.catalog,
+      requested_output_size: 100,
+      decoded_response_json_bytes: 19876,
+      observed_record_count: 100,
+      provider_catalog_count: 4200,
+      eligible_record_count: 100,
+    },
+  };
+  const receipt = basicFreeDiscoveryReadbackFromScheduledAttempt({
+    utc_timestamp: now.toISOString(),
+    trading_date: "2026-09-15",
+    intraday_scan_window: "midday",
+    payload_json: {
+      basic_free_discovery: { ...probe, scan_window: "midday" },
+      basic_free_catalog_capability_probe: {
+        control_version: "basic_free_catalog_capability_probe_control_v1",
+        status: "ready",
+        catalog_only_enforced: true,
+        capability_probe_may_proceed: true,
+        target_trading_date: "2026-09-15",
+        evaluated_trading_date: "2026-09-15",
+        requested_output_size: 100,
+        maximum_provider_credits: 1,
+        reason_codes: ["basic_free_catalog_capability_probe_ready"],
+      },
+    },
+  });
+
+  expect(receipt).toMatchObject({
+    status: "available",
+    reference_mode: "capability_probe",
+    catalog: {
+      requested_output_size: 100,
+      decoded_response_json_bytes: 19876,
+      observed_record_count: 100,
+    },
+    capability_probe_control: {
+      receipt_status: "available",
+      requested_output_size: 100,
+      maximum_provider_credits: 1,
+    },
+    catalog_collection_plan: {
+      status: "unavailable",
+      reason_codes: ["catalog_capability_probe_not_collection_admitted"],
+    },
+    market_wide_dynamic_capacity: {
+      status: "unavailable",
+      reason_codes: ["catalog_capability_probe_not_capacity_evidence"],
+    },
+  });
+  expect(
+    basicFreeDiscoveryReadbackFromUnknown({
+      ...probe,
+      catalog: { ...probe.catalog, requested_output_size: 8 },
+    }).status,
+  ).toBe("unavailable");
+  expect(
+    basicFreeDiscoveryReadbackFromScheduledAttempt({
+      utc_timestamp: now.toISOString(),
+      trading_date: "2026-09-15",
+      intraday_scan_window: "midday",
+      payload_json: {
+        basic_free_discovery: { ...probe, scan_window: "midday" },
+        basic_free_catalog_capability_probe: {
+          control_version: "basic_free_catalog_capability_probe_control_v1",
+          status: "ready",
+          catalog_only_enforced: true,
+          capability_probe_may_proceed: true,
+          target_trading_date: "2026-09-15",
+          evaluated_trading_date: "2026-09-15",
+          requested_output_size: 8,
+          maximum_provider_credits: 1,
+          reason_codes: ["basic_free_catalog_capability_probe_ready"],
+        },
+      },
+    }).capability_probe_control.receipt_status,
+  ).toBe("invalid");
 });
 
 test("previous-attempt parsing accepts only attributable versioned receipt facts", () => {

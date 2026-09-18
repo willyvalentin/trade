@@ -193,6 +193,21 @@ test("capacity plan fails closed when the observed-page evidence cannot support 
   }
 });
 
+test("a capability probe cannot become a catalog-collection plan", () => {
+  expect(
+    buildBasicFreeCatalogCollectionPlan({
+      ...readyPlanInput(),
+      referenceMode: "capability_probe",
+      observedRecordCount: 100,
+    }),
+  ).toMatchObject({
+    status: "unavailable",
+    execution_authority: "not_admitted",
+    discovery_feed_allowed: false,
+    reason_codes: ["catalog_capability_probe_not_collection_admitted"],
+  });
+});
+
 test("validated Basic Free readback exposes capacity math without turning it into a discovery feed", () => {
   expect(basicFreeDiscoveryReadbackFromUnknown(observedSummary())).toMatchObject({
     status: "available",

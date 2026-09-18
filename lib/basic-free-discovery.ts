@@ -7,6 +7,8 @@ import {
 import {
   blockBasicFreeDiscoveryAdmissionForReservation,
   buildBasicFreeDiscoveryAdmission,
+  type BasicFreeCatalogReferenceMode,
+  type BasicFreeCatalogOutputSize,
   type BasicFreeDiscoveryAdmission,
   type BasicFreeDiscoveryAttemptOutcome,
   type BasicFreeDiscoveryPreviousAttempt,
@@ -32,7 +34,7 @@ import { classifyMarketDataProviderFailure } from "@/lib/provider-response-obser
 import { OperationAbortedError, throwIfAborted } from "@/lib/operation-abort";
 
 export const BASIC_FREE_DISCOVERY_SUMMARY_VERSION =
-  "basic_free_catalog_observation_summary_v1" as const;
+  "basic_free_catalog_observation_summary_v2" as const;
 
 export type BasicFreeDiscoveryCreditReservationSummary = {
   contract_version: typeof basicFreeDiscoveryCreditReservationContractVersion;
@@ -58,6 +60,7 @@ export type BasicFreeDiscoveryCreditReservationSummary = {
 export type BasicFreeDiscoverySummary = {
   summary_version: typeof BASIC_FREE_DISCOVERY_SUMMARY_VERSION;
   summary_kind: "basic_free_catalog_observation";
+  reference_mode: BasicFreeCatalogReferenceMode;
   generated_at: string;
   trading_date: string;
   scan_window: IntradayScanWindow | "unknown";
@@ -71,6 +74,8 @@ export type BasicFreeDiscoverySummary = {
   catalog: {
     provider: "twelve_data";
     endpoint: "/stocks";
+    requested_output_size: BasicFreeCatalogOutputSize;
+    decoded_response_json_bytes: number | null;
     observed_record_count: number;
     provider_catalog_count: number | null;
     eligible_record_count: number;
@@ -95,7 +100,12 @@ export type DiscoverBasicFreeCatalogObservationInput = {
   env?: ProviderPlanProfileEnv;
   now?: Date;
   signal?: AbortSignal;
-  fetchCatalogPage?: (options: { signal?: AbortSignal }) => Promise<TwelveDataStockCatalogPage>;
+  referenceMode?: BasicFreeCatalogReferenceMode;
+  catalogOutputSize?: BasicFreeCatalogOutputSize;
+  fetchCatalogPage?: (options: {
+    signal?: AbortSignal;
+    outputSize?: BasicFreeCatalogOutputSize;
+  }) => Promise<TwelveDataStockCatalogPage>;
   creditReservation?: {
     prepare: (
       input: BasicFreeDiscoveryCreditReservationInput,
@@ -122,6 +132,8 @@ export async function observeBasicFreeCatalog(
   const env = input.env ?? process.env;
   const plan = buildProviderPlanProfile(env);
   const tradingDate = getNewYorkDateString(now);
+  const referenceMode = input.referenceMode ?? "catalog_observation";
+  const catalogOutputSize = input.catalogOutputSize ?? 8;
   const admission = buildBasicFreeDiscoveryAdmission({
     planMode: plan.effective_mode,
     runtimeEnabled:
@@ -134,6 +146,8 @@ export async function observeBasicFreeCatalog(
       env.TURE_BASIC_FREE_CATALOG_PER_MINUTE_CREDIT_BUDGET,
     ),
     previousAttempt: input.previousAttempt,
+    referenceMode,
+    catalogOutputSize,
     tradingDate,
   });
   const scanWindow = input.scanWindow ?? "unknown";
@@ -149,7 +163,8 @@ export async function observeBasicFreeCatalog(
       outcome: "not_attempted",
       providerResponseObserved: false,
       creditReservation: defaultReservation,
-      catalog: unavailableCatalog(),
+      catalog: unavailableCatalog(catalogOutputSize),
+      referenceMode,
       warnings: [],
       gaps: [
         admission.reason_codes[0] ?? "basic_free_catalog_observation_not_admitted",
@@ -187,7 +202,8 @@ export async function observeBasicFreeCatalog(
         declaredDailyCreditBudget,
         declaredPerMinuteCreditBudget,
       }),
-      catalog: unavailableCatalog(),
+      catalog: unavailableCatalog(catalogOutputSize),
+      referenceMode,
       warnings: [],
       gaps: [
         "basic_free_credit_reservation_unavailable",
@@ -237,7 +253,8 @@ export async function observeBasicFreeCatalog(
       outcome: "not_attempted",
       providerResponseObserved: false,
       creditReservation: preparedReservation,
-      catalog: unavailableCatalog(),
+      catalog: unavailableCatalog(catalogOutputSize),
+      referenceMode,
       warnings: [],
       gaps: [
         reservationGap(preparation.status),
@@ -250,8 +267,11 @@ export async function observeBasicFreeCatalog(
   const attemptedAt = now.toISOString();
 
   try {
-    const catalogPage = await fetchCatalogPage({ signal: input.signal });
-    const catalog = catalogSummary(catalogPage);
+    const catalogPage = await fetchCatalogPage({
+      signal: input.signal,
+      outputSize: catalogOutputSize,
+    });
+    const catalog = catalogSummary(catalogPage, catalogOutputSize);
     const finalization = await finalizeReservation(
       reservationLifecycle,
       reservationInput,
@@ -278,6 +298,7 @@ export async function observeBasicFreeCatalog(
       providerResponseObserved: true,
       creditReservation,
       catalog,
+      referenceMode,
       warnings: withReservationFinalizationGap([], finalization),
       gaps: withReservationFinalizationGap(
         [
@@ -316,7 +337,8 @@ export async function observeBasicFreeCatalog(
         declaredPerMinuteCreditBudget,
         finalization,
       }),
-      catalog: unavailableCatalog(),
+      catalog: unavailableCatalog(catalogOutputSize),
+      referenceMode,
       warnings: withReservationFinalizationGap([outcome], finalization),
       gaps: withReservationFinalizationGap(
         [outcome, "catalog_observation_is_not_candidate_discovery"],
@@ -336,6 +358,7 @@ function buildResult(input: {
   providerResponseObserved: boolean;
   creditReservation: BasicFreeDiscoveryCreditReservationSummary;
   catalog: BasicFreeDiscoverySummary["catalog"];
+  referenceMode: BasicFreeDiscoverySummary["reference_mode"];
   warnings: string[];
   gaps: string[];
 }): BasicFreeDiscoveryResult {
@@ -343,6 +366,7 @@ function buildResult(input: {
     summary: {
       summary_version: BASIC_FREE_DISCOVERY_SUMMARY_VERSION,
       summary_kind: "basic_free_catalog_observation",
+      reference_mode: input.referenceMode,
       generated_at: input.now.toISOString(),
       trading_date: input.tradingDate,
       scan_window: input.scanWindow,
@@ -360,10 +384,14 @@ function buildResult(input: {
   };
 }
 
-function unavailableCatalog(): BasicFreeDiscoverySummary["catalog"] {
+function unavailableCatalog(
+  requestedOutputSize: BasicFreeCatalogOutputSize,
+): BasicFreeDiscoverySummary["catalog"] {
   return {
     provider: "twelve_data",
     endpoint: "/stocks",
+    requested_output_size: requestedOutputSize,
+    decoded_response_json_bytes: null,
     observed_record_count: 0,
     provider_catalog_count: null,
     eligible_record_count: 0,
@@ -375,6 +403,7 @@ function unavailableCatalog(): BasicFreeDiscoverySummary["catalog"] {
 
 function catalogSummary(
   page: TwelveDataStockCatalogPage,
+  requestedOutputSize: BasicFreeCatalogOutputSize,
 ): BasicFreeDiscoverySummary["catalog"] {
   const master = buildMarketWideSymbolMaster({
     provider: "twelve_data",
@@ -393,6 +422,10 @@ function catalogSummary(
   return {
     provider: "twelve_data",
     endpoint: "/stocks",
+    requested_output_size: requestedOutputSize,
+    decoded_response_json_bytes: finiteNonNegativeInteger(
+      page.decoded_response_json_bytes,
+    ),
     observed_record_count: page.records.length,
     provider_catalog_count: page.provider_catalog_count,
     eligible_record_count: master.summary.eligible_record_count,
@@ -564,6 +597,14 @@ function finitePositive(value: string | undefined) {
   if (value === undefined || value.trim().length === 0) return null;
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function finiteNonNegativeInteger(value: unknown) {
+  return typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0
+    ? value
+    : null;
 }
 
 function text(value: string | null | undefined) {

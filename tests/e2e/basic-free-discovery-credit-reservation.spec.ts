@@ -41,6 +41,7 @@ async function loadBasicFreeDiscoveryRuntime() {
         attempt: Record<string, unknown>;
         credit_reservation: Record<string, unknown>;
         catalog: Record<string, unknown>;
+        reference_mode: string;
         gaps: string[];
       };
     }>;
@@ -116,13 +117,15 @@ test("Basic catalog observation enters the provider only after one durable reser
   const runtime = await loadBasicFreeDiscoveryRuntime();
   const fixture = allowedLifecycle();
   let providerCalls = 0;
+  const providerOptions: Array<Record<string, unknown>> = [];
 
   try {
     const result = await runtime.observe({
       ...discoveryInput(),
       creditReservation: fixture.lifecycle,
-      fetchCatalogPage: async () => {
+      fetchCatalogPage: async (options: Record<string, unknown>) => {
         providerCalls += 1;
+        providerOptions.push(options);
         return {
           fetched_at: now.toISOString(),
           provider_catalog_count: 4200,
@@ -132,6 +135,7 @@ test("Basic catalog observation enters the provider only after one durable reser
     });
 
     expect(providerCalls).toBe(1);
+    expect(providerOptions).toEqual([{ signal: undefined, outputSize: 8 }]);
     expect(fixture.calls).toEqual({ prepared: 1, finalized: 1 });
     expect(result.summary.attempt).toEqual({
       attempted_at: now.toISOString(),
@@ -156,6 +160,85 @@ test("Basic catalog observation enters the provider only after one durable reser
     expect(result.summary.gaps).toContain(
       "catalog_observation_is_not_candidate_discovery",
     );
+  } finally {
+    runtime.dispose();
+  }
+});
+
+test("a fixed-size capability probe remains one credit and is never a catalog collection request", async () => {
+  const runtime = await loadBasicFreeDiscoveryRuntime();
+  const fixture = allowedLifecycle();
+  const providerOptions: Array<Record<string, unknown>> = [];
+  try {
+    const result = await runtime.observe({
+      ...discoveryInput(),
+      referenceMode: "capability_probe",
+      catalogOutputSize: 100,
+      creditReservation: fixture.lifecycle,
+      fetchCatalogPage: async (options: Record<string, unknown>) => {
+        providerOptions.push(options);
+        return {
+          fetched_at: now.toISOString(),
+          provider_catalog_count: 4200,
+          records: Array.from({ length: 100 }, (_, index) =>
+            stockRecord(`PROBE${index}`),
+          ),
+          requested_output_size: 100,
+          decoded_response_json_bytes: 19876,
+        };
+      },
+    });
+
+    expect(providerOptions).toEqual([{ signal: undefined, outputSize: 100 }]);
+    expect(fixture.calls).toEqual({ prepared: 1, finalized: 1 });
+    expect(result.summary.reference_mode).toBe("capability_probe");
+    expect(result.summary.admission).toMatchObject({
+      request: { outputsize: 100, credits_per_request: 1 },
+      safe_to_request_catalog: true,
+    });
+    expect(result.summary.catalog).toMatchObject({
+      requested_output_size: 100,
+      decoded_response_json_bytes: 19876,
+      observed_record_count: 100,
+      collection_complete: false,
+      discovery_feed_allowed: false,
+    });
+  } finally {
+    runtime.dispose();
+  }
+});
+
+test("an output-size and reference-mode mismatch is blocked before reservation or provider access", async () => {
+  const runtime = await loadBasicFreeDiscoveryRuntime();
+  let reservationCalls = 0;
+  let providerCalls = 0;
+  try {
+    const result = await runtime.observe({
+      ...discoveryInput(),
+      referenceMode: "catalog_observation",
+      catalogOutputSize: 100,
+      creditReservation: {
+        async prepare() {
+          reservationCalls += 1;
+          throw new Error("reservation must not run");
+        },
+        async finalize() {
+          throw new Error("finalization must not run");
+        },
+      },
+      fetchCatalogPage: async () => {
+        providerCalls += 1;
+        throw new Error("provider must not run");
+      },
+    });
+
+    expect(reservationCalls).toBe(0);
+    expect(providerCalls).toBe(0);
+    expect(result.summary.admission).toMatchObject({
+      status: "request_invalid",
+      safe_to_request_catalog: false,
+      reason_codes: ["catalog_reference_mode_output_size_mismatch"],
+    });
   } finally {
     runtime.dispose();
   }

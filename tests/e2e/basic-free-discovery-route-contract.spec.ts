@@ -16,6 +16,9 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   const currentness = read("lib/basic-free-discovery-receipt-currentness.ts");
   const catalogPlan = read("lib/basic-free-catalog-collection-plan.ts");
   const oneShotControl = read("lib/basic-free-catalog-one-shot-control.ts");
+  const capabilityProbeControl = read(
+    "lib/basic-free-catalog-capability-probe-control.ts",
+  );
 
   expect(route).toContain('scheduledRuntimeConfig.provider_plan_profile_mode === "free"');
   expect(route).toContain(
@@ -33,6 +36,8 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basic_free_discovery: scanLog?.basic_free_discovery ?? null");
   expect(scanLog).toContain("basic_free_discovery?: Record<string, unknown> | null");
   expect(app).toContain("Basic Free Catalog Observation");
+  expect(app).toContain("Basic Free Catalog Capability Probe");
+  expect(app).toContain("Capability-probe containment");
   expect(app).toContain("Historical reference");
   expect(app).toContain("Undated reference");
   expect(app).toContain("One-shot containment");
@@ -54,7 +59,7 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
   expect(route).toContain("basic_free_catalog_one_shot_waiting_for_observable_window");
   expect(route).toContain("readyBasicFreeCatalogOnlyOneShot");
   expect(route).toContain(
-    "catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot",
+    "catalogOnlyOneShotReady: catalogOnlyReferenceModeReady",
   );
   expect(route).toContain(
     'scheduledGateDiagnostics.scheduled_gate_window ===\n                "outside_window"',
@@ -63,6 +68,20 @@ test("scheduled Basic Free route records a reference-only receipt before the nor
     "basic_free_catalog_one_shot_observation_not_recorded",
   );
   expect(route).toContain("scanLog?.basic_free_catalog_one_shot ?? null");
+  expect(route).toContain("buildBasicFreeCatalogCapabilityProbeControl");
+  expect(route).toContain("readyBasicFreeCatalogCapabilityProbe");
+  expect(route).toContain('referenceMode: readyBasicFreeCatalogCapabilityProbe');
+  expect(route).toContain("catalogOutputSize: readyBasicFreeCatalogCapabilityProbe");
+  expect(route).toContain("basic_free_catalog_capability_probe: basicFreeCatalogCapabilityProbe");
+  expect(route).toContain("scanLog?.basic_free_catalog_capability_probe ?? null");
+  expect(readback).toContain("capability_probe_control");
+  expect(readback).toContain("decoded_response_json_bytes");
+  expect(capabilityProbeControl).toContain(
+    "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE",
+  );
+  expect(capabilityProbeControl).toContain(
+    "BASIC_FREE_CATALOG_CAPABILITY_PROBE_OUTPUT_SIZE = 100",
+  );
   expect(oneShotControl).toContain("TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_DATE");
   expect(oneShotControl).toContain("catalogOnlyEnforced: true");
   expect(

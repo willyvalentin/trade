@@ -104,6 +104,10 @@ import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
 import { buildBasicFreeCatalogOneShotControl } from "@/lib/basic-free-catalog-one-shot-control";
 import {
+  buildBasicFreeCatalogCapabilityProbeControl,
+  BASIC_FREE_CATALOG_CAPABILITY_PROBE_OUTPUT_SIZE,
+} from "@/lib/basic-free-catalog-capability-probe-control";
+import {
   finalizeBasicFreeScheduledScanCreditGuard,
   prepareBasicFreeScheduledScanCreditGuard,
   type BasicFreeScheduledScanCreditReservationSummary,
@@ -1525,6 +1529,8 @@ async function recordScheduledScanAttempt({
       basic_free_discovery: scanLog?.basic_free_discovery ?? null,
       basic_free_catalog_one_shot:
         scanLog?.basic_free_catalog_one_shot ?? null,
+      basic_free_catalog_capability_probe:
+        scanLog?.basic_free_catalog_capability_probe ?? null,
       basic_free_scheduled_scan_credit_reservation:
         scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
     },
@@ -1670,6 +1676,11 @@ function createAutomationScanLog({
       typeof details?.basic_free_catalog_one_shot === "object" &&
       details.basic_free_catalog_one_shot !== null
         ? (details.basic_free_catalog_one_shot as ScanLogEntry["basic_free_catalog_one_shot"])
+        : null,
+    basic_free_catalog_capability_probe:
+      typeof details?.basic_free_catalog_capability_probe === "object" &&
+      details.basic_free_catalog_capability_probe !== null
+        ? (details.basic_free_catalog_capability_probe as ScanLogEntry["basic_free_catalog_capability_probe"])
         : null,
     basic_free_scheduled_scan_credit_reservation:
       typeof details?.basic_free_scheduled_scan_credit_reservation === "object" &&
@@ -3064,6 +3075,10 @@ export async function POST(request: Request) {
   const basicFreeCatalogOneShot = buildBasicFreeCatalogOneShotControl({
     tradingDate: scanWindow.scanDate,
   });
+  const basicFreeCatalogCapabilityProbe =
+    buildBasicFreeCatalogCapabilityProbeControl({
+      tradingDate: scanWindow.scanDate,
+    });
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
   const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
     orchestration: dayTradeScanOrchestration,
@@ -3308,10 +3323,24 @@ export async function POST(request: Request) {
     marketOpenForScan,
     orchestration: dayTradeScanOrchestration,
   });
+  const catalogReferenceControlsConflict =
+    basicFreeCatalogOneShot.catalog_only_enforced &&
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced;
+  const readyBasicFreeCatalogCapabilityProbe =
+    !catalogReferenceControlsConflict &&
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+    basicFreeCatalogCapabilityProbe.capability_probe_may_proceed &&
+    scheduledRuntimeConfig.provider_plan_profile_mode === "free";
   const readyBasicFreeCatalogOnlyOneShot =
+    !catalogReferenceControlsConflict &&
     basicFreeCatalogOneShot.catalog_only_enforced &&
     basicFreeCatalogOneShot.catalog_observation_may_proceed &&
     scheduledRuntimeConfig.provider_plan_profile_mode === "free";
+  const catalogOnlyReferenceModeEnforced =
+    basicFreeCatalogOneShot.catalog_only_enforced ||
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced;
+  const catalogOnlyReferenceModeReady =
+    readyBasicFreeCatalogOnlyOneShot || readyBasicFreeCatalogCapabilityProbe;
   const backgroundDiscoveryObservationAllowed =
     canObserveBackgroundDiscoveryBetweenPublicationWindows({
       scheduled: !force,
@@ -3322,7 +3351,7 @@ export async function POST(request: Request) {
       marketOpen: marketOpenForScan,
       scheduledGateWindow: scheduledGateDiagnostics.scheduled_gate_window,
       scanWindow: scanWindow.scanWindow,
-      catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot,
+      catalogOnlyOneShotReady: catalogOnlyReferenceModeReady,
     });
   activeScanTrace.update({
     power_hour_trial_enabled: powerHourTrialGate.power_hour_trial_enabled,
@@ -3428,20 +3457,31 @@ export async function POST(request: Request) {
   }
 
   if (
-    basicFreeCatalogOneShot.catalog_only_enforced &&
+    catalogOnlyReferenceModeEnforced &&
     (!backgroundDiscoveryObservationAllowed ||
-      !basicFreeCatalogOneShot.catalog_observation_may_proceed ||
+      !catalogOnlyReferenceModeReady ||
       scheduledRuntimeConfig.provider_plan_profile_mode !== "free")
   ) {
     generationBlockReason =
-      basicFreeCatalogOneShot.status !== "ready"
+      catalogReferenceControlsConflict
+        ? "basic_free_catalog_reference_controls_conflict"
+        : basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+            basicFreeCatalogCapabilityProbe.status !== "ready"
+          ? basicFreeCatalogCapabilityProbe.reason_codes[0] ??
+            "basic_free_catalog_capability_probe_not_ready"
+          : basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+              scheduledRuntimeConfig.provider_plan_profile_mode !== "free"
+            ? "basic_free_catalog_capability_probe_plan_not_free"
+            : basicFreeCatalogCapabilityProbe.catalog_only_enforced
+              ? "basic_free_catalog_capability_probe_waiting_for_observable_window"
+          : basicFreeCatalogOneShot.status !== "ready"
         ? basicFreeCatalogOneShot.reason_codes[0] ??
           "basic_free_catalog_one_shot_not_ready"
         : scheduledRuntimeConfig.provider_plan_profile_mode !== "free"
           ? "basic_free_catalog_one_shot_plan_not_free"
           : "basic_free_catalog_one_shot_waiting_for_observable_window";
     const message =
-      "Basic Free catalog one-shot mode withheld normal scanning. " +
+      "Basic Free catalog reference-only mode withheld normal scanning. " +
       "Only the configured date's reference-only /stocks observation may run; " +
       "no candidate generation was started.";
     const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
@@ -3464,6 +3504,7 @@ export async function POST(request: Request) {
         ...powerHourTrialGate,
         no_publish_reason: generationBlockReason,
         basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+        basic_free_catalog_capability_probe: basicFreeCatalogCapabilityProbe,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTracePayload,
@@ -3485,6 +3526,7 @@ export async function POST(request: Request) {
       status: "skipped",
       decision: "skipped_outside_window" satisfies AutomationScanDecision,
       basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+      basic_free_catalog_capability_probe: basicFreeCatalogCapabilityProbe,
       ...automationVersionFields(),
       ...powerHourTrialGate,
       ...powerHourTrialCopyFields(),
@@ -3666,7 +3708,13 @@ export async function POST(request: Request) {
               outsideOfficialPublicationWindow:
                 scheduledGateDiagnostics.scheduled_gate_window ===
                 "outside_window",
-              catalogOnlyOneShotReady: readyBasicFreeCatalogOnlyOneShot,
+              catalogOnlyOneShotReady: catalogOnlyReferenceModeReady,
+              referenceMode: readyBasicFreeCatalogCapabilityProbe
+                ? "capability_probe"
+                : "catalog_observation",
+              catalogOutputSize: readyBasicFreeCatalogCapabilityProbe
+                ? BASIC_FREE_CATALOG_CAPABILITY_PROBE_OUTPUT_SIZE
+                : 8,
               scanWindow: scanWindow.scanWindow,
               ownerUserId,
               executionFingerprint: scheduledScanAttemptFingerprint,
@@ -3709,6 +3757,10 @@ export async function POST(request: Request) {
                   basicFreeCatalogOneShot.catalog_only_enforced
                     ? basicFreeCatalogOneShot
                     : null,
+                basic_free_catalog_capability_probe:
+                  basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                    ? basicFreeCatalogCapabilityProbe
+                    : null,
                 day_trade_scan_orchestration: dayTradeScanOrchestration,
                 recommendation_serving_cadence: initialServingCadence,
                 active_scan_trace: activeScanTracePayload,
@@ -3736,6 +3788,10 @@ export async function POST(request: Request) {
               basic_free_catalog_one_shot:
                 basicFreeCatalogOneShot.catalog_only_enforced
                   ? basicFreeCatalogOneShot
+                  : null,
+              basic_free_catalog_capability_probe:
+                basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                  ? basicFreeCatalogCapabilityProbe
                   : null,
               ...automationVersionFields(),
               ...powerHourTrialGate,
@@ -3777,13 +3833,15 @@ export async function POST(request: Request) {
           // The current background observer always returns an `observed`
           // receipt once it has been admitted. Keep this explicit terminal
           // branch nevertheless: a future ineligible result must not let the
-          // intentionally bounded one-shot mode fall through to market-wide
+          // intentionally bounded reference-only mode fall through to market-wide
           // observation or the normal scheduled scan path.
-          if (basicFreeCatalogOneShot.catalog_only_enforced) {
+          if (catalogOnlyReferenceModeEnforced) {
             const generationBlockReason =
-              "basic_free_catalog_one_shot_observation_not_recorded";
+              basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                ? "basic_free_catalog_capability_probe_observation_not_recorded"
+                : "basic_free_catalog_one_shot_observation_not_recorded";
             const message =
-              "Basic Free catalog one-shot mode withheld normal scanning because its reference-only observation did not produce a receipt.";
+              "Basic Free catalog reference-only mode withheld normal scanning because its observation did not produce a receipt.";
             const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
               decision: "skipped_outside_window",
               status: "skipped",
@@ -3804,6 +3862,8 @@ export async function POST(request: Request) {
                 ...powerHourTrialGate,
                 no_publish_reason: generationBlockReason,
                 basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+                basic_free_catalog_capability_probe:
+                  basicFreeCatalogCapabilityProbe,
                 day_trade_scan_orchestration: dayTradeScanOrchestration,
                 recommendation_serving_cadence: initialServingCadence,
                 active_scan_trace: activeScanTracePayload,
@@ -3825,6 +3885,8 @@ export async function POST(request: Request) {
               status: "skipped",
               decision: "skipped_outside_window" satisfies AutomationScanDecision,
               basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+              basic_free_catalog_capability_probe:
+                basicFreeCatalogCapabilityProbe,
               ...automationVersionFields(),
               ...powerHourTrialGate,
               ...powerHourTrialCopyFields(),

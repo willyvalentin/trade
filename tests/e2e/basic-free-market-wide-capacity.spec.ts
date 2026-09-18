@@ -121,6 +121,20 @@ test("capacity fails closed for an unfinalized receipt, a non-Basic profile, or 
   }
 });
 
+test("a capability probe cannot become market-wide capacity evidence", () => {
+  expect(
+    buildBasicFreeMarketWideCapacity({
+      ...finalizedBasicFreeReceiptInput(),
+      referenceMode: "capability_probe",
+    }),
+  ).toMatchObject({
+    status: "unavailable",
+    execution_authority: "not_admitted",
+    discovery_feed_allowed: false,
+    reason_codes: ["catalog_capability_probe_not_capacity_evidence"],
+  });
+});
+
 test("validated catalog readback carries capacity disclosure without admitting a discovery feed", () => {
   expect(basicFreeDiscoveryReadbackFromUnknown(observedSummary())).toMatchObject({
     status: "available",
