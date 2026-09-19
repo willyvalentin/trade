@@ -111,28 +111,30 @@ configuration, candidate, publication or broker effect occurred. This is
 coverage-truth hardening, not evidence of a complete catalog or stronger
 candidates.
 
-**Current local IF-2b snapshot-feasibility delivery, 2026-09-18:** The US
-regular session is closed and the next authorized market action remains the
-separately bounded Monday Basic Free capability probe. Engine Insights formerly
-called a projected Basic Free multi-quota-day page schedule a “fresh
-collection”, even though a schedule that exceeds the declared daily
-page-credit capacity cannot establish one coherent fresh catalog snapshot. The
-versioned `basic_free_catalog_collection_plan_v3` now separates page-coverage
-capacity from snapshot coherence: it names the page count and quota-day
-estimate, marks whether the page schedule must span quota days, and withholds
-any coherent-snapshot claim because one has not been separately observed and
+**Merged and production-verified IF-2b snapshot-feasibility disclosure,
+2026-09-18:** PR [#548](https://github.com/willyvalentin/trade/pull/548)
+merged as `33a6f409921883529a2334d2b4bef4d9a520b135`; its protected CI passed
+and Netlify production deploy `6aadbb0d188fc00008bdfbc8` is ready on that
+exact revision. Engine Insights previously called a projected Basic Free
+multi-quota-day page schedule a “fresh collection”, even though a schedule
+that exceeds the declared daily page-credit capacity cannot establish one
+coherent fresh catalog snapshot. The versioned
+`basic_free_catalog_collection_plan_v3` now separates page-coverage capacity
+from snapshot coherence: it names the page count and quota-day estimate, marks
+whether the page schedule must span quota days, and withholds any
+coherent-snapshot claim because one has not been separately observed and
 admitted. The panel tells the user that a multi-day page schedule cannot
 establish one coherent fresh catalog snapshot; even a one-day-fit schedule is
-not presented as one. Local verification passed: eight focused plan/readback
-tests, 26 affected Basic Free discovery/collection regressions, targeted ESLint,
-strict TypeScript, the Webpack production build and the 166-test
-intelligence-foundation suite (including isolated PostgreSQL checks). The
-authenticated browser readback itself was not exercised because no local
+not presented as one. Before merge, eight focused plan/readback tests, 26
+affected Basic Free discovery/collection regressions, targeted ESLint, strict
+TypeScript, the Webpack production build and the 166-test
+intelligence-foundation suite (including isolated PostgreSQL checks) passed.
+The authenticated browser readback itself was not exercised because no local
 credentials were read or entered; the route/readback contract asserts the
-panel's exact user-facing branch text. There is no provider, migration,
-configuration, candidate, publication or broker effect. PR, protected CI,
-exact-main and production-deploy verification remain pending; return to
-current-market acceptance at the Monday scheduled window.
+panel's exact user-facing branch text, so that UI behavior is not
+environment-verified. There is no provider, migration, configuration,
+candidate, publication or broker effect. The separately bounded Monday Basic
+Free capability probe remains the next market-bound action.
 
 **Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
 PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as
