@@ -141,6 +141,27 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+**Product direction — future paid provider and data operations, 2026-09-19:**
+The current development source remains Twelve Data Basic. It is sufficient for
+provider-contract development and the bounded Basic receipt, but its observed
+reference-only path is not market-wide discovery. The approved planning
+direction is to evaluate Massive (formerly Polygon) Stocks Advanced when Ture
+is ready to collect an owner-only forward-live learning cohort; this is not a
+purchase, credential change, provider request, runtime enablement or evidence
+that the individual plan can serve external users. A customer-facing product
+requires a later, separate verification of business/display/redistribution
+rights and the exact feed scope.
+
+The master roadmap now adds IF-2c and a data-operations policy: highest-value
+admissible observations during regular US hours, separately labelled extended
+hours, after-market outcome/replay work, and non-trading-period integrity and
+research work. It requires explicit time-band budgets, retry headroom and
+provider receipts; consuming a quota is not a goal. A future source transition
+must retain provider/feed/coverage/version/timestamp/cost lineage, collect a
+separate shadow cohort and establish a new baseline before it can change
+ranking, confidence or publication. This planning update changes no current
+IF-2 authorization or market-bound acceptance.
+
 ### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
 
 **Merged, production schema applied and production deploy verified, 2026-09-19:** The exact
