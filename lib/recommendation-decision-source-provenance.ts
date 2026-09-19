@@ -1,5 +1,9 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import {
+  recommendationDecisionFeatureVectorFromUnknown,
+  type RecommendationDecisionFeatureVector,
+} from "@/lib/recommendation-decision-feature-vector";
+import {
   twelveDataResponseIdentityFromUnknown,
   type TwelveDataResponseIdentity,
 } from "@/lib/twelve-data-response-identity";
@@ -12,6 +16,7 @@ export const recommendationDecisionSourceProvenanceBlockers = [
   "source_timestamp_missing_or_invalid",
   "source_timestamp_after_decision",
   "intraday_indicator_response_identity_missing_or_invalid",
+  "decision_feature_vector_missing_or_invalid",
   "provider_source_missing",
   "provider_version_missing",
   "market_data_adapter_version_missing",
@@ -27,6 +32,7 @@ export type RecommendationDecisionSourceProvenance = {
   decision_timestamp: string | null;
   source_timestamp: string | null;
   intraday_indicator_response_identity: TwelveDataResponseIdentity | null;
+  decision_feature_vector: RecommendationDecisionFeatureVector | null;
   provider_source: string | null;
   provider_version: string | null;
   market_data_adapter_version: string | null;
@@ -63,6 +69,9 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
     twelveDataResponseIdentityFromUnknown(
       snapshot.payload_json.intraday_indicator_response_identity,
     );
+  const decisionFeatureVector = recommendationDecisionFeatureVectorFromUnknown(
+    snapshot.payload_json.decision_feature_vector,
+  );
   const providerSource = textOrNull(snapshot.payload_json.provider_source);
   const providerVersion = textOrNull(snapshot.payload_json.provider_version);
   const adapterVersion = textOrNull(
@@ -87,6 +96,9 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
   if (!intradayIndicatorResponseIdentity) {
     blockers.push("intraday_indicator_response_identity_missing_or_invalid");
   }
+  if (!decisionFeatureVector) {
+    blockers.push("decision_feature_vector_missing_or_invalid");
+  }
   if (!providerSource) {
     blockers.push("provider_source_missing");
   }
@@ -106,6 +118,7 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
     decision_timestamp: decisionTimestamp,
     source_timestamp: sourceTimestamp,
     intraday_indicator_response_identity: intradayIndicatorResponseIdentity,
+    decision_feature_vector: decisionFeatureVector,
     provider_source: providerSource,
     provider_version: providerVersion,
     market_data_adapter_version: adapterVersion,

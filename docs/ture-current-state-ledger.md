@@ -285,16 +285,17 @@ authenticated production panel is still unverified at its login boundary; this
 is production-deployed integrity code, not environment-verified UI behavior or
 evidence of a better recommendation policy.
 
-**IF-4 source-response identity, locally verified, 2026-09-19:** IF-2 remains
-observably waiting for the separately authorized Monday Basic Free capability
-probe, so this was the one bounded off-market vertical slice. Engine Insights
-now distinguishes a named decision-time source from a captured market-data
-response fingerprint. When Ture's already-authorized intraday path receives a
-valid Twelve Data response, it retains only a versioned SHA-256 fingerprint and
-byte length of the exact response in the existing indicator cache and downstream
-decision snapshot; it retains no raw provider body, request URL, API key or
-invented upstream API version. A missing, malformed or legacy fingerprint is
-explicit and fails closed for source-provenance assessment.
+**Merged and production-deploy verified IF-4 source-response identity,
+2026-09-19:** IF-2 remains observably waiting for the separately authorized
+Monday Basic Free capability probe, so this was the one bounded off-market
+vertical slice. Engine Insights now distinguishes a named decision-time source
+from a captured market-data response fingerprint. When Ture's
+already-authorized intraday path receives a valid Twelve Data response, it
+retains only a versioned SHA-256 fingerprint and byte length of the exact
+response in the existing indicator cache and downstream decision snapshot; it
+retains no raw provider body, request URL, API key or invented upstream API
+version. A missing, malformed or legacy fingerprint is explicit and fails
+closed for source-provenance assessment.
 
 Provider-free tests prove deterministic byte-level identity, a changed response
 producing a changed identity, real-scanner propagation, and the resulting
@@ -308,6 +309,40 @@ ranking/confidence change or broker action occurred. This creates decision-time
 reproducibility evidence, not a claim of better recommendation quality; a later
 normal, separately authorized market path is required to demonstrate an
 environment-captured fingerprint.
+
+PR [#555](https://github.com/willyvalentin/trade/pull/555) merged as
+`925d57ae484d5738c281a1137987befd21a65416`. Its six protected provider-free
+shards, aggregate and merge-candidate provenance check passed in CI
+`35450055325`; exact-main post-merge candidate provenance passed in CI
+`35451291688`. Netlify production deploy `6aaea74435928e00082a3a2f` is ready
+on that exact `main` revision. The authenticated Engine Insights panel remains
+unverified at the login boundary, and this integrity delivery remains neither a
+live provider receipt nor evidence of recommendation-quality improvement.
+
+**IF-4 decision-feature-vector, locally verified, 2026-09-19:** With IF-2
+still observably waiting for the separately authorized Monday Basic Free
+capability probe, this was the next bounded off-market vertical slice. Engine
+Insights now distinguishes a decision with a versioned, exact feature projection
+from one whose derived decision-time inputs were not captured; the latter fails
+closed for a learning baseline rather than being treated as reproducible. The
+projection retains only a bounded set of already-derived scanner and plan
+features used by the current policy. Finite observed values and explicitly
+recorded unavailable inputs are both valid decision-time evidence; it retains no
+raw candle series, provider response, request material, secret or invented
+source version. Unknown top-level fields are rejected, so a raw-response field
+cannot be smuggled into an otherwise valid projection.
+
+Provider-free tests prove deterministic construction, real-scanner propagation,
+explicit unavailable-input capture, malformed-projection rejection and
+baseline/evaluation exclusion when the projection is absent. Fifty-two focused
+IF-4 regressions passed, alongside targeted ESLint, strict TypeScript, the
+Webpack production build and whitespace validation. The server snapshot path is
+compile/build verified but has not received a live scan; the authenticated
+Engine Insights panel is likewise not environment-verified. No provider request,
+migration, configuration change, publication, ranking/confidence change or
+broker action occurred. This makes a future decision auditable and replayable;
+it does not establish an actual captured feature projection or a better
+recommendation policy.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as

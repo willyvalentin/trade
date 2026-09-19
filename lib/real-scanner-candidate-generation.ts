@@ -1,6 +1,10 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
+import {
+  recommendationDecisionFeatureVectorFromScannerCandidate,
+  type RecommendationDecisionFeatureVector,
+} from "@/lib/recommendation-decision-feature-vector";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 import {
   getScheduledScannerUniverseRotationBatch,
@@ -62,6 +66,7 @@ export type RealScannerCandidate = {
   provider_source: "twelve_data" | null;
   market_data_timestamp: string | null;
   intraday_indicator_response_identity?: TwelveDataResponseIdentity | null;
+  decision_feature_vector?: RecommendationDecisionFeatureVector | null;
   reference_price_timestamp: string | null;
   stale: boolean;
   entry_low: number | null;
@@ -379,6 +384,8 @@ function toRealScannerCandidate(
   });
   const scoreValue = scoreCandidate(candidate, warnings);
   const tier = tierForScore(scoreValue, warnings);
+  const decisionFeatureVector =
+    recommendationDecisionFeatureVectorFromScannerCandidate(candidate);
 
   return {
     ticker: candidate.ticker,
@@ -404,6 +411,7 @@ function toRealScannerCandidate(
     market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
     intraday_indicator_response_identity:
       candidate.intraday_indicator_response_identity ?? null,
+    decision_feature_vector: decisionFeatureVector,
     reference_price_timestamp:
       candidate.reference_price_timestamp ??
       candidate.intraday_indicator_cached_at ??

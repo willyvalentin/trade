@@ -38586,7 +38586,7 @@ function RecommendationLearningBaselineReadinessPanel({
             {sourceProvenance.assessed_snapshot_count}; incomplete {sourceProvenance.incomplete_snapshot_count}.
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
-            Captured intraday response fingerprints {sourceProvenance.intraday_indicator_response_identity_count}/{sourceProvenance.assessed_snapshot_count}; missing or invalid fingerprints {sourceProvenance.blocker_counts.intraday_indicator_response_identity_missing_or_invalid}. Future source time {sourceProvenance.blocker_counts.source_timestamp_after_decision}; missing provider version {sourceProvenance.blocker_counts.provider_version_missing}. Incomplete rows cannot enter a learning baseline.
+            Captured intraday response fingerprints {sourceProvenance.intraday_indicator_response_identity_count}/{sourceProvenance.assessed_snapshot_count}; captured decision feature vectors {sourceProvenance.decision_feature_vector_count}/{sourceProvenance.assessed_snapshot_count}. Missing or invalid fingerprints {sourceProvenance.blocker_counts.intraday_indicator_response_identity_missing_or_invalid}; missing or invalid feature vectors {sourceProvenance.blocker_counts.decision_feature_vector_missing_or_invalid}. Future source time {sourceProvenance.blocker_counts.source_timestamp_after_decision}; missing provider version {sourceProvenance.blocker_counts.provider_version_missing}. Incomplete rows cannot enter a learning baseline.
           </p>
         </div>
 
