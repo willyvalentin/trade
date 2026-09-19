@@ -10,6 +10,102 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
+active IF-2 acceptance remains the separately authorized Monday Basic Free
+capability probe; no additional provider action is permitted before then. This
+off-market vertical slice preserves an explicit, immutable evaluation baseline
+without changing IF-2: Engine Insights can offer a freeze only for an existing
+policy/version-homogeneous plan that is already eligible, and read back the
+exact decision identities, metric plan and provenance that were frozen. The
+authenticated route recomputes that plan from owner-bound server evidence; it
+rejects not-ready, changed, duplicate, cross-owner or malformed attempts. It
+also refuses to freeze a truncated owner history: complete input data must fit
+the current deliberate 10,000-row non-paginated bound, otherwise a later
+paginated reader is required. Before diagnostic rows are excluded, every
+persisted scan, snapshot and outcome row must decode under its canonical
+contract; a malformed row makes the source unavailable rather than silently
+shrinking the population used to freeze a baseline.
+
+The exact reviewed migration
+`20260918224038_if4_durable_learning_baseline_freeze.sql`
+(`53db7fbe3275520b9fa76b4ce7fd757a988a3b3e9ea78282694699b82cc38ec0`) was
+applied once through Supabase's production migration operation after a fresh
+aggregate-only preflight reported every prerequisite and
+`eligible_for_exact_additive_apply = true`. It supplies a least-privileged,
+RLS-protected table with service-role-only, contract-validated RPCs. A
+metadata-only production postflight verified the table, all five constraints,
+valid owner/time index, enabled RLS with no policies, no direct `anon`,
+`authenticated` or `service_role` table read, fixed-search-path `SECURITY
+DEFINER` functions, denied `anon`/`authenticated` execution and allowed only
+`service_role` RPC execution. Supabase's security advisor reports this
+policy-less RLS state as the expected informational server-only-table pattern;
+its leaked-password-protection warning and performance advisor findings are
+pre-existing project-level follow-up items. Local evidence is 28 focused
+baseline-readiness/freeze regressions, targeted ESLint, strict TypeScript, a
+full Webpack production build and isolated PostgreSQL proof of first freeze,
+exact idempotent replay, changed-baseline rejection, cross-owner rejection and
+direct-table denial. There was no provider request, scheduler, ranking,
+candidate publication or broker action. PR [#549](https://github.com/willyvalentin/trade/pull/549)
+merged as `aade751248c534b632264d48815ab7c2832e99cd`; all protected checks in
+CI `35437941572` passed, and Netlify production deploy
+`6aae6cbe6242cb0008f7763d` is ready on that exact revision. The authenticated
+environment UI has not been exercised, no actual owner baseline has been
+frozen, and this delivery is not evidence that recommendation quality improved.
+
+**Production migration-history preflight, read-only, 2026-09-19:** The
+existing linked remote migration ledger records `20260915184112` and
+`20260917145627`, while the current source tree records
+`20260915162302` and `20260917135646`; the remote ledger also does not list
+several later locally tracked files through
+`20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`. This does
+not prove the underlying schemas are absent, but it makes a blind
+`supabase db push` unsafe: it could apply unrelated historical local files.
+Before the IF-4 production migration, the exact source-to-remote migration
+history and schema state were reconciled only as far as necessary for the named
+additive migration, and separate explicit authority was obtained. An
+exact-worktree preflight encountered
+an IPv6 database-route limitation, but a subsequent read-only public-schema
+snapshot through the existing linked production environment verified that
+`recommendation_scan_runs` has both `run_fingerprint` and owner-bound
+`owner_user_id`; neither new IF-4 table is present. That confirms the narrow
+baseline-freeze prerequisite without proving broader migration-history
+equivalence. A second read-only comparison found the expected pre-existing
+`market_wide_discovery_credit_reservations` and
+`basic_free_discovery_credit_reservations` tables, including
+`catalog_observation` and its owner/date partial unique index. That makes the
+local IF-2 assumptions schema-consistent, not migration-ID-equivalent. The
+temporary snapshots were removed. The committed aggregate-only query at
+`docs/sql/if4-durable-learning-baseline-freeze-production-preflight.sql` was
+then executed in a read-only production transaction: all target objects were
+absent, every owner-bound scan-run and role/extension prerequisite was present,
+and `eligible_for_exact_additive_apply` was true. It returns no application-row
+content or identifiers. No link, repair, provider request, candidate,
+publication or broker action occurred during that preflight; the later exact
+additive migration is recorded above.
+
+**Known IF-2 version aliasing, read-only, 2026-09-19:** A temporary
+data-only dump of `supabase_migrations.schema_migrations` maps remote version
+`20260915184112` to the exact recorded name
+`20260915162302_market_wide_discovery_credit_reservations`, and remote version
+`20260917145627` to
+`20260917135646_if2_basic_free_daily_observation_claim`. These are known
+version aliases for source migration names, not evidence of two unknown IF-2
+SQL changes. The mapping narrows the history gap, but does not establish
+statement-level equivalence, authorize a history repair, or make a broad
+`db push` safe. The temporary history dump was removed.
+
+**Isolated IF-4 migration dry-run, read-only, 2026-09-19:** An approved
+temporary one-migration Supabase directory containing only
+`20260918224038_if4_durable_learning_baseline_freeze.sql` and the existing
+linked connection metadata was used for exactly one `supabase db push --dry-run`.
+Supabase stopped before planning or applying the migration because its remote
+migration ledger contains versions absent from that isolated directory. This
+confirms that a one-file directory alone cannot safely prove or apply the
+additive migration while history remains unreconciled. The generated temporary
+link metadata and complete temporary directory were removed immediately. No
+history repair, schema change, provider request, candidate publication or broker
+action occurred.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
@@ -44,6 +140,131 @@ collection-checkpoint foundation can be reviewed against this evidence, but a
 broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
+
+### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
+
+**Production schema applied; merge candidate verified, 2026-09-19:** The exact
+reviewed migration
+`20260918233411_if4_after_market_outcome_evaluation_receipts.sql`
+(`d32377a5a8e006c87a9cfe6007188b93250c9137d899ec9d02f78a7132e5dbcc`) was
+applied once through Supabase's production migration operation after a fresh
+aggregate-only, read-only preflight returned every prerequisite and
+`eligible_for_exact_additive_apply = true`. It adds the durable, server-only
+receipt relation only; no application receipt was seeded, read or exposed.
+Revision `a3045742` extends the durable, owner-bound receipt for the existing
+quarter-hour scheduled outcome evaluator. The server claims the exact
+`(owner_user_id, attempt_fingerprint)` slot before it loads snapshots or can
+request candles; a duplicate delivery returns the retained claim or receipt
+without repeating provider work. Terminal, blocked and unexpected-failure
+paths finalize a versioned `scheduled_outcome_evaluation_receipt_v1` with the
+selected batch, evaluator versions, coverage and missingness, candle cost,
+persistence result, first blocker and research-only disposition. Each receipt
+also records the eligible decision snapshots' actual publish-policy versions,
+source modes and market-data-source identities. Its lineage status is
+`unavailable`, `incomplete`, `complete` or `mixed`; absent snapshot metadata
+remains explicitly absent and cannot be fabricated. Engine Insights reads the
+most recent receipt but does not infer recommendation quality from it.
+
+The delivery is confined to that migration, the existing server-owned outcome
+route and its scheduler. It cannot change ranking, confidence, publication,
+positions or broker execution. Thirty-four focused receipt, baseline-readiness
+and freeze Playwright regressions passed against the exact merge candidate;
+code-equivalent source also passed targeted ESLint, strict TypeScript and the
+Webpack production build. The temporary PostgreSQL proof accepted a valid
+service-only claim/finalization and rejected an invalid slot, missing lineage
+and mismatched receipt fingerprint; `anon`/`authenticated` had no table access.
+Protected CI `35439769733` passed all six shards and aggregate/provenance
+checks for merge candidate `bfb332ae1b7e5698f950c191c145ce85535ab981`; its
+Netlify preview `6aae6f9a4e62a90008cd8914` is ready. The subsequent
+documentation-only evidence update requires fresh protected CI before merge.
+
+The production metadata postflight verified the table, all eight named
+constraints, both valid indexes, enabled RLS with no policies, direct
+`anon`/`authenticated` denial for select/insert/update, and the intended
+service-role-only select/insert/update grants (including no delete grant).
+Supabase's policy-less-RLS advisor item is the expected informational result
+for this default-deny server-only table. The unrelated leaked-password warning
+remains; the new indexes' immediately-unused advisory entries are expected
+before any normal scheduler delivery, while the broader unindexed-FK and auth
+connection advisories are pre-existing follow-up. No scheduler, provider call,
+candidate publication or broker action occurred.
+
+**CI-contract remediation, locally verified, 2026-09-19:** Revision
+`2793ba918078b31f0777f8c5799bf66d0dbe00d9` corrects the historical Action
+666FA provenance assertion that had treated the entire generated public types
+file as permanently byte-frozen. It now binds the evidence to its recorded
+green predecessor while continuing to require the named public lineage fields
+and the absence of the private writer surface. The exact clean CI foundation
+shard, including lint, strict TypeScript, audit and production build, passed;
+the focused scheduled-receipt and baseline-readiness suite passed 29 tests.
+This correction neither changes IF-4 runtime behavior nor weakens schema,
+access, or lineage checks for future public relations.
+
+**Market-date integrity hardening, locally verified, 2026-09-19:** Revision
+`c2b5a631ff52b87b768e135218f184baaac0d5fa` binds every scheduled receipt's
+`market_date` to the New York date derived from its quarter-hour scheduler
+slot. The receipt builder, untrusted-receipt reader and attempt-row reader
+reject a mismatch; the production-applied migration enforces the same invariant.
+Six focused receipt regressions and strict TypeScript passed. In an isolated
+temporary PostgreSQL container with only the required Supabase role names,
+the migration accepted a valid claimed slot, rejected a mismatched market date
+with `scheduled_outcome_evaluation_attempts_market_date_check`, and retained
+only the valid row. The container was removed. No provider call, candidate,
+publication or broker action occurred.
+
+**Remaining IF-4a evidence gap:** this receipt proves traceability for the
+existing evaluator and snapshot-present lineage, not provider-version
+provenance, outcome quality, historical replay validity or an improved policy.
+The schema is production-ready but its route has not yet been merged/deployed
+and no normal scheduled job has generated an environment receipt. Monday's
+active market-bound return remains the authorized IF-2 Basic Free capability
+probe, not an IF-4 quality claim.
+
+**Merged and production-verified IF-2b catalog-lineage integrity:** PR
+[#547](https://github.com/willyvalentin/trade/pull/547) merged as
+`2568bf983bfb2f55e18a3b534a0e63e5aececb1f`. The symbol-master contract is now
+`us_equity_symbol_master_contract_v3`: aggregate page counters and the catalog
+denominator are no longer enough to report `complete`. A complete catalog needs
+one raw response for every contiguous page from 1 through N, the exact declared
+page count, and the same provider denominator on every page. Eligible and
+rejected rows retain source page and within-page indexes. Aggregate-only,
+missing, duplicate, malformed and denominator-conflicting lineages remain
+partial or invalid and cannot become a discovery feed. PR CI
+`35395971029`, exact-main CI `35398296084` and their provenance checks passed.
+Netlify production deploy `6aadb0d5d999d60009dc15de` is ready on that exact
+main revision. Before merge, 10 focused symbol-master regressions, 26 affected
+Basic Free/collection regressions, strict TypeScript, targeted ESLint, the
+Webpack production build and the 166-test intelligence-foundation suite
+(including isolated PostgreSQL checks) passed. No provider request, migration,
+configuration, candidate, publication or broker effect occurred. This is
+coverage-truth hardening, not evidence of a complete catalog or stronger
+candidates.
+
+**Merged and production-verified IF-2b snapshot-feasibility disclosure,
+2026-09-18:** PR [#548](https://github.com/willyvalentin/trade/pull/548)
+merged as `33a6f409921883529a2334d2b4bef4d9a520b135`; its protected CI passed
+and subsequent exact-main provenance checks passed; Netlify production deploy
+`6aadbb0d188fc00008bdfbc8` is ready on that exact revision. Engine Insights
+previously called a projected Basic Free
+multi-quota-day page schedule a “fresh collection”, even though a schedule
+that exceeds the declared daily page-credit capacity cannot establish one
+coherent fresh catalog snapshot. The versioned
+`basic_free_catalog_collection_plan_v3` now separates page-coverage capacity
+from snapshot coherence: it names the page count and quota-day estimate, marks
+whether the page schedule must span quota days, and withholds any
+coherent-snapshot claim because one has not been separately observed and
+admitted. The panel tells the user that a multi-day page schedule cannot
+establish one coherent fresh catalog snapshot; even a one-day-fit schedule is
+not presented as one. Before merge, eight focused plan/readback tests, 26
+affected Basic Free discovery/collection regressions, targeted ESLint, strict
+TypeScript, the Webpack production build and the 166-test
+intelligence-foundation suite (including isolated PostgreSQL checks) passed.
+The authenticated browser readback itself was not exercised because no local
+credentials were read or entered; the route/readback contract asserts the
+panel's exact user-facing branch text, so that UI behavior is not
+environment-verified. There is no provider, migration, configuration,
+candidate, publication or broker effect. The separately bounded Monday Basic
+Free capability probe remains the next market-bound action.
 
 **Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
 PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as
@@ -190,8 +411,25 @@ proves an identity-mismatched payload is excluded while earlier valid records
 remain ordered and comparable; the diagnostic export carries scalar comparison
 evidence only, never the untrusted payload.
 
-**External effects:** the local history extension made no provider request,
-database migration, deployment, broker action or staging invocation.
+**Merged and production-verified IF-1 source-timestamp integrity, 2026-09-19:**
+PR [#551](https://github.com/willyvalentin/trade/pull/551) merged as
+`79e570444d99a75fb094d2ecbc1b78d83fe0ede1` after protected CI
+`35412733103` passed. Netlify production deploy
+`6aadea7812250500072e9ad1` is ready on that exact revision. The retained
+decision record now uses only a parseable canonical reference-price or
+indicator-cache timestamp. Missing, invalid or capture-future source time is
+retained as the explicit existing `candidate_provider_gap`, and source evidence
+later than the actual decision cannot appear as `fresh`. Readback rejects
+malformed timestamps and future source evidence that lacks that explicit gap;
+it still presents an honestly gapped record for investigation. This is a
+decision-evidence integrity correction under IF-1, not a scanner, ranking,
+confidence, publication, provider, migration or execution change. The focused
+decision-record, rejected-research and baseline-readiness suite passed 36/36;
+strict TypeScript, targeted ESLint and the Webpack production build passed
+locally. No provider request, database migration, broker action or staging
+invocation occurred. The authenticated production behavior remains
+unverified because the available browser session is at the login boundary; the
+deploy does not prove live data freshness or stronger recommendation quality.
 
 **Remaining IF-1 acceptance:** an authorized current-market scan must persist and render one
 attributable record through the authenticated application. That is environment

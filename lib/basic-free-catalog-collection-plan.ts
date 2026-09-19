@@ -1,5 +1,9 @@
 export const basicFreeCatalogCollectionPlanVersion =
-  "basic_free_catalog_collection_plan_v2" as const;
+  "basic_free_catalog_collection_plan_v3" as const;
+
+export type BasicFreeCatalogSnapshotCoherenceReason =
+  | "source_snapshot_coherence_not_observed"
+  | "page_collection_spans_multiple_quota_days";
 
 export type BasicFreeCatalogCollectionPlanReason =
   | "catalog_capability_probe_not_collection_admitted"
@@ -23,11 +27,15 @@ export type BasicFreeCatalogCollectionPlan = {
   reference_page_reusable_for_collection: false;
   provider_catalog_count: number | null;
   observed_page_size: number | null;
-  fresh_collection_pages_required: number | null;
-  fresh_collection_credits_required: number | null;
+  page_collection_pages_required: number | null;
+  page_collection_credits_required: number | null;
   credits_available_at_observation: number | null;
-  minimum_trading_days_for_fresh_collection: number | null;
-  minimum_request_minutes_for_fresh_collection_today: number | null;
+  minimum_quota_days_for_page_collection: number | null;
+  minimum_request_minutes_for_observed_day_page_collection: number | null;
+  snapshot_coherence_status: "not_proven";
+  same_quota_day_page_collection_feasible: boolean | null;
+  page_collection_must_span_quota_days: boolean | null;
+  snapshot_coherence_reason_codes: BasicFreeCatalogSnapshotCoherenceReason[];
   reason_codes: BasicFreeCatalogCollectionPlanReason[];
 };
 
@@ -79,20 +87,26 @@ function unavailable(
     reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
     observed_page_size: pageSize,
-    fresh_collection_pages_required: null,
-    fresh_collection_credits_required: null,
+    page_collection_pages_required: null,
+    page_collection_credits_required: null,
     credits_available_at_observation: null,
-    minimum_trading_days_for_fresh_collection: null,
-    minimum_request_minutes_for_fresh_collection_today: null,
+    minimum_quota_days_for_page_collection: null,
+    minimum_request_minutes_for_observed_day_page_collection: null,
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible: null,
+    page_collection_must_span_quota_days: null,
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
     reason_codes: [reason],
   };
 }
 
 /**
  * Computes a historical capacity estimate from one already-observed Basic Free
- * catalog reference page. A separately admitted collection must start from a
- * new snapshot; the reference page can never reduce its page or credit count.
- * This is capacity math only: it cannot make a provider request, mark a catalog
+ * catalog reference page. It distinguishes the number of pages from proof of a
+ * coherent fresh catalog snapshot: a multi-quota-day schedule cannot establish
+ * that snapshot. A separately admitted collection must start from a new
+ * snapshot; the reference page can never reduce its page or credit count. This
+ * is capacity math only: it cannot make a provider request, mark a catalog
  * complete, expand discovery, or authorize a future collection.
  */
 export function buildBasicFreeCatalogCollectionPlan(
@@ -159,20 +173,24 @@ export function buildBasicFreeCatalogCollectionPlan(
     return unavailable(input, "catalog_reservation_not_finalized");
   }
 
-  const freshCollectionPagesRequired = Math.ceil(providerCatalogCount / pageSize);
+  const pageCollectionPagesRequired = Math.ceil(providerCatalogCount / pageSize);
   const creditsAvailableToday = dailyRemainingCredits;
   const currentDayRequests = Math.min(
-    freshCollectionPagesRequired,
+    pageCollectionPagesRequired,
     creditsAvailableToday,
   );
   const additionalCreditsAfterToday = Math.max(
     0,
-    freshCollectionPagesRequired - currentDayRequests,
+    pageCollectionPagesRequired - currentDayRequests,
   );
   const currentMinuteRequests = Math.min(
     currentDayRequests,
     minuteRemainingCredits,
   );
+  const sameQuotaDayPageCollectionFeasible =
+    pageCollectionPagesRequired <= dailyCreditBudget;
+  const pageCollectionMustSpanQuotaDays =
+    !sameQuotaDayPageCollectionFeasible;
 
   return {
     plan_version: basicFreeCatalogCollectionPlanVersion,
@@ -183,14 +201,14 @@ export function buildBasicFreeCatalogCollectionPlan(
     reference_page_reusable_for_collection: false,
     provider_catalog_count: providerCatalogCount,
     observed_page_size: pageSize,
-    fresh_collection_pages_required: freshCollectionPagesRequired,
-    fresh_collection_credits_required: freshCollectionPagesRequired,
+    page_collection_pages_required: pageCollectionPagesRequired,
+    page_collection_credits_required: pageCollectionPagesRequired,
     credits_available_at_observation: creditsAvailableToday,
-    minimum_trading_days_for_fresh_collection:
+    minimum_quota_days_for_page_collection:
       currentDayRequests === 0
-        ? Math.ceil(freshCollectionPagesRequired / dailyCreditBudget)
+        ? Math.ceil(pageCollectionPagesRequired / dailyCreditBudget)
         : 1 + Math.ceil(additionalCreditsAfterToday / dailyCreditBudget),
-    minimum_request_minutes_for_fresh_collection_today:
+    minimum_request_minutes_for_observed_day_page_collection:
       currentDayRequests === 0
         ? 0
         : minuteRemainingCredits === 0
@@ -201,6 +219,16 @@ export function buildBasicFreeCatalogCollectionPlan(
                 currentDayRequests - currentMinuteRequests,
               ) / perMinuteCreditBudget,
             ),
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible:
+      sameQuotaDayPageCollectionFeasible,
+    page_collection_must_span_quota_days: pageCollectionMustSpanQuotaDays,
+    snapshot_coherence_reason_codes: [
+      "source_snapshot_coherence_not_observed",
+      ...(pageCollectionMustSpanQuotaDays
+        ? (["page_collection_spans_multiple_quota_days"] as const)
+        : []),
+    ],
     reason_codes: [],
   };
 }

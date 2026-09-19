@@ -282,6 +282,7 @@ import {
   buildRecommendationLearningEvaluationPlans,
   type RecommendationLearningEvaluationPlans,
 } from "@/lib/recommendation-learning-evaluation-plan";
+import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
@@ -352,6 +353,10 @@ import {
   type RecommendationOutcomeEvaluationRun,
   type RecommendationOutcomeEvaluationRunStatus,
 } from "@/lib/recommendation-outcome-evaluation-runner";
+import {
+  scheduledOutcomeEvaluationAttemptFromRow,
+  type ScheduledOutcomeEvaluationAttempt,
+} from "@/lib/scheduled-outcome-evaluation-receipt";
 import {
   inferRecommendationEntryTypeMetadata,
   summarizeEntryTypeTriggerDiagnostics,
@@ -2606,6 +2611,7 @@ type ApplicationDashboardPayload = {
   recommendation_batches: unknown[];
   recommendation_snapshots: unknown[];
   recommendation_outcomes: unknown[];
+  scheduled_outcome_evaluation_attempts: unknown[];
   market_regime: unknown | null;
 };
 
@@ -2628,6 +2634,65 @@ async function fetchApplicationDashboard() {
   }
 
   return { data: payload, error: null };
+}
+
+type RecommendationLearningBaselineFreezePayload = {
+  status?: "available" | "not_found" | "frozen" | "already_frozen";
+  freeze?: RecommendationLearningBaselineFreeze | null;
+  error?: string;
+  blocker?: string;
+};
+
+async function fetchRecommendationLearningBaselineFreeze() {
+  try {
+    const response = await fetch("/api/app/learning-baseline-freeze", {
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationLearningBaselineFreezePayload
+      | null;
+
+    if (!response.ok || !payload) {
+      return {
+        freeze: null,
+        error: payload?.error ?? "Durable baseline storage is unavailable.",
+      };
+    }
+
+    return { freeze: payload.freeze ?? null, error: "" };
+  } catch {
+    return {
+      freeze: null,
+      error: "Durable baseline storage is unavailable.",
+    };
+  }
+}
+
+async function postRecommendationLearningBaselineFreeze(segmentKey: string) {
+  try {
+    const response = await fetch("/api/app/learning-baseline-freeze", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ segment_key: segmentKey }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationLearningBaselineFreezePayload
+      | null;
+
+    return {
+      freeze: payload?.freeze ?? null,
+      status: payload?.status ?? null,
+      error: response.ok
+        ? ""
+        : payload?.error ?? "Durable baseline storage is unavailable.",
+    };
+  } catch {
+    return {
+      freeze: null,
+      status: null,
+      error: "Durable baseline storage is unavailable.",
+    };
+  }
 }
 
 type OutcomeBackfillOperation =
@@ -8843,6 +8908,14 @@ export function TradeApp({
     useState<RecommendationBatch[]>([]);
   const [storedRecommendationOutcomes, setStoredRecommendationOutcomes] =
     useState<RecommendationOutcome[]>([]);
+  const [scheduledOutcomeEvaluationAttempts, setScheduledOutcomeEvaluationAttempts] =
+    useState<ScheduledOutcomeEvaluationAttempt[]>([]);
+  const [learningBaselineFreeze, setLearningBaselineFreeze] =
+    useState<RecommendationLearningBaselineFreeze | null>(null);
+  const [learningBaselineFreezeError, setLearningBaselineFreezeError] =
+    useState("");
+  const [isFreezingLearningBaseline, setIsFreezingLearningBaseline] =
+    useState(false);
   const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
@@ -9289,6 +9362,10 @@ export function TradeApp({
         data: dashboard?.recommendation_outcomes ?? [],
         error: dashboardError,
       };
+      const scheduledOutcomeEvaluationAttemptsResult = {
+        data: dashboard?.scheduled_outcome_evaluation_attempts ?? [],
+        error: dashboardError,
+      };
       const marketRegimeResult = {
         data: dashboard?.market_regime ?? null,
         error: dashboardError,
@@ -9456,6 +9533,29 @@ export function TradeApp({
             (attempt): attempt is ScheduledScanAttempt => attempt !== null,
           ),
       );
+      }
+
+      if (scheduledOutcomeEvaluationAttemptsResult.error) {
+        console.info("[trade-app] scheduled_outcome_evaluation_attempts unavailable", {
+          source: "supabase.scheduled_outcome_evaluation_attempts",
+          operation: "select_recent_scheduled_outcome_evaluation_attempts",
+          error: normalizeUnknownError(scheduledOutcomeEvaluationAttemptsResult.error),
+        });
+        if (isInitialLoad) {
+          setScheduledOutcomeEvaluationAttempts([]);
+        }
+      } else {
+        setScheduledOutcomeEvaluationAttempts(
+          ((scheduledOutcomeEvaluationAttemptsResult.data ?? []) as Array<
+            Record<string, unknown>
+          >)
+            .map(scheduledOutcomeEvaluationAttemptFromRow)
+            .filter(
+              (
+                attempt,
+              ): attempt is ScheduledOutcomeEvaluationAttempt => attempt !== null,
+            ),
+        );
       }
 
       if (recommendationScanRunsResult.error) {
@@ -10002,6 +10102,27 @@ export function TradeApp({
     return refreshIslands(refreshIslandsForTab(activeTab), source);
   }
 
+  async function freezeLearningBaseline(segmentKey: string) {
+    if (isFreezingLearningBaseline) return;
+
+    setIsFreezingLearningBaseline(true);
+    setLearningBaselineFreezeError("");
+    const result = await postRecommendationLearningBaselineFreeze(segmentKey);
+    if (result.error || !result.freeze) {
+      setLearningBaselineFreezeError(
+        result.error || "Durable baseline storage did not return a receipt.",
+      );
+    } else {
+      setLearningBaselineFreeze(result.freeze);
+      setMessage(
+        result.status === "already_frozen"
+          ? "This exact learning baseline was already frozen."
+          : "Learning baseline frozen with an immutable decision receipt.",
+      );
+    }
+    setIsFreezingLearningBaseline(false);
+  }
+
   loadTradeDataRef.current = loadTradeData;
   refreshCurrentSurfaceRef.current = refreshCurrentSurface;
 
@@ -10029,6 +10150,7 @@ export function TradeApp({
       setStoredRecommendationScanRuns([]);
       setStoredRecommendationBatches([]);
       setStoredRecommendationOutcomes([]);
+      setScheduledOutcomeEvaluationAttempts([]);
       setRecommendationOutcomeDedupeDiagnostics(
         {
           rawCount: 0,
@@ -10042,6 +10164,20 @@ export function TradeApp({
     }, 0);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchRecommendationLearningBaselineFreeze().then((result) => {
+      if (cancelled) return;
+      setLearningBaselineFreeze(result.freeze);
+      setLearningBaselineFreezeError(result.error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -11419,6 +11555,11 @@ export function TradeApp({
   );
   const marketClosedReadbackMode =
     getTopMarketStatus(marketStatus, currentTime) !== "open";
+  const latestScheduledOutcomeEvaluationAttempt = [
+    ...scheduledOutcomeEvaluationAttempts,
+  ].sort((first, second) =>
+    second.scheduled_slot_at.localeCompare(first.scheduled_slot_at),
+  )[0] ?? null;
   const latestSuccessfulDailyScanLog =
     dailyScanLogs.find(isSuccessfulLiveScanLog) ?? null;
   const liveStoredRecommendationSnapshots =
@@ -16964,6 +17105,14 @@ export function TradeApp({
               readiness={recommendationLearningBaselineReadiness}
               segmentation={recommendationLearningBaselineSegmentation}
               evaluationPlans={recommendationLearningEvaluationPlans}
+              freeze={learningBaselineFreeze}
+              freezeError={learningBaselineFreezeError}
+              isFreezing={isFreezingLearningBaseline}
+              onFreeze={freezeLearningBaseline}
+            />
+
+            <ScheduledOutcomeEvaluationReceiptPanel
+              attempt={latestScheduledOutcomeEvaluationAttempt}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -37355,6 +37504,142 @@ function candidateDecisionHistoryDispositionLabel(
   return "unavailable";
 }
 
+function scheduledOutcomeEvaluationReceiptTone(
+  attempt: ScheduledOutcomeEvaluationAttempt | null,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (!attempt) return "neutral";
+  if (attempt.status === "completed") return "positive";
+  if (attempt.status === "failed") return "danger";
+  if (attempt.status === "claimed" || attempt.status === "partial") {
+    return "warning";
+  }
+  return "neutral";
+}
+
+function ScheduledOutcomeEvaluationReceiptPanel({
+  attempt,
+}: {
+  attempt: ScheduledOutcomeEvaluationAttempt | null;
+}) {
+  const receipt = attempt?.receipt_json ?? null;
+  const requestCount = receipt
+    ? `${receipt.cost.candle_requests_executed}/${receipt.cost.candle_requests_planned}`
+    : "not recorded";
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Learning evidence
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Scheduled Outcome Evaluation Receipt
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A durable, server-owned receipt for one scheduled evaluation slot.
+            It records outcome coverage and data-provider cost; it is research
+            evidence, not a recommendation or a policy promotion.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={attempt?.status ?? "no receipt"}
+          tone={scheduledOutcomeEvaluationReceiptTone(attempt)}
+        />
+      </div>
+
+      {!attempt ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No completed scheduled outcome-evaluation receipt is retained yet.
+          This does not mean that an outcome was favorable or unfavorable, and
+          it does not establish recommendation quality.
+        </p>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <SummaryCard label="Status" value={attempt.status} />
+            <SummaryCard label="Scheduled slot" value={formatDate(attempt.scheduled_slot_at)} />
+            <SummaryCard
+              label="Coverage"
+              value={
+                receipt
+                  ? `${receipt.scope.evaluated_snapshot_count}/${receipt.scope.eligible_snapshot_count} evaluated`
+                  : "claim in progress"
+              }
+            />
+            <SummaryCard label="Candle requests" value={requestCount} />
+            <SummaryCard
+              label="Disposition"
+              value={receipt?.disposition.replaceAll("_", " ") ?? "not finalized"}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Coverage and missingness
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                {receipt
+                  ? `Incomplete: ${receipt.coverage.incomplete_snapshot_count}; missing candles: ${receipt.coverage.missing_candle_count}; provider errors: ${receipt.coverage.provider_error_count}.`
+                  : "This slot has been claimed before provider work. A retry for the same slot is contained until it finalizes."}
+              </p>
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Persistence and follow-up
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                {receipt
+                  ? `Outcome persistence: ${receipt.persistence.status}; created: ${receipt.persistence.outcomes_created_count}; updated: ${receipt.persistence.outcomes_updated_count}.`
+                  : "No final receipt exists yet."}
+              </p>
+              {receipt?.failures.next_retry_suggestion && (
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Next retry guidance: {receipt.failures.next_retry_suggestion}
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Decision lineage
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                {receipt
+                  ? `Policy lineage: ${receipt.decision_lineage.status}; versions: ${receipt.decision_lineage.recommendation_publish_policy_versions.join(", ") || "not recorded"}.`
+                  : "Decision policy and source provenance are not finalized yet."}
+              </p>
+              {receipt && (
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Sources: {receipt.decision_lineage.market_data_sources.join(", ") || "not recorded"}; missing policy/source metadata: {receipt.decision_lineage.missing_policy_version_count}/{receipt.decision_lineage.missing_market_data_source_count}.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Containment
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                The quarter-hour claim is owner-bound and idempotent. It cannot
+                change ranking, confidence, publication, positions, or broker
+                execution.
+              </p>
+              {receipt?.failures.first_blocker && (
+                <p className="mt-1 break-words text-xs leading-5 text-amber-200">
+                  First blocker: {receipt.failures.first_blocker}
+                </p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 function marketWideDiscoveryReceiptTone(
   receipt: MarketWideDiscoveryReadback,
 ): "positive" | "warning" | "danger" | "neutral" {
@@ -37704,19 +37989,24 @@ function BasicFreeDiscoveryReceiptPanel({
             "reference_estimate_available" ? (
               <>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  A new catalog snapshot would need {" "}
-                  {receipt.catalog_collection_plan.fresh_collection_pages_required} one-credit
+                  A complete page collection would need {" "}
+                  {receipt.catalog_collection_plan.page_collection_pages_required} one-credit
                   pages in total. This observed reference page is not reusable,
-                  so it does not reduce that requirement. At the declared quota,
-                  a fresh collection needs at least {" "}
-                  {receipt.catalog_collection_plan.minimum_trading_days_for_fresh_collection} trading day(s).
+                  so it does not reduce that requirement. Starting from the
+                  observed remaining quota, page collection needs at least {" "}
+                  {receipt.catalog_collection_plan.minimum_quota_days_for_page_collection} quota day(s).
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
                   At this receipt, {receipt.catalog_collection_plan.credits_available_at_observation} credits
-                  remained for that trading day. If a separately authorized fresh
-                  collection could start then, its current-day portion would take
+                  remained for that trading day. If a separately authorized page
+                  collection could start then, its observed-day portion would take
                   at least {" "}
-                  {receipt.catalog_collection_plan.minimum_request_minutes_for_fresh_collection_today} request minute(s).
+                  {receipt.catalog_collection_plan.minimum_request_minutes_for_observed_day_page_collection} request minute(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  {receipt.catalog_collection_plan.page_collection_must_span_quota_days
+                    ? "Because this page schedule must span quota days, it cannot establish one coherent fresh catalog snapshot."
+                    : "The page schedule fits the declared daily quota, but a coherent full-catalog source snapshot has not been observed or admitted."}
                 </p>
               </>
             ) : (
@@ -38163,10 +38453,18 @@ function RecommendationLearningBaselineReadinessPanel({
   readiness,
   segmentation,
   evaluationPlans,
+  freeze,
+  freezeError,
+  isFreezing,
+  onFreeze,
 }: {
   readiness: RecommendationLearningBaselineReadiness;
   segmentation: RecommendationLearningBaselineSegmentation;
   evaluationPlans: RecommendationLearningEvaluationPlans;
+  freeze: RecommendationLearningBaselineFreeze | null;
+  freezeError: string;
+  isFreezing: boolean;
+  onFreeze: (segmentKey: string) => void;
 }) {
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
@@ -38193,8 +38491,9 @@ function RecommendationLearningBaselineReadinessPanel({
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
             A read-only audit of whether persisted decisions can become a
-            comparable learning baseline. It never tunes ranking, relaxes
-            publication, calls a provider, or executes a trade.
+            comparable learning baseline. A separate explicit action may freeze
+            an already eligible, server-recomputed receipt; neither path tunes
+            ranking, relaxes publication, calls a provider, or executes a trade.
           </p>
         </div>
         <RecommendationDetailsPill
@@ -38270,7 +38569,8 @@ function RecommendationLearningBaselineReadinessPanel({
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Research counts require an exact candidate decision link and a
             decision-bound complete outcome. Confidence remains ordinal, so
-            calibration is blocked; this panel cannot freeze or promote a policy.
+            calibration is blocked; readiness alone cannot freeze or promote a
+            policy.
           </p>
         </div>
       </div>
@@ -38352,10 +38652,61 @@ function RecommendationLearningBaselineReadinessPanel({
           </p>
         )}
         <p className="mt-2 text-xs leading-5 text-zinc-500">
-          This is a versioned, read-only evaluation plan. It neither chooses nor
-          persists a baseline freeze, calibrates confidence, changes ranking,
-          calls a provider, or executes a trade.
+          This versioned evaluation plan is read-only. A later explicit freeze
+          can only persist the server-recomputed receipt; it cannot choose a
+          policy, calibrate confidence, change ranking, call a provider, or
+          execute a trade.
         </p>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Durable baseline receipt
+        </h4>
+        {freeze ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Frozen {formatDate(freeze.frozen_at)} with {freeze.decision_record_fingerprints.length}
+              {" "}exact decision record{freeze.decision_record_fingerprints.length === 1 ? "" : "s"}.
+            </p>
+            <p className="mt-1 break-all font-mono text-xs leading-5 text-zinc-500">
+              {freeze.baseline_fingerprint}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This immutable receipt is a comparison point only. It does not
+              declare the policy good or permit a promotion.
+            </p>
+          </>
+        ) : readyEvaluationPlans.length > 0 ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              An explicit freeze will store one selected, ready policy/version
+              segment and its exact decision identities. The server recomputes
+              eligibility before writing; it will reject changed or no-longer-ready evidence.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {readyEvaluationPlans.slice(0, 3).map((plan) => (
+                <button
+                  key={plan.segment_key}
+                  type="button"
+                  disabled={isFreezing}
+                  onClick={() => onFreeze(plan.segment_key)}
+                  className="rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isFreezing ? "Freezing baseline…" : "Freeze this baseline"}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            No segment is ready to freeze. Ture will retain the evidence gap
+            instead of locking a partial or mixed population.
+          </p>
+        )}
+        {freezeError ? (
+          <p className="mt-3 text-xs leading-5 text-amber-200">{freezeError}</p>
+        ) : null}
       </div>
 
       <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">

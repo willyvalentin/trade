@@ -22,6 +22,12 @@ export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
   | { status: "unavailable" | "failed" };
 
+// An immutable baseline cannot silently exclude older owner evidence. The
+// persistence contract itself admits at most 10,000 decision identities; once
+// any input table exceeds this deliberate, non-paginated bound, a later
+// paginated baseline reader is required rather than freezing a recent slice.
+const LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS = 10_000;
+
 function unavailable<T>(): ApplicationDataAccessResult<T> {
   return { status: "unavailable" };
 }
@@ -52,6 +58,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationBatches,
     recommendationSnapshots,
     recommendationOutcomes,
+    scheduledOutcomeEvaluationAttempts,
     marketRegime,
   ] = await Promise.all([
     client.from("recommendations").select("*").eq("owner_user_id", owner),
@@ -119,6 +126,12 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       .order("evaluated_at", { ascending: false })
       .limit(RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT),
     client
+      .from("scheduled_outcome_evaluation_attempts")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("scheduled_slot_at", { ascending: false })
+      .limit(50),
+    client
       .from("market_regime_snapshots")
       .select("*")
       .order("created_at", { ascending: false })
@@ -138,6 +151,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     recommendationBatches,
     recommendationSnapshots,
     recommendationOutcomes,
+    scheduledOutcomeEvaluationAttempts,
     marketRegime,
   ];
 
@@ -159,7 +173,92 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       recommendation_batches: recommendationBatches.data ?? [],
       recommendation_snapshots: recommendationSnapshots.data ?? [],
       recommendation_outcomes: recommendationOutcomes.data ?? [],
+      scheduled_outcome_evaluation_attempts:
+        scheduledOutcomeEvaluationAttempts.data ?? [],
       market_regime: marketRegime.data,
+    },
+  };
+}
+
+/**
+ * Reads only the persisted, owner-bound evidence needed to recompute a
+ * prospective IF-4 baseline. It deliberately excludes current UI-only
+ * recommendations and synthetic fallback outcomes: a durable baseline must be
+ * derived from server-readback rows, not from what happens to be rendered.
+ */
+export async function readRecommendationLearningBaselineSource(
+  ownerUserId: string,
+) {
+  const owner = normalizeApplicationOwnerUserId(ownerUserId);
+  const { client } = getServerSupabaseClient();
+
+  if (!client || !owner) return unavailable<Record<string, unknown>>();
+
+  const [scanRunCount, snapshotCount, outcomeCount] = await Promise.all([
+    client
+      .from("recommendation_scan_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_user_id", owner),
+    client
+      .from("recommendation_snapshots")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_user_id", owner),
+    client
+      .from("recommendation_outcomes")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_user_id", owner),
+  ]);
+
+  const counts = [scanRunCount, snapshotCount, outcomeCount];
+  if (
+    counts.some(
+      (result) =>
+        result.error ||
+        typeof result.count !== "number" ||
+        result.count > LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS,
+    )
+  ) {
+    return failed<Record<string, unknown>>();
+  }
+
+  const [scanRuns, snapshots, outcomes] = await Promise.all([
+    client
+      .from("recommendation_scan_runs")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("observed_at", { ascending: false })
+      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
+    client
+      .from("recommendation_snapshots")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("created_at", { ascending: false })
+      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
+    client
+      .from("recommendation_outcomes")
+      .select("*")
+      .eq("owner_user_id", owner)
+      .order("evaluated_at", { ascending: false })
+      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
+  ]);
+
+  if (
+    scanRuns.error ||
+    snapshots.error ||
+    outcomes.error ||
+    scanRuns.data?.length !== scanRunCount.count ||
+    snapshots.data?.length !== snapshotCount.count ||
+    outcomes.data?.length !== outcomeCount.count
+  ) {
+    return failed<Record<string, unknown>>();
+  }
+
+  return {
+    status: "available" as const,
+    data: {
+      recommendation_scan_runs: scanRuns.data ?? [],
+      recommendation_snapshots: snapshots.data ?? [],
+      recommendation_outcomes: outcomes.data ?? [],
     },
   };
 }

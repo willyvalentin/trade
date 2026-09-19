@@ -14,17 +14,34 @@ function completeCatalog(response: unknown) {
     Array.isArray((response as { data?: unknown }).data)
       ? (response as { data: unknown[] }).data
       : null;
+  const totalPages = records && records.length > 1 ? 2 : 1;
+  const firstPageRecordCount =
+    totalPages === 2 ? Math.ceil((records?.length ?? 0) / 2) : records?.length ?? 0;
+  const pages =
+    records === null
+      ? []
+      : Array.from({ length: totalPages }, (_, index) => ({
+          page_number: index + 1,
+          provider_catalog_count: records.length,
+          response: {
+            data: records.slice(
+              index * firstPageRecordCount,
+              (index + 1) * firstPageRecordCount,
+            ),
+          },
+        }));
 
   return buildMarketWideSymbolMaster({
     provider: "twelve_data",
     fetched_at: fetchedAt,
     response,
     provider_catalog_count: records?.length ?? null,
+    pages,
     pagination: {
       first_page: 1,
-      last_page: 2,
-      pages_fetched: 2,
-      total_pages: 2,
+      last_page: totalPages,
+      pages_fetched: totalPages,
+      total_pages: totalPages,
       has_next_page: false,
     },
   });
@@ -73,10 +90,30 @@ test.describe("market-wide symbol master contract", () => {
         observed_record_count: 4,
         observed_record_count_matches_denominator: true,
       },
+      page_lineage: {
+        source: "page_responses",
+        observed_page_count: 2,
+        observed_page_numbers: [1, 2],
+        page_responses_valid: true,
+        denominator_consistent: true,
+        contiguous_from_first_page: true,
+      },
     });
     expect(result.eligible_entries).toEqual([
-      expect.objectContaining({ symbol: "AAPL", provider_access: "Global" }),
-      expect.objectContaining({ symbol: "BRK.B", mic_code: "XNAS" }),
+      expect.objectContaining({
+        symbol: "AAPL",
+        provider_access: "Global",
+        source_page_number: 1,
+        source_page_record_index: 0,
+        source_record_index: 0,
+      }),
+      expect.objectContaining({
+        symbol: "BRK.B",
+        mic_code: "XNAS",
+        source_page_number: 1,
+        source_page_record_index: 1,
+        source_record_index: 1,
+      }),
     ]);
   });
 
@@ -100,7 +137,135 @@ test.describe("market-wide symbol master contract", () => {
       collection_complete: false,
       discovery_feed_allowed: false,
       eligible_record_count: 1,
-      blockers: ["catalog_collection_not_complete"],
+      blockers: expect.arrayContaining(["catalog_collection_not_complete"]),
+    });
+  });
+
+  test("does not treat aggregate counters as raw pagination evidence", () => {
+    const result = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      response: { data: [stock("AAPL"), stock("MSFT")] },
+      provider_catalog_count: 2,
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      page_lineage: {
+        source: "aggregate_response",
+        page_responses_valid: false,
+        contiguous_from_first_page: false,
+      },
+      blockers: expect.arrayContaining(["catalog_page_lineage_missing"]),
+    });
+  });
+
+  test("fails closed for duplicate or denominator-conflicting raw page lineage", () => {
+    const duplicatePage = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      provider_catalog_count: 2,
+      pages: [
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          response: { data: [stock("AAPL")] },
+        },
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          response: { data: [stock("MSFT")] },
+        },
+      ],
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    });
+    const conflictingDenominator = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      provider_catalog_count: 2,
+      pages: [
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          response: { data: [stock("AAPL")] },
+        },
+        {
+          page_number: 2,
+          provider_catalog_count: 3,
+          response: { data: [stock("MSFT")] },
+        },
+      ],
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    });
+
+    expect(duplicatePage.summary).toMatchObject({
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      page_lineage: { contiguous_from_first_page: false },
+      blockers: expect.arrayContaining(["catalog_page_lineage_not_contiguous"]),
+    });
+    expect(conflictingDenominator.summary).toMatchObject({
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      page_lineage: { denominator_consistent: false },
+      blockers: expect.arrayContaining(["catalog_page_denominator_inconsistent"]),
+    });
+  });
+
+  test("fails closed for a malformed supplied page instead of throwing or using an aggregate fallback", () => {
+    const result = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      response: { data: [stock("AAPL")] },
+      provider_catalog_count: 1,
+      pages: [null] as unknown as Array<{
+        page_number: unknown;
+        provider_catalog_count: unknown;
+        response: unknown;
+      }>,
+      pagination: {
+        first_page: 1,
+        last_page: 1,
+        pages_fetched: 1,
+        total_pages: 1,
+        has_next_page: false,
+      },
+    });
+
+    expect(result.summary).toMatchObject({
+      status: "invalid",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      total_source_records: 0,
+      page_lineage: {
+        source: "page_responses",
+        page_responses_valid: false,
+      },
+      blockers: expect.arrayContaining([
+        "catalog_response_data_missing",
+        "catalog_page_lineage_invalid",
+      ]),
     });
   });
 
