@@ -271,6 +271,18 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  buildRecommendationLearningBaselineReadiness,
+  type RecommendationLearningBaselineReadiness,
+} from "@/lib/recommendation-learning-baseline-readiness";
+import {
+  buildRecommendationLearningBaselineSegmentation,
+  type RecommendationLearningBaselineSegmentation,
+} from "@/lib/recommendation-learning-baseline-segments";
+import {
+  buildRecommendationLearningEvaluationPlans,
+  type RecommendationLearningEvaluationPlans,
+} from "@/lib/recommendation-learning-evaluation-plan";
+import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
   type MarketWideDiscoveryReadback,
@@ -279,6 +291,15 @@ import {
   basicFreeDiscoveryReadbackFromScheduledAttempt,
   type BasicFreeDiscoveryReadback,
 } from "@/lib/basic-free-discovery-readback";
+import {
+  basicFreeDiscoveryReceiptCurrentness,
+  type BasicFreeDiscoveryReceiptCurrentness,
+} from "@/lib/basic-free-discovery-receipt-currentness";
+import type { BasicFreeCatalogObservationReadiness } from "@/lib/basic-free-catalog-observation-readiness";
+import {
+  basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
+  type BasicFreeScheduledScanCreditReadback,
+} from "@/lib/basic-free-scheduled-scan-credit-readback";
 import {
   buildRecommendationBatch,
   buildRecommendationBatchSummary,
@@ -426,6 +447,7 @@ import {
   type RecommendationEngineControlCenterStatus,
   type RecommendationEngineControlCenterSummary,
 } from "@/lib/recommendation-engine-control-center";
+import { deriveDayTradeMarketWaitState } from "@/lib/day-trade-market-wait-state";
 import {
   buildLiveMarketTrialReadinessSummary,
   liveMarketTrialReadinessSummaryJson,
@@ -8607,6 +8629,7 @@ function isSecondaryNavItemActive(item: SecondaryNavItem, activeTab: Tab) {
 }
 
 type TradeAppProps = {
+  basicFreeCatalogObservationReadiness?: BasicFreeCatalogObservationReadiness | null;
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig?: AvanzaDevPreviewFlagConfig;
   learningAccelerationServerConfig?: LearningAccelerationModeEvaluation | null;
   historicalCandleStorageDetection?: {
@@ -8705,6 +8728,7 @@ function buildLivePositionTradeCardExecutionReadiness(
 }
 
 export function TradeApp({
+  basicFreeCatalogObservationReadiness = null,
   testOnlyAvanzaSelectedRecommendationPreviewDevConfig =
     avanzaSelectedRecommendationPreviewDevConfig,
   learningAccelerationServerConfig = null,
@@ -11539,6 +11563,28 @@ export function TradeApp({
       intraday_scan_window: "unknown",
       payload_json: {},
     });
+  const latestBasicFreeScheduledScanCreditReadback =
+    [
+      ...scheduledScanAttempts.map(
+        basicFreeScheduledScanCreditReadbackFromScheduledAttempt,
+      ),
+    ]
+      .filter(
+        (receipt) =>
+          receipt.status === "available" &&
+          receipt.reservation.status !== "not_required",
+      )
+      .sort((first, second) => {
+        const firstObservedAt = first.source_attempt.observed_at ?? "";
+        const secondObservedAt = second.source_attempt.observed_at ?? "";
+        return secondObservedAt.localeCompare(firstObservedAt);
+      })[0] ??
+    basicFreeScheduledScanCreditReadbackFromScheduledAttempt({
+      utc_timestamp: "",
+      trading_date: null,
+      intraday_scan_window: "unknown",
+      payload_json: {},
+    });
   const latestSuccessfulScanRunTrace = latestSuccessfulStoredRecommendationScanRun
     ? getStoredActiveScanTrace(latestSuccessfulStoredRecommendationScanRun)
     : null;
@@ -14287,6 +14333,48 @@ export function TradeApp({
         outcome.snapshot_fingerprint,
       ),
   );
+  const recommendationBaselineSnapshots = Array.from(
+    new Map(
+      [
+        ...intelligenceEnrichmentRecommendationSnapshots,
+        ...recommendationPerformanceSnapshots,
+        ...visibleRecommendationSnapshots,
+      ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
+    ).values(),
+  ).filter(isIntelligenceEnrichmentSnapshot);
+  const recommendationBaselineSnapshotFingerprints = new Set(
+    recommendationBaselineSnapshots.map(
+      (snapshot) => snapshot.snapshot_fingerprint,
+    ),
+  );
+  const recommendationBaselineOutcomes = dedupeRecommendationOutcomesForReadback(
+    [...storedRecommendationOutcomes, ...visibleRecommendationOutcomes],
+  ).outcomes.filter(
+    (outcome) =>
+      outcome.snapshot_fingerprint !== null &&
+      recommendationBaselineSnapshotFingerprints.has(
+        outcome.snapshot_fingerprint,
+      ),
+  );
+  const recommendationLearningBaselineReadiness =
+    buildRecommendationLearningBaselineReadiness({
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
+  const recommendationLearningBaselineSegmentation =
+    buildRecommendationLearningBaselineSegmentation({
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
+  const recommendationLearningEvaluationPlans =
+    buildRecommendationLearningEvaluationPlans({
+      segmentation: recommendationLearningBaselineSegmentation,
+      scanRuns: liveStoredRecommendationScanRuns,
+      snapshots: recommendationBaselineSnapshots,
+      outcomes: recommendationBaselineOutcomes,
+    });
   const recommendationPerformanceStatistics =
     buildRecommendationPerformanceStatistics({
       snapshots: recommendationPerformanceSnapshots,
@@ -14486,11 +14574,7 @@ export function TradeApp({
       scan_run_history: recommendationScanRunHistorySummary,
       data_mode_clarity: dataModeClaritySummary,
       market_wait_state: {
-        is_wait_state:
-          dayTradeScanOrchestrationSummary.decision === "market_closed" ||
-          dayTradeScanOrchestrationSummary.decision === "outside_scan_window" ||
-          dayTradeScanOrchestrationSummary.active_window === "closed" ||
-          dayTradeScanOrchestrationSummary.active_window === "outside_window",
+        ...deriveDayTradeMarketWaitState(dayTradeScanOrchestrationSummary),
         next_window_label: dayTradeScanOrchestrationSummary.next_window_label,
         reason: dayTradeScanOrchestrationSummary.scan_reason,
       },
@@ -16876,12 +16960,27 @@ export function TradeApp({
               history={candidateDecisionRecordHistory}
             />
 
+            <RecommendationLearningBaselineReadinessPanel
+              readiness={recommendationLearningBaselineReadiness}
+              segmentation={recommendationLearningBaselineSegmentation}
+              evaluationPlans={recommendationLearningEvaluationPlans}
+            />
+
             <MarketWideDiscoveryReceiptPanel
               receipt={latestMarketWideDiscoveryReadback}
             />
 
             <BasicFreeDiscoveryReceiptPanel
               receipt={latestBasicFreeDiscoveryReadback}
+              currentTradingDate={dailySessionDate}
+            />
+
+            <BasicFreeCatalogObservationReadinessPanel
+              readiness={basicFreeCatalogObservationReadiness}
+            />
+
+            <BasicFreeScheduledScanCreditReceiptPanel
+              receipt={latestBasicFreeScheduledScanCreditReadback}
             />
 
             <ProviderBudgetGuardPanel
@@ -22095,11 +22194,11 @@ function RecommendationSampleQualityPanel({
           )}`}
         />
         <Detail
-          label="Window Target Within"
+          label="Historical Count Range"
           value={String(summary.window_target_coverage.within_target_count)}
         />
         <Detail
-          label="Current Target"
+          label="Current Publication State"
           value={summary.window_target_coverage.current_window_status.replace(
             /_/g,
             " ",
@@ -24585,26 +24684,26 @@ function addTradePreflightCheckTone(status: AddTradePreflightCheckStatus) {
 function dayTradeWindowTargetStatusLabel(
   status: DayTradeWindowRecommendationTargetSummary["status"],
 ) {
-  if (status === "below_target") return "Below target";
-  if (status === "within_target") return "Within target";
-  if (status === "above_target") return "Above target";
-  if (status === "no_recommendations") return "No recommendations";
+  if (status === "below_target") return "Legacy count gap";
+  if (status === "within_target") return "Selective set";
+  if (status === "above_target") return "Cap exceeded";
+  if (status === "no_recommendations") return "No trade";
   return "Unknown";
 }
 
 function dayTradeWindowTargetStatusTone(
   status: DayTradeWindowRecommendationTargetSummary["status"],
 ) {
-  if (status === "within_target") {
+  if (status === "within_target" || status === "no_recommendations") {
     return "border-[#00db94]/25 bg-[#00db94]/10 text-emerald-100";
   }
 
-  if (status === "below_target" || status === "no_recommendations") {
+  if (status === "below_target") {
     return "border-amber-300/30 bg-amber-300/10 text-amber-100";
   }
 
   if (status === "above_target") {
-    return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100";
+    return "border-amber-300/30 bg-amber-300/10 text-amber-100";
   }
 
   return "border-white/10 bg-white/[0.04] text-zinc-400";
@@ -24624,11 +24723,13 @@ function DayTradeWindowRecommendationTargetPanel({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Window Target
+            Selective Publication
           </p>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
-            {count.total} / {summary.ideal_min}-{summary.ideal_max}{" "}
-            recommendations in {summary.current_window.replace(/_/g, " ")}.
+            {count.total === 0
+              ? "No trade-ready candidates"
+              : `${count.total} of at most ${summary.ideal_max} trade-ready candidates`} {" "}
+            in {summary.current_window.replace(/_/g, " ")}.
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             {summary.copy.purpose} {summary.copy.experimental}
@@ -24648,22 +24749,22 @@ function DayTradeWindowRecommendationTargetPanel({
         <SummaryCard label="Valid" value={String(count.valid)} />
         <SummaryCard label="Experimental" value={String(count.experimental)} />
         <SummaryCard
-          label="Learning Samples"
-          value={summary.enough_learning_samples ? "Enough" : "Thin"}
+          label="Trade-ready"
+          value={summary.enough_learning_samples ? "Present" : "No trade"}
         />
       </div>
 
       <details className="mt-4 rounded-md border border-white/10 bg-black/20 p-3">
         <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">
-          Window target details
+          Publication details
         </summary>
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <Detail
-            label="Gap To 6"
-            value={String(summary.gap.gap_to_ideal_min)}
+            label="Publication Cap"
+            value={`0-${summary.ideal_max}`}
           />
           <Detail
-            label="Overflow Above 10"
+            label="Exceeds Cap"
             value={String(summary.gap.overflow_above_ideal_max)}
           />
           <Detail
@@ -24678,7 +24779,7 @@ function DayTradeWindowRecommendationTargetPanel({
         {summary.warnings.length > 0 && (
           <div className="mt-4 rounded-md border border-amber-300/15 bg-amber-300/[0.045] p-3">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100">
-              Target Notes
+              Publication Notes
             </p>
             <ul className="mt-2 space-y-1 text-xs leading-5 text-amber-50/80">
               {summary.warnings.slice(0, 4).map((warning) => (
@@ -36032,7 +36133,7 @@ function RecommendationScanRunDiagnosticsPanel({
             value={String(diagnostics.visibleRecommendationCount)}
           />
           <SummaryCard
-            label="Window Target"
+            label="Publication State"
             value={diagnostics.windowTargetStatus.replaceAll("_", " ")}
           />
           <SummaryCard
@@ -36092,15 +36193,11 @@ function RecommendationScanRunDiagnosticsPanel({
                 }
               />
               <Detail
-                label="Gap to 6"
-                value={
-                  scanRun.gap_to_target === null
-                    ? "Unknown"
-                    : String(scanRun.gap_to_target)
-                }
+                label="No-fill policy"
+                value={scanRun.window_target_status.replaceAll("_", " ")}
               />
               <Detail
-                label="Overflow above 10"
+                label="Above cap"
                 value={
                   scanRun.overflow_above_target === null
                     ? "Unknown"
@@ -36668,7 +36765,7 @@ function LiveMarketTrialReadinessPanel({
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             {summary.next_active_window?.starts_at ??
-              summary.copy.closed_market}
+              summary.copy.market_window_context}
           </p>
         </div>
 
@@ -36872,7 +36969,7 @@ function LiveMarketTrialReadinessPanel({
       </div>
 
       <p className="mt-4 text-xs leading-5 text-zinc-500">
-        {summary.copy.profitability_boundary} {summary.copy.closed_market}
+        {summary.copy.profitability_boundary} {summary.copy.market_window_context}
       </p>
 
       <pre
@@ -37375,8 +37472,10 @@ function MarketWideDiscoveryReceiptPanel({
 
 function basicFreeDiscoveryReceiptTone(
   receipt: BasicFreeDiscoveryReadback,
+  currentness: BasicFreeDiscoveryReceiptCurrentness,
 ): "positive" | "warning" | "danger" | "neutral" {
   if (receipt.status === "unavailable") return "neutral";
+  if (currentness.state !== "current_trading_day") return "warning";
   if (
     receipt.attempt.outcome === "provider_error" ||
     receipt.attempt.outcome === "rate_limited"
@@ -37389,10 +37488,23 @@ function basicFreeDiscoveryReceiptTone(
 
 function BasicFreeDiscoveryReceiptPanel({
   receipt,
+  currentTradingDate,
 }: {
   receipt: BasicFreeDiscoveryReadback;
+  currentTradingDate: string;
 }) {
   const providerObserved = receipt.attempt.provider_response_observed === true;
+  const currentness = basicFreeDiscoveryReceiptCurrentness({
+    receiptAvailable: receipt.status === "available",
+    receiptTradingDate: receipt.source_scan.trading_date,
+    currentTradingDate,
+  });
+  const oneShotControl = receipt.one_shot_control;
+  const capabilityProbeControl = receipt.capability_probe_control;
+  const capabilityProbe = receipt.reference_mode === "capability_probe";
+  const receiptTitle = capabilityProbe
+    ? "Basic Free Catalog Capability Probe"
+    : "Basic Free Catalog Observation";
   const coverage =
     receipt.catalog.provider_catalog_count === null
       ? `${receipt.catalog.observed_record_count ?? 0} observed / denominator unavailable`
@@ -37411,10 +37523,12 @@ function BasicFreeDiscoveryReceiptPanel({
             Discovery trace
           </p>
           <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
-            Basic Free Catalog Observation
+            {receiptTitle}
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-            A bounded Twelve Data <code>/stocks</code> reference-page receipt.
+            {capabilityProbe
+              ? "One fixed-size Twelve Data /stocks response measurement. It establishes neither a safe provider maximum nor catalog coverage."
+              : "A bounded Twelve Data /stocks reference-page receipt."}{" "}
             It is never a candidate source, market-wide coverage claim, ranking
             input, publication path, or execution instruction.
           </p>
@@ -37423,11 +37537,15 @@ function BasicFreeDiscoveryReceiptPanel({
           label={
             receipt.status === "unavailable"
               ? "no receipt"
-              : providerObserved
-                ? receipt.attempt.outcome ?? "observed"
-                : receipt.admission.status ?? "not attempted"
+              : currentness.state === "historical_reference"
+                ? "historical reference"
+                : currentness.state === "undated_reference"
+                  ? "undated reference"
+                : providerObserved
+                  ? receipt.attempt.outcome ?? "observed"
+                  : receipt.admission.status ?? "not attempted"
           }
-          tone={basicFreeDiscoveryReceiptTone(receipt)}
+          tone={basicFreeDiscoveryReceiptTone(receipt, currentness)}
         />
       </div>
 
@@ -37440,7 +37558,31 @@ function BasicFreeDiscoveryReceiptPanel({
           label="Provider Response"
           value={providerObserved ? "observed" : "not observed"}
         />
+        <SummaryCard
+          label="Reference Date"
+          value={
+            currentness.state === "current_trading_day"
+              ? `current NY day · ${currentTradingDate}`
+              : currentness.state === "historical_reference"
+                ? `historical · ${currentness.receipt_trading_date}`
+                : currentness.state === "undated_reference"
+                  ? "not attributable"
+                  : "no receipt"
+          }
+        />
         <SummaryCard label="Catalog Coverage" value={coverage} />
+        <SummaryCard
+          label="Reference Mode"
+          value={receipt.reference_mode ?? "not recorded"}
+        />
+        <SummaryCard
+          label="Requested Page"
+          value={
+            receipt.catalog.requested_output_size === null
+              ? "not recorded"
+              : `${receipt.catalog.requested_output_size} records`
+          }
+        />
         <SummaryCard label="Reserved Credits" value={creditBudget} />
       </div>
 
@@ -37452,18 +37594,91 @@ function BasicFreeDiscoveryReceiptPanel({
         </p>
       ) : (
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {currentness.state === "historical_reference" && (
+            <p className="lg:col-span-3 rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100">
+              Historical reference: this receipt is from {currentness.receipt_trading_date},
+              not the dashboard&apos;s current New York trading day ({currentTradingDate}).
+              It is not current-market information and cannot support a candidate,
+              ranking, publication, or execution decision.
+            </p>
+          )}
+          {currentness.state === "undated_reference" && (
+            <p className="lg:col-span-3 rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100">
+              Undated reference: the receipt cannot be attributed to the dashboard&apos;s
+              current New York trading day. It is withheld from current-market
+              interpretation and cannot support a candidate, ranking, publication,
+              or execution decision.
+            </p>
+          )}
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
             <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
               Immutable boundary
             </h4>
             <p className="mt-3 text-sm leading-6 text-zinc-300">
-              Collection complete: no. Discovery feed allowed: no. The page is
-              retained solely as a traceable reference observation.
+              Collection complete: no. Discovery feed allowed: no. {capabilityProbe
+                ? "This fixed-size probe is retained only as a traceable response measurement."
+                : "The page is retained solely as a traceable reference observation."}
             </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Eligible records: {receipt.catalog.eligible_record_count ?? 0};
               rejected: {receipt.catalog.rejected_record_count ?? 0}.
             </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Capability-probe containment
+            </h4>
+            {capabilityProbeControl.receipt_status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  At receipt time, control: {capabilityProbeControl.status ?? "not recorded"}.
+                  {" "}Catalog-only: {capabilityProbeControl.catalog_only_enforced ? "enforced" : "not enforced"}.
+                  {" "}Fixed request: {capabilityProbeControl.requested_output_size ?? "not recorded"}; maximum credits: {capabilityProbeControl.maximum_provider_credits ?? "not recorded"}.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  This is a single, date-bound measurement. It does not establish
+                  a provider maximum, authorize another request, or admit collection,
+                  a discovery feed, ranking, publication, or execution.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                {capabilityProbeControl.receipt_status === "invalid"
+                  ? "A capability-probe control payload was present but did not satisfy the versioned receipt contract."
+                  : "This receipt was not produced under the fixed-size capability-probe envelope."}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              One-shot containment
+            </h4>
+            {oneShotControl.receipt_status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  At receipt time, control: {oneShotControl.status ?? "not recorded"}.
+                  {" "}Catalog-only: {oneShotControl.catalog_only_enforced ? "enforced" : "not enforced"}.
+                  {" "}Receipt-time catalog admission: {oneShotControl.catalog_observation_may_proceed ? "yes" : "no"}.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Target date: {oneShotControl.target_trading_date ?? "not recorded"};
+                  {" "}evaluated date: {oneShotControl.evaluated_trading_date ?? "not recorded"}.
+                  This records the decision that produced this receipt; it does
+                  not authorize a later observation. A later scheduled run must
+                  independently pass market-session, idempotency, and durable
+                  credit-reservation checks. It cannot admit candidate
+                  generation, ranking, publication, or execution.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                {oneShotControl.receipt_status === "invalid"
+                  ? "A one-shot control payload was present but did not satisfy the versioned receipt contract."
+                  : "This catalog receipt was not produced under the one-shot containment envelope."}
+              </p>
+            )}
           </div>
 
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
@@ -37477,29 +37692,36 @@ function BasicFreeDiscoveryReceiptPanel({
             </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Reservation finalization: {receipt.credit_reservation.finalization_status ?? "not recorded"}; proven: {receipt.credit_reservation.finalization_proven === true ? "yes" : receipt.credit_reservation.finalization_proven === false ? "no" : "not applicable"}.
+              {" "}Decoded response JSON: {receipt.catalog.decoded_response_json_bytes === null ? "not recorded" : `${receipt.catalog.decoded_response_json_bytes} bytes`}.
             </p>
           </div>
 
           <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
             <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-              Complete catalog capacity
+              Reference-page collection estimate
             </h4>
             {receipt.catalog_collection_plan.status ===
-            "ready_for_separate_admission" ? (
+            "reference_estimate_available" ? (
               <>
                 <p className="mt-3 text-sm leading-6 text-zinc-300">
-                  {receipt.catalog_collection_plan.total_pages_required} one-credit
-                  pages in total; {" "}
-                  {receipt.catalog_collection_plan.remaining_pages_after_observed_page} remain
-                  after this observed page. At the declared quota, the remaining
-                  work needs at least {" "}
-                  {receipt.catalog_collection_plan.minimum_trading_days_from_observed_page} trading day(s).
+                  A complete page collection would need {" "}
+                  {receipt.catalog_collection_plan.page_collection_pages_required} one-credit
+                  pages in total. This observed reference page is not reusable,
+                  so it does not reduce that requirement. Starting from the
+                  observed remaining quota, page collection needs at least {" "}
+                  {receipt.catalog_collection_plan.minimum_quota_days_for_page_collection} quota day(s).
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  At the observed receipt, {receipt.catalog_collection_plan.credits_available_today} more
-                  credits remained for that trading day; its current-day portion
-                  would take at least {" "}
-                  {receipt.catalog_collection_plan.minimum_request_minutes_for_current_day} request minute(s).
+                  At this receipt, {receipt.catalog_collection_plan.credits_available_at_observation} credits
+                  remained for that trading day. If a separately authorized page
+                  collection could start then, its observed-day portion would take
+                  at least {" "}
+                  {receipt.catalog_collection_plan.minimum_request_minutes_for_observed_day_page_collection} request minute(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  {receipt.catalog_collection_plan.page_collection_must_span_quota_days
+                    ? "Because this page schedule must span quota days, it cannot establish one coherent fresh catalog snapshot."
+                    : "The page schedule fits the declared daily quota, but a coherent full-catalog source snapshot has not been observed or admitted."}
                 </p>
               </>
             ) : (
@@ -37511,9 +37733,269 @@ function BasicFreeDiscoveryReceiptPanel({
               </p>
             )}
             <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This estimate uses the observed {receipt.catalog_collection_plan.observed_page_size ?? "unknown"}-row
+              reference page; it is not a page-size maximum or a collection snapshot.
               Capacity math is not request authority. It cannot collect another
               page, mark coverage complete, admit a discovery feed, or qualify a
               candidate.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Dynamic market-wide capacity
+            </h4>
+            {receipt.market_wide_dynamic_capacity.status === "available" ? (
+              <>
+                <p className="mt-3 text-sm leading-6 text-zinc-300">
+                  At most {receipt.market_wide_dynamic_capacity.maximum_dynamic_symbols_per_quota_day} of {receipt.market_wide_dynamic_capacity.provider_catalog_count} catalog symbols could receive one documented one-credit dynamic-data request per declared quota day. A single full dynamic pass needs at least {receipt.market_wide_dynamic_capacity.minimum_quota_days_for_one_full_dynamic_catalog_pass} quota day(s).
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Market movers: {receipt.market_wide_dynamic_capacity.market_movers_status.replaceAll("_", " ")}. This is historical receipt-based capacity math, not a current quote, request authority, complete symbol master, or discovery-feed admission.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                An honest market-wide capacity statement needs a finalized observed Basic Free catalog receipt. It remains unavailable: {receipt.market_wide_dynamic_capacity.reason_codes.join(", ") || "not recorded"}.
+              </p>
+            )}
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This card cannot collect a page, query a symbol, expand discovery, change ranking, publish a candidate, or authorize execution.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function BasicFreeCatalogObservationReadinessPanel({
+  readiness,
+}: {
+  readiness: BasicFreeCatalogObservationReadiness | null;
+}) {
+  if (!readiness) return null;
+
+  const budget =
+    readiness.admission.declared_daily_credit_budget === null ||
+    readiness.admission.declared_per_minute_credit_budget === null
+      ? "not declared"
+      : `day ${readiness.admission.declared_daily_credit_budget} · minute ${readiness.admission.declared_per_minute_credit_budget}`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Observation readiness
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Basic Free Catalog Guard
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Server-read configuration state for the next bounded catalog
+            observation. It never starts a scan, reserves credits, or grants a
+            provider request.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={readiness.status === "contained_ready" ? "configuration ready" : "blocked"}
+          tone={readiness.status === "contained_ready" ? "warning" : "neutral"}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard label="Admission" value={readiness.admission.status} />
+        <SummaryCard
+          label="Plan"
+          value={`${readiness.provider_profile.effective_mode} / ${readiness.provider_profile.source}`}
+        />
+        <SummaryCard label="Declared Credits" value={budget} />
+        <SummaryCard
+          label="NY Date"
+          value={readiness.evaluated_trading_date}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            One-shot containment
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Configuration control: {readiness.one_shot_control.status}. Catalog-only:
+            {" "}{readiness.one_shot_control.catalog_only_enforced ? "enforced" : "not enforced"}.
+            {" "}Configuration condition met: {readiness.one_shot_control.catalog_observation_may_proceed ? "yes" : "no"}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Target: {readiness.one_shot_control.target_trading_date ?? "not set"};
+            {" "}evaluated: {readiness.one_shot_control.evaluated_trading_date ?? "invalid"}.
+            {" "}This projection does not read durable reservation state, so it
+            cannot say whether a request can run now.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Active blockers
+          </h4>
+          <p className="mt-3 break-words text-sm leading-6 text-zinc-300">
+            {readiness.blockers.length > 0
+              ? readiness.blockers.join(", ")
+              : "No configuration blocker recorded."}
+          </p>
+          {readiness.provider_profile.plan_mode_mismatch && (
+            <p className="mt-1 text-xs leading-5 text-amber-300">
+              Server and public plan declarations disagree; the server profile is shown.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Boundary
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Request authority: not granted by readiness. The scheduled route
+            must still verify market session, idempotency and a durable credit
+            reservation before any provider call.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            This remains one catalog page only; discovery feed, ranking,
+            publication and execution stay unavailable.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function basicFreeScheduledScanCreditReceiptTone(
+  receipt: BasicFreeScheduledScanCreditReadback,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (receipt.status === "unavailable") return "neutral";
+  if (receipt.reservation.finalization_proven === false) return "danger";
+  if (!receipt.reservation.provider_execution_allowed) return "warning";
+  return "positive";
+}
+
+function BasicFreeScheduledScanCreditReceiptPanel({
+  receipt,
+}: {
+  receipt: BasicFreeScheduledScanCreditReadback;
+}) {
+  const reservation = receipt.reservation;
+  const dailyCapacity =
+    reservation.daily_reserved_credits === null ||
+    reservation.declared_daily_credit_budget === null
+      ? "not reserved"
+      : `${reservation.daily_reserved_credits}/${reservation.declared_daily_credit_budget}`;
+  const minuteCapacity =
+    reservation.minute_reserved_credits === null ||
+    reservation.declared_per_minute_credit_budget === null
+      ? "not reserved"
+      : `${reservation.minute_reserved_credits}/${reservation.declared_per_minute_credit_budget}`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Scan budget trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Basic Free Normal Scan Guard
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A durable reservation receipt for the normal bounded scanner. It
+            explains whether the known Basic Free credit ceiling admitted that
+            scan; it is not a provider-response, discovery-coverage, candidate,
+            ranking, publication, or execution receipt.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={
+            receipt.status === "unavailable"
+              ? "no receipt"
+              : reservation.provider_execution_allowed
+                ? "admitted"
+                : reservation.safe_blocker ?? reservation.status ?? "blocked"
+          }
+          tone={basicFreeScheduledScanCreditReceiptTone(receipt)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Reservation"
+          value={reservation.status ?? "unavailable"}
+        />
+        <SummaryCard
+          label="Provider Budget"
+          value={
+            reservation.provider_execution_allowed === null
+              ? "unknown"
+              : reservation.provider_execution_allowed
+                ? "admitted"
+                : "blocked before scan"
+          }
+        />
+        <SummaryCard label="Daily Credits" value={dailyCapacity} />
+        <SummaryCard label="Minute Credits" value={minuteCapacity} />
+      </div>
+
+      {receipt.status === "unavailable" ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No valid versioned normal-scan credit receipt exists in the retained
+          scheduled-attempt history. This does not prove that a provider request
+          ran, that discovery covered the market, or that no candidate existed.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Exact budget scope
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Requested: {reservation.requested_credits ?? "not recorded"} credits.
+              {" "}Remaining after reservation — day: {reservation.daily_remaining_credits ?? "not recorded"}; minute: {reservation.minute_remaining_credits ?? "not recorded"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              This guards only the known normal-scan ceiling for the persisted
+              Basic Free profile. It is not an account-wide reconciliation for
+              other provider consumers.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Terminal state
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              Finalization: {reservation.finalization_status ?? "not recorded"};
+              {" "}proven: {reservation.finalization_proven === true ? "yes" : reservation.finalization_proven === false ? "no" : "not recorded"}.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Reused attempt identity: {reservation.idempotent === true ? "yes" : reservation.idempotent === false ? "no" : "not recorded"}.
+            </p>
+          </div>
+
+          <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+            <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              Decision boundary
+            </h4>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {reservation.provider_execution_allowed
+                ? "The budget guard admitted the normal scan. Provider-response and candidate facts must be read from that scan's separate decision trace."
+                : [
+                    "The normal scan was withheld before provider work. Blocker: ",
+                    reservation.safe_blocker ?? reservation.status ?? "not recorded",
+                    ".",
+                  ].join("")}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              No reservation result can lower the publication bar or create a
+              trade recommendation.
             </p>
           </div>
         </div>
@@ -37676,6 +38158,228 @@ function CandidateDecisionHistoryPanel({
               );
             })}
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function RecommendationLearningBaselineReadinessPanel({
+  readiness,
+  segmentation,
+  evaluationPlans,
+}: {
+  readiness: RecommendationLearningBaselineReadiness;
+  segmentation: RecommendationLearningBaselineSegmentation;
+  evaluationPlans: RecommendationLearningEvaluationPlans;
+}) {
+  const canFreeze = readiness.status === "eligible_for_explicit_freeze";
+  const visibleOutcomes = readiness.visible_outcomes;
+  const policy = readiness.policy_attribution;
+  const counterfactual = readiness.counterfactual_coverage;
+  const eligibleSegmentCount = segmentation.segments.filter(
+    (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
+  ).length;
+  const readyEvaluationPlans = evaluationPlans.plans.filter(
+    (plan) => plan.status === "ready_for_explicit_freeze",
+  );
+  const formatR = (value: number | null) =>
+    value === null ? "not observed" : `${value.toFixed(2)}R`;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Measured learning
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Learning Baseline Readiness
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A read-only audit of whether persisted decisions can become a
+            comparable learning baseline. It never tunes ranking, relaxes
+            publication, calls a provider, or executes a trade.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={canFreeze ? "eligible for explicit freeze" : "not ready"}
+          tone={canFreeze ? "positive" : "warning"}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Traceable Decisions"
+          value={`${readiness.decision_records.attributable_count}/${readiness.decision_records.considered_count}`}
+        />
+        <SummaryCard
+          label="Complete Populations"
+          value={`${readiness.decision_records.complete_population_count}/${readiness.decision_records.attributable_count}`}
+        />
+        <SummaryCard
+          label="Visible Primary Outcomes"
+          value={`${visibleOutcomes.primary_outcome_count}/${visibleOutcomes.minimum_required_before_freeze}`}
+        />
+        <SummaryCard
+          label="Policy Attribution"
+          value={policy.status}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision population
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Published {readiness.decision_population.published_candidate_count};
+            research {readiness.decision_population.research_candidate_count};
+            rejected {readiness.decision_population.rejected_candidate_count};
+            explicit no trade {readiness.decision_population.explicit_no_trade_count}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Not evaluated: {readiness.decision_population.not_evaluated_candidate_count}.
+            Missing or identity-invalid records are excluded rather than inferred.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Visible outcome linkage
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Exact snapshot links {visibleOutcomes.exact_snapshot_link_count}/
+            {visibleOutcomes.published_candidate_count}; primary: 60m {visibleOutcomes.primary_outcome_by_horizon["60m"]},
+            {" "}30m {visibleOutcomes.primary_outcome_by_horizon["30m"]},
+            {" "}15m {visibleOutcomes.primary_outcome_by_horizon["15m"]}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Missing links {visibleOutcomes.missing_snapshot_link_count}; ambiguous
+            {" "}{visibleOutcomes.ambiguous_snapshot_link_count}; pre-decision
+            outcome rows {visibleOutcomes.pre_decision_outcome_count}; incomplete
+            or conflicting primary outcomes {visibleOutcomes.incomplete_or_conflicting_outcome_count}.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Learning limits
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Counterfactual coverage: research {counterfactual.research_candidate_outcomes_collected}/
+            {counterfactual.research_candidate_outcomes_required}; rejected {counterfactual.rejected_candidate_outcomes_collected}/
+            {counterfactual.rejected_candidate_outcomes_required}; explicit no trade {counterfactual.no_trade_outcomes_collected}/
+            {counterfactual.no_trade_outcomes_required}. Status: {counterfactual.status}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Research counts require an exact candidate decision link and a
+            decision-bound complete outcome. Confidence remains ordinal, so
+            calibration is blocked; this panel cannot freeze or promote a policy.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Comparable policy segments
+        </h4>
+        <p className="mt-3 text-sm leading-6 text-zinc-300">
+          {segmentation.segments.length} comparable segment
+          {segmentation.segments.length === 1 ? "" : "s"}; {eligibleSegmentCount} eligible for an explicit freeze.
+          {" "}Mixed or incomplete records are excluded instead of being blended
+          into a baseline.
+        </p>
+        <p className="mt-1 text-xs leading-5 text-zinc-500">
+          Comparable {segmentation.source_scan_runs.comparable_count}/
+          {segmentation.source_scan_runs.considered_count}; invalid records {segmentation.source_scan_runs.invalid_decision_record_count};
+          incomplete attribution {segmentation.source_scan_runs.incomplete_policy_attribution_count};
+          duplicate identities {segmentation.source_scan_runs.duplicate_scan_run_fingerprint_count}.
+        </p>
+        {segmentation.segments.length > 0 ? (
+          <ul className="mt-3 space-y-2 text-xs leading-5 text-zinc-400">
+            {segmentation.segments.slice(0, 3).map((segment) => (
+              <li key={segment.segment_key}>
+                {segment.policy_attribution.recommendation_publish_policy_version}: {segment.decision_records.count} decisions, {segment.readiness.visible_outcomes.primary_outcome_count}/{segment.readiness.visible_outcomes.minimum_required_before_freeze} visible primary outcomes, {segment.readiness.status.replaceAll("_", " ")}.
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Fixed baseline evaluation plan
+        </h4>
+        {readyEvaluationPlans.length > 0 ? (
+          <>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {readyEvaluationPlans.length} policy/version-homogeneous segment
+              {readyEvaluationPlans.length === 1 ? " is" : "s are"} eligible
+              for an explicit freeze. They remain separate; this panel does not
+              choose a baseline segment.
+            </p>
+            <ul className="mt-3 space-y-3 text-xs leading-5 text-zinc-400">
+              {readyEvaluationPlans.slice(0, 3).map((plan) => {
+                const metrics = plan.metrics!;
+                return (
+                  <li key={plan.segment_key} className="rounded border border-white/10 p-2">
+                    <p>
+                      {plan.policy_attribution.recommendation_publish_policy_version}: {plan.outcome_population.visible_primary_outcome_count} visible,
+                      {" "}{plan.outcome_population.research_primary_outcome_count} research and
+                      {" "}{plan.outcome_population.rejected_primary_outcome_count} rejected primary outcomes;
+                      {" "}{plan.outcome_population.explicit_no_trade_decision_count} explicit no-trade decisions covered.
+                    </p>
+                    <p className="mt-1">
+                      Entry trigger: {metrics.entry.triggered_count}/{metrics.entry.known_count} known
+                      {metrics.entry.triggered_rate === null
+                        ? " (not observed)"
+                        : ` (${(metrics.entry.triggered_rate * 100).toFixed(1)}%)`}. Horizon R mean/median:
+                      {" "}{formatR(metrics.horizon_r.mean)} / {formatR(metrics.horizon_r.median)}.
+                    </p>
+                    <p className="mt-1">
+                      Entry-bound MFE mean/median: {formatR(metrics.excursion.mfe_r.mean)} / {formatR(metrics.excursion.mfe_r.median)} ({metrics.excursion.mfe_r.observed_count} measured, {metrics.excursion.mfe_missing_count} unavailable). MAE mean/median: {formatR(metrics.excursion.mae_r.mean)} / {formatR(metrics.excursion.mae_r.median)} ({metrics.excursion.mae_r.observed_count} measured, {metrics.excursion.mae_missing_count} unavailable). Paired MFE/MAE: {metrics.excursion.paired_mfe_mae_count}; missing receipt: {metrics.excursion.contract_missing_count}. Terminal events after entry: target {metrics.terminal.target_first_count}; stop {metrics.terminal.stop_first_count}; neither {metrics.terminal.neither_count}; unknown {metrics.terminal.unknown_count}.
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-2 text-xs leading-5 text-zinc-500">
+              These are point-in-time outcome diagnostics, not realized broker
+              P&amp;L or a policy-quality verdict.
+            </p>
+          </>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            No comparable segment currently has a complete enough receipt for
+            fixed baseline metrics. Ture preserves the evidence gap instead of
+            inferring returns or selecting a policy.
+          </p>
+        )}
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          This is a versioned, read-only evaluation plan. It neither chooses nor
+          persists a baseline freeze, calibrates confidence, changes ranking,
+          calls a provider, or executes a trade.
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Current baseline blockers
+        </h4>
+        {readiness.blockers.length > 0 ? (
+          <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
+            {readiness.blockers.map((blocker) => (
+              <li key={blocker} className="font-mono text-xs text-zinc-400">
+                {blocker}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            The data is eligible for an explicit baseline-freeze decision. That
+            decision remains separate from this readback.
+          </p>
         )}
       </div>
     </section>
@@ -38315,7 +39019,8 @@ function realRecommendationOutputReadinessStatusTone(
 ): "positive" | "warning" | "danger" | "neutral" {
   if (
     status === "ready_for_real_data_observation" ||
-    status === "ready_with_warnings"
+    status === "ready_with_warnings" ||
+    status === "no_trade_valid"
   ) {
     return "positive";
   }
@@ -38391,8 +39096,12 @@ function RealRecommendationOutputReadinessPanel({
           </h4>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Detail
-              label="Output"
-              value={`${summary.coverage.current_window_count} / ${summary.coverage.ideal_window_min}-${summary.coverage.ideal_window_max}`}
+              label="Publication Set"
+              value={
+                summary.coverage.current_window_count === 0
+                  ? "No trade"
+                  : `${summary.coverage.current_window_count} / max ${summary.coverage.ideal_window_max}`
+              }
             />
             <Detail
               label="Tier Mix"
@@ -38953,7 +39662,7 @@ function DailyRecommendationTradeTargetsPanel({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Daily Targets
+            Daily Publication Policy
           </p>
           <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
             Recommendations and Trade Capacity
@@ -38974,12 +39683,12 @@ function DailyRecommendationTradeTargetsPanel({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
-          label="Window Target"
+          label="Per-window Cap"
           value={`${summary.per_window_target_min}-${summary.per_window_target_max}`}
         />
         <SummaryCard
           label="Today Recs"
-          value={`${summary.total_recommendations_today} / ${summary.applicable_recommendation_target_min}-${summary.applicable_recommendation_target_max}`}
+          value={`${summary.total_recommendations_today} / cap ${summary.applicable_recommendation_target_max}`}
         />
         <SummaryCard
           label="Trades Today"
@@ -38996,8 +39705,8 @@ function DailyRecommendationTradeTargetsPanel({
           }
         />
         <SummaryCard
-          label="Full-Day Target"
-          value={`${summary.full_day_recommendation_target_min}-${summary.full_day_recommendation_target_max}`}
+          label="Full-Day Cap"
+          value={`0-${summary.full_day_recommendation_target_max}`}
         />
       </div>
 
@@ -39036,7 +39745,7 @@ function DailyRecommendationTradeTargetsPanel({
       {(topWarning || summary.warnings.length > 1) && (
         <details className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
           <summary className="cursor-pointer font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
-            Target notes
+            Publication notes
           </summary>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
             {summary.warnings.slice(0, 5).map((warning) => (

@@ -70,7 +70,12 @@ import {
 import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
-import { buildCandidateDecisionRecord } from "@/lib/candidate-decision-record";
+import {
+  buildCandidateDecisionRecord,
+  type CandidateDecisionCapture,
+} from "@/lib/candidate-decision-record";
+import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
+import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { officialScanLogServesWindow } from "@/lib/official-scan-window-completion";
@@ -97,7 +102,21 @@ import {
 import { marketWideDiscoveryPreviousAttemptFromUnknown } from "@/lib/market-wide-discovery-policy";
 import { observeBasicFreeDiscoveryBetweenPublicationWindows } from "@/lib/basic-free-discovery-background-observation";
 import { basicFreeDiscoveryPreviousAttemptFromUnknown } from "@/lib/basic-free-discovery-policy";
-import { resolveScheduledScanTickerCap } from "@/lib/scheduled-scan-ticker-cap";
+import { buildBasicFreeCatalogOneShotControl } from "@/lib/basic-free-catalog-one-shot-control";
+import {
+  buildBasicFreeCatalogCapabilityProbeControl,
+  BASIC_FREE_CATALOG_CAPABILITY_PROBE_OUTPUT_SIZE,
+} from "@/lib/basic-free-catalog-capability-probe-control";
+import {
+  finalizeBasicFreeScheduledScanCreditGuard,
+  prepareBasicFreeScheduledScanCreditGuard,
+  type BasicFreeScheduledScanCreditReservationSummary,
+} from "@/lib/basic-free-scheduled-scan-credit-guard";
+import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "@/lib/background-discovery-observation-gate";
+import {
+  resolveScheduledScanProviderCreditBudget,
+  resolveScheduledScanTickerCap,
+} from "@/lib/scheduled-scan-ticker-cap";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   buildLearningAccelerationResearchSelection,
@@ -105,6 +124,14 @@ import {
   type LearningAccelerationModeEvaluation,
   type LearningAccelerationResearchSample,
 } from "@/lib/learning-acceleration-mode";
+import {
+  linkResearchSnapshotToCandidateDecision,
+  type ResearchSnapshotCandidateDecisionLink,
+} from "@/lib/research-snapshot-candidate-linkage";
+import {
+  buildRejectedCandidateResearchSelection,
+  type RejectedCandidateResearchSample,
+} from "@/lib/rejected-candidate-research-selection";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -255,6 +282,45 @@ function automationVersionFields() {
   };
 }
 
+function currentBuildGitCommit() {
+  for (const value of [process.env.COMMIT_REF, process.env.GITHUB_SHA]) {
+    const commit = value?.trim() ?? "";
+    if (/^[a-f0-9]{40}$/i.test(commit)) {
+      return commit.toLowerCase();
+    }
+  }
+
+  return null;
+}
+
+function buildCandidateDecisionLearningAttributionForScan(
+  capture: CandidateDecisionCapture | null | undefined,
+) {
+  const gitCommit = currentBuildGitCommit();
+  const rankingVersion = capture?.ranking
+    ? `scanner_candidate_ranking_v${capture.ranking.summary_version}`
+    : null;
+  const canonicalEvaluationVersions =
+    gitCommit && rankingVersion && capture
+      ? {
+          engine_version: "ture_intelligence_engine_v1",
+          scoring_version: DAY_TRADE_SCORING_VERSION,
+          ranking_version: rankingVersion,
+          setup_taxonomy_version: "setup_taxonomy_not_recorded_v1",
+          confidence_contract_version: "ordinal_confidence_not_calibrated_v1",
+          evaluator_version: CANONICAL_OUTCOME_EVALUATOR_VERSION,
+          provider_contract_version: capture.provider_contract_version,
+          git_commit: gitCommit,
+          build_identity: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+        }
+      : null;
+
+  return buildCandidateDecisionLearningAttribution({
+    recommendationPublishPolicyVersion: RECOMMENDATION_PUBLISH_POLICY_VERSION,
+    canonicalEvaluationVersions,
+  });
+}
+
 function powerHourTrialCopyFields() {
   return {
     power_hour_trial_copy: [
@@ -350,6 +416,10 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     planMode: providerPlanProfile.effective_mode,
   });
   const effectiveScanTickerCap = scheduledScanTickerCap.effective_cap;
+  const scheduledProviderCreditBudget =
+    resolveScheduledScanProviderCreditBudget({
+      planMode: providerPlanProfile.effective_mode,
+    });
 
   return {
     live_trial_fast_mode: liveTrialFastMode,
@@ -380,6 +450,7 @@ function scheduledScanRuntimeConfig(body: AutomationRunRequestBody) {
     profile_background_scan_cadence_minutes:
       providerPlanProfile.profile_background_scan_cadence_minutes,
     plan_scan_ticker_cap_applied: scheduledScanTickerCap.plan_cap_applied,
+    scheduled_provider_credit_budget: scheduledProviderCreditBudget,
     env_scan_ticker_override: envMaxTickersOverride,
     route_scan_ticker_override: routeMaxTickersOverride,
     profile_notes: providerPlanProfile.profile_notes,
@@ -466,7 +537,7 @@ function buildPowerHourTrialGate({
   if (
     String(AUTOMATION_ROUTE_VERSION) !== "action_148_publish_path_v1" ||
     String(RECOMMENDATION_PUBLISH_POLICY_VERSION) !==
-      "learning_tiers_82_72_60_v2_preserve_explicit_no_trade"
+      "selective_top_3_strong_valid_v3_preserve_explicit_no_trade"
   ) {
     return {
       power_hour_trial_enabled: true,
@@ -1456,6 +1527,12 @@ async function recordScheduledScanAttempt({
       reference_refresh: scanLog?.reference_refresh ?? null,
       market_wide_discovery: scanLog?.market_wide_discovery ?? null,
       basic_free_discovery: scanLog?.basic_free_discovery ?? null,
+      basic_free_catalog_one_shot:
+        scanLog?.basic_free_catalog_one_shot ?? null,
+      basic_free_catalog_capability_probe:
+        scanLog?.basic_free_catalog_capability_probe ?? null,
+      basic_free_scheduled_scan_credit_reservation:
+        scanLog?.basic_free_scheduled_scan_credit_reservation ?? null,
     },
   });
   const { error } = await serverSupabase()
@@ -1594,6 +1671,21 @@ function createAutomationScanLog({
       typeof details?.basic_free_discovery === "object" &&
       details.basic_free_discovery !== null
         ? (details.basic_free_discovery as ScanLogEntry["basic_free_discovery"])
+        : null,
+    basic_free_catalog_one_shot:
+      typeof details?.basic_free_catalog_one_shot === "object" &&
+      details.basic_free_catalog_one_shot !== null
+        ? (details.basic_free_catalog_one_shot as ScanLogEntry["basic_free_catalog_one_shot"])
+        : null,
+    basic_free_catalog_capability_probe:
+      typeof details?.basic_free_catalog_capability_probe === "object" &&
+      details.basic_free_catalog_capability_probe !== null
+        ? (details.basic_free_catalog_capability_probe as ScanLogEntry["basic_free_catalog_capability_probe"])
+        : null,
+    basic_free_scheduled_scan_credit_reservation:
+      typeof details?.basic_free_scheduled_scan_credit_reservation === "object" &&
+      details.basic_free_scheduled_scan_credit_reservation !== null
+        ? (details.basic_free_scheduled_scan_credit_reservation as ScanLogEntry["basic_free_scheduled_scan_credit_reservation"])
         : null,
     scanner_candidate_ranking:
       typeof details?.scanner_candidate_ranking === "object" &&
@@ -2032,6 +2124,7 @@ function buildSnapshotFromRecommendation({
 }
 
 function buildSnapshotFromResearchSample({
+  candidateDecisionLink,
   sample,
   scanRunId,
   scanWindow,
@@ -2042,7 +2135,8 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode,
   batchFingerprint,
 }: {
-  sample: LearningAccelerationResearchSample;
+  candidateDecisionLink: ResearchSnapshotCandidateDecisionLink;
+  sample: LearningAccelerationResearchSample | RejectedCandidateResearchSample;
   scanRunId: string;
   scanWindow: IntradayScanWindow;
   now: Date;
@@ -2052,6 +2146,8 @@ function buildSnapshotFromResearchSample({
   providerPlanProfileMode: string | null;
   batchFingerprint: string | null;
 }) {
+  const rejectedCandidateResearch =
+    candidateDecisionLink.candidate_disposition === "filtered_before_ranking";
   const riskPerShare = sample.entry - sample.stop;
   const rewardPerShare = sample.target - sample.entry;
   const researchBatchFingerprint =
@@ -2090,8 +2186,12 @@ function buildSnapshotFromResearchSample({
     confidence: sample.score,
     score: sample.score,
     rating: sample.tier,
-    label: "learning only",
-    type: "RESEARCH_SAMPLE",
+    label: rejectedCandidateResearch
+      ? "rejected candidate research only"
+      : "learning only",
+    type: rejectedCandidateResearch
+      ? "REJECTED_CANDIDATE_RESEARCH_SAMPLE"
+      : "RESEARCH_SAMPLE",
     rationale: sample.ranking_reason,
     reason: sample.rejection_publish_reason,
     catalyst: sample.ranking_reason,
@@ -2109,6 +2209,20 @@ function buildSnapshotFromResearchSample({
       learning_acceleration_sample: true,
       research_only: true,
       learning_scope: "research_only",
+      counterfactual_cohort: rejectedCandidateResearch
+        ? "rejected_candidate"
+        : "research_candidate",
+      rejected_candidate_research: rejectedCandidateResearch,
+      scanner_plan_origin: rejectedCandidateResearch
+        ? "decision_time_scanner_geometry_v1"
+        : null,
+      candidate_id: candidateDecisionLink.candidate_id,
+      candidate_decision_id: candidateDecisionLink.candidate_id,
+      candidate_decision_disposition:
+        candidateDecisionLink.candidate_disposition,
+      candidate_decision_linkage_version:
+        candidateDecisionLink.linkage_version,
+      candidate_decision_linkage_status: candidateDecisionLink.linkage_status,
       source_window: scanWindow,
       scan_window: scanWindow,
       scan_run_fingerprint: scanRunId,
@@ -2331,6 +2445,9 @@ async function persistAutomationArtifacts({
     capture: scanLog.candidate_decision_capture,
     scoringVersion: DAY_TRADE_SCORING_VERSION,
     buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
+    learningAttribution: buildCandidateDecisionLearningAttributionForScan(
+      scanLog.candidate_decision_capture,
+    ),
   });
   if (candidateDecisionRecord) {
     scanRun.payload_json.candidate_decision_record = candidateDecisionRecord;
@@ -2343,6 +2460,9 @@ async function persistAutomationArtifacts({
     }),
     snapshots: [] as Array<Awaited<ReturnType<typeof persistRecommendationSnapshot>>>,
     research_snapshots: [] as Array<
+      Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+    >,
+    rejected_research_snapshots: [] as Array<
       Awaited<ReturnType<typeof persistRecommendationSnapshot>>
     >,
     batch: null as Awaited<ReturnType<typeof persistRecommendationBatch>> | null,
@@ -2424,8 +2544,24 @@ async function persistAutomationArtifacts({
     maxSamples: learningAccelerationTargetSamples,
     inputSourceHint: learningAccelerationInputSource,
   });
+  const rejectedResearchSelection = buildRejectedCandidateResearchSelection({
+    enabled: learningAccelerationMode.learning_acceleration_enabled,
+    record: candidateDecisionRecord,
+    candidates: learningAccelerationCandidateGeneration?.candidates ?? [],
+    scanWindow,
+    maxSamples: Math.max(
+      0,
+      learningAccelerationTargetSamples - researchSelection.samples.length,
+    ),
+    excludedTickers: [
+      ...recommendations
+        .map((recommendation) => recommendationTicker(recommendation))
+        .filter((ticker): ticker is string => ticker !== null),
+      ...researchSelection.samples.map((sample) => sample.ticker),
+    ],
+  });
   const researchSnapshots: RecommendationSnapshot[] = [];
-
+  const rejectedResearchSnapshots: RecommendationSnapshot[] = [];
   for (const recommendation of recommendations) {
     const snapshot = buildSnapshotFromRecommendation({
       recommendation,
@@ -2452,6 +2588,10 @@ async function persistAutomationArtifacts({
 
   for (const sample of researchSelection.samples) {
     const snapshot = buildSnapshotFromResearchSample({
+      candidateDecisionLink: linkResearchSnapshotToCandidateDecision({
+        record: candidateDecisionRecord,
+        ticker: sample.ticker,
+      }),
       sample,
       scanRunId: scanRun.run_fingerprint,
       scanWindow,
@@ -2473,10 +2613,46 @@ async function persistAutomationArtifacts({
     );
   }
 
+  for (const sample of rejectedResearchSelection.samples) {
+    const candidateDecisionLink = linkResearchSnapshotToCandidateDecision({
+      record: candidateDecisionRecord,
+      ticker: sample.ticker,
+    });
+    if (
+      candidateDecisionLink.linkage_status !== "verified" ||
+      candidateDecisionLink.candidate_id !== sample.candidate_id ||
+      candidateDecisionLink.candidate_disposition !== "filtered_before_ranking"
+    ) {
+      continue;
+    }
+    const snapshot = buildSnapshotFromResearchSample({
+      candidateDecisionLink,
+      sample,
+      scanRunId: scanRun.run_fingerprint,
+      scanWindow,
+      now,
+      marketSession,
+      scanObservability: observability,
+      servingCadence,
+      providerPlanProfileMode,
+      batchFingerprint: anticipatedBatchFingerprint,
+    });
+
+    rejectedResearchSnapshots.push(snapshot);
+    persistence.rejected_research_snapshots.push(
+      await persistRecommendationSnapshot(snapshot, {
+        supabaseClient: serverSupabase.client,
+        server: true,
+        unavailableReason: serverSupabase.unavailable_reason,
+      }),
+    );
+  }
+
   const shadowSnapshotSummary =
     summarizeRecommendationSnapshotShadowEntryTrialMetadata([
       ...snapshots,
       ...researchSnapshots,
+      ...rejectedResearchSnapshots,
     ]);
   const persistedResearchSnapshotCount =
     persistence.research_snapshots.filter(
@@ -2621,7 +2797,9 @@ async function persistAutomationArtifacts({
     scan_run: scanRun,
     snapshots,
     research_snapshots: researchSnapshots,
+    rejected_research_snapshots: rejectedResearchSnapshots,
     learning_acceleration: researchSelection,
+    rejected_candidate_research: rejectedResearchSelection,
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
@@ -2801,6 +2979,8 @@ export async function POST(request: Request) {
       scheduledRuntimeConfig.profile_outcome_candle_requests_per_run,
     profile_background_scan_cadence_minutes:
       scheduledRuntimeConfig.profile_background_scan_cadence_minutes,
+    scheduled_provider_credit_budget:
+      scheduledRuntimeConfig.scheduled_provider_credit_budget,
     env_scan_ticker_override:
       scheduledRuntimeConfig.env_scan_ticker_override,
     route_scan_ticker_override:
@@ -2892,6 +3072,13 @@ export async function POST(request: Request) {
   }
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
+  const basicFreeCatalogOneShot = buildBasicFreeCatalogOneShotControl({
+    tradingDate: scanWindow.scanDate,
+  });
+  const basicFreeCatalogCapabilityProbe =
+    buildBasicFreeCatalogCapabilityProbeControl({
+      tradingDate: scanWindow.scanDate,
+    });
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
   const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
     orchestration: dayTradeScanOrchestration,
@@ -3057,6 +3244,8 @@ export async function POST(request: Request) {
   });
 
   let expiredRecommendations = 0;
+  let basicFreeScheduledScanCreditReservation: BasicFreeScheduledScanCreditReservationSummary | null =
+    null;
 
   try {
     expiredRecommendations = await archiveExpiredRecommendations(ownerUserId);
@@ -3134,6 +3323,36 @@ export async function POST(request: Request) {
     marketOpenForScan,
     orchestration: dayTradeScanOrchestration,
   });
+  const catalogReferenceControlsConflict =
+    basicFreeCatalogOneShot.catalog_only_enforced &&
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced;
+  const readyBasicFreeCatalogCapabilityProbe =
+    !catalogReferenceControlsConflict &&
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+    basicFreeCatalogCapabilityProbe.capability_probe_may_proceed &&
+    scheduledRuntimeConfig.provider_plan_profile_mode === "free";
+  const readyBasicFreeCatalogOnlyOneShot =
+    !catalogReferenceControlsConflict &&
+    basicFreeCatalogOneShot.catalog_only_enforced &&
+    basicFreeCatalogOneShot.catalog_observation_may_proceed &&
+    scheduledRuntimeConfig.provider_plan_profile_mode === "free";
+  const catalogOnlyReferenceModeEnforced =
+    basicFreeCatalogOneShot.catalog_only_enforced ||
+    basicFreeCatalogCapabilityProbe.catalog_only_enforced;
+  const catalogOnlyReferenceModeReady =
+    readyBasicFreeCatalogOnlyOneShot || readyBasicFreeCatalogCapabilityProbe;
+  const backgroundDiscoveryObservationAllowed =
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      scheduled: !force,
+      // Keep the reference-only observation aligned with the route's own
+      // verified-open decision. In particular, a calendar-confirmed fallback
+      // must not let the normal route proceed while withholding the bounded
+      // observation behind a stricter, duplicate market-status check.
+      marketOpen: marketOpenForScan,
+      scheduledGateWindow: scheduledGateDiagnostics.scheduled_gate_window,
+      scanWindow: scanWindow.scanWindow,
+      catalogOnlyOneShotReady: catalogOnlyReferenceModeReady,
+    });
   activeScanTrace.update({
     power_hour_trial_enabled: powerHourTrialGate.power_hour_trial_enabled,
     power_hour_publish_allowed: powerHourTrialGate.power_hour_publish_allowed,
@@ -3143,7 +3362,7 @@ export async function POST(request: Request) {
   const disabledGenerationBypassAllowed =
     scanWindow.scanWindow === "power_hour"
       ? powerHourTrialGate.power_hour_publish_allowed
-      : calendarFallbackAllowsScan;
+      : calendarFallbackAllowsScan || backgroundDiscoveryObservationAllowed;
 
   if (!marketOpenForScan && !canRunPreMarketWatchlist) {
     const discardReview = await runDiscardReviewIfDue({
@@ -3232,6 +3451,113 @@ export async function POST(request: Request) {
       ],
       gaps: [],
       discard_review: discardReview,
+      day_trade_scan_orchestration: dayTradeScanOrchestration,
+      recommendation_serving_cadence: initialServingCadence,
+    });
+  }
+
+  if (
+    catalogOnlyReferenceModeEnforced &&
+    (!backgroundDiscoveryObservationAllowed ||
+      !catalogOnlyReferenceModeReady ||
+      scheduledRuntimeConfig.provider_plan_profile_mode !== "free")
+  ) {
+    generationBlockReason =
+      catalogReferenceControlsConflict
+        ? "basic_free_catalog_reference_controls_conflict"
+        : basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+            basicFreeCatalogCapabilityProbe.status !== "ready"
+          ? basicFreeCatalogCapabilityProbe.reason_codes[0] ??
+            "basic_free_catalog_capability_probe_not_ready"
+          : basicFreeCatalogCapabilityProbe.catalog_only_enforced &&
+              scheduledRuntimeConfig.provider_plan_profile_mode !== "free"
+            ? "basic_free_catalog_capability_probe_plan_not_free"
+            : basicFreeCatalogCapabilityProbe.catalog_only_enforced
+              ? "basic_free_catalog_capability_probe_waiting_for_observable_window"
+          : basicFreeCatalogOneShot.status !== "ready"
+        ? basicFreeCatalogOneShot.reason_codes[0] ??
+          "basic_free_catalog_one_shot_not_ready"
+        : scheduledRuntimeConfig.provider_plan_profile_mode !== "free"
+          ? "basic_free_catalog_one_shot_plan_not_free"
+          : "basic_free_catalog_one_shot_waiting_for_observable_window";
+    const message =
+      "Basic Free catalog reference-only mode withheld normal scanning. " +
+      "Only the configured date's reference-only /stocks observation may run; " +
+      "no candidate generation was started.";
+    const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+      decision: "skipped_outside_window",
+      status: "skipped",
+      skipReason: generationBlockReason,
+      noPublishReason: generationBlockReason,
+      zeroReason: generationBlockReason,
+      elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+      timeoutWasReached: false,
+    });
+    const scanLog = createAutomationScanLog({
+      source: "scheduled",
+      scanWindow: scanWindow.scanWindow,
+      marketStatus,
+      result: "skipped",
+      message,
+      recommendationsCreated: 0,
+      details: {
+        ...powerHourTrialGate,
+        no_publish_reason: generationBlockReason,
+        basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+        basic_free_catalog_capability_probe: basicFreeCatalogCapabilityProbe,
+        day_trade_scan_orchestration: dayTradeScanOrchestration,
+        recommendation_serving_cadence: initialServingCadence,
+        active_scan_trace: activeScanTracePayload,
+      },
+    });
+    await recordAttempt({
+      outcome: "skipped",
+      allowed: false,
+      message,
+      skipReason: generationBlockReason,
+      httpStatus: 200,
+      scanLog,
+      activeScanTrace: activeScanTracePayload,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message,
+      status: "skipped",
+      decision: "skipped_outside_window" satisfies AutomationScanDecision,
+      basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+      basic_free_catalog_capability_probe: basicFreeCatalogCapabilityProbe,
+      ...automationVersionFields(),
+      ...powerHourTrialGate,
+      ...powerHourTrialCopyFields(),
+      ...scheduledRuntimeFields(),
+      skipped_in_progress: false,
+      active_scan_trace: activeScanTracePayload,
+      automation_diagnostics: automationDiagnostics({
+        decision: "skipped_outside_window",
+        skippedReason: generationBlockReason,
+        currentScanLog: scanLog,
+      }),
+      forced: force,
+      session_type: scanWindow.sessionType,
+      scan_window: scanWindow.scanWindow,
+      scan_window_label: scanWindowLabel,
+      scan_date: scanWindow.scanDate,
+      market_status: marketStatus,
+      market_session: marketSession,
+      ...calendarFields(dayTradeScanOrchestration),
+      expired_recommendations: expiredRecommendations,
+      candidates_generated: 0,
+      recommendations_served: 0,
+      recommendations_created: 0,
+      batch_id: null,
+      batch_fingerprint: null,
+      scan_run_fingerprint: null,
+      warnings: [
+        ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+        message,
+      ],
+      gaps: [generationBlockReason],
       day_trade_scan_orchestration: dayTradeScanOrchestration,
       recommendation_serving_cadence: initialServingCadence,
     });
@@ -3354,11 +3680,7 @@ export async function POST(request: Request) {
   let startedScheduledRunId: string | number | null = null;
 
   try {
-    if (
-      !force &&
-      isMarketOpenForIntradayTrading(marketStatus) &&
-      scheduledGateDiagnostics.scheduled_gate_window === "outside_window"
-    ) {
+    if (backgroundDiscoveryObservationAllowed) {
       const observationAbortController = new AbortController();
       const observationRemainingTimeoutMs = Math.max(
         1,
@@ -3383,7 +3705,16 @@ export async function POST(request: Request) {
             await observeBasicFreeDiscoveryBetweenPublicationWindows({
               scheduled: true,
               marketOpen: true,
-              outsideOfficialPublicationWindow: true,
+              outsideOfficialPublicationWindow:
+                scheduledGateDiagnostics.scheduled_gate_window ===
+                "outside_window",
+              catalogOnlyOneShotReady: catalogOnlyReferenceModeReady,
+              referenceMode: readyBasicFreeCatalogCapabilityProbe
+                ? "capability_probe"
+                : "catalog_observation",
+              catalogOutputSize: readyBasicFreeCatalogCapabilityProbe
+                ? BASIC_FREE_CATALOG_CAPABILITY_PROBE_OUTPUT_SIZE
+                : 8,
               scanWindow: scanWindow.scanWindow,
               ownerUserId,
               executionFingerprint: scheduledScanAttemptFingerprint,
@@ -3422,6 +3753,14 @@ export async function POST(request: Request) {
                 no_publish_reason:
                   "outside_official_window_basic_catalog_observation_only",
                 basic_free_discovery: basicFreeDiscovery,
+                basic_free_catalog_one_shot:
+                  basicFreeCatalogOneShot.catalog_only_enforced
+                    ? basicFreeCatalogOneShot
+                    : null,
+                basic_free_catalog_capability_probe:
+                  basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                    ? basicFreeCatalogCapabilityProbe
+                    : null,
                 day_trade_scan_orchestration: dayTradeScanOrchestration,
                 recommendation_serving_cadence: initialServingCadence,
                 active_scan_trace: activeScanTracePayload,
@@ -3446,6 +3785,14 @@ export async function POST(request: Request) {
               decision: "scanned" satisfies AutomationScanDecision,
               observation_only: true,
               basic_free_discovery: basicFreeDiscovery,
+              basic_free_catalog_one_shot:
+                basicFreeCatalogOneShot.catalog_only_enforced
+                  ? basicFreeCatalogOneShot
+                  : null,
+              basic_free_catalog_capability_probe:
+                basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                  ? basicFreeCatalogCapabilityProbe
+                  : null,
               ...automationVersionFields(),
               ...powerHourTrialGate,
               ...powerHourTrialCopyFields(),
@@ -3478,6 +3825,99 @@ export async function POST(request: Request) {
                 ...basicFreeDiscovery.warnings,
               ],
               gaps: basicFreeDiscovery.gaps,
+              day_trade_scan_orchestration: dayTradeScanOrchestration,
+              recommendation_serving_cadence: initialServingCadence,
+            });
+          }
+
+          // The current background observer always returns an `observed`
+          // receipt once it has been admitted. Keep this explicit terminal
+          // branch nevertheless: a future ineligible result must not let the
+          // intentionally bounded reference-only mode fall through to market-wide
+          // observation or the normal scheduled scan path.
+          if (catalogOnlyReferenceModeEnforced) {
+            const generationBlockReason =
+              basicFreeCatalogCapabilityProbe.catalog_only_enforced
+                ? "basic_free_catalog_capability_probe_observation_not_recorded"
+                : "basic_free_catalog_one_shot_observation_not_recorded";
+            const message =
+              "Basic Free catalog reference-only mode withheld normal scanning because its observation did not produce a receipt.";
+            const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
+              decision: "skipped_outside_window",
+              status: "skipped",
+              skipReason: generationBlockReason,
+              noPublishReason: generationBlockReason,
+              zeroReason: generationBlockReason,
+              elapsedMilliseconds: elapsedMs(routeStartedAtMs),
+              timeoutWasReached: false,
+            });
+            const scanLog = createAutomationScanLog({
+              source: "scheduled",
+              scanWindow: scanWindow.scanWindow,
+              marketStatus,
+              result: "skipped",
+              message,
+              recommendationsCreated: 0,
+              details: {
+                ...powerHourTrialGate,
+                no_publish_reason: generationBlockReason,
+                basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+                basic_free_catalog_capability_probe:
+                  basicFreeCatalogCapabilityProbe,
+                day_trade_scan_orchestration: dayTradeScanOrchestration,
+                recommendation_serving_cadence: initialServingCadence,
+                active_scan_trace: activeScanTracePayload,
+              },
+            });
+            await recordAttempt({
+              outcome: "skipped",
+              allowed: false,
+              message,
+              skipReason: generationBlockReason,
+              httpStatus: 200,
+              scanLog,
+              activeScanTrace: activeScanTracePayload,
+            });
+
+            return NextResponse.json({
+              ok: true,
+              message,
+              status: "skipped",
+              decision: "skipped_outside_window" satisfies AutomationScanDecision,
+              basic_free_catalog_one_shot: basicFreeCatalogOneShot,
+              basic_free_catalog_capability_probe:
+                basicFreeCatalogCapabilityProbe,
+              ...automationVersionFields(),
+              ...powerHourTrialGate,
+              ...powerHourTrialCopyFields(),
+              ...scheduledRuntimeFields(),
+              skipped_in_progress: false,
+              active_scan_trace: activeScanTracePayload,
+              automation_diagnostics: automationDiagnostics({
+                decision: "skipped_outside_window",
+                skippedReason: generationBlockReason,
+                currentScanLog: scanLog,
+              }),
+              forced: false,
+              scan_date: scanDate,
+              session_type: sessionType,
+              scan_window: scanWindow.scanWindow,
+              scan_window_label: scanWindowLabel,
+              market_status: marketStatus,
+              market_session: marketSession,
+              ...calendarFields(dayTradeScanOrchestration),
+              expired_recommendations: expiredRecommendations,
+              candidates_generated: 0,
+              recommendations_served: 0,
+              recommendations_created: 0,
+              batch_id: null,
+              batch_fingerprint: null,
+              scan_run_fingerprint: null,
+              warnings: [
+                ...dayTradeScanOrchestration.warnings.map((item) => item.message),
+                message,
+              ],
+              gaps: [generationBlockReason],
               day_trade_scan_orchestration: dayTradeScanOrchestration,
               recommendation_serving_cadence: initialServingCadence,
             });
@@ -4085,6 +4525,8 @@ export async function POST(request: Request) {
         details: {
           ...powerHourTrialGate,
           no_publish_reason: "timeout_budget_exceeded",
+          basic_free_scheduled_scan_credit_reservation:
+            basicFreeScheduledScanCreditReservation,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -4145,6 +4587,28 @@ export async function POST(request: Request) {
       });
     }
 
+    const basicFreeScheduledScanCreditGuard =
+      await prepareBasicFreeScheduledScanCreditGuard({
+        planMode: scheduledRuntimeConfig.provider_plan_profile_mode,
+        maximumKnownProviderCredits:
+          scheduledRuntimeConfig.scheduled_provider_credit_budget
+            .max_known_credits_per_scan,
+        ownerUserId,
+        executionFingerprint: scheduledScanAttemptFingerprint,
+      });
+    basicFreeScheduledScanCreditReservation =
+      basicFreeScheduledScanCreditGuard.summary;
+
+    if (!basicFreeScheduledScanCreditReservation.provider_execution_allowed) {
+      throw new RecommendationGenerationError(
+        `Scheduled scan skipped: Basic Free shared provider credit reservation blocked execution (${basicFreeScheduledScanCreditReservation.safe_blocker ?? basicFreeScheduledScanCreditReservation.status}).`,
+        503,
+        {
+          persistence_error_type: "basic_free_scheduled_scan_credit_reservation",
+        },
+      );
+    }
+
     const scheduledAbortController = new AbortController();
     let scheduledTimeoutReached = false;
     const remainingTimeoutBudgetMs = Math.max(
@@ -4181,12 +4645,25 @@ export async function POST(request: Request) {
             : calendarFallbackAllowsScan,
         powerHourTrialPublishing: powerHourTrialGate.power_hour_publish_allowed,
         scheduledMaxTickers: scheduledRuntimeConfig.scheduled_max_tickers,
+        scheduledReferenceRefreshMaxAttempts:
+          scheduledRuntimeConfig.scheduled_provider_credit_budget
+            .reference_refresh_max_attempts,
         growMaxLearningMode: scheduledRuntimeConfig.grow_max_learning_mode,
         skipOpenAi: scheduledRuntimeConfig.scheduled_skip_openai,
         activeScanTrace,
         signal: scheduledAbortController.signal,
       });
+      basicFreeScheduledScanCreditReservation =
+        await finalizeBasicFreeScheduledScanCreditGuard(
+          basicFreeScheduledScanCreditGuard,
+          scheduledTimeoutReached ? "failed" : "completed",
+        );
     } catch (generationError) {
+      basicFreeScheduledScanCreditReservation =
+        await finalizeBasicFreeScheduledScanCreditGuard(
+          basicFreeScheduledScanCreditGuard,
+          "failed",
+        );
       if (!scheduledTimeoutReached) {
         throw generationError;
       }
@@ -4216,6 +4693,8 @@ export async function POST(request: Request) {
         details: {
           ...powerHourTrialGate,
           no_publish_reason: "timeout_budget_exceeded",
+          basic_free_scheduled_scan_credit_reservation:
+            basicFreeScheduledScanCreditReservation,
           day_trade_scan_orchestration: dayTradeScanOrchestration,
           recommendation_serving_cadence: initialServingCadence,
           active_scan_trace: activeScanTracePayload,
@@ -4326,6 +4805,8 @@ export async function POST(request: Request) {
       details: {
         ...powerHourTrialGate,
         ...generationScanLog,
+        basic_free_scheduled_scan_credit_reservation:
+          basicFreeScheduledScanCreditReservation,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: servingCadence,
         active_scan_trace: activeScanTrace.trace,
@@ -4755,6 +5236,8 @@ export async function POST(request: Request) {
       recommendationsCreated: 0,
       details: {
         ...powerHourTrialGate,
+        basic_free_scheduled_scan_credit_reservation:
+          basicFreeScheduledScanCreditReservation,
         day_trade_scan_orchestration: dayTradeScanOrchestration,
         recommendation_serving_cadence: initialServingCadence,
         active_scan_trace: activeScanTrace.trace,

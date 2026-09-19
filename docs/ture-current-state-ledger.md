@@ -10,6 +10,194 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
+PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
+`3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
+clarity behavior was locally tested and production-deployed. PR
+[#539](https://github.com/willyvalentin/trade/pull/539) then merged at
+`855cf4076bbf31aa8dcd91496d52f826475c01c9`. It keeps ordinary background
+observation outside publication windows, while a ready, exact-date Basic Free
+catalog-only one-shot may run in a verified open scheduled window. The route
+still returns through the reference-only path before normal generation.
+
+At the normal 17:00 CEST scheduled slot on 2026-09-18, production recorded one
+versioned `basic_free_catalog_observation_summary_v1` receipt: admission was
+`ready`, the Twelve Data `/stocks` provider response was observed, exactly one
+credit was reserved and finalized, and eight records were observed against the
+provider's 16,401-record denominator. The receipt retained
+`collection_complete = false` and `discovery_feed_allowed = false`; it created,
+built and published zero recommendations. No broker path ran. Production
+function scheduling was restored to disabled immediately afterward in ready
+deploy `6aad52a5367fc010da9b50fb` on the same main revision.
+
+This is IF-2a Basic Free environment acceptance for one bounded reference page,
+not market-wide coverage, a complete symbol master, a relative-volume adapter,
+candidate-quality evidence, calibration evidence or learning evidence. The
+persisted server receipt was verified directly. The current authenticated UI
+readback was not rechecked after a production refresh because the available
+browser session reached the sign-in boundary; it must not be claimed as
+environment-verified from this run.
+
+**Next IF-2 decision:** no further Basic Free provider request is authorized by
+this receipt. The existing provider-free IF-2b contracts and durable
+collection-checkpoint foundation can be reviewed against this evidence, but a
+broader catalog collection still requires separate explicit provider-request
+and production-migration authority, a bounded rollout, and fresh receipt
+readback.
+
+**Merged and production-verified IF-2b catalog-lineage integrity:** PR
+[#547](https://github.com/willyvalentin/trade/pull/547) merged as
+`2568bf983bfb2f55e18a3b534a0e63e5aececb1f`. The symbol-master contract is now
+`us_equity_symbol_master_contract_v3`: aggregate page counters and the catalog
+denominator are no longer enough to report `complete`. A complete catalog needs
+one raw response for every contiguous page from 1 through N, the exact declared
+page count, and the same provider denominator on every page. Eligible and
+rejected rows retain source page and within-page indexes. Aggregate-only,
+missing, duplicate, malformed and denominator-conflicting lineages remain
+partial or invalid and cannot become a discovery feed. PR CI
+`35395971029`, exact-main CI `35398296084` and their provenance checks passed.
+Netlify production deploy `6aadb0d5d999d60009dc15de` is ready on that exact
+main revision. Before merge, 10 focused symbol-master regressions, 26 affected
+Basic Free/collection regressions, strict TypeScript, targeted ESLint, the
+Webpack production build and the 166-test intelligence-foundation suite
+(including isolated PostgreSQL checks) passed. No provider request, migration,
+configuration, candidate, publication or broker effect occurred. This is
+coverage-truth hardening, not evidence of a complete catalog or stronger
+candidates.
+
+**Current local IF-2b snapshot-feasibility delivery, 2026-09-18:** The US
+regular session is closed and the next authorized market action remains the
+separately bounded Monday Basic Free capability probe. Engine Insights formerly
+called a projected Basic Free multi-quota-day page schedule a “fresh
+collection”, even though a schedule that exceeds the declared daily
+page-credit capacity cannot establish one coherent fresh catalog snapshot. The
+versioned `basic_free_catalog_collection_plan_v3` now separates page-coverage
+capacity from snapshot coherence: it names the page count and quota-day
+estimate, marks whether the page schedule must span quota days, and withholds
+any coherent-snapshot claim because one has not been separately observed and
+admitted. The panel tells the user that a multi-day page schedule cannot
+establish one coherent fresh catalog snapshot; even a one-day-fit schedule is
+not presented as one. Local verification passed: eight focused plan/readback
+tests, 26 affected Basic Free discovery/collection regressions, targeted ESLint,
+strict TypeScript, the Webpack production build and the 166-test
+intelligence-foundation suite (including isolated PostgreSQL checks). The
+authenticated browser readback itself was not exercised because no local
+credentials were read or entered; the route/readback contract asserts the
+panel's exact user-facing branch text. There is no provider, migration,
+configuration, candidate, publication or broker effect. PR, protected CI,
+exact-main and production-deploy verification remain pending; return to
+current-market acceptance at the Monday scheduled window.
+
+**Merged and production-verified IF-2b Basic Free dynamic-coverage disclosure:**
+PR [#541](https://github.com/willyvalentin/trade/pull/541) merged as
+`3e4f42c1ca082eecbd750e03559a86df14b93c57`; required exact-main CI
+`35365789987` passed, and Netlify production deploy
+`6aad66a2188fc00008a794f3` is ready on that revision. The client-safe,
+versioned `basic_free_market_wide_capacity_v1` contract now turns only a
+finalized observed Basic Free catalog receipt into a historical capacity
+statement. It requires the configured Basic Free profile, the provider's
+positive catalog denominator, the declared daily ceiling and the finalized
+one-credit reservation; malformed, unfinalized or non-Basic inputs fail
+closed. For the verified 2026-09-18 receipt, it reports that a documented
+one-credit-per-symbol dynamic pass can cover at most 800 of 16,401 symbols per
+declared quota day and needs a lower bound of 21 quota days for one complete
+pass.
+It separately marks the Pro-only market-movers path as configured-profile
+ineligible. The contract is pure, historical and `not_admitted`: it has no
+provider, scanner, ranking, publication, execution or persistence capability,
+and it hard-codes `discovery_feed_allowed = false`.
+
+This corrects a material direction risk: the observed `outputsize = 8` is a
+deliberately bounded reference request, not evidence that eight is Twelve
+Data's Basic Free page-size maximum. [Twelve Data's symbol-reference
+guidance](https://support.twelvedata.com/en/articles/5620513-how-to-find-all-available-symbols-at-twelve-data)
+describes `/stocks` as data refreshed every three hours, while its
+[credit documentation](https://support.twelvedata.com/en/articles/5615854-credits)
+defines per-symbol dynamic-request accounting; the public endpoint docs expose
+an `outputsize` parameter but do not establish a Basic-Free-safe maximum or raw
+storage envelope. Therefore neither the eight-record page checkpoint source
+nor its not-yet-applied production migration may be represented as an optimized
+market-wide collector. A larger-page capability needs separate authorized
+provider evidence before it can change the collection design. Local focused
+capacity/readback/route-contract tests passed; the authenticated UI remains
+unverified because no login credentials were used.
+
+**Merged and production-verified IF-2b fixed-size catalog capability probe:**
+PR [#543](https://github.com/willyvalentin/trade/pull/543) merged as
+`962468d5347edb62eee8ab268fb76e22961a715a`; Netlify production deploy
+`6aad7e84cbe58600082bd27e` became ready at 2026-09-18 18:11:28 UTC on that
+revision. A separate, default-off, exact-New-York-date control can admit one
+reference-only `/stocks` probe with fixed `outputsize = 100`, after a future
+explicitly authorized production configuration change. The size is a chosen
+measurement target, not a claimed Basic Free maximum. The normal eight-record
+catalog observation cannot use it: the versioned admission contract rejects
+every reference-mode/output-size mismatch before either durable reservation or
+provider access. The existing one-credit reservation and finalization path is
+reused, while the versioned v2 receipt records the reference mode, fixed
+request size, decoded response JSON byte count, observed record count and
+provider denominator. Historic v1 receipts remain readable under their former
+semantics. Browser readback labels the result as a capability probe and
+explicitly withholds both catalog-collection planning and market-wide capacity
+inference. It remains reference-only: no scanner, ranking, publication,
+execution, migration, provider request or production configuration change has
+occurred. Before merge, 30 focused Basic Free tests, the 166-test
+provider-free intelligence-foundation regression, TypeScript, targeted lint and
+the Webpack production build passed. The authenticated production UI was read
+without a new probe receipt; it must not be represented as an environment-run
+probe verification.
+
+**Merged and production-deployed open-market publication-window readback:** PR
+[#544](https://github.com/willyvalentin/trade/pull/544) merged as
+`32d3a09e688dad5febc8ff0a358772690f5d35eb`; required CI
+`35380132341` passed, and Netlify production deploy
+`6aad88bc188fc00008afdbfe` is ready on that exact revision. When the US
+regular session is open but no official publication window is active, Dashboard
+and Engine Insights now distinguish that state from a closed market. The
+readback says that background observation remains separately gated and that
+market-open status alone cannot publish a recommendation. This corrects
+decision-trace truth only: it does not make a provider request, broaden
+discovery, change ranking/confidence/publication criteria, apply a migration
+or open an execution path. The authenticated production UI was not rechecked
+after deploy because the available browser session reached the sign-in
+boundary; production deploy readiness is not UI-behavior verification.
+
+**Current local IF-1 decision-trace correction, 2026-09-18:** A later
+production browser readback during the US regular session showed a positive
+`market_is_open` fact alongside an older closed-window label in Engine
+Insights. Branch `codex/open-market-window-reconciliation` now derives the
+display-only wait state from that authoritative open-market fact, so an open
+session outside an official publication window remains explicitly non-publish
+but cannot be described as closed. The correction does not alter scheduling,
+provider admission, credit reservation, ranking, confidence, publication or
+execution. Three focused Playwright regressions, targeted ESLint, TypeScript
+and the Webpack production build passed locally. PR
+[#546](https://github.com/willyvalentin/trade/pull/546) carries the change;
+merge/deploy status must be read from its protected CI and deployment evidence.
+An authenticated production behavior readback after a production refresh
+remains required. This is a decision-trace truth correction, not evidence of
+stronger recommendation quality.
+
+**Merged and production-verified IF-2b relative-volume temporal-admissibility
+hardening:** PR [#542](https://github.com/willyvalentin/trade/pull/542) merged
+as `c7d3e7ac155a112c49b7047a26567cd9dae20787`; required CI
+`35370170956` passed, and Netlify production deploy
+`6aad710e21fe8300089f9726` became ready at 2026-09-18 17:13:34 UTC. The pure,
+unwired relative-volume boundary versions its policy as
+`us_equity_relative_volume_intake_v2`. A future signal must supply the named
+market-calendar source plus its verified New York regular-session open and
+close instants. The contract independently derives the elapsed session minute
+from those instants, requires it to match both the observation and its
+historical baseline, and rejects a claimed regular-session observation outside
+that window. Invalid calendar dates and session windows on another New York
+date are also inadmissible. The result records the supplied calendar lineage,
+session bounds and independently expected elapsed minute for readback. It
+still has no provider, persistence, scanner, ranking, publication or execution
+path; this is stricter input admission, not an observed live volume feed or
+quality result. Before merge, six focused contract scenarios plus the 166-test
+intelligence-foundation regression, targeted lint, TypeScript and the Webpack
+production build passed. This remains provider-free and is not a measured
+recommendation-quality improvement.
+
 **Merged and production verified:** IF-0 roadmap reconciliation merged as
 PR [#490](https://github.com/willyvalentin/trade/pull/490) at
 `398db704f0ea6a46d0dab02005f6096689e2b8be`. The initial IF-1 decision-record
@@ -281,34 +469,481 @@ finalize-attempt RPCs. This establishes the durable quota prerequisite. It did
 not create a reservation, call Twelve Data, run a scan, publish a candidate or
 invoke a broker.
 
-**Active local IF-2 regular-session schedule coverage:** the scheduled scan
+**Merged IF-2 regular-session schedule coverage:** the scheduled scan
 cadence is now represented by one shared UTC cron contract,
 `*/15 13-20 * * 1-5`. It includes every 15-minute regular-session scan slot in
 New York daylight saving time (13:30–19:45 UTC) and standard time
 (14:30–20:45 UTC). The former `13-19` hour range silently missed the final 75
-minutes of every standard-time trading day. The diagnostic readback and Netlify
-function consume the same constant, preventing future display/runtime drift.
-The additional closed-session UTC slots remain provider-free because the
-existing market-calendar gate still returns before any observation, candidate,
-ranking, publication or execution path.
+minutes of every standard-time trading day. The diagnostic readback consumes
+the shared cadence contract. Netlify's scheduled-function entrypoint must
+additionally expose the same cron as a literal configuration value, because its
+deployed-function manifest is the runtime source of truth for schedule
+registration. The additional closed-session UTC slots remain provider-free
+because the existing market-calendar gate still returns before any observation,
+candidate, ranking, publication or execution path.
 
-**IF-2 schedule local evidence:** `git diff --check`, targeted ESLint,
+**IF-2 schedule delivery evidence:** PR
+[#509](https://github.com/willyvalentin/trade/pull/509) merged as
+`35820c34a1505480e19be716a8726665c38facab`. Exact-main CI
+`35047695104` passed and Netlify completed production deploy
+`6aa9fd46935da7000837a676`. Before merge, `git diff --check`, targeted ESLint,
 `npx tsc --noEmit`, `npm run build -- --webpack` and the scheduled-function
 runtime build pass. The 25 focused Playwright tests cover both New York offsets,
 the standard-time final slot, the excluded close boundary, the shared runtime /
 diagnostic contract and existing provider-free schedule guards. No provider
-request, production migration, deployment, broker action or staging invocation
-is part of this active local delivery.
+request, production migration, broker action or staging invocation was part of
+that delivery.
 
-**Remaining IF-2 acceptance:** the original market-movers receipt cannot be
-accepted under Basic Free because its endpoint is Pro-only. The next active
-acceptance step is—during a normal open-market window and only with the
-explicit runtime switch and both budgets configured—one normal scheduled
-observation and persisted browser-receipt verification. It may use only a
-documented Basic-available endpoint and must not claim market-wide coverage,
+**IF-2 schedule-manifest production discrepancy:** The production deploy
+started for `main@b1b11a349bbab069f6871e806b5d3d3e041636f5` reported only
+`scheduled-outcome-evaluation` in its deployed `function_schedules` manifest;
+`scheduled-scan` was present as a function but absent as a registered cron.
+The shared source contract alone is therefore not runtime schedule evidence.
+Until a deploy manifests `scheduled-scan` with the regular-session cron and a
+later receipt proves one slot-bound invocation, the Basic Free observation
+remains withheld. This observed discrepancy made no provider request,
+reservation, candidate, recommendation or broker action.
+
+**Active IF-2 open-market observation-gate correction:** the production
+scheduled route ran at `2026-09-16T13:30:18.726Z` and
+`2026-09-16T13:30:28.200Z`, after the regular market opened. Both persisted a
+normal HTTP `200` `skipped` receipt with `outside_window`,
+`not_official_scan_window`, `basic_free_discovery = null` and zero candidate /
+recommendation counts. That is a correct no-call record, but it exposed a route
+ordering defect: the generic outside-generation return occurred before the
+already declared reference-only background-observation branch. The active
+correction introduces one shared eligibility gate and allows it to bypass that
+generic return only for a scheduled run, verified open market, outside official
+publication window and an observable intraday window. It does not alter the
+Basic runtime switch, plan profile, two-credit-budget reservation, catalog
+scope, ranking, confidence, publication or execution.
+
+**IF-2 open-market gate production correction:** PR
+[#511](https://github.com/willyvalentin/trade/pull/511) merged as
+`3b08337841e5bc405909c2987f210f8cb379bcd9`. Required PR CI
+`35104333762` completed successfully and Netlify completed the automatic
+production deployment `6aaaa50522e6460008368af0` for that exact revision.
+At 15:00 UTC the deployed scheduled function produced two HTTP `200` outside
+official-window receipts (the duplicated delivery was not suppressed at the
+function layer), but neither entered the reference-only observation: both were
+`skipped`, `not_official_scan_window` with `basic_free_discovery = null`.
+No provider request, reservation or candidate path ran. The persistent trace
+also reported `market_status = open`, `market_session = regular` and
+`morning_momentum`, while the route still withheld the observation. The active
+follow-up aligns the observation gate to the exact `marketOpenForScan` decision
+that already allows the route to continue. It remains bounded to scheduled,
+open, outside-official and observable-window use; it does not enable a provider
+request, change the configured plan, ranking, confidence, publication or
+execution.
+
+**IF-2 open-market follow-up delivered:** PR
+[#512](https://github.com/willyvalentin/trade/pull/512) merged as
+`3953589390589deace6573008fc7077f732771be`; required CI `35113816991` passed
+and Netlify production deploy `6aaab931ec790e0008dbe289` is ready for that
+exact revision. Local `git diff --check`, targeted ESLint, `npx tsc --noEmit`,
+the scheduled-function runtime build, production webpack build, 49 relevant
+IF-2 Playwright checks and the 166-test provider-free intelligence-foundation
+regression passed. The route contract proves that the background gate receives
+`marketOpenForScan`, so the only market-open fact used by this reference-only
+route matches the surrounding route decision. Functions/production now has the
+non-secret, explicit Basic Free configuration: plan mode `free`, observation
+enabled, daily budget `800` and per-minute budget `8`; a normal Git-based
+production build `6aaabb7352c78883008c24fc` is ready for the same main
+revision. This configuration is not provider-entitlement, coverage or quality
+evidence, and no provider request, reservation, candidate or recommendation
+path ran while applying it.
+
+**IF-2 scheduled-invocation runtime discrepancy:** At 15:00 UTC the deployed
+scheduled function wrote two distinct raw-timestamp claim IDs,
+`scheduled_scan_attempt_11gtqfm` and `scheduled_scan_attempt_kow4oj`, for
+deliveries within the same 15-minute slot. The current source-level slot
+calculation deterministically maps both corresponding delivery timestamps to
+`scheduled_scan_attempt_fha3bx`, so the observed runtime did not use the
+intended slot-bound identity. Both receipts were still `skipped` before the
+Basic Free observation path, with no provider request, reservation, candidate
+or recommendation. The next normal Basic Free observation remains withheld
+until the scheduled-function entrypoint has been rebuilt with the slot-bound
+claim and that behavior is read back from production.
+
+**IF-2 scheduled slot identity correction:** PR
+[#516](https://github.com/willyvalentin/trade/pull/516) merged as
+`4d7d398f61595d8809316970b930317d09743fa1`; its full PR verification and
+exact-main CI `35143437486` passed. Netlify production deploy
+`6aaaf41e2d1503000967d988` published the exact revision. The scheduled
+function now derives the claim slot from Netlify's next-run timestamp minus one
+cadence interval, so an invocation delivered for 19:15 UTC claims 19:15 rather
+than the future 19:30 slot. Production's emergency scheduler kill switch stayed
+enabled throughout follow-up verification; no scheduled-scan attempt was
+recorded after that deployment. This is scheduling integrity evidence, not a
+provider response, catalog observation, coverage result or quality improvement.
+
+**IF-2 Basic Free normal-scan per-run credit cap:** PR
+[#517](https://github.com/willyvalentin/trade/pull/517) merged as
+`b560246d3509f22528cdc25a20ac41fc4c9f7878`; all six full provider-free CI
+shards and merge-candidate provenance passed, as did exact-main CI
+`35147738851`. Netlify production deploy `6aaafe37d76daa00098fb797` published
+the exact revision. A normal Free scheduled scan now reserves two known
+market-regime calls and one scanner call before permitting at most five
+selected-candidate reference refreshes: eight known Twelve Data calls at most.
+The receipt versions that policy and exposes it in route diagnostics. This is a
+per-scan upper bound only; it is not a durable account-wide usage receipt. The
+scheduler kill switch remains enabled, so this delivery made no provider
+request, catalog observation, candidate publication or broker action.
+
+**IF-2 shared Basic Free credit reservation:** PR
+[#518](https://github.com/willyvalentin/trade/pull/518) merged as
+`72244f154f652b3391d0e69dcf14f5d6daac3bfe`; its full PR CI and exact-main
+CI `35152256303` passed. Netlify production deploy
+`6aab092b9056d8000872b9ad` published the exact revision. Before a normal
+Free scheduled scan may generate recommendations, it now claims all eight known
+Twelve Data credits through the same durable Basic Free reservation ledger used
+by the one-credit catalog observation. Missing/inconsistent Basic budgets,
+unknown normal-scan cost, or any day/minute capacity contention fails closed
+before provider work and records only a versioned safe receipt. Finalization is
+retained as charged when it cannot be proven. This scopes the reservation to
+the normal Free scheduled scan and the catalog observation; it is not an
+account-wide reconciliation for independent provider consumers. The scheduler
+kill switch remained enabled and a read-only post-deploy scan-log check found
+no scheduled attempt after deployment, so no provider request, catalog
+observation, candidate publication or broker action occurred.
+
+**IF-2 Basic Free exact-date observation containment:** PR
+[#521](https://github.com/willyvalentin/trade/pull/521) merged as
+`cc8e991cd021449e1159a64c98314fa97b62c620`. Its six provider-free shards,
+aggregate and merge-candidate provenance passed in run `35161405312`; exact-main
+run `35164671596` also passed, including the post-merge candidate-provenance
+attestation. Netlify production deploy `6aab2d76e149fc0008d70f8a` is `ready`
+for that exact `main` revision. Local commits
+`b9477c6df74e75f82a7efde8ed98e2abe0cd0cba` and
+`b2785dd9ac86204d54c861db478a8fc407340c53` add a default-off, explicit
+one-shot control for the existing reference-only `/stocks` observation. When
+enabled it requires one valid New York target date. A missing, malformed or
+non-matching date remains catalog-only and withholds normal scheduled scanning;
+only the exact target date and the already existing observable background window
+can reach the existing one-credit catalog path. An unexpected no-receipt from
+that observer is a persisted, terminal no-scan before the route can reach
+market-wide observation or normal scheduled scanning. The control is persisted
+beside the bounded scan receipt, while candidate generation, ranking,
+publication and execution remain unavailable. This delivery did not configure,
+invoke or read Twelve Data, and no browser receipt has yet been observed.
+
+**Merged IF-2 one-shot dashboard receipt:** PR
+[#522](https://github.com/willyvalentin/trade/pull/522) merged as
+`95b0c839e94fd43775286ef831d33e9b3d21d40e`. Its six provider-free CI shards,
+aggregate and merge-candidate provenance passed in run `35166526820`; exact-main
+run `35169693144` passed, including the post-merge candidate-provenance
+attestation. Netlify production deploy `6aab3ea586f7140008509dd4` is `ready`
+for that exact `main` revision. Local commits
+`764c228990ac791426ae1ca76c2f28b7bd8afd74`,
+`6228f8bbfd1d3c628168b52bcfe67a87fedb2c1b`, and
+`3a4f90106aa83d21df51cf93c4785fded75f99b2` make the existing Basic Free catalog
+panel show a strictly parsed versioned one-shot control envelope. A missing
+envelope is explicitly `not_recorded`; a malformed, contradictory or untrusted
+envelope is `invalid` and its values are withheld. The checks require the exact
+status/reason-code pair and bind the envelope's evaluated New York date to the
+persisted scan's New York date. A valid envelope shows its status, catalog-only
+boundary, observation permission and target versus evaluated New York dates,
+with an explicit statement that it cannot admit candidate generation, ranking,
+publication or execution. This is shipped decision-trace behavior, not an
+authenticated-browser verification of a persisted one-shot receipt.
+
+**Local IF-2 Basic Free observation readiness:** local commit
+`3716c1a14484ee948fd064ef37acb0a238536184` adds a server-owned, secret-free
+dashboard panel that projects only the current Basic Free configuration facts:
+effective plan source, runtime admission, declared two-credit budgets, the
+exact-date one-shot control and its fail-closed blockers. It has no action,
+provider call, durable reservation or request authority; the route must still
+validate market session, idempotency and durable reservation. This is the one
+off-market vertical slice while the active acceptance remains market-bound.
+Local evidence: readiness/default-off and existing Basic Free contracts (10/10),
+the Basic Free/scheduler regression (34/34), scoped lint, TypeScript and
+Webpack production build passed. It is not yet merged, deployed or browser
+verified. It does not change ranking, publication, execution, provider budgets
+or configuration.
+
+**IF-2 Basic Free acceptance scope:** the original market-movers receipt cannot
+be accepted under Basic Free because its endpoint is Pro-only. The compatibility
+variant may use only the documented `/stocks` page observation with its explicit
+runtime switch and declared budgets; it cannot claim market-wide coverage,
 change ranking or publish candidates. A future Pro upgrade may re-enable the
 separate 100-credit market-movers path only after its actual provider
 entitlement is verified.
+
+**IF-2a Basic Free environment acceptance, production verified:** PR
+[#524](https://github.com/willyvalentin/trade/pull/524) merged as
+`6c77b2637a4d2cce9a9d3ccebe57d4d4e49c6f05`; exact-main CI
+`35235274697` passed. The approved additive migration
+`20260917135646_if2_basic_free_daily_observation_claim.sql` is applied to
+production and its per-owner/per-New-York-day `catalog_observation` guard,
+partial unique index and fixed-search-path service-role RPC were read back.
+At 17:15 CEST on 2026-09-17, one ordinary `scheduled-scan` performed the
+explicitly authorized, reference-only Twelve Data `/stocks` observation: eight
+US common-stock records observed from a 16,401-record denominator; exactly one
+of the declared 800 daily credits reserved and finalized. The authenticated
+product UI rendered the persisted receipt. The observer retained
+`collection_complete = false` and `discovery_feed_allowed = false`, and did
+not enter candidate generation, ranking, publication, execution or a broker
+path. The scheduler stop was restored after that one observation; production
+deploy `6aac0517b785bc3140f54574` from the same exact main revision logged
+`Execution disabled by environment.` at the next ordinary 17:30 CEST slot in
+90.49 ms, with no second provider request or credit use.
+
+**Next IF-2 decision:** this closes only the Basic Free compatibility variant's
+single-page receipt gate. It is not market-wide discovery, a complete symbol
+catalog, a relative-volume adapter, a candidate-quality result or a learning
+result. Any broader catalog collection remains separately costed and requires
+explicit provider-request authority, a coverage denominator, durable progress
+and resume behavior, freshness/readback evidence and a bounded rollout.
+
+**Selective-publication policy correction:** production Engine Insights exposed
+an obsolete 6--10 recommendation output target. That conflicts with the master
+roadmap's zero-to-three trade-ready opportunities and its explicit prohibition
+on fill quotas. The versioned policy
+`selective_top_3_strong_valid_v3_preserve_explicit_no_trade` therefore retains
+the full ranked decision record, but selects only Strong then Valid candidates,
+with a hard public cap of three. Experimental candidates remain attributable
+research evidence and can never fill a public batch. One qualified candidate is
+now publishable; an empty window is a valid `no_trade` only when the scan's
+observability is healthy. The serving gate, run history, quality/readiness
+diagnostics and Engine Insights use that same cap and no longer mark a low count
+as degraded. This changes neither scoring thresholds nor provider admission,
+data freshness, database state, broker behavior or execution authority.
+
+**Selective-publication main-delivery evidence:** the implementation is in
+`main` at `78e03d3e`. Its selective, explicit-`no_trade` behavior is therefore
+also present in the exact production revision `1a702d3`, deployed as
+`6aac9243fdfb1d0008c043b2`. `git diff --check`, `npx tsc
+--noEmit`, scoped ESLint, `npm run build -- --webpack`, and 56 focused
+Playwright tests covering selective publication, scan-window orchestration and
+build diagnostics passed. The regressions prove that a single Strong candidate
+is selected and may publish, Experimental candidates cannot fill a batch, and a
+healthy empty window is rendered as `no_trade` rather than a count shortfall.
+This is an implemented and locally verified policy correction, not proof that
+the ranking is calibrated or that recommendation quality improved against an
+IF-4 baseline. Authenticated production UI verification remains outstanding.
+
+**Merged and production-verified IF-4 baseline-readiness foundation:** PR
+[#527](https://github.com/willyvalentin/trade/pull/527) merged as
+`98e0d3d77ddc9c25a1555a86eebdd78f804d1bc7`. Each new candidate decision record
+carries a versioned learning-attribution envelope only when the deployed build
+can prove its full commit, ranking/scoring/publish-policy and canonical
+evaluation-version bundle. Older v1 records remain readable but are explicitly
+not policy-attributed. The envelope declares confidence as ordinal, never a
+calibrated probability. Engine Insights has a read-only *Learning Baseline
+Readiness* panel that counts the attributable published/research/rejected/no-
+trade population, requires an exact published-candidate → snapshot link,
+excludes an outcome that predates its decision, and selects at most one complete
+60m/30m/15m primary outcome. Duplicate horizons, missing canonical coverage,
+malformed version evidence and ambiguous links fail closed. The PR's required
+CI `35256570495` passed; Netlify production deploy
+`6aac33b87d47810008feb2b5` is ready on the exact main revision. An authenticated
+production browser readback rendered the panel as `NOT READY`, `0/20` visible
+primary outcomes and `insufficient_visible_primary_outcomes_for_baseline_freeze`.
+That is an expected evidence gap, not a false intelligence claim or policy
+promotion.
+
+**Merged and production-deployed IF-4 canonical-outcome coverage receipt:** PR
+[#528](https://github.com/willyvalentin/trade/pull/528) merged as
+`50a82a19e41bc0aa77a95099225d8d605110a86f`. Every candle-backed future outcome
+now receives a versioned v1 provider-coverage receipt in its existing
+owner-isolated payload before persistence. The receipt only calls a window
+complete when a supported 15m/30m/60m horizon has fully elapsed, the decision
+time is on the requested candle interval, every expected slot occurs exactly
+once with valid OHLC and the provider response is available. Early, sparse,
+duplicate, malformed, unaligned and failed-provider windows remain explicitly
+incomplete. Baseline readback rejects a selected outcome whose receipt is
+missing or unversioned; equal existing outcomes can be upgraded with this
+strictly better evidence, but a weaker receipt cannot overwrite stronger
+coverage. The required CI run `35262711882` passed all six
+`provider-free-verification` shards, and Netlify production deploy
+`6aac40b90570f100082c4c5f` is ready on the exact main revision. This changes
+neither ranking, confidence, publication, provider call count, database schema
+nor execution. It is deployed integrity infrastructure, not evidence that
+recommendation quality has improved or that a market outcome has been observed.
+
+**Merged and production-deployed IF-4 decision-bound outcome-evaluation
+anchors:** PR [#529](https://github.com/willyvalentin/trade/pull/529) merged as
+`99388d3eb5722091ad1744060b471f0050f31544`. Future recommendation snapshots
+now durably record a versioned exact-decision anchor. An aligned decision begins
+at its own five-minute candle boundary; an unaligned decision begins at the
+*next* boundary, never inside a candle that contains information from before the
+decision. The outcome runner accepts only an exact recorded anchor derived from
+`recommended_at`, requests candles from that boundary, and refuses missing,
+shifted, malformed or fabricated anchors before a provider request. The v2
+coverage receipt binds complete coverage to this same anchor; the deployed v1
+receipt remains readable historical evidence but cannot satisfy the stricter
+primary-baseline coverage requirement. Required CI run `35267716438` passed all
+six provider-free shards and Netlify production deploy
+`6aac4c292789bb0008c86fc3` is ready on the exact main revision. This changes
+neither ranking, confidence, publication, schedule, provider budget, database
+schema nor execution. It is evidence-integrity infrastructure, not proof that
+recommendation quality has improved.
+
+**Merged and production-deployed IF-4 research-candidate outcome lineage:** PR
+[#530](https://github.com/willyvalentin/trade/pull/530) merged as
+`9b237c15923e1c241042f40e1d993da04c6b2926`. Future research-only snapshots
+carry a versioned, fail-closed link to exactly one immutable
+`selected_not_published` or `ranked_not_selected` candidate in their scan's
+decision record. The baseline readback admits such an outcome only when the
+candidate ID, disposition, scan fingerprint, research-only snapshot, recorded
+decision anchor and complete v2 provider-coverage receipt all agree exactly.
+Absent, published, ambiguous, tampered or legacy links remain evidence gaps;
+they cannot become counterfactual evidence. The Engine Insights baseline panel
+reports collected/required research, rejected and explicit-no-trade evidence
+separately. Required CI run `35272654068` passed all six provider-free shards,
+the aggregate and merge-candidate-provenance POC; Netlify production deploy
+`6aac57fddea6390008d78821` is ready on the exact main revision. The local
+browser reached the password gate, so authenticated UI behavior remains
+unverified. This delivery changes neither ranking, confidence, publication,
+schedule, provider calls, database schema nor execution. It makes future
+research outcomes auditable, not evidence that a recommendation policy is
+better.
+
+**Merged and production-deployed IF-4 explicit-no-trade outcome coverage:** PR
+[#531](https://github.com/willyvalentin/trade/pull/531) merged as
+`4bed05635c7e5341c695043bbe4dd815e3583c2a`. A no-trade decision counts as
+covered only when its captured candidate population is complete and every
+non-published ranked candidate has its own exact research-only outcome with the
+same decision-bound anchor and complete v2 coverage receipt. It is a
+decision-level coverage fact, not a duplicate outcome row or a quality verdict.
+Missing, conflicting, pre-decision or incomplete research evidence leaves the
+no-trade decision uncovered. `filtered_before_ranking` candidates remained an
+independent rejected-evidence gap and continued to prevent an overall baseline
+freeze. Required CI run `35276640883` passed all six provider-free shards, the
+aggregate and merge-candidate-provenance POC; Netlify production deploy
+`6aac6084edfd870008097ab2` is ready on the exact main revision. This improves
+the honesty of future learning evidence, not the engine's demonstrated
+recommendation quality.
+
+**Merged and production-deployed IF-4 rejected-candidate outcome lineage:** PR
+[#532](https://github.com/willyvalentin/trade/pull/532) merged as
+`42b54f400fd92fca510790141582a2bf1d081ada`. A `filtered_before_ranking`
+candidate can enter the non-live research path only through a versioned v2 link
+to one immutable decision-record candidate and only when the matching scanner
+input is exact, fresh, provider-attributable, timestamp-equal to the decision
+record, no later than the decision, and already has valid long entry/stop/target
+geometry. The implementation never constructs a plan, infers a side, admits
+stale or provider-gap data, or reuses a legacy v1 linkage. It shares the
+existing total research sample cap, so it adds no new provider budget class or
+direct provider request. The baseline counts a rejected candidate only after
+its exact linked snapshot has the same decision-bound anchor and a complete v2
+coverage receipt; all other rejected candidates stay uncollected. Required CI
+run `35281280923` passed the six provider-free shards, aggregate and
+merge-candidate-provenance POC; Netlify production deploy
+`6aac6e0e441f830008921155` is ready on that exact main revision. Authenticated
+production readback remains unverified. This creates a narrower future evidence
+path; it is not evidence that rejections, rankings or recommendation quality
+are correct.
+
+**Merged and production-deployed IF-4 segmented baseline-readiness readback:** PR
+[#533](https://github.com/willyvalentin/trade/pull/533) merged as
+`bb26203c5b7fe64a294187b683b1a4de915f99d3`. Engine Insights now
+partitions only complete, uniquely identified decision records into independent
+policy-plus-canonical-version segments. Mixed or incomplete attribution is
+excluded rather than pooled; duplicated scan fingerprints are excluded from
+every segment. A segment can therefore be shown as eligible for an explicit
+baseline-freeze decision while the global mixed population remains not ready.
+This is a read-only audit: it selects no policy, persists no freeze, changes no
+ranking/confidence/publication rule, calls no provider and cannot execute a
+trade. Locally on `codex/if4-baseline-freeze`, `git diff --check`, strict
+TypeScript, scoped ESLint, 18 focused baseline-readiness regressions, the full
+166-test intelligence-foundation suite (including local PostgreSQL contracts),
+and the Webpack production build passed. Required CI `35285363943` passed all
+six provider-free shards, the aggregate and merge-candidate-provenance POC;
+Netlify production deploy `6aac79e5e5835d0008a8aad4` is ready on that exact
+main revision. Authenticated production UI readback remains unverified. This
+makes future baseline evidence more honest; it is not a measured
+recommendation-quality improvement.
+
+**Merged and production-deployed IF-4 fixed baseline evaluation plan:** PR
+[#534](https://github.com/willyvalentin/trade/pull/534) merged as
+`4b41d3ffd85ddc0244c76a5238e2854572116fbf`. Engine Insights now derives a
+versioned, read-only evaluation plan separately for every policy-plus-canonical-
+version segment. It admits at most one exact, decision-bound, complete primary
+outcome for each visible, research or rejected candidate, keeps explicit
+no-trade coverage decision-level, and exposes only observed entry-trigger,
+post-entry terminal-event and selected-horizon R summaries. Existing `best_r`
+and `worst_r` are deliberately not presented as MFE/MAE: their excursion window
+can begin before a pending entry triggers, so MFE/MAE remain an explicit
+measurement gap until an entry-bound excursion contract exists. A missing,
+ambiguous, pre-decision, policy-mismatched, duplicate or incomplete outcome
+makes the plan ineligible rather than inventing a return. The plan never
+selects or persists a baseline, treats confidence as calibrated, changes
+ranking/publication, calls a provider or executes a trade. Locally on
+`codex/if4-evaluation-plan`, `git diff --check`, strict TypeScript, scoped
+ESLint and 20 focused baseline-readiness/evaluation-plan regressions passed.
+Required CI `35289310879` passed the six provider-free shards, aggregate and
+merge-candidate-provenance POC; Netlify production deploy
+`6aac85b3a140ec00077554a3` is ready on that exact main revision. Authenticated
+production UI readback remains unverified. This is a fixed measurement
+definition for a later explicit durable freeze, not a quality claim or an IF-5
+policy promotion.
+
+**Merged and production-deployed IF-4 entry-bound excursion evidence:** PR
+[#535](https://github.com/willyvalentin/trade/pull/535) merged as
+`1a702d308c7710a0094d0e298827b1f813c2a38d`; Netlify production deploy
+`6aac9243fdfb1d0008c043b2` is ready on that exact revision. Every newly
+computed outcome carries the
+versioned `recommendation_outcome_entry_bound_excursion_v1` receipt in its
+existing server-owned payload. Its MFE/MAE window begins strictly after the
+entry-trigger candle: it never repurposes legacy `best_r`/`worst_r`, which can
+include pre-entry movement. A target or stop in the trigger candle therefore
+remains not measurable; a later target measures only MFE and a later stop only
+MAE, because the terminal candle's opposite excursion has unknown intrabar
+ordering. The parser refuses malformed, mismatched, duplicate or missing
+receipts rather than reconstructing a value. The evaluation plan joins only a
+unique raw outcome by its canonical primary-outcome ID, reports measured values
+and explicit missingness per segment, and the Engine Insights copy renders that
+distinction. This changes neither ranking, confidence, publication, provider
+use, execution nor schema. Local `git diff --check`, strict TypeScript, scoped
+ESLint, 23 focused baseline/evaluation-plan regressions, the full 166-test
+intelligence-foundation suite (including local PostgreSQL) and the Webpack
+production build passed. Required CI `35293424258` passed the six provider-free
+shards, aggregate and merge-candidate-provenance check. Authenticated Engine
+Insights and market-data evidence remain outstanding. This makes a future
+baseline more honest, not presently better.
+
+**Merged IF-2b coverage-denominator contract:** the symbol-master contract is
+now version `us_equity_symbol_master_contract_v2`. It can mark a supplied US
+common-stock catalog complete only when complete pagination is present *and*
+the provider's scoped catalog denominator exactly equals the collected raw
+record count. A missing, malformed or mismatched denominator remains partial,
+records a specific blocker and cannot expand discovery. The existing one-page
+Basic Free observer now passes its denominator into this contract but retains
+its immutable partial-catalog boundary. PR [#536](https://github.com/willyvalentin/trade/pull/536)
+merged as `7dc18f969d3d8e2989e8598057efda7c8b0283ee`; required CI
+`35296281887` passed, and Netlify production deploy `6aac9b82dd5afa00080b3c93`
+is ready on that exact revision. Before merge, `git diff --check` and 17
+focused provider-free Playwright regressions passed, covering a valid complete
+catalog, missing/mismatched denominators, partial pagination, Basic Free
+capacity and reference-only receipt behavior. This makes future collection
+claims more falsifiable; it adds no provider request, persistence, runtime
+activation, ranking, publication or execution authority.
+
+**Merged and production-deployed IF-2b durable Basic Free catalog-checkpoint
+foundation:** PR [#537](https://github.com/willyvalentin/trade/pull/537) merged
+as `73ea12d72e7d7b482f3fcaebab844e7b8b986925`; required CI
+`35300241795` passed. Its code is included in ready production deploy
+`6aad88bc188fc00008afdbfe` on current `main`, although its additive,
+not-yet-applied migration
+`20260918020603_if2_basic_free_catalog_collection_checkpoint.sql` has no
+database effect until separately authorized. The code defines owner-isolated,
+RLS-protected raw-page lineage and three service-role RPCs for an eventual
+separately authorized collector. It records a fixed US common-stock scope,
+provider denominator and sequential page state; only the exact final-page
+remainder can transition a collection to `complete`. An exact replayed raw page
+is idempotent, whereas a changed denominator, conflicting page, gap or
+ambiguous persistence receipt fails closed. The matching server-only TypeScript
+boundary has no import from the observation or scanner runtime, so it cannot
+itself request Twelve Data, consume a credit, expand the universe or publish a
+candidate. Local `git diff --check` and 25 focused provider-free Playwright
+regressions passed. A clean, network-isolated local Postgres 17 proof applied
+the migration and confirmed that `service_role` has no direct table read/write
+grant, but can use the fixed RPCs; synthetic 8+1 pages completed exactly once,
+replay returned one idempotent receipt, and a denominator change remained
+blocked. Production-migration approval/application and any collector
+runtime/readback remain outstanding. This is durable resume evidence only, not
+market coverage, provider entitlement, candidate quality or learning evidence.
 
 **Merged IF-3a context-admission foundation:** a provider-free intraday
 market-context contract accepts a future SPY, QQQ and IWM snapshot only when

@@ -72,6 +72,8 @@ export type TwelveDataStockCatalogPage = {
   fetched_at: string;
   provider_catalog_count: number | null;
   records: unknown[];
+  requested_output_size?: 8 | 100;
+  decoded_response_json_bytes?: number | null;
 };
 
 type TwelveDataErrorResponse = {
@@ -577,13 +579,17 @@ export async function getTwelveDataMarketMovers(
  * discovery coverage.
  */
 export async function getTwelveDataStockCatalogPage(
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; outputSize?: 8 | 100 },
 ): Promise<TwelveDataStockCatalogPage> {
+  const outputSize = options?.outputSize ?? 8;
+  if (outputSize !== 8 && outputSize !== 100) {
+    throw new Error("Unsupported Twelve Data catalog output size.");
+  }
   const data = await fetchTwelveData<TwelveDataStocksResponse>("/stocks", {
     country: "United States",
     type: "Common Stock",
     page: 1,
-    outputsize: 8,
+    outputsize: outputSize,
   }, options);
 
   if (!Array.isArray(data.data)) {
@@ -603,5 +609,15 @@ export async function getTwelveDataStockCatalogPage(
     fetched_at: new Date().toISOString(),
     provider_catalog_count: providerCatalogCount,
     records: data.data,
+    requested_output_size: outputSize,
+    decoded_response_json_bytes: jsonByteLength(data),
   };
+}
+
+function jsonByteLength(value: unknown) {
+  try {
+    return new TextEncoder().encode(JSON.stringify(value)).byteLength;
+  } catch {
+    return null;
+  }
 }

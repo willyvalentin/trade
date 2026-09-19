@@ -397,48 +397,6 @@ export function buildRecommendationBatchLearningInsightsSummary({
     );
   }
 
-  const withinTargetItems = batchPerformance.items.filter(
-    (item) => item.target_status === "within_target",
-  );
-  const underfilledItems = batchPerformance.items.filter(
-    (item) => item.target_status === "below_target",
-  );
-
-  if (withinTargetItems.length > 0 || underfilledItems.length > 0) {
-    const withinRate = averageTargetRate(withinTargetItems);
-    const underfilledRate = averageTargetRate(underfilledItems);
-    const targetCoverageDelta =
-      withinRate !== null && underfilledRate !== null
-        ? withinRate - underfilledRate
-        : null;
-
-    insights.push(
-      insight({
-        type: "target_coverage",
-        severity:
-          targetCoverageDelta !== null && targetCoverageDelta >= 10
-            ? "positive"
-            : "neutral",
-        confidence: evaluatedBatches >= 10 ? "medium" : "low",
-        title:
-          targetCoverageDelta !== null && targetCoverageDelta >= 10
-            ? "Target-sized batches look healthier"
-            : "Target coverage needs more evaluated batches",
-        message:
-          targetCoverageDelta !== null && targetCoverageDelta >= 10
-            ? "Batches within the 6-10 target are currently producing stronger evaluated behavior than underfilled batches."
-            : "There is not enough separation yet to say target-sized batches behave better than underfilled batches.",
-        evidence: [
-          evidence("Within-target batches", withinTargetItems.length, "count"),
-          evidence("Underfilled batches", underfilledItems.length, "count"),
-          evidence("Target-first delta", targetCoverageDelta, "percent"),
-        ],
-        suggested_next_review_action:
-          "Keep tracking whether target-sized batches create better learning samples than underfilled drops.",
-      }),
-    );
-  }
-
   const mostlyExperimental = batchPerformance.items.filter(
     (item) => item.experimental_count > item.strong_count + item.valid_count,
   );

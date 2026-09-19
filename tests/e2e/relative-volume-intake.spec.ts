@@ -16,6 +16,9 @@ function intake(overrides: Record<string, unknown> = {}) {
       observed_at: observedAt,
       market_date: "2026-09-15",
       regular_session_verified: true,
+      market_calendar_source: "verified_us_equities_calendar_v1",
+      regular_session_opened_at: "2026-09-15T13:30:00.000Z",
+      regular_session_closed_at: "2026-09-15T20:00:00.000Z",
       elapsed_regular_session_minutes: 90,
       cumulative_regular_session_volume: 2_400_000,
       baseline: {
@@ -35,12 +38,14 @@ test.describe("relative-volume intake", () => {
     const result = intake();
 
     expect(result.summary).toMatchObject({
+      summary_version: "2.0",
       policy_version: relativeVolumeIntakePolicyVersion,
       status: "usable",
       admissible_for_discovery: true,
       can_change_ranking_or_publication: false,
       relative_volume: 3,
       signal: "exceptional",
+      expected_elapsed_regular_session_minutes: 90,
       reason_codes: [],
     });
   });
@@ -71,6 +76,9 @@ test.describe("relative-volume intake", () => {
         observed_at: "2026-09-15T14:30:00.000Z",
         market_date: "2026-09-15",
         regular_session_verified: false,
+        market_calendar_source: "verified_us_equities_calendar_v1",
+        regular_session_opened_at: "2026-09-15T13:30:00.000Z",
+        regular_session_closed_at: "2026-09-15T20:00:00.000Z",
         elapsed_regular_session_minutes: 60,
         cumulative_regular_session_volume: 100_000,
         baseline: {
@@ -92,6 +100,60 @@ test.describe("relative-volume intake", () => {
         "regular_session_not_verified",
         "baseline_sample_insufficient",
       ]),
+    });
+  });
+
+  test("fails closed when a claimed regular-session snapshot is premarket or has contradictory elapsed time", () => {
+    const premarket = intake({
+      observed_at: "2026-09-15T13:20:00.000Z",
+      elapsed_regular_session_minutes: 0,
+    });
+    const contradictoryElapsedTime = intake({
+      observed_at: "2026-09-15T15:05:00.000Z",
+      elapsed_regular_session_minutes: 90,
+    });
+
+    expect(premarket.summary).toMatchObject({
+      status: "invalid",
+      admissible_for_discovery: false,
+      expected_elapsed_regular_session_minutes: null,
+      reason_codes: expect.arrayContaining([
+        "observation_outside_regular_session",
+        "elapsed_session_minutes_invalid",
+      ]),
+    });
+    expect(contradictoryElapsedTime.summary).toMatchObject({
+      status: "invalid",
+      admissible_for_discovery: false,
+      expected_elapsed_regular_session_minutes: 95,
+      reason_codes: ["elapsed_session_minutes_mismatch"],
+    });
+  });
+
+  test("requires a calendar-proven session window on the declared New York date", () => {
+    const missingCalendarSource = intake({ market_calendar_source: " " });
+    const wrongSessionDate = intake({
+      regular_session_opened_at: "2026-09-14T13:30:00.000Z",
+      regular_session_closed_at: "2026-09-14T20:00:00.000Z",
+    });
+    const impossibleMarketDate = intake({ market_date: "2026-02-30" });
+
+    expect(missingCalendarSource.summary).toMatchObject({
+      status: "incomplete",
+      admissible_for_discovery: false,
+      reason_codes: ["market_calendar_source_missing"],
+    });
+    expect(wrongSessionDate.summary).toMatchObject({
+      status: "invalid",
+      admissible_for_discovery: false,
+      reason_codes: expect.arrayContaining([
+        "regular_session_market_date_mismatch",
+      ]),
+    });
+    expect(impossibleMarketDate.summary).toMatchObject({
+      status: "invalid",
+      admissible_for_discovery: false,
+      reason_codes: ["market_date_invalid"],
     });
   });
 

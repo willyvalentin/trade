@@ -5,6 +5,8 @@ import {
   type BasicFreeDiscoveryResult,
   type DiscoverBasicFreeCatalogObservationInput,
 } from "@/lib/basic-free-discovery";
+import type { BasicFreeCatalogOutputSize } from "@/lib/basic-free-discovery-policy";
+import type { BasicFreeCatalogReferenceMode } from "@/lib/basic-free-discovery-policy";
 import type { BasicFreeDiscoveryPreviousAttempt } from "@/lib/basic-free-discovery-policy";
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 
@@ -18,6 +20,13 @@ export type BasicFreeDiscoveryBackgroundObservationInput = {
   scheduled: boolean;
   marketOpen: boolean;
   outsideOfficialPublicationWindow: boolean;
+  /**
+   * Set only by the exact-date catalog-only envelope in the scheduled route.
+   * This is not candidate-discovery authority.
+   */
+  catalogOnlyOneShotReady?: boolean;
+  referenceMode?: BasicFreeCatalogReferenceMode;
+  catalogOutputSize?: BasicFreeCatalogOutputSize;
   scanWindow: IntradayScanWindow;
   ownerUserId: string;
   executionFingerprint: string;
@@ -41,8 +50,10 @@ export type BasicFreeDiscoveryBackgroundObservation =
     };
 
 /**
- * Default-off catalog observation between official publication windows. It has
- * no path to candidate ranking, recommendation construction, publication, or
+ * Default-off catalog observation. Outside official publication windows it may
+ * use the ordinary background window. A ready exact-date catalog-only one-shot
+ * may instead run during a verified open scheduled window. Neither path has a
+ * route to candidate ranking, recommendation construction, publication, or
  * execution.
  */
 export async function observeBasicFreeDiscoveryBetweenPublicationWindows(
@@ -54,18 +65,24 @@ export async function observeBasicFreeDiscoveryBetweenPublicationWindows(
   if (!input.marketOpen) {
     return { status: "not_eligible", blocker: "market_not_open", discovery: null };
   }
-  if (!input.outsideOfficialPublicationWindow) {
+  if (
+    !input.outsideOfficialPublicationWindow &&
+    input.catalogOnlyOneShotReady !== true
+  ) {
     return {
       status: "not_eligible",
       blocker: "official_publication_window",
       discovery: null,
     };
   }
-  if (
-    input.scanWindow !== "opening" &&
-    input.scanWindow !== "morning_momentum" &&
-    input.scanWindow !== "afternoon"
-  ) {
+  const betweenPublicationWindows =
+    input.scanWindow === "opening" ||
+    input.scanWindow === "morning_momentum" ||
+    input.scanWindow === "afternoon";
+  const catalogOnlyOneShotWindow =
+    input.catalogOnlyOneShotReady === true &&
+    (input.scanWindow === "midday" || input.scanWindow === "power_hour");
+  if (!betweenPublicationWindows && !catalogOnlyOneShotWindow) {
     return {
       status: "not_eligible",
       blocker: "scan_window_not_observable",
@@ -79,6 +96,10 @@ export async function observeBasicFreeDiscoveryBetweenPublicationWindows(
     ownerUserId: input.ownerUserId,
     executionFingerprint: input.executionFingerprint,
     previousAttempt: input.previousAttempt ?? null,
+    ...(input.referenceMode ? { referenceMode: input.referenceMode } : {}),
+    ...(input.catalogOutputSize
+      ? { catalogOutputSize: input.catalogOutputSize }
+      : {}),
     signal: input.signal,
   });
   return { status: "observed", blocker: null, discovery };

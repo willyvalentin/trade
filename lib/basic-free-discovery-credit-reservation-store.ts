@@ -15,6 +15,7 @@ export type BasicFreeDiscoveryCreditReservationInput = {
   owner_user_id: string;
   trading_date: string;
   minute_bucket: string;
+  catalog_observation: boolean;
   requested_credits: number;
   declared_daily_credit_budget: number;
   declared_per_minute_credit_budget: number;
@@ -66,6 +67,7 @@ export type BasicFreeDiscoveryCreditReservationDatabase = {
 export type BasicFreeDiscoveryCreditReservationPreparation = {
   status:
     | "provider_execution_allowed"
+    | "daily_catalog_observation_already_claimed"
     | "daily_credit_limit_reached"
     | "per_minute_credit_limit_reached"
     | "attempt_in_progress"
@@ -163,6 +165,7 @@ export function createBasicFreeDiscoveryCreditReservationStore(
         !database ||
         !validDate(input.trading_date) ||
         !validMinuteBucket(input.minute_bucket) ||
+        typeof input.catalog_observation !== "boolean" ||
         !validUuid(input.owner_user_id) ||
         !bounded(input.claim_id, 128) ||
         !bounded(input.execution_fingerprint, 240) ||
@@ -186,6 +189,8 @@ export function createBasicFreeDiscoveryCreditReservationStore(
         if (claim.error || !claim.data) return unavailable();
 
         if (
+          claim.data.claim_status ===
+            "daily_catalog_observation_already_claimed" ||
           claim.data.claim_status === "daily_credit_limit_reached" ||
           claim.data.claim_status === "per_minute_credit_limit_reached"
         ) {

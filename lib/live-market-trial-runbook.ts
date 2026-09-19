@@ -484,8 +484,9 @@ export function buildLiveMarketTrialRunbookSummary(
       input.serving_cadence.batch_status === "ready_to_publish" ||
       input.serving_cadence.batch_status === "no_trade_valid");
   const targetSupported =
-    input.day_trade_window_target.current_window_count.total >=
-      input.day_trade_window_target.ideal_min ||
+    input.day_trade_window_target.current_window_count.strong +
+      input.day_trade_window_target.current_window_count.valid >
+      0 ||
     input.serving_cadence.no_trade_valid;
   const persistenceObserved =
     input.persistence_counts?.batches ||
@@ -618,8 +619,8 @@ export function buildLiveMarketTrialRunbookSummary(
       {
         step_id: "morning_verify_target",
         phase: "morning_window",
-        label: "Check 6-10 recommendation target",
-        detail: `${input.day_trade_window_target.current_window_count.total} current-window recommendations; no-trade windows are valid if quality is insufficient.`,
+        label: "Check selective publication policy",
+        detail: `${input.day_trade_window_target.current_window_count.total} current-window recommendations; no-trade is valid and no count is required.`,
         status: targetSupported ? "pass" : "warning",
         source: "serving",
       },

@@ -1052,8 +1052,7 @@ export async function POST(request: Request) {
         candidates: scannerCandidates,
         scanWindow,
         universeCoverage: selection.coverage,
-        targetMin: Math.min(3, maxTickers),
-        targetMax: Math.min(6, maxTickers),
+        targetMax: Math.min(3, maxTickers),
       });
       activeScanTrace.markStage("ranking", "completed");
       activeScanTrace.updateRanking({

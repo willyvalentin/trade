@@ -110,8 +110,8 @@ export type DailyRecommendationTradeTargetsInput = {
   now?: Date | string | null;
 };
 
-const perWindowTargetMin = 6;
-const perWindowTargetMax = 10;
+const perWindowTargetMin = 0;
+const perWindowTargetMax = 3;
 const desiredDailyTradeCapacity = 10;
 const activeWindows = ["morning", "midday", "power_hour"] as const;
 
@@ -143,7 +143,6 @@ function windowStatus(
 ): DailyRecommendationTargetStatus {
   if (!applicable) return "not_applicable";
   if (!hasScan && count <= 0) return "no_scan_yet";
-  if (count < perWindowTargetMin) return "below_target";
   if (count > perWindowTargetMax) return "above_target";
   return "within_target";
 }
@@ -152,10 +151,10 @@ function fullDayStatus(
   count: number,
   targetMin: number,
   targetMax: number,
+  hasApplicableScan: boolean,
 ): DailyRecommendationTargetStatus {
   if (targetMin <= 0 && targetMax <= 0) return "not_applicable";
-  if (count <= 0) return "no_scan_yet";
-  if (count < targetMin) return "below_target";
+  if (!hasApplicableScan) return "no_scan_yet";
   if (count > targetMax) return "above_target";
   return "within_target";
 }
@@ -337,15 +336,6 @@ function buildNextAction(input: {
     );
   }
 
-  if (input.recommendationStatus === "below_target") {
-    return nextAction(
-      "collect_more_recommendation_samples",
-      "medium",
-      "Collect more recommendation samples",
-      "Keep scanning active windows to build the 6-10 recommendation sample target.",
-    );
-  }
-
   if (input.recommendationStatus === "no_scan_yet") {
     return nextAction(
       "wait_for_active_window",
@@ -356,10 +346,10 @@ function buildNextAction(input: {
   }
 
   return nextAction(
-    "maintain_targets",
+    "preserve_selective_publication",
     "low",
-    "Maintain targets",
-    "Recommendation output and trade capacity are separated clearly.",
+    "Preserve selective publication",
+    "Publish only independently qualified candidates; a no-trade result is valid.",
   );
 }
 
@@ -441,6 +431,7 @@ export function buildDailyRecommendationTradeTargetsSummary(
     totalRecommendationsToday,
     applicableTargetMin,
     applicableTargetMax,
+    windowTargets.some((target) => target.latest_scan_at !== null),
   );
   const capacity = buildRiskControlsCapacity({
     riskControlsSettings: input.riskControlsSettings,
@@ -460,22 +451,12 @@ export function buildDailyRecommendationTradeTargetsSummary(
       : null;
   const warnings: DailyRecommendationTradeTargetWarning[] = [];
 
-  if (recommendationTargetStatus === "below_target") {
-    warnings.push(
-      warning(
-        "below_daily_recommendation_target",
-        "warning",
-        "Recommendations produced today are below the applicable 6-10 per-window sample target.",
-      ),
-    );
-  }
-
   if (recommendationTargetStatus === "above_target") {
     warnings.push(
       warning(
-        "above_daily_recommendation_target",
+        "daily_publication_cap_exceeded",
         "info",
-        "Recommendations produced today are above the calm daily sample range.",
+        "Recommendations produced today are above the active-window selective publication cap.",
       ),
     );
   }
@@ -517,8 +498,7 @@ export function buildDailyRecommendationTradeTargetsSummary(
     (tradeCapacityStatus === "approaching_cap" ||
       tradeCapacityStatus === "at_cap" ||
       tradeCapacityStatus === "exceeded") &&
-    (recommendationTargetStatus === "below_target" ||
-      recommendationTargetStatus === "no_scan_yet")
+    recommendationTargetStatus === "no_scan_yet"
   ) {
     warnings.push(
       warning(
@@ -584,7 +564,7 @@ export function buildDailyRecommendationTradeTargetsSummary(
     recommendation_target_status: recommendationTargetStatus,
     recommendation_progress_rate: percent(
       totalRecommendationsToday,
-      applicableTargetMin,
+      applicableTargetMax,
     ),
     window_targets: windowTargets,
     desired_daily_trade_capacity: desiredDailyTradeCapacity,
@@ -604,7 +584,7 @@ export function buildDailyRecommendationTradeTargetsSummary(
     next_action: next,
     copy: {
       recommendation_target:
-        "Ture aims to serve 6-10 recommendations per active window, not force trades.",
+        "Ture publishes zero to three trade-ready candidates per active window; this is a cap, not a quota.",
       trade_capacity: "The daily trade capacity is a risk limit, not a goal.",
       ignored_recommendations: "Ignored recommendations still help Ture learn.",
       no_trade_days: "No-trade days can still be valid.",

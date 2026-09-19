@@ -82,21 +82,28 @@ function observedSummary() {
   };
 }
 
-test("capacity plan accurately describes a multi-day Basic Free catalog collection without admitting it", () => {
+test("reference estimate separates page capacity from unproven snapshot coherence", () => {
   expect(buildBasicFreeCatalogCollectionPlan(readyPlanInput())).toEqual({
-    plan_version: "basic_free_catalog_collection_plan_v1",
-    status: "ready_for_separate_admission",
+    plan_version: "basic_free_catalog_collection_plan_v3",
+    status: "reference_estimate_available",
     execution_authority: "not_admitted",
     discovery_feed_allowed: false,
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
     provider_catalog_count: 6408,
-    page_size: 8,
-    total_pages_required: 801,
-    remaining_pages_after_observed_page: 800,
-    total_credits_required: 801,
-    remaining_credits_after_observed_page: 800,
-    credits_available_today: 799,
-    minimum_trading_days_from_observed_page: 2,
-    minimum_request_minutes_for_current_day: 100,
+    observed_page_size: 8,
+    page_collection_pages_required: 801,
+    page_collection_credits_required: 801,
+    credits_available_at_observation: 799,
+    minimum_quota_days_for_page_collection: 2,
+    minimum_request_minutes_for_observed_day_page_collection: 100,
+    snapshot_coherence_status: "not_proven",
+    same_quota_day_page_collection_feasible: false,
+    page_collection_must_span_quota_days: true,
+    snapshot_coherence_reason_codes: [
+      "source_snapshot_coherence_not_observed",
+      "page_collection_spans_multiple_quota_days",
+    ],
     reason_codes: [],
   });
 });
@@ -110,11 +117,15 @@ test("capacity plan does not invent current-day capacity after the observed day 
       minuteRemainingCredits: 0,
     }),
   ).toMatchObject({
-    status: "ready_for_separate_admission",
-    total_pages_required: 9,
-    remaining_pages_after_observed_page: 8,
-    minimum_trading_days_from_observed_page: 1,
-    minimum_request_minutes_for_current_day: 0,
+    status: "reference_estimate_available",
+    page_collection_pages_required: 9,
+    page_collection_credits_required: 9,
+    minimum_quota_days_for_page_collection: 1,
+    minimum_request_minutes_for_observed_day_page_collection: 0,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
+    snapshot_coherence_status: "not_proven",
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
   });
 });
 
@@ -127,10 +138,32 @@ test("capacity plan accounts for the observed minute balance", () => {
       minuteRemainingCredits: 7,
     }),
   ).toMatchObject({
-    status: "ready_for_separate_admission",
-    remaining_pages_after_observed_page: 8,
-    minimum_trading_days_from_observed_page: 1,
-    minimum_request_minutes_for_current_day: 2,
+    status: "reference_estimate_available",
+    page_collection_pages_required: 9,
+    minimum_quota_days_for_page_collection: 2,
+    minimum_request_minutes_for_observed_day_page_collection: 2,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
+    snapshot_coherence_status: "not_proven",
+    snapshot_coherence_reason_codes: ["source_snapshot_coherence_not_observed"],
+  });
+});
+
+test("even a one-page catalog needs a new collection page", () => {
+  expect(
+    buildBasicFreeCatalogCollectionPlan({
+      ...readyPlanInput(),
+      providerCatalogCount: 8,
+    }),
+  ).toMatchObject({
+    status: "reference_estimate_available",
+    fresh_snapshot_required: true,
+    reference_page_reusable_for_collection: false,
+    page_collection_pages_required: 1,
+    page_collection_credits_required: 1,
+    minimum_quota_days_for_page_collection: 1,
+    same_quota_day_page_collection_feasible: true,
+    page_collection_must_span_quota_days: false,
   });
 });
 
@@ -193,15 +226,34 @@ test("capacity plan fails closed when the observed-page evidence cannot support 
   }
 });
 
+test("a capability probe cannot become a catalog-collection plan", () => {
+  expect(
+    buildBasicFreeCatalogCollectionPlan({
+      ...readyPlanInput(),
+      referenceMode: "capability_probe",
+      observedRecordCount: 100,
+    }),
+  ).toMatchObject({
+    status: "unavailable",
+    execution_authority: "not_admitted",
+    discovery_feed_allowed: false,
+    reason_codes: ["catalog_capability_probe_not_collection_admitted"],
+  });
+});
+
 test("validated Basic Free readback exposes capacity math without turning it into a discovery feed", () => {
   expect(basicFreeDiscoveryReadbackFromUnknown(observedSummary())).toMatchObject({
     status: "available",
     catalog_collection_plan: {
-      status: "ready_for_separate_admission",
+      status: "reference_estimate_available",
       execution_authority: "not_admitted",
       discovery_feed_allowed: false,
-      total_pages_required: 801,
-      remaining_pages_after_observed_page: 800,
+      fresh_snapshot_required: true,
+      reference_page_reusable_for_collection: false,
+      page_collection_pages_required: 801,
+      page_collection_credits_required: 801,
+      page_collection_must_span_quota_days: true,
+      snapshot_coherence_status: "not_proven",
     },
   });
 

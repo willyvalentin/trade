@@ -6,6 +6,7 @@ import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-obser
 export type RealRecommendationOutputReadinessStatus =
   | "ready_for_real_data_observation"
   | "ready_with_warnings"
+  | "no_trade_valid"
   | "blocked_by_demo_data"
   | "blocked_by_missing_market_data"
   | "blocked_by_missing_required_fields"
@@ -348,6 +349,7 @@ function buildStatus({
   marketCoverage,
   dataAgeMinutes,
   windowStatus,
+  scanStatus,
 }: {
   blockers: RealRecommendationOutputReadinessBlocker[];
   warnings: RealRecommendationOutputReadinessWarning[];
@@ -356,6 +358,7 @@ function buildStatus({
   marketCoverage: number;
   dataAgeMinutes: number | null;
   windowStatus: string;
+  scanStatus: ScanPipelineObservabilitySummary["status"];
 }): RealRecommendationOutputReadinessStatus {
   const blockerIds = new Set(blockers.map((item) => item.blocker_id));
 
@@ -363,7 +366,13 @@ function buildStatus({
     return "blocked_by_demo_data";
   }
 
-  if (blockerIds.has("no_visible_recommendations") || windowStatus === "below_target") {
+  if (visibleCount === 0) {
+    return windowStatus === "no_recommendations" && scanStatus === "healthy"
+      ? "no_trade_valid"
+      : "unknown";
+  }
+
+  if (windowStatus === "below_target") {
     return "blocked_by_generation_gap";
   }
 
@@ -402,6 +411,10 @@ function summaryForStatus(status: RealRecommendationOutputReadinessStatus) {
     return "Ture can start observation-only real-data recommendation logging, but the listed warnings should be watched.";
   }
 
+  if (status === "no_trade_valid") {
+    return "The current scan completed cleanly but found no trade-ready candidates; no_trade is the correct result.";
+  }
+
   if (status === "blocked_by_demo_data") {
     return "Demo or preview recommendations are still mixed into the visible recommendation flow.";
   }
@@ -419,7 +432,7 @@ function summaryForStatus(status: RealRecommendationOutputReadinessStatus) {
   }
 
   if (status === "blocked_by_generation_gap") {
-    return "The current pipeline is not yet producing enough recommendations for the 6-10 per-window learning target.";
+    return "The current pipeline has no trustworthy current result; review scan completeness and data quality before relying on it.";
   }
 
   if (status === "needs_review") {
@@ -462,10 +475,10 @@ export function buildRealRecommendationOutputReadinessSummary(
   const dataAgeMinutes = input.scan_observability.run_context.data_age_minutes;
 
   if (visibleCount === 0) {
-    blockers.push(
-      blocker(
-        "no_visible_recommendations",
-        "No visible recommendations are available for the current window.",
+    warnings.push(
+      warning(
+        "no_trade_current_window",
+        "No trade-ready recommendations are visible for the current window. This is not a publication shortfall.",
         "window_target",
       ),
     );
@@ -481,7 +494,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (requiredCoverage < 85) {
+  if (visibleCount > 0 && requiredCoverage < 85) {
     blockers.push(
       blocker(
         "missing_required_fields",
@@ -491,7 +504,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (marketCoverage < 50) {
+  if (visibleCount > 0 && marketCoverage < 50) {
     blockers.push(
       blocker(
         "missing_market_data",
@@ -514,21 +527,11 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (input.day_trade_window_target.status === "below_target") {
-    warnings.push(
-      warning(
-        "below_window_target",
-        "Current output is below the 6-10 recommendation target for this day trade window.",
-        "window_target",
-      ),
-    );
-  }
-
   if (input.day_trade_window_target.status === "above_target") {
     warnings.push(
       warning(
-        "above_window_target",
-        "Current output is above the 6-10 recommendation target; avoid forcing weak trades.",
+        "publication_cap_exceeded",
+        "Current output exceeds the selective three-candidate publication cap.",
         "window_target",
       ),
     );
@@ -576,7 +579,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (marketCoverage < 100) {
+  if (visibleCount > 0 && marketCoverage < 100) {
     gaps.push(
       gap(
         "partial_market_data_coverage",
@@ -588,19 +591,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (currentWindow.total < input.day_trade_window_target.ideal_min) {
-    gaps.push(
-      gap(
-        "below_window_output_target",
-        "Window output target",
-        "warning",
-        `Current window has ${currentWindow.total} recommendations; target is ${input.day_trade_window_target.ideal_min}-${input.day_trade_window_target.ideal_max}.`,
-        "window_target",
-      ),
-    );
-  }
-
-  if (currentWindow.strong === 0) {
+  if (currentWindow.total > 0 && currentWindow.strong === 0) {
     gaps.push(
       gap(
         "no_strong_current_window_candidates",
@@ -620,7 +611,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (marketCoverage < 100) {
+  if (visibleCount > 0 && marketCoverage < 100) {
     providerScannerGaps.push("No complete quote/range/volume/timestamp coverage.");
   }
 
@@ -676,15 +667,17 @@ export function buildRealRecommendationOutputReadinessSummary(
     }),
     check({
       check_id: "window_output_target",
-      label: "6-10 per window target",
+      label: "Selective publication",
       status:
-        input.day_trade_window_target.status === "within_target" ||
         input.day_trade_window_target.status === "above_target"
-          ? "pass"
-          : input.day_trade_window_target.status === "below_target"
-            ? "warning"
-            : "unknown",
-      message: `${currentWindow.total} recommendations in current window; ${currentWindow.strong} strong, ${currentWindow.valid} valid, ${currentWindow.experimental} experimental.`,
+          ? "warning"
+          : input.day_trade_window_target.status === "unknown"
+            ? "unknown"
+            : "pass",
+      message:
+        currentWindow.total === 0
+          ? "No trade-ready candidates in the current window; no_trade is valid when scan quality is healthy."
+          : `${currentWindow.total} of at most ${input.day_trade_window_target.ideal_max} published candidates; ${currentWindow.strong} strong, ${currentWindow.valid} valid, ${currentWindow.experimental} experimental.`,
       source: "window_target",
     }),
     check({
@@ -720,6 +713,7 @@ export function buildRealRecommendationOutputReadinessSummary(
     marketCoverage,
     dataAgeMinutes,
     windowStatus: input.day_trade_window_target.status,
+    scanStatus: input.scan_observability.status,
   });
   const score = Math.max(
     0,
@@ -730,13 +724,14 @@ export function buildRealRecommendationOutputReadinessSummary(
         marketCoverage,
         learningLoopCoverage,
         percent(realSourceCount, visibleCount),
-        input.day_trade_window_target.status === "within_target" ? 100 : 60,
+        input.day_trade_window_target.status === "above_target" ? 60 : 100,
       ]) - blockers.length * 12,
     ),
   );
   const observationReady =
     status === "ready_for_real_data_observation" ||
-    status === "ready_with_warnings";
+    status === "ready_with_warnings" ||
+    status === "no_trade_valid";
   const nextActions: RealRecommendationOutputReadinessNextAction[] = [];
 
   if (demoCount > 0) {
@@ -772,13 +767,13 @@ export function buildRealRecommendationOutputReadinessSummary(
     );
   }
 
-  if (currentWindow.total < input.day_trade_window_target.ideal_min) {
+  if (currentWindow.total > input.day_trade_window_target.ideal_max) {
     nextActions.push(
       action(
-        "increase_observable_window_output",
+        "enforce_selective_publication_cap",
         "medium",
-        "Reach the 6-10 window target without forcing trades",
-        "Improve scanner/provider coverage and candidate ranking metadata before increasing generated output.",
+        "Review publication-cap enforcement",
+        "More than three candidates are visible; verify that the selective publication boundary was preserved.",
       ),
     );
   }

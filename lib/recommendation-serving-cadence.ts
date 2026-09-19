@@ -145,7 +145,7 @@ export function buildRecommendationServingCadenceSummary(
   const visibleRecommendations = input.visibleRecommendations ?? [];
   const visibleCount = visibleRecommendations.length;
   const rankingSelectedCount = input.ranking?.selected_count ?? null;
-  const batchTarget = getBatchTarget(servingWindow, input.dailyTargets);
+  const batchTarget = getBatchTarget();
   const latestPublishedAt = latestRecommendationCreatedAt(visibleRecommendations);
   const ageSummary = getVisibleRecommendationAgeSummary(
     visibleRecommendations,
@@ -157,7 +157,6 @@ export function buildRecommendationServingCadenceSummary(
     visibleCount === 0 &&
     servingWindowIsActive(servingWindow) &&
     (input.ranking?.target_status === "empty" ||
-      input.ranking?.target_status === "below_target" ||
       (rankingSelectedCount ?? 0) === 0);
   const batchStatus = determineBatchStatus({
     servingWindow,
@@ -268,22 +267,11 @@ function servingWindowIsActive(
   );
 }
 
-function getBatchTarget(
-  window: RecommendationBatchWindow,
-  dailyTargets?: DailyRecommendationTradeTargetsSummary | null,
-) {
-  if (window === "midday") {
-    return { min: 3, max: 8 };
-  }
-
-  if (window === "morning" || window === "power_hour") {
-    return {
-      min: dailyTargets?.per_window_target_min ?? 6,
-      max: dailyTargets?.per_window_target_max ?? 10,
-    };
-  }
-
-  return { min: 0, max: 0 };
+function getBatchTarget() {
+  // This is a publication cap, not an output quota. A clean no-trade is
+  // valid, while a maximum of three independently qualified candidates keeps
+  // the visible decision set reviewable.
+  return { min: 0, max: 3 };
 }
 
 function determineFreshnessStatus(
@@ -330,7 +318,7 @@ function determineServingDecision(input: {
   if (input.freshnessStatus === "expired") return "expire_stale_recommendations";
 
   if (input.visibleCount === 0) {
-    if ((input.rankingSelectedCount ?? 0) >= input.batchTarget.min) {
+    if ((input.rankingSelectedCount ?? 0) > 0) {
       return "publish_official_batch";
     }
 
@@ -429,14 +417,13 @@ function buildWarnings(input: {
 
   if (
     servingWindowIsActive(input.servingWindow) &&
-    input.visibleCount > 0 &&
-    input.visibleCount < input.batchTarget.min
+    input.visibleCount > input.batchTarget.max
   ) {
     warnings.push(
       warning(
-        "official_batch_below_target",
-        "info",
-        "Visible official batch is below the target range; keep quality ahead of count.",
+        "official_batch_exceeds_publication_cap",
+        "warning",
+        "Visible official batch exceeds the selective three-candidate publication cap.",
       ),
     );
   }
@@ -459,13 +446,13 @@ function buildWarnings(input: {
   if (
     servingWindowIsActive(input.servingWindow) &&
     input.visibleCount === 0 &&
-    (input.rankingSelectedCount ?? 0) >= input.batchTarget.min
+    (input.rankingSelectedCount ?? 0) > 0
   ) {
     warnings.push(
       warning(
         "batch_ready_to_publish",
         "info",
-        "Ranking indicates enough candidates for an official batch, subject to existing generation flow.",
+        "Ranking contains one or more trade-ready candidates for a selective official batch, subject to existing generation flow.",
       ),
     );
   }

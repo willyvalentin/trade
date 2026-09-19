@@ -52,6 +52,15 @@ monitoring and kill-switch controls. An AI model never has a direct broker path.
 8. **Quality is demonstrated, not asserted.** Recommendation quality is measured
    against predeclared, versioned criteria by setup and market regime. A high
    score, a single trade or a profitable day is never sufficient evidence.
+9. **Cloud-native operation, no workstation dependency.** Scheduled collection,
+   outcome evaluation, historical replay and shadow assessment run from
+   deployed, server-owned compute with durable storage. A user workstation may
+   inspect or approve work, but is never a required runtime dependency.
+10. **Historical evidence is research, not live proof.** Point-in-time
+   historical replays may generate hypotheses and eliminate weak policies. They
+   remain separate from forward-live evidence, preserve source/version/time
+   lineage, and cannot by themselves promote a ranking, confidence or
+   publication-policy change.
 
 ### Delivery and environment model
 
@@ -167,6 +176,22 @@ adapter needs its own documented entitlement, credit/frequency budget,
 coverage denominator, persisted receipt and current-market readback before it
 can supply discovery.
 
+**IF-2b Basic Free dynamic-coverage boundary.** A finalized `/stocks` receipt
+can establish only the historical catalog denominator; it cannot make a Basic
+Free profile market-wide dynamic discovery. Before any collector is admitted,
+the product must retain a versioned capacity disclosure that derives the
+one-credit-per-symbol lower bound from that receipt and its declared daily
+budget, marks the Pro-only market-movers path unavailable on the configured
+Basic Free profile, and hard-codes `discovery_feed_allowed = false`. This
+disclosure must be pure and historical: it cannot read a current quote, infer
+entitlement from configuration, request a page, choose a symbol, alter ranking
+or publication, or authorize execution. A larger catalog page size is not
+proven merely because the bounded eight-record observation succeeded; the
+[provider documentation](https://twelvedata.com/docs) exposes `outputsize` but
+does not itself prove a Basic-Free-safe page-size ceiling or storage envelope.
+A future collection design needs separate provider-capability evidence and a
+bounded, explicitly authorized rollout.
+
 #### IF-3 — contextual quality engine
 
 Promote the existing shadow ideas only after their inputs are live and
@@ -204,6 +229,24 @@ outcomes by setup, ticker class, sector, market regime and time window, with
 coverage and concentration visible for every reported aggregate. Rejected and
 `no_trade` samples may not be silently excluded from the evaluation population.
 
+**IF-4a — after-market outcome and historical-replay workflow.** During the
+market session, Ture captures immutable decision-time evidence. After the
+market, server-owned jobs complete due outcomes, assess outcome coverage and
+missingness, validate data integrity, and run bounded historical replays of
+explicitly versioned hypotheses.
+
+Historical replay inputs must preserve the universe available at the historical
+decision time, point-in-time source timestamps, corporate-action treatment and
+all policy versions. They must reject lookahead, survivorship-biased, stale,
+revised or incomplete input. Live-forward samples and historical/replay samples
+remain separately identifiable and cannot be silently pooled.
+
+Each completed job emits a durable, readable receipt: input scope, source and
+policy versions, coverage, freshness, costs, failures, result disposition and
+whether the output is eligible only for research or for later shadow comparison.
+No after-market job may alter a live ranking, publication policy,
+recommendation, position or broker state.
+
 #### IF-5 — shadow learning and promotion
 
 Test one hypothesis at a time against a held-out sample: for example, whether
@@ -211,6 +254,13 @@ sector-relative strength improves precision among the top-ranked candidates.
 Compare precision@K, expectancy in R, calibration, coverage, provider cost and
 reliability. A winning version runs in shadow first; promotion is one versioned,
 reversible policy change with continuous post-promotion monitoring.
+
+Historical replay can reject a weak hypothesis and prioritize a promising one,
+but it cannot prove a policy improvement. Promotion requires both a frozen,
+held-out historical comparison and subsequent forward-live shadow evidence over
+a declared comparable sample. A promoted policy must outperform the frozen
+baseline on the declared quality, coverage, reliability and cost measures, with
+a versioned rollback rule and continuous post-promotion monitoring.
 
 ### Recommendation quality and promotion standard
 

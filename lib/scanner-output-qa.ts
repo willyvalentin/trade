@@ -847,7 +847,7 @@ function buildSummaryText(status: ScannerOutputQaStatus) {
   }
 
   if (status === "too_thin") {
-    return "Scanner output is real enough to inspect, but the candidate set is thinner than the 6-10 learning target.";
+    return "Scanner output is real enough to inspect, but coverage is limited. This is not a publication quota failure.";
   }
 
   if (status === "too_noisy") {
