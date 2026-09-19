@@ -10,6 +10,26 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Market-window delivery map, 2026-09-19:** The master roadmap now assigns
+the active and planned intelligence work a `CLOSED`, `OPEN`, `SPLIT` or `PARKED`
+delivery tag. `CLOSED` covers implementation, deterministic tests, durable
+evidence, after-market outcome/replay work and weekend/holiday research that
+cannot be misrepresented as current data. `OPEN` is reserved for
+calendar-confirmed regular-session evidence: fresh provider entitlement and
+coverage receipts, current-market admission, immutable live decisions and
+forward-live shadow samples. `SPLIT` requires both; closed implementation
+cannot close its later live proof. `PARKED` retains execution work behind IF-5
+and does not make it an off-market task.
+
+This is an operational selection aid, not a second queue or a new authority.
+IF-2 remains the one active delivery and its separately authorized Basic Free
+capability probe remains the next market-window return. While that exact
+acceptance is waiting only on a supported session, select at most one
+governance-compliant `CLOSED` supporting vertical slice, record it here, and
+return to IF-2 at the next usable market window. Provider requests,
+migrations, production changes and broker effects retain their own explicit
+authority requirements.
+
 **Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
 active IF-2 acceptance remains the separately authorized Monday Basic Free
 capability probe; no additional provider action is permitted before then. This

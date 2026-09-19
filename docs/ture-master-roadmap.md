@@ -91,6 +91,46 @@ historical evidence; it no longer determines the next engine slice.
 | EX-1 — execution preparation | A proven recommendation can become a correct, human-confirmed Avanza order package | Account/instrument binding, deterministic order admission, risk limits, durable intent, reconciliation and recovery |
 | EX-2 — controlled autonomous execution | Ture can submit and later close a narrowly scoped Avanza position automatically | Sustained engine evidence, explicit enablement, per-order and portfolio limits, kill switch, idempotency, audit, real-time monitoring, broker reconciliation and incident recovery |
 
+### Market-window delivery map
+
+The tags below classify work by the evidence it needs, not merely by when code
+can be written. They make normal development capacity available outside the
+regular US session without recasting fixture, replay or historical evidence as
+current-market proof.
+
+| Tag | Meaning | Boundary |
+| --- | --- | --- |
+| `CLOSED` | Can be implemented and verified locally, in CI, against durable evidence, or by an expressly authorized off-market research job. | It must not request current market data, publish a trade-ready candidate or represent an off-market result as current. |
+| `OPEN` | Its acceptance evidence needs an observed eligible regular US session, fresh provider response, current market date or a forward-live decision. | Run only in a calendar-confirmed session and within its declared provider, retry and time-band budget. |
+| `SPLIT` | Build and fail-closed verification are `CLOSED`; the final bounded live-admission proof is `OPEN`. | A passing closed phase never substitutes for the open-market acceptance evidence. |
+| `PARKED` | The work is technically market-independent but blocked by release order or a missing evidence gate. | It is not an off-market capacity task until its predecessor is accepted and the ledger selects it. |
+
+These tags do not create parallel product releases. The ledger still owns the
+single active delivery. When that delivery is genuinely waiting only for an
+`OPEN` observation, governance permits at most one separately selected
+`CLOSED` supporting vertical slice; it must return to the market-bound
+acceptance as soon as that session is available.
+
+| Roadmap work | `CLOSED` lane — build, test or research | `OPEN` lane — bounded evidence that must wait | Current guardrail |
+| --- | --- | --- | --- |
+| IF-0 / IF-1 foundation and decision-record maintenance | Schema/readback compatibility, immutable-envelope validation and fixture/contract regressions. | A normal scan only when acceptance claims current source/freshness facts rather than stored historical evidence. | Completed foundation evidence does not establish a new current-market observation. |
+| IF-2a Basic Free reference intake | Receipt/readback code, budget/backoff and partial-catalog containment tests. | A separately authorized normal scheduled catalog observation, live provider entitlement/credit receipt and current-environment readback. | The verified one-page receipt remains reference-only; no further request follows from it. |
+| IF-2b symbol master, coverage and relative-volume contracts | Symbol identity/pagination, coverage-denominator, volume-admission and UI/readback contracts; fail-closed local tests and migrations when separately approved. | An actual collector/provider adapter with observed entitlement, complete coverage receipt, fresh regular-session volume and current-market readback. | A partial catalog or historical disclosure cannot expand discovery. |
+| IF-2c paid-provider transition and data operations | Vendor-neutral provenance/cohort model, time-band budgets, backoff, receipt/UI and degradation tests. | Observed paid-source entitlement/feed scope and the declared forward-live shadow cohort. | No purchase, credential, provider request or public-data use is implied by the plan. |
+| IF-3 contextual inputs and explainable quality policy | Point-in-time admission contracts, ranking explanations, data-gap UI and provider-free/caller-payload tests. | Fresh synchronized benchmark, sector, relative-volume or catalyst observations before an input can affect ranking. | A live-adapter or ranking-policy change also needs a versioned baseline comparison. |
+| IF-4 measured learning and IF-4a outcomes/replay | Charter/baseline, durable receipts, outcome integrity, historical replay, coverage/missingness and readback work; after-session outcome evaluation is research-only. | Immutable decision-time capture and the forward-live samples needed to measure an actual policy. | Historical/replay and live-forward cohorts remain separate. |
+| IF-5 shadow learning and promotion | Held-out/walk-forward evaluators, policy-versioning, rollback and drift-monitor implementation against frozen evidence. | The declared comparable forward-live shadow window and post-promotion monitoring. | A historical win, one candidate or one market day cannot promote a policy. |
+| EX-1 / EX-2 execution | Deterministic Core design and safety-test preparation are market-independent in principle. | Any broker-facing order, reconciliation or real-time execution proof. | `PARKED` until IF-5 has sustained useful-quality evidence; no off-market exception opens execution work. |
+
+### Operating schedule by market state
+
+| Market state | Permitted high-value work | Never infer |
+| --- | --- | --- |
+| Regular US session (`OPEN`) | Highest-cadence admissible discovery/context observation, current-market admission, shortlist tracking and immutable decision capture. | That an API quota, partial response or a candidate count proves broad coverage or quality. |
+| Pre-market / after-hours | Separately labelled extended-hours observation and catalyst/context collection only when the relevant policy and entitlement allow it. | Regular-session liquidity, freshness, tradability or trade-ready status. |
+| After the regular session (`CLOSED`) | Due-outcome evaluation, source reconciliation, integrity checks and bounded historical/shadow replay. | A post-market result is a current recommendation or a policy promotion. |
+| Weekend, holiday or other non-trading interval (`CLOSED`) | Reference/event ingest where licensed, data-quality checks, feature preparation, historical evaluation, replay and the selected closed supporting slice. | A closed-market observation is current, fresh trade data. |
+
 ### Engine capability sequence
 
 #### IF-0 — foundation reconciliation
