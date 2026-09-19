@@ -21,6 +21,13 @@ import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ran
 import type { ScannerCandidate } from "@/lib/scanner";
 
 const DECIDED_AT = "2026-09-17T14:30:00.000Z";
+const DECISION_SOURCE_PROVENANCE = {
+  data_timestamp: "2026-09-17T14:29:00.000Z",
+  provider_source: "twelve_data",
+  provider_version: "twelve_data_test_contract_v1",
+  market_data_adapter_version: "automation_scan_market_data_adapter_v1",
+  build_marker: "test-build-marker-v1",
+};
 
 function candidate(ticker = "TST"): ScannerCandidate & { local_score: number } {
   return {
@@ -275,6 +282,7 @@ function snapshotFor(
     side: "long",
     confidence: 82,
     payload: {
+      ...DECISION_SOURCE_PROVENANCE,
       confidence_label: "high",
     },
   });
@@ -314,6 +322,7 @@ function researchSnapshotFor({
     side: "long",
     confidence: 82,
     payload: {
+      ...DECISION_SOURCE_PROVENANCE,
       visibility_status: "research_only",
       learning_acceleration_sample: true,
       research_only: true,
@@ -460,6 +469,79 @@ test.describe("recommendation learning baseline readiness", () => {
     expect(readiness.status).toBe("not_ready");
     expect(readiness.blockers).toContain(
       "insufficient_visible_primary_outcomes_for_baseline_freeze",
+    );
+  });
+
+  test("excludes a linked outcome from baseline learning when its upstream provider version is absent", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const missingProviderVersionSnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        provider_version: null,
+      },
+    };
+    const outcome = completeOutcome(missingProviderVersionSnapshot);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [missingProviderVersionSnapshot],
+      outcomes: [outcome],
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [run],
+      snapshots: [missingProviderVersionSnapshot],
+      outcomes: [outcome],
+    });
+    const plans = buildRecommendationLearningEvaluationPlans({
+      segmentation,
+      scanRuns: [run],
+      snapshots: [missingProviderVersionSnapshot],
+      outcomes: [outcome],
+    });
+
+    expect(readiness.visible_outcomes).toMatchObject({
+      exact_snapshot_link_count: 0,
+      primary_outcome_count: 0,
+      incomplete_or_conflicting_outcome_count: 1,
+    });
+    expect(readiness.decision_time_source_provenance).toMatchObject({
+      assessed_snapshot_count: 1,
+      admissible_snapshot_count: 0,
+      incomplete_snapshot_count: 1,
+      blocker_counts: { provider_version_missing: 1 },
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_decision_source_provenance_incomplete",
+    );
+    expect(plans.plans).toHaveLength(1);
+    expect(plans.plans[0]?.blockers).toContain(
+      "visible_primary_outcome_decision_source_provenance_incomplete",
+    );
+  });
+
+  test("excludes a snapshot whose source timestamp is after its decision", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const lookaheadSnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        data_timestamp: "2026-09-17T14:31:00.000Z",
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [lookaheadSnapshot],
+      outcomes: [completeOutcome(lookaheadSnapshot)],
+    });
+
+    expect(readiness.visible_outcomes.primary_outcome_count).toBe(0);
+    expect(readiness.decision_time_source_provenance.blocker_counts).toMatchObject({
+      source_timestamp_after_decision: 1,
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_decision_source_provenance_incomplete",
     );
   });
 

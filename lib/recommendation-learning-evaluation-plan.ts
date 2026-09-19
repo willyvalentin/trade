@@ -26,6 +26,7 @@ import {
   isSupportedResearchSnapshotCandidateDecisionLinkageVersion,
   type ResearchSnapshotCandidateDecisionDisposition,
 } from "@/lib/research-snapshot-candidate-linkage";
+import { recommendationDecisionSourceProvenanceFromSnapshot } from "@/lib/recommendation-decision-source-provenance";
 
 export const RECOMMENDATION_LEARNING_EVALUATION_PLAN_VERSION =
   "recommendation_learning_evaluation_plan_v1" as const;
@@ -348,6 +349,14 @@ function samplesForSegment({
           blockers.add("visible_primary_outcome_identity_incomplete");
           continue;
         }
+        if (
+          recommendationDecisionSourceProvenanceFromSnapshot(
+            linkedSnapshots[0]!,
+          ).status !== "admissible"
+        ) {
+          blockers.add("visible_primary_outcome_decision_source_provenance_incomplete");
+          continue;
+        }
         const primary = completePrimaryOutcome({
           snapshot: linkedSnapshots[0]!,
           outcomes,
@@ -380,6 +389,15 @@ function samplesForSegment({
       });
       if (!snapshot) {
         blockers.add("counterfactual_primary_outcome_identity_incomplete");
+        continue;
+      }
+      if (
+        recommendationDecisionSourceProvenanceFromSnapshot(snapshot).status !==
+        "admissible"
+      ) {
+        blockers.add(
+          "counterfactual_primary_outcome_decision_source_provenance_incomplete",
+        );
         continue;
       }
       const primary = completePrimaryOutcome({
@@ -562,6 +580,7 @@ function evaluationPlanForSegment({
     notes: [
       "Read-only evaluation plan: it neither persists a freeze nor changes ranking, confidence, publication, provider usage, or execution.",
       "Each metric uses at most one complete, decision-bound canonical primary outcome per exact candidate snapshot; visible, research, rejected, and no-trade evidence remain distinct.",
+      "A metric excludes a snapshot whose decision-time input provenance is incomplete, including absent source/provider/version/adapter/build metadata or a source timestamp after the decision.",
       "Horizon R uses current_r only after an observed entry trigger. MFE/MAE use only the versioned entry-bound receipt, which excludes the entry-trigger candle and refuses an intrabar-ambiguous terminal candle; legacy best_r and worst_r remain excluded.",
       "Confidence is ordinal and excluded from calibration. An explicit durable freeze and held-out comparison remain required before IF-5 can consider a policy change.",
     ],

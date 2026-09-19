@@ -38485,6 +38485,7 @@ function RecommendationLearningBaselineReadinessPanel({
   const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
+  const sourceProvenance = readiness.decision_time_source_provenance;
   const counterfactual = readiness.counterfactual_coverage;
   const eligibleSegmentCount = segmentation.segments.filter(
     (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
@@ -38518,7 +38519,7 @@ function RecommendationLearningBaselineReadinessPanel({
         />
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
           label="Traceable Decisions"
           value={`${readiness.decision_records.attributable_count}/${readiness.decision_records.considered_count}`}
@@ -38534,6 +38535,10 @@ function RecommendationLearningBaselineReadinessPanel({
         <SummaryCard
           label="Policy Attribution"
           value={policy.status}
+        />
+        <SummaryCard
+          label="Decision-time Inputs"
+          value={`${sourceProvenance.admissible_snapshot_count}/${sourceProvenance.assessed_snapshot_count}`}
         />
       </div>
 
@@ -38569,6 +38574,19 @@ function RecommendationLearningBaselineReadinessPanel({
             {" "}{visibleOutcomes.ambiguous_snapshot_link_count}; pre-decision
             outcome rows {visibleOutcomes.pre_decision_outcome_count}; incomplete
             or conflicting primary outcomes {visibleOutcomes.incomplete_or_conflicting_outcome_count}.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision-time source provenance
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Admissible {sourceProvenance.admissible_snapshot_count}/
+            {sourceProvenance.assessed_snapshot_count}; incomplete {sourceProvenance.incomplete_snapshot_count}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Future source time {sourceProvenance.blocker_counts.source_timestamp_after_decision}; missing source timestamp {sourceProvenance.blocker_counts.source_timestamp_missing_or_invalid}; missing provider version {sourceProvenance.blocker_counts.provider_version_missing}. Incomplete rows cannot enter a learning baseline.
           </p>
         </div>
 

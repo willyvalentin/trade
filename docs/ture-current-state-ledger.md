@@ -215,7 +215,7 @@ with `scheduled_outcome_evaluation_attempts_market_date_check`, and retained
 only the valid row. The container was removed. No provider call, candidate,
 publication or broker action occurred.
 
-**Decision-time source provenance, locally verified, 2026-09-19:** The next
+**Merged and production-deploy verified decision-time source provenance, 2026-09-19:** The next
 backward-compatible receipt increment retains a versioned
 `scheduled_outcome_evaluation_source_provenance_v1` payload inside the existing
 durable JSON receipt. For each eligible snapshot it accounts for the decision
@@ -237,6 +237,12 @@ decision-record suite, targeted ESLint, strict TypeScript and the Webpack
 production build passed locally. The unauthenticated local app reached only the
 login boundary, so the authenticated Engine Insights card is source- and
 build-verified but not yet behavior-verified in an authenticated environment.
+PR [#553](https://github.com/willyvalentin/trade/pull/553) merged as
+`9a366404ee316207d1392fa0a61a95bb8547fc94`; all protected checks in CI
+`35444913891` passed, and Netlify production deploy
+`6aae90bb188fc00008d5b0d4` is ready on that exact revision. That deploy
+proves the delivered source revision, not an authenticated Engine Insights
+readback or an improvement in recommendation quality.
 
 **Remaining IF-4a evidence gap:** the merged receipt route and this local
 provenance increment improve traceability for the existing evaluator, but do
@@ -245,6 +251,31 @@ validity, calibration or an improved policy. No normal scheduled job has yet
 generated an environment receipt with the new provenance. Monday's active
 market-bound return remains the separately authorized IF-2 Basic Free
 capability probe, not an IF-4 quality claim.
+
+**Decision-time source-provenance baseline admission, locally verified,
+2026-09-19:** Baseline Readiness and every fixed baseline-evaluation-plan
+sample now require the versioned
+`recommendation_decision_source_provenance_v1` gate before a linked snapshot
+can contribute a primary outcome. The gate rejects a missing/invalid decision
+or source timestamp, a source timestamp after the decision, and missing
+provider source/version, Ture adapter version or source build marker. Engine
+Insights exposes admitted versus assessed snapshots and the concrete source
+blocker counts. This makes the existing raw upstream provider-version gap
+operationally meaningful: it is retained and displayed, but cannot be counted
+as baseline evidence until a real version identifier is captured. The current
+route is not relabelled complete and no version is inferred from a provider
+plan or Ture adapter.
+
+The local user-visible behavior is that Baseline Readiness says exactly how many
+snapshots are admissible and refuses its freeze path when input provenance is
+incomplete; the same gate independently prevents the fixed evaluation plan
+from using that row. Forty-six focused receipt, baseline-freeze, baseline-
+readiness and candidate-decision regressions passed, alongside targeted ESLint,
+strict TypeScript and the Webpack production build. No provider request,
+migration, configuration change, publication, ranking/confidence change or
+broker action occurred. The authenticated production panel remains unverified
+at the login boundary, and this integrity improvement is not evidence of a
+better recommendation policy.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as

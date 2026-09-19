@@ -17,6 +17,13 @@ import {
   isSupportedResearchSnapshotCandidateDecisionLinkageVersion,
   type ResearchSnapshotCandidateDecisionDisposition,
 } from "@/lib/research-snapshot-candidate-linkage";
+import {
+  RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
+  recommendationDecisionSourceProvenanceBlockers,
+  recommendationDecisionSourceProvenanceFromSnapshot,
+  type RecommendationDecisionSourceProvenance,
+  type RecommendationDecisionSourceProvenanceBlocker,
+} from "@/lib/recommendation-decision-source-provenance";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v1" as const;
@@ -66,6 +73,13 @@ export type RecommendationLearningBaselineReadiness = {
     distinct_version_bundle_count: number;
     distinct_publish_policy_count: number;
     status: "complete" | "incomplete" | "mixed" | "unavailable";
+  };
+  decision_time_source_provenance: {
+    contract_version: typeof RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION;
+    assessed_snapshot_count: number;
+    admissible_snapshot_count: number;
+    incomplete_snapshot_count: number;
+    blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number>;
   };
   counterfactual_coverage: {
     research_candidate_outcomes_required: number;
@@ -268,6 +282,25 @@ export function buildRecommendationLearningBaselineReadiness({
   const versionBundleKeys = new Set<string>();
   const publishPolicyVersions = new Set<string>();
   const blockers = new Set<string>();
+  const sourceProvenanceBySnapshotId = new Map<
+    string,
+    RecommendationDecisionSourceProvenance
+  >();
+  const sourceProvenanceBlockerCounts = Object.fromEntries(
+    recommendationDecisionSourceProvenanceBlockers.map((blocker) => [blocker, 0]),
+  ) as Record<RecommendationDecisionSourceProvenanceBlocker, number>;
+
+  function sourceProvenanceForSnapshot(snapshot: RecommendationSnapshot) {
+    const existing = sourceProvenanceBySnapshotId.get(snapshot.id);
+    if (existing) return existing;
+
+    const provenance = recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
+    sourceProvenanceBySnapshotId.set(snapshot.id, provenance);
+    for (const blocker of provenance.blockers) {
+      sourceProvenanceBlockerCounts[blocker] += 1;
+    }
+    return provenance;
+  }
 
   for (const scanRun of scanRuns) {
     const record = candidateDecisionRecordFromScanRun(scanRun);
@@ -342,6 +375,12 @@ export function buildRecommendationLearningBaselineReadiness({
       }
 
       const snapshot = linkedSnapshots[0];
+      const sourceProvenance = sourceProvenanceForSnapshot(snapshot);
+      if (sourceProvenance.status !== "admissible") {
+        incompleteOrConflictingOutcomeCount += 1;
+        blockers.add("published_candidate_decision_source_provenance_incomplete");
+        continue;
+      }
       const outcomesWithSameFingerprint = outcomes.filter(
         (outcome) => outcome.snapshot_fingerprint === snapshot.snapshot_fingerprint,
       );
@@ -437,6 +476,12 @@ export function buildRecommendationLearningBaselineReadiness({
         snapshots,
       });
       if (!snapshot) continue;
+
+      const sourceProvenance = sourceProvenanceForSnapshot(snapshot);
+      if (sourceProvenance.status !== "admissible") {
+        blockers.add("counterfactual_candidate_decision_source_provenance_incomplete");
+        continue;
+      }
 
       const { hasRelationConflict, linked } = exactLinkedOutcomes({
         snapshot,
@@ -589,6 +634,17 @@ export function buildRecommendationLearningBaselineReadiness({
       distinct_publish_policy_count: publishPolicyVersions.size,
       status: policyAttributionStatus,
     },
+    decision_time_source_provenance: {
+      contract_version: RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
+      assessed_snapshot_count: sourceProvenanceBySnapshotId.size,
+      admissible_snapshot_count: Array.from(
+        sourceProvenanceBySnapshotId.values(),
+      ).filter((provenance) => provenance.status === "admissible").length,
+      incomplete_snapshot_count: Array.from(
+        sourceProvenanceBySnapshotId.values(),
+      ).filter((provenance) => provenance.status === "incomplete").length,
+      blocker_counts: sourceProvenanceBlockerCounts,
+    },
     counterfactual_coverage: {
       research_candidate_outcomes_required: researchCandidateCount,
       research_candidate_outcomes_collected: researchCandidateOutcomesCollected,
@@ -606,6 +662,7 @@ export function buildRecommendationLearningBaselineReadiness({
     notes: [
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
+      "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks the provider version, Ture adapter version, or source build marker. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
       "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],
