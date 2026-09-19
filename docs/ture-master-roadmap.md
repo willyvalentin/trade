@@ -61,6 +61,9 @@ monitoring and kill-switch controls. An AI model never has a direct broker path.
    remain separate from forward-live evidence, preserve source/version/time
    lineage, and cannot by themselves promote a ranking, confidence or
    publication-policy change.
+11. **Capacity serves evidence, not consumption.** Provider capacity is used
+    for the highest-value admissible observations with reserved retry and
+    degradation headroom. Spending a quota is never a product outcome.
 
 ### Delivery and environment model
 
@@ -81,7 +84,7 @@ historical evidence; it no longer determines the next engine slice.
 | --- | --- | --- |
 | IF-0 — foundation reconciliation | One canonical main line can observe the whole existing scan flow safely and report provider limits precisely | Selected staging safeguards are ported with focused tests; no staging-only branch is required for ordinary product development |
 | IF-1 — candidate decision record | Ture can explain every scan: what was considered, what was rejected and why no strong candidate was published | Immutable scan/candidate identities, complete pre-truncation membership, structured reject/no-trade reasons, source/freshness/version metadata and readback in the app |
-| IF-2 — market-wide discovery | Ture can discover eligible movers beyond a static universe without exceeding provider capacity | Versioned universe policy, symbol coverage/readiness, dynamic mover and relative-volume intake, provider budget/coverage diagnostics and controlled backoff |
+| IF-2 — market-wide discovery | Ture can discover eligible movers beyond a static universe without exceeding provider capacity | Versioned universe policy, symbol coverage/readiness, dynamic mover and relative-volume intake, provider budget/coverage diagnostics, controlled backoff and a documented data-operations cadence |
 | IF-3 — contextual quality engine | Ture ranks candidates using market, sector and ticker context rather than isolated chart signals | Point-in-time SPY/QQQ/IWM, sector/industry relative strength and catalyst-presence snapshots; one published quality policy with explainable components |
 | IF-4 — measured learning dataset | Ture has the right evidence to know whether its selections were good | Complete visible, research, rejected and explicit no-trade samples; canonical outcomes, deduplication, outcome coverage, point-in-time replay and a frozen evaluation charter |
 | IF-5 — shadow learning and promotion | Ture improves a policy only when evidence shows it helps | Held-out and walk-forward comparison; quality, calibration, feasibility, cost and reliability measures; shadow winner, versioned rollback-capable promotion and post-promotion monitoring |
@@ -191,6 +194,60 @@ proven merely because the bounded eight-record observation succeeded; the
 does not itself prove a Basic-Free-safe page-size ceiling or storage envelope.
 A future collection design needs separate provider-capability evidence and a
 bounded, explicitly authorized rollout.
+
+**IF-2c — paid-provider transition and continuous data operations.** Twelve
+Data Basic remains the current development source and its reference-only
+receipt must never be represented as broad real-time coverage. When Ture is
+ready to begin owner-only forward-live collection for the learning dataset, the
+current preferred evaluation candidate is Massive (formerly Polygon) Stocks
+Advanced. That is a planning direction, not a purchase, configured credential,
+provider entitlement, runtime authorization or claim that a marketed plan will
+remain available on the same terms.
+
+The provider boundary stays vendor-neutral. Every admitted observation and
+derived feature must retain the provider, feed class, entitlement/profile,
+coverage scope, upstream and receipt timestamps, adapter/build versions,
+request cost and response-quality disposition. A source change creates a new
+explicitly labelled learning cohort and baseline; Twelve Data and a new source
+may be compared, but cannot be silently pooled for calibration, evaluation or
+promotion.
+
+Individual data plans are for owner-only/internal operation. Before Ture shows
+third parties a recommendation whose material market data is externally
+licensed, a separate business/display/redistribution decision must verify the
+exact vendor rights, exchange obligations, attribution, retention, derived-data
+and user-count terms. No individual-plan credential can become a public-product
+data authority by configuration alone.
+
+**IF-2c acceptance evidence.** Before a paid source affects discovery, a
+provider-specific adapter must prove its actual entitlement and feed scope from
+an observed response, retain versioned receipts and provider counters, enforce
+a time-band budget/backoff policy, and fail closed on partial, stale, delayed,
+ambiguous or unavailable data. It must then collect a declared comparable
+forward-live shadow cohort without changing ranking, confidence or publication.
+Only an IF-4 baseline that keeps the source cohorts separate may evaluate a
+later source-backed policy change. A plan price, vendor webpage, successful
+request or single candidate is not acceptance evidence.
+
+**Data-operations policy.** Ture is continuously operated from deployed,
+server-owned compute, but it must not mistake an open API quota for market
+information:
+
+- During the eligible regular US session, run the highest-cadence admissible
+  discovery, context and shortlisted-candidate observations.
+- Treat pre-market and after-hours as separately labelled extended-hours data
+  classes with their own freshness, liquidity, publication and provider rules.
+- After the session, finalize due outcomes, reconcile source quality and run
+  bounded historical or shadow replays. Those jobs are research-only unless a
+  separately approved policy promotion says otherwise.
+- During weekends, holidays and other non-trading intervals, process lawful
+  reference/event data, integrity checks, feature preparation and historical
+  evaluation. Never label an off-market observation as a current trade-ready
+  signal.
+- Allocate explicit budgets by time band and reserve capacity for retries,
+  reconnects and provider degradation. Every scheduled request must be
+  attributable; quota exhaustion, duplicate delivery or a provider fault must
+  fail closed rather than widen discovery or publish a candidate.
 
 #### IF-3 — contextual quality engine
 
