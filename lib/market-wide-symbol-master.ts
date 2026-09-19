@@ -1,5 +1,5 @@
 export const marketWideSymbolMasterPolicyVersion =
-  "us_equity_symbol_master_contract_v3" as const;
+  "us_equity_symbol_master_contract_v4" as const;
 
 export type MarketWideSymbolMasterStatus =
   | "complete"
@@ -45,6 +45,13 @@ export type MarketWideSymbolMasterInput = {
 export type MarketWideSymbolMasterPageInput = {
   page_number: unknown;
   provider_catalog_count: unknown;
+  /**
+   * A stable identity reported by the provider for the source snapshot that
+   * produced this page. A local fetch time, page number or derived hash is not
+   * a substitute: without one common provider identity, page lineage cannot
+   * prove that the catalog describes a single source snapshot.
+   */
+  provider_snapshot_id?: unknown;
   response: unknown;
 };
 
@@ -79,8 +86,16 @@ export type MarketWideSymbolMasterPageLineage = {
   contiguous_from_first_page: boolean;
 };
 
+export type MarketWideSymbolMasterSnapshotLineage = {
+  source: "page_responses" | "aggregate_response" | "unavailable";
+  observed_page_snapshot_count: number;
+  all_page_snapshot_ids_observed: boolean;
+  consistent_across_pages: boolean;
+  provider_snapshot_id: string | null;
+};
+
 export type MarketWideSymbolMasterSummary = {
-  summary_version: "3.0";
+  summary_version: "4.0";
   summary_kind: "market_wide_symbol_master";
   policy_version: typeof marketWideSymbolMasterPolicyVersion;
   provider: "twelve_data";
@@ -99,6 +114,7 @@ export type MarketWideSymbolMasterSummary = {
   rejected_by_reason: Record<MarketWideSymbolMasterRejectionReason, number>;
   pagination: MarketWideSymbolMasterPagination;
   page_lineage: MarketWideSymbolMasterPageLineage;
+  snapshot_lineage: MarketWideSymbolMasterSnapshotLineage;
   blockers: string[];
   gaps: string[];
 };
@@ -210,6 +226,7 @@ export function buildMarketWideSymbolMaster(
     records: sourceRecords,
     observedRecordCountMatchesDenominator,
     pageLineage: source.pageLineage,
+    snapshotLineage: source.snapshotLineage,
   });
   const status = collectionStatus({
     records: sourceRecords,
@@ -232,6 +249,17 @@ export function buildMarketWideSymbolMaster(
     blockers.push("catalog_page_denominator_inconsistent");
   } else if (!source.pageLineage.contiguous_from_first_page) {
     blockers.push("catalog_page_lineage_not_contiguous");
+  }
+  if (!source.snapshotLineage.all_page_snapshot_ids_observed) {
+    blockers.push("catalog_page_snapshot_identity_missing");
+    gaps.push(
+      "A complete symbol catalog requires a provider-reported snapshot identity on every raw page.",
+    );
+  } else if (!source.snapshotLineage.consistent_across_pages) {
+    blockers.push("catalog_page_snapshot_identity_inconsistent");
+    gaps.push(
+      "A complete symbol catalog requires every raw page to name the same provider-reported snapshot.",
+    );
   }
   if (providerCatalogCount === null) {
     blockers.push("catalog_coverage_denominator_missing");
@@ -265,7 +293,7 @@ export function buildMarketWideSymbolMaster(
 
   return {
     summary: {
-      summary_version: "3.0",
+      summary_version: "4.0",
       summary_kind: "market_wide_symbol_master",
       policy_version: marketWideSymbolMasterPolicyVersion,
       provider: input.provider,
@@ -286,6 +314,7 @@ export function buildMarketWideSymbolMaster(
       rejected_by_reason: rejectedByReason,
       pagination,
       page_lineage: source.pageLineage,
+      snapshot_lineage: source.snapshotLineage,
       blockers,
       gaps,
     },
@@ -316,6 +345,7 @@ function sourceRecordsWithPageLineage({
 }): {
   records: MarketWideSymbolMasterSourceRecord[] | null;
   pageLineage: MarketWideSymbolMasterPageLineage;
+  snapshotLineage: MarketWideSymbolMasterSnapshotLineage;
 } {
   if (pages === undefined || pages === null) {
     const records = responseRecords(aggregateResponse);
@@ -336,6 +366,9 @@ function sourceRecordsWithPageLineage({
         denominator_consistent: false,
         contiguous_from_first_page: false,
       },
+      snapshotLineage: unavailableSnapshotLineage(
+        records === null ? "unavailable" : "aggregate_response",
+      ),
     };
   }
 
@@ -350,13 +383,16 @@ function sourceRecordsWithPageLineage({
         denominator_consistent: false,
         contiguous_from_first_page: false,
       },
+      snapshotLineage: unavailableSnapshotLineage("page_responses"),
     };
   }
 
   const observedPageNumbers: number[] = [];
+  const observedPageSnapshotIds: string[] = [];
   const sourceRecords: MarketWideSymbolMasterSourceRecord[] = [];
   let pageResponsesValid = pages.length > 0;
   let denominatorConsistent = providerCatalogCount !== null;
+  let allPageSnapshotIdsObserved = pages.length > 0;
 
   for (const page of pages) {
     if (!isRecord(page)) {
@@ -366,6 +402,9 @@ function sourceRecordsWithPageLineage({
     const pageNumber = normalizePageNumber(page.page_number);
     const records = responseRecords(page.response);
     const pageDenominator = nonNegativeInteger(page.provider_catalog_count);
+    const providerSnapshotId = normalizeProviderSnapshotId(
+      page.provider_snapshot_id,
+    );
 
     if (pageNumber === null || records === null) {
       pageResponsesValid = false;
@@ -375,6 +414,11 @@ function sourceRecordsWithPageLineage({
     observedPageNumbers.push(pageNumber);
     if (pageDenominator === null || pageDenominator !== providerCatalogCount) {
       denominatorConsistent = false;
+    }
+    if (providerSnapshotId === null) {
+      allPageSnapshotIdsObserved = false;
+    } else {
+      observedPageSnapshotIds.push(providerSnapshotId);
     }
 
     for (const [sourcePageRecordIndex, record] of records.entries()) {
@@ -393,6 +437,11 @@ function sourceRecordsWithPageLineage({
     pagination.total_pages !== null &&
     sortedPageNumbers.length === pagination.total_pages &&
     sortedPageNumbers.every((pageNumber, index) => pageNumber === index + 1);
+  const providerSnapshotIds = new Set(observedPageSnapshotIds);
+  const consistentSnapshotIdentity =
+    allPageSnapshotIdsObserved &&
+    observedPageSnapshotIds.length === pages.length &&
+    providerSnapshotIds.size === 1;
 
   return {
     records: pageResponsesValid ? sourceRecords : null,
@@ -404,6 +453,27 @@ function sourceRecordsWithPageLineage({
       denominator_consistent: denominatorConsistent,
       contiguous_from_first_page: contiguousFromFirstPage,
     },
+    snapshotLineage: {
+      source: "page_responses",
+      observed_page_snapshot_count: observedPageSnapshotIds.length,
+      all_page_snapshot_ids_observed: allPageSnapshotIdsObserved,
+      consistent_across_pages: consistentSnapshotIdentity,
+      provider_snapshot_id: consistentSnapshotIdentity
+        ? observedPageSnapshotIds[0] ?? null
+        : null,
+    },
+  };
+}
+
+function unavailableSnapshotLineage(
+  source: MarketWideSymbolMasterSnapshotLineage["source"],
+): MarketWideSymbolMasterSnapshotLineage {
+  return {
+    source,
+    observed_page_snapshot_count: 0,
+    all_page_snapshot_ids_observed: false,
+    consistent_across_pages: false,
+    provider_snapshot_id: null,
   };
 }
 
@@ -457,12 +527,14 @@ function isCompleteCollection({
   records,
   observedRecordCountMatchesDenominator,
   pageLineage,
+  snapshotLineage,
 }: {
   pagination: MarketWideSymbolMasterPagination;
   fetchedAt: string | null;
   records: unknown[] | null;
   observedRecordCountMatchesDenominator: boolean;
   pageLineage: MarketWideSymbolMasterPageLineage;
+  snapshotLineage: MarketWideSymbolMasterSnapshotLineage;
 }) {
   if (!fetchedAt || !records || records.length === 0) return false;
 
@@ -478,7 +550,10 @@ function isCompleteCollection({
     pageLineage.source === "page_responses" &&
     pageLineage.page_responses_valid &&
     pageLineage.denominator_consistent &&
-    pageLineage.contiguous_from_first_page
+    pageLineage.contiguous_from_first_page &&
+    snapshotLineage.source === "page_responses" &&
+    snapshotLineage.all_page_snapshot_ids_observed &&
+    snapshotLineage.consistent_across_pages
   );
 }
 
@@ -504,6 +579,11 @@ function normalizedText(value: unknown) {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeProviderSnapshotId(value: unknown) {
+  const normalized = normalizedText(value);
+  return normalized !== null && normalized.length <= 240 ? normalized : null;
 }
 
 function isUnitedStates(value: unknown) {

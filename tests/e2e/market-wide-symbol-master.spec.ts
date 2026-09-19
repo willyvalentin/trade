@@ -23,6 +23,7 @@ function completeCatalog(response: unknown) {
       : Array.from({ length: totalPages }, (_, index) => ({
           page_number: index + 1,
           provider_catalog_count: records.length,
+          provider_snapshot_id: "twelve-data-catalog-snapshot-2026-09-15T14:00:00.000Z",
           response: {
             data: records.slice(
               index * firstPageRecordCount,
@@ -97,6 +98,14 @@ test.describe("market-wide symbol master contract", () => {
         page_responses_valid: true,
         denominator_consistent: true,
         contiguous_from_first_page: true,
+      },
+      snapshot_lineage: {
+        source: "page_responses",
+        observed_page_snapshot_count: 2,
+        all_page_snapshot_ids_observed: true,
+        consistent_across_pages: true,
+        provider_snapshot_id:
+          "twelve-data-catalog-snapshot-2026-09-15T14:00:00.000Z",
       },
     });
     expect(result.eligible_entries).toEqual([
@@ -230,6 +239,86 @@ test.describe("market-wide symbol master contract", () => {
       discovery_feed_allowed: false,
       page_lineage: { denominator_consistent: false },
       blockers: expect.arrayContaining(["catalog_page_denominator_inconsistent"]),
+    });
+  });
+
+  test("requires one provider-reported source snapshot identity across every page", () => {
+    const missingIdentity = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      provider_catalog_count: 2,
+      pages: [
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          response: { data: [stock("AAPL")] },
+        },
+        {
+          page_number: 2,
+          provider_catalog_count: 2,
+          response: { data: [stock("MSFT")] },
+        },
+      ],
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    });
+    const mixedIdentity = buildMarketWideSymbolMaster({
+      provider: "twelve_data",
+      fetched_at: fetchedAt,
+      provider_catalog_count: 2,
+      pages: [
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          provider_snapshot_id: "provider-snapshot-a",
+          response: { data: [stock("AAPL")] },
+        },
+        {
+          page_number: 2,
+          provider_catalog_count: 2,
+          provider_snapshot_id: "provider-snapshot-b",
+          response: { data: [stock("MSFT")] },
+        },
+      ],
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    });
+
+    expect(missingIdentity.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      snapshot_lineage: {
+        observed_page_snapshot_count: 0,
+        all_page_snapshot_ids_observed: false,
+        consistent_across_pages: false,
+        provider_snapshot_id: null,
+      },
+      blockers: expect.arrayContaining(["catalog_page_snapshot_identity_missing"]),
+    });
+    expect(mixedIdentity.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      snapshot_lineage: {
+        observed_page_snapshot_count: 2,
+        all_page_snapshot_ids_observed: true,
+        consistent_across_pages: false,
+        provider_snapshot_id: null,
+      },
+      blockers: expect.arrayContaining([
+        "catalog_page_snapshot_identity_inconsistent",
+      ]),
     });
   });
 
