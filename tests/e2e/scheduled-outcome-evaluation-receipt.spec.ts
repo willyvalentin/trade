@@ -33,6 +33,18 @@ function completedRun() {
   };
 }
 
+function decisionSnapshots() {
+  return [
+    {
+      source_mode: "supabase",
+      payload_json: {
+        recommendation_publish_policy_version: "recommendation_publish_policy_v1",
+        market_data_source: "twelve_data",
+      },
+    },
+  ];
+}
+
 function receipt() {
   return buildScheduledOutcomeEvaluationReceipt({
     attemptFingerprint: "scheduled_outcome_evaluation_15m_receipt",
@@ -50,6 +62,7 @@ function receipt() {
     persistenceError: null,
     firstBlocker: null,
     nextRetrySuggestion: "Retry when the next eligible horizon has elapsed.",
+    decisionSnapshots: decisionSnapshots(),
   });
 }
 
@@ -101,11 +114,22 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         candle_requests_executed: 2,
         candle_requests_saved_by_reuse: 1,
       },
+      decision_lineage: {
+        status: "complete",
+        eligible_snapshot_count: 1,
+        policy_versioned_snapshot_count: 1,
+        missing_policy_version_count: 0,
+        recommendation_publish_policy_versions: [
+          "recommendation_publish_policy_v1",
+        ],
+        market_data_sources: ["twelve_data"],
+        missing_market_data_source_count: 0,
+      },
     });
     expect(scheduledOutcomeEvaluationReceiptFromUnknown(built)).toEqual(built);
-    expect(JSON.stringify(built)).not.toContain("recommendation");
-    expect(JSON.stringify(built)).not.toContain("ranking");
-    expect(JSON.stringify(built)).not.toContain("broker");
+    expect(JSON.stringify(built)).not.toContain('"recommendation":');
+    expect(JSON.stringify(built)).not.toContain('"ranking":');
+    expect(JSON.stringify(built)).not.toContain('"broker":');
   });
 
   test("rejects a receipt with a non-slot timestamp or unversioned payload", () => {
@@ -123,6 +147,66 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         contract_version: "receipt_v0",
       }),
     ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        decision_lineage: {
+          ...built.decision_lineage,
+          status: "complete",
+          recommendation_publish_policy_versions: [],
+        },
+      }),
+    ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        decision_lineage: {
+          ...built.decision_lineage,
+          status: "incomplete",
+          eligible_snapshot_count: 2,
+          policy_versioned_snapshot_count: 2,
+          missing_policy_version_count: 0,
+          recommendation_publish_policy_versions: [
+            "recommendation_publish_policy_v2",
+            "recommendation_publish_policy_v1",
+          ],
+          missing_market_data_source_count: 1,
+        },
+      }),
+    ).toBeNull();
+  });
+
+  test("keeps missing or mixed decision policy provenance explicit", () => {
+    const incomplete = buildScheduledOutcomeEvaluationReceipt({
+      attemptFingerprint: "scheduled_outcome_evaluation_incompletepolicy",
+      marketDate: "2026-09-21",
+      scheduledSlotAt: "2026-09-21T20:30:00.000Z",
+      routeReceivedAt: "2026-09-21T20:30:03.000Z",
+      completedAt: "2026-09-21T20:30:05.000Z",
+      routeVersion: "outcome-evaluation-route-v1.0",
+      selectedBatchFingerprint: "batch_incomplete",
+      run: completedRun(),
+      outcomesCreatedCount: 0,
+      outcomesUpdatedCount: 0,
+      outcomesSkippedEqualOrBetterCount: 0,
+      persistenceStatus: "not_attempted",
+      persistenceError: null,
+      firstBlocker: "no_policy_lineage",
+      nextRetrySuggestion: null,
+      decisionSnapshots: [
+        {
+          source_mode: "supabase",
+          payload_json: {},
+        },
+      ],
+    });
+
+    expect(incomplete.decision_lineage).toMatchObject({
+      status: "incomplete",
+      missing_policy_version_count: 1,
+      missing_market_data_source_count: 1,
+      recommendation_publish_policy_versions: [],
+    });
   });
 
   test("only admits a claimed row without a receipt and a finalized row with an exact receipt", () => {

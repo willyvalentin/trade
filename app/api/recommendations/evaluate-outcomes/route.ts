@@ -270,6 +270,7 @@ async function finalizeScheduledOutcomeEvaluationReceipt({
   persistenceError,
   firstBlocker,
   nextRetrySuggestion,
+  decisionSnapshots,
 }: {
   attempt: ScheduledOutcomeEvaluationAttempt;
   ownerUserId: string;
@@ -282,6 +283,7 @@ async function finalizeScheduledOutcomeEvaluationReceipt({
   persistenceError: string | null;
   firstBlocker: string | null;
   nextRetrySuggestion: string | null;
+  decisionSnapshots: RecommendationSnapshot[];
 }) {
   const receipt = buildScheduledOutcomeEvaluationReceipt({
     attemptFingerprint: attempt.attempt_fingerprint,
@@ -299,6 +301,7 @@ async function finalizeScheduledOutcomeEvaluationReceipt({
     persistenceError,
     firstBlocker,
     nextRetrySuggestion,
+    decisionSnapshots,
   });
 
   return finalizeScheduledOutcomeEvaluationAttempt({
@@ -2226,6 +2229,7 @@ export async function POST(request: Request) {
               ? "no_structurally_valid_eligible_snapshots"
               : "official_outcome_evaluation_blocked"),
           nextRetrySuggestion: diagnostics.next_retry_suggestion,
+          decisionSnapshots: eligibleSnapshots,
         })
       : null;
     if (scheduledReceiptFinalization?.status === "unavailable") {
@@ -2552,6 +2556,7 @@ export async function POST(request: Request) {
           persistenceEvents.find((event) => event.error !== null)?.error ??
           null,
         nextRetrySuggestion: diagnostics.next_retry_suggestion,
+        decisionSnapshots: eligibleSnapshots,
       })
     : null;
   if (scheduledReceiptFinalization?.status === "unavailable") {
@@ -2593,6 +2598,7 @@ export async function POST(request: Request) {
         firstBlocker: message,
         nextRetrySuggestion:
           "Inspect the retained receipt before the next scheduled slot; do not retry this slot manually.",
+        decisionSnapshots: [],
       });
 
     if (scheduledReceiptFinalization.status === "unavailable") {

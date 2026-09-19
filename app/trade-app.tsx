@@ -37499,6 +37499,22 @@ function ScheduledOutcomeEvaluationReceiptPanel({
 
             <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
               <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Decision lineage
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                {receipt
+                  ? `Policy lineage: ${receipt.decision_lineage.status}; versions: ${receipt.decision_lineage.recommendation_publish_policy_versions.join(", ") || "not recorded"}.`
+                  : "Decision policy and source provenance are not finalized yet."}
+              </p>
+              {receipt && (
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Sources: {receipt.decision_lineage.market_data_sources.join(", ") || "not recorded"}; missing policy/source metadata: {receipt.decision_lineage.missing_policy_version_count}/{receipt.decision_lineage.missing_market_data_source_count}.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                 Containment
               </h4>
               <p className="mt-3 text-sm leading-6 text-zinc-300">

@@ -1,4 +1,5 @@
 import type { RecommendationOutcomeEvaluationRun } from "@/lib/recommendation-outcome-evaluation-runner";
+import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 
 export const SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION =
   "scheduled_outcome_evaluation_receipt_v1" as const;
@@ -26,6 +27,16 @@ export type ScheduledOutcomeEvaluationReceipt = {
     runner_version: RecommendationOutcomeEvaluationRun["run_version"];
     provider: string | null;
     horizons: string[];
+  };
+  decision_lineage: {
+    status: "unavailable" | "complete" | "mixed" | "incomplete";
+    eligible_snapshot_count: number;
+    policy_versioned_snapshot_count: number;
+    missing_policy_version_count: number;
+    recommendation_publish_policy_versions: string[];
+    source_modes: string[];
+    market_data_sources: string[];
+    missing_market_data_source_count: number;
   };
   scope: {
     selected_batch_fingerprint: string | null;
@@ -107,6 +118,9 @@ type ReceiptInput = {
   persistenceError: string | null;
   firstBlocker: string | null;
   nextRetrySuggestion: string | null;
+  decisionSnapshots?: Array<
+    Pick<RecommendationSnapshot, "source_mode" | "payload_json">
+  >;
 };
 
 function textOrNull(value: unknown) {
@@ -179,6 +193,74 @@ function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.length > 0)
     : [];
+}
+
+function uniqueSorted(values: string[]) {
+  return Array.from(new Set(values)).sort();
+}
+
+function uniqueSortedStringArray(value: unknown) {
+  if (!Array.isArray(value)) return null;
+
+  const values = stringArray(value);
+  if (
+    values.length !== value.length ||
+    values.length !== new Set(values).size ||
+    values.some((entry, index) => index > 0 && values[index - 1]! >= entry)
+  ) {
+    return null;
+  }
+
+  return values;
+}
+
+function snapshotPayloadText(
+  snapshot: Pick<RecommendationSnapshot, "payload_json">,
+  key: string,
+) {
+  const payload = snapshot.payload_json;
+  return payload && typeof payload === "object" && !Array.isArray(payload)
+    ? textOrNull((payload as Record<string, unknown>)[key])
+    : null;
+}
+
+function decisionLineage(
+  snapshots: Array<Pick<RecommendationSnapshot, "source_mode" | "payload_json">>,
+): ScheduledOutcomeEvaluationReceipt["decision_lineage"] {
+  const policyVersions = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "recommendation_publish_policy_version"))
+    .filter((value): value is string => value !== null);
+  const sourceModes = snapshots
+    .map((snapshot) => textOrNull(snapshot.source_mode))
+    .filter((value): value is string => value !== null);
+  const marketDataSources = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "market_data_source"))
+    .filter((value): value is string => value !== null);
+  const eligibleSnapshotCount = snapshots.length;
+  const policyVersionedSnapshotCount = policyVersions.length;
+  const missingPolicyVersionCount =
+    eligibleSnapshotCount - policyVersionedSnapshotCount;
+  const missingMarketDataSourceCount =
+    eligibleSnapshotCount - marketDataSources.length;
+  const uniquePolicyVersions = uniqueSorted(policyVersions);
+
+  return {
+    status:
+      eligibleSnapshotCount === 0
+        ? "unavailable"
+        : missingPolicyVersionCount > 0 || missingMarketDataSourceCount > 0
+          ? "incomplete"
+          : uniquePolicyVersions.length === 1
+            ? "complete"
+            : "mixed",
+    eligible_snapshot_count: eligibleSnapshotCount,
+    policy_versioned_snapshot_count: policyVersionedSnapshotCount,
+    missing_policy_version_count: missingPolicyVersionCount,
+    recommendation_publish_policy_versions: uniquePolicyVersions,
+    source_modes: uniqueSorted(sourceModes),
+    market_data_sources: uniqueSorted(marketDataSources),
+    missing_market_data_source_count: missingMarketDataSourceCount,
+  };
 }
 
 /**
@@ -260,6 +342,7 @@ export function buildScheduledOutcomeEvaluationReceipt(
       provider: textOrNull(input.run.provider),
       horizons: stringArray(input.run.horizons),
     },
+    decision_lineage: decisionLineage(input.decisionSnapshots ?? []),
     scope: {
       selected_batch_fingerprint: textOrNull(input.selectedBatchFingerprint),
       eligible_snapshot_count: count(input.run.eligible_snapshot_count),
@@ -311,6 +394,7 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const completedAt = isoOrNull(raw.completed_at);
   const status = validTerminalStatus(raw.status);
   const evaluator = objectOrNull(raw.evaluator);
+  const decisionLineageRaw = objectOrNull(raw.decision_lineage);
   const scope = objectOrNull(raw.scope);
   const coverage = objectOrNull(raw.coverage);
   const cost = objectOrNull(raw.cost);
@@ -319,10 +403,17 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const persistenceStatus = validPersistenceStatus(persistence?.status);
   const routeVersion = textOrNull(evaluator?.route_version);
   const runnerVersion = evaluator?.runner_version === "1.0" ? "1.0" : null;
+  const decisionLineageStatus =
+    decisionLineageRaw?.status === "unavailable" ||
+    decisionLineageRaw?.status === "complete" ||
+    decisionLineageRaw?.status === "mixed" ||
+    decisionLineageRaw?.status === "incomplete"
+      ? decisionLineageRaw.status
+      : null;
 
   if (
     !attemptFingerprint || !marketDate || !scheduledSlotAt || !routeReceivedAt ||
-    !completedAt || !status || !evaluator || !scope || !coverage || !cost ||
+    !completedAt || !status || !evaluator || !decisionLineageRaw || !scope || !coverage || !cost ||
     !persistence || !failures || !routeVersion || !runnerVersion || !persistenceStatus
   ) {
     return null;
@@ -348,6 +439,48 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const providerBudgetLimit = nullableNonNegativeInteger(cost.provider_budget_limit);
   if (cost.provider_budget_limit !== null && providerBudgetLimit === null) return null;
 
+  const decisionLineageCounts = [
+    decisionLineageRaw.eligible_snapshot_count,
+    decisionLineageRaw.policy_versioned_snapshot_count,
+    decisionLineageRaw.missing_policy_version_count,
+    decisionLineageRaw.missing_market_data_source_count,
+  ].map(nonNegativeInteger);
+  const lineagePolicyVersions = uniqueSortedStringArray(
+    decisionLineageRaw.recommendation_publish_policy_versions,
+  );
+  const lineageSourceModes = uniqueSortedStringArray(decisionLineageRaw.source_modes);
+  const lineageMarketDataSources = uniqueSortedStringArray(
+    decisionLineageRaw.market_data_sources,
+  );
+  if (
+    !decisionLineageStatus ||
+    !lineagePolicyVersions ||
+    !lineageSourceModes ||
+    !lineageMarketDataSources ||
+    decisionLineageCounts.some((value) => value === null) ||
+    decisionLineageCounts[0]! !==
+      decisionLineageCounts[1]! + decisionLineageCounts[2]! ||
+    decisionLineageCounts[0]! < decisionLineageCounts[3]! ||
+    (decisionLineageStatus === "unavailable" &&
+      (decisionLineageCounts[0] !== 0 ||
+        lineagePolicyVersions.length > 0 ||
+        lineageSourceModes.length > 0 ||
+        lineageMarketDataSources.length > 0)) ||
+    (decisionLineageCounts[0] !== 0 && lineageSourceModes.length === 0) ||
+    (decisionLineageStatus === "complete" &&
+      (decisionLineageCounts[2] !== 0 ||
+        decisionLineageCounts[3] !== 0 ||
+        lineagePolicyVersions.length !== 1 ||
+        lineageMarketDataSources.length === 0)) ||
+    (decisionLineageStatus === "mixed" &&
+      (decisionLineageCounts[2] !== 0 ||
+        decisionLineageCounts[3] !== 0 ||
+        lineagePolicyVersions.length < 2 ||
+        lineageMarketDataSources.length === 0))
+  ) {
+    return null;
+  }
+
   return {
     contract_version: SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION,
     attempt_fingerprint: attemptFingerprint,
@@ -362,6 +495,16 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
       runner_version: runnerVersion,
       provider: textOrNull(evaluator.provider),
       horizons: stringArray(evaluator.horizons),
+    },
+    decision_lineage: {
+      status: decisionLineageStatus,
+      eligible_snapshot_count: decisionLineageCounts[0]!,
+      policy_versioned_snapshot_count: decisionLineageCounts[1]!,
+      missing_policy_version_count: decisionLineageCounts[2]!,
+      recommendation_publish_policy_versions: lineagePolicyVersions,
+      source_modes: lineageSourceModes,
+      market_data_sources: lineageMarketDataSources,
+      missing_market_data_source_count: decisionLineageCounts[3]!,
     },
     scope: {
       selected_batch_fingerprint: textOrNull(scope.selected_batch_fingerprint),
