@@ -27,7 +27,7 @@ contract; a malformed row makes the source unavailable rather than silently
 shrinking the population used to freeze a baseline.
 
 The local migration supplies a least-privileged, RLS-protected table with
-service-role-only, contract-validated RPCs. Local evidence is 27 focused
+service-role-only, contract-validated RPCs. Local evidence is 28 focused
 baseline-readiness/freeze regressions, targeted ESLint, strict TypeScript, a
 full Webpack production build and isolated PostgreSQL proof of first freeze,
 exact idempotent replay, changed-baseline rejection, cross-owner rejection and
