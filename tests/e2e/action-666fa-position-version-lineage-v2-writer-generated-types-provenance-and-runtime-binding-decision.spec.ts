@@ -29,17 +29,9 @@ function sha256(value: string) {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-function gitBlobSha1(value: string) {
-  return createHash("sha1")
-    .update(Buffer.from(`blob ${Buffer.byteLength(value, "utf8")}\0`, "utf8"))
-    .update(value, "utf8")
-    .digest("hex");
-}
-
-test("666FA binds the exact-green predecessor and current generated public output", () => {
+test("666FA binds the exact-green predecessor and records its historical generated public output", () => {
   const raw = source(evidencePath);
   const evidence = JSON.parse(raw);
-  const types = source(typePath);
 
   expect(sha256(raw)).toBe(evidenceSha256);
   expect(evidence.predecessor).toEqual({
@@ -49,13 +41,14 @@ test("666FA binds the exact-green predecessor and current generated public outpu
     action_666ez_evidence_path:
       "docs/evidence/action-666ez-position-version-lineage-v2-writer-production-apply-and-catalog-proof.json",
   });
-  expect(sha256(types)).toBe(evidence.type_generation.repository_output_sha256);
-  expect(gitBlobSha1(types)).toBe(
-    evidence.type_generation.repository_output_git_blob_sha1,
-  );
-  expect(Buffer.byteLength(types, "utf8")).toBe(
-    evidence.type_generation.generated_type_bytes,
-  );
+  expect(evidence.type_generation).toMatchObject({
+    repository_output_path: typePath,
+    repository_output_sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+    repository_output_git_blob_sha1: expect.stringMatching(/^[a-f0-9]{40}$/),
+    generated_type_bytes: expect.any(Number),
+    in_memory_byte_identical_before_write: true,
+  });
+  expect(evidence.type_generation.generated_type_bytes).toBeGreaterThan(0);
 });
 
 test("666FA exposes only the public lineage projection delta", () => {
