@@ -41,12 +41,14 @@ test("intake quality evaluates both long and short price geometry correctly", ()
   );
 
   expect(long).toMatchObject({
+    result_version: "1.1",
     direction: "long",
     status: "accepted",
     risk_reward_ratio: 2,
     internal_only: true,
   });
   expect(short).toMatchObject({
+    result_version: "1.1",
     direction: "short",
     status: "accepted",
     risk_reward_ratio: 2,

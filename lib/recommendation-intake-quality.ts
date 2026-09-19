@@ -14,6 +14,11 @@ export type RecommendationIntakeQualityGrade =
 
 export type RecommendationIntakeQualityDirection = "long" | "short" | "unknown";
 
+// Version 1.1 adds explicit long/short geometry. Keep the legacy literal in
+// the read type because existing persisted decision receipts remain valid
+// historical evidence under their original policy semantics.
+export const RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION = "1.1" as const;
+
 export type RecommendationIntakeQualityCheckStatus =
   | "pass"
   | "warning"
@@ -101,7 +106,7 @@ export type RecommendationIntakeQualityInput = {
 
 export type RecommendationIntakeQualityResult = {
   result_id: string;
-  result_version: "1.0";
+  result_version: "1.0" | typeof RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION;
   result_kind: "recommendation_intake_quality";
   evaluated_at: string;
   recommendation_id: string | null;
@@ -1123,7 +1128,7 @@ export function buildRecommendationIntakeQualityResult(
 
   return {
     result_id: `recommendation-intake-${input.recommendation_id ?? "unknown"}`,
-    result_version: "1.0",
+    result_version: RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION,
     result_kind: "recommendation_intake_quality",
     evaluated_at: evaluatedAt,
     recommendation_id: input.recommendation_id ?? null,
