@@ -143,7 +143,14 @@ readback.
 
 ### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
 
-**Implemented and locally verified, not merged or deployed, 2026-09-19:**
+**Production schema applied; merge candidate verified, 2026-09-19:** The exact
+reviewed migration
+`20260918233411_if4_after_market_outcome_evaluation_receipts.sql`
+(`d32377a5a8e006c87a9cfe6007188b93250c9137d899ec9d02f78a7132e5dbcc`) was
+applied once through Supabase's production migration operation after a fresh
+aggregate-only, read-only preflight returned every prerequisite and
+`eligible_for_exact_additive_apply = true`. It adds the durable, server-only
+receipt relation only; no application receipt was seeded, read or exposed.
 Revision `a3045742` extends the durable, owner-bound receipt for the existing
 quarter-hour scheduled outcome evaluator. The server claims the exact
 `(owner_user_id, attempt_fingerprint)` slot before it loads snapshots or can
@@ -158,15 +165,29 @@ source modes and market-data-source identities. Its lineage status is
 remains explicitly absent and cannot be fabricated. Engine Insights reads the
 most recent receipt but does not infer recommendation quality from it.
 
-The delivery is confined to `supabase/migrations/20260918233411_if4_after_market_outcome_evaluation_receipts.sql`, the existing server-owned
-outcome route and its scheduler. It cannot change ranking, confidence,
-publication, positions or broker execution. Eighteen focused schedule, outcome
-and receipt tests, strict TypeScript, targeted ESLint, and the Webpack
-production build passed locally. The migration was separately applied to a
-temporary local PostgreSQL instance: a valid service-only claim/finalization
-held, while an invalid slot, missing lineage and mismatched receipt fingerprint
-were rejected; `anon`/`authenticated` had no table access. No production
-migration, deploy, provider call, candidate or broker action occurred.
+The delivery is confined to that migration, the existing server-owned outcome
+route and its scheduler. It cannot change ranking, confidence, publication,
+positions or broker execution. Thirty-four focused receipt, baseline-readiness
+and freeze Playwright regressions passed against the exact merge candidate;
+code-equivalent source also passed targeted ESLint, strict TypeScript and the
+Webpack production build. The temporary PostgreSQL proof accepted a valid
+service-only claim/finalization and rejected an invalid slot, missing lineage
+and mismatched receipt fingerprint; `anon`/`authenticated` had no table access.
+Protected CI `35439769733` passed all six shards and aggregate/provenance
+checks for merge candidate `bfb332ae1b7e5698f950c191c145ce85535ab981`; its
+Netlify preview `6aae6f9a4e62a90008cd8914` is ready. The subsequent
+documentation-only evidence update requires fresh protected CI before merge.
+
+The production metadata postflight verified the table, all eight named
+constraints, both valid indexes, enabled RLS with no policies, direct
+`anon`/`authenticated` denial for select/insert/update, and the intended
+service-role-only select/insert/update grants (including no delete grant).
+Supabase's policy-less-RLS advisor item is the expected informational result
+for this default-deny server-only table. The unrelated leaked-password warning
+remains; the new indexes' immediately-unused advisory entries are expected
+before any normal scheduler delivery, while the broader unindexed-FK and auth
+connection advisories are pre-existing follow-up. No scheduler, provider call,
+candidate publication or broker action occurred.
 
 **CI-contract remediation, locally verified, 2026-09-19:** Revision
 `2793ba918078b31f0777f8c5799bf66d0dbe00d9` corrects the historical Action
@@ -183,21 +204,21 @@ access, or lineage checks for future public relations.
 `c2b5a631ff52b87b768e135218f184baaac0d5fa` binds every scheduled receipt's
 `market_date` to the New York date derived from its quarter-hour scheduler
 slot. The receipt builder, untrusted-receipt reader and attempt-row reader
-reject a mismatch; the still-unapplied migration enforces the same invariant.
+reject a mismatch; the production-applied migration enforces the same invariant.
 Six focused receipt regressions and strict TypeScript passed. In an isolated
 temporary PostgreSQL container with only the required Supabase role names,
 the migration accepted a valid claimed slot, rejected a mismatched market date
 with `scheduled_outcome_evaluation_attempts_market_date_check`, and retained
-only the valid row. The container was removed. No production migration,
-provider call, candidate, publication or broker action occurred.
+only the valid row. The container was removed. No provider call, candidate,
+publication or broker action occurred.
 
 **Remaining IF-4a evidence gap:** this receipt proves traceability for the
 existing evaluator and snapshot-present lineage, not provider-version
 provenance, outcome quality, historical replay validity or an improved policy.
-A production migration requires separate explicit approval; only then may a
-normal scheduled job be environment-verified. Monday's active market-bound
-return remains the authorized IF-2 Basic Free capability probe, not an IF-4
-quality claim.
+The schema is production-ready but its route has not yet been merged/deployed
+and no normal scheduled job has generated an environment receipt. Monday's
+active market-bound return remains the authorized IF-2 Basic Free capability
+probe, not an IF-4 quality claim.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as
