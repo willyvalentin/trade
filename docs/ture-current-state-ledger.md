@@ -58,6 +58,17 @@ local IF-2 assumptions schema-consistent, not migration-ID-equivalent. The
 temporary snapshots were removed. No link, repair, migration, provider request,
 candidate, publication or broker action occurred.
 
+**Known IF-2 version aliasing, read-only, 2026-09-19:** A temporary
+data-only dump of `supabase_migrations.schema_migrations` maps remote version
+`20260915184112` to the exact recorded name
+`20260915162302_market_wide_discovery_credit_reservations`, and remote version
+`20260917145627` to
+`20260917135646_if2_basic_free_daily_observation_claim`. These are known
+version aliases for source migration names, not evidence of two unknown IF-2
+SQL changes. The mapping narrows the history gap, but does not establish
+statement-level equivalence, authorize a history repair, or make a broad
+`db push` safe. The temporary history dump was removed.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
