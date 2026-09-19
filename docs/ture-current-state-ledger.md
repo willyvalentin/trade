@@ -48,7 +48,7 @@ readback.
 ### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
 
 **Implemented and locally verified, not merged or deployed, 2026-09-19:**
-Revision `ea4ddf2a` adds a durable, owner-bound receipt for the existing
+Revision `a08656f4` adds a durable, owner-bound receipt for the existing
 quarter-hour scheduled outcome evaluator. The server claims the exact
 `(owner_user_id, attempt_fingerprint)` slot before it loads snapshots or can
 request candles; a duplicate delivery returns the retained claim or receipt
