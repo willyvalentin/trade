@@ -44,8 +44,13 @@ not prove the underlying schemas are absent, but it makes a blind
 `supabase db push` unsafe: it could apply unrelated historical local files.
 Before any IF-4 production migration, reconcile the exact source-to-remote
 migration history and schema state, then obtain separate explicit authority
-for only the named additive migration. The attempted exact-worktree preflight
-also encountered an IPv6 database-route limitation; no link, repair, migration,
+for only the named additive migration. An exact-worktree preflight encountered
+an IPv6 database-route limitation, but a subsequent read-only public-schema
+snapshot through the existing linked production environment verified that
+`recommendation_scan_runs` has both `run_fingerprint` and owner-bound
+`owner_user_id`; neither new IF-4 table is present. That confirms the narrow
+baseline-freeze prerequisite without proving broader migration-history
+equivalence. The temporary snapshot was removed. No link, repair, migration,
 provider request, candidate, publication or broker action occurred.
 
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
