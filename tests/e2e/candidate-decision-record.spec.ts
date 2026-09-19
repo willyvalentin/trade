@@ -317,6 +317,78 @@ test.describe("candidate decision record", () => {
     ).toBeNull();
   });
 
+  test("does not preserve invalid or future provider evidence as fresh decision data", () => {
+    const candidates = [
+      {
+        ...candidate(1),
+        reference_price_timestamp: "not-a-timestamp",
+        intraday_indicator_cached_at: CAPTURED_AT,
+      },
+      {
+        ...candidate(2),
+        reference_price_timestamp: "2026-09-15T14:31:00.000Z",
+      },
+    ];
+    const capture = captureFor({ candidates });
+    const record = buildCandidateDecisionRecord({
+      scanRun: scanRun(candidates.length),
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+
+    expect(capture.observed_candidates[0]).toMatchObject({
+      source_timestamp: CAPTURED_AT,
+      data_gap_codes: [],
+    });
+    expect(record?.candidates[1]).toMatchObject({
+      data: {
+        source_timestamp: "2026-09-15T14:31:00.000Z",
+        freshness: "gap",
+        gap_codes: ["candidate_provider_gap"],
+      },
+    });
+    const lateDecisionRecord = buildCandidateDecisionRecord({
+      scanRun: scanRun(1, "2026-09-15T14:00:00.000Z"),
+      capture: captureFor({
+        candidates: [
+          {
+            ...candidate(3),
+            reference_price_timestamp: "2026-09-15T14:15:00.000Z",
+          },
+        ],
+      }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+    });
+    expect(lateDecisionRecord).not.toBeNull();
+    expect(lateDecisionRecord?.candidates[0]?.data).toMatchObject({
+      freshness: "gap",
+      gap_codes: ["candidate_provider_gap"],
+    });
+    expect(candidateDecisionRecordFromUnknown(lateDecisionRecord)).toEqual(
+      lateDecisionRecord,
+    );
+    expect(
+      candidateDecisionRecordFromUnknown({
+        ...record,
+        candidates: record?.candidates.map((item, index) =>
+          index === 0
+            ? {
+                ...item,
+                data: {
+                  ...item.data,
+                  source_timestamp: "2026-09-15T14:31:00.000Z",
+                  freshness: "fresh",
+                  gap_codes: [],
+                },
+              }
+            : item,
+        ),
+      }),
+    ).toBeNull();
+  });
+
   test("rejects a versioned payload that cannot support the displayed readback", () => {
     expect(
       candidateDecisionRecordFromUnknown({
@@ -341,8 +413,15 @@ test.describe("candidate decision record", () => {
   });
 
   test("keeps an attributable decision history ordered and omits identity-mismatched payloads", () => {
-    const olderCandidates = [candidate(1)];
-    const olderRun = scanRun(olderCandidates.length, "2026-09-15T14:00:00.000Z");
+    const olderObservedAt = "2026-09-15T14:00:00.000Z";
+    const olderCandidates = [
+      {
+        ...candidate(1),
+        intraday_indicator_cached_at: olderObservedAt,
+        reference_price_timestamp: olderObservedAt,
+      },
+    ];
+    const olderRun = scanRun(olderCandidates.length, olderObservedAt);
     const olderRecord = buildCandidateDecisionRecord({
       scanRun: olderRun,
       capture: captureFor({ candidates: olderCandidates }),

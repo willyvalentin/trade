@@ -293,6 +293,21 @@ proves an identity-mismatched payload is excluded while earlier valid records
 remain ordered and comparable; the diagnostic export carries scalar comparison
 evidence only, never the untrusted payload.
 
+**Current local IF-1 source-timestamp integrity, 2026-09-19:** Revision
+`501a3dce0fe542685f023fe16fbb41176f17e617` makes the retained decision record
+use only a parseable canonical reference-price or indicator-cache timestamp.
+Missing, invalid or capture-future source time is retained as the explicit
+existing `candidate_provider_gap`, and source evidence later than the actual
+decision cannot appear as `fresh`. Readback rejects malformed timestamps and
+future source evidence that lacks that explicit gap; it still presents an
+honestly gapped record for investigation. This is a decision-evidence integrity
+correction under IF-1, not a scanner, ranking, confidence, publication,
+provider, migration or execution change. The focused decision-record,
+rejected-research and baseline-readiness suite passed 36/36; strict TypeScript,
+targeted ESLint and the Webpack production build passed locally. It remains
+local until protected CI, merge and environment verification complete. It does
+not prove live data freshness or stronger recommendation quality.
+
 **External effects:** the local history extension made no provider request,
 database migration, deployment, broker action or staging invocation.
 
