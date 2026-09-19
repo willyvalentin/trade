@@ -12,7 +12,9 @@ import {
   type RecommendationLearningBaselineFreeze,
   type RecommendationLearningBaselineFreezeInput,
 } from "@/lib/recommendation-learning-baseline-freeze-store";
+import { recommendationEvaluationCharterMatchesPolicySegment } from "@/lib/recommendation-evaluation-charter";
 import { readRecommendationLearningBaselineSource } from "@/lib/server/application-data-access";
+import { readRecommendationEvaluationCharters } from "@/lib/server/recommendation-evaluation-charter-persistence";
 import {
   freezeRecommendationLearningBaseline,
   readRecommendationLearningBaselineFreeze,
@@ -34,10 +36,12 @@ function baselineInput({
   ownerUserId,
   segmentKey,
   source,
+  evaluationCharterFingerprint,
 }: {
   ownerUserId: string;
   segmentKey: string;
   source: RecommendationLearningBaselineSource;
+  evaluationCharterFingerprint: string;
 }): RecommendationLearningBaselineFreezeInput | null {
   const segmentation = buildRecommendationLearningBaselineSegmentation({
     scanRuns: source.scanRuns,
@@ -65,6 +69,7 @@ function baselineInput({
     segment_key: plan.segment_key,
     decision_record_fingerprints: decisionRecordFingerprints,
     evaluation_plan: plan,
+    evaluation_charter_fingerprint: evaluationCharterFingerprint,
   });
 
   return {
@@ -75,6 +80,7 @@ function baselineInput({
     segment_key: plan.segment_key,
     decision_record_fingerprints: decisionRecordFingerprints,
     evaluation_plan: plan,
+    evaluation_charter_fingerprint: evaluationCharterFingerprint,
   };
 }
 
@@ -111,10 +117,53 @@ export async function freezeCurrentRecommendationLearningBaseline({
     };
   }
 
+  const segmentation = buildRecommendationLearningBaselineSegmentation({
+    scanRuns: source.scanRuns,
+    snapshots: source.snapshots,
+    outcomes: source.outcomes,
+  });
+  const plan = buildRecommendationLearningEvaluationPlans({
+    segmentation,
+    scanRuns: source.scanRuns,
+    snapshots: source.snapshots,
+    outcomes: source.outcomes,
+  }).plans.find((candidate) => candidate.segment_key === segmentKey);
+  if (!plan || plan.status !== "ready_for_explicit_freeze" || !plan.metrics) {
+    return {
+      status: "not_ready",
+      freeze: null,
+      safe_blocker: "recommendation_learning_baseline_not_ready_for_explicit_freeze",
+    };
+  }
+
+  const charters = await readRecommendationEvaluationCharters(ownerUserId);
+  if (charters.status === "unavailable") {
+    return {
+      status: "unavailable",
+      freeze: null,
+      safe_blocker: charters.safe_blocker,
+    };
+  }
+  const charter = charters.charters.find((candidate) =>
+    recommendationEvaluationCharterMatchesPolicySegment({
+      charter: candidate,
+      segmentKey: plan.segment_key,
+      policy: plan.policy_attribution,
+    })
+  );
+  if (!charter) {
+    return {
+      status: "not_ready",
+      freeze: null,
+      safe_blocker: "recommendation_evaluation_charter_not_recorded_or_mismatched",
+    };
+  }
+
   const input = baselineInput({
     ownerUserId,
     segmentKey,
     source,
+    evaluationCharterFingerprint: charter.charter_fingerprint,
   });
   if (!input) {
     return {

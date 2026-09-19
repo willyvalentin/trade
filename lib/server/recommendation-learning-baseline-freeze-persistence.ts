@@ -33,6 +33,7 @@ function database(
           p_segment_key: input.segment_key,
           p_decision_record_fingerprints: input.decision_record_fingerprints,
           p_evaluation_plan: input.evaluation_plan,
+          p_evaluation_charter_fingerprint: input.evaluation_charter_fingerprint,
           p_expected_contract_version:
             recommendationLearningBaselineFreezeContractVersion,
         },

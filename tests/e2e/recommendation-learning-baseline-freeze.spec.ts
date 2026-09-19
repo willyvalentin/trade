@@ -14,6 +14,7 @@ import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-
 const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const baselineId = "1e98f21d-488a-467a-a1f0-dcc517499835";
 const baselineFingerprint = "a".repeat(64);
+const charterFingerprint = "b".repeat(64);
 const segmentKey = '["selective_policy_test_v1","engine_test_v1"]';
 const decisionRecordFingerprints = ["scan-fingerprint-one", "scan-fingerprint-two"];
 const frozenAt = "2026-09-19T08:00:00.000Z";
@@ -93,6 +94,7 @@ function input(
     segment_key: segmentKey,
     decision_record_fingerprints: decisionRecordFingerprints,
     evaluation_plan: evaluationPlan,
+    evaluation_charter_fingerprint: charterFingerprint,
     ...overrides,
   };
 }
@@ -107,6 +109,7 @@ function receipt(
     segment_key: segmentKey,
     decision_record_fingerprints: decisionRecordFingerprints,
     evaluation_plan: evaluationPlan,
+    evaluation_charter_fingerprint: charterFingerprint,
     frozen_at: frozenAt,
     ...overrides,
   };
@@ -294,7 +297,8 @@ test("migration and authenticated route keep the freeze server-only and immutabl
   expect(migration).toContain("revoke all on table public.recommendation_learning_baseline_freezes");
   expect(migration).toContain("decision_records_not_owned_or_missing");
   expect(migration).toContain("different_baseline_already_frozen");
-  expect(migration).toContain("grant execute on function public.freeze_recommendation_learning_baseline");
+  expect(migration).toContain("freeze_recommendation_learning_baseline_with_charter");
+  expect(migration).toContain("baseline_freeze_evaluation_charter_missing_or_mismatched");
   expect(persistence).toContain('import "server-only"');
   expect(route).toContain("requireApplicationSession");
   expect(route).toContain("applicationMutationForbiddenResponse");

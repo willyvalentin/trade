@@ -141,6 +141,44 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+### Off-market supporting delivery — IF-4 evaluation charter
+
+**Local, provider-free IF-4 charter and baseline gate, 2026-09-19:** IF-2
+remains observably waiting for the separately authorized Monday Basic Free
+capability probe. This bounded off-market vertical slice implements the
+roadmap-required versioned evaluation charter before a policy baseline can be
+frozen. The authenticated Engine Insights flow exposes an explicit, blank
+charter template whose author must deliberately supply the hypothesis, eligible
+point-in-time universe, setup/regime slices, outcome rules, held-out and
+walk-forward windows, numeric quality/coverage/reliability/cost thresholds,
+concentration limits and feasibility treatment. It supplies no default policy
+thresholds. A charter is bound server-side to one owner and an observed
+policy/version segment; an exact retry is idempotent and any materially
+different charter for that segment is rejected.
+
+The new owner-isolated server route, persistence boundary and pending additive
+migration bind a future baseline receipt to the charter fingerprint. Both the
+service and the database writer fail closed when the charter is absent or its
+policy/version attribution no longer matches the server-recomputed evaluation
+plan. The flow neither reads a provider response nor changes discovery,
+ranking, confidence, publication, outcomes, execution or broker behavior.
+The migration is not applied to Supabase production; until a separately
+approved exact apply, production read/write routes truthfully report durable
+charter storage unavailable and cannot freeze a new baseline through this
+path.
+
+Local evidence is strict TypeScript, targeted lint, whitespace validation, the
+focused charter and baseline Playwright regressions, Webpack production build,
+and an isolated disposable PostgreSQL migration test. The local database proof
+created and retried one charter, rejected a changed charter, verified no direct
+table grant for `anon`, `authenticated` or `service_role`, verified the
+service-role-only RPC, froze a matching baseline and rejected a mismatched
+charter. The test container was removed. Supabase's read-only local advisors
+reported no issues. No production environment, provider credit, candidate,
+publication or broker state changed. Authenticated production UI behavior and
+production migration/RPC metadata remain unverified; this integrity delivery
+is not an evaluation result or evidence of improved recommendation quality.
+
 ### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
 
 **Merged, production schema applied and production deploy verified, 2026-09-19:** The exact
@@ -353,7 +391,7 @@ revision. The authenticated Engine Insights panel remains unverified at the
 login boundary, and this traceability delivery remains neither live-provider
 evidence nor evidence of recommendation-quality improvement.
 
-**IF-4 decision-evidence readback, locally verified, 2026-09-19:** With IF-2
+**Merged and production-deploy verified IF-4 decision-evidence readback, 2026-09-19:** With IF-2
 still observably waiting for the separately authorized Monday Basic Free
 capability probe, this bounded off-market vertical slice gives Engine Insights
 a concrete, latest-first readback of retained decision-time evidence. It
@@ -375,6 +413,14 @@ ranking/confidence or publication change, broker action or production UI
 verification occurred. This is an inspectable decision-traceability behavior,
 not an environment-captured provenance record or proof of better
 recommendation quality.
+
+PR [#557](https://github.com/willyvalentin/trade/pull/557) merged as
+`9c9c447317f0c6a6ec287cb0c88c42aaeed9791a`. Its exact-main CI
+`35456148963` passed, and Netlify production deploy
+`6aaebd0268754f0008569f37` is ready on that exact revision. The authenticated
+Engine Insights readback remains unverified at the login boundary; this is
+production-deployed traceability code, not an environment-captured provenance
+record or evidence of improved recommendation quality.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as
