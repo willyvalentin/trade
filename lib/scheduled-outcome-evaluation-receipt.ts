@@ -5,6 +5,15 @@ import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 export const SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION =
   "scheduled_outcome_evaluation_receipt_v1" as const;
 
+/**
+ * Versioned decision-time provenance retained inside the durable receipt JSON.
+ * It intentionally describes Ture's adapter/build lineage separately from an
+ * upstream provider version: no provider version is inferred when it was not
+ * captured with the original decision.
+ */
+export const SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION =
+  "scheduled_outcome_evaluation_source_provenance_v1" as const;
+
 export const SCHEDULED_OUTCOME_EVALUATION_SLOT_MINUTES = 15;
 
 export type ScheduledOutcomeEvaluationAttemptStatus =
@@ -13,6 +22,28 @@ export type ScheduledOutcomeEvaluationAttemptStatus =
   | "partial"
   | "blocked"
   | "failed";
+
+export type ScheduledOutcomeEvaluationSourceProvenance = {
+  contract_version: typeof SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION;
+  status: "not_recorded" | "unavailable" | "complete" | "mixed" | "incomplete";
+  eligible_snapshot_count: number;
+  decision_timestamped_snapshot_count: number;
+  missing_decision_timestamp_count: number;
+  source_timestamped_snapshot_count: number;
+  missing_source_timestamp_count: number;
+  source_timestamp_after_decision_count: number;
+  provider_sourced_snapshot_count: number;
+  missing_provider_source_count: number;
+  provider_versioned_snapshot_count: number;
+  missing_provider_version_count: number;
+  market_data_adapter_versioned_snapshot_count: number;
+  missing_market_data_adapter_version_count: number;
+  source_build_markered_snapshot_count: number;
+  missing_source_build_marker_count: number;
+  provider_versions: string[];
+  market_data_adapter_versions: string[];
+  source_build_markers: string[];
+};
 
 export type ScheduledOutcomeEvaluationReceipt = {
   contract_version: typeof SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION;
@@ -39,6 +70,7 @@ export type ScheduledOutcomeEvaluationReceipt = {
     market_data_sources: string[];
     missing_market_data_source_count: number;
   };
+  source_provenance: ScheduledOutcomeEvaluationSourceProvenance;
   scope: {
     selected_batch_fingerprint: string | null;
     eligible_snapshot_count: number;
@@ -120,7 +152,10 @@ type ReceiptInput = {
   firstBlocker: string | null;
   nextRetrySuggestion: string | null;
   decisionSnapshots?: Array<
-    Pick<RecommendationSnapshot, "source_mode" | "payload_json">
+    Pick<
+      RecommendationSnapshot,
+      "recommended_at" | "source_mode" | "payload_json"
+    >
   >;
 };
 
@@ -264,6 +299,257 @@ function decisionLineage(
   };
 }
 
+function sourceProvenance(
+  snapshots: Array<
+    Pick<RecommendationSnapshot, "recommended_at" | "payload_json">
+  >,
+): ScheduledOutcomeEvaluationSourceProvenance {
+  const eligibleSnapshotCount = snapshots.length;
+  const decisionTimestamps = snapshots
+    .map((snapshot) => isoOrNull(snapshot.recommended_at))
+    .filter((value): value is string => value !== null);
+  const sourceTimestamps = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "data_timestamp"))
+    .map(isoOrNull)
+    .filter((value): value is string => value !== null);
+  const providerSources = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "provider_source"))
+    .filter((value): value is string => value !== null);
+  const providerVersions = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "provider_version"))
+    .filter((value): value is string => value !== null);
+  const adapterVersions = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "market_data_adapter_version"))
+    .filter((value): value is string => value !== null);
+  const buildMarkers = snapshots
+    .map((snapshot) => snapshotPayloadText(snapshot, "build_marker"))
+    .filter((value): value is string => value !== null);
+  const sourceTimestampAfterDecisionCount = snapshots.filter((snapshot) => {
+    const sourceTimestamp = isoOrNull(
+      snapshotPayloadText(snapshot, "data_timestamp"),
+    );
+    const decisionTimestamp = isoOrNull(snapshot.recommended_at);
+    return Boolean(
+      sourceTimestamp &&
+        decisionTimestamp &&
+        Date.parse(sourceTimestamp) > Date.parse(decisionTimestamp),
+    );
+  }).length;
+
+  const decisionTimestampedSnapshotCount = decisionTimestamps.length;
+  const sourceTimestampedSnapshotCount = sourceTimestamps.length;
+  const providerSourcedSnapshotCount = providerSources.length;
+  const providerVersionedSnapshotCount = providerVersions.length;
+  const adapterVersionedSnapshotCount = adapterVersions.length;
+  const buildMarkeredSnapshotCount = buildMarkers.length;
+  const complete =
+    eligibleSnapshotCount > 0 &&
+    decisionTimestampedSnapshotCount === eligibleSnapshotCount &&
+    sourceTimestampedSnapshotCount === eligibleSnapshotCount &&
+    sourceTimestampAfterDecisionCount === 0 &&
+    providerSourcedSnapshotCount === eligibleSnapshotCount &&
+    providerVersionedSnapshotCount === eligibleSnapshotCount &&
+    adapterVersionedSnapshotCount === eligibleSnapshotCount &&
+    buildMarkeredSnapshotCount === eligibleSnapshotCount;
+  const uniqueProviderVersions = uniqueSorted(providerVersions);
+  const uniqueAdapterVersions = uniqueSorted(adapterVersions);
+  const uniqueBuildMarkers = uniqueSorted(buildMarkers);
+
+  return {
+    contract_version: SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
+    status:
+      eligibleSnapshotCount === 0
+        ? "unavailable"
+        : !complete
+          ? "incomplete"
+          : uniqueProviderVersions.length > 1 ||
+              uniqueAdapterVersions.length > 1 ||
+              uniqueBuildMarkers.length > 1
+            ? "mixed"
+            : "complete",
+    eligible_snapshot_count: eligibleSnapshotCount,
+    decision_timestamped_snapshot_count: decisionTimestampedSnapshotCount,
+    missing_decision_timestamp_count:
+      eligibleSnapshotCount - decisionTimestampedSnapshotCount,
+    source_timestamped_snapshot_count: sourceTimestampedSnapshotCount,
+    missing_source_timestamp_count:
+      eligibleSnapshotCount - sourceTimestampedSnapshotCount,
+    source_timestamp_after_decision_count: sourceTimestampAfterDecisionCount,
+    provider_sourced_snapshot_count: providerSourcedSnapshotCount,
+    missing_provider_source_count:
+      eligibleSnapshotCount - providerSourcedSnapshotCount,
+    provider_versioned_snapshot_count: providerVersionedSnapshotCount,
+    missing_provider_version_count:
+      eligibleSnapshotCount - providerVersionedSnapshotCount,
+    market_data_adapter_versioned_snapshot_count: adapterVersionedSnapshotCount,
+    missing_market_data_adapter_version_count:
+      eligibleSnapshotCount - adapterVersionedSnapshotCount,
+    source_build_markered_snapshot_count: buildMarkeredSnapshotCount,
+    missing_source_build_marker_count:
+      eligibleSnapshotCount - buildMarkeredSnapshotCount,
+    provider_versions: uniqueProviderVersions,
+    market_data_adapter_versions: uniqueAdapterVersions,
+    source_build_markers: uniqueBuildMarkers,
+  };
+}
+
+function sourceProvenanceNotRecorded(): ScheduledOutcomeEvaluationSourceProvenance {
+  return {
+    contract_version: SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
+    status: "not_recorded",
+    eligible_snapshot_count: 0,
+    decision_timestamped_snapshot_count: 0,
+    missing_decision_timestamp_count: 0,
+    source_timestamped_snapshot_count: 0,
+    missing_source_timestamp_count: 0,
+    source_timestamp_after_decision_count: 0,
+    provider_sourced_snapshot_count: 0,
+    missing_provider_source_count: 0,
+    provider_versioned_snapshot_count: 0,
+    missing_provider_version_count: 0,
+    market_data_adapter_versioned_snapshot_count: 0,
+    missing_market_data_adapter_version_count: 0,
+    source_build_markered_snapshot_count: 0,
+    missing_source_build_marker_count: 0,
+    provider_versions: [],
+    market_data_adapter_versions: [],
+    source_build_markers: [],
+  };
+}
+
+function sourceProvenanceFromUnknown(
+  value: unknown,
+): ScheduledOutcomeEvaluationSourceProvenance | null {
+  if (value === undefined) return sourceProvenanceNotRecorded();
+
+  const raw = objectOrNull(value);
+  if (
+    !raw ||
+    raw.contract_version !== SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION ||
+    (raw.status !== "unavailable" &&
+      raw.status !== "complete" &&
+      raw.status !== "mixed" &&
+      raw.status !== "incomplete")
+  ) {
+    return null;
+  }
+
+  const counts = [
+    raw.eligible_snapshot_count,
+    raw.decision_timestamped_snapshot_count,
+    raw.missing_decision_timestamp_count,
+    raw.source_timestamped_snapshot_count,
+    raw.missing_source_timestamp_count,
+    raw.source_timestamp_after_decision_count,
+    raw.provider_sourced_snapshot_count,
+    raw.missing_provider_source_count,
+    raw.provider_versioned_snapshot_count,
+    raw.missing_provider_version_count,
+    raw.market_data_adapter_versioned_snapshot_count,
+    raw.missing_market_data_adapter_version_count,
+    raw.source_build_markered_snapshot_count,
+    raw.missing_source_build_marker_count,
+  ].map(nonNegativeInteger);
+  const providerVersions = uniqueSortedStringArray(raw.provider_versions);
+  const adapterVersions = uniqueSortedStringArray(raw.market_data_adapter_versions);
+  const buildMarkers = uniqueSortedStringArray(raw.source_build_markers);
+  if (
+    counts.some((entry) => entry === null) ||
+    !providerVersions ||
+    !adapterVersions ||
+    !buildMarkers
+  ) {
+    return null;
+  }
+
+  const [
+    eligibleSnapshotCount,
+    decisionTimestampedSnapshotCount,
+    missingDecisionTimestampCount,
+    sourceTimestampedSnapshotCount,
+    missingSourceTimestampCount,
+    sourceTimestampAfterDecisionCount,
+    providerSourcedSnapshotCount,
+    missingProviderSourceCount,
+    providerVersionedSnapshotCount,
+    missingProviderVersionCount,
+    adapterVersionedSnapshotCount,
+    missingAdapterVersionCount,
+    buildMarkeredSnapshotCount,
+    missingBuildMarkerCount,
+  ] = counts as number[];
+  const consistentCounts =
+    eligibleSnapshotCount ===
+      decisionTimestampedSnapshotCount + missingDecisionTimestampCount &&
+    eligibleSnapshotCount ===
+      sourceTimestampedSnapshotCount + missingSourceTimestampCount &&
+    eligibleSnapshotCount ===
+      providerSourcedSnapshotCount + missingProviderSourceCount &&
+    eligibleSnapshotCount ===
+      providerVersionedSnapshotCount + missingProviderVersionCount &&
+    eligibleSnapshotCount ===
+      adapterVersionedSnapshotCount + missingAdapterVersionCount &&
+    eligibleSnapshotCount === buildMarkeredSnapshotCount + missingBuildMarkerCount &&
+    sourceTimestampAfterDecisionCount <= sourceTimestampedSnapshotCount &&
+    sourceTimestampAfterDecisionCount <= decisionTimestampedSnapshotCount;
+  const fullyCovered =
+    eligibleSnapshotCount > 0 &&
+    decisionTimestampedSnapshotCount === eligibleSnapshotCount &&
+    sourceTimestampedSnapshotCount === eligibleSnapshotCount &&
+    sourceTimestampAfterDecisionCount === 0 &&
+    providerSourcedSnapshotCount === eligibleSnapshotCount &&
+    providerVersionedSnapshotCount === eligibleSnapshotCount &&
+    adapterVersionedSnapshotCount === eligibleSnapshotCount &&
+    buildMarkeredSnapshotCount === eligibleSnapshotCount;
+  const expectedStatus =
+    eligibleSnapshotCount === 0
+      ? "unavailable"
+      : !fullyCovered
+        ? "incomplete"
+        : providerVersions.length > 1 || adapterVersions.length > 1 || buildMarkers.length > 1
+          ? "mixed"
+          : "complete";
+  const versionListsMatchCounts =
+    (providerVersionedSnapshotCount === 0
+      ? providerVersions.length === 0
+      : providerVersions.length > 0) &&
+    (adapterVersionedSnapshotCount === 0
+      ? adapterVersions.length === 0
+      : adapterVersions.length > 0) &&
+    (buildMarkeredSnapshotCount === 0
+      ? buildMarkers.length === 0
+      : buildMarkers.length > 0);
+  if (
+    !consistentCounts ||
+    !versionListsMatchCounts ||
+    raw.status !== expectedStatus
+  ) {
+    return null;
+  }
+
+  return {
+    contract_version: SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
+    status: raw.status,
+    eligible_snapshot_count: eligibleSnapshotCount,
+    decision_timestamped_snapshot_count: decisionTimestampedSnapshotCount,
+    missing_decision_timestamp_count: missingDecisionTimestampCount,
+    source_timestamped_snapshot_count: sourceTimestampedSnapshotCount,
+    missing_source_timestamp_count: missingSourceTimestampCount,
+    source_timestamp_after_decision_count: sourceTimestampAfterDecisionCount,
+    provider_sourced_snapshot_count: providerSourcedSnapshotCount,
+    missing_provider_source_count: missingProviderSourceCount,
+    provider_versioned_snapshot_count: providerVersionedSnapshotCount,
+    missing_provider_version_count: missingProviderVersionCount,
+    market_data_adapter_versioned_snapshot_count: adapterVersionedSnapshotCount,
+    missing_market_data_adapter_version_count: missingAdapterVersionCount,
+    source_build_markered_snapshot_count: buildMarkeredSnapshotCount,
+    missing_source_build_marker_count: missingBuildMarkerCount,
+    provider_versions: providerVersions,
+    market_data_adapter_versions: adapterVersions,
+    source_build_markers: buildMarkers,
+  };
+}
+
 /**
  * Maps a scheduler delivery to its intended quarter-hour slot. Re-deliveries
  * in the same slot therefore use the same durable claim and cannot restart
@@ -345,6 +631,7 @@ export function buildScheduledOutcomeEvaluationReceipt(
       horizons: stringArray(input.run.horizons),
     },
     decision_lineage: decisionLineage(input.decisionSnapshots ?? []),
+    source_provenance: sourceProvenance(input.decisionSnapshots ?? []),
     scope: {
       selected_batch_fingerprint: textOrNull(input.selectedBatchFingerprint),
       eligible_snapshot_count: count(input.run.eligible_snapshot_count),
@@ -397,6 +684,7 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const status = validTerminalStatus(raw.status);
   const evaluator = objectOrNull(raw.evaluator);
   const decisionLineageRaw = objectOrNull(raw.decision_lineage);
+  const sourceProvenance = sourceProvenanceFromUnknown(raw.source_provenance);
   const scope = objectOrNull(raw.scope);
   const coverage = objectOrNull(raw.coverage);
   const cost = objectOrNull(raw.cost);
@@ -418,7 +706,8 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
     marketDate !== getNewYorkDateString(new Date(scheduledSlotAt)) ||
     !routeReceivedAt ||
     !completedAt || !status || !evaluator || !decisionLineageRaw || !scope || !coverage || !cost ||
-    !persistence || !failures || !routeVersion || !runnerVersion || !persistenceStatus
+    !persistence || !failures || !routeVersion || !runnerVersion || !persistenceStatus ||
+    !sourceProvenance
   ) {
     return null;
   }
@@ -510,6 +799,7 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
       market_data_sources: lineageMarketDataSources,
       missing_market_data_source_count: decisionLineageCounts[3]!,
     },
+    source_provenance: sourceProvenance,
     scope: {
       selected_batch_fingerprint: textOrNull(scope.selected_batch_fingerprint),
       eligible_snapshot_count: counts[0]!,

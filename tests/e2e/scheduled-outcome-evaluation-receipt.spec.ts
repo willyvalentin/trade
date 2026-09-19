@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION,
+  SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
   buildScheduledOutcomeEvaluationAttemptFingerprintForSlot,
   buildScheduledOutcomeEvaluationReceipt,
   scheduledOutcomeEvaluationAttemptFromRow,
@@ -36,10 +37,16 @@ function completedRun() {
 function decisionSnapshots() {
   return [
     {
+      recommended_at: "2026-09-21T20:14:00.000Z",
       source_mode: "supabase",
       payload_json: {
         recommendation_publish_policy_version: "recommendation_publish_policy_v1",
         market_data_source: "twelve_data",
+        data_timestamp: "2026-09-21T20:13:00.000Z",
+        provider_source: "twelve_data",
+        provider_version: "twelve_data_api_v1",
+        market_data_adapter_version: "automation_scan_market_data_adapter_v1",
+        build_marker: "test-build-marker",
       },
     },
   ];
@@ -125,6 +132,18 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         market_data_sources: ["twelve_data"],
         missing_market_data_source_count: 0,
       },
+      source_provenance: {
+        contract_version:
+          SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
+        status: "complete",
+        source_timestamped_snapshot_count: 1,
+        source_timestamp_after_decision_count: 0,
+        provider_versioned_snapshot_count: 1,
+        market_data_adapter_versions: [
+          "automation_scan_market_data_adapter_v1",
+        ],
+        source_build_markers: ["test-build-marker"],
+      },
     });
     expect(scheduledOutcomeEvaluationReceiptFromUnknown(built)).toEqual(built);
     expect(JSON.stringify(built)).not.toContain('"recommendation":');
@@ -180,6 +199,15 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         },
       }),
     ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        source_provenance: {
+          ...built.source_provenance,
+          provider_versions: [],
+        },
+      }),
+    ).toBeNull();
   });
 
   test("keeps missing or mixed decision policy provenance explicit", () => {
@@ -201,6 +229,7 @@ test.describe("scheduled outcome-evaluation receipts", () => {
       nextRetrySuggestion: null,
       decisionSnapshots: [
         {
+          recommended_at: null,
           source_mode: "supabase",
           payload_json: {},
         },
@@ -212,6 +241,82 @@ test.describe("scheduled outcome-evaluation receipts", () => {
       missing_policy_version_count: 1,
       missing_market_data_source_count: 1,
       recommendation_publish_policy_versions: [],
+    });
+    expect(incomplete.source_provenance).toMatchObject({
+      status: "incomplete",
+      missing_decision_timestamp_count: 1,
+      missing_source_timestamp_count: 1,
+      missing_provider_version_count: 1,
+    });
+  });
+
+  test("keeps decision-time source/version gaps and look-ahead explicit", () => {
+    const built = buildScheduledOutcomeEvaluationReceipt({
+      attemptFingerprint: "scheduled_outcome_evaluation_sourcegap",
+      marketDate: "2026-09-21",
+      scheduledSlotAt: "2026-09-21T20:45:00.000Z",
+      routeReceivedAt: "2026-09-21T20:45:03.000Z",
+      completedAt: "2026-09-21T20:45:05.000Z",
+      routeVersion: "outcome-evaluation-route-v1.0",
+      selectedBatchFingerprint: "batch_source_gap",
+      run: completedRun(),
+      outcomesCreatedCount: 0,
+      outcomesUpdatedCount: 0,
+      outcomesSkippedEqualOrBetterCount: 0,
+      persistenceStatus: "not_attempted",
+      persistenceError: null,
+      firstBlocker: "decision_time_provenance_incomplete",
+      nextRetrySuggestion: null,
+      decisionSnapshots: [
+        {
+          recommended_at: "2026-09-21T20:44:00.000Z",
+          source_mode: "supabase",
+          payload_json: {
+            recommendation_publish_policy_version:
+              "recommendation_publish_policy_v1",
+            market_data_source: "twelve_data",
+            data_timestamp: "2026-09-21T20:44:01.000Z",
+            provider_source: "twelve_data",
+            market_data_adapter_version:
+              "automation_scan_market_data_adapter_v1",
+            build_marker: "test-build-marker",
+          },
+        },
+      ],
+    });
+
+    expect(built.source_provenance).toMatchObject({
+      status: "incomplete",
+      source_timestamped_snapshot_count: 1,
+      source_timestamp_after_decision_count: 1,
+      missing_provider_version_count: 1,
+    });
+    expect(scheduledOutcomeEvaluationReceiptFromUnknown(built)).toEqual(built);
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        source_provenance: {
+          ...built.source_provenance,
+          status: "complete",
+        },
+      }),
+    ).toBeNull();
+  });
+
+  test("reads existing v1 receipts with provenance explicitly not recorded", () => {
+    const built = receipt();
+
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        source_provenance: undefined,
+      }),
+    ).toMatchObject({
+      source_provenance: {
+        contract_version:
+          SCHEDULED_OUTCOME_EVALUATION_SOURCE_PROVENANCE_VERSION,
+        status: "not_recorded",
+      },
     });
   });
 
@@ -295,6 +400,12 @@ test.describe("scheduled outcome-evaluation receipts", () => {
     );
     expect(route).not.toContain("placeOrder");
     expect(route).not.toContain("executeBroker");
+    expect(source("app/trade-app.tsx")).toContain(
+      "Decision-time source provenance",
+    );
+    expect(source("app/api/automation/run-scan/route.ts")).toContain(
+      "automation_scan_market_data_adapter_v1",
+    );
     expect(
       source(
         "supabase/migrations/20260918233411_if4_after_market_outcome_evaluation_receipts.sql",
