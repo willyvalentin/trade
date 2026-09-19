@@ -7,9 +7,11 @@ import {
   recommendationEvaluationCharterReadRpcName,
   recommendationEvaluationCharterRpcName,
   type RecommendationEvaluationCharterDatabase,
-  type RecommendationEvaluationCharterInput,
 } from "@/lib/recommendation-evaluation-charter-store";
-import { RECOMMENDATION_EVALUATION_CHARTER_VERSION } from "@/lib/recommendation-evaluation-charter";
+import {
+  RECOMMENDATION_EVALUATION_CHARTER_VERSION,
+  type RecommendationEvaluationCharterInput,
+} from "@/lib/recommendation-evaluation-charter";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 
 function only<T>(value: T[] | T | null) {

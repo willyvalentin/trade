@@ -22,6 +22,10 @@ const migrationPath =
   "supabase/migrations/20260918224038_if4_durable_learning_baseline_freeze.sql";
 const productionPreflightPath =
   "docs/sql/if4-durable-learning-baseline-freeze-production-preflight.sql";
+const charterMigrationPath =
+  "supabase/migrations/20260919165811_if4_evaluation_charter.sql";
+const charterProductionPreflightPath =
+  "docs/sql/if4-evaluation-charter-production-preflight.sql";
 
 const evaluationPlan: RecommendationLearningEvaluationPlan = {
   contract_version: "recommendation_learning_evaluation_plan_v1",
@@ -234,6 +238,7 @@ test("readback is owner-bound and does not substitute an absent receipt", async 
           segment_key: null,
           decision_record_fingerprints: null,
           evaluation_plan: null,
+          evaluation_charter_fingerprint: null,
           frozen_at: null,
           blocker: "recommendation_learning_baseline_freeze_not_found",
         },
@@ -280,6 +285,14 @@ test("migration and authenticated route keep the freeze server-only and immutabl
     resolve(process.cwd(), productionPreflightPath),
     "utf8",
   );
+  const charterMigration = readFileSync(
+    resolve(process.cwd(), charterMigrationPath),
+    "utf8",
+  );
+  const charterProductionPreflight = readFileSync(
+    resolve(process.cwd(), charterProductionPreflightPath),
+    "utf8",
+  );
   const persistence = readFileSync(resolve(
     process.cwd(),
     "lib/server/recommendation-learning-baseline-freeze-persistence.ts",
@@ -297,8 +310,8 @@ test("migration and authenticated route keep the freeze server-only and immutabl
   expect(migration).toContain("revoke all on table public.recommendation_learning_baseline_freezes");
   expect(migration).toContain("decision_records_not_owned_or_missing");
   expect(migration).toContain("different_baseline_already_frozen");
-  expect(migration).toContain("freeze_recommendation_learning_baseline_with_charter");
-  expect(migration).toContain("baseline_freeze_evaluation_charter_missing_or_mismatched");
+  expect(charterMigration).toContain("freeze_recommendation_learning_baseline_with_charter");
+  expect(charterMigration).toContain("baseline_freeze_evaluation_charter_missing_or_mismatched");
   expect(persistence).toContain('import "server-only"');
   expect(route).toContain("requireApplicationSession");
   expect(route).toContain("applicationMutationForbiddenResponse");
@@ -310,6 +323,12 @@ test("migration and authenticated route keep the freeze server-only and immutabl
   expect(productionPreflight).toContain("eligible_for_exact_additive_apply");
   expect(productionPreflight).toContain("recommendation_learning_baseline_freezes");
   expect(productionPreflight).not.toMatch(
+    /\b(insert|update|delete|alter|create|drop|grant|revoke|truncate)\b/i,
+  );
+  expect(charterProductionPreflight.toLowerCase()).toContain("begin read only");
+  expect(charterProductionPreflight.toLowerCase()).toContain("rollback");
+  expect(charterProductionPreflight).toContain("recommendation_evaluation_charters");
+  expect(charterProductionPreflight).not.toMatch(
     /\b(insert|update|delete|alter|create|drop|grant|revoke|truncate)\b/i,
   );
 });

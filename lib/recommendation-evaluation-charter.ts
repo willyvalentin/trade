@@ -1,5 +1,3 @@
-import "server-only";
-
 import { createHash } from "node:crypto";
 
 import type { RecommendationLearningBaselineSegment } from "@/lib/recommendation-learning-baseline-segments";

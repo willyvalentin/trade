@@ -105,6 +105,11 @@ function receipt(
   };
 }
 
+function parsedReceipt(overrides: Record<string, unknown> = {}) {
+  const { charter_json, ...metadata } = receipt(overrides);
+  return { ...metadata, charter: charter_json };
+}
+
 function database(
   overrides: Partial<RecommendationEvaluationCharterDatabase> = {},
 ): RecommendationEvaluationCharterDatabase {
@@ -155,7 +160,7 @@ test("a charter requires every threshold and records only the exact durable rece
   const store = createRecommendationEvaluationCharterStore(database());
   await expect(store.write(input())).resolves.toMatchObject({
     status: "recorded",
-    charter: receipt(),
+    charter: parsedReceipt(),
   });
 });
 
