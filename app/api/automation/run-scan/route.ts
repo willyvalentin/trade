@@ -2085,7 +2085,7 @@ function buildSnapshotFromRecommendation({
     generated_at: recommendationCreatedAt(recommendation),
     market_data_timestamp: dataTimestamp,
     market_data_stale:
-      scannerCandidate?.stale ?? scanLog.indicator_stale ?? null,
+      scannerCandidate?.stale === true || scanLog.indicator_stale === true,
     market_session: {
       phase: marketSession.phase,
       risk_level: marketSession.risk_level,

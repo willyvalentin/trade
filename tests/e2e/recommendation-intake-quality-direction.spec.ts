@@ -120,5 +120,8 @@ test("the automated scan persists the receipt without using it as publication au
   expect(route).toContain(
     "intake_quality_shadow_only: intakeQualityResult.internal_only",
   );
+  expect(route).toContain(
+    "scannerCandidate?.stale === true || scanLog.indicator_stale === true",
+  );
   expect(app).toContain('direction: recommendation.direction === "Short" ? "short" : "long"');
 });
