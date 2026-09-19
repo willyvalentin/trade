@@ -365,6 +365,7 @@ export const providerFreeVerificationPlan = Object.freeze({
     playwright("Governed binding snapshot issuance", [
       "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
       "tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts",
+      "tests/e2e/recommendation-intake-quality-direction.spec.ts",
     ]),
   ]),
   "non-forgeable-authority": Object.freeze([
