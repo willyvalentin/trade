@@ -1,4 +1,8 @@
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import {
+  twelveDataResponseIdentityFromUnknown,
+  type TwelveDataResponseIdentity,
+} from "@/lib/twelve-data-response-identity";
 
 export const RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION =
   "recommendation_decision_source_provenance_v1" as const;
@@ -7,6 +11,7 @@ export const recommendationDecisionSourceProvenanceBlockers = [
   "decision_timestamp_missing_or_invalid",
   "source_timestamp_missing_or_invalid",
   "source_timestamp_after_decision",
+  "intraday_indicator_response_identity_missing_or_invalid",
   "provider_source_missing",
   "provider_version_missing",
   "market_data_adapter_version_missing",
@@ -21,6 +26,7 @@ export type RecommendationDecisionSourceProvenance = {
   status: "admissible" | "incomplete";
   decision_timestamp: string | null;
   source_timestamp: string | null;
+  intraday_indicator_response_identity: TwelveDataResponseIdentity | null;
   provider_source: string | null;
   provider_version: string | null;
   market_data_adapter_version: string | null;
@@ -53,6 +59,10 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
 ): RecommendationDecisionSourceProvenance {
   const decisionTimestamp = isoOrNull(snapshot.recommended_at);
   const sourceTimestamp = isoOrNull(snapshot.payload_json.data_timestamp);
+  const intradayIndicatorResponseIdentity =
+    twelveDataResponseIdentityFromUnknown(
+      snapshot.payload_json.intraday_indicator_response_identity,
+    );
   const providerSource = textOrNull(snapshot.payload_json.provider_source);
   const providerVersion = textOrNull(snapshot.payload_json.provider_version);
   const adapterVersion = textOrNull(
@@ -74,6 +84,9 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
   ) {
     blockers.push("source_timestamp_after_decision");
   }
+  if (!intradayIndicatorResponseIdentity) {
+    blockers.push("intraday_indicator_response_identity_missing_or_invalid");
+  }
   if (!providerSource) {
     blockers.push("provider_source_missing");
   }
@@ -92,6 +105,7 @@ export function recommendationDecisionSourceProvenanceFromSnapshot(
     status: blockers.length === 0 ? "admissible" : "incomplete",
     decision_timestamp: decisionTimestamp,
     source_timestamp: sourceTimestamp,
+    intraday_indicator_response_identity: intradayIndicatorResponseIdentity,
     provider_source: providerSource,
     provider_version: providerVersion,
     market_data_adapter_version: adapterVersion,

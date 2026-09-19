@@ -277,6 +277,38 @@ broker action occurred. The authenticated production panel remains unverified
 at the login boundary, and this integrity improvement is not evidence of a
 better recommendation policy.
 
+PR [#554](https://github.com/willyvalentin/trade/pull/554) subsequently merged
+as `9f3d6ec9e72f4c7f2984473e925a6f037afb0391`. All protected CI shards and the
+exact-main provenance check passed, and Netlify production deploy
+`6aae9b8f782a4b000868a677` is ready on that exact `main` revision. The
+authenticated production panel is still unverified at its login boundary; this
+is production-deployed integrity code, not environment-verified UI behavior or
+evidence of a better recommendation policy.
+
+**IF-4 source-response identity, locally verified, 2026-09-19:** IF-2 remains
+observably waiting for the separately authorized Monday Basic Free capability
+probe, so this was the one bounded off-market vertical slice. Engine Insights
+now distinguishes a named decision-time source from a captured market-data
+response fingerprint. When Ture's already-authorized intraday path receives a
+valid Twelve Data response, it retains only a versioned SHA-256 fingerprint and
+byte length of the exact response in the existing indicator cache and downstream
+decision snapshot; it retains no raw provider body, request URL, API key or
+invented upstream API version. A missing, malformed or legacy fingerprint is
+explicit and fails closed for source-provenance assessment.
+
+Provider-free tests prove deterministic byte-level identity, a changed response
+producing a changed identity, real-scanner propagation, and the resulting
+baseline/evaluation exclusion when the identity is absent. Forty-nine focused
+IF-4 regressions passed, together with targeted ESLint, strict TypeScript, the
+Webpack production build and whitespace validation. The server-side adapter is
+therefore compile/build verified but has not received a live provider response;
+the authenticated Engine Insights panel is likewise not environment-verified.
+No provider request, migration, configuration change, publication,
+ranking/confidence change or broker action occurred. This creates decision-time
+reproducibility evidence, not a claim of better recommendation quality; a later
+normal, separately authorized market path is required to demonstrate an
+environment-captured fingerprint.
+
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as
 `2568bf983bfb2f55e18a3b534a0e63e5aececb1f`. The symbol-master contract is now

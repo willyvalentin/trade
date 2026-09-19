@@ -1,6 +1,7 @@
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { RealScannerCandidate } from "@/lib/real-scanner-candidate-generation";
+import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
 export const REJECTED_CANDIDATE_RESEARCH_SELECTION_VERSION =
   "rejected_candidate_research_selection_v1" as const;
@@ -22,6 +23,7 @@ export type RejectedCandidateResearchSample = {
   provider_source: "twelve_data";
   market_data_source: "fresh";
   market_data_timestamp: string;
+  intraday_indicator_response_identity?: TwelveDataResponseIdentity | null;
   rejection_publish_reason: string;
   sample_quality: "good";
   ranking_reason: string;
@@ -271,6 +273,8 @@ export function buildRejectedCandidateResearchSelection({
       provider_source: "twelve_data",
       market_data_source: "fresh",
       market_data_timestamp: decisionCandidate.data.source_timestamp!,
+      intraday_indicator_response_identity:
+        candidate.intraday_indicator_response_identity,
       rejection_publish_reason: decisionCandidate.reason_codes.join(",") || "filtered_before_ranking",
       sample_quality: "good",
       ranking_reason: "Filtered before ranking; retained only as a non-live counterfactual research plan.",

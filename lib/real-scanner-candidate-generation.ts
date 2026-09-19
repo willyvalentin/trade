@@ -1,6 +1,7 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
+import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 import {
   getScheduledScannerUniverseRotationBatch,
   scannerUniverseSelectionToBaseCandidates,
@@ -60,6 +61,7 @@ export type RealScannerCandidate = {
   data_source: ScannerCandidate["intraday_indicator_source"] | "daily_only";
   provider_source: "twelve_data" | null;
   market_data_timestamp: string | null;
+  intraday_indicator_response_identity?: TwelveDataResponseIdentity | null;
   reference_price_timestamp: string | null;
   stale: boolean;
   entry_low: number | null;
@@ -400,6 +402,8 @@ function toRealScannerCandidate(
         ? "twelve_data"
         : null,
     market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
+    intraday_indicator_response_identity:
+      candidate.intraday_indicator_response_identity ?? null,
     reference_price_timestamp:
       candidate.reference_price_timestamp ??
       candidate.intraday_indicator_cached_at ??

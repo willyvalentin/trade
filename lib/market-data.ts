@@ -2,6 +2,10 @@ import "server-only";
 
 import { throwIfAborted } from "@/lib/operation-abort";
 import { MarketDataProviderResponseError } from "@/lib/provider-response-observation";
+import {
+  twelveDataResponseIdentityFromPayloadBytes,
+  type TwelveDataResponseIdentity,
+} from "@/lib/twelve-data-response-identity";
 
 export {
   MarketDataProviderResponseError,
@@ -34,6 +38,7 @@ export type IntradayCandleRequestDiagnostics = {
   first_candle_time: string | null;
   last_candle_time: string | null;
   provider_message: string | null;
+  response_identity: TwelveDataResponseIdentity;
   fallback_used: false;
   response_structurally_valid: true;
   retry_count: 0;
@@ -294,6 +299,7 @@ async function fetchTwelveDataDetailed<T>(
   safeParams: Record<string, string | number>;
   httpStatus: number;
   providerMessage: string | null;
+  responseIdentity: TwelveDataResponseIdentity;
 }> {
   throwIfAborted(options?.signal);
   const url = new URL(`${TWELVE_DATA_BASE_URL}${path}`);
@@ -321,10 +327,25 @@ async function fetchTwelveDataDetailed<T>(
     );
   }
 
+  let responseBytes: Uint8Array;
+
+  try {
+    responseBytes = new Uint8Array(await response.arrayBuffer());
+  } catch {
+    throw new MarketDataProviderResponseError(
+      "Market data provider response body could not be read.",
+      true,
+    );
+  }
+
+  const responseIdentity = await twelveDataResponseIdentityFromPayloadBytes(
+    responseBytes,
+  );
+
   let data: unknown;
 
   try {
-    data = await response.json();
+    data = JSON.parse(new TextDecoder().decode(responseBytes));
   } catch {
     throw new MarketDataProviderResponseError(
       "Market data provider returned a response that was not valid JSON.",
@@ -348,6 +369,7 @@ async function fetchTwelveDataDetailed<T>(
     safeParams,
     httpStatus: response.status,
     providerMessage: getTwelveDataError(data) || null,
+    responseIdentity,
   };
 }
 
@@ -429,7 +451,7 @@ export async function getIntradayCandlesWithDiagnostics(
     outputsize: 500,
     order: "ASC",
   };
-  const { data, safeParams, providerMessage } =
+  const { data, safeParams, providerMessage, responseIdentity } =
     await fetchTwelveDataDetailed<TwelveDataTimeSeriesResponse>(
     "/time_series",
       params,
@@ -493,6 +515,7 @@ export async function getIntradayCandlesWithDiagnostics(
         (candles.length > 0
           ? null
           : "Provider returned no candles for the requested window."),
+      response_identity: responseIdentity,
       fallback_used: false,
       response_structurally_valid: true,
       retry_count: 0,

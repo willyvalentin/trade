@@ -79,6 +79,7 @@ export type RecommendationLearningBaselineReadiness = {
     assessed_snapshot_count: number;
     admissible_snapshot_count: number;
     incomplete_snapshot_count: number;
+    intraday_indicator_response_identity_count: number;
     blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number>;
   };
   counterfactual_coverage: {
@@ -643,6 +644,12 @@ export function buildRecommendationLearningBaselineReadiness({
       incomplete_snapshot_count: Array.from(
         sourceProvenanceBySnapshotId.values(),
       ).filter((provenance) => provenance.status === "incomplete").length,
+      intraday_indicator_response_identity_count: Array.from(
+        sourceProvenanceBySnapshotId.values(),
+      ).filter(
+        (provenance) =>
+          provenance.intraday_indicator_response_identity !== null,
+      ).length,
       blocker_counts: sourceProvenanceBlockerCounts,
     },
     counterfactual_coverage: {
@@ -662,7 +669,7 @@ export function buildRecommendationLearningBaselineReadiness({
     notes: [
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
-      "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks the provider version, Ture adapter version, or source build marker. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
+      "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
       "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],
