@@ -14,6 +14,17 @@ with target_tables(table_name) as (
   values ('select'), ('insert'), ('update'), ('delete')
 ), denied_privileges(privilege_name) as (
   values ('truncate'), ('references'), ('trigger')
+), expected_owner_access_policies(table_name, identity_column) as (
+  values
+    ('recommendations', 'owner_user_id'),
+    ('positions', 'owner_user_id'),
+    ('position_updates', 'owner_user_id'),
+    ('user_settings', 'owner_user_id'),
+    ('recommendation_batches', 'owner_user_id'),
+    ('recommendation_outcomes', 'owner_user_id'),
+    ('recommendation_scan_runs', 'owner_user_id'),
+    ('recommendation_snapshots', 'owner_user_id'),
+    ('execution_records', 'user_id')
 ), history_ok as (
   select exists (
     select 1 from supabase_migrations.schema_migrations
@@ -28,11 +39,45 @@ with target_tables(table_name) as (
   as ok
   from target_tables
 ), policies_ok as (
-  select not exists (
-    select 1 from target_tables targets
-    join pg_policies policies
-      on policies.schemaname = 'public' and policies.tablename = targets.table_name
-  ) as ok
+  -- Action 650 removed browser-facing policies. A later owner-bound
+  -- application boundary may add back exactly one SELECT policy for each
+  -- private owner table. That policy alone cannot restore browser access:
+  -- denied_ok still requires every browser role privilege to be revoked.
+  select
+    not exists (
+      select 1
+      from target_tables targets
+      left join expected_owner_access_policies expected
+        on expected.table_name = targets.table_name
+      join pg_policies policies
+        on policies.schemaname = 'public'
+       and policies.tablename = targets.table_name
+      where expected.table_name is null
+         or policies.policyname <> 'application_owner_access'
+         or policies.cmd <> 'SELECT'
+         or policies.roles <> array['authenticated'::name]
+         or policies.qual <> format(
+           '(( SELECT auth.uid() AS uid) = %I)',
+           expected.identity_column
+         )
+         or policies.with_check is not null
+    )
+    and not exists (
+      select 1
+      from expected_owner_access_policies expected
+      left join pg_policies policies
+        on policies.schemaname = 'public'
+       and policies.tablename = expected.table_name
+       and policies.policyname = 'application_owner_access'
+       and policies.cmd = 'SELECT'
+       and policies.roles = array['authenticated'::name]
+       and policies.qual = format(
+         '(( SELECT auth.uid() AS uid) = %I)',
+         expected.identity_column
+       )
+       and policies.with_check is null
+      where policies.policyname is null
+    ) as ok
 ), denied_ok as (
   select not exists (
     select 1
