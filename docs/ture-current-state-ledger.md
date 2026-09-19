@@ -319,7 +319,7 @@ on that exact `main` revision. The authenticated Engine Insights panel remains
 unverified at the login boundary, and this integrity delivery remains neither a
 live provider receipt nor evidence of recommendation-quality improvement.
 
-**IF-4 decision-feature-vector, locally verified, 2026-09-19:** With IF-2
+**Merged and production-deploy verified IF-4 decision-feature-vector, 2026-09-19:** With IF-2
 still observably waiting for the separately authorized Monday Basic Free
 capability probe, this was the next bounded off-market vertical slice. Engine
 Insights now distinguishes a decision with a versioned, exact feature projection
@@ -343,6 +343,38 @@ migration, configuration change, publication, ranking/confidence change or
 broker action occurred. This makes a future decision auditable and replayable;
 it does not establish an actual captured feature projection or a better
 recommendation policy.
+
+PR [#556](https://github.com/willyvalentin/trade/pull/556) merged as
+`30576750ba1da746e24b249302b74a0ece47267f`. Its six protected provider-free
+shards, aggregate and merge-candidate provenance check passed in CI
+`35452204920`; exact-main provenance passed in CI `35453655649`. Netlify
+production deploy `6aaeb1ff3872a10008a3bb3f` is ready on that exact `main`
+revision. The authenticated Engine Insights panel remains unverified at the
+login boundary, and this traceability delivery remains neither live-provider
+evidence nor evidence of recommendation-quality improvement.
+
+**IF-4 decision-evidence readback, locally verified, 2026-09-19:** With IF-2
+still observably waiting for the separately authorized Monday Basic Free
+capability probe, this bounded off-market vertical slice gives Engine Insights
+a concrete, latest-first readback of retained decision-time evidence. It
+accepts only non-demo, non-mock, non-diagnostic `supabase` snapshots and
+projects each one through the same strict provenance gate used by baseline
+admission. The view shows decision/source times, snapshot identity, provider,
+adapter and build markers, the response fingerprint/byte count, the bounded
+feature vector and exact blockers. It retains no raw provider response or
+payload; a malformed or missing vector remains an explicit evidence gap. The
+panel states that this is historical audit evidence, not a current quote, trade
+recommendation or baseline-eligibility verdict.
+
+Three focused readback regressions prove newest-first bounded selection,
+server-ownership exclusions and fail-closed malformed-vector handling; the
+combined 32-test feature-vector, provenance and baseline-readiness suite,
+targeted ESLint, strict TypeScript, Webpack production build and whitespace
+validation passed locally. No provider request, migration, configuration,
+ranking/confidence or publication change, broker action or production UI
+verification occurred. This is an inspectable decision-traceability behavior,
+not an environment-captured provenance record or proof of better
+recommendation quality.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as

@@ -271,6 +271,10 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  buildRecommendationDecisionEvidenceReadback,
+  type RecommendationDecisionEvidenceReadback,
+} from "@/lib/recommendation-decision-evidence-readback";
+import {
   buildRecommendationLearningBaselineReadiness,
   type RecommendationLearningBaselineReadiness,
 } from "@/lib/recommendation-learning-baseline-readiness";
@@ -14483,6 +14487,10 @@ export function TradeApp({
       ].map((snapshot) => [snapshot.snapshot_fingerprint, snapshot]),
     ).values(),
   ).filter(isIntelligenceEnrichmentSnapshot);
+  const recommendationDecisionEvidenceReadback =
+    buildRecommendationDecisionEvidenceReadback({
+      snapshots: recommendationBaselineSnapshots,
+    });
   const recommendationBaselineSnapshotFingerprints = new Set(
     recommendationBaselineSnapshots.map(
       (snapshot) => snapshot.snapshot_fingerprint,
@@ -17099,6 +17107,10 @@ export function TradeApp({
 
             <CandidateDecisionHistoryPanel
               history={candidateDecisionRecordHistory}
+            />
+
+            <RecommendationDecisionEvidenceReadbackPanel
+              readback={recommendationDecisionEvidenceReadback}
             />
 
             <RecommendationLearningBaselineReadinessPanel
@@ -38461,6 +38473,199 @@ function CandidateDecisionHistoryPanel({
           </div>
         )}
       </div>
+    </section>
+  );
+}
+
+function recommendationDecisionEvidenceReadbackTone(
+  status: RecommendationDecisionEvidenceReadback["status"],
+): "positive" | "warning" | "danger" | "neutral" {
+  if (status === "available") return "positive";
+  if (status === "partial") return "warning";
+  return "neutral";
+}
+
+function decisionEvidenceFeatureLabel(featureName: string) {
+  return featureName.replaceAll("_", " ");
+}
+
+function decisionEvidenceFeatureValue(value: number | null) {
+  return value === null ? "explicitly unavailable" : String(value);
+}
+
+function decisionEvidenceTimestamp(value: string | null) {
+  return value ? formatDate(value) : "not recorded";
+}
+
+function RecommendationDecisionEvidenceReadbackPanel({
+  readback,
+}: {
+  readback: RecommendationDecisionEvidenceReadback;
+}) {
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision trace
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Decision Evidence Readback
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            A bounded audit readback of retained, server-owned decision-time
+            inputs. It is historical evidence, not a current quote, a trade
+            recommendation, or proof that a record may enter a learning baseline.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={readback.status}
+          tone={recommendationDecisionEvidenceReadbackTone(readback.status)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <SummaryCard
+          label="Server-owned"
+          value={String(readback.server_owned_snapshot_count)}
+        />
+        <SummaryCard
+          label="Read back"
+          value={String(readback.entries.length)}
+        />
+        <SummaryCard
+          label="Excluded"
+          value={String(readback.excluded_non_server_owned_snapshot_count)}
+        />
+      </div>
+
+      {readback.entries.length === 0 ? (
+        <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-500">
+          No retained server-owned decision evidence is available. Demo, mock,
+          diagnostic, local-only and other non-server-owned snapshots are excluded
+          instead of being presented as production decision history.
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-3 xl:grid-cols-3">
+          {readback.entries.map((entry) => {
+            const responseIdentity = entry.intraday_indicator_response_identity;
+            const featureVector = entry.decision_feature_vector;
+
+            return (
+              <article
+                key={entry.snapshot_fingerprint}
+                className="rounded-md border border-white/10 bg-white/[0.025] p-3"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-sm font-semibold text-zinc-100">
+                      {entry.ticker ?? "ticker not recorded"}
+                    </p>
+                    <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+                      Decision {decisionEvidenceTimestamp(entry.decision_timestamp)}
+                    </p>
+                  </div>
+                  <RecommendationDetailsPill
+                    label={entry.status}
+                    tone={
+                      entry.status === "admissible" ? "positive" : "warning"
+                    }
+                  />
+                </div>
+
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <Detail
+                    label="Source time"
+                    value={decisionEvidenceTimestamp(entry.source_timestamp)}
+                  />
+                  <Detail
+                    label="Snapshot identity"
+                    value={entry.snapshot_fingerprint}
+                  />
+                  <Detail
+                    label="Provider"
+                    value={entry.provider_source ?? "not recorded"}
+                  />
+                  <Detail
+                    label="Provider version"
+                    value={entry.provider_version ?? "not recorded"}
+                  />
+                  <Detail
+                    label="Adapter version"
+                    value={
+                      entry.market_data_adapter_version ?? "not recorded"
+                    }
+                  />
+                  <Detail
+                    label="Build marker"
+                    value={entry.source_build_marker ?? "not recorded"}
+                  />
+                </div>
+
+                <div className="mt-3 rounded border border-white/10 bg-black/20 p-2">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Intraday response identity
+                  </p>
+                  {responseIdentity ? (
+                    <p className="mt-2 break-all font-mono text-xs leading-5 text-zinc-300">
+                      {responseIdentity.contract_version}; {responseIdentity.digest_algorithm}
+                      {" "}{responseIdentity.payload_sha256}; {responseIdentity.payload_byte_length} bytes.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs leading-5 text-zinc-500">
+                      Not recorded or invalid. The raw provider response is not
+                      retained or rendered here.
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-3 rounded border border-white/10 bg-black/20 p-2">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                    Decision feature vector
+                  </p>
+                  {featureVector ? (
+                    <>
+                      <p className="mt-2 font-mono text-[11px] text-zinc-500">
+                        {featureVector.contract_version}
+                      </p>
+                      <ul className="mt-2 grid gap-x-3 gap-y-1 text-xs leading-5 text-zinc-300 sm:grid-cols-2">
+                        {Object.entries(featureVector.feature_values).map(
+                          ([featureName, value]) => (
+                            <li key={featureName}>
+                              <span className="text-zinc-500">
+                                {decisionEvidenceFeatureLabel(featureName)}:
+                              </span>{" "}
+                              {decisionEvidenceFeatureValue(value)}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="mt-2 text-xs leading-5 text-zinc-500">
+                      Not recorded or invalid. Ture retains the evidence gap
+                      instead of rendering an untrusted input projection.
+                    </p>
+                  )}
+                </div>
+
+                {entry.blockers.length > 0 ? (
+                  <div className="mt-3 rounded border border-amber-300/15 bg-amber-300/[0.035] p-2">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-100">
+                      Evidence gaps
+                    </p>
+                    <ul className="mt-2 space-y-1 text-xs leading-5 text-zinc-300">
+                      {entry.blockers.map((blocker) => (
+                        <li key={blocker}>{blocker.replaceAll("_", " ")}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
