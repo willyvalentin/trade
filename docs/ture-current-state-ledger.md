@@ -83,6 +83,18 @@ the focused scheduled-receipt and baseline-readiness suite passed 29 tests.
 This correction neither changes IF-4 runtime behavior nor weakens schema,
 access, or lineage checks for future public relations.
 
+**Market-date integrity hardening, locally verified, 2026-09-19:** Revision
+`c2b5a631ff52b87b768e135218f184baaac0d5fa` binds every scheduled receipt's
+`market_date` to the New York date derived from its quarter-hour scheduler
+slot. The receipt builder, untrusted-receipt reader and attempt-row reader
+reject a mismatch; the still-unapplied migration enforces the same invariant.
+Six focused receipt regressions and strict TypeScript passed. In an isolated
+temporary PostgreSQL container with only the required Supabase role names,
+the migration accepted a valid claimed slot, rejected a mismatched market date
+with `scheduled_outcome_evaluation_attempts_market_date_check`, and retained
+only the valid row. The container was removed. No production migration,
+provider call, candidate, publication or broker action occurred.
+
 **Remaining IF-4a evidence gap:** this receipt proves traceability for the
 existing evaluator and snapshot-present lineage, not provider-version
 provenance, outcome quality, historical replay validity or an improved policy.
