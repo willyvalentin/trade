@@ -49,6 +49,15 @@ monitoring and kill-switch controls. An AI model never has a direct broker path.
    owns risk, data class, state, execution limits and broker authority.
 7. **Data quality is part of quality.** Missingness, freshness, source coverage,
    cost and provider reliability are measured inputs, never silent fallbacks.
+8. **Cloud-native operation, no workstation dependency.** Scheduled collection,
+   outcome evaluation, historical replay and shadow assessment run from
+   deployed, server-owned compute with durable storage. A user workstation may
+   inspect or approve work, but is never a required runtime dependency.
+9. **Historical evidence is research, not live proof.** Point-in-time
+   historical replays may generate hypotheses and eliminate weak policies. They
+   remain separate from forward-live evidence, preserve source/version/time
+   lineage, and cannot by themselves promote a ranking, confidence or
+   publication-policy change.
 
 ### Delivery and environment model
 
@@ -211,6 +220,24 @@ explicit no-trade decisions without lookahead or horizon double counting. Keep
 measure MFE, MAE, R, trigger rate, outcome coverage and missingness. Freeze the
 baseline before changing a threshold, prompt, source weighting or strategy.
 
+**IF-4a — after-market outcome and historical-replay workflow.** During the
+market session, Ture captures immutable decision-time evidence. After the
+market, server-owned jobs complete due outcomes, assess outcome coverage and
+missingness, validate data integrity, and run bounded historical replays of
+explicitly versioned hypotheses.
+
+Historical replay inputs must preserve the universe available at the historical
+decision time, point-in-time source timestamps, corporate-action treatment and
+all policy versions. They must reject lookahead, survivorship-biased, stale,
+revised or incomplete input. Live-forward samples and historical/replay samples
+remain separately identifiable and cannot be silently pooled.
+
+Each completed job emits a durable, readable receipt: input scope, source and
+policy versions, coverage, freshness, costs, failures, result disposition and
+whether the output is eligible only for research or for later shadow comparison.
+No after-market job may alter a live ranking, publication policy,
+recommendation, position or broker state.
+
 #### IF-5 — shadow learning and promotion
 
 Test one hypothesis at a time against a held-out sample: for example, whether
@@ -218,6 +245,13 @@ sector-relative strength improves precision among the top-ranked candidates.
 Compare precision@K, expectancy in R, calibration, coverage, provider cost and
 reliability. A winning version runs in shadow first; promotion is one versioned,
 reversible policy change with continuous post-promotion monitoring.
+
+Historical replay can reject a weak hypothesis and prioritize a promising one,
+but it cannot prove a policy improvement. Promotion requires both a frozen,
+held-out historical comparison and subsequent forward-live shadow evidence over
+a declared comparable sample. A promoted policy must outperform the frozen
+baseline on the declared quality, coverage, reliability and cost measures, with
+a versioned rollback rule and continuous post-promotion monitoring.
 
 ### Publication quality bar
 
