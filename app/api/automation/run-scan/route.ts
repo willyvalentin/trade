@@ -134,6 +134,7 @@ import {
 } from "@/lib/rejected-candidate-research-selection";
 import { recommendationDecisionFeatureVectorFromUnknown } from "@/lib/recommendation-decision-feature-vector";
 import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
+import { buildRecommendationIntakeQualityResult } from "@/lib/recommendation-intake-quality";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -1980,6 +1981,7 @@ function buildSnapshotFromRecommendation({
   scanObservability,
   servingCadence,
   scanLog,
+  recommendations,
   providerPlanProfileMode,
   batchFingerprint,
 }: {
@@ -1991,6 +1993,7 @@ function buildSnapshotFromRecommendation({
   scanObservability: ScanPipelineObservabilitySummary;
   servingCadence: RecommendationServingCadenceSummary;
   scanLog: ScanLogEntry;
+  recommendations: RecommendationRow[];
   providerPlanProfileMode: string | null;
   batchFingerprint: string | null;
 }) {
@@ -2063,6 +2066,38 @@ function buildSnapshotFromRecommendation({
       ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
     ]),
   );
+  // This is durable decision evidence only. It deliberately does not filter,
+  // re-rank, or publish recommendations until a later, baseline-evaluated
+  // policy promotion explicitly admits that behavior.
+  const intakeQualityResult = buildRecommendationIntakeQualityResult({
+    recommendation_id: textOrNull(recommendation.id),
+    ticker,
+    company_name: textOrNull(recommendation.company_name),
+    direction: side,
+    entry_price: entry,
+    entry_low: entryLow,
+    entry_high: entryHigh,
+    stop_price: stop,
+    target_price: target,
+    confidence_score: numberOrNull(recommendation.confidence_score),
+    setup_type: textOrNull(recommendation.setup_type),
+    reason_text: rationale,
+    generated_at: recommendationCreatedAt(recommendation),
+    market_data_timestamp: dataTimestamp,
+    market_session: {
+      phase: marketSession.phase,
+      risk_level: marketSession.risk_level,
+      source: marketSession.source,
+      is_market_open: marketSession.market_is_open,
+    },
+    existing_recommendations: recommendations.map((item) => ({
+      id: textOrNull(item.id),
+      ticker: recommendationTicker(item),
+      setup_type: textOrNull(item.setup_type),
+      status: textOrNull(item.status),
+    })),
+    now,
+  });
 
   return buildRecommendationSnapshot({
     recommendation_id: textOrNull(recommendation.id),
@@ -2106,6 +2141,7 @@ function buildSnapshotFromRecommendation({
     freshness: "fresh",
     data_age_minutes: 0,
     quality: {
+      intake_quality_result: intakeQualityResult,
       scan_observability_summary: scanObservability,
     },
     payload: {
@@ -2128,6 +2164,9 @@ function buildSnapshotFromRecommendation({
       build_marker: BUILD_MARKER,
       recommendation_publish_policy_version:
         RECOMMENDATION_PUBLISH_POLICY_VERSION,
+      intake_quality_result_version: intakeQualityResult.result_version,
+      intake_quality_shadow_only: intakeQualityResult.internal_only,
+      intake_quality_status: intakeQualityResult.status,
       explicit_metadata_gaps: explicitMetadataGaps,
       side,
       direction: side,
@@ -2522,6 +2561,7 @@ async function persistAutomationArtifacts({
       scanObservability: observability,
       servingCadence,
       scanLog,
+      recommendations,
       providerPlanProfileMode,
       batchFingerprint: null,
     }),
@@ -2617,6 +2657,7 @@ async function persistAutomationArtifacts({
       scanObservability: observability,
       servingCadence,
       scanLog,
+      recommendations,
       providerPlanProfileMode,
       batchFingerprint: anticipatedBatchFingerprint,
     });
