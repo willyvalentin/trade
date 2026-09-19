@@ -48,6 +48,14 @@ function decisionSnapshots() {
         market_data_adapter_version: "automation_scan_market_data_adapter_v1",
         build_marker: "test-build-marker",
       },
+      intake_quality_json: {
+        result_kind: "recommendation_intake_quality",
+        result_version: "1.1",
+        status: "accepted",
+        grade: "A",
+        accepted_for_visible_list: true,
+        internal_only: true,
+      },
     },
   ];
 }
@@ -131,6 +139,16 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         ],
         market_data_sources: ["twelve_data"],
         missing_market_data_source_count: 0,
+        intake_quality: {
+          status: "complete",
+          valid_receipt_count: 1,
+          missing_receipt_count: 0,
+          invalid_receipt_count: 0,
+          accepted_for_visible_list_count: 1,
+          result_versions: ["1.1"],
+          result_statuses: ["accepted"],
+          grades: ["A"],
+        },
       },
       source_provenance: {
         contract_version:
@@ -158,6 +176,18 @@ test.describe("scheduled outcome-evaluation receipts", () => {
       scheduledOutcomeEvaluationReceiptFromUnknown({
         ...built,
         scheduled_slot_at: "2026-09-21T20:16:00.000Z",
+      }),
+    ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        decision_lineage: {
+          ...built.decision_lineage,
+          intake_quality: {
+            ...built.decision_lineage.intake_quality,
+            result_versions: [],
+          },
+        },
       }),
     ).toBeNull();
     expect(
@@ -232,6 +262,7 @@ test.describe("scheduled outcome-evaluation receipts", () => {
           recommended_at: null,
           source_mode: "supabase",
           payload_json: {},
+          intake_quality_json: null,
         },
       ],
     });
@@ -281,6 +312,7 @@ test.describe("scheduled outcome-evaluation receipts", () => {
               "automation_scan_market_data_adapter_v1",
             build_marker: "test-build-marker",
           },
+          intake_quality_json: null,
         },
       ],
     });
@@ -318,6 +350,87 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         status: "not_recorded",
       },
     });
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
+        decision_lineage: {
+          ...built.decision_lineage,
+          intake_quality: undefined,
+        },
+      }),
+    ).toMatchObject({
+      decision_lineage: {
+        intake_quality: {
+          status: "not_recorded",
+          eligible_snapshot_count: 1,
+          valid_receipt_count: 0,
+          missing_receipt_count: 1,
+        },
+      },
+    });
+  });
+
+  test("keeps missing and malformed intake-quality receipts explicit for later evaluation", () => {
+    const missing = buildScheduledOutcomeEvaluationReceipt({
+      attemptFingerprint: "scheduled_outcome_evaluation_missingquality",
+      marketDate: "2026-09-21",
+      scheduledSlotAt: "2026-09-21T21:00:00.000Z",
+      routeReceivedAt: "2026-09-21T21:00:03.000Z",
+      completedAt: "2026-09-21T21:00:05.000Z",
+      routeVersion: "outcome-evaluation-route-v1.0",
+      selectedBatchFingerprint: "batch_missing_quality",
+      run: completedRun(),
+      outcomesCreatedCount: 0,
+      outcomesUpdatedCount: 0,
+      outcomesSkippedEqualOrBetterCount: 0,
+      persistenceStatus: "not_attempted",
+      persistenceError: null,
+      firstBlocker: "intake_quality_not_recorded",
+      nextRetrySuggestion: null,
+      decisionSnapshots: [
+        {
+          ...decisionSnapshots()[0],
+          intake_quality_json: null,
+        },
+      ],
+    });
+    const malformed = buildScheduledOutcomeEvaluationReceipt({
+      attemptFingerprint: "scheduled_outcome_evaluation_invalidquality",
+      marketDate: "2026-09-21",
+      scheduledSlotAt: "2026-09-21T21:15:00.000Z",
+      routeReceivedAt: "2026-09-21T21:15:03.000Z",
+      completedAt: "2026-09-21T21:15:05.000Z",
+      routeVersion: "outcome-evaluation-route-v1.0",
+      selectedBatchFingerprint: "batch_invalid_quality",
+      run: completedRun(),
+      outcomesCreatedCount: 0,
+      outcomesUpdatedCount: 0,
+      outcomesSkippedEqualOrBetterCount: 0,
+      persistenceStatus: "not_attempted",
+      persistenceError: null,
+      firstBlocker: "intake_quality_invalid",
+      nextRetrySuggestion: null,
+      decisionSnapshots: [
+        {
+          ...decisionSnapshots()[0],
+          intake_quality_json: { result_kind: "recommendation_intake_quality" },
+        },
+      ],
+    });
+
+    expect(missing.decision_lineage.intake_quality).toMatchObject({
+      status: "not_recorded",
+      missing_receipt_count: 1,
+      invalid_receipt_count: 0,
+    });
+    expect(malformed.decision_lineage.intake_quality).toMatchObject({
+      status: "incomplete",
+      valid_receipt_count: 0,
+      missing_receipt_count: 0,
+      invalid_receipt_count: 1,
+    });
+    expect(scheduledOutcomeEvaluationReceiptFromUnknown(missing)).toEqual(missing);
+    expect(scheduledOutcomeEvaluationReceiptFromUnknown(malformed)).toEqual(malformed);
   });
 
   test("only admits a claimed row without a receipt and a finalized row with an exact receipt", () => {

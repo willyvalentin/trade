@@ -45,6 +45,24 @@ export type ScheduledOutcomeEvaluationSourceProvenance = {
   source_build_markers: string[];
 };
 
+/**
+ * The quality receipt is retained independently from publication-policy and
+ * provider provenance. This lets a later baseline compare outcomes by the
+ * exact intake-quality result semantics without treating a missing historical
+ * receipt as evidence that the quality gate passed.
+ */
+export type ScheduledOutcomeEvaluationIntakeQualityProvenance = {
+  status: "not_recorded" | "unavailable" | "complete" | "mixed" | "incomplete";
+  eligible_snapshot_count: number;
+  valid_receipt_count: number;
+  missing_receipt_count: number;
+  invalid_receipt_count: number;
+  accepted_for_visible_list_count: number;
+  result_versions: string[];
+  result_statuses: string[];
+  grades: string[];
+};
+
 export type ScheduledOutcomeEvaluationReceipt = {
   contract_version: typeof SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION;
   attempt_fingerprint: string;
@@ -69,6 +87,7 @@ export type ScheduledOutcomeEvaluationReceipt = {
     source_modes: string[];
     market_data_sources: string[];
     missing_market_data_source_count: number;
+    intake_quality: ScheduledOutcomeEvaluationIntakeQualityProvenance;
   };
   source_provenance: ScheduledOutcomeEvaluationSourceProvenance;
   scope: {
@@ -154,7 +173,7 @@ type ReceiptInput = {
   decisionSnapshots?: Array<
     Pick<
       RecommendationSnapshot,
-      "recommended_at" | "source_mode" | "payload_json"
+      "recommended_at" | "source_mode" | "payload_json" | "intake_quality_json"
     >
   >;
 };
@@ -260,8 +279,98 @@ function snapshotPayloadText(
     : null;
 }
 
+type IntakeQualityReceipt = {
+  result_version: string;
+  status: "accepted" | "needs_review" | "rejected" | "incomplete";
+  grade: "A" | "B" | "C" | "D" | "F" | "unknown";
+  accepted_for_visible_list: boolean;
+};
+
+function intakeQualityReceiptFromUnknown(value: unknown): IntakeQualityReceipt | null {
+  const raw = objectOrNull(value);
+  const resultVersion = textOrNull(raw?.result_version);
+  const status = raw?.status;
+  const grade = raw?.grade;
+
+  if (
+    !raw ||
+    raw.result_kind !== "recommendation_intake_quality" ||
+    raw.internal_only !== true ||
+    !resultVersion ||
+    (status !== "accepted" &&
+      status !== "needs_review" &&
+      status !== "rejected" &&
+      status !== "incomplete") ||
+    (grade !== "A" &&
+      grade !== "B" &&
+      grade !== "C" &&
+      grade !== "D" &&
+      grade !== "F" &&
+      grade !== "unknown") ||
+    typeof raw.accepted_for_visible_list !== "boolean"
+  ) {
+    return null;
+  }
+
+  return {
+    result_version: resultVersion,
+    status,
+    grade,
+    accepted_for_visible_list: raw.accepted_for_visible_list,
+  };
+}
+
+function intakeQualityProvenance(
+  snapshots: Array<Pick<RecommendationSnapshot, "intake_quality_json">>,
+): ScheduledOutcomeEvaluationIntakeQualityProvenance {
+  const eligibleSnapshotCount = snapshots.length;
+  const receipts = snapshots.map((snapshot) =>
+    intakeQualityReceiptFromUnknown(snapshot.intake_quality_json),
+  );
+  const validReceipts = receipts.filter(
+    (receipt): receipt is IntakeQualityReceipt => receipt !== null,
+  );
+  const missingReceiptCount = snapshots.filter(
+    (snapshot) => snapshot.intake_quality_json === null || snapshot.intake_quality_json === undefined,
+  ).length;
+  const invalidReceiptCount =
+    eligibleSnapshotCount - validReceipts.length - missingReceiptCount;
+  const resultVersions = uniqueSorted(
+    validReceipts.map((receipt) => receipt.result_version),
+  );
+  const resultStatuses = uniqueSorted(
+    validReceipts.map((receipt) => receipt.status),
+  );
+  const grades = uniqueSorted(validReceipts.map((receipt) => receipt.grade));
+
+  return {
+    status:
+      eligibleSnapshotCount === 0
+        ? "unavailable"
+        : validReceipts.length === 0 && invalidReceiptCount === 0
+          ? "not_recorded"
+          : missingReceiptCount > 0 || invalidReceiptCount > 0
+            ? "incomplete"
+            : resultVersions.length === 1
+              ? "complete"
+              : "mixed",
+    eligible_snapshot_count: eligibleSnapshotCount,
+    valid_receipt_count: validReceipts.length,
+    missing_receipt_count: missingReceiptCount,
+    invalid_receipt_count: invalidReceiptCount,
+    accepted_for_visible_list_count: validReceipts.filter(
+      (receipt) => receipt.accepted_for_visible_list,
+    ).length,
+    result_versions: resultVersions,
+    result_statuses: resultStatuses,
+    grades,
+  };
+}
+
 function decisionLineage(
-  snapshots: Array<Pick<RecommendationSnapshot, "source_mode" | "payload_json">>,
+  snapshots: Array<
+    Pick<RecommendationSnapshot, "source_mode" | "payload_json" | "intake_quality_json">
+  >,
 ): ScheduledOutcomeEvaluationReceipt["decision_lineage"] {
   const policyVersions = snapshots
     .map((snapshot) => snapshotPayloadText(snapshot, "recommendation_publish_policy_version"))
@@ -296,6 +405,7 @@ function decisionLineage(
     source_modes: uniqueSorted(sourceModes),
     market_data_sources: uniqueSorted(marketDataSources),
     missing_market_data_source_count: missingMarketDataSourceCount,
+    intake_quality: intakeQualityProvenance(snapshots),
   };
 }
 
@@ -550,6 +660,110 @@ function sourceProvenanceFromUnknown(
   };
 }
 
+function intakeQualityProvenanceNotRecorded(
+  eligibleSnapshotCount: number,
+): ScheduledOutcomeEvaluationIntakeQualityProvenance {
+  return {
+    status: eligibleSnapshotCount === 0 ? "unavailable" : "not_recorded",
+    eligible_snapshot_count: eligibleSnapshotCount,
+    valid_receipt_count: 0,
+    missing_receipt_count: eligibleSnapshotCount,
+    invalid_receipt_count: 0,
+    accepted_for_visible_list_count: 0,
+    result_versions: [],
+    result_statuses: [],
+    grades: [],
+  };
+}
+
+function intakeQualityProvenanceFromUnknown(
+  value: unknown,
+  expectedEligibleSnapshotCount: number,
+): ScheduledOutcomeEvaluationIntakeQualityProvenance | null {
+  if (value === undefined) {
+    return intakeQualityProvenanceNotRecorded(expectedEligibleSnapshotCount);
+  }
+
+  const raw = objectOrNull(value);
+  if (
+    !raw ||
+    (raw.status !== "not_recorded" &&
+      raw.status !== "unavailable" &&
+      raw.status !== "complete" &&
+      raw.status !== "mixed" &&
+      raw.status !== "incomplete")
+  ) {
+    return null;
+  }
+
+  const counts = [
+    raw.eligible_snapshot_count,
+    raw.valid_receipt_count,
+    raw.missing_receipt_count,
+    raw.invalid_receipt_count,
+    raw.accepted_for_visible_list_count,
+  ].map(nonNegativeInteger);
+  const resultVersions = uniqueSortedStringArray(raw.result_versions);
+  const resultStatuses = uniqueSortedStringArray(raw.result_statuses);
+  const grades = uniqueSortedStringArray(raw.grades);
+  if (
+    counts.some((entry) => entry === null) ||
+    !resultVersions ||
+    !resultStatuses ||
+    !grades
+  ) {
+    return null;
+  }
+
+  const [
+    eligibleSnapshotCount,
+    validReceiptCount,
+    missingReceiptCount,
+    invalidReceiptCount,
+    acceptedForVisibleListCount,
+  ] = counts as number[];
+  const listsMatchReceipts =
+    (validReceiptCount === 0
+      ? resultVersions.length === 0 && resultStatuses.length === 0 && grades.length === 0
+      : resultVersions.length > 0 && resultStatuses.length > 0 && grades.length > 0) &&
+    resultVersions.length <= validReceiptCount &&
+    resultStatuses.length <= validReceiptCount &&
+    grades.length <= validReceiptCount;
+  const expectedStatus =
+    eligibleSnapshotCount === 0
+      ? "unavailable"
+      : validReceiptCount === 0 && invalidReceiptCount === 0
+        ? "not_recorded"
+        : missingReceiptCount > 0 || invalidReceiptCount > 0
+          ? "incomplete"
+          : resultVersions.length === 1
+            ? "complete"
+            : "mixed";
+
+  if (
+    eligibleSnapshotCount !== expectedEligibleSnapshotCount ||
+    eligibleSnapshotCount !==
+      validReceiptCount + missingReceiptCount + invalidReceiptCount ||
+    acceptedForVisibleListCount > validReceiptCount ||
+    !listsMatchReceipts ||
+    raw.status !== expectedStatus
+  ) {
+    return null;
+  }
+
+  return {
+    status: raw.status,
+    eligible_snapshot_count: eligibleSnapshotCount,
+    valid_receipt_count: validReceiptCount,
+    missing_receipt_count: missingReceiptCount,
+    invalid_receipt_count: invalidReceiptCount,
+    accepted_for_visible_list_count: acceptedForVisibleListCount,
+    result_versions: resultVersions,
+    result_statuses: resultStatuses,
+    grades,
+  };
+}
+
 /**
  * Maps a scheduler delivery to its intended quarter-hour slot. Re-deliveries
  * in the same slot therefore use the same durable claim and cannot restart
@@ -684,6 +898,7 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const status = validTerminalStatus(raw.status);
   const evaluator = objectOrNull(raw.evaluator);
   const decisionLineageRaw = objectOrNull(raw.decision_lineage);
+  const intakeQualityRaw = decisionLineageRaw?.intake_quality;
   const sourceProvenance = sourceProvenanceFromUnknown(raw.source_provenance);
   const scope = objectOrNull(raw.scope);
   const coverage = objectOrNull(raw.coverage);
@@ -745,11 +960,16 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
   const lineageMarketDataSources = uniqueSortedStringArray(
     decisionLineageRaw.market_data_sources,
   );
+  const intakeQuality = intakeQualityProvenanceFromUnknown(
+    intakeQualityRaw,
+    decisionLineageCounts[0] ?? -1,
+  );
   if (
     !decisionLineageStatus ||
     !lineagePolicyVersions ||
     !lineageSourceModes ||
     !lineageMarketDataSources ||
+    !intakeQuality ||
     decisionLineageCounts.some((value) => value === null) ||
     decisionLineageCounts[0]! !==
       decisionLineageCounts[1]! + decisionLineageCounts[2]! ||
@@ -798,6 +1018,7 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
       source_modes: lineageSourceModes,
       market_data_sources: lineageMarketDataSources,
       missing_market_data_source_count: decisionLineageCounts[3]!,
+      intake_quality: intakeQuality,
     },
     source_provenance: sourceProvenance,
     scope: {
