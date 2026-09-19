@@ -49,6 +49,18 @@ monitoring and kill-switch controls. An AI model never has a direct broker path.
    owns risk, data class, state, execution limits and broker authority.
 7. **Data quality is part of quality.** Missingness, freshness, source coverage,
    cost and provider reliability are measured inputs, never silent fallbacks.
+8. **Quality is demonstrated, not asserted.** Recommendation quality is measured
+   against predeclared, versioned criteria by setup and market regime. A high
+   score, a single trade or a profitable day is never sufficient evidence.
+9. **Cloud-native operation, no workstation dependency.** Scheduled collection,
+   outcome evaluation, historical replay and shadow assessment run from
+   deployed, server-owned compute with durable storage. A user workstation may
+   inspect or approve work, but is never a required runtime dependency.
+10. **Historical evidence is research, not live proof.** Point-in-time
+   historical replays may generate hypotheses and eliminate weak policies. They
+   remain separate from forward-live evidence, preserve source/version/time
+   lineage, and cannot by themselves promote a ranking, confidence or
+   publication-policy change.
 
 ### Delivery and environment model
 
@@ -71,8 +83,8 @@ historical evidence; it no longer determines the next engine slice.
 | IF-1 — candidate decision record | Ture can explain every scan: what was considered, what was rejected and why no strong candidate was published | Immutable scan/candidate identities, complete pre-truncation membership, structured reject/no-trade reasons, source/freshness/version metadata and readback in the app |
 | IF-2 — market-wide discovery | Ture can discover eligible movers beyond a static universe without exceeding provider capacity | Versioned universe policy, symbol coverage/readiness, dynamic mover and relative-volume intake, provider budget/coverage diagnostics and controlled backoff |
 | IF-3 — contextual quality engine | Ture ranks candidates using market, sector and ticker context rather than isolated chart signals | Point-in-time SPY/QQQ/IWM, sector/industry relative strength and catalyst-presence snapshots; one published quality policy with explainable components |
-| IF-4 — measured learning dataset | Ture has the right evidence to know whether its selections were good | Complete visible, research, rejected and explicit no-trade samples; canonical outcomes, deduplication, outcome coverage and frozen baseline plan |
-| IF-5 — shadow learning and promotion | Ture improves a policy only when evidence shows it helps | Held-out comparison, cost/reliability measures, shadow winner, versioned rollback-capable promotion and post-promotion monitoring |
+| IF-4 — measured learning dataset | Ture has the right evidence to know whether its selections were good | Complete visible, research, rejected and explicit no-trade samples; canonical outcomes, deduplication, outcome coverage, point-in-time replay and a frozen evaluation charter |
+| IF-5 — shadow learning and promotion | Ture improves a policy only when evidence shows it helps | Held-out and walk-forward comparison; quality, calibration, feasibility, cost and reliability measures; shadow winner, versioned rollback-capable promotion and post-promotion monitoring |
 | EX-1 — execution preparation | A proven recommendation can become a correct, human-confirmed Avanza order package | Account/instrument binding, deterministic order admission, risk limits, durable intent, reconciliation and recovery |
 | EX-2 — controlled autonomous execution | Ture can submit and later close a narrowly scoped Avanza position automatically | Sustained engine evidence, explicit enablement, per-order and portfolio limits, kill switch, idempotency, audit, real-time monitoring, broker reconciliation and incident recovery |
 
@@ -211,6 +223,30 @@ explicit no-trade decisions without lookahead or horizon double counting. Keep
 measure MFE, MAE, R, trigger rate, outcome coverage and missingness. Freeze the
 baseline before changing a threshold, prompt, source weighting or strategy.
 
+Each evaluation must also preserve the decision-time inputs, derived features,
+policy version and outcome rules needed to reproduce the result. It must report
+outcomes by setup, ticker class, sector, market regime and time window, with
+coverage and concentration visible for every reported aggregate. Rejected and
+`no_trade` samples may not be silently excluded from the evaluation population.
+
+**IF-4a — after-market outcome and historical-replay workflow.** During the
+market session, Ture captures immutable decision-time evidence. After the
+market, server-owned jobs complete due outcomes, assess outcome coverage and
+missingness, validate data integrity, and run bounded historical replays of
+explicitly versioned hypotheses.
+
+Historical replay inputs must preserve the universe available at the historical
+decision time, point-in-time source timestamps, corporate-action treatment and
+all policy versions. They must reject lookahead, survivorship-biased, stale,
+revised or incomplete input. Live-forward samples and historical/replay samples
+remain separately identifiable and cannot be silently pooled.
+
+Each completed job emits a durable, readable receipt: input scope, source and
+policy versions, coverage, freshness, costs, failures, result disposition and
+whether the output is eligible only for research or for later shadow comparison.
+No after-market job may alter a live ranking, publication policy,
+recommendation, position or broker state.
+
 #### IF-5 — shadow learning and promotion
 
 Test one hypothesis at a time against a held-out sample: for example, whether
@@ -219,6 +255,46 @@ Compare precision@K, expectancy in R, calibration, coverage, provider cost and
 reliability. A winning version runs in shadow first; promotion is one versioned,
 reversible policy change with continuous post-promotion monitoring.
 
+Historical replay can reject a weak hypothesis and prioritize a promising one,
+but it cannot prove a policy improvement. Promotion requires both a frozen,
+held-out historical comparison and subsequent forward-live shadow evidence over
+a declared comparable sample. A promoted policy must outperform the frozen
+baseline on the declared quality, coverage, reliability and cost measures, with
+a versioned rollback rule and continuous post-promotion monitoring.
+
+### Recommendation quality and promotion standard
+
+The recommendation engine is judged by decision quality, not candidate volume
+or isolated P&L. Before an IF-4 evaluation begins, its owner must freeze a
+versioned evaluation charter. The charter is part of the durable evidence and
+must define:
+
+- the hypothesis, policy versions, eligible universe, setup and regime slices;
+- the decision-time data contract, primary outcome semantics and all horizons;
+- the minimum completed sample, held-out period and walk-forward window for the
+  overall population and each material slice;
+- the baseline and the predeclared numeric promotion thresholds for
+  precision@K, expectancy in R, calibration error, outcome coverage,
+  missingness, provider cost and reliability;
+- the permitted concentration in a ticker, sector, setup or market regime, and
+  the treatment of a sparse or unavailable slice; and
+- whether feasibility inputs include spread, liquidity, volatility, halt risk,
+  trigger attainment and conservative slippage. If an input is unavailable, the
+  result must disclose that limitation and cannot claim executable performance.
+
+Numeric thresholds must be selected before the policy's evaluation data is
+read, justified against the frozen baseline and changed only through a new
+versioned charter. They must never be relaxed merely to create a promotion.
+
+A policy is eligible for shadow promotion only when it improves the
+predeclared quality measures on held-out and walk-forward evidence without a
+material regression in calibration, coverage, feasibility, data quality,
+provider cost or reliability. It must then run alongside the active policy for
+the charter's defined shadow window. Live promotion requires that this result
+persists, remains explainable by setup and regime, is rollback-capable and has
+post-promotion drift and withdrawal monitors. A monitor breach returns the
+policy to shadow or `no_trade`; it never silently widens the publication gate.
+
 ### Publication quality bar
 
 A trade-ready recommendation must have all of the following:
@@ -226,6 +302,8 @@ A trade-ready recommendation must have all of the following:
 - fresh, attributable market data and an eligible tradability/liquidity state;
 - a setup, timing rule, entry, invalidation, stop and target with valid risk
   geometry;
+- evidence that the setup is realistically actionable for the stated time
+  window, including the available liquidity and execution-feasibility limits;
 - an explainable market, sector and ticker context, with all material gaps
   visible;
 - a current engine/ranking policy version and decision-time snapshot;
