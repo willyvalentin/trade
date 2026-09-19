@@ -58,7 +58,12 @@ equivalence. A second read-only comparison found the expected pre-existing
 `basic_free_discovery_credit_reservations` tables, including
 `catalog_observation` and its owner/date partial unique index. That makes the
 local IF-2 assumptions schema-consistent, not migration-ID-equivalent. The
-temporary snapshots were removed. No link, repair, migration, provider request,
+temporary snapshots were removed. The committed aggregate-only query at
+`docs/sql/if4-durable-learning-baseline-freeze-production-preflight.sql` was
+then executed in a read-only production transaction: all target objects were
+absent, every owner-bound scan-run and role/extension prerequisite was present,
+and `eligible_for_exact_additive_apply` was true. It returns no application-row
+content or identifiers. No link, repair, migration, provider request,
 candidate, publication or broker action occurred.
 
 **Known IF-2 version aliasing, read-only, 2026-09-19:** A temporary

@@ -19,6 +19,8 @@ const decisionRecordFingerprints = ["scan-fingerprint-one", "scan-fingerprint-tw
 const frozenAt = "2026-09-19T08:00:00.000Z";
 const migrationPath =
   "supabase/migrations/20260918224038_if4_durable_learning_baseline_freeze.sql";
+const productionPreflightPath =
+  "docs/sql/if4-durable-learning-baseline-freeze-production-preflight.sql";
 
 const evaluationPlan: RecommendationLearningEvaluationPlan = {
   contract_version: "recommendation_learning_evaluation_plan_v1",
@@ -271,6 +273,10 @@ test("a durable baseline refuses malformed persisted decision evidence", () => {
 
 test("migration and authenticated route keep the freeze server-only and immutable", () => {
   const migration = readFileSync(resolve(process.cwd(), migrationPath), "utf8");
+  const productionPreflight = readFileSync(
+    resolve(process.cwd(), productionPreflightPath),
+    "utf8",
+  );
   const persistence = readFileSync(resolve(
     process.cwd(),
     "lib/server/recommendation-learning-baseline-freeze-persistence.ts",
@@ -295,4 +301,11 @@ test("migration and authenticated route keep the freeze server-only and immutabl
   expect(route).toContain("freezeCurrentRecommendationLearningBaseline");
   expect(source).toContain("count: \"exact\"");
   expect(source).toContain("LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS");
+  expect(productionPreflight.toLowerCase()).toContain("begin read only");
+  expect(productionPreflight.toLowerCase()).toContain("rollback");
+  expect(productionPreflight).toContain("eligible_for_exact_additive_apply");
+  expect(productionPreflight).toContain("recommendation_learning_baseline_freezes");
+  expect(productionPreflight).not.toMatch(
+    /\b(insert|update|delete|alter|create|drop|grant|revoke|truncate)\b/i,
+  );
 });
