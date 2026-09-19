@@ -3,9 +3,9 @@ import type { RecommendationLearningEvaluationPlan } from "@/lib/recommendation-
 export const recommendationLearningBaselineFreezeContractVersion =
   "recommendation_learning_baseline_freeze_v1" as const;
 export const recommendationLearningBaselineFreezeRpcName =
-  "freeze_recommendation_learning_baseline" as const;
+  "freeze_recommendation_learning_baseline_with_charter" as const;
 export const recommendationLearningBaselineFreezeReadRpcName =
-  "read_recommendation_learning_baseline_freeze" as const;
+  "read_recommendation_learning_baseline_with_charter" as const;
 
 export type RecommendationLearningBaselineFreeze = {
   baseline_id: string;
@@ -14,6 +14,7 @@ export type RecommendationLearningBaselineFreeze = {
   segment_key: string;
   decision_record_fingerprints: string[];
   evaluation_plan: RecommendationLearningEvaluationPlan;
+  evaluation_charter_fingerprint: string;
   frozen_at: string;
 };
 
@@ -23,6 +24,7 @@ export type RecommendationLearningBaselineFreezeInput = {
   segment_key: string;
   decision_record_fingerprints: string[];
   evaluation_plan: RecommendationLearningEvaluationPlan;
+  evaluation_charter_fingerprint: string;
 };
 
 type FreezeRow = {
@@ -33,6 +35,7 @@ type FreezeRow = {
   segment_key: string | null;
   decision_record_fingerprints: string[] | null;
   evaluation_plan: unknown;
+  evaluation_charter_fingerprint: string | null;
   frozen_at: string | null;
   idempotent: boolean;
   blocker: string | null;
@@ -46,6 +49,7 @@ type ReadRow = {
   segment_key: string | null;
   decision_record_fingerprints: string[] | null;
   evaluation_plan: unknown;
+  evaluation_charter_fingerprint: string | null;
   frozen_at: string | null;
   blocker: string | null;
 };
@@ -145,6 +149,7 @@ function freezeFromRow(
     !validSegmentKey(row.segment_key) ||
     !validDecisionFingerprints(row.decision_record_fingerprints) ||
     !validEvaluationPlan(row.evaluation_plan, row.segment_key) ||
+    !validFingerprint(row.evaluation_charter_fingerprint) ||
     !validIso(row.frozen_at)
   ) {
     return null;
@@ -157,6 +162,7 @@ function freezeFromRow(
     segment_key: row.segment_key,
     decision_record_fingerprints: row.decision_record_fingerprints,
     evaluation_plan: row.evaluation_plan,
+    evaluation_charter_fingerprint: row.evaluation_charter_fingerprint,
     frozen_at: row.frozen_at,
   };
 
@@ -166,7 +172,8 @@ function freezeFromRow(
     freeze.segment_key === input.segment_key &&
     JSON.stringify(freeze.decision_record_fingerprints) ===
       JSON.stringify(input.decision_record_fingerprints) &&
-    JSON.stringify(freeze.evaluation_plan) === JSON.stringify(input.evaluation_plan)
+    JSON.stringify(freeze.evaluation_plan) === JSON.stringify(input.evaluation_plan) &&
+    freeze.evaluation_charter_fingerprint === input.evaluation_charter_fingerprint
     ? freeze
     : null;
 }
@@ -175,6 +182,7 @@ function validInput(
   input: RecommendationLearningBaselineFreezeInput,
 ): boolean {
   return validFingerprint(input.baseline_fingerprint) &&
+    validFingerprint(input.evaluation_charter_fingerprint) &&
     validUuid(input.owner_user_id) &&
     validSegmentKey(input.segment_key) &&
     validDecisionFingerprints(input.decision_record_fingerprints) &&

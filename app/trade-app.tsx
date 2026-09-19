@@ -287,6 +287,7 @@ import {
   type RecommendationLearningEvaluationPlans,
 } from "@/lib/recommendation-learning-evaluation-plan";
 import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
+import type { RecommendationEvaluationCharter } from "@/lib/recommendation-evaluation-charter";
 import {
   marketWideDiscoveryReadbackFromScheduledAttempt,
   marketWideDiscoveryReadbackFromScanRun,
@@ -2695,6 +2696,69 @@ async function postRecommendationLearningBaselineFreeze(segmentKey: string) {
       freeze: null,
       status: null,
       error: "Durable baseline storage is unavailable.",
+    };
+  }
+}
+
+type RecommendationEvaluationCharterPayload = {
+  status?: "available" | "not_found" | "recorded" | "already_recorded";
+  charters?: RecommendationEvaluationCharter[];
+  charter?: RecommendationEvaluationCharter | null;
+  error?: string;
+  blocker?: string;
+};
+
+async function fetchRecommendationEvaluationCharters() {
+  try {
+    const response = await fetch("/api/app/recommendation-evaluation-charter", {
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationEvaluationCharterPayload
+      | null;
+    if (!response.ok || !payload) {
+      return {
+        charters: [] as RecommendationEvaluationCharter[],
+        error: payload?.error ?? "Durable evaluation-charter storage is unavailable.",
+      };
+    }
+    return { charters: payload.charters ?? [], error: "" };
+  } catch {
+    return {
+      charters: [] as RecommendationEvaluationCharter[],
+      error: "Durable evaluation-charter storage is unavailable.",
+    };
+  }
+}
+
+async function postRecommendationEvaluationCharter({
+  segmentKey,
+  charter,
+}: {
+  segmentKey: string;
+  charter: unknown;
+}) {
+  try {
+    const response = await fetch("/api/app/recommendation-evaluation-charter", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ segment_key: segmentKey, charter }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | RecommendationEvaluationCharterPayload
+      | null;
+    return {
+      charter: payload?.charter ?? null,
+      status: payload?.status ?? null,
+      error: response.ok
+        ? ""
+        : payload?.error ?? "Durable evaluation-charter storage is unavailable.",
+    };
+  } catch {
+    return {
+      charter: null,
+      status: null,
+      error: "Durable evaluation-charter storage is unavailable.",
     };
   }
 }
@@ -8920,6 +8984,12 @@ export function TradeApp({
     useState("");
   const [isFreezingLearningBaseline, setIsFreezingLearningBaseline] =
     useState(false);
+  const [recommendationEvaluationCharters, setRecommendationEvaluationCharters] =
+    useState<RecommendationEvaluationCharter[]>([]);
+  const [recommendationEvaluationCharterError, setRecommendationEvaluationCharterError] =
+    useState("");
+  const [isRecordingRecommendationEvaluationCharter, setIsRecordingRecommendationEvaluationCharter] =
+    useState(false);
   const [recommendationSnapshotDiagnostics] =
     useState<RecommendationSnapshotDiagnostics>({
       snapshotsStoredToday: 0,
@@ -10127,6 +10197,41 @@ export function TradeApp({
     setIsFreezingLearningBaseline(false);
   }
 
+  async function recordRecommendationEvaluationCharter(
+    segmentKey: string,
+    draftText: string,
+  ) {
+    if (isRecordingRecommendationEvaluationCharter) return;
+    let charter: unknown;
+    try {
+      charter = JSON.parse(draftText);
+    } catch {
+      setRecommendationEvaluationCharterError(
+        "The charter must be valid JSON before it can be recorded.",
+      );
+      return;
+    }
+    setIsRecordingRecommendationEvaluationCharter(true);
+    setRecommendationEvaluationCharterError("");
+    const result = await postRecommendationEvaluationCharter({ segmentKey, charter });
+    if (result.error || !result.charter) {
+      setRecommendationEvaluationCharterError(
+        result.error || "Durable evaluation-charter storage did not return a receipt.",
+      );
+    } else {
+      setRecommendationEvaluationCharters((current) => [
+        result.charter!,
+        ...current.filter((item) => item.segment_key !== result.charter!.segment_key),
+      ]);
+      setMessage(
+        result.status === "already_recorded"
+          ? "This exact evaluation charter was already recorded."
+          : "Evaluation charter recorded before baseline comparison.",
+      );
+    }
+    setIsRecordingRecommendationEvaluationCharter(false);
+  }
+
   loadTradeDataRef.current = loadTradeData;
   refreshCurrentSurfaceRef.current = refreshCurrentSurface;
 
@@ -10168,6 +10273,18 @@ export function TradeApp({
     }, 0);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchRecommendationEvaluationCharters().then((result) => {
+      if (cancelled) return;
+      setRecommendationEvaluationCharters(result.charters);
+      setRecommendationEvaluationCharterError(result.error);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -17113,10 +17230,19 @@ export function TradeApp({
               readback={recommendationDecisionEvidenceReadback}
             />
 
+            <RecommendationEvaluationCharterPanel
+              segmentation={recommendationLearningBaselineSegmentation}
+              charters={recommendationEvaluationCharters}
+              error={recommendationEvaluationCharterError}
+              isRecording={isRecordingRecommendationEvaluationCharter}
+              onRecord={recordRecommendationEvaluationCharter}
+            />
+
             <RecommendationLearningBaselineReadinessPanel
               readiness={recommendationLearningBaselineReadiness}
               segmentation={recommendationLearningBaselineSegmentation}
               evaluationPlans={recommendationLearningEvaluationPlans}
+              charters={recommendationEvaluationCharters}
               freeze={learningBaselineFreeze}
               freezeError={learningBaselineFreezeError}
               isFreezing={isFreezingLearningBaseline}
@@ -38670,10 +38796,189 @@ function RecommendationDecisionEvidenceReadbackPanel({
   );
 }
 
+function RecommendationEvaluationCharterPanel({
+  segmentation,
+  charters,
+  error,
+  isRecording,
+  onRecord,
+}: {
+  segmentation: RecommendationLearningBaselineSegmentation;
+  charters: RecommendationEvaluationCharter[];
+  error: string;
+  isRecording: boolean;
+  onRecord: (segmentKey: string, draftText: string) => void;
+}) {
+  const draftTemplate = JSON.stringify({
+    contract_version: "recommendation_evaluation_charter_v1",
+    hypothesis: "<state a falsifiable policy hypothesis before outcome data is compared>",
+    eligible_universe: "<state the point-in-time eligible universe>",
+    setup_slices: ["<name each material setup slice>"],
+    regime_slices: ["<name each material regime slice>"],
+    outcome_rules: {
+      primary_horizon: "<choose 15m, 30m, or 60m>",
+      diagnostic_horizons: ["15m", "30m", "60m"],
+      semantics: "<state the canonical primary outcome and all-entry rules>",
+    },
+    evaluation_window: {
+      minimum_complete_decisions: "<positive integer>",
+      held_out_decision_count: "<positive integer>",
+      walk_forward_decision_count: "<positive integer>",
+    },
+    thresholds: {
+      minimum_precision_at_k: "<0 to 1>",
+      minimum_expectancy_r: "<-20 to 20>",
+      maximum_calibration_error: "<0 to 1>",
+      minimum_outcome_coverage: "<0 to 1>",
+      maximum_missingness: "<0 to 1>",
+      maximum_provider_credits_per_decision: "<0 to 10000>",
+      minimum_reliability: "<0 to 1>",
+    },
+    concentration_limits: {
+      maximum_single_ticker_share: "<0 to 1>",
+      maximum_single_sector_share: "<0 to 1>",
+      maximum_single_setup_share: "<0 to 1>",
+      maximum_single_regime_share: "<0 to 1>",
+    },
+    feasibility_inputs: {
+      spread: "<required or unavailable_disclosed>",
+      liquidity: "<required or unavailable_disclosed>",
+      volatility: "<required or unavailable_disclosed>",
+      halt_risk: "<required or unavailable_disclosed>",
+      trigger_attainment: "<required or unavailable_disclosed>",
+      conservative_slippage: "<required or unavailable_disclosed>",
+    },
+  }, null, 2);
+  const [selectedSegmentKey, setSelectedSegmentKey] = useState("");
+  const [draftText, setDraftText] = useState(draftTemplate);
+  const selectedSegment = segmentation.segments.find(
+    (segment) => segment.segment_key === selectedSegmentKey,
+  ) ?? null;
+  const alreadyRecorded = selectedSegment !== null && charters.some((charter) =>
+    charter.segment_key === selectedSegment.segment_key &&
+    JSON.stringify(charter.policy_attribution) ===
+      JSON.stringify(selectedSegment.policy_attribution)
+  );
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Measured learning
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Evaluation Charter
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            Before Ture compares a policy, an immutable charter must bind the
+            hypothesis, sample windows, pass/fail limits, concentration limits,
+            feasibility treatment and the exact policy/version segment. The form
+            deliberately has no default thresholds. Recording it never fetches
+            data, ranks candidates, publishes a recommendation or places a trade.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={charters.length > 0 ? "immutable evidence recorded" : "not recorded"}
+          tone={charters.length > 0 ? "positive" : "warning"}
+        />
+      </div>
+
+      {charters.length > 0 ? (
+        <ul className="mt-4 space-y-2">
+          {charters.slice(0, 3).map((charter) => (
+            <li key={charter.charter_id} className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <p className="text-sm leading-6 text-zinc-300">
+                {charter.policy_attribution.recommendation_publish_policy_version};
+                {" "}primary {charter.charter.outcome_rules.primary_horizon};
+                {" "}minimum complete decisions {charter.charter.evaluation_window.minimum_complete_decisions}.
+              </p>
+              <p className="mt-1 font-mono text-xs leading-5 text-zinc-500">
+                Recorded {formatDate(charter.created_at)} · {charter.charter_fingerprint}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                {charter.charter.hypothesis}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-zinc-400">
+          No durable charter is recorded. Ture therefore cannot freeze a
+          baseline for policy comparison, even if outcome coverage later becomes ready.
+        </p>
+      )}
+
+      <div className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+          Record a deliberate charter
+        </h4>
+        {segmentation.segments.length === 0 ? (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            A comparable policy/version segment will appear here only after a
+            traceable decision record exists. Ture will not invent policy or
+            version evidence to make a charter possible.
+          </p>
+        ) : (
+          <>
+            <label className="mt-3 block text-xs leading-5 text-zinc-400">
+              Policy/version segment
+              <select
+                value={selectedSegmentKey}
+                onChange={(event) => setSelectedSegmentKey(event.target.value)}
+                className="mt-1 block w-full rounded border border-white/10 bg-black/30 px-2 py-2 font-mono text-xs text-zinc-200"
+              >
+                <option value="">Choose a segment</option>
+                {segmentation.segments.slice(0, 50).map((segment) => (
+                  <option key={segment.segment_key} value={segment.segment_key}>
+                    {segment.policy_attribution.recommendation_publish_policy_version}
+                    {" · "}{segment.decision_records.count} traceable decisions
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="mt-3 block text-xs leading-5 text-zinc-400">
+              Versioned charter JSON
+              <textarea
+                value={draftText}
+                onChange={(event) => setDraftText(event.target.value)}
+                spellCheck={false}
+                rows={28}
+                className="mt-1 block w-full rounded border border-white/10 bg-black/30 p-2 font-mono text-xs leading-5 text-zinc-200"
+              />
+            </label>
+            <p className="mt-2 text-xs leading-5 text-zinc-500">
+              Replace every placeholder with a deliberate value before recording.
+              An unavailable feasibility input must be explicitly disclosed; it
+              cannot support an executable-performance claim.
+            </p>
+            <button
+              type="button"
+              disabled={!selectedSegment || alreadyRecorded || isRecording}
+              onClick={() => onRecord(selectedSegmentKey, draftText)}
+              className="mt-3 rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {alreadyRecorded
+                ? "Immutable charter already recorded"
+                : isRecording
+                  ? "Recording charter…"
+                  : "Record immutable charter"}
+            </button>
+          </>
+        )}
+        {error ? (
+          <p className="mt-3 text-xs leading-5 text-amber-200">{error}</p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 function RecommendationLearningBaselineReadinessPanel({
   readiness,
   segmentation,
   evaluationPlans,
+  charters,
   freeze,
   freezeError,
   isFreezing,
@@ -38682,12 +38987,12 @@ function RecommendationLearningBaselineReadinessPanel({
   readiness: RecommendationLearningBaselineReadiness;
   segmentation: RecommendationLearningBaselineSegmentation;
   evaluationPlans: RecommendationLearningEvaluationPlans;
+  charters: RecommendationEvaluationCharter[];
   freeze: RecommendationLearningBaselineFreeze | null;
   freezeError: string;
   isFreezing: boolean;
   onFreeze: (segmentKey: string) => void;
 }) {
-  const canFreeze = readiness.status === "eligible_for_explicit_freeze";
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
   const sourceProvenance = readiness.decision_time_source_provenance;
@@ -38698,6 +39003,15 @@ function RecommendationLearningBaselineReadinessPanel({
   const readyEvaluationPlans = evaluationPlans.plans.filter(
     (plan) => plan.status === "ready_for_explicit_freeze",
   );
+  const charteredReadyEvaluationPlans = readyEvaluationPlans.filter((plan) =>
+    charters.some((charter) =>
+      charter.segment_key === plan.segment_key &&
+      JSON.stringify(charter.policy_attribution) ===
+        JSON.stringify(plan.policy_attribution)
+    )
+  );
+  const canFreeze = readiness.status === "eligible_for_explicit_freeze" &&
+    charteredReadyEvaluationPlans.length > 0;
   const formatR = (value: number | null) =>
     value === null ? "not observed" : `${value.toFixed(2)}R`;
 
@@ -38911,12 +39225,15 @@ function RecommendationLearningBaselineReadinessPanel({
             <p className="mt-1 break-all font-mono text-xs leading-5 text-zinc-500">
               {freeze.baseline_fingerprint}
             </p>
+            <p className="mt-1 break-all font-mono text-xs leading-5 text-zinc-500">
+              Charter {freeze.evaluation_charter_fingerprint}
+            </p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               This immutable receipt is a comparison point only. It does not
               declare the policy good or permit a promotion.
             </p>
           </>
-        ) : readyEvaluationPlans.length > 0 ? (
+        ) : charteredReadyEvaluationPlans.length > 0 ? (
           <>
             <p className="mt-3 text-sm leading-6 text-zinc-300">
               An explicit freeze will store one selected, ready policy/version
@@ -38924,7 +39241,7 @@ function RecommendationLearningBaselineReadinessPanel({
               eligibility before writing; it will reject changed or no-longer-ready evidence.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {readyEvaluationPlans.slice(0, 3).map((plan) => (
+              {charteredReadyEvaluationPlans.slice(0, 3).map((plan) => (
                 <button
                   key={plan.segment_key}
                   type="button"
@@ -38937,6 +39254,13 @@ function RecommendationLearningBaselineReadinessPanel({
               ))}
             </div>
           </>
+        ) : readyEvaluationPlans.length > 0 ? (
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
+            Outcome evidence is ready enough to freeze, but no immutable
+            evaluation charter matches the policy/version segment. Record the
+            charter first; Ture will not infer thresholds or freeze an
+            unchartered comparison baseline.
+          </p>
         ) : (
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             No segment is ready to freeze. Ture will retain the evidence gap
