@@ -72,6 +72,17 @@ held, while an invalid slot, missing lineage and mismatched receipt fingerprint
 were rejected; `anon`/`authenticated` had no table access. No production
 migration, deploy, provider call, candidate or broker action occurred.
 
+**CI-contract remediation, locally verified, 2026-09-19:** Revision
+`2793ba918078b31f0777f8c5799bf66d0dbe00d9` corrects the historical Action
+666FA provenance assertion that had treated the entire generated public types
+file as permanently byte-frozen. It now binds the evidence to its recorded
+green predecessor while continuing to require the named public lineage fields
+and the absence of the private writer surface. The exact clean CI foundation
+shard, including lint, strict TypeScript, audit and production build, passed;
+the focused scheduled-receipt and baseline-readiness suite passed 29 tests.
+This correction neither changes IF-4 runtime behavior nor weakens schema,
+access, or lineage checks for future public relations.
+
 **Remaining IF-4a evidence gap:** this receipt proves traceability for the
 existing evaluator and snapshot-present lineage, not provider-version
 provenance, outcome quality, historical replay validity or an improved policy.
