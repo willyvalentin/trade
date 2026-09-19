@@ -4,10 +4,14 @@ import {
   calculateIntradayIndicators,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
-import { getIntradayCandles } from "@/lib/market-data";
+import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import {
+  twelveDataResponseIdentityFromUnknown,
+  type TwelveDataResponseIdentity,
+} from "@/lib/twelve-data-response-identity";
 
 export type IntradayIndicatorCacheSource =
   | "cache"
@@ -19,6 +23,7 @@ export type IntradayIndicatorCacheResult = {
   indicators: IntradayIndicators | null;
   source: IntradayIndicatorCacheSource;
   cached_at: string | null;
+  response_identity: TwelveDataResponseIdentity | null;
   stale: boolean;
   warnings: string[];
 };
@@ -43,6 +48,7 @@ type ScannerCacheRaw = {
     interval?: unknown;
     source?: unknown;
     indicators?: unknown;
+    response_identity?: unknown;
   };
 };
 
@@ -50,6 +56,7 @@ type MemoryCacheEntry = {
   cached_at: string;
   interval: "5min" | "15min";
   indicators: IntradayIndicators;
+  response_identity: TwelveDataResponseIdentity | null;
 };
 
 const DEFAULT_MAX_AGE_MINUTES = 5;
@@ -204,6 +211,7 @@ export async function getCachedIntradayIndicators(
       indicators: memoryEntry.indicators,
       source: "cache",
       cached_at: memoryEntry.cached_at,
+      response_identity: memoryEntry.response_identity,
       stale: !isFresh(memoryEntry.cached_at, maxAgeMinutes),
       warnings,
     };
@@ -218,12 +226,16 @@ export async function getCachedIntradayIndicators(
     cache?.interval === "5min" || cache?.interval === "15min"
       ? cache.interval
       : null;
+  const responseIdentity = twelveDataResponseIdentityFromUnknown(
+    cache?.response_identity,
+  );
 
   if (indicators && cachedInterval === interval) {
     memoryCache.set(ticker, {
       cached_at: cachedAt ?? new Date().toISOString(),
       interval,
       indicators,
+      response_identity: responseIdentity,
     });
 
     return {
@@ -231,6 +243,7 @@ export async function getCachedIntradayIndicators(
       indicators,
       source: "cache",
       cached_at: cachedAt,
+      response_identity: responseIdentity,
       stale: !isFresh(cachedAt, maxAgeMinutes),
       warnings,
     };
@@ -241,6 +254,7 @@ export async function getCachedIntradayIndicators(
     indicators: null,
     source: "unavailable",
     cached_at: null,
+    response_identity: null,
     stale: true,
     warnings: ["Intraday indicator cache unavailable."],
   };
@@ -253,16 +267,19 @@ export async function setCachedIntradayIndicators(
     interval?: "5min" | "15min";
     source?: IntradayIndicatorCacheOptions["source"];
     cached_at?: string;
+    response_identity?: TwelveDataResponseIdentity | null;
   } = {},
 ) {
   const ticker = normalizeTicker(tickerInput);
   const interval = metadata.interval ?? "5min";
   const cachedAt = metadata.cached_at ?? new Date().toISOString();
+  const responseIdentity = metadata.response_identity ?? null;
 
   memoryCache.set(ticker, {
     cached_at: cachedAt,
     interval,
     indicators,
+    response_identity: responseIdentity,
   });
 
   try {
@@ -282,6 +299,7 @@ export async function setCachedIntradayIndicators(
             interval,
             source: metadata.source ?? "manual",
             indicators,
+            response_identity: responseIdentity,
           },
           scanner_values:
             typeof raw.scanner_values === "object" && raw.scanner_values !== null
@@ -345,17 +363,24 @@ export async function getOrRefreshIntradayIndicators(
 
   try {
     const { start, end } = getNewYorkTradingDayWindow();
-    const candles = await getIntradayCandles(ticker, interval, start, end, {
+    const response = await getIntradayCandlesWithDiagnostics(
+      ticker,
+      interval,
+      start,
+      end,
+      {
       signal: options.signal,
-    });
+      },
+    );
     throwIfAborted(options.signal);
-    const indicators = calculateIntradayIndicators(candles);
+    const indicators = calculateIntradayIndicators(response.candles);
     const cachedAt = new Date().toISOString();
 
     await setCachedIntradayIndicators(ticker, indicators, {
       interval,
       source: options.source,
       cached_at: cachedAt,
+      response_identity: response.diagnostics.response_identity,
     });
     throwIfAborted(options.signal);
 
@@ -364,6 +389,7 @@ export async function getOrRefreshIntradayIndicators(
       indicators,
       source: "fresh",
       cached_at: cachedAt,
+      response_identity: response.diagnostics.response_identity,
       stale: false,
       warnings: indicators.warnings,
     };
@@ -385,6 +411,7 @@ export async function getOrRefreshIntradayIndicators(
       indicators: null,
       source: "unavailable",
       cached_at: null,
+      response_identity: null,
       stale: true,
       warnings: [warning],
     };

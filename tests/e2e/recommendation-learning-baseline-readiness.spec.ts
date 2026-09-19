@@ -23,6 +23,13 @@ import type { ScannerCandidate } from "@/lib/scanner";
 const DECIDED_AT = "2026-09-17T14:30:00.000Z";
 const DECISION_SOURCE_PROVENANCE = {
   data_timestamp: "2026-09-17T14:29:00.000Z",
+  intraday_indicator_response_identity: {
+    contract_version: "twelve_data_response_identity_v1",
+    digest_algorithm: "sha256",
+    payload_sha256:
+      "sha256:8e53ed153f5f4bd3e09229af1091eb0b8d5bc7a6cb8c20b99e1c246fcc9f0c22",
+    payload_byte_length: 214,
+  },
   provider_source: "twelve_data",
   provider_version: "twelve_data_test_contract_v1",
   market_data_adapter_version: "automation_scan_market_data_adapter_v1",
@@ -542,6 +549,50 @@ test.describe("recommendation learning baseline readiness", () => {
     });
     expect(readiness.blockers).toContain(
       "published_candidate_decision_source_provenance_incomplete",
+    );
+  });
+
+  test("excludes a snapshot whose intraday response fingerprint is absent", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const missingIdentitySnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        intraday_indicator_response_identity: null,
+      },
+    };
+    const outcome = completeOutcome(missingIdentitySnapshot);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [missingIdentitySnapshot],
+      outcomes: [outcome],
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [run],
+      snapshots: [missingIdentitySnapshot],
+      outcomes: [outcome],
+    });
+    const plans = buildRecommendationLearningEvaluationPlans({
+      segmentation,
+      scanRuns: [run],
+      snapshots: [missingIdentitySnapshot],
+      outcomes: [outcome],
+    });
+
+    expect(readiness.decision_time_source_provenance).toMatchObject({
+      assessed_snapshot_count: 1,
+      intraday_indicator_response_identity_count: 0,
+      incomplete_snapshot_count: 1,
+      blocker_counts: {
+        intraday_indicator_response_identity_missing_or_invalid: 1,
+      },
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_decision_source_provenance_incomplete",
+    );
+    expect(plans.plans[0]?.blockers).toContain(
+      "visible_primary_outcome_decision_source_provenance_incomplete",
     );
   });
 

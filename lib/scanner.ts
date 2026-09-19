@@ -12,6 +12,7 @@ import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
+import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
 export type ScannerCandidate = {
   ticker: string;
@@ -52,6 +53,7 @@ export type ScannerCandidate = {
   intraday_indicators?: IntradayIndicators | null;
   intraday_indicator_source?: "cache" | "fresh" | "unavailable";
   intraday_indicator_cached_at?: string | null;
+  intraday_indicator_response_identity?: TwelveDataResponseIdentity | null;
   intraday_indicator_stale?: boolean;
   reference_price_used_for_plan?: number | null;
   reference_price_source?: string | null;
@@ -705,6 +707,7 @@ export async function scanMarket(
         intraday_indicators: result.indicators,
         intraday_indicator_source: result.source,
         intraday_indicator_cached_at: result.cached_at,
+        intraday_indicator_response_identity: result.response_identity,
         intraday_indicator_stale: result.stale,
       },
       indicatorSource: result.source,

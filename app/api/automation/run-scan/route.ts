@@ -132,6 +132,7 @@ import {
   buildRejectedCandidateResearchSelection,
   type RejectedCandidateResearchSample,
 } from "@/lib/rejected-candidate-research-selection";
+import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
 
 type ScanWindow = {
   sessionType: SessionType;
@@ -2033,6 +2034,10 @@ function buildSnapshotFromRecommendation({
     scannerCandidate?.data_source ?? scanLog.indicator_source ?? null;
   const dataTimestamp =
     scannerCandidate?.market_data_timestamp ?? scanLog.indicator_cached_at ?? null;
+  const intradayIndicatorResponseIdentity =
+    twelveDataResponseIdentityFromUnknown(
+      scannerCandidate?.intraday_indicator_response_identity,
+    );
   const providerStatus = providerSource
     ? "observed"
     : scanLog.real_scanner_candidate_generation
@@ -2045,6 +2050,9 @@ function buildSnapshotFromRecommendation({
       ...(marketDataSource ? [] : ["provider_backed_metadata_unavailable"]),
       ...(scannerCandidate ? [] : ["provider_backed_metadata_unavailable"]),
       ...(scannerCandidate?.stale ? ["stale_market_data"] : []),
+      ...(intradayIndicatorResponseIdentity
+        ? []
+        : ["intraday_indicator_response_identity_unavailable"]),
       ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
     ]),
   );
@@ -2099,6 +2107,7 @@ function buildSnapshotFromRecommendation({
       provider_status: providerStatus,
       market_data_source: marketDataSource,
       provider_version: null,
+      intraday_indicator_response_identity: intradayIndicatorResponseIdentity,
       market_data_adapter_version:
         providerSource ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION : null,
       candle_timestamp: dataTimestamp,
@@ -2164,6 +2173,9 @@ function buildSnapshotFromResearchSample({
   const explicitMetadataGaps = Array.from(
     new Set([
       ...sample.explicit_metadata_gaps,
+      ...(sample.intraday_indicator_response_identity
+        ? []
+        : ["intraday_indicator_response_identity_unavailable"]),
       ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
     ]),
   );
@@ -2250,6 +2262,10 @@ function buildSnapshotFromResearchSample({
       provider_status: sample.provider_source ? "observed" : "unavailable",
       market_data_source: sample.market_data_source,
       provider_version: null,
+      intraday_indicator_response_identity:
+        twelveDataResponseIdentityFromUnknown(
+          sample.intraday_indicator_response_identity,
+        ),
       market_data_adapter_version: sample.provider_source
         ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION
         : null,
