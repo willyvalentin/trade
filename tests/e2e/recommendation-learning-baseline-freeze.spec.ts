@@ -9,6 +9,7 @@ import {
   type RecommendationLearningBaselineFreezeDatabase,
   type RecommendationLearningBaselineFreezeInput,
 } from "@/lib/recommendation-learning-baseline-freeze-store";
+import { parseRecommendationLearningBaselineSource } from "@/lib/recommendation-learning-baseline-source";
 
 const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const baselineId = "1e98f21d-488a-467a-a1f0-dcc517499835";
@@ -244,6 +245,28 @@ test("readback is owner-bound and does not substitute an absent receipt", async 
     status: "unavailable",
     freeze: null,
   });
+});
+
+test("a durable baseline refuses malformed persisted decision evidence", () => {
+  const completeEmptySource = {
+    recommendation_scan_runs: [],
+    recommendation_snapshots: [],
+    recommendation_outcomes: [],
+  };
+  expect(parseRecommendationLearningBaselineSource(completeEmptySource)).toEqual({
+    scanRuns: [],
+    snapshots: [],
+    outcomes: [],
+  });
+
+  for (const malformedRow of [null, {}]) {
+    for (const collection of Object.keys(completeEmptySource)) {
+      expect(parseRecommendationLearningBaselineSource({
+        ...completeEmptySource,
+        [collection]: [malformedRow],
+      })).toBeNull();
+    }
+  }
 });
 
 test("migration and authenticated route keep the freeze server-only and immutable", () => {

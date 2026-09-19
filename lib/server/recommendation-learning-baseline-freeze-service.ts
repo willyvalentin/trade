@@ -2,26 +2,21 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import {
+  parseRecommendationLearningBaselineSource,
+  type RecommendationLearningBaselineSource,
+} from "@/lib/recommendation-learning-baseline-source";
 import { buildRecommendationLearningBaselineSegmentation } from "@/lib/recommendation-learning-baseline-segments";
 import { buildRecommendationLearningEvaluationPlans } from "@/lib/recommendation-learning-evaluation-plan";
 import {
   type RecommendationLearningBaselineFreeze,
   type RecommendationLearningBaselineFreezeInput,
 } from "@/lib/recommendation-learning-baseline-freeze-store";
-import { recommendationOutcomeFromPersistenceRow, type RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
-import { recommendationScanRunFromPersistenceRow, type RecommendationScanRun } from "@/lib/recommendation-scan-run";
-import { recommendationSnapshotFromPersistenceRow, type RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { readRecommendationLearningBaselineSource } from "@/lib/server/application-data-access";
 import {
   freezeRecommendationLearningBaseline,
   readRecommendationLearningBaselineFreeze,
 } from "@/lib/server/recommendation-learning-baseline-freeze-persistence";
-
-type BaselineSource = {
-  scanRuns: RecommendationScanRun[];
-  snapshots: RecommendationSnapshot[];
-  outcomes: RecommendationOutcome[];
-};
 
 export type FreezeCurrentRecommendationLearningBaselineResult =
   | {
@@ -35,48 +30,6 @@ export type FreezeCurrentRecommendationLearningBaselineResult =
       safe_blocker: string;
     };
 
-function isDiagnosticPayload(payload: Record<string, unknown>) {
-  const activeTrace =
-    typeof payload.active_scan_trace === "object" &&
-    payload.active_scan_trace !== null &&
-    !Array.isArray(payload.active_scan_trace)
-      ? (payload.active_scan_trace as Record<string, unknown>)
-      : null;
-
-  return payload.diagnostic_mode === true ||
-    payload.not_live_trade_signal === true ||
-    payload.visible_in_primary_recommendations === false ||
-    activeTrace?.diagnostic_mode === true ||
-    payload.source_mode === "diagnostic";
-}
-
-function sourceFromRows(data: Record<string, unknown>): BaselineSource {
-  const rowArray = (value: unknown) => Array.isArray(value)
-    ? value.filter(
-      (row): row is Record<string, unknown> =>
-        typeof row === "object" && row !== null && !Array.isArray(row),
-    )
-    : [];
-
-  const scanRuns = rowArray(data.recommendation_scan_runs)
-    .map(recommendationScanRunFromPersistenceRow)
-    .filter((scanRun): scanRun is RecommendationScanRun => scanRun !== null)
-    .filter((scanRun) => !isDiagnosticPayload(scanRun.payload_json));
-  const snapshots = rowArray(data.recommendation_snapshots)
-    .map(recommendationSnapshotFromPersistenceRow)
-    .filter((snapshot): snapshot is RecommendationSnapshot => snapshot !== null)
-    .filter(
-      (snapshot) =>
-        snapshot.source_mode !== "diagnostic" &&
-        snapshot.payload_json.diagnostic_mode !== true,
-    );
-  const outcomes = rowArray(data.recommendation_outcomes)
-    .map(recommendationOutcomeFromPersistenceRow)
-    .filter((outcome): outcome is RecommendationOutcome => outcome !== null);
-
-  return { scanRuns, snapshots, outcomes };
-}
-
 function baselineInput({
   ownerUserId,
   segmentKey,
@@ -84,7 +37,7 @@ function baselineInput({
 }: {
   ownerUserId: string;
   segmentKey: string;
-  source: BaselineSource;
+  source: RecommendationLearningBaselineSource;
 }): RecommendationLearningBaselineFreezeInput | null {
   const segmentation = buildRecommendationLearningBaselineSegmentation({
     scanRuns: source.scanRuns,
@@ -149,10 +102,19 @@ export async function freezeCurrentRecommendationLearningBaseline({
     };
   }
 
+  const source = parseRecommendationLearningBaselineSource(sourceResult.data);
+  if (!source) {
+    return {
+      status: "unavailable",
+      freeze: null,
+      safe_blocker: "recommendation_learning_baseline_source_malformed",
+    };
+  }
+
   const input = baselineInput({
     ownerUserId,
     segmentKey,
-    source: sourceFromRows(sourceResult.data),
+    source,
   });
   if (!input) {
     return {
