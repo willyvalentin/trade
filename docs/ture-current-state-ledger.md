@@ -21,7 +21,10 @@ authenticated route recomputes that plan from owner-bound server evidence; it
 rejects not-ready, changed, duplicate, cross-owner or malformed attempts. It
 also refuses to freeze a truncated owner history: complete input data must fit
 the current deliberate 10,000-row non-paginated bound, otherwise a later
-paginated reader is required.
+paginated reader is required. Before diagnostic rows are excluded, every
+persisted scan, snapshot and outcome row must decode under its canonical
+contract; a malformed row makes the source unavailable rather than silently
+shrinking the population used to freeze a baseline.
 
 The local migration supplies a least-privileged, RLS-protected table with
 service-role-only, contract-validated RPCs. Local evidence is 27 focused
