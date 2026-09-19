@@ -122,6 +122,12 @@ test("the reviewed SQL Editor bundle is one-time, transactional, and fail-closed
 
 test("the post-apply readback is catalog-only and verifies the full contract", () => {
   expect(postApplyReadback).toContain("action_650_containment_verified");
+  expect(postApplyReadback).toContain("expected_owner_access_policies");
+  expect(postApplyReadback).toContain("application_owner_access");
+  expect(postApplyReadback).toContain("array['authenticated'::name]");
+  expect(postApplyReadback).toContain("owner_user_id");
+  expect(postApplyReadback).toContain("user_id");
+  expect(postApplyReadback).not.toContain("join pg_policies policies\n      on policies.schemaname = 'public' and policies.tablename = targets.table_name\n  ) as ok");
   expect(postApplyReadback).toContain("'truncate'");
   expect(postApplyReadback).toContain("'references'");
   expect(postApplyReadback).toContain("'trigger'");
