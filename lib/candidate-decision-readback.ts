@@ -141,12 +141,25 @@ function isIndicatorSource(value: unknown) {
   );
 }
 
-function hasKnownCandidateReadbackShape(value: unknown) {
+function hasKnownCandidateReadbackShape(
+  value: unknown,
+  decisionTimestamp: string,
+) {
   const candidate = objectOrNull(value);
   const ranking = candidate?.ranking === null
     ? null
     : objectOrNull(candidate?.ranking);
   const data = objectOrNull(candidate?.data);
+  const sourceTimestamp = data?.source_timestamp === null
+    ? null
+    : isoTimestampOrNull(data?.source_timestamp);
+  const gapCodes = Array.isArray(data?.gap_codes)
+    ? stringArray(data.gap_codes)
+    : null;
+  const sourceIsAfterDecision = sourceTimestamp !== null &&
+    Date.parse(sourceTimestamp) > Date.parse(decisionTimestamp);
+  const sourceIsAtOrBeforeDecision = !sourceIsAfterDecision ||
+    (data?.freshness === "gap" && gapCodes?.includes("candidate_provider_gap"));
 
   return (
     stringOrNull(candidate?.candidate_id) !== null &&
@@ -156,11 +169,14 @@ function hasKnownCandidateReadbackShape(value: unknown) {
     stringArray(candidate.reason_codes).length === candidate.reason_codes.length &&
     data !== null &&
     isNullableText(data.provider_source) &&
-    isNullableText(data.source_timestamp) &&
+    (data.source_timestamp === null || sourceTimestamp !== null) &&
     isCandidateFreshness(data.freshness) &&
+    !(data.freshness === "fresh" && sourceTimestamp === null) &&
+    sourceIsAtOrBeforeDecision &&
     isIndicatorSource(data.indicator_source) &&
+    gapCodes !== null &&
     Array.isArray(data.gap_codes) &&
-    stringArray(data.gap_codes).length === data.gap_codes.length &&
+    gapCodes.length === data.gap_codes.length &&
     (candidate?.ranking === null ||
       (ranking !== null &&
         isFiniteNonNegativeNumber(ranking.rank) &&
@@ -220,6 +236,7 @@ export function candidateDecisionRecordFromUnknown(
   const finalDecision = objectOrNull(record?.final_decision);
   const candidates = Array.isArray(record?.candidates) ? record.candidates : null;
   const expectedCandidateCount = coverage?.expected_candidate_count;
+  const decisionTimestamp = isoTimestampOrNull(record?.decision_timestamp);
 
   const recordVersion = record?.record_version;
   const isLegacyRecord = recordVersion === "candidate_decision_record_v1";
@@ -236,6 +253,7 @@ export function candidateDecisionRecordFromUnknown(
   if (
     (!isLegacyRecord && !isCurrentRecord) ||
     record?.record_kind !== "candidate_decision_record" ||
+    decisionTimestamp === null ||
     learningAttribution === null ||
     candidates === null ||
     coverage?.full_membership_declared !== true ||
@@ -247,7 +265,9 @@ export function candidateDecisionRecordFromUnknown(
     !Array.isArray(coverage.membership_reason_codes) ||
     stringArray(coverage.membership_reason_codes).length !==
       coverage.membership_reason_codes.length ||
-    !candidates.every(hasKnownCandidateReadbackShape) ||
+    !candidates.every((candidate) =>
+      hasKnownCandidateReadbackShape(candidate, decisionTimestamp),
+    ) ||
     (finalDecision?.disposition !== "recommendations_published" &&
       finalDecision?.disposition !== "no_trade") ||
     !Array.isArray(finalDecision?.published_tickers) ||

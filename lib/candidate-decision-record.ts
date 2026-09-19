@@ -187,19 +187,31 @@ function toIso(value: string) {
 
 function sourceTimestamp(candidate: ScannerCandidate) {
   return (
-    text(candidate.reference_price_timestamp) ??
-    text(candidate.intraday_indicator_cached_at) ??
+    toIso(text(candidate.reference_price_timestamp) ?? "") ??
+    toIso(text(candidate.intraday_indicator_cached_at) ?? "") ??
     null
   );
 }
 
-function observationGapCodes(candidate: ScannerCandidate) {
+function observationGapCodes(
+  candidate: ScannerCandidate,
+  captureTimestamp: string,
+) {
   const gaps: CandidateDecisionReasonCode[] = [];
   const hasPrice =
     typeof (candidate.latest_close ?? candidate.intraday_indicators?.latestPrice) ===
     "number";
+  const observedAt = sourceTimestamp(candidate);
+  const observedAtMilliseconds = observedAt === null ? null : Date.parse(observedAt);
+  const captureMilliseconds = Date.parse(captureTimestamp);
 
-  if (!hasPrice || candidate.intraday_indicator_source === "unavailable") {
+  if (
+    !hasPrice ||
+    candidate.intraday_indicator_source === "unavailable" ||
+    observedAt === null ||
+    !Number.isFinite(captureMilliseconds) ||
+    (observedAtMilliseconds !== null && observedAtMilliseconds > captureMilliseconds)
+  ) {
     gaps.push("candidate_provider_gap");
   }
 
@@ -255,6 +267,7 @@ export function buildCandidateDecisionCapture({
   publishedTickers?: string[];
   selectedBuildDiagnostics?: SelectedCandidateBuildDiagnostic[];
 }): CandidateDecisionCapture {
+  const normalizedCaptureTimestamp = toIso(captureTimestamp) ?? new Date().toISOString();
   const observedByTicker = new Map(
     observedCandidates.map((candidate) => [normalizeTicker(candidate.ticker), candidate]),
   );
@@ -264,7 +277,7 @@ export function buildCandidateDecisionCapture({
 
   return {
     capture_version: CANDIDATE_DECISION_CAPTURE_VERSION,
-    capture_timestamp: toIso(captureTimestamp) ?? new Date().toISOString(),
+    capture_timestamp: normalizedCaptureTimestamp,
     scanner_version: CANDIDATE_DECISION_SCANNER_VERSION,
     universe_version: CANDIDATE_DECISION_UNIVERSE_VERSION,
     provider_contract_version: CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION,
@@ -276,7 +289,10 @@ export function buildCandidateDecisionCapture({
     observed_candidates: universe.flatMap((universeCandidate) => {
       const candidate = observedByTicker.get(normalizeTicker(universeCandidate.ticker));
       if (!candidate) return [];
-      const dataGapCodes = observationGapCodes(candidate);
+      const dataGapCodes = observationGapCodes(
+        candidate,
+        normalizedCaptureTimestamp,
+      );
       return [
         {
           ticker: normalizeTicker(candidate.ticker),
@@ -382,8 +398,19 @@ export function buildCandidateDecisionRecord({
     const rank = rankingsByTicker.get(candidate.ticker) ?? null;
     const diagnostic = diagnosticsByTicker.get(candidate.ticker) ?? null;
     const filteringReasons = capture.eligibility_rejection_codes[candidate.ticker] ?? [];
+    const sourceTimestampIsAfterDecision = observation?.source_timestamp !== null &&
+      observation?.source_timestamp !== undefined &&
+      Date.parse(observation.source_timestamp) > Date.parse(decisionTimestamp);
+    const observedDataGapCodes: CandidateDecisionReasonCode[] =
+      observation?.data_gap_codes ?? ["candidate_provider_gap"];
+    const decisionTimestampGapCodes: CandidateDecisionReasonCode[] =
+      sourceTimestampIsAfterDecision ? ["candidate_provider_gap"] : [];
+    const dataGapCodes = uniqueSorted<CandidateDecisionReasonCode>([
+      ...observedDataGapCodes,
+      ...decisionTimestampGapCodes,
+    ]);
     const reasonCodes: CandidateDecisionReasonCode[] = [
-      ...(observation?.data_gap_codes ?? ["candidate_provider_gap"]),
+      ...dataGapCodes,
       ...filteringReasons,
     ];
     let disposition: CandidateDecisionDisposition;
@@ -423,7 +450,7 @@ export function buildCandidateDecisionRecord({
       ? "gap"
       : observation.stale === true
         ? "stale"
-        : observation.data_gap_codes.includes("candidate_provider_gap")
+        : dataGapCodes.includes("candidate_provider_gap")
           ? "gap"
           : observation.indicator_source === "fresh"
             ? "fresh"
@@ -444,7 +471,7 @@ export function buildCandidateDecisionRecord({
         source_timestamp: observation?.source_timestamp ?? null,
         freshness: dataFreshness,
         indicator_source: observation?.indicator_source ?? null,
-        gap_codes: uniqueSorted(observation?.data_gap_codes ?? ["candidate_provider_gap"]),
+        gap_codes: dataGapCodes,
       },
       ranking: rank
         ? {
