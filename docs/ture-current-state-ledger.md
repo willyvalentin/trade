@@ -143,7 +143,7 @@ readback.
 
 ### Off-market supporting delivery — local IF-4a outcome-evaluation receipts
 
-**Production schema applied; merge candidate verified, 2026-09-19:** The exact
+**Merged, production schema applied and production deploy verified, 2026-09-19:** The exact
 reviewed migration
 `20260918233411_if4_after_market_outcome_evaluation_receipts.sql`
 (`d32377a5a8e006c87a9cfe6007188b93250c9137d899ec9d02f78a7132e5dbcc`) was
@@ -151,7 +151,10 @@ applied once through Supabase's production migration operation after a fresh
 aggregate-only, read-only preflight returned every prerequisite and
 `eligible_for_exact_additive_apply = true`. It adds the durable, server-only
 receipt relation only; no application receipt was seeded, read or exposed.
-Revision `a3045742` extends the durable, owner-bound receipt for the existing
+PR [#550](https://github.com/willyvalentin/trade/pull/550) merged the receipt
+route as `66717e8efba7439cf68924e8e611ff91d6896dde`; Netlify production deploy
+`6aae7eade74f570008ee5cec` is `ready` for that exact `main` revision. Revision
+`a3045742` extends the durable, owner-bound receipt for the existing
 quarter-hour scheduled outcome evaluator. The server claims the exact
 `(owner_user_id, attempt_fingerprint)` slot before it loads snapshots or can
 request candles; a duplicate delivery returns the retained claim or receipt
@@ -175,8 +178,8 @@ service-only claim/finalization and rejected an invalid slot, missing lineage
 and mismatched receipt fingerprint; `anon`/`authenticated` had no table access.
 Protected CI `35439769733` passed all six shards and aggregate/provenance
 checks for merge candidate `bfb332ae1b7e5698f950c191c145ce85535ab981`; its
-Netlify preview `6aae6f9a4e62a90008cd8914` is ready. The subsequent
-documentation-only evidence update requires fresh protected CI before merge.
+Netlify preview `6aae6f9a4e62a90008cd8914` is ready. PR #550 then carried the
+same focused receipt behavior to the verified production revision above.
 
 The production metadata postflight verified the table, all eight named
 constraints, both valid indexes, enabled RLS with no policies, direct
@@ -212,13 +215,36 @@ with `scheduled_outcome_evaluation_attempts_market_date_check`, and retained
 only the valid row. The container was removed. No provider call, candidate,
 publication or broker action occurred.
 
-**Remaining IF-4a evidence gap:** this receipt proves traceability for the
-existing evaluator and snapshot-present lineage, not provider-version
-provenance, outcome quality, historical replay validity or an improved policy.
-The schema is production-ready but its route has not yet been merged/deployed
-and no normal scheduled job has generated an environment receipt. Monday's
-active market-bound return remains the authorized IF-2 Basic Free capability
-probe, not an IF-4 quality claim.
+**Decision-time source provenance, locally verified, 2026-09-19:** The next
+backward-compatible receipt increment retains a versioned
+`scheduled_outcome_evaluation_source_provenance_v1` payload inside the existing
+durable JSON receipt. For each eligible snapshot it accounts for the decision
+timestamp, source timestamp, any source timestamp after the decision, provider
+source/version, Ture market-data-adapter version and source build marker. New
+scan snapshots identify the Ture adapter as
+`automation_scan_market_data_adapter_v1`; they intentionally retain an absent
+upstream provider API version as absent instead of guessing from a configured
+plan. The untrusted-receipt reader rejects contradictory counts, impossible
+statuses and mismatched version-list coverage. Historic v1 receipts with no
+nested provenance remain readable as `not_recorded`, never retrospectively
+claimed complete. Engine Insights exposes the status and coverage, including
+the provider-version gap.
+
+This increment changes neither provider use nor ranking, confidence, selection,
+publication, outcomes, execution or broker behavior, and requires no migration.
+Eight focused receipt regressions, the relevant 44-test receipt/baseline/
+decision-record suite, targeted ESLint, strict TypeScript and the Webpack
+production build passed locally. The unauthenticated local app reached only the
+login boundary, so the authenticated Engine Insights card is source- and
+build-verified but not yet behavior-verified in an authenticated environment.
+
+**Remaining IF-4a evidence gap:** the merged receipt route and this local
+provenance increment improve traceability for the existing evaluator, but do
+not prove an upstream provider version, outcome quality, historical replay
+validity, calibration or an improved policy. No normal scheduled job has yet
+generated an environment receipt with the new provenance. Monday's active
+market-bound return remains the separately authorized IF-2 Basic Free
+capability probe, not an IF-4 quality claim.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as

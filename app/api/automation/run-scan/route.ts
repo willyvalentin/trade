@@ -161,6 +161,12 @@ type AutomationScanDecision =
   | "skipped_provider_unavailable"
   | "failed";
 
+// This identifies Ture's decision-time adapter, not a claimed upstream
+// provider API version. A provider version remains explicitly unavailable
+// until it is captured from an attributable provider response.
+const AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION =
+  "automation_scan_market_data_adapter_v1" as const;
+
 function serverSupabase() {
   const { client, unavailable_reason } = getServerSupabaseClient();
   if (!client) {
@@ -2092,6 +2098,9 @@ function buildSnapshotFromRecommendation({
       provider_source: providerSource,
       provider_status: providerStatus,
       market_data_source: marketDataSource,
+      provider_version: null,
+      market_data_adapter_version:
+        providerSource ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION : null,
       candle_timestamp: dataTimestamp,
       quote_timestamp: null,
       scan_run_fingerprint: scanRunId,
@@ -2240,6 +2249,10 @@ function buildSnapshotFromResearchSample({
       provider_source: sample.provider_source,
       provider_status: sample.provider_source ? "observed" : "unavailable",
       market_data_source: sample.market_data_source,
+      provider_version: null,
+      market_data_adapter_version: sample.provider_source
+        ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION
+        : null,
       candle_timestamp: sample.market_data_timestamp,
       provider_plan_profile_mode: providerPlanProfileMode,
       build_marker: BUILD_MARKER,

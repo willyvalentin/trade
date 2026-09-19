@@ -37620,6 +37620,22 @@ function ScheduledOutcomeEvaluationReceiptPanel({
 
             <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
               <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                Decision-time source provenance
+              </h4>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">
+                {receipt
+                  ? `Status: ${receipt.source_provenance.status.replaceAll("_", " ")}. Source timestamps: ${receipt.source_provenance.source_timestamped_snapshot_count}/${receipt.source_provenance.eligible_snapshot_count}; after decision: ${receipt.source_provenance.source_timestamp_after_decision_count}.`
+                  : "Decision-time source provenance is not finalized yet."}
+              </p>
+              {receipt && (
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Provider versions: {receipt.source_provenance.provider_versioned_snapshot_count}/{receipt.source_provenance.eligible_snapshot_count}; adapter versions: {receipt.source_provenance.market_data_adapter_versions.join(", ") || "not recorded"}; builds: {receipt.source_provenance.source_build_markers.join(", ") || "not recorded"}. Missing provider versions are retained as a gap, never inferred from the configured plan.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+              <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
                 Containment
               </h4>
               <p className="mt-3 text-sm leading-6 text-zinc-300">
