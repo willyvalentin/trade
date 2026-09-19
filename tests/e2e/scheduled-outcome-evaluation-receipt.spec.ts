@@ -164,6 +164,14 @@ test.describe("scheduled outcome-evaluation receipts", () => {
         finalized_at: built.completed_at,
       }),
     ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationAttemptFromRow({
+        ...base,
+        status: "completed",
+        receipt_json: { ...built, attempt_fingerprint: "scheduled_outcome_evaluation_otherreceipt" },
+        finalized_at: built.completed_at,
+      }),
+    ).toBeNull();
   });
 
   test("claims the scheduled slot before snapshot or provider work and finalizes unexpected failures", () => {

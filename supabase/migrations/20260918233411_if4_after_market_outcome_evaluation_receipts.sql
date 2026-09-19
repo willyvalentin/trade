@@ -50,6 +50,20 @@ create table if not exists public.scheduled_outcome_evaluation_attempts (
         or (
           status <> 'claimed'
           and receipt_json->>'contract_version' = 'scheduled_outcome_evaluation_receipt_v1'
+          and receipt_json->>'attempt_fingerprint' = attempt_fingerprint
+          and receipt_json->>'market_date' = market_date::text
+          and receipt_json->>'scheduled_slot_at' = to_char(
+            scheduled_slot_at at time zone 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
+          )
+          and receipt_json->>'route_received_at' = to_char(
+            route_received_at at time zone 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
+          )
+          and receipt_json->>'completed_at' = to_char(
+            finalized_at at time zone 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'
+          )
           and finalized_at is not null
         )
       )

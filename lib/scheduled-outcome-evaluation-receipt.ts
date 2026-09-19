@@ -416,12 +416,20 @@ export function scheduledOutcomeEvaluationAttemptFromRow(value: unknown) {
   const finalizedAt = raw.finalized_at === null ? null : isoOrNull(raw.finalized_at);
   const createdAt = isoOrNull(raw.created_at);
   const updatedAt = isoOrNull(raw.updated_at);
+  const receiptMatchesAttempt = receipt !== null &&
+    receipt.attempt_fingerprint === attemptFingerprint &&
+    receipt.market_date === marketDate &&
+    receipt.scheduled_slot_at === scheduledSlotAt &&
+    receipt.route_received_at === routeReceivedAt &&
+    receipt.completed_at === finalizedAt;
 
   if (
     !id || !attemptFingerprint || !ownerUserId || !marketDate || !scheduledSlotAt ||
     !routeReceivedAt || !status || !request || !createdAt || !updatedAt ||
     (raw.finalized_at !== null && !finalizedAt) ||
-    (status === "claimed" ? receipt !== null || finalizedAt !== null : receipt === null || finalizedAt === null)
+    (status === "claimed"
+      ? receipt !== null || finalizedAt !== null
+      : !receiptMatchesAttempt)
   ) {
     return null;
   }
