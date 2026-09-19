@@ -72,6 +72,21 @@ test("unknown direction fails closed instead of assuming long geometry", () => {
   );
 });
 
+test("an upstream stale marker rejects a receipt even when its timestamp looks fresh", () => {
+  const result = buildRecommendationIntakeQualityResult(
+    intakeInput({ direction: "long", market_data_stale: true }),
+  );
+
+  expect(result).toMatchObject({
+    result_version: "1.1",
+    status: "rejected",
+    internal_only: true,
+  });
+  expect(result.blockers).toContainEqual(
+    expect.objectContaining({ reason_id: "market_data_reported_stale" }),
+  );
+});
+
 test("snapshot storage keeps the versioned quality result as internal decision evidence", () => {
   const intakeQuality = buildRecommendationIntakeQualityResult(
     intakeInput({ direction: "short", stop_price: 102, target_price: 96 }),

@@ -78,6 +78,7 @@ export type RecommendationIntakeQualityInput = {
   reason_text?: string | null;
   generated_at?: string | Date | null;
   market_data_timestamp?: string | Date | null;
+  market_data_stale?: boolean | null;
   latest_volume?: number | null;
   average_volume?: number | null;
   spread_percent?: number | null;
@@ -551,6 +552,17 @@ export function evaluateRecommendationDataFreshness(
   const marketDataDate = toDate(input.market_data_timestamp);
   const generatedDate = toDate(input.generated_at);
   const referenceDate = marketDataDate ?? generatedDate;
+
+  if (input.market_data_stale === true) {
+    blockers.push(
+      blocker(
+        "market_data_reported_stale",
+        "Stale data",
+        "The upstream scanner marked this recommendation's market data as stale.",
+        "market_data",
+      ),
+    );
+  }
 
   if (!referenceDate) {
     warnings.push(
