@@ -10,7 +10,7 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
-**Current local IF-4 durable baseline-freeze delivery, 2026-09-19:** The
+**Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
 active IF-2 acceptance remains the separately authorized Monday Basic Free
 capability probe; no additional provider action is permitted before then. This
 off-market vertical slice preserves an explicit, immutable evaluation baseline
@@ -26,16 +26,28 @@ persisted scan, snapshot and outcome row must decode under its canonical
 contract; a malformed row makes the source unavailable rather than silently
 shrinking the population used to freeze a baseline.
 
-The local migration supplies a least-privileged, RLS-protected table with
-service-role-only, contract-validated RPCs. Local evidence is 28 focused
+The exact reviewed migration
+`20260918224038_if4_durable_learning_baseline_freeze.sql`
+(`53db7fbe3275520b9fa76b4ce7fd757a988a3b3e9ea78282694699b82cc38ec0`) was
+applied once through Supabase's production migration operation after a fresh
+aggregate-only preflight reported every prerequisite and
+`eligible_for_exact_additive_apply = true`. It supplies a least-privileged,
+RLS-protected table with service-role-only, contract-validated RPCs. A
+metadata-only production postflight verified the table, all five constraints,
+valid owner/time index, enabled RLS with no policies, no direct `anon`,
+`authenticated` or `service_role` table read, fixed-search-path `SECURITY
+DEFINER` functions, denied `anon`/`authenticated` execution and allowed only
+`service_role` RPC execution. Supabase's security advisor reports this
+policy-less RLS state as the expected informational server-only-table pattern;
+its leaked-password-protection warning and performance advisor findings are
+pre-existing project-level follow-up items. Local evidence is 28 focused
 baseline-readiness/freeze regressions, targeted ESLint, strict TypeScript, a
 full Webpack production build and isolated PostgreSQL proof of first freeze,
 exact idempotent replay, changed-baseline rejection, cross-owner rejection and
 direct-table denial. There was no provider request, scheduler, ranking,
-candidate publication, broker action, production migration, production deploy
-or authenticated-environment UI verification. The additive production migration
-remains separately authorized and is not part of this local delivery; PR and
-protected CI are pending.
+candidate publication, broker action, production deploy or authenticated-
+environment UI verification. PR #549 has green protected CI and is merge-ready;
+its later merge and automatic deploy still require their own exact verification.
 
 **Production migration-history preflight, read-only, 2026-09-19:** The
 existing linked remote migration ledger records `20260915184112` and
@@ -45,9 +57,10 @@ several later locally tracked files through
 `20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`. This does
 not prove the underlying schemas are absent, but it makes a blind
 `supabase db push` unsafe: it could apply unrelated historical local files.
-Before any IF-4 production migration, reconcile the exact source-to-remote
-migration history and schema state, then obtain separate explicit authority
-for only the named additive migration. An exact-worktree preflight encountered
+Before the IF-4 production migration, the exact source-to-remote migration
+history and schema state were reconciled only as far as necessary for the named
+additive migration, and separate explicit authority was obtained. An
+exact-worktree preflight encountered
 an IPv6 database-route limitation, but a subsequent read-only public-schema
 snapshot through the existing linked production environment verified that
 `recommendation_scan_runs` has both `run_fingerprint` and owner-bound
@@ -63,8 +76,9 @@ temporary snapshots were removed. The committed aggregate-only query at
 then executed in a read-only production transaction: all target objects were
 absent, every owner-bound scan-run and role/extension prerequisite was present,
 and `eligible_for_exact_additive_apply` was true. It returns no application-row
-content or identifiers. No link, repair, migration, provider request,
-candidate, publication or broker action occurred.
+content or identifiers. No link, repair, provider request, candidate,
+publication or broker action occurred during that preflight; the later exact
+additive migration is recorded above.
 
 **Known IF-2 version aliasing, read-only, 2026-09-19:** A temporary
 data-only dump of `supabase_migrations.schema_migrations` maps remote version
