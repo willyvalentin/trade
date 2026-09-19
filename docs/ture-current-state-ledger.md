@@ -10,6 +10,102 @@ to resume its former queue.
 
 ### Now — IF-2 bounded market-wide discovery foundation
 
+**Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
+active IF-2 acceptance remains the separately authorized Monday Basic Free
+capability probe; no additional provider action is permitted before then. This
+off-market vertical slice preserves an explicit, immutable evaluation baseline
+without changing IF-2: Engine Insights can offer a freeze only for an existing
+policy/version-homogeneous plan that is already eligible, and read back the
+exact decision identities, metric plan and provenance that were frozen. The
+authenticated route recomputes that plan from owner-bound server evidence; it
+rejects not-ready, changed, duplicate, cross-owner or malformed attempts. It
+also refuses to freeze a truncated owner history: complete input data must fit
+the current deliberate 10,000-row non-paginated bound, otherwise a later
+paginated reader is required. Before diagnostic rows are excluded, every
+persisted scan, snapshot and outcome row must decode under its canonical
+contract; a malformed row makes the source unavailable rather than silently
+shrinking the population used to freeze a baseline.
+
+The exact reviewed migration
+`20260918224038_if4_durable_learning_baseline_freeze.sql`
+(`53db7fbe3275520b9fa76b4ce7fd757a988a3b3e9ea78282694699b82cc38ec0`) was
+applied once through Supabase's production migration operation after a fresh
+aggregate-only preflight reported every prerequisite and
+`eligible_for_exact_additive_apply = true`. It supplies a least-privileged,
+RLS-protected table with service-role-only, contract-validated RPCs. A
+metadata-only production postflight verified the table, all five constraints,
+valid owner/time index, enabled RLS with no policies, no direct `anon`,
+`authenticated` or `service_role` table read, fixed-search-path `SECURITY
+DEFINER` functions, denied `anon`/`authenticated` execution and allowed only
+`service_role` RPC execution. Supabase's security advisor reports this
+policy-less RLS state as the expected informational server-only-table pattern;
+its leaked-password-protection warning and performance advisor findings are
+pre-existing project-level follow-up items. Local evidence is 28 focused
+baseline-readiness/freeze regressions, targeted ESLint, strict TypeScript, a
+full Webpack production build and isolated PostgreSQL proof of first freeze,
+exact idempotent replay, changed-baseline rejection, cross-owner rejection and
+direct-table denial. There was no provider request, scheduler, ranking,
+candidate publication or broker action. PR [#549](https://github.com/willyvalentin/trade/pull/549)
+merged as `aade751248c534b632264d48815ab7c2832e99cd`; all protected checks in
+CI `35437941572` passed, and Netlify production deploy
+`6aae6cbe6242cb0008f7763d` is ready on that exact revision. The authenticated
+environment UI has not been exercised, no actual owner baseline has been
+frozen, and this delivery is not evidence that recommendation quality improved.
+
+**Production migration-history preflight, read-only, 2026-09-19:** The
+existing linked remote migration ledger records `20260915184112` and
+`20260917145627`, while the current source tree records
+`20260915162302` and `20260917135646`; the remote ledger also does not list
+several later locally tracked files through
+`20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`. This does
+not prove the underlying schemas are absent, but it makes a blind
+`supabase db push` unsafe: it could apply unrelated historical local files.
+Before the IF-4 production migration, the exact source-to-remote migration
+history and schema state were reconciled only as far as necessary for the named
+additive migration, and separate explicit authority was obtained. An
+exact-worktree preflight encountered
+an IPv6 database-route limitation, but a subsequent read-only public-schema
+snapshot through the existing linked production environment verified that
+`recommendation_scan_runs` has both `run_fingerprint` and owner-bound
+`owner_user_id`; neither new IF-4 table is present. That confirms the narrow
+baseline-freeze prerequisite without proving broader migration-history
+equivalence. A second read-only comparison found the expected pre-existing
+`market_wide_discovery_credit_reservations` and
+`basic_free_discovery_credit_reservations` tables, including
+`catalog_observation` and its owner/date partial unique index. That makes the
+local IF-2 assumptions schema-consistent, not migration-ID-equivalent. The
+temporary snapshots were removed. The committed aggregate-only query at
+`docs/sql/if4-durable-learning-baseline-freeze-production-preflight.sql` was
+then executed in a read-only production transaction: all target objects were
+absent, every owner-bound scan-run and role/extension prerequisite was present,
+and `eligible_for_exact_additive_apply` was true. It returns no application-row
+content or identifiers. No link, repair, provider request, candidate,
+publication or broker action occurred during that preflight; the later exact
+additive migration is recorded above.
+
+**Known IF-2 version aliasing, read-only, 2026-09-19:** A temporary
+data-only dump of `supabase_migrations.schema_migrations` maps remote version
+`20260915184112` to the exact recorded name
+`20260915162302_market_wide_discovery_credit_reservations`, and remote version
+`20260917145627` to
+`20260917135646_if2_basic_free_daily_observation_claim`. These are known
+version aliases for source migration names, not evidence of two unknown IF-2
+SQL changes. The mapping narrows the history gap, but does not establish
+statement-level equivalence, authorize a history repair, or make a broad
+`db push` safe. The temporary history dump was removed.
+
+**Isolated IF-4 migration dry-run, read-only, 2026-09-19:** An approved
+temporary one-migration Supabase directory containing only
+`20260918224038_if4_durable_learning_baseline_freeze.sql` and the existing
+linked connection metadata was used for exactly one `supabase db push --dry-run`.
+Supabase stopped before planning or applying the migration because its remote
+migration ledger contains versions absent from that isolated directory. This
+confirms that a one-file directory alone cannot safely prove or apply the
+additive migration while history remains unreconciled. The generated temporary
+link metadata and complete temporary directory were removed immediately. No
+history repair, schema change, provider request, candidate publication or broker
+action occurred.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
@@ -126,8 +222,9 @@ candidates.
 **Merged and production-verified IF-2b snapshot-feasibility disclosure,
 2026-09-18:** PR [#548](https://github.com/willyvalentin/trade/pull/548)
 merged as `33a6f409921883529a2334d2b4bef4d9a520b135`; its protected CI passed
-and Netlify production deploy `6aadbb0d188fc00008bdfbc8` is ready on that
-exact revision. Engine Insights previously called a projected Basic Free
+and subsequent exact-main provenance checks passed; Netlify production deploy
+`6aadbb0d188fc00008bdfbc8` is ready on that exact revision. Engine Insights
+previously called a projected Basic Free
 multi-quota-day page schedule a “fresh collection”, even though a schedule
 that exceeds the declared daily page-credit capacity cannot establish one
 coherent fresh catalog snapshot. The versioned
