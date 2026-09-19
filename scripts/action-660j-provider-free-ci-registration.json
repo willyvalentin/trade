@@ -257,6 +257,8 @@
   "tests/e2e/action-666cp-current-main-governed-binding-snapshot-admission-freeze.spec.ts",
   "tests/e2e/action-666bq-governed-binding-snapshot-issuance-successor.spec.ts",
   "tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts",
+  "tests/e2e/recommendation-intake-quality-direction.spec.ts",
+  "tests/e2e/scheduled-outcome-evaluation-receipt.spec.ts",
   "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority.spec.ts",
   "tests/e2e/action-666cs-current-main-non-forgeable-observation-authority-freeze.spec.ts",
   "tests/e2e/action-666ct-current-main-lossless-invalid-scalar-observation.spec.ts",

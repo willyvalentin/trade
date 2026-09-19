@@ -58,6 +58,7 @@ function acceptedIntakeResult(): RecommendationIntakeQualityResult {
     evaluated_at: observedAt,
     recommendation_id: "recommendation-accepted",
     ticker: "TURE",
+    direction: "long",
     status: "accepted",
     grade: "A",
     accepted_for_visible_list: true,

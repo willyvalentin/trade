@@ -12,6 +12,13 @@ export type RecommendationIntakeQualityGrade =
   | "F"
   | "unknown";
 
+export type RecommendationIntakeQualityDirection = "long" | "short" | "unknown";
+
+// Version 1.1 adds explicit long/short geometry. Keep the legacy literal in
+// the read type because existing persisted decision receipts remain valid
+// historical evidence under their original policy semantics.
+export const RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION = "1.1" as const;
+
 export type RecommendationIntakeQualityCheckStatus =
   | "pass"
   | "warning"
@@ -59,6 +66,7 @@ export type RecommendationIntakeQualityInput = {
   recommendation_id?: string | null;
   ticker?: string | null;
   company_name?: string | null;
+  direction?: string | null;
   entry_price?: number | null;
   entry_low?: number | null;
   entry_high?: number | null;
@@ -70,6 +78,7 @@ export type RecommendationIntakeQualityInput = {
   reason_text?: string | null;
   generated_at?: string | Date | null;
   market_data_timestamp?: string | Date | null;
+  market_data_stale?: boolean | null;
   latest_volume?: number | null;
   average_volume?: number | null;
   spread_percent?: number | null;
@@ -98,11 +107,12 @@ export type RecommendationIntakeQualityInput = {
 
 export type RecommendationIntakeQualityResult = {
   result_id: string;
-  result_version: "1.0";
+  result_version: "1.0" | typeof RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION;
   result_kind: "recommendation_intake_quality";
   evaluated_at: string;
   recommendation_id: string | null;
   ticker: string | null;
+  direction: RecommendationIntakeQualityDirection;
   status: RecommendationIntakeQualityStatus;
   grade: RecommendationIntakeQualityGrade;
   accepted_for_visible_list: boolean;
@@ -143,6 +153,22 @@ function positiveNumber(value: unknown): number | null {
 function normalizeTicker(value: string | null | undefined) {
   const ticker = value?.trim().toUpperCase() ?? "";
   return ticker.length > 0 ? ticker : null;
+}
+
+function normalizeDirection(
+  value: string | null | undefined,
+): RecommendationIntakeQualityDirection {
+  const normalized = value?.trim().toLowerCase() ?? "";
+
+  if (normalized === "long" || normalized === "buy") {
+    return "long";
+  }
+
+  if (normalized === "short" || normalized === "sell") {
+    return "short";
+  }
+
+  return "unknown";
 }
 
 function textOrNull(value: string | null | undefined) {
@@ -240,13 +266,21 @@ function calculateRiskRewardRatio(input: RecommendationIntakeQualityInput) {
   const entry = getEntryPrice(input);
   const stop = positiveNumber(input.stop_price);
   const target = positiveNumber(input.target_price);
+  const direction = normalizeDirection(input.direction);
 
-  if (entry === null || stop === null || target === null) {
+  if (
+    entry === null ||
+    stop === null ||
+    target === null ||
+    direction === "unknown"
+  ) {
     return null;
   }
 
-  const riskPerShare = entry - stop;
-  const rewardPerShare = target - entry;
+  const riskPerShare =
+    direction === "long" ? entry - stop : stop - entry;
+  const rewardPerShare =
+    direction === "long" ? target - entry : entry - target;
 
   if (riskPerShare <= 0 || rewardPerShare <= 0) {
     return null;
@@ -368,6 +402,7 @@ export function evaluateRecommendationPricePlan(
   const stop = positiveNumber(input.stop_price);
   const target = positiveNumber(input.target_price);
   const currentPrice = positiveNumber(input.current_price);
+  const direction = normalizeDirection(input.direction);
   const riskRewardRatio = calculateRiskRewardRatio(input);
 
   if (entry === null || stop === null || target === null) {
@@ -386,23 +421,45 @@ export function evaluateRecommendationPricePlan(
     };
   }
 
-  if (stop >= entry) {
+  if (direction === "unknown") {
+    return {
+      checks: [
+        buildCheck(
+          "price_plan",
+          "Entry / stop / target",
+          "incomplete",
+          "Price plan cannot be checked until the recommendation direction is known.",
+          "price_plan",
+        ),
+      ],
+      blockers,
+      warnings,
+    };
+  }
+
+  const invalidStop = direction === "long" ? stop >= entry : stop <= entry;
+  if (invalidStop) {
     blockers.push(
       blocker(
         "invalid_stop_entry_relationship",
         "Invalid stop",
-        "For a long recommendation, stop must be below entry.",
+        direction === "long"
+          ? "For a long recommendation, stop must be below entry."
+          : "For a short recommendation, stop must be above entry.",
         "price_plan",
       ),
     );
   }
 
-  if (target <= entry) {
+  const invalidTarget = direction === "long" ? target <= entry : target >= entry;
+  if (invalidTarget) {
     blockers.push(
       blocker(
         "invalid_target_entry_relationship",
         "Invalid target",
-        "For a long recommendation, target must be above entry.",
+        direction === "long"
+          ? "For a long recommendation, target must be above entry."
+          : "For a short recommendation, target must be below entry.",
         "price_plan",
       ),
     );
@@ -428,23 +485,33 @@ export function evaluateRecommendationPricePlan(
     );
   }
 
-  if (currentPrice !== null && currentPrice >= target) {
+  const currentPriceAtOrBeyondTarget =
+    currentPrice !== null &&
+    (direction === "long" ? currentPrice >= target : currentPrice <= target);
+  if (currentPriceAtOrBeyondTarget) {
     warnings.push(
       warning(
         "current_price_at_or_above_target",
         "Target already reached",
-        "Current price is already at or above the target.",
+        direction === "long"
+          ? "Current price is already at or above the target."
+          : "Current price is already at or below the target.",
         "market_data",
       ),
     );
   }
 
-  if (currentPrice !== null && currentPrice <= stop) {
+  const currentPriceAtOrBeyondStop =
+    currentPrice !== null &&
+    (direction === "long" ? currentPrice <= stop : currentPrice >= stop);
+  if (currentPriceAtOrBeyondStop) {
     warnings.push(
       warning(
         "current_price_at_or_below_stop",
         "Stop already reached",
-        "Current price is already at or below the stop.",
+        direction === "long"
+          ? "Current price is already at or below the stop."
+          : "Current price is already at or above the stop.",
         "market_data",
       ),
     );
@@ -485,6 +552,17 @@ export function evaluateRecommendationDataFreshness(
   const marketDataDate = toDate(input.market_data_timestamp);
   const generatedDate = toDate(input.generated_at);
   const referenceDate = marketDataDate ?? generatedDate;
+
+  if (input.market_data_stale === true) {
+    blockers.push(
+      blocker(
+        "market_data_reported_stale",
+        "Stale data",
+        "The upstream scanner marked this recommendation's market data as stale.",
+        "market_data",
+      ),
+    );
+  }
 
   if (!referenceDate) {
     warnings.push(
@@ -1062,11 +1140,12 @@ export function buildRecommendationIntakeQualityResult(
 
   return {
     result_id: `recommendation-intake-${input.recommendation_id ?? "unknown"}`,
-    result_version: "1.0",
+    result_version: RECOMMENDATION_INTAKE_QUALITY_RESULT_VERSION,
     result_kind: "recommendation_intake_quality",
     evaluated_at: evaluatedAt,
     recommendation_id: input.recommendation_id ?? null,
     ticker: normalizeTicker(input.ticker),
+    direction: normalizeDirection(input.direction),
     status,
     grade,
     accepted_for_visible_list: status === "accepted" || status === "needs_review",

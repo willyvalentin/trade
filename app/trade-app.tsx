@@ -12980,6 +12980,7 @@ export function TradeApp({
         recommendation_id: recommendation.id,
         ticker: recommendation.ticker,
         company_name: recommendation.companyName,
+        direction: recommendation.direction === "Short" ? "short" : "long",
         entry_price: getRecommendationEntryFallback(recommendation),
         entry_low: recommendation.entryLowValue,
         entry_high: recommendation.entryHighValue,
