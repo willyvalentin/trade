@@ -20,6 +20,13 @@ The refresh adds only the production-visible recommendation and position
 lineage projection fields. The generated output contains neither the private
 schema, the V2 private writer routine, nor its private receipt relation.
 
+The recorded hashes bind the historical output at the exact green predecessor;
+they are not a permanent byte-for-byte freeze of the whole public generated
+types file. A later additive public relation may legitimately change that file,
+but it must preserve the named lineage fields and the absence of the private
+writer surface. Any such relation remains subject to its own schema, access and
+runtime review.
+
 ## Runtime-binding decision
 
 The existing writer adapter remains a server-only, injected-port seam: it has

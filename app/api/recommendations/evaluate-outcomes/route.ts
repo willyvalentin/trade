@@ -15,6 +15,7 @@ import {
   runRecommendationOutcomeEvaluation,
   type RecommendationOutcomeCandleRequest,
   type RecommendationOutcomeCandleResult,
+  type RecommendationOutcomeEvaluationRun,
 } from "@/lib/recommendation-outcome-evaluation-runner";
 import { buildOutcomePostEligibilityDiagnostics } from "@/lib/recommendation-outcome-post-eligibility-diagnostics";
 import { buildPlanReferenceMetadataTrace } from "@/lib/plan-reference-metadata-trace";
@@ -39,6 +40,16 @@ import {
 } from "@/lib/batch-candidate-audit";
 import { hasBetterOutcomeCoverage } from "@/lib/recommendation-outcome-coverage";
 import { canonicalizeOutcomeSnapshotsForBatch } from "@/lib/recommendation-outcome-snapshot-canonicalization";
+import {
+  buildScheduledOutcomeEvaluationReceipt,
+  scheduledOutcomeEvaluationSlotStartedAt,
+  type ScheduledOutcomeEvaluationAttempt,
+  type ScheduledOutcomeEvaluationReceipt,
+} from "@/lib/scheduled-outcome-evaluation-receipt";
+import {
+  claimScheduledOutcomeEvaluationAttempt,
+  finalizeScheduledOutcomeEvaluationAttempt,
+} from "@/lib/server/scheduled-outcome-evaluation-attempt-persistence";
 
 type EvaluateOutcomesRequest = {
   mode?: unknown;
@@ -51,6 +62,9 @@ type EvaluateOutcomesRequest = {
   max_snapshots?: unknown;
   max_candle_requests?: unknown;
   enrich_completed_outcomes?: unknown;
+  scheduled_function_fired_at_utc?: unknown;
+  scheduled_slot_at_utc?: unknown;
+  scheduled_outcome_evaluation_attempt_fingerprint?: unknown;
 };
 
 type OutcomeSnapshotIneligibleReason =
@@ -101,6 +115,31 @@ type OutcomeEligibilityDiagnostics = {
   batch_health: string;
 };
 
+type ScheduledOutcomeEvaluationInvocation = {
+  attempt_fingerprint: string;
+  scheduled_function_fired_at: string;
+  scheduled_slot_at: string;
+};
+
+type ReceiptRun = Pick<
+  RecommendationOutcomeEvaluationRun,
+  | "run_version"
+  | "status"
+  | "provider"
+  | "horizons"
+  | "eligible_snapshot_count"
+  | "evaluated_snapshot_count"
+  | "incomplete_snapshot_count"
+  | "missing_candle_count"
+  | "provider_error_count"
+  | "empty_candle_response_count"
+  | "provider_limit_count"
+  | "provider_budget_limit"
+  | "candle_requests_planned"
+  | "candle_requests_executed"
+  | "candle_requests_saved_by_reuse"
+>;
+
 const outcomeEvaluationRouteVersion = "outcome-evaluation-route-v1.0";
 const defaultOfficialLiveMaxBatchesPerRun = 5;
 const officialLiveBatchDiscoveryLimit = 20;
@@ -130,6 +169,146 @@ function stringOrNull(value: unknown) {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
     : null;
+}
+
+function isoStringOrNull(value: unknown) {
+  const text = stringOrNull(value);
+  if (!text) return null;
+  const timestamp = Date.parse(text);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
+function parseScheduledOutcomeEvaluationInvocation({
+  body,
+  dryRun,
+  mode,
+}: {
+  body: EvaluateOutcomesRequest | null;
+  dryRun: boolean;
+  mode: ReturnType<typeof parseMode>;
+}):
+  | { status: "not_scheduled" }
+  | { status: "invalid" }
+  | { status: "ready"; invocation: ScheduledOutcomeEvaluationInvocation } {
+  const attemptedFields = [
+    body?.scheduled_function_fired_at_utc,
+    body?.scheduled_slot_at_utc,
+    body?.scheduled_outcome_evaluation_attempt_fingerprint,
+  ];
+  if (attemptedFields.every((value) => value === undefined || value === null)) {
+    return { status: "not_scheduled" };
+  }
+
+  const firedAt = isoStringOrNull(body?.scheduled_function_fired_at_utc);
+  const scheduledSlot = isoStringOrNull(body?.scheduled_slot_at_utc);
+  const attemptFingerprint = stringOrNull(
+    body?.scheduled_outcome_evaluation_attempt_fingerprint,
+  );
+  const normalizedSlot = scheduledSlot
+    ? scheduledOutcomeEvaluationSlotStartedAt(new Date(scheduledSlot)).toISOString()
+    : null;
+
+  if (
+    mode !== "official_live_today" ||
+    dryRun ||
+    !firedAt ||
+    !scheduledSlot ||
+    normalizedSlot !== scheduledSlot ||
+    !attemptFingerprint ||
+    !/^scheduled_outcome_evaluation_[a-z0-9]+$/.test(attemptFingerprint)
+  ) {
+    return { status: "invalid" };
+  }
+
+  return {
+    status: "ready",
+    invocation: {
+      attempt_fingerprint: attemptFingerprint,
+      scheduled_function_fired_at: firedAt,
+      scheduled_slot_at: scheduledSlot,
+    },
+  };
+}
+
+function idleReceiptRun({
+  horizons,
+  providerBudgetLimit,
+  status,
+}: {
+  horizons: RecommendationOutcomeHorizon[];
+  providerBudgetLimit: number;
+  status: "blocked" | "failed";
+}): ReceiptRun {
+  return {
+    run_version: "1.0",
+    status,
+    provider: "twelve_data",
+    horizons,
+    eligible_snapshot_count: 0,
+    evaluated_snapshot_count: 0,
+    incomplete_snapshot_count: 0,
+    missing_candle_count: 0,
+    provider_error_count: 0,
+    empty_candle_response_count: 0,
+    provider_limit_count: 0,
+    provider_budget_limit: providerBudgetLimit,
+    candle_requests_planned: 0,
+    candle_requests_executed: 0,
+    candle_requests_saved_by_reuse: 0,
+  };
+}
+
+async function finalizeScheduledOutcomeEvaluationReceipt({
+  attempt,
+  ownerUserId,
+  run,
+  selectedBatchFingerprint,
+  outcomesCreatedCount,
+  outcomesUpdatedCount,
+  outcomesSkippedEqualOrBetterCount,
+  persistenceStatus,
+  persistenceError,
+  firstBlocker,
+  nextRetrySuggestion,
+  decisionSnapshots,
+}: {
+  attempt: ScheduledOutcomeEvaluationAttempt;
+  ownerUserId: string;
+  run: ReceiptRun;
+  selectedBatchFingerprint: string | null;
+  outcomesCreatedCount: number;
+  outcomesUpdatedCount: number;
+  outcomesSkippedEqualOrBetterCount: number;
+  persistenceStatus: ScheduledOutcomeEvaluationReceipt["persistence"]["status"];
+  persistenceError: string | null;
+  firstBlocker: string | null;
+  nextRetrySuggestion: string | null;
+  decisionSnapshots: RecommendationSnapshot[];
+}) {
+  const receipt = buildScheduledOutcomeEvaluationReceipt({
+    attemptFingerprint: attempt.attempt_fingerprint,
+    marketDate: attempt.market_date,
+    scheduledSlotAt: attempt.scheduled_slot_at,
+    routeReceivedAt: attempt.route_received_at,
+    completedAt: new Date().toISOString(),
+    routeVersion: outcomeEvaluationRouteVersion,
+    selectedBatchFingerprint,
+    run,
+    outcomesCreatedCount,
+    outcomesUpdatedCount,
+    outcomesSkippedEqualOrBetterCount,
+    persistenceStatus,
+    persistenceError,
+    firstBlocker,
+    nextRetrySuggestion,
+    decisionSnapshots,
+  });
+
+  return finalizeScheduledOutcomeEvaluationAttempt({
+    ownerUserId,
+    attemptFingerprint: attempt.attempt_fingerprint,
+    receipt,
+  });
 }
 
 function booleanValue(value: unknown) {
@@ -1718,6 +1897,91 @@ export async function POST(request: Request) {
     );
   }
 
+  const scheduledInvocation = parseScheduledOutcomeEvaluationInvocation({
+    body,
+    dryRun,
+    mode,
+  });
+  if (scheduledInvocation.status === "invalid") {
+    return NextResponse.json(
+      {
+        error: "Scheduled outcome-evaluation invocation is invalid.",
+        code: "scheduled_outcome_evaluation_invocation_invalid",
+      },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  let scheduledAttempt: ScheduledOutcomeEvaluationAttempt | null = null;
+  if (scheduledInvocation.status === "ready") {
+    const claim = await claimScheduledOutcomeEvaluationAttempt({
+      ownerUserId: ownerPrincipal.owner_user_id,
+      attemptFingerprint: scheduledInvocation.invocation.attempt_fingerprint,
+      marketDate: getNewYorkDateString(
+        new Date(scheduledInvocation.invocation.scheduled_slot_at),
+      ),
+      scheduledSlotAt: scheduledInvocation.invocation.scheduled_slot_at,
+      routeReceivedAt: new Date().toISOString(),
+      request: {
+        contract_version: "scheduled_outcome_evaluation_request_v1",
+        source: "netlify_scheduled_function",
+        route_version: outcomeEvaluationRouteVersion,
+        scheduled_function_fired_at:
+          scheduledInvocation.invocation.scheduled_function_fired_at,
+        scheduled_slot_at: scheduledInvocation.invocation.scheduled_slot_at,
+        horizons,
+        provider_budget_limit: providerBudgetLimit,
+      },
+    });
+
+    if (claim.status === "unavailable") {
+      return NextResponse.json(
+        {
+          error: "Scheduled outcome-evaluation claim is unavailable.",
+          code: "scheduled_outcome_evaluation_claim_unavailable",
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    if (claim.status !== "claimed") {
+      const receipt = claim.attempt.receipt_json;
+      return NextResponse.json(
+        {
+          run_id: claim.attempt.attempt_fingerprint,
+          run_version: "1.0",
+          status: receipt?.status ?? "blocked",
+          started_at: claim.attempt.route_received_at,
+          completed_at: claim.attempt.finalized_at,
+          source: "auto",
+          provider: receipt?.evaluator.provider ?? "twelve_data",
+          horizons: receipt?.evaluator.horizons ?? horizons,
+          eligible_snapshot_count: receipt?.scope.eligible_snapshot_count ?? 0,
+          evaluated_snapshot_count: receipt?.scope.evaluated_snapshot_count ?? 0,
+          incomplete_snapshot_count:
+            receipt?.coverage.incomplete_snapshot_count ?? 0,
+          missing_candle_count: receipt?.coverage.missing_candle_count ?? 0,
+          persisted_outcome_count:
+            (receipt?.persistence.outcomes_created_count ?? 0) +
+            (receipt?.persistence.outcomes_updated_count ?? 0),
+          scheduled_outcome_evaluation_receipt: receipt,
+          scheduled_outcome_evaluation_claim: claim.status,
+          summary:
+            claim.status === "already_claimed"
+              ? "Scheduled outcome evaluation is already claimed for this slot; no provider work was repeated."
+              : "Scheduled outcome evaluation receipt already exists for this slot; no provider work was repeated.",
+        },
+        {
+          status: claim.status === "already_claimed" ? 202 : 200,
+          headers: { "Cache-Control": "no-store" },
+        },
+      );
+    }
+
+    scheduledAttempt = claim.attempt;
+  }
+
+  try {
   const bodySnapshots = Array.isArray(body?.snapshots)
     ? body.snapshots
         .map(parseSnapshot)
@@ -1941,10 +2205,47 @@ export async function POST(request: Request) {
       plan_reference_metadata_trace: planReferenceMetadataTrace,
     };
 
+    const blockedStatus =
+      officialSnapshotLoad?.status === "failed" ? "failed" : "blocked";
+    const scheduledReceiptFinalization = scheduledAttempt
+      ? await finalizeScheduledOutcomeEvaluationReceipt({
+          attempt: scheduledAttempt,
+          ownerUserId: ownerPrincipal.owner_user_id,
+          run: idleReceiptRun({
+            horizons: diagnostics.horizons_evaluated,
+            providerBudgetLimit,
+            status: blockedStatus,
+          }),
+          selectedBatchFingerprint: stringOrNull(
+            officialSnapshotLoad?.batch?.batch_fingerprint,
+          ) ?? batchFingerprint,
+          outcomesCreatedCount: 0,
+          outcomesUpdatedCount: 0,
+          outcomesSkippedEqualOrBetterCount: 0,
+          persistenceStatus: dryRun ? "dry_run" : "not_attempted",
+          persistenceError: officialSnapshotLoad?.error ?? null,
+          firstBlocker: officialSnapshotLoad?.error ??
+            (eligibleSnapshots.length === 0
+              ? "no_structurally_valid_eligible_snapshots"
+              : "official_outcome_evaluation_blocked"),
+          nextRetrySuggestion: diagnostics.next_retry_suggestion,
+          decisionSnapshots: eligibleSnapshots,
+        })
+      : null;
+    if (scheduledReceiptFinalization?.status === "unavailable") {
+      return NextResponse.json(
+        {
+          error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
+          code: "scheduled_outcome_evaluation_receipt_unavailable",
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
     return NextResponse.json({
       run_id: `rec_out_eval_${routeStartedAt}`,
       run_version: "1.0",
-      status: officialSnapshotLoad?.status === "failed" ? "failed" : "blocked",
+      status: blockedStatus,
       started_at: new Date(routeStartedAt).toISOString(),
       completed_at: new Date().toISOString(),
       horizons: diagnostics.horizons_evaluated,
@@ -1965,6 +2266,8 @@ export async function POST(request: Request) {
           : "Official outcome evaluation is blocked."),
       ...diagnostics,
       outcome_evaluation: diagnostics,
+      scheduled_outcome_evaluation_receipt:
+        scheduledReceiptFinalization?.attempt.receipt_json ?? null,
     });
   }
 
@@ -1979,7 +2282,7 @@ export async function POST(request: Request) {
         ? "input"
         : "newest_first",
     now,
-    source: "api",
+    source: scheduledAttempt ? "auto" : "api",
     provider: "twelve_data",
     enrichCompletedOutcomes: enrichmentMode,
     fetchCandles,
@@ -2218,9 +2521,104 @@ export async function POST(request: Request) {
     plan_reference_metadata_trace: planReferenceMetadataTrace,
   };
 
-  return NextResponse.json({
-    ...run,
-    ...diagnostics,
-    outcome_evaluation: diagnostics,
-  });
+  const scheduledReceiptFinalization = scheduledAttempt
+    ? await finalizeScheduledOutcomeEvaluationReceipt({
+        attempt: scheduledAttempt,
+        ownerUserId: ownerPrincipal.owner_user_id,
+        run,
+        selectedBatchFingerprint:
+          stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
+          batchFingerprint,
+        outcomesCreatedCount: persistenceEvents.filter(
+          (event) => event.action === "created",
+        ).length,
+        outcomesUpdatedCount: persistenceEvents.filter(
+          (event) => event.action === "updated",
+        ).length,
+        outcomesSkippedEqualOrBetterCount:
+          persistenceEvents.filter(
+            (event) => event.action === "skipped_equal_or_better",
+          ).length +
+          (postEligibilityDiagnostics.post_eligibility_block_reasons
+            .already_has_equal_or_better_outcome ?? 0),
+        persistenceStatus: dryRun
+          ? "dry_run"
+          : persistenceEvents.some((event) => event.action === "failed")
+            ? "failed"
+            : persistenceEvents.length > 0
+              ? "success"
+              : "not_attempted",
+        persistenceError:
+          persistenceEvents.find((event) => event.error !== null)?.error ??
+          supabaseOutcomes?.error ??
+          null,
+        firstBlocker: latestProviderError ??
+          persistenceEvents.find((event) => event.error !== null)?.error ??
+          null,
+        nextRetrySuggestion: diagnostics.next_retry_suggestion,
+        decisionSnapshots: eligibleSnapshots,
+      })
+    : null;
+  if (scheduledReceiptFinalization?.status === "unavailable") {
+    return NextResponse.json(
+      {
+        error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
+        code: "scheduled_outcome_evaluation_receipt_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+    return NextResponse.json({
+      ...run,
+      ...diagnostics,
+      outcome_evaluation: diagnostics,
+      scheduled_outcome_evaluation_receipt:
+        scheduledReceiptFinalization?.attempt.receipt_json ?? null,
+    });
+  } catch (error) {
+    if (!scheduledAttempt) throw error;
+
+    const message = error instanceof Error ? error.message : "unexpected_error";
+    const scheduledReceiptFinalization =
+      await finalizeScheduledOutcomeEvaluationReceipt({
+        attempt: scheduledAttempt,
+        ownerUserId: ownerPrincipal.owner_user_id,
+        run: idleReceiptRun({
+          horizons,
+          providerBudgetLimit,
+          status: "failed",
+        }),
+        selectedBatchFingerprint: batchFingerprint,
+        outcomesCreatedCount: 0,
+        outcomesUpdatedCount: 0,
+        outcomesSkippedEqualOrBetterCount: 0,
+        persistenceStatus: "not_attempted",
+        persistenceError: message,
+        firstBlocker: message,
+        nextRetrySuggestion:
+          "Inspect the retained receipt before the next scheduled slot; do not retry this slot manually.",
+        decisionSnapshots: [],
+      });
+
+    if (scheduledReceiptFinalization.status === "unavailable") {
+      return NextResponse.json(
+        {
+          error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
+          code: "scheduled_outcome_evaluation_receipt_unavailable",
+        },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: "Scheduled outcome evaluation failed before completion.",
+        code: "scheduled_outcome_evaluation_failed",
+        scheduled_outcome_evaluation_receipt:
+          scheduledReceiptFinalization.attempt.receipt_json,
+      },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 }

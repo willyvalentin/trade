@@ -1905,6 +1905,54 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_outcome_evaluation_attempts: {
+        Row: {
+          attempt_fingerprint: string
+          contract_version: string
+          created_at: string
+          finalized_at: string | null
+          id: string
+          market_date: string
+          owner_user_id: string
+          receipt_json: Json
+          request_json: Json
+          route_received_at: string
+          scheduled_slot_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_fingerprint: string
+          contract_version?: string
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          market_date: string
+          owner_user_id: string
+          receipt_json?: Json
+          request_json: Json
+          route_received_at: string
+          scheduled_slot_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_fingerprint?: string
+          contract_version?: string
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          market_date?: string
+          owner_user_id?: string
+          receipt_json?: Json
+          request_json?: Json
+          route_received_at?: string
+          scheduled_slot_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recommendation_scan_runs: {
         Row: {
           accepted_count: number

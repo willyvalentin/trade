@@ -1,6 +1,11 @@
 import { createRequire } from "node:module";
 
 import type { Config } from "@netlify/functions";
+import {
+  SCHEDULED_OUTCOME_EVALUATION_SLOT_MINUTES,
+  buildScheduledOutcomeEvaluationAttemptFingerprintForSlot,
+  scheduledOutcomeEvaluationSlotStartedAt,
+} from "../../lib/scheduled-outcome-evaluation-receipt";
 
 export const config: Config = {
   // Netlify cron is UTC. This covers the intraday outcome windows after the
@@ -63,24 +68,15 @@ function outcomeLogSummary(responseStatus: number, body: string) {
   }
 }
 
-function stableHash(value: string) {
-  let hash = 2166136261;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0).toString(36);
-}
-
 async function invokeScheduledOutcomeRoute({
   automationSecret,
   firedAtUtc,
+  scheduledSlotAtUtc,
   attemptFingerprint,
 }: {
   automationSecret: string;
   firedAtUtc: string;
+  scheduledSlotAtUtc: string;
   attemptFingerprint: string;
 }) {
   const routeModule = runtimeRequire(
@@ -104,13 +100,39 @@ async function invokeScheduledOutcomeRoute({
         max_batches: 5,
         max_snapshots: 10,
         scheduled_function_fired_at_utc: firedAtUtc,
+        scheduled_slot_at_utc: scheduledSlotAtUtc,
         scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
       }),
     }),
   );
 }
 
-export default async function handler() {
+async function scheduledOutcomeEvaluationSlotFromEvent({
+  request,
+  deliveryTime,
+}: {
+  request: Request;
+  deliveryTime: Date;
+}) {
+  const payload = await request.clone().json().catch(() => null);
+  const nextRun =
+    payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as { next_run?: unknown }).next_run
+      : null;
+  const parsedNextRun =
+    typeof nextRun === "string" ? new Date(nextRun) : new Date(Number.NaN);
+
+  if (Number.isFinite(parsedNextRun.getTime())) {
+    return new Date(
+      parsedNextRun.getTime() -
+        SCHEDULED_OUTCOME_EVALUATION_SLOT_MINUTES * 60 * 1000,
+    );
+  }
+
+  return scheduledOutcomeEvaluationSlotStartedAt(deliveryTime);
+}
+
+export default async function handler(request: Request) {
   // Keep a published staging candidate completely inert when explicitly
   // disabled: no credentials, database writes, or outcome-provider work.
   if (scheduledExecutionIsDisabled()) {
@@ -118,11 +140,16 @@ export default async function handler() {
     return new Response(null, { status: 204 });
   }
 
-  const firedAtUtc = new Date().toISOString();
+  const firedAt = new Date();
+  const firedAtUtc = firedAt.toISOString();
+  const scheduledSlot = await scheduledOutcomeEvaluationSlotFromEvent({
+    request,
+    deliveryTime: firedAt,
+  });
+  const scheduledSlotAtUtc = scheduledSlot.toISOString();
   const automationSecret = process.env.AUTOMATION_SECRET;
-  const attemptFingerprint = `scheduled_outcome_evaluation_${stableHash(
-    `netlify_scheduled_function|${firedAtUtc}`,
-  )}`;
+  const attemptFingerprint =
+    buildScheduledOutcomeEvaluationAttemptFingerprintForSlot(scheduledSlot);
 
   if (!automationSecret) {
     console.error("[scheduled-outcome-evaluation] Missing AUTOMATION_SECRET");
@@ -131,6 +158,7 @@ export default async function handler() {
 
   console.log("[scheduled-outcome-evaluation] Executing bundled internal route", {
     scheduled_function_fired_at_utc: firedAtUtc,
+    scheduled_slot_at_utc: scheduledSlotAtUtc,
     scheduled_outcome_evaluation_attempt_fingerprint: attemptFingerprint,
     horizons: officialIntradayHorizons,
   });
@@ -139,6 +167,7 @@ export default async function handler() {
     const response = await invokeScheduledOutcomeRoute({
       automationSecret,
       firedAtUtc,
+      scheduledSlotAtUtc,
       attemptFingerprint,
     });
     const body = await response.text();
