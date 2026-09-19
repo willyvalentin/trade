@@ -32,6 +32,10 @@ create table if not exists public.scheduled_outcome_evaluation_attempts (
       and extract(millisecond from scheduled_slot_at) = 0
       and mod(extract(minute from scheduled_slot_at)::integer, 15) = 0
     ),
+  constraint scheduled_outcome_evaluation_attempts_market_date_check
+    check (
+      market_date = (scheduled_slot_at at time zone 'America/New_York')::date
+    ),
   constraint scheduled_outcome_evaluation_attempts_request_check
     check (
       jsonb_typeof(request_json) = 'object'

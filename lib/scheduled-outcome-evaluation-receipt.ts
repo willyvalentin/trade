@@ -1,5 +1,6 @@
 import type { RecommendationOutcomeEvaluationRun } from "@/lib/recommendation-outcome-evaluation-runner";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 
 export const SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION =
   "scheduled_outcome_evaluation_receipt_v1" as const;
@@ -320,7 +321,8 @@ export function buildScheduledOutcomeEvaluationReceipt(
 
   if (
     !attemptFingerprint || !marketDate || !scheduledSlotAt || !routeReceivedAt ||
-    !completedAt || !routeVersion || !persistenceStatus
+    !completedAt || !routeVersion || !persistenceStatus ||
+    marketDate !== getNewYorkDateString(new Date(scheduledSlotAt))
   ) {
     throw new Error("Scheduled outcome-evaluation receipt input is invalid.");
   }
@@ -412,7 +414,9 @@ export function scheduledOutcomeEvaluationReceiptFromUnknown(value: unknown) {
       : null;
 
   if (
-    !attemptFingerprint || !marketDate || !scheduledSlotAt || !routeReceivedAt ||
+    !attemptFingerprint || !marketDate || !scheduledSlotAt ||
+    marketDate !== getNewYorkDateString(new Date(scheduledSlotAt)) ||
+    !routeReceivedAt ||
     !completedAt || !status || !evaluator || !decisionLineageRaw || !scope || !coverage || !cost ||
     !persistence || !failures || !routeVersion || !runnerVersion || !persistenceStatus
   ) {
@@ -565,10 +569,14 @@ export function scheduledOutcomeEvaluationAttemptFromRow(value: unknown) {
     receipt.scheduled_slot_at === scheduledSlotAt &&
     receipt.route_received_at === routeReceivedAt &&
     receipt.completed_at === finalizedAt;
+  const marketDateMatchesSlot = marketDate !== null &&
+    scheduledSlotAt !== null &&
+    marketDate === getNewYorkDateString(new Date(scheduledSlotAt));
 
   if (
     !id || !attemptFingerprint || !ownerUserId || !marketDate || !scheduledSlotAt ||
     !routeReceivedAt || !status || !request || !createdAt || !updatedAt ||
+    !marketDateMatchesSlot ||
     (raw.finalized_at !== null && !finalizedAt) ||
     (status === "claimed"
       ? receipt !== null || finalizedAt !== null

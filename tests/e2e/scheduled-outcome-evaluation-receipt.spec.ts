@@ -144,6 +144,12 @@ test.describe("scheduled outcome-evaluation receipts", () => {
     expect(
       scheduledOutcomeEvaluationReceiptFromUnknown({
         ...built,
+        market_date: "2026-09-22",
+      }),
+    ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationReceiptFromUnknown({
+        ...built,
         contract_version: "receipt_v0",
       }),
     ).toBeNull();
@@ -251,6 +257,15 @@ test.describe("scheduled outcome-evaluation receipts", () => {
     expect(
       scheduledOutcomeEvaluationAttemptFromRow({
         ...base,
+        market_date: "2026-09-22",
+        status: "claimed",
+        receipt_json: {},
+        finalized_at: null,
+      }),
+    ).toBeNull();
+    expect(
+      scheduledOutcomeEvaluationAttemptFromRow({
+        ...base,
         status: "completed",
         receipt_json: { ...built, attempt_fingerprint: "scheduled_outcome_evaluation_otherreceipt" },
         finalized_at: built.completed_at,
@@ -280,5 +295,10 @@ test.describe("scheduled outcome-evaluation receipts", () => {
     );
     expect(route).not.toContain("placeOrder");
     expect(route).not.toContain("executeBroker");
+    expect(
+      source(
+        "supabase/migrations/20260918233411_if4_after_market_outcome_evaluation_receipts.sql",
+      ),
+    ).toContain("scheduled_outcome_evaluation_attempts_market_date_check");
   });
 });
