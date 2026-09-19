@@ -50,8 +50,13 @@ snapshot through the existing linked production environment verified that
 `recommendation_scan_runs` has both `run_fingerprint` and owner-bound
 `owner_user_id`; neither new IF-4 table is present. That confirms the narrow
 baseline-freeze prerequisite without proving broader migration-history
-equivalence. The temporary snapshot was removed. No link, repair, migration,
-provider request, candidate, publication or broker action occurred.
+equivalence. A second read-only comparison found the expected pre-existing
+`market_wide_discovery_credit_reservations` and
+`basic_free_discovery_credit_reservations` tables, including
+`catalog_observation` and its owner/date partial unique index. That makes the
+local IF-2 assumptions schema-consistent, not migration-ID-equivalent. The
+temporary snapshots were removed. No link, repair, migration, provider request,
+candidate, publication or broker action occurred.
 
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
