@@ -17,24 +17,11 @@ import {
 import { RESEARCH_SNAPSHOT_CANDIDATE_DECISION_LINKAGE_VERSION } from "@/lib/research-snapshot-candidate-linkage";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
+import { recommendationDecisionFeatureVectorFromScannerCandidate } from "@/lib/recommendation-decision-feature-vector";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
 
 const DECIDED_AT = "2026-09-17T14:30:00.000Z";
-const DECISION_SOURCE_PROVENANCE = {
-  data_timestamp: "2026-09-17T14:29:00.000Z",
-  intraday_indicator_response_identity: {
-    contract_version: "twelve_data_response_identity_v1",
-    digest_algorithm: "sha256",
-    payload_sha256:
-      "sha256:8e53ed153f5f4bd3e09229af1091eb0b8d5bc7a6cb8c20b99e1c246fcc9f0c22",
-    payload_byte_length: 214,
-  },
-  provider_source: "twelve_data",
-  provider_version: "twelve_data_test_contract_v1",
-  market_data_adapter_version: "automation_scan_market_data_adapter_v1",
-  build_marker: "test-build-marker-v1",
-};
 
 function candidate(ticker = "TST"): ScannerCandidate & { local_score: number } {
   return {
@@ -79,6 +66,23 @@ function candidate(ticker = "TST"): ScannerCandidate & { local_score: number } {
     local_score: 96,
   };
 }
+
+const DECISION_SOURCE_PROVENANCE = {
+  data_timestamp: "2026-09-17T14:29:00.000Z",
+  intraday_indicator_response_identity: {
+    contract_version: "twelve_data_response_identity_v1",
+    digest_algorithm: "sha256",
+    payload_sha256:
+      "sha256:8e53ed153f5f4bd3e09229af1091eb0b8d5bc7a6cb8c20b99e1c246fcc9f0c22",
+    payload_byte_length: 214,
+  },
+  decision_feature_vector:
+    recommendationDecisionFeatureVectorFromScannerCandidate(candidate()),
+  provider_source: "twelve_data",
+  provider_version: "twelve_data_test_contract_v1",
+  market_data_adapter_version: "automation_scan_market_data_adapter_v1",
+  build_marker: "test-build-marker-v1",
+};
 
 function completeAttribution({
   recommendationPublishPolicyVersion = "selective_policy_test_v1",
@@ -586,6 +590,50 @@ test.describe("recommendation learning baseline readiness", () => {
       incomplete_snapshot_count: 1,
       blocker_counts: {
         intraday_indicator_response_identity_missing_or_invalid: 1,
+      },
+    });
+    expect(readiness.blockers).toContain(
+      "published_candidate_decision_source_provenance_incomplete",
+    );
+    expect(plans.plans[0]?.blockers).toContain(
+      "visible_primary_outcome_decision_source_provenance_incomplete",
+    );
+  });
+
+  test("excludes a snapshot whose decision feature vector is absent", () => {
+    const { run } = persistedPublishedScan();
+    const snapshot = snapshotFor(run.run_fingerprint);
+    const missingFeatureVectorSnapshot = {
+      ...snapshot,
+      payload_json: {
+        ...snapshot.payload_json,
+        decision_feature_vector: null,
+      },
+    };
+    const outcome = completeOutcome(missingFeatureVectorSnapshot);
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [run],
+      snapshots: [missingFeatureVectorSnapshot],
+      outcomes: [outcome],
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [run],
+      snapshots: [missingFeatureVectorSnapshot],
+      outcomes: [outcome],
+    });
+    const plans = buildRecommendationLearningEvaluationPlans({
+      segmentation,
+      scanRuns: [run],
+      snapshots: [missingFeatureVectorSnapshot],
+      outcomes: [outcome],
+    });
+
+    expect(readiness.decision_time_source_provenance).toMatchObject({
+      assessed_snapshot_count: 1,
+      decision_feature_vector_count: 0,
+      incomplete_snapshot_count: 1,
+      blocker_counts: {
+        decision_feature_vector_missing_or_invalid: 1,
       },
     });
     expect(readiness.blockers).toContain(

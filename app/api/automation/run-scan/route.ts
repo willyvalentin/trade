@@ -132,6 +132,7 @@ import {
   buildRejectedCandidateResearchSelection,
   type RejectedCandidateResearchSample,
 } from "@/lib/rejected-candidate-research-selection";
+import { recommendationDecisionFeatureVectorFromUnknown } from "@/lib/recommendation-decision-feature-vector";
 import { twelveDataResponseIdentityFromUnknown } from "@/lib/twelve-data-response-identity";
 
 type ScanWindow = {
@@ -2038,6 +2039,9 @@ function buildSnapshotFromRecommendation({
     twelveDataResponseIdentityFromUnknown(
       scannerCandidate?.intraday_indicator_response_identity,
     );
+  const decisionFeatureVector = recommendationDecisionFeatureVectorFromUnknown(
+    scannerCandidate?.decision_feature_vector,
+  );
   const providerStatus = providerSource
     ? "observed"
     : scanLog.real_scanner_candidate_generation
@@ -2053,6 +2057,9 @@ function buildSnapshotFromRecommendation({
       ...(intradayIndicatorResponseIdentity
         ? []
         : ["intraday_indicator_response_identity_unavailable"]),
+      ...(decisionFeatureVector
+        ? []
+        : ["decision_feature_vector_unavailable"]),
       ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
     ]),
   );
@@ -2108,6 +2115,7 @@ function buildSnapshotFromRecommendation({
       market_data_source: marketDataSource,
       provider_version: null,
       intraday_indicator_response_identity: intradayIndicatorResponseIdentity,
+      decision_feature_vector: decisionFeatureVector,
       market_data_adapter_version:
         providerSource ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION : null,
       candle_timestamp: dataTimestamp,
@@ -2176,6 +2184,11 @@ function buildSnapshotFromResearchSample({
       ...(sample.intraday_indicator_response_identity
         ? []
         : ["intraday_indicator_response_identity_unavailable"]),
+      ...(recommendationDecisionFeatureVectorFromUnknown(
+        sample.decision_feature_vector,
+      )
+        ? []
+        : ["decision_feature_vector_unavailable"]),
       ...(batchFingerprint ? [] : ["batch_fingerprint_unavailable"]),
     ]),
   );
@@ -2266,6 +2279,9 @@ function buildSnapshotFromResearchSample({
         twelveDataResponseIdentityFromUnknown(
           sample.intraday_indicator_response_identity,
         ),
+      decision_feature_vector: recommendationDecisionFeatureVectorFromUnknown(
+        sample.decision_feature_vector,
+      ),
       market_data_adapter_version: sample.provider_source
         ? AUTOMATION_SCAN_MARKET_DATA_ADAPTER_VERSION
         : null,

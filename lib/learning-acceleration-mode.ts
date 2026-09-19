@@ -11,6 +11,7 @@ import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
 } from "@/lib/scanner-candidate-ranking";
+import type { RecommendationDecisionFeatureVector } from "@/lib/recommendation-decision-feature-vector";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
 export type LearningAccelerationEnabledSource =
@@ -63,6 +64,7 @@ export type LearningAccelerationResearchSample = {
   market_data_source: string | null;
   market_data_timestamp: string | null;
   intraday_indicator_response_identity?: TwelveDataResponseIdentity | null;
+  decision_feature_vector?: RecommendationDecisionFeatureVector | null;
   rejection_publish_reason: string;
   sample_quality: "good" | "usable";
   ranking_reason: string;
@@ -882,6 +884,7 @@ export function buildLearningAccelerationResearchSelection({
       market_data_timestamp: textOrNull(candidate.market_data_timestamp),
       intraday_indicator_response_identity:
         candidate.intraday_indicator_response_identity,
+      decision_feature_vector: candidate.decision_feature_vector,
       rejection_publish_reason:
         buildDiagnostic?.rejection_reason ??
         (result.selected

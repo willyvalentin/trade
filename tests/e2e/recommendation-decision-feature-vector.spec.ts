@@ -1,0 +1,114 @@
+import { expect, test } from "@playwright/test";
+
+import { buildRealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
+import {
+  recommendationDecisionFeatureVectorFromScannerCandidate,
+  recommendationDecisionFeatureVectorFromUnknown,
+} from "@/lib/recommendation-decision-feature-vector";
+import type { ScannerCandidate } from "@/lib/scanner";
+
+function scannerCandidate(): ScannerCandidate & { local_score: number } {
+  return {
+    ticker: "VEC",
+    company_name: "Vector Incorporated",
+    sector: "Technology",
+    mock_current_price: 100.5,
+    mock_trend: "uptrend",
+    mock_volume_context: "expanding",
+    mock_support: 98,
+    mock_resistance: 105,
+    mock_news_context: "none",
+    latest_close: 100.5,
+    volume_ratio: 1.8,
+    distance_to_20d_high: -2.4,
+    change_5d_percent: 4.2,
+    proposed_entry_low: 100,
+    proposed_entry_high: 101,
+    proposed_stop_loss: 98,
+    proposed_target_1: 106,
+    proposed_target_2: 108,
+    proposed_risk_reward: 2.5,
+    recent_change_percent: 0.5,
+    recent_range_position: 0.72,
+    recent_volume_ratio: 1.6,
+    average_range_percent: 1.4,
+    latest_range_percent: 2.1,
+    range_expansion_ratio: 1.5,
+    intraday_indicators: {
+      vwap: 100,
+      latestPrice: 100.5,
+      priceVsVwapPercent: 0.5,
+      isAboveVwap: true,
+      recentHigh: 101,
+      recentLow: 99,
+      recentRangePercent: 2,
+      momentumPercent: 0.5,
+      momentumDirection: "up",
+      volumeTrend: "expanding",
+      latestVolume: 2000,
+      averageVolume: 1000,
+      warnings: [],
+    },
+    intraday_indicator_source: "fresh",
+    intraday_indicator_cached_at: "2026-09-17T14:00:00.000Z",
+    intraday_indicator_stale: false,
+    reference_price_timestamp: "2026-09-17T14:00:00.000Z",
+    reference_price_provider: "twelve_data",
+    local_score: 92,
+  };
+}
+
+test("captures a bounded decision feature projection and propagates it through real scanner output", () => {
+  const candidate = scannerCandidate();
+  const featureVector = recommendationDecisionFeatureVectorFromScannerCandidate(
+    candidate,
+  );
+  const summary = buildRealScannerCandidateGenerationSummary({
+    universe: [candidate],
+    candidates: [candidate],
+    source: "test",
+    scanWindow: "midday",
+    now: new Date("2026-09-17T14:01:00.000Z"),
+  });
+
+  expect(featureVector).toMatchObject({
+    contract_version: "recommendation_decision_feature_vector_v1",
+    feature_values: {
+      latest_price: 100.5,
+      daily_volume_ratio: 1.8,
+      intraday_vwap: 100,
+      intraday_momentum_percent: 0.5,
+      planned_risk_reward: 2.5,
+      scanner_local_score: 92,
+    },
+    explicit_unavailable_feature_names: [],
+  });
+  expect(summary.candidates[0]?.decision_feature_vector).toEqual(featureVector);
+});
+
+test("keeps unavailable inputs explicit and rejects a malformed feature projection", () => {
+  const candidate = scannerCandidate();
+  candidate.intraday_indicators = null;
+  const featureVector = recommendationDecisionFeatureVectorFromScannerCandidate(
+    candidate,
+  );
+
+  expect(featureVector.explicit_unavailable_feature_names).toContain(
+    "intraday_vwap",
+  );
+  expect(recommendationDecisionFeatureVectorFromUnknown(featureVector)).toEqual(
+    featureVector,
+  );
+  expect(
+    recommendationDecisionFeatureVectorFromUnknown({
+      ...featureVector,
+      explicit_unavailable_feature_names: [],
+    }),
+  ).toBeNull();
+  expect(
+    recommendationDecisionFeatureVectorFromUnknown({
+      ...featureVector,
+      raw_provider_response: "must never be retained here",
+    }),
+  ).toBeNull();
+});
