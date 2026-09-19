@@ -156,16 +156,24 @@ thresholds. A charter is bound server-side to one owner and an observed
 policy/version segment; an exact retry is idempotent and any materially
 different charter for that segment is rejected.
 
-The new owner-isolated server route, persistence boundary and pending additive
-migration bind a future baseline receipt to the charter fingerprint. Both the
-service and the database writer fail closed when the charter is absent or its
-policy/version attribution no longer matches the server-recomputed evaluation
-plan. The flow neither reads a provider response nor changes discovery,
-ranking, confidence, publication, outcomes, execution or broker behavior.
-The migration is not applied to Supabase production; until a separately
-approved exact apply, production read/write routes truthfully report durable
-charter storage unavailable and cannot freeze a new baseline through this
-path.
+The new owner-isolated server route and persistence boundary bind a future
+baseline receipt to the charter fingerprint. Both the service and the database
+writer fail closed when the charter is absent or its policy/version attribution
+no longer matches the server-recomputed evaluation plan. The flow neither
+reads a provider response nor changes discovery, ranking, confidence,
+publication, outcomes, execution or broker behavior.
+
+**Production schema applied and metadata verified, 2026-09-19:** the exact
+reviewed migration `20260919165811_if4_evaluation_charter.sql`
+(`c3f86aae69a652fb0bd61e249d61f1d3d0a11c9ff86ebb8d7ac4d371ad30f28b`) was
+applied once as production migration `20260919182540` after an aggregate-only,
+read-only preflight. A post-apply aggregate metadata check verified the new
+table, RLS, baseline charter-fingerprint column, revoked direct table access,
+all four required RPCs, and service-role-only RPC access. No charter or
+baseline row was created, read or exposed. The Supabase advisors show the
+expected informational RLS-without-policy finding for the deliberately
+server-only table; direct table grants are revoked, so it has no public data
+path. Other advisor findings predate this delivery and are outside its scope.
 
 Local evidence is strict TypeScript, targeted lint, whitespace validation, the
 focused charter and baseline Playwright regressions, Webpack production build,
@@ -174,10 +182,11 @@ created and retried one charter, rejected a changed charter, verified no direct
 table grant for `anon`, `authenticated` or `service_role`, verified the
 service-role-only RPC, froze a matching baseline and rejected a mismatched
 charter. The test container was removed. Supabase's read-only local advisors
-reported no issues. No production environment, provider credit, candidate,
-publication or broker state changed. Authenticated production UI behavior and
-production migration/RPC metadata remain unverified; this integrity delivery
-is not an evaluation result or evidence of improved recommendation quality.
+reported no issues. The production schema and RPC metadata are now verified,
+but the application route has not yet been merged to `main` or
+behavior-verified in an authenticated production session. No provider credit,
+candidate, publication or broker state changed. This integrity delivery is not
+an evaluation result or evidence of improved recommendation quality.
 
 **Product direction — future paid provider and data operations, 2026-09-19:**
 The current development source remains Twelve Data Basic. It is sufficient for
