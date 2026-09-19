@@ -272,6 +272,27 @@ function persistedRejectedScan() {
   };
 }
 
+function intakeQualityReceipt({
+  resultVersion = "1.1",
+  status = "accepted",
+  grade = "A",
+  acceptedForVisibleList = true,
+}: {
+  resultVersion?: string;
+  status?: "accepted" | "needs_review" | "rejected" | "incomplete";
+  grade?: "A" | "B" | "C" | "D" | "F" | "unknown";
+  acceptedForVisibleList?: boolean;
+} = {}) {
+  return {
+    result_kind: "recommendation_intake_quality",
+    result_version: resultVersion,
+    status,
+    grade,
+    accepted_for_visible_list: acceptedForVisibleList,
+    internal_only: true,
+  };
+}
+
 function snapshotFor(
   scanRunFingerprint: string,
   { ticker = "TST" }: { ticker?: string } = {},
@@ -292,6 +313,9 @@ function snapshotFor(
     target: 108,
     side: "long",
     confidence: 82,
+    quality: {
+      intake_quality_result: intakeQualityReceipt(),
+    },
     payload: {
       ...DECISION_SOURCE_PROVENANCE,
       confidence_label: "high",
@@ -1103,6 +1127,99 @@ test.describe("recommendation learning baseline readiness", () => {
       },
       readiness: { status: "not_ready" },
     });
+  });
+
+  test("blocks an otherwise complete baseline when intake-quality receipts are missing or malformed", () => {
+    const baselineAttribution = completeAttribution();
+    const evidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({
+        index,
+        learningAttribution: baselineAttribution,
+      }),
+    );
+    const snapshots = evidence.map((item, index) =>
+      index === 0
+        ? { ...item.snapshot, intake_quality_json: null }
+        : index === 1
+          ? {
+              ...item.snapshot,
+              intake_quality_json: {
+                result_kind: "recommendation_intake_quality",
+              },
+            }
+          : item.snapshot,
+    );
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: evidence.map((item) => item.run),
+      snapshots,
+      outcomes: evidence.map((item) => item.outcome),
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: evidence.map((item) => item.run),
+      snapshots,
+      outcomes: evidence.map((item) => item.outcome),
+    });
+
+    expect(readiness).toMatchObject({
+      status: "not_ready",
+      intake_quality_provenance: {
+        status: "incomplete",
+        eligible_snapshot_count: 20,
+        valid_receipt_count: 18,
+        missing_receipt_count: 1,
+        invalid_receipt_count: 1,
+        result_versions: ["1.1"],
+      },
+    });
+    expect(readiness.blockers).toContain(
+      "outcome_sample_intake_quality_incomplete",
+    );
+    expect(segmentation).toMatchObject({
+      status: "segments_not_ready",
+      segments: [
+        {
+          readiness: {
+            status: "not_ready",
+            intake_quality_provenance: { status: "incomplete" },
+          },
+        },
+      ],
+    });
+  });
+
+  test("keeps mixed intake-quality result versions out of a baseline freeze", () => {
+    const baselineAttribution = completeAttribution();
+    const evidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({
+        index,
+        learningAttribution: baselineAttribution,
+      }),
+    );
+    const snapshots = evidence.map((item, index) =>
+      index === 0
+        ? {
+            ...item.snapshot,
+            intake_quality_json: intakeQualityReceipt({ resultVersion: "1.0" }),
+          }
+        : item.snapshot,
+    );
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: evidence.map((item) => item.run),
+      snapshots,
+      outcomes: evidence.map((item) => item.outcome),
+    });
+
+    expect(readiness).toMatchObject({
+      status: "not_ready",
+      intake_quality_provenance: {
+        status: "mixed",
+        valid_receipt_count: 20,
+        result_versions: ["1.0", "1.1"],
+      },
+    });
+    expect(readiness.blockers).toContain(
+      "multiple_intake_quality_result_versions_require_segmented_baseline",
+    );
   });
 
   test("uses only one canonical primary outcome per exact candidate when preparing fixed baseline metrics", () => {
