@@ -69,6 +69,18 @@ SQL changes. The mapping narrows the history gap, but does not establish
 statement-level equivalence, authorize a history repair, or make a broad
 `db push` safe. The temporary history dump was removed.
 
+**Isolated IF-4 migration dry-run, read-only, 2026-09-19:** An approved
+temporary one-migration Supabase directory containing only
+`20260918224038_if4_durable_learning_baseline_freeze.sql` and the existing
+linked connection metadata was used for exactly one `supabase db push --dry-run`.
+Supabase stopped before planning or applying the migration because its remote
+migration ledger contains versions absent from that isolated directory. This
+confirms that a one-file directory alone cannot safely prove or apply the
+additive migration while history remains unreconciled. The generated temporary
+link metadata and complete temporary directory were removed immediately. No
+history repair, schema change, provider request, candidate publication or broker
+action occurred.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
