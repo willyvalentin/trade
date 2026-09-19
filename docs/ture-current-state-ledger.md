@@ -34,6 +34,20 @@ or authenticated-environment UI verification. The additive production migration
 remains separately authorized and is not part of this local delivery; PR and
 protected CI are pending.
 
+**Production migration-history preflight, read-only, 2026-09-19:** The
+existing linked remote migration ledger records `20260915184112` and
+`20260917145627`, while the current source tree records
+`20260915162302` and `20260917135646`; the remote ledger also does not list
+several later locally tracked files through
+`20260918020603_if2_basic_free_catalog_collection_checkpoint.sql`. This does
+not prove the underlying schemas are absent, but it makes a blind
+`supabase db push` unsafe: it could apply unrelated historical local files.
+Before any IF-4 production migration, reconcile the exact source-to-remote
+migration history and schema state, then obtain separate explicit authority
+for only the named additive migration. The attempted exact-worktree preflight
+also encountered an IPv6 database-route limitation; no link, repair, migration,
+provider request, candidate, publication or broker action occurred.
+
 **Verified IF-2a Basic Free receipt and flexible observation window, 2026-09-18:**
 PR [#538](https://github.com/willyvalentin/trade/pull/538) merged at
 `3af1aef654a8b09ea8e2d432a29b05b7517b6a9a`; its historical/undated receipt
