@@ -1,4 +1,8 @@
 import type { RecommendationOutcomeEvaluationRun } from "@/lib/recommendation-outcome-evaluation-runner";
+import {
+  buildRecommendationIntakeQualityProvenance,
+  type RecommendationIntakeQualityProvenance,
+} from "@/lib/recommendation-intake-quality-provenance";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import { getNewYorkDateString } from "@/lib/intraday-scan-window";
 
@@ -51,17 +55,8 @@ export type ScheduledOutcomeEvaluationSourceProvenance = {
  * exact intake-quality result semantics without treating a missing historical
  * receipt as evidence that the quality gate passed.
  */
-export type ScheduledOutcomeEvaluationIntakeQualityProvenance = {
-  status: "not_recorded" | "unavailable" | "complete" | "mixed" | "incomplete";
-  eligible_snapshot_count: number;
-  valid_receipt_count: number;
-  missing_receipt_count: number;
-  invalid_receipt_count: number;
-  accepted_for_visible_list_count: number;
-  result_versions: string[];
-  result_statuses: string[];
-  grades: string[];
-};
+export type ScheduledOutcomeEvaluationIntakeQualityProvenance =
+  RecommendationIntakeQualityProvenance;
 
 export type ScheduledOutcomeEvaluationReceipt = {
   contract_version: typeof SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION;
@@ -279,92 +274,10 @@ function snapshotPayloadText(
     : null;
 }
 
-type IntakeQualityReceipt = {
-  result_version: string;
-  status: "accepted" | "needs_review" | "rejected" | "incomplete";
-  grade: "A" | "B" | "C" | "D" | "F" | "unknown";
-  accepted_for_visible_list: boolean;
-};
-
-function intakeQualityReceiptFromUnknown(value: unknown): IntakeQualityReceipt | null {
-  const raw = objectOrNull(value);
-  const resultVersion = textOrNull(raw?.result_version);
-  const status = raw?.status;
-  const grade = raw?.grade;
-
-  if (
-    !raw ||
-    raw.result_kind !== "recommendation_intake_quality" ||
-    raw.internal_only !== true ||
-    !resultVersion ||
-    (status !== "accepted" &&
-      status !== "needs_review" &&
-      status !== "rejected" &&
-      status !== "incomplete") ||
-    (grade !== "A" &&
-      grade !== "B" &&
-      grade !== "C" &&
-      grade !== "D" &&
-      grade !== "F" &&
-      grade !== "unknown") ||
-    typeof raw.accepted_for_visible_list !== "boolean"
-  ) {
-    return null;
-  }
-
-  return {
-    result_version: resultVersion,
-    status,
-    grade,
-    accepted_for_visible_list: raw.accepted_for_visible_list,
-  };
-}
-
 function intakeQualityProvenance(
   snapshots: Array<Pick<RecommendationSnapshot, "intake_quality_json">>,
 ): ScheduledOutcomeEvaluationIntakeQualityProvenance {
-  const eligibleSnapshotCount = snapshots.length;
-  const receipts = snapshots.map((snapshot) =>
-    intakeQualityReceiptFromUnknown(snapshot.intake_quality_json),
-  );
-  const validReceipts = receipts.filter(
-    (receipt): receipt is IntakeQualityReceipt => receipt !== null,
-  );
-  const missingReceiptCount = snapshots.filter(
-    (snapshot) => snapshot.intake_quality_json === null || snapshot.intake_quality_json === undefined,
-  ).length;
-  const invalidReceiptCount =
-    eligibleSnapshotCount - validReceipts.length - missingReceiptCount;
-  const resultVersions = uniqueSorted(
-    validReceipts.map((receipt) => receipt.result_version),
-  );
-  const resultStatuses = uniqueSorted(
-    validReceipts.map((receipt) => receipt.status),
-  );
-  const grades = uniqueSorted(validReceipts.map((receipt) => receipt.grade));
-
-  return {
-    status:
-      eligibleSnapshotCount === 0
-        ? "unavailable"
-        : validReceipts.length === 0 && invalidReceiptCount === 0
-          ? "not_recorded"
-          : missingReceiptCount > 0 || invalidReceiptCount > 0
-            ? "incomplete"
-            : resultVersions.length === 1
-              ? "complete"
-              : "mixed",
-    eligible_snapshot_count: eligibleSnapshotCount,
-    valid_receipt_count: validReceipts.length,
-    missing_receipt_count: missingReceiptCount,
-    invalid_receipt_count: invalidReceiptCount,
-    accepted_for_visible_list_count: validReceipts.filter(
-      (receipt) => receipt.accepted_for_visible_list,
-    ).length,
-    result_versions: resultVersions,
-    result_statuses: resultStatuses,
-    grades,
-  };
+  return buildRecommendationIntakeQualityProvenance(snapshots);
 }
 
 function decisionLineage(

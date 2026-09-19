@@ -24,9 +24,13 @@ import {
   type RecommendationDecisionSourceProvenance,
   type RecommendationDecisionSourceProvenanceBlocker,
 } from "@/lib/recommendation-decision-source-provenance";
+import {
+  buildRecommendationIntakeQualityProvenance,
+  type RecommendationIntakeQualityProvenance,
+} from "@/lib/recommendation-intake-quality-provenance";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
-  "recommendation_learning_baseline_readiness_v1" as const;
+  "recommendation_learning_baseline_readiness_v2" as const;
 export const MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE = 20;
 
 export type LearningBaselineScanRun = Pick<
@@ -83,6 +87,7 @@ export type RecommendationLearningBaselineReadiness = {
     decision_feature_vector_count: number;
     blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number>;
   };
+  intake_quality_provenance: RecommendationIntakeQualityProvenance;
   counterfactual_coverage: {
     research_candidate_outcomes_required: number;
     research_candidate_outcomes_collected: number;
@@ -288,6 +293,7 @@ export function buildRecommendationLearningBaselineReadiness({
     string,
     RecommendationDecisionSourceProvenance
   >();
+  const assessedSnapshotsById = new Map<string, RecommendationSnapshot>();
   const sourceProvenanceBlockerCounts = Object.fromEntries(
     recommendationDecisionSourceProvenanceBlockers.map((blocker) => [blocker, 0]),
   ) as Record<RecommendationDecisionSourceProvenanceBlocker, number>;
@@ -296,6 +302,7 @@ export function buildRecommendationLearningBaselineReadiness({
     const existing = sourceProvenanceBySnapshotId.get(snapshot.id);
     if (existing) return existing;
 
+    assessedSnapshotsById.set(snapshot.id, snapshot);
     const provenance = recommendationDecisionSourceProvenanceFromSnapshot(snapshot);
     sourceProvenanceBySnapshotId.set(snapshot.id, provenance);
     for (const blocker of provenance.blockers) {
@@ -594,6 +601,18 @@ export function buildRecommendationLearningBaselineReadiness({
         : counterfactualOutcomesCollected === counterfactualOutcomesRequired
           ? "complete"
           : "partial";
+  const intakeQualityProvenance = buildRecommendationIntakeQualityProvenance(
+    Array.from(assessedSnapshotsById.values()),
+  );
+  if (intakeQualityProvenance.status === "unavailable") {
+    blockers.add("outcome_sample_intake_quality_unavailable");
+  } else if (intakeQualityProvenance.status === "not_recorded") {
+    blockers.add("outcome_sample_intake_quality_not_recorded");
+  } else if (intakeQualityProvenance.status === "incomplete") {
+    blockers.add("outcome_sample_intake_quality_incomplete");
+  } else if (intakeQualityProvenance.status === "mixed") {
+    blockers.add("multiple_intake_quality_result_versions_require_segmented_baseline");
+  }
 
   const status =
     blockers.size === 0 &&
@@ -657,6 +676,7 @@ export function buildRecommendationLearningBaselineReadiness({
         .length,
       blocker_counts: sourceProvenanceBlockerCounts,
     },
+    intake_quality_provenance: intakeQualityProvenance,
     counterfactual_coverage: {
       research_candidate_outcomes_required: researchCandidateCount,
       research_candidate_outcomes_collected: researchCandidateOutcomesCollected,
@@ -675,6 +695,7 @@ export function buildRecommendationLearningBaselineReadiness({
       "Read-only readiness audit: it does not change scoring, ranking, publication, provider usage, or execution.",
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
       "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, a bounded decision feature vector, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim; the vector records finite observed features or explicit unavailable inputs, never raw candles. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
+      "Every snapshot actually assessed for a baseline must carry a valid intake-quality receipt from one result version. Missing, malformed or mixed receipt versions remain an explicit evidence gap; receipt status and grade are retained for later analysis but do not alter publication or select a winning policy.",
       "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],

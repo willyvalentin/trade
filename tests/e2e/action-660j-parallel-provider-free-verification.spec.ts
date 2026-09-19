@@ -378,6 +378,7 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts",
       "tests/e2e/recommendation-intake-quality-direction.spec.ts",
       "tests/e2e/scheduled-outcome-evaluation-receipt.spec.ts",
+      "tests/e2e/recommendation-learning-baseline-readiness.spec.ts",
     ]),
   ],
   "non-forgeable-authority": [
