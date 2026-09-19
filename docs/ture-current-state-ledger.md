@@ -175,8 +175,11 @@ service-only claim/finalization and rejected an invalid slot, missing lineage
 and mismatched receipt fingerprint; `anon`/`authenticated` had no table access.
 Protected CI `35439769733` passed all six shards and aggregate/provenance
 checks for merge candidate `bfb332ae1b7e5698f950c191c145ce85535ab981`; its
-Netlify preview `6aae6f9a4e62a90008cd8914` is ready. The subsequent
-documentation-only evidence update requires fresh protected CI before merge.
+Netlify preview `6aae6f9a4e62a90008cd8914` is ready. The documentation update
+then passed GitHub's protected merge gate and PR
+[#550](https://github.com/willyvalentin/trade/pull/550) merged as
+`66717e8efba7439cf68924e8e611ff91d6896dde`. Netlify production deploy
+`6aae7eade74f570008ee5cec` is ready on that exact revision.
 
 The production metadata postflight verified the table, all eight named
 constraints, both valid indexes, enabled RLS with no policies, direct
@@ -215,10 +218,9 @@ publication or broker action occurred.
 **Remaining IF-4a evidence gap:** this receipt proves traceability for the
 existing evaluator and snapshot-present lineage, not provider-version
 provenance, outcome quality, historical replay validity or an improved policy.
-The schema is production-ready but its route has not yet been merged/deployed
-and no normal scheduled job has generated an environment receipt. Monday's
-active market-bound return remains the authorized IF-2 Basic Free capability
-probe, not an IF-4 quality claim.
+The schema and route are production-deployed, but no normal scheduled job has
+generated an environment receipt. Monday's active market-bound return remains
+the authorized IF-2 Basic Free capability probe, not an IF-4 quality claim.
 
 **Merged and production-verified IF-2b catalog-lineage integrity:** PR
 [#547](https://github.com/willyvalentin/trade/pull/547) merged as
@@ -339,7 +341,7 @@ or open an execution path. The authenticated production UI was not rechecked
 after deploy because the available browser session reached the sign-in
 boundary; production deploy readiness is not UI-behavior verification.
 
-**Current local IF-1 decision-trace correction, 2026-09-18:** A later
+**Current rebased IF-1 decision-trace correction, 2026-09-19:** A later
 production browser readback during the US regular session showed a positive
 `market_is_open` fact alongside an older closed-window label in Engine
 Insights. Branch `codex/open-market-window-reconciliation` now derives the
@@ -347,8 +349,9 @@ display-only wait state from that authoritative open-market fact, so an open
 session outside an official publication window remains explicitly non-publish
 but cannot be described as closed. The correction does not alter scheduling,
 provider admission, credit reservation, ranking, confidence, publication or
-execution. Three focused Playwright regressions, targeted ESLint, TypeScript
-and the Webpack production build passed locally. PR
+execution. It was integrated with current `main` as merge revision
+`71dcc4d1`; three focused Playwright regressions, targeted ESLint, strict
+TypeScript and the Webpack production build passed locally. PR
 [#546](https://github.com/willyvalentin/trade/pull/546) carries the change;
 merge/deploy status must be read from its protected CI and deployment evidence.
 An authenticated production behavior readback after a production refresh
