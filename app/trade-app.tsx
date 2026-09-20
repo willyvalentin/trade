@@ -38998,6 +38998,7 @@ function RecommendationLearningBaselineReadinessPanel({
   const policy = readiness.policy_attribution;
   const sourceProvenance = readiness.decision_time_source_provenance;
   const sourceCohort = readiness.source_cohort_provenance;
+  const sourceObservationIntegrity = sourceCohort.observation_integrity;
   const counterfactual = readiness.counterfactual_coverage;
   const eligibleSegmentCount = segmentation.segments.filter(
     (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
@@ -39094,6 +39095,9 @@ function RecommendationLearningBaselineReadinessPanel({
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Missing {sourceCohort.missing_receipt_count}; invalid {sourceCohort.invalid_receipt_count}; incomplete {sourceCohort.incomplete_receipt_count}; not recorded {sourceCohort.unavailable_receipt_count}. Provider {sourceCohort.provider_sources.join(", ") || "not recorded"}; feed {sourceCohort.feed_classes.join(", ") || "not recorded"}; observed entitlement {sourceCohort.observed_entitlement_profiles.join(", ") || "not recorded"}. Incomplete receipts and different labels cannot be pooled into one learning baseline.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Observation integrity: accepted {sourceObservationIntegrity.accepted_count}; partial {sourceObservationIntegrity.partial_count}; stale {sourceObservationIntegrity.stale_count}; delayed {sourceObservationIntegrity.delayed_count}; ambiguous {sourceObservationIntegrity.ambiguous_count}; unavailable {sourceObservationIntegrity.unavailable_count}. Time bands {sourceObservationIntegrity.observation_time_bands.join(", ") || "not recorded"}; policies {sourceObservationIntegrity.integrity_policy_versions.join(", ") || "not recorded"}.
           </p>
         </div>
 

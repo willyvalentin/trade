@@ -76,6 +76,21 @@ export type RecommendationSourceCohortProvenance = {
   feed_classes: string[];
   observed_entitlement_profiles: string[];
   coverage_scopes: string[];
+  observation_integrity: {
+    valid_receipt_count: number;
+    accepted_count: number;
+    partial_count: number;
+    stale_count: number;
+    delayed_count: number;
+    ambiguous_count: number;
+    unavailable_count: number;
+    observation_time_bands: RecommendationSourceObservationIntegrityReceipt["observation_time_band"][];
+    integrity_policy_versions: Array<
+      NonNullable<
+        RecommendationSourceObservationIntegrityReceipt["integrity_policy_version"]
+      >
+    >;
+  };
 };
 
 type SourceCohortFields = Omit<
@@ -477,6 +492,11 @@ export function buildRecommendationSourceCohortProvenance(
       receipt.cohort_key ? [receipt.cohort_key] : [],
     ),
   );
+  const observationIntegrityReceipts = validReceipts.flatMap((receipt) =>
+    receipt.observation_integrity_receipt
+      ? [receipt.observation_integrity_receipt]
+      : [],
+  );
 
   return {
     status:
@@ -523,5 +543,42 @@ export function buildRecommendationSourceCohortProvenance(
         receipt.coverage_scope ? [receipt.coverage_scope] : [],
       ),
     ),
+    observation_integrity: {
+      valid_receipt_count: observationIntegrityReceipts.length,
+      accepted_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "accepted",
+      ).length,
+      partial_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "partial",
+      ).length,
+      stale_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "stale",
+      ).length,
+      delayed_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "delayed",
+      ).length,
+      ambiguous_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "ambiguous",
+      ).length,
+      unavailable_count: observationIntegrityReceipts.filter(
+        (receipt) => receipt.quality_disposition === "unavailable",
+      ).length,
+      observation_time_bands: uniqueSorted(
+        observationIntegrityReceipts.flatMap((receipt) =>
+          receipt.observation_time_band ? [receipt.observation_time_band] : [],
+        ),
+      ) as RecommendationSourceObservationIntegrityReceipt["observation_time_band"][],
+      integrity_policy_versions: uniqueSorted(
+        observationIntegrityReceipts.flatMap((receipt) =>
+          receipt.integrity_policy_version
+            ? [receipt.integrity_policy_version]
+            : [],
+        ),
+      ) as Array<
+        NonNullable<
+          RecommendationSourceObservationIntegrityReceipt["integrity_policy_version"]
+        >
+      >,
+    },
   };
 }

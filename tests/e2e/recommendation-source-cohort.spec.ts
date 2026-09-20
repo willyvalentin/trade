@@ -75,6 +75,21 @@ test.describe("recommendation source cohorts", () => {
       can_change_ranking_or_publication: false,
     });
     expect(receipt.cohort_key).toContain("basic_free_observed");
+    expect(buildRecommendationSourceCohortProvenance([
+      snapshotFromPayload(completeSourcePayload()),
+    ]).observation_integrity).toEqual({
+      valid_receipt_count: 1,
+      accepted_count: 1,
+      partial_count: 0,
+      stale_count: 0,
+      delayed_count: 0,
+      ambiguous_count: 0,
+      unavailable_count: 0,
+      observation_time_bands: ["regular"],
+      integrity_policy_versions: [
+        "recommendation_source_observation_integrity_policy_v1",
+      ],
+    });
   });
 
   test("does not infer feed, observed entitlement, cost, or response quality from adjacent source fields", () => {

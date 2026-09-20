@@ -45,8 +45,11 @@ non-accepted computed result. Regular and extended-hours observations get
 separate cohort identities. It has no ranking, confidence, publication,
 provider or broker authority. Baseline Readiness will reject missing,
 malformed, incomplete or differently labelled cohorts rather than silently pool
-them. Local evidence is 43 focused source-integrity/source-cohort/baseline
-Playwright regressions, strict TypeScript and a Webpack production build. This
+them. Local evidence is 51 focused source-integrity/source-cohort/baseline
+Playwright regressions, strict TypeScript and a Webpack production build. Engine
+Insights readback exposes aggregate accepted/partial/stale/delayed/ambiguous/
+unavailable counts, observed time bands and policy versions; it is diagnostic
+only. This
 local delivery is pending protected CI, merge and production-deploy
 verification; it does not establish an observed paid-source entitlement, live
 cohort, coverage, recommendation-quality improvement or Basic Free
