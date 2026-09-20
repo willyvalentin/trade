@@ -35,6 +35,12 @@ function completeCatalog(response: unknown) {
   return buildMarketWideSymbolMaster({
     provider: "twelve_data",
     fetched_at: fetchedAt,
+    source_snapshot_observed_at: fetchedAt,
+    freshness: {
+      policy_version: "symbol_master_freshness_test_v1",
+      evaluated_at: fetchedAt,
+      maximum_age_minutes: 180,
+    },
     response,
     provider_catalog_count: records?.length ?? null,
     pages,
@@ -318,6 +324,121 @@ test.describe("market-wide symbol master contract", () => {
       },
       blockers: expect.arrayContaining([
         "catalog_page_snapshot_identity_inconsistent",
+      ]),
+    });
+  });
+
+  test("withholds discovery admission until a catalog freshness decision is explicit and current", () => {
+    const completeInput = {
+      provider: "twelve_data" as const,
+      fetched_at: fetchedAt,
+      source_snapshot_observed_at: fetchedAt,
+      provider_catalog_count: 2,
+      pages: [
+        {
+          page_number: 1,
+          provider_catalog_count: 2,
+          provider_snapshot_id: "provider-snapshot-a",
+          response: { data: [stock("AAPL")] },
+        },
+        {
+          page_number: 2,
+          provider_catalog_count: 2,
+          provider_snapshot_id: "provider-snapshot-a",
+          response: { data: [stock("MSFT")] },
+        },
+      ],
+      pagination: {
+        first_page: 1,
+        last_page: 2,
+        pages_fetched: 2,
+        total_pages: 2,
+        has_next_page: false,
+      },
+    };
+
+    const missingDecision = buildMarketWideSymbolMaster(completeInput);
+    const missingSourceTimestamp = buildMarketWideSymbolMaster({
+      ...completeInput,
+      source_snapshot_observed_at: undefined,
+      freshness: {
+        policy_version: "symbol_master_freshness_test_v1",
+        evaluated_at: fetchedAt,
+        maximum_age_minutes: 180,
+      },
+    });
+    const staleDecision = buildMarketWideSymbolMaster({
+      ...completeInput,
+      freshness: {
+        policy_version: "symbol_master_freshness_test_v1",
+        evaluated_at: "2026-09-15T17:01:00.000Z",
+        maximum_age_minutes: 180,
+      },
+    });
+    const backwardsDecision = buildMarketWideSymbolMaster({
+      ...completeInput,
+      freshness: {
+        policy_version: "symbol_master_freshness_test_v1",
+        evaluated_at: "2026-09-15T13:59:59.999Z",
+        maximum_age_minutes: 180,
+      },
+    });
+
+    expect(missingDecision.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      freshness: {
+        status: "unavailable",
+        policy_version: null,
+        source_snapshot_observed_at: fetchedAt,
+        evaluated_at: null,
+        maximum_age_minutes: null,
+        age_minutes: null,
+        reason: "freshness_policy_missing_or_invalid",
+      },
+      blockers: expect.arrayContaining([
+        "catalog_freshness_policy_missing_or_invalid",
+      ]),
+    });
+    expect(missingSourceTimestamp.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      freshness: {
+        status: "unavailable",
+        source_snapshot_observed_at: null,
+        reason: "source_snapshot_timestamp_missing_or_invalid",
+      },
+      blockers: expect.arrayContaining([
+        "catalog_source_snapshot_timestamp_missing_or_invalid",
+      ]),
+    });
+    expect(staleDecision.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      freshness: {
+        status: "stale",
+        policy_version: "symbol_master_freshness_test_v1",
+        maximum_age_minutes: 180,
+        age_minutes: 181,
+        reason: "catalog_age_exceeds_policy",
+      },
+      blockers: expect.arrayContaining([
+        "catalog_source_stale_for_declared_freshness_policy",
+      ]),
+    });
+    expect(backwardsDecision.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      freshness: {
+        status: "unavailable",
+        reason: "freshness_evaluation_precedes_source_snapshot",
+      },
+      blockers: expect.arrayContaining([
+        "catalog_freshness_evaluation_precedes_source_snapshot",
       ]),
     });
   });

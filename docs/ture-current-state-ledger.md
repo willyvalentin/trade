@@ -161,6 +161,32 @@ broader catalog collection still requires separate explicit provider-request
 and production-migration authority, a bounded rollout, and fresh receipt
 readback.
 
+### Closed supporting delivery — IF-2b symbol-master freshness admission
+
+**Active IF-2b source-freshness admission, 2026-09-20:** While the separately
+authorized Monday capability probe remains the next `OPEN` acceptance, this
+single `CLOSED` delivery closes a concrete future-discovery failure mode:
+previously an otherwise complete, coherent catalog could be marked
+discovery-feed-eligible without an explicit decision-time age assessment. The
+versioned symbol-master contract now requires a named freshness policy, a
+provider-attributable source-snapshot timestamp, its evaluation timestamp and
+a positive bounded maximum age. A local fetch time is not accepted as source
+freshness by itself. Missing, malformed, backwards or stale evidence keeps the
+catalog partial and records a specific blocker; only a coherent catalog with
+explicit fresh evidence can be feed-eligible. The contract does not choose a
+provider refresh interval, read a clock, make a provider request, persist a
+catalog, change ranking or publish a candidate.
+
+`acceptance_id: IF-2b`; `user_behavior_or_reproduced_failure: a stale or
+unevaluated symbol catalog must be visibly withheld from future discovery, not
+misrepresented as current coverage`; `external_effects_and_existing_authority:
+none`; `blocker_or_fallback: the future server-owned collector must supply a
+provider-attributable source timestamp, a later evaluation timestamp and a
+policy-specific limit; absent evidence remains no-feed`;
+`result_and_remaining_gap: local and CI evidence
+can prove fail-closed admission only — a provider adapter, coherent complete
+catalog and current-environment receipt remain separately required.`
+
 ### Off-market supporting delivery — IF-4 evaluation charter
 
 **Local, provider-free IF-4 charter and baseline gate, 2026-09-19:** IF-2

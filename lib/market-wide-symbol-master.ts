@@ -1,5 +1,5 @@
 export const marketWideSymbolMasterPolicyVersion =
-  "us_equity_symbol_master_contract_v4" as const;
+  "us_equity_symbol_master_contract_v5" as const;
 
 export type MarketWideSymbolMasterStatus =
   | "complete"
@@ -28,6 +28,22 @@ export type MarketWideSymbolMasterPagination = {
 export type MarketWideSymbolMasterInput = {
   provider: "twelve_data";
   fetched_at: Date | string | null | undefined;
+  /**
+   * A provider-issued or provider-attributable timestamp for the source
+   * snapshot. The local fetch time is not a substitute for source freshness.
+   */
+  source_snapshot_observed_at?: unknown;
+  /**
+   * A collector-supplied, versioned freshness decision. The symbol master
+   * never reads a clock or assumes a provider refresh interval; a future
+   * server-owned collector must declare the evaluation time and bounded
+   * maximum age used to admit its source snapshot.
+   */
+  freshness?: {
+    policy_version?: unknown;
+    evaluated_at?: unknown;
+    maximum_age_minutes?: unknown;
+  } | null;
   /**
    * Legacy aggregate response. It can describe a partial catalog, but it can
    * never prove the page-by-page lineage required for a complete catalog.
@@ -94,8 +110,25 @@ export type MarketWideSymbolMasterSnapshotLineage = {
   provider_snapshot_id: string | null;
 };
 
+export type MarketWideSymbolMasterFreshness = {
+  status: "fresh" | "stale" | "unavailable";
+  policy_version: string | null;
+  source_snapshot_observed_at: string | null;
+  evaluated_at: string | null;
+  maximum_age_minutes: number | null;
+  age_minutes: number | null;
+  reason:
+    | "freshness_policy_missing_or_invalid"
+    | "source_snapshot_timestamp_missing_or_invalid"
+    | "freshness_evaluation_invalid"
+    | "freshness_evaluation_precedes_source_snapshot"
+    | "freshness_evaluation_precedes_fetch"
+    | "catalog_age_exceeds_policy"
+    | null;
+};
+
 export type MarketWideSymbolMasterSummary = {
-  summary_version: "4.0";
+  summary_version: "5.0";
   summary_kind: "market_wide_symbol_master";
   policy_version: typeof marketWideSymbolMasterPolicyVersion;
   provider: "twelve_data";
@@ -115,6 +148,7 @@ export type MarketWideSymbolMasterSummary = {
   pagination: MarketWideSymbolMasterPagination;
   page_lineage: MarketWideSymbolMasterPageLineage;
   snapshot_lineage: MarketWideSymbolMasterSnapshotLineage;
+  freshness: MarketWideSymbolMasterFreshness;
   blockers: string[];
   gaps: string[];
 };
@@ -156,6 +190,11 @@ export function buildMarketWideSymbolMaster(
   input: MarketWideSymbolMasterInput,
 ): MarketWideSymbolMasterResult {
   const fetchedAt = toIso(input.fetched_at);
+  const freshness = buildFreshness({
+    fetchedAt,
+    sourceSnapshotObservedAt: toIsoUnknown(input.source_snapshot_observed_at),
+    input: input.freshness,
+  });
   const pagination = normalizePagination(input.pagination);
   const providerCatalogCount = nonNegativeInteger(input.provider_catalog_count);
   const source = sourceRecordsWithPageLineage({
@@ -227,6 +266,7 @@ export function buildMarketWideSymbolMaster(
     observedRecordCountMatchesDenominator,
     pageLineage: source.pageLineage,
     snapshotLineage: source.snapshotLineage,
+    freshness,
   });
   const status = collectionStatus({
     records: sourceRecords,
@@ -237,6 +277,17 @@ export function buildMarketWideSymbolMaster(
   const gaps: string[] = [];
 
   if (!fetchedAt) blockers.push("catalog_fetched_at_invalid");
+  if (freshness.status === "unavailable") {
+    blockers.push(freshnessBlocker(freshness.reason));
+    gaps.push(
+      "A discovery-feed-eligible catalog requires a versioned, bounded freshness decision evaluated no earlier than the source snapshot.",
+    );
+  } else if (freshness.status === "stale") {
+    blockers.push("catalog_source_stale_for_declared_freshness_policy");
+    gaps.push(
+      "The catalog source snapshot exceeds its declared freshness limit and cannot expand discovery.",
+    );
+  }
   if (!sourceRecords) blockers.push("catalog_response_data_missing");
   if (source.pageLineage.source !== "page_responses") {
     blockers.push("catalog_page_lineage_missing");
@@ -293,7 +344,7 @@ export function buildMarketWideSymbolMaster(
 
   return {
     summary: {
-      summary_version: "4.0",
+      summary_version: "5.0",
       summary_kind: "market_wide_symbol_master",
       policy_version: marketWideSymbolMasterPolicyVersion,
       provider: input.provider,
@@ -315,6 +366,7 @@ export function buildMarketWideSymbolMaster(
       pagination,
       page_lineage: source.pageLineage,
       snapshot_lineage: source.snapshotLineage,
+      freshness,
       blockers,
       gaps,
     },
@@ -528,6 +580,7 @@ function isCompleteCollection({
   observedRecordCountMatchesDenominator,
   pageLineage,
   snapshotLineage,
+  freshness,
 }: {
   pagination: MarketWideSymbolMasterPagination;
   fetchedAt: string | null;
@@ -535,8 +588,11 @@ function isCompleteCollection({
   observedRecordCountMatchesDenominator: boolean;
   pageLineage: MarketWideSymbolMasterPageLineage;
   snapshotLineage: MarketWideSymbolMasterSnapshotLineage;
+  freshness: MarketWideSymbolMasterFreshness;
 }) {
-  if (!fetchedAt || !records || records.length === 0) return false;
+  if (!fetchedAt || !records || records.length === 0 || freshness.status !== "fresh") {
+    return false;
+  }
 
   return (
     observedRecordCountMatchesDenominator &&
@@ -555,6 +611,112 @@ function isCompleteCollection({
     snapshotLineage.all_page_snapshot_ids_observed &&
     snapshotLineage.consistent_across_pages
   );
+}
+
+function buildFreshness({
+  fetchedAt,
+  sourceSnapshotObservedAt,
+  input,
+}: {
+  fetchedAt: string | null;
+  sourceSnapshotObservedAt: string | null;
+  input: MarketWideSymbolMasterInput["freshness"];
+}): MarketWideSymbolMasterFreshness {
+  const policyVersion = normalizedText(input?.policy_version);
+  const evaluatedAt = toIsoUnknown(input?.evaluated_at);
+  const maximumAgeMinutes = positiveSafeInteger(input?.maximum_age_minutes);
+
+  if (!policyVersion || policyVersion.length > 240 || maximumAgeMinutes === null) {
+    return unavailableFreshness("freshness_policy_missing_or_invalid", {
+      policyVersion,
+      sourceSnapshotObservedAt,
+      evaluatedAt,
+      maximumAgeMinutes,
+    });
+  }
+  if (!sourceSnapshotObservedAt) {
+    return unavailableFreshness("source_snapshot_timestamp_missing_or_invalid", {
+      policyVersion,
+      sourceSnapshotObservedAt,
+      evaluatedAt,
+      maximumAgeMinutes,
+    });
+  }
+  if (!evaluatedAt || !fetchedAt) {
+    return unavailableFreshness("freshness_evaluation_invalid", {
+      policyVersion,
+      sourceSnapshotObservedAt,
+      evaluatedAt,
+      maximumAgeMinutes,
+    });
+  }
+
+  const sourceAgeMinutes =
+    (Date.parse(evaluatedAt) - Date.parse(sourceSnapshotObservedAt)) / 60_000;
+  if (!Number.isFinite(sourceAgeMinutes) || sourceAgeMinutes < 0) {
+    return unavailableFreshness("freshness_evaluation_precedes_source_snapshot", {
+      policyVersion,
+      sourceSnapshotObservedAt,
+      evaluatedAt,
+      maximumAgeMinutes,
+    });
+  }
+  if (Date.parse(evaluatedAt) < Date.parse(fetchedAt)) {
+    return unavailableFreshness("freshness_evaluation_precedes_fetch", {
+      policyVersion,
+      sourceSnapshotObservedAt,
+      evaluatedAt,
+      maximumAgeMinutes,
+    });
+  }
+
+  return {
+    status: sourceAgeMinutes <= maximumAgeMinutes ? "fresh" : "stale",
+    policy_version: policyVersion,
+    source_snapshot_observed_at: sourceSnapshotObservedAt,
+    evaluated_at: evaluatedAt,
+    maximum_age_minutes: maximumAgeMinutes,
+    age_minutes: sourceAgeMinutes,
+    reason:
+      sourceAgeMinutes <= maximumAgeMinutes
+        ? null
+        : "catalog_age_exceeds_policy",
+  };
+}
+
+function freshnessBlocker(reason: MarketWideSymbolMasterFreshness["reason"]) {
+  switch (reason) {
+    case "source_snapshot_timestamp_missing_or_invalid":
+      return "catalog_source_snapshot_timestamp_missing_or_invalid";
+    case "freshness_evaluation_precedes_source_snapshot":
+      return "catalog_freshness_evaluation_precedes_source_snapshot";
+    case "freshness_evaluation_precedes_fetch":
+      return "catalog_freshness_evaluation_precedes_fetch";
+    case "freshness_evaluation_invalid":
+      return "catalog_freshness_evaluation_missing_or_invalid";
+    default:
+      return "catalog_freshness_policy_missing_or_invalid";
+  }
+}
+
+function unavailableFreshness(
+  reason: Exclude<MarketWideSymbolMasterFreshness["reason"], null>,
+  input: {
+    policyVersion: string | null;
+    sourceSnapshotObservedAt: string | null;
+    evaluatedAt: string | null;
+    maximumAgeMinutes: number | null;
+  },
+): MarketWideSymbolMasterFreshness {
+  return {
+    status: "unavailable",
+    policy_version: input.policyVersion,
+    source_snapshot_observed_at: input.sourceSnapshotObservedAt,
+    evaluated_at: input.evaluatedAt,
+    maximum_age_minutes: input.maximumAgeMinutes,
+    age_minutes: null,
+    reason,
+  };
 }
 
 function collectionStatus({
@@ -614,6 +776,14 @@ function nonNegativeInteger(value: unknown) {
     : null;
 }
 
+function positiveSafeInteger(value: unknown) {
+  return typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value > 0
+    ? value
+    : null;
+}
+
 function toIso(value: Date | string | null | undefined) {
   const date =
     value instanceof Date
@@ -623,6 +793,12 @@ function toIso(value: Date | string | null | undefined) {
         : null;
 
   return date && Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function toIsoUnknown(value: unknown) {
+  return value instanceof Date || typeof value === "string"
+    ? toIso(value)
+    : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
