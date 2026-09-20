@@ -187,6 +187,28 @@ policy-specific limit; absent evidence remains no-feed`;
 can prove fail-closed admission only — a provider adapter, coherent complete
 catalog and current-environment receipt remain separately required.`
 
+### Closed supporting delivery — IF-3 contextual-quality research envelope
+
+**Shadow-only contextual-quality assessment, 2026-09-20:** IF-3's separate
+market-regime, sector-relative-strength and catalyst-presence admissions now
+have one deterministic, candidate-bound research envelope. It rechecks the
+input policy versions, complete benchmark identities, source coherence,
+point-in-time freshness, same-date relationship and candidate identity at the
+moment it is evaluated. A missing, stale, cross-date, mixed-source or
+identity-mismatched component becomes an explicit data gap; it is never
+substituted with a neutral value. When all three components are valid, the
+envelope reports only transparent directional evidence — regime,
+stock-versus-sector return, sector-versus-market return and catalyst presence
+— rather than an uncalibrated composite score or a probability claim.
+
+The result is versioned `us_equity_shadow_contextual_quality_v1` and is hard
+coded `can_change_ranking_or_publication = false`. It makes no provider
+request, persistence operation, scanner call, confidence change, candidate
+publication or broker action. A future runtime integration still needs an
+authorized point-in-time collector, persisted readback, a named ranking-policy
+version and comparison against the frozen baseline before it can affect a
+recommendation.
+
 ### Off-market supporting delivery — IF-4 evaluation charter
 
 **Local, provider-free IF-4 charter and baseline gate, 2026-09-19:** IF-2

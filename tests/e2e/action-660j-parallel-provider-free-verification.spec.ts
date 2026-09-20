@@ -229,6 +229,7 @@ const foundationTests = [
   "tests/e2e/action-565-continuous-intelligence-budget-orchestrator.spec.ts",
   "tests/e2e/basic-free-catalog-collection-checkpoint.spec.ts",
   "tests/e2e/market-wide-symbol-master.spec.ts",
+  "tests/e2e/shadow-contextual-quality-assessment.spec.ts",
 ];
 
 const intelligenceTests = [
