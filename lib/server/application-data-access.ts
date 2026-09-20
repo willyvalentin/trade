@@ -4,6 +4,10 @@ import {
   RECENT_RECOMMENDATION_OUTCOMES_READ_LIMIT,
   RECENT_RECOMMENDATION_SNAPSHOTS_READ_LIMIT,
 } from "@/lib/recent-recommendation-readback";
+import {
+  readCompleteRecommendationLearningBaselineSourcePages,
+  RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS,
+} from "@/lib/recommendation-learning-baseline-pagination";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 import {
@@ -21,12 +25,6 @@ import {
 export type ApplicationDataAccessResult<T> =
   | { status: "available"; data: T }
   | { status: "unavailable" | "failed" };
-
-// An immutable baseline cannot silently exclude older owner evidence. The
-// persistence contract itself admits at most 10,000 decision identities; once
-// any input table exceeds this deliberate, non-paginated bound, a later
-// paginated baseline reader is required rather than freezing a recent slice.
-const LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS = 10_000;
 
 function unavailable<T>(): ApplicationDataAccessResult<T> {
   return { status: "unavailable" };
@@ -215,40 +213,84 @@ export async function readRecommendationLearningBaselineSource(
       (result) =>
         result.error ||
         typeof result.count !== "number" ||
-        result.count > LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS,
+        result.count > RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS,
     )
+  ) {
+    return failed<Record<string, unknown>>();
+  }
+  const scanRunRowCount = scanRunCount.count;
+  const snapshotRowCount = snapshotCount.count;
+  const outcomeRowCount = outcomeCount.count;
+  if (
+    typeof scanRunRowCount !== "number" ||
+    typeof snapshotRowCount !== "number" ||
+    typeof outcomeRowCount !== "number"
   ) {
     return failed<Record<string, unknown>>();
   }
 
   const [scanRuns, snapshots, outcomes] = await Promise.all([
-    client
-      .from("recommendation_scan_runs")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("observed_at", { ascending: false })
-      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
-    client
-      .from("recommendation_snapshots")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("created_at", { ascending: false })
-      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
-    client
-      .from("recommendation_outcomes")
-      .select("*")
-      .eq("owner_user_id", owner)
-      .order("evaluated_at", { ascending: false })
-      .limit(LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS),
+    readCompleteRecommendationLearningBaselineSourcePages({
+      expectedRowCount: scanRunRowCount,
+      readPage: (from, to) =>
+        client
+          .from("recommendation_scan_runs")
+          .select("*")
+          .eq("owner_user_id", owner)
+          .order("observed_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to),
+    }),
+    readCompleteRecommendationLearningBaselineSourcePages({
+      expectedRowCount: snapshotRowCount,
+      readPage: (from, to) =>
+        client
+          .from("recommendation_snapshots")
+          .select("*")
+          .eq("owner_user_id", owner)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to),
+    }),
+    readCompleteRecommendationLearningBaselineSourcePages({
+      expectedRowCount: outcomeRowCount,
+      readPage: (from, to) =>
+        client
+          .from("recommendation_outcomes")
+          .select("*")
+          .eq("owner_user_id", owner)
+          .order("evaluated_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to),
+    }),
   ]);
 
+  const [scanRunCountAfterRead, snapshotCountAfterRead, outcomeCountAfterRead] =
+    await Promise.all([
+      client
+        .from("recommendation_scan_runs")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_user_id", owner),
+      client
+        .from("recommendation_snapshots")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_user_id", owner),
+      client
+        .from("recommendation_outcomes")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_user_id", owner),
+    ]);
+
   if (
-    scanRuns.error ||
-    snapshots.error ||
-    outcomes.error ||
-    scanRuns.data?.length !== scanRunCount.count ||
-    snapshots.data?.length !== snapshotCount.count ||
-    outcomes.data?.length !== outcomeCount.count
+    !scanRuns ||
+    !snapshots ||
+    !outcomes ||
+    scanRunCountAfterRead.error ||
+    snapshotCountAfterRead.error ||
+    outcomeCountAfterRead.error ||
+    scanRunCountAfterRead.count !== scanRunRowCount ||
+    snapshotCountAfterRead.count !== snapshotRowCount ||
+    outcomeCountAfterRead.count !== outcomeRowCount
   ) {
     return failed<Record<string, unknown>>();
   }
@@ -256,9 +298,9 @@ export async function readRecommendationLearningBaselineSource(
   return {
     status: "available" as const,
     data: {
-      recommendation_scan_runs: scanRuns.data ?? [],
-      recommendation_snapshots: snapshots.data ?? [],
-      recommendation_outcomes: outcomes.data ?? [],
+      recommendation_scan_runs: scanRuns,
+      recommendation_snapshots: snapshots,
+      recommendation_outcomes: outcomes,
     },
   };
 }
