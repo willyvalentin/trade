@@ -492,6 +492,22 @@ configuration, candidate, publication or broker effect occurred. This is
 coverage-truth hardening, not evidence of a complete catalog or stronger
 candidates.
 
+**Merged and production-verified IF-2b source-snapshot coherence:** PR
+[#564](https://github.com/willyvalentin/trade/pull/564) merged as
+`1ab4c4ddf7b742b092bfbb789492fd7e95c1e10b`. The symbol-master contract is now
+`us_equity_symbol_master_contract_v4`: a complete, discovery-feed-eligible
+paged catalog needs one non-empty provider-reported snapshot identity on every
+raw page, and every page must name the same identity. A missing identity or a
+mixed identity remains partial with an explicit blocker; it cannot be presented
+as a coherent catalog or admitted to discovery. The six protected provider-free
+CI shards and aggregate/provenance check passed, and Netlify production deploy
+`6aaf1e561331010009e4889f` is ready on that exact revision. Before merge, 29
+focused discovery regressions, six static CI-registration checks, targeted
+lint, strict TypeScript, a production build and the full protected foundation
+passed locally. This does not obtain a provider snapshot, create a catalog,
+change ranking or publish a candidate; it prevents a future collector from
+mistaking mixed snapshots for current coverage.
+
 **Merged and production-verified IF-2b snapshot-feasibility disclosure,
 2026-09-18:** PR [#548](https://github.com/willyvalentin/trade/pull/548)
 merged as `33a6f409921883529a2334d2b4bef4d9a520b135`; its protected CI passed
