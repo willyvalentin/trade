@@ -168,41 +168,53 @@ function isValidPolicy(value: unknown): value is PolicyAttribution {
   ].every((key) => text(versions[key]));
 }
 
+function validDecisionFingerprints(value: unknown): value is string[] {
+  return Array.isArray(value) &&
+    value.length > 0 &&
+    value.length <= 10_000 &&
+    value.every((fingerprint) => text(fingerprint) && fingerprint.length <= 240) &&
+    new Set(value).size === value.length;
+}
+
 function validBaseline(value: unknown): value is RecommendationLearningBaselineFreeze {
+  const decisionFingerprints = isRecord(value)
+    ? value.decision_record_fingerprints
+    : null;
   if (!isRecord(value) || !hash(value.baseline_fingerprint) || !uuid(value.owner_user_id) ||
     !uuid(value.baseline_id) || !text(value.segment_key) || !hash(value.evaluation_charter_fingerprint) ||
-    !iso(value.frozen_at) || !Array.isArray(value.decision_record_fingerprints) ||
-    value.decision_record_fingerprints.length === 0 || value.decision_record_fingerprints.length > 10_000 ||
-    !value.decision_record_fingerprints.every((fingerprint) => text(fingerprint) && fingerprint.length <= 240) ||
-    new Set(value.decision_record_fingerprints).size !== value.decision_record_fingerprints.length) {
+    !iso(value.frozen_at) || !validDecisionFingerprints(decisionFingerprints)) {
     return false;
   }
   const plan = value.evaluation_plan;
+  const planDecisionRecords = isRecord(plan) ? plan.decision_records : null;
+  const scanRunFingerprints = isRecord(planDecisionRecords)
+    ? planDecisionRecords.scan_run_fingerprints
+    : null;
   return isRecord(plan) &&
     plan.contract_version === "recommendation_learning_evaluation_plan_v1" &&
     plan.status === "ready_for_explicit_freeze" &&
     plan.segment_key === value.segment_key &&
     isRecord(plan.policy_attribution) &&
     isValidPolicy(plan.policy_attribution) &&
-    isRecord(plan.decision_records) &&
-    positiveInteger(plan.decision_records.count) &&
-    Array.isArray(plan.decision_records.scan_run_fingerprints) &&
-    plan.decision_records.count === value.decision_record_fingerprints.length &&
-    plan.decision_records.scan_run_fingerprints.length === value.decision_record_fingerprints.length &&
-    plan.decision_records.scan_run_fingerprints.every((fingerprint) => text(fingerprint) && fingerprint.length <= 240) &&
-    plan.decision_records.scan_run_fingerprints.every((fingerprint, index) =>
-      fingerprint === value.decision_record_fingerprints[index]
+    isRecord(planDecisionRecords) &&
+    positiveInteger(planDecisionRecords.count) &&
+    validDecisionFingerprints(scanRunFingerprints) &&
+    planDecisionRecords.count === decisionFingerprints.length &&
+    scanRunFingerprints.length === decisionFingerprints.length &&
+    scanRunFingerprints.every((fingerprint, index) =>
+      fingerprint === decisionFingerprints[index]
     ) &&
     plan.metrics !== null;
 }
 
 function validCharter(value: unknown): value is RecommendationEvaluationCharter {
+  const segmentKey = isRecord(value) ? text(value.segment_key) : null;
   if (!isRecord(value) || !uuid(value.charter_id) || !hash(value.charter_fingerprint) ||
-    !uuid(value.owner_user_id) || !text(value.segment_key) || !iso(value.created_at) ||
+    !uuid(value.owner_user_id) || !segmentKey || !iso(value.created_at) ||
     !isValidPolicy(value.policy_attribution)) return false;
   const rebuilt = buildRecommendationEvaluationCharterInput({
     ownerUserId: value.owner_user_id,
-    segmentKey: value.segment_key,
+    segmentKey,
     policy: value.policy_attribution,
     charter: value.charter,
   });
@@ -210,16 +222,17 @@ function validCharter(value: unknown): value is RecommendationEvaluationCharter 
 }
 
 function validEvaluation(value: unknown): value is RecommendationPolicyEvaluation {
+  const feasibility = isRecord(value) ? value.feasibility : null;
   if (!isRecord(value) || !isValidPolicy(value.policy_attribution) ||
     typeof value.selected !== "boolean" ||
     (value.rank !== null && !positiveInteger(value.rank)) ||
     (value.predicted_probability !== null && !unit(value.predicted_probability)) ||
     (value.provider_cost_credits !== null && (!finite(value.provider_cost_credits) || value.provider_cost_credits < 0)) ||
     (value.source_reliable !== null && typeof value.source_reliable !== "boolean") ||
-    !isRecord(value.feasibility)) return false;
+    !isRecord(feasibility)) return false;
 
   return ["spread", "liquidity", "volatility", "halt_risk", "trigger_attainment", "conservative_slippage"].every(
-    (key) => value.feasibility[key] === true || value.feasibility[key] === false || value.feasibility[key] === null,
+    (key) => feasibility[key] === true || feasibility[key] === false || feasibility[key] === null,
   );
 }
 

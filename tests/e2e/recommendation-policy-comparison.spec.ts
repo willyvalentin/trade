@@ -32,7 +32,7 @@ const candidatePolicy = {
 } as const;
 
 function charter(): RecommendationEvaluationCharter {
-  const definition = {
+  const definition: RecommendationEvaluationCharter["charter"] = {
     contract_version: "recommendation_evaluation_charter_v1",
     hypothesis: "The shadow policy improves calibration while preserving complete decision evidence.",
     eligible_universe: "Point-in-time US common-stock decision opportunities with one source cohort.",
@@ -71,7 +71,7 @@ function charter(): RecommendationEvaluationCharter {
       trigger_attainment: "required",
       conservative_slippage: "unavailable_disclosed",
     },
-  } as const;
+  };
   const input = buildRecommendationEvaluationCharterInput({
     ownerUserId,
     segmentKey,
@@ -102,7 +102,12 @@ function baseline(value = charter()): RecommendationLearningBaselineFreeze {
       segment_key: segmentKey,
       status: "ready_for_explicit_freeze",
       policy_attribution: baselinePolicy,
-      decision_records: { count: 1, scan_run_fingerprints: ["c".repeat(64)] },
+      decision_records: {
+        count: 1,
+        earliest_decision_timestamp: "2026-09-01T14:30:00.000Z",
+        latest_decision_timestamp: "2026-09-01T14:30:00.000Z",
+        scan_run_fingerprints: ["c".repeat(64)],
+      },
       outcome_population: {
         visible_primary_outcome_count: 1,
         research_primary_outcome_count: 0,
