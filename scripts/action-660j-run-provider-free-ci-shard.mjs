@@ -374,6 +374,7 @@ export const providerFreeVerificationPlan = Object.freeze({
       "tests/e2e/recommendation-source-observation-integrity.spec.ts",
       "tests/e2e/recommendation-source-operation-budget.spec.ts",
       "tests/e2e/recommendation-learning-baseline-readiness.spec.ts",
+      "tests/e2e/recommendation-policy-comparison.spec.ts",
     ]),
   ]),
   "non-forgeable-authority": Object.freeze([
