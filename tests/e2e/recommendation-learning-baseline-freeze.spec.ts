@@ -317,7 +317,9 @@ test("migration and authenticated route keep the freeze server-only and immutabl
   expect(route).toContain("applicationMutationForbiddenResponse");
   expect(route).toContain("freezeCurrentRecommendationLearningBaseline");
   expect(source).toContain("count: \"exact\"");
-  expect(source).toContain("LEARNING_BASELINE_FREEZE_SOURCE_MAX_ROWS");
+  expect(source).toContain("readCompleteRecommendationLearningBaselineSourcePages");
+  expect(source).toContain(".range(from, to)");
+  expect(source).toContain('.order("id", { ascending: false })');
   expect(productionPreflight.toLowerCase()).toContain("begin read only");
   expect(productionPreflight.toLowerCase()).toContain("rollback");
   expect(productionPreflight).toContain("eligible_for_exact_additive_apply");
