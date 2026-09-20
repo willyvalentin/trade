@@ -35,6 +35,7 @@ function completeCatalog(response: unknown) {
   return buildMarketWideSymbolMaster({
     provider: "twelve_data",
     fetched_at: fetchedAt,
+    source_snapshot_observed_at: fetchedAt,
     freshness: {
       policy_version: "symbol_master_freshness_test_v1",
       evaluated_at: fetchedAt,
@@ -331,6 +332,7 @@ test.describe("market-wide symbol master contract", () => {
     const completeInput = {
       provider: "twelve_data" as const,
       fetched_at: fetchedAt,
+      source_snapshot_observed_at: fetchedAt,
       provider_catalog_count: 2,
       pages: [
         {
@@ -356,6 +358,15 @@ test.describe("market-wide symbol master contract", () => {
     };
 
     const missingDecision = buildMarketWideSymbolMaster(completeInput);
+    const missingSourceTimestamp = buildMarketWideSymbolMaster({
+      ...completeInput,
+      source_snapshot_observed_at: undefined,
+      freshness: {
+        policy_version: "symbol_master_freshness_test_v1",
+        evaluated_at: fetchedAt,
+        maximum_age_minutes: 180,
+      },
+    });
     const staleDecision = buildMarketWideSymbolMaster({
       ...completeInput,
       freshness: {
@@ -380,6 +391,7 @@ test.describe("market-wide symbol master contract", () => {
       freshness: {
         status: "unavailable",
         policy_version: null,
+        source_snapshot_observed_at: fetchedAt,
         evaluated_at: null,
         maximum_age_minutes: null,
         age_minutes: null,
@@ -387,6 +399,19 @@ test.describe("market-wide symbol master contract", () => {
       },
       blockers: expect.arrayContaining([
         "catalog_freshness_policy_missing_or_invalid",
+      ]),
+    });
+    expect(missingSourceTimestamp.summary).toMatchObject({
+      status: "partial",
+      collection_complete: false,
+      discovery_feed_allowed: false,
+      freshness: {
+        status: "unavailable",
+        source_snapshot_observed_at: null,
+        reason: "source_snapshot_timestamp_missing_or_invalid",
+      },
+      blockers: expect.arrayContaining([
+        "catalog_source_snapshot_timestamp_missing_or_invalid",
       ]),
     });
     expect(staleDecision.summary).toMatchObject({
@@ -410,10 +435,10 @@ test.describe("market-wide symbol master contract", () => {
       discovery_feed_allowed: false,
       freshness: {
         status: "unavailable",
-        reason: "freshness_evaluation_precedes_fetch",
+        reason: "freshness_evaluation_precedes_source_snapshot",
       },
       blockers: expect.arrayContaining([
-        "catalog_freshness_evaluation_precedes_fetch",
+        "catalog_freshness_evaluation_precedes_source_snapshot",
       ]),
     });
   });
