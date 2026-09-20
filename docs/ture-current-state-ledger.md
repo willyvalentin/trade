@@ -73,7 +73,8 @@ pure evaluator compares one explicitly supplied candidate policy against the
 immutable IF-4 baseline separately in held-out and walk-forward partitions. It
 binds every comparison to the baseline and evaluation-charter fingerprints,
 named policy versions, one homogeneous source cohort per partition, unique
-opportunity identities and outcome-after-decision timestamps. It calculates
+opportunity identities, outcome-after-decision timestamps and a walk-forward
+partition that is strictly later than held-out. It calculates
 precision at the selected K, expectancy in R, calibration error, outcome
 coverage/missingness, provider credits per decision, reliability, concentration
 and required feasibility inputs. A candidate must clear the charter and beat

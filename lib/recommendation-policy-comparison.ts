@@ -260,7 +260,7 @@ function metricFor(
   const selected = samples.filter((sample) => sample[policy].selected);
   const complete = selected.filter((sample) => sample.outcome.complete);
   const probabilityPairs = complete.filter((sample) => sample[policy].predicted_probability !== null);
-  const costValues = selected
+  const costValues = samples
     .map((sample) => sample[policy].provider_cost_credits)
     .filter((value): value is number => value !== null);
   const reliable = selected.filter((sample) => sample[policy].source_reliable === true);
@@ -408,14 +408,30 @@ export function evaluateRecommendationPolicyComparison({
 
   const ids = new Set<string>();
   const ordered = [...samples].sort((left, right) => Date.parse(left.decision_at) - Date.parse(right.decision_at));
-  const commonBlockers: string[] = [];
+  const invalidBlockers: string[] = [];
   for (const sample of ordered) {
-    if (ids.has(sample.opportunity_id)) commonBlockers.push("duplicate_opportunity_id");
+    if (ids.has(sample.opportunity_id)) invalidBlockers.push("duplicate_opportunity_id");
     ids.add(sample.opportunity_id);
-    if (!samePolicy(sample.baseline.policy_attribution, baselinePolicy)) commonBlockers.push("sample_baseline_policy_mismatch");
-    if (!samePolicy(sample.candidate.policy_attribution, candidatePolicy)) commonBlockers.push("sample_candidate_policy_mismatch");
+    if (!samePolicy(sample.baseline.policy_attribution, baselinePolicy)) invalidBlockers.push("sample_baseline_policy_mismatch");
+    if (!samePolicy(sample.candidate.policy_attribution, candidatePolicy)) invalidBlockers.push("sample_candidate_policy_mismatch");
   }
-  if (commonBlockers.length > 0) return invalidResult(commonBlockers);
+  if (invalidBlockers.length > 0) return invalidResult(invalidBlockers);
+
+  const evidenceBlockers: string[] = [];
+  if (ordered.filter((sample) => sample.outcome.complete).length <
+    charter.charter.evaluation_window.minimum_complete_decisions) {
+    evidenceBlockers.push("minimum_complete_decision_count_not_met");
+  }
+  const heldOutDecisionTimes = ordered
+    .filter((sample) => sample.partition === "held_out")
+    .map((sample) => Date.parse(sample.decision_at));
+  const walkForwardDecisionTimes = ordered
+    .filter((sample) => sample.partition === "walk_forward")
+    .map((sample) => Date.parse(sample.decision_at));
+  if (heldOutDecisionTimes.length > 0 && walkForwardDecisionTimes.length > 0 &&
+    Math.max(...heldOutDecisionTimes) >= Math.min(...walkForwardDecisionTimes)) {
+    evidenceBlockers.push("walk_forward_not_after_held_out");
+  }
 
   const partitions = (["held_out", "walk_forward"] as const).map((partition) => {
     const partitionSamples = ordered.filter((sample) => sample.partition === partition);
@@ -445,7 +461,7 @@ export function evaluateRecommendationPolicyComparison({
       blockers: [...new Set(blockers)].sort(),
     } satisfies RecommendationPolicyComparisonPartitionResult;
   });
-  const blockers = partitions.flatMap((partition) => partition.blockers);
+  const blockers = [...evidenceBlockers, ...partitions.flatMap((partition) => partition.blockers)];
   const supported = blockers.length === 0 && partitions.every((partition) =>
     partition.candidate_thresholds?.passed === true &&
     partition.comparison?.candidate_beats_baseline === true,

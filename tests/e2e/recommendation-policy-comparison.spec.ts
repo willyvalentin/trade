@@ -254,6 +254,7 @@ test("withholds a shadow verdict when a partition is incomplete or crosses sourc
   expect(incompleteResult.status).toBe("evidence_incomplete");
   expect(incompleteResult.blockers).toEqual(expect.arrayContaining([
     "outcome_coverage_threshold_not_met",
+    "minimum_complete_decision_count_not_met",
   ]));
 
   const mixedCohort = samples();
@@ -266,6 +267,21 @@ test("withholds a shadow verdict when a partition is incomplete or crosses sourc
   });
   expect(mixedResult.status).toBe("evidence_incomplete");
   expect(mixedResult.blockers).toContain("source_cohort_not_homogeneous");
+
+  const nonForward = samples();
+  nonForward[2] = {
+    ...nonForward[2]!,
+    decision_at: "2026-09-01T13:30:00.000Z",
+    outcome_at: "2026-09-01T14:30:00.000Z",
+  };
+  const nonForwardResult = evaluateRecommendationPolicyComparison({
+    baseline: baseline(value),
+    charter: value,
+    candidatePolicy,
+    samples: nonForward,
+  });
+  expect(nonForwardResult.status).toBe("evidence_incomplete");
+  expect(nonForwardResult.blockers).toContain("walk_forward_not_after_held_out");
 });
 
 test("fails closed for forged baseline bindings, duplicated opportunities, or a non-distinct policy", () => {
