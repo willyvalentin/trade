@@ -1254,7 +1254,10 @@ test.describe("recommendation learning baseline readiness", () => {
             payload_json: {
               ...item.snapshot.payload_json,
               source_cohort_receipt: {
-                ...item.snapshot.payload_json.source_cohort_receipt,
+                ...((item.snapshot.payload_json.source_cohort_receipt ?? {}) as Record<
+                  string,
+                  unknown
+                >),
                 request_cost_credits: null,
               },
             },
