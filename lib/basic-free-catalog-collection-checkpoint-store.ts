@@ -1,5 +1,5 @@
 export const basicFreeCatalogCollectionCheckpointContractVersion =
-  "basic_free_catalog_collection_checkpoint_v1" as const;
+  "basic_free_catalog_collection_checkpoint_v2" as const;
 export const basicFreeCatalogCollectionCheckpointStartRpcName =
   "start_basic_free_catalog_collection" as const;
 export const basicFreeCatalogCollectionCheckpointRecordRpcName =
@@ -22,6 +22,7 @@ export type BasicFreeCatalogCollectionCheckpoint = {
   next_page: number;
   completed_page_count: number;
   collected_record_count: number;
+  provider_snapshot_id: string;
   snapshot_observed_at: string;
   last_page_observed_at: string | null;
   completed_at: string | null;
@@ -31,6 +32,7 @@ export type BasicFreeCatalogCollectionStartInput = {
   collection_fingerprint: string;
   owner_user_id: string;
   provider_catalog_count: number;
+  provider_snapshot_id: string;
   page_size: number;
   snapshot_observed_at: string;
 };
@@ -39,6 +41,7 @@ export type BasicFreeCatalogCollectionRecordInput = {
   checkpoint: BasicFreeCatalogCollectionCheckpoint;
   page_number: number;
   provider_catalog_count: number;
+  provider_snapshot_id: string;
   raw_records: Record<string, unknown>[];
   observed_at: string;
 };
@@ -79,6 +82,7 @@ type BasicFreeCatalogCollectionReadRow = {
   next_page: number | null;
   completed_page_count: number | null;
   collected_record_count: number | null;
+  provider_snapshot_id: string | null;
   snapshot_observed_at: string | null;
   last_page_observed_at: string | null;
   completed_at: string | null;
@@ -95,6 +99,7 @@ export type BasicFreeCatalogCollectionCheckpointDatabase = {
     owner_user_id: string;
     page_number: number;
     provider_catalog_count: number;
+    provider_snapshot_id: string;
     raw_records: Record<string, unknown>[];
     observed_at: string;
   }) => Promise<{
@@ -151,6 +156,10 @@ function validUuid(value: unknown): value is string {
 
 function validFingerprint(value: unknown): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= 240;
+}
+
+function validProviderSnapshotId(value: unknown): value is string {
+  return validFingerprint(value) && value.trim() === value;
 }
 
 function validIso(value: unknown): value is string {
@@ -215,6 +224,7 @@ function validCheckpoint(value: BasicFreeCatalogCollectionCheckpoint | null): va
     !Number.isSafeInteger(value.collected_record_count) ||
     value.collected_record_count < 0 ||
     value.collected_record_count > value.provider_catalog_count ||
+    !validProviderSnapshotId(value.provider_snapshot_id) ||
     !validIso(value.snapshot_observed_at) ||
     (value.last_page_observed_at !== null && !validIso(value.last_page_observed_at)) ||
     (value.completed_at !== null && !validIso(value.completed_at))) {
@@ -248,6 +258,7 @@ function checkpointFromStartRow(
     next_page: row.next_page ?? 0,
     completed_page_count: row.completed_page_count ?? -1,
     collected_record_count: row.collected_record_count ?? -1,
+    provider_snapshot_id: input.provider_snapshot_id,
     snapshot_observed_at: input.snapshot_observed_at,
     last_page_observed_at: null,
     completed_at: null,
@@ -270,6 +281,7 @@ function checkpointFromReadRow(
     next_page: row.next_page ?? 0,
     completed_page_count: row.completed_page_count ?? -1,
     collected_record_count: row.collected_record_count ?? -1,
+    provider_snapshot_id: row.provider_snapshot_id ?? "",
     snapshot_observed_at: row.snapshot_observed_at ?? "",
     last_page_observed_at: row.last_page_observed_at,
     completed_at: row.completed_at,
@@ -310,6 +322,7 @@ function validStartInput(input: BasicFreeCatalogCollectionStartInput) {
   return validFingerprint(input.collection_fingerprint) &&
     validUuid(input.owner_user_id) &&
     validDenominator(input.provider_catalog_count) &&
+    validProviderSnapshotId(input.provider_snapshot_id) &&
     input.page_size === BASIC_FREE_CATALOG_COLLECTION_PAGE_SIZE &&
     validIso(input.snapshot_observed_at);
 }
@@ -330,6 +343,7 @@ function validRecordInput(input: BasicFreeCatalogCollectionRecordInput) {
     input.page_number <= input.checkpoint.total_pages &&
     input.page_number <= input.checkpoint.next_page &&
     input.provider_catalog_count === input.checkpoint.provider_catalog_count &&
+    input.provider_snapshot_id === input.checkpoint.provider_snapshot_id &&
     validIso(input.observed_at) &&
     Date.parse(input.observed_at) >= Date.parse(input.checkpoint.snapshot_observed_at) &&
     rawPageIsJsonObjectArray(input.raw_records) &&
@@ -437,6 +451,7 @@ export function createBasicFreeCatalogCollectionCheckpointStore(
           owner_user_id: input.checkpoint.owner_user_id,
           page_number: input.page_number,
           provider_catalog_count: input.provider_catalog_count,
+          provider_snapshot_id: input.provider_snapshot_id,
           raw_records: input.raw_records,
           observed_at: input.observed_at,
         });

@@ -13,15 +13,17 @@ import {
 const ownerUserId = "7d2e0f9a-43db-4f62-9a78-aec2ae34c6d0";
 const collectionId = "1e98f21d-488a-467a-a1f0-dcc517499835";
 const fingerprint = "basic-free-us-common-stock-2026-09-18-provider-count-9";
+const providerSnapshotId = "twelve-data-us-common-stock-2026-09-18T13:30:00Z";
 const observedAt = "2026-09-18T13:30:00.000Z";
 const migrationPath =
-  "supabase/migrations/20260918020603_if2_basic_free_catalog_collection_checkpoint.sql";
+  "supabase/migrations/20260919234948_if2_catalog_checkpoint_snapshot_coherence.sql";
 
 function startInput() {
   return {
     collection_fingerprint: fingerprint,
     owner_user_id: ownerUserId,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     page_size: BASIC_FREE_CATALOG_COLLECTION_PAGE_SIZE,
     snapshot_observed_at: observedAt,
   };
@@ -41,6 +43,7 @@ function checkpoint(
     next_page: 1,
     completed_page_count: 0,
     collected_record_count: 0,
+    provider_snapshot_id: providerSnapshotId,
     snapshot_observed_at: observedAt,
     last_page_observed_at: null,
     completed_at: null,
@@ -100,6 +103,7 @@ function database(
           next_page: 2,
           completed_page_count: 1,
           collected_record_count: 8,
+          provider_snapshot_id: providerSnapshotId,
           snapshot_observed_at: observedAt,
           last_page_observed_at: "2026-09-18T13:31:00.000Z",
           completed_at: null,
@@ -217,6 +221,7 @@ test("a page is persisted only in strict sequence with its exact expected count"
     checkpoint: checkpoint(),
     page_number: 1,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(8),
     observed_at: "2026-09-18T13:31:00.000Z",
   });
@@ -235,6 +240,7 @@ test("a page is persisted only in strict sequence with its exact expected count"
     checkpoint: checkpoint(),
     page_number: 2,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(1),
     observed_at: "2026-09-18T13:32:00.000Z",
   })).resolves.toMatchObject({ status: "unavailable" });
@@ -242,6 +248,7 @@ test("a page is persisted only in strict sequence with its exact expected count"
     checkpoint: checkpoint(),
     page_number: 1,
     provider_catalog_count: 8,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(8),
     observed_at: "2026-09-18T13:32:00.000Z",
   })).resolves.toMatchObject({ status: "unavailable" });
@@ -249,6 +256,7 @@ test("a page is persisted only in strict sequence with its exact expected count"
     checkpoint: checkpoint(),
     page_number: 1,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: [
       { received_at: new Date() },
       ...records(7),
@@ -256,6 +264,59 @@ test("a page is persisted only in strict sequence with its exact expected count"
     observed_at: "2026-09-18T13:32:00.000Z",
   })).resolves.toMatchObject({ status: "unavailable" });
   expect(calls).toHaveLength(1);
+});
+
+test("a durable checkpoint rejects a missing or changed provider snapshot identity", async () => {
+  let recordCalls = 0;
+  const store = createBasicFreeCatalogCollectionCheckpointStore(database({
+    async record() {
+      recordCalls += 1;
+      throw new Error("must not persist an incoherent source snapshot");
+    },
+  }));
+
+  await expect(store.start({
+    ...startInput(),
+    provider_snapshot_id: " ",
+  })).resolves.toMatchObject({ status: "unavailable" });
+
+  await expect(store.record({
+    checkpoint: checkpoint(),
+    page_number: 1,
+    provider_catalog_count: 9,
+    provider_snapshot_id: "twelve-data-us-common-stock-2026-09-18T13:31:00Z",
+    raw_records: records(8),
+    observed_at: "2026-09-18T13:31:00.000Z",
+  })).resolves.toMatchObject({ status: "unavailable" });
+  expect(recordCalls).toBe(0);
+
+  const missingReadback = createBasicFreeCatalogCollectionCheckpointStore(database({
+    async read() {
+      return {
+        data: {
+          readback_status: "available",
+          collection_id: collectionId,
+          collection_status: "collecting",
+          provider_catalog_count: 9,
+          page_size: 8,
+          total_pages: 2,
+          next_page: 2,
+          completed_page_count: 1,
+          collected_record_count: 8,
+          provider_snapshot_id: null,
+          snapshot_observed_at: observedAt,
+          last_page_observed_at: "2026-09-18T13:31:00.000Z",
+          completed_at: null,
+          blocker: null,
+        },
+        error: null,
+      };
+    },
+  }));
+  await expect(missingReadback.read({
+    collection_fingerprint: fingerprint,
+    owner_user_id: ownerUserId,
+  })).resolves.toMatchObject({ status: "unavailable" });
 });
 
 test("a repeated exact page is idempotent while an inconsistent receipt stays blocked", async () => {
@@ -279,6 +340,7 @@ test("a repeated exact page is idempotent while an inconsistent receipt stays bl
     checkpoint: checkpoint(),
     page_number: 1,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(8),
     observed_at: "2026-09-18T13:31:00.000Z",
   })).resolves.toMatchObject({
@@ -306,6 +368,7 @@ test("a repeated exact page is idempotent while an inconsistent receipt stays bl
     checkpoint: checkpoint(),
     page_number: 1,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(8),
     observed_at: "2026-09-18T13:31:00.000Z",
   })).resolves.toMatchObject({ status: "unavailable" });
@@ -338,6 +401,7 @@ test("only the exact final remainder can make the durable checkpoint complete", 
     checkpoint: firstPage,
     page_number: 2,
     provider_catalog_count: 9,
+    provider_snapshot_id: providerSnapshotId,
     raw_records: records(1),
     observed_at: "2026-09-18T13:32:00.000Z",
   })).resolves.toMatchObject({
@@ -386,6 +450,8 @@ test("checkpoint schema is server-only and no collector runtime imports its pers
   expect(migration).toContain("grant execute on function public.start_basic_free_catalog_collection");
   expect(migration).toContain("collection_page_sequence_gap");
   expect(migration).toContain("collection_denominator_changed");
+  expect(migration).toContain("collection_page_snapshot_identity_inconsistent");
+  expect(migration).toContain("collection_snapshot_identity_missing");
   expect(migration).toContain("cannot itself admit discovery");
   expect(migration).toMatch(
     /page_already_recorded[\s\S]{0,360}null::text;\s+return;/,

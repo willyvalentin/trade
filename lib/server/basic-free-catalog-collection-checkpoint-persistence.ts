@@ -34,6 +34,7 @@ function database(
           p_collection_fingerprint: input.collection_fingerprint,
           p_owner_user_id: input.owner_user_id,
           p_provider_catalog_count: input.provider_catalog_count,
+          p_provider_snapshot_id: input.provider_snapshot_id,
           p_page_size: input.page_size,
           p_snapshot_observed_at: input.snapshot_observed_at,
           p_expected_contract_version:
@@ -50,6 +51,7 @@ function database(
           p_owner_user_id: input.owner_user_id,
           p_page_number: input.page_number,
           p_provider_catalog_count: input.provider_catalog_count,
+          p_provider_snapshot_id: input.provider_snapshot_id,
           p_raw_records: input.raw_records,
           p_observed_at: input.observed_at,
           p_expected_contract_version:
