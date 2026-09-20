@@ -59,10 +59,35 @@ budget/baseline/CI-registration Playwright regressions, strict TypeScript,
 lint and a Webpack production build. Engine Insights readback exposes aggregate
 accepted/partial/stale/delayed/ambiguous/unavailable counts plus operation
 budget/backoff diagnostics, observed time bands and policy versions; it is
-diagnostic only. This local delivery is pending protected CI, merge and
-production-deploy verification; it does not establish an observed paid-source
-entitlement, live cohort, coverage, actual provider capacity,
-recommendation-quality improvement or Basic Free market-wide discovery.
+diagnostic only. PR [#569](https://github.com/willyvalentin/trade/pull/569)
+merged as `4a198f1cb5bafbfa52cbe3305ab5a75e0455bc65`; its protected CI run
+`35501379840` passed, and Netlify production deploy
+`6aafa78b62f9100008d1c1bc` is ready on that exact revision. This deployed
+traceability code does not establish an observed paid-source entitlement, live
+cohort, coverage, actual provider capacity, recommendation-quality improvement
+or Basic Free market-wide discovery.
+
+**Selected CLOSED supporting slice — IF-5 policy comparison evaluator,
+2026-09-20:** After the source-operation receipt delivery, a provider-free,
+pure evaluator compares one explicitly supplied candidate policy against the
+immutable IF-4 baseline separately in held-out and walk-forward partitions. It
+binds every comparison to the baseline and evaluation-charter fingerprints,
+named policy versions, one homogeneous source cohort per partition, unique
+opportunity identities, outcome-after-decision timestamps and a walk-forward
+partition that is strictly later than held-out. It calculates
+precision at the selected K, expectancy in R, calibration error, outcome
+coverage/missingness, provider credits per decision, reliability, concentration
+and required feasibility inputs. A candidate must clear the charter and beat
+the baseline without a metric regression in both partitions before the only
+positive verdict `shadow_candidate_supported` is returned. Even that verdict is
+strictly `remain_shadow`: the evaluator has no authority to request provider
+data, modify ranking/publication, promote a policy or invoke a broker action.
+Local evidence is focused adversarial Playwright coverage for forged bindings,
+duplicate opportunities, incomplete outcomes, mixed cohorts and policy-version
+ordering, plus strict TypeScript. It is a computation contract only: it does
+not yet read or persist production samples, create a policy candidate, prove a
+quality improvement or replace the required forward-live shadow and
+post-promotion evidence.
 
 **Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
 active IF-2 acceptance remains the separately authorized Monday Basic Free
