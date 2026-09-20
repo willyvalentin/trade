@@ -6,6 +6,7 @@ import {
 } from "@/lib/recent-recommendation-readback";
 import {
   readCompleteRecommendationLearningBaselineSourcePages,
+  recommendationLearningBaselineSourceRowsAreStable,
   RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS,
 } from "@/lib/recommendation-learning-baseline-pagination";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -229,7 +230,7 @@ export async function readRecommendationLearningBaselineSource(
     return failed<Record<string, unknown>>();
   }
 
-  const [scanRuns, snapshots, outcomes] = await Promise.all([
+  const readScanRuns = () =>
     readCompleteRecommendationLearningBaselineSourcePages({
       expectedRowCount: scanRunRowCount,
       readPage: (from, to) =>
@@ -240,7 +241,8 @@ export async function readRecommendationLearningBaselineSource(
           .order("observed_at", { ascending: false })
           .order("id", { ascending: false })
           .range(from, to),
-    }),
+    });
+  const readSnapshots = () =>
     readCompleteRecommendationLearningBaselineSourcePages({
       expectedRowCount: snapshotRowCount,
       readPage: (from, to) =>
@@ -251,7 +253,8 @@ export async function readRecommendationLearningBaselineSource(
           .order("created_at", { ascending: false })
           .order("id", { ascending: false })
           .range(from, to),
-    }),
+    });
+  const readOutcomes = () =>
     readCompleteRecommendationLearningBaselineSourcePages({
       expectedRowCount: outcomeRowCount,
       readPage: (from, to) =>
@@ -262,8 +265,20 @@ export async function readRecommendationLearningBaselineSource(
           .order("evaluated_at", { ascending: false })
           .order("id", { ascending: false })
           .range(from, to),
-    }),
+    });
+
+  const [scanRuns, snapshots, outcomes] = await Promise.all([
+    readScanRuns(),
+    readSnapshots(),
+    readOutcomes(),
   ]);
+
+  const [scanRunsAfterRead, snapshotsAfterRead, outcomesAfterRead] =
+    await Promise.all([
+      readScanRuns(),
+      readSnapshots(),
+      readOutcomes(),
+    ]);
 
   const [scanRunCountAfterRead, snapshotCountAfterRead, outcomeCountAfterRead] =
     await Promise.all([
@@ -285,6 +300,21 @@ export async function readRecommendationLearningBaselineSource(
     !scanRuns ||
     !snapshots ||
     !outcomes ||
+    !scanRunsAfterRead ||
+    !snapshotsAfterRead ||
+    !outcomesAfterRead ||
+    !recommendationLearningBaselineSourceRowsAreStable(
+      scanRuns,
+      scanRunsAfterRead,
+    ) ||
+    !recommendationLearningBaselineSourceRowsAreStable(
+      snapshots,
+      snapshotsAfterRead,
+    ) ||
+    !recommendationLearningBaselineSourceRowsAreStable(
+      outcomes,
+      outcomesAfterRead,
+    ) ||
     scanRunCountAfterRead.error ||
     snapshotCountAfterRead.error ||
     outcomeCountAfterRead.error ||

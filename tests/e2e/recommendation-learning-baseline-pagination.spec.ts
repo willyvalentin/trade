@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   readCompleteRecommendationLearningBaselineSourcePages,
+  recommendationLearningBaselineSourceRowsAreStable,
   RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS,
   RECOMMENDATION_LEARNING_BASELINE_SOURCE_PAGE_SIZE,
 } from "@/lib/recommendation-learning-baseline-pagination";
@@ -57,4 +58,46 @@ test("baseline source pagination fails closed on a short page, duplicate identit
   });
   expect(oversized).toBeNull();
   expect(oversizedReadAttempted).toBe(false);
+});
+
+test("baseline source stability rejects same-size changes during a paginated freeze read", () => {
+  const firstRead = [
+    {
+      id: "scan-one",
+      payload_json: { decision: { score: 72, reasons: ["fresh"] } },
+    },
+    { id: "scan-two", status: "published" },
+  ];
+  const equivalentSecondRead = [
+    {
+      payload_json: { decision: { reasons: ["fresh"], score: 72 } },
+      id: "scan-one",
+    },
+    { status: "published", id: "scan-two" },
+  ];
+
+  expect(
+    recommendationLearningBaselineSourceRowsAreStable(
+      firstRead,
+      equivalentSecondRead,
+    ),
+  ).toBe(true);
+  expect(
+    recommendationLearningBaselineSourceRowsAreStable(firstRead, [
+      {
+        id: "scan-one",
+        payload_json: { decision: { score: 73, reasons: ["fresh"] } },
+      },
+      { id: "scan-two", status: "published" },
+    ]),
+  ).toBe(false);
+  expect(
+    recommendationLearningBaselineSourceRowsAreStable(firstRead, [
+      { id: "scan-two", status: "published" },
+      {
+        id: "scan-one",
+        payload_json: { decision: { score: 72, reasons: ["fresh"] } },
+      },
+    ]),
+  ).toBe(false);
 });
