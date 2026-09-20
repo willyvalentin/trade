@@ -32,6 +32,16 @@ function completeSourcePayload(overrides: Record<string, unknown> = {}) {
     source_observed_record_count: 500,
     source_request_started_at: "2026-09-20T14:29:01.000Z",
     source_response_received_at: "2026-09-20T14:29:03.000Z",
+    source_operation_time_band: "regular",
+    source_operation_budget_policy_version:
+      "recommendation_source_operation_budget_policy_v1",
+    source_operation_time_band_credit_budget: 100,
+    source_operation_committed_credits_before_operation: 60,
+    source_operation_cost_credits: 5,
+    source_operation_reserved_retry_credits: 10,
+    source_operation_maximum_attempt_count: 3,
+    source_operation_attempt_number: 1,
+    source_operation_backoff_until: null,
     ...overrides,
   };
 }
@@ -71,6 +81,11 @@ test.describe("recommendation source cohorts", () => {
         status: "complete",
         quality_disposition: "accepted",
       },
+      operation_budget_receipt: {
+        status: "complete",
+        operation_disposition: "planned_within_budget",
+        can_issue_source_request: false,
+      },
       blockers: [],
       can_change_ranking_or_publication: false,
     });
@@ -88,6 +103,21 @@ test.describe("recommendation source cohorts", () => {
       observation_time_bands: ["regular"],
       integrity_policy_versions: [
         "recommendation_source_observation_integrity_policy_v1",
+      ],
+    });
+    expect(buildRecommendationSourceCohortProvenance([
+      snapshotFromPayload(completeSourcePayload()),
+    ]).operation_budget).toEqual({
+      valid_receipt_count: 1,
+      planned_within_budget_count: 1,
+      backoff_active_count: 0,
+      budget_exhausted_count: 0,
+      retry_headroom_exhausted_count: 0,
+      ambiguous_count: 0,
+      unavailable_count: 0,
+      operation_time_bands: ["regular"],
+      budget_policy_versions: [
+        "recommendation_source_operation_budget_policy_v1",
       ],
     });
   });
@@ -217,7 +247,10 @@ test.describe("recommendation source cohorts", () => {
   test("keeps regular and extended-hours observations in separate learning cohorts", () => {
     const regular = snapshotFromPayload(completeSourcePayload());
     const premarket = snapshotFromPayload(
-      completeSourcePayload({ source_observation_time_band: "premarket" }),
+      completeSourcePayload({
+        source_observation_time_band: "premarket",
+        source_operation_time_band: "premarket",
+      }),
     );
 
     expect(buildRecommendationSourceCohortProvenance([
@@ -239,6 +272,49 @@ test.describe("recommendation source cohorts", () => {
     expect(buildRecommendationSourceCohortProvenance([
       strict,
       relaxed,
+    ])).toMatchObject({
+      status: "mixed",
+      complete_receipt_count: 2,
+      cohort_keys: expect.any(Array),
+    });
+  });
+
+  test("keeps a source observation out of a baseline when its budget is backoff-bound or time-band-misaligned", () => {
+    expect(
+      buildRecommendationSourceCohortReceipt({
+        payload: completeSourcePayload({
+          source_operation_backoff_until: "2026-09-20T14:31:00.000Z",
+        }),
+        receiptTimestamp: RECORDED_AT,
+      }),
+    ).toMatchObject({
+      status: "incomplete",
+      blockers: expect.arrayContaining([
+        "source_operation_budget_not_within_plan",
+      ]),
+    });
+    expect(
+      buildRecommendationSourceCohortReceipt({
+        payload: completeSourcePayload({ source_operation_time_band: "premarket" }),
+        receiptTimestamp: RECORDED_AT,
+      }),
+    ).toMatchObject({
+      status: "incomplete",
+      blockers: expect.arrayContaining([
+        "source_operation_budget_time_band_mismatch",
+      ]),
+    });
+  });
+
+  test("keeps different source-operation capacity policies in separate learning cohorts", () => {
+    const ordinary = snapshotFromPayload(completeSourcePayload());
+    const largerRetryReserve = snapshotFromPayload(
+      completeSourcePayload({ source_operation_reserved_retry_credits: 15 }),
+    );
+
+    expect(buildRecommendationSourceCohortProvenance([
+      ordinary,
+      largerRetryReserve,
     ])).toMatchObject({
       status: "mixed",
       complete_receipt_count: 2,
