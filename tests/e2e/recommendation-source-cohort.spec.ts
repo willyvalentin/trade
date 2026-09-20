@@ -23,6 +23,15 @@ function completeSourcePayload(overrides: Record<string, unknown> = {}) {
     build_marker: "test-build-marker-v1",
     source_request_cost_credits: 1,
     source_response_quality_disposition: "accepted",
+    source_observation_time_band: "regular",
+    source_observation_integrity_policy_version:
+      "recommendation_source_observation_integrity_policy_v1",
+    source_maximum_upstream_age_seconds: 120,
+    source_maximum_response_latency_seconds: 10,
+    source_expected_record_count: 500,
+    source_observed_record_count: 500,
+    source_request_started_at: "2026-09-20T14:29:01.000Z",
+    source_response_received_at: "2026-09-20T14:29:03.000Z",
     ...overrides,
   };
 }
@@ -58,6 +67,10 @@ test.describe("recommendation source cohorts", () => {
       coverage_scope: "us_equities:one_minute:eligible_universe",
       request_cost_credits: 1,
       response_quality_disposition: "accepted",
+      observation_integrity_receipt: {
+        status: "complete",
+        quality_disposition: "accepted",
+      },
       blockers: [],
       can_change_ranking_or_publication: false,
     });
@@ -104,6 +117,23 @@ test.describe("recommendation source cohorts", () => {
 
     expect(receipt).toMatchObject({ status: "incomplete" });
     expect(receipt.blockers).toContain("upstream_timestamp_after_receipt");
+  });
+
+  test("does not let a caller-supplied accepted label bypass partial observation evidence", () => {
+    const receipt = buildRecommendationSourceCohortReceipt({
+      payload: completeSourcePayload({ source_observed_record_count: 499 }),
+      receiptTimestamp: RECORDED_AT,
+    });
+
+    expect(receipt).toMatchObject({
+      status: "incomplete",
+      response_quality_disposition: "partial",
+    });
+    expect(receipt.blockers).toEqual(expect.arrayContaining([
+      "response_quality_not_accepted",
+      "source_observation_integrity_not_accepted",
+      "declared_response_quality_disposition_mismatch",
+    ]));
   });
 
   test("persists a truthful unavailable receipt when a snapshot contains no source facts", () => {
@@ -166,6 +196,38 @@ test.describe("recommendation source cohorts", () => {
     ])).toMatchObject({
       status: "not_recorded",
       missing_receipt_count: 1,
+    });
+  });
+
+  test("keeps regular and extended-hours observations in separate learning cohorts", () => {
+    const regular = snapshotFromPayload(completeSourcePayload());
+    const premarket = snapshotFromPayload(
+      completeSourcePayload({ source_observation_time_band: "premarket" }),
+    );
+
+    expect(buildRecommendationSourceCohortProvenance([
+      regular,
+      premarket,
+    ])).toMatchObject({
+      status: "mixed",
+      complete_receipt_count: 2,
+      cohort_keys: expect.any(Array),
+    });
+  });
+
+  test("keeps different integrity freshness policies in separate learning cohorts", () => {
+    const strict = snapshotFromPayload(completeSourcePayload());
+    const relaxed = snapshotFromPayload(
+      completeSourcePayload({ source_maximum_upstream_age_seconds: 180 }),
+    );
+
+    expect(buildRecommendationSourceCohortProvenance([
+      strict,
+      relaxed,
+    ])).toMatchObject({
+      status: "mixed",
+      complete_receipt_count: 2,
+      cohort_keys: expect.any(Array),
     });
   });
 });

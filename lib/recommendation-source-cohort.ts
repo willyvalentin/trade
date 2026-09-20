@@ -1,3 +1,10 @@
+import {
+  buildRecommendationSourceObservationIntegrityReceipt,
+  recommendationSourceObservationIntegrityReceiptFromUnknown,
+  type RecommendationSourceObservationIntegrityReceipt,
+  type RecommendationSourceObservationQualityDisposition,
+} from "@/lib/recommendation-source-observation-integrity";
+
 export const RECOMMENDATION_SOURCE_COHORT_RECEIPT_VERSION =
   "recommendation_source_cohort_receipt_v1" as const;
 
@@ -15,12 +22,17 @@ export const recommendationSourceCohortReceiptBlockers = [
   "request_cost_credits_missing_or_invalid",
   "response_quality_disposition_missing_or_invalid",
   "response_quality_not_accepted",
+  "source_observation_integrity_receipt_missing_or_invalid",
+  "source_observation_integrity_not_accepted",
+  "source_observation_integrity_timestamp_mismatch",
+  "declared_response_quality_disposition_mismatch",
 ] as const;
 
 export type RecommendationSourceCohortReceiptBlocker =
   (typeof recommendationSourceCohortReceiptBlockers)[number];
 
 export type RecommendationSourceResponseQualityDisposition =
+  | RecommendationSourceObservationQualityDisposition
   | "accepted"
   | "degraded"
   | "partial"
@@ -44,6 +56,8 @@ export type RecommendationSourceCohortReceipt = {
   source_build_marker: string | null;
   request_cost_credits: number | null;
   response_quality_disposition: RecommendationSourceResponseQualityDisposition | null;
+  declared_response_quality_disposition: RecommendationSourceResponseQualityDisposition | null;
+  observation_integrity_receipt: RecommendationSourceObservationIntegrityReceipt | null;
   blockers: RecommendationSourceCohortReceiptBlocker[];
   can_change_ranking_or_publication: false;
 };
@@ -108,7 +122,11 @@ function responseQualityDispositionOrNull(
   return valueText === "accepted" ||
     valueText === "degraded" ||
     valueText === "partial" ||
-    valueText === "rejected"
+    valueText === "rejected" ||
+    valueText === "stale" ||
+    valueText === "delayed" ||
+    valueText === "ambiguous" ||
+    valueText === "unavailable"
     ? valueText
     : null;
 }
@@ -118,13 +136,19 @@ function uniqueSorted(values: Iterable<string>) {
 }
 
 function cohortKeyFor(fields: SourceCohortFields) {
+  const integrityReceipt = fields.observation_integrity_receipt;
   if (
     !fields.provider_source ||
     !fields.feed_class ||
     !fields.observed_entitlement_profile ||
     !fields.coverage_scope ||
     !fields.market_data_adapter_version ||
-    !fields.source_build_marker
+    !fields.source_build_marker ||
+    !integrityReceipt ||
+    !integrityReceipt.observation_time_band ||
+    !integrityReceipt.integrity_policy_version ||
+    integrityReceipt.maximum_upstream_age_seconds === null ||
+    integrityReceipt.maximum_response_latency_seconds === null
   ) {
     return null;
   }
@@ -139,6 +163,10 @@ function cohortKeyFor(fields: SourceCohortFields) {
     fields.coverage_scope,
     fields.market_data_adapter_version,
     fields.source_build_marker,
+    integrityReceipt.observation_time_band,
+    integrityReceipt.integrity_policy_version,
+    integrityReceipt.maximum_upstream_age_seconds,
+    integrityReceipt.maximum_response_latency_seconds,
   ]);
 }
 
@@ -147,8 +175,14 @@ function fieldsFromPayload({
   receiptTimestamp,
 }: {
   payload: Record<string, unknown>;
-  receiptTimestamp: unknown;
+  receiptTimestamp: string | Date | null | undefined;
 }): SourceCohortFields {
+  const observationIntegrityReceipt =
+    buildRecommendationSourceObservationIntegrityReceipt({
+      payload,
+      receiptTimestamp,
+    });
+
   return {
     provider_source: textOrNull(payload.provider_source),
     market_data_source: textOrNull(payload.market_data_source),
@@ -174,9 +208,14 @@ function fieldsFromPayload({
     request_cost_credits: nonNegativeNumberOrNull(
       payload.source_request_cost_credits,
     ),
-    response_quality_disposition: responseQualityDispositionOrNull(
+    response_quality_disposition:
+      observationIntegrityReceipt.quality_disposition === "unavailable"
+        ? null
+        : observationIntegrityReceipt.quality_disposition,
+    declared_response_quality_disposition: responseQualityDispositionOrNull(
       payload.source_response_quality_disposition,
     ),
+    observation_integrity_receipt: observationIntegrityReceipt,
   };
 }
 
@@ -193,7 +232,8 @@ function fieldsAreAbsent(fields: SourceCohortFields) {
     fields.market_data_adapter_version === null &&
     fields.source_build_marker === null &&
     fields.request_cost_credits === null &&
-    fields.response_quality_disposition === null
+    fields.response_quality_disposition === null &&
+    fields.observation_integrity_receipt?.status === "unavailable"
   );
 }
 
@@ -231,6 +271,30 @@ function blockersFor(fields: SourceCohortFields) {
     blockers.push("response_quality_disposition_missing_or_invalid");
   } else if (fields.response_quality_disposition !== "accepted") {
     blockers.push("response_quality_not_accepted");
+  }
+  if (
+    !fields.observation_integrity_receipt ||
+    fields.observation_integrity_receipt.status === "unavailable"
+  ) {
+    blockers.push("source_observation_integrity_receipt_missing_or_invalid");
+  } else {
+    if (fields.observation_integrity_receipt.quality_disposition !== "accepted") {
+      blockers.push("source_observation_integrity_not_accepted");
+    }
+    if (
+      fields.upstream_timestamp !==
+      fields.observation_integrity_receipt.upstream_timestamp
+    ) {
+      blockers.push("source_observation_integrity_timestamp_mismatch");
+    }
+  }
+  if (
+    fields.declared_response_quality_disposition &&
+    fields.response_quality_disposition &&
+    fields.declared_response_quality_disposition !==
+      fields.response_quality_disposition
+  ) {
+    blockers.push("declared_response_quality_disposition_mismatch");
   }
 
   return blockers;
@@ -288,6 +352,13 @@ function sourceCohortFieldsFromUnknown(value: Record<string, unknown>) {
     response_quality_disposition: responseQualityDispositionOrNull(
       value.response_quality_disposition,
     ),
+    declared_response_quality_disposition: responseQualityDispositionOrNull(
+      value.declared_response_quality_disposition,
+    ),
+    observation_integrity_receipt:
+      recommendationSourceObservationIntegrityReceiptFromUnknown(
+        value.observation_integrity_receipt,
+      ),
   } satisfies SourceCohortFields;
 }
 
@@ -320,6 +391,28 @@ export function recommendationSourceCohortReceiptFromUnknown(
   }
 
   const fields = sourceCohortFieldsFromUnknown(raw);
+  if (
+    raw.provider_source !== fields.provider_source ||
+    raw.market_data_source !== fields.market_data_source ||
+    raw.feed_class !== fields.feed_class ||
+    raw.configured_entitlement_profile !== fields.configured_entitlement_profile ||
+    raw.observed_entitlement_profile !== fields.observed_entitlement_profile ||
+    raw.coverage_scope !== fields.coverage_scope ||
+    raw.upstream_timestamp !== fields.upstream_timestamp ||
+    raw.receipt_timestamp !== fields.receipt_timestamp ||
+    raw.upstream_response_identity !== fields.upstream_response_identity ||
+    raw.market_data_adapter_version !== fields.market_data_adapter_version ||
+    raw.source_build_marker !== fields.source_build_marker ||
+    raw.request_cost_credits !== fields.request_cost_credits ||
+    raw.response_quality_disposition !== fields.response_quality_disposition ||
+    raw.declared_response_quality_disposition !==
+      fields.declared_response_quality_disposition ||
+    raw.observation_integrity_receipt === undefined ||
+    (raw.observation_integrity_receipt !== null &&
+      fields.observation_integrity_receipt === null)
+  ) {
+    return null;
+  }
   const rawCohortKey = raw.cohort_key;
   const cohortKey = typeof rawCohortKey === "string" ? rawCohortKey : null;
   if (rawCohortKey !== null && cohortKey === null) return null;

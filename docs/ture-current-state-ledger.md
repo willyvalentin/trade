@@ -30,19 +30,27 @@ return to IF-2 at the next usable market window. Provider requests,
 migrations, production changes and broker effects retain their own explicit
 authority requirements.
 
-**Selected CLOSED supporting slice — IF-2c source-cohort provenance, 2026-09-20:** While the
+**Selected CLOSED supporting slice — IF-2c source-cohort provenance and observation integrity, 2026-09-20:** While the
 separately authorized Basic Free capability probe waits for the next regular
 US session, this provider-free slice makes each newly built recommendation
 snapshot retain a versioned, vendor-neutral source-cohort receipt. The receipt
 records only supplied provider/feed/entitlement/coverage/timestamp/adapter/
 build/cost/response-quality facts; it never infers observed entitlement from a
-configured plan or a request cost from a quota. It has no ranking, confidence,
-publication, provider or broker authority. Baseline Readiness will reject
-missing, malformed, incomplete or differently labelled cohorts rather than
-silently pool them. This local delivery is pending protected CI, merge and
-production-deploy verification; it does not establish an observed paid-source
-entitlement, live cohort, coverage, recommendation-quality improvement or
-Basic Free market-wide discovery.
+configured plan or a request cost from a quota. Its observation-integrity
+receipt computes the response disposition from explicit time band, upstream,
+request/response and receipt timestamps, coverage counts and bounded policy
+limits. It distinguishes accepted, partial, stale, delayed, ambiguous and
+unavailable observations; a caller-supplied `accepted` label cannot bypass a
+non-accepted computed result. Regular and extended-hours observations get
+separate cohort identities. It has no ranking, confidence, publication,
+provider or broker authority. Baseline Readiness will reject missing,
+malformed, incomplete or differently labelled cohorts rather than silently pool
+them. Local evidence is 43 focused source-integrity/source-cohort/baseline
+Playwright regressions, strict TypeScript and a Webpack production build. This
+local delivery is pending protected CI, merge and production-deploy
+verification; it does not establish an observed paid-source entitlement, live
+cohort, coverage, recommendation-quality improvement or Basic Free
+market-wide discovery.
 
 **Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
 active IF-2 acceptance remains the separately authorized Monday Basic Free

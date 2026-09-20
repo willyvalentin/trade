@@ -88,6 +88,15 @@ const DECISION_SOURCE_PROVENANCE = {
   source_coverage_scope: "us_equities:test-signal-inputs",
   source_request_cost_credits: 1,
   source_response_quality_disposition: "accepted",
+  source_observation_time_band: "regular",
+  source_observation_integrity_policy_version:
+    "recommendation_source_observation_integrity_policy_v1",
+  source_maximum_upstream_age_seconds: 120,
+  source_maximum_response_latency_seconds: 10,
+  source_expected_record_count: 500,
+  source_observed_record_count: 500,
+  source_request_started_at: "2026-09-17T14:29:01.000Z",
+  source_response_received_at: "2026-09-17T14:29:03.000Z",
 };
 
 function completeAttribution({
