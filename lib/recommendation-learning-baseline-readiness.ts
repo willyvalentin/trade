@@ -28,6 +28,10 @@ import {
   buildRecommendationIntakeQualityProvenance,
   type RecommendationIntakeQualityProvenance,
 } from "@/lib/recommendation-intake-quality-provenance";
+import {
+  buildRecommendationSourceCohortProvenance,
+  type RecommendationSourceCohortProvenance,
+} from "@/lib/recommendation-source-cohort";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
   "recommendation_learning_baseline_readiness_v2" as const;
@@ -88,6 +92,7 @@ export type RecommendationLearningBaselineReadiness = {
     blocker_counts: Record<RecommendationDecisionSourceProvenanceBlocker, number>;
   };
   intake_quality_provenance: RecommendationIntakeQualityProvenance;
+  source_cohort_provenance: RecommendationSourceCohortProvenance;
   counterfactual_coverage: {
     research_candidate_outcomes_required: number;
     research_candidate_outcomes_collected: number;
@@ -604,6 +609,9 @@ export function buildRecommendationLearningBaselineReadiness({
   const intakeQualityProvenance = buildRecommendationIntakeQualityProvenance(
     Array.from(assessedSnapshotsById.values()),
   );
+  const sourceCohortProvenance = buildRecommendationSourceCohortProvenance(
+    Array.from(assessedSnapshotsById.values()),
+  );
   if (intakeQualityProvenance.status === "unavailable") {
     blockers.add("outcome_sample_intake_quality_unavailable");
   } else if (intakeQualityProvenance.status === "not_recorded") {
@@ -612,6 +620,15 @@ export function buildRecommendationLearningBaselineReadiness({
     blockers.add("outcome_sample_intake_quality_incomplete");
   } else if (intakeQualityProvenance.status === "mixed") {
     blockers.add("multiple_intake_quality_result_versions_require_segmented_baseline");
+  }
+  if (sourceCohortProvenance.status === "unavailable") {
+    blockers.add("outcome_sample_source_cohort_unavailable");
+  } else if (sourceCohortProvenance.status === "not_recorded") {
+    blockers.add("outcome_sample_source_cohort_not_recorded");
+  } else if (sourceCohortProvenance.status === "incomplete") {
+    blockers.add("outcome_sample_source_cohort_incomplete");
+  } else if (sourceCohortProvenance.status === "mixed") {
+    blockers.add("multiple_source_cohorts_require_segmented_baseline");
   }
 
   const status =
@@ -677,6 +694,7 @@ export function buildRecommendationLearningBaselineReadiness({
       blocker_counts: sourceProvenanceBlockerCounts,
     },
     intake_quality_provenance: intakeQualityProvenance,
+    source_cohort_provenance: sourceCohortProvenance,
     counterfactual_coverage: {
       research_candidate_outcomes_required: researchCandidateCount,
       research_candidate_outcomes_collected: researchCandidateOutcomesCollected,
@@ -696,6 +714,7 @@ export function buildRecommendationLearningBaselineReadiness({
       "Visible outcomes use one complete 60m/30m/15m primary horizon per exactly linked published candidate; duplicates and incomplete coverage fail closed.",
       "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, a bounded decision feature vector, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim; the vector records finite observed features or explicit unavailable inputs, never raw candles. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
       "Every snapshot actually assessed for a baseline must carry a valid intake-quality receipt from one result version. Missing, malformed or mixed receipt versions remain an explicit evidence gap; receipt status and grade are retained for later analysis but do not alter publication or select a winning policy.",
+      "Every assessed snapshot must retain a versioned source-cohort receipt. Provider, feed class, observed entitlement, coverage scope, upstream/receipt timestamps, adapter/build version, request cost and response-quality disposition are facts, not defaults. Missing or degraded receipts and different cohort labels cannot be pooled into one baseline.",
       "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],

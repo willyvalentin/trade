@@ -82,6 +82,21 @@ const DECISION_SOURCE_PROVENANCE = {
   provider_version: "twelve_data_test_contract_v1",
   market_data_adapter_version: "automation_scan_market_data_adapter_v1",
   build_marker: "test-build-marker-v1",
+  source_feed_class: "us_equities_intraday_indicators",
+  provider_plan_profile_mode: "test_configured_profile_v1",
+  observed_provider_entitlement_profile: "test_observed_entitlement_v1",
+  source_coverage_scope: "us_equities:test-signal-inputs",
+  source_request_cost_credits: 1,
+  source_response_quality_disposition: "accepted",
+  source_observation_time_band: "regular",
+  source_observation_integrity_policy_version:
+    "recommendation_source_observation_integrity_policy_v1",
+  source_maximum_upstream_age_seconds: 120,
+  source_maximum_response_latency_seconds: 10,
+  source_expected_record_count: 500,
+  source_observed_record_count: 500,
+  source_request_started_at: "2026-09-17T14:29:01.000Z",
+  source_response_received_at: "2026-09-17T14:29:03.000Z",
 };
 
 function completeAttribution({
@@ -1220,6 +1235,88 @@ test.describe("recommendation learning baseline readiness", () => {
     expect(readiness.blockers).toContain(
       "multiple_intake_quality_result_versions_require_segmented_baseline",
     );
+  });
+
+  test("refuses missing, incomplete, and changed source cohorts from a learning baseline", () => {
+    const baselineAttribution = completeAttribution();
+    const evidence = Array.from({ length: 20 }, (_, index) =>
+      publishedEvidenceForSegment({
+        index,
+        learningAttribution: baselineAttribution,
+      }),
+    );
+    const missing = evidence.map((item, index) =>
+      index === 0
+        ? {
+            ...item.snapshot,
+            payload_json: {
+              ...item.snapshot.payload_json,
+              source_cohort_receipt: undefined,
+            },
+          }
+        : item.snapshot,
+    );
+    const incomplete = evidence.map((item, index) =>
+      index === 0
+        ? {
+            ...item.snapshot,
+            payload_json: {
+              ...item.snapshot.payload_json,
+              source_cohort_receipt: {
+                ...((item.snapshot.payload_json.source_cohort_receipt ?? {}) as Record<
+                  string,
+                  unknown
+                >),
+                request_cost_credits: null,
+              },
+            },
+          }
+        : item.snapshot,
+    );
+    const changed = evidence.map((item, index) =>
+      index === 0
+        ? buildRecommendationSnapshot({
+            ...item.snapshot,
+            created_at: item.snapshot.created_at,
+            payload: {
+              ...item.snapshot.payload_json,
+              provider_source: "future_provider",
+              market_data_source: "future_provider",
+            },
+          })
+        : item.snapshot,
+    );
+
+    const baselineInput = {
+      scanRuns: evidence.map((item) => item.run),
+      outcomes: evidence.map((item) => item.outcome),
+    };
+    expect(buildRecommendationLearningBaselineReadiness({
+      ...baselineInput,
+      snapshots: missing,
+    })).toMatchObject({
+      status: "not_ready",
+      source_cohort_provenance: { status: "incomplete", missing_receipt_count: 1 },
+      blockers: expect.arrayContaining(["outcome_sample_source_cohort_incomplete"]),
+    });
+    expect(buildRecommendationLearningBaselineReadiness({
+      ...baselineInput,
+      snapshots: incomplete,
+    })).toMatchObject({
+      status: "not_ready",
+      source_cohort_provenance: { status: "incomplete", invalid_receipt_count: 1 },
+      blockers: expect.arrayContaining(["outcome_sample_source_cohort_incomplete"]),
+    });
+    expect(buildRecommendationLearningBaselineReadiness({
+      ...baselineInput,
+      snapshots: changed,
+    })).toMatchObject({
+      status: "not_ready",
+      source_cohort_provenance: { status: "mixed", complete_receipt_count: 20 },
+      blockers: expect.arrayContaining([
+        "multiple_source_cohorts_require_segmented_baseline",
+      ]),
+    });
   });
 
   test("uses only one canonical primary outcome per exact candidate when preparing fixed baseline metrics", () => {

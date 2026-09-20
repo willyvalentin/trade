@@ -38997,6 +38997,8 @@ function RecommendationLearningBaselineReadinessPanel({
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
   const sourceProvenance = readiness.decision_time_source_provenance;
+  const sourceCohort = readiness.source_cohort_provenance;
+  const sourceObservationIntegrity = sourceCohort.observation_integrity;
   const counterfactual = readiness.counterfactual_coverage;
   const eligibleSegmentCount = segmentation.segments.filter(
     (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
@@ -39039,7 +39041,7 @@ function RecommendationLearningBaselineReadinessPanel({
         />
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
           label="Traceable Decisions"
           value={`${readiness.decision_records.attributable_count}/${readiness.decision_records.considered_count}`}
@@ -39060,6 +39062,10 @@ function RecommendationLearningBaselineReadinessPanel({
           label="Decision-time Inputs"
           value={`${sourceProvenance.admissible_snapshot_count}/${sourceProvenance.assessed_snapshot_count}`}
         />
+        <SummaryCard
+          label="Source Cohort"
+          value={sourceCohort.status}
+        />
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-3">
@@ -39076,6 +39082,22 @@ function RecommendationLearningBaselineReadinessPanel({
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Not evaluated: {readiness.decision_population.not_evaluated_candidate_count}.
             Missing or identity-invalid records are excluded rather than inferred.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Source cohort provenance
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            Status {sourceCohort.status}; complete {sourceCohort.complete_receipt_count}/
+            {sourceCohort.assessed_snapshot_count}; cohort labels {sourceCohort.cohort_keys.length}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Missing {sourceCohort.missing_receipt_count}; invalid {sourceCohort.invalid_receipt_count}; incomplete {sourceCohort.incomplete_receipt_count}; not recorded {sourceCohort.unavailable_receipt_count}. Provider {sourceCohort.provider_sources.join(", ") || "not recorded"}; feed {sourceCohort.feed_classes.join(", ") || "not recorded"}; observed entitlement {sourceCohort.observed_entitlement_profiles.join(", ") || "not recorded"}. Incomplete receipts and different labels cannot be pooled into one learning baseline.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Observation integrity: accepted {sourceObservationIntegrity.accepted_count}; partial {sourceObservationIntegrity.partial_count}; stale {sourceObservationIntegrity.stale_count}; delayed {sourceObservationIntegrity.delayed_count}; ambiguous {sourceObservationIntegrity.ambiguous_count}; unavailable {sourceObservationIntegrity.unavailable_count}. Time bands {sourceObservationIntegrity.observation_time_bands.join(", ") || "not recorded"}; policies {sourceObservationIntegrity.integrity_policy_versions.join(", ") || "not recorded"}.
           </p>
         </div>
 
