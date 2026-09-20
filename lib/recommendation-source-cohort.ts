@@ -4,9 +4,14 @@ import {
   type RecommendationSourceObservationIntegrityReceipt,
   type RecommendationSourceObservationQualityDisposition,
 } from "@/lib/recommendation-source-observation-integrity";
+import {
+  buildRecommendationSourceOperationBudgetReceipt,
+  recommendationSourceOperationBudgetReceiptFromUnknown,
+  type RecommendationSourceOperationBudgetReceipt,
+} from "@/lib/recommendation-source-operation-budget";
 
 export const RECOMMENDATION_SOURCE_COHORT_RECEIPT_VERSION =
-  "recommendation_source_cohort_receipt_v1" as const;
+  "recommendation_source_cohort_receipt_v2" as const;
 
 export const recommendationSourceCohortReceiptBlockers = [
   "source_metadata_not_recorded",
@@ -25,6 +30,9 @@ export const recommendationSourceCohortReceiptBlockers = [
   "source_observation_integrity_receipt_missing_or_invalid",
   "source_observation_integrity_not_accepted",
   "source_observation_integrity_timestamp_mismatch",
+  "source_operation_budget_receipt_missing_or_invalid",
+  "source_operation_budget_not_within_plan",
+  "source_operation_budget_time_band_mismatch",
   "declared_response_quality_disposition_mismatch",
 ] as const;
 
@@ -58,6 +66,7 @@ export type RecommendationSourceCohortReceipt = {
   response_quality_disposition: RecommendationSourceResponseQualityDisposition | null;
   declared_response_quality_disposition: RecommendationSourceResponseQualityDisposition | null;
   observation_integrity_receipt: RecommendationSourceObservationIntegrityReceipt | null;
+  operation_budget_receipt: RecommendationSourceOperationBudgetReceipt | null;
   blockers: RecommendationSourceCohortReceiptBlocker[];
   can_change_ranking_or_publication: false;
 };
@@ -88,6 +97,23 @@ export type RecommendationSourceCohortProvenance = {
     integrity_policy_versions: Array<
       NonNullable<
         RecommendationSourceObservationIntegrityReceipt["integrity_policy_version"]
+      >
+    >;
+  };
+  operation_budget: {
+    valid_receipt_count: number;
+    planned_within_budget_count: number;
+    backoff_active_count: number;
+    budget_exhausted_count: number;
+    retry_headroom_exhausted_count: number;
+    ambiguous_count: number;
+    unavailable_count: number;
+    operation_time_bands: Array<
+      NonNullable<RecommendationSourceOperationBudgetReceipt["operation_time_band"]>
+    >;
+    budget_policy_versions: Array<
+      NonNullable<
+        RecommendationSourceOperationBudgetReceipt["operation_budget_policy_version"]
       >
     >;
   };
@@ -152,6 +178,7 @@ function uniqueSorted(values: Iterable<string>) {
 
 function cohortKeyFor(fields: SourceCohortFields) {
   const integrityReceipt = fields.observation_integrity_receipt;
+  const operationBudgetReceipt = fields.operation_budget_receipt;
   if (
     !fields.provider_source ||
     !fields.feed_class ||
@@ -163,7 +190,13 @@ function cohortKeyFor(fields: SourceCohortFields) {
     !integrityReceipt.observation_time_band ||
     !integrityReceipt.integrity_policy_version ||
     integrityReceipt.maximum_upstream_age_seconds === null ||
-    integrityReceipt.maximum_response_latency_seconds === null
+    integrityReceipt.maximum_response_latency_seconds === null ||
+    !operationBudgetReceipt ||
+    !operationBudgetReceipt.operation_time_band ||
+    !operationBudgetReceipt.operation_budget_policy_version ||
+    operationBudgetReceipt.time_band_credit_budget === null ||
+    operationBudgetReceipt.reserved_retry_credits === null ||
+    operationBudgetReceipt.maximum_attempt_count === null
   ) {
     return null;
   }
@@ -182,6 +215,11 @@ function cohortKeyFor(fields: SourceCohortFields) {
     integrityReceipt.integrity_policy_version,
     integrityReceipt.maximum_upstream_age_seconds,
     integrityReceipt.maximum_response_latency_seconds,
+    operationBudgetReceipt.operation_time_band,
+    operationBudgetReceipt.operation_budget_policy_version,
+    operationBudgetReceipt.time_band_credit_budget,
+    operationBudgetReceipt.reserved_retry_credits,
+    operationBudgetReceipt.maximum_attempt_count,
   ]);
 }
 
@@ -197,6 +235,10 @@ function fieldsFromPayload({
       payload,
       receiptTimestamp,
     });
+  const operationBudgetReceipt = buildRecommendationSourceOperationBudgetReceipt({
+    payload,
+    receiptTimestamp,
+  });
 
   return {
     provider_source: textOrNull(payload.provider_source),
@@ -231,6 +273,7 @@ function fieldsFromPayload({
       payload.source_response_quality_disposition,
     ),
     observation_integrity_receipt: observationIntegrityReceipt,
+    operation_budget_receipt: operationBudgetReceipt,
   };
 }
 
@@ -248,7 +291,8 @@ function fieldsAreAbsent(fields: SourceCohortFields) {
     fields.source_build_marker === null &&
     fields.request_cost_credits === null &&
     fields.response_quality_disposition === null &&
-    fields.observation_integrity_receipt?.status === "unavailable"
+    fields.observation_integrity_receipt?.status === "unavailable" &&
+    fields.operation_budget_receipt?.status === "unavailable"
   );
 }
 
@@ -301,6 +345,26 @@ function blockersFor(fields: SourceCohortFields) {
       fields.observation_integrity_receipt.upstream_timestamp
     ) {
       blockers.push("source_observation_integrity_timestamp_mismatch");
+    }
+  }
+  if (
+    !fields.operation_budget_receipt ||
+    fields.operation_budget_receipt.status === "unavailable"
+  ) {
+    blockers.push("source_operation_budget_receipt_missing_or_invalid");
+  } else {
+    if (
+      fields.operation_budget_receipt.operation_disposition !==
+      "planned_within_budget"
+    ) {
+      blockers.push("source_operation_budget_not_within_plan");
+    }
+    if (
+      fields.observation_integrity_receipt?.observation_time_band &&
+      fields.operation_budget_receipt.operation_time_band !==
+        fields.observation_integrity_receipt.observation_time_band
+    ) {
+      blockers.push("source_operation_budget_time_band_mismatch");
     }
   }
   if (
@@ -374,6 +438,9 @@ function sourceCohortFieldsFromUnknown(value: Record<string, unknown>) {
       recommendationSourceObservationIntegrityReceiptFromUnknown(
         value.observation_integrity_receipt,
       ),
+    operation_budget_receipt: recommendationSourceOperationBudgetReceiptFromUnknown(
+      value.operation_budget_receipt,
+    ),
   } satisfies SourceCohortFields;
 }
 
@@ -424,7 +491,10 @@ export function recommendationSourceCohortReceiptFromUnknown(
       fields.declared_response_quality_disposition ||
     raw.observation_integrity_receipt === undefined ||
     (raw.observation_integrity_receipt !== null &&
-      fields.observation_integrity_receipt === null)
+      fields.observation_integrity_receipt === null) ||
+    raw.operation_budget_receipt === undefined ||
+    (raw.operation_budget_receipt !== null &&
+      fields.operation_budget_receipt === null)
   ) {
     return null;
   }
@@ -496,6 +566,9 @@ export function buildRecommendationSourceCohortProvenance(
     receipt.observation_integrity_receipt
       ? [receipt.observation_integrity_receipt]
       : [],
+  );
+  const operationBudgetReceipts = validReceipts.flatMap((receipt) =>
+    receipt.operation_budget_receipt ? [receipt.operation_budget_receipt] : [],
   );
 
   return {
@@ -577,6 +650,46 @@ export function buildRecommendationSourceCohortProvenance(
       ) as Array<
         NonNullable<
           RecommendationSourceObservationIntegrityReceipt["integrity_policy_version"]
+        >
+      >,
+    },
+    operation_budget: {
+      valid_receipt_count: operationBudgetReceipts.length,
+      planned_within_budget_count: operationBudgetReceipts.filter(
+        (receipt) => receipt.operation_disposition === "planned_within_budget",
+      ).length,
+      backoff_active_count: operationBudgetReceipts.filter(
+        (receipt) => receipt.operation_disposition === "backoff_active",
+      ).length,
+      budget_exhausted_count: operationBudgetReceipts.filter(
+        (receipt) => receipt.operation_disposition === "budget_exhausted",
+      ).length,
+      retry_headroom_exhausted_count: operationBudgetReceipts.filter(
+        (receipt) =>
+          receipt.operation_disposition === "retry_headroom_exhausted",
+      ).length,
+      ambiguous_count: operationBudgetReceipts.filter(
+        (receipt) => receipt.operation_disposition === "ambiguous",
+      ).length,
+      unavailable_count: operationBudgetReceipts.filter(
+        (receipt) => receipt.operation_disposition === "unavailable",
+      ).length,
+      operation_time_bands: uniqueSorted(
+        operationBudgetReceipts.flatMap((receipt) =>
+          receipt.operation_time_band ? [receipt.operation_time_band] : [],
+        ),
+      ) as Array<
+        NonNullable<RecommendationSourceOperationBudgetReceipt["operation_time_band"]>
+      >,
+      budget_policy_versions: uniqueSorted(
+        operationBudgetReceipts.flatMap((receipt) =>
+          receipt.operation_budget_policy_version
+            ? [receipt.operation_budget_policy_version]
+            : [],
+        ),
+      ) as Array<
+        NonNullable<
+          RecommendationSourceOperationBudgetReceipt["operation_budget_policy_version"]
         >
       >,
     },

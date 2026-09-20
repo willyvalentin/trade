@@ -30,10 +30,19 @@ return to IF-2 at the next usable market window. Provider requests,
 migrations, production changes and broker effects retain their own explicit
 authority requirements.
 
-**Selected CLOSED supporting slice — IF-2c source-cohort provenance and observation integrity, 2026-09-20:** While the
+**Selected CLOSED supporting slice — IF-2c source-cohort provenance, observation integrity and operation capacity, 2026-09-20:** While the
 separately authorized Basic Free capability probe waits for the next regular
 US session, this provider-free slice makes each newly built recommendation
-snapshot retain a versioned, vendor-neutral source-cohort receipt. The receipt
+snapshot retain a versioned, vendor-neutral source-cohort receipt. Its v2 form
+also retains a versioned per-time-band operation-capacity receipt with the
+declared credit budget, committed credits, operation cost, retry reserve,
+attempt ceiling/current attempt and explicit backoff state. The receipt derives
+only `planned_within_budget`, `backoff_active`, `budget_exhausted`,
+`retry_headroom_exhausted`, `ambiguous` or `unavailable`; it cannot issue a
+provider request, consume a credit, change scheduling, ranking or publication.
+Backoff-bound, capacity-exhausted, contradictory or time-band-misaligned
+receipts cannot enter a complete source cohort, and different capacity policies
+cannot be silently pooled into one learning baseline. The source cohort receipt
 records only supplied provider/feed/entitlement/coverage/timestamp/adapter/
 build/cost/response-quality facts; it never infers observed entitlement from a
 configured plan or a request cost from a quota. Its observation-integrity
@@ -45,15 +54,15 @@ non-accepted computed result. Regular and extended-hours observations get
 separate cohort identities. It has no ranking, confidence, publication,
 provider or broker authority. Baseline Readiness will reject missing,
 malformed, incomplete or differently labelled cohorts rather than silently pool
-them. Local evidence is 51 focused source-integrity/source-cohort/baseline
-Playwright regressions, strict TypeScript and a Webpack production build. Engine
-Insights readback exposes aggregate accepted/partial/stale/delayed/ambiguous/
-unavailable counts, observed time bands and policy versions; it is diagnostic
-only. This
-local delivery is pending protected CI, merge and production-deploy
-verification; it does not establish an observed paid-source entitlement, live
-cohort, coverage, recommendation-quality improvement or Basic Free
-market-wide discovery.
+them. Local evidence is 57 focused source-integrity/source-cohort/operation-
+budget/baseline/CI-registration Playwright regressions, strict TypeScript,
+lint and a Webpack production build. Engine Insights readback exposes aggregate
+accepted/partial/stale/delayed/ambiguous/unavailable counts plus operation
+budget/backoff diagnostics, observed time bands and policy versions; it is
+diagnostic only. This local delivery is pending protected CI, merge and
+production-deploy verification; it does not establish an observed paid-source
+entitlement, live cohort, coverage, actual provider capacity,
+recommendation-quality improvement or Basic Free market-wide discovery.
 
 **Production-applied IF-4 durable baseline-freeze delivery, 2026-09-19:** The
 active IF-2 acceptance remains the separately authorized Monday Basic Free

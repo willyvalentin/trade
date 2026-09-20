@@ -38999,6 +38999,7 @@ function RecommendationLearningBaselineReadinessPanel({
   const sourceProvenance = readiness.decision_time_source_provenance;
   const sourceCohort = readiness.source_cohort_provenance;
   const sourceObservationIntegrity = sourceCohort.observation_integrity;
+  const sourceOperationBudget = sourceCohort.operation_budget;
   const counterfactual = readiness.counterfactual_coverage;
   const eligibleSegmentCount = segmentation.segments.filter(
     (segment) => segment.readiness.status === "eligible_for_explicit_freeze",
@@ -39098,6 +39099,9 @@ function RecommendationLearningBaselineReadinessPanel({
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-500">
             Observation integrity: accepted {sourceObservationIntegrity.accepted_count}; partial {sourceObservationIntegrity.partial_count}; stale {sourceObservationIntegrity.stale_count}; delayed {sourceObservationIntegrity.delayed_count}; ambiguous {sourceObservationIntegrity.ambiguous_count}; unavailable {sourceObservationIntegrity.unavailable_count}. Time bands {sourceObservationIntegrity.observation_time_bands.join(", ") || "not recorded"}; policies {sourceObservationIntegrity.integrity_policy_versions.join(", ") || "not recorded"}.
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Source-operation capacity: within plan {sourceOperationBudget.planned_within_budget_count}; backoff active {sourceOperationBudget.backoff_active_count}; budget exhausted {sourceOperationBudget.budget_exhausted_count}; retry headroom exhausted {sourceOperationBudget.retry_headroom_exhausted_count}; ambiguous {sourceOperationBudget.ambiguous_count}; unavailable {sourceOperationBudget.unavailable_count}. Time bands {sourceOperationBudget.operation_time_bands.join(", ") || "not recorded"}; policies {sourceOperationBudget.budget_policy_versions.join(", ") || "not recorded"}. This diagnostic never authorizes a provider request.
           </p>
         </div>
 

@@ -97,6 +97,16 @@ const DECISION_SOURCE_PROVENANCE = {
   source_observed_record_count: 500,
   source_request_started_at: "2026-09-17T14:29:01.000Z",
   source_response_received_at: "2026-09-17T14:29:03.000Z",
+  source_operation_time_band: "regular",
+  source_operation_budget_policy_version:
+    "recommendation_source_operation_budget_policy_v1",
+  source_operation_time_band_credit_budget: 100,
+  source_operation_committed_credits_before_operation: 60,
+  source_operation_cost_credits: 5,
+  source_operation_reserved_retry_credits: 10,
+  source_operation_maximum_attempt_count: 3,
+  source_operation_attempt_number: 1,
+  source_operation_backoff_until: null,
 };
 
 function completeAttribution({
