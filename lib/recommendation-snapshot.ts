@@ -6,6 +6,7 @@ import {
 } from "@/lib/recommendation-inline-metadata";
 import { buildConfidenceProjectionObservationSnapshotContract } from "@/lib/confidence-projection-observation-contract";
 import { buildRecommendationOutcomeEvaluationAnchor } from "@/lib/recommendation-outcome-evaluation-anchor";
+import { buildRecommendationSourceCohortReceipt } from "@/lib/recommendation-source-cohort";
 
 export type RecommendationSnapshotStatus =
   | "visible"
@@ -602,8 +603,13 @@ export function buildRecommendationSnapshot(
   };
   const confidenceProjectionObservationContract =
     buildConfidenceProjectionObservationSnapshotContract(snapshotContractBase);
+  const sourceCohortReceipt = buildRecommendationSourceCohortReceipt({
+    payload: payloadJsonRecord,
+    receiptTimestamp: createdAt,
+  });
   const payloadJsonWithDiagnostics = {
     ...payloadJson,
+    source_cohort_receipt: sourceCohortReceipt,
     confidence_projection_observation_contract:
       confidenceProjectionObservationContract,
     ...entryTypeMetadata,
