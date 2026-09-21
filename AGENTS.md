@@ -13,7 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Before choosing new work, read the **active sections** at the top of:
 
-1. `docs/ture-master-roadmap.md` — MVP scope, release sequence and acceptance.
+1. `docs/ture-master-roadmap.md` — product scope, release sequence and acceptance.
 2. `docs/ture-current-state-ledger.md` — the single Now / Next / Blocked queue.
 3. `docs/roadmap-operating-governance.md` — bounded delivery and blocker rules.
 

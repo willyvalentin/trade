@@ -66,7 +66,8 @@ coverage remains historical and is not the denominator for this larger program.
 
 Phase IDs use `SV-A` through `SV-U` to correspond to specification section 62;
 these are not the old Milestone A/B/C labels. Alphabetical order is not a mandate
-to postpone prerequisites. Only the selected slice is active.
+to postpone prerequisites. Only the ledger-selected primary and optional
+independent CLOSED slice are active, within the two-slice limit below.
 
 | Release outcome | Required phases / acceptance | What may follow |
 | --- | --- | --- |
