@@ -26,13 +26,44 @@ has succeeded. Check intervening active work before starting implementation.
    applicable authorized session/readback; preserve no-trade and partial-coverage
    truth. Record revision, environment and actual market date.
 2. **B.1, 8–16h CLOSED:** version/availability lineage for one existing real
-   decision through durable reconstruction. This is the single eligible support
-   slice if A.2 waits solely for OPEN; do not run a second support queue.
+   decision through durable reconstruction. Select it for the second development
+   slot only when dependencies and stable interface ownership permit independent
+   work; otherwise keep it queued. An A.2 OPEN wait is one such opportunity.
 3. **B.2/C.1, 8–16h slices:** after A/B dependencies, decision → internal-paper
    intent → costed fill → virtual ledger with exact retry/restart, then exits and
    dashboard observer. All broker/live submission capabilities remain absent.
 4. Select subsequent slices from the roadmap dependency graph. Early L feasibility
    is allowed when selected after A/B; no new Avanza execution features.
+
+### Pilot readiness and bounded parallel work
+
+A.1/A.2 must record the actual existing strategy/version and eligible-symbol
+selection for the first long-only, at-most-ten-symbol, one-position internal
+paper pilot. Reuse available source/budget receipts. Before enabling its observed
+session, fill in the roadmap's data/retention rights, numeric request/storage/
+compute/spend caps and numeric freshness, latency, heartbeat, monitoring and
+recovery thresholds. These values are **not yet established by this planning
+change**. B/C must enforce durable zero-loss/zero-duplicate accounting and the
+chosen risk limits; no real-capital allocation or new subscription is implied.
+
+| Work slot | Selected state | Entry / return condition |
+| --- | --- | --- |
+| Primary development | A.1 is next; not executed in this planning pass | Verify latest main and choose the first actual operational gap |
+| Second development | Empty; B.1 is the first queued candidate | Record owner, branch, phase/acceptance, 4–16h budget, fulfilled dependencies, stable interface/write ownership and integration order before starting |
+| Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
+| After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
+
+Keep at most two development slices, with one owner per shared contract. A
+market wait does not require idle development; a missing dependency does not
+justify starting an incompatible task. Reduce to one slot if integration/review
+or rework becomes the bottleneck. Record actual lead time and integration cost,
+not an assumed speedup. Preserve the observed candidate while other work proceeds.
+
+The next evidence-based replan points are the first autonomous C session, first
+E/F replay result, L feasibility and first complete M broker-paper journey.
+Record continue/narrow/stop, evidence, unresolved defects, updated hours and one
+next slice in this ledger. A rejected strategy may finish a research experiment
+while remaining ineligible for capital. No such checkpoint is marked passed here.
 
 ### Waiting / parked / decisions
 

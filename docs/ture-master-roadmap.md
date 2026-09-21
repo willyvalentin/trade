@@ -87,6 +87,73 @@ small equity live release, and options do not require equity full-auto activatio
 Q may start after a stable equity evidence path and B/E/F foundations exist, if
 the ledger selects it. No parallel stream is created merely by this map.
 
+### First internal-paper pilot — deliberately bounded
+
+The first C release runs **one versioned existing equity strategy, long-only,
+whole shares, at most ten eligible liquid US equities and one open paper position
+at a time, during regular trading hours only**. A records the actual strategy ID
+and versioned symbol-selection rule from existing supported data; this pilot cap
+does not replace the eventual market-wide discovery objective. Use one entry
+order policy, initial protective stop, partial/final exit and end-of-day handling.
+Include simulated partial/unfilled orders, restart/retry and an honest no-trade
+path. No options, shorting, live orders, dynamic allocation or new model training
+is required to complete this first operational slice.
+
+C records a configurable virtual starting balance, per-trade/open-risk and daily
+loss caps before the pilot is enabled; no assumed live-money allocation follows.
+Its minimum observer shows engine health, decision/rejection, pending orders,
+position, cash/equity and realized result. Advanced D analytics may follow.
+Success is a complete unattended backend lifecycle with durable reconciliation,
+not a polished dashboard, profitable day or quota of trades. Close the browser
+and restart the worker during controlled verification. Expand universe,
+concurrency and strategies only after this operational gate passes, within the
+existing A–D phase budget. A failed or absent strategy edge does not invalidate
+an otherwise working experimental paper service.
+
+### Data, cost and operational acceptance before enabling a pilot
+
+During A.1/A.2, put the following small readiness record in the existing ledger;
+do not introduce a new governance service. Reuse actual provider and budget
+receipts, and mark unavailable inputs explicitly.
+
+| Record | Required concrete decision and evidence |
+| --- | --- |
+| Data | Named source/feed, entitlement, retention/research rights, available history/depth, timestamps and revisions, covered symbols and missingness; separate equity, events and later options needs |
+| Capacity and cost | Numeric request/credit limits per minute/day, retry reserve, concurrency, storage/retention and compute budget; monthly currency cap and cost attribution; remain within existing approved spend until any increase is authorized |
+| Execution feasibility | Quote/bar resolution sufficient for the chosen strategy, fill model and monitoring cadence; unknown intrabar ordering stays conservative/unresolved, not invented |
+| Health and recovery | Numeric maximum data age at decision and execution, monitoring/heartbeat interval, detection timeout, decision-to-intent latency, restart/reconciliation deadline and recovery-point objective, with measurement method |
+| Failure response | Stale/missing data or missed heartbeat blocks new entries; separately specified management of existing paper positions; no silent quote/strategy substitution |
+
+Freeze the operational thresholds before the observed pilot session. Choose
+values from the strategy horizon and demonstrated source capacity, not arbitrary
+universal trading constants. Durable acknowledged intents/fills must have zero
+loss and zero duplicate economic effects across retries/restarts; any uncertain
+state requires reconciliation before new entries. Equity/cash/position checks
+must reconcile under an explicit rounding/currency policy. Test each numeric
+health/recovery threshold with a timed fault or replay, then verify actual
+latency/freshness in the declared OPEN session. Missing numeric limits or
+unavailable data block enabling the dependent pilot, not independent CLOSED
+implementation. Later IBKR and options phases revalidate these requirements for
+their own account, instrument and data path.
+
+### Evidence checkpoints — continue, narrow or stop
+
+These are short ledger decisions inside existing phase budgets, not new phases
+or recurring approval paperwork. The technical lead may choose a reversible
+continuation within existing scope; external spending and live activation retain
+their separate authority requirements.
+
+| Checkpoint | Decision supported by evidence | Next action |
+| --- | --- | --- |
+| After first autonomous C session | Did the engine operate without the UI, reconcile durable state and meet the pilot's frozen health/risk limits? | Continue only the proven operational scope; otherwise repair the first failure before widening it; update A–D estimate |
+| After first E/F replay evaluation | Is the replay reproducible/leakage-safe, are costs credible, and is the strategy result pass/fail/inconclusive under the frozen charter? | Continue a supported hypothesis, narrow an unsupported claim or reject the strategy; do not tune acceptance to its result; update research/data estimate |
+| After L feasibility and first complete M broker-paper journey | Do account/session recovery, contracts, orders/protection and reconciliation actually work within the supported API/hosting path? | Confirm or revise the adapter/hosting choice, narrow unsupported order types or park the blocked integration; update L–O estimate; no automatic live activation |
+
+At each checkpoint record evidence/revision/environment, remaining defects,
+measured effort if available, changed estimate, chosen scope and one next slice.
+Rejecting a strategy is a useful research outcome; it does not justify adding
+more infrastructure to rescue the hypothesis.
+
 ### Phase plan, effort and market evidence
 
 Hours are **remaining active engineering effort**, including implementation,
@@ -293,11 +360,36 @@ Options and stocks may have different instrument-specific closing/expiry rules.
 | OPEN | Run predeclared bounded forward/data/paper/broker checks; collect decisions, fills and health automatically | Session/date/revision/cohort plus reconciliation; no forced trades |
 | After CLOSE | Finalize due outcomes and fees, reconcile, detect gaps, update scorecard and select next failure | Durable evidence and one next slice; no automatic policy promotion |
 
-Keep one primary slice and at most one named CLOSED supporting slice while its
-OPEN gate is waiting. Return at the next eligible observation. Standing automatic
-collection may continue within its own permissions while development is CLOSED.
-Credential, entitlement, budget or statistical-sample blockers are not merely
-market-window blockers; label and resolve them separately.
+Keep **at most two development slices**: one primary and, when useful, one
+explicitly selected independent CLOSED slice. The second is allowed while OPEN
+observations wait or while stable interfaces permit genuinely independent work;
+it is not permission to skip phase dependencies or launch a second product
+release. Automatic observation and after-session processing may continue within
+their declared budgets; they are operating jobs, not extra development slots.
+
+Each development slice has a named owner, acceptance criterion, 4–16h budget,
+isolated branch/worktree, stable versioned interface, write/schema ownership and
+integration order recorded in the ledger. One owner changes shared order,
+portfolio or schema contracts at a time; dependent consumers wait for that
+contract or use its frozen version. Integrate and verify against current main
+before declaring either result complete. If collision, review backlog or
+integration failures erase the gain, reduce to one slice and finish it.
+
+Keep the observed OPEN candidate frozen: code, configuration, data contract,
+strategy version and experiment charter. Develop separately; deploy a new
+candidate between observations. A critical incident may stop the observation,
+but the interrupted evidence stays labelled and the changed candidate requires
+fresh relevant checks. Do not pool different candidates as one clean session.
+At the next eligible OPEN window, run the prepared observation; do not miss it
+to start another CLOSED task. Session, credential, entitlement, budget and sample
+blockers are distinct and must not be relabelled as completed work.
+
+Examples after their phase dependencies are met: E replay development while C
+collects forward evidence; D observer development against C's stable read model
+while L adapter integration uses its own stable contracts. Two simultaneous
+rewrites of the same portfolio/order model are not independent. Measure verified
+behavior, lead time and integration/rework cost before increasing concurrency;
+this plan authorizes no more than two development slices.
 
 First selections (budgets are subdivisions of A/B, not extra phase estimates):
 - **A.1, 4–8h CLOSED:** verify latest main, current IF-2 probe status, reusable
@@ -307,7 +399,8 @@ First selections (budgets are subdivisions of A/B, not extra phase estimates):
   observation and durable readback. Keep source/coverage limitations explicit.
 - **B.1, 8–16h CLOSED:** attach a complete version/availability envelope to one
   real existing decision and reconstruct it through the existing readback.
-  This may be the single supporting slice if A.2 waits solely for OPEN.
+  This is the first candidate for the second development slot once its
+  interface/dependency conditions are met, including an A.2 OPEN wait.
 - **B.2/C.1, 8–16h slices after predecessors:** one frozen decision produces one
   internal-paper intent/fill/ledger update with exact retry and restart behavior,
   then add exit and observer readback. No broker call or live-mode path.

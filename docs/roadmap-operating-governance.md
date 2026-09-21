@@ -19,16 +19,45 @@ remains outside the development workflow.
 - A selected slice must name its phase, behavior, predecessor, pass/fail check,
   environment and market evidence. Source-only contracts or dashboard shells
   do not establish a running paper engine or broker integration.
-- While its OPEN proof waits for a calendar-confirmed session, allow at most
-  one selected CLOSED supporting slice with a named return trigger. Distinguish
-  session waits from unavailable credentials/data rights, exhausted budgets or
-  insufficient statistical samples. Closed work cannot relabel those as passed.
+- Allow at most two development slices: the primary plus one selected independent
+  CLOSED slice. Use the second during an OPEN wait or when stable interfaces and
+  fulfilled dependencies permit independent work. Each has a named owner,
+  isolated branch/worktree, acceptance check, 4–16h budget, interface version,
+  write/schema ownership and integration order in the ledger. Do not assign
+  competing changes to a shared order/portfolio/schema contract.
+- Automatic observations and after-session processing are separate operating
+  jobs within approved budgets, not additional development streams. Prioritize
+  the next eligible OPEN observation; keep its candidate and experiment frozen.
+  Develop separately and integrate against current main before completion.
+  Critical fixes stop/restart the affected observation with explicit evidence
+  boundaries. Never silently mix revisions within an experiment.
+- Reduce to one development slice if conflicts, review backlog or rework consume
+  the benefit. Compare delivered behavior/lead time against integration cost;
+  two is a maximum, not a utilization target. Distinguish market waits from
+  missing data rights, credentials, budget or statistical evidence.
 - After two same-cause failed attempts, diagnose and change approach. Do not
   create static successor chains or expand demo/research infrastructure without
   a demonstrated dependency on the selected outcome.
 - Finish the current engine's bounded operational gaps first. Do not demand
   positive alpha before building the paper/replay infrastructure needed to
   test it. Early paper remains experimental; live promotion requires the gates.
+
+### Pilot and decision checkpoints
+
+Use the master roadmap's bounded first pilot: one existing long-only equity
+strategy, at most ten eligible symbols, one paper position and regular hours.
+Complete its unattended durable lifecycle before increasing scope. During A,
+record actual data rights/capacity and numeric cost/health/recovery limits in the
+ledger; freeze them before enabling the observed session and verify them with
+timed behavior tests. Do not invent calibrated probabilities or ignore missing
+inputs to make a pilot run. Independent CLOSED development can continue.
+
+Make a short continue/narrow/stop decision after the first C session, first E/F
+replay evaluation, L feasibility and first complete M integration. Record
+observed results, uncertainty, scope change, revised estimate and next slice.
+Failing alpha rejects a strategy, not scientific rigor; failing operational
+controls requires repair before expansion. These are existing-budget delivery
+decisions, not new administrative phases or blanket live activation.
 
 ### Scientific and execution boundaries
 
