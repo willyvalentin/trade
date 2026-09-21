@@ -17,12 +17,17 @@ Before choosing new work, read the **active sections** at the top of:
 2. `docs/ture-current-state-ledger.md` — the single Now / Next / Blocked queue.
 3. `docs/roadmap-operating-governance.md` — bounded delivery and blocker rules.
 
-The user's 2026-09-09 direction is MVP first, then the full vision. Historical
-Action chains do not select current work. Implement the next acceptance-linked
-user behavior; do not create static successors, governance frameworks or later
-release features just to keep busy. Reuse working code. Keep one product slice
-active, budget 4–16 active hours, cap initial investigation at four hours and
-bundle necessary implementation, behavior tests and documentation.
+The user's 2026-09-21 direction is scientific validation and IBKR first:
+finish bounded current-engine gaps, then autonomous internal paper, reproducible
+research, autonomous IBKR paper and separately gated limited/controlled live.
+Use the active SV-A–SV-U dependency map. Avanza is maintenance-only. Historical
+IF/MVP/Action chains do not select work, but their implementations and evidence
+must be reused where applicable. Notion is not a control source or sync target.
+Keep one product slice active, budget 4–16 active hours, cap initial investigation
+at four hours and bundle implementation, behavior tests and documentation.
+Use the declared CLOSED/OPEN/SPLIT evidence lanes; at most one selected CLOSED
+supporting slice may proceed while the primary OPEN observation waits. Never
+mistake simulation, a fixture or paper success for accepted live performance.
 
 Follow existing user authorization for reversible local implementation and
 checks; do not invent permission gates. Preserve safety, privacy and applicable

@@ -1,6 +1,356 @@
 # Ture Master Roadmap
 
-## Active product direction — intelligence first, 2026-09-15
+## Active product direction — scientific validation and IBKR first, 2026-09-21
+
+The user's 2026-09-21 specification selects **scientific validation → autonomous
+internal paper → autonomous IBKR paper → approved limited live → controlled
+live automation**, with options research and separately gated options execution.
+IBKR is the primary broker for all new execution work. Avanza is maintenance-only:
+preserve existing records, ownership and safety fixes, but build no new Avanza
+handoff or automation capability. This supersedes the former Avanza EX-1/EX-2
+sequence and the blanket rule parking all execution engineering behind IF-5.
+It does not waive evidence gates for real capital or activate any broker.
+
+The repository remains the only control source. The [ledger](./ture-current-state-ledger.md)
+selects work; [governance](./roadmap-operating-governance.md) controls delivery.
+Notion is not maintained or used for selection. The complete user specification
+is preserved in [the dated source specification](./ture-scientific-validation-ibkr-spec-2026-09-21.md).
+Its numerical examples are illustrative, not observed results or approved limits.
+
+### Destination and retained principles
+
+Ture observes licensed market data, classifies market state, discovers candidates,
+forecasts outcomes, ranks net expected value, selects an instrument, allocates
+risk, executes through deterministic controls, manages positions, reconciles,
+measures costs and outcomes, and tests improvements. Scientific validation and
+paper research continue permanently after live launch. Neither implementation
+nor a successful simulation guarantees positive alpha.
+
+- Discover beyond a static watchlist; retain the existing zero-to-three public
+  equity shortlist policy until a versioned evaluation justifies changing it.
+  Research volume is separate from published recommendations and execution.
+- `NO TRADE` is a complete decision, never a failure to fill a quota. Positive
+  expectancy after costs, uncertainty and portfolio fit matter more than win rate.
+- Preserve decision-time truth, immutable lineage, owner isolation, source
+  entitlement, coverage, missingness, provider budgets and fail-closed freshness.
+- Models propose; deterministic Ture Core owns risk, state and order authority.
+  Research findings never rewrite a production strategy automatically.
+- Deployed backend services and durable storage run without the dashboard or a
+  user's workstation. Dashboard closure, process restart and a missed schedule
+  must not lose an order, position or observation.
+- `Research`, `Internal Paper`, `IBKR Paper`, `Limited Live` and `Scaled Live`
+  have distinct account identities, credentials, routes, ledgers and enablement.
+  Research/internal paper must have no live-order credentials or reachable live
+  submission capability. No silent paper-to-live fallback is permitted.
+
+### Starting point and reuse — main `0dbdcb53`, 2026-09-20
+
+This is an incremental plan, not a rewrite. Existing IF-0/IF-1 decision records,
+IF-2 source/coverage/budget receipts, IF-3 context boundaries, IF-4 baseline
+readiness/freeze/pagination and IF-5 policy comparisons are candidate foundations.
+`lib/recommendation-policy-comparison.ts` already separates held-out and
+walk-forward samples and calibrated probabilities from ordinal confidence.
+These source capabilities are not evidence of a completed autonomous portfolio,
+production-ready IBKR adapter or validated alpha. Existing paper-session UI and
+historical replay helpers must be inspected and reused where suitable; a helper
+name or fixture result does not establish an unattended service.
+
+Phase SV-A closes the bounded operational gaps in the current engine and records
+remaining evidence honestly. It does not require proving profitability before
+building the research infrastructure needed to investigate profitability. Map
+IF-2/IF-3 operational acceptance into SV-A and IF-4/IF-5 research implementation
+into SV-B/E/F/G/J; keep their receipts and unresolved gates. Historical MVP 18-row
+coverage remains historical and is not the denominator for this larger program.
+
+### Release outcomes and dependency order
+
+Phase IDs use `SV-A` through `SV-U` to correspond to specification section 62;
+these are not the old Milestone A/B/C labels. Alphabetical order is not a mandate
+to postpone prerequisites. Only the selected slice is active.
+
+| Release outcome | Required phases / acceptance | What may follow |
+| --- | --- | --- |
+| R-SCI-1: autonomous internal equity paper | A, B, C and the basic D observer; C includes baseline risk, event checks, portfolio accounting and cost instrumentation | Collect forward evidence continuously; no live capital |
+| R-SCI-2: reproducible scientific laboratory | D, E, F, G, H, I, J, K; calibrated/versioned research and fully attributed results | Admit only strategies whose frozen gates pass; a rejected strategy is a valid scientific result |
+| R-IBKR-P: autonomous broker rehearsal | C + L + M, with base N telemetry, account isolation and deterministic risk | Test integration without claiming paper fills reproduce live execution |
+| R-IBKR-L: human-approved limited live | Applicable A–G/I/J/K capabilities, F strategy gates, M operational proof and N TCA; O release approval | Human approves each entry; exit permissions are separately bounded |
+| R-IBKR-A: controlled equity automation | O live evidence + P scope/limits/ramp/drift/kill-switch gates | Only named validated strategies and allowed accounts/instruments |
+| R-OPT: options research, selection and execution | Q → R → S → T with B/E/F/G/I/K/N and separate options validation | Approval-required options first; auto only after its own live evidence |
+| R-EXEC: measured execution optimization | U after enough attributable N/O data; separate T data for options | Shadow challenger, then bounded promotion and rollback |
+
+Working order: **A → B → C + basic D → E/F**, expanding G/K context and I/J
+controls before live admission. Start L's bounded API/account/deployment feasibility
+work after A/B rather than discovering an authentication obstacle at launch;
+actual IBKR paper execution waits for C/L. Build N telemetry into C/L and finish
+its broker attribution with M. H and options research need not delay a qualified
+small equity live release, and options do not require equity full-auto activation.
+Q may start after a stable equity evidence path and B/E/F foundations exist, if
+the ledger selects it. No parallel stream is created merely by this map.
+
+### Phase plan, effort and market evidence
+
+Hours are **remaining active engineering effort**, including implementation,
+focused tests, review, operational checks and necessary documentation, with reuse
+of the starting-point code. They are preliminary judgement ranges, not measured
+velocity, elapsed model runtime or a promise of profitable strategies. External
+waiting, market observation days, account onboarding, paid data acquisition and
+infrastructure bills are excluded. Shared work is charged once: C owns baseline
+paper risk/accounting/event checks; I/K extend them; C/L own instrumentation and
+N extends analysis; B owns registries and later phases consume them.
+
+`CLOSED` means code, CI, replay, historical/data processing or account connectivity
+checks that do not require fresh regular-session behavior. Authorized external
+services can still be needed. `OPEN` means an actual exchange-calendar-confirmed
+regular-session observation, quote/fill/exit or forward cohort. `SPLIT` requires
+both. All phases can be coded CLOSED; none require writing code during OPEN.
+Market state, environment, dependency readiness and external authority are
+separate fields. A closed market is not a reason to bypass missing data or gates.
+
+| Phase | Deliverable and demonstrable completion | Dependencies | CLOSED implementation / checks | OPEN evidence / external wait | Active hours |
+| --- | --- | --- | --- | --- | --- |
+| SV-A — current engine finish | Reproduce a scheduled scan → decision record → outcome/readback; bound remaining failures and preserve honest no-trade/coverage | Existing IF baseline | Fix first real operational defect; regression, source/cohort and outcome checks | SPLIT: one eligible scheduled session; entitlement/coverage receipt remains required | 32–64 |
+| SV-B — decision/model infrastructure | Reconstruct an accepted, rejected and no-trade decision with exact code, data, feature, model and strategy versions | A interface stability; reuse IF-1/4 | Immutable event/schema lineage, model/strategy registry, as-of metadata, durable readback and rollback identity | SPLIT: capture/reconstruct actual scheduled decisions; never infer forward evidence from fixtures | 48–96 |
+| SV-C — autonomous internal paper | Backend completes a paper trading day without login, with orders, fills, portfolio, exits, costs and restart recovery | A, B | Shared decision interface, worker/scheduler, persistent order state, realistic fills, ledger, baseline risk/event filters, basic regime label, safe restart and kill controls | SPLIT: start with 3–5 full-session operational observations including no-trade; collect trades only if eligible | 120–220 |
+| SV-D — paper/research dashboard | Server state reconciles to account, activity, performance, attribution, calibration and engine-health views | C/B for basic observer; E/F/G/H results for advanced views | Read-only observer, equity/returns/drawdown, sample size/validation labels, cost and freshness disclosure | SPLIT: view real paper session; closing browser has no engine effect | 48–88 |
+| SV-E — market replay | Same decision/risk/portfolio/exit core replays a stored day deterministically without future data | B, C; licensed point-in-time data | Virtual clock, event order, symbol/corporate-action history, deterministic random seed, latency/fill simulation, data-gap rejection, restart/replay equivalence | CLOSED: no market window needed; historical coverage/license can block; scale from 1 day to multi-regime corpus, e.g. 250 days | 80–160 |
+| SV-F — OOS/walk-forward validation | A frozen experiment yields reproducible pass/fail/inconclusive scorecard on untouched data | B, E; reuse IF-4/5 | Training/validation/test isolation, walk-forward, leakage checks, calibrated probabilities, net metrics, uncertainty, baseline comparisons and versioned gates | SPLIT: forward shadow sample/time requirements remain after historical evaluation; weeks/months may be needed | 64–120 |
+| SV-G — market regimes | Point-in-time trend/volatility/breadth/momentum/liquidity/dispersion/index/risk-appetite labels explain conditional strategy results | A, B; reuse IF-3; E for historical testing | Versioned features, regime attribution and shadow strategy enable/disable policy; absent data stays unknown | SPLIT: verify synchronized fresh inputs; multi-regime evidence accumulates without forced trades | 48–96 |
+| SV-H — shadow/counterfactuals | Compare baseline and alternative entry, stop, exit and sizing on identical opportunities, including rejects | B, C, E/F infrastructure | Independent simulated portfolios, cost/fill uncertainty, equal budgets, frozen experiment families; no production writes | SPLIT: forward shadow observation; options alternatives join after Q | 64–120 |
+| SV-I — portfolio/allocation | Competing signals are selected under cash, open-risk, sector, correlation, beta and concentration limits | C, G, F framework | Extend C accounting to cross-signal net-EV ranking, dynamic sizing and stress scenarios; reject unsupported risk estimates | SPLIT: concurrent-opportunity and exposure readback; lack of opportunities leaves proof pending | 64–120 |
+| SV-J — drift/health | Detect feature, regime, performance, calibration and execution deterioration; narrow or pause safely | B, F, G; N inputs when available | Baseline versus rolling-window metrics, minimum sample, alert/pause/rollback and restart tests; separate drift from outages | SPLIT: forward monitoring/false-alarm evidence; 100/200/500-trade windows only when populated | 48–96 |
+| SV-K — event risk | Earnings, macro/company events, ex-dividend, splits, halts and expiry affect admission and sizing explicitly | B, G; extend C baseline deny rules | Licensed calendars, point-in-time revisions/timezones, missing-feed policy and historical/synthetic event scenarios | SPLIT: fresh calendar/halts handling; rare events need not be awaited for fault simulation | 40–80 |
+| SV-L — IBKR foundation | Separate backend adapter identifies correct account/contracts, persists order intent/events, reconciles and recovers | A/B stable contracts; C lifecycle before order integration | API/session feasibility, persistent hosting, connect/authenticate, account/buying power/position/order reads, submit/modify/cancel, execution/position subscriptions, contract tests | SPLIT: account/auth checks may run CLOSED; fresh quotes and meaningful fills require OPEN; permissions and credentials are external dependencies | 80–160 |
+| SV-M — autonomous IBKR paper | Signal → risk → paper order → fill → position → exit → reconciliation with no per-trade user input | C, L, base N telemetry | Failure injection: uncertain submit, duplicate/out-of-order events, disconnect, cancel/replace, orphan protection, restart | SPLIT: plan 5–10 operational paper sessions including reconnection; not a profitability gate or substitute for fills not observed | 64–120 |
+| SV-N — transaction cost analysis | Decision, arrival, order and execution reconcile to gross/net edge and attributable cost | B/C telemetry; L/M for broker data | Arrival benchmarks, spread/slippage/latency, missed/partial fills, cancellation, commissions and impact estimate disclosure | SPLIT: paper measures simulation; actual live TCA starts with O and remains a separate cohort | 40–80 |
+| SV-O — one-click limited IBKR live | A human-approved, freshly revalidated equity intent executes with verified protection, exit and reconciliation | F scientific gate, G/I/J/K risk context, M operational gate, N telemetry | Approval expiry and exact intent binding, live account allowlist, per-order risk recheck, incident/rollback runbook | OPEN: explicitly authorized supervised small-capital trials; initially plan 5–10 sessions, extend for missing scenarios | 56–104 |
+| SV-P — controlled equity auto | Named strategies run within permissions, capital stages and automatic withdrawal rules | O observed live behavior, F/J gates, N paper/live comparison | Permissions by strategy/setup/instrument/universe/confidence/regime/risk, risk reservations, ramp and two distinct emergency controls | OPEN: staged forward live evidence; initial planning allowance 10–20 sessions, never automatic time-based promotion | 64–120 |
+| SV-Q — options research data/pricing | Reproducible option chain and forecast distribution yield costed contract scenario results | B/E/F foundation, stable equity evidence path; G/K context | Contract IDs, strike/expiry/DTE/Greeks/IV/bid-ask/volume/OI; forecast calibration, pricing, skew/surface/term structure later; expiry/assignment scenarios | SPLIT: licensed chains/underlying quotes, fresh Greeks/IV and feed alignment; historical data availability is separate | 96–180 |
+| SV-R — autonomous options shadow | Each eligible equity opportunity compares stock, long call/put and later defined-risk vertical spreads without capital | Q, C/H, F | Parallel option portfolios, costs/partial fills/exercise/assignment, equity comparison and options attribution | SPLIT: forward observations across expiry, liquidity and volatility conditions; underperformance retained | 64–120 |
+| SV-S — instrument selection | Rank stock/call/put/defined spread on calibrated net EV, downside, liquidity and portfolio risk; abstain when unclear | Q/R evidence, F, I, G/K | Common capital/risk basis, uncertainty, theta/IV sensitivity, portfolio Greeks; shadow comparison and rollback | SPLIT: out-of-sample and forward shadow selection before eligible promotion | 64–128 |
+| SV-T — IBKR options execution | Approved options trades reconcile by leg and position; auto is a later separate gate | L/M/N/O operational controls, Q/R/S strategy evidence, permissions | Combo orders, tick/multiplier checks, incomplete legs, assignment/exercise/expiry and margin stress; no naked short options | SPLIT: IBKR options paper first, then authorized limited live; initial allowance 5–10 sessions plus relevant expiry evidence | 80–160 |
+| SV-U — execution optimization | A cost model improves net execution versus frozen policy without worse fill/risk behavior | N and enough O/P or T instrument-specific live evidence | Market/limit choice, offset, patience, timing and liquidity sizing; paired replay/shadow and holdout validation | SPLIT: prospective bounded live challenger; no automatic change from a historical win | 64–128 |
+
+Observation-session counts are initial **operational planning allowances**, not
+statistical acceptance thresholds. A valid no-trade day passes availability checks
+but does not prove fills or exits. Use reproducible replay/fault injection for rare
+scenarios, and separately record which broker behaviors were actually observed.
+Re-estimate each phase when selected, after its first 4–16-hour vertical slice.
+
+### Effort roll-up and calendar limits
+
+- A–D, including the complete D dashboard: **248–468 active hours**. The first
+  internal-paper release can ship before advanced D research views, but do not
+  claim that reduction until the selected slices establish it.
+- All A–U capabilities: **1,328–2,560 active hours** (rounded planning range:
+  about 1,300–2,600 hours). This includes options and
+  execution optimization; it is not the effort required before the first useful
+  paper release.
+- At an illustrative 30 effective engineering hours/week, A–D is roughly
+  8–16 engineering weeks and the entire scope 44–85
+  engineering weeks. These are capacity scenarios, not measured project velocity.
+  Parallelization may shorten some elapsed work but does not divide integration,
+  review, account setup, dataset acquisition or evidence waits by agent count.
+- Observation can overlap later CLOSED implementation. Forecast elapsed time
+  from the dependency critical path plus non-overlapping waits, not by adding
+  every phase's session allowance. Scientific validation may require months and
+  may never support a particular strategy's live promotion.
+- Largest uncertainty: current-engine defects, historical point-in-time/options
+  coverage, IBKR account/API/session fit, deployed worker operations and the
+  number of strategy iterations. Rebaseline after A, first autonomous C session
+  and L feasibility; never preserve an obsolete total for appearance of progress.
+
+### Acceptance gates and scientific integrity
+
+Each phase has three separately reported states: **implemented**, **environment
+verified**, **release/strategy accepted**. Record exact build, strategy/data/model
+versions, environment, market session, fixtures versus observed inputs, pass/fail
+criteria and remaining gap. The code may be complete while the scientific gate
+is inconclusive or failed. Never count 21 phases as equal effort units.
+
+1. **A/B operational gate:** durable, attributable decisions and truthful coverage,
+   freshness/no-trade/outcomes; one bounded licensed data path works without UI.
+   Unknown probabilities/EV stay unknown. A heuristic score is not a probability.
+2. **C internal-paper gate:** strict isolation, risk veto before every simulated
+   order, portfolio/cash/fees invariant checks, restart idempotency, a full session
+   without frontend, and first simulated fills/exits reconciled to source inputs.
+   Uncalibrated baseline strategies remain explicitly experimental paper-only.
+3. **E/F scientific gate:** freeze hypothesis, baseline, population, strategy
+   version, evaluation windows, cost/fill assumptions, sample requirements,
+   concentration limits and numeric pass/fail thresholds **before evaluation**.
+   Training selects parameters, validation selects models, untouched OOS tests
+   judge them. Purge/embargo overlapping label horizons and prevent ticker/time
+   leakage; use as-of availability timestamps, delisted securities and correct
+   corporate actions. Track multiple comparisons and correlated signals; use
+   uncertainty intervals/effective samples, not raw trade count alone.
+4. **F/J promotion gate:** positive net OOS expectancy with predeclared uncertainty
+   and drawdown/calibration/coverage/feasibility limits, across stated periods
+   and relevant regimes without one ticker/period dominating; forward shadow,
+   explainable attribution, rollback and monitored withdrawal. 5,000–10,000
+   timestamped signals is a research target, not sufficient independent trades
+   or a universal guarantee. Poor evidence means reject/inconclusive, not tune
+   the gate until it passes. Compute calibration curves/error on a specified
+   event/horizon, not a generic confidence badge.
+5. **M broker gate:** verify account/contract identity, order acknowledgements,
+   partial/rejected/unfilled orders, protection/exit semantics, restart and
+   reconciliation. IBKR Paper establishes integration, not live execution alpha.
+6. **O/P live gate:** explicit account/strategy/instrument/risk enablement after
+   scientific and operational gates. O requires a human-approved entry and
+   bounded exit permissions; P permits autonomous entries only within named
+   limits. Capital stages advance on evidence, never on elapsed days or an
+   implementation checkbox. Compare paper/live fills, costs, latency, expectancy
+   and drawdown; deteriorating evidence reduces risk or pauses entry.
+7. **Q–T options gate:** calibrated distributions and options-specific OOS,
+   paper, lifecycle and limited-live evidence. Start stock/long calls/long puts;
+   admit bull-call/bear-put debit spreads separately. No naked short options.
+   Defined payoff risk is not a guarantee against assignment, legging, liquidity
+   or temporary stock/margin exposure; lifecycle controls must handle these.
+
+Metrics must include gross/net/realized/unrealized P&L, costs, returns by trade/day/
+week/month, equity and drawdown depth/duration, volatility/downside deviation,
+Sharpe/Sortino/Calmar, profit factor/payoff/expectancy/expected and realized R,
+MFE/MAE and their timing, holding duration and sample size. CAGR and VaR are shown
+only with stated horizon/model/sufficient data; undefined statistics stay undefined.
+Attribution covers setup, ticker, sector/industry/market cap, direction, confidence,
+time/day, regime, entry/exit/stop/target/sizing and every version. Options add
+DTE/delta/moneyness/IV/liquidity/event proximity. Cost accounting must avoid
+subtracting spread/slippage twice when already embedded in fill prices.
+
+### Internal-paper accounting and research completeness
+
+SV-C owns a configurable virtual starting balance (the specification's $100,000
+is an example), cash, reserved buying power, settled/unsettled amounts as relevant,
+realized/unrealized P&L, equity, open/closed lots, gross/net/sector exposure and
+current/maximum drawdown. Reconcile fills, commissions, FX where applicable,
+corporate actions and partial exits to the ledger. Model bid/ask, spread,
+slippage, latency, partial/rejected/unfilled orders, stops, targets, trailing and
+end-of-day exits; bar ambiguity must be conservative or explicitly unresolved.
+Do not assume a stop fills at its trigger or that a signal price is a fill.
+
+SV-B preserves accepted/rejected signals and explicit no-trade runs, including
+proposed plan, size, holding horizon, confidence/probability/EV with their meaning
+and availability, feature/market snapshots and component versions. Store missing
+probability or EV as unavailable, never a fabricated calibrated value. SV-C may
+run an explicitly experimental baseline; F gates its scientific claims and
+Q/S add forecast-distribution and cross-instrument valuation. Preserve point-in-
+time raw evidence and dataset manifests under licensed retention rules; use
+resource budgets for parallel research, checkpointing and recoverable scheduling.
+Shadow portfolios reserve capital independently and cannot double-count one
+opportunity as many independent observations. Counters for rejected/missing
+samples make storage limits and selection bias visible.
+
+### IBKR design boundaries to resolve in SV-L
+
+Use one domain decision/risk/portfolio core and capability-aware adapters for
+internal simulation, IBKR Paper and IBKR Live. Domain interfaces include
+connect/authenticate, get account/buying power/positions/open orders, place/modify/
+cancel orders, executions and subscriptions. Keep broker transport separate from
+strategy logic. Persist intent before send; use durable correlation to broker order
+and execution IDs. A submit timeout is **unknown**, not permission to resubmit:
+reconcile first. Handle duplicate/out-of-order events, partial-fill/cancel races,
+restart, manual broker changes and unknown positions. IBKR is the authority for
+actual orders/fills/positions; Ture retains its decision/audit history.
+
+Choose TWS API + IB Gateway versus Web API after a bounded account-specific
+feasibility check: supported authentication/reauthentication, account permissions,
+market data, connection limits, order types, hosting and recovery. Do not promise
+unattended broker authentication before this is demonstrated. Internal paper
+must remain autonomous even when a broker session needs operator restoration.
+A persistent execution worker needs suitable server-owned hosting; a browser or
+short-lived request handler is not the broker connection owner.
+
+Before every submit/replace/increase, validate current strategy permission,
+account/environment, price freshness, event state, cash/buying power, per-trade
+risk/size, daily loss, open-position count, correlated/sector exposure, drawdown,
+allowed instrument/session and broker connectivity. Reserve risk atomically
+across concurrent orders. Risk-reducing exits follow a separately defined emergency
+policy. Stops do not guarantee an absolute loss cap through gaps or outages.
+
+`STOP AUTOMATION` persistently blocks new entries and handles queued entry orders
+without abandoning existing protection. `CLOSE ALL` is a separate authorized,
+Ture-position-scoped best-effort action with cancellation/exit/reconciliation and
+an incident state if markets or connectivity prevent closure. Fault tests cover
+stale/corrupt feeds, loss limits, broker outages, mismatches, extreme events,
+abnormal costs and severe drift. No control may claim a fill before confirmation.
+
+Official IBKR sources checked 2026-09-21 (recheck when selecting implementation):
+- [Paper trading limitations](https://www.interactivebrokers.com/docs/tws-api/doc/notes-limitations/limitations/paper-trading): simulated execution can differ from live; plan separate live evidence.
+- [Web API sessions](https://www.interactivebrokers.com/docs/web-api/authentication/sessions): brokerage sessions and username-specific permissions constrain authentication; do not assume simultaneous sessions.
+- [API market-data requirements](https://www.interactivebrokers.com/docs/general/market-data-subscriptions/introduction): applicable subscriptions must be verified. IBKR-first execution does not automatically replace licensed research/discovery data sources or supply historical options coverage.
+
+### Market-window scheduling and first slices
+
+Use the instrument's exchange calendar and `America/New_York`, including DST,
+holidays and shortened sessions; never hard-code a fixed Swedish UTC offset.
+Regular US-equity session observations are normally 09:30–16:00 New York time;
+verify instrument/session eligibility before each test. Extended-hours evidence
+is separately labelled and cannot substitute for regular-session fill/liquidity.
+Options and stocks may have different instrument-specific closing/expiry rules.
+
+| Window | Selected work | Evidence returned |
+| --- | --- | --- |
+| CLOSED / weekend | Build next 4–16-hour vertical slice, deterministic replay/fault tests, licensed historical processing, reports and baseline freeze | Reproducible behavior on fixed data; no claim of a new live session |
+| Before OPEN | Deploy already verified candidate if authorized; check account/env, feed entitlements, limits, session and rollback | Ready or explicit blocker; avoid changing the experiment during observation |
+| OPEN | Run predeclared bounded forward/data/paper/broker checks; collect decisions, fills and health automatically | Session/date/revision/cohort plus reconciliation; no forced trades |
+| After CLOSE | Finalize due outcomes and fees, reconcile, detect gaps, update scorecard and select next failure | Durable evidence and one next slice; no automatic policy promotion |
+
+Keep one primary slice and at most one named CLOSED supporting slice while its
+OPEN gate is waiting. Return at the next eligible observation. Standing automatic
+collection may continue within its own permissions while development is CLOSED.
+Credential, entitlement, budget or statistical-sample blockers are not merely
+market-window blockers; label and resolve them separately.
+
+First selections (budgets are subdivisions of A/B, not extra phase estimates):
+- **A.1, 4–8h CLOSED:** verify latest main, current IF-2 probe status, reusable
+  decision/baseline/outcome paths and one reproducible operational gap. End with
+  a failing behavior or a verified path, not another architecture framework.
+- **A.2, 8–16h SPLIT:** repair that first gap; take the next authorized scheduled
+  observation and durable readback. Keep source/coverage limitations explicit.
+- **B.1, 8–16h CLOSED:** attach a complete version/availability envelope to one
+  real existing decision and reconstruct it through the existing readback.
+  This may be the single supporting slice if A.2 waits solely for OPEN.
+- **B.2/C.1, 8–16h slices after predecessors:** one frozen decision produces one
+  internal-paper intent/fill/ledger update with exact retry and restart behavior,
+  then add exit and observer readback. No broker call or live-mode path.
+
+### Specification coverage and completion reporting
+
+The source document is the field-level checklist; the phase table is the delivery
+plan. Do not silently omit a field because it is abbreviated in the table.
+
+| Specification sections | Planned home |
+| --- | --- |
+| 1–4 | Destination, principles, release and scientific gates across A–U |
+| 5–7 | C autonomous service/account and D observer dashboard |
+| 8–9 | B immutable signal/model/strategy registries |
+| 10–12 | E replay and point-in-time integrity |
+| 13 | C realistic paper execution; calibrated with N/U |
+| 14–15 | H parallel shadow/counterfactuals; R options extensions |
+| 16–18 | C/D/F/N metrics, attribution, calibration |
+| 19–20 | G market regimes and strategy use |
+| 21 | C minimum event veto, K full event-risk coverage |
+| 22–26 | E/F leakage, OOS, walk-forward, validation and scorecards |
+| 27–28 | J all drift categories |
+| 29–31 | C basic portfolio; I allocation/correlation/portfolio risk |
+| 32–39 | Q forecast/options data/simulation, R shadow/attribution, S instrument selection |
+| 40–42 | N TCA and U execution optimization |
+| 43–49 | L adapter/service/lifecycle/idempotency/reconciliation |
+| 50 | C shared baseline risk; I/K extensions; L/M/O/P per-order enforcement |
+| 51–55 | O approval-first, C/M autonomous paper exits, P permissioned live exits/auto/ramp/kill controls |
+| 56–58 | Environment separation, C internal paper, L/M autonomous IBKR paper |
+| 59–60 | O/P capital ramp and paper/live divergence, N/J measurement |
+| 61 | Permanent C/E/H/R research collection with B lineage |
+| 62 | SV-A–SV-U phase map and dependencies above |
+| 63–64 | Release outcomes and gates; every success item must have behavior evidence |
+
+Track per selected phase: completed acceptance checks / its declared checks,
+implementation versus environment/scientific acceptance, net-new behavior,
+active hours if measured, waiting sessions, defects, next OPEN window and selected
+CLOSED fallback. Do not invent total percent complete or turn commits into hours.
+A strategy failing validation can complete a research experiment while remaining
+ineligible for capital. Refine estimates from observed slice lead time and actual
+defects; keep external data/market waits separate.
+
+## Historical product direction — intelligence first, 2026-09-15 (superseded in selection)
 
 Decision: **build the recommendation engine before expanding trade execution.**
 Ture's next product outcome is not a richer broker workflow. It is a genuinely

@@ -1,6 +1,67 @@
 # Roadmap Operating Governance
 
-## Active delivery policy — intelligence first, 2026-09-15
+## Active delivery policy — scientific validation and IBKR first, 2026-09-21
+
+Follow the active SV-A–SV-U map in the repository master roadmap and the single
+Now / Next / Blocked queue in the ledger. The user's new specification replaces
+Avanza as the future execution target with IBKR and permits autonomous internal
+paper plus IBKR-paper engineering before proof of live alpha. It preserves the
+scientific and operational gates before real capital. Older IF and MVP material
+is reusable evidence; its former work-selection rules are historical. Notion
+remains outside the development workflow.
+
+### Select and finish real product behavior
+
+- Keep one primary 4–16 active-hour vertical slice. Initial investigation is
+  capped at four active hours and must produce a reproducible failure, useful
+  integrated experiment or evidence-backed scope decision. Reuse current IF
+  decision records, source receipts, baseline freeze and evaluation code.
+- A selected slice must name its phase, behavior, predecessor, pass/fail check,
+  environment and market evidence. Source-only contracts or dashboard shells
+  do not establish a running paper engine or broker integration.
+- While its OPEN proof waits for a calendar-confirmed session, allow at most
+  one selected CLOSED supporting slice with a named return trigger. Distinguish
+  session waits from unavailable credentials/data rights, exhausted budgets or
+  insufficient statistical samples. Closed work cannot relabel those as passed.
+- After two same-cause failed attempts, diagnose and change approach. Do not
+  create static successor chains or expand demo/research infrastructure without
+  a demonstrated dependency on the selected outcome.
+- Finish the current engine's bounded operational gaps first. Do not demand
+  positive alpha before building the paper/replay infrastructure needed to
+  test it. Early paper remains experimental; live promotion requires the gates.
+
+### Scientific and execution boundaries
+
+Freeze experiment population, baseline, versions, time windows, outcome/cost
+semantics, minimum effective samples, uncertainty and numeric thresholds before
+reading evaluation results. Preserve held-out/walk-forward separation, leakage
+controls and source-cohort identity. Report inconclusive and failed results;
+neither paper profits nor a high signal count authorize capital. Shadow and
+counterfactual results cannot automatically change an active strategy.
+
+Internal-paper, IBKR-paper and live adapters share decision/risk semantics but
+have separate credentials, accounts, state and submission capabilities. All new
+broker work targets IBKR. Keep Avanza history and safety fixes, without new
+Avanza features or relabelling old manual confirmations as IBKR evidence. Live
+orders require separately enabled account/strategy/instrument/risk scope, with
+approval-first entries before controlled auto. Research and paper must never
+fall back to live execution. The roadmap is a product decision, not authority
+to purchase data, place orders, migrate databases or deploy production.
+
+### Reporting and delivery
+
+Use small reviewed main-targeted PRs. Preserve unrelated work. Staging is a
+bounded integration environment, not a competing branch roadmap. Run applicable
+checks; do not alter branch protection or CI just to expedite a plan.
+
+Report implemented, environment-verified and strategy/release-accepted states
+separately with exact revision, data/model/strategy identity, environment,
+session and behavior evidence. Include actual active hours only if tracked;
+keep observation time separate from engineering time. Re-estimate after the
+first selected slice of a phase. Update the existing ledger with each material
+outcome; do not create a separate reporting system or Notion mirror.
+
+## Historical delivery policy — intelligence first, 2026-09-15 (superseded in selection)
 
 This policy supersedes the MVP-first selection rule and every Notion-mirror
 instruction below it. The repository's master roadmap and current-state ledger

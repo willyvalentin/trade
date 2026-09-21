@@ -1,6 +1,61 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-15 intelligence-first reset
+## Active Now / Next / Blocked — 2026-09-21 scientific validation and IBKR direction
+
+The [master roadmap](./ture-master-roadmap.md) now maps the user's full scientific
+validation, autonomous paper, options and IBKR specification into SV-A–SV-U.
+This is a planning update based on main `0dbdcb53272b1739864a47f33a26fc22e052a0d6`,
+not new runtime or strategy evidence. The older IF receipts below remain usable;
+their former queue and Avanza execution priority are superseded. Repository
+roadmap/governance/ledger are the only control sources; Notion stays outside scope.
+
+### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
+
+Next slice **A.1 (4–8 active hours, CLOSED)**: reconcile the latest main and the
+actual status of the previously selected IF-2 market observation; identify the
+first concrete operational gap in scheduled scan → immutable decision → outcome
+→ authenticated readback. Reuse baseline/source-cohort/policy-comparison work
+already on main. Do not restart completed IF deliveries, infer a live cohort from
+contracts, or wait for proven alpha before building research instrumentation.
+This planning pass has not executed A.1 or claimed that IF-2's next observation
+has succeeded. Check intervening active work before starting implementation.
+
+### Next — ordered, bounded product work
+
+1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
+   applicable authorized session/readback; preserve no-trade and partial-coverage
+   truth. Record revision, environment and actual market date.
+2. **B.1, 8–16h CLOSED:** version/availability lineage for one existing real
+   decision through durable reconstruction. This is the single eligible support
+   slice if A.2 waits solely for OPEN; do not run a second support queue.
+3. **B.2/C.1, 8–16h slices:** after A/B dependencies, decision → internal-paper
+   intent → costed fill → virtual ledger with exact retry/restart, then exits and
+   dashboard observer. All broker/live submission capabilities remain absent.
+4. Select subsequent slices from the roadmap dependency graph. Early L feasibility
+   is allowed when selected after A/B; no new Avanza execution features.
+
+### Waiting / parked / decisions
+
+| Item | Status and next useful action |
+| --- | --- |
+| Prior IF-2 live capability/coverage proof | Unverified in this planning pass; read current receipts and continue only the applicable bounded observation, not the historical queue blindly |
+| IBKR API/account/session route and hosting | Not selected/verified; bounded SV-L feasibility must establish supported authentication, recovery, permissions and persistent backend operation |
+| Data entitlements and historical/options coverage | Existing provider budgets remain; record availability, storage/research rights and costs before expanding acquisition; IBKR execution does not imply new data rights |
+| Live scientific acceptance | Not established by source work; frozen OOS/walk-forward and forward evidence required in F before capital |
+| Live equity/options activation | Parked behind O/P and separate T gates; this planning change sends no broker order and grants no activation |
+| Avanza feature development | Deprioritized; retain historical records and safety maintenance, build all new execution for IBKR |
+
+### Measurement baseline
+
+SV-A–SV-U are planned outcomes, not 21 newly completed or equally sized tasks.
+Existing IF deliveries are reuse credits to verify per selected slice, not a
+claimed overall percentage. Phase estimates in the roadmap include active work
+and omit external/market waiting. Record observed slice hours, defect count,
+acceptance checks, implementation/environment/scientific state and next OPEN
+window before publishing a calendar forecast. No updated MVP/IF acceptance
+counts, runtime deployment or alpha result are asserted by this document change.
+
+## Historical Now / Next / Blocked — 2026-09-15 intelligence-first reset
 
 This is the only active work queue under the
 [master roadmap](./ture-master-roadmap.md). Repository documents are the sole
