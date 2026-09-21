@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -19,6 +20,25 @@ const root = resolve(__dirname, "../..");
 const productionDeployId = "6ab1797d8ee5580008985f39";
 const productionCommit = "1f51d3ffcd392ab3491a966a4ba34ab93fab78cb";
 const productionSiteId = "2b582e03-ac97-4371-8051-558d9980fb94";
+const packagedBuildIdentity = (() => {
+  try {
+    return parseScheduledScanBuildDeploymentIdentity(
+      JSON.parse(
+        readFileSync(
+          resolve(
+            root,
+            "netlify/.generated/scheduled-scan-deployment-identity.json",
+          ),
+          "utf8",
+        ),
+      ),
+    );
+  } catch {
+    return null;
+  }
+})();
+const handlerProductionDeployId =
+  packagedBuildIdentity?.deploy_id ?? productionDeployId;
 
 function withFixedDate<T>(timestamp: string, callback: () => T) {
   const OriginalDate = globalThis.Date;
@@ -186,6 +206,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }),
     ).toMatchObject({
       status: "admitted_build_identity_fallback",
@@ -212,6 +233,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("deployment_identity_conflict");
     expect(
@@ -225,6 +247,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: "11111111-1111-4111-8111-111111111111",
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("build_identity_site_mismatch");
     expect(
@@ -238,6 +261,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("deployment_identity_unavailable");
     expect(
@@ -251,6 +275,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("deployment_identity_conflict");
     expect(
@@ -264,6 +289,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: "2026-09-21T19:15:00.000Z",
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("probe_slot_mismatch");
     expect(
@@ -277,8 +303,57 @@ test.describe("scheduled scan invocation idempotency", () => {
         runtimeSiteId: productionSiteId,
         eventEvidence,
         configuredProbeSlotUtc: null,
+        configuredProbeDate: "2026-09-21",
       }).status,
     ).toBe("probe_slot_unavailable");
+
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: null,
+      }).status,
+    ).toBe("probe_date_unavailable");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-20",
+      }).status,
+    ).toBe("probe_date_mismatch");
+
+    const crossUtcDateEvent = scheduledScanPreflightEventEvidence({
+      nextRun: "2026-09-22T01:15:00.000Z",
+      deliveryTime: new Date("2026-09-22T01:00:48.000Z"),
+    });
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence: crossUtcDateEvent,
+        configuredProbeSlotUtc: "2026-09-22T01:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
+      }).status,
+    ).toBe("admitted_build_identity_fallback");
   });
 
   test("rejects malformed or non-production build identities", () => {
@@ -373,6 +448,15 @@ test.describe("scheduled scan invocation idempotency", () => {
         basic_free_catalog_capability_probe_slot_utc:
           "2026-09-21T13:15:00.000Z",
       });
+      expect(
+        scheduledScanRuntimeConfigurationFromEnvironment({
+          get(key: string) {
+            return key === "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE"
+              ? "2026-09-31"
+              : undefined;
+          },
+        }).basic_free_catalog_capability_probe_date,
+      ).toBeNull();
 
       const response = await withFixedDate(
         "2026-09-21T13:15:48.000Z",
@@ -384,7 +468,7 @@ test.describe("scheduled scan invocation idempotency", () => {
             }),
             {
               deploy: {
-                id: productionDeployId,
+                id: handlerProductionDeployId,
                 context: "production",
                 published: true,
               },
@@ -412,7 +496,7 @@ test.describe("scheduled scan invocation idempotency", () => {
               "2026-09-21T13:15:00.000Z",
           },
           netlify_deploy: {
-            deploy_id: productionDeployId,
+            deploy_id: handlerProductionDeployId,
             deploy_context: "production",
             deploy_published: true,
           },
@@ -450,6 +534,7 @@ test.describe("scheduled scan invocation idempotency", () => {
               return {
                 TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE: "2026-09-21",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
                   "2026-09-21T13:15:00.000Z",
               }[key];
@@ -474,7 +559,7 @@ test.describe("scheduled scan invocation idempotency", () => {
             }),
             {
               deploy: {
-                id: productionDeployId,
+                id: handlerProductionDeployId,
                 context: "production",
                 published: true,
               },
@@ -532,7 +617,61 @@ test.describe("scheduled scan invocation idempotency", () => {
             }),
             {
               deploy: {
-                id: productionDeployId,
+                id: handlerProductionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
+      );
+
+      expect(response.status).toBe(204);
+      expect(requests).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
+    }
+  });
+
+  test("keeps a probe slot with the wrong New York date inert before the database and route", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    let requests = 0;
+
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: {
+          env: {
+            get(key: string) {
+              return {
+                TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE: "2026-09-20",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
+                  "2026-09-21T13:15:00.000Z",
+              }[key];
+            },
+          },
+        },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        return new Response("unexpected", { status: 500 });
+      };
+
+      const response = await withFixedDate(
+        "2026-09-21T13:15:48.000Z",
+        () =>
+          scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: handlerProductionDeployId,
                 context: "production",
                 published: true,
               },
@@ -563,6 +702,7 @@ test.describe("scheduled scan invocation idempotency", () => {
               return {
                 TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE: "2026-09-21",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
                   "2026-09-21T13:15:00.000Z",
               }[key];

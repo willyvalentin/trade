@@ -218,7 +218,11 @@ function booleanTrue(value: unknown) {
 
 function catalogProbeDateOrNull(value: unknown) {
   const candidate = typeof value === "string" ? value.trim() : "";
-  return /^\d{4}-\d{2}-\d{2}$/.test(candidate) ? candidate : null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return null;
+
+  const [year, month, day] = candidate.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.toISOString().slice(0, 10) === candidate ? candidate : null;
 }
 
 function catalogProbeSlotOrNull(value: unknown) {
@@ -295,7 +299,9 @@ type ScheduledScanProbePreflightAdmission = Readonly<{
     | "deployment_identity_conflict"
     | "build_identity_site_mismatch"
     | "probe_slot_unavailable"
-    | "probe_slot_mismatch";
+    | "probe_slot_mismatch"
+    | "probe_date_unavailable"
+    | "probe_date_mismatch";
   admitted: boolean;
   identity_source: "runtime_context" | "build_identity_fallback" | null;
   deployment_identity: ScheduledScanResolvedDeploymentIdentity | null;
@@ -311,6 +317,25 @@ function normalizedString(value: unknown) {
   return typeof value === "string" && value.trim()
     ? value.trim().toLowerCase()
     : null;
+}
+
+function newYorkDateForUtc(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: "year" | "month" | "day") =>
+    parts.find((candidate) => candidate.type === type)?.value ?? null;
+  const year = part("year");
+  const month = part("month");
+  const day = part("day");
+
+  return year && month && day ? `${year}-${month}-${day}` : null;
 }
 
 export function parseScheduledScanBuildDeploymentIdentity(
@@ -395,12 +420,14 @@ export function scheduledScanProbePreflightAdmission({
   runtimeSiteId,
   eventEvidence,
   configuredProbeSlotUtc,
+  configuredProbeDate,
 }: {
   contextIdentity: ScheduledScanDeployIdentity;
   buildIdentity: ScheduledScanBuildDeploymentIdentity | null;
   runtimeSiteId: unknown;
   eventEvidence: ScheduledScanPreflightEventEvidence;
   configuredProbeSlotUtc: string | null;
+  configuredProbeDate: string | null;
 }): ScheduledScanProbePreflightAdmission {
   if (eventEvidence.status !== "time_bound_scheduled_event") {
     return Object.freeze({
@@ -427,6 +454,26 @@ export function scheduledScanProbePreflightAdmission({
   ) {
     return Object.freeze({
       status: "probe_slot_mismatch",
+      admitted: false,
+      identity_source: null,
+      deployment_identity: null,
+      event_evidence: eventEvidence,
+    });
+  }
+
+  if (!configuredProbeDate) {
+    return Object.freeze({
+      status: "probe_date_unavailable",
+      admitted: false,
+      identity_source: null,
+      deployment_identity: null,
+      event_evidence: eventEvidence,
+    });
+  }
+
+  if (newYorkDateForUtc(configuredProbeSlotUtc) !== configuredProbeDate) {
+    return Object.freeze({
+      status: "probe_date_mismatch",
       admitted: false,
       identity_source: null,
       deployment_identity: null,
@@ -705,6 +752,8 @@ export default async function handler(request: Request, context: Context) {
         }),
         configuredProbeSlotUtc:
           runtimeConfiguration.basic_free_catalog_capability_probe_slot_utc,
+        configuredProbeDate:
+          runtimeConfiguration.basic_free_catalog_capability_probe_date,
       })
     : null;
 
@@ -719,7 +768,9 @@ export default async function handler(request: Request, context: Context) {
     );
     if (
       probePreflightAdmission?.status === "probe_slot_unavailable" ||
-      probePreflightAdmission?.status === "probe_slot_mismatch"
+      probePreflightAdmission?.status === "probe_slot_mismatch" ||
+      probePreflightAdmission?.status === "probe_date_unavailable" ||
+      probePreflightAdmission?.status === "probe_date_mismatch"
     ) {
       return new Response(null, { status: 204 });
     }
