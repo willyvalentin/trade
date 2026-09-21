@@ -2,6 +2,7 @@ import {
   candidateDecisionRecordFromScanRun,
 } from "@/lib/candidate-decision-readback";
 import type { CanonicalEvaluationVersions } from "@/lib/canonical-recommendation-evaluation";
+import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import {
   buildRecommendationLearningBaselineReadiness,
@@ -11,7 +12,7 @@ import {
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 
 export const RECOMMENDATION_LEARNING_BASELINE_SEGMENTATION_VERSION =
-  "recommendation_learning_baseline_segmentation_v1" as const;
+  "recommendation_learning_baseline_segmentation_v2" as const;
 
 const canonicalVersionFields = [
   "engine_version",
@@ -30,11 +31,16 @@ type CompletePolicyAttribution = {
   canonical_evaluation_versions: CanonicalEvaluationVersions;
 };
 
+type CompleteStrategyAttribution = NonNullable<
+  CandidateDecisionRecord["strategy_reference"]
+>;
+
 type ComparableRun = {
   scanRun: LearningBaselineScanRun;
   scanRunFingerprint: string;
   decisionTimestamp: string;
   attribution: CompletePolicyAttribution;
+  strategyAttribution: CompleteStrategyAttribution;
 };
 
 export type RecommendationLearningBaselineSegment = {
@@ -42,6 +48,7 @@ export type RecommendationLearningBaselineSegment = {
   // every policy/version field, unlike the human-readable policy label.
   segment_key: string;
   policy_attribution: CompletePolicyAttribution;
+  strategy_attribution: CompleteStrategyAttribution;
   decision_records: {
     count: number;
     earliest_decision_timestamp: string;
@@ -80,7 +87,8 @@ function completePolicyAttribution(
     !record ||
     !attribution ||
     attribution.attribution_status !== "complete" ||
-    attribution.canonical_evaluation_versions === null
+    attribution.canonical_evaluation_versions === null ||
+    record.strategy_reference === null
   ) {
     return null;
   }
@@ -93,10 +101,14 @@ function completePolicyAttribution(
         attribution.recommendation_publish_policy_version,
       canonical_evaluation_versions: attribution.canonical_evaluation_versions,
     },
+    strategyAttribution: record.strategy_reference,
   };
 }
 
-function policyBundleKey(attribution: CompletePolicyAttribution) {
+function policyBundleKey(
+  attribution: CompletePolicyAttribution,
+  strategyAttribution: CompleteStrategyAttribution,
+) {
   // A JSON tuple avoids separator-collision ambiguity while making every field
   // that can affect a comparable evaluation population part of the key.
   return JSON.stringify([
@@ -104,6 +116,13 @@ function policyBundleKey(attribution: CompletePolicyAttribution) {
     ...canonicalVersionFields.map(
       (field) => attribution.canonical_evaluation_versions[field],
     ),
+    strategyAttribution.registry_version,
+    strategyAttribution.strategy_id,
+    strategyAttribution.strategy_version,
+    strategyAttribution.rollback_identity,
+    strategyAttribution.symbol_selection.policy_id,
+    strategyAttribution.symbol_selection.policy_version,
+    strategyAttribution.symbol_selection.observed_universe_version,
   ]);
 }
 
@@ -122,8 +141,11 @@ function compareSegments(
     left.readiness.visible_outcomes.primary_outcome_count;
   if (primaryDifference !== 0) return primaryDifference;
 
-  return policyBundleKey(left.policy_attribution).localeCompare(
-    policyBundleKey(right.policy_attribution),
+  return policyBundleKey(
+    left.policy_attribution,
+    left.strategy_attribution,
+  ).localeCompare(
+    policyBundleKey(right.policy_attribution, right.strategy_attribution),
   );
 }
 
@@ -179,7 +201,7 @@ export function buildRecommendationLearningBaselineSegmentation({
   const groupedRuns = new Map<string, ComparableRun[]>();
   for (const run of comparableRuns) {
     if (duplicateFingerprints.has(run.scanRunFingerprint)) continue;
-    const key = policyBundleKey(run.attribution);
+    const key = policyBundleKey(run.attribution, run.strategyAttribution);
     const group = groupedRuns.get(key) ?? [];
     group.push(run);
     groupedRuns.set(key, group);
@@ -199,8 +221,12 @@ export function buildRecommendationLearningBaselineSegmentation({
       const last = orderedRuns[orderedRuns.length - 1]!;
 
       return {
-        segment_key: policyBundleKey(first.attribution),
+        segment_key: policyBundleKey(
+          first.attribution,
+          first.strategyAttribution,
+        ),
         policy_attribution: first.attribution,
+        strategy_attribution: first.strategyAttribution,
         decision_records: {
           count: orderedRuns.length,
           earliest_decision_timestamp: first.decisionTimestamp,

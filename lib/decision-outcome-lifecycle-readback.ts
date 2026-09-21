@@ -6,7 +6,7 @@ import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
 import type { ScheduledOutcomeEvaluationAttempt } from "@/lib/scheduled-outcome-evaluation-receipt";
 
 export const DECISION_OUTCOME_LIFECYCLE_READBACK_VERSION =
-  "decision_outcome_lifecycle_readback_v1" as const;
+  "decision_outcome_lifecycle_readback_v2" as const;
 
 export type DecisionOutcomeLifecycleReadbackStatus =
   | "no_retained_decision"
@@ -26,6 +26,13 @@ export type DecisionOutcomeLifecycleReadback = {
     candidate_decision_record_status: "available" | "missing";
     decision_lineage_receipt_status: "reconstructable" | "incomplete" | "missing";
     decision_lineage_receipt_reason_codes: string[];
+    strategy_id: string | null;
+    strategy_version: string | null;
+    strategy_rollback_identity: string | null;
+    symbol_selection_policy_id: string | null;
+    symbol_selection_policy_version: string | null;
+    observed_universe_version: string | null;
+    coverage_claim: "bounded_scanner_universe_not_market_wide" | null;
     retained_snapshot_count: number;
     research_only_snapshot_count: number;
     learning_only_snapshot_count: number;
@@ -168,6 +175,13 @@ function retainedDecisionDefaults() {
     candidate_decision_record_status: "missing" as const,
     decision_lineage_receipt_status: "missing" as const,
     decision_lineage_receipt_reason_codes: [],
+    strategy_id: null,
+    strategy_version: null,
+    strategy_rollback_identity: null,
+    symbol_selection_policy_id: null,
+    symbol_selection_policy_version: null,
+    observed_universe_version: null,
+    coverage_claim: null,
     retained_snapshot_count: 0,
     research_only_snapshot_count: 0,
     learning_only_snapshot_count: 0,
@@ -300,6 +314,11 @@ export function buildDecisionOutcomeLifecycleReadback({
     : null;
   const decisionLineageReceiptStatus: DecisionOutcomeLifecycleReadback["decision"]["decision_lineage_receipt_status"] =
     decisionLineageReceipt?.status ?? "missing";
+  const coverageClaim: DecisionOutcomeLifecycleReadback["decision"]["coverage_claim"] =
+    decisionLineageReceipt?.versions.coverage_claim ===
+    "bounded_scanner_universe_not_market_wide"
+      ? "bounded_scanner_universe_not_market_wide"
+      : null;
   const decision = {
     scan_run_fingerprint: selectedScanRun.run_fingerprint,
     observed_at: isoOrNull(selectedScanRun.observed_at),
@@ -310,6 +329,17 @@ export function buildDecisionOutcomeLifecycleReadback({
     decision_lineage_receipt_status: decisionLineageReceiptStatus,
     decision_lineage_receipt_reason_codes:
       decisionLineageReceipt?.reason_codes ?? [],
+    strategy_id: decisionLineageReceipt?.versions.strategy_id ?? null,
+    strategy_version: decisionLineageReceipt?.versions.strategy_version ?? null,
+    strategy_rollback_identity:
+      decisionLineageReceipt?.versions.strategy_rollback_identity ?? null,
+    symbol_selection_policy_id:
+      decisionLineageReceipt?.versions.symbol_selection_policy_id ?? null,
+    symbol_selection_policy_version:
+      decisionLineageReceipt?.versions.symbol_selection_policy_version ?? null,
+    observed_universe_version:
+      decisionLineageReceipt?.versions.observed_universe_version ?? null,
+    coverage_claim: coverageClaim,
     retained_snapshot_count: selectedSnapshots.length,
     research_only_snapshot_count: selectedSnapshots.filter(
       isResearchOnlySnapshot,
@@ -450,6 +480,36 @@ export function decisionOutcomeLifecycleReadbackFromUnknown(
     (decision.decision_lineage_receipt_status === "missing" &&
       decision.decision_lineage_receipt_reason_codes.length !== 0) ||
     [
+      decision.strategy_id,
+      decision.strategy_version,
+      decision.strategy_rollback_identity,
+      decision.symbol_selection_policy_id,
+      decision.symbol_selection_policy_version,
+      decision.observed_universe_version,
+    ].some((field) => field !== null && textOrNull(field) === null) ||
+    (decision.decision_lineage_receipt_status === "missing" &&
+      [
+        decision.strategy_id,
+        decision.strategy_version,
+        decision.strategy_rollback_identity,
+        decision.symbol_selection_policy_id,
+        decision.symbol_selection_policy_version,
+        decision.observed_universe_version,
+        decision.coverage_claim,
+      ].some((field) => field !== null)) ||
+    (decision.coverage_claim !== null &&
+      decision.coverage_claim !== "bounded_scanner_universe_not_market_wide") ||
+    (decision.decision_lineage_receipt_status === "reconstructable" &&
+      [
+        decision.strategy_id,
+        decision.strategy_version,
+        decision.strategy_rollback_identity,
+        decision.symbol_selection_policy_id,
+        decision.symbol_selection_policy_version,
+        decision.observed_universe_version,
+        decision.coverage_claim,
+      ].some((field) => field === null)) ||
+    [
       decision.retained_snapshot_count,
       decision.research_only_snapshot_count,
       decision.learning_only_snapshot_count,
@@ -490,6 +550,32 @@ export function decisionOutcomeLifecycleReadbackFromUnknown(
         decision.decision_lineage_receipt_reason_codes.map(
           (reason) => textOrNull(reason)!,
         ),
+      strategy_id:
+        decision.strategy_id === null ? null : textOrNull(decision.strategy_id),
+      strategy_version:
+        decision.strategy_version === null
+          ? null
+          : textOrNull(decision.strategy_version),
+      strategy_rollback_identity:
+        decision.strategy_rollback_identity === null
+          ? null
+          : textOrNull(decision.strategy_rollback_identity),
+      symbol_selection_policy_id:
+        decision.symbol_selection_policy_id === null
+          ? null
+          : textOrNull(decision.symbol_selection_policy_id),
+      symbol_selection_policy_version:
+        decision.symbol_selection_policy_version === null
+          ? null
+          : textOrNull(decision.symbol_selection_policy_version),
+      observed_universe_version:
+        decision.observed_universe_version === null
+          ? null
+          : textOrNull(decision.observed_universe_version),
+      coverage_claim:
+        decision.coverage_claim === "bounded_scanner_universe_not_market_wide"
+          ? "bounded_scanner_universe_not_market_wide"
+          : null,
       retained_snapshot_count: decision.retained_snapshot_count as number,
       research_only_snapshot_count: decision.research_only_snapshot_count as number,
       learning_only_snapshot_count: decision.learning_only_snapshot_count as number,

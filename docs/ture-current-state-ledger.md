@@ -145,6 +145,32 @@ rows still lack the actual strategy/version and selection facts. A separately
 authorized future current decision is required to prove durable environment
 capture and complete B.1's real-decision acceptance.
 
+**B.1 CLOSED continuation — explicit strategy/selection registry, 2026-09-21:**
+owner Codex on `codex/sv-b-strategy-registry`. A read-only production query
+after B.1 production deploy `2383f43a4f9c5e429d4f41c52a8ec9c5521ef3a0`
+found zero `recommendation_scan_runs` at or after
+`2026-09-21T17:16:56.232Z`; no provider or scan route was invoked. B.1 therefore
+remains without real-decision environment evidence. The follow-up implementation
+removes a semantic defect before the next observation: the lineage receipt had
+treated `recommendation_publish_policy_version` as a strategy version. New
+decision-record v3 rows instead bind the actual deterministic research strategy
+`intraday_long_multi_setup_quality_ranker@1.0.0`, registry and rollback
+identity, long-only/model-not-applicable semantics, and the exact observed
+scanner-universe selection policy. Scanner budget constants now share that
+registry source (`50` default, `100` hard maximum), while the retained coverage
+claim remains explicitly `bounded_scanner_universe_not_market_wide`. Unknown,
+tampered or cross-universe strategy references fail closed. The existing
+owner-scoped lifecycle readback now reconstructs the strategy, rollback and
+selection identities; it does not change ranking or publication. Learning
+readiness and segmentation now require that same registry identity, so legacy
+policy-attributed rows cannot be silently pooled with strategy-attributed rows;
+the exact strategy identity is part of the immutable segment key. Local evidence:
+62 focused decision/lifecycle/learning/freeze/charter regressions pass, strict TypeScript and a
+full Next production build pass, and repository lint has zero errors. Delivery-level
+revision, review, merge and deploy evidence is tracked against PR #577 rather than
+inferred from this document. A new attributable production decision is still required
+for environment acceptance.
+
 1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
    applicable authorized session/readback; preserve no-trade and partial-coverage
    truth. Record revision, environment and actual market date.
@@ -168,11 +194,15 @@ compute/spend caps and numeric freshness, latency, heartbeat, monitoring and
 recovery thresholds. These values are **not yet established by this planning
 change**. B/C must enforce durable zero-loss/zero-duplicate accounting and the
 chosen risk limits; no real-capital allocation or new subscription is implied.
+The newly named full scanner strategy is not the first C pilot selection: its
+normal `50`/maximum `100` symbol scan budget exceeds the pilot's at-most-ten
+eligible-symbol cap. Selecting and freezing that smaller cohort remains gated
+on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 is active: decision-to-outcome readback is main/production deployed; OPEN session/readback remains | Resolve the observed runtime-configuration/revision boundary before a separately authorized slot, then record only that slot's durable result |
-| Second development | SV-B.1 implementation is ready for review on `codex/sv-b1-decision-lineage`; real-decision acceptance remains OPEN | CLOSED provider-free receipt only; preserve A.2's observed configuration boundary, use the scan-run/snapshot persistence boundary as sole write owner, and after merge await one separately authorized current decision for durable environment evidence |
+| Second development | SV-B.1 base receipt is merged/deployed; explicit strategy/selection registry is locally tested on `codex/sv-b-strategy-registry`; real-decision acceptance remains OPEN | Review/merge the provider-free registry follow-up, then await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

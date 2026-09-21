@@ -2,7 +2,7 @@ import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 
 export const DECISION_LINEAGE_RECEIPT_VERSION =
-  "decision_lineage_receipt_v1" as const;
+  "decision_lineage_receipt_v2" as const;
 
 export type DecisionLineageReceiptStatus = "reconstructable" | "incomplete";
 
@@ -19,7 +19,14 @@ export type DecisionLineageReceipt = {
     explicit_no_trade: boolean;
   };
   versions: {
+    strategy_id: string | null;
     strategy_version: string | null;
+    strategy_registry_version: string | null;
+    strategy_rollback_identity: string | null;
+    symbol_selection_policy_id: string | null;
+    symbol_selection_policy_version: string | null;
+    observed_universe_version: string | null;
+    coverage_claim: string | null;
     model: {
       status: "not_applicable";
       version: null;
@@ -114,11 +121,7 @@ export function buildDecisionLineageReceipt(
   const decisionTime = Date.parse(decisionTimestamp);
   const canonicalVersions =
     record.learning_attribution.canonical_evaluation_versions;
-  const strategyVersion =
-    record.learning_attribution.recommendation_publish_policy_version ===
-    "not_recorded"
-      ? null
-      : record.learning_attribution.recommendation_publish_policy_version;
+  const strategyReference = record.strategy_reference;
   const availability = record.candidates.reduce(
     (summary, candidate) => {
       const sourceTimestamp = candidate.data.source_timestamp;
@@ -157,7 +160,7 @@ export function buildDecisionLineageReceipt(
       ? []
       : ["candidate_membership_incomplete"]),
     ...(canonicalVersions ? [] : ["canonical_version_lineage_missing"]),
-    ...(strategyVersion ? [] : ["strategy_version_missing"]),
+    ...(strategyReference ? [] : ["strategy_reference_missing"]),
     ...(availability.missing_source_timestamp_count === 0
       ? []
       : ["source_timestamp_missing"]),
@@ -181,7 +184,18 @@ export function buildDecisionLineageReceipt(
       explicit_no_trade: record.final_decision.disposition === "no_trade",
     },
     versions: {
-      strategy_version: strategyVersion,
+      strategy_id: strategyReference?.strategy_id ?? null,
+      strategy_version: strategyReference?.strategy_version ?? null,
+      strategy_registry_version: strategyReference?.registry_version ?? null,
+      strategy_rollback_identity: strategyReference?.rollback_identity ?? null,
+      symbol_selection_policy_id:
+        strategyReference?.symbol_selection.policy_id ?? null,
+      symbol_selection_policy_version:
+        strategyReference?.symbol_selection.policy_version ?? null,
+      observed_universe_version:
+        strategyReference?.symbol_selection.observed_universe_version ?? null,
+      coverage_claim:
+        strategyReference?.symbol_selection.coverage_claim ?? null,
       model: {
         status: "not_applicable",
         version: null,
@@ -228,7 +242,8 @@ export function decisionLineageReceiptFromScanRun(
     raw?.scan_run_fingerprint !== scanRun.run_fingerprint ||
     decisionTimestamp === null ||
     (raw?.decision_record_version !== "candidate_decision_record_v1" &&
-      raw?.decision_record_version !== "candidate_decision_record_v2") ||
+      raw?.decision_record_version !== "candidate_decision_record_v2" &&
+      raw?.decision_record_version !== "candidate_decision_record_v3") ||
     !categories ||
     !finiteNonNegative(categories.published_candidate_count) ||
     !finiteNonNegative(categories.rejected_candidate_count) ||
@@ -237,7 +252,7 @@ export function decisionLineageReceiptFromScanRun(
     !model ||
     model.status !== "not_applicable" ||
     model.version !== null ||
-    !["strategy_version", "engine_version", "scoring_version", "ranking_version", "provider_contract_version", "git_commit", "build_identity"].every(
+    !["strategy_id", "strategy_version", "strategy_registry_version", "strategy_rollback_identity", "symbol_selection_policy_id", "symbol_selection_policy_version", "observed_universe_version", "coverage_claim", "engine_version", "scoring_version", "ranking_version", "provider_contract_version", "git_commit", "build_identity"].every(
       (key) => versions[key] === null || textOrNull(versions[key]) !== null,
     ) ||
     !availability ||
@@ -271,7 +286,22 @@ export function decisionLineageReceiptFromScanRun(
       explicit_no_trade: categories.explicit_no_trade,
     },
     versions: {
+      strategy_id: textOrNull(versions.strategy_id),
       strategy_version: textOrNull(versions.strategy_version),
+      strategy_registry_version: textOrNull(versions.strategy_registry_version),
+      strategy_rollback_identity: textOrNull(
+        versions.strategy_rollback_identity,
+      ),
+      symbol_selection_policy_id: textOrNull(
+        versions.symbol_selection_policy_id,
+      ),
+      symbol_selection_policy_version: textOrNull(
+        versions.symbol_selection_policy_version,
+      ),
+      observed_universe_version: textOrNull(
+        versions.observed_universe_version,
+      ),
+      coverage_claim: textOrNull(versions.coverage_claim),
       model: { status: "not_applicable", version: null },
       engine_version: textOrNull(versions.engine_version),
       scoring_version: textOrNull(versions.scoring_version),

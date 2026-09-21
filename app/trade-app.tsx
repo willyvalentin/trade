@@ -37794,6 +37794,15 @@ function DecisionOutcomeLifecycleReadbackPanel({
               Lineage limits: {decision.decision_lineage_receipt_reason_codes.join(", ")}.
             </p>
           ) : null}
+          {decision?.strategy_id ? (
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              Strategy: {decision.strategy_id}@{decision.strategy_version}; rollback: {decision.strategy_rollback_identity}; symbol selection: {decision.symbol_selection_policy_id}@{decision.symbol_selection_policy_version}; observed universe: {decision.observed_universe_version}; coverage: {decision.coverage_claim}.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Strategy and symbol-selection identity are not reconstructable for this decision.
+            </p>
+          )}
           {decision && decision.identity_conflict_excluded_snapshot_count > 0 && (
             <p className="mt-1 text-xs leading-5 text-amber-200">
               Excluded identity conflicts: {decision.identity_conflict_excluded_snapshot_count}.
@@ -39182,6 +39191,7 @@ function RecommendationLearningBaselineReadinessPanel({
 }) {
   const visibleOutcomes = readiness.visible_outcomes;
   const policy = readiness.policy_attribution;
+  const strategy = readiness.strategy_attribution;
   const sourceProvenance = readiness.decision_time_source_provenance;
   const sourceCohort = readiness.source_cohort_provenance;
   const sourceObservationIntegrity = sourceCohort.observation_integrity;
@@ -39244,6 +39254,10 @@ function RecommendationLearningBaselineReadinessPanel({
         <SummaryCard
           label="Policy Attribution"
           value={policy.status}
+        />
+        <SummaryCard
+          label="Strategy Attribution"
+          value={strategy.status}
         />
         <SummaryCard
           label="Decision-time Inputs"
@@ -39361,7 +39375,7 @@ function RecommendationLearningBaselineReadinessPanel({
           <ul className="mt-3 space-y-2 text-xs leading-5 text-zinc-400">
             {segmentation.segments.slice(0, 3).map((segment) => (
               <li key={segment.segment_key}>
-                {segment.policy_attribution.recommendation_publish_policy_version}: {segment.decision_records.count} decisions, {segment.readiness.visible_outcomes.primary_outcome_count}/{segment.readiness.visible_outcomes.minimum_required_before_freeze} visible primary outcomes, {segment.readiness.status.replaceAll("_", " ")}.
+                {segment.strategy_attribution.strategy_id}@{segment.strategy_attribution.strategy_version}; {segment.policy_attribution.recommendation_publish_policy_version}: {segment.decision_records.count} decisions, {segment.readiness.visible_outcomes.primary_outcome_count}/{segment.readiness.visible_outcomes.minimum_required_before_freeze} visible primary outcomes, {segment.readiness.status.replaceAll("_", " ")}.
               </li>
             ))}
           </ul>

@@ -13,13 +13,19 @@ import type {
   ScannerCandidateRankingResult,
   ScannerCandidateRankingSummary,
 } from "@/lib/scanner-candidate-ranking";
+import {
+  buildCurrentDecisionStrategyReference,
+  type DecisionStrategyReference,
+} from "@/lib/decision-strategy-registry";
 
 export const CANDIDATE_DECISION_CAPTURE_VERSION =
   "candidate_decision_capture_v1" as const;
 export const LEGACY_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v1" as const;
-export const CANDIDATE_DECISION_RECORD_VERSION =
+export const ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v2" as const;
+export const CANDIDATE_DECISION_RECORD_VERSION =
+  "candidate_decision_record_v3" as const;
 export const CANDIDATE_DECISION_SCANNER_VERSION = "scanner_v1" as const;
 export const CANDIDATE_DECISION_UNIVERSE_VERSION =
   "scanner_universe_v1" as const;
@@ -90,11 +96,13 @@ export type CandidateDecisionCapture = {
 export type CandidateDecisionRecord = {
   record_version:
     | typeof LEGACY_CANDIDATE_DECISION_RECORD_VERSION
+    | typeof ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION
     | typeof CANDIDATE_DECISION_RECORD_VERSION;
   record_kind: "candidate_decision_record";
   scan_run_id: string;
   scan_run_fingerprint: string;
   decision_timestamp: string;
+  strategy_reference: DecisionStrategyReference | null;
   versions: {
     scanner_version: string;
     universe_version: string;
@@ -505,6 +513,9 @@ export function buildCandidateDecisionRecord({
     scan_run_id: scanRun.id,
     scan_run_fingerprint: scanRun.run_fingerprint,
     decision_timestamp: decisionTimestamp,
+    strategy_reference: buildCurrentDecisionStrategyReference(
+      capture.universe_version,
+    ),
     versions: {
       scanner_version: capture.scanner_version,
       universe_version: capture.universe_version,

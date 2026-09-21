@@ -85,6 +85,13 @@ test("keeps the production-shaped retained-decision gap explicit", () => {
       candidate_decision_record_status: "missing",
       decision_lineage_receipt_status: "missing",
       decision_lineage_receipt_reason_codes: [],
+      strategy_id: null,
+      strategy_version: null,
+      strategy_rollback_identity: null,
+      symbol_selection_policy_id: null,
+      symbol_selection_policy_version: null,
+      observed_universe_version: null,
+      coverage_claim: null,
     },
     outcome_evidence: {
       linked_outcome_count: 0,
@@ -187,6 +194,25 @@ test("fails closed for malformed lifecycle JSON", () => {
   expect(
     decisionOutcomeLifecycleReadbackFromUnknown({
       ...readback,
+      decision: {
+        ...readback.decision,
+        strategy_id: "fabricated_strategy_without_receipt",
+      },
+    }),
+  ).toBeNull();
+  expect(
+    decisionOutcomeLifecycleReadbackFromUnknown({
+      ...readback,
+      decision: {
+        ...readback.decision,
+        decision_lineage_receipt_status: "reconstructable",
+        strategy_id: "fabricated_strategy",
+      },
+    }),
+  ).toBeNull();
+  expect(
+    decisionOutcomeLifecycleReadbackFromUnknown({
+      ...readback,
       status: "high_confidence",
     }),
   ).toBeNull();
@@ -205,5 +231,6 @@ test("the authenticated dashboard exposes the derived lifecycle contract", () =>
   expect(dataAccess).toContain("decision_outcome_lifecycle: decisionOutcomeLifecycle");
   expect(browser).toContain("decisionOutcomeLifecycleReadbackFromUnknown");
   expect(browser).toContain("DecisionOutcomeLifecycleReadbackPanel");
+  expect(browser).toContain("Strategy and symbol-selection identity");
   expect(browser).not.toContain('from "@/lib/supabase"');
 });

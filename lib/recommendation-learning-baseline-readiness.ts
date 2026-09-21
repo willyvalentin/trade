@@ -34,7 +34,7 @@ import {
 } from "@/lib/recommendation-source-cohort";
 
 export const RECOMMENDATION_LEARNING_BASELINE_READINESS_VERSION =
-  "recommendation_learning_baseline_readiness_v2" as const;
+  "recommendation_learning_baseline_readiness_v3" as const;
 export const MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE = 20;
 
 export type LearningBaselineScanRun = Pick<
@@ -80,6 +80,12 @@ export type RecommendationLearningBaselineReadiness = {
     incomplete_record_count: number;
     distinct_version_bundle_count: number;
     distinct_publish_policy_count: number;
+    status: "complete" | "incomplete" | "mixed" | "unavailable";
+  };
+  strategy_attribution: {
+    complete_record_count: number;
+    incomplete_record_count: number;
+    distinct_strategy_identity_count: number;
     status: "complete" | "incomplete" | "mixed" | "unavailable";
   };
   decision_time_source_provenance: {
@@ -293,6 +299,9 @@ export function buildRecommendationLearningBaselineReadiness({
   const primaryOutcomeByHorizon = { "15m": 0, "30m": 0, "60m": 0 };
   const versionBundleKeys = new Set<string>();
   const publishPolicyVersions = new Set<string>();
+  const strategyIdentityKeys = new Set<string>();
+  let completeStrategyAttributionCount = 0;
+  let incompleteStrategyAttributionCount = 0;
   const blockers = new Set<string>();
   const sourceProvenanceBySnapshotId = new Map<
     string,
@@ -367,6 +376,22 @@ export function buildRecommendationLearningBaselineReadiness({
     } else {
       incompleteAttributionCount += 1;
       blockers.add("canonical_policy_attribution_incomplete");
+    }
+
+    if (record.strategy_reference) {
+      completeStrategyAttributionCount += 1;
+      strategyIdentityKeys.add(JSON.stringify([
+        record.strategy_reference.registry_version,
+        record.strategy_reference.strategy_id,
+        record.strategy_reference.strategy_version,
+        record.strategy_reference.rollback_identity,
+        record.strategy_reference.symbol_selection.policy_id,
+        record.strategy_reference.symbol_selection.policy_version,
+        record.strategy_reference.symbol_selection.observed_universe_version,
+      ]));
+    } else {
+      incompleteStrategyAttributionCount += 1;
+      blockers.add("decision_strategy_attribution_incomplete");
     }
 
     for (const candidate of record.candidates) {
@@ -579,6 +604,17 @@ export function buildRecommendationLearningBaselineReadiness({
   if (policyAttributionStatus === "mixed") {
     blockers.add("multiple_policy_or_version_bundles_require_segmented_baseline");
   }
+  const strategyAttributionStatus =
+    attributableCount === 0
+      ? "unavailable"
+      : incompleteStrategyAttributionCount > 0
+        ? "incomplete"
+        : strategyIdentityKeys.size > 1
+          ? "mixed"
+          : "complete";
+  if (strategyAttributionStatus === "mixed") {
+    blockers.add("multiple_strategy_identities_require_segmented_baseline");
+  }
   if (primaryOutcomeCount < MIN_VISIBLE_PRIMARY_OUTCOMES_BEFORE_BASELINE_FREEZE) {
     blockers.add("insufficient_visible_primary_outcomes_for_baseline_freeze");
   }
@@ -672,6 +708,12 @@ export function buildRecommendationLearningBaselineReadiness({
       distinct_publish_policy_count: publishPolicyVersions.size,
       status: policyAttributionStatus,
     },
+    strategy_attribution: {
+      complete_record_count: completeStrategyAttributionCount,
+      incomplete_record_count: incompleteStrategyAttributionCount,
+      distinct_strategy_identity_count: strategyIdentityKeys.size,
+      status: strategyAttributionStatus,
+    },
     decision_time_source_provenance: {
       contract_version: RECOMMENDATION_DECISION_SOURCE_PROVENANCE_VERSION,
       assessed_snapshot_count: sourceProvenanceBySnapshotId.size,
@@ -715,6 +757,7 @@ export function buildRecommendationLearningBaselineReadiness({
       "A linked snapshot is inadmissible when its decision-time input lineage is missing, invalid, after the decision, or lacks an intraday response fingerprint, a bounded decision feature vector, provider version, Ture adapter version, or source build marker. The fingerprint is a privacy-preserving response identity, not an upstream API-version claim; the vector records finite observed features or explicit unavailable inputs, never raw candles. Ture preserves those rows as an evidence gap rather than allowing them into a baseline.",
       "Every snapshot actually assessed for a baseline must carry a valid intake-quality receipt from one result version. Missing, malformed or mixed receipt versions remain an explicit evidence gap; receipt status and grade are retained for later analysis but do not alter publication or select a winning policy.",
       "Every assessed snapshot must retain a versioned source-cohort receipt. Provider, feed class, observed entitlement, coverage scope, upstream/receipt timestamps, adapter/build version, request cost and response-quality disposition are facts, not defaults. Missing or degraded receipts and different cohort labels cannot be pooled into one baseline.",
+      "Every decision must retain an accepted strategy-registry identity. Legacy or missing strategy references are excluded, and distinct strategy/selection identities require separate baseline segments even when their publication policy is unchanged.",
       "Research-only outcomes count only when an immutable candidate ID, research-only snapshot, decision-bound anchor and complete provider-coverage receipt agree exactly. A no-trade decision counts only when its full ranked research population has that evidence. A filtered candidate can count only through the v2 exact link to its already-recorded fresh scanner plan; missing, stale or invented plans remain a separate evidence gap.",
       "Current confidence remains ordinal rather than a calibrated probability, so this audit cannot support confidence calibration.",
     ],
