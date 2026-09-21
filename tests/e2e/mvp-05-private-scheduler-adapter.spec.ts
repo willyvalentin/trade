@@ -79,12 +79,18 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
       'entryPoint: "app/api/automation/run-scan/route.ts"',
     );
     expect(builder).toContain('outputFile: "scheduled-scan-runtime.cjs"');
+    expect(builder).toContain(
+      '"scheduled-scan-deployment-identity.json"',
+    );
+    expect(builder).toContain("process.env.DEPLOY_ID");
+    expect(builder).toContain("process.env.COMMIT_REF");
+    expect(builder).toContain("process.env.SITE_ID");
     expect(builder).toContain("entryPoints: [runtime.entryPoint]");
     expect(builder).toContain('conditions: ["react-server"]');
     expect(builder).toContain('platform: "node"');
     expect(netlifyConfig).toContain("npm run build:scheduled-scan-runtime &&");
     expect(netlifyConfig).toContain(
-      'included_files = ["netlify/.generated/scheduled-scan-runtime.cjs"]',
+      'included_files = ["netlify/.generated/scheduled-scan-runtime.cjs", "netlify/.generated/scheduled-scan-deployment-identity.json"]',
     );
     expect(ignoredFiles).toContain("netlify/.generated/");
   });

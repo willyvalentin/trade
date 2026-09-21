@@ -102,6 +102,54 @@ before the target, and must bind its readback window to Netlify's displayed
 `Next execution` rather than a locally inferred slot. This proves neither
 provider entitlement nor market-wide discovery quality.
 
+**A.2 provider-free preflight retry runtime finding, 2026-09-21:** a later
+explicitly authorized retry ran on exact main
+`1f51d3ffcd392ab3491a966a4ba34ab93fab78cb`. Activation deploy
+`6ab17a97772aceb0dc157335` was `ready` and published with scheduled execution
+still disabled, the catalog probe armed and no provider route enabled. Although
+the Netlify function view then displayed 21:00 CEST as the next execution, the
+previous 20:45 slot still delivered and the 21:00 slot delivered too. Each slot
+was retried internally three times. Every delivery stopped before any database
+or scan-route call because the scheduled runtime did not satisfy the typed
+`context.deploy.id/context/published` assumption used by the preflight guard.
+The authorized one-slot operational bound was therefore **not held**; the UI's
+post-deploy next-execution display was not a safe exclusion boundary. This is a
+platform/runtime-contract defect, not a completed preflight.
+
+The final cleanup deploy `6ab1810a34916c26ef0e5f12` is `ready` on the same
+main revision. Production is restored to scheduled functions disabled, catalog
+probe false, no production probe date and ordinary one-shot true; the 21:15
+slot logged only `Execution disabled by environment`. Bounded production
+readback found zero new scan runs and zero recommendation snapshots. No durable
+preflight receipt exists because the failure preceded its writer. The direct
+credit-reservation relation remains intentionally unavailable through the Data
+API, so zero reservation is not claimed from a table read; source control and
+runtime logs prove the provider route was never loaded. No provider request,
+candidate publication or broker action occurred. Do not run another live retry
+under this authorization.
+
+**A.2 deploy-identity repair implemented locally, 2026-09-21 (4–8h):** owner
+Codex on `codex/sv-a2-scheduled-deploy-identity` replaces the unverified runtime
+context assumption with a fail-closed fallback generated during the Netlify
+build from non-secret `DEPLOY_ID`, `CONTEXT`, `COMMIT_REF` and `SITE_ID`. The
+scheduled function admits that fallback only for an exact production marker,
+an exact runtime site match, no conflicting runtime-context fact and a valid
+quarter-hour `next_run` delivered within the bounded three-minute retry window.
+The probe additionally requires one exact configured UTC slot; every missing or
+non-target slot returns inert before database access or the bundled scan route,
+so Netlify's UI timing cannot widen a one-slot authorization again. It records
+publication as requiring external deploy readback rather than inventing a
+runtime fact. Missing, malformed, preview, cross-site, conflicting, misaligned
+or late/manual-like evidence fails closed. The existing context path remains
+accepted only when Netlify itself supplies an exact published-production deploy
+identity. Focused behavior and packaging evidence is local; merge, production
+deploy and a fresh separately authorized OPEN preflight remain unverified.
+Local acceptance currently comprises 22 focused preflight/adapter/security-gate
+tests and 89 broader scheduler regressions passing, strict TypeScript passing,
+repository lint with zero errors (eight pre-existing warnings), a complete Next
+production build passing, and generated marker readback matching the supplied
+non-secret deploy, commit and site identities.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
@@ -165,11 +213,14 @@ selection identities; it does not change ranking or publication. Learning
 readiness and segmentation now require that same registry identity, so legacy
 policy-attributed rows cannot be silently pooled with strategy-attributed rows;
 the exact strategy identity is part of the immutable segment key. Local evidence:
-62 focused decision/lifecycle/learning/freeze/charter regressions pass, strict TypeScript and a
-full Next production build pass, and repository lint has zero errors. Delivery-level
-revision, review, merge and deploy evidence is tracked against PR #577 rather than
-inferred from this document. A new attributable production decision is still required
-for environment acceptance.
+62 focused decision/lifecycle/learning/freeze/charter regressions pass, strict
+TypeScript and a full Next production build pass, and repository lint has zero
+errors. Delivery revision `e623ff6336f283dc8794b4969a317aeb1b6e9fe1`
+passed protected PR #577 CI and merged as
+`1f51d3ffcd392ab3491a966a4ba34ab93fab78cb`. Netlify production deploy
+`6ab1797d8ee5580008985f39` is `ready` on that exact merge revision. A new
+attributable production decision is still required for environment acceptance;
+source merge and deploy do not supply it.
 
 1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
    applicable authorized session/readback; preserve no-trade and partial-coverage
@@ -201,8 +252,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 is active: decision-to-outcome readback is main/production deployed; OPEN session/readback remains | Resolve the observed runtime-configuration/revision boundary before a separately authorized slot, then record only that slot's durable result |
-| Second development | SV-B.1 base receipt is merged/deployed; explicit strategy/selection registry is locally tested on `codex/sv-b-strategy-registry`; real-decision acceptance remains OPEN | Review/merge the provider-free registry follow-up, then await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
+| Primary development | A.2 remains active: the authorized preflight exposed the scheduled-runtime deploy-context defect; its CLOSED repair is local on `codex/sv-a2-scheduled-deploy-identity` | Review/merge/deploy the repair, then require a fresh separately authorized one-slot preflight; do not repeat today's consumed authorization |
+| Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
