@@ -25,34 +25,47 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
       'new Request("http://internal/api/automation/run-scan"',
     );
     expect(scheduledFunction).toContain('"x-automation-secret": automationSecret');
-    expect(scheduledFunction).toContain('execution_boundary: "bundled_next_route"');
+    expect(scheduledFunction).toContain(
+      'const executionBoundary = disabledProbePreflight',
+    );
+    expect(scheduledFunction).toContain(': "bundled_next_route"');
     expect(scheduledFunction).not.toContain("fetch(endpoint");
     expect(scheduledFunction).not.toContain("DEPLOY_PRIME_URL");
   });
 
-  test("can make published staging schedules inert before secrets or external work", async () => {
+  test("keeps disabled schedules inert before secrets or external work", async () => {
     const scheduledScan = await source("netlify/functions/scheduled-scan.ts");
     const scheduledOutcome = await source(
       "netlify/functions/scheduled-outcome-evaluation.ts",
     );
 
-    for (const scheduledFunction of [scheduledScan, scheduledOutcome]) {
-      expect(scheduledFunction).toContain(
-        'const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS"',
-      );
-      expect(scheduledFunction).toContain(
-        'Netlify.env.get(scheduledFunctionsDisableFlag) === "true"',
-      );
-      expect(scheduledFunction).toContain("if (scheduledExecutionIsDisabled())");
-      expect(scheduledFunction).toContain("return new Response(null, { status: 204 })");
-    }
-
-    expect(scheduledScan.indexOf("if (scheduledExecutionIsDisabled())")).toBeLessThan(
+    expect(scheduledScan).toContain(
+      'const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS"',
+    );
+    expect(scheduledScan).toContain(
+      "scheduledScanRuntimeConfigurationFromEnvironment(Netlify.env)",
+    );
+    expect(scheduledScan).toContain("const disabledProbePreflight =");
+    expect(scheduledScan).toContain(
+      "if (runtimeConfiguration.scheduled_functions_disabled && !disabledProbePreflight)",
+    );
+    expect(scheduledScan).toContain("return new Response(null, { status: 204 })");
+    expect(scheduledScan.indexOf("const disabledProbePreflight =")).toBeLessThan(
       scheduledScan.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
     );
-    expect(
-      scheduledOutcome.indexOf("if (scheduledExecutionIsDisabled())"),
-    ).toBeLessThan(
+    expect(scheduledScan.indexOf("if (disabledProbePreflight) {")).toBeLessThan(
+      scheduledScan.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
+    );
+
+    expect(scheduledOutcome).toContain(
+      'const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS"',
+    );
+    expect(scheduledOutcome).toContain(
+      'Netlify.env.get(scheduledFunctionsDisableFlag) === "true"',
+    );
+    expect(scheduledOutcome).toContain("if (scheduledExecutionIsDisabled())");
+    expect(scheduledOutcome).toContain("return new Response(null, { status: 204 })");
+    expect(scheduledOutcome.indexOf("if (scheduledExecutionIsDisabled())")).toBeLessThan(
       scheduledOutcome.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
     );
   });

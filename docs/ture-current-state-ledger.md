@@ -59,6 +59,25 @@ another slot today. The next separately authorized attempt must first make the
 runtime-configuration/revision boundary observable, then preserve the same
 one-slot and one-credit constraints.
 
+**A.2 focused CLOSED repair implemented locally, 2026-09-21 (4–8h):** owner
+Codex on `codex/sv-a2-open-slot-evidence` reuses the current
+`scheduled_scan_attempts` contract (no schema or ownership change) to make a
+*probe-armed but scheduler-disabled* delivery observable. Only that existing
+Basic Free capability-probe state may write an inert `skipped` attempt that
+binds the scheduled slot to the published Netlify deploy identity and the
+non-secret gate values. Ordinary disabled deliveries remain inert. The handler
+must fail closed if that receipt cannot be claimed, and it must never load the
+scan route, request provider data, reserve a credit, rank, publish or invoke a
+broker in this preflight branch. Local acceptance: focused runtime coverage
+proves the durable preflight receipt on a mocked successful claim plus no route
+call, a failed claim produces `503` with no route call, and a non-production or
+unpublished deploy identity is rejected before any database or route call.
+All 15 relevant scheduler contracts, strict TypeScript, the scheduled runtime
+package build and Next production build pass; full lint has zero errors and
+eight unrelated existing warnings. The next provider slot remains separately
+authorized work after this code is main/deploy verified; it is not part of this
+repair.
+
 **A.2 OPEN remainder:** take only the next separately authorized scheduled
 session/readback and record its actual market date, environment and retained
 result. The existing Basic Free catalog reference observation is not itself an
