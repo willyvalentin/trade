@@ -161,11 +161,15 @@ registry source (`50` default, `100` hard maximum), while the retained coverage
 claim remains explicitly `bounded_scanner_universe_not_market_wide`. Unknown,
 tampered or cross-universe strategy references fail closed. The existing
 owner-scoped lifecycle readback now reconstructs the strategy, rollback and
-selection identities; it does not change ranking or publication. Local evidence:
-49 focused decision/lifecycle/learning regressions pass, strict TypeScript and a
-full Next production build pass, and scoped lint has zero errors. This is only
-local tested code until review/merge/deploy. A new attributable production
-decision is still required for environment acceptance.
+selection identities; it does not change ranking or publication. Learning
+readiness and segmentation now require that same registry identity, so legacy
+policy-attributed rows cannot be silently pooled with strategy-attributed rows;
+the exact strategy identity is part of the immutable segment key. Local evidence:
+62 focused decision/lifecycle/learning/freeze/charter regressions pass, strict TypeScript and a
+full Next production build pass, and repository lint has zero errors. Delivery-level
+revision, review, merge and deploy evidence is tracked against PR #577 rather than
+inferred from this document. A new attributable production decision is still required
+for environment acceptance.
 
 1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
    applicable authorized session/readback; preserve no-trade and partial-coverage

@@ -196,6 +196,15 @@ test("fails closed for malformed lifecycle JSON", () => {
       ...readback,
       decision: {
         ...readback.decision,
+        strategy_id: "fabricated_strategy_without_receipt",
+      },
+    }),
+  ).toBeNull();
+  expect(
+    decisionOutcomeLifecycleReadbackFromUnknown({
+      ...readback,
+      decision: {
+        ...readback.decision,
         decision_lineage_receipt_status: "reconstructable",
         strategy_id: "fabricated_strategy",
       },

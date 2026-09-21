@@ -829,7 +829,63 @@ test.describe("recommendation learning baseline readiness", () => {
       complete_record_count: 0,
       incomplete_record_count: 1,
     });
+    expect(readiness.strategy_attribution).toMatchObject({
+      status: "incomplete",
+      complete_record_count: 0,
+      incomplete_record_count: 1,
+    });
     expect(readiness.blockers).toContain("canonical_policy_attribution_incomplete");
+    expect(readiness.blockers).toContain(
+      "decision_strategy_attribution_incomplete",
+    );
+  });
+
+  test("keeps attributed v2 decisions without a strategy registry out of learning segments", () => {
+    const { run, record } = persistedPublishedScan();
+    const attributedV2Record = {
+      ...record,
+      record_version: "candidate_decision_record_v2",
+    };
+    delete (attributedV2Record as { strategy_reference?: unknown })
+      .strategy_reference;
+    const attributedV2Run = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: attributedV2Record,
+      },
+    };
+    const readiness = buildRecommendationLearningBaselineReadiness({
+      scanRuns: [attributedV2Run],
+      snapshots: [],
+      outcomes: [],
+    });
+    const segmentation = buildRecommendationLearningBaselineSegmentation({
+      scanRuns: [attributedV2Run],
+      snapshots: [],
+      outcomes: [],
+    });
+
+    expect(readiness.policy_attribution.status).toBe("complete");
+    expect(readiness.strategy_attribution).toMatchObject({
+      status: "incomplete",
+      complete_record_count: 0,
+      incomplete_record_count: 1,
+      distinct_strategy_identity_count: 0,
+    });
+    expect(readiness.blockers).toContain(
+      "decision_strategy_attribution_incomplete",
+    );
+    expect(segmentation).toMatchObject({
+      status: "no_comparable_segments",
+      source_scan_runs: {
+        considered_count: 1,
+        comparable_count: 0,
+        invalid_decision_record_count: 0,
+        incomplete_policy_attribution_count: 1,
+      },
+      segments: [],
+    });
   });
 
   test("does not turn research, rejected, or no-trade decisions into invented outcomes", () => {
@@ -1591,7 +1647,7 @@ test.describe("recommendation learning baseline readiness", () => {
     });
 
     expect(segmentation).toEqual({
-      contract_version: "recommendation_learning_baseline_segmentation_v1",
+      contract_version: "recommendation_learning_baseline_segmentation_v2",
       status: "no_comparable_segments",
       source_scan_runs: {
         considered_count: 2,

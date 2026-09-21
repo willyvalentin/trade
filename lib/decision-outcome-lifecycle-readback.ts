@@ -487,6 +487,16 @@ export function decisionOutcomeLifecycleReadbackFromUnknown(
       decision.symbol_selection_policy_version,
       decision.observed_universe_version,
     ].some((field) => field !== null && textOrNull(field) === null) ||
+    (decision.decision_lineage_receipt_status === "missing" &&
+      [
+        decision.strategy_id,
+        decision.strategy_version,
+        decision.strategy_rollback_identity,
+        decision.symbol_selection_policy_id,
+        decision.symbol_selection_policy_version,
+        decision.observed_universe_version,
+        decision.coverage_claim,
+      ].some((field) => field !== null)) ||
     (decision.coverage_claim !== null &&
       decision.coverage_claim !== "bounded_scanner_universe_not_market_wide") ||
     (decision.decision_lineage_receipt_status === "reconstructable" &&
