@@ -8,6 +8,10 @@ import {
   type DynamicMarketMoversSource,
   type DynamicMarketMoversSummary,
 } from "@/lib/dynamic-market-movers";
+import {
+  CURRENT_STRATEGY_DEFAULT_SCAN_BUDGET,
+  CURRENT_STRATEGY_MAX_SCAN_BUDGET,
+} from "@/lib/decision-strategy-registry";
 
 export type ScannerUniverseCategory =
   | "mega_cap"
@@ -137,8 +141,9 @@ type ScannerUniverseSelectionInput = {
   now?: Date;
 };
 
-export const scannerUniverseDefaultScanBudget = 50;
-export const scannerUniverseMaxScanBudget = 100;
+export const scannerUniverseDefaultScanBudget =
+  CURRENT_STRATEGY_DEFAULT_SCAN_BUDGET;
+export const scannerUniverseMaxScanBudget = CURRENT_STRATEGY_MAX_SCAN_BUDGET;
 export const scheduledScannerUniverseRotationCadenceMinutes = 15;
 
 export const scannerUniverseTickers = [

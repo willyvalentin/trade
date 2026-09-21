@@ -14,6 +14,10 @@ import {
   buildDecisionLineageReceipt,
   decisionLineageReceiptFromScanRun,
 } from "@/lib/decision-lineage-receipt";
+import {
+  buildDecisionOutcomeLifecycleReadback,
+  decisionOutcomeLifecycleReadbackFromUnknown,
+} from "@/lib/decision-outcome-lifecycle-readback";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
@@ -186,7 +190,15 @@ test.describe("candidate decision record", () => {
         explicit_no_trade: false,
       },
       versions: {
-        strategy_version: "recommendation_publish_policy_v1",
+        strategy_id: "intraday_long_multi_setup_quality_ranker",
+        strategy_version: "1.0.0",
+        strategy_registry_version: "decision_strategy_registry_v1",
+        strategy_rollback_identity:
+          "intraday_long_multi_setup_quality_ranker@1.0.0",
+        symbol_selection_policy_id: "rotating_scanner_universe",
+        symbol_selection_policy_version: "scanner_universe_selection_v1",
+        observed_universe_version: "scanner_universe_v1",
+        coverage_claim: "bounded_scanner_universe_not_market_wide",
         model: { status: "not_applicable", version: null },
         git_commit: "0123456789abcdef0123456789abcdef01234567",
       },
@@ -210,6 +222,27 @@ test.describe("candidate decision record", () => {
     expect(
       decisionLineageReceiptFromScanRun(databaseShapedPersisted, record!),
     ).toEqual(receipt);
+
+    const lifecycle = buildDecisionOutcomeLifecycleReadback({
+      scanRuns: [persisted],
+      snapshots: [],
+      outcomes: [],
+      scheduledEvaluationAttempts: [],
+    });
+    expect(lifecycle.decision).toMatchObject({
+      decision_lineage_receipt_status: "reconstructable",
+      strategy_id: "intraday_long_multi_setup_quality_ranker",
+      strategy_version: "1.0.0",
+      strategy_rollback_identity:
+        "intraday_long_multi_setup_quality_ranker@1.0.0",
+      symbol_selection_policy_id: "rotating_scanner_universe",
+      symbol_selection_policy_version: "scanner_universe_selection_v1",
+      observed_universe_version: "scanner_universe_v1",
+      coverage_claim: "bounded_scanner_universe_not_market_wide",
+    });
+    expect(decisionOutcomeLifecycleReadbackFromUnknown(lifecycle)).toEqual(
+      lifecycle,
+    );
   });
 
   test("rejects a receipt whose versions or availability were inferred after capture", () => {
@@ -237,6 +270,79 @@ test.describe("candidate decision record", () => {
     };
 
     expect(decisionLineageReceiptFromScanRun(persisted, record!)).toBeNull();
+  });
+
+  test("binds the registered strategy and actual bounded universe policy to the decision", () => {
+    const candidates = [candidate(1)];
+    const run = scanRun(candidates.length);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(record).toMatchObject({
+      record_version: "candidate_decision_record_v3",
+      strategy_reference: {
+        reference_version: "decision_strategy_reference_v1",
+        registry_version: "decision_strategy_registry_v1",
+        strategy_id: "intraday_long_multi_setup_quality_ranker",
+        strategy_version: "1.0.0",
+        rollback_identity: "intraday_long_multi_setup_quality_ranker@1.0.0",
+        lifecycle_status: "research_only",
+        direction: "long_only",
+        model_dependency: "not_applicable",
+        symbol_selection: {
+          policy_id: "rotating_scanner_universe",
+          policy_version: "scanner_universe_selection_v1",
+          observed_universe_version: "scanner_universe_v1",
+          default_scan_budget: 50,
+          max_scan_budget: 100,
+          coverage_claim: "bounded_scanner_universe_not_market_wide",
+        },
+        publication: {
+          forced_minimum: 0,
+          max_opportunities: 3,
+        },
+      },
+    });
+    expect(candidateDecisionRecordFromUnknown(record)).toEqual(record);
+  });
+
+  test("rejects an unknown or cross-universe strategy identity at readback", () => {
+    const candidates = [candidate(1)];
+    const record = buildCandidateDecisionRecord({
+      scanRun: scanRun(candidates.length),
+      capture: captureFor({ candidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+    expect(record).not.toBeNull();
+
+    expect(
+      candidateDecisionRecordFromUnknown({
+        ...record,
+        strategy_reference: {
+          ...record!.strategy_reference,
+          strategy_version: "2.0.0",
+        },
+      }),
+    ).toBeNull();
+    expect(
+      candidateDecisionRecordFromUnknown({
+        ...record,
+        strategy_reference: {
+          ...record!.strategy_reference,
+          symbol_selection: {
+            ...record!.strategy_reference!.symbol_selection,
+            observed_universe_version: "another_universe_v1",
+          },
+        },
+      }),
+    ).toBeNull();
   });
 
   test("preserves an explicit no-trade while preventing future source facts from becoming reconstructable", () => {

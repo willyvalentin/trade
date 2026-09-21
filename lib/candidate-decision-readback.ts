@@ -10,6 +10,7 @@ import type {
   RecommendationScanRun,
   RecommendationScanRunWindow,
 } from "@/lib/recommendation-scan-run";
+import { decisionStrategyReferenceFromUnknown } from "@/lib/decision-strategy-registry";
 
 export type CandidateDecisionRecordReadback = {
   status: "available" | "incomplete" | "unavailable";
@@ -240,8 +241,9 @@ export function candidateDecisionRecordFromUnknown(
 
   const recordVersion = record?.record_version;
   const isLegacyRecord = recordVersion === "candidate_decision_record_v1";
-  const isCurrentRecord = recordVersion === "candidate_decision_record_v2";
-  const learningAttribution = isCurrentRecord
+  const isAttributedLegacyRecord = recordVersion === "candidate_decision_record_v2";
+  const isCurrentRecord = recordVersion === "candidate_decision_record_v3";
+  const learningAttribution = isAttributedLegacyRecord || isCurrentRecord
     ? candidateDecisionLearningAttributionFromUnknown(record?.learning_attribution)
     : isLegacyRecord
       ? buildCandidateDecisionLearningAttribution({
@@ -249,12 +251,21 @@ export function candidateDecisionRecordFromUnknown(
           canonicalEvaluationVersions: null,
         })
       : null;
+  const versions = objectOrNull(record?.versions);
+  const universeVersion = stringOrNull(versions?.universe_version);
+  const strategyReference = isCurrentRecord && universeVersion
+    ? decisionStrategyReferenceFromUnknown(
+        record?.strategy_reference,
+        universeVersion,
+      )
+    : null;
 
   if (
-    (!isLegacyRecord && !isCurrentRecord) ||
+    (!isLegacyRecord && !isAttributedLegacyRecord && !isCurrentRecord) ||
     record?.record_kind !== "candidate_decision_record" ||
     decisionTimestamp === null ||
     learningAttribution === null ||
+    (isCurrentRecord && strategyReference === null) ||
     candidates === null ||
     coverage?.full_membership_declared !== true ||
     typeof coverage.full_membership_captured !== "boolean" ||
@@ -281,8 +292,12 @@ export function candidateDecisionRecordFromUnknown(
   }
 
   return {
-    ...(record as Omit<CandidateDecisionRecord, "learning_attribution">),
+    ...(record as Omit<
+      CandidateDecisionRecord,
+      "learning_attribution" | "strategy_reference"
+    >),
     learning_attribution: learningAttribution,
+    strategy_reference: strategyReference,
   };
 }
 

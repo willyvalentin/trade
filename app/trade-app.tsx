@@ -37794,6 +37794,15 @@ function DecisionOutcomeLifecycleReadbackPanel({
               Lineage limits: {decision.decision_lineage_receipt_reason_codes.join(", ")}.
             </p>
           ) : null}
+          {decision?.strategy_id ? (
+            <p className="mt-1 text-xs leading-5 text-zinc-400">
+              Strategy: {decision.strategy_id}@{decision.strategy_version}; rollback: {decision.strategy_rollback_identity}; symbol selection: {decision.symbol_selection_policy_id}@{decision.symbol_selection_policy_version}; observed universe: {decision.observed_universe_version}; coverage: {decision.coverage_claim}.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Strategy and symbol-selection identity are not reconstructable for this decision.
+            </p>
+          )}
           {decision && decision.identity_conflict_excluded_snapshot_count > 0 && (
             <p className="mt-1 text-xs leading-5 text-amber-200">
               Excluded identity conflicts: {decision.identity_conflict_excluded_snapshot_count}.
