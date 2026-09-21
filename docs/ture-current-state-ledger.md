@@ -23,9 +23,11 @@ candidate-quality problem, a provider failure, or a missing visible-publication
 record; the research-only/hidden storage contract intentionally separates those
 concerns.
 
-**A.2 closed implementation completed locally, 2026-09-21:** revision
-`f81be71a751a04d376749fc33faad65d5be1a761` on
-`codex/sv-a2-decision-lifecycle-readback` adds an owner-scoped, server-derived
+**A.2 closed implementation merged and production-deployed, 2026-09-21:**
+revision `f81be71a751a04d376749fc33faad65d5be1a761` merged as
+`980b8f041c74b8e88036abf1743c93b13fb8a466`; Netlify production deploy
+`6ab12c811087be0008ec1ad3` is `ready` on that exact revision. It adds an
+owner-scoped, server-derived
 `Decision → Outcome Readback` to the existing authenticated dashboard. It
 selects the latest retained decision only through exact scan/snapshot
 fingerprints, attributes outcomes only through exact snapshot fingerprints, and
@@ -38,6 +40,43 @@ five focused lifecycle regressions, ESLint with zero errors (eight unrelated
 repository warnings) and a complete Next production build. The local browser
 reached the password boundary; authenticated UI rendering remains environment
 verification to perform without entering credentials into browser automation.
+
+**A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
+the 15:30 CEST scheduled slot, a direct production ledger read for New York
+date `2026-09-21` found zero `catalog_observation` reservations and zero
+reserved credits. The only authorized function-scoped production values were
+then changed for the one slot: ordinary one-shot off, catalog probe on with the
+verified New York date, then scheduled functions enabled. No route was invoked
+manually. The bounded production readback after the slot found neither a
+catalog reservation nor a `scheduled_scan_attempts` row in the slot's narrow
+time range. Scheduled functions were immediately disabled again; the probe was
+disabled and the ordinary one-shot restored. Netlify's environment CLI reported
+that these changes require a redeploy for deployed versions, and no deploy was
+created inside the frozen observation window. Therefore this is a
+`missing_result`, not a provider request, entitlement/coverage receipt,
+candidate, publication, broker action or completed A.2 OPEN proof. Do not use
+another slot today. The next separately authorized attempt must first make the
+runtime-configuration/revision boundary observable, then preserve the same
+one-slot and one-credit constraints.
+
+**A.2 focused CLOSED repair implemented locally, 2026-09-21 (4–8h):** owner
+Codex on `codex/sv-a2-open-slot-evidence` reuses the current
+`scheduled_scan_attempts` contract (no schema or ownership change) to make a
+*probe-armed but scheduler-disabled* delivery observable. Only that existing
+Basic Free capability-probe state may write an inert `skipped` attempt that
+binds the scheduled slot to the published Netlify deploy identity and the
+non-secret gate values. Ordinary disabled deliveries remain inert. The handler
+must fail closed if that receipt cannot be claimed, and it must never load the
+scan route, request provider data, reserve a credit, rank, publish or invoke a
+broker in this preflight branch. Local acceptance: focused runtime coverage
+proves the durable preflight receipt on a mocked successful claim plus no route
+call, a failed claim produces `503` with no route call, and a non-production or
+unpublished deploy identity is rejected before any database or route call.
+All 15 relevant scheduler contracts, strict TypeScript, the scheduled runtime
+package build and Next production build pass; full lint has zero errors and
+eight unrelated existing warnings. The next provider slot remains separately
+authorized work after this code is main/deploy verified; it is not part of this
+repair.
 
 **A.2 OPEN remainder:** take only the next separately authorized scheduled
 session/readback and record its actual market date, environment and retained
@@ -81,7 +120,7 @@ chosen risk limits; no real-capital allocation or new subscription is implied.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 is active: local decision-to-outcome readback is implemented; OPEN session/readback remains | Merge/review `f81be71a751a04d376749fc33faad65d5be1a761`, then consume only the next separately authorized session and record its durable result |
+| Primary development | A.2 is active: decision-to-outcome readback is main/production deployed; OPEN session/readback remains | Resolve the observed runtime-configuration/revision boundary before a separately authorized slot, then record only that slot's durable result |
 | Second development | Empty; B.1 is the first queued candidate | Record owner, branch, phase/acceptance, 4–16h budget, fulfilled dependencies, stable interface/write ownership and integration order before starting |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |

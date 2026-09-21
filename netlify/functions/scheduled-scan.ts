@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 
-import type { Config } from "@netlify/functions";
+import type { Config, Context } from "@netlify/functions";
 
 export const config: Config = {
   // Netlify discovers scheduled functions from this entrypoint. Keep the
@@ -15,6 +15,23 @@ type ScheduledScanRouteModule = {
 
 const runtimeRequire = createRequire(__filename);
 const scheduledFunctionsDisableFlag = "TURE_DISABLE_SCHEDULED_FUNCTIONS";
+const basicFreeCatalogCapabilityProbeFlag =
+  "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED";
+const basicFreeCatalogOneShotFlag =
+  "TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED";
+const basicFreeCatalogCapabilityProbeDateFlag =
+  "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE";
+
+export type ScheduledScanRuntimeConfiguration = {
+  scheduled_functions_disabled: boolean;
+  basic_free_catalog_capability_probe_enabled: boolean;
+  basic_free_catalog_observation_one_shot_enabled: boolean;
+  basic_free_catalog_capability_probe_date: string | null;
+};
+
+type ScheduledScanEnvironment = {
+  get(name: string): string | undefined;
+};
 
 // Keep the identity calculation in the scheduled-function entrypoint. Netlify
 // packages this file as the cron runtime, so a change here cannot leave the
@@ -119,8 +136,93 @@ function stableHash(value: string) {
   return (hash >>> 0).toString(36);
 }
 
-function scheduledExecutionIsDisabled() {
-  return Netlify.env.get(scheduledFunctionsDisableFlag) === "true";
+function booleanTrue(value: unknown) {
+  return value === "true";
+}
+
+function catalogProbeDateOrNull(value: unknown) {
+  const candidate = typeof value === "string" ? value.trim() : "";
+  return /^\d{4}-\d{2}-\d{2}$/.test(candidate) ? candidate : null;
+}
+
+export function scheduledScanRuntimeConfigurationFromEnvironment(
+  environment: ScheduledScanEnvironment,
+): ScheduledScanRuntimeConfiguration {
+  return {
+    scheduled_functions_disabled: booleanTrue(
+      environment.get(scheduledFunctionsDisableFlag),
+    ),
+    basic_free_catalog_capability_probe_enabled: booleanTrue(
+      environment.get(basicFreeCatalogCapabilityProbeFlag),
+    ),
+    basic_free_catalog_observation_one_shot_enabled: booleanTrue(
+      environment.get(basicFreeCatalogOneShotFlag),
+    ),
+    basic_free_catalog_capability_probe_date: catalogProbeDateOrNull(
+      environment.get(basicFreeCatalogCapabilityProbeDateFlag),
+    ),
+  };
+}
+
+function scheduledScanRuntimeConfiguration() {
+  return scheduledScanRuntimeConfigurationFromEnvironment(Netlify.env);
+}
+
+type ScheduledScanDeployIdentity = {
+  deploy_id: string | null;
+  deploy_context: string | null;
+  deploy_published: boolean | null;
+};
+
+function scheduledScanDeployIdentity(
+  context: Context,
+): ScheduledScanDeployIdentity {
+  return {
+    deploy_id:
+      typeof context.deploy?.id === "string" && context.deploy.id.trim()
+        ? context.deploy.id
+        : null,
+    deploy_context:
+      typeof context.deploy?.context === "string" && context.deploy.context.trim()
+        ? context.deploy.context
+        : null,
+    deploy_published:
+      typeof context.deploy?.published === "boolean"
+        ? context.deploy.published
+        : null,
+  };
+}
+
+function scheduledScanProbePreflightHasPublishedProductionDeploy(
+  identity: ScheduledScanDeployIdentity,
+) {
+  return (
+    identity.deploy_id !== null &&
+    identity.deploy_context === "production" &&
+    identity.deploy_published === true
+  );
+}
+
+function scheduledScanAttemptPayload({
+  executionBoundary,
+  scheduledSlotStartedAtUtc,
+  scheduledSlotIdentitySource,
+  runtimeConfiguration,
+  context,
+}: {
+  executionBoundary: string;
+  scheduledSlotStartedAtUtc: string;
+  scheduledSlotIdentitySource: ScheduledScanSlotIdentitySource;
+  runtimeConfiguration: ScheduledScanRuntimeConfiguration;
+  context: Context;
+}) {
+  return {
+    execution_boundary: executionBoundary,
+    scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+    scheduled_slot_identity_source: scheduledSlotIdentitySource,
+    runtime_configuration: runtimeConfiguration,
+    netlify_deploy: scheduledScanDeployIdentity(context),
+  };
 }
 
 async function invokeScheduledScanRoute({
@@ -250,13 +352,36 @@ async function updateScheduledScanAttempt(record: Record<string, unknown>) {
   }
 }
 
-export default async function handler(request: Request) {
+export default async function handler(request: Request, context: Context) {
+  const runtimeConfiguration = scheduledScanRuntimeConfiguration();
+
   // An explicit environment switch can make a published non-production site
   // inert before it reads credentials, writes an attempt record, or reaches a
-  // market-data provider. Its absence preserves the established schedule.
-  if (scheduledExecutionIsDisabled()) {
+  // market-data provider. The one exception is an explicitly armed Basic Free
+  // catalog probe: its disabled delivery records a deploy-bound preflight
+  // receipt, but never loads the scan route or reaches a provider.
+  const disabledProbePreflight =
+    runtimeConfiguration.scheduled_functions_disabled &&
+    runtimeConfiguration.basic_free_catalog_capability_probe_enabled;
+
+  if (runtimeConfiguration.scheduled_functions_disabled && !disabledProbePreflight) {
     console.log("[scheduled-scan] Execution disabled by environment.");
     return new Response(null, { status: 204 });
+  }
+
+  if (
+    disabledProbePreflight &&
+    !scheduledScanProbePreflightHasPublishedProductionDeploy(
+      scheduledScanDeployIdentity(context),
+    )
+  ) {
+    console.error(
+      "[scheduled-scan] Disabled Basic Free probe preflight requires a published production deploy identity.",
+    );
+    return new Response(
+      "Scheduled scan preflight deployment identity unavailable",
+      { status: 503 },
+    );
   }
 
   const firedAt = new Date();
@@ -283,25 +408,38 @@ export default async function handler(request: Request) {
     hour12: false,
   }).format(new Date(firedAtUtc));
 
-  console.log("[scheduled-scan] Executing bundled internal route", {
+  console.log("[scheduled-scan] Processing scheduled slot", {
     scheduled_function_fired_at_utc: firedAtUtc,
     interpreted_ny_time: nyTime,
     scheduled_scan_attempt_fingerprint: attemptFingerprint,
   });
 
+  const executionBoundary = disabledProbePreflight
+    ? "scheduler_disabled_basic_free_catalog_probe_preflight"
+    : "bundled_next_route";
+
   const invocationClaim = await claimScheduledScanInvocation({
     attempt_fingerprint: attemptFingerprint,
     source: "netlify_scheduled_function",
     mode: "scheduled",
-    outcome: "scheduled_function_fired",
+    outcome: disabledProbePreflight ? "skipped" : "scheduled_function_fired",
+    allowed: disabledProbePreflight ? false : null,
+    skip_reason: disabledProbePreflight
+      ? "scheduled_execution_disabled_probe_preflight"
+      : null,
+    message: disabledProbePreflight
+      ? "Basic Free catalog probe is armed, but scheduled execution remains disabled; durable deploy-bound preflight only."
+      : null,
     scheduled_function_fired_at: firedAtUtc,
     utc_timestamp: firedAtUtc,
     ny_timestamp: `${nyTime} America/New_York`,
-    payload_json: {
-      execution_boundary: "bundled_next_route",
-      scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
-      scheduled_slot_identity_source: scheduledSlotIdentity.source,
-    },
+    payload_json: scheduledScanAttemptPayload({
+      executionBoundary,
+      scheduledSlotStartedAtUtc,
+      scheduledSlotIdentitySource: scheduledSlotIdentity.source,
+      runtimeConfiguration,
+      context,
+    }),
   });
 
   if (invocationClaim === "duplicate") {
@@ -314,6 +452,14 @@ export default async function handler(request: Request) {
 
   if (invocationClaim === "unavailable") {
     return new Response("Scheduled scan claim unavailable", { status: 503 });
+  }
+
+  if (disabledProbePreflight) {
+    console.log("[scheduled-scan] Recorded disabled Basic Free probe preflight.", {
+      scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
+      scheduled_scan_attempt_fingerprint: attemptFingerprint,
+    });
+    return new Response(null, { status: 204 });
   }
 
   const automationSecret = process.env.AUTOMATION_SECRET;
@@ -329,11 +475,13 @@ export default async function handler(request: Request) {
       utc_timestamp: firedAtUtc,
       ny_timestamp: `${nyTime} America/New_York`,
       message: "Missing AUTOMATION_SECRET",
-      payload_json: {
-        execution_boundary: "bundled_next_route",
-        scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
-        scheduled_slot_identity_source: scheduledSlotIdentity.source,
-      },
+      payload_json: scheduledScanAttemptPayload({
+        executionBoundary,
+        scheduledSlotStartedAtUtc,
+        scheduledSlotIdentitySource: scheduledSlotIdentity.source,
+        runtimeConfiguration,
+        context,
+      }),
     });
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
   }
@@ -361,11 +509,13 @@ export default async function handler(request: Request) {
         ny_timestamp: `${nyTime} America/New_York`,
         http_status: response.status,
         message: body.slice(0, 1000),
-        payload_json: {
-          execution_boundary: "bundled_next_route",
-          scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
-          scheduled_slot_identity_source: scheduledSlotIdentity.source,
-        },
+        payload_json: scheduledScanAttemptPayload({
+          executionBoundary,
+          scheduledSlotStartedAtUtc,
+          scheduledSlotIdentitySource: scheduledSlotIdentity.source,
+          runtimeConfiguration,
+          context,
+        }),
       });
     }
 
@@ -386,11 +536,13 @@ export default async function handler(request: Request) {
       utc_timestamp: firedAtUtc,
       ny_timestamp: `${nyTime} America/New_York`,
       message: error instanceof Error ? error.message : String(error),
-      payload_json: {
-        execution_boundary: "bundled_next_route",
-        scheduled_slot_started_at_utc: scheduledSlotStartedAtUtc,
-        scheduled_slot_identity_source: scheduledSlotIdentity.source,
-      },
+      payload_json: scheduledScanAttemptPayload({
+        executionBoundary,
+        scheduledSlotStartedAtUtc,
+        scheduledSlotIdentitySource: scheduledSlotIdentity.source,
+        runtimeConfiguration,
+        context,
+      }),
     });
 
     return new Response("Scheduled scan failed", {
