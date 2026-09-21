@@ -85,6 +85,23 @@ outcome evaluation and cannot close the end-to-end outcome evidence gap. Do not
 invoke either route manually, add a provider request, or infer outcome coverage
 from a completed scan.
 
+**A.2 provider-free preflight retry, 2026-09-21:** the explicitly authorized
+retry first restored a previously left-on probe flag, then used normal
+Git-connected production builds to publish the false/true/false transitions on
+main `cbbe92580c6f1e645cd683d34d71391313db538e`. The one armed period produced
+no durable preflight attempt in its bounded post-slot readback; it was restored
+immediately and is a second `missing_result`, not a provider request, credit
+reservation, candidate, publication or broker action. The final reset deploy
+`6ab1518f77c4b31d08846f6d` is `ready`; the function-scoped probe is false.
+Subsequent read-only Netlify evidence shows `scheduled-scan` registered as a
+production Scheduled Function with the expected `*/15 13-20 * * 1-5` UTC cron,
+and its 18:00 CEST delivery logged only `Execution disabled by environment`.
+The operational gap is therefore the arming lead time: a future separately
+authorized preflight must arm and publish at least one whole scheduler interval
+before the target, and must bind its readback window to Netlify's displayed
+`Next execution` rather than a locally inferred slot. This proves neither
+provider entitlement nor market-wide discovery quality.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
@@ -93,6 +110,40 @@ gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
 ### Next — ordered, bounded product work
+
+**Selected second development slice — SV-B.1 decision lineage, 2026-09-21
+(CLOSED, 8–16h):** owner Codex, branch `codex/sv-b1-decision-lineage`; the
+existing scan-run/snapshot persistence boundary is stable enough for an
+independent provider-free slice while A.2 awaits another separately authorized
+OPEN session. Deliver a versioned, immutable reconstruction receipt for newly
+persisted accepted, rejected and explicit no-trade decisions. It must bind only
+observed decision-time identity, strategy/model/policy/build versions, source
+availability/freshness facts and candidate/scan lineage; the existing exact
+batch/snapshot lifecycle readback remains the authority for those links. Missing
+facts stay missing and legacy rows must never be retroactively upgraded. The
+receipt has no provider, scheduler, ranking, publication or broker authority.
+Acceptance for the implementation: focused adversarial tests reject inferred,
+conflicting, future or cross-decision facts; the current persistence path will
+retain/read back exactly one receipt per decision category without changing a
+decision's outcome or visibility. A receipt is reconstructable only when its
+actual decision-time facts are complete. Migration choice, production enablement
+and any capture of a live decision remain separate reviewed work.
+
+**B.1 implementation evidence, 2026-09-21:** the isolated branch now writes a
+`decision_lineage_receipt_v1` alongside every *newly captured* candidate
+decision record in the existing scan-run JSON boundary, and exposes its
+fail-closed `reconstructable`/`incomplete`/`missing` status and limitations in
+the owner-scoped decision-to-outcome readback. It captures decision identity,
+published/rejected/no-trade category counts, observed strategy/version/build
+facts and source timestamp availability; the current deterministic scanner is
+explicitly `model: not_applicable`, not a fabricated learned-model version.
+No legacy record is upgraded. Targeted browser tests (17 passed), TypeScript
+and production build pass locally; lint has zero errors and eight pre-existing
+unrelated warnings. This is implementation-ready evidence, **not** fulfillment
+of the roadmap's real-existing-decision requirement: the retained historical
+rows still lack the actual strategy/version and selection facts. A separately
+authorized future current decision is required to prove durable environment
+capture and complete B.1's real-decision acceptance.
 
 1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
    applicable authorized session/readback; preserve no-trade and partial-coverage
@@ -121,7 +172,7 @@ chosen risk limits; no real-capital allocation or new subscription is implied.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 is active: decision-to-outcome readback is main/production deployed; OPEN session/readback remains | Resolve the observed runtime-configuration/revision boundary before a separately authorized slot, then record only that slot's durable result |
-| Second development | Empty; B.1 is the first queued candidate | Record owner, branch, phase/acceptance, 4–16h budget, fulfilled dependencies, stable interface/write ownership and integration order before starting |
+| Second development | SV-B.1 implementation is ready for review on `codex/sv-b1-decision-lineage`; real-decision acceptance remains OPEN | CLOSED provider-free receipt only; preserve A.2's observed configuration boundary, use the scan-run/snapshot persistence boundary as sole write owner, and after merge await one separately authorized current decision for durable environment evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
