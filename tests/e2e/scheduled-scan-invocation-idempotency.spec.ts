@@ -3,15 +3,52 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import {
+  SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION,
   buildScheduledScanInvocationFingerprint,
   buildScheduledScanInvocationFingerprintForSlot,
   default as scheduledScanHandler,
+  parseScheduledScanBuildDeploymentIdentity,
+  scheduledScanPreflightEventEvidence,
+  scheduledScanProbePreflightAdmission,
   scheduledScanSlotIdentity,
   scheduledScanSlotStartedAt,
   scheduledScanRuntimeConfigurationFromEnvironment,
 } from "../../netlify/functions/scheduled-scan";
 
 const root = resolve(__dirname, "../..");
+const productionDeployId = "6ab1797d8ee5580008985f39";
+const productionCommit = "1f51d3ffcd392ab3491a966a4ba34ab93fab78cb";
+const productionSiteId = "2b582e03-ac97-4371-8051-558d9980fb94";
+
+function withFixedDate<T>(timestamp: string, callback: () => T) {
+  const OriginalDate = globalThis.Date;
+  const fixedTimestamp = new OriginalDate(timestamp).getTime();
+
+  class FixedDate extends OriginalDate {
+    constructor(value?: string | number | Date) {
+      const resolvedTimestamp =
+        value === undefined
+          ? fixedTimestamp
+          : value instanceof OriginalDate
+            ? value.getTime()
+            : typeof value === "number"
+              ? value
+              : new OriginalDate(value).getTime();
+      super(resolvedTimestamp);
+    }
+
+    static now() {
+      return fixedTimestamp;
+    }
+  }
+
+  globalThis.Date = FixedDate as DateConstructor;
+  try {
+    return callback();
+  } finally {
+    globalThis.Date = OriginalDate;
+  }
+}
 
 test.describe("scheduled scan invocation idempotency", () => {
   test("maps duplicate deliveries in one quarter-hour to one durable claim key", () => {
@@ -98,6 +135,176 @@ test.describe("scheduled scan invocation idempotency", () => {
     }
   });
 
+  test("admits only a time-bound scheduled event and rejects a manual-style late delivery", () => {
+    expect(
+      scheduledScanPreflightEventEvidence({
+        nextRun: "2026-09-21T19:15:00.000Z",
+        deliveryTime: new Date("2026-09-21T19:02:03.000Z"),
+      }),
+    ).toMatchObject({
+      status: "time_bound_scheduled_event",
+      scheduled_slot_started_at_utc: "2026-09-21T19:00:00.000Z",
+      delivery_delay_milliseconds: 123_000,
+    });
+
+    expect(
+      scheduledScanPreflightEventEvidence({
+        nextRun: "2026-09-21T19:15:00.000Z",
+        deliveryTime: new Date("2026-09-21T19:10:00.000Z"),
+      }).status,
+    ).toBe("delivery_outside_slot_grace");
+    expect(
+      scheduledScanPreflightEventEvidence({
+        nextRun: "2026-09-21T19:14:59.000Z",
+        deliveryTime: new Date("2026-09-21T19:00:01.000Z"),
+      }).status,
+    ).toBe("next_run_not_slot_aligned");
+  });
+
+  test("uses an exact production build identity when scheduled runtime context omits deploy metadata", () => {
+    const buildIdentity = parseScheduledScanBuildDeploymentIdentity({
+      schema_version: SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION,
+      deploy_id: productionDeployId,
+      deploy_context: "production",
+      commit_ref: productionCommit,
+      site_id: productionSiteId,
+    });
+    const eventEvidence = scheduledScanPreflightEventEvidence({
+      nextRun: "2026-09-21T19:15:00.000Z",
+      deliveryTime: new Date("2026-09-21T19:00:48.000Z"),
+    });
+
+    expect(buildIdentity).not.toBeNull();
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+      }),
+    ).toMatchObject({
+      status: "admitted_build_identity_fallback",
+      admitted: true,
+      identity_source: "build_identity_fallback",
+      deployment_identity: {
+        deploy_id: productionDeployId,
+        commit_ref: productionCommit,
+        site_id: productionSiteId,
+        deploy_published: null,
+        publication_evidence:
+          "scheduled_event_requires_external_deploy_readback",
+      },
+    });
+
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: "deploy-preview",
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+      }).status,
+    ).toBe("deployment_identity_conflict");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: "11111111-1111-4111-8111-111111111111",
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+      }).status,
+    ).toBe("build_identity_site_mismatch");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity: null,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+      }).status,
+    ).toBe("deployment_identity_unavailable");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: "111111111111111111111111",
+          deploy_context: "production",
+          deploy_published: true,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+      }).status,
+    ).toBe("deployment_identity_conflict");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:15:00.000Z",
+      }).status,
+    ).toBe("probe_slot_mismatch");
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: null,
+          deploy_published: null,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: null,
+      }).status,
+    ).toBe("probe_slot_unavailable");
+  });
+
+  test("rejects malformed or non-production build identities", () => {
+    const baseIdentity = {
+      schema_version: SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION,
+      deploy_id: productionDeployId,
+      deploy_context: "production",
+      commit_ref: productionCommit,
+      site_id: productionSiteId,
+    };
+
+    expect(parseScheduledScanBuildDeploymentIdentity(baseIdentity)).not.toBeNull();
+    expect(
+      parseScheduledScanBuildDeploymentIdentity({
+        ...baseIdentity,
+        deploy_context: "deploy-preview",
+      }),
+    ).toBeNull();
+    expect(
+      parseScheduledScanBuildDeploymentIdentity({
+        ...baseIdentity,
+        commit_ref: "not-a-commit",
+      }),
+    ).toBeNull();
+  });
+
   test("claims before reading the automation secret and fails closed on claim ambiguity", async () => {
     const scheduledFunction = await readFile(
       resolve(root, "netlify/functions/scheduled-scan.ts"),
@@ -140,6 +347,8 @@ test.describe("scheduled scan invocation idempotency", () => {
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
                 TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE: "2026-09-21",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
+                  "2026-09-21T13:15:00.000Z",
               }[key];
             },
           },
@@ -161,16 +370,26 @@ test.describe("scheduled scan invocation idempotency", () => {
         basic_free_catalog_capability_probe_enabled: true,
         basic_free_catalog_observation_one_shot_enabled: false,
         basic_free_catalog_capability_probe_date: "2026-09-21",
+        basic_free_catalog_capability_probe_slot_utc:
+          "2026-09-21T13:15:00.000Z",
       });
 
-      const response = await scheduledScanHandler(
-        new Request("https://scheduled.example", {
-          method: "POST",
-          body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
-        }),
-        {
-          deploy: { id: "deploy-preflight", context: "production", published: true },
-        } as Parameters<typeof scheduledScanHandler>[1],
+      const response = await withFixedDate(
+        "2026-09-21T13:15:48.000Z",
+        () =>
+          scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: productionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
       );
 
       expect(response.status).toBe(204);
@@ -189,11 +408,18 @@ test.describe("scheduled scan invocation idempotency", () => {
             basic_free_catalog_capability_probe_enabled: true,
             basic_free_catalog_observation_one_shot_enabled: false,
             basic_free_catalog_capability_probe_date: "2026-09-21",
+            basic_free_catalog_capability_probe_slot_utc:
+              "2026-09-21T13:15:00.000Z",
           },
           netlify_deploy: {
-            deploy_id: "deploy-preflight",
+            deploy_id: productionDeployId,
             deploy_context: "production",
             deploy_published: true,
+          },
+          probe_preflight_admission: {
+            status: "admitted_runtime_context",
+            admitted: true,
+            identity_source: "runtime_context",
           },
         },
       });
@@ -224,6 +450,8 @@ test.describe("scheduled scan invocation idempotency", () => {
               return {
                 TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
+                  "2026-09-21T13:15:00.000Z",
               }[key];
             },
           },
@@ -236,9 +464,22 @@ test.describe("scheduled scan invocation idempotency", () => {
         return new Response("unavailable", { status: 503 });
       };
 
-      const response = await scheduledScanHandler(
-        new Request("https://scheduled.example", { method: "POST" }),
-        { deploy: { id: "deploy-preflight", context: "production", published: true } } as Parameters<typeof scheduledScanHandler>[1],
+      const response = await withFixedDate(
+        "2026-09-21T13:15:48.000Z",
+        () =>
+          scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: productionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
       );
 
       expect(response.status).toBe(503);
@@ -252,6 +493,59 @@ test.describe("scheduled scan invocation idempotency", () => {
       else process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
       if (originalSupabaseKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
       else process.env.SUPABASE_SERVICE_ROLE_KEY = originalSupabaseKey;
+    }
+  });
+
+  test("keeps every non-target probe slot inert before the database and route", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    let requests = 0;
+
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: {
+          env: {
+            get(key: string) {
+              return {
+                TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
+                  "2026-09-21T13:30:00.000Z",
+              }[key];
+            },
+          },
+        },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        return new Response("unexpected", { status: 500 });
+      };
+
+      const response = await withFixedDate(
+        "2026-09-21T13:15:48.000Z",
+        () =>
+          scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: productionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
+      );
+
+      expect(response.status).toBe(204);
+      expect(requests).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
     }
   });
 
@@ -269,6 +563,8 @@ test.describe("scheduled scan invocation idempotency", () => {
               return {
                 TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
                 TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+                TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC:
+                  "2026-09-21T13:15:00.000Z",
               }[key];
             },
           },
@@ -279,14 +575,27 @@ test.describe("scheduled scan invocation idempotency", () => {
         return new Response("unexpected", { status: 500 });
       };
 
-      const response = await scheduledScanHandler(
-        new Request("https://scheduled.example", { method: "POST" }),
-        { deploy: { id: "deploy-preview", context: "deploy-preview", published: true } } as Parameters<typeof scheduledScanHandler>[1],
+      const response = await withFixedDate(
+        "2026-09-21T13:15:48.000Z",
+        () =>
+          scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-21T13:30:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: "111111111111111111111111",
+                context: "deploy-preview",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
       );
 
       expect(response.status).toBe(503);
       expect(await response.text()).toBe(
-        "Scheduled scan preflight deployment identity unavailable",
+        "Scheduled scan preflight admission unavailable",
       );
       expect(requests).toBe(0);
     } finally {

@@ -16,7 +16,7 @@ const draftCostControlTestPath =
 const registrationPath =
   "scripts/action-660j-provider-free-ci-registration.json";
 const evidenceSha256 =
-  "3dee5b2da87e1d397e6cbfbd49b7289771413545398e4ec080a4e3468961edd3";
+  "ab081eabada0c0b669eaac71c3debfd1ccf242d08ce4667d32b7e633d960e5db";
 const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
