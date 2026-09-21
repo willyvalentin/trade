@@ -128,7 +128,8 @@ runtime logs prove the provider route was never loaded. No provider request,
 candidate publication or broker action occurred. Do not run another live retry
 under this authorization.
 
-**A.2 deploy-identity repair implemented locally, 2026-09-21 (4–8h):** owner
+**A.2 deploy-identity repair merged and production-verified, 2026-09-21
+(4–8h):** owner
 Codex on `codex/sv-a2-scheduled-deploy-identity` replaces the unverified runtime
 context assumption with a fail-closed fallback generated during the Netlify
 build from non-secret `DEPLOY_ID`, `CONTEXT`, `COMMIT_REF` and `SITE_ID`. The
@@ -142,13 +143,35 @@ publication as requiring external deploy readback rather than inventing a
 runtime fact. Missing, malformed, preview, cross-site, conflicting, misaligned
 or late/manual-like evidence fails closed. The existing context path remains
 accepted only when Netlify itself supplies an exact published-production deploy
-identity. Focused behavior and packaging evidence is local; merge, production
-deploy and a fresh separately authorized OPEN preflight remain unverified.
-Local acceptance currently comprises 22 focused preflight/adapter/security-gate
-tests and 89 broader scheduler regressions passing, strict TypeScript passing,
-repository lint with zero errors (eight pre-existing warnings), a complete Next
-production build passing, and generated marker readback matching the supplied
-non-secret deploy, commit and site identities.
+identity. Revision `57707ec9290bc6c1fc0be717003152672c54605e` passed
+protected PR #578 CI and merged as
+`f23f23f0af982dc452e20f8c61ab17cff0d51333`. Netlify production deploy
+`6ab19682e609eb00080a34c1` is `ready` on that exact merge revision. Hosted
+function metadata shows `scheduled-scan` recreated by that deploy with the
+expected 15-minute schedule, and the next production slot logged only
+`Execution disabled by environment`. Readback also confirmed scheduler disabled,
+probe false and no probe target slot. Exact-main offline packaging contains the
+expected non-secret deploy, commit and site marker; the local Edge build still
+hits the known Deno spawn `-88` limitation only after Next compilation,
+TypeScript and function bundling succeed. Source acceptance comprises 22 focused
+preflight/adapter/security-gate tests and 89 broader scheduler regressions,
+repository lint with zero errors (eight pre-existing warnings), and a complete
+Next production build. A fresh separately authorized OPEN preflight remains
+unverified; none was run during this production readback.
+
+**A.2 CLOSED follow-up — probe-date/slot binding, 2026-09-21 (4–8h):** owner
+Codex on `codex/sv-a2-probe-date-binding` closes one remaining false-readiness
+path before the next OPEN attempt. The scheduler now requires the configured
+probe date to be a real calendar date and to equal the exact target slot's
+`America/New_York` date. Missing, impossible or mismatched dates return inert
+before database access and the bundled scan route, just like a missing or
+non-target slot; this cannot request provider data, reserve credit, rank,
+publish or invoke a broker. Correct date/slot evidence still reaches the durable
+provider-free preflight claim. Local acceptance: 23 focused tests and 90 broader
+tests pass; the overlapping scheduler/Basic Free regression matrix passes all
+158 tests. Strict TypeScript and a complete Next production build pass, and
+repository lint has zero errors with the same eight pre-existing warnings.
+Review, merge, production deploy and OPEN behavior remain unverified.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -252,7 +275,7 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 remains active: the authorized preflight exposed the scheduled-runtime deploy-context defect; its CLOSED repair is local on `codex/sv-a2-scheduled-deploy-identity` | Review/merge/deploy the repair, then require a fresh separately authorized one-slot preflight; do not repeat today's consumed authorization |
+| Primary development | A.2 remains active: the deploy-identity/exact-slot repair is merged and production-safe; the date/slot binding follow-up is local on `codex/sv-a2-probe-date-binding` | Review/merge/deploy the date binding, then require a fresh separately authorized one-slot preflight; do not repeat today's consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
