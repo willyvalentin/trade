@@ -11,14 +11,47 @@ roadmap/governance/ledger are the only control sources; Notion stays outside sco
 
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
-Next slice **A.1 (4–8 active hours, CLOSED)**: reconcile the latest main and the
-actual status of the previously selected IF-2 market observation; identify the
-first concrete operational gap in scheduled scan → immutable decision → outcome
-→ authenticated readback. Reuse baseline/source-cohort/policy-comparison work
-already on main. Do not restart completed IF deliveries, infer a live cohort from
-contracts, or wait for proven alpha before building research instrumentation.
-This planning pass has not executed A.1 or claimed that IF-2's next observation
-has succeeded. Check intervening active work before starting implementation.
+**A.1 reconciliation completed, 2026-09-21:** an aggregate-only production
+inspection found 81 retained, identity-linked `research_only`/hidden decision
+snapshots from scheduled scans in the inspected 2026-09-15 onward window. The
+same inspected window had zero retained `recommendation_outcomes` and zero
+`scheduled_outcome_evaluation_attempts`. This establishes one bounded
+operational gap: immutable research decisions exist, but the retained scan →
+decision → outcome → authenticated readback chain has not begun its outcome
+stage. It does **not** establish a favorable or unfavorable strategy result, a
+candidate-quality problem, a provider failure, or a missing visible-publication
+record; the research-only/hidden storage contract intentionally separates those
+concerns.
+
+**A.2 closed implementation completed locally, 2026-09-21:** revision
+`f81be71a751a04d376749fc33faad65d5be1a761` on
+`codex/sv-a2-decision-lifecycle-readback` adds an owner-scoped, server-derived
+`Decision → Outcome Readback` to the existing authenticated dashboard. It
+selects the latest retained decision only through exact scan/snapshot
+fingerprints, attributes outcomes only through exact snapshot fingerprints, and
+explicitly refuses to treat a scheduled evaluator receipt as decision evidence
+until that receipt contract carries a decision identity. The UI reports
+`decision_retained_outcome_not_attempted` for the observed production-shaped
+gap, never presents an outcome count as a trading-quality result, and performs
+no provider, scheduler, ranking, publication or broker action. Local evidence:
+five focused lifecycle regressions, ESLint with zero errors (eight unrelated
+repository warnings) and a complete Next production build. The local browser
+reached the password boundary; authenticated UI rendering remains environment
+verification to perform without entering credentials into browser automation.
+
+**A.2 OPEN remainder:** take only the next separately authorized scheduled
+session/readback and record its actual market date, environment and retained
+result. The existing Basic Free catalog reference observation is not itself an
+outcome evaluation and cannot close the end-to-end outcome evidence gap. Do not
+invoke either route manually, add a provider request, or infer outcome coverage
+from a completed scan.
+
+**Pilot readiness record:** the inspected research-only decision rows do not
+retain an attributable candidate-decision record from which a current
+strategy/version and eligible-symbol selection can be truthfully reconstructed.
+No internal-paper pilot selection is recorded or enabled. That is an evidence
+gap to resolve in A.2/B.1, not permission to infer a live cohort from the
+stored snapshots.
 
 ### Next — ordered, bounded product work
 
@@ -48,7 +81,7 @@ chosen risk limits; no real-capital allocation or new subscription is implied.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.1 is next; not executed in this planning pass | Verify latest main and choose the first actual operational gap |
+| Primary development | A.2 is active: local decision-to-outcome readback is implemented; OPEN session/readback remains | Merge/review `f81be71a751a04d376749fc33faad65d5be1a761`, then consume only the next separately authorized session and record its durable result |
 | Second development | Empty; B.1 is the first queued candidate | Record owner, branch, phase/acceptance, 4–16h budget, fulfilled dependencies, stable interface/write ownership and integration order before starting |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
