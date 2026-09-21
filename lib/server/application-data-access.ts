@@ -9,6 +9,11 @@ import {
   recommendationLearningBaselineSourceRowsAreStable,
   RECOMMENDATION_LEARNING_BASELINE_SOURCE_MAX_ROWS,
 } from "@/lib/recommendation-learning-baseline-pagination";
+import { buildDecisionOutcomeLifecycleReadback } from "@/lib/decision-outcome-lifecycle-readback";
+import { recommendationOutcomeFromPersistenceRow } from "@/lib/recommendation-outcome-tracker";
+import { recommendationScanRunFromPersistenceRow } from "@/lib/recommendation-scan-run";
+import { recommendationSnapshotFromPersistenceRow } from "@/lib/recommendation-snapshot";
+import { scheduledOutcomeEvaluationAttemptFromRow } from "@/lib/scheduled-outcome-evaluation-receipt";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import { normalizeApplicationOwnerUserId } from "@/lib/application-session-core";
 import {
@@ -158,6 +163,33 @@ export async function readApplicationDashboardData(ownerUserId: string) {
     return failed<Record<string, unknown>>();
   }
 
+  const decisionOutcomeLifecycle = buildDecisionOutcomeLifecycleReadback({
+    scanRuns: (recommendationScanRuns.data ?? [])
+      .map((row) =>
+        recommendationScanRunFromPersistenceRow(
+          row as unknown as Record<string, unknown>,
+        ),
+      )
+      .filter((row) => row !== null),
+    snapshots: (recommendationSnapshots.data ?? [])
+      .map((row) =>
+        recommendationSnapshotFromPersistenceRow(
+          row as unknown as Record<string, unknown>,
+        ),
+      )
+      .filter((row) => row !== null),
+    outcomes: (recommendationOutcomes.data ?? [])
+      .map((row) =>
+        recommendationOutcomeFromPersistenceRow(
+          row as unknown as Record<string, unknown>,
+        ),
+      )
+      .filter((row) => row !== null),
+    scheduledEvaluationAttempts: (scheduledOutcomeEvaluationAttempts.data ?? [])
+      .map((row) => scheduledOutcomeEvaluationAttemptFromRow(row))
+      .filter((row) => row !== null),
+  });
+
   return {
     status: "available" as const,
     data: {
@@ -174,6 +206,7 @@ export async function readApplicationDashboardData(ownerUserId: string) {
       recommendation_outcomes: recommendationOutcomes.data ?? [],
       scheduled_outcome_evaluation_attempts:
         scheduledOutcomeEvaluationAttempts.data ?? [],
+      decision_outcome_lifecycle: decisionOutcomeLifecycle,
       market_regime: marketRegime.data,
     },
   };

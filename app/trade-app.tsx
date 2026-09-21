@@ -271,6 +271,11 @@ import {
   type CandidateDecisionRecordHistory,
 } from "@/lib/candidate-decision-readback";
 import {
+  decisionOutcomeLifecycleReadbackFromUnknown,
+  type DecisionOutcomeLifecycleReadback,
+  type DecisionOutcomeLifecycleReadbackStatus,
+} from "@/lib/decision-outcome-lifecycle-readback";
+import {
   buildRecommendationDecisionEvidenceReadback,
   type RecommendationDecisionEvidenceReadback,
 } from "@/lib/recommendation-decision-evidence-readback";
@@ -2617,6 +2622,7 @@ type ApplicationDashboardPayload = {
   recommendation_snapshots: unknown[];
   recommendation_outcomes: unknown[];
   scheduled_outcome_evaluation_attempts: unknown[];
+  decision_outcome_lifecycle: unknown | null;
   market_regime: unknown | null;
 };
 
@@ -8978,6 +8984,8 @@ export function TradeApp({
     useState<RecommendationOutcome[]>([]);
   const [scheduledOutcomeEvaluationAttempts, setScheduledOutcomeEvaluationAttempts] =
     useState<ScheduledOutcomeEvaluationAttempt[]>([]);
+  const [decisionOutcomeLifecycleReadback, setDecisionOutcomeLifecycleReadback] =
+    useState<DecisionOutcomeLifecycleReadback | null>(null);
   const [learningBaselineFreeze, setLearningBaselineFreeze] =
     useState<RecommendationLearningBaselineFreeze | null>(null);
   const [learningBaselineFreezeError, setLearningBaselineFreezeError] =
@@ -9440,6 +9448,10 @@ export function TradeApp({
         data: dashboard?.scheduled_outcome_evaluation_attempts ?? [],
         error: dashboardError,
       };
+      const decisionOutcomeLifecycleResult = {
+        data: dashboard?.decision_outcome_lifecycle ?? null,
+        error: dashboardError,
+      };
       const marketRegimeResult = {
         data: dashboard?.market_regime ?? null,
         error: dashboardError,
@@ -9630,6 +9642,24 @@ export function TradeApp({
               ): attempt is ScheduledOutcomeEvaluationAttempt => attempt !== null,
             ),
         );
+      }
+
+      if (decisionOutcomeLifecycleResult.error) {
+        if (isInitialLoad) {
+          setDecisionOutcomeLifecycleReadback(null);
+        }
+      } else {
+        const parsedDecisionOutcomeLifecycle =
+          decisionOutcomeLifecycleReadbackFromUnknown(
+            decisionOutcomeLifecycleResult.data,
+          );
+        if (parsedDecisionOutcomeLifecycle === null) {
+          console.warn("[trade-app] decision_outcome_lifecycle_unavailable", {
+            source: "/api/app/dashboard",
+            operation: "parse_server_derived_decision_outcome_lifecycle",
+          });
+        }
+        setDecisionOutcomeLifecycleReadback(parsedDecisionOutcomeLifecycle);
       }
 
       if (recommendationScanRunsResult.error) {
@@ -17252,6 +17282,10 @@ export function TradeApp({
 
             <ScheduledOutcomeEvaluationReceiptPanel
               attempt={latestScheduledOutcomeEvaluationAttempt}
+            />
+
+            <DecisionOutcomeLifecycleReadbackPanel
+              readback={decisionOutcomeLifecycleReadback}
             />
 
             <MarketWideDiscoveryReceiptPanel
@@ -37653,6 +37687,153 @@ function scheduledOutcomeEvaluationReceiptTone(
     return "warning";
   }
   return "neutral";
+}
+
+function decisionOutcomeLifecycleTone(
+  status: DecisionOutcomeLifecycleReadbackStatus | null,
+): "positive" | "warning" | "danger" | "neutral" {
+  if (
+    status === "decision_without_retained_snapshots" ||
+    status === "decision_retained_outcome_not_attempted" ||
+    status === "decision_retained_outcome_pending" ||
+    status === "decision_retained_outcome_unproven"
+  ) {
+    return "warning";
+  }
+
+  // Linked outcome evidence is not a positive trading result. Keep this
+  // neutral so the surface never turns evidence retention into a quality cue.
+  return "neutral";
+}
+
+function decisionOutcomeLifecycleCopy(
+  status: DecisionOutcomeLifecycleReadbackStatus | null,
+) {
+  switch (status) {
+    case "no_retained_decision":
+      return "No immutable scan decision is available in the authenticated readback window. This is not evidence that a scan, candidate, or outcome did not exist outside that retained window.";
+    case "decision_without_retained_snapshots":
+      return "The selected retained scan has no identity-matched immutable snapshot. Ture will not infer a decision or outcome from timing alone.";
+    case "decision_retained_outcome_not_attempted":
+      return "This retained decision has immutable snapshots, but no linked outcome rows and no retained scheduled evaluation attempt. It is neither favorable nor unfavorable evidence.";
+    case "decision_retained_outcome_pending":
+      return "A scheduled evaluator claim is retained, but no linked outcome row is available yet. A claim is not an evaluation result.";
+    case "decision_retained_outcome_unproven":
+      return "A scheduled evaluation receipt exists, but its current contract does not identify this decision. Without an exact linked outcome row, coverage remains unproven.";
+    case "decision_retained_outcome_evidence":
+      return "One or more outcome rows are linked through immutable snapshot fingerprints. Retention is evidence of evaluation coverage, not of recommendation quality or profitability.";
+    default:
+      return "No valid server-derived lifecycle readback is available. The browser will not reconstruct or infer one from untrusted rows.";
+  }
+}
+
+function DecisionOutcomeLifecycleReadbackPanel({
+  readback,
+}: {
+  readback: DecisionOutcomeLifecycleReadback | null;
+}) {
+  const decision = readback?.decision ?? null;
+  const outcomeEvidence = readback?.outcome_evidence ?? null;
+  const status = readback?.status ?? null;
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision lifecycle
+          </p>
+          <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
+            Decision → Outcome Readback
+          </h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+            An owner-scoped server readback that follows one retained scan only
+            through exact scan and snapshot fingerprints. It never starts a
+            scan, calls a provider, changes ranking, or publishes a candidate.
+          </p>
+        </div>
+        <RecommendationDetailsPill
+          label={status?.replaceAll("_", " ") ?? "unavailable"}
+          tone={decisionOutcomeLifecycleTone(status)}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label="Retained Decision"
+          value={decision?.observed_at ? formatDate(decision.observed_at) : "not retained"}
+        />
+        <SummaryCard
+          label="Immutable Snapshots"
+          value={String(decision?.retained_snapshot_count ?? 0)}
+        />
+        <SummaryCard
+          label="Linked Outcome Rows"
+          value={String(outcomeEvidence?.linked_outcome_count ?? 0)}
+        />
+        <SummaryCard
+          label="Scheduled Receipts"
+          value={String(
+            outcomeEvidence?.retained_scheduled_evaluation_attempt_count ?? 0,
+          )}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Decision coverage
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {decision
+              ? `Data mode: ${decision.data_mode ?? "not recorded"}; candidate record: ${decision.candidate_decision_record_status}; research-only: ${decision.research_only_snapshot_count}; learning-only: ${decision.learning_only_snapshot_count}; visible: ${decision.visible_snapshot_count}.`
+              : "No valid lifecycle contract is available from the authenticated dashboard response."}
+          </p>
+          {decision && decision.identity_conflict_excluded_snapshot_count > 0 && (
+            <p className="mt-1 text-xs leading-5 text-amber-200">
+              Excluded identity conflicts: {decision.identity_conflict_excluded_snapshot_count}.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Exact outcome linkage
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {outcomeEvidence
+              ? `Linked rows: ${outcomeEvidence.linked_outcome_count}; complete coverage rows: ${outcomeEvidence.complete_linked_outcome_count}. Only an exact snapshot fingerprint can create this link.`
+              : "No outcome-linkage value is available."}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Counts do not state whether an outcome was profitable, unfavorable,
+            or suitable for policy change.
+          </p>
+        </div>
+
+        <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+          <h4 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+            Evaluator receipt boundary
+          </h4>
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {outcomeEvidence?.latest_scheduled_evaluation_status
+              ? `Latest retained evaluator receipt: ${outcomeEvidence.latest_scheduled_evaluation_status} at ${formatDate(outcomeEvidence.latest_scheduled_evaluation_slot_at ?? "")}.`
+              : "No retained scheduled evaluator receipt exists."}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {outcomeEvidence?.scheduled_receipt_attribution ===
+            "not_decision_attributable"
+              ? "The receipt contract does not yet carry this decision identity, so it cannot substitute for an exact outcome link."
+              : "No scheduled receipt is available to compare with this decision."}
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-4 rounded-md border border-white/10 bg-white/[0.025] p-3 text-sm leading-6 text-zinc-400">
+        {decisionOutcomeLifecycleCopy(status)}
+      </p>
+    </section>
+  );
 }
 
 function ScheduledOutcomeEvaluationReceiptPanel({
