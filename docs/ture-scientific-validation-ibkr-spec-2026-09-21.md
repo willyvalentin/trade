@@ -25,16 +25,16 @@ Ture ska utvecklas mot ett system som kontinuerligt kan:
 
 Utvecklingen ska ske i fyra sammanhängande huvudspår:
 
-1. **Scientific Validation & Autonomous Paper Trading**  
+1. **Scientific Validation & Autonomous Paper Trading**\
    Helt autonom intern paper trading med låtsaspengar där Ture kontinuerligt fattar, exekverar och utvärderar beslut utan mänsklig input.
 
-2. **Research & Learning Infrastructure**  
+2. **Research & Learning Infrastructure**\
    Market Replay, model/version registry, market regime classification, counterfactual testing, walk-forward testing, drift detection och full performance attribution.
 
-3. **Instrument & Portfolio Optimization**  
+3. **Instrument & Portfolio Optimization**\
    Ture ska avgöra både vilken möjlighet som är bäst och vilket instrument som bäst uttrycker signalen: aktie, call, put eller definierad optionsspread.
 
-4. **IBKR-first Execution Architecture**  
+4. **IBKR-first Execution Architecture**\
    Interactive Brokers ska bli Tures primära broker. All framtida live execution ska primärt optimeras för IBKR och deras API. Avanza deprioriteras.
 
 ---
@@ -443,13 +443,13 @@ Varje beslut ska kunna kopplas till exakt vilken version av Ture som skapade det
 
 Exempel:
 
-**Candidate Picker:** 3.2.1  
-**Signal Engine:** 4.7.2  
-**Forecast Model:** 2.4.0  
-**Risk Engine:** 1.9.1  
-**Exit Engine:** 2.8.4  
-**Regime Engine:** 1.3.0  
-**Feature Schema:** 12  
+**Candidate Picker:** 3.2.1\
+**Signal Engine:** 4.7.2\
+**Forecast Model:** 2.4.0\
+**Risk Engine:** 1.9.1\
+**Exit Engine:** 2.8.4\
+**Regime Engine:** 1.3.0\
+**Feature Schema:** 12\
 **Strategy:** MomentumBreakout-v17
 
 Registry ska möjliggöra:
@@ -482,25 +482,25 @@ Exempel:
 
 Systemet ska sedan uppleva dagen som om den sker live.
 
-09:31  
+09:31\
 Scanner körs.
 
-09:47  
+09:47\
 NVDA identifieras.
 
-09:49  
+09:49\
 Signal confirmed.
 
-09:50  
+09:50\
 Simulated order submitted.
 
-09:51  
+09:51\
 Filled.
 
-10:42  
+10:42\
 MOVE_STOP_TO_BE.
 
-11:18  
+11:18\
 TAKE_PARTIAL.
 
 etc.
@@ -770,16 +770,16 @@ Exempel:
 
 **Momentum Breakout**
 
-1,842 trades  
-Expectancy: +0.19R  
-Profit Factor: 1.38  
+1,842 trades\
+Expectancy: +0.19R\
+Profit Factor: 1.38\
 Sharpe: 1.41
 
 medan:
 
 **Reversal**
 
-1,106 trades  
+1,106 trades\
 Expectancy: -0.08R
 
 ---
@@ -832,11 +832,11 @@ Exempel:
 
 **MARKET REGIME**
 
-Trend: Bullish  
-Volatility: Elevated  
-Breadth: Strong  
-Momentum: Strong  
-Liquidity: Normal  
+Trend: Bullish\
+Volatility: Elevated\
+Breadth: Strong\
+Momentum: Strong\
+Liquidity: Normal\
 Macro risk: Low
 
 Classification:
@@ -1020,17 +1020,17 @@ Exempel:
 
 ## Momentum Breakout v4
 
-Trades: 7,214  
-Net expectancy: +0.23R  
-Profit Factor: 1.47  
-Sharpe: 1.62  
-Max Drawdown: -9.4R  
+Trades: 7,214\
+Net expectancy: +0.23R\
+Profit Factor: 1.47\
+Sharpe: 1.62\
+Max Drawdown: -9.4R\
 OOS Expectancy: +0.18R
 
 ### Regimes
 
-Bull: Strong  
-Neutral: Positive  
+Bull: Strong\
+Neutral: Positive\
 Bear: Weak
 
 ### Status
@@ -1110,9 +1110,9 @@ utan även:
 
 Exempel:
 
-NVDA LONG: +0.30R EV  
-AMD LONG: +0.27R  
-AVGO LONG: +0.26R  
+NVDA LONG: +0.30R EV\
+AMD LONG: +0.27R\
+AVGO LONG: +0.26R\
 META LONG: +0.22R
 
 Alla är attraktiva.
@@ -1690,11 +1690,11 @@ Första live-fasen:
 
 Exempel:
 
-NVDA LONG  
-42 shares  
-Limit $186.42  
-Stop $184.91  
-Target $190.80  
+NVDA LONG\
+42 shares\
+Limit $186.42\
+Stop $184.91\
+Target $190.80\
 Maximum risk $63
 
 **EXECUTE**
