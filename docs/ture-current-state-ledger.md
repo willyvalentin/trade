@@ -160,7 +160,7 @@ Next production build. A fresh separately authorized OPEN preflight remains
 unverified; none was run during this production readback.
 
 **A.2 CLOSED follow-up — probe-date/slot binding, 2026-09-21 (4–8h):** owner
-Codex on `codex/sv-a2-probe-date-binding` closes one remaining false-readiness
+Codex on `codex/sv-a2-probe-date-binding` closed one remaining false-readiness
 path before the next OPEN attempt. The scheduler now requires the configured
 probe date to be a real calendar date and to equal the exact target slot's
 `America/New_York` date. Missing, impossible or mismatched dates return inert
@@ -171,7 +171,13 @@ provider-free preflight claim. Local acceptance: 23 focused tests and 90 broader
 tests pass; the overlapping scheduler/Basic Free regression matrix passes all
 158 tests. Strict TypeScript and a complete Next production build pass, and
 repository lint has zero errors with the same eight pre-existing warnings.
-Review, merge, production deploy and OPEN behavior remain unverified.
+Protected PR #579 passed all six CI shards and merged as
+`8ce86749f73b9d893cce4f8ee56c63c1843baa05`. Netlify production deploy
+`6ab1a7dce7036400080b9da4` is `ready` on that exact revision, with the expected
+scheduled-function digest and schedule. Production readback remained fail-closed:
+scheduler disabled, capability probe false and no target slot configured. No
+post-deploy slot occurred, so fresh OPEN delivery behavior remains unverified
+and requires a new separately authorized session.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -258,6 +264,35 @@ source merge and deploy do not supply it.
 4. Select subsequent slices from the roadmap dependency graph. Early L feasibility
    is allowed when selected after A/B; no new Avanza execution features.
 
+**Selected SV-C.1 CLOSED vertical slice — brokerless paper entry lifecycle,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-c1-internal-paper-lifecycle`; interface versions
+`internal_paper_entry_command_v1`,
+`internal_paper_immediate_costed_fill_v1` and
+`internal_paper_readback_v1`. One reconstructable v3 published decision and its
+exact real/live snapshot can produce one whole-share long paper intent, a
+spread/slippage/commission-costed simulated fill, one open paper position and a
+balanced three-line virtual ledger in a single database transaction. The
+database, not the caller, hashes the retained decision record. Account config
+freezes strategy/rollback/selection identity, at most ten eligible symbols,
+one-position scope, fill assumptions, cash and per-trade/daily risk caps.
+Explicit no-trade, stale/forged evidence, demo/mock data, owner mismatch,
+kill/pause, over-risk, insufficient cash and conflicting retries fail closed.
+Exact retry after a new database session returns the original intent/fill/
+position with no duplicate economic effect; forced late ledger failure rolls
+back every prior write. Child rows enforce owner/account identity through
+composite foreign keys and direct browser roles receive no table or command
+authority. Local evidence comprises four focused decision-admission tests, 26
+decision/lifecycle/transaction regressions, 14 protected-CI contract and
+admission tests, strict TypeScript, full lint with zero errors (eight existing
+warnings), a complete Next production build and a disposable PostgreSQL
+transaction/restart/isolation/rollback harness. That real database harness is
+registered in the protected foundation shard. The migration is source-only and
+has **not** been applied to production; it creates no account, schedule,
+provider request, candidate publication or broker path even when later applied.
+Runtime account provisioning/activation, an autonomous worker, exits and OPEN
+pilot evidence remain separate successors.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -275,8 +310,9 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 remains active: the deploy-identity/exact-slot repair is merged and production-safe; the date/slot binding follow-up is local on `codex/sv-a2-probe-date-binding` | Review/merge/deploy the date binding, then require a fresh separately authorized one-slot preflight; do not repeat today's consumed authorization |
+| Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
+| CLOSED successor | SV-C.1 paper entry lifecycle is locally implemented/tested on `codex/sv-c1-internal-paper-lifecycle`; schema and runtime activation remain unapplied | Finish review/CI and merge the inert slice; require separate migration and frozen pilot-account authority before environment use; then add paper exit/reconciliation |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
