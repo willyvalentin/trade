@@ -83,6 +83,8 @@ test("keeps the production-shaped retained-decision gap explicit", () => {
       research_only_snapshot_count: 1,
       visible_snapshot_count: 0,
       candidate_decision_record_status: "missing",
+      decision_lineage_receipt_status: "missing",
+      decision_lineage_receipt_reason_codes: [],
     },
     outcome_evidence: {
       linked_outcome_count: 0,

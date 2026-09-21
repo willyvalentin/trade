@@ -37786,9 +37786,14 @@ function DecisionOutcomeLifecycleReadbackPanel({
           </h4>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
             {decision
-              ? `Data mode: ${decision.data_mode ?? "not recorded"}; candidate record: ${decision.candidate_decision_record_status}; research-only: ${decision.research_only_snapshot_count}; learning-only: ${decision.learning_only_snapshot_count}; visible: ${decision.visible_snapshot_count}.`
+              ? `Data mode: ${decision.data_mode ?? "not recorded"}; candidate record: ${decision.candidate_decision_record_status}; lineage receipt: ${decision.decision_lineage_receipt_status}; research-only: ${decision.research_only_snapshot_count}; learning-only: ${decision.learning_only_snapshot_count}; visible: ${decision.visible_snapshot_count}.`
               : "No valid lifecycle contract is available from the authenticated dashboard response."}
           </p>
+          {decision?.decision_lineage_receipt_reason_codes.length ? (
+            <p className="mt-1 text-xs leading-5 text-amber-200">
+              Lineage limits: {decision.decision_lineage_receipt_reason_codes.join(", ")}.
+            </p>
+          ) : null}
           {decision && decision.identity_conflict_excluded_snapshot_count > 0 && (
             <p className="mt-1 text-xs leading-5 text-amber-200">
               Excluded identity conflicts: {decision.identity_conflict_excluded_snapshot_count}.

@@ -74,6 +74,7 @@ import {
   buildCandidateDecisionRecord,
   type CandidateDecisionCapture,
 } from "@/lib/candidate-decision-record";
+import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { CANONICAL_OUTCOME_EVALUATOR_VERSION } from "@/lib/canonical-recommendation-evaluation";
 import type { ScanPipelineObservabilitySummary } from "@/lib/scan-pipeline-observability";
@@ -2537,6 +2538,8 @@ async function persistAutomationArtifacts({
   });
   if (candidateDecisionRecord) {
     scanRun.payload_json.candidate_decision_record = candidateDecisionRecord;
+    scanRun.payload_json.decision_lineage_receipt =
+      buildDecisionLineageReceipt(candidateDecisionRecord);
   }
   const persistence = {
     scan_run: await persistRecommendationScanRun(scanRun, {

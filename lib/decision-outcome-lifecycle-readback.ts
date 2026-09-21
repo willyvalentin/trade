@@ -1,4 +1,5 @@
 import { candidateDecisionRecordFromScanRun } from "@/lib/candidate-decision-readback";
+import { decisionLineageReceiptFromScanRun } from "@/lib/decision-lineage-receipt";
 import type { RecommendationOutcome } from "@/lib/recommendation-outcome-tracker";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -23,6 +24,8 @@ export type DecisionOutcomeLifecycleReadback = {
     observed_at: string | null;
     data_mode: string | null;
     candidate_decision_record_status: "available" | "missing";
+    decision_lineage_receipt_status: "reconstructable" | "incomplete" | "missing";
+    decision_lineage_receipt_reason_codes: string[];
     retained_snapshot_count: number;
     research_only_snapshot_count: number;
     learning_only_snapshot_count: number;
@@ -163,6 +166,8 @@ function retainedDecisionDefaults() {
     observed_at: null,
     data_mode: null,
     candidate_decision_record_status: "missing" as const,
+    decision_lineage_receipt_status: "missing" as const,
+    decision_lineage_receipt_reason_codes: [],
     retained_snapshot_count: 0,
     research_only_snapshot_count: 0,
     learning_only_snapshot_count: 0,
@@ -289,15 +294,22 @@ export function buildDecisionOutcomeLifecycleReadback({
         .map((outcome) => [outcome.id, outcome]),
     ).values(),
   );
+  const candidateDecisionRecord = candidateDecisionRecordFromScanRun(selectedScanRun);
+  const decisionLineageReceipt = candidateDecisionRecord
+    ? decisionLineageReceiptFromScanRun(selectedScanRun, candidateDecisionRecord)
+    : null;
+  const decisionLineageReceiptStatus: DecisionOutcomeLifecycleReadback["decision"]["decision_lineage_receipt_status"] =
+    decisionLineageReceipt?.status ?? "missing";
   const decision = {
     scan_run_fingerprint: selectedScanRun.run_fingerprint,
     observed_at: isoOrNull(selectedScanRun.observed_at),
     data_mode: textOrNull(selectedScanRun.data_mode),
-    candidate_decision_record_status: candidateDecisionRecordFromScanRun(
-      selectedScanRun,
-    )
+    candidate_decision_record_status: candidateDecisionRecord
       ? ("available" as const)
       : ("missing" as const),
+    decision_lineage_receipt_status: decisionLineageReceiptStatus,
+    decision_lineage_receipt_reason_codes:
+      decisionLineageReceipt?.reason_codes ?? [],
     retained_snapshot_count: selectedSnapshots.length,
     research_only_snapshot_count: selectedSnapshots.filter(
       isResearchOnlySnapshot,
@@ -424,6 +436,19 @@ export function decisionOutcomeLifecycleReadbackFromUnknown(
     (decision.data_mode !== null && textOrNull(decision.data_mode) === null) ||
     (decision.candidate_decision_record_status !== "available" &&
       decision.candidate_decision_record_status !== "missing") ||
+    (decision.decision_lineage_receipt_status !== "reconstructable" &&
+      decision.decision_lineage_receipt_status !== "incomplete" &&
+      decision.decision_lineage_receipt_status !== "missing") ||
+    !Array.isArray(decision.decision_lineage_receipt_reason_codes) ||
+    decision.decision_lineage_receipt_reason_codes.some(
+      (reason) => textOrNull(reason) === null,
+    ) ||
+    (decision.decision_lineage_receipt_status === "reconstructable" &&
+      decision.decision_lineage_receipt_reason_codes.length !== 0) ||
+    (decision.decision_lineage_receipt_status === "incomplete" &&
+      decision.decision_lineage_receipt_reason_codes.length === 0) ||
+    (decision.decision_lineage_receipt_status === "missing" &&
+      decision.decision_lineage_receipt_reason_codes.length !== 0) ||
     [
       decision.retained_snapshot_count,
       decision.research_only_snapshot_count,
@@ -460,6 +485,11 @@ export function decisionOutcomeLifecycleReadbackFromUnknown(
       data_mode:
         decision.data_mode === null ? null : textOrNull(decision.data_mode),
       candidate_decision_record_status: decision.candidate_decision_record_status,
+      decision_lineage_receipt_status: decision.decision_lineage_receipt_status,
+      decision_lineage_receipt_reason_codes:
+        decision.decision_lineage_receipt_reason_codes.map(
+          (reason) => textOrNull(reason)!,
+        ),
       retained_snapshot_count: decision.retained_snapshot_count as number,
       research_only_snapshot_count: decision.research_only_snapshot_count as number,
       learning_only_snapshot_count: decision.learning_only_snapshot_count as number,

@@ -10,6 +10,11 @@ import {
   candidateDecisionRecordFromUnknown,
   summarizeCandidateDecisionRecord,
 } from "@/lib/candidate-decision-readback";
+import {
+  buildDecisionLineageReceipt,
+  decisionLineageReceiptFromScanRun,
+} from "@/lib/decision-lineage-receipt";
+import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
 import { buildRecommendationScanRun } from "@/lib/recommendation-scan-run";
 import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
@@ -118,7 +123,200 @@ function persistedScanRun({
   };
 }
 
+function completeLearningAttribution() {
+  return buildCandidateDecisionLearningAttribution({
+    recommendationPublishPolicyVersion: "recommendation_publish_policy_v1",
+    canonicalEvaluationVersions: {
+      engine_version: "ture_intelligence_engine_v1",
+      scoring_version: "day_trade_score_v1",
+      ranking_version: "scanner_candidate_ranking_v1",
+      setup_taxonomy_version: "setup_taxonomy_not_recorded_v1",
+      confidence_contract_version: "ordinal_confidence_not_calibrated_v1",
+      evaluator_version: "canonical_outcome_evaluator_v1",
+      provider_contract_version: "twelve_data_market_data_v1",
+      git_commit: "0123456789abcdef0123456789abcdef01234567",
+      build_identity: "test-build-v1",
+    },
+  });
+}
+
+function withReversedObjectKeys(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withReversedObjectKeys);
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .reverse()
+      .map(([key, nested]) => [key, withReversedObjectKeys(nested)]),
+  );
+}
+
 test.describe("candidate decision record", () => {
+  test("retains one reconstructable decision-lineage receipt without inventing a model", () => {
+    const candidates = [candidate(1), candidate(2), candidate(3)];
+    const run = scanRun(candidates.length);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates, publishedTickers: ["T01"] }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(record).not.toBeNull();
+    const receipt = buildDecisionLineageReceipt(record!);
+    const persisted = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: receipt,
+      },
+    };
+
+    expect(receipt).toMatchObject({
+      status: "reconstructable",
+      decision_categories: {
+        published_candidate_count: 1,
+        rejected_candidate_count: 2,
+        explicit_no_trade: false,
+      },
+      versions: {
+        strategy_version: "recommendation_publish_policy_v1",
+        model: { status: "not_applicable", version: null },
+        git_commit: "0123456789abcdef0123456789abcdef01234567",
+      },
+      availability: {
+        expected_candidate_count: 3,
+        observed_candidate_count: 3,
+        source_timestamp_at_or_before_decision_count: 3,
+        missing_source_timestamp_count: 0,
+        source_timestamp_after_decision_count: 0,
+      },
+    });
+    expect(decisionLineageReceiptFromScanRun(persisted, record!)).toEqual(receipt);
+
+    const databaseShapedPersisted = {
+      ...persisted,
+      payload_json: {
+        ...persisted.payload_json,
+        decision_lineage_receipt: withReversedObjectKeys(receipt),
+      },
+    };
+    expect(
+      decisionLineageReceiptFromScanRun(databaseShapedPersisted, record!),
+    ).toEqual(receipt);
+  });
+
+  test("rejects a receipt whose versions or availability were inferred after capture", () => {
+    const candidates = [candidate(1)];
+    const run = scanRun(candidates.length);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+    expect(record).not.toBeNull();
+    const receipt = buildDecisionLineageReceipt(record!);
+    const tampered = structuredClone(receipt);
+    tampered.versions.git_commit =
+      "fedcba9876543210fedcba9876543210fedcba98";
+    const persisted = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: tampered,
+      },
+    };
+
+    expect(decisionLineageReceiptFromScanRun(persisted, record!)).toBeNull();
+  });
+
+  test("preserves an explicit no-trade while preventing future source facts from becoming reconstructable", () => {
+    const futureCandidate = candidate(1);
+    futureCandidate.reference_price_timestamp = "2026-09-15T14:31:00.000Z";
+    futureCandidate.intraday_indicator_cached_at = "2026-09-15T14:31:00.000Z";
+    const run = scanRun(1);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates: [futureCandidate] }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+    expect(record).not.toBeNull();
+    const receipt = buildDecisionLineageReceipt(record!);
+    const persisted = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: receipt,
+      },
+    };
+
+    expect(receipt).toMatchObject({
+      status: "incomplete",
+      decision_categories: {
+        published_candidate_count: 0,
+        rejected_candidate_count: 1,
+        explicit_no_trade: true,
+      },
+      availability: {
+        source_timestamp_after_decision_count: 1,
+      },
+      reason_codes: ["source_timestamp_after_decision"],
+    });
+    expect(decisionLineageReceiptFromScanRun(persisted, record!)).toEqual(receipt);
+
+    const fabricated = structuredClone(receipt);
+    fabricated.status = "reconstructable";
+    fabricated.reason_codes = [];
+    fabricated.availability.source_timestamp_after_decision_count = 0;
+    const fabricatedPersisted = {
+      ...persisted,
+      payload_json: {
+        ...persisted.payload_json,
+        decision_lineage_receipt: fabricated,
+      },
+    };
+    expect(decisionLineageReceiptFromScanRun(fabricatedPersisted, record!)).toBeNull();
+  });
+
+  test("rejects a receipt attached to a different durable scan identity", () => {
+    const firstRun = scanRun(1);
+    const secondRun = {
+      ...scanRun(1, "2026-09-15T14:31:00.000Z"),
+      id: "rec_scan_run_other",
+      run_fingerprint: "rec_scan_run_other",
+    };
+    const record = buildCandidateDecisionRecord({
+      scanRun: firstRun,
+      capture: captureFor({ candidates: [candidate(1)] }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+    expect(record).not.toBeNull();
+
+    const mismatched = {
+      ...secondRun,
+      payload_json: {
+        ...secondRun.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: buildDecisionLineageReceipt(record!),
+      },
+    };
+    expect(decisionLineageReceiptFromScanRun(mismatched, record!)).toBeNull();
+  });
+
   test("retains every ranked candidate beyond a presentation-sized result list", () => {
     const candidates = Array.from({ length: 25 }, (_, index) => candidate(index));
     const ranking = buildScannerCandidateRankingSummary({
