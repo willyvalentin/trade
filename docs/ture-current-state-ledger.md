@@ -1,6 +1,92 @@
 # Ture Current-State Ledger
 
-## Active Now / Next / Blocked — 2026-09-15 intelligence-first reset
+## Active Now / Next / Blocked — 2026-09-21 scientific validation and IBKR direction
+
+The [master roadmap](./ture-master-roadmap.md) now maps the user's full scientific
+validation, autonomous paper, options and IBKR specification into SV-A–SV-U.
+This is a planning update based on main `0dbdcb53272b1739864a47f33a26fc22e052a0d6`,
+not new runtime or strategy evidence. The older IF receipts below remain usable;
+their former queue and Avanza execution priority are superseded. Repository
+roadmap/governance/ledger are the only control sources; Notion stays outside scope.
+
+### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
+
+Next slice **A.1 (4–8 active hours, CLOSED)**: reconcile the latest main and the
+actual status of the previously selected IF-2 market observation; identify the
+first concrete operational gap in scheduled scan → immutable decision → outcome
+→ authenticated readback. Reuse baseline/source-cohort/policy-comparison work
+already on main. Do not restart completed IF deliveries, infer a live cohort from
+contracts, or wait for proven alpha before building research instrumentation.
+This planning pass has not executed A.1 or claimed that IF-2's next observation
+has succeeded. Check intervening active work before starting implementation.
+
+### Next — ordered, bounded product work
+
+1. **A.2, 8–16h SPLIT:** repair the first observed gap and complete the next
+   applicable authorized session/readback; preserve no-trade and partial-coverage
+   truth. Record revision, environment and actual market date.
+2. **B.1, 8–16h CLOSED:** version/availability lineage for one existing real
+   decision through durable reconstruction. Select it for the second development
+   slot only when dependencies and stable interface ownership permit independent
+   work; otherwise keep it queued. An A.2 OPEN wait is one such opportunity.
+3. **B.2/C.1, 8–16h slices:** after A/B dependencies, decision → internal-paper
+   intent → costed fill → virtual ledger with exact retry/restart, then exits and
+   dashboard observer. All broker/live submission capabilities remain absent.
+4. Select subsequent slices from the roadmap dependency graph. Early L feasibility
+   is allowed when selected after A/B; no new Avanza execution features.
+
+### Pilot readiness and bounded parallel work
+
+A.1/A.2 must record the actual existing strategy/version and eligible-symbol
+selection for the first long-only, at-most-ten-symbol, one-position internal
+paper pilot. Reuse available source/budget receipts. Before enabling its observed
+session, fill in the roadmap's data/retention rights, numeric request/storage/
+compute/spend caps and numeric freshness, latency, heartbeat, monitoring and
+recovery thresholds. These values are **not yet established by this planning
+change**. B/C must enforce durable zero-loss/zero-duplicate accounting and the
+chosen risk limits; no real-capital allocation or new subscription is implied.
+
+| Work slot | Selected state | Entry / return condition |
+| --- | --- | --- |
+| Primary development | A.1 is next; not executed in this planning pass | Verify latest main and choose the first actual operational gap |
+| Second development | Empty; B.1 is the first queued candidate | Record owner, branch, phase/acceptance, 4–16h budget, fulfilled dependencies, stable interface/write ownership and integration order before starting |
+| Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
+| After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
+
+Keep at most two development slices, with one owner per shared contract. A
+market wait does not require idle development; a missing dependency does not
+justify starting an incompatible task. Reduce to one slot if integration/review
+or rework becomes the bottleneck. Record actual lead time and integration cost,
+not an assumed speedup. Preserve the observed candidate while other work proceeds.
+
+The next evidence-based replan points are the first autonomous C session, first
+E/F replay result, L feasibility and first complete M broker-paper journey.
+Record continue/narrow/stop, evidence, unresolved defects, updated hours and one
+next slice in this ledger. A rejected strategy may finish a research experiment
+while remaining ineligible for capital. No such checkpoint is marked passed here.
+
+### Waiting / parked / decisions
+
+| Item | Status and next useful action |
+| --- | --- |
+| Prior IF-2 live capability/coverage proof | Unverified in this planning pass; read current receipts and continue only the applicable bounded observation, not the historical queue blindly |
+| IBKR API/account/session route and hosting | Not selected/verified; bounded SV-L feasibility must establish supported authentication, recovery, permissions and persistent backend operation |
+| Data entitlements and historical/options coverage | Existing provider budgets remain; record availability, storage/research rights and costs before expanding acquisition; IBKR execution does not imply new data rights |
+| Live scientific acceptance | Not established by source work; frozen OOS/walk-forward and forward evidence required in F before capital |
+| Live equity/options activation | Parked behind O/P and separate T gates; this planning change sends no broker order and grants no activation |
+| Avanza feature development | Deprioritized; retain historical records and safety maintenance, build all new execution for IBKR |
+
+### Measurement baseline
+
+SV-A–SV-U are planned outcomes, not 21 newly completed or equally sized tasks.
+Existing IF deliveries are reuse credits to verify per selected slice, not a
+claimed overall percentage. Phase estimates in the roadmap include active work
+and omit external/market waiting. Record observed slice hours, defect count,
+acceptance checks, implementation/environment/scientific state and next OPEN
+window before publishing a calendar forecast. No updated MVP/IF acceptance
+counts, runtime deployment or alpha result are asserted by this document change.
+
+## Historical Now / Next / Blocked — 2026-09-15 intelligence-first reset
 
 This is the only active work queue under the
 [master roadmap](./ture-master-roadmap.md). Repository documents are the sole

@@ -13,16 +13,27 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Before choosing new work, read the **active sections** at the top of:
 
-1. `docs/ture-master-roadmap.md` — MVP scope, release sequence and acceptance.
+1. `docs/ture-master-roadmap.md` — product scope, release sequence and acceptance.
 2. `docs/ture-current-state-ledger.md` — the single Now / Next / Blocked queue.
 3. `docs/roadmap-operating-governance.md` — bounded delivery and blocker rules.
 
-The user's 2026-09-09 direction is MVP first, then the full vision. Historical
-Action chains do not select current work. Implement the next acceptance-linked
-user behavior; do not create static successors, governance frameworks or later
-release features just to keep busy. Reuse working code. Keep one product slice
-active, budget 4–16 active hours, cap initial investigation at four hours and
-bundle necessary implementation, behavior tests and documentation.
+The user's 2026-09-21 direction is scientific validation and IBKR first:
+finish bounded current-engine gaps, then autonomous internal paper, reproducible
+research, autonomous IBKR paper and separately gated limited/controlled live.
+Use the active SV-A–SV-U dependency map. Avanza is maintenance-only. Historical
+IF/MVP/Action chains do not select work, but their implementations and evidence
+must be reused where applicable. Notion is not a control source or sync target.
+Keep one primary and at most one selected independent CLOSED development slice,
+with named owners, isolated branches, stable interfaces and integration order in
+the ledger. Never have two owners change the same order/portfolio/schema contract.
+Budget each slice 4–16 active hours; cap initial investigation at four hours and
+bundle implementation, behavior tests and documentation. Automatic observation
+may continue within its own scope while CLOSED development proceeds. Freeze the
+observed candidate/configuration/strategy/charter and prioritize the next eligible
+OPEN check. Reduce to one slice when integration/rework removes the benefit.
+Start with the bounded internal-paper pilot and predeclared data, cost and
+operational limits. Replan at the roadmap's C/E–F/L–M evidence checkpoints.
+Never mistake simulation, a fixture or paper success for accepted live performance.
 
 Follow existing user authorization for reversible local implementation and
 checks; do not invent permission gates. Preserve safety, privacy and applicable

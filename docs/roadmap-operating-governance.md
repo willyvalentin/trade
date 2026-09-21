@@ -1,6 +1,96 @@
 # Roadmap Operating Governance
 
-## Active delivery policy — intelligence first, 2026-09-15
+## Active delivery policy — scientific validation and IBKR first, 2026-09-21
+
+Follow the active SV-A–SV-U map in the repository master roadmap and the single
+Now / Next / Blocked queue in the ledger. The user's new specification replaces
+Avanza as the future execution target with IBKR and permits autonomous internal
+paper plus IBKR-paper engineering before proof of live alpha. It preserves the
+scientific and operational gates before real capital. Older IF and MVP material
+is reusable evidence; its former work-selection rules are historical. Notion
+remains outside the development workflow.
+
+### Select and finish real product behavior
+
+- Keep one primary 4–16 active-hour vertical slice. Initial investigation is
+  capped at four active hours and must produce a reproducible failure, useful
+  integrated experiment or evidence-backed scope decision. Reuse current IF
+  decision records, source receipts, baseline freeze and evaluation code.
+- A selected slice must name its phase, behavior, predecessor, pass/fail check,
+  environment and market evidence. Source-only contracts or dashboard shells
+  do not establish a running paper engine or broker integration.
+- Allow at most two development slices: the primary plus one selected independent
+  CLOSED slice. Use the second during an OPEN wait or when stable interfaces and
+  fulfilled dependencies permit independent work. Each has a named owner,
+  isolated branch/worktree, acceptance check, 4–16h budget, interface version,
+  write/schema ownership and integration order in the ledger. Do not assign
+  competing changes to a shared order/portfolio/schema contract.
+- Automatic observations and after-session processing are separate operating
+  jobs within approved budgets, not additional development streams. Prioritize
+  the next eligible OPEN observation; keep its candidate and experiment frozen.
+  Develop separately and integrate against current main before completion.
+  Critical fixes stop/restart the affected observation with explicit evidence
+  boundaries. Never silently mix revisions within an experiment.
+- Reduce to one development slice if conflicts, review backlog or rework consume
+  the benefit. Compare delivered behavior/lead time against integration cost;
+  two is a maximum, not a utilization target. Distinguish market waits from
+  missing data rights, credentials, budget or statistical evidence.
+- After two same-cause failed attempts, diagnose and change approach. Do not
+  create static successor chains or expand demo/research infrastructure without
+  a demonstrated dependency on the selected outcome.
+- Finish the current engine's bounded operational gaps first. Do not demand
+  positive alpha before building the paper/replay infrastructure needed to
+  test it. Early paper remains experimental; live promotion requires the gates.
+
+### Pilot and decision checkpoints
+
+Use the master roadmap's bounded first pilot: one existing long-only equity
+strategy, at most ten eligible symbols, one paper position and regular hours.
+Complete its unattended durable lifecycle before increasing scope. During A,
+record actual data rights/capacity and numeric cost/health/recovery limits in the
+ledger; freeze them before enabling the observed session and verify them with
+timed behavior tests. Do not invent calibrated probabilities or ignore missing
+inputs to make a pilot run. Independent CLOSED development can continue.
+
+Make a short continue/narrow/stop decision after the first C session, first E/F
+replay evaluation, L feasibility and first complete M integration. Record
+observed results, uncertainty, scope change, revised estimate and next slice.
+Failing alpha rejects a strategy, not scientific rigor; failing operational
+controls requires repair before expansion. These are existing-budget delivery
+decisions, not new administrative phases or blanket live activation.
+
+### Scientific and execution boundaries
+
+Freeze experiment population, baseline, versions, time windows, outcome/cost
+semantics, minimum effective samples, uncertainty and numeric thresholds before
+reading evaluation results. Preserve held-out/walk-forward separation, leakage
+controls and source-cohort identity. Report inconclusive and failed results;
+neither paper profits nor a high signal count authorize capital. Shadow and
+counterfactual results cannot automatically change an active strategy.
+
+Internal-paper, IBKR-paper and live adapters share decision/risk semantics but
+have separate credentials, accounts, state and submission capabilities. All new
+broker work targets IBKR. Keep Avanza history and safety fixes, without new
+Avanza features or relabelling old manual confirmations as IBKR evidence. Live
+orders require separately enabled account/strategy/instrument/risk scope, with
+approval-first entries before controlled auto. Research and paper must never
+fall back to live execution. The roadmap is a product decision, not authority
+to purchase data, place orders, migrate databases or deploy production.
+
+### Reporting and delivery
+
+Use small reviewed main-targeted PRs. Preserve unrelated work. Staging is a
+bounded integration environment, not a competing branch roadmap. Run applicable
+checks; do not alter branch protection or CI just to expedite a plan.
+
+Report implemented, environment-verified and strategy/release-accepted states
+separately with exact revision, data/model/strategy identity, environment,
+session and behavior evidence. Include actual active hours only if tracked;
+keep observation time separate from engineering time. Re-estimate after the
+first selected slice of a phase. Update the existing ledger with each material
+outcome; do not create a separate reporting system or Notion mirror.
+
+## Historical delivery policy — intelligence first, 2026-09-15 (superseded in selection)
 
 This policy supersedes the MVP-first selection rule and every Notion-mirror
 instruction below it. The repository's master roadmap and current-state ledger
