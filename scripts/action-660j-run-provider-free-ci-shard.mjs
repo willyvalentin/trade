@@ -30,6 +30,7 @@ const foundationTests = [
   "tests/e2e/sv-d1-internal-paper-observer.spec.ts",
   "tests/e2e/sv-e1-internal-paper-market-replay.spec.ts",
   "tests/e2e/sv-e2-internal-paper-replay-execution.spec.ts",
+  "tests/e2e/sv-e3-internal-paper-replay-session.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",
