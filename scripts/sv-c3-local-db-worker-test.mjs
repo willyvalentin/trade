@@ -360,6 +360,11 @@ try {
       if (select count(*) from public.internal_paper_entry_intents where account_id = '${account}') <> 1
         or (select count(*) from public.internal_paper_positions where account_id = '${account}' and status = 'open') <> 1
         or (select status from public.internal_paper_worker_jobs where work_kind = 'entry') <> 'completed'
+        or (select fill_price from public.internal_paper_fills where account_id = '${account}') <> 100.100000
+        or (select spread_cost from public.internal_paper_fills where account_id = '${account}') <> 0.500000
+        or (select slippage_cost from public.internal_paper_fills where account_id = '${account}') <> 0.500000
+        or (select total_cash_cost from public.internal_paper_fills where account_id = '${account}') <> 1002.000000
+        or (select cash_balance from public.internal_paper_accounts where id = '${account}') <> 98998.000000
       then raise exception 'entry worker did not commit one atomic economic effect'; end if;
     end $$;
   `);
@@ -427,6 +432,15 @@ try {
     do $$ begin
       if (select status from public.internal_paper_positions where account_id = '${account}') <> 'closed'
         or (select count(*) from public.internal_paper_exit_intents where account_id = '${account}') <> 1
+        or (select reference_price from public.internal_paper_exit_fills where account_id = '${account}') <> 94.000000
+        or (select fill_price from public.internal_paper_exit_fills where account_id = '${account}') <> 93.906000
+        or (select spread_cost from public.internal_paper_exit_fills where account_id = '${account}') <> 0.470000
+        or (select slippage_cost from public.internal_paper_exit_fills where account_id = '${account}') <> 0.470000
+        or (select net_cash_proceeds from public.internal_paper_exit_fills where account_id = '${account}') <> 938.060000
+        or (select gross_pnl from public.internal_paper_exit_fills where account_id = '${account}') <> -61.940000
+        or (select net_pnl from public.internal_paper_exit_fills where account_id = '${account}') <> -63.940000
+        or (select cash_balance from public.internal_paper_accounts where id = '${account}') <> 99936.060000
+        or (select realized_net_pnl from public.internal_paper_accounts where id = '${account}') <> -63.940000
       then raise exception 'exit worker did not reconcile C2 effect'; end if;
     end $$;
   `);
@@ -671,7 +685,7 @@ try {
     end $$;
   `);
 
-  console.log("SV-C3/C4/C5/D1 durable worker, admission, handoff and observer database proof passed");
+  console.log("SV-C3/C4/C5/D1/E1 durable lifecycle and exact fill-parity database proof passed");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(sqlPath, { force: true });
