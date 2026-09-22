@@ -6,6 +6,7 @@ import { buildCurrentDecisionStrategyReference } from "@/lib/decision-strategy-r
 import {
   buildInternalPaperReplayCorpusManifest,
   INTERNAL_PAPER_REPLAY_CORPUS_VERSION,
+  runInternalPaperReplayCorpus,
   type InternalPaperReplayCorpusInput,
 } from "@/lib/internal-paper-replay-corpus";
 import {
@@ -19,6 +20,10 @@ import {
   evaluateInternalPaperReplayRegimeAttributedScorecard,
   verifyInternalPaperReplayRegimeAttributedScorecardDigest,
 } from "@/lib/internal-paper-replay-regime-attribution";
+import {
+  evaluateInternalPaperRegimeShadowPolicy,
+  verifyInternalPaperRegimeShadowPolicyDigest,
+} from "@/lib/internal-paper-regime-shadow-policy";
 import {
   buildInternalPaperReplayCharterEvidence,
   evaluateInternalPaperReplayCharterScorecard,
@@ -122,10 +127,12 @@ function decision({
   date,
   policyVersion,
   published,
+  ticker = "AAPL",
 }: {
   date: string;
   policyVersion: string;
   published: boolean;
+  ticker?: string;
 }): CandidateDecisionRecord {
   const scanRunId = `scan-${date}`;
   const fingerprint = `rec_scan_run_${date}`;
@@ -160,9 +167,9 @@ function decision({
     },
     candidates: [
       {
-        candidate_id: `scanner_candidate:v1:${scanRunId}:AAPL`,
-        ticker: "AAPL",
-        company_name: "AAPL fixture",
+        candidate_id: `scanner_candidate:v1:${scanRunId}:${ticker}`,
+        ticker,
+        company_name: `${ticker} fixture`,
         sector: "Technology",
         disposition: published ? "published" : "ranked_not_selected",
         eligibility: published ? "eligible" : "ineligible",
@@ -196,7 +203,7 @@ function decision({
     final_decision: published
       ? {
           disposition: "recommendations_published",
-          published_tickers: ["AAPL"],
+          published_tickers: [ticker],
           no_trade_reason: null,
           recommendation_build_path: "deterministic_fixture",
         }
@@ -213,10 +220,12 @@ function candles({
   date,
   sessionIndex,
   outcome,
+  ticker = "AAPL",
 }: {
   date: string;
   sessionIndex: number;
   outcome: "win" | "loss";
+  ticker?: string;
 }) {
   const open = Date.parse(sessionTimes(date).open);
   return Array.from({ length: 390 }, (_, index) => {
@@ -229,7 +238,7 @@ function candles({
       candle: {
         contract_version: "shared_candle_cache_v1",
         provider: "licensed_fixture",
-        ticker: "AAPL",
+        ticker,
         interval: "1min",
         timestamp: new Date(open + index * 60_000).toISOString(),
         open: 100,
@@ -241,7 +250,7 @@ function candles({
         adjusted: true,
         market_session: "regular",
         fetched_at: sessionTimes(date).fetched,
-        source_request_id: `fixture-request-AAPL-${date}`,
+        source_request_id: `fixture-request-${ticker}-${date}`,
         validation_status: "valid",
       } satisfies SharedCandleCacheCandle,
     };
@@ -260,6 +269,7 @@ function execution({
   outcome: "win" | "loss";
 }): InternalPaperReplayExecutionInput {
   const strategy = value.strategy_reference!;
+  const ticker = value.candidates[0]!.ticker;
   const entry: InternalPaperEntryCommand = {
     command_version: "internal_paper_entry_command_v1",
     fill_model_version: "internal_paper_immediate_costed_fill_v1",
@@ -276,7 +286,7 @@ function execution({
     symbol_selection_policy_id: strategy.symbol_selection.policy_id,
     symbol_selection_policy_version: strategy.symbol_selection.policy_version,
     observed_universe_version: strategy.symbol_selection.observed_universe_version,
-    ticker: "AAPL",
+    ticker,
     quantity: 10,
     arrival_price: 100,
     stop_price: 98,
@@ -290,16 +300,16 @@ function execution({
     order_id: `55555555-5555-4555-8555-${String(sessionIndex).padStart(12, "0")}`,
     base_replay: {
       replay_version: INTERNAL_PAPER_MARKET_REPLAY_VERSION,
-      replay_id: `sv-f1-AAPL-${date}`,
+      replay_id: `sv-f1-${ticker}-${date}`,
       deterministic_seed: SEED,
       dataset: {
-        dataset_id: `licensed-AAPL-${date}`,
+        dataset_id: `licensed-${ticker}-${date}`,
         dataset_version: `${date}.v1`,
         source_reference: SOURCE_REFERENCE,
         entitlement_reference: ENTITLEMENT_REFERENCE,
         retention_rights_reference: RETENTION_REFERENCE,
         point_in_time_as_of: sessionTimes(date).pointInTime,
-        ticker: "AAPL",
+        ticker,
         trading_date: date,
         session_open: sessionTimes(date).open,
         session_close: sessionTimes(date).close,
@@ -310,7 +320,7 @@ function execution({
       },
       account: { ...ACCOUNT },
       entry,
-      candles: candles({ date, sessionIndex, outcome }),
+      candles: candles({ date, sessionIndex, outcome, ticker }),
     },
     policy: { ...EXECUTION_POLICY },
   };
@@ -321,16 +331,19 @@ function session({
   sessionIndex,
   policyVersion,
   outcome,
+  ticker = "AAPL",
 }: {
   date: string;
   sessionIndex: number;
   policyVersion: string;
   outcome: "win" | "loss" | null;
+  ticker?: string;
 }): InternalPaperReplaySessionInput {
   const value = decision({
     date,
     policyVersion,
     published: outcome !== null,
+    ticker,
   });
   return {
     session_version: INTERNAL_PAPER_REPLAY_SESSION_VERSION,
@@ -341,7 +354,7 @@ function session({
     trading_date: date,
     session_open: sessionTimes(date).open,
     session_close: sessionTimes(date).close,
-    eligible_symbols: ["AAPL"],
+    eligible_symbols: [ticker],
     decisions: [
       {
         decision: value,
@@ -360,18 +373,23 @@ function corpus({
   manifestId,
   policyVersion,
   outcomes,
+  dates = DATES,
+  tickers = [],
 }: {
   corpusId: string;
   manifestId: string;
   policyVersion: string;
   outcomes: Array<"win" | "loss" | null>;
+  dates?: string[];
+  tickers?: string[];
 }): InternalPaperReplayCorpusInput {
-  const sessions = DATES.map((date, index) =>
+  const sessions = dates.map((date, index) =>
     session({
       date,
       sessionIndex: index + 1,
       policyVersion,
       outcome: outcomes[index] ?? null,
+      ticker: tickers[index] ?? "AAPL",
     }),
   );
   const manifest = buildInternalPaperReplayCorpusManifest({
@@ -568,44 +586,45 @@ function scorecardCharter(): RecommendationEvaluationCharter {
 
 function scorecardBaseline(
   charter: RecommendationEvaluationCharter,
+  dates = DATES,
 ): RecommendationLearningBaselineFreeze {
   return {
     baseline_id: "99999999-9999-4999-8999-999999999999",
     baseline_fingerprint: "a".repeat(64),
     owner_user_id: OWNER_ID,
     segment_key: SCORECARD_SEGMENT_KEY,
-    decision_record_fingerprints: DATES.map((date) => `rec_scan_run_${date}`),
+    decision_record_fingerprints: dates.map((date) => `rec_scan_run_${date}`),
     evaluation_plan: {
       contract_version: "recommendation_learning_evaluation_plan_v1",
       segment_key: SCORECARD_SEGMENT_KEY,
       status: "ready_for_explicit_freeze",
       policy_attribution: scorecardPolicyAttribution(),
       decision_records: {
-        count: DATES.length,
-        earliest_decision_timestamp: `${DATES[0]}T13:31:00.000Z`,
-        latest_decision_timestamp: `${DATES.at(-1)}T13:31:00.000Z`,
-        scan_run_fingerprints: DATES.map((date) => `rec_scan_run_${date}`),
+        count: dates.length,
+        earliest_decision_timestamp: `${dates[0]}T13:31:00.000Z`,
+        latest_decision_timestamp: `${dates.at(-1)}T13:31:00.000Z`,
+        scan_run_fingerprints: dates.map((date) => `rec_scan_run_${date}`),
       },
       outcome_population: {
         visible_primary_outcome_count: 0,
-        research_primary_outcome_count: DATES.length,
+        research_primary_outcome_count: dates.length,
         rejected_primary_outcome_count: 0,
-        explicit_no_trade_decision_count: DATES.length,
-        primary_outcome_by_horizon: { "15m": 0, "30m": 0, "60m": DATES.length },
+        explicit_no_trade_decision_count: dates.length,
+        primary_outcome_by_horizon: { "15m": 0, "30m": 0, "60m": dates.length },
       },
       metrics: {
         entry: {
           known_count: 0,
           triggered_count: 0,
           not_triggered_count: 0,
-          unknown_count: DATES.length,
+          unknown_count: dates.length,
           triggered_rate: null,
         },
         terminal: {
           target_first_count: 0,
           stop_first_count: 0,
           neither_count: 0,
-          unknown_count: DATES.length,
+          unknown_count: dates.length,
         },
         horizon_r: { observed_count: 0, mean: null, median: null },
         excursion: {
@@ -728,24 +747,32 @@ function rebaseMarketContextInput(
   return value;
 }
 
-function regimeReplay(): MarketContextShadowReplayV1Input {
+function regimeReplayFor({
+  dates,
+  tickers,
+  replayId,
+}: {
+  dates: string[];
+  tickers: string[];
+  replayId: string;
+}): MarketContextShadowReplayV1Input {
   const source = marketContextHistoricalShadowReplayGoldenFixtures.find(
     (item) => item.id === "clear_risk_on_day",
   )?.input.dataset.decisions[0]?.context_input;
   if (!source) throw new Error("risk-on context fixture must exist");
   return sealMarketContextShadowReplayV1Input({
-    replay_id: "sv-g1-regime-attribution-fixture-v1",
+    replay_id: replayId,
     dataset: {
       identity: {
-        dataset_id: "sv-g1-regime-attribution-fixture",
+        dataset_id: replayId,
         dataset_version: "2026-09-v1",
         source_kind: "synthetic_repository_fixture",
       },
-      decisions: DATES.map((date) => {
+      decisions: dates.map((date, index) => {
         const decisionTimestamp = `${date}T13:31:00.000Z`;
         return {
           decision_id: `rec_scan_run_${date}`,
-          ticker: "AAPL",
+          ticker: tickers[index] ?? "AAPL",
           session_label: date,
           context_input: rebaseMarketContextInput(source, decisionTimestamp),
         };
@@ -754,6 +781,14 @@ function regimeReplay(): MarketContextShadowReplayV1Input {
     producer_versions: {
       ...marketContextShadowReplayFixtureProducerVersions,
     },
+  });
+}
+
+function regimeReplay(): MarketContextShadowReplayV1Input {
+  return regimeReplayFor({
+    dates: DATES,
+    tickers: DATES.map(() => "AAPL"),
+    replayId: "sv-g1-regime-attribution-fixture-v1",
   });
 }
 
@@ -791,6 +826,138 @@ function regimeAttributionFixture() {
       })),
     },
     contextReplay: regimeReplay(),
+  };
+}
+
+function weekdayDates(start: string, count: number) {
+  const values: string[] = [];
+  const cursor = new Date(`${start}T00:00:00.000Z`);
+  while (values.length < count) {
+    const day = cursor.getUTCDay();
+    if (day !== 0 && day !== 6) values.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return values;
+}
+
+function passingRegimePolicyFixture() {
+  const dates = weekdayDates("2026-07-06", 44);
+  const tickers = dates.map(
+    (_, index) => ["AAPL", "MSFT", "NVDA", "META"][index % 4]!,
+  );
+  const definition: RecommendationEvaluationCharter["charter"] = {
+    ...scorecardCharter().charter,
+    evaluation_window: {
+      minimum_complete_decisions: 40,
+      held_out_decision_count: 20,
+      walk_forward_decision_count: 20,
+    },
+  };
+  const charterInput = buildRecommendationEvaluationCharterInput({
+    ownerUserId: OWNER_ID,
+    segmentKey: SCORECARD_SEGMENT_KEY,
+    policy: scorecardPolicyAttribution(),
+    charter: definition,
+  });
+  if (!charterInput) throw new Error("G.2 charter must be valid");
+  const charter: RecommendationEvaluationCharter = {
+    charter_id: "88888888-8888-4888-8888-888888888889",
+    charter_fingerprint: charterInput.charter_fingerprint,
+    owner_user_id: OWNER_ID,
+    segment_key: SCORECARD_SEGMENT_KEY,
+    policy_attribution: scorecardPolicyAttribution(),
+    charter: definition,
+    created_at: "2026-01-02T12:00:00.000Z",
+  };
+  const baseline = {
+    ...scorecardBaseline(charter, dates),
+    baseline_id: "99999999-9999-4999-8999-999999999998",
+    frozen_at: "2026-01-02T12:05:00.000Z",
+  };
+  const values = {
+    baseline: corpus({
+      corpusId: "33333333-3333-4333-8333-333333333341",
+      manifestId: "44444444-4444-4444-8444-444444444451",
+      policyVersion: "recommendation_publish_policy_v1",
+      outcomes: dates.map(() => null),
+      dates,
+      tickers,
+    }),
+    candidate: corpus({
+      corpusId: "33333333-3333-4333-8333-333333333342",
+      manifestId: "44444444-4444-4444-8444-444444444452",
+      policyVersion: "recommendation_publish_policy_v2_shadow",
+      outcomes: dates.map(() => "win" as const),
+      dates,
+      tickers,
+    }),
+  };
+  const partitions = dates.map((trading_date, index) => ({
+    trading_date,
+    partition:
+      index < 2
+        ? "training"
+        : index < 4
+          ? "validation"
+          : index < 24
+            ? "held_out"
+            : "walk_forward",
+  })) satisfies Array<{
+    trading_date: string;
+    partition: InternalPaperReplayExperimentPartition;
+  }>;
+  const experimentManifest = buildInternalPaperReplayExperimentManifest({
+    experiment_id: "77777777-7777-4777-8777-777777777778",
+    frozen_at: "2026-09-17T20:15:00.000Z",
+    baseline_fingerprint: baseline.baseline_fingerprint,
+    evaluation_charter_fingerprint: charter.charter_fingerprint,
+    primary_outcome_horizon_minutes: 60,
+    ...values,
+    partitions,
+  });
+  if (!experimentManifest) throw new Error("G.2 experiment manifest must be valid");
+  const feasible = {
+    spread: true,
+    liquidity: true,
+    volatility: true,
+    halt_risk: null,
+    trigger_attainment: true,
+    conservative_slippage: null,
+  } as const;
+  return {
+    charter,
+    baseline,
+    experiment: {
+      experiment_version: INTERNAL_PAPER_REPLAY_EXPERIMENT_VERSION,
+      manifest: experimentManifest,
+      ...values,
+    } as const,
+    evidence: {
+      evaluated_at: "2026-09-17T20:20:00.000Z",
+      bootstrap_seed: "sv-g2-regime-shadow-policy-fixture-v1",
+      decisions: dates.map((date) => ({
+        scan_run_fingerprint: `rec_scan_run_${date}`,
+        trading_date: date,
+        setup: "breakout",
+        baseline: {
+          predicted_probability: null,
+          provider_cost_credits: 0.5,
+          source_reliable: true,
+          feasibility: { ...feasible },
+        },
+        candidate: {
+          predicted_probability: 0.9,
+          provider_cost_credits: 0.5,
+          source_reliable: true,
+          feasibility: { ...feasible },
+        },
+      })),
+    },
+    contextReplay: regimeReplayFor({
+      dates,
+      tickers,
+      replayId: "sv-g2-regime-shadow-policy-fixture-v1",
+    }),
   };
 }
 
@@ -1322,5 +1489,115 @@ test.describe("SV-G1 replay-bound regime attribution", () => {
       ),
     ).toBe(true);
     expect(result.scorecard).toBeNull();
+  });
+});
+
+test.describe("SV-G2 replay-only regime shadow policy", () => {
+  test("keeps a small valid regime sample as insufficient rather than enabling it", () => {
+    const fixture = regimeAttributionFixture();
+    const result = evaluateInternalPaperRegimeShadowPolicy(fixture);
+    const repeated = evaluateInternalPaperRegimeShadowPolicy(fixture);
+
+    expect(result).toEqual(repeated);
+    expect(verifyInternalPaperRegimeShadowPolicyDigest(result)).toBe(true);
+    expect(result).toMatchObject({
+      status: "completed",
+      scientific_disposition: "replay_shadow_policy_not_strategy_accepted",
+      enabled_regime_count: 0,
+      disabled_regime_count: 0,
+      insufficient_regime_count: 1,
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    expect(result.decisions[0]).toMatchObject({
+      regime: "risk_on_trending",
+      action: "insufficient_evidence",
+    });
+    expect(
+      result.decisions[0]!.partitions.every(
+        (partition) => partition.verdict === "inconclusive",
+      ),
+    ).toBe(true);
+  });
+
+  test("enables only replay shadow when both OOS partitions clear every regime gate", () => {
+    const fixture = passingRegimePolicyFixture();
+    const candidateCorpusResult = runInternalPaperReplayCorpus(
+      fixture.experiment.candidate,
+    );
+    expect(
+      candidateCorpusResult.status,
+      JSON.stringify(candidateCorpusResult, null, 2),
+    ).toBe("completed");
+    const experimentResult = runInternalPaperReplayExperiment(
+      fixture.experiment,
+    );
+    expect(
+      experimentResult.status,
+      JSON.stringify(experimentResult, null, 2),
+    ).toBe("completed");
+    const attribution =
+      evaluateInternalPaperReplayRegimeAttributedScorecard(fixture);
+    expect(attribution.status, JSON.stringify(attribution, null, 2)).toBe(
+      "completed",
+    );
+    const result = evaluateInternalPaperRegimeShadowPolicy(fixture);
+
+    expect(verifyInternalPaperRegimeShadowPolicyDigest(result)).toBe(true);
+    expect(result.status, JSON.stringify(result, null, 2)).toBe("completed");
+    expect(result).toMatchObject({
+      status: "completed",
+      enabled_regime_count: 1,
+      disabled_regime_count: 0,
+      insufficient_regime_count: 0,
+      decisions: [
+        {
+          regime: "risk_on_trending",
+          action: "shadow_enabled",
+        },
+      ],
+    });
+    expect(
+      result.decisions[0]!.partitions.every(
+        (partition) =>
+          partition.verdict === "pass" &&
+          partition.complete_selected_count === 20 &&
+          partition.effective_ticker_count === 4 &&
+          partition.gates.every((gate) => gate.status === "pass"),
+      ),
+    ).toBe(true);
+    expect(result.evidence_limits).toContain("no_automatic_policy_promotion");
+  });
+
+  test("disables replay shadow when reliability violates the frozen charter", () => {
+    const fixture = passingRegimePolicyFixture();
+    fixture.evidence.decisions[4]!.candidate.source_reliable = false;
+    const result = evaluateInternalPaperRegimeShadowPolicy(fixture);
+
+    expect(result.status, JSON.stringify(result, null, 2)).toBe("completed");
+    expect(result.enabled_regime_count).toBe(0);
+    expect(result.disabled_regime_count).toBe(1);
+    expect(result.decisions[0]!.action).toBe("shadow_disabled");
+    expect(
+      result.decisions[0]!.partitions.some((partition) =>
+        partition.gates.some(
+          (gate) => gate.gate === "minimum_reliability" && gate.status === "fail",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  test("blocks changed point-in-time context before any shadow decision", () => {
+    const fixture = regimeAttributionFixture();
+    fixture.contextReplay.dataset.decisions[0]!.ticker = "MSFT";
+    const result = evaluateInternalPaperRegimeShadowPolicy(fixture);
+
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain("regime_attribution_not_completed");
+    expect(result.decisions).toEqual([]);
   });
 });
