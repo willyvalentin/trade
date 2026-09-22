@@ -773,6 +773,34 @@ function replayPrefix(input: InternalPaperMarketReplayInput, endIndex: number) {
 }
 
 /**
+ * Checks immutable input, market-day and entry-command evidence without
+ * assuming that the requested order quantity filled. Execution replay uses
+ * this before finding a fill; economic risk is checked on the filled quantity.
+ */
+export function validateInternalPaperMarketReplayInput(
+  input: InternalPaperMarketReplayInput,
+): InternalPaperReplayBlockReason[] {
+  const reasons: InternalPaperReplayBlockReason[] = [];
+  if (!validateAccount(input.account)) reasons.push("account_config_invalid");
+  if (!validateEntry(input.entry)) reasons.push("entry_command_invalid");
+  reasons.push(...validateMarketDay(input));
+
+  const entryParts = explicitInstant(input.entry.submitted_at)
+    ? nyParts(input.entry.submitted_at)
+    : null;
+  if (
+    entryParts === null ||
+    entryParts.date !== input.dataset.trading_date ||
+    Date.parse(input.entry.submitted_at) < Date.parse(input.dataset.session_open) ||
+    Date.parse(input.entry.submitted_at) >
+      Date.parse(input.dataset.session_close) + 59_999
+  ) {
+    reasons.push("entry_outside_session");
+  }
+  return Array.from(new Set(reasons)).sort();
+}
+
+/**
  * Replays exactly one complete US regular-session day without network, storage,
  * publication or broker effects. The event loop exposes candles only in stored
  * timestamp order and uses the same entry/exit model versions and precedence as
@@ -785,24 +813,8 @@ export function runInternalPaperMarketReplay(
     pause_before_candle_index?: number | null;
   }> = {},
 ): InternalPaperReplayResult {
-  const staticReasons: InternalPaperReplayBlockReason[] = [];
-  if (!validateAccount(input.account)) staticReasons.push("account_config_invalid");
-  if (!validateEntry(input.entry)) staticReasons.push("entry_command_invalid");
-  staticReasons.push(...validateMarketDay(input));
-
+  const staticReasons = validateInternalPaperMarketReplayInput(input);
   const inputDigest = digest(input);
-  const entryParts = explicitInstant(input.entry.submitted_at)
-    ? nyParts(input.entry.submitted_at)
-    : null;
-  if (
-    entryParts === null ||
-    entryParts.date !== input.dataset.trading_date ||
-    Date.parse(input.entry.submitted_at) < Date.parse(input.dataset.session_open) ||
-    Date.parse(input.entry.submitted_at) >
-      Date.parse(input.dataset.session_close) + 59_999
-  ) {
-    staticReasons.push("entry_outside_session");
-  }
   if (staticReasons.length > 0) return blocked(staticReasons, inputDigest);
 
   let nextCandleIndex = 0;

@@ -155,6 +155,58 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
     expect(result.result_digest).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  test("risk-checks the actual partial fill rather than the unfilled order balance", () => {
+    const base = input();
+    const value = input({
+      base_replay: {
+        ...base.base_replay,
+        account: {
+          ...base.base_replay.account,
+          initial_cash: 600,
+          per_trade_risk_cap: 15,
+        },
+      },
+    });
+    value.base_replay.candles[3].candle.volume = 500;
+
+    const result = runInternalPaperReplayExecution(value);
+
+    expect(result.status).toBe("completed");
+    if (result.status !== "completed") return;
+    expect(result).toMatchObject({
+      requested_quantity: 10,
+      filled_quantity: 5,
+      unfilled_quantity: 5,
+    });
+    expect(result.replay.status).toBe("completed");
+    if (result.replay.status !== "completed") return;
+    expect(result.replay.events[0]).toMatchObject({
+      event_type: "entry_fill",
+      quantity: 5,
+    });
+  });
+
+  test("still rejects a partial fill that exceeds the frozen account risk", () => {
+    const base = input();
+    const value = input({
+      base_replay: {
+        ...base.base_replay,
+        account: {
+          ...base.base_replay.account,
+          initial_cash: 400,
+          per_trade_risk_cap: 8,
+        },
+      },
+    });
+    value.base_replay.candles[3].candle.volume = 500;
+
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "blocked",
+      reason: "base_replay_blocked",
+      base_replay_reason_codes: ["entry_risk_rejected"],
+    });
+  });
+
   test("fills a crossed limit at the better opening price after latency", () => {
     const value = input({
       policy: {
@@ -196,6 +248,27 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       reason: "limit_not_reached",
       requested_quantity: 10,
       inspected_through: "2026-09-21T19:59:00.000Z",
+    });
+  });
+
+  test("does not invent an entry-risk rejection for an order that never fills", () => {
+    const base = input();
+    const value = input({
+      base_replay: {
+        ...base.base_replay,
+        account: { ...base.base_replay.account, initial_cash: 1 },
+      },
+      policy: {
+        ...base.policy,
+        order_type: "limit",
+        limit_price: 90,
+      },
+    });
+
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "unfilled",
+      reason: "limit_not_reached",
+      requested_quantity: 10,
     });
   });
 

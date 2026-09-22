@@ -900,6 +900,34 @@ and the complete Next production build. The first stress version varies only
 spread, slippage and commission; latency, partial-fill, market-impact, licensed
 historical and forward-shadow uncertainty remain explicit later work.
 
+SV-H.2 passed the six protected provider-free CI shards and merge-candidate
+provenance in PR #596, merged as main
+`1ef574e9802de4066bf8375240a254aab883a45e`, and Netlify production
+deploy `6ab310a69411ee0008d8905c` was `ready` on that exact revision. This
+verifies source delivery, not a real cost/fill study or forward shadow result.
+
+**Selected SV-E.2 CLOSED replay-admission repair, 2026-09-23 (4–8h):** owner
+Codex on `codex/sv-e2-fill-time-risk-admission`; the existing
+`internal_paper_market_replay_v1` and `internal_paper_replay_execution_v1`
+interfaces remain unchanged, with no schema or runtime writer. A reproduced
+failure showed the execution wrapper running a full-quantity economic replay
+before inspecting the fill candle. This incorrectly rejected a ten-share
+request whose actual five-share IOC fill was within the frozen cash and risk
+caps. The wrapper now performs only immutable input/market-day validation
+before fill selection and leaves the economic risk check to the shared replay
+on the actual filled quantity and fill reference price. A genuinely excessive
+partial fill still fails closed; a never-filled order remains unfilled rather
+than receiving an invented entry-risk rejection. The initial regression failed
+on main behavior, then passed with the focused fix. Local E.1–H.2 replay
+regressions passed 66/66 before the final no-fill case; the final E.2 suite
+passed 11/11, strict TypeScript and repository lint passed, and a sequential
+Next production build passed. Parallel Playwright/build initially collided on
+generated `.next/dev` types; the build passed when run without a competing
+devserver. This is fixture-level fidelity evidence only: no licensed replay
+dataset, production paper activation, provider request, ranking/publication
+change or broker action is implied. Next acceptance is protected PR CI and
+exact-main deploy verification; actual pilot/fill evidence remains separate.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -919,7 +947,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-H.2 frozen cost stress is selected locally on `codex/sv-h2-counterfactual-cost-stress` | Finish H.2 review/CI and merge its provider-free replay-only cost matrix. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 fill-time risk-admission repair is selected locally on `codex/sv-e2-fill-time-risk-admission`. | Finish E.2 review/CI and verify its exact-main deploy. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
