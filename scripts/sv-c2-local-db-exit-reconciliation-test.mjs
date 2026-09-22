@@ -120,7 +120,7 @@ try {
     "POSTGRES_PASSWORD=postgres",
     "postgres:16-alpine",
   );
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       docker(
         "exec",
@@ -130,6 +130,8 @@ try {
         "psql",
         "-v",
         "ON_ERROR_STOP=1",
+        "-h",
+        "127.0.0.1",
         "-U",
         "postgres",
         "-d",
@@ -139,7 +141,7 @@ try {
       );
       break;
     } catch {
-      if (attempt === 39) throw new Error("PostgreSQL did not become ready");
+      if (attempt === 79) throw new Error("PostgreSQL did not become SQL-ready");
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }

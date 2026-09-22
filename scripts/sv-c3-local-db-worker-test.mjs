@@ -129,12 +129,12 @@ const noTradePayload = {
 
 try {
   docker("run", "--rm", "-d", "--name", container, "-e", "POSTGRES_PASSWORD=postgres", "postgres:16-alpine");
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
-      docker("exec", "-e", "PGPASSWORD=postgres", container, "psql", "-U", "postgres", "-d", "postgres", "-c", "select 1");
+      docker("exec", "-e", "PGPASSWORD=postgres", container, "psql", "-h", "127.0.0.1", "-U", "postgres", "-d", "postgres", "-c", "select 1");
       break;
     } catch {
-      if (attempt === 39) throw new Error("PostgreSQL did not become ready");
+      if (attempt === 79) throw new Error("PostgreSQL did not become SQL-ready");
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
