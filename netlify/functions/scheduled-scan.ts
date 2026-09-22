@@ -282,10 +282,11 @@ type ScheduledScanResolvedDeploymentIdentity = Readonly<{
   schema_version: typeof SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION;
   deploy_id: string;
   deploy_context: "production";
-  deploy_published: true | null;
+  deploy_published: boolean | null;
   publication_evidence:
     | "runtime_context"
-    | "scheduled_event_requires_external_deploy_readback";
+    | "scheduled_event_requires_external_deploy_readback"
+    | "matching_runtime_context_requires_external_deploy_readback";
   commit_ref: string | null;
   site_id: string | null;
 }>;
@@ -294,6 +295,7 @@ type ScheduledScanProbePreflightAdmission = Readonly<{
   status:
     | "admitted_runtime_context"
     | "admitted_build_identity_fallback"
+    | "admitted_matching_runtime_context"
     | "scheduled_event_unavailable"
     | "deployment_identity_unavailable"
     | "deployment_identity_conflict"
@@ -303,7 +305,11 @@ type ScheduledScanProbePreflightAdmission = Readonly<{
     | "probe_date_unavailable"
     | "probe_date_mismatch";
   admitted: boolean;
-  identity_source: "runtime_context" | "build_identity_fallback" | null;
+  identity_source:
+    | "runtime_context"
+    | "build_identity_fallback"
+    | "matching_runtime_context"
+    | null;
   deployment_identity: ScheduledScanResolvedDeploymentIdentity | null;
   event_evidence: ScheduledScanPreflightEventEvidence;
 }>;
@@ -533,7 +539,8 @@ export function scheduledScanProbePreflightAdmission({
   if (
     (contextDeployId && contextDeployId !== buildIdentity.deploy_id) ||
     (contextDeployContext && contextDeployContext !== "production") ||
-    contextIdentity.deploy_published === false
+    (contextIdentity.deploy_published === false &&
+      (!contextDeployId || !contextDeployContext))
   ) {
     return Object.freeze({
       status: "deployment_identity_conflict",
@@ -551,6 +558,27 @@ export function scheduledScanProbePreflightAdmission({
       admitted: false,
       identity_source: null,
       deployment_identity: null,
+      event_evidence: eventEvidence,
+    });
+  }
+
+  if (contextIdentity.deploy_published === false) {
+    // Netlify documents that scheduled functions run only from published
+    // deploys, but its scheduled runtime can report `published: false` for the
+    // exact production deploy that contains this build identity. Treat that
+    // boolean as non-authoritative only when deploy id, production context and
+    // runtime site all match the immutable build artifact. The receipt keeps
+    // the observed false value and still requires an external deploy readback.
+    return Object.freeze({
+      status: "admitted_matching_runtime_context",
+      admitted: true,
+      identity_source: "matching_runtime_context",
+      deployment_identity: Object.freeze({
+        ...buildIdentity,
+        deploy_published: false,
+        publication_evidence:
+          "matching_runtime_context_requires_external_deploy_readback",
+      }),
       event_evidence: eventEvidence,
     });
   }

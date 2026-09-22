@@ -179,6 +179,39 @@ scheduler disabled, capability probe false and no target slot configured. No
 post-deploy slot occurred, so fresh OPEN delivery behavior remains unverified
 and requires a new separately authorized session.
 
+**A.2 provider-free preflight runtime evidence and focused repair, 2026-09-22
+(OPEN evidence plus 4–8h CLOSED repair):** production deploy
+`6ab2a3e9557dcfccbf711002` was `ready` on exact main
+`2b2fe48445d67f8bed7c148c4067f4baec1fad2e` more than one scheduler interval
+before the exact authorized `2026-09-22T16:15:00.000Z` slot. Scheduled execution
+remained disabled, the capability probe alone was armed for the matching New
+York date/UTC slot, and the normal Netlify scheduler delivered three attempts.
+Each delivery carried the exact production deploy id and `production` context,
+but Netlify's scheduled runtime reported `published: false`; the existing
+fail-closed guard therefore returned `deployment_identity_conflict` before the
+database claim or bundled scan route. Bounded readback found no preflight
+receipt, zero scan runs and zero snapshots. Cleanup deploy
+`6ab2aa6e2972078043334314` is `ready` on the same exact main revision;
+the scheduler-disable flag and ordinary one-shot flag are both true, the probe
+is false, and its date/slot values are absent. The reservation relation remains
+intentionally unavailable through the Data API, so zero credits are not claimed
+from a table read; source and runtime logs prove the provider route was not
+loaded. No provider request,
+candidate, publication or broker action occurred.
+
+The focused repair is on `codex/sv-a2-scheduled-published-false`. It treats
+Netlify's `published: false` as non-authoritative only for a time-bound scheduled
+event whose runtime deploy id, production context and runtime site exactly match
+the immutable production build identity. The retained admission identity keeps
+the observed false value and requires external deploy readback; missing,
+partial, preview, cross-site or mismatched identities still fail closed. Local
+evidence is 87/87 overlapping scheduler/Basic-Free regressions plus the
+protected provider-free CI-plan integrity contract, strict TypeScript, full
+repository lint with zero errors/eight pre-existing warnings and a complete
+production build. The focused scheduler regression is now registered in the
+protected foundation shard. A new OPEN preflight and any real provider probe
+remain separate work; this repair does not spend a credit or complete A.2.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
