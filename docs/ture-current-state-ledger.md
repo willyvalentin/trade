@@ -765,6 +765,40 @@ single-candidate replay scope is not market-wide, source rights are not
 independently verified, no licensed multi-regime history or forward shadow was
 evaluated, and no strategy-quality or alpha claim exists.
 
+SV-F.2 is now delivered on `main`: feature revision `81cd523b` passed all six
+protected provider-free shards, aggregate and merge-candidate provenance in
+run `35772728446`; PR #592 merged as
+`eb80f9bd37f6c7300127f3bd293701fbd8604b0a`. Netlify production deploy
+`6ab2dac78a152d00095cc9e4` is `ready` in `production` on that exact merge
+revision. This verifies source delivery only. No licensed historical corpus,
+provider request, live candidate, ranking/publication change, strategy
+promotion or broker action ran in production.
+
+**Selected SV-G.1 CLOSED vertical slice — replay-bound point-in-time regime
+attribution, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-g1-replay-regime-attribution`; interfaces
+`internal_paper_replay_regime_attribution_v1` and
+`internal_paper_replay_regime_attributed_scorecard_v1`. The provider-free
+adapter reuses `market_context_shadow_replay_v1`, reruns the exact frozen F.1
+experiment and refuses a caller-supplied regime label. Every F.2 decision must
+match one context decision by scan fingerprint, ticker, trading date and exact
+decision instant. The adapter additionally binds the context dataset digest,
+replay evidence digest, per-decision evidence digest, context/threshold
+versions and source class before constructing F.2 evidence.
+
+A changed sealed context input, incomplete or extra context population,
+duplicate identity, cross-ticker/date/time binding or invalid shadow boundary
+blocks the entire result. `insufficient_data` and `conflicting_context` remain
+explicit non-measurable classifications rather than neutral defaults. Synthetic
+repository context remains labelled fixture-only; offline point-in-time source
+still carries an independently unverified rights limitation. The wrapped
+scorecard remains research-only with all provider, ranking/publication,
+promotion and broker authority false. Local acceptance passes 17/17 focused
+F.1–G.1 tests, strict TypeScript, targeted ESLint and the complete Next
+production build. The four-decision fixture is deterministic and context-bound
+but still `inconclusive`; this is traceability progress, not regime alpha or a
+strategy-quality result.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -784,7 +818,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4 and SV-F.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-F.2 charter-bound replay scorecard is selected locally on `codex/sv-f2-charter-scorecard` | Finish F.2 review/CI and merge its provider-free scorecard slice. Real pass/fail evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; forward acceptance remains separate shadow evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4 and SV-F.1–F.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-G.1 replay-bound regime attribution is selected locally on `codex/sv-g1-replay-regime-attribution` | Finish G.1 review/CI and merge its provider-free context-binding slice. Real regime-conditioned evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; synchronized fresh-input and forward-shadow acceptance remain separate OPEN evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
