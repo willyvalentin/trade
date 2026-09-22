@@ -12,6 +12,7 @@ const migrations = [
   "../supabase/migrations/20260922001000_sv_c1_internal_paper_entry_lifecycle.sql",
   "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
   "../supabase/migrations/20260922045917_sv_c3_durable_internal_paper_worker.sql",
+  "../supabase/migrations/20260922062854_sv_c4_internal_paper_handoff_context.sql",
 ].map((path) => new URL(path, import.meta.url));
 
 const owner = "11111111-1111-4111-8111-111111111111";
@@ -201,6 +202,23 @@ try {
       'internal_paper_immediate_costed_fill_v1', 100000, 100000, 100, 500,
       10, 5, 1
     );
+  `);
+
+  // C4 exposes only the exact frozen account context to the service-role handoff.
+  psql(`
+    set role service_role;
+    create temporary table handoff_context as
+      select public.app_read_internal_paper_handoff_context_v1(
+        '${owner}', '${account}', 'internal_paper_handoff_context_v1'
+      ) receipt;
+    reset role;
+    do $$ begin
+      if (select receipt ->> 'status' from handoff_context) <> 'ready'
+        or (select receipt ->> 'config_version' from handoff_context) <> 'pilot-config-v1'
+        or (select receipt -> 'eligible_symbols' ->> 0 from handoff_context) <> 'AAPL'
+        or (select receipt ->> 'cash_balance' from handoff_context)::numeric <> 100000
+      then raise exception 'C4 handoff context did not preserve frozen account facts'; end if;
+    end $$;
   `);
 
   // Idempotent enqueue plus account-serial claim.
@@ -418,10 +436,18 @@ try {
         raise exception 'authenticated unexpectedly claimed worker work';
       exception when insufficient_privilege then null;
       end;
+      begin
+        set local role authenticated;
+        perform public.app_read_internal_paper_handoff_context_v1(
+          '${owner}', '${account}', 'internal_paper_handoff_context_v1'
+        );
+        raise exception 'authenticated unexpectedly read handoff context';
+      exception when insufficient_privilege then null;
+      end;
     end $$;
   `);
 
-  console.log("SV-C3 durable internal-paper worker database proof passed");
+  console.log("SV-C3/C4 durable worker and handoff database proof passed");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(sqlPath, { force: true });

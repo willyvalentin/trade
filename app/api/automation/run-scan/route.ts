@@ -70,9 +70,11 @@ import {
 import { persistRecommendationBatch } from "@/lib/server/recommendation-batch-persistence";
 import { persistRecommendationScanRun } from "@/lib/server/recommendation-scan-run-persistence";
 import { persistRecommendationSnapshot } from "@/lib/server/recommendation-snapshot-persistence";
+import { enqueueInternalPaperDecisionHandoff } from "@/lib/server/internal-paper-handoff-persistence";
 import {
   buildCandidateDecisionRecord,
   type CandidateDecisionCapture,
+  type CandidateDecisionRecord,
 } from "@/lib/candidate-decision-record";
 import { buildDecisionLineageReceipt } from "@/lib/decision-lineage-receipt";
 import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decision-learning-attribution";
@@ -2886,6 +2888,7 @@ async function persistAutomationArtifacts({
 
   return {
     scan_run: scanRun,
+    candidate_decision_record: candidateDecisionRecord,
     snapshots,
     research_snapshots: researchSnapshots,
     rejected_research_snapshots: rejectedResearchSnapshots,
@@ -2894,6 +2897,53 @@ async function persistAutomationArtifacts({
     shadow_snapshot_summary: shadowSnapshotSummary,
     persistence,
   };
+}
+
+const INTERNAL_PAPER_HANDOFF_ENABLED_FLAG =
+  "TURE_INTERNAL_PAPER_HANDOFF_ENABLED" as const;
+const INTERNAL_PAPER_ACCOUNT_ID_FLAG = "TURE_INTERNAL_PAPER_ACCOUNT_ID" as const;
+const INTERNAL_PAPER_ACCOUNT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function decisionLineageStatus(scanRun: RecommendationScanRun) {
+  const receipt = scanRun.payload_json.decision_lineage_receipt;
+  if (!receipt || typeof receipt !== "object" || Array.isArray(receipt)) {
+    return "missing" as const;
+  }
+  return (receipt as { status?: unknown }).status === "reconstructable"
+    ? ("reconstructable" as const)
+    : ("incomplete" as const);
+}
+
+async function handoffPersistedDecisionToInternalPaper(input: {
+  owner_user_id: string;
+  account_id: string;
+  scan_run: RecommendationScanRun;
+  decision: CandidateDecisionRecord;
+  snapshots: RecommendationSnapshot[];
+  scan_run_persistence_status: "saved" | "duplicate" | "updated" | "failed";
+  snapshot_persistence: Array<
+    Awaited<ReturnType<typeof persistRecommendationSnapshot>>
+  >;
+}) {
+  const persistedSnapshotFingerprints = input.snapshot_persistence
+    .filter(
+      (item) => item.status === "saved" || item.status === "duplicate",
+    )
+    .map((item) => item.snapshot.snapshot_fingerprint);
+  return enqueueInternalPaperDecisionHandoff({
+    owner_user_id: input.owner_user_id,
+    account_id: input.account_id,
+    scan_run_id: input.scan_run.id,
+    decision: input.decision,
+    decision_lineage_status: decisionLineageStatus(input.scan_run),
+    scan_run_persisted:
+      input.scan_run_persistence_status === "saved" ||
+      input.scan_run_persistence_status === "duplicate" ||
+      input.scan_run_persistence_status === "updated",
+    snapshots: input.snapshots,
+    persisted_snapshot_fingerprints: persistedSnapshotFingerprints,
+  });
 }
 
 async function runDiscardReviewIfDue({
@@ -4906,6 +4956,7 @@ export async function POST(request: Request) {
 
     let artifactResult: Awaited<ReturnType<typeof persistAutomationArtifacts>> | null =
       null;
+    let internalPaperHandoff: Record<string, unknown> = { status: "disabled" };
     const generationSelectedBuildDiagnostics =
       generationScanLog?.selected_candidate_build_diagnostics ?? [];
     const generationSelectedToBuiltDropOff =
@@ -5029,6 +5080,52 @@ export async function POST(request: Request) {
       activeScanTrace.markStage("persistence", "failed");
       activeScanTrace.updatePersistence({
         persistence_error_type: errorType(artifactError),
+      });
+    }
+
+    if (process.env[INTERNAL_PAPER_HANDOFF_ENABLED_FLAG] === "true") {
+      const accountId = process.env[INTERNAL_PAPER_ACCOUNT_ID_FLAG]?.trim() ?? "";
+      if (force) {
+        internalPaperHandoff = {
+          status: "blocked",
+          reason_codes: ["forced_scan_not_eligible"],
+        };
+      } else if (!INTERNAL_PAPER_ACCOUNT_ID_PATTERN.test(accountId)) {
+        internalPaperHandoff = {
+          status: "blocked",
+          reason_codes: ["account_identity_unavailable"],
+        };
+      } else if (!artifactResult?.candidate_decision_record) {
+        internalPaperHandoff = {
+          status: "blocked",
+          reason_codes: ["decision_evidence_unavailable"],
+        };
+      } else {
+        const result = await handoffPersistedDecisionToInternalPaper({
+          owner_user_id: ownerUserId,
+          account_id: accountId,
+          scan_run: artifactResult.scan_run,
+          decision: artifactResult.candidate_decision_record,
+          snapshots: artifactResult.snapshots,
+          scan_run_persistence_status:
+            artifactResult.persistence.scan_run.status,
+          snapshot_persistence: artifactResult.persistence.snapshots,
+        });
+        internalPaperHandoff =
+          result.status === "enqueued"
+            ? {
+                status: result.status,
+                work_kind: result.work_kind,
+                selected_ticker: result.selected_ticker,
+                quantity: result.quantity,
+              }
+            : result.status === "blocked"
+              ? { status: result.status, reason_codes: result.reason_codes }
+              : { status: result.status };
+      }
+      console.log("[automation/run-scan] internal paper handoff", {
+        ...internalPaperHandoff,
+        account_configured: Boolean(accountId),
       });
     }
 
@@ -5163,6 +5260,7 @@ export async function POST(request: Request) {
             snapshot.status === "saved" ||
             snapshot.status === "duplicate",
         ).length ?? 0,
+      internal_paper_handoff: internalPaperHandoff,
       research_snapshots_persisted_count:
         artifactResult?.persistence.research_snapshots.filter(
           (snapshot) =>

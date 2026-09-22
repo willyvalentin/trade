@@ -17,6 +17,10 @@ const runtimes = [
     entryPoint: "app/api/recommendations/evaluate-outcomes/route.ts",
     outputFile: "scheduled-outcome-evaluation-runtime.cjs",
   },
+  {
+    entryPoint: "lib/server/internal-paper-worker-persistence.ts",
+    outputFile: "scheduled-internal-paper-worker-runtime.cjs",
+  },
 ];
 
 const deploymentIdentityOutputFile = join(
