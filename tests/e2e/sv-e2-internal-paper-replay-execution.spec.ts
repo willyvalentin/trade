@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 import type { InternalPaperEntryCommand } from "@/lib/internal-paper-entry";
-import { INTERNAL_PAPER_MARKET_REPLAY_VERSION } from "@/lib/internal-paper-market-replay";
+import {
+  INTERNAL_PAPER_MARKET_REPLAY_VERSION,
+  runInternalPaperMarketReplay,
+} from "@/lib/internal-paper-market-replay";
 import {
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   runInternalPaperReplayExecution,
@@ -155,7 +158,7 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
     expect(result.result_digest).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  test("risk-checks the actual partial fill rather than the unfilled order balance", () => {
+  test("vetoes the whole requested order before a partial fill can occur", () => {
     const base = input();
     const value = input({
       base_replay: {
@@ -169,36 +172,29 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
     });
     value.base_replay.candles[3].candle.volume = 500;
 
-    const result = runInternalPaperReplayExecution(value);
-
-    expect(result.status).toBe("completed");
-    if (result.status !== "completed") return;
-    expect(result).toMatchObject({
-      requested_quantity: 10,
-      filled_quantity: 5,
-      unfilled_quantity: 5,
-    });
-    expect(result.replay.status).toBe("completed");
-    if (result.replay.status !== "completed") return;
-    expect(result.replay.events[0]).toMatchObject({
-      event_type: "entry_fill",
-      quantity: 5,
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "blocked",
+      reason: "base_replay_blocked",
+      base_replay_reason_codes: ["entry_risk_rejected"],
     });
   });
 
-  test("still rejects a partial fill that exceeds the frozen account risk", () => {
+  test("rechecks the actual fill price after the full order passes admission", () => {
     const base = input();
     const value = input({
       base_replay: {
         ...base.base_replay,
         account: {
           ...base.base_replay.account,
-          initial_cash: 400,
-          per_trade_risk_cap: 8,
+          per_trade_risk_cap: 22,
         },
       },
     });
     value.base_replay.candles[3].candle.volume = 500;
+    value.base_replay.candles[3].candle.open = 105;
+    value.base_replay.candles[3].candle.high = 105.25;
+    value.base_replay.candles[3].candle.low = 104.75;
+    value.base_replay.candles[3].candle.close = 105;
 
     expect(runInternalPaperReplayExecution(value)).toMatchObject({
       status: "blocked",
@@ -251,18 +247,23 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
     });
   });
 
-  test("does not invent an entry-risk rejection for an order that never fills", () => {
+  test("does not read a future exit outcome before reporting an unfilled order", () => {
     const base = input();
     const value = input({
-      base_replay: {
-        ...base.base_replay,
-        account: { ...base.base_replay.account, initial_cash: 1 },
-      },
       policy: {
         ...base.policy,
         order_type: "limit",
         limit_price: 90,
       },
+    });
+    value.base_replay.candles[389].candle.open = 2_000_000_000;
+    value.base_replay.candles[389].candle.high = 2_000_000_000;
+    value.base_replay.candles[389].candle.low = 2_000_000_000;
+    value.base_replay.candles[389].candle.close = 2_000_000_000;
+
+    expect(runInternalPaperMarketReplay(value.base_replay)).toMatchObject({
+      status: "blocked",
+      reason_codes: ["economic_result_out_of_range"],
     });
 
     expect(runInternalPaperReplayExecution(value)).toMatchObject({

@@ -774,8 +774,7 @@ function replayPrefix(input: InternalPaperMarketReplayInput, endIndex: number) {
 
 /**
  * Checks immutable input, market-day and entry-command evidence without
- * assuming that the requested order quantity filled. Execution replay uses
- * this before finding a fill; economic risk is checked on the filled quantity.
+ * assuming that the requested order quantity filled.
  */
 export function validateInternalPaperMarketReplayInput(
   input: InternalPaperMarketReplayInput,
@@ -798,6 +797,20 @@ export function validateInternalPaperMarketReplayInput(
     reasons.push("entry_outside_session");
   }
   return Array.from(new Set(reasons)).sort();
+}
+
+/**
+ * Enforces cash/risk limits for the full requested quantity at the frozen
+ * arrival price before simulated submission, without consulting later candles
+ * or exits. Fill-time replay separately rechecks the actual price and quantity.
+ */
+export function validateInternalPaperReplayOrderAdmission(
+  input: InternalPaperMarketReplayInput,
+): InternalPaperReplayBlockReason[] {
+  const reasons = validateInternalPaperMarketReplayInput(input);
+  if (reasons.length > 0) return reasons;
+  const entry = entryState(input);
+  return entry.status === "blocked" ? [entry.reason] : [];
 }
 
 /**

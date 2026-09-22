@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
   runInternalPaperMarketReplay,
-  validateInternalPaperMarketReplayInput,
+  validateInternalPaperReplayOrderAdmission,
   type InternalPaperMarketReplayInput,
   type InternalPaperReplayBlockReason,
   type InternalPaperReplayResult,
@@ -161,7 +161,7 @@ export function runInternalPaperReplayExecution(
     });
   }
 
-  const preflightReasons = validateInternalPaperMarketReplayInput(input.base_replay);
+  const preflightReasons = validateInternalPaperReplayOrderAdmission(input.base_replay);
   if (preflightReasons.length > 0) {
     return terminal({
       result_version: INTERNAL_PAPER_REPLAY_EXECUTION_RESULT_VERSION,

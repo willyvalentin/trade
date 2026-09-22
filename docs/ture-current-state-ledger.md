@@ -909,21 +909,21 @@ verifies source delivery, not a real cost/fill study or forward shadow result.
 **Selected SV-E.2 CLOSED replay-admission repair, 2026-09-23 (4–8h):** owner
 Codex on `codex/sv-e2-fill-time-risk-admission`; the existing
 `internal_paper_market_replay_v1` and `internal_paper_replay_execution_v1`
-interfaces remain unchanged, with no schema or runtime writer. A reproduced
-failure showed the execution wrapper running a full-quantity economic replay
-before inspecting the fill candle. This incorrectly rejected a ten-share
-request whose actual five-share IOC fill was within the frozen cash and risk
-caps. The wrapper now performs only immutable input/market-day validation
-before fill selection and leaves the economic risk check to the shared replay
-on the actual filled quantity and fill reference price. A genuinely excessive
-partial fill still fails closed; a never-filled order remains unfilled rather
-than receiving an invented entry-risk rejection. The initial regression failed
-on main behavior, then passed with the focused fix. Local E.1–H.2 replay
-regressions passed 66/66 before the final no-fill case; the final E.2 suite
-passed 11/11, strict TypeScript and repository lint passed, and a sequential
-Next production build passed. Parallel Playwright/build initially collided on
-generated `.next/dev` types; the build passed when run without a competing
-devserver. This is fixture-level fidelity evidence only: no licensed replay
+interfaces remain unchanged, with no schema or runtime writer. The execution
+wrapper previously ran an entire future market replay before finding whether
+the order filled. A fixture with a valid, never-crossed limit order and a later
+out-of-range exit scenario reproduced the defect: future exit economics
+blocked an order that should be reported unfilled. The wrapper now validates
+immutable input and pre-submission cash/risk for the **entire requested order**
+without reading later exit outcomes. If a fill occurs, the shared replay also
+checks the actual fill price and filled quantity against the frozen risk caps.
+An oversize requested order is vetoed even if only a partial fill would have
+occurred; a later unfavorable fill can be vetoed too. The initial implementation
+that tested only filled quantity was rejected locally as unsafe and corrected
+before merge. The corrected E.1–H.2 regression chain passed 67/67, including
+the E.2 suite at 11/11; strict TypeScript, repository lint and an isolated Next
+production build also passed. This is fixture-level fidelity
+evidence only: no licensed replay
 dataset, production paper activation, provider request, ranking/publication
 change or broker action is implied. Next acceptance is protected PR CI and
 exact-main deploy verification; actual pilot/fill evidence remains separate.
