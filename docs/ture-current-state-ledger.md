@@ -212,6 +212,39 @@ production build. The focused scheduler regression is now registered in the
 protected foundation shard. A new OPEN preflight and any real provider probe
 remain separate work; this repair does not spend a credit or complete A.2.
 
+**A.2 provider-free scheduler preflight accepted, 2026-09-22:** PR #591 merged
+the focused repair as main `eb769e78efacc84dba6117f3479250e884ba6d99`.
+Activation deploy `6ab2b99d56aa76009ff413d0` was `ready` in production
+before the exact `2026-09-22T18:00:00.000Z` slot. The scheduled delivery wrote
+one durable `skipped` attempt (`scheduled_scan_attempt_jh036b`) with
+`scheduled_execution_disabled_probe_preflight`, the exact slot, deploy/site/main
+identity and `admitted_matching_runtime_context`. It retained the runtime's
+observed `published: false` and required the separate immutable Netlify deploy
+readback instead of inventing publication. It did not load the scan route,
+request provider data, reserve credit, rank, publish or invoke a broker. Cleanup
+deploy `6ab2c3538ce7fa4b694451fb` was then `ready` on the same main with the
+scheduler disabled, ordinary one-shot restored, probe off and no date/slot.
+This closes the provider-free scheduled-delivery defect; it is not outcome or
+discovery-quality evidence.
+
+**Authorized Basic Free catalog capability receipt, 2026-09-22:** after a fresh
+same-day precheck found no catalog claim, scan run or target-slot attempt, exact
+activation deploy `6ab2c59cdf7caf68f502c7a1` admitted only the normal
+`2026-09-22T18:30:00.000Z` scheduled slot. Its terminal attempt
+`scheduled_scan_attempt_1uq4l60` was reference-only and finalized exactly one
+Twelve Data credit. The fixed `/stocks?outputsize=100` response contained 100
+records, 27,316 decoded JSON bytes and provider denominator 16,398; all 100
+records were reference-eligible, but collection remained explicitly incomplete
+and `discovery_feed_allowed` remained false. The attempt retained zero raw,
+ranked, selected, built or published candidates, zero recommendation scan runs,
+zero recommendation snapshots and zero recommendations. Cleanup deploy
+`6ab2ca23a6bd65254877e9ac` was `ready` on exact main `eb769e78`; final readback
+showed scheduler disabled, ordinary one-shot true, probe false and no probe
+date/slot. This proves one Basic Free page's measured capacity and safe
+one-credit containment only. It does not prove market-wide discovery, ranking
+quality, candidate intelligence or an outcome evaluation, and it authorizes no
+retry or wider provider action.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
@@ -691,7 +724,46 @@ experiment. This is repository-fixture engine evidence only. A later F slice
 must connect the frozen experiment to the full charter-bound comparison,
 uncertainty and effective-sample gates on licensed history before any OOS or
 shadow claim. The capability has no provider, ranking/publication, promotion
-or broker authority.
+or broker authority. Feature revision `15343640` passed all six protected
+provider-free shards, aggregate and merge-candidate provenance in run
+`35743386151`; PR #590 merged as
+`2b2fe48445d67f8bed7c148c4067f4baec1fad2e`. Netlify production deploy
+`6ab2a0183439fa00082dd3c6` is `ready` on that exact merge revision. This is
+source deployment only; no historical corpus or strategy evaluation ran there.
+
+**Selected SV-F.2 CLOSED vertical slice — charter-bound replay scorecard,
+2026-09-22 (8–16h):** owner Codex on `codex/sv-f2-charter-scorecard`;
+interfaces `internal_paper_replay_charter_evidence_v1` and
+`internal_paper_replay_charter_scorecard_v1`. The provider-free evaluator runs
+the exact frozen F.1 experiment and both E.4 corpora, then binds the result to
+the durable baseline, evaluation charter and a separately hash-frozen evidence
+population. Every replay decision must have exactly one evidence row and v1
+requires exactly one identical paired candidate per session. Missing,
+duplicated, extra, post-freeze, out-of-charter setup/regime or malformed
+evidence blocks evaluation rather than shrinking a denominator.
+
+Held-out and walk-forward partitions report explicit no-trade decisions,
+precision, expectancy in R, calibration error, outcome coverage/missingness,
+provider credits, source reliability, required feasibility and ticker/sector/
+setup/regime concentration. Precision uses a 95% Wilson interval; continuous
+metrics and paired net-PnL improvement use a deterministic 1,000-iteration
+trading-day cluster bootstrap. Versioned sample gates require at least 20
+complete selected decisions, five effective trading days and four effective
+tickers per partition in addition to the frozen charter counts. A candidate
+cannot pass baseline comparison unless the complete paired net-PnL delta's 95%
+lower bound is strictly above zero. Scorecard and evidence digests detect
+tampering; all provider, ranking/publication, promotion and broker authority is
+false.
+
+Local acceptance currently passes 13/13 focused F.1/F.2 tests, 6/6 protected
+CI-plan integrity tests, strict TypeScript, targeted ESLint, full repository
+lint with zero errors/eight pre-existing warnings and the complete Next
+production build. The four-decision repository fixture truthfully returns
+`inconclusive` because sample size, ticker diversity, probability calibration
+and uncertainty are insufficient. This is implementation evidence only: v1's
+single-candidate replay scope is not market-wide, source rights are not
+independently verified, no licensed multi-regime history or forward shadow was
+evaluated, and no strategy-quality or alpha claim exists.
 
 ### Pilot readiness and bounded parallel work
 
@@ -712,7 +784,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.4 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-F.1 frozen paired replay experiment is selected locally on `codex/sv-f1-frozen-replay-experiment` | Finish F.1 review/CI and merge its provider-free experiment slice. The next F slice must add charter-bound pass/fail/inconclusive, uncertainty/effective-sample and full paired-decision coverage; real evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4 and SV-F.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-F.2 charter-bound replay scorecard is selected locally on `codex/sv-f2-charter-scorecard` | Finish F.2 review/CI and merge its provider-free scorecard slice. Real pass/fail evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; forward acceptance remains separate shadow evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
