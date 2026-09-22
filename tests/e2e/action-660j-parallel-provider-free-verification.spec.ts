@@ -54,6 +54,7 @@ const foundationTests = [
   "tests/e2e/sv-c2-internal-paper-exit.spec.ts",
   "tests/e2e/sv-c3-internal-paper-worker.spec.ts",
   "tests/e2e/sv-c3-internal-paper-worker-runtime.spec.ts",
+  "tests/e2e/sv-c4-internal-paper-handoff.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",

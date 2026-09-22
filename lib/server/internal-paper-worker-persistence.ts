@@ -36,8 +36,9 @@ function explicitInstant(value: unknown): value is string {
 
 export async function enqueueInternalPaperWorkerJob(
   job: InternalPaperWorkerJobRequest,
+  clientOverride?: RpcClient,
 ) {
-  const { client } = getServerSupabaseClient();
+  const client = clientOverride ?? getServerSupabaseClient().client;
   if (!client) return { status: "unavailable" } as const;
   const { data, error } = await client.rpc(
     "app_enqueue_internal_paper_worker_job_v1",

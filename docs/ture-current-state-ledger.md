@@ -367,6 +367,42 @@ numeric health/recovery thresholds, production migration/account activation
 and OPEN-session evidence remain separate successors; this slice must not be
 reported as an autonomous paper day.
 
+SV-C.3 is now delivered on `main`: feature head
+`93456c0fdaeeb19c6b790e4ad4d9ec26a6e62b0e` passed all six protected CI
+shards, aggregate and merge-candidate provenance in run `35692625783`, and
+merged through PR #582 as `1bde1281db6055500fcdcfe8f74f692a40d24c8e`.
+Netlify production deploy `6ab21e98901fa200085f9376` is `ready` on that exact
+merge revision. The C.1–C.3 migrations remain unapplied and both paper handoff
+and worker execution remain disabled; this is exact source/deploy evidence, not
+environment behavior or an autonomous paper session.
+
+**Selected SV-C.4 CLOSED vertical slice — frozen decision handoff and dormant
+worker host, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-c4-paper-worker-host`; interface
+`internal_paper_handoff_context_v1`. The scheduled scan may, only behind an
+exact default-off handoff flag and configured account identity, convert one
+already persisted reconstructable v3 decision into one idempotent C.3 queue
+job. A published decision selects its deterministic top-ranked built candidate,
+requires an exact persisted real/live snapshot and derives whole-share size
+from frozen account cash, per-trade risk, spread, slippage and commission. An
+explicit no-trade produces a zero-effect job. Missing persistence, stale or
+cross-account evidence, paused/killed accounts, strategy drift or unsatisfied
+risk/cash sizing fail closed.
+
+The Netlify worker host runs at most one durable job per authentic bounded
+15-minute scheduled event and loads no database runtime unless both the global
+scheduled-function gate is explicitly false and the paper-worker gate is
+explicitly true. Its generated runtime is server-only and broker/provider-free.
+The additive source migration exposes only the exact account handoff context to
+`service_role`; it creates no account, job or schedule. Local evidence currently
+includes 23 focused C.1/C.3/C.4 and protected-CI contract tests, strict
+TypeScript, full lint with zero errors (eight existing warnings), generated
+Netlify runtime bundles, a complete Next production build and a disposable
+PostgreSQL 16 proof covering context fidelity, browser denial and the unchanged
+C.1–C.3 economic lifecycle. Migration application, account provisioning,
+handoff/worker flag activation and OPEN-session behavior remain separately
+authorized successors.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -386,7 +422,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1 and SV-C.2 are merged/deployed source-only; SV-C.3 durable worker core is locally implemented/tested on `codex/sv-c3-autonomous-paper-worker`; all three schema migrations and runtime activation remain unapplied | Finish SV-C.3 review/CI and merge the inert slice; next connect the frozen decision handoff and a disabled-by-default worker host, then add the minimum observer. Require separate migration, account/config authority and OPEN pilot evidence before environment use |
+| CLOSED successor | SV-C.1–C.3 are merged and exact-revision production-deployed source-only; SV-C.4 frozen handoff and dormant scheduled host are locally implemented/tested on `codex/sv-c4-paper-worker-host`; all paper schema migrations and runtime gates remain unapplied/off | Finish SV-C.4 review/CI and merge the inert slice; then add the minimum read-only observer against the stable C.1–C.4 read model. Require separate migration, account/config and activation authority plus OPEN pilot evidence before environment use |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
