@@ -330,8 +330,42 @@ failure. The migration is source-only and unapplied; it adds no schedule, candle
 writer, provider request, account activation, candidate publication or broker
 capability. Strict TypeScript, full repository lint with zero errors (eight
 existing warnings), a full Next production build and 24 focused admission,
-containment, ledger and protected-CI contract tests also pass. Protected CI and
-merge evidence remain OPEN for this selected slice.
+containment, ledger and protected-CI contract tests also pass. Feature revision
+`03b9fa6206b5a61f0541482b5ac3c1d27b45d957` passed all six protected CI
+shards plus aggregate/provenance and merged through PR #581 as
+`fc1919d3900534893bba2c2cc6316d0c2035fd30`. Netlify production deploy
+`6ab2092b82873600088dab09` is `ready` on that exact merge revision. The C.2
+migration remains unapplied in Supabase production and no paper runtime was
+activated; source deployment is not environment behavior evidence.
+
+**Selected SV-C.3 CLOSED vertical slice — durable autonomous paper worker
+core, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-c3-autonomous-paper-worker`; interfaces
+`internal_paper_worker_job_v1`, `internal_paper_worker_result_v1` and
+`internal_paper_worker_readback_v1`. A service-role-only durable queue accepts
+only already admitted C.1 entry commands, C.2 exit commands or the identity of
+one retained v3 no-trade decision. Exit work has priority; one live lease per
+account serializes economic effects, `FOR UPDATE SKIP LOCKED` prevents workers
+from blocking each other, expired leases are reclaimable after restart and a
+bounded attempt budget ends in an explicit blocked state. Execution and the
+underlying idempotent C.1/C.2 economic command share one database transaction,
+so a committed job cannot lose or duplicate its paper effect. No-trade commits
+a durable terminal zero-effect receipt. Browser roles have neither table nor
+RPC authority; readback exposes counts, health and the latest result without
+granting execution.
+
+Local evidence currently comprises eight focused admission/runtime tests,
+strict TypeScript, full repository lint with zero errors (eight existing
+warnings), a complete Next production build, protected-CI plan/manifest
+registration and a disposable PostgreSQL 16
+proof of idempotent enqueue, account-serial claim, entry execution, exit
+priority and reconciliation, expired-lease restart, durable no-trade, readback
+and browser-role denial. The source migration creates no schedule, worker
+process, account, provider request, candidate publication or broker path and is
+unapplied. Scanner-to-queue handoff, an actual scheduled worker host, frozen
+numeric health/recovery thresholds, production migration/account activation
+and OPEN-session evidence remain separate successors; this slice must not be
+reported as an autonomous paper day.
 
 ### Pilot readiness and bounded parallel work
 
@@ -352,7 +386,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1 is merged/deployed source-only; SV-C.2 paper exit/reconciliation is locally implemented/tested on `codex/sv-c2-paper-exit-reconciliation`; both schema migrations and runtime activation remain unapplied | Finish SV-C.2 full regression/review/CI and merge the inert slice; require separate migration, durable live candle writer and frozen pilot-account authority before environment use; then add the autonomous worker/observer |
+| CLOSED successor | SV-C.1 and SV-C.2 are merged/deployed source-only; SV-C.3 durable worker core is locally implemented/tested on `codex/sv-c3-autonomous-paper-worker`; all three schema migrations and runtime activation remain unapplied | Finish SV-C.3 review/CI and merge the inert slice; next connect the frozen decision handoff and a disabled-by-default worker host, then add the minimum observer. Require separate migration, account/config authority and OPEN pilot evidence before environment use |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
