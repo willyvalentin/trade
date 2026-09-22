@@ -15,6 +15,7 @@ const CLAIM: InternalPaperWorkerClaim = {
   attempt_count: 1,
   max_attempts: 5,
 };
+const ACCOUNT_ID = CLAIM.account_id;
 
 function dependencies(input: {
   execution: "completed" | "failed";
@@ -46,6 +47,7 @@ test.describe("SV-C3 provider-free worker runtime", () => {
   test("fails closed before persistence for an invalid clock or lease", async () => {
     const calls: string[] = [];
     const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
       worker_id: "worker-1",
       now: "not-an-instant",
       lease_seconds: 301,
@@ -57,6 +59,7 @@ test.describe("SV-C3 provider-free worker runtime", () => {
 
   test("does nothing when the durable queue has no work", async () => {
     const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
       worker_id: "worker-1",
       now: "2026-09-22T14:31:00.000Z",
       dependencies: {
@@ -72,9 +75,28 @@ test.describe("SV-C3 provider-free worker runtime", () => {
     expect(result).toEqual({ status: "no_work" });
   });
 
+  test("preserves an operational admission block without executing work", async () => {
+    const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
+      worker_id: "worker-1",
+      now: "2026-09-22T14:31:00.000Z",
+      dependencies: {
+        claim: async () => ({ status: "blocked" as const }),
+        execute: async () => {
+          throw new Error("execute must not run");
+        },
+        release: async () => {
+          throw new Error("release must not run");
+        },
+      },
+    });
+    expect(result).toEqual({ status: "blocked" });
+  });
+
   test("claims and atomically executes one job without a browser", async () => {
     const calls: string[] = [];
     const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
       worker_id: "worker-1",
       now: "2026-09-22T14:31:00.000Z",
       dependencies: dependencies({ execution: "completed", calls }),
@@ -86,6 +108,7 @@ test.describe("SV-C3 provider-free worker runtime", () => {
   test("releases a failed attempt with bounded retry instead of duplicating work", async () => {
     const calls: string[] = [];
     const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
       worker_id: "worker-1",
       now: "2026-09-22T14:31:00.000Z",
       retry_delay_seconds: 45,
@@ -102,6 +125,7 @@ test.describe("SV-C3 provider-free worker runtime", () => {
   test("surfaces the durable blocked state after the retry budget is exhausted", async () => {
     const calls: string[] = [];
     const result = await runInternalPaperWorkerCycle({
+      account_id: ACCOUNT_ID,
       worker_id: "worker-1",
       now: "2026-09-22T14:31:00.000Z",
       dependencies: dependencies({ execution: "failed", release: "blocked", calls }),

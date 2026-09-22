@@ -56,6 +56,8 @@ function ObserverView({ observer }: { observer: InternalPaperObserver }) {
   const latestResult = observer.latest_realized_result;
   const latestResultTicker = textValue(latestResult, "ticker");
   const latestResultNet = numberValue(latestResult, "net_pnl");
+  const admission = observer.operational_admission;
+  const admissionReady = admission.status === "ready";
 
   return (
     <div className="space-y-6">
@@ -155,11 +157,35 @@ function ObserverView({ observer }: { observer: InternalPaperObserver }) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-5 text-sm leading-6 text-amber-50/80">
-        <h2 className="font-semibold text-amber-100">Freshness is not classified yet</h2>
+      <section className={`rounded-2xl border p-5 text-sm leading-6 ${admissionReady
+        ? "border-teal-300/20 bg-teal-300/[0.04] text-teal-50/80"
+        : "border-amber-300/15 bg-amber-300/[0.04] text-amber-50/80"
+      }`}>
+        <h2 className={`font-semibold ${admissionReady ? "text-teal-100" : "text-amber-100"}`}>
+          Operational admission: {admission.status.toUpperCase()}
+        </h2>
         <p className="mt-2">
-          Latest durable activity is {observer.freshness.age_seconds} seconds old. No approved freshness threshold exists, so the observer reports this age without claiming fresh or stale.
+          Worker heartbeat is {admission.heartbeat_classification.replaceAll("_", " ")}.
+          {admission.latest_worker_heartbeat_at
+            ? ` Latest durable heartbeat: ${admission.latest_worker_heartbeat_at}.`
+            : " No durable worker heartbeat exists."}
         </p>
+        {admission.policy_version ? (
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div><dt className="opacity-60">Source age limit</dt><dd className="mt-1 font-mono">{admission.max_source_age_seconds}s</dd></div>
+            <div><dt className="opacity-60">Decision → intent</dt><dd className="mt-1 font-mono">{admission.max_decision_to_intent_seconds}s</dd></div>
+            <div><dt className="opacity-60">Heartbeat / detection</dt><dd className="mt-1 font-mono">{admission.heartbeat_interval_seconds}s / {admission.detection_timeout_seconds}s</dd></div>
+            <div><dt className="opacity-60">Recovery / RPO</dt><dd className="mt-1 font-mono">{admission.restart_reconciliation_deadline_seconds}s / {admission.recovery_point_seconds}s</dd></div>
+            <div><dt className="opacity-60">Derived retention</dt><dd className="mt-1 font-mono">{admission.derived_evidence_retention_days} days</dd></div>
+            <div><dt className="opacity-60">Evidence storage cap</dt><dd className="mt-1 font-mono">{admission.max_derived_evidence_bytes} bytes</dd></div>
+            <div><dt className="opacity-60">Incremental spend cap</dt><dd className="mt-1 font-mono">{formatCurrency(admission.monthly_incremental_spend_cap_usd ?? 0)}</dd></div>
+            <div><dt className="opacity-60">Latest durable activity</dt><dd className="mt-1 font-mono">{observer.freshness.age_seconds}s ago</dd></div>
+          </dl>
+        ) : (
+          <p className="mt-2">
+            No frozen pilot policy exists. Handoff and worker claims remain fail-closed.
+          </p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-black/20 p-5">

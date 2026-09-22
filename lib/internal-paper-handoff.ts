@@ -7,7 +7,9 @@ import {
 } from "@/lib/internal-paper-worker";
 
 export const INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION =
-  "internal_paper_handoff_context_v1" as const;
+  "internal_paper_handoff_context_v2" as const;
+export const INTERNAL_PAPER_PILOT_POLICY_VERSION =
+  "internal_paper_pilot_operating_policy_2026_09_22_v1" as const;
 
 export type InternalPaperHandoffAccountContext = Readonly<{
   context_version: typeof INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION;
@@ -27,11 +29,37 @@ export type InternalPaperHandoffAccountContext = Readonly<{
   spread_bps: number;
   slippage_bps: number;
   commission_per_order: number;
+  observed_at: string;
+  operational_admission: Readonly<{
+    status: "ready" | "blocked";
+    reason_codes: string[];
+    policy_version: typeof INTERNAL_PAPER_PILOT_POLICY_VERSION | null;
+    provider_plan: "twelve_data_basic_free" | null;
+    max_daily_provider_credits: number | null;
+    max_per_minute_provider_credits: number | null;
+    retry_reserve_credits: number | null;
+    max_source_age_seconds: number | null;
+    max_decision_to_intent_seconds: number | null;
+    worker_heartbeat_interval_seconds: number | null;
+    worker_detection_timeout_seconds: number | null;
+    max_scan_runtime_seconds: number | null;
+    restart_reconciliation_deadline_seconds: number | null;
+    acknowledged_effect_recovery_point_seconds: number | null;
+    max_raw_provider_payload_bytes: number | null;
+    max_derived_evidence_bytes: number | null;
+    derived_evidence_retention_days: number | null;
+    monthly_incremental_spend_cap_usd: number | null;
+    latest_worker_heartbeat_at: string | null;
+  }>;
 }>;
 
 export type InternalPaperHandoffReasonCode =
   | "handoff_identity_mismatch"
   | "handoff_account_not_ready"
+  | "handoff_operational_policy_unavailable"
+  | "handoff_worker_heartbeat_unavailable"
+  | "handoff_decision_too_old"
+  | "handoff_source_too_old"
   | "handoff_persistence_incomplete"
   | "handoff_decision_not_current"
   | "handoff_lineage_incomplete"
@@ -124,6 +152,18 @@ function normalizedTicker(value: unknown) {
   return typeof value === "string" ? value.trim().toUpperCase() : "";
 }
 
+function explicitInstant(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
+
+function ageSeconds(later: string, earlier: string) {
+  return Math.floor((Date.parse(later) - Date.parse(earlier)) / 1_000);
+}
+
 /**
  * Converts one already persisted v3 decision into one durable paper-worker job.
  * It performs no provider, ranking, publication, database or broker action.
@@ -149,6 +189,37 @@ export function buildInternalPaperDecisionHandoff(input: {
   if (input.account.status !== "ready") {
     return blocked("handoff_account_not_ready");
   }
+  const admission = input.account.operational_admission;
+  if (
+    admission.status !== "ready" ||
+    admission.policy_version !== INTERNAL_PAPER_PILOT_POLICY_VERSION ||
+    admission.provider_plan !== "twelve_data_basic_free" ||
+    admission.max_daily_provider_credits !== 800 ||
+    admission.max_per_minute_provider_credits !== 8 ||
+    admission.retry_reserve_credits !== 8 ||
+    admission.max_raw_provider_payload_bytes !== 0 ||
+    admission.monthly_incremental_spend_cap_usd !== 0 ||
+    admission.acknowledged_effect_recovery_point_seconds !== 0 ||
+    admission.max_source_age_seconds !== 600 ||
+    admission.max_decision_to_intent_seconds !== 120 ||
+    admission.worker_heartbeat_interval_seconds !== 900 ||
+    admission.worker_detection_timeout_seconds !== 1200 ||
+    admission.max_scan_runtime_seconds !== 120 ||
+    admission.restart_reconciliation_deadline_seconds !== 1200 ||
+    !finitePositive(admission.max_derived_evidence_bytes) ||
+    !finitePositive(admission.derived_evidence_retention_days) ||
+    !explicitInstant(input.account.observed_at)
+  ) {
+    return blocked("handoff_operational_policy_unavailable");
+  }
+  if (
+    !explicitInstant(admission.latest_worker_heartbeat_at) ||
+    ageSeconds(input.account.observed_at, admission.latest_worker_heartbeat_at) < 0 ||
+    ageSeconds(input.account.observed_at, admission.latest_worker_heartbeat_at) >
+      admission.worker_detection_timeout_seconds
+  ) {
+    return blocked("handoff_worker_heartbeat_unavailable");
+  }
   if (!input.scan_run_persisted) {
     return blocked("handoff_persistence_incomplete");
   }
@@ -158,6 +229,14 @@ export function buildInternalPaperDecisionHandoff(input: {
     !input.decision.scan_run_fingerprint
   ) {
     return blocked("handoff_decision_not_current");
+  }
+  if (
+    !explicitInstant(input.decision.decision_timestamp) ||
+    ageSeconds(input.account.observed_at, input.decision.decision_timestamp) < 0 ||
+    ageSeconds(input.account.observed_at, input.decision.decision_timestamp) >
+      admission.max_decision_to_intent_seconds
+  ) {
+    return blocked("handoff_decision_too_old");
   }
   if (input.decision_lineage_status !== "reconstructable") {
     return blocked("handoff_lineage_incomplete");
@@ -204,6 +283,15 @@ export function buildInternalPaperDecisionHandoff(input: {
         normalizedTicker(left.ticker).localeCompare(normalizedTicker(right.ticker)),
     )[0];
   if (!candidate) return blocked("handoff_candidate_unavailable");
+
+  if (
+    !explicitInstant(candidate.data.source_timestamp) ||
+    ageSeconds(input.decision.decision_timestamp, candidate.data.source_timestamp) < 0 ||
+    ageSeconds(input.decision.decision_timestamp, candidate.data.source_timestamp) >
+      admission.max_source_age_seconds
+  ) {
+    return blocked("handoff_source_too_old");
+  }
 
   const ticker = normalizedTicker(candidate.ticker);
   const persistedFingerprints = new Set(input.persisted_snapshot_fingerprints);

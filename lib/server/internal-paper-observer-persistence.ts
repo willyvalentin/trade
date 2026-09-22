@@ -37,7 +37,7 @@ export async function readInternalPaperObserver(
   if (!client) return { status: "unavailable" } as const;
 
   const { data, error } = await client.rpc(
-    "app_read_internal_paper_observer_v1",
+    "app_read_internal_paper_observer_v2",
     {
       p_owner_user_id: owner,
       p_account_id: accountId,

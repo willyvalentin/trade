@@ -2925,6 +2925,7 @@ async function handoffPersistedDecisionToInternalPaper(input: {
   snapshot_persistence: Array<
     Awaited<ReturnType<typeof persistRecommendationSnapshot>>
   >;
+  observed_at: string;
 }) {
   const persistedSnapshotFingerprints = input.snapshot_persistence
     .filter(
@@ -2943,6 +2944,7 @@ async function handoffPersistedDecisionToInternalPaper(input: {
       input.scan_run_persistence_status === "updated",
     snapshots: input.snapshots,
     persisted_snapshot_fingerprints: persistedSnapshotFingerprints,
+    observed_at: input.observed_at,
   });
 }
 
@@ -5110,6 +5112,7 @@ export async function POST(request: Request) {
           scan_run_persistence_status:
             artifactResult.persistence.scan_run.status,
           snapshot_persistence: artifactResult.persistence.snapshots,
+          observed_at: new Date().toISOString(),
         });
         internalPaperHandoff =
           result.status === "enqueued"

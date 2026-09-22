@@ -7,6 +7,7 @@ import { buildCurrentDecisionStrategyReference } from "@/lib/decision-strategy-r
 import {
   buildInternalPaperDecisionHandoff,
   INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION,
+  INTERNAL_PAPER_PILOT_POLICY_VERSION,
   type InternalPaperHandoffAccountContext,
 } from "@/lib/internal-paper-handoff";
 import { buildRecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -133,6 +134,28 @@ function account(): InternalPaperHandoffAccountContext {
     spread_bps: 10,
     slippage_bps: 10,
     commission_per_order: 1,
+    observed_at: "2026-09-22T14:31:30.000Z",
+    operational_admission: {
+      status: "ready",
+      reason_codes: [],
+      policy_version: INTERNAL_PAPER_PILOT_POLICY_VERSION,
+      provider_plan: "twelve_data_basic_free",
+      max_daily_provider_credits: 800,
+      max_per_minute_provider_credits: 8,
+      retry_reserve_credits: 8,
+      max_source_age_seconds: 600,
+      max_decision_to_intent_seconds: 120,
+      worker_heartbeat_interval_seconds: 900,
+      worker_detection_timeout_seconds: 1200,
+      max_scan_runtime_seconds: 120,
+      restart_reconciliation_deadline_seconds: 1200,
+      acknowledged_effect_recovery_point_seconds: 0,
+      max_raw_provider_payload_bytes: 0,
+      max_derived_evidence_bytes: 104_857_600,
+      derived_evidence_retention_days: 30,
+      monthly_incremental_spend_cap_usd: 0,
+      latest_worker_heartbeat_at: "2026-09-22T14:30:30.000Z",
+    },
   };
 }
 
@@ -198,6 +221,62 @@ test.describe("SV-C4 decision handoff and dormant worker host", () => {
     ).toMatchObject({
       status: "blocked",
       reason_codes: ["handoff_account_scope_mismatch"],
+    });
+  });
+
+  test("fails closed for missing policy, stale heartbeat, decision or source evidence", () => {
+    expect(build({
+      account: {
+        ...account(),
+        operational_admission: {
+          ...account().operational_admission,
+          status: "blocked",
+          policy_version: null,
+        },
+      },
+    })).toMatchObject({
+      status: "blocked",
+      reason_codes: ["handoff_operational_policy_unavailable"],
+    });
+    expect(build({
+      account: {
+        ...account(),
+        operational_admission: {
+          ...account().operational_admission,
+          max_source_age_seconds: 601,
+        },
+      },
+    })).toMatchObject({
+      status: "blocked",
+      reason_codes: ["handoff_operational_policy_unavailable"],
+    });
+    expect(build({
+      account: {
+        ...account(),
+        observed_at: "2026-09-22T15:00:31.000Z",
+      },
+    })).toMatchObject({
+      status: "blocked",
+      reason_codes: ["handoff_worker_heartbeat_unavailable"],
+    });
+    expect(build({
+      account: {
+        ...account(),
+        observed_at: "2026-09-22T14:34:00.000Z",
+        operational_admission: {
+          ...account().operational_admission,
+          latest_worker_heartbeat_at: "2026-09-22T14:33:30.000Z",
+        },
+      },
+    })).toMatchObject({
+      status: "blocked",
+      reason_codes: ["handoff_decision_too_old"],
+    });
+    const staleSource = decision();
+    staleSource.candidates[0]!.data.source_timestamp = "2026-09-22T14:20:59.000Z";
+    expect(build({ decision: staleSource })).toMatchObject({
+      status: "blocked",
+      reason_codes: ["handoff_source_too_old"],
     });
   });
 
