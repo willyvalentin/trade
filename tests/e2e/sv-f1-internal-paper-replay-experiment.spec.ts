@@ -16,6 +16,10 @@ import {
   type InternalPaperReplayExperimentPartition,
 } from "@/lib/internal-paper-replay-experiment";
 import {
+  evaluateInternalPaperReplayRegimeAttributedScorecard,
+  verifyInternalPaperReplayRegimeAttributedScorecardDigest,
+} from "@/lib/internal-paper-replay-regime-attribution";
+import {
   buildInternalPaperReplayCharterEvidence,
   evaluateInternalPaperReplayCharterScorecard,
   INTERNAL_PAPER_REPLAY_CHARTER_EVIDENCE_VERSION,
@@ -42,6 +46,15 @@ import {
 } from "@/lib/recommendation-evaluation-charter";
 import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { SharedCandleCacheCandle } from "@/lib/shared-candle-cache";
+import type { MarketContextIntelligenceV2Input } from "@/lib/market-context-intelligence-lab/contract-v2";
+import {
+  marketContextHistoricalShadowReplayGoldenFixtures,
+  marketContextShadowReplayFixtureProducerVersions,
+} from "@/lib/market-context-intelligence-lab/shadow-replay-fixtures-v1";
+import {
+  sealMarketContextShadowReplayV1Input,
+  type MarketContextShadowReplayV1Input,
+} from "@/lib/market-context-intelligence-lab/shadow-replay-v1";
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
 const ACCOUNT_ID = "22222222-2222-4222-8222-222222222222";
@@ -499,7 +512,7 @@ function scorecardCharter(): RecommendationEvaluationCharter {
     eligible_universe:
       "Exact point-in-time paired internal-paper replay decisions in held-out and walk-forward partitions.",
     setup_slices: ["breakout"],
-    regime_slices: ["neutral"],
+    regime_slices: ["risk_on_trending"],
     outcome_rules: {
       primary_horizon: "60m",
       diagnostic_horizons: ["15m", "30m", "60m"],
@@ -647,7 +660,7 @@ function scorecardFixture() {
         scan_run_fingerprint: `rec_scan_run_${date}`,
         trading_date: date,
         setup: "breakout",
-        regime: "neutral",
+        regime: "risk_on_trending",
         baseline: {
           predicted_probability: null,
           provider_cost_credits: 0.5,
@@ -672,6 +685,112 @@ function scorecardFixture() {
       ...values,
     } as const,
     evidence,
+  };
+}
+
+function rebaseMarketContextInput(
+  input: MarketContextIntelligenceV2Input,
+  decisionTimestamp: string,
+) {
+  const value = structuredClone(input);
+  const decisionMs = Date.parse(decisionTimestamp);
+  const pointTimestamp = new Date(decisionMs - 5 * 60_000).toISOString();
+  const receivedTimestamp = new Date(decisionMs - 4 * 60_000).toISOString();
+  value.decision_timestamp = decisionTimestamp;
+  for (const benchmark of value.benchmarks) {
+    if (benchmark.provider.source_timestamp !== null) {
+      benchmark.provider.source_timestamp = pointTimestamp;
+    }
+    benchmark.provider.received_timestamp = receivedTimestamp;
+    for (const point of [...benchmark.intraday, ...benchmark.multi_day]) {
+      point.timestamp = pointTimestamp;
+    }
+  }
+  if (value.breadth) {
+    value.breadth.timestamp = pointTimestamp;
+    if (value.breadth.provider.source_timestamp !== null) {
+      value.breadth.provider.source_timestamp = pointTimestamp;
+    }
+    value.breadth.provider.received_timestamp = receivedTimestamp;
+  }
+  for (const sector of value.sectors ?? []) {
+    if (sector.provider.source_timestamp !== null) {
+      sector.provider.source_timestamp = pointTimestamp;
+    }
+    sector.provider.received_timestamp = receivedTimestamp;
+    for (const point of [
+      ...sector.short_horizon,
+      ...sector.medium_horizon,
+    ]) {
+      point.timestamp = pointTimestamp;
+    }
+  }
+  return value;
+}
+
+function regimeReplay(): MarketContextShadowReplayV1Input {
+  const source = marketContextHistoricalShadowReplayGoldenFixtures.find(
+    (item) => item.id === "clear_risk_on_day",
+  )?.input.dataset.decisions[0]?.context_input;
+  if (!source) throw new Error("risk-on context fixture must exist");
+  return sealMarketContextShadowReplayV1Input({
+    replay_id: "sv-g1-regime-attribution-fixture-v1",
+    dataset: {
+      identity: {
+        dataset_id: "sv-g1-regime-attribution-fixture",
+        dataset_version: "2026-09-v1",
+        source_kind: "synthetic_repository_fixture",
+      },
+      decisions: DATES.map((date) => {
+        const decisionTimestamp = `${date}T13:31:00.000Z`;
+        return {
+          decision_id: `rec_scan_run_${date}`,
+          ticker: "AAPL",
+          session_label: date,
+          context_input: rebaseMarketContextInput(source, decisionTimestamp),
+        };
+      }),
+    },
+    producer_versions: {
+      ...marketContextShadowReplayFixtureProducerVersions,
+    },
+  });
+}
+
+function unavailableRegimeReplay(): MarketContextShadowReplayV1Input {
+  const source = regimeReplay();
+  const decisions = structuredClone(source.dataset.decisions);
+  for (const decision of decisions) {
+    const staleTimestamp = new Date(
+      Date.parse(decision.context_input.decision_timestamp) - 3 * 86_400_000,
+    ).toISOString();
+    for (const benchmark of decision.context_input.benchmarks) {
+      benchmark.provider.source_timestamp = staleTimestamp;
+    }
+  }
+  return sealMarketContextShadowReplayV1Input({
+    replay_id: `${source.replay_id}-unavailable`,
+    dataset: { ...source.dataset, decisions },
+    producer_versions: source.producer_versions,
+  });
+}
+
+function regimeAttributionFixture() {
+  const fixture = scorecardFixture();
+  return {
+    ...fixture,
+    evidence: {
+      evaluated_at: fixture.evidence.evaluated_at,
+      bootstrap_seed: fixture.evidence.bootstrap_seed,
+      decisions: fixture.evidence.decisions.map((item) => ({
+        scan_run_fingerprint: item.scan_run_fingerprint,
+        trading_date: item.trading_date,
+        setup: item.setup,
+        baseline: item.baseline,
+        candidate: item.candidate,
+      })),
+    },
+    contextReplay: regimeReplay(),
   };
 }
 
@@ -1088,5 +1207,120 @@ test.describe("SV-F2 charter-bound replay scorecard", () => {
     expect(result.reason_codes).toContain(
       "baseline_charter_experiment_binding_mismatch",
     );
+  });
+});
+
+test.describe("SV-G1 replay-bound regime attribution", () => {
+  test("derives every F2 regime from the exact point-in-time context replay", () => {
+    const fixture = regimeAttributionFixture();
+    const result = evaluateInternalPaperReplayRegimeAttributedScorecard(fixture);
+    const repeated = evaluateInternalPaperReplayRegimeAttributedScorecard(fixture);
+
+    expect(result).toEqual(repeated);
+    expect(verifyInternalPaperReplayRegimeAttributedScorecardDigest(result)).toBe(
+      true,
+    );
+    expect(result).toMatchObject({
+      status: "completed",
+      scientific_disposition: "research_context_binding_not_strategy_accepted",
+      context_source_kind: "synthetic_repository_fixture",
+      measurable_regime_count: 4,
+      unavailable_or_conflicting_regime_count: 0,
+      scorecard: {
+        status: "completed",
+        verdict: "inconclusive",
+      },
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    expect(result.bindings).toHaveLength(4);
+    expect(
+      result.bindings.every(
+        (binding) =>
+          binding.classification === "risk_on_trending" &&
+          binding.context_version === "market_context_intelligence_v2" &&
+          /^[a-f0-9]{64}$/.test(binding.context_evidence_digest),
+      ),
+    ).toBe(true);
+    expect(result.reason_codes).toContain(
+      "synthetic_context_source_fixture_only",
+    );
+  });
+
+  test("blocks a context decision that does not match ticker, date or instant", () => {
+    const fixture = regimeAttributionFixture();
+    const contextReplay = sealMarketContextShadowReplayV1Input({
+      replay_id: fixture.contextReplay.replay_id,
+      dataset: {
+        ...fixture.contextReplay.dataset,
+        decisions: fixture.contextReplay.dataset.decisions.map(
+          (decision, index) =>
+            index === 0 ? { ...decision, ticker: "MSFT" } : decision,
+        ),
+      },
+      producer_versions: fixture.contextReplay.producer_versions,
+    });
+    const result = evaluateInternalPaperReplayRegimeAttributedScorecard({
+      ...fixture,
+      contextReplay,
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain("regime_decision_binding_mismatch");
+    expect(result.scorecard).toBeNull();
+  });
+
+  test("blocks a changed sealed replay and an incomplete context population", () => {
+    const changed = regimeAttributionFixture();
+    changed.contextReplay.dataset.decisions[0]!.ticker = "MSFT";
+    const changedResult = evaluateInternalPaperReplayRegimeAttributedScorecard(
+      changed,
+    );
+    expect(changedResult.status).toBe("blocked");
+    expect(changedResult.reason_codes).toContain(
+      "market_context_shadow_replay_invalid",
+    );
+
+    const incomplete = regimeAttributionFixture();
+    const contextReplay = sealMarketContextShadowReplayV1Input({
+      replay_id: incomplete.contextReplay.replay_id,
+      dataset: {
+        ...incomplete.contextReplay.dataset,
+        decisions: incomplete.contextReplay.dataset.decisions.slice(0, -1),
+      },
+      producer_versions: incomplete.contextReplay.producer_versions,
+    });
+    const incompleteResult =
+      evaluateInternalPaperReplayRegimeAttributedScorecard({
+        ...incomplete,
+        contextReplay,
+      });
+    expect(incompleteResult.status).toBe("blocked");
+    expect(incompleteResult.reason_codes).toContain(
+      "regime_decision_population_incomplete_or_extra",
+    );
+  });
+
+  test("retains unavailable regime bindings but never evaluates them as neutral", () => {
+    const fixture = regimeAttributionFixture();
+    const result = evaluateInternalPaperReplayRegimeAttributedScorecard({
+      ...fixture,
+      contextReplay: unavailableRegimeReplay(),
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain("regime_attribution_incomplete");
+    expect(result.measurable_regime_count).toBe(0);
+    expect(result.unavailable_or_conflicting_regime_count).toBe(4);
+    expect(
+      result.bindings.every(
+        (binding) => binding.classification === "insufficient_data",
+      ),
+    ).toBe(true);
+    expect(result.scorecard).toBeNull();
   });
 });
