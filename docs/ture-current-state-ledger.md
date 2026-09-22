@@ -511,8 +511,38 @@ C1/C2, protected-CI registration and ledger contracts pass in a 23-test focused
 run; strict TypeScript, full lint with zero errors (eight existing warnings), a
 complete Next production build and `git diff --check` also pass. This repository
 fixture proves the engine contract only; it is not licensed historical-market
-coverage, a strategy evaluation or alpha evidence. External review/CI and
-merge remain delivery steps.
+coverage, a strategy evaluation or alpha evidence. Feature revision
+`56e3195e1c3c09ea74285fabe07019c8c8932811` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`35716420670`, then merged through PR #586 as
+`28253fd0533b2f1b7f1e8a7be93a64441b186cbe`. Netlify production deploy
+`6ab25f85f94e2f0008d48edd` is `ready` in `production` on that exact merge
+revision. This proves source deployment only; no historical dataset, replay job
+or strategy evaluation ran in production.
+
+**Selected SV-E.2 CLOSED vertical slice — deterministic replay execution
+realism, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-e2-replay-execution-realism`; interfaces
+`internal_paper_replay_execution_v1` and
+`internal_paper_replay_execution_result_v1`. The slice adds a provider-free,
+versioned IOC admission layer ahead of E.1. It applies bounded deterministic
+latency, market or long-limit crossing, conservative gap pricing, frozen maximum
+order quantity, minimum fill quantity and per-candle volume-participation caps.
+It reports requested, filled and unfilled shares explicitly, distinguishes a
+known zero/insufficient-liquidity unfilled outcome from missing volume evidence,
+and propagates every blocked E.1 result rather than masking it as completed.
+
+Eight focused E.2 tests plus all eight E.1 tests pass. They cover delayed partial
+fills, exclusion of the fill candle from exit decisions, better-price limit gaps,
+never-crossed limits, known insufficient versus unknown liquidity, deterministic
+quantity rejection, repeatability, invalid-policy rejection, base-replay failure
+propagation and expired fill windows. The suite is
+registered in the protected provider-free foundation shard. This slice still
+uses minute OHLCV and one IOC fill event; it does not model multi-candle child
+orders, queue position, quote-depth bid/ask, trailing exits or empirical fill
+calibration. Repository fixtures remain engine-contract evidence only, not
+licensed historical coverage, strategy quality or alpha evidence. External
+review/CI and merge remain delivery steps.
 
 ### Pilot readiness and bounded parallel work
 
@@ -533,7 +563,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5 and SV-D.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.1 deterministic one-day replay is the selected local slice on `codex/sv-e1-deterministic-one-day-replay` | Finish E.1 review/CI and merge its provider-free engine slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 replay execution realism is selected locally on `codex/sv-e2-replay-execution-realism` | Finish E.2 review/CI and merge its provider-free execution-model slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
