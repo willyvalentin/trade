@@ -4,6 +4,13 @@ import { buildCandidateDecisionLearningAttribution } from "@/lib/candidate-decis
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import { buildCurrentDecisionStrategyReference } from "@/lib/decision-strategy-registry";
 import {
+  buildInternalPaperCounterfactualFamilyManifest,
+  INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+  runInternalPaperCounterfactualFamily,
+  verifyInternalPaperCounterfactualFamilyDigest,
+  type InternalPaperCounterfactualVariantInput,
+} from "@/lib/internal-paper-counterfactual-family";
+import {
   buildInternalPaperReplayCorpusManifest,
   INTERNAL_PAPER_REPLAY_CORPUS_VERSION,
   runInternalPaperReplayCorpus,
@@ -500,6 +507,131 @@ function rebuildCorpusManifest(input: InternalPaperReplayCorpusInput) {
   });
   if (!value) throw new Error("rebuilt corpus manifest must be valid");
   Object.assign(input, { manifest: value });
+}
+
+function counterfactualExperiment({
+  experimentId,
+  baseline,
+  candidate,
+}: {
+  experimentId: string;
+  baseline: InternalPaperReplayCorpusInput;
+  candidate: InternalPaperReplayCorpusInput;
+}) {
+  const value = buildInternalPaperReplayExperimentManifest({
+    experiment_id: experimentId,
+    frozen_at: "2026-09-22T20:15:00.000Z",
+    baseline_fingerprint: "c".repeat(64),
+    evaluation_charter_fingerprint: "d".repeat(64),
+    primary_outcome_horizon_minutes: 60,
+    baseline,
+    candidate,
+    partitions: partitionAssignments(),
+  });
+  if (!value) throw new Error("counterfactual experiment manifest must be valid");
+  return {
+    experiment_version: INTERNAL_PAPER_REPLAY_EXPERIMENT_VERSION,
+    manifest: value,
+    baseline,
+    candidate,
+  } as const;
+}
+
+function retainRejectedFirstOpportunity(input: InternalPaperReplayCorpusInput) {
+  const session = input.sessions[0]!;
+  const first = session.decisions[0]!;
+  session.decisions[0] = {
+    ...first,
+    execution: null,
+    rejection_reason_codes: ["risk_policy_rejected"],
+  };
+  rebuildCorpusManifest(input);
+}
+
+function counterfactualFamilyFixture() {
+  const outcomes = ["win", "win", "loss", "win"] as const;
+  const baseline = corpus({
+    corpusId: "33333333-3333-4333-8333-333333333351",
+    manifestId: "44444444-4444-4444-8444-444444444461",
+    policyVersion: "recommendation_publish_policy_h1_baseline",
+    outcomes: [...outcomes],
+  });
+  const sizingCandidate = corpus({
+    corpusId: "33333333-3333-4333-8333-333333333352",
+    manifestId: "44444444-4444-4444-8444-444444444462",
+    policyVersion: "recommendation_publish_policy_h1_sizing",
+    outcomes: [...outcomes],
+  });
+  const stopCandidate = corpus({
+    corpusId: "33333333-3333-4333-8333-333333333353",
+    manifestId: "44444444-4444-4444-8444-444444444463",
+    policyVersion: "recommendation_publish_policy_h1_stop",
+    outcomes: [...outcomes],
+  });
+  for (const value of [baseline, sizingCandidate, stopCandidate]) {
+    retainRejectedFirstOpportunity(value);
+  }
+  for (const value of sizingCandidate.sessions) {
+    const item = value.decisions[0]!;
+    if (item.execution) {
+      value.decisions[0] = {
+        ...item,
+        execution: {
+          ...item.execution,
+          base_replay: {
+            ...item.execution.base_replay,
+            entry: { ...item.execution.base_replay.entry, quantity: 5 },
+          },
+        },
+      };
+    }
+  }
+  rebuildCorpusManifest(sizingCandidate);
+  for (const value of stopCandidate.sessions) {
+    const item = value.decisions[0]!;
+    if (item.execution) {
+      value.decisions[0] = {
+        ...item,
+        execution: {
+          ...item.execution,
+          base_replay: {
+            ...item.execution.base_replay,
+            entry: { ...item.execution.base_replay.entry, stop_price: 97 },
+          },
+        },
+      };
+    }
+  }
+  rebuildCorpusManifest(stopCandidate);
+
+  const variants: InternalPaperCounterfactualVariantInput[] = [
+    {
+      variant_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
+      intervention_dimension: "sizing",
+      experiment: counterfactualExperiment({
+        experimentId: "77777777-7777-4777-8777-777777777781",
+        baseline,
+        candidate: sizingCandidate,
+      }),
+    },
+    {
+      variant_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2",
+      intervention_dimension: "stop",
+      experiment: counterfactualExperiment({
+        experimentId: "77777777-7777-4777-8777-777777777782",
+        baseline,
+        candidate: stopCandidate,
+      }),
+    },
+  ];
+  const manifest = buildInternalPaperCounterfactualFamilyManifest({
+    family_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    frozen_at: "2026-09-22T20:30:00.000Z",
+    cost_fill_scenario_id: "sv-h1-fixed-cost-fill-scenario-v1",
+    variants,
+  });
+  if (!manifest) throw new Error("counterfactual family manifest must be valid");
+  return { manifest, variants };
 }
 
 const SCORECARD_SEGMENT_KEY =
@@ -1599,5 +1731,127 @@ test.describe("SV-G2 replay-only regime shadow policy", () => {
     expect(result.status).toBe("blocked");
     expect(result.reason_codes).toContain("regime_attribution_not_completed");
     expect(result.decisions).toEqual([]);
+  });
+});
+
+test.describe("SV-H1 frozen counterfactual opportunity family", () => {
+  test("runs isolated stop and sizing portfolios on the exact shared denominator", () => {
+    const fixture = counterfactualFamilyFixture();
+    const input = {
+      family_version: INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+      ...fixture,
+    } as const;
+    const first = runInternalPaperCounterfactualFamily(input);
+    const second = runInternalPaperCounterfactualFamily(input);
+
+    expect(first).toEqual(second);
+    expect(verifyInternalPaperCounterfactualFamilyDigest(first)).toBe(true);
+    expect(first.status, JSON.stringify(first, null, 2)).toBe("completed");
+    if (first.status !== "completed") return;
+    expect(first).toMatchObject({
+      scientific_disposition:
+        "replay_counterfactual_family_not_strategy_accepted",
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    expect(first.variants.map(({ intervention_dimension }) => intervention_dimension)).toEqual([
+      "sizing",
+      "stop",
+    ]);
+    expect(new Set(first.variants.map(({ portfolio_identity }) => portfolio_identity)).size).toBe(
+      2,
+    );
+    expect(
+      new Set(first.variants.map(({ baseline_result_digest }) => baseline_result_digest))
+        .size,
+    ).toBe(1);
+    expect(
+      new Set(first.variants.map(({ candidate_result_digest }) => candidate_result_digest))
+        .size,
+    ).toBe(2);
+    for (const variant of first.variants) {
+      expect(
+        variant.partitions.reduce(
+          (sum, partition) => sum + partition.opportunity_count,
+          0,
+        ),
+      ).toBe(4);
+      expect(variant.partitions[0]).toMatchObject({
+        opportunity_count: 1,
+        baseline: { decision_count: 1, rejected_count: 1 },
+        candidate: { decision_count: 1, rejected_count: 1 },
+      });
+    }
+    expect(first.evidence_limits).toContain(
+      "single_frozen_cost_fill_scenario_only",
+    );
+    expect(first.evidence_limits).toContain("no_forward_shadow_acceptance");
+  });
+
+  test("rejects a falsely declared intervention dimension before evaluation", () => {
+    const fixture = counterfactualFamilyFixture();
+    const variants: InternalPaperCounterfactualVariantInput[] = [
+      { ...fixture.variants[0]!, intervention_dimension: "exit" },
+      fixture.variants[1]!,
+    ];
+
+    expect(
+      buildInternalPaperCounterfactualFamilyManifest({
+        family_id: fixture.manifest.family_id,
+        frozen_at: fixture.manifest.frozen_at,
+        cost_fill_scenario_id: fixture.manifest.cost_fill_scenario_id,
+        variants,
+      }),
+    ).toBeNull();
+  });
+
+  test("blocks post-freeze market-evidence mutation instead of comparing it", () => {
+    const fixture = counterfactualFamilyFixture();
+    const execution =
+      fixture.variants[0]!.experiment.candidate.sessions[1]!.decisions[0]!
+        .execution;
+    if (!execution) throw new Error("fixture execution must exist");
+    execution.base_replay.candles[0]!.candle.high = 123;
+
+    const result = runInternalPaperCounterfactualFamily({
+      family_version: INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+      ...fixture,
+    });
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain(
+      "counterfactual_family_manifest_input_mismatch",
+    );
+    expect(result.authority.can_promote_strategy).toBe(false);
+  });
+
+  test("rejects unequal market evidence even when each child is independently re-frozen", () => {
+    const fixture = counterfactualFamilyFixture();
+    const changed = fixture.variants[1]!.experiment;
+    const execution = changed.candidate.sessions[1]!.decisions[0]!.execution;
+    if (!execution) throw new Error("fixture execution must exist");
+    execution.base_replay.candles[0]!.candle.high = 123;
+    rebuildCorpusManifest(changed.candidate);
+    const refreshed = counterfactualExperiment({
+      experimentId: changed.manifest.experiment_id,
+      baseline: changed.baseline,
+      candidate: changed.candidate,
+    });
+    const variants: InternalPaperCounterfactualVariantInput[] = [
+      fixture.variants[0]!,
+      { ...fixture.variants[1]!, experiment: refreshed },
+    ];
+
+    expect(
+      buildInternalPaperCounterfactualFamilyManifest({
+        family_id: fixture.manifest.family_id,
+        frozen_at: fixture.manifest.frozen_at,
+        cost_fill_scenario_id: fixture.manifest.cost_fill_scenario_id,
+        variants,
+      }),
+    ).toBeNull();
   });
 });
