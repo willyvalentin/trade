@@ -293,6 +293,46 @@ provider request, candidate publication or broker path even when later applied.
 Runtime account provisioning/activation, an autonomous worker, exits and OPEN
 pilot evidence remain separate successors.
 
+SV-C.1 is now delivered on `main`: feature revision
+`259e360d72079bac8b7327dd0e3cfd9a6918fa3f` is contained by merge revision
+`a3daa5222cf6d7ee16a8d146e5dbaa2113597420`. The exact-main manual protected
+workflow run `35667308390` passed all six shards and aggregate, and Netlify
+production deploy `6ab1c1d0102d150008244b2e` is `ready` on that exact merge
+revision. GitHub still presents PR #580 as open after its merge API returned a
+502 during the successful remote-main update; the two-parent merge commit,
+exact-main CI and exact-revision deployment are the authoritative delivery
+evidence. The source migration remains unapplied in Supabase production and no
+paper account was created or activated.
+
+**Selected SV-C.2 CLOSED vertical slice — evidence-bound paper exits and
+reconciliation, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-c2-paper-exit-reconciliation`; interface versions
+`internal_paper_exit_command_v1`,
+`internal_paper_immediate_costed_exit_v1`,
+`internal_paper_durable_candle_evidence_v1` and
+`internal_paper_readback_v2`. The command contains only owner/account/position
+and durable-candle identities: caller-supplied exit reason, quantity and price
+are absent. The database locks the account and position, accepts only a
+provider-attributed completed fetch plus a stored `valid` regular-session
+one-minute candle, and chooses conservatively in stop → 15:59 EOD → first target
+order. Stop and EOD close the residue; target performs the configured whole-share
+partial (or final when indivisible). Spread, slippage, exit commission,
+proportional entry commission, cost-basis release, gross/net result, cash,
+position residue and four-line balanced ledger commit atomically. Exact retry
+after a new database session returns the original effect. Daily realized loss
+can auto-pause new entries while paused/killed accounts remain able to reduce
+existing paper risk. Local evidence currently comprises four focused admission
+tests, the protected-CI plan/registration contract and a disposable PostgreSQL
+16 lifecycle proving target partial, retry/restart, final EOD, stop-before-target,
+daily-loss pause, killed-account close, owner/browser isolation, exact cash/PnL,
+zero ledger imbalance and rollback of every write after a forced late ledger
+failure. The migration is source-only and unapplied; it adds no schedule, candle
+writer, provider request, account activation, candidate publication or broker
+capability. Strict TypeScript, full repository lint with zero errors (eight
+existing warnings), a full Next production build and 24 focused admission,
+containment, ledger and protected-CI contract tests also pass. Protected CI and
+merge evidence remain OPEN for this selected slice.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -312,7 +352,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1 paper entry lifecycle is locally implemented/tested on `codex/sv-c1-internal-paper-lifecycle`; schema and runtime activation remain unapplied | Finish review/CI and merge the inert slice; require separate migration and frozen pilot-account authority before environment use; then add paper exit/reconciliation |
+| CLOSED successor | SV-C.1 is merged/deployed source-only; SV-C.2 paper exit/reconciliation is locally implemented/tested on `codex/sv-c2-paper-exit-reconciliation`; both schema migrations and runtime activation remain unapplied | Finish SV-C.2 full regression/review/CI and merge the inert slice; require separate migration, durable live candle writer and frozen pilot-account authority before environment use; then add the autonomous worker/observer |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

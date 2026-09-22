@@ -51,6 +51,7 @@ const foundationTests = [
   "tests/e2e/api-auth-middleware-boundary-audit.spec.ts",
   "tests/e2e/action-652b-authenticated-browser-data-migration.spec.ts",
   "tests/e2e/sv-c1-internal-paper-entry.spec.ts",
+  "tests/e2e/sv-c2-internal-paper-exit.spec.ts",
   "tests/e2e/action-652f-server-client-containment.spec.ts",
   "tests/e2e/action-660f-dashboard-owner-relation-disambiguation.spec.ts",
   "tests/e2e/action-660g-ma15-verified-production-reclosure.spec.ts",
@@ -299,6 +300,9 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
     command("Production build", "npm", ["run", "build"]),
     command("SV-C1 internal-paper database lifecycle", "node", [
       "scripts/sv-c1-local-db-entry-lifecycle-test.mjs",
+    ]),
+    command("SV-C2 internal-paper exit reconciliation", "node", [
+      "scripts/sv-c2-local-db-exit-reconciliation-test.mjs",
     ]),
     playwright("Browser and server containment", foundationTests, false),
     playwright(
