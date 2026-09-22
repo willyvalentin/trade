@@ -16433,6 +16433,9 @@ export function TradeApp({
               </button>
             );
           })}
+          <Link href="/internal-paper" className="trade-topbar-link">
+            Paper Observer
+          </Link>
           <Link href="/settings" className="trade-topbar-link">
             Settings
           </Link>

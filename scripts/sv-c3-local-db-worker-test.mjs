@@ -13,6 +13,7 @@ const migrations = [
   "../supabase/migrations/20260922023000_sv_c2_internal_paper_exit_reconciliation.sql",
   "../supabase/migrations/20260922045917_sv_c3_durable_internal_paper_worker.sql",
   "../supabase/migrations/20260922062854_sv_c4_internal_paper_handoff_context.sql",
+  "../supabase/migrations/20260922073013_sv_d1_internal_paper_observer_read_model.sql",
 ].map((path) => new URL(path, import.meta.url));
 
 const owner = "11111111-1111-4111-8111-111111111111";
@@ -421,6 +422,35 @@ try {
 
   // Direct browser access and function execution remain denied.
   psql(`
+    set role service_role;
+    create temporary table observer_readback as
+      select public.app_read_internal_paper_observer_v1(
+        '${owner}', '${account}', 'internal_paper_observer_v1'
+      ) receipt;
+    reset role;
+    do $$ begin
+      if (select receipt ->> 'observer_version' from observer_readback) <> 'internal_paper_observer_v1'
+        or (select receipt ->> 'owner_user_id' from observer_readback) <> '${owner}'
+        or (select receipt ->> 'account_id' from observer_readback) <> '${account}'
+        or (select receipt #>> '{engine_health,status}' from observer_readback) <> 'blocked'
+        or (select receipt #>> '{latest_decision,no_trade_reason}' from observer_readback) <> 'insufficient_coverage'
+        or (select receipt #>> '{positions,0,ticker}' from observer_readback) <> 'AAPL'
+        or (select receipt #>> '{positions,0,status}' from observer_readback) <> 'closed'
+        or (select receipt #> '{accounting,marked_equity}' from observer_readback) <> 'null'::jsonb
+        or (select receipt #>> '{accounting,equity_status}' from observer_readback) <> 'unavailable_without_current_mark'
+        or (select receipt #> '{freshness,threshold_seconds}' from observer_readback) <> 'null'::jsonb
+        or (select receipt #>> '{freshness,classification}' from observer_readback) <> 'unclassified'
+      then raise exception 'D1 observer did not preserve durable and honest readback'; end if;
+      begin
+        perform public.app_read_internal_paper_observer_v1(
+          '${owner}', '${account}', null
+        );
+        raise exception 'D1 observer accepted a null contract version';
+      exception when raise_exception then
+        if sqlerrm <> 'invalid_internal_paper_observer_command' then raise; end if;
+      end;
+    end $$;
+
     do $$ begin
       begin
         set local role anon;
@@ -444,10 +474,18 @@ try {
         raise exception 'authenticated unexpectedly read handoff context';
       exception when insufficient_privilege then null;
       end;
+      begin
+        set local role authenticated;
+        perform public.app_read_internal_paper_observer_v1(
+          '${owner}', '${account}', 'internal_paper_observer_v1'
+        );
+        raise exception 'authenticated unexpectedly read paper observer';
+      exception when insufficient_privilege then null;
+      end;
     end $$;
   `);
 
-  console.log("SV-C3/C4 durable worker and handoff database proof passed");
+  console.log("SV-C3/C4/D1 durable worker, handoff and observer database proof passed");
 } finally {
   try { docker("rm", "-f", container); } catch {}
   rmSync(sqlPath, { force: true });
