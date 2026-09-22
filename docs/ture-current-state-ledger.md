@@ -834,6 +834,40 @@ tests, strict TypeScript and full repository ESLint with zero errors and the
 same eight pre-existing warnings, the six-test provider-free CI-plan contract
 and the complete Next production build.
 
+SV-G.2 is now delivered on `main`: feature revision `41c3a791` passed all six
+protected provider-free shards, aggregate and merge-candidate provenance in
+run `35786155853`; PR #594 merged as
+`3ba7ce6bee0d623a0446e4a3e47af099fb795518`. Netlify production deploy
+`6ab2f8218057d30008b6c308` is `ready` in `production` on that exact merge
+revision. This verifies source delivery only. No provider request, production
+regime evaluation, candidate/publication change, migration, configuration
+change or broker action ran.
+
+**Selected SV-H.1 CLOSED vertical slice — frozen counterfactual opportunity
+family, 2026-09-23 (8–16h):** owner Codex on
+`codex/sv-h1-counterfactual-opportunity-set`; interfaces
+`internal_paper_counterfactual_family_v1`,
+`internal_paper_counterfactual_family_manifest_v1` and
+`internal_paper_counterfactual_family_result_v1`. The provider-free family
+reruns two to eight exact F.1 experiments against one hash-bound baseline,
+partition assignment and complete opportunity population. Every alternative
+receives its own pure replay portfolio identity while account capital,
+cost/fill policy and market evidence remain equal. Explicit rejects and
+no-trades stay in each partition denominator; an omitted opportunity blocks
+the result rather than improving an alternative by selection.
+
+Mechanical alternatives must change exactly their declared entry, stop, exit
+or sizing projection while admission and all other mechanics remain frozen.
+Admission alternatives are separately labelled. A falsely declared
+intervention, changed post-freeze input, unequal market evidence, reused
+candidate corpus/policy identity or divergent baseline fails closed. The first
+version intentionally binds one cost/fill scenario only; a cost/fill
+uncertainty matrix and forward shadow remain later H slices. Local acceptance
+currently passes 25/25 focused F.1–H.1 tests, strict TypeScript, full repository
+lint with zero errors and the same eight pre-existing warnings, and the complete
+Next production build. The evidence is synthetic fixture behavior only and
+grants no provider, runtime ranking/publication, promotion or broker authority.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -853,7 +887,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2 and SV-G.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-G.2 regime-conditioned replay shadow policy is selected locally on `codex/sv-g2-shadow-regime-policy` | Finish G.2 verification/review/CI and merge its provider-free replay-only policy slice. Real regime-conditioned evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; synchronized fresh-input and forward-shadow acceptance remain separate OPEN evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2 and SV-G.1–G.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-H.1 frozen counterfactual opportunity family is selected locally on `codex/sv-h1-counterfactual-opportunity-set` | Finish H.1 review/CI and merge its provider-free replay-only family slice. H.1 binds equal opportunity, budget, cost/fill and market-evidence inputs plus separate simulated portfolios; cost/fill uncertainty and forward shadow remain later H evidence. Real G evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
