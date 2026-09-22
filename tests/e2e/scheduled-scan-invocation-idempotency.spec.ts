@@ -225,6 +225,49 @@ test.describe("scheduled scan invocation idempotency", () => {
     expect(
       scheduledScanProbePreflightAdmission({
         contextIdentity: {
+          deploy_id: productionDeployId,
+          deploy_context: "production",
+          deploy_published: false,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
+      }),
+    ).toMatchObject({
+      status: "admitted_matching_runtime_context",
+      admitted: true,
+      identity_source: "matching_runtime_context",
+      deployment_identity: {
+        deploy_id: productionDeployId,
+        deploy_context: "production",
+        deploy_published: false,
+        commit_ref: productionCommit,
+        site_id: productionSiteId,
+        publication_evidence:
+          "matching_runtime_context_requires_external_deploy_readback",
+      },
+    });
+
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
+          deploy_id: null,
+          deploy_context: "production",
+          deploy_published: false,
+        },
+        buildIdentity,
+        runtimeSiteId: productionSiteId,
+        eventEvidence,
+        configuredProbeSlotUtc: "2026-09-21T19:00:00.000Z",
+        configuredProbeDate: "2026-09-21",
+      }).status,
+    ).toBe("deployment_identity_conflict");
+
+    expect(
+      scheduledScanProbePreflightAdmission({
+        contextIdentity: {
           deploy_id: null,
           deploy_context: "deploy-preview",
           deploy_published: null,
