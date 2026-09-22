@@ -581,7 +581,45 @@ missing-liquidity propagation. Strict TypeScript, full lint with zero errors
 The suite is registered in the
 protected provider-free foundation shard. This is still fixture-backed engine
 contract evidence: licensed point-in-time market history, a real multi-symbol
-replay corpus, strategy comparison and alpha evidence remain absent. External
+replay corpus, strategy comparison and alpha evidence remain absent. Feature
+revision `6ef31ba3f89aa4a92fd7fbcaaff4c47358037375` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`35726153199`. PR #588 merged as
+`55e5cb3fd735eeb8c2cae873d864cc64abf967af`; Netlify production deploy
+`6ab2782851c7d7000748f0dc` is `ready` in `production` on that exact merge
+revision. This proves source deployment only; no historical corpus, provider
+request, candidate publication or strategy-quality evaluation ran in
+production.
+
+**Selected SV-E.4 CLOSED vertical slice — frozen multi-session replay corpus,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-e4-deterministic-replay-corpus`; interfaces
+`internal_paper_replay_corpus_v1`,
+`internal_paper_replay_corpus_manifest_v1` and
+`internal_paper_replay_corpus_result_v1`. The provider-free corpus runner reuses
+E.3 and freezes every complete session input before results are inspected. Its
+manifest binds the ordered trading dates, exact session hashes, point-in-time
+universe snapshots, decision provider, dataset collection/source, entitlement and retention
+references, session calendar and corporate-action policy. The runner requires
+one owner/account, strategy/publication/evaluation lineage, account policy and
+execution policy across the corpus. It rejects post-freeze candle or decision
+changes, future-known universe snapshots, mixed rights/calendar facts,
+cross-session decision/order/replay/candle identities, missing sessions and any
+blocked child replay rather than shrinking the evaluation population.
+
+The completed result retains every session digest and explicit accepted,
+rejected and no-trade counts, then aggregates six-decimal gross/net PnL,
+execution cost, average net PnL, expectancy in R, wins/losses/flats, ending
+equity and pathwise maximum drawdown. It labels that curve explicitly as fixed
+session starting equity plus cumulative research PnL; it does not represent a
+continuously compounded account or authorize provider, ranking, promotion or
+broker effects. Eleven focused adversarial tests pass. The
+frozen three-session repository fixture contains five decisions, two fills and
+one no-position session; its exact regression vector is gross `25.97`, net
+`20.97`, explicit execution cost `9.03`, expectancy `0.476591R` and maximum
+drawdown `23.98`. These numbers are synthetic engine-contract evidence only,
+not a licensed historical result, strategy comparison or alpha claim. The
+suite is registered in the protected provider-free foundation shard. External
 review/CI and merge remain delivery steps.
 
 ### Pilot readiness and bounded parallel work
@@ -603,7 +641,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.3 deterministic pilot-session replay is selected locally on `codex/sv-e3-deterministic-session-replay` | Finish E.3 review/CI and merge its provider-free session-orchestration slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.3 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.4 frozen multi-session replay corpus is selected locally on `codex/sv-e4-deterministic-replay-corpus` | Finish E.4 review/CI and merge its provider-free corpus slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
