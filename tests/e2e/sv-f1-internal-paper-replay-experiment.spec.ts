@@ -15,6 +15,13 @@ import {
   type InternalPaperReplayExperimentManifest,
   type InternalPaperReplayExperimentPartition,
 } from "@/lib/internal-paper-replay-experiment";
+import {
+  buildInternalPaperReplayCharterEvidence,
+  evaluateInternalPaperReplayCharterScorecard,
+  INTERNAL_PAPER_REPLAY_CHARTER_EVIDENCE_VERSION,
+  verifyInternalPaperReplayCharterEvidenceDigest,
+  verifyInternalPaperReplayCharterScorecardDigest,
+} from "@/lib/internal-paper-replay-charter-scorecard";
 import type { InternalPaperEntryCommand } from "@/lib/internal-paper-entry";
 import {
   INTERNAL_PAPER_MARKET_REPLAY_VERSION,
@@ -29,6 +36,11 @@ import {
   INTERNAL_PAPER_REPLAY_SESSION_VERSION,
   type InternalPaperReplaySessionInput,
 } from "@/lib/internal-paper-replay-session";
+import {
+  buildRecommendationEvaluationCharterInput,
+  type RecommendationEvaluationCharter,
+} from "@/lib/recommendation-evaluation-charter";
+import type { RecommendationLearningBaselineFreeze } from "@/lib/recommendation-learning-baseline-freeze-store";
 import type { SharedCandleCacheCandle } from "@/lib/shared-candle-cache";
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
@@ -459,6 +471,210 @@ function rebuildCorpusManifest(input: InternalPaperReplayCorpusInput) {
   Object.assign(input, { manifest: value });
 }
 
+const SCORECARD_SEGMENT_KEY =
+  '["recommendation_publish_policy_v1","sv_f2_replay_fixture"]';
+
+function scorecardPolicyAttribution() {
+  return {
+    recommendation_publish_policy_version: "recommendation_publish_policy_v1",
+    canonical_evaluation_versions: {
+      engine_version: "ture_intelligence_engine_v1",
+      scoring_version: "day_trade_score_v1",
+      ranking_version: "scanner_candidate_ranking_v1",
+      setup_taxonomy_version: "setup_taxonomy_v1",
+      confidence_contract_version: "ordinal_confidence_v1",
+      evaluator_version: "canonical_outcome_evaluator_v1",
+      provider_contract_version: "licensed_fixture_v1",
+      git_commit: "0123456789abcdef0123456789abcdef01234567",
+      build_identity: "sv-f1-fixture-build-v1",
+    },
+  } as const;
+}
+
+function scorecardCharter(): RecommendationEvaluationCharter {
+  const definition: RecommendationEvaluationCharter["charter"] = {
+    contract_version: "recommendation_evaluation_charter_v1",
+    hypothesis:
+      "The frozen shadow policy improves paired replay quality without weakening calibration, reliability, cost or feasibility.",
+    eligible_universe:
+      "Exact point-in-time paired internal-paper replay decisions in held-out and walk-forward partitions.",
+    setup_slices: ["breakout"],
+    regime_slices: ["neutral"],
+    outcome_rules: {
+      primary_horizon: "60m",
+      diagnostic_horizons: ["15m", "30m", "60m"],
+      semantics:
+        "Positive realized replay R is a successful selected decision; explicit no-trade remains in the complete decision denominator.",
+    },
+    evaluation_window: {
+      minimum_complete_decisions: 20,
+      held_out_decision_count: 10,
+      walk_forward_decision_count: 10,
+    },
+    thresholds: {
+      minimum_precision_at_k: 0.55,
+      minimum_expectancy_r: 0.1,
+      maximum_calibration_error: 0.15,
+      minimum_outcome_coverage: 0.95,
+      maximum_missingness: 0.05,
+      maximum_provider_credits_per_decision: 1,
+      minimum_reliability: 0.99,
+    },
+    concentration_limits: {
+      maximum_single_ticker_share: 1,
+      maximum_single_sector_share: 1,
+      maximum_single_setup_share: 1,
+      maximum_single_regime_share: 1,
+    },
+    feasibility_inputs: {
+      spread: "required",
+      liquidity: "required",
+      volatility: "required",
+      halt_risk: "unavailable_disclosed",
+      trigger_attainment: "required",
+      conservative_slippage: "unavailable_disclosed",
+    },
+  };
+  const input = buildRecommendationEvaluationCharterInput({
+    ownerUserId: OWNER_ID,
+    segmentKey: SCORECARD_SEGMENT_KEY,
+    policy: scorecardPolicyAttribution(),
+    charter: definition,
+  });
+  if (!input) throw new Error("scorecard fixture charter must be valid");
+  return {
+    charter_id: "88888888-8888-4888-8888-888888888888",
+    charter_fingerprint: input.charter_fingerprint,
+    owner_user_id: OWNER_ID,
+    segment_key: SCORECARD_SEGMENT_KEY,
+    policy_attribution: scorecardPolicyAttribution(),
+    charter: definition,
+    created_at: "2026-09-14T12:00:00.000Z",
+  };
+}
+
+function scorecardBaseline(
+  charter: RecommendationEvaluationCharter,
+): RecommendationLearningBaselineFreeze {
+  return {
+    baseline_id: "99999999-9999-4999-8999-999999999999",
+    baseline_fingerprint: "a".repeat(64),
+    owner_user_id: OWNER_ID,
+    segment_key: SCORECARD_SEGMENT_KEY,
+    decision_record_fingerprints: DATES.map((date) => `rec_scan_run_${date}`),
+    evaluation_plan: {
+      contract_version: "recommendation_learning_evaluation_plan_v1",
+      segment_key: SCORECARD_SEGMENT_KEY,
+      status: "ready_for_explicit_freeze",
+      policy_attribution: scorecardPolicyAttribution(),
+      decision_records: {
+        count: DATES.length,
+        earliest_decision_timestamp: `${DATES[0]}T13:31:00.000Z`,
+        latest_decision_timestamp: `${DATES.at(-1)}T13:31:00.000Z`,
+        scan_run_fingerprints: DATES.map((date) => `rec_scan_run_${date}`),
+      },
+      outcome_population: {
+        visible_primary_outcome_count: 0,
+        research_primary_outcome_count: DATES.length,
+        rejected_primary_outcome_count: 0,
+        explicit_no_trade_decision_count: DATES.length,
+        primary_outcome_by_horizon: { "15m": 0, "30m": 0, "60m": DATES.length },
+      },
+      metrics: {
+        entry: {
+          known_count: 0,
+          triggered_count: 0,
+          not_triggered_count: 0,
+          unknown_count: DATES.length,
+          triggered_rate: null,
+        },
+        terminal: {
+          target_first_count: 0,
+          stop_first_count: 0,
+          neither_count: 0,
+          unknown_count: DATES.length,
+        },
+        horizon_r: { observed_count: 0, mean: null, median: null },
+        excursion: {
+          contract_version: "recommendation_outcome_entry_bound_excursion_v1",
+          status: "entry_bound_excursion_measured_with_explicit_missingness",
+          triggered_outcome_count: 0,
+          contract_missing_count: 0,
+          mfe_r: { observed_count: 0, mean: null, median: null },
+          mae_r: { observed_count: 0, mean: null, median: null },
+          paired_mfe_mae_count: 0,
+          mfe_missing_count: 0,
+          mae_missing_count: 0,
+        },
+      },
+      blockers: [],
+      notes: [],
+    },
+    evaluation_charter_fingerprint: charter.charter_fingerprint,
+    frozen_at: "2026-09-14T12:05:00.000Z",
+  };
+}
+
+function scorecardFixture() {
+  const charter = scorecardCharter();
+  const baseline = scorecardBaseline(charter);
+  const values = corpora();
+  const experimentManifest = buildInternalPaperReplayExperimentManifest({
+    experiment_id: EXPERIMENT_ID,
+    frozen_at: "2026-09-17T20:15:00.000Z",
+    baseline_fingerprint: baseline.baseline_fingerprint,
+    evaluation_charter_fingerprint: charter.charter_fingerprint,
+    primary_outcome_horizon_minutes: 60,
+    ...values,
+    partitions: partitionAssignments(),
+  });
+  if (!experimentManifest) {
+    throw new Error("scorecard fixture experiment manifest must be valid");
+  }
+  const feasible = {
+    spread: true,
+    liquidity: true,
+    volatility: true,
+    halt_risk: null,
+    trigger_attainment: true,
+    conservative_slippage: null,
+  } as const;
+  const evidence = buildInternalPaperReplayCharterEvidence({
+      evidence_version: INTERNAL_PAPER_REPLAY_CHARTER_EVIDENCE_VERSION,
+      evaluated_at: "2026-09-17T20:20:00.000Z",
+      bootstrap_seed: "sv-f2-charter-scorecard-fixture-v1",
+      decisions: DATES.map((date) => ({
+        scan_run_fingerprint: `rec_scan_run_${date}`,
+        trading_date: date,
+        setup: "breakout",
+        regime: "neutral",
+        baseline: {
+          predicted_probability: null,
+          provider_cost_credits: 0.5,
+          source_reliable: true,
+          feasibility: { ...feasible },
+        },
+        candidate: {
+          predicted_probability: null,
+          provider_cost_credits: 0.5,
+          source_reliable: true,
+          feasibility: { ...feasible },
+        },
+      })),
+  });
+  if (!evidence) throw new Error("scorecard fixture evidence must be valid");
+  return {
+    charter,
+    baseline,
+    experiment: {
+      experiment_version: INTERNAL_PAPER_REPLAY_EXPERIMENT_VERSION,
+      manifest: experimentManifest,
+      ...values,
+    } as const,
+    evidence,
+  };
+}
+
 test.describe("SV-F1 frozen paired replay experiment", () => {
   test("replays exact frozen train, validation, held-out and walk-forward partitions deterministically", () => {
     const fixture = manifest();
@@ -742,5 +958,135 @@ test.describe("SV-F1 frozen paired replay experiment", () => {
           paired_deltas.expectancy_r === null,
       ),
     ).toBe(true);
+  });
+});
+
+test.describe("SV-F2 charter-bound replay scorecard", () => {
+  test("keeps the complete paired population but returns inconclusive for a tiny uncalibrated fixture", () => {
+    const fixture = scorecardFixture();
+    const result = evaluateInternalPaperReplayCharterScorecard(fixture);
+    const repeated = evaluateInternalPaperReplayCharterScorecard(fixture);
+
+    expect(result).toEqual(repeated);
+    expect(verifyInternalPaperReplayCharterEvidenceDigest(fixture.evidence)).toBe(
+      true,
+    );
+    expect(verifyInternalPaperReplayCharterScorecardDigest(result)).toBe(true);
+    expect(result).toMatchObject({
+      status: "completed",
+      verdict: "inconclusive",
+      scientific_disposition: "research_scorecard_not_strategy_accepted",
+      population: {
+        expected_decision_count: 4,
+        evidenced_decision_count: 4,
+        complete_paired_decision_coverage: true,
+        explicit_no_trade_decision_count: 4,
+      },
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    if (result.status !== "completed") return;
+    expect(result.partitions.map(({ partition, verdict }) => ({ partition, verdict }))).toEqual([
+      { partition: "held_out", verdict: "inconclusive" },
+      { partition: "walk_forward", verdict: "inconclusive" },
+    ]);
+    expect(result.reason_codes).toEqual(expect.arrayContaining([
+      "minimum_complete_decision_count_not_met",
+      "minimum_complete_selected_decisions_not_met",
+      "minimum_effective_trading_days_not_met",
+      "calibrated_probability_missing",
+    ]));
+    expect(
+      verifyInternalPaperReplayCharterScorecardDigest({
+        ...result,
+        verdict: "fail",
+      }),
+    ).toBe(false);
+  });
+
+  test("blocks missing, duplicate or extra decision evidence instead of shrinking the denominator", () => {
+    const missing = scorecardFixture();
+    const missingEvidence = buildInternalPaperReplayCharterEvidence({
+      ...missing.evidence,
+      decisions: missing.evidence.decisions.slice(0, -1),
+    });
+    if (!missingEvidence) throw new Error("missing evidence fixture must rebuild");
+    const missingResult = evaluateInternalPaperReplayCharterScorecard({
+      ...missing,
+      evidence: missingEvidence,
+    });
+    expect(missingResult.status).toBe("blocked");
+    expect(missingResult.reason_codes).toContain(
+      "paired_decision_population_incomplete_or_mismatched",
+    );
+
+    const duplicate = scorecardFixture();
+    const duplicateEvidence = buildInternalPaperReplayCharterEvidence({
+      ...duplicate.evidence,
+      decisions: [
+        ...duplicate.evidence.decisions.slice(0, -1),
+        structuredClone(duplicate.evidence.decisions[2]!),
+      ],
+    });
+    if (!duplicateEvidence) {
+      throw new Error("duplicate evidence fixture must rebuild");
+    }
+    const duplicateResult = evaluateInternalPaperReplayCharterScorecard({
+      ...duplicate,
+      evidence: duplicateEvidence,
+    });
+    expect(duplicateResult.status).toBe("blocked");
+    expect(duplicateResult.reason_codes).toContain("duplicate_decision_evidence");
+  });
+
+  test("blocks tampered evidence and observations outside the frozen charter slices", () => {
+    const fixture = scorecardFixture();
+    const tamperedResult = evaluateInternalPaperReplayCharterScorecard({
+      ...fixture,
+      evidence: {
+        ...fixture.evidence,
+        bootstrap_seed: "tampered-after-freeze",
+      },
+    });
+    expect(tamperedResult.status).toBe("blocked");
+    expect(tamperedResult.reason_codes).toContain("charter_evidence_invalid");
+
+    const outsideEvidence = buildInternalPaperReplayCharterEvidence({
+      ...fixture.evidence,
+      decisions: fixture.evidence.decisions.map((decision, index) =>
+        index === 0 ? { ...decision, regime: "risk_off" } : decision,
+      ),
+    });
+    if (!outsideEvidence) throw new Error("outside-slice evidence must rebuild");
+    const outsideResult = evaluateInternalPaperReplayCharterScorecard({
+      ...fixture,
+      evidence: outsideEvidence,
+    });
+    expect(outsideResult.status).toBe("blocked");
+    expect(outsideResult.reason_codes).toContain(
+      "decision_outside_charter_setup_or_regime_slices",
+    );
+  });
+
+  test("blocks a changed charter, policy segment or primary horizon before scoring", () => {
+    const fixture = scorecardFixture();
+    const result = evaluateInternalPaperReplayCharterScorecard({
+      ...fixture,
+      experiment: {
+        ...fixture.experiment,
+        manifest: {
+          ...fixture.experiment.manifest,
+          evaluation_charter_fingerprint: "f".repeat(64),
+        },
+      },
+    });
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain(
+      "baseline_charter_experiment_binding_mismatch",
+    );
   });
 });
