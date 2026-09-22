@@ -176,6 +176,15 @@ try {
   `);
   for (const migration of migrations) psql(readFileSync(migration, "utf8"));
 
+  // Keep queue availability on the fixture's logical clock. The production
+  // default is wall-clock now(), which would make this historical test expire
+  // once real time passes the claim timestamps below.
+  psql(`
+    alter table public.internal_paper_worker_jobs
+      alter column available_at
+      set default '2026-09-22T14:28:00Z'::timestamptz;
+  `);
+
   psql(`
     insert into public.recommendation_scan_runs(
       id, run_fingerprint, trading_date, owner_user_id, payload_json
