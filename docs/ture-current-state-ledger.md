@@ -799,6 +799,41 @@ production build. The four-decision fixture is deterministic and context-bound
 but still `inconclusive`; this is traceability progress, not regime alpha or a
 strategy-quality result.
 
+SV-G.1 is now delivered on `main`: feature revision `562d4bf0` passed all six
+protected provider-free shards, aggregate and merge-candidate provenance in
+run `35778654457`; PR #593 merged as
+`f2162af2d4a4c3510accf36c381cc2c385d036c6`. Netlify production deploy
+`6ab2e7b40bde9a0008be6b6e` is `ready` in `production` on that exact merge
+revision. This verifies source delivery only. No provider request, production
+regime evaluation, candidate/publication change, migration, configuration
+change or broker action ran.
+
+**Selected SV-G.2 CLOSED vertical slice — regime-conditioned replay shadow
+policy, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-g2-shadow-regime-policy`; interfaces
+`internal_paper_regime_shadow_policy_v1` and
+`internal_paper_regime_shadow_policy_result_v1`. The provider-free policy
+reruns exact G.1 attribution and both frozen corpora, then evaluates every
+derived regime independently in held-out and walk-forward partitions. Each
+partition requires at least 20 complete selected decisions, five trading days
+and four tickers plus uncertainty-resolved precision, expectancy, calibration
+and paired net-PnL gates. It also enforces the frozen charter's coverage,
+missingness, provider-cost, reliability, feasibility and concentration limits.
+
+Sample shortage produces `insufficient_evidence`; a resolved quality or
+baseline regression produces `shadow_disabled`; only two fully passing OOS
+partitions produce `shadow_enabled`. All three are replay-only research states
+with provider, runtime ranking/publication, promotion and broker authority
+false. A 40-decision synthetic fixture across two OOS partitions and four
+tickers proves the positive gate path, while a four-decision fixture remains
+insufficient and a reliability regression disables the synthetic policy. These
+fixtures prove deterministic policy behavior, not real regime-conditioned
+strategy quality, licensed-source readiness, synchronized fresh inputs or
+forward-shadow acceptance. Local acceptance passes 21/21 focused F.1–G.2
+tests, strict TypeScript and full repository ESLint with zero errors and the
+same eight pre-existing warnings, the six-test provider-free CI-plan contract
+and the complete Next production build.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -818,7 +853,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4 and SV-F.1–F.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-G.1 replay-bound regime attribution is selected locally on `codex/sv-g1-replay-regime-attribution` | Finish G.1 review/CI and merge its provider-free context-binding slice. Real regime-conditioned evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; synchronized fresh-input and forward-shadow acceptance remain separate OPEN evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2 and SV-G.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-G.2 regime-conditioned replay shadow policy is selected locally on `codex/sv-g2-shadow-regime-policy` | Finish G.2 verification/review/CI and merge its provider-free replay-only policy slice. Real regime-conditioned evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence; synchronized fresh-input and forward-shadow acceptance remain separate OPEN evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
