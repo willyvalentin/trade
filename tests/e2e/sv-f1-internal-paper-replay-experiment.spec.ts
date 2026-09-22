@@ -11,6 +11,12 @@ import {
   type InternalPaperCounterfactualVariantInput,
 } from "@/lib/internal-paper-counterfactual-family";
 import {
+  buildInternalPaperCounterfactualCostStressManifest,
+  INTERNAL_PAPER_COUNTERFACTUAL_COST_STRESS_VERSION,
+  runInternalPaperCounterfactualCostStress,
+  verifyInternalPaperCounterfactualCostStressDigest,
+} from "@/lib/internal-paper-counterfactual-cost-stress";
+import {
   buildInternalPaperReplayCorpusManifest,
   INTERNAL_PAPER_REPLAY_CORPUS_VERSION,
   runInternalPaperReplayCorpus,
@@ -548,28 +554,83 @@ function retainRejectedFirstOpportunity(input: InternalPaperReplayCorpusInput) {
   rebuildCorpusManifest(input);
 }
 
-function counterfactualFamilyFixture() {
+function applyCounterfactualCosts(
+  input: InternalPaperReplayCorpusInput,
+  costs: Pick<
+    InternalPaperReplayAccountConfig,
+    "spread_bps" | "slippage_bps" | "commission_per_order"
+  >,
+) {
+  Object.assign(input, { account: { ...input.account, ...costs } });
+  for (const session of input.sessions) {
+    const item = session.decisions[0]!;
+    if (item.execution) {
+      session.decisions[0] = {
+        ...item,
+        execution: {
+          ...item.execution,
+          base_replay: {
+            ...item.execution.base_replay,
+            account: { ...item.execution.base_replay.account, ...costs },
+          },
+        },
+      };
+    }
+  }
+  rebuildCorpusManifest(input);
+}
+
+function counterfactualFamilyFixture({ stressed = false } = {}) {
   const outcomes = ["win", "win", "loss", "win"] as const;
+  const corpusIds = stressed
+    ? [
+        "33333333-3333-4333-8333-333333333361",
+        "33333333-3333-4333-8333-333333333362",
+        "33333333-3333-4333-8333-333333333363",
+      ]
+    : [
+        "33333333-3333-4333-8333-333333333351",
+        "33333333-3333-4333-8333-333333333352",
+        "33333333-3333-4333-8333-333333333353",
+      ];
+  const manifestIds = stressed
+    ? [
+        "44444444-4444-4444-8444-444444444471",
+        "44444444-4444-4444-8444-444444444472",
+        "44444444-4444-4444-8444-444444444473",
+      ]
+    : [
+        "44444444-4444-4444-8444-444444444461",
+        "44444444-4444-4444-8444-444444444462",
+        "44444444-4444-4444-8444-444444444463",
+      ];
   const baseline = corpus({
-    corpusId: "33333333-3333-4333-8333-333333333351",
-    manifestId: "44444444-4444-4444-8444-444444444461",
+    corpusId: corpusIds[0]!,
+    manifestId: manifestIds[0]!,
     policyVersion: "recommendation_publish_policy_h1_baseline",
     outcomes: [...outcomes],
   });
   const sizingCandidate = corpus({
-    corpusId: "33333333-3333-4333-8333-333333333352",
-    manifestId: "44444444-4444-4444-8444-444444444462",
+    corpusId: corpusIds[1]!,
+    manifestId: manifestIds[1]!,
     policyVersion: "recommendation_publish_policy_h1_sizing",
     outcomes: [...outcomes],
   });
   const stopCandidate = corpus({
-    corpusId: "33333333-3333-4333-8333-333333333353",
-    manifestId: "44444444-4444-4444-8444-444444444463",
+    corpusId: corpusIds[2]!,
+    manifestId: manifestIds[2]!,
     policyVersion: "recommendation_publish_policy_h1_stop",
     outcomes: [...outcomes],
   });
   for (const value of [baseline, sizingCandidate, stopCandidate]) {
     retainRejectedFirstOpportunity(value);
+    if (stressed) {
+      applyCounterfactualCosts(value, {
+        spread_bps: 30,
+        slippage_bps: 20,
+        commission_per_order: 3,
+      });
+    }
   }
   for (const value of sizingCandidate.sessions) {
     const item = value.decisions[0]!;
@@ -609,7 +670,9 @@ function counterfactualFamilyFixture() {
       variant_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
       intervention_dimension: "sizing",
       experiment: counterfactualExperiment({
-        experimentId: "77777777-7777-4777-8777-777777777781",
+        experimentId: stressed
+          ? "77777777-7777-4777-8777-777777777791"
+          : "77777777-7777-4777-8777-777777777781",
         baseline,
         candidate: sizingCandidate,
       }),
@@ -618,16 +681,22 @@ function counterfactualFamilyFixture() {
       variant_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2",
       intervention_dimension: "stop",
       experiment: counterfactualExperiment({
-        experimentId: "77777777-7777-4777-8777-777777777782",
+        experimentId: stressed
+          ? "77777777-7777-4777-8777-777777777792"
+          : "77777777-7777-4777-8777-777777777782",
         baseline,
         candidate: stopCandidate,
       }),
     },
   ];
   const manifest = buildInternalPaperCounterfactualFamilyManifest({
-    family_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    family_id: stressed
+      ? "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+      : "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     frozen_at: "2026-09-22T20:30:00.000Z",
-    cost_fill_scenario_id: "sv-h1-fixed-cost-fill-scenario-v1",
+    cost_fill_scenario_id: stressed
+      ? "sv-h2-stressed-cost-scenario-v1"
+      : "sv-h1-fixed-cost-fill-scenario-v1",
     variants,
   });
   if (!manifest) throw new Error("counterfactual family manifest must be valid");
@@ -1851,6 +1920,115 @@ test.describe("SV-H1 frozen counterfactual opportunity family", () => {
         frozen_at: fixture.manifest.frozen_at,
         cost_fill_scenario_id: fixture.manifest.cost_fill_scenario_id,
         variants,
+      }),
+    ).toBeNull();
+  });
+});
+
+function counterfactualCostStressFixture() {
+  const base = counterfactualFamilyFixture();
+  const stressed = counterfactualFamilyFixture({ stressed: true });
+  const scenarios = [
+    {
+      scenario_id: "dddddddd-dddd-4ddd-8ddd-ddddddddddd1",
+      family: {
+        family_version: INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+        ...base,
+      },
+    },
+    {
+      scenario_id: "dddddddd-dddd-4ddd-8ddd-ddddddddddd2",
+      family: {
+        family_version: INTERNAL_PAPER_COUNTERFACTUAL_FAMILY_VERSION,
+        ...stressed,
+      },
+    },
+  ] as const;
+  const manifest = buildInternalPaperCounterfactualCostStressManifest({
+    matrix_id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    frozen_at: "2026-09-22T20:45:00.000Z",
+    scenarios,
+  });
+  if (!manifest) throw new Error("counterfactual cost stress manifest must be valid");
+  return { manifest, scenarios };
+}
+
+test.describe("SV-H2 frozen counterfactual cost stress", () => {
+  test("reports worst-case paired diagnostics across equal-budget cost scenarios", () => {
+    const fixture = counterfactualCostStressFixture();
+    const input = {
+      stress_version: INTERNAL_PAPER_COUNTERFACTUAL_COST_STRESS_VERSION,
+      ...fixture,
+    } as const;
+    const first = runInternalPaperCounterfactualCostStress(input);
+    const second = runInternalPaperCounterfactualCostStress(input);
+
+    expect(first).toEqual(second);
+    expect(verifyInternalPaperCounterfactualCostStressDigest(first)).toBe(true);
+    expect(first.status, JSON.stringify(first, null, 2)).toBe("completed");
+    if (first.status !== "completed") return;
+    expect(first).toMatchObject({
+      scientific_disposition:
+        "replay_cost_stress_diagnostic_not_strategy_accepted",
+      authority: {
+        can_request_provider_data: false,
+        can_change_ranking_or_publication: false,
+        can_promote_strategy: false,
+        can_execute_broker_action: false,
+      },
+    });
+    expect(first.variants).toHaveLength(2);
+    for (const variant of first.variants) {
+      expect(variant.scenarios).toHaveLength(2);
+      expect(variant.partition_stress).toHaveLength(4);
+      expect(
+        variant.partition_stress.every(
+          (partition) => partition.scenario_count === 2,
+        ),
+      ).toBe(true);
+      expect(
+        variant.scenarios.every(
+          (scenario) =>
+            scenario.partitions[0]!.opportunity_count === 1 &&
+            scenario.partitions[0]!.rejected_count === 1,
+        ),
+      ).toBe(true);
+    }
+    expect(first.evidence_limits).toContain(
+      "no_fill_latency_or_market_impact_uncertainty",
+    );
+    expect(first.evidence_limits).toContain("no_automatic_policy_promotion");
+  });
+
+  test("blocks a post-freeze cost mutation instead of mixing scenarios", () => {
+    const fixture = counterfactualCostStressFixture();
+    const stressed = fixture.scenarios[1]!.family.variants[0]!.experiment.baseline;
+    Object.assign(stressed, {
+      account: { ...stressed.account, commission_per_order: 4 },
+    });
+
+    const result = runInternalPaperCounterfactualCostStress({
+      stress_version: INTERNAL_PAPER_COUNTERFACTUAL_COST_STRESS_VERSION,
+      ...fixture,
+    });
+    expect(result.status).toBe("blocked");
+    expect(result.reason_codes).toContain("cost_stress_manifest_input_mismatch");
+    expect(result.authority.can_promote_strategy).toBe(false);
+  });
+
+  test("refuses duplicate scenario families instead of double-counting evidence", () => {
+    const fixture = counterfactualCostStressFixture();
+    expect(
+      buildInternalPaperCounterfactualCostStressManifest({
+        matrix_id: fixture.manifest.matrix_id,
+        frozen_at: fixture.manifest.frozen_at,
+        scenarios: [
+          fixture.scenarios[0]!,
+          {
+            scenario_id: "dddddddd-dddd-4ddd-8ddd-ddddddddddd3",
+            family: fixture.scenarios[0]!.family,
+          },
+        ],
       }),
     ).toBeNull();
   });

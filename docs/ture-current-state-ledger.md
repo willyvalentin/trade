@@ -868,6 +868,38 @@ lint with zero errors and the same eight pre-existing warnings, and the complete
 Next production build. The evidence is synthetic fixture behavior only and
 grants no provider, runtime ranking/publication, promotion or broker authority.
 
+SV-H.1 is now delivered on `main`: feature revision `d7027c2a` passed all six
+protected provider-free shards, aggregate and merge-candidate provenance in
+run `35791295148`; PR #595 merged as
+`6c762992100155825357f9a095e1a5101f125551`. Netlify production deploy
+`6ab304bc7dc7e50008baf78f` is `ready` in `production` on that exact merge
+revision. This verifies source delivery only. No provider request, production
+counterfactual evaluation, candidate/publication change, migration,
+configuration change or broker action ran.
+
+**Selected SV-H.2 CLOSED vertical slice — frozen counterfactual cost stress,
+2026-09-23 (4–8h):** owner Codex on
+`codex/sv-h2-counterfactual-cost-stress`; interfaces
+`internal_paper_counterfactual_cost_stress_v1`,
+`internal_paper_counterfactual_cost_stress_manifest_v1` and
+`internal_paper_counterfactual_cost_stress_result_v1`. The provider-free
+matrix reruns two to six exact H.1 families whose logical opportunity
+population, strategy interventions, market evidence, capital/risk budget and
+execution policy are identical while spread, slippage and commission differ.
+Each alternative reports every scenario separately plus partition-level
+minimum paired net-PnL delta, maximum paired cost delta and worst paired
+drawdown delta. Rejects and no-trades remain in every scenario denominator.
+
+The matrix refuses duplicate scenario/family identity, equal cost assumptions,
+changed opportunity/intervention/evidence, budget drift, execution-policy drift
+and post-freeze mutation. A positive all-scenario diagnostic is descriptive
+only and cannot promote a strategy. Local acceptance currently passes 28/28
+focused F.1–H.2 tests, 6/6 provider-free CI-plan checks, strict TypeScript,
+full repository lint with zero errors and the same eight pre-existing warnings,
+and the complete Next production build. The first stress version varies only
+spread, slippage and commission; latency, partial-fill, market-impact, licensed
+historical and forward-shadow uncertainty remain explicit later work.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -887,7 +919,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2 and SV-G.1–G.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-H.1 frozen counterfactual opportunity family is selected locally on `codex/sv-h1-counterfactual-opportunity-set` | Finish H.1 review/CI and merge its provider-free replay-only family slice. H.1 binds equal opportunity, budget, cost/fill and market-evidence inputs plus separate simulated portfolios; cost/fill uncertainty and forward shadow remain later H evidence. Real G evaluation remains blocked on licensed point-in-time multi-regime history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-H.2 frozen cost stress is selected locally on `codex/sv-h2-counterfactual-cost-stress` | Finish H.2 review/CI and merge its provider-free replay-only cost matrix. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
