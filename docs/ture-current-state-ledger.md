@@ -542,6 +542,46 @@ uses minute OHLCV and one IOC fill event; it does not model multi-candle child
 orders, queue position, quote-depth bid/ask, trailing exits or empirical fill
 calibration. Repository fixtures remain engine-contract evidence only, not
 licensed historical coverage, strategy quality or alpha evidence. External
+review passed at feature revision
+`f04f6cd2575937de6572f30882363dc17c04f284`: all six protected provider-free
+CI shards, aggregate and merge-candidate provenance were green in run
+`35720588646`. PR #587 merged as
+`4e3da5b717203656199888bb3554f332cc527d11`; Netlify production deploy
+`6ab26a8c528c5b000921f347` is `ready` in `production` on that exact merge
+revision. This proves source deployment only; no historical replay, provider
+request, candidate publication or strategy-quality evaluation ran in
+production.
+
+**Selected SV-E.3 CLOSED vertical slice — deterministic pilot-session replay,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-e3-deterministic-session-replay`; interfaces
+`internal_paper_replay_session_v1` and
+`internal_paper_replay_session_result_v1`. This provider-free orchestration
+layer consumes the existing v3 candidate-decision record rather than creating
+a parallel recommendation model. It requires complete reconstructable lineage,
+strictly chronological decisions inside one New York trading session and an
+explicit unique eligible universe of at most ten symbols. Each decision is
+retained as `accepted`, `rejected` or `no_trade` with the full candidate
+partition and lineage receipt. A published candidate can reach E.2 only through
+an exact owner, account, scan, fingerprint, candidate, strategy, universe,
+dataset, trading-date and submission-time binding.
+
+The session admits at most one completed paper position. An unfilled or
+deterministically rejected IOC remains an explicit rejection and does not
+consume that capacity; missing liquidity or any other blocked E.2 evidence
+blocks the session instead of becoming a false rejection. Later requests after
+one completed fill are retained with `position_capacity_exceeded`. Nine
+focused E.3 tests and the complete E.1/E.2 regression plus protected-CI
+registration pass 31/31 locally. They cover chronological no-trade/acceptance,
+explicit policy rejection, the one-position cap, continuation after an honest
+unfilled order, ten-symbol scope, order and lineage rejection, exact decision
+binding, session-wide account/replay identity, deterministic equality and
+missing-liquidity propagation. Strict TypeScript, full lint with zero errors
+(eight existing warnings) and the complete Next production build also pass.
+The suite is registered in the
+protected provider-free foundation shard. This is still fixture-backed engine
+contract evidence: licensed point-in-time market history, a real multi-symbol
+replay corpus, strategy comparison and alpha evidence remain absent. External
 review/CI and merge remain delivery steps.
 
 ### Pilot readiness and bounded parallel work
@@ -563,7 +603,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 replay execution realism is selected locally on `codex/sv-e2-replay-execution-realism` | Finish E.2 review/CI and merge its provider-free execution-model slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.3 deterministic pilot-session replay is selected locally on `codex/sv-e3-deterministic-session-replay` | Finish E.3 review/CI and merge its provider-free session-orchestration slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
