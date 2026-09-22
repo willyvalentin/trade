@@ -619,8 +619,46 @@ one no-position session; its exact regression vector is gross `25.97`, net
 `20.97`, explicit execution cost `9.03`, expectancy `0.476591R` and maximum
 drawdown `23.98`. These numbers are synthetic engine-contract evidence only,
 not a licensed historical result, strategy comparison or alpha claim. The
-suite is registered in the protected provider-free foundation shard. External
-review/CI and merge remain delivery steps.
+suite is registered in the protected provider-free foundation shard. Feature
+revision `fbfadf9a2d7015a2e56011d0bb8d04c0f2601717` passed all six protected
+provider-free CI shards, aggregate and merge-candidate provenance in run
+`35735500430`. PR #589 merged as
+`f67e63e4cc72a9246291f0a784621b3765033f80`; Netlify production deploy
+`6ab28b7445dcad00083cc59c` is `ready` in `production` on that exact merge
+revision. This proves source deployment only; no historical corpus, provider
+request, candidate publication, policy comparison or strategy-quality
+evaluation ran in production.
+
+**Selected SV-F.1 CLOSED vertical slice — frozen paired replay experiment,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-f1-frozen-replay-experiment`; interfaces
+`internal_paper_replay_experiment_v1`,
+`internal_paper_replay_experiment_manifest_v1` and
+`internal_paper_replay_experiment_result_v1`. The provider-free runner binds an
+exact baseline and distinct candidate E.4 corpus before either result is
+inspected. Both corpora must use the same owner, paper account, deterministic
+seed, account/execution policy, point-in-time dataset/source/rights references,
+calendar, corporate-action policy, dates, universe snapshots and exact
+opportunity population. It freezes every baseline/candidate session input,
+baseline and evaluation-charter fingerprints, policy lineages, a 15/30/60m
+primary outcome horizon and chronological non-empty training, validation,
+held-out and walk-forward partitions. Each partition transition must have at
+least the frozen outcome horizon between the prior close and next open.
+
+The runner independently replays both E.4 corpora and reports deterministic,
+six-decimal costed session/decision/position/PnL/expectancy/drawdown measures
+and paired deltas for every partition. Any post-freeze mutation, changed
+opportunity population, mixed source/account/execution fact, identical policy,
+blocked child corpus or unsafe numeric result fails closed; it never shrinks
+the population. A completed result is explicitly
+`research_engine_result_not_strategy_accepted` with no calibrated-probability,
+charter-threshold, uncertainty/effective-sample or forward-shadow verdict.
+Nine focused adversarial tests pass, including a complete all-`no_trade`
+experiment. This is repository-fixture engine evidence only. A later F slice
+must connect the frozen experiment to the full charter-bound comparison,
+uncertainty and effective-sample gates on licensed history before any OOS or
+shadow claim. The capability has no provider, ranking/publication, promotion
+or broker authority.
 
 ### Pilot readiness and bounded parallel work
 
@@ -641,7 +679,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.3 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.4 frozen multi-session replay corpus is selected locally on `codex/sv-e4-deterministic-replay-corpus` | Finish E.4 review/CI and merge its provider-free corpus slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
+| CLOSED successor | SV-C.1–C.5, SV-D.1 and SV-E.1–E.4 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-F.1 frozen paired replay experiment is selected locally on `codex/sv-f1-frozen-replay-experiment` | Finish F.1 review/CI and merge its provider-free experiment slice. The next F slice must add charter-bound pass/fail/inconclusive, uncertainty/effective-sample and full paired-decision coverage; real evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
