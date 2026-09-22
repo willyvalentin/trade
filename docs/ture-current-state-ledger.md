@@ -399,9 +399,37 @@ includes 23 focused C.1/C.3/C.4 and protected-CI contract tests, strict
 TypeScript, full lint with zero errors (eight existing warnings), generated
 Netlify runtime bundles, a complete Next production build and a disposable
 PostgreSQL 16 proof covering context fidelity, browser denial and the unchanged
-C.1–C.3 economic lifecycle. Migration application, account provisioning,
+C.1–C.3 economic lifecycle. Feature head
+`8265efaab5f2c149e64d09fbcb001d9a3f6f51c7` passed all six protected CI
+shards, aggregate and merge-candidate provenance in run `35696874746`, and
+merged through PR #583 as `af025a9daa2cd7cb6de403a4a7f17cf66dc704fa`.
+Netlify production deploy `6ab22d5645d634000845bde4` is `ready` on that
+exact merge revision. Migration application, account provisioning,
 handoff/worker flag activation and OPEN-session behavior remain separately
-authorized successors.
+authorized successors; no paper runtime was activated by this delivery.
+
+**Selected SV-D.1 CLOSED vertical slice — minimum honest read-only observer,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-d1-read-only-paper-observer`; interface
+`internal_paper_observer_v1`. The additive source migration exposes one
+owner/account-bound, `service_role`-only read model over stable C.1–C.4 durable
+state. The authenticated server-only adapter and `/internal-paper` view show
+engine status, latest recommendation/no-trade decision, pending jobs,
+positions, cash/book value, realized P&L, commissions and latest exit result.
+The view never creates work or calls a provider/broker. Because no current
+attributable mark is present, marked equity is explicitly unavailable rather
+than inferred; freshness age is disclosed while classification remains
+`unclassified` until a numeric threshold is approved.
+
+Local evidence includes nine focused D.1 and protected-CI contract tests,
+strict TypeScript, full lint with zero errors (eight existing warnings), a
+complete Next production build exposing the authenticated page/API, and a
+disposable PostgreSQL 16 C.1–D.1 proof of durable readback plus authenticated
+role denial. The migration is source-only and unapplied; no account identity,
+runtime gate, provider request, candidate publication or broker action was
+created. Review/CI/merge and exact-revision production source deploy remain the
+current delivery steps. Production migration application and account/config
+activation require separate authority and are not implied by this CLOSED work.
 
 ### Pilot readiness and bounded parallel work
 
@@ -422,7 +450,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.3 are merged and exact-revision production-deployed source-only; SV-C.4 frozen handoff and dormant scheduled host are locally implemented/tested on `codex/sv-c4-paper-worker-host`; all paper schema migrations and runtime gates remain unapplied/off | Finish SV-C.4 review/CI and merge the inert slice; then add the minimum read-only observer against the stable C.1–C.4 read model. Require separate migration, account/config and activation authority plus OPEN pilot evidence before environment use |
+| CLOSED successor | SV-C.1–C.4 are merged and exact-revision production-deployed source-only; SV-D.1 minimum honest read-only observer is locally implemented/tested on `codex/sv-d1-read-only-paper-observer`; all C/D paper schema migrations and runtime gates remain unapplied/off | Finish SV-D.1 review/CI and merge the inert observer slice. Then freeze the missing numeric data/retention, freshness, latency, heartbeat, monitoring and recovery thresholds before any observed pilot. Require separate migration, account/config and activation authority plus OPEN pilot evidence before environment use |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
