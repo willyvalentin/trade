@@ -471,9 +471,48 @@ PostgreSQL 16 proof covering exact policy replay, mutation conflict,
 invalid-slot rejection, missing/stale heartbeat blocking, account-isolated
 claim, lifecycle execution and browser-role denial. The source creates no
 account, schedule, provider request, candidate publication or broker path.
-Review/CI/merge and exact production source deployment remain delivery steps;
-migration application, policy/account creation and runtime activation remain
-separately authorized successors and require OPEN pilot evidence.
+Feature revision `77307358786ad45fd74727c87c96ddd62e1070f3` passed all six
+protected provider-free CI shards, aggregate and merge-candidate provenance in
+run `35709545772`, then merged through PR #585 as
+`d2878589f23999a2bf85e4d4a6815302994c110c`. Netlify production deploy
+`6ab24e4c1920f700081b5b25` is `ready` on that exact merge revision, and a
+read-only GET to `/internal-paper` returned the expected authenticated 307 to
+`/login?next=%2Finternal-paper`. This proves the source deploy and auth
+boundary, not paper-account behavior. Migration application, policy/account
+creation and runtime activation remain separately authorized successors and
+require OPEN pilot evidence.
+
+**Selected SV-E.1 CLOSED vertical slice — deterministic one-day market replay,
+2026-09-22 (8–16h):** owner Codex on
+`codex/sv-e1-deterministic-one-day-replay`; interfaces
+`internal_paper_market_replay_v1`,
+`internal_paper_market_replay_checkpoint_v1` and
+`internal_paper_market_replay_result_v1`. The first slice reuses the frozen C1
+entry and C2 exit model identities to replay one complete 390-candle US regular
+session without network, storage, publication or broker effects. It exposes
+events only in timestamp order, excludes the entry candle from exit decisions,
+uses stop-before-EOD-before-target precedence, carries spread, slippage,
+commission, partial-target, EOD, cash and realized-PnL accounting with fixed
+six-decimal PostgreSQL-equivalent rounding, and emits
+source/execution lineage plus deterministic input/result digests.
+
+The replay fails closed on incomplete or out-of-order minute coverage,
+malformed OHLC, duplicate durable identities, non-regular/stale evidence,
+future/non-point-in-time fetch provenance, unknown entitlement/retention or
+corporate-action evidence, invalid account costs and entry risk beyond the
+frozen cap. A pause emits a hash-bound checkpoint; resume independently
+recomputes the complete prefix from the original input and rejects even a
+re-hashed but semantically forged state. Local evidence includes eight focused
+tests covering exact C1/C2 numeric behavior, same-bar stop precedence, causal
+entry timing, deterministic restart equivalence, gap/order/provenance rejection
+and risk rejection, plus a disposable PostgreSQL 16 proof binding the same
+entry/gap-stop reference vector to the durable C1/C2 routines. The adjacent
+C1/C2, protected-CI registration and ledger contracts pass in a 23-test focused
+run; strict TypeScript, full lint with zero errors (eight existing warnings), a
+complete Next production build and `git diff --check` also pass. This repository
+fixture proves the engine contract only; it is not licensed historical-market
+coverage, a strategy evaluation or alpha evidence. External review/CI and
+merge remain delivery steps.
 
 ### Pilot readiness and bounded parallel work
 
@@ -494,7 +533,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.4 and SV-D.1 are merged and exact-revision production-deployed source-only; SV-C.5 immutable operational admission is locally implemented/tested on `codex/sv-c5-pilot-operational-policy`; all C/D paper schema migrations and runtime gates remain unapplied/off | Finish SV-C.5 build/review/CI and merge its inert source slice. Then obtain explicit entitlement/retention evidence and choose bounded derived-evidence retention/storage values before any policy row or observed pilot. Require separate migration, account/config/policy-freeze and activation authority plus OPEN pilot evidence before environment use |
+| CLOSED successor | SV-C.1–C.5 and SV-D.1 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.1 deterministic one-day replay is the selected local slice on `codex/sv-e1-deterministic-one-day-replay` | Finish E.1 review/CI and merge its provider-free engine slice. Real historical evaluation remains blocked on explicit point-in-time source, entitlement/retention evidence and a frozen experiment. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
