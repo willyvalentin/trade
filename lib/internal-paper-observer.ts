@@ -1,5 +1,7 @@
 export const INTERNAL_PAPER_OBSERVER_VERSION =
-  "internal_paper_observer_v1" as const;
+  "internal_paper_observer_v2" as const;
+const INTERNAL_PAPER_PILOT_POLICY_VERSION =
+  "internal_paper_pilot_operating_policy_2026_09_22_v1" as const;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -35,6 +37,22 @@ export type InternalPaperObserver = Readonly<{
     age_seconds: number;
     classification: "unclassified";
     threshold_seconds: null;
+  }>;
+  operational_admission: Readonly<{
+    status: "ready" | "blocked";
+    policy_version: typeof INTERNAL_PAPER_PILOT_POLICY_VERSION | null;
+    provider_plan: "twelve_data_basic_free" | null;
+    max_source_age_seconds: number | null;
+    max_decision_to_intent_seconds: number | null;
+    heartbeat_interval_seconds: number | null;
+    detection_timeout_seconds: number | null;
+    restart_reconciliation_deadline_seconds: number | null;
+    recovery_point_seconds: number | null;
+    derived_evidence_retention_days: number | null;
+    max_derived_evidence_bytes: number | null;
+    monthly_incremental_spend_cap_usd: number | null;
+    latest_worker_heartbeat_at: string | null;
+    heartbeat_classification: "fresh" | "stale" | "missing" | "invalid_future";
   }>;
   latest_decision: JsonObject | null;
   pending_orders: JsonObject[];
@@ -109,6 +127,7 @@ export function internalPaperObserverFromUnknown(
   const engine = objectOrNull(row?.engine_health);
   const freshness = objectOrNull(row?.freshness);
   const accounting = objectOrNull(row?.accounting);
+  const operational = objectOrNull(row?.operational_admission);
   const pendingOrders = objectArray(row?.pending_orders);
   const positions = objectArray(row?.positions);
   const latestDecision = row?.latest_decision === null
@@ -139,6 +158,41 @@ export function internalPaperObserverFromUnknown(
     ledger_entry_count: nonNegativeInteger(accounting?.ledger_entry_count),
     ledger_balance: finiteNumber(accounting?.ledger_balance),
   };
+  const operationalNumbers = {
+    max_source_age_seconds: operational?.max_source_age_seconds === null
+      ? null
+      : nonNegativeInteger(operational?.max_source_age_seconds),
+    max_decision_to_intent_seconds:
+      operational?.max_decision_to_intent_seconds === null
+        ? null
+        : nonNegativeInteger(operational?.max_decision_to_intent_seconds),
+    heartbeat_interval_seconds: operational?.heartbeat_interval_seconds === null
+      ? null
+      : nonNegativeInteger(operational?.heartbeat_interval_seconds),
+    detection_timeout_seconds: operational?.detection_timeout_seconds === null
+      ? null
+      : nonNegativeInteger(operational?.detection_timeout_seconds),
+    restart_reconciliation_deadline_seconds:
+      operational?.restart_reconciliation_deadline_seconds === null
+        ? null
+        : nonNegativeInteger(
+            operational?.restart_reconciliation_deadline_seconds,
+          ),
+    recovery_point_seconds: operational?.recovery_point_seconds === null
+      ? null
+      : nonNegativeInteger(operational?.recovery_point_seconds),
+    derived_evidence_retention_days:
+      operational?.derived_evidence_retention_days === null
+        ? null
+        : nonNegativeInteger(operational?.derived_evidence_retention_days),
+    max_derived_evidence_bytes: operational?.max_derived_evidence_bytes === null
+      ? null
+      : nonNegativeInteger(operational?.max_derived_evidence_bytes),
+    monthly_incremental_spend_cap_usd:
+      operational?.monthly_incremental_spend_cap_usd === null
+        ? null
+        : finiteNumber(operational?.monthly_incremental_spend_cap_usd),
+  };
   const eligibleSymbols = Array.isArray(account?.eligible_symbols)
     ? account.eligible_symbols.filter(
         (symbol): symbol is string =>
@@ -157,7 +211,7 @@ export function internalPaperObserverFromUnknown(
     : null;
 
   if (
-    !row || !account || !engine || !freshness || !accounting ||
+    !row || !account || !engine || !freshness || !accounting || !operational ||
     row.observer_version !== INTERNAL_PAPER_OBSERVER_VERSION ||
     row.owner_user_id !== expected.owner_user_id ||
     row.account_id !== expected.account_id ||
@@ -206,6 +260,32 @@ export function internalPaperObserverFromUnknown(
     ) ||
     accounting.marked_equity !== null ||
     accounting.equity_status !== "unavailable_without_current_mark"
+    || (operational.status !== "ready" && operational.status !== "blocked")
+    || (operational.policy_version !== null &&
+      operational.policy_version !== INTERNAL_PAPER_PILOT_POLICY_VERSION)
+    || (operational.provider_plan !== null &&
+      operational.provider_plan !== "twelve_data_basic_free")
+    || !["fresh", "stale", "missing", "invalid_future"].includes(
+      String(operational.heartbeat_classification),
+    )
+    || Object.values(operationalNumbers).some(
+      (item) => item !== null && !Number.isFinite(item),
+    )
+    || (operational.latest_worker_heartbeat_at !== null &&
+      !explicitInstant(operational.latest_worker_heartbeat_at))
+    || (operational.status === "ready" &&
+      (operational.policy_version !== INTERNAL_PAPER_PILOT_POLICY_VERSION ||
+        operational.provider_plan !== "twelve_data_basic_free" ||
+        operational.heartbeat_classification !== "fresh" ||
+        operationalNumbers.max_source_age_seconds !== 600 ||
+        operationalNumbers.max_decision_to_intent_seconds !== 120 ||
+        operationalNumbers.heartbeat_interval_seconds !== 900 ||
+        operationalNumbers.detection_timeout_seconds !== 1200 ||
+        operationalNumbers.restart_reconciliation_deadline_seconds !== 1200 ||
+        operationalNumbers.recovery_point_seconds !== 0 ||
+        operationalNumbers.monthly_incremental_spend_cap_usd !== 0 ||
+        !operationalNumbers.derived_evidence_retention_days ||
+        !operationalNumbers.max_derived_evidence_bytes))
   ) {
     return null;
   }
@@ -239,6 +319,20 @@ export function internalPaperObserverFromUnknown(
       age_seconds: ageSeconds,
       classification: "unclassified",
       threshold_seconds: null,
+    },
+    operational_admission: {
+      status: operational.status as "ready" | "blocked",
+      policy_version: operational.policy_version as
+        | typeof INTERNAL_PAPER_PILOT_POLICY_VERSION
+        | null,
+      provider_plan: operational.provider_plan as
+        | "twelve_data_basic_free"
+        | null,
+      ...operationalNumbers,
+      latest_worker_heartbeat_at:
+        operational.latest_worker_heartbeat_at as string | null,
+      heartbeat_classification:
+        operational.heartbeat_classification as InternalPaperObserver["operational_admission"]["heartbeat_classification"],
     },
     latest_decision: latestDecision,
     pending_orders: pendingOrders,

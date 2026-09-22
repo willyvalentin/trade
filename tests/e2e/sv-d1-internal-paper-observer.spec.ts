@@ -41,6 +41,22 @@ function observer() {
       classification: "unclassified",
       threshold_seconds: null,
     },
+    operational_admission: {
+      status: "ready",
+      policy_version: "internal_paper_pilot_operating_policy_2026_09_22_v1",
+      provider_plan: "twelve_data_basic_free",
+      max_source_age_seconds: 600,
+      max_decision_to_intent_seconds: 120,
+      heartbeat_interval_seconds: 900,
+      detection_timeout_seconds: 1200,
+      restart_reconciliation_deadline_seconds: 1200,
+      recovery_point_seconds: 0,
+      derived_evidence_retention_days: 30,
+      max_derived_evidence_bytes: 104_857_600,
+      monthly_incremental_spend_cap_usd: 0,
+      latest_worker_heartbeat_at: "2026-09-22T15:00:30+00:00",
+      heartbeat_classification: "fresh",
+    },
     latest_decision: { decision_kind: "no_trade", no_trade_reason: "insufficient_coverage" },
     pending_orders: [],
     positions: [{ ticker: "AAPL", status: "closed" }],
@@ -139,7 +155,8 @@ test.describe("SV-D1 read-only internal paper observer", () => {
     expect(page).toContain("requireApplicationPageSession()");
     expect(page).toContain('value="Unavailable"');
     expect(page).toContain("Ture does not invent equity");
-    expect(page).toContain("No approved freshness threshold exists");
+    expect(page).toContain("Operational admission:");
+    expect(page).toContain("Handoff and worker claims remain fail-closed");
     expect(page).toContain("Pilot scope");
     expect(page).toContain("cannot place orders");
   });

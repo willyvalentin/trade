@@ -11,12 +11,13 @@ export type InternalPaperWorkerClaim = Readonly<{
 
 export type InternalPaperWorkerDependencies = Readonly<{
   claim: (input: {
+    account_id: string;
     worker_id: string;
     now: string;
     lease_seconds: number;
   }) => Promise<
     | Readonly<{ status: "claimed"; data: InternalPaperWorkerClaim }>
-    | Readonly<{ status: "no_work" | "unavailable" | "failed" }>
+    | Readonly<{ status: "no_work" | "blocked" | "unavailable" | "failed" }>
   >;
   execute: (input: {
     claim: InternalPaperWorkerClaim;
@@ -45,6 +46,7 @@ function explicitInstant(value: unknown): value is string {
 }
 /** Runs at most one durable, provider-free paper job. */
 export async function runInternalPaperWorkerCycle(input: {
+  account_id: string;
   worker_id: string;
   now: string;
   lease_seconds?: number;
@@ -54,6 +56,9 @@ export async function runInternalPaperWorkerCycle(input: {
   const leaseSeconds = input.lease_seconds ?? 60;
   const retryDelaySeconds = input.retry_delay_seconds ?? 30;
   if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      input.account_id,
+    ) ||
     !input.worker_id.trim() ||
     input.worker_id.length > 120 ||
     !explicitInstant(input.now) ||
@@ -68,6 +73,7 @@ export async function runInternalPaperWorkerCycle(input: {
   }
 
   const claim = await input.dependencies.claim({
+    account_id: input.account_id,
     worker_id: input.worker_id,
     now: input.now,
     lease_seconds: leaseSeconds,

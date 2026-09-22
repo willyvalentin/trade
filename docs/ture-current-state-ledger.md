@@ -408,9 +408,8 @@ exact merge revision. Migration application, account provisioning,
 handoff/worker flag activation and OPEN-session behavior remain separately
 authorized successors; no paper runtime was activated by this delivery.
 
-**Selected SV-D.1 CLOSED vertical slice — minimum honest read-only observer,
-2026-09-22 (8–16h):** owner Codex on
-`codex/sv-d1-read-only-paper-observer`; interface
+**Delivered SV-D.1 CLOSED vertical slice — minimum honest read-only observer,
+2026-09-22 (8–16h):** owner Codex; interface
 `internal_paper_observer_v1`. The additive source migration exposes one
 owner/account-bound, `service_role`-only read model over stable C.1–C.4 durable
 state. The authenticated server-only adapter and `/internal-paper` view show
@@ -425,11 +424,56 @@ Local evidence includes nine focused D.1 and protected-CI contract tests,
 strict TypeScript, full lint with zero errors (eight existing warnings), a
 complete Next production build exposing the authenticated page/API, and a
 disposable PostgreSQL 16 C.1–D.1 proof of durable readback plus authenticated
-role denial. The migration is source-only and unapplied; no account identity,
-runtime gate, provider request, candidate publication or broker action was
-created. Review/CI/merge and exact-revision production source deploy remain the
-current delivery steps. Production migration application and account/config
-activation require separate authority and are not implied by this CLOSED work.
+role denial. The migration remains source-only and unapplied; no account
+identity, runtime gate, provider request, candidate publication or broker
+action was created. Feature head
+`f757b4aed86832a2da77570b56e3180044c4e883` passed all six protected CI
+shards, aggregate and merge-candidate provenance in run `35702327028`, and
+merged through PR #584 as `bbec85511d289cc80d085a09a9f66e20137480bb`.
+Netlify production deploy `6ab23be169b50e000888a5e4` is `ready` on that
+exact merge revision. A read-only GET to `/internal-paper` returned the
+expected authenticated 307 to `/login?next=%2Finternal-paper`; this verifies
+the deployed auth boundary, not paper-account data behavior. Production
+migration application and account/config activation require separate authority
+and are not implied by this CLOSED delivery.
+
+**Selected SV-C.5 CLOSED vertical slice — immutable pilot operational
+admission, 2026-09-22 (8–16h):** owner Codex on
+`codex/sv-c5-pilot-operational-policy`; interfaces
+`internal_paper_pilot_operating_policy_2026_09_22_v1`,
+`internal_paper_handoff_context_v2`, `internal_paper_worker_claim_v2` and
+`internal_paper_observer_v2`. One additive, inert source migration defines an
+immutable account-scoped pilot policy and durable scheduled-worker heartbeat.
+Handoff and worker claim fail closed unless the exact policy exists, the
+account is ready and its latest heartbeat is current. Claim is explicitly
+account-scoped. The observer reports admission and heartbeat state plus the
+frozen limits; it still refuses to invent marked equity.
+
+The first policy version fixes existing approved provider capacity at 800
+credits/day and 8/minute, reserves 8 credits for retry, stores zero raw-provider
+payload bytes, permits zero incremental monthly spend, and sets source age to
+600 seconds, decision-to-intent to 120 seconds, worker heartbeat cadence to 900
+seconds, detection and restart/reconciliation to 1200 seconds, maximum scan
+runtime to 120 seconds and acknowledged-effect RPO to zero. These values derive
+from existing Basic Free capacity, the current scanner freshness bound, the
+actual 15-minute schedule and durable atomic/idempotent worker behavior.
+Derived-evidence retention days and bytes are deliberately not guessed: the
+service-role freeze RPC requires explicit entitlement and retention-rights
+references plus bounded numeric values while the account is paused. Therefore
+the migration creates no policy row and absence of those inputs remains a
+truthful activation blocker.
+
+Local evidence currently includes 24 focused
+handoff/runtime/observer/admission/protected-CI contract tests, strict
+TypeScript, full lint with zero errors (eight existing warnings), a complete
+Next production build, protected-CI plan/manifest registration and a disposable
+PostgreSQL 16 proof covering exact policy replay, mutation conflict,
+invalid-slot rejection, missing/stale heartbeat blocking, account-isolated
+claim, lifecycle execution and browser-role denial. The source creates no
+account, schedule, provider request, candidate publication or broker path.
+Review/CI/merge and exact production source deployment remain delivery steps;
+migration application, policy/account creation and runtime activation remain
+separately authorized successors and require OPEN pilot evidence.
 
 ### Pilot readiness and bounded parallel work
 
@@ -450,7 +494,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
 | Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.4 are merged and exact-revision production-deployed source-only; SV-D.1 minimum honest read-only observer is locally implemented/tested on `codex/sv-d1-read-only-paper-observer`; all C/D paper schema migrations and runtime gates remain unapplied/off | Finish SV-D.1 review/CI and merge the inert observer slice. Then freeze the missing numeric data/retention, freshness, latency, heartbeat, monitoring and recovery thresholds before any observed pilot. Require separate migration, account/config and activation authority plus OPEN pilot evidence before environment use |
+| CLOSED successor | SV-C.1–C.4 and SV-D.1 are merged and exact-revision production-deployed source-only; SV-C.5 immutable operational admission is locally implemented/tested on `codex/sv-c5-pilot-operational-policy`; all C/D paper schema migrations and runtime gates remain unapplied/off | Finish SV-C.5 build/review/CI and merge its inert source slice. Then obtain explicit entitlement/retention evidence and choose bounded derived-evidence retention/storage values before any policy row or observed pilot. Require separate migration, account/config/policy-freeze and activation authority plus OPEN pilot evidence before environment use |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

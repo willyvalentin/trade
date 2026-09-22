@@ -17,6 +17,8 @@ export const SCHEDULED_FUNCTIONS_DISABLE_FLAG =
 
 type WorkerRuntimeModule = {
   runInternalPaperWorkerOnce?: (input: {
+    account_id: string;
+    slot_started_at: string;
     worker_id: string;
     now: string;
     lease_seconds: number;
@@ -28,12 +30,20 @@ type WorkerEnvironment = { get(name: string): string | undefined };
 const runtimeRequire = createRequire(__filename);
 const SLOT_MINUTES = 15;
 const DELIVERY_GRACE_MILLISECONDS = 3 * 60 * 1000;
+const INTERNAL_PAPER_ACCOUNT_ID_FLAG = "TURE_INTERNAL_PAPER_ACCOUNT_ID" as const;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function internalPaperWorkerHostEnabled(environment: WorkerEnvironment) {
   return (
     environment.get(SCHEDULED_FUNCTIONS_DISABLE_FLAG) === "false" &&
     environment.get(INTERNAL_PAPER_WORKER_ENABLED_FLAG) === "true"
   );
+}
+
+export function internalPaperWorkerAccountId(environment: WorkerEnvironment) {
+  const value = environment.get(INTERNAL_PAPER_ACCOUNT_ID_FLAG)?.trim() ?? "";
+  return UUID_PATTERN.test(value) ? value : null;
 }
 
 export function internalPaperWorkerScheduledEvent(input: {
@@ -66,6 +76,11 @@ export default async function handler(request: Request, context: Context) {
     console.log("[scheduled-internal-paper-worker] Execution disabled.");
     return new Response(null, { status: 204 });
   }
+  const accountId = internalPaperWorkerAccountId(Netlify.env);
+  if (!accountId) {
+    console.error("[scheduled-internal-paper-worker] Account identity unavailable.");
+    return new Response(null, { status: 204 });
+  }
 
   const deliveredAt = new Date();
   const body = await request.clone().json().catch(() => null);
@@ -89,6 +104,8 @@ export default async function handler(request: Request, context: Context) {
       throw new Error("Internal-paper worker runtime export unavailable.");
     }
     const result = await runtime.runInternalPaperWorkerOnce({
+      account_id: accountId,
+      slot_started_at: slot,
       worker_id: `netlify:${context.requestId}`.slice(0, 120),
       now: deliveredAt.toISOString(),
       lease_seconds: 60,

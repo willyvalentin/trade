@@ -4,6 +4,7 @@ import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import {
   buildInternalPaperDecisionHandoff,
   INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION,
+  INTERNAL_PAPER_PILOT_POLICY_VERSION,
   type InternalPaperHandoffAccountContext,
 } from "@/lib/internal-paper-handoff";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -24,9 +25,23 @@ function finiteNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function nullableFiniteNumber(value: unknown) {
+  return value === null ? null : finiteNumber(value);
+}
+
+function explicitInstant(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
+
 function parseAccountContext(value: unknown): InternalPaperHandoffAccountContext | null {
   const row = objectOrNull(value);
   if (!row) return null;
+  const operational = objectOrNull(row.operational_admission);
+  if (!operational) return null;
   const eligibleSymbols = Array.isArray(row.eligible_symbols)
     ? row.eligible_symbols.filter(
         (item): item is string => typeof item === "string" && item.trim().length > 0,
@@ -39,12 +54,58 @@ function parseAccountContext(value: unknown): InternalPaperHandoffAccountContext
     slippage_bps: finiteNumber(row.slippage_bps),
     commission_per_order: finiteNumber(row.commission_per_order),
   };
+  const operationalNumeric = {
+    max_daily_provider_credits: nullableFiniteNumber(
+      operational.max_daily_provider_credits,
+    ),
+    max_per_minute_provider_credits: nullableFiniteNumber(
+      operational.max_per_minute_provider_credits,
+    ),
+    retry_reserve_credits: nullableFiniteNumber(operational.retry_reserve_credits),
+    max_source_age_seconds: nullableFiniteNumber(operational.max_source_age_seconds),
+    max_decision_to_intent_seconds: nullableFiniteNumber(
+      operational.max_decision_to_intent_seconds,
+    ),
+    worker_heartbeat_interval_seconds: nullableFiniteNumber(
+      operational.worker_heartbeat_interval_seconds,
+    ),
+    worker_detection_timeout_seconds: nullableFiniteNumber(
+      operational.worker_detection_timeout_seconds,
+    ),
+    max_scan_runtime_seconds: nullableFiniteNumber(
+      operational.max_scan_runtime_seconds,
+    ),
+    restart_reconciliation_deadline_seconds: nullableFiniteNumber(
+      operational.restart_reconciliation_deadline_seconds,
+    ),
+    acknowledged_effect_recovery_point_seconds: nullableFiniteNumber(
+      operational.acknowledged_effect_recovery_point_seconds,
+    ),
+    max_raw_provider_payload_bytes: nullableFiniteNumber(
+      operational.max_raw_provider_payload_bytes,
+    ),
+    max_derived_evidence_bytes: nullableFiniteNumber(
+      operational.max_derived_evidence_bytes,
+    ),
+    derived_evidence_retention_days: nullableFiniteNumber(
+      operational.derived_evidence_retention_days,
+    ),
+    monthly_incremental_spend_cap_usd: nullableFiniteNumber(
+      operational.monthly_incremental_spend_cap_usd,
+    ),
+  };
+  const operationalReasons = Array.isArray(operational.reason_codes)
+    ? operational.reason_codes.filter(
+        (item): item is string => typeof item === "string" && item.length > 0,
+      )
+    : [];
   if (
     row.context_version !== INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION ||
     typeof row.owner_user_id !== "string" ||
     !UUID_PATTERN.test(row.owner_user_id) ||
     typeof row.account_id !== "string" ||
     !UUID_PATTERN.test(row.account_id) ||
+    !explicitInstant(row.observed_at) ||
     (row.status !== "ready" && row.status !== "paused" && row.status !== "killed") ||
     typeof row.config_version !== "string" ||
     typeof row.strategy_id !== "string" ||
@@ -54,7 +115,23 @@ function parseAccountContext(value: unknown): InternalPaperHandoffAccountContext
     typeof row.symbol_selection_policy_version !== "string" ||
     typeof row.observed_universe_version !== "string" ||
     eligibleSymbols.length === 0 ||
-    Object.values(numeric).some((item) => item === null)
+    Object.values(numeric).some((item) => item === null) ||
+    (operational.status !== "ready" && operational.status !== "blocked") ||
+    operationalReasons.length !==
+      (Array.isArray(operational.reason_codes)
+        ? operational.reason_codes.length
+        : -1) ||
+    (operational.policy_version !== null &&
+      operational.policy_version !== INTERNAL_PAPER_PILOT_POLICY_VERSION) ||
+    (operational.provider_plan !== null &&
+      operational.provider_plan !== "twelve_data_basic_free") ||
+    Object.values(operationalNumeric).some(
+      (item) => item !== null && !Number.isFinite(item),
+    ) ||
+    (operational.latest_worker_heartbeat_at !== null &&
+      !explicitInstant(operational.latest_worker_heartbeat_at)) ||
+    (operational.status === "ready" && operationalReasons.length !== 0) ||
+    (operational.status === "blocked" && operationalReasons.length === 0)
   ) {
     return null;
   }
@@ -76,6 +153,20 @@ function parseAccountContext(value: unknown): InternalPaperHandoffAccountContext
     spread_bps: numeric.spread_bps as number,
     slippage_bps: numeric.slippage_bps as number,
     commission_per_order: numeric.commission_per_order as number,
+    observed_at: row.observed_at as string,
+    operational_admission: {
+      status: operational.status as "ready" | "blocked",
+      reason_codes: operationalReasons,
+      policy_version: operational.policy_version as
+        | typeof INTERNAL_PAPER_PILOT_POLICY_VERSION
+        | null,
+      provider_plan: operational.provider_plan as
+        | "twelve_data_basic_free"
+        | null,
+      ...operationalNumeric,
+      latest_worker_heartbeat_at:
+        operational.latest_worker_heartbeat_at as string | null,
+    },
   };
 }
 
@@ -88,15 +179,17 @@ export async function enqueueInternalPaperDecisionHandoff(input: {
   scan_run_persisted: boolean;
   snapshots: RecommendationSnapshot[];
   persisted_snapshot_fingerprints: string[];
+  observed_at: string;
 }) {
   const { client } = getServerSupabaseClient();
   if (!client) return { status: "unavailable" } as const;
   const { data, error } = await client.rpc(
-    "app_read_internal_paper_handoff_context_v1",
+    "app_read_internal_paper_handoff_context_v2",
     {
       p_owner_user_id: input.owner_user_id,
       p_account_id: input.account_id,
       p_context_version: INTERNAL_PAPER_HANDOFF_CONTEXT_VERSION,
+      p_observed_at: input.observed_at,
     },
   );
   const account = error ? null : parseAccountContext(data);
