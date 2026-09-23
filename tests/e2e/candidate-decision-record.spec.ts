@@ -173,6 +173,69 @@ test.describe("candidate decision record", () => {
     );
     expect(route).toMatch(/capture:\s*candidateDecisionCapture/);
     expect(route).not.toMatch(/capture:\s*scanLog\.candidate_decision_capture/);
+    expect(route).toMatch(/started_at:\s*now,[\s\S]*?completed_at:\s*new Date\(\)/);
+  });
+
+  test("keeps observations made during generation before the actual decision cutoff", () => {
+    const startedAt = "2026-09-15T14:30:00.000Z";
+    const providerObservedAt = "2026-09-15T14:30:08.000Z";
+    const capturedAt = "2026-09-15T14:30:09.000Z";
+    const completedAt = "2026-09-15T14:30:12.000Z";
+    const observedCandidate = {
+      ...candidate(1),
+      reference_price_timestamp: providerObservedAt,
+      intraday_indicator_cached_at: providerObservedAt,
+    };
+    const ranking = buildScannerCandidateRankingSummary({
+      candidates: [observedCandidate],
+      targetMin: 1,
+      targetMax: 1,
+      now: new Date(capturedAt),
+    });
+    const capture = buildCandidateDecisionCapture({
+      captureTimestamp: capturedAt,
+      universe: [observedCandidate],
+      observedCandidates: [observedCandidate],
+      ranking,
+      eligibleCandidateTickers: [observedCandidate.ticker],
+      noPublishReason: "no_publishable_ranked_candidates",
+    });
+    const run = buildRecommendationScanRun({
+      trading_date: "2026-09-15",
+      observed_at: startedAt,
+      started_at: startedAt,
+      completed_at: completedAt,
+      window: "morning",
+      source: "supabase",
+      scanned_ticker_count: 1,
+      raw_candidate_count: 1,
+    });
+    const startedOnlyRun = buildRecommendationScanRun({
+      trading_date: "2026-09-15",
+      observed_at: startedAt,
+      started_at: startedAt,
+      completed_at: startedAt,
+      window: "morning",
+      source: "supabase",
+      scanned_ticker_count: 1,
+      raw_candidate_count: 1,
+    });
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(run.run_fingerprint).toBe(startedOnlyRun.run_fingerprint);
+    expect(record?.decision_timestamp).toBe(completedAt);
+    expect(record?.candidates[0]?.data).toMatchObject({
+      source_timestamp: providerObservedAt,
+      freshness: "fresh",
+      gap_codes: [],
+    });
+    expect(buildDecisionLineageReceipt(record!).status).toBe("reconstructable");
   });
 
   test("retains an attributable zero-publication decision with rejected ranked candidates", () => {

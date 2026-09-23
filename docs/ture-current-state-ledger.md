@@ -443,10 +443,16 @@ zero-publication paths, but `createAutomationScanLog` projects a display/log
 subset and drops `candidate_decision_capture` before
 `persistAutomationArtifacts` builds the immutable decision. The focused repair
 passes the generator capture directly to private persistence without placing
-the full candidate population in the scheduled-run message. It changes no
-provider, credit, quality, publication or broker rule. Locally, 58 related
+the full candidate population in the scheduled-run message. A second
+point-in-time defect used the scheduled event/start time as `completed_at`,
+which could mark a legitimate provider observation arriving during generation
+as future data; the scan-run now records actual post-generation completion time
+while preserving its original start/observation identity. Neither change
+alters a provider call, credit, ranking, quality threshold, publication or
+broker rule. Locally, 59 related
 decision, lifecycle, learning and paper-handoff tests pass, including a
-zero-publication lineage regression and a callsite bridge contract; changed-file
+zero-publication lineage regression, in-generation timestamp boundary and
+callsite bridge contract; changed-file
 lint, strict TypeScript, full Next webpack build and scheduled runtime bundling
 pass. Full lint passes with zero errors and eight unrelated existing warnings
 when generated bundles are excluded. The historical scan is not backfilled or

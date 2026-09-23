@@ -2469,7 +2469,9 @@ async function persistAutomationArtifacts({
     trading_date: scanDate,
     observed_at: now,
     started_at: now,
-    completed_at: now,
+    // The scheduled event time is the scan's start, not its decision cutoff.
+    // Legitimate provider observations can arrive during generation.
+    completed_at: new Date(),
     window: orchestration.active_window,
     market_session_phase: marketSession.phase,
     market_session_risk: marketSession.risk_level,
