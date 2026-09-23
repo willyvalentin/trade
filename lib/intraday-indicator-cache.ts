@@ -40,6 +40,9 @@ export type IntradayIndicatorCacheOptions = {
     | "scheduled"
     | "add_trade_validation";
   signal?: AbortSignal;
+  // Scanner already loaded this row in its batched cache read. A present
+  // property (including null) avoids a redundant per-ticker database read.
+  preloadedScannerCacheRaw?: unknown;
 };
 
 type ScannerCacheRaw = {
@@ -226,7 +229,12 @@ export async function getCachedIntradayIndicators(
     };
   }
 
-  const raw = await getScannerCacheRaw(ticker);
+  const raw = Object.prototype.hasOwnProperty.call(
+    options,
+    "preloadedScannerCacheRaw",
+  )
+    ? (options.preloadedScannerCacheRaw as ScannerCacheRaw | null)
+    : await getScannerCacheRaw(ticker);
   const cache = raw?.intraday_indicator_cache;
   const indicators = parseIntradayIndicators(cache?.indicators);
   const cachedAt =

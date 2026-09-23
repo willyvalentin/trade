@@ -346,7 +346,7 @@ not evidence of a provider-side credit receipt or improved candidate quality;
 the next OPEN scan remains conditional on green protected CI, exact production
 deploy and a separately bounded authorization.
 
-**A.2 local follow-on — live market-time reference integrity, 2026-09-23:**
+**A.2 merged follow-on — live market-time reference integrity, 2026-09-23:**
 `live_reference_market_time_v1` requires a full point-in-time price observation
 from the current New York market date and no older than 15 minutes for a live
 plan. A prior daily close or hours-old same-day price cannot become a
@@ -358,15 +358,43 @@ treated as stale. Reference-refresh diagnostics use the market-data timestamp
 and classify stale data explicitly. The AI recommendation sanitizer can no
 longer substitute model-asserted price/source/time/provider metadata for a
 server-observed fresh reference; missing evidence rejects publication. This
-is locally implemented, not yet merged or production-behavior-verified. It
+is merged as main `d0c6bc638aa07543431fdd4b92cfae36428953d5` (PR #609)
+after protected CI passed; the exact Netlify production deploy is published
+and ready. It is not yet production-behavior-verified. It
 can lower candidate output while source evidence is unavailable; that is a
 safe data-quality result, not a proof of improved ranking or recommendations.
-The focused provider-free suite currently passes 61 tests; full repository
+The focused provider-free suite passed 61 tests; full repository
 lint has zero errors and eight unrelated existing warnings, and the Next
 webpack production build passed locally. Authenticated hosted behavior and
 actual provider timestamp quality remain OPEN evidence.
 No new provider, database, scheduler or broker operation was performed by
 the implementation or local tests.
+
+**A.2 OPEN normal-scan timeout, 2026-09-23 20:30 CEST:** the separately
+authorized ordinary scheduled slot produced attempt
+`scheduled_scan_attempt_1nsavmv` on exact main `d0c6bc6`. The Basic Free claim
+`basic_free_discovery_claim_20260923_83ae8d15` reserved eight credits and
+finished `failed` with provider attempted; a reservation does not prove eight
+provider credits were actually charged. The scan returned a retained
+`timeout_budget_exceeded` failure after 24.1 seconds of route work, with
+`market_data_fetch` started but not completed. Netlify logged the scheduled
+function's total duration as 26.9 seconds. Eight tickers were admitted;
+zero were ranked, selected, built or published. This is a runtime failure,
+**not** a quality-based `no_trade` or evidence about candidate strength.
+The one-shot and global switches were restored; cleanup deploy
+`6ab41b37f70ab406d5325d7b` is published `ready` on unchanged main.
+No further production scan is armed or authorized by this receipt.
+
+**A.2 CLOSED latency repair in progress, 2026-09-23:** the scanner's initial
+batched `scanner_cache` read already contains each row's raw intraday cache,
+but the attachment path performed a second serial Supabase read per ticker.
+The isolated local change reuses that raw snapshot for cache hits and stale
+fallbacks while retaining the existing freshness validation, one-call Basic
+Free scanner provider bound and post-upsert read path. Focused scanner-budget
+tests (8), targeted lint, strict TypeScript and Next webpack production build
+pass locally. Runtime latency reduction and a completed hosted scan remain
+unproven; the precise share of the 20:30 timeout attributable to these extra
+reads is not measured by the current trace.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
