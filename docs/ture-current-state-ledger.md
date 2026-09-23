@@ -316,7 +316,7 @@ No internal-paper pilot selection is recorded or enabled. That is an evidence
 gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
-**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (local only):**
+**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, local follow-up pending):**
 owner Codex, 4–8 active-hour slice on isolated
 `codex/sv-a2-volume-provenance` from main `a83ddbb1`, with no schema, provider,
 configuration or broker write. The reproducible source defect is that
@@ -330,7 +330,9 @@ feature vector distinguishes new evidence while v1 readback remains valid.
 Acceptance so far:
 the red baseline fixture, then 59/59 targeted decision/ranking/learning tests,
 6/6 protected-CI registration tests, changed-file lint, strict TypeScript and
-a full Next webpack build. This is **not** merged, deployed, market-behavior
+a full Next webpack build. The PR head is `f4481df`; the cached-trend correction
+is locally committed as `c1401e1` and remains unpushed pending post-observation
+integration. This is **not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.
