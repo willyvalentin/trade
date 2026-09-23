@@ -351,12 +351,17 @@ merge-candidate provenance and Netlify Deploy Preview. This is
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.
-An isolated local combination of production main `a83ddbb1`, #605 head
-`310a73e6` and current #606 head `0261d116` merged without conflict;
-60 relevant cross-PR tests, changed-file lint, strict TypeScript and a full
-Next webpack build passed before the temporary checkout was removed. Recheck
-integration against then-current main and ensure the ranking-policy identity
-distinguishes changed volume inputs in addition to the v2 feature vector. A
+An earlier isolated local combination of production main `a83ddbb1`, #605
+head `310a73e6` and pushed #606 head `0261d116` passed 60 relevant tests,
+changed-file lint, strict TypeScript and a full Next webpack build. A later
+local combination including the still-unpushed ranking-identity follow-up
+required resolving one expected `summary_version` conflict and updating one
+#605 test expectation from v1.1 to v1.2; 66/66 relevant tests, changed-file
+lint, strict TypeScript and a full Next webpack build then passed. The
+temporary checkout uses a linked dependency directory, so Turbopack rejected
+the symlink before compilation; webpack supplied the complete build check.
+Recheck integration against then-current main and carry the test correction
+into PR #606 after PR #605 merges. A
 local red-to-green follow-up now advances the ranking summary and derived
 decision-record ranking identity to v1.2 while retaining v1.0/v1.1 readback;
 31 relevant tests, changed-file lint, strict TypeScript and a production build
