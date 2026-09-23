@@ -1,11 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   refreshSelectedCandidateReferences,
   type ReferenceRefreshProviderResult,
 } from "../../lib/reference-refresh-diagnostics";
 import { resolvePlanReferencePriceMetadata } from "../../lib/recommendation-plan-reference";
-import type { IntradayIndicators } from "../../lib/intraday-indicators";
+import { isFreshLiveReferenceMarketTime } from "../../lib/live-reference-freshness-policy";
+import {
+  calculateIntradayIndicators,
+  type IntradayIndicators,
+} from "../../lib/intraday-indicators";
 
 function indicators(price: number): IntradayIndicators {
   return {
@@ -24,6 +30,94 @@ function indicators(price: number): IntradayIndicators {
     warnings: [],
   };
 }
+
+test("intraday indicators retain the underlying latest candle time", () => {
+  const result = calculateIntradayIndicators([
+    {
+      timestamp: Date.parse("2026-06-25T16:55:00.000Z") / 1000,
+      open: 110,
+      high: 113,
+      low: 109,
+      close: 112.35,
+      volume: 1000,
+    },
+  ], {
+    interval: "5min",
+    observedAtSeconds: Date.parse("2026-06-25T17:00:00.000Z") / 1000,
+  });
+
+  expect(result.latestPrice).toBe(112.35);
+  expect(result.latestCandleTimestamp).toBe("2026-06-25T16:55:00.000Z");
+});
+
+test("live market-time gate rejects absent, date-only, future and old candles", () => {
+  const now = Date.parse("2026-06-25T17:03:00.000Z");
+  expect(isFreshLiveReferenceMarketTime("2026-06-25T17:00:00.000Z", now)).toBe(
+    true,
+  );
+  for (const timestamp of [
+    null,
+    "2026-06-25",
+    "2026-06-25T17:03:01.000Z",
+    "2026-06-25T16:47:59.000Z",
+  ]) {
+    expect(isFreshLiveReferenceMarketTime(timestamp, now)).toBe(false);
+  }
+});
+
+test("plan reference refuses a stale intraday cache price despite recent fetch time", () => {
+  const candidate = {
+    ticker: "AMD",
+    intraday_indicators: {
+      ...indicators(112.35),
+      latestCandleTimestamp: "2026-06-25T17:00:00.000Z",
+    },
+    intraday_indicator_cached_at: "2026-06-25T17:02:59.000Z",
+  };
+  const options = { enforceFreshness: true, now: "2026-06-25T17:03:00.000Z" };
+
+  expect(
+    resolvePlanReferencePriceMetadata(
+      { ...candidate, intraday_indicator_stale: true },
+      options,
+    ).reference_price_used_for_plan,
+  ).toBeNull();
+  expect(
+    resolvePlanReferencePriceMetadata(
+      { ...candidate, intraday_indicator_stale: false },
+      options,
+    ),
+  ).toMatchObject({
+    reference_price_used_for_plan: 112.35,
+    reference_price_timestamp: "2026-06-25T17:00:00.000Z",
+  });
+});
+
+test("publication sanitizer uses only a fresh server-observed plan reference", () => {
+  const source = readFileSync(
+    resolve(process.cwd(), "lib/recommendation-generator.ts"),
+    "utf8",
+  );
+  const start = source.indexOf("function sanitizeRecommendations(");
+  const sanitizer = source.slice(
+    start,
+    source.indexOf("const entryTypeMetadata =", start),
+  );
+
+  expect(sanitizer).toContain("{ enforceFreshness: true }");
+  expect(sanitizer).toContain(
+    "candidatePlanReferencePrice.reference_price_used_for_plan === null",
+  );
+  expect(sanitizer).not.toContain(
+    "nullableNumber(recommendation.reference_price_used_for_plan)",
+  );
+  expect(sanitizer).not.toContain(
+    "nullableString(recommendation.reference_price_timestamp)",
+  );
+  expect(source).not.toContain("recommendation.source_provider");
+  expect(source).not.toContain("recommendation.data_freshness");
+  expect(source).not.toContain("recommendation.market_data_timestamp");
+});
 
 function staleCandidate(ticker: string) {
   return {
@@ -115,6 +209,57 @@ test("fresh provider intraday reference rescues stale scanner-cache candidate", 
     "provider_intraday_reference_refresh",
   );
   expect(refreshedReference.plan_reference_metadata_status).toBe("complete");
+});
+
+test("reference refresh validates the candle market time, not the fetch time", async () => {
+  const now = "2026-06-25T17:03:00.000Z";
+  const staleCandle = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("AMD")],
+    maxAttempts: 1,
+    now,
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({
+        ticker,
+        price: 112.35,
+        cachedAt: "2026-06-25T17:02:59.000Z",
+        indicatorsOverride: {
+          ...indicators(112.35),
+          latestCandleTimestamp: "2026-06-25T16:30:00.000Z",
+        },
+      }),
+  });
+
+  expect(staleCandle.diagnostics.reference_refresh_success_count).toBe(0);
+  expect(staleCandle.diagnostics.reference_refresh_attempts[0]).toMatchObject({
+    timestamp: "2026-06-25T16:30:00.000Z",
+    reference_price_timestamp_kind: "market_data_time",
+    reference_price_timestamp_validation_status: "provider_timestamp_stale",
+    rejection_reason: "provider_returned_stale_timestamp",
+  });
+
+  const freshCandle = await refreshSelectedCandidateReferences({
+    candidates: [staleCandidate("AMD")],
+    maxAttempts: 1,
+    now,
+    fetchIntradayIndicators: async (ticker) =>
+      providerResult({
+        ticker,
+        price: 112.35,
+        cachedAt: "2026-06-25T17:02:59.000Z",
+        indicatorsOverride: {
+          ...indicators(112.35),
+          latestCandleTimestamp: "2026-06-25T17:00:00.000Z",
+        },
+      }),
+  });
+
+  expect(freshCandle.diagnostics.reference_refresh_success_count).toBe(1);
+  expect(freshCandle.candidates[0].reference_price_timestamp).toBe(
+    "2026-06-25T17:00:00.000Z",
+  );
+  expect(freshCandle.diagnostics.reference_refresh_attempts[0].reference_price_timestamp_kind).toBe(
+    "market_data_time",
+  );
 });
 
 test("provider/cache refresh rejection reasons are precise and machine readable", async () => {

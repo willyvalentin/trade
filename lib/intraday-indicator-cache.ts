@@ -9,6 +9,7 @@ import {
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { getNewYorkRegularSessionWindow } from "@/lib/intraday-scan-window";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
@@ -151,7 +152,11 @@ export async function getCachedIntradayIndicators(
   const memoryEntry = memoryCache.get(ticker);
 
   if (memoryEntry && memoryEntry.interval === interval) {
-    const stale = !isFresh(memoryEntry.cached_at, maxAgeMinutes);
+    const stale =
+      !isFresh(memoryEntry.cached_at, maxAgeMinutes) ||
+      !isFreshLiveReferenceMarketTime(
+        memoryEntry.indicators.latestCandleTimestamp,
+      );
     return {
       ticker,
       indicators: withAdmissibleRecentIntradayVolume(
@@ -191,7 +196,9 @@ export async function getCachedIntradayIndicators(
       });
     }
 
-    const stale = !isFresh(cachedAt, maxAgeMinutes);
+    const stale =
+      !isFresh(cachedAt, maxAgeMinutes) ||
+      !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp);
     return {
       ticker,
       indicators: withAdmissibleRecentIntradayVolume(indicators, stale),
@@ -331,6 +338,11 @@ export async function getOrRefreshIntradayIndicators(
       interval,
       observedAtSeconds: Date.now() / 1000,
     });
+    if (
+      !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp)
+    ) {
+      throw new Error("Provider intraday candle market time is missing or stale.");
+    }
     const cachedAt = new Date().toISOString();
 
     await setCachedIntradayIndicators(ticker, indicators, {

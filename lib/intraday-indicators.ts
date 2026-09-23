@@ -3,6 +3,7 @@ import type { IntradayCandle } from "@/lib/market-data";
 export type IntradayIndicators = {
   vwap: number | null;
   latestPrice: number | null;
+  latestCandleTimestamp?: string | null;
   priceVsVwapPercent: number | null;
   isAboveVwap: boolean | null;
   recentHigh: number | null;
@@ -198,6 +199,7 @@ export function calculateIntradayIndicators(
     return {
       vwap: null,
       latestPrice: null,
+      latestCandleTimestamp: null,
       priceVsVwapPercent: null,
       isAboveVwap: null,
       recentHigh: null,
@@ -253,6 +255,13 @@ export function calculateIntradayIndicators(
     .reverse()
     .find((candle) => isFiniteNumber(candle.close));
   const latestPrice = latestCandle ? round(latestCandle.close) : null;
+  const latestCandleAt = latestCandle
+    ? new Date(latestCandle.timestamp * 1000)
+    : null;
+  const latestCandleTimestamp =
+    latestCandleAt && Number.isFinite(latestCandleAt.getTime())
+      ? latestCandleAt.toISOString()
+      : null;
   const vwap = totalVolume > 0 ? round(vwapNumerator / totalVolume) : null;
   const priceVsVwapPercent =
     latestPrice !== null && vwap !== null && vwap > 0
@@ -364,6 +373,7 @@ export function calculateIntradayIndicators(
   return {
     vwap,
     latestPrice,
+    latestCandleTimestamp,
     priceVsVwapPercent,
     isAboveVwap,
     recentHigh,

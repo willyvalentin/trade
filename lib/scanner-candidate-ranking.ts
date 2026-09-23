@@ -372,15 +372,45 @@ function scorePricePlanQuality(
     entryHigh === null ||
     stopLoss === null ||
     target1 === null ||
-    target2 === null
+    target2 === null ||
+    riskReward === null
   ) {
-    gaps.push("Entry, stop, or target plan is incomplete.");
+    gaps.push("Entry, stop, target, or risk/reward plan is incomplete.");
+    warnings.push(
+      warning("incomplete_long_plan", "blocked", "Long plan is incomplete."),
+    );
     return 25;
   }
 
-  if (stopLoss >= entryLow || entryLow > entryHigh || target1 <= entryHigh) {
+  if (
+    entryLow <= 0 ||
+    entryHigh <= 0 ||
+    stopLoss <= 0 ||
+    target1 <= 0 ||
+    target2 <= 0 ||
+    riskReward <= 0 ||
+    stopLoss >= entryLow ||
+    entryLow > entryHigh ||
+    target1 <= entryHigh ||
+    target2 <= target1
+  ) {
     warnings.push(
       warning("invalid_long_plan", "blocked", "Long plan geometry is invalid."),
+    );
+    return 0;
+  }
+
+  const impliedRiskReward = (target2 - entryHigh) / (entryHigh - stopLoss);
+  // The scanner rounds plan prices and the published ratio to cents/hundredths.
+  // A larger discrepancy means the quoted reward cannot be reconstructed from
+  // the entry-high (worst long entry), stop and second target in the record.
+  if (Math.abs(riskReward - impliedRiskReward) > 0.05) {
+    warnings.push(
+      warning(
+        "inconsistent_risk_reward",
+        "blocked",
+        `Reported risk/reward ${riskReward.toFixed(2)} differs from plan geometry ${impliedRiskReward.toFixed(2)}.`,
+      ),
     );
     return 0;
   }
@@ -389,9 +419,7 @@ function scorePricePlanQuality(
   const targetDistance = ((target2 - entryHigh) / entryHigh) * 100;
   let score = 66;
 
-  if (riskReward === null) {
-    gaps.push("Risk/reward estimate is unavailable.");
-  } else if (riskReward >= 2) {
+  if (riskReward >= 2) {
     score += 22;
   } else if (riskReward >= 1.5) {
     score += 12;
@@ -674,6 +702,8 @@ function topMessages(messages: string[]) {
 }
 
 function numberOrNull(value: unknown) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && value.trim() === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }

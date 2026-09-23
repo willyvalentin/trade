@@ -698,7 +698,7 @@ export function buildProviderBudgetGuardSummary(
         estimatedWindow,
         estimatedDaily,
         [
-          `${officialWindows} official scan windows per day.`,
+          `${officialWindows} scheduled scan opportunities per full trading day.`,
           `${backgroundScans} background scans per day included in this estimate.`,
           "Provider budget estimates are conservative and diagnostic.",
         ],

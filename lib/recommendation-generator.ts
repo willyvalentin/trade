@@ -1987,60 +1987,6 @@ function buildPlanEntryTypeMetadata(input: {
   });
 }
 
-function objectOrNull(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-function planReferenceMetadataTraceOrNull(
-  value: unknown,
-): PlanReferencePriceMetadata["plan_reference_metadata_trace"] | null {
-  const trace = objectOrNull(value);
-  if (!trace) return null;
-
-  return {
-    candidate_price_available_before_generation:
-      trace.candidate_price_available_before_generation === true,
-    generated_recommendation_retained_reference_price:
-      typeof trace.generated_recommendation_retained_reference_price === "boolean"
-        ? trace.generated_recommendation_retained_reference_price
-        : null,
-    price_read_path: nullableString(trace.price_read_path),
-    source_read_path: nullableString(trace.source_read_path),
-    timestamp_read_path: nullableString(trace.timestamp_read_path),
-    provider_read_path: nullableString(trace.provider_read_path),
-    reference_timestamp_age_ms: nullableNumber(trace.reference_timestamp_age_ms),
-    reference_timestamp_age_minutes: nullableNumber(
-      trace.reference_timestamp_age_minutes,
-    ),
-    reference_freshness_checked_at: nullableString(
-      trace.reference_freshness_checked_at,
-    ),
-    reference_freshness_market_date: nullableString(
-      trace.reference_freshness_market_date,
-    ),
-    reference_freshness_status:
-      trace.reference_freshness_status === "accepted" ||
-      trace.reference_freshness_status === "rejected" ||
-      trace.reference_freshness_status === "not_checked"
-        ? trace.reference_freshness_status
-        : undefined,
-    reference_price_stale_block_reason: nullableString(
-      trace.reference_price_stale_block_reason,
-    ),
-    reference_price_source_attempted: nullableString(
-      trace.reference_price_source_attempted,
-    ),
-    reference_price_final_source_used: nullableString(
-      trace.reference_price_final_source_used,
-    ),
-    reference_price_rejected_read_path: nullableString(
-      trace.reference_price_rejected_read_path,
-    ),
-  };
-}
-
 function buildOpenAiBatchContext(input: {
   scanWindow: IntradayScanWindow;
   source: RecommendationGenerationSource;
@@ -2774,53 +2720,21 @@ function sanitizeRecommendations(
           ...(powerHourTrial ? POWER_HOUR_TRIAL_WARNINGS : []),
         ]),
       );
-      const candidatePlanReferencePrice = buildPlanReferencePriceMetadata(candidate);
-      const recommendationPlanReferencePrice = objectOrNull(
-        recommendation.plan_reference_price,
+      // The model may describe a plan, but it cannot attest the price, source,
+      // timestamp or provider used to publish it. Only the server-observed
+      // candidate can supply a live reference price.
+      const candidatePlanReferencePrice = buildPlanReferencePriceMetadata(
+        candidate,
+        { enforceFreshness: true },
       );
-      const planReferencePrice: PlanReferencePriceMetadata = {
-        reference_price_used_for_plan:
-          nullableNumber(recommendation.reference_price_used_for_plan) ??
-          nullableNumber(
-            recommendationPlanReferencePrice?.reference_price_used_for_plan,
-          ) ??
-          candidatePlanReferencePrice.reference_price_used_for_plan,
-        reference_price_source:
-          nullableString(recommendation.reference_price_source) ??
-          nullableString(recommendationPlanReferencePrice?.reference_price_source) ??
-          candidatePlanReferencePrice.reference_price_source ??
-          "unknown",
-        reference_price_timestamp:
-          nullableString(recommendation.reference_price_timestamp) ??
-          nullableString(
-            recommendationPlanReferencePrice?.reference_price_timestamp,
-          ) ??
-          candidatePlanReferencePrice.reference_price_timestamp,
-        reference_price_symbol:
-          nullableString(recommendation.reference_price_symbol) ??
-          nullableString(recommendationPlanReferencePrice?.reference_price_symbol) ??
-          candidatePlanReferencePrice.reference_price_symbol,
-        reference_price_provider:
-          nullableString(recommendation.reference_price_provider) ??
-          nullableString(recommendationPlanReferencePrice?.reference_price_provider) ??
-          candidatePlanReferencePrice.reference_price_provider,
-        reference_price_read_path:
-          nullableString(recommendation.reference_price_read_path) ??
-          nullableString(recommendationPlanReferencePrice?.reference_price_read_path) ??
-          candidatePlanReferencePrice.reference_price_read_path,
-        plan_reference_metadata_status:
-          recommendation.plan_reference_metadata_status ??
-          (recommendationPlanReferencePrice?.plan_reference_metadata_status as
-            | PlanReferenceMetadataStatus
-            | undefined) ??
-          candidatePlanReferencePrice.plan_reference_metadata_status,
-        plan_reference_metadata_trace:
-          planReferenceMetadataTraceOrNull(
-            recommendationPlanReferencePrice?.plan_reference_metadata_trace,
-          ) ??
-          candidatePlanReferencePrice.plan_reference_metadata_trace,
-      };
-      const retainedPlanReferencePrice = markPlanReferenceRetained(planReferencePrice);
+      if (candidatePlanReferencePrice.reference_price_used_for_plan === null) {
+        throw new Error(
+          `Recommendation ${ticker} lacked a fresh server-observed plan reference.`,
+        );
+      }
+      const retainedPlanReferencePrice = markPlanReferenceRetained(
+        candidatePlanReferencePrice,
+      );
       const entryTypeMetadata = buildPlanEntryTypeMetadata({
         side: "long",
         entry: midpoint(entryLow, entryHigh),
@@ -2872,8 +2786,10 @@ function sanitizeRecommendations(
               ? "observed"
               : "unavailable",
           market_data_source: candidate.intraday_indicator_source ?? null,
-          market_data_timestamp: candidate.intraday_indicator_cached_at ?? null,
-          candle_timestamp: candidate.intraday_indicator_cached_at ?? null,
+          market_data_timestamp:
+            candidate.intraday_indicators?.latestCandleTimestamp ?? null,
+          candle_timestamp:
+            candidate.intraday_indicators?.latestCandleTimestamp ?? null,
           quote_timestamp: null,
           intraday_indicator_source: candidate.intraday_indicator_source ?? null,
           intraday_indicator_stale: candidate.intraday_indicator_stale ?? null,
@@ -2887,22 +2803,14 @@ function sanitizeRecommendations(
         setup_type: setupType,
         openai_reality_contract: {
           tier: fallbackText(recommendation.tier, "unknown"),
-          source_provider: fallbackText(
-            recommendation.source_provider,
+          source_provider:
+            retainedPlanReferencePrice.reference_price_provider ??
             "provider_unavailable",
-          ),
-          market_data_source: fallbackText(
-            recommendation.market_data_source,
-            "provider_unavailable",
-          ),
+          market_data_source:
+            candidate.intraday_indicator_source ?? "provider_unavailable",
           market_data_timestamp:
-            nullableString(recommendation.market_data_timestamp) ??
-            candidate.intraday_indicator_cached_at ??
-            null,
-          data_freshness: fallbackText(
-            recommendation.data_freshness,
-            getDataFreshness(candidate),
-          ),
+            candidate.intraday_indicators?.latestCandleTimestamp ?? null,
+          data_freshness: getDataFreshness(candidate),
           warning_summary: mergedWarningSummary,
           gap_summary: gapSummary,
           ranking_rank: nullableNumber(recommendation.ranking_rank),
@@ -3643,6 +3551,7 @@ export async function generateRecommendations({
       scannerUniverseSelection.rotationBatch,
     );
     const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+      source,
       candidates: scannerBaseCandidates,
       maxTickers: diagnosticMode
         ? diagnosticMaxTickers

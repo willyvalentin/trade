@@ -309,6 +309,65 @@ provenance on `a0a877c78b3c544230083de50a456e95ed266508`, then merged as main
 flag remains unset and the global scheduled-functions switch remains disabled;
 source/deploy verification is not a real outcome-evaluation receipt.
 
+**A.2 OPEN bounded normal-scan receipt, 2026-09-23 18:15 CEST:** exact-slot
+production activation on main `660995bb1e779258151ca36b86c45b5f6fe104d2`
+produced scheduled attempt `scheduled_scan_attempt_1u3d1eg` and Basic Free
+reservation `basic_free_discovery_claim_20260923_bf4a89e1`: eight credits
+reserved and finalized with provider attempted. The route completed with HTTP
+200 and persisted scan run `rec_scan_run_18ru9if`. Eight tickers were attempted;
+five raw candidates were ranked, but zero were selected, built or published.
+The trace reports no deterministic fallback and `no_publishable_ranked_candidates`.
+Its dominant quality gaps were stale inputs (trace stale count nine), four
+unavailable intraday indicators (counted as candle errors in the trace),
+missing provider/source facts and
+low relative volume; the top score was 67, below the strong threshold of 82.
+This is an attributable, bounded **zero-publication result**, not yet a clean
+quality-based `no_trade`: input freshness and completeness were degraded, so
+the absence of a recommendation cannot validate the opportunity filter or
+show that the discovery/ranking engine improved. One earlier catalog-only
+observation consumed one
+separate credit and never reached normal ranking. Immediately after the normal
+receipt, the normal-scan one-shot flag was disabled, its date/slot removed and
+catalog-only default restored; Git-connected cleanup deploy
+`6ab3fb8063ba97a965c0b86f` was published `ready` on unchanged main at
+16:18:01 UTC. Production readback showed scheduler globally disabled, and
+the one-shot follow-up automation was removed. No further scan is armed.
+
+**A.2 pre-merge provider-budget safety finding, 2026-09-23:** the scanner's
+one-call fresh budget was incremented only after a successful intraday-indicator
+refresh. The cache helper swallows a failed Twelve Data response into an
+`unavailable` or stale result, so repeated failed refreshes could make more
+provider requests than the single scanner credit accounted for in the Basic
+Free eight-credit per-scan reservation. The continuous-admission PR now reserves
+that one scanner slot *before* invoking the fallible helper; both successful
+and failed attempts exhaust it. A fresh-cache hit may conservatively use the
+slot without spending a provider credit. This is a local safety correction,
+not evidence of a provider-side credit receipt or improved candidate quality;
+the next OPEN scan remains conditional on green protected CI, exact production
+deploy and a separately bounded authorization.
+
+**A.2 local follow-on — live market-time reference integrity, 2026-09-23:**
+`live_reference_market_time_v1` requires a full point-in-time price observation
+from the current New York market date and no older than 15 minutes for a live
+plan. A prior daily close or hours-old same-day price cannot become a
+trade-ready reference just because a provider response or cache entry was
+recently fetched. Intraday indicators now retain their latest underlying
+candle timestamp; new cache entries are accepted only while both fetch and
+candle times remain fresh, and legacy entries without source-candle time are
+treated as stale. Reference-refresh diagnostics use the market-data timestamp
+and classify stale data explicitly. The AI recommendation sanitizer can no
+longer substitute model-asserted price/source/time/provider metadata for a
+server-observed fresh reference; missing evidence rejects publication. This
+is locally implemented, not yet merged or production-behavior-verified. It
+can lower candidate output while source evidence is unavailable; that is a
+safe data-quality result, not a proof of improved ranking or recommendations.
+The focused provider-free suite currently passes 61 tests; full repository
+lint has zero errors and eight unrelated existing warnings, and the Next
+webpack production build passed locally. Authenticated hosted behavior and
+actual provider timestamp quality remain OPEN evidence.
+No new provider, database, scheduler or broker operation was performed by
+the implementation or local tests.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
@@ -410,6 +469,20 @@ unavailable at the frozen 10:00 ET scan slot, not inferred from daily bars.
 Other legacy scanner-cache numeric defaults and daily-derived fields remain
 outside this repair and must not be inferred to have intraday provenance.
 
+**Current integration check, 2026-09-23:** the 20:30 CEST authorized
+production scan on main `d0c6bc6` failed with `timeout_budget_exceeded`
+before ranking (`scheduled_scan_attempt_1nsavmv`); it yielded no candidate
+and cannot evaluate this unmerged volume repair. Scheduled execution and
+one-shot flags were restored, with cleanup deploy
+`6ab41b37f70ab406d5325d7b` ready on unchanged main. PR #605, #608 and
+#609 are now merged. The isolated #606 branch incorporates that current main,
+including the live market-time freshness gate; 125 selected cross-feature
+tests, full ESLint, strict TypeScript and Next webpack production build pass
+locally. The resulting revision has not yet passed protected CI, merged,
+deployed or demonstrated improved recommendation quality. The earlier
+precondition to wait for #605 and the 10:00 ET scan is satisfied; it is not
+a reason to relax provenance, budget or publication gates.
+
 [Twelve Data's public US feed description](https://support.twelvedata.com/en/articles/9935903-us-equities-market-data)
 states that its default real-time feed represents roughly 5% of total US
 trading volume although it covers listed symbols, whereas next-day historical
@@ -420,6 +493,27 @@ features with intraday labels and retention rights need separate evidence and
 must not be silently treated as fixed by this volume slice.
 
 ### Next — ordered, bounded product work
+
+**Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
+admission, 2026-09-23 (4–16h):** owner Codex on
+`codex/sv-a2-continuous-market-monitoring`, integrating after merged
+ranking-plan PR #605 and the completed 2026-09-23 OPEN scan/readback. The
+user has superseded fixed morning/midday/power-hour publication times as a
+product principle. Local implementation uses the scheduler's true New York
+market-clock segment and a versioned `continuous_regular_session_v1` admission
+for provider-confirmed open sessions, including the former 09:30, 11:00 and
+14:30 gaps. Existing late-session trial, catalog-only, same-slot deduplication,
+freshness, Basic Free reservation and selective-publication gates remain
+separate. A missing ranking cannot manufacture a valid `no_trade`. The
+diagnostic full-session budget estimate now counts up to 26 quarter-hour
+opportunities rather than three legacy windows; actual reservations remain the
+cost authority. Seven focused behavior tests and 58 other integrated tests
+pass after the merge with PR #605; strict TypeScript, changed-file and full
+lint (zero errors, eight existing warnings) and the Next webpack build pass
+locally. This is **not** merged, deployed, authenticated-browser checked
+or verified on live market data. Before PR completion, review per-slot durable
+lineage and the legacy user-facing “official batch” wording; a later admitted
+market session must establish actual behavior and provider cost.
 
 **Selected second development slice — SV-B.1 decision lineage, 2026-09-21
 (CLOSED, 8–16h):** owner Codex, branch `codex/sv-b1-decision-lineage`; the
@@ -1198,7 +1292,37 @@ historical data rights, real exchange execution or scientific strategy edge.
 Local evidence: 78/78 E.1–H.3 replay tests, strict TypeScript, changed-file
 lint without findings, full repository lint excluding generated bundles with
 zero errors/eight pre-existing warnings and a complete Next webpack production
-build. Protected CI, merge and exact-main deploy remain separate.
+build. PR #604 passed all six protected provider-free CI shards, aggregate and
+merge-candidate provenance, then merged as main
+`a83ddbb1f1347daacdc147f966d5bcd9891b3080`. Netlify production deploy
+`6ab36ab79411ee0008ec3e28` is `ready` on that exact revision. This closes
+source/deploy verification, not historical-data integrity, real fill behavior
+or strategy-quality evidence.
+
+**Selected SV-A.2 CLOSED ranking-plan integrity repair, 2026-09-23 (4–8h):**
+owner Codex on `codex/sv-a2-ranking-plan-integrity`, based on the verified
+PR #604 main revision. A deterministic candidate fixture with an absent
+target 2 was selected `valid` at score 78 under ranking v1.0; `null` target 2
+was selected `strong` at 88 because `Number(null)` became zero; a reversed
+target 2 was also selected `strong`. A second deterministic fixture found that
+reported risk/reward values of 9 or 1.1 could be selected despite an entry-high,
+stop and target-two geometry implying about 1.67. This is a pre-builder ranking/decision
+truth defect; it does not prove an invalid recommendation was published, since
+later plan construction and validation have separate gates. The v1.1 ranker
+preserves complete-plan behavior and the full decision record, but blocks
+missing, nonnumeric, nonpositive, reversed and materially contradictory
+long plans before selection. The reported risk/reward must agree with the
+reconstructable worst-entry geometry within 0.05 for price/ratio rounding.
+An empty selection remains `no_trade`; the versioned result can be compared
+with the frozen v1.0 fixture. Scope is ranking, provider-free regressions, CI
+registration and this ledger; no provider, credit, database, configuration,
+broker or live ranking experiment. Local acceptance: red-to-green plan tests,
+60/60 focused ranking/decision/learning/CI-contract tests, strict TypeScript,
+changed-file lint, full repository lint excluding generated bundles with zero
+errors/eight existing warnings, and a complete Next webpack production build.
+Protected CI, merge, exact-main deploy and any real market-behavior or quality
+claim remain separate. Keep the currently prepared A.2 OPEN scan revision
+frozen until that observation is resolved; do not silently mix ranker versions.
 
 ### Pilot readiness and bounded parallel work
 
@@ -1218,8 +1342,8 @@ on A/B evidence and must not be inferred from the source registry.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | A.2 one-slot outcome-evaluation guard is merged and exact-revision production-deployed as `ea9a024d`; B.1 base receipt and strategy/selection registry are also merged, but real-decision/outcome acceptance remains OPEN | Observe only a separately authorized, bounded scheduled session; do not call the outcome or scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus all three earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. An E.1 volume-integrity repair is selected locally on `codex/sv-e1-volume-integrity`. | Finish its invalid-data regression, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 

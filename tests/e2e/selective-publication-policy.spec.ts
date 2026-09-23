@@ -27,7 +27,7 @@ function rankedCandidate(ticker: string, localScore: number) {
     proposed_entry_high: 101,
     proposed_stop_loss: 98,
     proposed_target_1: 104,
-    proposed_target_2: 106,
+    proposed_target_2: 108.5,
     proposed_risk_reward: 2.5,
     volume_ratio: 1.8,
     intraday_indicator_source: "fresh",
@@ -91,6 +91,7 @@ test("Experimental candidates remain in the decision record but never fill a pub
     ...rankedCandidate("RESEARCH", 0),
     volume_ratio: 0.5,
     proposed_risk_reward: 1.6,
+    proposed_target_2: 105.8,
   };
   const summary = buildScannerCandidateRankingSummary({
     candidates: [rankedCandidate("STRONG", 95), experimentalCandidate],
@@ -109,6 +110,112 @@ test("Experimental candidates remain in the decision record but never fill a pub
         score: expect.objectContaining({ tier: "experimental" }),
       }),
     ]),
+  );
+});
+
+test("missing or nonnumeric long-plan fields cannot be selected as trade-ready", () => {
+  // Frozen v1.0 baseline on this fixture: absent target 2 was valid (78),
+  // while null target 2 was strong (88) because Number(null) became zero.
+  const malformed = [
+    { ticker: "ABSENT", proposed_target_2: undefined },
+    { ticker: "NULL", proposed_target_2: null },
+    { ticker: "BLANK", proposed_target_2: "" },
+    { ticker: "BOOLEAN", proposed_target_2: false },
+    { ticker: "NONFINITE", proposed_target_2: Number.POSITIVE_INFINITY },
+    { ticker: "MISSING_RR", proposed_risk_reward: undefined },
+  ].map(({ ticker, ...overrides }) => ({
+    ...rankedCandidate(ticker, 95),
+    ...overrides,
+  }));
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: malformed as ScannerCandidate[],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.summary_version).toBe("1.2");
+  expect(summary.selection.selected_tickers).toEqual([]);
+  expect(summary.target_status).toBe("empty");
+  expect(summary.results).toHaveLength(malformed.length);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "incomplete_long_plan",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
+test("nonpositive or reversed long-plan geometry stays in the record but never reaches selection", () => {
+  const malformed = [
+    { ticker: "REVERSED", proposed_target_2: 103 },
+    { ticker: "ZERO_TARGET", proposed_target_2: 0 },
+    { ticker: "ZERO_RR", proposed_risk_reward: 0 },
+  ].map(({ ticker, ...overrides }) => ({
+    ...rankedCandidate(ticker, 95),
+    ...overrides,
+  }));
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: malformed as ScannerCandidate[],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selected_count).toBe(0);
+  expect(summary.results).toHaveLength(malformed.length);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "invalid_long_plan",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
+test("reported risk/reward must agree with entry-high, stop and target-two geometry", () => {
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: [
+      { ...rankedCandidate("OVERSTATED", 95), proposed_risk_reward: 9 },
+      { ...rankedCandidate("UNDERSTATED", 95), proposed_risk_reward: 1.1 },
+    ],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selection.selected_tickers).toEqual([]);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "inconsistent_risk_reward",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
+test("small risk/reward rounding difference does not reject a coherent long plan", () => {
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: [
+      { ...rankedCandidate("ROUNDED", 95), proposed_risk_reward: 2.54 },
+    ],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selection.selected_tickers).toEqual(["ROUNDED"]);
+  expect(summary.results[0].score.warnings.map((item) => item.warning_id)).not.toContain(
+    "inconsistent_risk_reward",
   );
 });
 
