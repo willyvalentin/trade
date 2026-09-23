@@ -134,3 +134,23 @@ test("legacy or contradictory cache trend cannot masquerade as observed volume",
     }),
   ).toMatchObject({ recentVolumeRatio: null, volumeTrend: "unknown" });
 });
+
+test("missing cached indicator values remain unavailable rather than zero", () => {
+  expect(
+    intradayIndicatorsFromUnknown({
+      vwap: null,
+      latestPrice: "",
+      recentHigh: false,
+      momentumPercent: "1.5",
+      latestVolume: null,
+      averageVolume: "250",
+    }),
+  ).toMatchObject({
+    vwap: null,
+    latestPrice: null,
+    recentHigh: null,
+    momentumPercent: 1.5,
+    latestVolume: null,
+    averageVolume: 250,
+  });
+});

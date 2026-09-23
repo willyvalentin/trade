@@ -50,6 +50,12 @@ export function intradayIndicatorsFromUnknown(
 
   const raw = value as Partial<IntradayIndicators>;
   const parseNumber = (input: unknown) => {
+    if (
+      (typeof input !== "number" && typeof input !== "string") ||
+      (typeof input === "string" && input.trim() === "")
+    ) {
+      return null;
+    }
     const parsed = Number(input);
     return Number.isFinite(parsed) ? parsed : null;
   };
