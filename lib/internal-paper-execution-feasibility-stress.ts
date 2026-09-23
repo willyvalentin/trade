@@ -8,11 +8,11 @@ import {
 } from "@/lib/internal-paper-replay-execution";
 
 export const INTERNAL_PAPER_EXECUTION_FEASIBILITY_STRESS_VERSION =
-  "internal_paper_execution_feasibility_stress_v1" as const;
+  "internal_paper_execution_feasibility_stress_v2" as const;
 export const INTERNAL_PAPER_EXECUTION_FEASIBILITY_STRESS_MANIFEST_VERSION =
-  "internal_paper_execution_feasibility_stress_manifest_v1" as const;
+  "internal_paper_execution_feasibility_stress_manifest_v2" as const;
 export const INTERNAL_PAPER_EXECUTION_FEASIBILITY_STRESS_RESULT_VERSION =
-  "internal_paper_execution_feasibility_stress_result_v1" as const;
+  "internal_paper_execution_feasibility_stress_result_v2" as const;
 
 export type InternalPaperExecutionFeasibilityScenario = Readonly<{
   scenario_id: string;
@@ -64,6 +64,10 @@ type ScenarioResult =
       unfilled_quantity: number;
       fill_occurred_at: string;
       fill_candle_id: string;
+      liquidity_reference_candle_id: string;
+      liquidity_reference_candle_started_at: string;
+      liquidity_reference_volume: number;
+      liquidity_proxy_version: InternalPaperReplayExecutionInput["policy"]["liquidity_proxy_version"];
       costed_fill_price: number;
       modeled_execution_cost: number;
       realized_net_pnl: number;
@@ -116,6 +120,7 @@ export type InternalPaperExecutionFeasibilityStressResult =
       evidence_limits: readonly [
         "single_frozen_order_not_strategy_evaluation",
         "minute_bar_open_proxy_not_quote_execution",
+        "prior_completed_bar_volume_is_only_a_liquidity_proxy",
         "market_impact_and_cancel_uncertainty_not_modeled",
         "historical_source_rights_not_independently_verified",
         "no_forward_shadow_acceptance",
@@ -138,6 +143,7 @@ const AUTHORITY: Authority = {
 const EVIDENCE_LIMITS = [
   "single_frozen_order_not_strategy_evaluation",
   "minute_bar_open_proxy_not_quote_execution",
+  "prior_completed_bar_volume_is_only_a_liquidity_proxy",
   "market_impact_and_cancel_uncertainty_not_modeled",
   "historical_source_rights_not_independently_verified",
   "no_forward_shadow_acceptance",
@@ -313,6 +319,11 @@ function reportScenario(
     unfilled_quantity: result.unfilled_quantity,
     fill_occurred_at: result.fill_occurred_at,
     fill_candle_id: result.fill_candle_id,
+    liquidity_reference_candle_id: result.liquidity_reference_candle_id,
+    liquidity_reference_candle_started_at:
+      result.liquidity_reference_candle_started_at,
+    liquidity_reference_volume: result.liquidity_reference_volume,
+    liquidity_proxy_version: result.liquidity_proxy_version,
     costed_fill_price: entryFill.fill_price,
     modeled_execution_cost: Number(modeledCost.toFixed(6)),
     realized_net_pnl: result.replay.final_state.realized_net_pnl,

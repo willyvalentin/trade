@@ -6,6 +6,7 @@ import {
   runInternalPaperMarketReplay,
 } from "@/lib/internal-paper-market-replay";
 import {
+  INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   runInternalPaperReplayExecution,
   type InternalPaperReplayExecutionInput,
@@ -114,11 +115,12 @@ function input(
       candles: candles(),
     },
     policy: {
-      policy_version: "sv-e2-ioc-v1",
+      policy_version: "sv-e2-ioc-v2",
       order_type: "market",
       time_in_force: "ioc",
       limit_price: null,
       latency_ms: 120_000,
+      liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
       max_volume_participation_bps: 100,
       minimum_fill_quantity: 1,
       maximum_order_quantity: 100,
@@ -128,9 +130,52 @@ function input(
 }
 
 test.describe("SV-E2 deterministic replay execution realism", () => {
+  test("does not use the arrival minute's future volume to size an IOC fill", () => {
+    const lowArrivalVolume = input();
+    const highArrivalVolume = input();
+    const missingArrivalVolume = input();
+    lowArrivalVolume.base_replay.candles[2].candle.volume = 500;
+    highArrivalVolume.base_replay.candles[2].candle.volume = 500;
+    missingArrivalVolume.base_replay.candles[2].candle.volume = 500;
+    lowArrivalVolume.base_replay.candles[3].candle.volume = 500;
+    highArrivalVolume.base_replay.candles[3].candle.volume = 10_000;
+    missingArrivalVolume.base_replay.candles[3].candle.volume = null;
+
+    const low = runInternalPaperReplayExecution(lowArrivalVolume);
+    const high = runInternalPaperReplayExecution(highArrivalVolume);
+    const missing = runInternalPaperReplayExecution(missingArrivalVolume);
+
+    expect(low.status).toBe("completed");
+    expect(high.status).toBe("completed");
+    expect(missing.status).toBe("completed");
+    if (low.status !== "completed" || high.status !== "completed" || missing.status !== "completed") return;
+    expect(low.filled_quantity).toBe(5);
+    expect(high.filled_quantity).toBe(5);
+    expect(missing.filled_quantity).toBe(5);
+  });
+
+  test("blocks first-minute IOC fills without a completed regular-minute volume proxy", () => {
+    const base = input();
+    const value = input({
+      base_replay: {
+        ...base.base_replay,
+        entry: {
+          ...base.base_replay.entry,
+          submitted_at: "2026-09-21T13:30:00.000Z",
+        },
+      },
+      policy: { ...base.policy, latency_ms: 0 },
+    });
+
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "blocked",
+      reason: "liquidity_evidence_missing",
+    });
+  });
+
   test("applies latency and volume participation before replaying a partial fill", () => {
     const value = input();
-    value.base_replay.candles[3].candle.volume = 500;
+    value.base_replay.candles[2].candle.volume = 500;
     value.base_replay.candles[3].candle.low = 90;
 
     const result = runInternalPaperReplayExecution(value);
@@ -144,6 +189,10 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       fill_reference_price: 100,
       fill_candle_id: candleId(3),
       fill_occurred_at: "2026-09-21T13:33:00.000Z",
+      liquidity_reference_candle_id: candleId(2),
+      liquidity_reference_candle_started_at: "2026-09-21T13:32:00.000Z",
+      liquidity_reference_volume: 500,
+      liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
     });
     expect(result.replay.status).toBe("completed");
     if (result.replay.status !== "completed") return;
@@ -170,7 +219,7 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
         },
       },
     });
-    value.base_replay.candles[3].candle.volume = 500;
+    value.base_replay.candles[2].candle.volume = 500;
 
     expect(runInternalPaperReplayExecution(value)).toMatchObject({
       status: "blocked",
@@ -190,7 +239,7 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
         },
       },
     });
-    value.base_replay.candles[3].candle.volume = 500;
+    value.base_replay.candles[2].candle.volume = 500;
     value.base_replay.candles[3].candle.open = 105;
     value.base_replay.candles[3].candle.high = 105.25;
     value.base_replay.candles[3].candle.low = 104.75;
@@ -321,14 +370,14 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
 
   test("separates insufficient known liquidity from missing liquidity evidence", () => {
     const known = input();
-    known.base_replay.candles[3].candle.volume = 50;
+    known.base_replay.candles[2].candle.volume = 50;
     expect(runInternalPaperReplayExecution(known)).toMatchObject({
       status: "unfilled",
       reason: "insufficient_liquidity",
     });
 
     const unknown = input();
-    unknown.base_replay.candles[3].candle.volume = null;
+    unknown.base_replay.candles[2].candle.volume = null;
     expect(runInternalPaperReplayExecution(unknown)).toMatchObject({
       status: "blocked",
       reason: "liquidity_evidence_missing",
@@ -383,6 +432,24 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       status: "blocked",
       reason: "execution_input_invalid",
     });
+    expect(
+      runInternalPaperReplayExecution(
+        input({
+          policy: {
+            ...input().policy,
+            liquidity_proxy_version: "arrival_minute_final_volume_v0" as typeof INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
+          },
+        }),
+      ),
+    ).toMatchObject({ status: "blocked", reason: "execution_input_invalid" });
+    expect(
+      runInternalPaperReplayExecution(
+        input({
+          execution_version:
+            "internal_paper_replay_execution_v1" as typeof INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
+        }),
+      ),
+    ).toMatchObject({ status: "blocked", reason: "execution_input_invalid" });
   });
 
   test("never masks an invalid base replay as an execution outcome", () => {

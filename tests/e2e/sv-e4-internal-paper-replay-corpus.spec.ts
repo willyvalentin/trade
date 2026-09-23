@@ -15,6 +15,7 @@ import {
   type InternalPaperReplayAccountConfig,
 } from "@/lib/internal-paper-market-replay";
 import {
+  INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   type InternalPaperReplayExecutionInput,
   type InternalPaperReplayExecutionPolicy,
@@ -47,11 +48,12 @@ const ACCOUNT: InternalPaperReplayAccountConfig = {
 };
 
 const EXECUTION_POLICY: InternalPaperReplayExecutionPolicy = {
-  policy_version: "sv-e4-ioc-v1",
+  policy_version: "sv-e4-ioc-v2",
   order_type: "market",
   time_in_force: "ioc",
   limit_price: null,
   latency_ms: 0,
+  liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   max_volume_participation_bps: 100,
   minimum_fill_quantity: 1,
   maximum_order_quantity: 100,
@@ -699,7 +701,7 @@ test.describe("SV-E4 deterministic replay corpus", () => {
 
   test("propagates a blocked replay session instead of shrinking the corpus", () => {
     const value = corpusInput();
-    value.sessions[2].decisions[1].execution!.base_replay.candles[3].candle.volume =
+    value.sessions[2].decisions[1].execution!.base_replay.candles[2].candle.volume =
       null;
     rebuildManifest(value);
 

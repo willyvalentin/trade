@@ -8,6 +8,7 @@ import {
 } from "@/lib/internal-paper-execution-feasibility-stress";
 import { INTERNAL_PAPER_MARKET_REPLAY_VERSION } from "@/lib/internal-paper-market-replay";
 import {
+  INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   type InternalPaperReplayExecutionInput,
 } from "@/lib/internal-paper-replay-execution";
@@ -97,11 +98,12 @@ function execution(): InternalPaperReplayExecutionInput {
       })),
     },
     policy: {
-      policy_version: "sv-h3-ioc-v1",
+      policy_version: "sv-h3-ioc-v2",
       order_type: "limit",
       time_in_force: "ioc",
       limit_price: 100.2,
       latency_ms: 0,
+      liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
       max_volume_participation_bps: 1_000,
       minimum_fill_quantity: 1,
       maximum_order_quantity: 100,
@@ -145,6 +147,10 @@ test.describe("SV-H3 frozen execution feasibility sensitivity", () => {
         requested_quantity: 10,
         filled_quantity: 10,
         unfilled_quantity: 0,
+        liquidity_reference_candle_id: input.base_execution.base_replay.candles[0].candle_id,
+        liquidity_reference_candle_started_at: "2026-09-21T13:30:00.000Z",
+        liquidity_reference_volume: 1_000,
+        liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
         costed_fill_price: 100.1,
       }),
       expect.objectContaining({
@@ -179,6 +185,9 @@ test.describe("SV-H3 frozen execution feasibility sensitivity", () => {
     });
     expect(result.evidence_limits).toContain(
       "single_frozen_order_not_strategy_evaluation",
+    );
+    expect(result.evidence_limits).toContain(
+      "prior_completed_bar_volume_is_only_a_liquidity_proxy",
     );
     expect(result.baseline_scenario_id).toBe(BASELINE_ID);
     expect(verifyInternalPaperExecutionFeasibilityStressDigest(result)).toBe(true);
@@ -232,7 +241,7 @@ test.describe("SV-H3 frozen execution feasibility sensitivity", () => {
 
   test("retains missing liquidity as blocked, never as a zero fill", () => {
     const input = fixture();
-    input.base_execution.base_replay.candles[1].candle.volume = null;
+    input.base_execution.base_replay.candles[0].candle.volume = null;
     const manifest = buildInternalPaperExecutionFeasibilityStressManifest({
       matrix_id: input.manifest.matrix_id,
       frozen_at: input.manifest.frozen_at,
@@ -257,7 +266,7 @@ test.describe("SV-H3 frozen execution feasibility sensitivity", () => {
     input.base_execution.base_replay.candles[2].candle.high = 99.25;
     input.base_execution.base_replay.candles[2].candle.low = 98.75;
     input.base_execution.base_replay.candles[2].candle.close = 99;
-    input.base_execution.base_replay.candles[2].candle.volume = null;
+    input.base_execution.base_replay.candles[1].candle.volume = null;
     const manifest = buildInternalPaperExecutionFeasibilityStressManifest({
       matrix_id: input.manifest.matrix_id,
       frozen_at: input.manifest.frozen_at,

@@ -6,6 +6,7 @@ import { buildCurrentDecisionStrategyReference } from "@/lib/decision-strategy-r
 import type { InternalPaperEntryCommand } from "@/lib/internal-paper-entry";
 import { INTERNAL_PAPER_MARKET_REPLAY_VERSION } from "@/lib/internal-paper-market-replay";
 import {
+  INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   type InternalPaperReplayExecutionInput,
 } from "@/lib/internal-paper-replay-execution";
@@ -230,11 +231,12 @@ function execution(
       candles: candles(ticker),
     },
     policy: {
-      policy_version: "sv-e3-ioc-v1",
+      policy_version: "sv-e3-ioc-v2",
       order_type: "market",
       time_in_force: "ioc",
       limit_price: null,
       latency_ms: 0,
+      liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
       max_volume_participation_bps: 100,
       minimum_fill_quantity: 1,
       maximum_order_quantity: 100,
@@ -481,7 +483,7 @@ test.describe("SV-E3 deterministic internal-paper session replay", () => {
   test("propagates missing execution evidence as a blocked session", () => {
     const value = input();
     const current = value.decisions[1].execution!;
-    current.base_replay.candles[3].candle.volume = null;
+    current.base_replay.candles[2].candle.volume = null;
 
     expect(runInternalPaperReplaySession(value)).toMatchObject({
       status: "blocked",
