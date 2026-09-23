@@ -333,6 +333,19 @@ catalog-only default restored; Git-connected cleanup deploy
 16:18:01 UTC. Production readback showed scheduler globally disabled, and
 the one-shot follow-up automation was removed. No further scan is armed.
 
+**A.2 pre-merge provider-budget safety finding, 2026-09-23:** the scanner's
+one-call fresh budget was incremented only after a successful intraday-indicator
+refresh. The cache helper swallows a failed Twelve Data response into an
+`unavailable` or stale result, so repeated failed refreshes could make more
+provider requests than the single scanner credit accounted for in the Basic
+Free eight-credit per-scan reservation. The continuous-admission PR now reserves
+that one scanner slot *before* invoking the fallible helper; both successful
+and failed attempts exhaust it. A fresh-cache hit may conservatively use the
+slot without spending a provider credit. This is a local safety correction,
+not evidence of a provider-side credit receipt or improved candidate quality;
+the next OPEN scan remains conditional on green protected CI, exact production
+deploy and a separately bounded authorization.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
