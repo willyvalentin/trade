@@ -10,9 +10,11 @@ import {
 } from "@/lib/internal-paper-market-replay";
 
 export const INTERNAL_PAPER_REPLAY_EXECUTION_VERSION =
-  "internal_paper_replay_execution_v1" as const;
+  "internal_paper_replay_execution_v2" as const;
 export const INTERNAL_PAPER_REPLAY_EXECUTION_RESULT_VERSION =
-  "internal_paper_replay_execution_result_v1" as const;
+  "internal_paper_replay_execution_result_v2" as const;
+export const INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION =
+  "previous_completed_regular_minute_volume_v1" as const;
 
 export type InternalPaperReplayExecutionPolicy = Readonly<{
   policy_version: string;
@@ -20,6 +22,7 @@ export type InternalPaperReplayExecutionPolicy = Readonly<{
   time_in_force: "ioc";
   limit_price: number | null;
   latency_ms: number;
+  liquidity_proxy_version: typeof INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION;
   max_volume_participation_bps: number;
   minimum_fill_quantity: number;
   maximum_order_quantity: number;
@@ -78,6 +81,10 @@ export type InternalPaperReplayExecutionResult =
       fill_reference_price: number;
       fill_candle_id: string;
       fill_occurred_at: string;
+      liquidity_reference_candle_id: string;
+      liquidity_reference_candle_started_at: string;
+      liquidity_reference_volume: number;
+      liquidity_proxy_version: typeof INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION;
       replay: InternalPaperReplayResult;
       result_digest: string;
     }>;
@@ -128,6 +135,8 @@ function validInput(input: InternalPaperReplayExecutionInput) {
     Number.isSafeInteger(policy.latency_ms) &&
     policy.latency_ms >= 0 &&
     policy.latency_ms <= MAX_LATENCY_MS &&
+    policy.liquidity_proxy_version ===
+      INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION &&
     Number.isSafeInteger(policy.max_volume_participation_bps) &&
     policy.max_volume_participation_bps >= 1 &&
     policy.max_volume_participation_bps <= 10_000 &&
@@ -144,9 +153,11 @@ function terminal<T extends object>(value: T): T & { result_digest: string } {
 
 /**
  * Adds deterministic IOC admission, latency, first-bar opening-price limit
- * checks and volume-capped fills ahead of the one-day replay. It is
- * provider-free and has no storage, publication or broker path. A missing
- * volume is unknown and blocks; it is never interpreted as zero liquidity.
+ * checks and proxy-volume-capped fills ahead of the one-day replay. The
+ * immediately preceding completed regular minute is the only volume proxy:
+ * the arrival minute's final volume is future information at its open. This
+ * is a modeled feasibility estimate, not exchange fill evidence. A missing
+ * prior minute or volume blocks; neither is interpreted as zero liquidity.
  */
 export function runInternalPaperReplayExecution(
   input: InternalPaperReplayExecutionInput,
@@ -189,9 +200,13 @@ export function runInternalPaperReplayExecution(
 
   const eligibleAt =
     Date.parse(input.base_replay.entry.submitted_at) + input.policy.latency_ms;
-  const firstEligibleCandle = input.base_replay.candles.find(
+  const firstEligibleIndex = input.base_replay.candles.findIndex(
     ({ candle }) => Date.parse(candle.timestamp) >= eligibleAt,
   );
+  const firstEligibleCandle =
+    firstEligibleIndex >= 0
+      ? input.base_replay.candles[firstEligibleIndex]
+      : undefined;
   const inspectedThrough =
     firstEligibleCandle?.candle.timestamp ??
     input.base_replay.dataset.session_close;
@@ -224,8 +239,11 @@ export function runInternalPaperReplayExecution(
     });
   }
 
-  const volume = selected.candle.volume;
+  const liquidityReference = input.base_replay.candles[firstEligibleIndex - 1];
+  const volume = liquidityReference?.candle.volume;
   if (
+    !liquidityReference ||
+    volume === undefined ||
     volume === null ||
     !Number.isSafeInteger(volume) ||
     volume < 0
@@ -291,6 +309,10 @@ export function runInternalPaperReplayExecution(
     fill_reference_price: fillReferencePrice,
     fill_candle_id: selected.candle_id,
     fill_occurred_at: selected.candle.timestamp,
+    liquidity_reference_candle_id: liquidityReference.candle_id,
+    liquidity_reference_candle_started_at: liquidityReference.candle.timestamp,
+    liquidity_reference_volume: volume,
+    liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
     replay,
   });
 }

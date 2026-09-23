@@ -50,6 +50,7 @@ import {
   type InternalPaperReplayAccountConfig,
 } from "@/lib/internal-paper-market-replay";
 import {
+  INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
   type InternalPaperReplayExecutionInput,
   type InternalPaperReplayExecutionPolicy,
@@ -100,11 +101,12 @@ const ACCOUNT: InternalPaperReplayAccountConfig = {
 };
 
 const EXECUTION_POLICY: InternalPaperReplayExecutionPolicy = {
-  policy_version: "sv-f1-ioc-v1",
+  policy_version: "sv-f1-ioc-v2",
   order_type: "market",
   time_in_force: "ioc",
   limit_price: null,
   latency_ms: 0,
+  liquidity_proxy_version: INTERNAL_PAPER_IOC_LIQUIDITY_PROXY_VERSION,
   max_volume_participation_bps: 100,
   minimum_fill_quantity: 1,
   maximum_order_quantity: 100,
@@ -1397,7 +1399,7 @@ test.describe("SV-F1 frozen paired replay experiment", () => {
   test("propagates a blocked child corpus instead of shrinking its frozen population", () => {
     const values = corpora();
     const executionValue = values.candidate.sessions[1]!.decisions[0]!.execution!;
-    Object.assign(executionValue.base_replay.candles[2]!.candle, {
+    Object.assign(executionValue.base_replay.candles[1]!.candle, {
       volume: null,
     });
     rebuildCorpusManifest(values.candidate);

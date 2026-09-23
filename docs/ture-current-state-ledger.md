@@ -1038,6 +1038,37 @@ effect, quote-level IOC fill, market impact, source entitlement, OOS advantage
 or forward-shadow acceptance. H.2's family-level cost matrix is unchanged;
 family-level fill/latency uncertainty remains a later H slice.
 
+SV-H.3 passed all six protected provider-free CI shards, aggregate and
+merge-candidate provenance in PR #602, then merged as main
+`e9cb91c3a2cf5e939e26d4fe21daf639546f83ae`. Netlify's current
+production deploy `6ab358f84f69e40008bddcf7` is `ready` on that exact
+revision. This verifies source/deploy only; no real IOC fill, provider request,
+strategy improvement, production research run or forward-shadow result was
+observed.
+
+**Selected SV-E.2 CLOSED IOC liquidity look-ahead repair, 2026-09-23
+(4–8h):** owner Codex on `codex/sv-e2-ioc-prior-volume-proxy`, integrated
+after SV-H.3 against its verified main revision. The existing E.2 replay used
+the arrival minute's *final* volume to size an IOC fill at that minute's open.
+A deterministic red test changed only that future volume and changed the
+reported fill from five to ten shares. The locally implemented, versioned
+E.2/H.3 interfaces now cap simulated IOC quantity with the preceding
+completed regular minute's volume. A first-minute IOC or absent prior volume
+blocks as unknown. The result names the proxy's candle, volume and model
+version; this is an arrival-time liquidity estimate, never a quote-level or
+exchange fill receipt. Acceptance is the red-to-green point-in-time
+regression, no first-minute fabricated fill,
+unchanged future-volume perturbation, downstream E.3/E.4/F.1/H.3 replay
+tests, strict TypeScript, lint, build, protected CI and exact-main deploy.
+The change owns only provider-free replay code, fixtures and this ledger: no
+schema, runtime writer, provider, ranking/publication or broker path. Licensed
+point-in-time data, actual prior-candle provider availability at arrival, and
+a real forward fill comparison remain unverified. Local verification: 77/77
+E.1–H.3 replay tests, strict TypeScript, changed-file lint with zero findings,
+repository lint excluding generated bundles with zero errors and eight
+pre-existing warnings, and a full Next webpack production build. Protected CI,
+merge and environment behavior remain separate.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -1057,7 +1088,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | A.2 one-slot outcome-evaluation guard is merged and exact-revision production-deployed as `ea9a024d`; B.1 base receipt and strategy/selection registry are also merged, but real-decision/outcome acceptance remains OPEN | Observe only a separately authorized, bounded scheduled session; do not call the outcome or scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 plus both E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-H.3 single-order execution-feasibility sensitivity is selected locally on `codex/sv-h3-execution-feasibility-stress`. | Finish H.3 local QA, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus both earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. An additional E.2 IOC liquidity look-ahead repair is selected locally on `codex/sv-e2-ioc-prior-volume-proxy`. | Finish its point-in-time regression, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
