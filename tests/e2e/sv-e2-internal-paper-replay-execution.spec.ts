@@ -461,6 +461,20 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       reason: "base_replay_blocked",
       base_replay_reason_codes: ["market_event_invalid"],
     });
+
+    const invalidVolume = input();
+    invalidVolume.base_replay.candles[100].candle.volume = Number.NaN;
+    const blocked = runInternalPaperReplayExecution(invalidVolume);
+    expect(blocked).toMatchObject({
+      status: "blocked",
+      reason: "base_replay_blocked",
+      base_replay_reason_codes: ["market_event_invalid"],
+    });
+    const unavailableVolume = input();
+    unavailableVolume.base_replay.candles[100].candle.volume = null;
+    expect(blocked.input_digest).not.toBe(
+      runInternalPaperReplayExecution(unavailableVolume).input_digest,
+    );
   });
 
   test("reports an expired market fill window instead of inventing a fill", () => {

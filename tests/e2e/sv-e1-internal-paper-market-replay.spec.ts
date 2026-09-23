@@ -445,4 +445,36 @@ test.describe("SV-E1 deterministic one-day internal-paper replay", () => {
       reason_codes: ["economic_result_out_of_range"],
     });
   });
+
+  test("rejects malformed volume anywhere but permits missing price-only volume", () => {
+    for (const volume of [
+      -1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]) {
+      expect(
+        runInternalPaperMarketReplay(
+          replay({ candles: candles({ 100: { volume } }) }),
+        ),
+      ).toMatchObject({
+        status: "blocked",
+        reason_codes: ["market_event_invalid"],
+      });
+    }
+
+    const nullVolume = runInternalPaperMarketReplay(
+      replay({ candles: candles({ 100: { volume: null } }) }),
+    );
+    const nanVolume = runInternalPaperMarketReplay(
+      replay({ candles: candles({ 100: { volume: Number.NaN } }) }),
+    );
+    const infiniteVolume = runInternalPaperMarketReplay(
+      replay({ candles: candles({ 100: { volume: Number.POSITIVE_INFINITY } }) }),
+    );
+    expect(nullVolume).toMatchObject({ status: "completed" });
+    expect(nanVolume.input_digest).not.toBe(nullVolume.input_digest);
+    expect(infiniteVolume.input_digest).not.toBe(nullVolume.input_digest);
+    expect(infiniteVolume.input_digest).not.toBe(nanVolume.input_digest);
+  });
 });
