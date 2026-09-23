@@ -155,6 +155,9 @@ test("serving state follows an admitted market scan even between old windows", (
   expect(cadence.serving_window).toBe("midday");
   expect(cadence.status).toBe("published");
   expect(cadence.visible_recommendation_count).toBe(1);
+  expect(cadence.copy.intentional_publishing).toContain(
+    "throughout the regular session",
+  );
 
   const unobserved = buildRecommendationServingCadenceSummary({
     tradingDate: "2026-09-23",

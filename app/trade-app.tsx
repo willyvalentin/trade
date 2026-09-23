@@ -40430,7 +40430,7 @@ function RecommendationServingCadencePanel({
             Recommendation Serving Cadence
           </p>
           <h3 className="mt-2 font-mono text-lg font-semibold tracking-normal text-white">
-            Intentional Recommendation Batches
+            Qualified Recommendations
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
             {summary.copy.intentional_publishing}
@@ -40447,11 +40447,11 @@ function RecommendationServingCadencePanel({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
-          label="Window"
+          label="Market phase"
           value={summary.serving_window.replaceAll("_", " ")}
         />
         <SummaryCard
-          label="Batch Target"
+          label="Publication cap"
           value={`${summary.batch_target.min}-${summary.batch_target.max}`}
         />
         <SummaryCard
@@ -40463,12 +40463,8 @@ function RecommendationServingCadencePanel({
           value={summary.freshness_status.replaceAll("_", " ")}
         />
         <SummaryCard
-          label="Next Window"
-          value={
-            summary.next_window_starts_at
-              ? `${summary.next_window.replaceAll("_", " ")} ${summary.next_window_starts_at} ET`
-              : summary.next_window.replaceAll("_", " ")
-          }
+          label="Evaluation cadence"
+          value={`${summary.background_scan_cadence_minutes.min}-${summary.background_scan_cadence_minutes.max} min when admitted`}
         />
       </div>
 
@@ -40484,7 +40480,11 @@ function RecommendationServingCadencePanel({
             />
             <Detail
               label="Type"
-              value={summary.batch_type.replaceAll("_", " ")}
+              value={
+                summary.batch_type === "official"
+                  ? "Qualified scheduled"
+                  : summary.batch_type.replaceAll("_", " ")
+              }
             />
             <Detail
               label="Published"

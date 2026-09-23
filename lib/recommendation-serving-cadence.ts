@@ -231,12 +231,12 @@ export function buildRecommendationServingCadenceSummary(
     next_window_starts_at: orchestration?.next_window_starts_at ?? null,
     background_scan_cadence_minutes: { min: 15, max: 30 },
     background_scan_note:
-      "Background scans may refresh diagnostics every 15-30 minutes during active regular-session windows, but visible recommendations are served as intentional batches.",
+      "Eligible regular-session ticks may evaluate fresh market data every 15-30 minutes, subject to provider budget and health. A tick does not guarantee a recommendation.",
     no_trade_valid: noTradeValid,
     warnings,
     copy: {
       intentional_publishing:
-        "Ture scans in the background but only publishes recommendations intentionally.",
+        "Ture may evaluate throughout the regular session and publishes only fresh, independently qualified recommendations.",
       no_trade_valid:
         "A no-trade batch can be valid when quality is insufficient.",
       expiry:
