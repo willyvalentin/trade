@@ -668,6 +668,9 @@ export async function scanMarket(
     const allowFreshFetch =
       freshProviderCallsUsed < maxFreshProviderCalls &&
       freshIndicatorFetchesUsed < MAX_FRESH_INDICATOR_FETCHES_PER_RUN;
+    // Reserve before the cache helper can reach Twelve Data. A failed refresh
+    // returns unavailable/stale rather than "fresh", but still spends a call.
+    if (allowFreshFetch) freshProviderCallsUsed += 1;
     const result = await getOrRefreshIntradayIndicators(candidate.ticker, {
       source: options.source === "scheduled" ? "scheduled" : "manual",
       maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
@@ -677,7 +680,6 @@ export async function scanMarket(
     throwIfAborted(options.signal);
 
     if (result.source === "fresh") {
-      freshProviderCallsUsed += 1;
       freshIndicatorFetchesUsed += 1;
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: 1,

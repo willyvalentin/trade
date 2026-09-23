@@ -43,6 +43,7 @@ import {
   type ScheduledOfficialGateDiagnostics,
 } from "@/lib/day-trade-scan-orchestration";
 import { buildMarketSessionEvaluation } from "@/lib/market-session";
+import { buildContinuousMarketScanAdmission } from "@/lib/continuous-market-scan-admission";
 import {
   buildRecommendationServingCadenceSummary,
   type RecommendationServingCadenceSummary,
@@ -1806,12 +1807,16 @@ function recommendationCreatedAt(row: RecommendationRow) {
 function buildServingCadenceForAutomation({
   scanDate,
   orchestration,
+  scanWindow,
+  scanAdmitted,
   recommendations,
   ranking,
   now,
 }: {
   scanDate: string;
   orchestration: ReturnType<typeof buildDayTradeScanOrchestrationSummary>;
+  scanWindow: IntradayScanWindow | null;
+  scanAdmitted: boolean | null;
   recommendations: RecommendationRow[];
   ranking: ScanLogEntry["scanner_candidate_ranking"];
   now: Date;
@@ -1819,6 +1824,8 @@ function buildServingCadenceForAutomation({
   return buildRecommendationServingCadenceSummary({
     tradingDate: scanDate,
     orchestration,
+    currentScanWindow: scanWindow,
+    currentScanAdmitted: scanAdmitted,
     ranking: ranking ?? null,
     visibleRecommendations: recommendations.map((recommendation) => ({
       id: textOrNull(recommendation.id),
@@ -3192,27 +3199,8 @@ export async function POST(request: Request) {
     runType: force ? "diagnostic" : "scheduled",
   });
 
-  if (!force && dayTradeScanOrchestration.active_window === "closed") {
-    scanWindow = {
-      scanDate: getNewYorkDateString(scanClock),
-      sessionType: getLegacySessionTypeForScanWindow("closed"),
-      scanWindow: "closed",
-    };
-  } else if (
-    !force &&
-    dayTradeScanOrchestration.active_window !== "unknown" &&
-    dayTradeScanOrchestration.active_window !== "outside_window"
-  ) {
-    const orchestrationScanWindow = dayTradeScanWindowToIntradayScanWindow(
-      dayTradeScanOrchestration.active_window,
-    );
-
-    scanWindow = {
-      scanDate: getNewYorkDateString(scanClock),
-      sessionType: getLegacySessionTypeForScanWindow(orchestrationScanWindow),
-      scanWindow: orchestrationScanWindow,
-    };
-  }
+  // The scheduler's actual market-clock segment is authoritative. The legacy
+  // three-window summary remains diagnostic and cannot remap or veto it.
 
   const scanPolicy = getIntradayScanPolicy(scanWindow.scanWindow);
   const basicFreeCatalogOneShot = buildBasicFreeCatalogOneShotControl({
@@ -3223,9 +3211,17 @@ export async function POST(request: Request) {
       tradingDate: scanWindow.scanDate,
     });
   const scanWindowLabel = getIntradayScanWindowLabel(scanWindow.scanWindow);
-  const scheduledGateDiagnostics = buildScheduledOfficialGateDiagnostics({
+  const legacyOfficialGateDiagnostics = buildScheduledOfficialGateDiagnostics({
     orchestration: dayTradeScanOrchestration,
     scanWindow: scanWindow.scanWindow,
+  });
+  const scheduledGateDiagnostics = buildContinuousMarketScanAdmission({
+    now: scanClock,
+    marketStatus,
+    marketSession,
+    scanWindow: scanWindow.scanWindow,
+    recentScanRuns: recentRecommendationScanRuns,
+    legacyPowerHourWindowGate: legacyOfficialGateDiagnostics,
   });
   const activeScanTrace = createActiveScanTrace({
     routeReceivedAt: routeReceivedAtUtc,
@@ -3236,6 +3232,8 @@ export async function POST(request: Request) {
   let initialServingCadence = buildServingCadenceForAutomation({
     scanDate: scanWindow.scanDate || marketStatus.date,
     orchestration: dayTradeScanOrchestration,
+    scanWindow: force ? null : scanWindow.scanWindow,
+    scanAdmitted: force ? null : scheduledGateDiagnostics.scheduled_gate_allowed,
     recommendations: [],
     ranking: null,
     now,
@@ -3318,12 +3316,15 @@ export async function POST(request: Request) {
     official_scan_window: scheduledGateDiagnostics.scheduled_gate_window,
     generation_window: scanWindow.scanWindow,
     generation_block_reason: generationBlockReason,
-    orchestration_decision: dayTradeScanOrchestration.decision,
-    should_scan_now: dayTradeScanOrchestration.should_scan_now,
+    orchestration_decision: scheduledGateDiagnostics.scheduled_gate_allowed
+      ? scheduledGateDiagnostics.policy_version
+      : dayTradeScanOrchestration.decision,
+    should_scan_now: scheduledGateDiagnostics.scheduled_gate_allowed,
     official_window_detected:
       scheduledGateDiagnostics.official_window_detected,
     scheduled_gate_window: scheduledGateDiagnostics.scheduled_gate_window,
     scheduled_gate_allowed: scheduledGateDiagnostics.scheduled_gate_allowed,
+    scheduled_gate_policy_version: scheduledGateDiagnostics.policy_version,
     scheduled_gate_block_reason:
       scheduledGateDiagnostics.scheduled_gate_block_reason,
     schedule_window_mismatch:
@@ -3485,6 +3486,8 @@ export async function POST(request: Request) {
   const catalogOnlyReferenceModeReady =
     readyBasicFreeCatalogOnlyOneShot || readyBasicFreeCatalogCapabilityProbe;
   const backgroundDiscoveryObservationAllowed =
+    (catalogOnlyReferenceModeReady ||
+      !scheduledGateDiagnostics.scheduled_gate_allowed) &&
     canObserveBackgroundDiscoveryBetweenPublicationWindows({
       scheduled: !force,
       // Keep the reference-only observation aligned with the route's own
@@ -4180,7 +4183,7 @@ export async function POST(request: Request) {
       const scheduledGateBlockReason =
         scheduledGateDiagnostics.scheduled_gate_block_reason ??
         "not_official_scan_window";
-      const message = `${dayTradeScanOrchestration.scan_reason} Scheduled scan skipped because official window decision is ${dayTradeScanOrchestration.decision}.`;
+      const message = `Scheduled market scan withheld by ${scheduledGateDiagnostics.policy_version}: ${scheduledGateBlockReason}.`;
       const activeScanTracePayload = finishActiveScanTrace(activeScanTrace, {
         decision,
         status: "skipped",
@@ -4389,6 +4392,8 @@ export async function POST(request: Request) {
     initialServingCadence = buildServingCadenceForAutomation({
       scanDate,
       orchestration: dayTradeScanOrchestration,
+      scanWindow: force ? null : scanWindow.scanWindow,
+      scanAdmitted: force ? null : scheduledGateDiagnostics.scheduled_gate_allowed,
       recommendations: [],
       ranking: null,
       now,
@@ -4396,8 +4401,10 @@ export async function POST(request: Request) {
     activeScanTrace.update({
       interpreted_ny_time: `${dayTradeScanOrchestration.trading_date} ${dayTradeScanOrchestration.ny_time} America/New_York`,
       scan_window: scanWindow.scanWindow,
-      orchestration_decision: dayTradeScanOrchestration.decision,
-      should_scan_now: dayTradeScanOrchestration.should_scan_now,
+      orchestration_decision: scheduledGateDiagnostics.scheduled_gate_allowed
+        ? scheduledGateDiagnostics.policy_version
+        : dayTradeScanOrchestration.decision,
+      should_scan_now: scheduledGateDiagnostics.scheduled_gate_allowed,
     });
 
     const latestSameWindowScan = latestScheduledScanForWindow({
@@ -4928,6 +4935,8 @@ export async function POST(request: Request) {
     const servingCadence = buildServingCadenceForAutomation({
       scanDate,
       orchestration: dayTradeScanOrchestration,
+      scanWindow: force ? null : scanWindow.scanWindow,
+      scanAdmitted: force ? null : scheduledGateDiagnostics.scheduled_gate_allowed,
       recommendations: insertedRecommendations,
       ranking: generationScanLog?.scanner_candidate_ranking ?? null,
       now,

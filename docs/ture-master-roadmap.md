@@ -17,6 +17,17 @@ Notion is not maintained or used for selection. The complete user specification
 is preserved in [the dated source specification](./ture-scientific-validation-ibkr-spec-2026-09-21.md).
 Its numerical examples are illustrative, not observed results or approved limits.
 
+**2026-09-23 market-timing decision.** The former named morning/midday/power-hour
+publication windows are historical operating constraints, not a product
+principle or a recommendation quota. A scheduled tick is a bounded observation
+opportunity; during a verified regular session Ture should discover, evaluate
+and serve a qualified recommendation whenever fresh evidence and provider
+capacity permit. The cadence is budget-, freshness- and health-adaptive, not
+one API request every second. A legitimate `no_trade` remains a useful result.
+Pre-/after-market information stays separately labelled research/watch data;
+late-session entry safety is retained until separately validated. This decision
+does not itself enable a provider call, scheduled production run or broker action.
+
 ### Destination and retained principles
 
 Ture observes licensed market data, classifies market state, discovers candidates,

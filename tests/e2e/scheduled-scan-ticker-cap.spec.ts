@@ -89,3 +89,18 @@ test("the scheduled route carries its Free budget into reference refresh", () =>
   expect(generator).toContain("scheduledReferenceRefreshMaxAttempts");
   expect(generator).toContain("maxAttempts: referenceRefreshMaxAttempts");
 });
+
+test("scanner reserves its provider slot before a fallible intraday refresh", () => {
+  const scanner = source("lib/scanner.ts");
+  const attachment = scanner.slice(
+    scanner.indexOf("async function attachIntradayIndicators("),
+    scanner.indexOf("for (const baseCandidate of baseCandidates)"),
+  );
+
+  expect(attachment).toMatch(
+    /if \(allowFreshFetch\) freshProviderCallsUsed \+= 1;\s+const result = await getOrRefreshIntradayIndicators/,
+  );
+  expect(attachment).not.toMatch(
+    /if \(result\.source === "fresh"\) \{\s+freshProviderCallsUsed \+= 1/,
+  );
+});
