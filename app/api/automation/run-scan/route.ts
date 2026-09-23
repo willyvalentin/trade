@@ -2382,6 +2382,7 @@ async function persistAutomationArtifacts({
   providerPlanProfileMode,
   learningAccelerationMode,
   learningAccelerationTargetSamples,
+  candidateDecisionCapture,
   learningAccelerationInput,
 }: {
   scanDate: string;
@@ -2398,6 +2399,7 @@ async function persistAutomationArtifacts({
   providerPlanProfileMode: string | null;
   learningAccelerationMode: LearningAccelerationModeEvaluation;
   learningAccelerationTargetSamples: number;
+  candidateDecisionCapture?: CandidateDecisionCapture | null;
   learningAccelerationInput?: {
     candidateGeneration?: RecommendationScanLogDetails["real_scanner_candidate_generation"] | null;
     ranking?: RecommendationScanLogDetails["scanner_candidate_ranking"] | null;
@@ -2538,11 +2540,11 @@ async function persistAutomationArtifacts({
   });
   const candidateDecisionRecord = buildCandidateDecisionRecord({
     scanRun,
-    capture: scanLog.candidate_decision_capture,
+    capture: candidateDecisionCapture,
     scoringVersion: DAY_TRADE_SCORING_VERSION,
     buildVersion: `${AUTOMATION_ROUTE_VERSION}:${RECOMMENDATION_PUBLISH_POLICY_VERSION}:${BUILD_MARKER}`,
     learningAttribution: buildCandidateDecisionLearningAttributionForScan(
-      scanLog.candidate_decision_capture,
+      candidateDecisionCapture,
     ),
   });
   if (candidateDecisionRecord) {
@@ -5043,6 +5045,11 @@ export async function POST(request: Request) {
         learningAccelerationMode: scheduledRuntimeConfig,
         learningAccelerationTargetSamples:
           scheduledRuntimeConfig.learning_acceleration_target_samples_per_window,
+        // The presentation scan-log adapter intentionally projects only its
+        // known fields. Keep the generator's full decision capture on this
+        // private persistence path so an empty result remains attributable.
+        candidateDecisionCapture:
+          generationScanLog?.candidate_decision_capture ?? null,
         learningAccelerationInput: {
           candidateGeneration:
             generationScanLog?.real_scanner_candidate_generation ?? null,

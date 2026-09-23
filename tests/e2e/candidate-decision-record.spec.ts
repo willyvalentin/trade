@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   buildCandidateDecisionCapture,
@@ -160,6 +162,55 @@ function withReversedObjectKeys(value: unknown): unknown {
 }
 
 test.describe("candidate decision record", () => {
+  test("scheduled persistence receives the generator capture before scan-log projection", () => {
+    const route = readFileSync(
+      resolve(process.cwd(), "app/api/automation/run-scan/route.ts"),
+      "utf8",
+    );
+
+    expect(route).toMatch(
+      /candidateDecisionCapture:\s*generationScanLog\?\.candidate_decision_capture\s*\?\?\s*null/,
+    );
+    expect(route).toMatch(/capture:\s*candidateDecisionCapture/);
+    expect(route).not.toMatch(/capture:\s*scanLog\.candidate_decision_capture/);
+  });
+
+  test("retains an attributable zero-publication decision with rejected ranked candidates", () => {
+    const candidates = [candidate(1), candidate(2), candidate(3), candidate(4), candidate(5)];
+    const run = scanRun(candidates.length);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(record).not.toBeNull();
+    const receipt = buildDecisionLineageReceipt(record!);
+    const persisted = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: receipt,
+      },
+    };
+    const attributed = candidateDecisionRecordFromScanRun(persisted);
+
+    expect(attributed?.final_decision).toMatchObject({
+      disposition: "no_trade",
+      published_tickers: [],
+      no_trade_reason: "no_publishable_ranked_candidates",
+    });
+    expect(attributed?.coverage).toMatchObject({
+      observed_candidate_count: 5,
+      ranked_candidate_count: 5,
+      full_membership_captured: true,
+    });
+    expect(decisionLineageReceiptFromScanRun(persisted, attributed!)).toEqual(receipt);
+  });
+
   test("retains one reconstructable decision-lineage receipt without inventing a model", () => {
     const candidates = [candidate(1), candidate(2), candidate(3)];
     const run = scanRun(candidates.length);
