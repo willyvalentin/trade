@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   buildCandidateDecisionCapture,
@@ -160,6 +162,118 @@ function withReversedObjectKeys(value: unknown): unknown {
 }
 
 test.describe("candidate decision record", () => {
+  test("scheduled persistence receives the generator capture before scan-log projection", () => {
+    const route = readFileSync(
+      resolve(process.cwd(), "app/api/automation/run-scan/route.ts"),
+      "utf8",
+    );
+
+    expect(route).toMatch(
+      /candidateDecisionCapture:\s*generationScanLog\?\.candidate_decision_capture\s*\?\?\s*null/,
+    );
+    expect(route).toMatch(/capture:\s*candidateDecisionCapture/);
+    expect(route).not.toMatch(/capture:\s*scanLog\.candidate_decision_capture/);
+    expect(route).toMatch(/started_at:\s*now,[\s\S]*?completed_at:\s*new Date\(\)/);
+  });
+
+  test("keeps observations made during generation before the actual decision cutoff", () => {
+    const startedAt = "2026-09-15T14:30:00.000Z";
+    const providerObservedAt = "2026-09-15T14:30:08.000Z";
+    const capturedAt = "2026-09-15T14:30:09.000Z";
+    const completedAt = "2026-09-15T14:30:12.000Z";
+    const observedCandidate = {
+      ...candidate(1),
+      reference_price_timestamp: providerObservedAt,
+      intraday_indicator_cached_at: providerObservedAt,
+    };
+    const ranking = buildScannerCandidateRankingSummary({
+      candidates: [observedCandidate],
+      targetMin: 1,
+      targetMax: 1,
+      now: new Date(capturedAt),
+    });
+    const capture = buildCandidateDecisionCapture({
+      captureTimestamp: capturedAt,
+      universe: [observedCandidate],
+      observedCandidates: [observedCandidate],
+      ranking,
+      eligibleCandidateTickers: [observedCandidate.ticker],
+      noPublishReason: "no_publishable_ranked_candidates",
+    });
+    const run = buildRecommendationScanRun({
+      trading_date: "2026-09-15",
+      observed_at: startedAt,
+      started_at: startedAt,
+      completed_at: completedAt,
+      window: "morning",
+      source: "supabase",
+      scanned_ticker_count: 1,
+      raw_candidate_count: 1,
+    });
+    const startedOnlyRun = buildRecommendationScanRun({
+      trading_date: "2026-09-15",
+      observed_at: startedAt,
+      started_at: startedAt,
+      completed_at: startedAt,
+      window: "morning",
+      source: "supabase",
+      scanned_ticker_count: 1,
+      raw_candidate_count: 1,
+    });
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture,
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(run.run_fingerprint).toBe(startedOnlyRun.run_fingerprint);
+    expect(record?.decision_timestamp).toBe(completedAt);
+    expect(record?.candidates[0]?.data).toMatchObject({
+      source_timestamp: providerObservedAt,
+      freshness: "fresh",
+      gap_codes: [],
+    });
+    expect(buildDecisionLineageReceipt(record!).status).toBe("reconstructable");
+  });
+
+  test("retains an attributable zero-publication decision with rejected ranked candidates", () => {
+    const candidates = [candidate(1), candidate(2), candidate(3), candidate(4), candidate(5)];
+    const run = scanRun(candidates.length);
+    const record = buildCandidateDecisionRecord({
+      scanRun: run,
+      capture: captureFor({ candidates }),
+      scoringVersion: "day_trade_score_v1",
+      buildVersion: "test-build-v1",
+      learningAttribution: completeLearningAttribution(),
+    });
+
+    expect(record).not.toBeNull();
+    const receipt = buildDecisionLineageReceipt(record!);
+    const persisted = {
+      ...run,
+      payload_json: {
+        ...run.payload_json,
+        candidate_decision_record: record,
+        decision_lineage_receipt: receipt,
+      },
+    };
+    const attributed = candidateDecisionRecordFromScanRun(persisted);
+
+    expect(attributed?.final_decision).toMatchObject({
+      disposition: "no_trade",
+      published_tickers: [],
+      no_trade_reason: "no_publishable_ranked_candidates",
+    });
+    expect(attributed?.coverage).toMatchObject({
+      observed_candidate_count: 5,
+      ranked_candidate_count: 5,
+      full_membership_captured: true,
+    });
+    expect(decisionLineageReceiptFromScanRun(persisted, attributed!)).toEqual(receipt);
+  });
+
   test("retains one reconstructable decision-lineage receipt without inventing a model", () => {
     const candidates = [candidate(1), candidate(2), candidate(3)];
     const run = scanRun(candidates.length);

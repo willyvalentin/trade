@@ -408,7 +408,7 @@ none of those 17 retain source-candle time. Those legacy entries correctly
 remain stale under the merged live market-time gate; this latency repair does
 not refill them or establish candidate quality.
 
-**Selected A.2 CLOSED scan-fetch attribution, 2026-09-23 (4–8h):** owner Codex
+**A.2 CLOSED scan-fetch attribution merged and deployed, 2026-09-23 (4–8h):** owner Codex
 on isolated `codex/sv-a2-scan-fetch-attribution` from exact main `e2529162`.
 The observed 20:30 timeout ended inside `market_data_fetch` without a measured
 cache-versus-provider breakdown. This slice adds a versioned, bounded timing
@@ -416,11 +416,16 @@ receipt around the existing cache read, provider wait, pacing, cache write and
 intraday-indicator path, including the failed step on abort. Its pass condition
 is a durable scan trace that attributes a future terminal result without
 changing provider calls, budget, freshness, ranking, publication or broker
-behavior. The timing receipt is locally implemented: 37 related provider-free tests,
-repository lint with zero errors/eight pre-existing warnings, strict TypeScript,
-Next webpack production build and scheduled-runtime package build passed.
-Protected CI, PR merge and a hosted scan receipt remain unverified; no runtime
-latency improvement is claimed. A separate code inspection
+behavior. Locally, 37 related provider-free tests, repository lint with zero
+errors/eight pre-existing warnings, strict TypeScript, Next webpack production
+build and scheduled-runtime package build passed. PR #612 passed all six
+protected CI shards and aggregate verification on final head `f10fe1b3`, then
+merged as main `455b3b3b4a9ba610db20f7a79b2f6eb027d6612a`. Post-merge main
+CI run `35925910418` passed. Exact Netlify production deploy
+`6ab44c1ff77558000870b6d9` is published and `ready` on that revision;
+the function-scoped scheduler-disable flag remains `true`. No hosted scan has
+yet exercised the timing receipt, so no runtime latency or candidate-quality
+improvement is claimed. A separate code inspection
 found a potential coverage bias: the one Basic Free scanner slot is reserved
 before checking whether the first ticker's indicator cache is already fresh,
 and a 10-minute indicator TTL is shorter than the normal 15-minute cadence.
@@ -428,6 +433,33 @@ The scheduled universe rotates, so repeated selection of the same first
 symbol is not established; the per-run one-slot coverage limit remains.
 Any revised allocation needs a separately versioned, credit-safe comparison;
 it is not part of this timing slice.
+
+**Selected A.2 CLOSED decision-capture continuity, 2026-09-24 (4–8h):** a
+read-only production inspection of the completed 2026-09-23 18:15 CEST scan
+`rec_scan_run_18ru9if` found `status=empty` and neither
+`candidate_decision_record` nor `decision_lineage_receipt` in its retained
+scan-run payload. The generator creates a versioned capture on its normal
+zero-publication paths, but `createAutomationScanLog` projects a display/log
+subset and drops `candidate_decision_capture` before
+`persistAutomationArtifacts` builds the immutable decision. The focused repair
+passes the generator capture directly to private persistence without placing
+the full candidate population in the scheduled-run message. A second
+point-in-time defect used the scheduled event/start time as `completed_at`,
+which could mark a legitimate provider observation arriving during generation
+as future data; the scan-run now records actual post-generation completion time
+while preserving its original start/observation identity. Neither change
+alters a provider call, credit, ranking, quality threshold, publication or
+broker rule. Locally, 59 related
+decision, lifecycle, learning and paper-handoff tests pass, including a
+zero-publication lineage regression, in-generation timestamp boundary and
+callsite bridge contract; changed-file
+lint, strict TypeScript, full Next webpack build and scheduled runtime bundling
+pass. Full lint passes with zero errors and eight unrelated existing warnings
+when generated bundles are excluded. The historical scan is not backfilled or
+retrospectively declared a clean quality-based no-trade. The acceptance gap is
+a future completed scheduled scan that retains an identity-bound candidate
+decision and lineage receipt, followed by authenticated readback; until then
+this is a local-only repair, not A.2 OPEN completion.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
