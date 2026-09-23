@@ -262,6 +262,7 @@ function timestampValidationStatusFromUnknown(
     value === "provider_future_beyond_scan_skew_tolerance" ||
     value === "provider_returned_future_timestamp" ||
     value === "provider_timestamp_wrong_trading_day" ||
+    value === "provider_timestamp_stale" ||
     value === "provider_timestamp_missing"
   ) {
     return value;

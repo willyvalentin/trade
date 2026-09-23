@@ -3,6 +3,7 @@ import {
   type PlanReferencePriceMetadata,
 } from "@/lib/recommendation-plan-reference";
 import type { IntradayIndicators } from "@/lib/intraday-indicators";
+import { MAX_LIVE_REFERENCE_MARKET_DATA_AGE_MS } from "@/lib/live-reference-freshness-policy";
 
 export type ReferenceRefreshFailureReason =
   | "provider_no_data"
@@ -42,6 +43,7 @@ export type ReferenceRefreshTimestampValidationStatus =
   | "provider_future_beyond_scan_skew_tolerance"
   | "provider_returned_future_timestamp"
   | "provider_timestamp_wrong_trading_day"
+  | "provider_timestamp_stale"
   | "provider_timestamp_missing";
 
 export type ReferenceRefreshAttemptDiagnostic = {
@@ -275,6 +277,9 @@ function timestampKindFromResult(
   result: ReferenceRefreshProviderResult | null,
 ): ReferencePriceTimestampKind {
   if (!result) return "unknown";
+  if (result.indicators?.latestCandleTimestamp !== undefined) {
+    return "market_data_time";
+  }
   if (
     result.timestamp_kind === "market_data_time" ||
     result.timestamp_kind === "fetch_time" ||
@@ -289,12 +294,19 @@ function timestampKindFromResult(
   return "unknown";
 }
 
+function referenceMarketTimestamp(result: ReferenceRefreshProviderResult | null) {
+  const candleTimestamp = result?.indicators?.latestCandleTimestamp;
+  return candleTimestamp !== undefined
+    ? isoOrNull(candleTimestamp)
+    : isoOrNull(result?.cached_at);
+}
+
 function timestampValidationForResult(input: {
   result: ReferenceRefreshProviderResult | null;
   now: Date | string | number;
 }) {
   const scanTime = isoOrNull(input.now);
-  const timestamp = isoOrNull(input.result?.cached_at);
+  const timestamp = referenceMarketTimestamp(input.result);
   const kind = timestampKindFromResult(input.result);
 
   if (!timestamp || !scanTime) {
@@ -329,6 +341,16 @@ function timestampValidationForResult(input: {
           : skewMs > 0
             ? ("provider_returned_future_timestamp" as const)
             : ("provider_returned_stale_timestamp" as const),
+    };
+  }
+
+  if (skewMs < -MAX_LIVE_REFERENCE_MARKET_DATA_AGE_MS) {
+    return {
+      kind,
+      skewMs,
+      scanTime,
+      status: "provider_timestamp_stale" as const,
+      rejectionReason: "provider_returned_stale_timestamp" as const,
     };
   }
 
@@ -438,7 +460,7 @@ function attemptDiagnostic(input: {
     ticker: input.ticker,
     provider_symbol: input.result?.provider_symbol ?? input.result?.ticker ?? null,
     source_attempted: input.source,
-    timestamp: input.result?.cached_at ?? null,
+    timestamp: referenceMarketTimestamp(input.result),
     reference_price_timestamp_kind: timestampValidation.kind,
     reference_price_timestamp_skew_ms: timestampValidation.skewMs,
     reference_price_scan_time: timestampValidation.scanTime,
@@ -449,7 +471,7 @@ function attemptDiagnostic(input: {
     price: priceFromResult(input.result),
     provider: input.result ? input.result.provider ?? "twelve_data" : null,
     read_path: input.result ? input.result.read_path ?? refreshReferenceReadPath : null,
-    ny_trading_date: nyTradingDate(input.result?.cached_at),
+    ny_trading_date: nyTradingDate(referenceMarketTimestamp(input.result)),
     accepted: input.accepted,
     rejection_reason: input.rejectionReason,
     provider_message: providerMessage(input.result),
@@ -464,7 +486,7 @@ function failureReasonFromAfter(
   const reason = staleBlockReason(after);
   const resultSource = referenceSourceFromResult(result);
   const timestampValidation = timestampValidationForResult({ result, now });
-  const resultTradingDate = nyTradingDate(result.cached_at);
+  const resultTradingDate = nyTradingDate(referenceMarketTimestamp(result));
   const currentTradingDate = nyTradingDate(now);
 
   if (
@@ -513,7 +535,7 @@ function rejectionReasonForResult(
   const message = providerMessage(result);
   const price = result.indicators?.latestPrice;
   const timestampValidation = timestampValidationForResult({ result, now });
-  const resultTradingDate = nyTradingDate(result.cached_at);
+  const resultTradingDate = nyTradingDate(referenceMarketTimestamp(result));
   const currentTradingDate = nyTradingDate(now);
 
   if (result.ticker.trim().toUpperCase() !== candidateTicker.toUpperCase()) {
@@ -528,7 +550,7 @@ function rejectionReasonForResult(
   if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
     return "provider_invalid_price";
   }
-  if (!result.cached_at) {
+  if (!referenceMarketTimestamp(result)) {
     return "provider_missing_timestamp";
   }
   if (
@@ -571,7 +593,7 @@ function refreshedCandidate<T extends ReferenceRefreshCandidate>(
     intraday_indicator_stale: result.stale,
     reference_price_used_for_plan: result.indicators?.latestPrice ?? null,
     reference_price_source: refreshReferenceSource,
-    reference_price_timestamp: result.cached_at,
+    reference_price_timestamp: referenceMarketTimestamp(result),
     reference_price_timestamp_kind: timestampValidation.kind,
     reference_price_timestamp_skew_ms: timestampValidation.skewMs,
     reference_price_scan_time: timestampValidation.scanTime,
@@ -589,7 +611,7 @@ function validationNowForRefresh(
   const timestampValidation = timestampValidationForResult({ result, now });
   return timestampValidation.status ===
     "provider_timestamp_within_scan_skew_tolerance"
-    ? result.cached_at ?? now
+    ? referenceMarketTimestamp(result) ?? now
     : now;
 }
 
@@ -700,7 +722,12 @@ export async function refreshSelectedCandidateReferences<
         incrementFailure(
           diagnostics,
           preflightRejection,
-          exampleFor(candidate.ticker, result.cached_at, preflightRejection, now),
+          exampleFor(
+            candidate.ticker,
+            referenceMarketTimestamp(result),
+            preflightRejection,
+            now,
+          ),
         );
         diagnostics.reference_refresh_attempts.push(
           attemptDiagnostic({
@@ -734,7 +761,12 @@ export async function refreshSelectedCandidateReferences<
         incrementFailure(
           diagnostics,
           rejectionReason,
-          exampleFor(candidate.ticker, result.cached_at, rejectionReason, now),
+          exampleFor(
+            candidate.ticker,
+            referenceMarketTimestamp(result),
+            rejectionReason,
+            now,
+          ),
         );
         diagnostics.reference_refresh_attempts.push(
           attemptDiagnostic({

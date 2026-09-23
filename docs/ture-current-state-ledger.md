@@ -346,6 +346,28 @@ not evidence of a provider-side credit receipt or improved candidate quality;
 the next OPEN scan remains conditional on green protected CI, exact production
 deploy and a separately bounded authorization.
 
+**A.2 local follow-on — live market-time reference integrity, 2026-09-23:**
+`live_reference_market_time_v1` requires a full point-in-time price observation
+from the current New York market date and no older than 15 minutes for a live
+plan. A prior daily close or hours-old same-day price cannot become a
+trade-ready reference just because a provider response or cache entry was
+recently fetched. Intraday indicators now retain their latest underlying
+candle timestamp; new cache entries are accepted only while both fetch and
+candle times remain fresh, and legacy entries without source-candle time are
+treated as stale. Reference-refresh diagnostics use the market-data timestamp
+and classify stale data explicitly. The AI recommendation sanitizer can no
+longer substitute model-asserted price/source/time/provider metadata for a
+server-observed fresh reference; missing evidence rejects publication. This
+is locally implemented, not yet merged or production-behavior-verified. It
+can lower candidate output while source evidence is unavailable; that is a
+safe data-quality result, not a proof of improved ranking or recommendations.
+The focused provider-free suite currently passes 61 tests; full repository
+lint has zero errors and eight unrelated existing warnings, and the Next
+webpack production build passed locally. Authenticated hosted behavior and
+actual provider timestamp quality remain OPEN evidence.
+No new provider, database, scheduler or broker operation was performed by
+the implementation or local tests.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
