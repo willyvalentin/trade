@@ -3625,6 +3625,7 @@ export async function generateRecommendations({
       scannerUniverseSelection.rotationBatch,
     );
     const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+      source,
       candidates: scannerBaseCandidates,
       maxTickers: diagnosticMode
         ? diagnosticMaxTickers
