@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
   runInternalPaperMarketReplay,
+  validateInternalPaperReplayOrderAdmission,
   type InternalPaperMarketReplayInput,
   type InternalPaperReplayBlockReason,
   type InternalPaperReplayResult,
@@ -160,15 +161,15 @@ export function runInternalPaperReplayExecution(
     });
   }
 
-  const preflightReplay = runInternalPaperMarketReplay(input.base_replay);
-  if (preflightReplay.status === "blocked") {
+  const preflightReasons = validateInternalPaperReplayOrderAdmission(input.base_replay);
+  if (preflightReasons.length > 0) {
     return terminal({
       result_version: INTERNAL_PAPER_REPLAY_EXECUTION_RESULT_VERSION,
       execution_version: INTERNAL_PAPER_REPLAY_EXECUTION_VERSION,
       status: "blocked",
       reason: "base_replay_blocked",
       input_digest: inputDigest,
-      base_replay_reason_codes: preflightReplay.reason_codes,
+      base_replay_reason_codes: preflightReasons,
     });
   }
 
