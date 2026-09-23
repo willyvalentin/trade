@@ -367,6 +367,14 @@ decision-record ranking identity to v1.2 while retaining v1.0/v1.1 readback;
 31 relevant tests, changed-file lint, strict TypeScript and a production build
 pass. This follow-up is not yet pushed or protected-CI verified and must be
 reconciled with PR #605's v1.1 ranker before merge.
+One further local red-to-green regression found that the ranking component
+itself still accepted a legacy flat `recent_volume_ratio`: an unverified value
+raised its liquidity score from 40 to 90 despite stale intraday evidence.
+The ranker now derives that component only from the same decision-time,
+explicitly non-stale closed-bar evidence as the v2 feature vector. A fresh
+intraday ratio still contributes. Sixty-three related local tests,
+changed-file lint, strict TypeScript and a full production build pass; this
+additional fix is also unpushed and not protected-CI or market verified.
 Protected CI and production behavior on the eventual merged revision remain
 unverified. Two complete twelve-bar windows require two hours of 5-minute
 regular-session data, or six hours of 15-minute data; the corrected ratio is

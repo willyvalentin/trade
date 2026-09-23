@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { buildRealScannerCandidateGenerationSummary } from "@/lib/real-scanner-candidate-generation";
+import { buildScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import {
   recommendationDecisionFeatureVectorFromScannerCandidate,
   recommendationDecisionFeatureVectorFromUnknown,
@@ -180,4 +181,29 @@ test("v2 volume feature cannot inherit a legacy daily-derived scanner ratio", ()
     )
       .feature_values.intraday_recent_volume_ratio,
   ).toBeNull();
+});
+
+test("ranking liquidity does not accept a legacy recent ratio without fresh intraday evidence", () => {
+  const now = new Date("2026-09-17T14:01:00.000Z");
+  const baseline = {
+    ...scannerCandidate(),
+    volume_ratio: 0.7,
+    proposed_target_2: 108.5,
+    recent_volume_ratio: undefined,
+    intraday_indicator_stale: true,
+  };
+  const legacy = { ...baseline, recent_volume_ratio: 9.9 };
+  const verified = {
+    ...baseline,
+    recent_volume_ratio: 1.6,
+    intraday_indicator_stale: false,
+  };
+  const liquidityScore = (candidate: ScannerCandidate) =>
+    buildScannerCandidateRankingSummary({ candidates: [candidate], now })
+      .results[0]?.score.components.find(
+        (component) => component.component === "liquidity_volume",
+      )?.score;
+
+  expect(liquidityScore(legacy)).toBe(liquidityScore(baseline));
+  expect(liquidityScore(verified)).toBeGreaterThan(liquidityScore(baseline)!);
 });

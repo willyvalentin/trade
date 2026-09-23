@@ -3,6 +3,7 @@ import type { CandidateScoreBreakdown } from "@/lib/recommendation-generator";
 import type { RealScannerCandidateTier } from "@/lib/real-scanner-candidate-generation";
 import type { ScannerCandidate } from "@/lib/scanner";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
+import { admissibleRecentIntradayVolumeRatio } from "@/lib/intraday-indicators";
 
 export type ScannerCandidateRankingComponent =
   | "data_completeness"
@@ -118,6 +119,7 @@ export function buildScannerCandidateRankingSummary({
       rankCandidate(candidate, {
         scanWindow,
         universeCoverage,
+        observedAtSeconds: now.getTime() / 1000,
       }),
     )
     .sort((first, second) => {
@@ -220,6 +222,7 @@ function rankCandidate(
   context: {
     scanWindow: IntradayScanWindow | "unknown";
     universeCoverage: ScannerUniverseCoverageSummary | null;
+    observedAtSeconds: number;
   },
 ): Omit<ScannerCandidateRankingResult, "rank"> {
   const warnings: ScannerCandidateRankingWarning[] = [];
@@ -229,7 +232,12 @@ function rankCandidate(
   const freshness = scoreFreshness(candidate, warnings, gaps);
   const pricePlanQuality = scorePricePlanQuality(candidate, warnings, gaps);
   const signalStrength = scoreSignalStrength(candidate, gaps);
-  const liquidityVolume = scoreLiquidityVolume(candidate, warnings, gaps);
+  const liquidityVolume = scoreLiquidityVolume(
+    candidate,
+    warnings,
+    gaps,
+    context.observedAtSeconds,
+  );
   const sourceQuality = scoreSourceQuality(candidate, sourceContribution, warnings);
   const windowFit = scoreWindowFit(candidate, context.scanWindow, gaps);
   const warningsPenalty = scoreWarningsPenalty(candidate, warnings);
@@ -434,9 +442,16 @@ function scoreLiquidityVolume(
   candidate: RankingCandidate,
   warnings: ScannerCandidateRankingWarning[],
   gaps: string[],
+  observedAtSeconds: number,
 ) {
   const volumeRatio = numberOrNull(candidate.volume_ratio);
-  const recentVolumeRatio = numberOrNull(candidate.recent_volume_ratio);
+  // The flat scanner field used to contain daily-derived values. Ranking may
+  // use only closed, current intraday bars with explicit non-stale provenance.
+  const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
+    candidate.intraday_indicators,
+    candidate.intraday_indicator_stale,
+    observedAtSeconds,
+  );
   const latestVolume = candidate.intraday_indicators?.latestVolume ?? null;
   const averageVolume = candidate.intraday_indicators?.averageVolume ?? null;
   const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
