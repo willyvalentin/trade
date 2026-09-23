@@ -104,3 +104,21 @@ test("scanner reserves its provider slot before a fallible intraday refresh", ()
     /if \(result\.source === "fresh"\) \{\s+freshProviderCallsUsed \+= 1/,
   );
 });
+
+test("scanner reuses its batched raw cache for indicator reads without changing provider admission", () => {
+  const scanner = source("lib/scanner.ts");
+  const indicatorCache = source("lib/intraday-indicator-cache.ts");
+
+  expect(scanner).toContain('"raw",');
+  expect(scanner).toContain("preloadedScannerCacheRaw: preloadedScannerCacheRow.raw");
+  expect(scanner.match(/buildCandidate\(baseCandidate, cachedValues\),\s*cachedRow,/g))
+    .toHaveLength(3);
+  expect(scanner).toMatch(
+    /buildCandidate\(baseCandidate, scannerValues\),\s*\);/,
+  );
+  expect(indicatorCache).toContain(
+    'Object.prototype.hasOwnProperty.call(\n    options,\n    "preloadedScannerCacheRaw",',
+  );
+  expect(indicatorCache).toContain(': await getScannerCacheRaw(ticker);');
+  expect(indicatorCache).toContain("if (cached.indicators && !cached.stale)");
+});

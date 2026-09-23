@@ -621,6 +621,7 @@ export async function scanMarket(
 
   async function attachIntradayIndicators(
     candidate: ScannerCandidate,
+    preloadedScannerCacheRow?: ScannerCacheRow,
   ): Promise<CandidateWithIndicatorCache> {
     throwIfAborted(options.signal);
     const allowFreshFetch =
@@ -634,6 +635,9 @@ export async function scanMarket(
       maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
       allowFreshFetch,
       signal: options.signal,
+      ...(preloadedScannerCacheRow
+        ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
+        : {}),
     });
     throwIfAborted(options.signal);
 
@@ -694,6 +698,7 @@ export async function scanMarket(
       });
       const { candidate } = await attachIntradayIndicators(
         buildCandidate(baseCandidate, cachedValues),
+        cachedRow,
       );
       candidates.push(candidate);
       continue;
@@ -710,6 +715,7 @@ export async function scanMarket(
         });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
+          cachedRow,
         );
         candidates.push(candidate);
       } else {
@@ -769,6 +775,7 @@ export async function scanMarket(
         });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
+          cachedRow,
         );
         candidates.push(candidate);
       }

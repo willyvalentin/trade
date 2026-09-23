@@ -346,7 +346,7 @@ not evidence of a provider-side credit receipt or improved candidate quality;
 the next OPEN scan remains conditional on green protected CI, exact production
 deploy and a separately bounded authorization.
 
-**A.2 local follow-on — live market-time reference integrity, 2026-09-23:**
+**A.2 merged follow-on — live market-time reference integrity, 2026-09-23:**
 `live_reference_market_time_v1` requires a full point-in-time price observation
 from the current New York market date and no older than 15 minutes for a live
 plan. A prior daily close or hours-old same-day price cannot become a
@@ -358,15 +358,48 @@ treated as stale. Reference-refresh diagnostics use the market-data timestamp
 and classify stale data explicitly. The AI recommendation sanitizer can no
 longer substitute model-asserted price/source/time/provider metadata for a
 server-observed fresh reference; missing evidence rejects publication. This
-is locally implemented, not yet merged or production-behavior-verified. It
+is merged as main `d0c6bc638aa07543431fdd4b92cfae36428953d5` (PR #609)
+after protected CI passed; the exact Netlify production deploy is published
+and ready. It is not yet production-behavior-verified. It
 can lower candidate output while source evidence is unavailable; that is a
 safe data-quality result, not a proof of improved ranking or recommendations.
-The focused provider-free suite currently passes 61 tests; full repository
+The focused provider-free suite passed 61 tests; full repository
 lint has zero errors and eight unrelated existing warnings, and the Next
 webpack production build passed locally. Authenticated hosted behavior and
 actual provider timestamp quality remain OPEN evidence.
 No new provider, database, scheduler or broker operation was performed by
 the implementation or local tests.
+
+**A.2 OPEN normal-scan timeout, 2026-09-23 20:30 CEST:** the separately
+authorized ordinary scheduled slot produced attempt
+`scheduled_scan_attempt_1nsavmv` on exact main `d0c6bc6`. The Basic Free claim
+`basic_free_discovery_claim_20260923_83ae8d15` reserved eight credits and
+finished `failed` with provider attempted; a reservation does not prove eight
+provider credits were actually charged. The scan returned a retained
+`timeout_budget_exceeded` failure after 24.1 seconds of route work, with
+`market_data_fetch` started but not completed. Netlify logged the scheduled
+function's total duration as 26.9 seconds. Eight tickers were admitted;
+zero were ranked, selected, built or published. This is a runtime failure,
+**not** a quality-based `no_trade` or evidence about candidate strength.
+The one-shot and global switches were restored; cleanup deploy
+`6ab41b37f70ab406d5325d7b` is published `ready` on unchanged main.
+No further production scan is armed or authorized by this receipt.
+
+**A.2 CLOSED latency repair in progress, 2026-09-23:** the scanner's initial
+batched `scanner_cache` read already contains each row's raw intraday cache,
+but the attachment path performed a second serial Supabase read per ticker.
+The isolated local change reuses that raw snapshot for cache hits and stale
+fallbacks while retaining the existing freshness validation, one-call Basic
+Free scanner provider bound and post-upsert read path. The change was
+integrated locally with merged main `1e018859` after PR #606; 30 related
+provider-free tests, targeted lint, strict TypeScript and a Next webpack
+production build pass. Runtime latency reduction and a completed hosted scan remain
+unproven; the precise share of the 20:30 timeout attributable to these extra
+reads is not measured by the current trace. A read-only production aggregate
+found 46 scanner-cache rows, of which 17 contain intraday indicator cache but
+none of those 17 retain source-candle time. Those legacy entries correctly
+remain stale under the merged live market-time gate; this latency repair does
+not refill them or establish candidate quality.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -375,7 +408,7 @@ No internal-paper pilot selection is recorded or enabled. That is an evidence
 gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
-**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, pending merge):**
+**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, merged):**
 owner Codex, 4–8 active-hour slice on isolated
 `codex/sv-a2-volume-provenance` from main `a83ddbb1`, with no schema, provider,
 configuration or broker write. The reproducible source defect is that
@@ -462,26 +495,28 @@ pass locally. The complete latest combination passed the forty-four selected
 tests, full lint, strict TypeScript and a full production build in the
 temporary checkout. Protected CI and live ranking-quality comparison remain
 unverified.
-Protected CI and production behavior on the eventual merged revision remain
-unverified. Two complete twelve-bar windows require two hours of 5-minute
+The preceding local-checkpoint chronology predates the final merge. Two
+complete twelve-bar windows require two hours of 5-minute
 regular-session data, or six hours of 15-minute data; the corrected ratio is
 unavailable at the frozen 10:00 ET scan slot, not inferred from daily bars.
 Other legacy scanner-cache numeric defaults and daily-derived fields remain
 outside this repair and must not be inferred to have intraday provenance.
 
-**Current integration check, 2026-09-23:** the 20:30 CEST authorized
+**Final source/deploy verification, 2026-09-23:** the 20:30 CEST authorized
 production scan on main `d0c6bc6` failed with `timeout_budget_exceeded`
 before ranking (`scheduled_scan_attempt_1nsavmv`); it yielded no candidate
-and cannot evaluate this unmerged volume repair. Scheduled execution and
+and cannot evaluate the volume repair. Scheduled execution and
 one-shot flags were restored, with cleanup deploy
-`6ab41b37f70ab406d5325d7b` ready on unchanged main. PR #605, #608 and
-#609 are now merged. The isolated #606 branch incorporates that current main,
-including the live market-time freshness gate; 125 selected cross-feature
-tests, full ESLint, strict TypeScript and Next webpack production build pass
-locally. The resulting revision has not yet passed protected CI, merged,
-deployed or demonstrated improved recommendation quality. The earlier
-precondition to wait for #605 and the 10:00 ET scan is satisfied; it is not
-a reason to relax provenance, budget or publication gates.
+`6ab41b37f70ab406d5325d7b` ready on unchanged main. PR #606 then merged
+as `1e018859ba0c63a8f65fcb7995317365402d35b5` after all six protected
+CI shards, aggregate and merge-candidate provenance passed on head
+`9ba6c347`; its Netlify Deploy Preview and exact-main post-merge CI passed.
+Production deploy `6ab42a2c8974680008f0bec6` is published `ready` with
+that exact merge revision, and the function-scoped scheduled-functions switch
+still reads `true` (disabled). Local evidence on the integrated branch:
+126 selected cross-feature tests, full ESLint, strict TypeScript, Next webpack
+production build and scheduled-runtime package build passed. No post-merge
+scan, candidate, publication or quality improvement has been verified.
 
 [Twelve Data's public US feed description](https://support.twelvedata.com/en/articles/9935903-us-equities-market-data)
 states that its default real-time feed represents roughly 5% of total US
