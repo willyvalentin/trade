@@ -86,6 +86,23 @@ export function getNewYorkDateString(now: Date) {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
+export function getNewYorkRegularSessionWindow(now: Date) {
+  const date = getNewYorkDateString(now);
+  // 16:00 UTC is within the same New York calendar day in both daylight and
+  // standard time. A trading session cannot cross a DST transition.
+  const offsetProbe = new Date(`${date}T16:00:00Z`);
+  const offsetMinutes =
+    getTimeParts(offsetProbe, defaultMarketTimezone).minutesAfterMidnight -
+    16 * 60;
+  const toUtc = (localTime: string) =>
+    new Date(Date.parse(`${date}T${localTime}Z`) - offsetMinutes * 60_000);
+
+  return {
+    start: toUtc("09:30:00"),
+    end: toUtc("16:00:00"),
+  };
+}
+
 export function getIntradayScanWindowLabel(window: IntradayScanWindow) {
   if (window === "pre_market") return "Pre-market";
   if (window === "opening") return "Opening";

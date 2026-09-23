@@ -1,6 +1,7 @@
 import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { ScannerCandidateRankingSummary } from "@/lib/scanner-candidate-ranking";
 import type { ScannerCandidate } from "@/lib/scanner";
+import { withAdmissibleRecentIntradayVolume } from "@/lib/intraday-indicators";
 import {
   recommendationDecisionFeatureVectorFromScannerCandidate,
   type RecommendationDecisionFeatureVector,
@@ -246,7 +247,7 @@ export function buildRealScannerCandidateGenerationSummary({
   const universeCoverage = universeSelection?.coverage_summary ?? null;
   const visibleTickerSet = new Set(visibleCandidateTickers);
   const generatedCandidates = candidates
-    .map(toRealScannerCandidate)
+    .map((candidate) => toRealScannerCandidate(candidate, now.getTime() / 1000))
     .sort((first, second) => second.score.value - first.score.value);
   const visibleCandidates =
     visibleTickerSet.size > 0
@@ -353,8 +354,21 @@ export function realScannerCandidateGenerationSummaryJson(
 }
 
 function toRealScannerCandidate(
-  candidate: CandidateWithOptionalScore,
+  inputCandidate: CandidateWithOptionalScore,
+  observedAtSeconds: number,
 ): RealScannerCandidate {
+  const intradayIndicators = inputCandidate.intraday_indicators
+    ? withAdmissibleRecentIntradayVolume(
+        inputCandidate.intraday_indicators,
+        inputCandidate.intraday_indicator_stale,
+        observedAtSeconds,
+      )
+    : null;
+  const candidate = {
+    ...inputCandidate,
+    intraday_indicators: intradayIndicators,
+    recent_volume_ratio: intradayIndicators?.recentVolumeRatio ?? undefined,
+  };
   const latestPrice = numberOrNull(
     candidate.latest_close ?? candidate.intraday_indicators?.latestPrice,
   );
@@ -385,7 +399,10 @@ function toRealScannerCandidate(
   const scoreValue = scoreCandidate(candidate, warnings);
   const tier = tierForScore(scoreValue, warnings);
   const decisionFeatureVector =
-    recommendationDecisionFeatureVectorFromScannerCandidate(candidate);
+    recommendationDecisionFeatureVectorFromScannerCandidate(
+      candidate,
+      observedAtSeconds,
+    );
 
   return {
     ticker: candidate.ticker,

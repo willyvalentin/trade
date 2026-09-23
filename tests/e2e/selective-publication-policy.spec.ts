@@ -133,7 +133,7 @@ test("missing or nonnumeric long-plan fields cannot be selected as trade-ready",
     now: new Date("2026-09-17T14:00:00.000Z"),
   });
 
-  expect(summary.summary_version).toBe("1.1");
+  expect(summary.summary_version).toBe("1.2");
   expect(summary.selection.selected_tickers).toEqual([]);
   expect(summary.target_status).toBe("empty");
   expect(summary.results).toHaveLength(malformed.length);

@@ -3,6 +3,7 @@ import type { CandidateScoreBreakdown } from "@/lib/recommendation-generator";
 import type { RealScannerCandidateTier } from "@/lib/real-scanner-candidate-generation";
 import type { ScannerCandidate } from "@/lib/scanner";
 import type { ScannerUniverseCoverageSummary } from "@/lib/scanner-universe";
+import { admissibleRecentIntradayVolumeRatio } from "@/lib/intraday-indicators";
 
 export type ScannerCandidateRankingComponent =
   | "data_completeness"
@@ -53,7 +54,9 @@ export type ScannerCandidateSelectionResult = {
 };
 
 export type ScannerCandidateRankingSummary = {
-  summary_version: "1.0" | "1.1";
+  // Historical v1.0/v1.1 records remain readable. v1.2 distinguishes the
+  // intraday-only recent-volume input from the daily-derived predecessor.
+  summary_version: "1.0" | "1.1" | "1.2";
   summary_kind: "scanner_candidate_ranking";
   generated_at: string;
   scan_window: IntradayScanWindow | "unknown";
@@ -116,6 +119,7 @@ export function buildScannerCandidateRankingSummary({
       rankCandidate(candidate, {
         scanWindow,
         universeCoverage,
+        observedAtSeconds: now.getTime() / 1000,
       }),
     )
     .sort((first, second) => {
@@ -153,7 +157,7 @@ export function buildScannerCandidateRankingSummary({
   const warnings = buildSummaryWarnings(results);
 
   return {
-    summary_version: "1.1",
+    summary_version: "1.2",
     summary_kind: "scanner_candidate_ranking",
     generated_at: now.toISOString(),
     scan_window: scanWindow,
@@ -218,6 +222,7 @@ function rankCandidate(
   context: {
     scanWindow: IntradayScanWindow | "unknown";
     universeCoverage: ScannerUniverseCoverageSummary | null;
+    observedAtSeconds: number;
   },
 ): Omit<ScannerCandidateRankingResult, "rank"> {
   const warnings: ScannerCandidateRankingWarning[] = [];
@@ -227,7 +232,12 @@ function rankCandidate(
   const freshness = scoreFreshness(candidate, warnings, gaps);
   const pricePlanQuality = scorePricePlanQuality(candidate, warnings, gaps);
   const signalStrength = scoreSignalStrength(candidate, gaps);
-  const liquidityVolume = scoreLiquidityVolume(candidate, warnings, gaps);
+  const liquidityVolume = scoreLiquidityVolume(
+    candidate,
+    warnings,
+    gaps,
+    context.observedAtSeconds,
+  );
   const sourceQuality = scoreSourceQuality(candidate, sourceContribution, warnings);
   const windowFit = scoreWindowFit(candidate, context.scanWindow, gaps);
   const warningsPenalty = scoreWarningsPenalty(candidate, warnings);
@@ -460,11 +470,16 @@ function scoreLiquidityVolume(
   candidate: RankingCandidate,
   warnings: ScannerCandidateRankingWarning[],
   gaps: string[],
+  observedAtSeconds: number,
 ) {
   const volumeRatio = numberOrNull(candidate.volume_ratio);
-  const recentVolumeRatio = numberOrNull(candidate.recent_volume_ratio);
-  const latestVolume = candidate.intraday_indicators?.latestVolume ?? null;
-  const averageVolume = candidate.intraday_indicators?.averageVolume ?? null;
+  // The flat scanner field used to contain daily-derived values. Ranking may
+  // use only closed, current intraday bars with explicit non-stale provenance.
+  const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
+    candidate.intraday_indicators,
+    candidate.intraday_indicator_stale,
+    observedAtSeconds,
+  );
   const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
   let score = 50;
 
@@ -477,14 +492,6 @@ function scoreLiquidityVolume(
   } else {
     gaps.push("Relative volume is unavailable.");
     score -= 8;
-  }
-
-  if (
-    latestVolume !== null &&
-    averageVolume !== null &&
-    latestVolume > averageVolume
-  ) {
-    score += 8;
   }
 
   return clampScore(score);
