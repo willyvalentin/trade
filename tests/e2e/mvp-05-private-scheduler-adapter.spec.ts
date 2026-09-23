@@ -46,8 +46,10 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
       "scheduledScanRuntimeConfigurationFromEnvironment(Netlify.env)",
     );
     expect(scheduledScan).toContain("const disabledProbePreflight =");
+    expect(scheduledScan).toContain("!disabledProbePreflight &&");
+    expect(scheduledScan).toContain("!normalScanOneShotRequested");
     expect(scheduledScan).toContain(
-      "if (runtimeConfiguration.scheduled_functions_disabled && !disabledProbePreflight)",
+      "normalScanOneShotRequested &&",
     );
     expect(scheduledScan).toContain("return new Response(null, { status: 204 })");
     expect(scheduledScan.indexOf("const disabledProbePreflight =")).toBeLessThan(

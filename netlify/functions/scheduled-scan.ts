@@ -23,6 +23,9 @@ const basicFreeCatalogCapabilityProbeDateFlag =
   "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_DATE";
 const basicFreeCatalogCapabilityProbeSlotFlag =
   "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_SLOT_UTC";
+const normalScanOneShotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED";
+const normalScanOneShotDateFlag = "TURE_NORMAL_SCAN_ONE_SHOT_DATE";
+const normalScanOneShotSlotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC";
 export const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
 export const SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS =
@@ -35,6 +38,12 @@ export type ScheduledScanRuntimeConfiguration = {
   basic_free_catalog_capability_probe_date: string | null;
   basic_free_catalog_capability_probe_slot_utc: string | null;
 };
+
+export type ScheduledScanNormalOneShotControl = Readonly<{
+  enabled: boolean;
+  target_date: string | null;
+  target_slot_utc: string | null;
+}>;
 
 type ScheduledScanEnvironment = {
   get(name: string): string | undefined;
@@ -238,6 +247,20 @@ function catalogProbeSlotOrNull(value: unknown) {
     : null;
 }
 
+export function scheduledScanNormalOneShotControlFromEnvironment(
+  environment: ScheduledScanEnvironment,
+): ScheduledScanNormalOneShotControl {
+  return {
+    enabled: booleanTrue(environment.get(normalScanOneShotFlag)),
+    target_date: catalogProbeDateOrNull(
+      environment.get(normalScanOneShotDateFlag),
+    ),
+    target_slot_utc: catalogProbeSlotOrNull(
+      environment.get(normalScanOneShotSlotFlag),
+    ),
+  };
+}
+
 export function scheduledScanRuntimeConfigurationFromEnvironment(
   environment: ScheduledScanEnvironment,
 ): ScheduledScanRuntimeConfiguration {
@@ -420,7 +443,7 @@ function loadScheduledScanBuildDeploymentIdentity() {
   }
 }
 
-export function scheduledScanProbePreflightAdmission({
+export function scheduledScanTimeBoundAdmission({
   contextIdentity,
   buildIdentity,
   runtimeSiteId,
@@ -597,6 +620,9 @@ export function scheduledScanProbePreflightAdmission({
   });
 }
 
+export const scheduledScanProbePreflightAdmission =
+  scheduledScanTimeBoundAdmission;
+
 function scheduledScanAttemptPayload({
   executionBoundary,
   scheduledSlotStartedAtUtc,
@@ -604,6 +630,8 @@ function scheduledScanAttemptPayload({
   runtimeConfiguration,
   context,
   probePreflightAdmission,
+  normalScanOneShotControl,
+  normalScanOneShotAdmission,
 }: {
   executionBoundary: string;
   scheduledSlotStartedAtUtc: string;
@@ -611,6 +639,8 @@ function scheduledScanAttemptPayload({
   runtimeConfiguration: ScheduledScanRuntimeConfiguration;
   context: Context;
   probePreflightAdmission: ScheduledScanProbePreflightAdmission | null;
+  normalScanOneShotControl?: ScheduledScanNormalOneShotControl | null;
+  normalScanOneShotAdmission?: ScheduledScanProbePreflightAdmission | null;
 }) {
   return {
     execution_boundary: executionBoundary,
@@ -619,6 +649,8 @@ function scheduledScanAttemptPayload({
     runtime_configuration: runtimeConfiguration,
     netlify_deploy: scheduledScanDeployIdentity(context),
     probe_preflight_admission: probePreflightAdmission,
+    normal_scan_one_shot_control: normalScanOneShotControl ?? null,
+    normal_scan_one_shot_admission: normalScanOneShotAdmission ?? null,
   };
 }
 
@@ -751,6 +783,22 @@ async function updateScheduledScanAttempt(record: Record<string, unknown>) {
 
 export default async function handler(request: Request, context: Context) {
   const runtimeConfiguration = scheduledScanRuntimeConfiguration();
+  const normalScanOneShotControl =
+    scheduledScanNormalOneShotControlFromEnvironment(Netlify.env);
+  const normalScanOneShotRequested = normalScanOneShotControl.enabled;
+
+  // This one-slot override applies only to scheduled-scan. The global disable
+  // must remain on so outcome evaluation and the paper worker stay inert.
+  // Catalog-only modes cannot fall through to a normal provider scan.
+  if (
+    normalScanOneShotRequested &&
+    (!runtimeConfiguration.scheduled_functions_disabled ||
+      runtimeConfiguration.basic_free_catalog_capability_probe_enabled ||
+      runtimeConfiguration.basic_free_catalog_observation_one_shot_enabled)
+  ) {
+    console.error("[scheduled-scan] Normal one-shot mode conflicts with runtime gates.");
+    return new Response("Normal one-shot scan gates unavailable", { status: 503 });
+  }
 
   // An explicit environment switch can make a published non-production site
   // inert before it reads credentials, writes an attempt record, or reaches a
@@ -761,7 +809,11 @@ export default async function handler(request: Request, context: Context) {
     runtimeConfiguration.scheduled_functions_disabled &&
     runtimeConfiguration.basic_free_catalog_capability_probe_enabled;
 
-  if (runtimeConfiguration.scheduled_functions_disabled && !disabledProbePreflight) {
+  if (
+    runtimeConfiguration.scheduled_functions_disabled &&
+    !disabledProbePreflight &&
+    !normalScanOneShotRequested
+  ) {
     console.log("[scheduled-scan] Execution disabled by environment.");
     return new Response(null, { status: 204 });
   }
@@ -770,7 +822,7 @@ export default async function handler(request: Request, context: Context) {
   const firedAtUtc = firedAt.toISOString();
   const eventNextRun = await scheduledScanEventNextRun(request);
   const probePreflightAdmission = disabledProbePreflight
-    ? scheduledScanProbePreflightAdmission({
+    ? scheduledScanTimeBoundAdmission({
         contextIdentity: scheduledScanDeployIdentity(context),
         buildIdentity: loadScheduledScanBuildDeploymentIdentity(),
         runtimeSiteId: process.env.SITE_ID,
@@ -784,6 +836,52 @@ export default async function handler(request: Request, context: Context) {
           runtimeConfiguration.basic_free_catalog_capability_probe_date,
       })
     : null;
+  const normalScanOneShotBuildIdentity = normalScanOneShotRequested
+    ? loadScheduledScanBuildDeploymentIdentity()
+    : null;
+  const normalScanOneShotAdmission = normalScanOneShotRequested
+    ? scheduledScanTimeBoundAdmission({
+        contextIdentity: scheduledScanDeployIdentity(context),
+        buildIdentity: normalScanOneShotBuildIdentity,
+        runtimeSiteId: process.env.SITE_ID,
+        eventEvidence: scheduledScanPreflightEventEvidence({
+          nextRun: eventNextRun,
+          deliveryTime: firedAt,
+        }),
+        configuredProbeSlotUtc: normalScanOneShotControl.target_slot_utc,
+        configuredProbeDate: normalScanOneShotControl.target_date,
+      })
+    : null;
+
+  if (normalScanOneShotRequested && !normalScanOneShotAdmission?.admitted) {
+    console.error("[scheduled-scan] Normal one-shot admission failed.", {
+      status: normalScanOneShotAdmission?.status ?? "admission_unavailable",
+      event_evidence: normalScanOneShotAdmission?.event_evidence ?? null,
+    });
+    if (
+      normalScanOneShotAdmission?.status === "probe_slot_unavailable" ||
+      normalScanOneShotAdmission?.status === "probe_slot_mismatch" ||
+      normalScanOneShotAdmission?.status === "probe_date_unavailable" ||
+      normalScanOneShotAdmission?.status === "probe_date_mismatch"
+    ) {
+      return new Response(null, { status: 204 });
+    }
+    return new Response("Normal one-shot scan admission unavailable", {
+      status: 503,
+    });
+  }
+
+  if (
+    normalScanOneShotRequested &&
+    (!normalScanOneShotBuildIdentity ||
+      normalizedString(process.env.SITE_ID) !==
+        normalScanOneShotBuildIdentity.site_id)
+  ) {
+    console.error("[scheduled-scan] Normal one-shot build identity unavailable.");
+    return new Response("Normal one-shot build identity unavailable", {
+      status: 503,
+    });
+  }
 
   if (disabledProbePreflight && !probePreflightAdmission?.admitted) {
     console.error(
@@ -838,6 +936,8 @@ export default async function handler(request: Request, context: Context) {
 
   const executionBoundary = disabledProbePreflight
     ? "scheduler_disabled_basic_free_catalog_probe_preflight"
+    : normalScanOneShotRequested
+      ? "scheduler_disabled_normal_scan_one_shot"
     : "bundled_next_route";
 
   const invocationClaim = await claimScheduledScanInvocation({
@@ -862,6 +962,10 @@ export default async function handler(request: Request, context: Context) {
       runtimeConfiguration,
       context,
       probePreflightAdmission,
+      normalScanOneShotControl: normalScanOneShotRequested
+        ? normalScanOneShotControl
+        : null,
+      normalScanOneShotAdmission,
     }),
   });
 
@@ -905,6 +1009,10 @@ export default async function handler(request: Request, context: Context) {
         runtimeConfiguration,
         context,
         probePreflightAdmission,
+        normalScanOneShotControl: normalScanOneShotRequested
+          ? normalScanOneShotControl
+          : null,
+        normalScanOneShotAdmission,
       }),
     });
     return new Response("Missing AUTOMATION_SECRET", { status: 500 });
@@ -940,6 +1048,10 @@ export default async function handler(request: Request, context: Context) {
           runtimeConfiguration,
           context,
           probePreflightAdmission,
+          normalScanOneShotControl: normalScanOneShotRequested
+            ? normalScanOneShotControl
+            : null,
+          normalScanOneShotAdmission,
         }),
       });
     }
@@ -968,6 +1080,10 @@ export default async function handler(request: Request, context: Context) {
         runtimeConfiguration,
         context,
         probePreflightAdmission,
+        normalScanOneShotControl: normalScanOneShotRequested
+          ? normalScanOneShotControl
+          : null,
+        normalScanOneShotAdmission,
       }),
     });
 

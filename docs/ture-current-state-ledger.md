@@ -245,6 +245,23 @@ one-credit containment only. It does not prove market-wide discovery, ranking
 quality, candidate intelligence or an outcome evaluation, and it authorizes no
 retry or wider provider action.
 
+**A.2 CLOSED support — one-slot normal-scan admission, 2026-09-23 (local
+source-only):** `codex/sv-a2-one-slot-normal-scan` adds an opt-in admission guard
+to the existing scheduled-scan function. A normal scan can pass the global
+scheduler-disable switch only when catalog-only modes are off, the event's
+exact quarter-hour slot and New York date match the configured target, and the
+production deploy/site identity is bound to the packaged build; publication
+still requires external deploy readback when runtime metadata is ambiguous.
+Wrong or expired slots are inert before a database claim or scan route; missing
+event/deploy evidence and gate conflicts fail closed. The existing durable
+attempt claim still precedes the bundled route and deduplicates deliveries.
+Other scheduled functions remain disabled. Local evidence: 40/40 focused
+scheduler/Basic-Free regressions, strict TypeScript, lint of the changed source,
+scheduled-runtime package build and a full Next production build. No flag was
+activated, provider called, credit reserved, candidate published or broker
+action taken. This is not an A.2 OPEN result: a separately authorized, bounded
+production activation, exact-slot receipt and readback are still required.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
