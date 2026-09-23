@@ -47,6 +47,8 @@ test("recent intraday volume compares two complete same-session windows", () => 
   expect(observed.volumeTrend).toBe("expanding");
   expect(admissibleRecentIntradayVolumeRatio(observed, false)).toBe(2);
   expect(admissibleRecentIntradayVolumeRatio(observed, true)).toBeNull();
+  expect(admissibleRecentIntradayVolumeRatio(observed, null)).toBeNull();
+  expect(admissibleRecentIntradayVolumeRatio(observed, undefined)).toBeNull();
   expect(admissibleRecentIntradayVolumeRatio({}, false)).toBeNull();
   expect(
     admissibleRecentIntradayVolumeRatio(

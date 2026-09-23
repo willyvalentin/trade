@@ -140,4 +140,10 @@ test("v2 volume feature cannot inherit a legacy daily-derived scanner ratio", ()
     recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
       .feature_values.intraday_recent_volume_ratio,
   ).toBeNull();
+
+  delete candidate.intraday_indicator_stale;
+  expect(
+    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+      .feature_values.intraday_recent_volume_ratio,
+  ).toBeNull();
 });

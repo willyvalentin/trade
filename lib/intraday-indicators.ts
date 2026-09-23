@@ -23,7 +23,7 @@ export function admissibleRecentIntradayVolumeRatio(
   stale: boolean | null | undefined,
 ): number | null {
   const ratio = indicators?.recentVolumeRatio;
-  return stale !== true &&
+  return stale === false &&
     typeof ratio === "number" &&
     Number.isFinite(ratio) &&
     ratio > 0

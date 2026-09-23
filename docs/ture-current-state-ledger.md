@@ -332,11 +332,12 @@ re-enter the new ratio or volume trend; a v2 decision
 feature vector distinguishes new evidence while v1 readback remains valid.
 The intraday fetch window now follows New York daylight/standard time rather
 than a fixed summer UTC offset, preserving the same-session denominator in
-winter. Acceptance so far: red regression fixtures, then 44/44 focused
-volume/decision/learning/CI-contract tests, changed-file lint, strict
-TypeScript and a full Next build on the DST follow-up checkout. The previous
-pushed head `5003a94c` passed protected CI, but the DST follow-up needs its own
-protected CI after push. This is
+winter. A further red regression showed that an unknown freshness flag still
+admitted an otherwise valid ratio; only an explicit non-stale indicator receipt
+may now contribute the feature. The 11 focused volume/feature-vector tests,
+changed-file lint, strict TypeScript and a full Next build pass locally for
+that follow-up. The previous pushed head `bac1c72b` passed protected CI and
+Deploy Preview; the freshness follow-up still needs protected CI after push. This is
 **not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
