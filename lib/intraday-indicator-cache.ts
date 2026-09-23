@@ -117,6 +117,12 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
         : "unknown",
     latestVolume: parseNumber(raw.latestVolume),
     averageVolume: parseNumber(raw.averageVolume),
+    recentVolumeRatio:
+      typeof raw.recentVolumeRatio === "number" &&
+      Number.isFinite(raw.recentVolumeRatio) &&
+      raw.recentVolumeRatio > 0
+        ? raw.recentVolumeRatio
+        : null,
     warnings: Array.isArray(raw.warnings)
       ? raw.warnings.filter((item): item is string => typeof item === "string")
       : [],

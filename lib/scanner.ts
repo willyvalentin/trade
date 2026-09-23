@@ -5,7 +5,10 @@ import {
   MAX_FRESH_INDICATOR_FETCHES_PER_RUN,
   SCANNER_INDICATOR_MAX_AGE_MINUTES,
 } from "@/lib/intraday-indicator-cache";
-import type { IntradayIndicators } from "@/lib/intraday-indicators";
+import {
+  admissibleRecentIntradayVolumeRatio,
+  type IntradayIndicators,
+} from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
@@ -115,7 +118,6 @@ type ScannerValues = {
   recent_higher_highs_count: number;
   recent_higher_lows_count: number;
   recent_bullish_candles: number;
-  recent_volume_ratio: number;
   average_range_percent: number;
   latest_range_percent: number;
   range_expansion_ratio: number;
@@ -210,6 +212,12 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
         : "unknown",
     latestVolume: parseNumber(raw.latestVolume),
     averageVolume: parseNumber(raw.averageVolume),
+    recentVolumeRatio:
+      typeof raw.recentVolumeRatio === "number" &&
+      Number.isFinite(raw.recentVolumeRatio) &&
+      raw.recentVolumeRatio > 0
+        ? raw.recentVolumeRatio
+        : null,
     warnings: Array.isArray(raw.warnings)
       ? raw.warnings.filter((item): item is string => typeof item === "string")
       : [],
@@ -325,7 +333,6 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
       parseNumber(rawValues.recent_higher_highs_count) ?? 0,
     recent_higher_lows_count: parseNumber(rawValues.recent_higher_lows_count) ?? 0,
     recent_bullish_candles: parseNumber(rawValues.recent_bullish_candles) ?? 0,
-    recent_volume_ratio: parseNumber(rawValues.recent_volume_ratio) ?? volumeRatio,
     average_range_percent: parseNumber(rawValues.average_range_percent) ?? 2,
     latest_range_percent: parseNumber(rawValues.latest_range_percent) ?? 2,
     range_expansion_ratio: parseNumber(rawValues.range_expansion_ratio) ?? 1,
@@ -386,7 +393,6 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   const fiveDaysAgoCandle = candles[candles.length - 6];
   const twentyDayCandles = candles.slice(-20);
   const recentCandles = candles.slice(-5);
-  const priorRecentCandles = candles.slice(-10, -5);
 
   if (
     !latestCandle ||
@@ -433,10 +439,6 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
   const recentBullishCandles = recentCandles.filter(
     (candle) => candle.close > candle.open,
   ).length;
-  const priorRecentVolume = average(priorRecentCandles.map((candle) => candle.volume));
-  const recentVolume = average(recentCandles.map((candle) => candle.volume));
-  const recentVolumeRatio =
-    priorRecentVolume > 0 ? round(recentVolume / priorRecentVolume) : volumeRatio;
   const latestRangePercent =
     latestClose > 0
       ? round(((latestCandle.high - latestCandle.low) / latestClose) * 100)
@@ -482,7 +484,6 @@ function calculateScannerValues(candles: DailyCandle[]): ScannerValues {
     recent_higher_highs_count: recentHigherHighsCount,
     recent_higher_lows_count: recentHigherLowsCount,
     recent_bullish_candles: recentBullishCandles,
-    recent_volume_ratio: recentVolumeRatio,
     average_range_percent: averageRangePercent,
     latest_range_percent: latestRangePercent,
     range_expansion_ratio: rangeExpansionRatio,
@@ -531,7 +532,6 @@ function buildCandidate(
     recent_higher_highs_count: scannerValues.recent_higher_highs_count,
     recent_higher_lows_count: scannerValues.recent_higher_lows_count,
     recent_bullish_candles: scannerValues.recent_bullish_candles,
-    recent_volume_ratio: scannerValues.recent_volume_ratio,
     average_range_percent: scannerValues.average_range_percent,
     latest_range_percent: scannerValues.latest_range_percent,
     range_expansion_ratio: scannerValues.range_expansion_ratio,
@@ -709,6 +709,14 @@ export async function scanMarket(
         intraday_indicator_cached_at: result.cached_at,
         intraday_indicator_response_identity: result.response_identity,
         intraday_indicator_stale: result.stale,
+        // Legacy scanner-cache `recent_volume_ratio` came from daily bars.
+        // Only same-session intraday bars from a fresh indicator receipt may
+        // populate this ranking/decision feature.
+        recent_volume_ratio:
+          admissibleRecentIntradayVolumeRatio(
+            result.indicators,
+            result.stale,
+          ) ?? undefined,
       },
       indicatorSource: result.source,
     };

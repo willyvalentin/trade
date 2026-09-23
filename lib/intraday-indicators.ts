@@ -13,8 +13,23 @@ export type IntradayIndicators = {
   volumeTrend: "expanding" | "contracting" | "flat" | "unknown";
   latestVolume: number | null;
   averageVolume: number | null;
+  // Optional only for pre-v2 persisted indicator caches and caller fixtures.
+  recentVolumeRatio?: number | null;
   warnings: string[];
 };
+
+export function admissibleRecentIntradayVolumeRatio(
+  indicators: Pick<IntradayIndicators, "recentVolumeRatio"> | null | undefined,
+  stale: boolean | null | undefined,
+): number | null {
+  const ratio = indicators?.recentVolumeRatio;
+  return stale !== true &&
+    typeof ratio === "number" &&
+    Number.isFinite(ratio) &&
+    ratio > 0
+    ? ratio
+    : null;
+}
 
 const RECENT_CANDLE_COUNT = 12;
 const MOMENTUM_LOOKBACK_MAX = 6;
@@ -54,6 +69,7 @@ export function calculateIntradayIndicators(
       volumeTrend: "unknown",
       latestVolume: null,
       averageVolume: null,
+      recentVolumeRatio: null,
       warnings: ["Intraday candles unavailable."],
     };
   }
@@ -150,24 +166,49 @@ export function calculateIntradayIndicators(
       ? Math.round(volumeCandles[volumeCandles.length - 1].volume)
       : null;
   const recentVolumeCandles = volumeCandles.slice(-RECENT_CANDLE_COUNT);
-  const previousVolumeCandles = volumeCandles.slice(
-    -RECENT_CANDLE_COUNT * 2,
-    -RECENT_CANDLE_COUNT,
-  );
   const averageVolume =
     recentVolumeCandles.length > 0
       ? Math.round(average(recentVolumeCandles.map((candle) => candle.volume)))
       : null;
-  const previousAverageVolume =
-    previousVolumeCandles.length > 0
-      ? average(previousVolumeCandles.map((candle) => candle.volume))
+  // Do not compact around missing/zero bars: that would silently compare
+  // unequal clock windows. Require two complete, evenly spaced windows from
+  // the same continuous intraday request before ranking this feature.
+  const volumeWindow = sortedCandles.slice(-RECENT_CANDLE_COUNT * 2);
+  const intervalSeconds =
+    volumeWindow.length === RECENT_CANDLE_COUNT * 2
+      ? volumeWindow[1].timestamp - volumeWindow[0].timestamp
+      : null;
+  const completeVolumeWindow =
+    (intervalSeconds === 5 * 60 || intervalSeconds === 15 * 60) &&
+    volumeWindow.every(
+      (candle, index) =>
+        isFiniteNumber(candle.volume) &&
+        candle.volume > 0 &&
+        (index === 0 ||
+          candle.timestamp - volumeWindow[index - 1].timestamp ===
+            intervalSeconds),
+    );
+  const recentVolumeRatio =
+    completeVolumeWindow
+      ? round(
+          average(
+            volumeWindow
+              .slice(RECENT_CANDLE_COUNT)
+              .map((candle) => candle.volume),
+          ) /
+            average(
+              volumeWindow
+                .slice(0, RECENT_CANDLE_COUNT)
+                .map((candle) => candle.volume),
+            ),
+        )
       : null;
   const volumeTrend =
-    averageVolume === null || previousAverageVolume === null || previousAverageVolume <= 0
+    recentVolumeRatio === null
       ? "unknown"
-      : averageVolume / previousAverageVolume >= VOLUME_EXPANDING_RATIO
+      : recentVolumeRatio >= VOLUME_EXPANDING_RATIO
         ? "expanding"
-        : averageVolume / previousAverageVolume <= VOLUME_CONTRACTING_RATIO
+        : recentVolumeRatio <= VOLUME_CONTRACTING_RATIO
           ? "contracting"
           : "flat";
 
@@ -188,6 +229,7 @@ export function calculateIntradayIndicators(
     volumeTrend,
     latestVolume,
     averageVolume,
+    recentVolumeRatio,
     warnings,
   };
 }

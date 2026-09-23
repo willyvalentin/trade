@@ -1,6 +1,9 @@
 import type { ScannerCandidate } from "@/lib/scanner";
+import { admissibleRecentIntradayVolumeRatio } from "@/lib/intraday-indicators";
 
 export const RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION =
+  "recommendation_decision_feature_vector_v2" as const;
+const LEGACY_RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION =
   "recommendation_decision_feature_vector_v1" as const;
 
 const featureNames = [
@@ -27,7 +30,9 @@ const featureNames = [
 export type RecommendationDecisionFeatureName = (typeof featureNames)[number];
 
 export type RecommendationDecisionFeatureVector = {
-  contract_version: typeof RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION;
+  contract_version:
+    | typeof RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+    | typeof LEGACY_RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION;
   feature_values: Record<RecommendationDecisionFeatureName, number | null>;
   explicit_unavailable_feature_names: RecommendationDecisionFeatureName[];
 };
@@ -80,11 +85,11 @@ export function recommendationDecisionFeatureVectorFromScannerCandidate(
     | "change_5d_percent"
     | "recent_change_percent"
     | "recent_range_position"
-    | "recent_volume_ratio"
     | "average_range_percent"
     | "latest_range_percent"
     | "range_expansion_ratio"
     | "proposed_risk_reward"
+    | "intraday_indicator_stale"
   > & {
     local_score?: number;
   },
@@ -106,7 +111,10 @@ export function recommendationDecisionFeatureVectorFromScannerCandidate(
       candidate.recent_range_position,
     ),
     intraday_recent_volume_ratio: finiteNumberOrNull(
-      candidate.recent_volume_ratio,
+      admissibleRecentIntradayVolumeRatio(
+        intraday,
+        candidate.intraday_indicator_stale,
+      ),
     ),
     intraday_average_range_percent: finiteNumberOrNull(
       candidate.average_range_percent,
@@ -141,17 +149,26 @@ export function recommendationDecisionFeatureVectorFromScannerCandidate(
 }
 
 /**
- * Accepts only the current bounded schema. This turns an absent, malformed or
- * silently changed decision feature projection into a visible evidence gap.
+ * The former feature projection survives as v1 evidence. New decisions use v2
+ * because `intraday_recent_volume_ratio` now comes from two complete intraday
+ * windows instead of being mislabeled daily-candle arithmetic. Historical v1
+ * values remain readable but must not be pooled with v2 as the same feature.
  */
 export function recommendationDecisionFeatureVectorFromUnknown(
   value: unknown,
 ): RecommendationDecisionFeatureVector | null {
   const raw = objectOrNull(value);
+  const contractVersion =
+    raw?.contract_version === RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+      ? RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+      : raw?.contract_version ===
+          LEGACY_RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+        ? LEGACY_RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION
+        : null;
 
   if (
     !raw ||
-    raw.contract_version !== RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION ||
+    !contractVersion ||
     Object.keys(raw).length !== 3 ||
     !Object.hasOwn(raw, "feature_values") ||
     !Object.hasOwn(raw, "explicit_unavailable_feature_names")
@@ -208,7 +225,7 @@ export function recommendationDecisionFeatureVectorFromUnknown(
   }
 
   return {
-    contract_version: RECOMMENDATION_DECISION_FEATURE_VECTOR_VERSION,
+    contract_version: contractVersion,
     feature_values: featureValues,
     explicit_unavailable_feature_names: normalizedUnavailableNames,
   };

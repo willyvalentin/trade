@@ -316,6 +316,33 @@ No internal-paper pilot selection is recorded or enabled. That is an evidence
 gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
+**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (local only):**
+owner Codex, 4–8 active-hour slice on isolated
+`codex/sv-a2-volume-provenance` from main `a83ddbb1`, with no schema, provider,
+configuration or broker write. The reproducible source defect is that
+`recent_volume_ratio` was computed from five *daily* bars versus five earlier
+daily bars, then recorded as an *intraday* signal in ranking/decision evidence.
+The local fix instead derives it from two complete, contiguous twelve-bar
+windows of the existing 5m/15m intraday feed; missing/zero/gapped/early-session
+volume leaves both the ratio and volume trend unavailable. Old daily-derived
+cache values cannot re-enter the new ratio; a v2 decision feature vector
+distinguishes new evidence while v1 readback remains valid. Acceptance so far:
+the red baseline fixture, then 58/58 targeted decision/ranking/learning tests,
+6/6 protected-CI registration tests, changed-file lint, strict TypeScript and
+a full Next webpack build. This is **not** merged, deployed, market-behavior
+verified or evidence of better recommendations. Integrate only after the
+frozen A.2 OPEN observation is completed or skipped and PR #605 has been
+resolved; do not pool old and new volume-feature cohorts.
+
+[Twelve Data's public US feed description](https://support.twelvedata.com/en/articles/9935903-us-equities-market-data)
+states that its default real-time feed represents roughly 5% of total US
+trading volume although it covers listed symbols, whereas next-day historical
+EOD data has broader consolidated coverage. This is provider-published scope,
+not an account-specific entitlement, a verified full-tape intraday baseline,
+or permission to retain/redistribute data. The remaining daily-derived
+features with intraday labels and retention rights need separate evidence and
+must not be silently treated as fixed by this volume slice.
+
 ### Next — ordered, bounded product work
 
 **Selected second development slice — SV-B.1 decision lineage, 2026-09-21

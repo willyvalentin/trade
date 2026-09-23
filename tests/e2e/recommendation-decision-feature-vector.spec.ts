@@ -47,6 +47,7 @@ function scannerCandidate(): ScannerCandidate & { local_score: number } {
       volumeTrend: "expanding",
       latestVolume: 2000,
       averageVolume: 1000,
+      recentVolumeRatio: 1.6,
       warnings: [],
     },
     intraday_indicator_source: "fresh",
@@ -72,7 +73,7 @@ test("captures a bounded decision feature projection and propagates it through r
   });
 
   expect(featureVector).toMatchObject({
-    contract_version: "recommendation_decision_feature_vector_v1",
+    contract_version: "recommendation_decision_feature_vector_v2",
     feature_values: {
       latest_price: 100.5,
       daily_volume_ratio: 1.8,
@@ -99,6 +100,19 @@ test("keeps unavailable inputs explicit and rejects a malformed feature projecti
   expect(recommendationDecisionFeatureVectorFromUnknown(featureVector)).toEqual(
     featureVector,
   );
+  const legacy = {
+    ...featureVector,
+    contract_version: "recommendation_decision_feature_vector_v1",
+  };
+  expect(recommendationDecisionFeatureVectorFromUnknown(legacy)).toEqual(
+    legacy,
+  );
+  expect(
+    recommendationDecisionFeatureVectorFromUnknown({
+      ...featureVector,
+      contract_version: "recommendation_decision_feature_vector_v3",
+    }),
+  ).toBeNull();
   expect(
     recommendationDecisionFeatureVectorFromUnknown({
       ...featureVector,
@@ -110,5 +124,20 @@ test("keeps unavailable inputs explicit and rejects a malformed feature projecti
       ...featureVector,
       raw_provider_response: "must never be retained here",
     }),
+  ).toBeNull();
+});
+
+test("v2 volume feature cannot inherit a legacy daily-derived scanner ratio", () => {
+  const candidate = scannerCandidate();
+  candidate.recent_volume_ratio = 9.9;
+  expect(
+    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+      .feature_values.intraday_recent_volume_ratio,
+  ).toBe(1.6);
+
+  candidate.intraday_indicator_stale = true;
+  expect(
+    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+      .feature_values.intraday_recent_volume_ratio,
   ).toBeNull();
 });
