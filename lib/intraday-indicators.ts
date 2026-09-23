@@ -142,6 +142,10 @@ export function intradayIndicatorsFromUnknown(
   return {
     vwap: parseNumber(raw.vwap),
     latestPrice: parseNumber(raw.latestPrice),
+    latestCandleTimestamp:
+      typeof raw.latestCandleTimestamp === "string"
+        ? raw.latestCandleTimestamp
+        : null,
     priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
     isAboveVwap:
       typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,

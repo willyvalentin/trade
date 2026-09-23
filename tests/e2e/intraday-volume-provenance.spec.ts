@@ -245,3 +245,19 @@ test("missing cached indicator values remain unavailable rather than zero", () =
     averageVolume: 250,
   });
 });
+
+test("shared cache decoder preserves source-candle time for the live freshness gate", () => {
+  const latestCandleTimestamp = "2026-09-23T18:35:00.000Z";
+  expect(
+    intradayIndicatorsFromUnknown({ latestCandleTimestamp })
+      ?.latestCandleTimestamp,
+  ).toBe(latestCandleTimestamp);
+  expect(
+    intradayIndicatorsFromUnknown({ latestCandleTimestamp: "" })
+      ?.latestCandleTimestamp,
+  ).toBe("");
+  expect(
+    intradayIndicatorsFromUnknown({ latestCandleTimestamp: null })
+      ?.latestCandleTimestamp,
+  ).toBeNull();
+});
