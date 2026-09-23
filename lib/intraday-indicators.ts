@@ -63,6 +63,10 @@ function average(values: number[]) {
 
 export function calculateIntradayIndicators(
   candles: IntradayCandle[] | null | undefined,
+  observation: {
+    interval: "5min" | "15min";
+    observedAtSeconds: number;
+  },
 ): IntradayIndicators {
   const warnings: string[] = [];
 
@@ -182,15 +186,18 @@ export function calculateIntradayIndicators(
       ? Math.round(average(recentVolumeCandles.map((candle) => candle.volume)))
       : null;
   // Do not compact around missing/zero bars: that would silently compare
-  // unequal clock windows. Require two complete, evenly spaced windows from
-  // the same continuous intraday request before ranking this feature.
-  const volumeWindow = sortedCandles.slice(-RECENT_CANDLE_COUNT * 2);
-  const intervalSeconds =
-    volumeWindow.length === RECENT_CANDLE_COUNT * 2
-      ? volumeWindow[1].timestamp - volumeWindow[0].timestamp
-      : null;
+  // unequal clock windows. Require two closed, evenly spaced windows from
+  // the same regular-session intraday request before ranking this feature.
+  const intervalSeconds = observation.interval === "5min" ? 5 * 60 : 15 * 60;
+  const volumeWindow = sortedCandles
+    .filter(
+      (candle) =>
+        Number.isFinite(observation.observedAtSeconds) &&
+        candle.timestamp + intervalSeconds <= observation.observedAtSeconds,
+    )
+    .slice(-RECENT_CANDLE_COUNT * 2);
   const completeVolumeWindow =
-    (intervalSeconds === 5 * 60 || intervalSeconds === 15 * 60) &&
+    volumeWindow.length === RECENT_CANDLE_COUNT * 2 &&
     volumeWindow.every(
       (candle, index) =>
         isFiniteNumber(candle.volume) &&

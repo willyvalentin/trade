@@ -376,7 +376,10 @@ export async function getOrRefreshIntradayIndicators(
       },
     );
     throwIfAborted(options.signal);
-    const indicators = calculateIntradayIndicators(response.candles);
+    const indicators = calculateIntradayIndicators(response.candles, {
+      interval,
+      observedAtSeconds: Date.now() / 1000,
+    });
     const cachedAt = new Date().toISOString();
 
     await setCachedIntradayIndicators(ticker, indicators, {
