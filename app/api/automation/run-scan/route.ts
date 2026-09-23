@@ -2399,7 +2399,7 @@ async function persistAutomationArtifacts({
   providerPlanProfileMode: string | null;
   learningAccelerationMode: LearningAccelerationModeEvaluation;
   learningAccelerationTargetSamples: number;
-  candidateDecisionCapture?: CandidateDecisionCapture | null;
+  candidateDecisionCapture: CandidateDecisionCapture | null;
   learningAccelerationInput?: {
     candidateGeneration?: RecommendationScanLogDetails["real_scanner_candidate_generation"] | null;
     ranking?: RecommendationScanLogDetails["scanner_candidate_ranking"] | null;
