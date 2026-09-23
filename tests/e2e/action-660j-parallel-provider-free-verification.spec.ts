@@ -414,6 +414,7 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/recommendation-learning-baseline-pagination.spec.ts",
       "tests/e2e/recommendation-learning-baseline-readiness.spec.ts",
       "tests/e2e/recommendation-policy-comparison.spec.ts",
+      "tests/e2e/selective-publication-policy.spec.ts",
     ]),
   ],
   "non-forgeable-authority": [

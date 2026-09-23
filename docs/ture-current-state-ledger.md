@@ -1113,7 +1113,37 @@ historical data rights, real exchange execution or scientific strategy edge.
 Local evidence: 78/78 E.1–H.3 replay tests, strict TypeScript, changed-file
 lint without findings, full repository lint excluding generated bundles with
 zero errors/eight pre-existing warnings and a complete Next webpack production
-build. Protected CI, merge and exact-main deploy remain separate.
+build. PR #604 passed all six protected provider-free CI shards, aggregate and
+merge-candidate provenance, then merged as main
+`a83ddbb1f1347daacdc147f966d5bcd9891b3080`. Netlify production deploy
+`6ab36ab79411ee0008ec3e28` is `ready` on that exact revision. This closes
+source/deploy verification, not historical-data integrity, real fill behavior
+or strategy-quality evidence.
+
+**Selected SV-A.2 CLOSED ranking-plan integrity repair, 2026-09-23 (4–8h):**
+owner Codex on `codex/sv-a2-ranking-plan-integrity`, based on the verified
+PR #604 main revision. A deterministic candidate fixture with an absent
+target 2 was selected `valid` at score 78 under ranking v1.0; `null` target 2
+was selected `strong` at 88 because `Number(null)` became zero; a reversed
+target 2 was also selected `strong`. A second deterministic fixture found that
+reported risk/reward values of 9 or 1.1 could be selected despite an entry-high,
+stop and target-two geometry implying about 1.67. This is a pre-builder ranking/decision
+truth defect; it does not prove an invalid recommendation was published, since
+later plan construction and validation have separate gates. The v1.1 ranker
+preserves complete-plan behavior and the full decision record, but blocks
+missing, nonnumeric, nonpositive, reversed and materially contradictory
+long plans before selection. The reported risk/reward must agree with the
+reconstructable worst-entry geometry within 0.05 for price/ratio rounding.
+An empty selection remains `no_trade`; the versioned result can be compared
+with the frozen v1.0 fixture. Scope is ranking, provider-free regressions, CI
+registration and this ledger; no provider, credit, database, configuration,
+broker or live ranking experiment. Local acceptance: red-to-green plan tests,
+60/60 focused ranking/decision/learning/CI-contract tests, strict TypeScript,
+changed-file lint, full repository lint excluding generated bundles with zero
+errors/eight existing warnings, and a complete Next webpack production build.
+Protected CI, merge, exact-main deploy and any real market-behavior or quality
+claim remain separate. Keep the currently prepared A.2 OPEN scan revision
+frozen until that observation is resolved; do not silently mix ranker versions.
 
 ### Pilot readiness and bounded parallel work
 
@@ -1133,8 +1163,8 @@ on A/B evidence and must not be inferred from the source registry.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | A.2 one-slot outcome-evaluation guard is merged and exact-revision production-deployed as `ea9a024d`; B.1 base receipt and strategy/selection registry are also merged, but real-decision/outcome acceptance remains OPEN | Observe only a separately authorized, bounded scheduled session; do not call the outcome or scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus all three earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. An E.1 volume-integrity repair is selected locally on `codex/sv-e1-volume-integrity`. | Finish its invalid-data regression, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
