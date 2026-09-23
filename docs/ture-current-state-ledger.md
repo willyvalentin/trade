@@ -321,8 +321,11 @@ Its dominant quality gaps were stale inputs (trace stale count nine), four
 unavailable intraday indicators (counted as candle errors in the trace),
 missing provider/source facts and
 low relative volume; the top score was 67, below the strong threshold of 82.
-This is an attributable, bounded `no_trade`, not evidence that the discovery or
-ranking engine improved. One earlier catalog-only observation consumed one
+This is an attributable, bounded **zero-publication result**, not yet a clean
+quality-based `no_trade`: input freshness and completeness were degraded, so
+the absence of a recommendation cannot validate the opportunity filter or
+show that the discovery/ranking engine improved. One earlier catalog-only
+observation consumed one
 separate credit and never reached normal ranking. Immediately after the normal
 receipt, the normal-scan one-shot flag was disabled, its date/slot removed and
 catalog-only default restored; Git-connected cleanup deploy
