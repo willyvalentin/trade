@@ -40,7 +40,7 @@ export async function measureScanFetchStep<T>(input: {
     timing_current_ticker_index: tickerIndex,
     timing_last_step: step,
     timing_last_ticker_index: tickerIndex,
-    timing_last_step_status: "started",
+    timing_last_step_settlement: "pending",
   });
 
   let completed = false;
@@ -54,7 +54,7 @@ export async function measureScanFetchStep<T>(input: {
     trace.updateMarketDataFetch({
       timing_current_step: null,
       timing_current_ticker_index: null,
-      timing_last_step_status: completed ? "completed" : "failed",
+      timing_last_step_settlement: completed ? "resolved" : "rejected",
       timing_last_step_elapsed_ms: elapsed,
     });
   }

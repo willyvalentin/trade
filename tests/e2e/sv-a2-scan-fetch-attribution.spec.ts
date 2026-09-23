@@ -28,7 +28,7 @@ test("successful timed steps retain only bounded stage and index diagnostics", a
     timing_current_ticker_index: null,
     timing_last_step: "cache_read",
     timing_last_ticker_index: null,
-    timing_last_step_status: "completed",
+    timing_last_step_settlement: "resolved",
   });
   expect(recorder.trace.market_data_fetch.cache_read_elapsed_ms).toBeGreaterThanOrEqual(0);
   expect(recorder.trace.market_data_fetch.timing_last_step_elapsed_ms).toBeGreaterThanOrEqual(0);
@@ -52,7 +52,7 @@ test("a rejected provider wait retains its failed step without fabricating a suc
     timing_current_ticker_index: null,
     timing_last_step: "daily_candles",
     timing_last_ticker_index: 3,
-    timing_last_step_status: "failed",
+    timing_last_step_settlement: "rejected",
   });
   expect(recorder.trace.market_data_fetch.daily_candles_elapsed_ms).toBeGreaterThanOrEqual(0);
   expect(JSON.stringify(recorder.trace.market_data_fetch)).not.toContain("provider unavailable");

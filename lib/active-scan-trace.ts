@@ -197,7 +197,8 @@ export type ActiveScanTrace = {
     timing_current_ticker_index: number | null;
     timing_last_step: ScanFetchTimingStep | null;
     timing_last_ticker_index: number | null;
-    timing_last_step_status: "started" | "completed" | "failed" | null;
+    // Await settlement, not proof that a provider/cache side effect succeeded.
+    timing_last_step_settlement: "pending" | "resolved" | "rejected" | null;
     timing_last_step_elapsed_ms: number | null;
     cache_read_elapsed_ms: number;
     pacing_delay_elapsed_ms: number;
@@ -448,7 +449,7 @@ export function createActiveScanTrace({
       timing_current_ticker_index: null,
       timing_last_step: null,
       timing_last_ticker_index: null,
-      timing_last_step_status: null,
+      timing_last_step_settlement: null,
       timing_last_step_elapsed_ms: null,
       cache_read_elapsed_ms: 0,
       pacing_delay_elapsed_ms: 0,
