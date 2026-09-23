@@ -64,6 +64,7 @@ const foundationTests = [
   "tests/e2e/sv-f1-internal-paper-replay-experiment.spec.ts",
   "tests/e2e/sv-h3-internal-paper-execution-feasibility-stress.spec.ts",
   "tests/e2e/scheduled-scan-invocation-idempotency.spec.ts",
+  "tests/e2e/intraday-volume-provenance.spec.ts",
   "tests/e2e/scheduled-dynamic-movers-budget.spec.ts",
   "tests/e2e/continuous-market-scan-admission.spec.ts",
   "tests/e2e/scheduled-scan-ticker-cap.spec.ts",

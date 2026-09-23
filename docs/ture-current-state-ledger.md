@@ -375,6 +375,123 @@ No internal-paper pilot selection is recorded or enabled. That is an evidence
 gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
+**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, pending merge):**
+owner Codex, 4–8 active-hour slice on isolated
+`codex/sv-a2-volume-provenance` from main `a83ddbb1`, with no schema, provider,
+configuration or broker write. The reproducible source defect is that
+`recent_volume_ratio` was computed from five *daily* bars versus five earlier
+daily bars, then recorded as an *intraday* signal in ranking/decision evidence.
+The local fix instead derives it from two complete, contiguous twelve-bar
+windows of closed bars from the existing 5m/15m intraday feed;
+missing/zero/gapped/early-session or still-open-bar volume leaves both the ratio
+and volume trend unavailable. A shared readback parser rejects old or
+contradictory cached volume trends and preserves missing numeric indicators as
+unavailable rather than coercing them to zero. Daily-derived cache values cannot
+re-enter the new ratio or volume trend; a v2 decision
+feature vector distinguishes new evidence while v1 readback remains valid.
+The intraday fetch window now follows New York daylight/standard time rather
+than a fixed summer UTC offset, preserving the same-session denominator in
+winter. A red regression showed that an unknown freshness flag still admitted
+an otherwise valid ratio; only an explicit non-stale indicator receipt may now
+contribute the feature. A second red regression showed that a newly fetched
+provider response with old bars still contributed a falsely current volume
+ratio. The local follow-up carries the latest closed-bar timestamp and interval
+through the cache, requires the bar to be no more than one interval old at
+fetch, cache use and decision projection, and removes the ratio from the
+candidate signal when it expires. A missing persisted cache capture timestamp
+can no longer become fresh just because it entered memory. Twelve Data's
+published `/time_series` contract defines the timestamp as the bar's opening
+time; the guard adds the interval to obtain its close. Fifty-six focused and
+related local regressions, changed-file lint, strict TypeScript and a full
+Next build pass for this follow-up. Current pushed head `0261d116` passed
+all six protected provider-free CI shards, aggregate verification,
+merge-candidate provenance and Netlify Deploy Preview. This is
+**not** merged, production-deployed, market-behavior
+verified or evidence of better recommendations. Integrate only after the
+frozen A.2 OPEN observation is completed or skipped and PR #605 has been
+resolved; do not pool old and new volume-feature cohorts.
+An earlier isolated local combination of production main `a83ddbb1`, #605
+head `310a73e6` and pushed #606 head `0261d116` passed 60 relevant tests,
+changed-file lint, strict TypeScript and a full Next webpack build. A later
+local combination including the still-unpushed ranking-identity follow-up
+required resolving one expected `summary_version` conflict and updating one
+#605 test expectation from v1.1 to v1.2; 66/66 relevant tests, changed-file
+lint, strict TypeScript and a full Next webpack build then passed. The
+temporary checkout uses a linked dependency directory, so Turbopack rejected
+the symlink before compilation; webpack supplied the complete build check.
+Recheck integration against then-current main and carry the test correction
+into PR #606 after PR #605 merges. A
+local red-to-green follow-up now advances the ranking summary and derived
+decision-record ranking identity to v1.2 while retaining v1.0/v1.1 readback;
+31 relevant tests, changed-file lint, strict TypeScript and a production build
+pass. This follow-up is not yet pushed or protected-CI verified and must be
+reconciled with PR #605's v1.1 ranker before merge.
+One further local red-to-green regression found that the ranking component
+itself still accepted a legacy flat `recent_volume_ratio`: an unverified value
+raised its liquidity score from 40 to 90 despite stale intraday evidence.
+The ranker now derives that component only from the same decision-time,
+explicitly non-stale closed-bar evidence as the v2 feature vector. A fresh
+intraday ratio still contributes. Sixty-three related local tests,
+changed-file lint, strict TypeScript and a full production build pass; this
+additional fix is also unpushed and not protected-CI or market verified.
+Another local consumer audit found that the generator's legacy local score,
+setup classification, pre-market watchlist and AI payload could still read the
+flat ratio or a cached `volumeTrend` after the closed-bar evidence expired.
+These paths now recheck the same explicit non-stale intraday provenance at use
+time; stale, expired and old flat values become unavailable without changing
+the separately labelled daily `volume_ratio`. The compact trace and build
+diagnostic also recheck volume trend. Fourteen focused tests including a
+stale/expired/legacy consumer regression, changed-file lint,
+strict TypeScript and a full Next production build pass locally. This
+additional work is unpushed, not protected-CI verified and has not been
+compared against a production baseline; it does not prove improved trading
+quality.
+An isolated, non-committed integration of local #606 `6054888d` with #605
+`310a73e6` resolved only the expected ranking-summary version conflict and
+one #605 test expectation. Forty-four selected cross-PR regressions, full
+repository ESLint (zero errors, eight pre-existing warnings), strict
+TypeScript and a complete Next production build passed. This is local
+integration evidence only, not a merge, protected CI or production behavior.
+One subsequent red-to-green audit found an independent +8 liquidity bonus
+from `latestVolume > averageVolume` even when the latest candle was open and
+the complete-window ratio unavailable (32 versus 40 on the controlled
+fixture). That undocumented partial-bar bonus is removed; the separate daily
+ratio and provenance-checked closed-bar ratio remain. Thirty-four related
+tests, changed-file lint, strict TypeScript and a full Next production build
+pass locally. The complete latest combination passed the forty-four selected
+tests, full lint, strict TypeScript and a full production build in the
+temporary checkout. Protected CI and live ranking-quality comparison remain
+unverified.
+Protected CI and production behavior on the eventual merged revision remain
+unverified. Two complete twelve-bar windows require two hours of 5-minute
+regular-session data, or six hours of 15-minute data; the corrected ratio is
+unavailable at the frozen 10:00 ET scan slot, not inferred from daily bars.
+Other legacy scanner-cache numeric defaults and daily-derived fields remain
+outside this repair and must not be inferred to have intraday provenance.
+
+**Current integration check, 2026-09-23:** the 20:30 CEST authorized
+production scan on main `d0c6bc6` failed with `timeout_budget_exceeded`
+before ranking (`scheduled_scan_attempt_1nsavmv`); it yielded no candidate
+and cannot evaluate this unmerged volume repair. Scheduled execution and
+one-shot flags were restored, with cleanup deploy
+`6ab41b37f70ab406d5325d7b` ready on unchanged main. PR #605, #608 and
+#609 are now merged. The isolated #606 branch incorporates that current main,
+including the live market-time freshness gate; 125 selected cross-feature
+tests, full ESLint, strict TypeScript and Next webpack production build pass
+locally. The resulting revision has not yet passed protected CI, merged,
+deployed or demonstrated improved recommendation quality. The earlier
+precondition to wait for #605 and the 10:00 ET scan is satisfied; it is not
+a reason to relax provenance, budget or publication gates.
+
+[Twelve Data's public US feed description](https://support.twelvedata.com/en/articles/9935903-us-equities-market-data)
+states that its default real-time feed represents roughly 5% of total US
+trading volume although it covers listed symbols, whereas next-day historical
+EOD data has broader consolidated coverage. This is provider-published scope,
+not an account-specific entitlement, a verified full-tape intraday baseline,
+or permission to retain/redistribute data. The remaining daily-derived
+features with intraday labels and retention rights need separate evidence and
+must not be silently treated as fixed by this volume slice.
+
 ### Next — ordered, bounded product work
 
 **Selected independent CLOSED slice — SV-A.2 continuous regular-session scan

@@ -172,6 +172,7 @@ test.describe("candidate decision record", () => {
     });
 
     expect(record).not.toBeNull();
+    expect(record!.versions.ranking_version).toBe("scanner_candidate_ranking_v1.2");
     const receipt = buildDecisionLineageReceipt(record!);
     const persisted = {
       ...run,

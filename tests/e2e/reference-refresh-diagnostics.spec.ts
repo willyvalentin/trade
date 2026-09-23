@@ -41,7 +41,10 @@ test("intraday indicators retain the underlying latest candle time", () => {
       close: 112.35,
       volume: 1000,
     },
-  ]);
+  ], {
+    interval: "5min",
+    observedAtSeconds: Date.parse("2026-06-25T17:00:00.000Z") / 1000,
+  });
 
   expect(result.latestPrice).toBe(112.35);
   expect(result.latestCandleTimestamp).toBe("2026-06-25T16:55:00.000Z");

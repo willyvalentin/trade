@@ -2,9 +2,12 @@ import "server-only";
 
 import {
   calculateIntradayIndicators,
+  intradayIndicatorsFromUnknown,
+  withAdmissibleRecentIntradayVolume,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
+import { getNewYorkRegularSessionWindow } from "@/lib/intraday-scan-window";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { throwIfAborted } from "@/lib/operation-abort";
@@ -82,52 +85,6 @@ function normalizeTicker(ticker: string) {
   return ticker.trim().toUpperCase();
 }
 
-function parseNumber(value: unknown) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
-  if (typeof value !== "object" || value === null) {
-    return null;
-  }
-
-  const raw = value as Partial<IntradayIndicators>;
-
-  return {
-    vwap: parseNumber(raw.vwap),
-    latestPrice: parseNumber(raw.latestPrice),
-    latestCandleTimestamp:
-      typeof raw.latestCandleTimestamp === "string"
-        ? raw.latestCandleTimestamp
-        : null,
-    priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
-    isAboveVwap:
-      typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,
-    recentHigh: parseNumber(raw.recentHigh),
-    recentLow: parseNumber(raw.recentLow),
-    recentRangePercent: parseNumber(raw.recentRangePercent),
-    momentumPercent: parseNumber(raw.momentumPercent),
-    momentumDirection:
-      raw.momentumDirection === "up" ||
-      raw.momentumDirection === "down" ||
-      raw.momentumDirection === "flat"
-        ? raw.momentumDirection
-        : "unknown",
-    volumeTrend:
-      raw.volumeTrend === "expanding" ||
-      raw.volumeTrend === "contracting" ||
-      raw.volumeTrend === "flat"
-        ? raw.volumeTrend
-        : "unknown",
-    latestVolume: parseNumber(raw.latestVolume),
-    averageVolume: parseNumber(raw.averageVolume),
-    warnings: Array.isArray(raw.warnings)
-      ? raw.warnings.filter((item): item is string => typeof item === "string")
-      : [],
-  };
-}
-
 function getAgeMinutes(cachedAt: string | null) {
   if (!cachedAt) {
     return Number.POSITIVE_INFINITY;
@@ -164,22 +121,6 @@ function getDefaultMaxAgeMinutes(options: IntradayIndicatorCacheOptions) {
   return DEFAULT_MAX_AGE_MINUTES;
 }
 
-function getNewYorkTradingDayWindow() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
-  const date = `${valueByType.get("year")}-${valueByType.get("month")}-${valueByType.get("day")}`;
-
-  return {
-    start: new Date(`${date}T09:30:00-04:00`),
-    end: new Date(`${date}T16:00:00-04:00`),
-  };
-}
-
 async function getScannerCacheRaw(ticker: string) {
   const { data, error } = await serverSupabase()
     .from("scanner_cache")
@@ -211,24 +152,28 @@ export async function getCachedIntradayIndicators(
   const memoryEntry = memoryCache.get(ticker);
 
   if (memoryEntry && memoryEntry.interval === interval) {
+    const stale =
+      !isFresh(memoryEntry.cached_at, maxAgeMinutes) ||
+      !isFreshLiveReferenceMarketTime(
+        memoryEntry.indicators.latestCandleTimestamp,
+      );
     return {
       ticker,
-      indicators: memoryEntry.indicators,
+      indicators: withAdmissibleRecentIntradayVolume(
+        memoryEntry.indicators,
+        stale,
+      ),
       source: "cache",
       cached_at: memoryEntry.cached_at,
       response_identity: memoryEntry.response_identity,
-      stale:
-        !isFresh(memoryEntry.cached_at, maxAgeMinutes) ||
-        !isFreshLiveReferenceMarketTime(
-          memoryEntry.indicators.latestCandleTimestamp,
-        ),
+      stale,
       warnings,
     };
   }
 
   const raw = await getScannerCacheRaw(ticker);
   const cache = raw?.intraday_indicator_cache;
-  const indicators = parseIntradayIndicators(cache?.indicators);
+  const indicators = intradayIndicatorsFromUnknown(cache?.indicators);
   const cachedAt =
     typeof cache?.cached_at === "string" ? cache.cached_at : null;
   const cachedInterval =
@@ -240,22 +185,27 @@ export async function getCachedIntradayIndicators(
   );
 
   if (indicators && cachedInterval === interval) {
-    memoryCache.set(ticker, {
-      cached_at: cachedAt ?? new Date().toISOString(),
-      interval,
-      indicators,
-      response_identity: responseIdentity,
-    });
+    // Missing persisted capture time must not become fresh on the next
+    // in-memory read merely because this read happened now.
+    if (cachedAt) {
+      memoryCache.set(ticker, {
+        cached_at: cachedAt,
+        interval,
+        indicators,
+        response_identity: responseIdentity,
+      });
+    }
 
+    const stale =
+      !isFresh(cachedAt, maxAgeMinutes) ||
+      !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp);
     return {
       ticker,
-      indicators,
+      indicators: withAdmissibleRecentIntradayVolume(indicators, stale),
       source: "cache",
       cached_at: cachedAt,
       response_identity: responseIdentity,
-      stale:
-        !isFresh(cachedAt, maxAgeMinutes) ||
-        !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp),
+      stale,
       warnings,
     };
   }
@@ -373,7 +323,7 @@ export async function getOrRefreshIntradayIndicators(
   }
 
   try {
-    const { start, end } = getNewYorkTradingDayWindow();
+    const { start, end } = getNewYorkRegularSessionWindow(new Date());
     const response = await getIntradayCandlesWithDiagnostics(
       ticker,
       interval,
@@ -384,7 +334,10 @@ export async function getOrRefreshIntradayIndicators(
       },
     );
     throwIfAborted(options.signal);
-    const indicators = calculateIntradayIndicators(response.candles);
+    const indicators = calculateIntradayIndicators(response.candles, {
+      interval,
+      observedAtSeconds: Date.now() / 1000,
+    });
     if (
       !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp)
     ) {

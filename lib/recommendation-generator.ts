@@ -26,7 +26,11 @@ import {
   getIntradayScanWindowLabel,
   type IntradayScanWindow,
 } from "@/lib/intraday-scan-window";
-import type { IntradayIndicators } from "@/lib/intraday-indicators";
+import {
+  withAdmissibleCandidateRecentVolume,
+  withAdmissibleRecentIntradayVolume,
+  type IntradayIndicators,
+} from "@/lib/intraday-indicators";
 import { getDefaultRecommendationExpiryCutoff } from "@/lib/recommendation-freshness";
 import type { PreMarketCandidate } from "@/lib/scan-logs";
 import {
@@ -536,15 +540,21 @@ function calculateRiskReward(candidate: MockCandidate) {
 
 function compactIntradayIndicators(
   indicators: IntradayIndicators | null | undefined,
+  stale: boolean | null | undefined,
 ): CompactIntradayIndicators | null {
   if (!indicators) {
     return null;
   }
 
+  const currentIndicators = withAdmissibleRecentIntradayVolume(
+    indicators,
+    stale,
+  );
+
   return {
-    isAboveVwap: indicators.isAboveVwap,
-    momentumDirection: indicators.momentumDirection,
-    volumeTrend: indicators.volumeTrend,
+    isAboveVwap: currentIndicators.isAboveVwap,
+    momentumDirection: currentIndicators.momentumDirection,
+    volumeTrend: currentIndicators.volumeTrend,
   };
 }
 
@@ -968,11 +978,12 @@ function toScoredCandidate(
     scanWindow: IntradayScanWindow;
   },
 ): ScoredCandidate {
-  const localScore = scoreDayTradeCandidate(candidate, context);
-  const setupType = classifyCandidateSetupType(candidate, context.scanWindow);
+  const currentCandidate = withAdmissibleCandidateRecentVolume(candidate);
+  const localScore = scoreDayTradeCandidate(currentCandidate, context);
+  const setupType = classifyCandidateSetupType(currentCandidate, context.scanWindow);
 
   return {
-    ...candidate,
+    ...currentCandidate,
     local_score: localScore.score,
     local_score_reasons: localScore.reasons,
     local_score_warnings: localScore.warnings,
@@ -1137,8 +1148,9 @@ async function generatePreMarketWatchlist({
   const detectedAt = new Date().toISOString();
   const candidates = scannerCandidates
     .map((candidate) => {
-      const preMarketScore = scorePreMarketCandidate(candidate, { marketRegime });
-      const setupType = classifyCandidateSetupType(candidate, "pre_market");
+      const currentCandidate = withAdmissibleCandidateRecentVolume(candidate);
+      const preMarketScore = scorePreMarketCandidate(currentCandidate, { marketRegime });
+      const setupType = classifyCandidateSetupType(currentCandidate, "pre_market");
       const primarySignal =
         preMarketScore.signals[0] ??
         "Potential watchlist candidate. Wait for market-open confirmation.";
@@ -2039,7 +2051,8 @@ function buildOpenAiCandidatePayloads({
     rankingSummary.results.map((result) => [result.ticker, result]),
   );
 
-  return candidates.map((candidate): OpenAiRecommendationRealityCandidate & Record<string, unknown> => {
+  return candidates.map((rawCandidate): OpenAiRecommendationRealityCandidate & Record<string, unknown> => {
+    const candidate = withAdmissibleCandidateRecentVolume(rawCandidate);
     const ranking = rankingByTicker.get(candidate.ticker) ?? null;
     const marketDataSource =
       candidate.intraday_indicator_source === "fresh" ||
@@ -2192,7 +2205,12 @@ function buildDiagnosticForCandidate(input: {
           : "below_vwap"
         : "unknown",
     momentumStatus: indicators?.momentumDirection ?? "unknown",
-    volumeStatus: indicators?.volumeTrend ?? "unknown",
+    volumeStatus: indicators
+      ? withAdmissibleRecentIntradayVolume(
+          indicators,
+          input.candidate.intraday_indicator_stale,
+        ).volumeTrend
+      : "unknown",
     riskGeometryStatus: input.riskGeometryStatus ?? "not_checked",
     enoughDataToBuildPlan:
       Boolean(planReference?.reference_price_used_for_plan) &&
@@ -3962,6 +3980,7 @@ export async function generateRecommendations({
       topCandidate?.local_score_warnings.slice(0, 3) ?? null;
     const topCandidateIndicators = compactIntradayIndicators(
       topCandidate?.intraday_indicators,
+      topCandidate?.intraday_indicator_stale,
     );
     const topCandidateIndicatorSource =
       topCandidate?.intraday_indicator_source ?? null;
@@ -4096,7 +4115,10 @@ export async function generateRecommendations({
       breakdown: candidate.local_score_breakdown,
       reasons: candidate.local_score_reasons,
       warnings: candidate.local_score_warnings,
-      intraday_indicators: compactIntradayIndicators(candidate.intraday_indicators),
+      intraday_indicators: compactIntradayIndicators(
+        candidate.intraday_indicators,
+        candidate.intraday_indicator_stale,
+      ),
     }));
 
     logPipeline("scanner_candidates_after_filtering", availableCandidates.length);
