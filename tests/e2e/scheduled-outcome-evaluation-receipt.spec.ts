@@ -2,6 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { expect, test } from "@playwright/test";
+import {
+  default as scheduledOutcomeHandler,
+  outcomeOneShotAdmission,
+  outcomeOneShotControlFromEnvironment,
+} from "../../netlify/functions/scheduled-outcome-evaluation";
+import {
+  parseScheduledScanBuildDeploymentIdentity,
+} from "../../netlify/functions/scheduled-scan";
 
 import {
   SCHEDULED_OUTCOME_EVALUATION_RECEIPT_VERSION,
@@ -13,6 +21,143 @@ import {
   scheduledOutcomeEvaluationSlotStartedAt,
 } from "@/lib/scheduled-outcome-evaluation-receipt";
 import type { RecommendationOutcomeHorizon } from "@/lib/recommendation-outcome-tracker";
+
+const outcomeOneShotBuildIdentity = parseScheduledScanBuildDeploymentIdentity({
+  schema_version: "scheduled_scan_deployment_identity_v1",
+  deploy_id: "6ab1797d8ee5580008985f39",
+  deploy_context: "production",
+  commit_ref: "1f51d3ffcd392ab3491a966a4ba34ab93fab78cb",
+  site_id: "2b582e03-ac97-4371-8051-558d9980fb94",
+});
+
+function oneShotControl(overrides: Record<string, string | undefined> = {}) {
+  const values = {
+    TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "true",
+    TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE: "2026-09-23",
+    TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC: "2026-09-23T20:15:00.000Z",
+    ...overrides,
+  };
+  return outcomeOneShotControlFromEnvironment({
+    get(name: string) { return values[name as keyof typeof values]; },
+  });
+}
+
+function oneShotAdmission(overrides: Partial<Parameters<typeof outcomeOneShotAdmission>[0]> = {}) {
+  return outcomeOneShotAdmission({
+    control: oneShotControl(),
+    scheduledFunctionsDisabled: true,
+    nextRun: "2026-09-23T20:30:00.000Z",
+    deliveryTime: new Date("2026-09-23T20:15:30.000Z"),
+    context: {
+      deploy: {
+        id: "6ab1797d8ee5580008985f39",
+        context: "production",
+        published: true,
+      },
+    } as Parameters<typeof outcomeOneShotAdmission>[0]["context"],
+    buildIdentity: outcomeOneShotBuildIdentity,
+    runtimeSiteId: "2b582e03-ac97-4371-8051-558d9980fb94",
+    ...overrides,
+  });
+}
+
+test.describe("outcome one-slot scheduler admission", () => {
+  test("keeps disabled and conflicting schedules inert before route or provider work", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    let values: Record<string, string | undefined> = {};
+    let requests = 0;
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: { env: { get(name: string) { return values[name]; } } },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        throw new Error("Unexpected external request");
+      };
+      const request = () => new Request("https://scheduled.example", {
+        method: "POST",
+        body: JSON.stringify({ next_run: "2026-09-23T20:30:00.000Z" }),
+      });
+      const context = {} as Parameters<typeof scheduledOutcomeHandler>[1];
+
+      values = { TURE_DISABLE_SCHEDULED_FUNCTIONS: "true" };
+      expect((await scheduledOutcomeHandler(request(), context)).status).toBe(204);
+
+      values = { TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "true" };
+      expect((await scheduledOutcomeHandler(request(), context)).status).toBe(503);
+      expect(requests).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
+    }
+  });
+
+  test("admits only the configured production event while global schedules remain disabled", () => {
+    expect(oneShotAdmission()).toMatchObject({
+      admitted: true,
+      status: "admitted_runtime_context",
+      event_evidence: {
+        scheduled_slot_started_at_utc: "2026-09-23T20:15:00.000Z",
+      },
+    });
+    expect(oneShotAdmission({ scheduledFunctionsDisabled: false })).toMatchObject({
+      admitted: false,
+      status: "runtime_gate_conflict",
+    });
+    expect(oneShotAdmission({ control: oneShotControl({ TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "false" }) })).toMatchObject({
+      admitted: false,
+      status: "runtime_gate_conflict",
+    });
+    for (const conflictingFlag of [
+      "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED",
+      "TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED",
+    ]) {
+      expect(oneShotAdmission({ control: oneShotControl({ [conflictingFlag]: "true" }) })).toMatchObject({
+        admitted: false,
+        status: "runtime_gate_conflict",
+      });
+    }
+  });
+
+  test("rejects wrong date/slot, malformed controls and manual or late delivery", () => {
+    for (const control of [
+      oneShotControl({ TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE: "2026-09-22" }),
+      oneShotControl({ TURE_OUTCOME_EVALUATION_ONE_SHOT_DATE: "2026-09-99" }),
+      oneShotControl({ TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC: "2026-09-23T20:30:00.000Z" }),
+      oneShotControl({ TURE_OUTCOME_EVALUATION_ONE_SHOT_SLOT_UTC: "2026-09-23T20:16:00.000Z" }),
+    ]) {
+      expect(oneShotAdmission({ control }).admitted).toBe(false);
+    }
+    expect(oneShotAdmission({ nextRun: null })).toMatchObject({
+      admitted: false,
+      status: "scheduled_event_unavailable",
+    });
+    expect(oneShotAdmission({ deliveryTime: new Date("2026-09-23T20:18:01.000Z") })).toMatchObject({
+      admitted: false,
+      status: "scheduled_event_unavailable",
+    });
+  });
+
+  test("rejects missing, mismatched or non-production deployment identity", () => {
+    expect(oneShotAdmission({ buildIdentity: null })).toMatchObject({
+      admitted: false,
+      status: "build_identity_unavailable",
+    });
+    expect(oneShotAdmission({ runtimeSiteId: "another-site" })).toMatchObject({
+      admitted: false,
+      status: "build_identity_unavailable",
+    });
+    expect(oneShotAdmission({
+      context: { deploy: { id: "6ab1797d8ee5580008985f38", context: "production", published: true } } as Parameters<typeof outcomeOneShotAdmission>[0]["context"],
+    })).toMatchObject({ admitted: false, status: "deployment_identity_conflict" });
+    expect(oneShotAdmission({
+      context: { deploy: { id: "6ab1797d8ee5580008985f39", context: "deploy-preview", published: false } } as Parameters<typeof outcomeOneShotAdmission>[0]["context"],
+    }).admitted).toBe(false);
+  });
+});
 
 function completedRun() {
   return {

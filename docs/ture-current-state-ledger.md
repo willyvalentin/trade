@@ -281,8 +281,27 @@ Local evidence: 21/21 focused guard/receipt/CI-registration tests, 86/86
 canonical outcome/evidence regressions, TypeScript, lint with zero errors and
 eight existing warnings, scheduled-runtime bundle, and full Next webpack
 production build. Turbopack build is locally blocked by sandbox port binding;
-protected CI remains the authoritative default-build check. This is not a
+protected CI passed all six required shards. PR #599 merged as
+`0d0e773d3757d65219c5d7be450482ab0f3dc37b`; Netlify production deploy
+`6ab337928057d30008c4c7f3` is `ready` on that exact revision. This is not a
 provider request or after-session outcome acceptance.
+
+**A.2 CLOSED support — one-slot outcome-evaluation admission, 2026-09-23
+(local source-only):** owner Codex on `codex/sv-a2-outcome-one-slot` adds an
+opt-in gate to the existing scheduled outcome function. An exact configured
+New York date and quarter-hour event can reach the research-only evaluator
+while the global scheduler disable switch remains `true`; all other scheduled
+jobs stay disabled. Missing or delayed Netlify event evidence, non-production
+or conflicting deployment identity, site mismatch and missing packaged build
+identity fail closed before secrets, route loading or provider work. The
+existing route still claims the exact attempt before provider acquisition,
+and the merged shared-credit guard still caps Free outcome requests at four.
+Local acceptance: 43/43 scheduler/outcome regressions, TypeScript, lint with
+zero errors and eight pre-existing warnings when generated bundles are
+excluded, bundled route/function builds and a full Next webpack production
+build. No one-shot flag
+was activated, no provider called, no candidate or broker action occurred;
+this does not establish an after-session outcome receipt or A.2 OPEN proof.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -984,8 +1003,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 one-slot normal-scan guard is merged and exact-revision production-deployed at `53181a54`; fresh normal-scan behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | A.2 scheduled-outcome shared-credit guard is selected locally on `codex/sv-a2-outcome-credit-guard`; B.1 base receipt and strategy/selection registry are already merged, but real-decision acceptance remains OPEN | Finish guard review/CI/deploy before any separately authorized outcome activation; do not call the outcome or scan route merely to complete acceptance |
+| Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
+| Second development | A.2 one-slot outcome-evaluation guard is selected locally on `codex/sv-a2-outcome-one-slot`; B.1 base receipt and strategy/selection registry are already merged, but real-decision acceptance remains OPEN | Finish guard review/CI/deploy before any separately authorized outcome activation; do not call the outcome or scan route merely to complete acceptance |
 | CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 fill-time risk-admission repair is selected locally on `codex/sv-e2-fill-time-risk-admission`. | Finish E.2 review/CI and verify its exact-main deploy. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |

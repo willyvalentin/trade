@@ -65,9 +65,9 @@ test.describe("MVP-05 private scheduled-scan adapter", () => {
     expect(scheduledOutcome).toContain(
       'Netlify.env.get(scheduledFunctionsDisableFlag) === "true"',
     );
-    expect(scheduledOutcome).toContain("if (scheduledExecutionIsDisabled())");
+    expect(scheduledOutcome).toContain("if (scheduledFunctionsDisabled && !oneShotRequested)");
     expect(scheduledOutcome).toContain("return new Response(null, { status: 204 })");
-    expect(scheduledOutcome.indexOf("if (scheduledExecutionIsDisabled())")).toBeLessThan(
+    expect(scheduledOutcome.indexOf("if (scheduledFunctionsDisabled && !oneShotRequested)")).toBeLessThan(
       scheduledOutcome.indexOf("const automationSecret = process.env.AUTOMATION_SECRET"),
     );
   });
