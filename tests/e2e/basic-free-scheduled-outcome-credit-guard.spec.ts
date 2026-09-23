@@ -319,4 +319,7 @@ test("the scheduled route must reserve before its first possible candle request"
   expect(reservation).toBeGreaterThan(claim);
   expect(evaluation).toBeGreaterThan(reservation);
   expect(route).toContain("finalizeBasicFreeScheduledOutcomeCreditGuard(");
+  expect(route).toContain('run: creditFinalizationBlocker && run.status === "completed"');
+  expect(route).toContain('          ? { ...run, status: "partial" }');
+  expect(route).toContain("nextRetrySuggestion: creditFinalizationBlocker");
 });

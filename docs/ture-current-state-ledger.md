@@ -273,8 +273,9 @@ outcome evaluation. The same exact scheduled-attempt fingerprint reserves a
 maximum of four candle requests before the first possible provider call; Free
 request/env overrides cannot enlarge it. Missing `800`/`8` budget declarations,
 contention or uncertain reservation fail closed, and finalization uncertainty
-remains explicit. Zero-work and non-Free paths do not reserve. The bounded
-reader response and scheduled receipt keep evaluation research-only; no schema,
+cannot yield a `completed` scheduled receipt; it retains a blocker and a
+same-slot no-retry instruction. Zero-work and non-Free paths do not reserve.
+The bounded reader response and scheduled receipt keep evaluation research-only; no schema,
 ranking, publication, broker or production-configuration change is included.
 Local evidence: 21/21 focused guard/receipt/CI-registration tests, 86/86
 canonical outcome/evidence regressions, TypeScript, lint with zero errors and

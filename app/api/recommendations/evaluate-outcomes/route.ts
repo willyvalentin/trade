@@ -2608,7 +2608,11 @@ export async function POST(request: Request) {
     ? await finalizeScheduledOutcomeEvaluationReceipt({
         attempt: scheduledAttempt,
         ownerUserId: ownerPrincipal.owner_user_id,
-        run,
+        // Outcome rows may be valid, but an unproven credit finalization cannot
+        // produce a fully completed scheduled evidence receipt.
+        run: creditFinalizationBlocker && run.status === "completed"
+          ? { ...run, status: "partial" }
+          : run,
         selectedBatchFingerprint:
           stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
           batchFingerprint,
@@ -2638,7 +2642,9 @@ export async function POST(request: Request) {
         firstBlocker: creditFinalizationBlocker ?? latestProviderError ??
           persistenceEvents.find((event) => event.error !== null)?.error ??
           null,
-        nextRetrySuggestion: diagnostics.next_retry_suggestion,
+        nextRetrySuggestion: creditFinalizationBlocker
+          ? "Do not retry this slot; inspect the shared credit ledger before another scheduled outcome evaluation."
+          : diagnostics.next_retry_suggestion,
         decisionSnapshots: eligibleSnapshots,
       })
     : null;
