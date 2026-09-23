@@ -203,7 +203,7 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
     });
   });
 
-  test("fills a crossed limit at the better opening price after latency", () => {
+  test("fills an IOC limit only when the first eligible bar opens through it", () => {
     const value = input({
       policy: {
         ...input().policy,
@@ -213,10 +213,10 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
         max_volume_participation_bps: 10_000,
       },
     });
-    value.base_replay.candles[4].candle.open = 98.5;
-    value.base_replay.candles[4].candle.high = 99;
-    value.base_replay.candles[4].candle.low = 97;
-    value.base_replay.candles[4].candle.close = 98.5;
+    value.base_replay.candles[1].candle.open = 98.5;
+    value.base_replay.candles[1].candle.high = 99;
+    value.base_replay.candles[1].candle.low = 97;
+    value.base_replay.candles[1].candle.close = 98.5;
 
     const result = runInternalPaperReplayExecution(value);
 
@@ -226,7 +226,53 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       filled_quantity: 10,
       unfilled_quantity: 0,
       fill_reference_price: 98.5,
-      fill_candle_id: candleId(4),
+      fill_candle_id: candleId(1),
+    });
+    expect(result.replay.status).toBe("completed");
+    if (result.replay.status === "completed") {
+      expect(result.replay.events[0]?.fill_price).toBeLessThanOrEqual(99);
+    }
+  });
+
+  test("does not fill an IOC from a later crossing or the first bar's low", () => {
+    const value = input({
+      policy: {
+        ...input().policy,
+        order_type: "limit",
+        limit_price: 99,
+        latency_ms: 0,
+      },
+    });
+    value.base_replay.candles[1].candle.low = 98;
+    value.base_replay.candles[4].candle.open = 98.5;
+    value.base_replay.candles[4].candle.low = 98;
+    value.base_replay.candles[4].candle.close = 98.5;
+
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "unfilled",
+      reason: "limit_not_reached",
+      inspected_through: "2026-09-21T13:31:00.000Z",
+    });
+  });
+
+  test("does not report an IOC fill above its limit after spread and slippage", () => {
+    const value = input({
+      policy: {
+        ...input().policy,
+        order_type: "limit",
+        limit_price: 99,
+        latency_ms: 0,
+      },
+    });
+    value.base_replay.candles[1].candle.open = 99;
+    value.base_replay.candles[1].candle.high = 100;
+    value.base_replay.candles[1].candle.low = 98;
+    value.base_replay.candles[1].candle.close = 99;
+
+    expect(runInternalPaperReplayExecution(value)).toMatchObject({
+      status: "unfilled",
+      reason: "limit_not_reached",
+      inspected_through: "2026-09-21T13:31:00.000Z",
     });
   });
 
@@ -243,7 +289,7 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
       status: "unfilled",
       reason: "limit_not_reached",
       requested_quantity: 10,
-      inspected_through: "2026-09-21T19:59:00.000Z",
+      inspected_through: "2026-09-21T13:33:00.000Z",
     });
   });
 
@@ -316,6 +362,20 @@ test.describe("SV-E2 deterministic replay execution realism", () => {
           policy: {
             ...input().policy,
             latency_ms: 30 * 60_000 + 1,
+          },
+        }),
+      ),
+    ).toMatchObject({
+      status: "blocked",
+      reason: "execution_input_invalid",
+    });
+    expect(
+      runInternalPaperReplayExecution(
+        input({
+          policy: {
+            ...input().policy,
+            order_type: "limit",
+            limit_price: 1e22,
           },
         }),
       ),

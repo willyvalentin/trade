@@ -302,6 +302,12 @@ excluded, bundled route/function builds and a full Next webpack production
 build. No one-shot flag
 was activated, no provider called, no candidate or broker action occurred;
 this does not establish an after-session outcome receipt or A.2 OPEN proof.
+PR #600 passed all six protected provider-free shards and required aggregate
+provenance on `a0a877c78b3c544230083de50a456e95ed266508`, then merged as main
+`ea9a024db654a72e9f14ef99824b917ca9d54081`. Netlify production deploy
+`6ab345da7730c0000860353e` was `ready` on that exact revision. The one-shot
+flag remains unset and the global scheduled-functions switch remains disabled;
+source/deploy verification is not a real outcome-evaluation receipt.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -983,8 +989,29 @@ the E.2 suite at 11/11; strict TypeScript, repository lint and an isolated Next
 production build also passed. This is fixture-level fidelity
 evidence only: no licensed replay
 dataset, production paper activation, provider request, ranking/publication
-change or broker action is implied. Next acceptance is protected PR CI and
-exact-main deploy verification; actual pilot/fill evidence remains separate.
+change or broker action is implied. Protected PR CI and exact-main deploy
+verification followed; actual pilot/fill evidence remains separate.
+PR #597 passed protected CI and merged as main
+`04db85ae9fbc8aff64858dbbb6dbd0c5d430c689`. Netlify production deploy
+`6ab321a2d20aa6000896c3c5` was `ready` on the exact merge revision; the
+repair is source/deploy verified, not observed paper-fill evidence.
+
+**Selected SV-E.2 CLOSED IOC replay-fidelity repair, 2026-09-23 (4–8h):**
+owner Codex on `codex/sv-e2-ioc-first-eligible-bar`; existing
+`internal_paper_replay_execution_v1` remains the result interface and there
+is no schema/runtime writer. A deterministic fixture reproduced that a
+limit IOC waited for a later candle, used the first candle's intrabar low as
+an immediate fill, or could report a costed buy above its limit. The repair
+considers only the first eligible bar's opening price as the available arrival
+proxy and applies the market replay's exact spread/slippage rounding before
+accepting the limit. A failed crossing is `unfilled`, with the inspected bar
+time rather than the session close. Local E.1–F.1 replay/experiment regressions
+passed 69/69. This corrects simulated feasibility; minute OHLC cannot prove
+true exchange IOC execution or quote-level spread, and no licensed replay or
+forward market result is claimed. Strict TypeScript, changed-file lint and a
+full Next webpack production build passed; repository lint excluding generated
+bundles passed with zero errors and eight existing warnings. Protected CI and
+exact-main deploy remain before closing this source slice.
 
 ### Pilot readiness and bounded parallel work
 
@@ -1004,8 +1031,8 @@ on A/B evidence and must not be inferred from the source registry.
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
-| Second development | A.2 one-slot outcome-evaluation guard is selected locally on `codex/sv-a2-outcome-one-slot`; B.1 base receipt and strategy/selection registry are already merged, but real-decision acceptance remains OPEN | Finish guard review/CI/deploy before any separately authorized outcome activation; do not call the outcome or scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 fill-time risk-admission repair is selected locally on `codex/sv-e2-fill-time-risk-admission`. | Finish E.2 review/CI and verify its exact-main deploy. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| Second development | A.2 one-slot outcome-evaluation guard is merged and exact-revision production-deployed as `ea9a024d`; B.1 base receipt and strategy/selection registry are also merged, but real-decision/outcome acceptance remains OPEN | Observe only a separately authorized, bounded scheduled session; do not call the outcome or scan route merely to complete acceptance |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 fill-time risk-admission repair is merged/deployed; IOC replay-fidelity repair is selected locally on `codex/sv-e2-ioc-first-eligible-bar`. | Finish IOC review/CI and verify exact-main deploy. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
