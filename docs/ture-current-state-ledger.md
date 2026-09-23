@@ -332,12 +332,21 @@ re-enter the new ratio or volume trend; a v2 decision
 feature vector distinguishes new evidence while v1 readback remains valid.
 The intraday fetch window now follows New York daylight/standard time rather
 than a fixed summer UTC offset, preserving the same-session denominator in
-winter. A further red regression showed that an unknown freshness flag still
-admitted an otherwise valid ratio; only an explicit non-stale indicator receipt
-may now contribute the feature. The 11 focused volume/feature-vector tests,
-changed-file lint, strict TypeScript and a full Next build pass locally for
-that follow-up. The previous pushed head `bac1c72b` passed protected CI and
-Deploy Preview; the freshness follow-up still needs protected CI after push. This is
+winter. A red regression showed that an unknown freshness flag still admitted
+an otherwise valid ratio; only an explicit non-stale indicator receipt may now
+contribute the feature. A second red regression showed that a newly fetched
+provider response with old bars still contributed a falsely current volume
+ratio. The local follow-up carries the latest closed-bar timestamp and interval
+through the cache, requires the bar to be no more than one interval old at
+fetch, cache use and decision projection, and removes the ratio from the
+candidate signal when it expires. A missing persisted cache capture timestamp
+can no longer become fresh just because it entered memory. Twelve Data's
+published `/time_series` contract defines the timestamp as the bar's opening
+time; the guard adds the interval to obtain its close. Fifty-six focused and
+related local regressions, changed-file lint, strict TypeScript and a full
+Next build pass for this follow-up. The prior pushed head `b1e4493f` passed
+protected CI and Deploy Preview; this additional freshness change remains
+local until it is pushed and CI reruns. This is
 **not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been

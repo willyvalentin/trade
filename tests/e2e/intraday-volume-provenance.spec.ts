@@ -45,7 +45,10 @@ test("recent intraday volume compares two complete same-session windows", () => 
 
   expect(observed.recentVolumeRatio).toBe(2);
   expect(observed.volumeTrend).toBe("expanding");
-  expect(admissibleRecentIntradayVolumeRatio(observed, false)).toBe(2);
+  const observedAtSeconds = observed.recentVolumeBarClosedAtSeconds!;
+  expect(admissibleRecentIntradayVolumeRatio(observed, false, observedAtSeconds)).toBe(2);
+  expect(admissibleRecentIntradayVolumeRatio(observed, false, observedAtSeconds + 5 * 60)).toBe(2);
+  expect(admissibleRecentIntradayVolumeRatio(observed, false, observedAtSeconds + 5 * 60 + 1)).toBeNull();
   expect(admissibleRecentIntradayVolumeRatio(observed, true)).toBeNull();
   expect(admissibleRecentIntradayVolumeRatio(observed, null)).toBeNull();
   expect(admissibleRecentIntradayVolumeRatio(observed, undefined)).toBeNull();
@@ -119,6 +122,15 @@ test("an open bar cannot complete or distort the volume windows", () => {
   expect(openSpike.volumeTrend).toBe("expanding");
 });
 
+test("old provider bars cannot become fresh volume evidence through a new fetch", () => {
+  const volumes = [...Array(12).fill(100), ...Array(12).fill(200)];
+  const lastBarClose = candles(volumes).at(-1)!.timestamp + 5 * 60;
+  const oldProviderBars = observedIndicators(volumes, lastBarClose + 20 * 60);
+
+  expect(oldProviderBars.recentVolumeRatio).toBeNull();
+  expect(oldProviderBars.volumeTrend).toBe("unknown");
+});
+
 test("a 15-minute volume window waits for its final bar to close", () => {
   const volumes = [...Array(12).fill(100), ...Array(12).fill(200)];
   const finalOpen = candles(volumes, 15).at(-1)!.timestamp;
@@ -142,7 +154,23 @@ test("legacy or contradictory cache trend cannot masquerade as observed volume",
       recentVolumeRatio: 1.2,
       volumeTrend: "contracting",
     }),
+  ).toMatchObject({ recentVolumeRatio: null, volumeTrend: "unknown" });
+  expect(
+    intradayIndicatorsFromUnknown({
+      recentVolumeRatio: 1.2,
+      recentVolumeBarClosedAtSeconds: Date.now() / 1000 - 60,
+      recentVolumeIntervalSeconds: 5 * 60,
+      volumeTrend: "contracting",
+    }),
   ).toMatchObject({ recentVolumeRatio: 1.2, volumeTrend: "expanding" });
+  expect(
+    intradayIndicatorsFromUnknown({
+      recentVolumeRatio: 1.2,
+      recentVolumeBarClosedAtSeconds: Date.now() / 1000 - 10 * 60,
+      recentVolumeIntervalSeconds: 5 * 60,
+      volumeTrend: "expanding",
+    }),
+  ).toMatchObject({ recentVolumeRatio: null, volumeTrend: "unknown" });
   expect(
     intradayIndicatorsFromUnknown({
       recentVolumeRatio: Number.NaN,

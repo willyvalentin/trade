@@ -6,9 +6,8 @@ import {
   SCANNER_INDICATOR_MAX_AGE_MINUTES,
 } from "@/lib/intraday-indicator-cache";
 import {
-  admissibleRecentIntradayVolumeRatio,
   intradayIndicatorsFromUnknown,
-  volumeTrendFromRecentVolumeRatio,
+  withAdmissibleRecentIntradayVolume,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
@@ -659,21 +658,15 @@ export async function scanMarket(
     }
 
     indicatorSources[candidate.ticker] = result.source;
-    const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
-      result.indicators,
-      result.stale,
-    );
+    const intradayIndicators = result.indicators
+      ? withAdmissibleRecentIntradayVolume(result.indicators, result.stale)
+      : null;
+    const recentVolumeRatio = intradayIndicators?.recentVolumeRatio ?? null;
 
     return {
       candidate: {
         ...candidate,
-        intraday_indicators: result.indicators
-          ? {
-              ...result.indicators,
-              recentVolumeRatio,
-              volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
-            }
-          : null,
+        intraday_indicators: intradayIndicators,
         intraday_indicator_source: result.source,
         intraday_indicator_cached_at: result.cached_at,
         intraday_indicator_response_identity: result.response_identity,

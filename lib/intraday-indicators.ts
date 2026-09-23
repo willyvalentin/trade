@@ -15,20 +15,52 @@ export type IntradayIndicators = {
   averageVolume: number | null;
   // Optional only for pre-v2 persisted indicator caches and caller fixtures.
   recentVolumeRatio?: number | null;
+  recentVolumeBarClosedAtSeconds?: number | null;
+  recentVolumeIntervalSeconds?: number | null;
   warnings: string[];
 };
 
 export function admissibleRecentIntradayVolumeRatio(
-  indicators: Pick<IntradayIndicators, "recentVolumeRatio"> | null | undefined,
+  indicators: Pick<
+    IntradayIndicators,
+    "recentVolumeRatio" | "recentVolumeBarClosedAtSeconds" | "recentVolumeIntervalSeconds"
+  > | null | undefined,
   stale: boolean | null | undefined,
+  observedAtSeconds = Date.now() / 1000,
 ): number | null {
   const ratio = indicators?.recentVolumeRatio;
+  const closedAt = indicators?.recentVolumeBarClosedAtSeconds;
+  const intervalSeconds = indicators?.recentVolumeIntervalSeconds;
+  const barAgeSeconds =
+    typeof closedAt === "number" ? observedAtSeconds - closedAt : NaN;
   return stale === false &&
     typeof ratio === "number" &&
     Number.isFinite(ratio) &&
-    ratio > 0
+    ratio > 0 &&
+    (intervalSeconds === 5 * 60 || intervalSeconds === 15 * 60) &&
+    Number.isFinite(closedAt) &&
+    Number.isFinite(barAgeSeconds) &&
+    barAgeSeconds >= 0 &&
+    barAgeSeconds <= intervalSeconds
     ? ratio
     : null;
+}
+
+export function withAdmissibleRecentIntradayVolume(
+  indicators: IntradayIndicators,
+  stale: boolean | null | undefined,
+  observedAtSeconds = Date.now() / 1000,
+): IntradayIndicators {
+  const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
+    indicators,
+    stale,
+    observedAtSeconds,
+  );
+  return {
+    ...indicators,
+    recentVolumeRatio,
+    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
+  };
 }
 
 export function volumeTrendFromRecentVolumeRatio(
@@ -65,6 +97,24 @@ export function intradayIndicatorsFromUnknown(
     raw.recentVolumeRatio > 0
       ? raw.recentVolumeRatio
       : null;
+  const recentVolumeBarClosedAtSeconds =
+    typeof raw.recentVolumeBarClosedAtSeconds === "number" &&
+    Number.isFinite(raw.recentVolumeBarClosedAtSeconds)
+      ? raw.recentVolumeBarClosedAtSeconds
+      : null;
+  const recentVolumeIntervalSeconds =
+    raw.recentVolumeIntervalSeconds === 5 * 60 ||
+    raw.recentVolumeIntervalSeconds === 15 * 60
+      ? raw.recentVolumeIntervalSeconds
+      : null;
+  const admittedRecentVolumeRatio = admissibleRecentIntradayVolumeRatio(
+    {
+      recentVolumeRatio,
+      recentVolumeBarClosedAtSeconds,
+      recentVolumeIntervalSeconds,
+    },
+    false,
+  );
 
   return {
     vwap: parseNumber(raw.vwap),
@@ -82,10 +132,12 @@ export function intradayIndicatorsFromUnknown(
       raw.momentumDirection === "flat"
         ? raw.momentumDirection
         : "unknown",
-    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
+    volumeTrend: volumeTrendFromRecentVolumeRatio(admittedRecentVolumeRatio),
     latestVolume: parseNumber(raw.latestVolume),
     averageVolume: parseNumber(raw.averageVolume),
-    recentVolumeRatio,
+    recentVolumeRatio: admittedRecentVolumeRatio,
+    recentVolumeBarClosedAtSeconds,
+    recentVolumeIntervalSeconds,
     warnings: Array.isArray(raw.warnings)
       ? raw.warnings.filter((item): item is string => typeof item === "string")
       : [],
@@ -135,6 +187,8 @@ export function calculateIntradayIndicators(
       latestVolume: null,
       averageVolume: null,
       recentVolumeRatio: null,
+      recentVolumeBarClosedAtSeconds: null,
+      recentVolumeIntervalSeconds: null,
       warnings: ["Intraday candles unavailable."],
     };
   }
@@ -256,8 +310,18 @@ export function calculateIntradayIndicators(
           candle.timestamp - volumeWindow[index - 1].timestamp ===
             intervalSeconds),
     );
+  const recentVolumeBarClosedAtSeconds = completeVolumeWindow
+    ? volumeWindow[volumeWindow.length - 1].timestamp + intervalSeconds
+    : null;
+  // A newly fetched response can still contain old bars. The last closed bar
+  // must be at most one interval old at the observation time.
+  const recentVolumeWindowCurrent =
+    recentVolumeBarClosedAtSeconds !== null &&
+    observation.observedAtSeconds >= recentVolumeBarClosedAtSeconds &&
+    observation.observedAtSeconds - recentVolumeBarClosedAtSeconds <=
+      intervalSeconds;
   const recentVolumeRatio =
-    completeVolumeWindow
+    completeVolumeWindow && recentVolumeWindowCurrent
       ? average(
           volumeWindow
             .slice(RECENT_CANDLE_COUNT)
@@ -289,6 +353,10 @@ export function calculateIntradayIndicators(
     latestVolume,
     averageVolume,
     recentVolumeRatio,
+    recentVolumeBarClosedAtSeconds:
+      recentVolumeRatio === null ? null : recentVolumeBarClosedAtSeconds,
+    recentVolumeIntervalSeconds:
+      recentVolumeRatio === null ? null : intervalSeconds,
     warnings,
   };
 }

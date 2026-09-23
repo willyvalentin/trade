@@ -48,6 +48,8 @@ function scannerCandidate(): ScannerCandidate & { local_score: number } {
       latestVolume: 2000,
       averageVolume: 1000,
       recentVolumeRatio: 1.6,
+      recentVolumeBarClosedAtSeconds: Date.parse("2026-09-17T14:00:00.000Z") / 1000,
+      recentVolumeIntervalSeconds: 5 * 60,
       warnings: [],
     },
     intraday_indicator_source: "fresh",
@@ -63,6 +65,7 @@ test("captures a bounded decision feature projection and propagates it through r
   const candidate = scannerCandidate();
   const featureVector = recommendationDecisionFeatureVectorFromScannerCandidate(
     candidate,
+    Date.parse("2026-09-17T14:01:00.000Z") / 1000,
   );
   const summary = buildRealScannerCandidateGenerationSummary({
     universe: [candidate],
@@ -85,6 +88,22 @@ test("captures a bounded decision feature projection and propagates it through r
     explicit_unavailable_feature_names: [],
   });
   expect(summary.candidates[0]?.decision_feature_vector).toEqual(featureVector);
+  const expiredSummary = buildRealScannerCandidateGenerationSummary({
+    universe: [candidate],
+    candidates: [candidate],
+    source: "test",
+    scanWindow: "midday",
+    now: new Date("2026-09-17T14:06:00.000Z"),
+  });
+  expect(
+    expiredSummary.candidates[0]?.signals.find(
+      (signal) => signal.label === "recent_volume_ratio",
+    )?.value,
+  ).toBeNull();
+  expect(
+    expiredSummary.candidates[0]?.decision_feature_vector?.feature_values
+      .intraday_recent_volume_ratio,
+  ).toBeNull();
 });
 
 test("keeps unavailable inputs explicit and rejects a malformed feature projection", () => {
@@ -131,19 +150,34 @@ test("v2 volume feature cannot inherit a legacy daily-derived scanner ratio", ()
   const candidate = scannerCandidate();
   candidate.recent_volume_ratio = 9.9;
   expect(
-    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+    recommendationDecisionFeatureVectorFromScannerCandidate(
+      candidate,
+      Date.parse("2026-09-17T14:01:00.000Z") / 1000,
+    )
       .feature_values.intraday_recent_volume_ratio,
   ).toBe(1.6);
+  expect(
+    recommendationDecisionFeatureVectorFromScannerCandidate(
+      candidate,
+      Date.parse("2026-09-17T14:06:00.000Z") / 1000,
+    ).feature_values.intraday_recent_volume_ratio,
+  ).toBeNull();
 
   candidate.intraday_indicator_stale = true;
   expect(
-    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+    recommendationDecisionFeatureVectorFromScannerCandidate(
+      candidate,
+      Date.parse("2026-09-17T14:01:00.000Z") / 1000,
+    )
       .feature_values.intraday_recent_volume_ratio,
   ).toBeNull();
 
   delete candidate.intraday_indicator_stale;
   expect(
-    recommendationDecisionFeatureVectorFromScannerCandidate(candidate)
+    recommendationDecisionFeatureVectorFromScannerCandidate(
+      candidate,
+      Date.parse("2026-09-17T14:01:00.000Z") / 1000,
+    )
       .feature_values.intraday_recent_volume_ratio,
   ).toBeNull();
 });

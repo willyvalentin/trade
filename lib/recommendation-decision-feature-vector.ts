@@ -93,6 +93,7 @@ export function recommendationDecisionFeatureVectorFromScannerCandidate(
   > & {
     local_score?: number;
   },
+  observedAtSeconds = Date.now() / 1000,
 ): RecommendationDecisionFeatureVector {
   const intraday = candidate.intraday_indicators ?? null;
   const featureValues: Record<RecommendationDecisionFeatureName, number | null> = {
@@ -114,6 +115,7 @@ export function recommendationDecisionFeatureVectorFromScannerCandidate(
       admissibleRecentIntradayVolumeRatio(
         intraday,
         candidate.intraday_indicator_stale,
+        observedAtSeconds,
       ),
     ),
     intraday_average_range_percent: finiteNumberOrNull(

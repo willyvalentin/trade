@@ -3,6 +3,7 @@ import "server-only";
 import {
   calculateIntradayIndicators,
   intradayIndicatorsFromUnknown,
+  withAdmissibleRecentIntradayVolume,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
@@ -150,13 +151,17 @@ export async function getCachedIntradayIndicators(
   const memoryEntry = memoryCache.get(ticker);
 
   if (memoryEntry && memoryEntry.interval === interval) {
+    const stale = !isFresh(memoryEntry.cached_at, maxAgeMinutes);
     return {
       ticker,
-      indicators: memoryEntry.indicators,
+      indicators: withAdmissibleRecentIntradayVolume(
+        memoryEntry.indicators,
+        stale,
+      ),
       source: "cache",
       cached_at: memoryEntry.cached_at,
       response_identity: memoryEntry.response_identity,
-      stale: !isFresh(memoryEntry.cached_at, maxAgeMinutes),
+      stale,
       warnings,
     };
   }
@@ -175,20 +180,25 @@ export async function getCachedIntradayIndicators(
   );
 
   if (indicators && cachedInterval === interval) {
-    memoryCache.set(ticker, {
-      cached_at: cachedAt ?? new Date().toISOString(),
-      interval,
-      indicators,
-      response_identity: responseIdentity,
-    });
+    // Missing persisted capture time must not become fresh on the next
+    // in-memory read merely because this read happened now.
+    if (cachedAt) {
+      memoryCache.set(ticker, {
+        cached_at: cachedAt,
+        interval,
+        indicators,
+        response_identity: responseIdentity,
+      });
+    }
 
+    const stale = !isFresh(cachedAt, maxAgeMinutes);
     return {
       ticker,
-      indicators,
+      indicators: withAdmissibleRecentIntradayVolume(indicators, stale),
       source: "cache",
       cached_at: cachedAt,
       response_identity: responseIdentity,
-      stale: !isFresh(cachedAt, maxAgeMinutes),
+      stale,
       warnings,
     };
   }
