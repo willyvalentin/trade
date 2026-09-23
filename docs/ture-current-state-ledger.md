@@ -340,6 +340,11 @@ corrections also held locally pending post-observation integration. This is
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.
+An uncommitted, isolated local combination of #605 head `2678a4fa` and this
+branch head `ce0022c5` merged without conflict; 31 focused cross-PR tests,
+changed-file lint, strict TypeScript and a full Next webpack build passed on
+that combined checkout. Protected CI and production behavior on the eventual
+merged revision remain unverified.
 Other legacy scanner-cache numeric defaults and daily-derived fields remain
 outside this repair and must not be inferred to have intraday provenance.
 
