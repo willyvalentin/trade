@@ -53,7 +53,9 @@ export type ScannerCandidateSelectionResult = {
 };
 
 export type ScannerCandidateRankingSummary = {
-  summary_version: "1.0";
+  // Historical v1.0/v1.1 records remain readable. v1.2 distinguishes the
+  // intraday-only recent-volume input from the daily-derived predecessor.
+  summary_version: "1.0" | "1.1" | "1.2";
   summary_kind: "scanner_candidate_ranking";
   generated_at: string;
   scan_window: IntradayScanWindow | "unknown";
@@ -153,7 +155,7 @@ export function buildScannerCandidateRankingSummary({
   const warnings = buildSummaryWarnings(results);
 
   return {
-    summary_version: "1.0",
+    summary_version: "1.2",
     summary_kind: "scanner_candidate_ranking",
     generated_at: now.toISOString(),
     scan_window: scanWindow,

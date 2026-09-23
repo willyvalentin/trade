@@ -356,7 +356,12 @@ An isolated local combination of production main `a83ddbb1`, #605 head
 60 relevant cross-PR tests, changed-file lint, strict TypeScript and a full
 Next webpack build passed before the temporary checkout was removed. Recheck
 integration against then-current main and ensure the ranking-policy identity
-distinguishes changed volume inputs in addition to the v2 feature vector.
+distinguishes changed volume inputs in addition to the v2 feature vector. A
+local red-to-green follow-up now advances the ranking summary and derived
+decision-record ranking identity to v1.2 while retaining v1.0/v1.1 readback;
+31 relevant tests, changed-file lint, strict TypeScript and a production build
+pass. This follow-up is not yet pushed or protected-CI verified and must be
+reconciled with PR #605's v1.1 ranker before merge.
 Protected CI and production behavior on the eventual merged revision remain
 unverified. Two complete twelve-bar windows require two hours of 5-minute
 regular-session data, or six hours of 15-minute data; the corrected ratio is
