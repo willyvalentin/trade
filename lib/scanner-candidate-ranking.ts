@@ -452,8 +452,6 @@ function scoreLiquidityVolume(
     candidate.intraday_indicator_stale,
     observedAtSeconds,
   );
-  const latestVolume = candidate.intraday_indicators?.latestVolume ?? null;
-  const averageVolume = candidate.intraday_indicators?.averageVolume ?? null;
   const bestVolumeRatio = Math.max(volumeRatio ?? 0, recentVolumeRatio ?? 0);
   let score = 50;
 
@@ -466,14 +464,6 @@ function scoreLiquidityVolume(
   } else {
     gaps.push("Relative volume is unavailable.");
     score -= 8;
-  }
-
-  if (
-    latestVolume !== null &&
-    averageVolume !== null &&
-    latestVolume > averageVolume
-  ) {
-    score += 8;
   }
 
   return clampScore(score);

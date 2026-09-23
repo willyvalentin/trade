@@ -375,6 +375,34 @@ explicitly non-stale closed-bar evidence as the v2 feature vector. A fresh
 intraday ratio still contributes. Sixty-three related local tests,
 changed-file lint, strict TypeScript and a full production build pass; this
 additional fix is also unpushed and not protected-CI or market verified.
+Another local consumer audit found that the generator's legacy local score,
+setup classification, pre-market watchlist and AI payload could still read the
+flat ratio or a cached `volumeTrend` after the closed-bar evidence expired.
+These paths now recheck the same explicit non-stale intraday provenance at use
+time; stale, expired and old flat values become unavailable without changing
+the separately labelled daily `volume_ratio`. The compact trace and build
+diagnostic also recheck volume trend. Fourteen focused tests including a
+stale/expired/legacy consumer regression, changed-file lint,
+strict TypeScript and a full Next production build pass locally. This
+additional work is unpushed, not protected-CI verified and has not been
+compared against a production baseline; it does not prove improved trading
+quality.
+An isolated, non-committed integration of local #606 `6054888d` with #605
+`310a73e6` resolved only the expected ranking-summary version conflict and
+one #605 test expectation. Forty-four selected cross-PR regressions, full
+repository ESLint (zero errors, eight pre-existing warnings), strict
+TypeScript and a complete Next production build passed. This is local
+integration evidence only, not a merge, protected CI or production behavior.
+One subsequent red-to-green audit found an independent +8 liquidity bonus
+from `latestVolume > averageVolume` even when the latest candle was open and
+the complete-window ratio unavailable (32 versus 40 on the controlled
+fixture). That undocumented partial-bar bonus is removed; the separate daily
+ratio and provenance-checked closed-bar ratio remain. Thirty-four related
+tests, changed-file lint, strict TypeScript and a full Next production build
+pass locally. The complete latest combination passed the forty-four selected
+tests, full lint, strict TypeScript and a full production build in the
+temporary checkout. Protected CI and live ranking-quality comparison remain
+unverified.
 Protected CI and production behavior on the eventual merged revision remain
 unverified. Two complete twelve-bar windows require two hours of 5-minute
 regular-session data, or six hours of 15-minute data; the corrected ratio is

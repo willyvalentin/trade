@@ -5,6 +5,7 @@ import {
   calculateIntradayIndicators,
   intradayIndicatorsFromUnknown,
   volumeTrendFromRecentVolumeRatio,
+  withAdmissibleCandidateRecentVolume,
 } from "../../lib/intraday-indicators";
 import type { IntradayCandle } from "../../lib/market-data";
 import { getNewYorkRegularSessionWindow } from "../../lib/intraday-scan-window";
@@ -61,6 +62,52 @@ test("recent intraday volume compares two complete same-session windows", () => 
   ).toBeNull();
   expect(volumeTrendFromRecentVolumeRatio(null)).toBe("unknown");
   expect(volumeTrendFromRecentVolumeRatio(2)).toBe("expanding");
+});
+
+test("candidate consumers cannot reuse an expired, stale, or legacy flat volume ratio", () => {
+  const indicators = observedIndicators([
+    ...Array(12).fill(100),
+    ...Array(12).fill(200),
+  ]);
+  const observedAtSeconds = indicators.recentVolumeBarClosedAtSeconds! + 60;
+  const candidate = {
+    recent_volume_ratio: 9.9,
+    intraday_indicators: indicators,
+    intraday_indicator_stale: false,
+  };
+
+  const current = withAdmissibleCandidateRecentVolume(candidate, observedAtSeconds);
+  expect(current.recent_volume_ratio).toBe(2);
+  expect(current.intraday_indicators?.volumeTrend).toBe("expanding");
+  expect(candidate.recent_volume_ratio).toBe(9.9);
+
+  const expired = withAdmissibleCandidateRecentVolume(
+    candidate,
+    observedAtSeconds + 5 * 60,
+  );
+  expect(expired.recent_volume_ratio).toBeUndefined();
+  expect(expired.intraday_indicators?.recentVolumeRatio).toBeNull();
+  expect(expired.intraday_indicators?.volumeTrend).toBe("unknown");
+
+  const stale = withAdmissibleCandidateRecentVolume(
+    { ...candidate, intraday_indicator_stale: true },
+    observedAtSeconds,
+  );
+  expect(stale.recent_volume_ratio).toBeUndefined();
+  expect(stale.intraday_indicators?.volumeTrend).toBe("unknown");
+
+  const legacy = withAdmissibleCandidateRecentVolume(
+    {
+      ...candidate,
+      intraday_indicators: {
+        ...indicators,
+        recentVolumeBarClosedAtSeconds: null,
+      },
+    },
+    observedAtSeconds,
+  );
+  expect(legacy.recent_volume_ratio).toBeUndefined();
+  expect(legacy.intraday_indicators?.volumeTrend).toBe("unknown");
 });
 
 test("intraday fetch window follows New York daylight and standard time", () => {

@@ -63,6 +63,28 @@ export function withAdmissibleRecentIntradayVolume(
   };
 }
 
+/** Discards legacy flat ratios and rechecks provenance at the point of use. */
+export function withAdmissibleCandidateRecentVolume<
+  T extends {
+    intraday_indicators?: IntradayIndicators | null;
+    intraday_indicator_stale?: boolean | null;
+    recent_volume_ratio?: number;
+  },
+>(candidate: T, observedAtSeconds = Date.now() / 1000) {
+  const intradayIndicators = candidate.intraday_indicators
+    ? withAdmissibleRecentIntradayVolume(
+        candidate.intraday_indicators,
+        candidate.intraday_indicator_stale,
+        observedAtSeconds,
+      )
+    : null;
+  return {
+    ...candidate,
+    intraday_indicators: intradayIndicators,
+    recent_volume_ratio: intradayIndicators?.recentVolumeRatio ?? undefined,
+  };
+}
+
 export function volumeTrendFromRecentVolumeRatio(
   ratio: number | null | undefined,
 ): IntradayIndicators["volumeTrend"] {

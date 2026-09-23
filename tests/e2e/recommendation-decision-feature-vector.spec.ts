@@ -207,3 +207,32 @@ test("ranking liquidity does not accept a legacy recent ratio without fresh intr
   expect(liquidityScore(legacy)).toBe(liquidityScore(baseline));
   expect(liquidityScore(verified)).toBeGreaterThan(liquidityScore(baseline)!);
 });
+
+test("an open or incomplete candle cannot add an unverified liquidity bonus", () => {
+  const now = new Date("2026-09-17T14:01:00.000Z");
+  const baseline = scannerCandidate();
+  baseline.volume_ratio = 0.7;
+  baseline.recent_volume_ratio = undefined;
+  baseline.intraday_indicators = {
+    ...baseline.intraday_indicators!,
+    recentVolumeRatio: null,
+    recentVolumeBarClosedAtSeconds: null,
+    recentVolumeIntervalSeconds: null,
+    latestVolume: 1000,
+    averageVolume: 1000,
+  };
+  const openCandle = {
+    ...baseline,
+    intraday_indicators: {
+      ...baseline.intraday_indicators,
+      latestVolume: 2000,
+    },
+  };
+  const liquidityScore = (candidate: ScannerCandidate) =>
+    buildScannerCandidateRankingSummary({ candidates: [candidate], now })
+      .results[0]?.score.components.find(
+        (component) => component.component === "liquidity_volume",
+      )?.score;
+
+  expect(liquidityScore(openCandle)).toBe(liquidityScore(baseline));
+});
