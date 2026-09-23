@@ -519,6 +519,10 @@ monitoring and kill-switch controls. An AI model never has a direct broker path.
 11. **Capacity serves evidence, not consumption.** Provider capacity is used
     for the highest-value admissible observations with reserved retry and
     degradation headroom. Spending a quota is never a product outcome.
+12. **Observe continuously, publish independently.** A scheduler may wake a
+   bounded observation cycle, but a clock label must never decide that a
+   candidate is worthy of publication. Observation cadence, provider spend,
+   ranking and publication are separate, versioned decisions.
 
 ### Delivery and environment model
 
@@ -591,10 +595,10 @@ acceptance as soon as that session is available.
 #### IF-0 — foundation reconciliation
 
 Port only the current-main-compatible staging changes that improve discovery
-reliability: provider-credit/rate-limit classification and scheduled bounded
-universe rotation. Preserve their bounded provider budgets. Do not port the
-one-ticker manual rotation: it is a useful staging experiment but contradicts
-market-wide discovery as a product strategy.
+reliability: provider-credit/rate-limit classification and bounded,
+provider-governed universe rotation. Preserve their bounded provider budgets.
+Do not port the one-ticker manual rotation: it is a useful staging experiment
+but contradicts market-wide discovery as a product strategy.
 
 #### IF-1 — candidate decision record
 
@@ -699,6 +703,16 @@ Advanced. That is a planning direction, not a purchase, configured credential,
 provider entitlement, runtime authorization or claim that a marketed plan will
 remain available on the same terms.
 
+**Observation-cycle orchestration transition.** A scheduler or later event
+source is only a safe wake-up mechanism, never a publication policy. A
+versioned observation cycle must decide whether current data is warranted from
+verified session, freshness, material market change, coverage, candidate state,
+explicit provider budget and persisted retry/backoff facts. It must retain one
+attributable receipt whether it observes, deliberately makes no request,
+rejects data, evaluates research, publishes a trade-ready recommendation or
+records `no_trade`. Observation, discovery/evaluation and publication remain
+independently versioned decisions.
+
 The provider boundary stays vendor-neutral. Every admitted observation and
 derived feature must retain the provider, feed class, entitlement/profile,
 coverage scope, upstream and receipt timestamps, adapter/build versions,
@@ -723,6 +737,19 @@ forward-live shadow cohort without changing ranking, confidence or publication.
 Only an IF-4 baseline that keeps the source cohorts separate may evaluate a
 later source-backed policy change. A plan price, vendor webpage, successful
 request or single candidate is not acceptance evidence.
+
+**Observation-orchestration acceptance.** Preserve the existing scheduler's
+kill switch, private invocation, idempotent trigger claim and durable attempt
+record while moving to generic cycle receipts. Local proof must show that a
+duplicate trigger cannot duplicate provider work; an unavailable claim fails
+closed; stale, incomplete or unbudgeted data cannot reach ranking or
+publication; and an observation can be recorded without generating a candidate.
+Browser readback must distinguish trigger, admission, request, provider
+response, freshness, discovery/evaluation and publication facts. Do not retire
+`scheduled_scan_runs` or window-derived diagnostics until their consumers have
+moved to compatible cycle readback; historical records remain intact. This
+transition establishes safe observation behavior, not market-wide coverage,
+better ranking quality or execution authority.
 
 **Data-operations policy.** Ture is continuously operated from deployed,
 server-owned compute, but it must not mistake an open API quota for market
@@ -873,6 +900,12 @@ evidence whenever that is needed for its claim. Tests and a ledger update ship
 with the change. A lack of strong candidates on one market day is neither
 success nor failure; it becomes meaningful only against the decision record and
 outcome baseline.
+
+A scheduler cadence is an implementation detail, not an intelligence or
+publication policy. It may be changed only with a versioned observation policy,
+bounded provider-cost evidence and compatible cycle readback; replacing a
+calendar label must never weaken freshness, no-trade, quality or execution
+boundaries.
 
 Do not begin EX-1 or EX-2 until IF-5 has demonstrated sustained, useful
 recommendation quality. Existing manual tracking may be maintained for safety
