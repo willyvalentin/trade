@@ -13,6 +13,10 @@ import {
   RECOMMENDATION_PUBLISH_POLICY_VERSION,
 } from "@/lib/publish-path-versions";
 import type { RecommendationLearningSchemaCheck } from "@/lib/recommendation-learning-schema";
+import {
+  SCAN_FETCH_TIMING_VERSION,
+  type ScanFetchTimingStep,
+} from "@/lib/scan-fetch-timing";
 
 export type ActiveScanTraceStage =
   | "route_received"
@@ -188,6 +192,19 @@ export type ActiveScanTrace = {
     stale_count: number;
     empty_response_count: number;
     latest_provider_error_type: string | null;
+    timing_version: typeof SCAN_FETCH_TIMING_VERSION;
+    timing_current_step: ScanFetchTimingStep | null;
+    timing_current_ticker_index: number | null;
+    timing_last_step: ScanFetchTimingStep | null;
+    timing_last_ticker_index: number | null;
+    timing_last_step_status: "started" | "completed" | "failed" | null;
+    timing_last_step_elapsed_ms: number | null;
+    cache_read_elapsed_ms: number;
+    pacing_delay_elapsed_ms: number;
+    daily_candles_elapsed_ms: number;
+    cache_write_elapsed_ms: number;
+    intraday_indicators_elapsed_ms: number;
+    total_elapsed_ms: number | null;
   };
   raw_candidates: {
     raw_candidate_count: number;
@@ -426,6 +443,19 @@ export function createActiveScanTrace({
       stale_count: 0,
       empty_response_count: 0,
       latest_provider_error_type: null,
+      timing_version: SCAN_FETCH_TIMING_VERSION,
+      timing_current_step: null,
+      timing_current_ticker_index: null,
+      timing_last_step: null,
+      timing_last_ticker_index: null,
+      timing_last_step_status: null,
+      timing_last_step_elapsed_ms: null,
+      cache_read_elapsed_ms: 0,
+      pacing_delay_elapsed_ms: 0,
+      daily_candles_elapsed_ms: 0,
+      cache_write_elapsed_ms: 0,
+      intraday_indicators_elapsed_ms: 0,
+      total_elapsed_ms: null,
     },
     raw_candidates: {
       raw_candidate_count: 0,

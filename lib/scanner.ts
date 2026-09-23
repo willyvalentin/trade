@@ -15,6 +15,7 @@ import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted, waitForAbortableDelay } from "@/lib/operation-abort";
 import { errorType, type ActiveScanTraceRecorder } from "@/lib/active-scan-trace";
 import { isProviderRateLimitLikeError } from "@/lib/provider-rate-limit";
+import { measureScanFetchStep } from "@/lib/scan-fetch-timing";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import type { TwelveDataResponseIdentity } from "@/lib/twelve-data-response-identity";
 
@@ -600,9 +601,41 @@ export async function scanMarket(
   options: ScanMarketOptions,
 ): Promise<ScannerCandidate[]> {
   throwIfAborted(options.signal);
+  const marketDataStartedAt = performance.now();
+  options.activeScanTrace?.markStage("market_data_fetch", "started");
+  options.activeScanTrace?.updateMarketDataFetch({
+    attempted_tickers: baseCandidates.length,
+  });
+
+  try {
+    const candidates = await scanMarketCore(baseCandidates, options);
+    options.activeScanTrace?.markStage("market_data_fetch", "completed");
+    return candidates;
+  } catch (error) {
+    options.activeScanTrace?.markStage("market_data_fetch", "failed");
+    throw error;
+  } finally {
+    options.activeScanTrace?.updateMarketDataFetch({
+      total_elapsed_ms: Math.max(
+        0,
+        Math.round(performance.now() - marketDataStartedAt),
+      ),
+    });
+  }
+}
+
+async function scanMarketCore(
+  baseCandidates: ScannerCandidate[],
+  options: ScanMarketOptions,
+): Promise<ScannerCandidate[]> {
   const now = Date.now();
   const tickers = baseCandidates.map((candidate) => candidate.ticker);
-  const cachedRowsByTicker = await getCachedRows(tickers);
+  const cachedRowsByTicker = await measureScanFetchStep({
+    trace: options.activeScanTrace,
+    step: "cache_read",
+    tickerIndex: null,
+    run: () => getCachedRows(tickers),
+  });
   throwIfAborted(options.signal);
   const candidates: ScannerCandidate[] = [];
   const maxFreshProviderCalls = getMaxFreshProviderCalls(options);
@@ -614,13 +647,9 @@ export async function scanMarket(
   let freshProviderCallsUsed = 0;
   let freshIndicatorFetchesUsed = 0;
 
-  options.activeScanTrace?.markStage("market_data_fetch", "started");
-  options.activeScanTrace?.updateMarketDataFetch({
-    attempted_tickers: tickers.length,
-  });
-
   async function attachIntradayIndicators(
     candidate: ScannerCandidate,
+    tickerIndex: number,
     preloadedScannerCacheRow?: ScannerCacheRow,
   ): Promise<CandidateWithIndicatorCache> {
     throwIfAborted(options.signal);
@@ -630,14 +659,19 @@ export async function scanMarket(
     // Reserve before the cache helper can reach Twelve Data. A failed refresh
     // returns unavailable/stale rather than "fresh", but still spends a call.
     if (allowFreshFetch) freshProviderCallsUsed += 1;
-    const result = await getOrRefreshIntradayIndicators(candidate.ticker, {
-      source: options.source === "scheduled" ? "scheduled" : "manual",
-      maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
-      allowFreshFetch,
-      signal: options.signal,
-      ...(preloadedScannerCacheRow
-        ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
-        : {}),
+    const result = await measureScanFetchStep({
+      trace: options.activeScanTrace,
+      step: "intraday_indicators",
+      tickerIndex,
+      run: () => getOrRefreshIntradayIndicators(candidate.ticker, {
+        source: options.source === "scheduled" ? "scheduled" : "manual",
+        maxAgeMinutes: SCANNER_INDICATOR_MAX_AGE_MINUTES,
+        allowFreshFetch,
+        signal: options.signal,
+        ...(preloadedScannerCacheRow
+          ? { preloadedScannerCacheRaw: preloadedScannerCacheRow.raw }
+          : {}),
+      }),
     });
     throwIfAborted(options.signal);
 
@@ -686,7 +720,7 @@ export async function scanMarket(
     };
   }
 
-  for (const baseCandidate of baseCandidates) {
+  for (const [tickerIndex, baseCandidate] of baseCandidates.entries()) {
     throwIfAborted(options.signal);
     const cachedRow = cachedRowsByTicker.get(baseCandidate.ticker);
     const cachedValues = cachedRow ? scannerValuesFromCache(cachedRow) : null;
@@ -698,6 +732,7 @@ export async function scanMarket(
       });
       const { candidate } = await attachIntradayIndicators(
         buildCandidate(baseCandidate, cachedValues),
+        tickerIndex,
         cachedRow,
       );
       candidates.push(candidate);
@@ -715,6 +750,7 @@ export async function scanMarket(
         });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
+          tickerIndex,
           cachedRow,
         );
         candidates.push(candidate);
@@ -726,27 +762,43 @@ export async function scanMarket(
     }
 
     if (freshProviderCallsUsed > 0) {
-      await waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal);
+      await measureScanFetchStep({
+        trace: options.activeScanTrace,
+        step: "pacing_delay",
+        tickerIndex,
+        run: () => waitForAbortableDelay(FRESH_CALL_DELAY_MS, options.signal),
+      });
     }
 
     freshProviderCallsUsed += 1;
 
     try {
-      const candles = await getDailyCandles(
-        baseCandidate.ticker,
-        CANDLE_DAYS_NEEDED,
-        { signal: options.signal },
-      );
+      const candles = await measureScanFetchStep({
+        trace: options.activeScanTrace,
+        step: "daily_candles",
+        tickerIndex,
+        run: () => getDailyCandles(
+            baseCandidate.ticker,
+            CANDLE_DAYS_NEEDED,
+            { signal: options.signal },
+        ),
+      });
       throwIfAborted(options.signal);
       options.activeScanTrace?.incrementMarketDataFetch({
         candle_success_count: candles.length > 0 ? 1 : 0,
         empty_response_count: candles.length > 0 ? 0 : 1,
       });
       const scannerValues = calculateScannerValues(candles);
-      await upsertCachedValues(baseCandidate, scannerValues);
+      await measureScanFetchStep({
+        trace: options.activeScanTrace,
+        step: "cache_write",
+        tickerIndex,
+        run: () => upsertCachedValues(baseCandidate, scannerValues),
+      });
       throwIfAborted(options.signal);
       const { candidate } = await attachIntradayIndicators(
         buildCandidate(baseCandidate, scannerValues),
+        tickerIndex,
       );
       candidates.push(candidate);
     } catch (error) {
@@ -775,6 +827,7 @@ export async function scanMarket(
         });
         const { candidate } = await attachIntradayIndicators(
           buildCandidate(baseCandidate, cachedValues),
+          tickerIndex,
           cachedRow,
         );
         candidates.push(candidate);
@@ -793,7 +846,6 @@ export async function scanMarket(
   logScanner("stale_cache_fallbacks", staleFallbacks);
   logScanner("tickers_skipped_due_to_fresh_call_limit", skippedDueToFreshCallLimit);
   logScanner("candidates_returned", candidates.length);
-  options.activeScanTrace?.markStage("market_data_fetch", "completed");
 
   return candidates;
 }
