@@ -112,6 +112,73 @@ test("Experimental candidates remain in the decision record but never fill a pub
   );
 });
 
+test("missing or nonnumeric long-plan fields cannot be selected as trade-ready", () => {
+  // Frozen v1.0 baseline on this fixture: absent target 2 was valid (78),
+  // while null target 2 was strong (88) because Number(null) became zero.
+  const malformed = [
+    { ticker: "ABSENT", proposed_target_2: undefined },
+    { ticker: "NULL", proposed_target_2: null },
+    { ticker: "BLANK", proposed_target_2: "" },
+    { ticker: "BOOLEAN", proposed_target_2: false },
+    { ticker: "NONFINITE", proposed_target_2: Number.POSITIVE_INFINITY },
+    { ticker: "MISSING_RR", proposed_risk_reward: undefined },
+  ].map(({ ticker, ...overrides }) => ({
+    ...rankedCandidate(ticker, 95),
+    ...overrides,
+  }));
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: malformed as ScannerCandidate[],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.summary_version).toBe("1.1");
+  expect(summary.selection.selected_tickers).toEqual([]);
+  expect(summary.target_status).toBe("empty");
+  expect(summary.results).toHaveLength(malformed.length);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "incomplete_long_plan",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
+test("nonpositive or reversed long-plan geometry stays in the record but never reaches selection", () => {
+  const malformed = [
+    { ticker: "REVERSED", proposed_target_2: 103 },
+    { ticker: "ZERO_TARGET", proposed_target_2: 0 },
+    { ticker: "ZERO_RR", proposed_risk_reward: 0 },
+  ].map(({ ticker, ...overrides }) => ({
+    ...rankedCandidate(ticker, 95),
+    ...overrides,
+  }));
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: malformed as ScannerCandidate[],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selected_count).toBe(0);
+  expect(summary.results).toHaveLength(malformed.length);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "invalid_long_plan",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
 test("one qualified candidate is publishable while an empty healthy window is explicit no_trade", () => {
   const orchestration = buildDayTradeScanOrchestrationSummary({
     now: "2026-09-17T14:00:00.000Z",
