@@ -259,8 +259,29 @@ Other scheduled functions remain disabled. Local evidence: 40/40 focused
 scheduler/Basic-Free regressions, strict TypeScript, lint of the changed source,
 scheduled-runtime package build and a full Next production build. No flag was
 activated, provider called, credit reserved, candidate published or broker
-action taken. This is not an A.2 OPEN result: a separately authorized, bounded
-production activation, exact-slot receipt and readback are still required.
+action taken. PR #598 passed protected CI and merged as
+`53181a54c716f8ff1bbbe3e38dd0d004aa34aaa6`; Netlify production deploy
+`6ab3293ff8e30300084ef25f` is `ready` on that exact revision. The production
+scheduled-functions disable flag remained `true` on readback. This is not an
+A.2 OPEN result: a separately authorized, bounded production activation,
+exact-slot receipt and readback are still required.
+
+**A.2 CLOSED support — shared Basic Free outcome credits, 2026-09-23 (local
+source-only):** owner Codex on `codex/sv-a2-outcome-credit-guard` reuses the
+existing durable Basic Free daily/per-minute reservation ledger for scheduled
+outcome evaluation. The same exact scheduled-attempt fingerprint reserves a
+maximum of four candle requests before the first possible provider call; Free
+request/env overrides cannot enlarge it. Missing `800`/`8` budget declarations,
+contention or uncertain reservation fail closed, and finalization uncertainty
+remains explicit. Zero-work and non-Free paths do not reserve. The bounded
+reader response and scheduled receipt keep evaluation research-only; no schema,
+ranking, publication, broker or production-configuration change is included.
+Local evidence: 21/21 focused guard/receipt/CI-registration tests, 86/86
+canonical outcome/evidence regressions, TypeScript, lint with zero errors and
+eight existing warnings, scheduled-runtime bundle, and full Next webpack
+production build. Turbopack build is locally blocked by sandbox port binding;
+protected CI remains the authoritative default-build check. This is not a
+provider request or after-session outcome acceptance.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
@@ -962,8 +983,8 @@ on A/B evidence and must not be inferred from the source registry.
 
 | Work slot | Selected state | Entry / return condition |
 | --- | --- | --- |
-| Primary development | A.2 source repairs are merged and production-safe; fresh one-slot behavior evidence remains OPEN | Require a new separately authorized scheduled preflight; do not repeat the consumed authorization |
-| Second development | SV-B.1 base receipt and explicit strategy/selection registry are merged and production-deployed at `1f51d3ff`; real-decision acceptance remains OPEN | Await one separately authorized current decision for durable strategy and lineage environment evidence; do not call the scan route merely to complete acceptance |
+| Primary development | A.2 one-slot normal-scan guard is merged and exact-revision production-deployed at `53181a54`; fresh normal-scan behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
+| Second development | A.2 scheduled-outcome shared-credit guard is selected locally on `codex/sv-a2-outcome-credit-guard`; B.1 base receipt and strategy/selection registry are already merged, but real-decision acceptance remains OPEN | Finish guard review/CI/deploy before any separately authorized outcome activation; do not call the outcome or scan route merely to complete acceptance |
 | CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.2 are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. SV-E.2 fill-time risk-admission repair is selected locally on `codex/sv-e2-fill-time-risk-admission`. | Finish E.2 review/CI and verify its exact-main deploy. H.2 varies spread, slippage and commission only; fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
