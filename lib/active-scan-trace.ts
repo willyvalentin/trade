@@ -64,6 +64,7 @@ export type ActiveScanTrace = {
   official_window_detected: boolean;
   scheduled_gate_window: string | null;
   scheduled_gate_allowed: boolean | null;
+  scheduled_gate_policy_version: string | null;
   scheduled_gate_block_reason: string | null;
   schedule_window_mismatch: boolean;
   skip_reason: string | null;
@@ -303,6 +304,7 @@ export function createActiveScanTrace({
     official_window_detected: false,
     scheduled_gate_window: null,
     scheduled_gate_allowed: null,
+    scheduled_gate_policy_version: null,
     scheduled_gate_block_reason: null,
     schedule_window_mismatch: false,
     skip_reason: null,

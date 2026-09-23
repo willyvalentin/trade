@@ -1,6 +1,7 @@
 import type {
   DayTradeScanOrchestrationSummary,
 } from "@/lib/day-trade-scan-orchestration";
+import type { IntradayScanWindow } from "@/lib/intraday-scan-window";
 import type { DailyRecommendationTradeTargetsSummary } from "@/lib/daily-recommendation-trade-targets";
 import type { RecommendationScanRun } from "@/lib/recommendation-scan-run";
 import type { RecommendationSnapshot } from "@/lib/recommendation-snapshot";
@@ -119,6 +120,8 @@ export type RecommendationServingCadenceSummary = {
 export type RecommendationServingCadenceInput = {
   tradingDate: string;
   orchestration?: DayTradeScanOrchestrationSummary | null;
+  currentScanWindow?: IntradayScanWindow | null;
+  currentScanAdmitted?: boolean | null;
   dailyTargets?: DailyRecommendationTradeTargetsSummary | null;
   ranking?: ScannerCandidateRankingSummary | null;
   visibleRecommendations?: Array<{
@@ -140,8 +143,10 @@ export function buildRecommendationServingCadenceSummary(
   const now = toDate(input.now) ?? new Date();
   const orchestration = input.orchestration ?? null;
   const servingWindow = normalizeBatchWindow(
-    orchestration?.active_window ?? "unknown",
+    input.currentScanWindow ?? orchestration?.active_window ?? "unknown",
   );
+  const scanEligibleNow =
+    input.currentScanAdmitted ?? orchestration?.should_scan_now ?? false;
   const visibleRecommendations = input.visibleRecommendations ?? [];
   const visibleCount = visibleRecommendations.length;
   const rankingSelectedCount = input.ranking?.selected_count ?? null;
@@ -156,14 +161,15 @@ export function buildRecommendationServingCadenceSummary(
   const noTradeValid =
     visibleCount === 0 &&
     servingWindowIsActive(servingWindow) &&
+    rankingSelectedCount !== null &&
     (input.ranking?.target_status === "empty" ||
-      (rankingSelectedCount ?? 0) === 0);
+      rankingSelectedCount === 0);
   const batchStatus = determineBatchStatus({
     servingWindow,
     visibleCount,
     freshnessStatus,
     noTradeValid,
-    orchestration,
+    scanEligibleNow,
   });
   const servingDecision = determineServingDecision({
     servingWindow,
@@ -172,7 +178,7 @@ export function buildRecommendationServingCadenceSummary(
     noTradeValid,
     rankingSelectedCount,
     batchTarget,
-    orchestration,
+    scanEligibleNow,
   });
   const replacementReason = determineReplacementReason({
     freshnessStatus,
@@ -289,12 +295,12 @@ function determineBatchStatus(input: {
   visibleCount: number;
   freshnessStatus: RecommendationFreshnessStatus;
   noTradeValid: boolean;
-  orchestration: DayTradeScanOrchestrationSummary | null;
+  scanEligibleNow: boolean;
 }): RecommendationBatchStatus {
   if (input.servingWindow === "closed") return "blocked";
   if (!servingWindowIsActive(input.servingWindow)) return "not_started";
   if (input.noTradeValid) return "no_trade_valid";
-  if (input.visibleCount === 0 && input.orchestration?.should_scan_now) {
+  if (input.visibleCount === 0 && input.scanEligibleNow) {
     return "ready_to_publish";
   }
   if (input.visibleCount === 0) return "not_started";
@@ -310,7 +316,7 @@ function determineServingDecision(input: {
   noTradeValid: boolean;
   rankingSelectedCount: number | null;
   batchTarget: { min: number; max: number };
-  orchestration: DayTradeScanOrchestrationSummary | null;
+  scanEligibleNow: boolean;
 }): RecommendationServingDecision {
   if (input.servingWindow === "closed") return "market_closed";
   if (!servingWindowIsActive(input.servingWindow)) return "wait_for_next_window";
@@ -322,7 +328,7 @@ function determineServingDecision(input: {
       return "publish_official_batch";
     }
 
-    return input.orchestration?.should_scan_now
+    return input.scanEligibleNow
       ? "refresh_silently"
       : "wait_for_next_window";
   }

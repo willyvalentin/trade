@@ -14158,6 +14158,12 @@ export function TradeApp({
     buildRecommendationServingCadenceSummary({
       tradingDate: dailySessionDate,
       orchestration: dayTradeScanOrchestrationSummary,
+      currentScanWindow:
+        marketStatus?.date === dailySessionDate &&
+        currentMarketSessionEvaluation.market_is_open &&
+        currentMarketSessionEvaluation.source === "market_data_provider"
+          ? currentIntradayScanWindow
+          : null,
       dailyTargets: dailyRecommendationTradeTargetsSummary,
       ranking: scannerCandidateRankingSummary,
       visibleRecommendations: dailyRecommendations.map((recommendation) => ({
