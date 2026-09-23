@@ -5,7 +5,7 @@
   included_files = ["netlify/.generated/scheduled-scan-runtime.cjs", "netlify/.generated/scheduled-scan-deployment-identity.json"]
 
 [functions."scheduled-outcome-evaluation"]
-  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]
+  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs", "netlify/.generated/scheduled-scan-deployment-identity.json"]
 
 [functions."scheduled-internal-paper-worker"]
   included_files = ["netlify/.generated/scheduled-internal-paper-worker-runtime.cjs"]

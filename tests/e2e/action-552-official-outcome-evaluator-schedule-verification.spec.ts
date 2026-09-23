@@ -50,7 +50,7 @@ test.describe("Action 552 official outcome evaluator schedule verification", () 
     expect(buildSource).toContain('outputFile: "scheduled-outcome-evaluation-runtime.cjs"');
     expect(netlifyConfig).toContain('[functions."scheduled-outcome-evaluation"]');
     expect(netlifyConfig).toContain(
-      'included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]',
+      'included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs", "netlify/.generated/scheduled-scan-deployment-identity.json"]',
     );
   });
 

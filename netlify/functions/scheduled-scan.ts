@@ -26,6 +26,7 @@ const basicFreeCatalogCapabilityProbeSlotFlag =
 const normalScanOneShotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_ENABLED";
 const normalScanOneShotDateFlag = "TURE_NORMAL_SCAN_ONE_SHOT_DATE";
 const normalScanOneShotSlotFlag = "TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC";
+const outcomeOneShotEnabledFlag = "TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED";
 export const SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION =
   "scheduled_scan_deployment_identity_v1" as const;
 export const SCHEDULED_SCAN_PREFLIGHT_DELIVERY_GRACE_MILLISECONDS =
@@ -794,7 +795,8 @@ export default async function handler(request: Request, context: Context) {
     normalScanOneShotRequested &&
     (!runtimeConfiguration.scheduled_functions_disabled ||
       runtimeConfiguration.basic_free_catalog_capability_probe_enabled ||
-      runtimeConfiguration.basic_free_catalog_observation_one_shot_enabled)
+      runtimeConfiguration.basic_free_catalog_observation_one_shot_enabled ||
+      Netlify.env.get(outcomeOneShotEnabledFlag) === "true")
   ) {
     console.error("[scheduled-scan] Normal one-shot mode conflicts with runtime gates.");
     return new Response("Normal one-shot scan gates unavailable", { status: 503 });
@@ -808,6 +810,11 @@ export default async function handler(request: Request, context: Context) {
   const disabledProbePreflight =
     runtimeConfiguration.scheduled_functions_disabled &&
     runtimeConfiguration.basic_free_catalog_capability_probe_enabled;
+
+  if (disabledProbePreflight && Netlify.env.get(outcomeOneShotEnabledFlag) === "true") {
+    console.error("[scheduled-scan] Catalog probe conflicts with outcome one-shot mode.");
+    return new Response("Catalog probe gates unavailable", { status: 503 });
+  }
 
   if (
     runtimeConfiguration.scheduled_functions_disabled &&

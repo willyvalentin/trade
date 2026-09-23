@@ -941,6 +941,7 @@ test.describe("scheduled scan invocation idempotency", () => {
         { TURE_DISABLE_SCHEDULED_FUNCTIONS: "false" },
         { TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true" },
         { TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "true" },
+        { TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "true" },
       ]) {
         values = {
           TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
@@ -970,6 +971,17 @@ test.describe("scheduled scan invocation idempotency", () => {
         expect(response.status).toBe(503);
         expect(await response.text()).toBe("Normal one-shot scan gates unavailable");
       }
+
+      values = {
+        TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+        TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true",
+        TURE_OUTCOME_EVALUATION_ONE_SHOT_ENABLED: "true",
+      };
+      const conflictingCatalogProbe = await scheduledScanHandler(
+        new Request("https://scheduled.example", { method: "POST" }),
+        {} as Parameters<typeof scheduledScanHandler>[1],
+      );
+      expect(conflictingCatalogProbe.status).toBe(503);
 
       values = {
         TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
