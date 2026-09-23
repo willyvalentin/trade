@@ -477,6 +477,7 @@ import {
   type ProviderBudgetGuardSummary,
   type ProviderBudgetStatus,
 } from "@/lib/provider-budget-guard";
+import { CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS } from "@/lib/continuous-market-scan-admission";
 import {
   buildProviderPlanProfile,
 } from "@/lib/provider-plan-profile";
@@ -14921,7 +14922,8 @@ export function TradeApp({
       ),
     },
     schedule: {
-      official_scan_windows_per_day: 3,
+      official_scan_windows_per_day:
+        CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS,
       background_scans_per_day: parseNumber(
         process.env.NEXT_PUBLIC_PROVIDER_BACKGROUND_SCANS_PER_DAY,
       ),

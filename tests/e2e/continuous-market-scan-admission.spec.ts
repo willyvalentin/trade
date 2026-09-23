@@ -1,13 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { buildContinuousMarketScanAdmission } from "../../lib/continuous-market-scan-admission";
+import {
+  buildContinuousMarketScanAdmission,
+  CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS,
+} from "../../lib/continuous-market-scan-admission";
 import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "../../lib/background-discovery-observation-gate";
 import { buildDayTradeScanOrchestrationSummary } from "../../lib/day-trade-scan-orchestration";
 import { getIntradayScanWindow } from "../../lib/intraday-scan-window";
 import { buildMarketSessionEvaluation, type MarketSessionStatus } from "../../lib/market-session";
 import { buildRecommendationServingCadenceSummary } from "../../lib/recommendation-serving-cadence";
+import { buildProviderBudgetGuardSummary } from "../../lib/provider-budget-guard";
 import type { RecommendationScanRun } from "../../lib/recommendation-scan-run";
 import { buildScannerCandidateRankingSummary } from "../../lib/scanner-candidate-ranking";
+import type { ScannerUniverseCoverageSummary } from "../../lib/scanner-universe";
 
 const tradingDay: MarketSessionStatus = {
   isOpenDay: true,
@@ -47,6 +52,7 @@ function admission(
 }
 
 test("admits provider-confirmed regular-session scans between former fixed windows", () => {
+  expect(CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS).toBe(26);
   for (const instant of [
     "2026-09-23T13:30:00.000Z", // 09:30 EDT, former pre-morning gap
     "2026-09-23T15:00:00.000Z", // 11:00 EDT, today's catalog-only misclassification
@@ -61,6 +67,28 @@ test("admits provider-confirmed regular-session scans between former fixed windo
       official_window_detected: false,
     });
   }
+});
+
+test("forecasts the full quarter-hour schedule rather than three legacy windows", () => {
+  const budget = buildProviderBudgetGuardSummary({
+    plan_mode: "free",
+    scanner_universe: {
+      selected_tickers: 8,
+      scan_budget: { requested_tickers: 8, effective_tickers: 8 },
+    } as ScannerUniverseCoverageSummary,
+    schedule: {
+      official_scan_windows_per_day:
+        CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS,
+      background_scans_per_day: 0,
+    },
+    provider_env: { twelve_data_configured: true },
+    now: "2026-09-23T16:15:00.000Z",
+  });
+
+  expect(budget.totals.official_scan_windows_per_day).toBe(26);
+  expect(budget.estimates.daily_schedule.assumptions[0]).toContain(
+    "26 scheduled scan opportunities",
+  );
 });
 
 test("requires an exact current, provider-confirmed regular session", () => {

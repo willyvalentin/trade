@@ -7,6 +7,10 @@ import type { ScheduledOfficialGateDiagnostics } from "@/lib/day-trade-scan-orch
 export const CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION =
   "continuous_regular_session_v1" as const;
 export const CONTINUOUS_MARKET_SCAN_MIN_CADENCE_MINUTES = 15;
+// 09:30–16:00 ET contains 26 eligible quarter-hour ticks. This is a
+// conservative full-session ceiling for diagnostic provider-cost estimates;
+// early closes and failed admission reduce actual usage.
+export const CONTINUOUS_MARKET_SCAN_MAX_FULL_SESSION_TICKS = 26;
 
 export type ContinuousMarketScanAdmission = ScheduledOfficialGateDiagnostics & {
   policy_version: typeof CONTINUOUS_MARKET_SCAN_ADMISSION_VERSION;

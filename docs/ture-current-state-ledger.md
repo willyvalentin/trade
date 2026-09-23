@@ -309,6 +309,27 @@ provenance on `a0a877c78b3c544230083de50a456e95ed266508`, then merged as main
 flag remains unset and the global scheduled-functions switch remains disabled;
 source/deploy verification is not a real outcome-evaluation receipt.
 
+**A.2 OPEN bounded normal-scan receipt, 2026-09-23 18:15 CEST:** exact-slot
+production activation on main `660995bb1e779258151ca36b86c45b5f6fe104d2`
+produced scheduled attempt `scheduled_scan_attempt_1u3d1eg` and Basic Free
+reservation `basic_free_discovery_claim_20260923_bf4a89e1`: eight credits
+reserved and finalized with provider attempted. The route completed with HTTP
+200 and persisted scan run `rec_scan_run_18ru9if`. Eight tickers were attempted;
+five raw candidates were ranked, but zero were selected, built or published.
+The trace reports no deterministic fallback and `no_publishable_ranked_candidates`.
+Its dominant quality gaps were stale inputs (trace stale count nine), four
+unavailable intraday indicators (counted as candle errors in the trace),
+missing provider/source facts and
+low relative volume; the top score was 67, below the strong threshold of 82.
+This is an attributable, bounded `no_trade`, not evidence that the discovery or
+ranking engine improved. One earlier catalog-only observation consumed one
+separate credit and never reached normal ranking. Immediately after the normal
+receipt, the normal-scan one-shot flag was disabled, its date/slot removed and
+catalog-only default restored; Git-connected cleanup deploy
+`6ab3fb8063ba97a965c0b86f` was published `ready` on unchanged main at
+16:18:01 UTC. Production readback showed scheduler globally disabled, and
+the one-shot follow-up automation was removed. No further scan is armed.
+
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current
 strategy/version and eligible-symbol selection can be truthfully reconstructed.
@@ -320,18 +341,21 @@ stored snapshots.
 
 **Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
 admission, 2026-09-23 (4–16h):** owner Codex on
-`codex/sv-a2-continuous-market-monitoring`, integrating after the existing
-ranking-plan PR #605 and after the frozen 2026-09-23 OPEN scan/readback. The
+`codex/sv-a2-continuous-market-monitoring`, integrating after merged
+ranking-plan PR #605 and the completed 2026-09-23 OPEN scan/readback. The
 user has superseded fixed morning/midday/power-hour publication times as a
 product principle. Local implementation uses the scheduler's true New York
 market-clock segment and a versioned `continuous_regular_session_v1` admission
 for provider-confirmed open sessions, including the former 09:30, 11:00 and
 14:30 gaps. Existing late-session trial, catalog-only, same-slot deduplication,
 freshness, Basic Free reservation and selective-publication gates remain
-separate. A missing ranking cannot manufacture a valid `no_trade`. Six focused
-behavior tests and 40 overlapping tests pass; TypeScript, changed-file and
-full lint (zero errors, eight existing warnings) and the Next webpack build
-pass locally. This is **not** merged, deployed, authenticated-browser checked
+separate. A missing ranking cannot manufacture a valid `no_trade`. The
+diagnostic full-session budget estimate now counts up to 26 quarter-hour
+opportunities rather than three legacy windows; actual reservations remain the
+cost authority. Seven focused behavior tests and 58 other integrated tests
+pass after the merge with PR #605; strict TypeScript, changed-file and full
+lint (zero errors, eight existing warnings) and the Next webpack build pass
+locally. This is **not** merged, deployed, authenticated-browser checked
 or verified on live market data. Before PR completion, review per-slot durable
 lineage and the legacy user-facing “official batch” wording; a later admitted
 market session must establish actual behavior and provider cost.
