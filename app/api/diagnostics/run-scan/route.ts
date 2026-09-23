@@ -867,6 +867,7 @@ export async function POST(request: Request) {
 
   if (diagnosticStep === "env_check") {
     const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+      source: "manual",
       maxTickers,
       now,
     });
@@ -897,6 +898,7 @@ export async function POST(request: Request) {
 
   const selection = baseCandidateSelection({ scanWindow, maxTickers });
   const dynamicMoversDiscovery = await discoverDynamicMoversDiagnostics({
+    source: "manual",
     candidates: selection.candidates,
     maxTickers,
     now,
