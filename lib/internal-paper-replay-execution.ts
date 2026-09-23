@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import {
+  internalPaperReplayEntryExceedsLimit,
   runInternalPaperMarketReplay,
   validateInternalPaperReplayOrderAdmission,
   type InternalPaperMarketReplayInput,
@@ -108,6 +109,7 @@ function validPrice(value: unknown): value is number {
     typeof value === "number" &&
     Number.isFinite(value) &&
     value > 0 &&
+    value <= Number.MAX_SAFE_INTEGER / 1_000_000 &&
     Math.abs(value - Number(value.toFixed(6))) <=
       Math.max(1, Math.abs(value)) * Number.EPSILON * 4
   );
@@ -141,10 +143,10 @@ function terminal<T extends object>(value: T): T & { result_digest: string } {
 }
 
 /**
- * Adds deterministic IOC admission, latency, limit crossing and volume-capped
- * fills ahead of the one-day replay. It is provider-free and has no storage,
- * publication or broker path. A missing volume is unknown and blocks; it is
- * never interpreted as zero liquidity.
+ * Adds deterministic IOC admission, latency, first-bar opening-price limit
+ * checks and volume-capped fills ahead of the one-day replay. It is
+ * provider-free and has no storage, publication or broker path. A missing
+ * volume is unknown and blocks; it is never interpreted as zero liquidity.
  */
 export function runInternalPaperReplayExecution(
   input: InternalPaperReplayExecutionInput,
@@ -187,24 +189,26 @@ export function runInternalPaperReplayExecution(
 
   const eligibleAt =
     Date.parse(input.base_replay.entry.submitted_at) + input.policy.latency_ms;
-  const eligibleCandles = input.base_replay.candles.filter(
+  const firstEligibleCandle = input.base_replay.candles.find(
     ({ candle }) => Date.parse(candle.timestamp) >= eligibleAt,
   );
   const inspectedThrough =
-    eligibleCandles.at(-1)?.candle.timestamp ??
+    firstEligibleCandle?.candle.timestamp ??
     input.base_replay.dataset.session_close;
-
-  let selected = null as (typeof eligibleCandles)[number] | null;
-  for (const item of eligibleCandles) {
-    if (input.policy.order_type === "market") {
-      selected = item;
-      break;
-    }
-    if (item.candle.low <= (input.policy.limit_price as number)) {
-      selected = item;
-      break;
-    }
-  }
+  // An IOC cannot wait for an intrabar low or a later candle. The bar open is
+  // the only available arrival proxy; a costed buy above the limit is unfilled.
+  const selected =
+    firstEligibleCandle &&
+    (input.policy.order_type === "market" ||
+      (firstEligibleCandle.candle.open <=
+        (input.policy.limit_price as number) &&
+        !internalPaperReplayEntryExceedsLimit(
+          firstEligibleCandle.candle.open,
+          input.policy.limit_price as number,
+          input.base_replay.account,
+        )))
+      ? firstEligibleCandle
+      : null;
   if (!selected) {
     return terminal({
       result_version: INTERNAL_PAPER_REPLAY_EXECUTION_RESULT_VERSION,
@@ -255,10 +259,7 @@ export function runInternalPaperReplayExecution(
     });
   }
 
-  const fillReferencePrice =
-    input.policy.order_type === "market"
-      ? selected.candle.open
-      : Math.min(selected.candle.open, input.policy.limit_price as number);
+  const fillReferencePrice = selected.candle.open;
   const replay = runInternalPaperMarketReplay({
     ...input.base_replay,
     replay_id: `${input.base_replay.replay_id}:execution:${input.order_id}`,

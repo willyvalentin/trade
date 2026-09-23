@@ -456,6 +456,35 @@ function validateMarketDay(
   return reasons;
 }
 
+function costedEntryFillPriceScaled(
+  arrival: bigint,
+  spreadBps: bigint,
+  slippageBps: bigint,
+) {
+  return roundQuotient(
+    arrival *
+      (BIGINT_TWENTY_THOUSAND * DECIMAL_SCALE +
+        spreadBps +
+        BIGINT_TWO * slippageBps),
+    BIGINT_TWENTY_THOUSAND * DECIMAL_SCALE,
+  );
+}
+
+/** Compare a simulated buy fill with an IOC limit using the replay's exact rounding. */
+export function internalPaperReplayEntryExceedsLimit(
+  arrivalPrice: number,
+  limitPrice: number,
+  account: Pick<InternalPaperReplayAccountConfig, "spread_bps" | "slippage_bps">,
+) {
+  return (
+    costedEntryFillPriceScaled(
+      toScaled(arrivalPrice),
+      toScaled(account.spread_bps),
+      toScaled(account.slippage_bps),
+    ) > toScaled(limitPrice)
+  );
+}
+
 function entryState(input: InternalPaperMarketReplayInput):
   | { status: "ready"; state: ReplayState; event: InternalPaperReplayEvent }
   | {
@@ -468,14 +497,10 @@ function entryState(input: InternalPaperMarketReplayInput):
   const spreadBps = toScaled(account.spread_bps);
   const slippageBps = toScaled(account.slippage_bps);
   const commission = toScaled(account.commission_per_order);
-  const fillFactorNumerator =
-    BIGINT_TWENTY_THOUSAND * DECIMAL_SCALE +
-    spreadBps +
-    BIGINT_TWO * slippageBps;
-  const fillFactorDenominator = BIGINT_TWENTY_THOUSAND * DECIMAL_SCALE;
-  const fillPriceScaled = roundQuotient(
-    arrival * fillFactorNumerator,
-    fillFactorDenominator,
+  const fillPriceScaled = costedEntryFillPriceScaled(
+    arrival,
+    spreadBps,
+    slippageBps,
   );
   const spreadCostScaled = roundQuotient(
     arrival * BigInt(entry.quantity) * spreadBps,
