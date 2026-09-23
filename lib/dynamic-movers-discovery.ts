@@ -48,6 +48,7 @@ export type DynamicMoversDiscoverySummary = {
 };
 
 export type DynamicMoversDiscoveryInput = {
+  source: "manual" | "scheduled";
   candidates?: Array<Pick<ScannerCandidate, "ticker">>;
   maxTickers?: number | null;
   previewCount?: number | null;
@@ -59,11 +60,15 @@ const defaultMaxTickers = 25;
 const defaultPreviewCount = 12;
 
 export async function discoverDynamicMoversDiagnostics(
-  input: DynamicMoversDiscoveryInput = {},
+  input: DynamicMoversDiscoveryInput,
 ): Promise<DynamicMoversDiscoverySummary> {
   throwIfAborted(input.signal);
   const now = input.now ?? new Date();
-  const enabled = process.env.TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED === "true";
+  // Scheduled scans reserve only regime, scanner and reference-refresh calls.
+  // Per-symbol diagnostic quotes are outside that reservation and must stay off.
+  const enabled =
+    input.source !== "scheduled" &&
+    process.env.TURE_DYNAMIC_MOVERS_DISCOVERY_ENABLED === "true";
 
   if (!enabled) {
     return buildSummary({
