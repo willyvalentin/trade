@@ -1,4 +1,5 @@
 import type { RecommendationEntryTypeSource } from "@/lib/recommendation-entry-type";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 
 export type PlanReferenceMetadataStatus =
   | "complete"
@@ -164,29 +165,6 @@ function marketDateKey(date: Date) {
   return year && month && day ? `${year}-${month}-${day}` : null;
 }
 
-function previousWeekdayDateKey(dateKey: string) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  if (!year || !month || !day) return null;
-
-  const date = new Date(Date.UTC(year, month - 1, day, 12));
-
-  do {
-    date.setUTCDate(date.getUTCDate() - 1);
-  } while (date.getUTCDay() === 0 || date.getUTCDay() === 6);
-
-  return date.toISOString().slice(0, 10);
-}
-
-function isDailyCandleCandidate(candidate: ResolvedReferenceCandidate) {
-  const text = `${candidate.source} ${candidate.readPath}`.toLowerCase();
-
-  return (
-    text.includes("candle") ||
-    text.includes("latest_close") ||
-    text.includes("latestclose")
-  );
-}
-
 function isScannerCacheCandidate(candidate: ResolvedReferenceCandidate) {
   const text = [
     candidate.source,
@@ -242,12 +220,9 @@ function freshnessDecision(
   }
 
   const referenceMarketDate = marketDateKey(timestampDate);
-  const previousTradingDate = previousWeekdayDateKey(marketDate);
   const acceptedDate =
-    referenceMarketDate === marketDate ||
-    (isDailyCandleCandidate(candidate) &&
-      !isScannerCacheCandidate(candidate) &&
-      referenceMarketDate === previousTradingDate);
+    referenceMarketDate === marketDate &&
+    isFreshLiveReferenceMarketTime(candidate.timestampValue, now.getTime());
 
   return {
     accepted: acceptedDate,
@@ -503,13 +478,21 @@ export function resolvePlanReferencePriceMetadata(
       providerReadPath: "candidate.market_data_provider",
     },
     {
-      value: intradayIndicators?.latestPrice,
+      value:
+        candidate.intraday_indicator_stale === true
+          ? null
+          : intradayIndicators?.latestPrice,
       source: "scanner_candidate_intraday_latest_price",
       readPath: "scanner_candidate.intraday_indicators.latestPrice",
-      timestamp: candidate.intraday_indicator_cached_at,
-      timestampReadPath: "candidate.intraday_indicator_cached_at",
-      provider: candidate.reference_price_provider ?? candidate.provider,
-      providerReadPath: "candidate.reference_price_provider",
+      timestamp: intradayIndicators?.latestCandleTimestamp,
+      timestampReadPath:
+        "candidate.intraday_indicators.latestCandleTimestamp",
+      provider:
+        candidate.intraday_indicator_source === "fresh" ||
+        candidate.intraday_indicator_source === "cache"
+          ? "twelve_data"
+          : null,
+      providerReadPath: "candidate.intraday_indicator_source",
     },
     {
       value: candidate.mock_current_price,

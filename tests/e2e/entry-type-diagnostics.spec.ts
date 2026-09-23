@@ -613,7 +613,7 @@ test("deterministic fallback accepts same-day plan reference metadata", () => {
       },
       {
         enforceFreshness: true,
-        now: "2026-06-23T14:35:00.000Z",
+        now: "2026-06-23T14:15:00.000Z",
       },
     ),
   );
@@ -633,6 +633,31 @@ test("deterministic fallback accepts same-day plan reference metadata", () => {
     planReference.plan_reference_metadata_trace
       .generated_recommendation_retained_reference_price,
   ).toBe(true);
+});
+
+test("live plan blocks prior close and old same-day prices", () => {
+  for (const reference_price_timestamp of [
+    "2026-06-22T20:00:00.000Z",
+    "2026-06-23T14:05:00.000Z",
+  ]) {
+    const metadata = resolvePlanReferencePriceMetadata(
+      {
+        ticker: "JPM",
+        latest_close: 290.11,
+        reference_price_timestamp,
+        reference_price_provider: "twelve_data",
+      },
+      { enforceFreshness: true, now: "2026-06-23T14:35:00.000Z" },
+    );
+
+    expect(metadata.reference_price_used_for_plan).toBeNull();
+    expect(metadata.plan_reference_metadata_trace.reference_freshness_status).toBe(
+      "rejected",
+    );
+    expect(metadata.plan_reference_metadata_trace.reference_price_stale_block_reason).toBe(
+      "stale_reference_price",
+    );
+  }
 });
 
 test("deterministic fallback rejects weeks-old scanner-cache plan reference", () => {

@@ -6,6 +6,7 @@ import {
 } from "@/lib/intraday-indicators";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
 import { normalizeUnknownError } from "@/lib/error-logging";
+import { isFreshLiveReferenceMarketTime } from "@/lib/live-reference-freshness-policy";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
 import {
@@ -96,6 +97,10 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
   return {
     vwap: parseNumber(raw.vwap),
     latestPrice: parseNumber(raw.latestPrice),
+    latestCandleTimestamp:
+      typeof raw.latestCandleTimestamp === "string"
+        ? raw.latestCandleTimestamp
+        : null,
     priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
     isAboveVwap:
       typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,
@@ -212,7 +217,11 @@ export async function getCachedIntradayIndicators(
       source: "cache",
       cached_at: memoryEntry.cached_at,
       response_identity: memoryEntry.response_identity,
-      stale: !isFresh(memoryEntry.cached_at, maxAgeMinutes),
+      stale:
+        !isFresh(memoryEntry.cached_at, maxAgeMinutes) ||
+        !isFreshLiveReferenceMarketTime(
+          memoryEntry.indicators.latestCandleTimestamp,
+        ),
       warnings,
     };
   }
@@ -244,7 +253,9 @@ export async function getCachedIntradayIndicators(
       source: "cache",
       cached_at: cachedAt,
       response_identity: responseIdentity,
-      stale: !isFresh(cachedAt, maxAgeMinutes),
+      stale:
+        !isFresh(cachedAt, maxAgeMinutes) ||
+        !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp),
       warnings,
     };
   }
@@ -374,6 +385,11 @@ export async function getOrRefreshIntradayIndicators(
     );
     throwIfAborted(options.signal);
     const indicators = calculateIntradayIndicators(response.candles);
+    if (
+      !isFreshLiveReferenceMarketTime(indicators.latestCandleTimestamp)
+    ) {
+      throw new Error("Provider intraday candle market time is missing or stale.");
+    }
     const cachedAt = new Date().toISOString();
 
     await setCachedIntradayIndicators(ticker, indicators, {
