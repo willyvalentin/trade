@@ -235,6 +235,11 @@ function scaledResultsAreSafe(...values: bigint[]) {
 }
 
 function canonical(value: unknown): unknown {
+  // JSON.stringify turns NaN and infinities into null. Keep malformed replay
+  // inputs distinguishable from a legitimately unavailable nullable volume.
+  if (typeof value === "number" && !Number.isFinite(value)) {
+    return { __invalid_non_finite_number__: String(value) };
+  }
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") {
     return Object.fromEntries(
@@ -440,6 +445,8 @@ function validateMarketDay(
       !safelyScalable(candle.low) ||
       !finitePositive(candle.close) ||
       !safelyScalable(candle.close) ||
+      (candle.volume !== null &&
+        (!Number.isFinite(candle.volume) || candle.volume < 0)) ||
       candle.high < Math.max(candle.open, candle.close) ||
       candle.low > Math.min(candle.open, candle.close) ||
       candle.high < candle.low ||

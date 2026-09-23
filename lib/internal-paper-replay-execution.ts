@@ -94,6 +94,10 @@ const UUID_PATTERN =
 const MAX_LATENCY_MS = 30 * 60_000;
 
 function canonical(value: unknown): unknown {
+  // Keep malformed numeric evidence distinct from an unavailable null value.
+  if (typeof value === "number" && !Number.isFinite(value)) {
+    return { __invalid_non_finite_number__: String(value) };
+  }
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === "object") {
     return Object.fromEntries(

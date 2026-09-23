@@ -1069,6 +1069,34 @@ repository lint excluding generated bundles with zero errors and eight
 pre-existing warnings, and a full Next webpack production build. Protected CI,
 merge and environment behavior remain separate.
 
+PR #603 passed all six protected provider-free CI shards, aggregate and
+merge-candidate provenance, then merged as main
+`3e1fd5e5ec5a949cb45bcaf1e78a4fdc13e0915f`. Netlify production deploy
+`6ab36210459edf00087ee992` is `ready` on that exact main revision. This
+closes the source/deploy repair only. No real fill, source availability at
+arrival, forward shadow or strategy-quality improvement was observed.
+
+**Selected SV-E.1 CLOSED replay volume-integrity repair, 2026-09-23
+(4–8h):** owner Codex on `codex/sv-e1-volume-integrity`, after the verified
+SV-E.2 repair. E.1 validated 390 price/time bars but trusted a caller-supplied
+`valid` label for volume on bars that were not the selected E.2 liquidity
+reference. A red fixture with negative or non-finite volume at minute 100
+still completed the day. Moreover, JSON serialization gave `NaN`, infinity
+and an honestly missing `null` volume the same input digest. The local repair
+rejects non-finite/negative volume anywhere in the frozen day while retaining
+nullable volume as unknown, and keeps malformed non-finite numbers distinct
+from `null` in E.1/E.2 input digests. E.2 propagates the invalid-day blocker
+before simulating a fill. Acceptance is red-to-green negative/non-finite/null
+tests, complete E.1–H.3 replay regression, strict TypeScript, lint, build,
+protected CI and exact-main deploy. The slice changes only provider-free
+replay validation/digests, tests and this ledger; no database, provider,
+ranking, publication, runtime writer or broker path. It does not prove
+historical data rights, real exchange execution or scientific strategy edge.
+Local evidence: 78/78 E.1–H.3 replay tests, strict TypeScript, changed-file
+lint without findings, full repository lint excluding generated bundles with
+zero errors/eight pre-existing warnings and a complete Next webpack production
+build. Protected CI, merge and exact-main deploy remain separate.
+
 ### Pilot readiness and bounded parallel work
 
 A.1/A.2 must record the actual existing strategy/version and eligible-symbol
@@ -1088,7 +1116,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | A.2 one-slot outcome-evaluation guard is merged and exact-revision production-deployed as `ea9a024d`; B.1 base receipt and strategy/selection registry are also merged, but real-decision/outcome acceptance remains OPEN | Observe only a separately authorized, bounded scheduled session; do not call the outcome or scan route merely to complete acceptance |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus both earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. An additional E.2 IOC liquidity look-ahead repair is selected locally on `codex/sv-e2-ioc-prior-volume-proxy`. | Finish its point-in-time regression, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus all three earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. An E.1 volume-integrity repair is selected locally on `codex/sv-e1-volume-integrity`. | Finish its invalid-data regression, protected PR CI and exact-main deploy. Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
