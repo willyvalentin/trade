@@ -390,6 +390,21 @@ function scorePricePlanQuality(
     return 0;
   }
 
+  const impliedRiskReward = (target2 - entryHigh) / (entryHigh - stopLoss);
+  // The scanner rounds plan prices and the published ratio to cents/hundredths.
+  // A larger discrepancy means the quoted reward cannot be reconstructed from
+  // the entry-high (worst long entry), stop and second target in the record.
+  if (Math.abs(riskReward - impliedRiskReward) > 0.05) {
+    warnings.push(
+      warning(
+        "inconsistent_risk_reward",
+        "blocked",
+        `Reported risk/reward ${riskReward.toFixed(2)} differs from plan geometry ${impliedRiskReward.toFixed(2)}.`,
+      ),
+    );
+    return 0;
+  }
+
   const stopDistance = ((entryHigh - stopLoss) / entryHigh) * 100;
   const targetDistance = ((target2 - entryHigh) / entryHigh) * 100;
   let score = 66;

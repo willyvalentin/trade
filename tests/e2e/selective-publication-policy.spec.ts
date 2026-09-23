@@ -27,7 +27,7 @@ function rankedCandidate(ticker: string, localScore: number) {
     proposed_entry_high: 101,
     proposed_stop_loss: 98,
     proposed_target_1: 104,
-    proposed_target_2: 106,
+    proposed_target_2: 108.5,
     proposed_risk_reward: 2.5,
     volume_ratio: 1.8,
     intraday_indicator_source: "fresh",
@@ -91,6 +91,7 @@ test("Experimental candidates remain in the decision record but never fill a pub
     ...rankedCandidate("RESEARCH", 0),
     volume_ratio: 0.5,
     proposed_risk_reward: 1.6,
+    proposed_target_2: 105.8,
   };
   const summary = buildScannerCandidateRankingSummary({
     candidates: [rankedCandidate("STRONG", 95), experimentalCandidate],
@@ -177,6 +178,45 @@ test("nonpositive or reversed long-plan geometry stays in the record but never r
       ]),
     );
   }
+});
+
+test("reported risk/reward must agree with entry-high, stop and target-two geometry", () => {
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: [
+      { ...rankedCandidate("OVERSTATED", 95), proposed_risk_reward: 9 },
+      { ...rankedCandidate("UNDERSTATED", 95), proposed_risk_reward: 1.1 },
+    ],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selection.selected_tickers).toEqual([]);
+  for (const result of summary.results) {
+    expect(result.score.tier).toBe("rejected");
+    expect(result.score.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          warning_id: "inconsistent_risk_reward",
+          severity: "blocked",
+        }),
+      ]),
+    );
+  }
+});
+
+test("small risk/reward rounding difference does not reject a coherent long plan", () => {
+  const summary = buildScannerCandidateRankingSummary({
+    candidates: [
+      { ...rankedCandidate("ROUNDED", 95), proposed_risk_reward: 2.54 },
+    ],
+    scanWindow: "morning_momentum",
+    now: new Date("2026-09-17T14:00:00.000Z"),
+  });
+
+  expect(summary.selection.selected_tickers).toEqual(["ROUNDED"]);
+  expect(summary.results[0].score.warnings.map((item) => item.warning_id)).not.toContain(
+    "inconsistent_risk_reward",
+  );
 });
 
 test("one qualified candidate is publishable while an empty healthy window is explicit no_trade", () => {

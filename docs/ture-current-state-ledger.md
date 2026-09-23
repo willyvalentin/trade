@@ -1107,16 +1107,20 @@ owner Codex on `codex/sv-a2-ranking-plan-integrity`, based on the verified
 PR #604 main revision. A deterministic candidate fixture with an absent
 target 2 was selected `valid` at score 78 under ranking v1.0; `null` target 2
 was selected `strong` at 88 because `Number(null)` became zero; a reversed
-target 2 was also selected `strong`. This is a pre-builder ranking/decision
+target 2 was also selected `strong`. A second deterministic fixture found that
+reported risk/reward values of 9 or 1.1 could be selected despite an entry-high,
+stop and target-two geometry implying about 1.67. This is a pre-builder ranking/decision
 truth defect; it does not prove an invalid recommendation was published, since
 later plan construction and validation have separate gates. The v1.1 ranker
 preserves complete-plan behavior and the full decision record, but blocks
-missing, nonnumeric, nonpositive and reversed long plans before selection.
+missing, nonnumeric, nonpositive, reversed and materially contradictory
+long plans before selection. The reported risk/reward must agree with the
+reconstructable worst-entry geometry within 0.05 for price/ratio rounding.
 An empty selection remains `no_trade`; the versioned result can be compared
 with the frozen v1.0 fixture. Scope is ranking, provider-free regressions, CI
 registration and this ledger; no provider, credit, database, configuration,
 broker or live ranking experiment. Local acceptance: red-to-green plan tests,
-58/58 focused ranking/decision/learning/CI-contract tests, strict TypeScript,
+60/60 focused ranking/decision/learning/CI-contract tests, strict TypeScript,
 changed-file lint, full repository lint excluding generated bundles with zero
 errors/eight existing warnings, and a complete Next webpack production build.
 Protected CI, merge, exact-main deploy and any real market-behavior or quality
