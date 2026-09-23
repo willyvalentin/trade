@@ -385,21 +385,49 @@ The one-shot and global switches were restored; cleanup deploy
 `6ab41b37f70ab406d5325d7b` is published `ready` on unchanged main.
 No further production scan is armed or authorized by this receipt.
 
-**A.2 CLOSED latency repair in progress, 2026-09-23:** the scanner's initial
+**A.2 CLOSED latency repair merged and deployed, 2026-09-23:** the scanner's initial
 batched `scanner_cache` read already contains each row's raw intraday cache,
 but the attachment path performed a second serial Supabase read per ticker.
-The isolated local change reuses that raw snapshot for cache hits and stale
+PR #610 reuses that raw snapshot for cache hits and stale
 fallbacks while retaining the existing freshness validation, one-call Basic
 Free scanner provider bound and post-upsert read path. The change was
-integrated locally with merged main `1e018859` after PR #606; 30 related
-provider-free tests, targeted lint, strict TypeScript and a Next webpack
-production build pass. Runtime latency reduction and a completed hosted scan remain
+integrated with the then-current main and passed 30 related provider-free tests,
+targeted lint, strict TypeScript, a Next webpack production build and scheduled
+runtime package build locally. After a docs-only main advance, the branch was
+updated and eight focused tests passed locally again; all six protected CI
+shards, aggregate and merge-candidate provenance passed on head `654cbf14`.
+PR #610 merged as main `e2529162048d07466c94eab058d469fb8d31ed3a`;
+post-merge main CI passed and Netlify production deploy
+`6ab43b68cfb61600086ddd7b` is published `ready` on that exact revision.
+The function-scoped production scheduled-functions switch still reads `true`.
+Runtime latency reduction and a completed hosted scan remain
 unproven; the precise share of the 20:30 timeout attributable to these extra
 reads is not measured by the current trace. A read-only production aggregate
 found 46 scanner-cache rows, of which 17 contain intraday indicator cache but
 none of those 17 retain source-candle time. Those legacy entries correctly
 remain stale under the merged live market-time gate; this latency repair does
 not refill them or establish candidate quality.
+
+**Selected A.2 CLOSED scan-fetch attribution, 2026-09-23 (4–8h):** owner Codex
+on isolated `codex/sv-a2-scan-fetch-attribution` from exact main `e2529162`.
+The observed 20:30 timeout ended inside `market_data_fetch` without a measured
+cache-versus-provider breakdown. This slice adds a versioned, bounded timing
+receipt around the existing cache read, provider wait, pacing, cache write and
+intraday-indicator path, including the failed step on abort. Its pass condition
+is a durable scan trace that attributes a future terminal result without
+changing provider calls, budget, freshness, ranking, publication or broker
+behavior. The timing receipt is locally implemented: 37 related provider-free tests,
+repository lint with zero errors/eight pre-existing warnings, strict TypeScript,
+Next webpack production build and scheduled-runtime package build passed.
+Protected CI, PR merge and a hosted scan receipt remain unverified; no runtime
+latency improvement is claimed. A separate code inspection
+found a potential coverage bias: the one Basic Free scanner slot is reserved
+before checking whether the first ticker's indicator cache is already fresh,
+and a 10-minute indicator TTL is shorter than the normal 15-minute cadence.
+The scheduled universe rotates, so repeated selection of the same first
+symbol is not established; the per-run one-slot coverage limit remains.
+Any revised allocation needs a separately versioned, credit-safe comparison;
+it is not part of this timing slice.
 
 **Pilot readiness record:** the inspected research-only decision rows do not
 retain an attributable candidate-decision record from which a current

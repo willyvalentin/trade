@@ -98,7 +98,7 @@ test("scanner reserves its provider slot before a fallible intraday refresh", ()
   );
 
   expect(attachment).toMatch(
-    /if \(allowFreshFetch\) freshProviderCallsUsed \+= 1;\s+const result = await getOrRefreshIntradayIndicators/,
+    /if \(allowFreshFetch\) freshProviderCallsUsed \+= 1;\s+const result = await measureScanFetchStep\(\{[\s\S]*?run: \(\) => getOrRefreshIntradayIndicators/,
   );
   expect(attachment).not.toMatch(
     /if \(result\.source === "fresh"\) \{\s+freshProviderCallsUsed \+= 1/,
@@ -111,10 +111,10 @@ test("scanner reuses its batched raw cache for indicator reads without changing 
 
   expect(scanner).toContain('"raw",');
   expect(scanner).toContain("preloadedScannerCacheRaw: preloadedScannerCacheRow.raw");
-  expect(scanner.match(/buildCandidate\(baseCandidate, cachedValues\),\s*cachedRow,/g))
+  expect(scanner.match(/buildCandidate\(baseCandidate, cachedValues\),\s*tickerIndex,\s*cachedRow,/g))
     .toHaveLength(3);
   expect(scanner).toMatch(
-    /buildCandidate\(baseCandidate, scannerValues\),\s*\);/,
+    /buildCandidate\(baseCandidate, scannerValues\),\s*tickerIndex,\s*\);/,
   );
   expect(indicatorCache).toContain(
     'Object.prototype.hasOwnProperty.call(\n    options,\n    "preloadedScannerCacheRaw",',
