@@ -7,6 +7,7 @@ import {
   volumeTrendFromRecentVolumeRatio,
 } from "../../lib/intraday-indicators";
 import type { IntradayCandle } from "../../lib/market-data";
+import { getNewYorkRegularSessionWindow } from "../../lib/intraday-scan-window";
 
 function candles(volumes: number[], intervalMinutes = 5): IntradayCandle[] {
   return volumes.map((volume, index) => ({
@@ -55,6 +56,19 @@ test("recent intraday volume compares two complete same-session windows", () => 
   ).toBeNull();
   expect(volumeTrendFromRecentVolumeRatio(null)).toBe("unknown");
   expect(volumeTrendFromRecentVolumeRatio(2)).toBe("expanding");
+});
+
+test("intraday fetch window follows New York daylight and standard time", () => {
+  expect(getNewYorkRegularSessionWindow(new Date("2026-09-23T12:00:00Z")))
+    .toEqual({
+      start: new Date("2026-09-23T13:30:00Z"),
+      end: new Date("2026-09-23T20:00:00Z"),
+    });
+  expect(getNewYorkRegularSessionWindow(new Date("2026-12-23T12:00:00Z")))
+    .toEqual({
+      start: new Date("2026-12-23T14:30:00Z"),
+      end: new Date("2026-12-23T21:00:00Z"),
+    });
 });
 
 test("an incomplete intraday denominator stays unavailable", () => {

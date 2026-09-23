@@ -316,7 +316,7 @@ No internal-paper pilot selection is recorded or enabled. That is an evidence
 gap to resolve in A.2/B.1, not permission to infer a live cohort from the
 stored snapshots.
 
-**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, local follow-up pending):**
+**Selected SV-A.2 CLOSED volume-provenance repair, 2026-09-23 (PR #606, pending merge):**
 owner Codex, 4–8 active-hour slice on isolated
 `codex/sv-a2-volume-provenance` from main `a83ddbb1`, with no schema, provider,
 configuration or broker write. The reproducible source defect is that
@@ -330,21 +330,23 @@ contradictory cached volume trends and preserves missing numeric indicators as
 unavailable rather than coercing them to zero. Daily-derived cache values cannot
 re-enter the new ratio or volume trend; a v2 decision
 feature vector distinguishes new evidence while v1 readback remains valid.
-Acceptance so far:
-the red baseline fixtures, then 63/63 targeted decision/ranking/learning tests,
-6/6 protected-CI registration tests, changed-file lint, strict TypeScript and
-a full Next webpack build. The PR head is `f4481df`; the cached-trend correction
-is locally committed as `c1401e1`, with later closed-bar and shared-parser
-corrections also held locally pending post-observation integration. This is
+The intraday fetch window now follows New York daylight/standard time rather
+than a fixed summer UTC offset, preserving the same-session denominator in
+winter. Acceptance so far: red regression fixtures, then 44/44 focused
+volume/decision/learning/CI-contract tests, changed-file lint, strict
+TypeScript and a full Next build on the DST follow-up checkout. The previous
+pushed head `5003a94c` passed protected CI, but the DST follow-up needs its own
+protected CI after push. This is
 **not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.
-An uncommitted, isolated local combination of #605 head `2678a4fa` and this
-branch head `ce0022c5` merged without conflict; 31 focused cross-PR tests,
+An uncommitted, isolated local combination of #605 head `310a73e6` and the
+pre-DST #606 head `5003a94c` merged without conflict; 70 focused cross-PR tests,
 changed-file lint, strict TypeScript and a full Next webpack build passed on
-that combined checkout. Protected CI and production behavior on the eventual
-merged revision remain unverified.
+that combined checkout. Recheck integration including the DST follow-up against
+then-current main. Protected CI and production behavior on the eventual merged
+revision remain unverified.
 Other legacy scanner-cache numeric defaults and daily-derived fields remain
 outside this repair and must not be inferred to have intraday provenance.
 

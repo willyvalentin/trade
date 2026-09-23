@@ -6,6 +6,7 @@ import {
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
+import { getNewYorkRegularSessionWindow } from "@/lib/intraday-scan-window";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { throwIfAborted } from "@/lib/operation-abort";
 import { getServerSupabaseClient } from "@/lib/supabase-server";
@@ -116,22 +117,6 @@ function getDefaultMaxAgeMinutes(options: IntradayIndicatorCacheOptions) {
   }
 
   return DEFAULT_MAX_AGE_MINUTES;
-}
-
-function getNewYorkTradingDayWindow() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const valueByType = new Map(parts.map((part) => [part.type, part.value]));
-  const date = `${valueByType.get("year")}-${valueByType.get("month")}-${valueByType.get("day")}`;
-
-  return {
-    start: new Date(`${date}T09:30:00-04:00`),
-    end: new Date(`${date}T16:00:00-04:00`),
-  };
 }
 
 async function getScannerCacheRaw(ticker: string) {
@@ -321,7 +306,7 @@ export async function getOrRefreshIntradayIndicators(
   }
 
   try {
-    const { start, end } = getNewYorkTradingDayWindow();
+    const { start, end } = getNewYorkRegularSessionWindow(new Date());
     const response = await getIntradayCandlesWithDiagnostics(
       ticker,
       interval,
