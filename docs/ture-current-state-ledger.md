@@ -344,19 +344,23 @@ can no longer become fresh just because it entered memory. Twelve Data's
 published `/time_series` contract defines the timestamp as the bar's opening
 time; the guard adds the interval to obtain its close. Fifty-six focused and
 related local regressions, changed-file lint, strict TypeScript and a full
-Next build pass for this follow-up. The prior pushed head `b1e4493f` passed
-protected CI and Deploy Preview; this additional freshness change remains
-local until it is pushed and CI reruns. This is
+Next build pass for this follow-up. Current pushed head `0261d116` passed
+all six protected provider-free CI shards, aggregate verification,
+merge-candidate provenance and Netlify Deploy Preview. This is
 **not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.
-An uncommitted, isolated local combination of #605 head `310a73e6` and the
-pre-DST #606 head `5003a94c` merged without conflict; 70 focused cross-PR tests,
-changed-file lint, strict TypeScript and a full Next webpack build passed on
-that combined checkout. Recheck integration including the DST follow-up against
-then-current main. Protected CI and production behavior on the eventual merged
-revision remain unverified.
+An isolated local combination of production main `a83ddbb1`, #605 head
+`310a73e6` and current #606 head `0261d116` merged without conflict;
+60 relevant cross-PR tests, changed-file lint, strict TypeScript and a full
+Next webpack build passed before the temporary checkout was removed. Recheck
+integration against then-current main and ensure the ranking-policy identity
+distinguishes changed volume inputs in addition to the v2 feature vector.
+Protected CI and production behavior on the eventual merged revision remain
+unverified. Two complete twelve-bar windows require two hours of 5-minute
+regular-session data, or six hours of 15-minute data; the corrected ratio is
+unavailable at the frozen 10:00 ET scan slot, not inferred from daily bars.
 Other legacy scanner-cache numeric defaults and daily-derived fields remain
 outside this repair and must not be inferred to have intraday provenance.
 
