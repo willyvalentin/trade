@@ -21,6 +21,10 @@ const historicalSourceCommit =
   "dbeed25f2074bff4dba8cee7f6d511cb17992efc";
 const successionSourceCommit =
   "ddce80b57c9ab21b5210d2aa484271c2da0f60e6";
+const originalOutcomeIncludedFiles =
+  '  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs"]';
+const outcomeIncludedFilesWithDeployIdentity =
+  '  included_files = ["netlify/.generated/scheduled-outcome-evaluation-runtime.cjs", "netlify/.generated/scheduled-scan-deployment-identity.json"]';
 
 const sourcePaths = [
   "package.json",
@@ -96,13 +100,31 @@ function sha256(value: string | Buffer) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+function netlifyTomlSecurityBaseline(current: string) {
+  // The sole accepted delta packages the same immutable build identity used
+  // by scheduled-scan into scheduled-outcome-evaluation. All other Netlify
+  // configuration bytes remain pinned to the security-release evidence.
+  expect(current.split(outcomeIncludedFilesWithDeployIdentity)).toHaveLength(2);
+  return current.replace(
+    outcomeIncludedFilesWithDeployIdentity,
+    originalOutcomeIncludedFiles,
+  );
+}
+
 async function sourceHashes() {
   const hashes = Object.fromEntries(
     await Promise.all(
-      sourcePaths.map(async (sourcePath) => [
-        sourcePath,
-        sha256(await source(sourcePath)),
-      ]),
+      sourcePaths.map(async (sourcePath) => {
+        const contents = await source(sourcePath);
+        return [
+          sourcePath,
+          sha256(
+            sourcePath === "netlify.toml"
+              ? netlifyTomlSecurityBaseline(contents)
+              : contents,
+          ),
+        ];
+      }),
     ),
   ) as Record<string, string>;
   for (const [historicalPath, snapshotPath] of Object.entries(
