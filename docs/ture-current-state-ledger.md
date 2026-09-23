@@ -325,15 +325,17 @@ daily bars, then recorded as an *intraday* signal in ranking/decision evidence.
 The local fix instead derives it from two complete, contiguous twelve-bar
 windows of closed bars from the existing 5m/15m intraday feed;
 missing/zero/gapped/early-session or still-open-bar volume leaves both the ratio
-and volume trend unavailable. Old daily-derived
-cache values cannot re-enter the new ratio or volume trend; a v2 decision
+and volume trend unavailable. A shared readback parser rejects old or
+contradictory cached volume trends, so daily-derived cache values cannot
+re-enter the new ratio or volume trend; a v2 decision
 feature vector distinguishes new evidence while v1 readback remains valid.
 Acceptance so far:
-the red baseline fixtures, then 61/61 targeted decision/ranking/learning tests,
+the red baseline fixtures, then 62/62 targeted decision/ranking/learning tests,
 6/6 protected-CI registration tests, changed-file lint, strict TypeScript and
 a full Next webpack build. The PR head is `f4481df`; the cached-trend correction
-is locally committed as `c1401e1` and remains unpushed pending post-observation
-integration. This is **not** merged, production-deployed, market-behavior
+is locally committed as `c1401e1`, with later closed-bar and shared-parser
+corrections also held locally pending post-observation integration. This is
+**not** merged, production-deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the
 frozen A.2 OPEN observation is completed or skipped and PR #605 has been
 resolved; do not pool old and new volume-feature cohorts.

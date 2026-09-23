@@ -42,6 +42,50 @@ export function volumeTrendFromRecentVolumeRatio(
   return "flat";
 }
 
+/** Normalizes persisted indicator evidence, including pre-v2 cache rows. */
+export function intradayIndicatorsFromUnknown(
+  value: unknown,
+): IntradayIndicators | null {
+  if (typeof value !== "object" || value === null) return null;
+
+  const raw = value as Partial<IntradayIndicators>;
+  const parseNumber = (input: unknown) => {
+    const parsed = Number(input);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+  const recentVolumeRatio =
+    typeof raw.recentVolumeRatio === "number" &&
+    Number.isFinite(raw.recentVolumeRatio) &&
+    raw.recentVolumeRatio > 0
+      ? raw.recentVolumeRatio
+      : null;
+
+  return {
+    vwap: parseNumber(raw.vwap),
+    latestPrice: parseNumber(raw.latestPrice),
+    priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
+    isAboveVwap:
+      typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,
+    recentHigh: parseNumber(raw.recentHigh),
+    recentLow: parseNumber(raw.recentLow),
+    recentRangePercent: parseNumber(raw.recentRangePercent),
+    momentumPercent: parseNumber(raw.momentumPercent),
+    momentumDirection:
+      raw.momentumDirection === "up" ||
+      raw.momentumDirection === "down" ||
+      raw.momentumDirection === "flat"
+        ? raw.momentumDirection
+        : "unknown",
+    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
+    latestVolume: parseNumber(raw.latestVolume),
+    averageVolume: parseNumber(raw.averageVolume),
+    recentVolumeRatio,
+    warnings: Array.isArray(raw.warnings)
+      ? raw.warnings.filter((item): item is string => typeof item === "string")
+      : [],
+  };
+}
+
 const RECENT_CANDLE_COUNT = 12;
 const MOMENTUM_LOOKBACK_MAX = 6;
 const MOMENTUM_UP_THRESHOLD = 0.3;

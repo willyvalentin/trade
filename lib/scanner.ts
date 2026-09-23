@@ -7,6 +7,7 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import {
   admissibleRecentIntradayVolumeRatio,
+  intradayIndicatorsFromUnknown,
   volumeTrendFromRecentVolumeRatio,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
@@ -182,45 +183,6 @@ function average(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
-  if (typeof value !== "object" || value === null) {
-    return null;
-  }
-
-  const raw = value as Partial<IntradayIndicators>;
-  const recentVolumeRatio =
-    typeof raw.recentVolumeRatio === "number" &&
-    Number.isFinite(raw.recentVolumeRatio) &&
-    raw.recentVolumeRatio > 0
-      ? raw.recentVolumeRatio
-      : null;
-
-  return {
-    vwap: parseNumber(raw.vwap),
-    latestPrice: parseNumber(raw.latestPrice),
-    priceVsVwapPercent: parseNumber(raw.priceVsVwapPercent),
-    isAboveVwap:
-      typeof raw.isAboveVwap === "boolean" ? raw.isAboveVwap : null,
-    recentHigh: parseNumber(raw.recentHigh),
-    recentLow: parseNumber(raw.recentLow),
-    recentRangePercent: parseNumber(raw.recentRangePercent),
-    momentumPercent: parseNumber(raw.momentumPercent),
-    momentumDirection:
-      raw.momentumDirection === "up" ||
-      raw.momentumDirection === "down" ||
-      raw.momentumDirection === "flat"
-        ? raw.momentumDirection
-        : "unknown",
-    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
-    latestVolume: parseNumber(raw.latestVolume),
-    averageVolume: parseNumber(raw.averageVolume),
-    recentVolumeRatio,
-    warnings: Array.isArray(raw.warnings)
-      ? raw.warnings.filter((item): item is string => typeof item === "string")
-      : [],
-  };
-}
-
 function rawScannerValues(row: ScannerCacheRow) {
   if (typeof row.raw !== "object" || row.raw === null) {
     return {};
@@ -333,7 +295,7 @@ function scannerValuesFromCache(row: ScannerCacheRow): ScannerValues | null {
     average_range_percent: parseNumber(rawValues.average_range_percent) ?? 2,
     latest_range_percent: parseNumber(rawValues.latest_range_percent) ?? 2,
     range_expansion_ratio: parseNumber(rawValues.range_expansion_ratio) ?? 1,
-    intraday_indicators: parseIntradayIndicators(rawValues.intraday_indicators),
+    intraday_indicators: intradayIndicatorsFromUnknown(rawValues.intraday_indicators),
     reference_price_timestamp:
       isoStringOrNull(rawValues.reference_price_timestamp) ??
       isoStringOrNull(row.updated_at),

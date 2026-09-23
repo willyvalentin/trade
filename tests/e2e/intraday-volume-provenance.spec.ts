@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   admissibleRecentIntradayVolumeRatio,
   calculateIntradayIndicators,
+  intradayIndicatorsFromUnknown,
   volumeTrendFromRecentVolumeRatio,
 } from "../../lib/intraday-indicators";
 import type { IntradayCandle } from "../../lib/market-data";
@@ -114,4 +115,22 @@ test("a 15-minute volume window waits for its final bar to close", () => {
     observedIndicators(volumes, finalOpen + 15 * 60, "15min")
       .recentVolumeRatio,
   ).toBe(2);
+});
+
+test("legacy or contradictory cache trend cannot masquerade as observed volume", () => {
+  expect(
+    intradayIndicatorsFromUnknown({ volumeTrend: "expanding" }),
+  ).toMatchObject({ recentVolumeRatio: null, volumeTrend: "unknown" });
+  expect(
+    intradayIndicatorsFromUnknown({
+      recentVolumeRatio: 1.2,
+      volumeTrend: "contracting",
+    }),
+  ).toMatchObject({ recentVolumeRatio: 1.2, volumeTrend: "expanding" });
+  expect(
+    intradayIndicatorsFromUnknown({
+      recentVolumeRatio: Number.NaN,
+      volumeTrend: "expanding",
+    }),
+  ).toMatchObject({ recentVolumeRatio: null, volumeTrend: "unknown" });
 });
