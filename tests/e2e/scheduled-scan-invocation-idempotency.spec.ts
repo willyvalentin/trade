@@ -11,6 +11,8 @@ import {
   parseScheduledScanBuildDeploymentIdentity,
   scheduledScanPreflightEventEvidence,
   scheduledScanProbePreflightAdmission,
+  scheduledScanNormalOneShotControlFromEnvironment,
+  scheduledScanTimeBoundAdmission,
   scheduledScanSlotIdentity,
   scheduledScanSlotStartedAt,
   scheduledScanRuntimeConfigurationFromEnvironment,
@@ -785,6 +787,220 @@ test.describe("scheduled scan invocation idempotency", () => {
       globalThis.fetch = originalFetch;
       if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
       else Reflect.deleteProperty(globalThis, "Netlify");
+    }
+  });
+
+  test("parses an exact normal-scan one-shot date and quarter-hour slot", () => {
+    const ready = scheduledScanNormalOneShotControlFromEnvironment({
+      get(key) {
+        return {
+          TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+          TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-23",
+          TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:30:00.000Z",
+        }[key];
+      },
+    });
+    expect(ready).toEqual({
+      enabled: true,
+      target_date: "2026-09-23",
+      target_slot_utc: "2026-09-23T13:30:00.000Z",
+    });
+    expect(
+      scheduledScanNormalOneShotControlFromEnvironment({
+        get(key) {
+          return {
+            TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+            TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-31",
+            TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:31:00.000Z",
+          }[key];
+        },
+      }),
+    ).toEqual({ enabled: true, target_date: null, target_slot_utc: null });
+  });
+
+  test("binds an eligible normal one-shot to one production deploy and event slot", () => {
+    const control = scheduledScanNormalOneShotControlFromEnvironment({
+      get(key) {
+        return {
+          TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+          TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-23",
+          TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:30:00.000Z",
+        }[key];
+      },
+    });
+    const buildIdentity = parseScheduledScanBuildDeploymentIdentity({
+      schema_version: SCHEDULED_SCAN_DEPLOYMENT_IDENTITY_SCHEMA_VERSION,
+      deploy_id: productionDeployId,
+      deploy_context: "production",
+      commit_ref: productionCommit,
+      site_id: productionSiteId,
+    });
+    const admission = scheduledScanTimeBoundAdmission({
+      contextIdentity: {
+        deploy_id: productionDeployId,
+        deploy_context: "production",
+        deploy_published: false,
+      },
+      buildIdentity,
+      runtimeSiteId: productionSiteId,
+      eventEvidence: scheduledScanPreflightEventEvidence({
+        nextRun: "2026-09-23T13:45:00.000Z",
+        deliveryTime: new Date("2026-09-23T13:30:35.000Z"),
+      }),
+      configuredProbeSlotUtc: control.target_slot_utc,
+      configuredProbeDate: control.target_date,
+    });
+
+    expect(admission).toMatchObject({
+      admitted: true,
+      status: "admitted_matching_runtime_context",
+      deployment_identity: {
+        deploy_id: productionDeployId,
+        commit_ref: productionCommit,
+        site_id: productionSiteId,
+      },
+      event_evidence: {
+        scheduled_slot_started_at_utc: "2026-09-23T13:30:00.000Z",
+      },
+    });
+  });
+
+  test("keeps non-target and malformed one-shot slots inert before database or route", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    let requests = 0;
+    let values: Record<string, string | undefined> = {};
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: { env: { get(key: string) { return values[key]; } } },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        return new Response("unexpected", { status: 500 });
+      };
+
+      for (const overrides of [
+        { TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:45:00.000Z" },
+        { TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-22" },
+        { TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:31:00.000Z" },
+      ]) {
+        values = {
+          TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+          TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
+          TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
+          TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+          TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-23",
+          TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:30:00.000Z",
+          ...overrides,
+        };
+        const response = await withFixedDate(
+          "2026-09-23T13:30:35.000Z",
+          () => scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-23T13:45:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: handlerProductionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
+        );
+        expect(response.status).toBe(204);
+      }
+      expect(requests).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
+    }
+  });
+
+  test("rejects normal one-shot conflicts and unverified deployment before a durable claim", async () => {
+    const originalNetlify = Object.getOwnPropertyDescriptor(globalThis, "Netlify");
+    const originalFetch = globalThis.fetch;
+    const originalSiteId = process.env.SITE_ID;
+    let requests = 0;
+    let values: Record<string, string | undefined> = {};
+    try {
+      Object.defineProperty(globalThis, "Netlify", {
+        configurable: true,
+        value: { env: { get(key: string) { return values[key]; } } },
+      });
+      globalThis.fetch = async () => {
+        requests += 1;
+        return new Response("unexpected", { status: 500 });
+      };
+      process.env.SITE_ID = "11111111-1111-4111-8111-111111111111";
+
+      for (const overrides of [
+        { TURE_DISABLE_SCHEDULED_FUNCTIONS: "false" },
+        { TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "true" },
+        { TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "true" },
+      ]) {
+        values = {
+          TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+          TURE_BASIC_FREE_CATALOG_CAPABILITY_PROBE_ENABLED: "false",
+          TURE_BASIC_FREE_CATALOG_OBSERVATION_ONE_SHOT_ENABLED: "false",
+          TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+          TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-23",
+          TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:30:00.000Z",
+          ...overrides,
+        };
+        const response = await withFixedDate(
+          "2026-09-23T13:30:35.000Z",
+          () => scheduledScanHandler(
+            new Request("https://scheduled.example", {
+              method: "POST",
+              body: JSON.stringify({ next_run: "2026-09-23T13:45:00.000Z" }),
+            }),
+            {
+              deploy: {
+                id: handlerProductionDeployId,
+                context: "production",
+                published: true,
+              },
+            } as Parameters<typeof scheduledScanHandler>[1],
+          ),
+        );
+        expect(response.status).toBe(503);
+        expect(await response.text()).toBe("Normal one-shot scan gates unavailable");
+      }
+
+      values = {
+        TURE_DISABLE_SCHEDULED_FUNCTIONS: "true",
+        TURE_NORMAL_SCAN_ONE_SHOT_ENABLED: "true",
+        TURE_NORMAL_SCAN_ONE_SHOT_DATE: "2026-09-23",
+        TURE_NORMAL_SCAN_ONE_SHOT_SLOT_UTC: "2026-09-23T13:30:00.000Z",
+      };
+      const unverified = await withFixedDate(
+        "2026-09-23T13:30:35.000Z",
+        () => scheduledScanHandler(
+          new Request("https://scheduled.example", {
+            method: "POST",
+            body: JSON.stringify({ next_run: "2026-09-23T13:45:00.000Z" }),
+          }),
+          {
+            deploy: {
+              id: handlerProductionDeployId,
+              context: "production",
+              published: true,
+            },
+          } as Parameters<typeof scheduledScanHandler>[1],
+        ),
+      );
+      expect(unverified.status).toBe(503);
+      expect(requests).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (originalNetlify) Object.defineProperty(globalThis, "Netlify", originalNetlify);
+      else Reflect.deleteProperty(globalThis, "Netlify");
+      if (originalSiteId === undefined) delete process.env.SITE_ID;
+      else process.env.SITE_ID = originalSiteId;
     }
   });
 });
