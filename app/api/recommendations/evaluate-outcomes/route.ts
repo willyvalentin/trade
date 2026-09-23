@@ -29,6 +29,13 @@ import { getConfiguredApplicationOwnerUserId } from "@/lib/application-session-c
 import { verifyConfiguredApplicationOwnerPrincipal } from "@/lib/server/application-owner-principal";
 import { normalizeUnknownError } from "@/lib/error-logging";
 import { buildProviderPlanProfile } from "@/lib/provider-plan-profile";
+import {
+  capBasicFreeOutcomeCandleRequests,
+  finalizeBasicFreeScheduledOutcomeCreditGuard,
+  prepareBasicFreeScheduledOutcomeCreditGuard,
+  type BasicFreeScheduledOutcomeCreditGuard,
+  type BasicFreeScheduledOutcomeCreditSummary,
+} from "@/lib/basic-free-scheduled-outcome-credit-guard";
 import { evaluateGrowMaxLearningMode } from "@/lib/grow-max-learning-mode";
 import {
   getLearningAccelerationConfig,
@@ -1862,9 +1869,14 @@ export async function POST(request: Request) {
     learningAccelerationMode.learning_acceleration_enabled;
   const includeLearningSnapshots =
     growMaxLearningModeEnabled || learningAccelerationEnabled;
-  const providerBudgetLimit = includeLearningSnapshots
+  const requestedProviderBudgetLimit = includeLearningSnapshots
     ? Math.min(25, providerBudgetResolution.effectiveBudgetLimit)
     : providerBudgetResolution.effectiveBudgetLimit;
+  // A request or environment override must not enlarge Basic Free capacity.
+  const providerBudgetLimit = capBasicFreeOutcomeCandleRequests({
+    planMode: providerPlanProfile.effective_mode,
+    requestedLimit: requestedProviderBudgetLimit,
+  });
   const horizons = parseHorizons(body?.horizons);
   const maxBatchesPerRun = resolveOfficialLiveMaxBatchesPerRun(body?.max_batches);
 
@@ -1913,6 +1925,8 @@ export async function POST(request: Request) {
   }
 
   let scheduledAttempt: ScheduledOutcomeEvaluationAttempt | null = null;
+  let outcomeCreditGuard: BasicFreeScheduledOutcomeCreditGuard | null = null;
+  let outcomeCreditSummary: BasicFreeScheduledOutcomeCreditSummary | null = null;
   if (scheduledInvocation.status === "ready") {
     const claim = await claimScheduledOutcomeEvaluationAttempt({
       ownerUserId: ownerPrincipal.owner_user_id,
@@ -2271,6 +2285,64 @@ export async function POST(request: Request) {
     });
   }
 
+  if (scheduledAttempt) {
+    outcomeCreditGuard = await prepareBasicFreeScheduledOutcomeCreditGuard({
+      planMode: providerPlanProfile.effective_mode,
+      maximumCandleRequests: providerBudgetLimit,
+      ownerUserId: ownerPrincipal.owner_user_id,
+      executionFingerprint: scheduledAttempt.attempt_fingerprint,
+    });
+    outcomeCreditSummary = outcomeCreditGuard.summary;
+
+    if (!outcomeCreditSummary.provider_execution_allowed) {
+      const blocker = outcomeCreditSummary.safe_blocker ??
+        "scheduled_outcome_credit_reservation_unavailable";
+      const scheduledReceiptFinalization =
+        await finalizeScheduledOutcomeEvaluationReceipt({
+          attempt: scheduledAttempt,
+          ownerUserId: ownerPrincipal.owner_user_id,
+          run: idleReceiptRun({
+            horizons,
+            providerBudgetLimit,
+            status: "blocked",
+          }),
+          selectedBatchFingerprint: stringOrNull(
+            officialSnapshotLoad?.batch?.batch_fingerprint,
+          ) ?? batchFingerprint,
+          outcomesCreatedCount: 0,
+          outcomesUpdatedCount: 0,
+          outcomesSkippedEqualOrBetterCount: 0,
+          persistenceStatus: "not_attempted",
+          persistenceError: null,
+          firstBlocker: blocker,
+          nextRetrySuggestion:
+            "Do not retry this slot; inspect the shared credit ledger before another scheduled outcome evaluation.",
+          decisionSnapshots: eligibleSnapshots,
+        });
+      if (scheduledReceiptFinalization.status === "unavailable") {
+        return NextResponse.json(
+          {
+            error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
+            code: "scheduled_outcome_evaluation_receipt_unavailable",
+            basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
+          },
+          { status: 503, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+
+      return NextResponse.json({
+        status: "blocked",
+        code: "scheduled_outcome_credit_reservation_blocked",
+        eligible_snapshot_count: eligibleSnapshots.length,
+        evaluated_snapshot_count: 0,
+        persisted_outcome_count: 0,
+        basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
+        scheduled_outcome_evaluation_receipt:
+          scheduledReceiptFinalization.attempt.receipt_json,
+      });
+    }
+  }
+
   const run = await runRecommendationOutcomeEvaluation({
     snapshots: outcomeEvaluationSnapshots,
     existingOutcomes,
@@ -2337,6 +2409,12 @@ export async function POST(request: Request) {
               unavailableReason: serverSupabase?.unavailable_reason,
             }),
   });
+  outcomeCreditSummary = outcomeCreditGuard
+    ? await finalizeBasicFreeScheduledOutcomeCreditGuard(
+        outcomeCreditGuard,
+        "completed",
+      )
+    : null;
 
   const evaluatedSnapshotFingerprints = new Set(
     run.candidates
@@ -2357,6 +2435,10 @@ export async function POST(request: Request) {
   const latestProviderError =
     run.candidates.find((candidate) => candidate.status === "provider_error")
       ?.error ?? null;
+  const creditFinalizationBlocker = outcomeCreditGuard?.claim &&
+    outcomeCreditSummary?.finalization_proven !== true
+    ? "scheduled_outcome_credit_finalization_unproven"
+    : null;
   const sideMissingCount = run.outcomes.filter(isMissingSideOutcome).length;
   const sideInferredCount = run.outcomes.filter(
     (outcome) => outcome.payload_json.side_inferred === true,
@@ -2450,6 +2532,7 @@ export async function POST(request: Request) {
       providerPlanProfile.profile_outcome_candle_requests_per_run,
     override_budget_limit: providerBudgetResolution.overrideBudgetLimit,
     effective_budget_limit: providerBudgetLimit,
+    basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
     ...eligibilityDiagnostics,
     ...postEligibilityDiagnostics,
     candle_requests_planned: run.candle_requests_planned,
@@ -2525,7 +2608,11 @@ export async function POST(request: Request) {
     ? await finalizeScheduledOutcomeEvaluationReceipt({
         attempt: scheduledAttempt,
         ownerUserId: ownerPrincipal.owner_user_id,
-        run,
+        // Outcome rows may be valid, but an unproven credit finalization cannot
+        // produce a fully completed scheduled evidence receipt.
+        run: creditFinalizationBlocker && run.status === "completed"
+          ? { ...run, status: "partial" }
+          : run,
         selectedBatchFingerprint:
           stringOrNull(officialSnapshotLoad?.batch?.batch_fingerprint) ??
           batchFingerprint,
@@ -2552,10 +2639,12 @@ export async function POST(request: Request) {
           persistenceEvents.find((event) => event.error !== null)?.error ??
           supabaseOutcomes?.error ??
           null,
-        firstBlocker: latestProviderError ??
+        firstBlocker: creditFinalizationBlocker ?? latestProviderError ??
           persistenceEvents.find((event) => event.error !== null)?.error ??
           null,
-        nextRetrySuggestion: diagnostics.next_retry_suggestion,
+        nextRetrySuggestion: creditFinalizationBlocker
+          ? "Do not retry this slot; inspect the shared credit ledger before another scheduled outcome evaluation."
+          : diagnostics.next_retry_suggestion,
         decisionSnapshots: eligibleSnapshots,
       })
     : null;
@@ -2564,6 +2653,19 @@ export async function POST(request: Request) {
       {
         error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
         code: "scheduled_outcome_evaluation_receipt_unavailable",
+      },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  if (creditFinalizationBlocker) {
+    return NextResponse.json(
+      {
+        error: "Scheduled outcome credit finalization is unproven.",
+        code: creditFinalizationBlocker,
+        outcome_evaluation: diagnostics,
+        scheduled_outcome_evaluation_receipt:
+          scheduledReceiptFinalization?.attempt.receipt_json ?? null,
       },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
@@ -2579,6 +2681,13 @@ export async function POST(request: Request) {
   } catch (error) {
     if (!scheduledAttempt) throw error;
 
+    if (outcomeCreditGuard?.claim &&
+        outcomeCreditSummary?.finalization_proven !== true) {
+      outcomeCreditSummary = await finalizeBasicFreeScheduledOutcomeCreditGuard(
+        outcomeCreditGuard,
+        "failed",
+      );
+    }
     const message = error instanceof Error ? error.message : "unexpected_error";
     const scheduledReceiptFinalization =
       await finalizeScheduledOutcomeEvaluationReceipt({
@@ -2606,6 +2715,7 @@ export async function POST(request: Request) {
         {
           error: "Scheduled outcome-evaluation receipt finalization is unavailable.",
           code: "scheduled_outcome_evaluation_receipt_unavailable",
+          basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
         },
         { status: 503, headers: { "Cache-Control": "no-store" } },
       );
@@ -2615,6 +2725,7 @@ export async function POST(request: Request) {
       {
         error: "Scheduled outcome evaluation failed before completion.",
         code: "scheduled_outcome_evaluation_failed",
+        basic_free_scheduled_outcome_credit_reservation: outcomeCreditSummary,
         scheduled_outcome_evaluation_receipt:
           scheduledReceiptFinalization.attempt.receipt_json,
       },

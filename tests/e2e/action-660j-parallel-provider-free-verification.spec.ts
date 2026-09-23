@@ -403,6 +403,7 @@ const expectedPlan: Record<string, PlannedCommand[]> = {
       "tests/e2e/action-666cq-current-main-governed-binding-snapshot-issuance-freeze.spec.ts",
       "tests/e2e/recommendation-intake-quality-direction.spec.ts",
       "tests/e2e/scheduled-outcome-evaluation-receipt.spec.ts",
+      "tests/e2e/basic-free-scheduled-outcome-credit-guard.spec.ts",
       "tests/e2e/recommendation-source-cohort.spec.ts",
       "tests/e2e/recommendation-source-observation-integrity.spec.ts",
       "tests/e2e/recommendation-source-operation-budget.spec.ts",
