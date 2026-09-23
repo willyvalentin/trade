@@ -1394,6 +1394,27 @@ merge-candidate provenance, then merged as main
 source/deploy verification, not historical-data integrity, real fill behavior
 or strategy-quality evidence.
 
+**Selected independent SV-E.1 CLOSED exit-cost fail-closed repair,
+2026-09-24 (4–8h):** owner Codex on isolated
+`codex/sv-e1-exit-cost-fail-closed`, based on main
+`2d81ed53f6ce5e00bc84b6682496d89820493696`. The existing
+`internal_paper_market_replay_v1` result and cost model remain unchanged for
+valid fills. A valid deterministic gap-stop fixture with a sale worth less than
+its exit commission reproduced a false `completed` result: the loop silently
+discarded the triggered stop and later filled a target. The EOD branch could
+likewise turn an unpayable triggered exit into a generic incomplete-day result.
+The focused correction returns the already defined
+`economic_result_out_of_range` blocker at the triggered exit, so neither a
+future price nor a missing EOD close can replace that evidence. It changes no
+A.2 scan, provider call, ranking, publication, database, schema or broker path.
+The red gap-stop test became green; a separate EOD regression is green. The
+six-file E.1–F.1/H.3 replay chain passed 80/80 tests, changed-file and full
+repository lint passed with zero errors/eight existing warnings, strict
+TypeScript passed and the Next webpack production build completed. This is
+local CLOSED fixture evidence only, not licensed historical-data, real fill,
+strategy-quality, OPEN or production runtime evidence. Protected CI, merge and
+exact deploy verification remain separate.
+
 **Selected SV-A.2 CLOSED ranking-plan integrity repair, 2026-09-23 (4–8h):**
 owner Codex on `codex/sv-a2-ranking-plan-integrity`, based on the verified
 PR #604 main revision. A deterministic candidate fixture with an absent

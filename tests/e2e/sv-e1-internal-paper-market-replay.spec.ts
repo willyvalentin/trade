@@ -242,6 +242,44 @@ test.describe("SV-E1 deterministic one-day internal-paper replay", () => {
     });
   });
 
+  test("blocks a triggered gap stop whose sale cannot cover its commission", () => {
+    const base = replay();
+    const result = runInternalPaperMarketReplay(replay({
+      account: {
+        ...base.account,
+        commission_per_order: 60,
+        per_trade_risk_cap: 200,
+        target_exit_fraction_bps: 10_000,
+      },
+      candles: candles({
+        2: { open: 5, high: 5, low: 5, close: 5 },
+        3: { high: 103 },
+      }),
+    }));
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      reason_codes: ["economic_result_out_of_range"],
+    });
+  });
+
+  test("blocks an unpayable end-of-day exit instead of leaving an open position", () => {
+    const base = replay();
+    const result = runInternalPaperMarketReplay(replay({
+      account: {
+        ...base.account,
+        commission_per_order: 2_000,
+        per_trade_risk_cap: 3_000,
+      },
+      candles: candles(),
+    }));
+
+    expect(result).toMatchObject({
+      status: "blocked",
+      reason_codes: ["economic_result_out_of_range"],
+    });
+  });
+
   test("matches the durable C1/C2 PostgreSQL entry and gap-stop reference vector", () => {
     const result = runInternalPaperMarketReplay(
       replay({
