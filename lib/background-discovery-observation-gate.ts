@@ -32,8 +32,10 @@ function isCatalogOnlyOneShotScanWindow(window: IntradayScanWindow) {
 function isOpenScheduledGateWindow(window: string) {
   return (
     window === "opening" ||
+    window === "morning_momentum" ||
     window === "morning" ||
     window === "midday" ||
+    window === "afternoon" ||
     window === "power_hour" ||
     window === "outside_window"
   );

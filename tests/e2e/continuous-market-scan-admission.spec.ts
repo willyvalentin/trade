@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { buildContinuousMarketScanAdmission } from "../../lib/continuous-market-scan-admission";
+import { canObserveBackgroundDiscoveryBetweenPublicationWindows } from "../../lib/background-discovery-observation-gate";
 import { buildDayTradeScanOrchestrationSummary } from "../../lib/day-trade-scan-orchestration";
 import { getIntradayScanWindow } from "../../lib/intraday-scan-window";
 import { buildMarketSessionEvaluation, type MarketSessionStatus } from "../../lib/market-session";
@@ -126,6 +127,34 @@ test("does not expand the separate late-session trial gate", () => {
     scheduled_gate_window: "power_hour",
     scheduled_gate_allowed: true,
   });
+});
+
+test("retains the independent catalog-only observation path", () => {
+  const input = {
+    scheduled: true,
+    marketOpen: true,
+    scanWindow: "morning_momentum" as const,
+    catalogOnlyOneShotReady: true,
+  };
+  expect(
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      ...input,
+      scheduledGateWindow: "morning_momentum",
+    }),
+  ).toBe(true);
+  expect(
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      ...input,
+      scheduledGateWindow: "closed",
+    }),
+  ).toBe(false);
+  expect(
+    canObserveBackgroundDiscoveryBetweenPublicationWindows({
+      ...input,
+      scanWindow: "afternoon",
+      scheduledGateWindow: "afternoon",
+    }),
+  ).toBe(true);
 });
 
 test("serving state follows an admitted market scan even between old windows", () => {

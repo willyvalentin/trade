@@ -328,8 +328,8 @@ market-clock segment and a versioned `continuous_regular_session_v1` admission
 for provider-confirmed open sessions, including the former 09:30, 11:00 and
 14:30 gaps. Existing late-session trial, catalog-only, same-slot deduplication,
 freshness, Basic Free reservation and selective-publication gates remain
-separate. A missing ranking cannot manufacture a valid `no_trade`. Five focused
-behavior tests and 39 overlapping tests pass; TypeScript, changed-file and
+separate. A missing ranking cannot manufacture a valid `no_trade`. Six focused
+behavior tests and 40 overlapping tests pass; TypeScript, changed-file and
 full lint (zero errors, eight existing warnings) and the Next webpack build
 pass locally. This is **not** merged, deployed, authenticated-browser checked
 or verified on live market data. Before PR completion, review per-slot durable
