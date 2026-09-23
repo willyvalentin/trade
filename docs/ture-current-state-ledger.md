@@ -325,9 +325,10 @@ daily bars, then recorded as an *intraday* signal in ranking/decision evidence.
 The local fix instead derives it from two complete, contiguous twelve-bar
 windows of the existing 5m/15m intraday feed; missing/zero/gapped/early-session
 volume leaves both the ratio and volume trend unavailable. Old daily-derived
-cache values cannot re-enter the new ratio; a v2 decision feature vector
-distinguishes new evidence while v1 readback remains valid. Acceptance so far:
-the red baseline fixture, then 58/58 targeted decision/ranking/learning tests,
+cache values cannot re-enter the new ratio or volume trend; a v2 decision
+feature vector distinguishes new evidence while v1 readback remains valid.
+Acceptance so far:
+the red baseline fixture, then 59/59 targeted decision/ranking/learning tests,
 6/6 protected-CI registration tests, changed-file lint, strict TypeScript and
 a full Next webpack build. This is **not** merged, deployed, market-behavior
 verified or evidence of better recommendations. Integrate only after the

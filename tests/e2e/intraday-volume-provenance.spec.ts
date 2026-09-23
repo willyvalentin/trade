@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   admissibleRecentIntradayVolumeRatio,
   calculateIntradayIndicators,
+  volumeTrendFromRecentVolumeRatio,
 } from "../../lib/intraday-indicators";
 import type { IntradayCandle } from "../../lib/market-data";
 
@@ -33,6 +34,8 @@ test("recent intraday volume compares two complete same-session windows", () => 
       false,
     ),
   ).toBeNull();
+  expect(volumeTrendFromRecentVolumeRatio(null)).toBe("unknown");
+  expect(volumeTrendFromRecentVolumeRatio(2)).toBe("expanding");
 });
 
 test("an incomplete intraday denominator stays unavailable", () => {
@@ -52,4 +55,13 @@ test("an incomplete intraday denominator stays unavailable", () => {
   expect(missingVolume.volumeTrend).toBe("unknown");
   expect(hiddenGap.recentVolumeRatio).toBeNull();
   expect(hiddenGap.volumeTrend).toBe("unknown");
+});
+
+test("a rounded borderline ratio does not become a false expansion", () => {
+  const nearThreshold = calculateIntradayIndicators(
+    candles([...Array(12).fill(10_000), ...Array(12).fill(11_499)]),
+  );
+
+  expect(nearThreshold.recentVolumeRatio).toBeCloseTo(1.1499);
+  expect(nearThreshold.volumeTrend).toBe("flat");
 });

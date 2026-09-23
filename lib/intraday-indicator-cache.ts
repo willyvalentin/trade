@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   calculateIntradayIndicators,
+  volumeTrendFromRecentVolumeRatio,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getIntradayCandlesWithDiagnostics } from "@/lib/market-data";
@@ -92,6 +93,12 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
   }
 
   const raw = value as Partial<IntradayIndicators>;
+  const recentVolumeRatio =
+    typeof raw.recentVolumeRatio === "number" &&
+    Number.isFinite(raw.recentVolumeRatio) &&
+    raw.recentVolumeRatio > 0
+      ? raw.recentVolumeRatio
+      : null;
 
   return {
     vwap: parseNumber(raw.vwap),
@@ -109,20 +116,10 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
       raw.momentumDirection === "flat"
         ? raw.momentumDirection
         : "unknown",
-    volumeTrend:
-      raw.volumeTrend === "expanding" ||
-      raw.volumeTrend === "contracting" ||
-      raw.volumeTrend === "flat"
-        ? raw.volumeTrend
-        : "unknown",
+    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
     latestVolume: parseNumber(raw.latestVolume),
     averageVolume: parseNumber(raw.averageVolume),
-    recentVolumeRatio:
-      typeof raw.recentVolumeRatio === "number" &&
-      Number.isFinite(raw.recentVolumeRatio) &&
-      raw.recentVolumeRatio > 0
-        ? raw.recentVolumeRatio
-        : null,
+    recentVolumeRatio,
     warnings: Array.isArray(raw.warnings)
       ? raw.warnings.filter((item): item is string => typeof item === "string")
       : [],

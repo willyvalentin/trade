@@ -31,6 +31,17 @@ export function admissibleRecentIntradayVolumeRatio(
     : null;
 }
 
+export function volumeTrendFromRecentVolumeRatio(
+  ratio: number | null | undefined,
+): IntradayIndicators["volumeTrend"] {
+  if (typeof ratio !== "number" || !Number.isFinite(ratio) || ratio <= 0) {
+    return "unknown";
+  }
+  if (ratio >= VOLUME_EXPANDING_RATIO) return "expanding";
+  if (ratio <= VOLUME_CONTRACTING_RATIO) return "contracting";
+  return "flat";
+}
+
 const RECENT_CANDLE_COUNT = 12;
 const MOMENTUM_LOOKBACK_MAX = 6;
 const MOMENTUM_UP_THRESHOLD = 0.3;
@@ -190,27 +201,18 @@ export function calculateIntradayIndicators(
     );
   const recentVolumeRatio =
     completeVolumeWindow
-      ? round(
-          average(
-            volumeWindow
-              .slice(RECENT_CANDLE_COUNT)
-              .map((candle) => candle.volume),
-          ) /
-            average(
-              volumeWindow
-                .slice(0, RECENT_CANDLE_COUNT)
-                .map((candle) => candle.volume),
-            ),
+      ? average(
+          volumeWindow
+            .slice(RECENT_CANDLE_COUNT)
+            .map((candle) => candle.volume),
+        ) /
+        average(
+          volumeWindow
+            .slice(0, RECENT_CANDLE_COUNT)
+            .map((candle) => candle.volume),
         )
       : null;
-  const volumeTrend =
-    recentVolumeRatio === null
-      ? "unknown"
-      : recentVolumeRatio >= VOLUME_EXPANDING_RATIO
-        ? "expanding"
-        : recentVolumeRatio <= VOLUME_CONTRACTING_RATIO
-          ? "contracting"
-          : "flat";
+  const volumeTrend = volumeTrendFromRecentVolumeRatio(recentVolumeRatio);
 
   if (volumeCandles.length === 0) {
     warnings.push("Intraday volume unavailable.");

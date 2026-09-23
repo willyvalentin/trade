@@ -7,6 +7,7 @@ import {
 } from "@/lib/intraday-indicator-cache";
 import {
   admissibleRecentIntradayVolumeRatio,
+  volumeTrendFromRecentVolumeRatio,
   type IntradayIndicators,
 } from "@/lib/intraday-indicators";
 import { getDailyCandles, type DailyCandle } from "@/lib/market-data";
@@ -187,6 +188,12 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
   }
 
   const raw = value as Partial<IntradayIndicators>;
+  const recentVolumeRatio =
+    typeof raw.recentVolumeRatio === "number" &&
+    Number.isFinite(raw.recentVolumeRatio) &&
+    raw.recentVolumeRatio > 0
+      ? raw.recentVolumeRatio
+      : null;
 
   return {
     vwap: parseNumber(raw.vwap),
@@ -204,20 +211,10 @@ function parseIntradayIndicators(value: unknown): IntradayIndicators | null {
       raw.momentumDirection === "flat"
         ? raw.momentumDirection
         : "unknown",
-    volumeTrend:
-      raw.volumeTrend === "expanding" ||
-      raw.volumeTrend === "contracting" ||
-      raw.volumeTrend === "flat"
-        ? raw.volumeTrend
-        : "unknown",
+    volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
     latestVolume: parseNumber(raw.latestVolume),
     averageVolume: parseNumber(raw.averageVolume),
-    recentVolumeRatio:
-      typeof raw.recentVolumeRatio === "number" &&
-      Number.isFinite(raw.recentVolumeRatio) &&
-      raw.recentVolumeRatio > 0
-        ? raw.recentVolumeRatio
-        : null,
+    recentVolumeRatio,
     warnings: Array.isArray(raw.warnings)
       ? raw.warnings.filter((item): item is string => typeof item === "string")
       : [],
@@ -700,11 +697,21 @@ export async function scanMarket(
     }
 
     indicatorSources[candidate.ticker] = result.source;
+    const recentVolumeRatio = admissibleRecentIntradayVolumeRatio(
+      result.indicators,
+      result.stale,
+    );
 
     return {
       candidate: {
         ...candidate,
-        intraday_indicators: result.indicators,
+        intraday_indicators: result.indicators
+          ? {
+              ...result.indicators,
+              recentVolumeRatio,
+              volumeTrend: volumeTrendFromRecentVolumeRatio(recentVolumeRatio),
+            }
+          : null,
         intraday_indicator_source: result.source,
         intraday_indicator_cached_at: result.cached_at,
         intraday_indicator_response_identity: result.response_identity,
@@ -712,11 +719,7 @@ export async function scanMarket(
         // Legacy scanner-cache `recent_volume_ratio` came from daily bars.
         // Only same-session intraday bars from a fresh indicator receipt may
         // populate this ranking/decision feature.
-        recent_volume_ratio:
-          admissibleRecentIntradayVolumeRatio(
-            result.indicators,
-            result.stale,
-          ) ?? undefined,
+        recent_volume_ratio: recentVolumeRatio ?? undefined,
       },
       indicatorSource: result.source,
     };
