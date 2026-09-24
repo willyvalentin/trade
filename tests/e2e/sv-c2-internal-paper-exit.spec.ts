@@ -123,6 +123,38 @@ test.describe("SV-C2 internal-paper exit admission", () => {
     );
   });
 
+  test("covers every C2 foreign key with an additive index migration", () => {
+    const migration = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260924222835_sv_c2_internal_paper_foreign_key_indexes.sql",
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain("set lock_timeout = '5s'");
+    expect(migration).toContain("set statement_timeout = '60s'");
+    expect(migration.match(/create index /g)).toHaveLength(9);
+    expect(migration).not.toMatch(/drop\s+/i);
+    expect(migration).not.toMatch(/insert\s+into/i);
+    expect(migration).not.toMatch(/update\s+/i);
+    expect(migration).not.toMatch(/delete\s+from/i);
+
+    for (const indexName of [
+      "internal_paper_exit_intents_owner_idx",
+      "internal_paper_exit_intents_account_owner_idx",
+      "internal_paper_exit_intents_position_account_owner_idx",
+      "internal_paper_exit_fills_owner_idx",
+      "internal_paper_exit_fills_account_owner_idx",
+      "internal_paper_exit_fills_position_account_owner_idx",
+      "internal_paper_exit_fills_intent_account_owner_idx",
+      "internal_paper_ledger_exit_intent_account_owner_idx",
+      "internal_paper_ledger_exit_fill_account_owner_idx",
+    ]) {
+      expect(migration).toContain(`create index ${indexName}`);
+    }
+  });
+
   test("emits only durable identities and leaves reason, quantity and price to the database", () => {
     expect(build()).toEqual({
       status: "ready",
