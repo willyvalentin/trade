@@ -606,6 +606,36 @@ must not be silently treated as fixed by this volume slice.
 
 ### Next — ordered, bounded product work
 
+**Selected SV-I.1 CLOSED source-only portfolio-allocation core, 2026-09-24
+(8–16h):** owner Codex on isolated
+`codex/sv-i-portfolio-allocation`, based on exact main
+`56e6138cb9e55f25dcc15fcabdb298d3e8da7b9c`. The new pure
+`internal_paper_portfolio_allocation_v1` consumes only supplied, calibrated
+net-EV evidence and time-bound sector/correlation/beta risk estimates; an
+ordinal scanner score or confidence label is not accepted as an allocation
+substitute. It deterministically sizes whole shares after spread, slippage and
+both entry/exit commissions under explicit available-cash, open-risk, sector,
+correlation-group and absolute-beta-notional limits. Invalid, stale,
+post-decision, future or unversioned risk evidence rejects that candidate;
+an already over-limit portfolio blocks the whole allocation instead of silently
+resizing it. The result is digest-bound and order-independent, but has no
+provider, ranking/publication, database/paper-command or broker authority.
+
+Local acceptance: seven focused provider-free regressions cover dynamic sizing,
+sector and correlation concentration, absolute beta without offsetting exposure,
+missing/future evidence, over-limit existing portfolios, deterministic ordering
+and authority containment; strict TypeScript, changed-file ESLint and diff
+checks pass. Webpack compiled the production bundle successfully in the
+temporary linked-dependency worktree; Turbopack's external-symlink refusal is
+an environment limitation and no completed Turbopack artifact is claimed.
+This source-only core is not merged, CI-verified, deployed, wired to C paper
+handoff, backed by a frozen persistent allocation policy, or evidence of
+allocation quality. Defer push/PR merge and any production deploy until the
+separately frozen A.2 OPEN observation has finished, so its exact production
+revision is not mixed with the observation. A later C/I integration must bind
+actual calibrated F evidence plus G risk features, durable policy/account state
+and concurrent-opportunity readback before it can influence a paper command.
+
 **Selected independent CLOSED slice — SV-A.2 continuous regular-session scan
 admission, 2026-09-23 (4–16h):** owner Codex on
 `codex/sv-a2-continuous-market-monitoring`, integrating after merged
