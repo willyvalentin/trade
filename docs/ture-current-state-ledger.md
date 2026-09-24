@@ -151,6 +151,31 @@ a substitute for a normal market observation.
   No second same-day slot is implied by this card; any later observation needs a
   separately frozen purpose and remaining-budget check.
 
+**A.2 frozen normal observation result, 2026-09-24:** the authorized
+`2026-09-24T16:30:00.000Z` slot ran once on exact main
+`97345c0e5b3e261379644291aed5437c97bd85d4`; activation deploy
+`6ab5455cbe3a8fd3d2f8dc00` and cleanup deploy
+`6ab550def4c6774430f3c9ca` were both `ready` production releases on that
+revision. The Netlify scheduler made one normal private delivery: it began at
+`16:30:32.060Z`, completed at `16:30:43.189Z`, finalized one Basic Free normal
+reservation of exactly eight credits, and produced one `empty` scan with three
+raw candidates, zero published candidates, zero recommendations and zero
+execution records. This is a valid `no_trade` outcome, not evidence of alpha or
+candidate quality.
+
+The frozen card is nevertheless **fail** as an operational lineage test. The
+terminal route upsert replaced the scheduler-owned attempt payload, so the
+retained attempt lacked its target-slot value; the deployed route also could
+not recover a canonical build commit from its runtime environment. The linked
+decision lineage consequently remained `incomplete` with
+`canonical_version_lineage_missing` and the independently honest
+`source_timestamp_missing` from the bounded Basic Free input. No second
+same-day scan is permitted under this card. The next CLOSED repair preserves
+the initial scheduler slot and generated build identity through terminal
+persistence; it must not manufacture the missing source timestamp. A fresh,
+separately frozen observation is required after that repair is merged and
+production-verified.
+
 **A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
 the 15:30 CEST scheduled slot, a direct production ledger read for New York
 date `2026-09-21` found zero `catalog_observation` reservations and zero

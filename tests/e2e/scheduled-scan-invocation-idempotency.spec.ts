@@ -545,6 +545,9 @@ test.describe("scheduled scan invocation idempotency", () => {
             deploy_context: "production",
             deploy_published: true,
           },
+          // This is generated during the Netlify build and is deliberately
+          // independent of the function's runtime environment variables.
+          build_deployment_identity: packagedBuildIdentity,
           probe_preflight_admission: {
             status: "admitted_runtime_context",
             admitted: true,
