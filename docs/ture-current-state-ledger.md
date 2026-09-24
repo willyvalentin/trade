@@ -991,11 +991,11 @@ decision/lifecycle/transaction regressions, 14 protected-CI contract and
 admission tests, strict TypeScript, full lint with zero errors (eight existing
 warnings), a complete Next production build and a disposable PostgreSQL
 transaction/restart/isolation/rollback harness. That real database harness is
-registered in the protected foundation shard. The migration is source-only and
-has **not** been applied to production; it creates no account, schedule,
-provider request, candidate publication or broker path even when later applied.
-Runtime account provisioning/activation, an autonomous worker, exits and OPEN
-pilot evidence remain separate successors.
+registered in the protected foundation shard. The schema is now applied in
+production as an inert, access-contained foundation; it creates no account,
+schedule, provider request, candidate publication or broker path. Runtime
+account provisioning/activation, an autonomous worker, exits and OPEN pilot
+evidence remain separate successors.
 
 **SV-C.1 staging schema hardening, 2026-09-24:** the already merged C.1
 migration was applied to the existing `ture-staging` Supabase project as an
@@ -1010,8 +1010,8 @@ indexes; staging readback verifies all 13 valid and zero remaining unindexed
 `internal_paper_*` foreign keys, with zero paper rows throughout. Five focused
 C.1 tests, strict TypeScript, changed-file lint, diff check and a complete Next
 production build pass locally on main `1cc44b13c4ec4625007c5433224106a55e12e4ea`.
-Production remains unapplied until this correction is merged and protected CI
-is green. C.2–C.5/D.1 remain separate because C.2 alters C.1 tables,
+The correction merged through PR #624 and was then applied to production as
+described below. C.2–C.5/D.1 remain separate because C.2 alters C.1 tables,
 constraints and triggers; they are not part of this strictly additive apply.
 
 SV-C.1 is now delivered on `main`: feature revision
@@ -1022,8 +1022,28 @@ production deploy `6ab1c1d0102d150008244b2e` is `ready` on that exact merge
 revision. GitHub still presents PR #580 as open after its merge API returned a
 502 during the successful remote-main update; the two-parent merge commit,
 exact-main CI and exact-revision deployment are the authoritative delivery
-evidence. The source migration remains unapplied in Supabase production and no
-paper account was created or activated.
+evidence. PR #624 added the 13-index hardening follow-up as feature revision
+`a2c23ddb30752bd7a57f545db1296de92a3e572c`, passed all protected PR checks in
+run `36052602141`, and merged as
+`d952fb10039e1936baca8e51717445c9940cb2c6`. Exact-main run `36056047302`
+passed, and Netlify production deploy `6ab589df6a8b4200088e58c9` is `ready` on
+that exact revision.
+
+**SV-C.1 production schema evidence, 2026-09-24:** the Trade Supabase project
+recorded the base lifecycle as remote migration `20260924204114` and the
+strictly additive FK-index follow-up as `20260924204158`. Post-apply readback
+verifies five empty RLS-enabled tables, no `PUBLIC`, `anon` or `authenticated`
+table grants, and both `SECURITY DEFINER` functions pinned to
+`search_path=pg_catalog, public` with execute authority only for `service_role`.
+All 13 follow-up indexes are present, ready and valid; all 16 C.1 foreign keys
+have a covering index and no C.1 index is invalid. The security advisor reports
+the expected five informational RLS-without-policy findings for these
+intentionally service-only tables, with no C.1 warning/error, while the
+performance advisor reports zero unindexed C.1 foreign keys and seven
+unrelated pre-existing findings. No paper account, intent, fill, position or
+ledger row exists, and no runtime flag, provider request, candidate
+publication or broker path was activated. C.1 is therefore production-schema
+verified, not runtime- or OPEN-pilot-accepted.
 
 **Selected SV-C.2 CLOSED vertical slice — evidence-bound paper exits and
 reconciliation, 2026-09-22 (8–16h):** owner Codex on
@@ -1093,9 +1113,10 @@ SV-C.3 is now delivered on `main`: feature head
 shards, aggregate and merge-candidate provenance in run `35692625783`, and
 merged through PR #582 as `1bde1281db6055500fcdcfe8f74f692a40d24c8e`.
 Netlify production deploy `6ab21e98901fa200085f9376` is `ready` on that exact
-merge revision. The C.1–C.3 migrations remain unapplied and both paper handoff
-and worker execution remain disabled; this is exact source/deploy evidence, not
-environment behavior or an autonomous paper session.
+merge revision. C.1 is now applied as an inert production schema; the C.2–C.3
+migrations remain unapplied and both paper handoff and worker execution remain
+disabled. This is C.3 source/deploy evidence, not C.3 environment behavior or
+an autonomous paper session.
 
 **Selected SV-C.4 CLOSED vertical slice — frozen decision handoff and dormant
 worker host, 2026-09-22 (8–16h):** owner Codex on
@@ -1758,7 +1779,7 @@ on A/B evidence and must not be inferred from the source registry.
 | --- | --- | --- |
 | Primary development | A.2 one-slot normal-scan and shared outcome-credit guards are merged and exact-revision production-deployed at `53181a54` and `0d0e773d`; fresh normal-scan and outcome behavior evidence remains OPEN | Require a separately authorized scheduled session with frozen credit/slot bounds; do not treat source/deploy verification as a provider receipt |
 | Second development | SV-A.2 ranking-plan integrity v1.1 is locally implemented and tested on `codex/sv-a2-ranking-plan-integrity` against the production-verified PR #604 base; it is independent of the frozen scheduled-scan admission path. B.1 base lineage and strategy/selection registry are merged, but real-decision/outcome acceptance remains OPEN. | Finish protected CI and review; do not deploy a changed ranking policy into the prepared OPEN observation or pool v1.0 and v1.1 decisions. |
-| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed source-only; all C/D paper schema migrations and runtime gates remain unapplied/off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; migration, account/config/policy-freeze and activation still require separate authority plus OPEN pilot evidence. |
+| CLOSED successor | SV-C.1–C.5, SV-D.1, SV-E.1–E.4, SV-F.1–F.2, SV-G.1–G.2 and SV-H.1–H.3 plus the E.1 volume-integrity and earlier E.2 repairs are merged and exact-revision production-deployed. C.1 alone is production-schema verified and remains inert/empty; C.2–C.5/D.1 migrations remain unapplied and every paper runtime gate remains off. The A.2 one-slot outcome-evaluation guard is also merged/deployed as `ea9a024d` without an outcome receipt. | Family-level fill/latency/impact uncertainty and forward shadow remain later H evidence. Real G/H evaluation remains blocked on licensed point-in-time history plus verified entitlement/retention evidence. Separately obtain bounded derived-evidence retention/storage values before any C5 policy row or observed pilot; later migrations, account/config/policy-freeze and activation still require their own evidence plus OPEN pilot acceptance. |
 | Automatic observation | Existing authorized jobs only; not newly enabled here | Freeze candidate/config/strategy/charter; record next eligible OPEN window and prioritize the prepared check |
 | After-session processing | Existing permitted outcomes/reconciliation only | Keep source/cohort identity and provider/compute budgets; no automatic promotion |
 
