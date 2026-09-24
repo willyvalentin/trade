@@ -599,8 +599,13 @@ function candidateIdentityReasons(candidate: InternalPaperPortfolioCandidate) {
   ) {
     reasons.push("candidate_trade_plan_invalid");
   }
+  if (!Number.isFinite(candidate.calibrated_net_expected_value_r)) {
+    reasons.push("candidate_calibrated_net_ev_unavailable");
+  }
+  if (Number.isFinite(candidate.calibrated_net_expected_value_r) && candidate.calibrated_net_expected_value_r <= 0) {
+    reasons.push("candidate_calibrated_net_ev_non_positive");
+  }
   if (
-    !Number.isFinite(candidate.calibrated_net_expected_value_r) ||
     !nonemptyText(candidate.calibration_version) ||
     !SHA256_PATTERN.test(candidate.calibration_evaluation_fingerprint)
   ) {

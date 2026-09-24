@@ -628,10 +628,11 @@ order-independent even for invalid net-EV inputs; malformed non-finite net-EV
 inputs remain digest-distinct from explicitly unavailable values. It has no
 provider, ranking/publication, database/paper-command or broker authority.
 
-Local acceptance: fourteen focused provider-free regressions cover dynamic
+Local acceptance: fifteen focused provider-free regressions cover dynamic
 sizing under scenario-loss caps, scenario-exposure receipts, sector and
 correlation concentration, absolute beta without offsetting exposure,
-missing/future/unsupported stress evidence, over-limit existing portfolios,
+missing/future/unsupported stress evidence, non-positive calibrated net-EV,
+over-limit existing portfolios,
 duplicate lineage, receipt immutability, deterministic valid/invalid-input
 ordering and authority containment plus malformed-versus-unavailable evidence
 identity and malformed-runtime-payload receipt behavior; strict TypeScript,

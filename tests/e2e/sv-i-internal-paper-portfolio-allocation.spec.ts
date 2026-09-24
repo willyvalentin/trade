@@ -310,6 +310,37 @@ test("rejects missing, stale, future and post-decision risk facts without substi
   );
 });
 
+test("rejects zero and negative calibrated net-EV before portfolio sizing", () => {
+  const result = allocateInternalPaperPortfolio(
+    input({
+      candidates: [
+        candidate("ZERO", { calibrated_net_expected_value_r: 0 }),
+        candidate("NEGATIVE", { calibrated_net_expected_value_r: -0.01 }),
+      ],
+    }),
+  );
+
+  expect(result).toMatchObject({
+    status: "completed",
+    selected_count: 0,
+    candidate_decisions: expect.arrayContaining([
+      expect.objectContaining({
+        candidate_id: "ZERO",
+        calibrated_net_expected_value_r: 0,
+        status: "rejected",
+        reason_codes: ["candidate_calibrated_net_ev_non_positive"],
+      }),
+      expect.objectContaining({
+        candidate_id: "NEGATIVE",
+        calibrated_net_expected_value_r: -0.01,
+        status: "rejected",
+        reason_codes: ["candidate_calibrated_net_ev_non_positive"],
+      }),
+    ]),
+  });
+  expect(verifyInternalPaperPortfolioAllocationDigest(result)).toBe(true);
+});
+
 test("fails closed when the policy or a risk estimate lacks the exact stress-scenario evidence", () => {
   const invalidPolicy = allocateInternalPaperPortfolio(
     input({ policy: { ...input().policy, stress_scenarios: [] } }),
