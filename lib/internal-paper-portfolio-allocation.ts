@@ -517,14 +517,19 @@ function candidateSort(
   left: InternalPaperPortfolioCandidate,
   right: InternalPaperPortfolioCandidate,
 ) {
-  const leftValue = Number.isFinite(left.calibrated_net_expected_value_r)
-    ? left.calibrated_net_expected_value_r
-    : Number.NEGATIVE_INFINITY;
-  const rightValue = Number.isFinite(right.calibrated_net_expected_value_r)
-    ? right.calibrated_net_expected_value_r
-    : Number.NEGATIVE_INFINITY;
-  const valueDelta = rightValue - leftValue;
-  if (valueDelta !== 0) return valueDelta;
+  const leftHasCalibratedValue = Number.isFinite(
+    left.calibrated_net_expected_value_r,
+  );
+  const rightHasCalibratedValue = Number.isFinite(
+    right.calibrated_net_expected_value_r,
+  );
+  if (leftHasCalibratedValue && rightHasCalibratedValue) {
+    const valueDelta =
+      right.calibrated_net_expected_value_r - left.calibrated_net_expected_value_r;
+    if (valueDelta !== 0) return valueDelta;
+  } else if (leftHasCalibratedValue !== rightHasCalibratedValue) {
+    return leftHasCalibratedValue ? -1 : 1;
+  }
   return left.candidate_id.localeCompare(right.candidate_id);
 }
 

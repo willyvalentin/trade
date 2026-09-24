@@ -346,3 +346,29 @@ test("is order-independent and retains no provider, publication, paper-write or 
     (forward.candidate_decisions as unknown as { push(value: unknown): number }).push({});
   }).toThrow(TypeError);
 });
+
+test("uses a total deterministic sort even when candidates have invalid calibrated net-EV", () => {
+  const candidates = [
+    candidate("ZULU", {
+      calibrated_net_expected_value_r: Number.NaN,
+      calibration_version: "",
+    }),
+    candidate("ALPHA", {
+      calibrated_net_expected_value_r: Number.NaN,
+      calibration_version: "",
+    }),
+  ];
+  const forward = allocateInternalPaperPortfolio(input({ candidates }));
+  const reversed = allocateInternalPaperPortfolio(
+    input({ candidates: [...candidates].reverse() }),
+  );
+
+  expect(forward).toEqual(reversed);
+  expect(forward).toMatchObject({
+    status: "completed",
+    candidate_decisions: [
+      { candidate_id: "ALPHA", status: "rejected" },
+      { candidate_id: "ZULU", status: "rejected" },
+    ],
+  });
+});
