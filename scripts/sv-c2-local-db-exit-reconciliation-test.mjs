@@ -241,6 +241,58 @@ try {
     delete from public.internal_paper_accounts
     where id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
   `);
+
+  psql(`
+    alter table public.internal_paper_ledger_entries
+      drop constraint internal_paper_ledger_entries_amount_check,
+      add constraint internal_paper_ledger_entries_amount_check
+        check (amount >= 0);
+  `);
+  expectPsqlFailure(
+    readFileSync(c2MigrationPath, "utf8"),
+    "sv_c2_unexpected_c1_ledger_contract",
+  );
+  psql(`
+    do $$ begin
+      if to_regclass('public.internal_paper_exit_intents') is not null
+        or exists (
+          select 1
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'internal_paper_accounts'
+            and column_name = 'exit_fill_model_version'
+        )
+      then raise exception 'constraint drift admission changed schema'; end if;
+    end $$;
+    alter table public.internal_paper_ledger_entries
+      drop constraint internal_paper_ledger_entries_amount_check,
+      add constraint internal_paper_ledger_entries_amount_check
+        check (amount <> 0);
+  `);
+
+  psql(`
+    alter table public.internal_paper_ledger_entries
+      alter column intent_id drop not null;
+  `);
+  expectPsqlFailure(
+    readFileSync(c2MigrationPath, "utf8"),
+    "sv_c2_unexpected_c1_ledger_contract",
+  );
+  psql(`
+    do $$ begin
+      if to_regclass('public.internal_paper_exit_intents') is not null
+        or exists (
+          select 1
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'internal_paper_accounts'
+            and column_name = 'exit_fill_model_version'
+        )
+      then raise exception 'nullability drift admission changed schema'; end if;
+    end $$;
+    alter table public.internal_paper_ledger_entries
+      alter column intent_id set not null;
+  `);
   psql(readFileSync(c2MigrationPath, "utf8"));
 
   psql(`
