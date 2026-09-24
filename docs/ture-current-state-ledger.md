@@ -997,6 +997,23 @@ provider request, candidate publication or broker path even when later applied.
 Runtime account provisioning/activation, an autonomous worker, exits and OPEN
 pilot evidence remain separate successors.
 
+**SV-C.1 staging schema hardening, 2026-09-24:** the already merged C.1
+migration was applied to the existing `ture-staging` Supabase project as an
+inert migration-only check. Readback found five empty paper tables with RLS
+enabled, no `anon` or `authenticated` table privileges, two `SECURITY DEFINER`
+functions pinned to `search_path=pg_catalog, public`, service-role-only execute
+authority and no invalid index. The staging performance advisor then exposed
+13 composite child foreign keys without a complete covering index. The
+additive follow-up migration
+`20260924195853_sv_c1_internal_paper_foreign_key_indexes.sql` adds only those
+indexes; staging readback verifies all 13 valid and zero remaining unindexed
+`internal_paper_*` foreign keys, with zero paper rows throughout. Five focused
+C.1 tests, strict TypeScript, changed-file lint, diff check and a complete Next
+production build pass locally on main `1cc44b13c4ec4625007c5433224106a55e12e4ea`.
+Production remains unapplied until this correction is merged and protected CI
+is green. C.2–C.5/D.1 remain separate because C.2 alters C.1 tables,
+constraints and triggers; they are not part of this strictly additive apply.
+
 SV-C.1 is now delivered on `main`: feature revision
 `259e360d72079bac8b7327dd0e3cfd9a6918fa3f` is contained by merge revision
 `a3daa5222cf6d7ee16a8d146e5dbaa2113597420`. The exact-main manual protected

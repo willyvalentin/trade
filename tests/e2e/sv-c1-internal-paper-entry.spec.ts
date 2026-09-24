@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import type { CandidateDecisionRecord } from "@/lib/candidate-decision-record";
 import { buildCurrentDecisionStrategyReference } from "@/lib/decision-strategy-registry";
@@ -125,6 +127,36 @@ function build(overrides: Partial<Parameters<typeof buildInternalPaperEntryComma
 }
 
 test.describe("SV-C1 internal-paper entry admission", () => {
+  test("ships additive covering indexes for every C1 child foreign key", () => {
+    const migration = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260924195853_sv_c1_internal_paper_foreign_key_indexes.sql",
+      ),
+      "utf8",
+    );
+    const expectedIndexes = [
+      "internal_paper_entry_intents_account_owner_idx",
+      "internal_paper_entry_intents_scan_owner_idx",
+      "internal_paper_entry_intents_snapshot_owner_idx",
+      "internal_paper_fills_account_owner_idx",
+      "internal_paper_fills_intent_account_owner_idx",
+      "internal_paper_fills_owner_idx",
+      "internal_paper_positions_account_owner_idx",
+      "internal_paper_positions_intent_account_owner_idx",
+      "internal_paper_positions_entry_fill_account_owner_idx",
+      "internal_paper_ledger_account_owner_idx",
+      "internal_paper_ledger_intent_account_owner_idx",
+      "internal_paper_ledger_fill_account_owner_idx",
+      "internal_paper_ledger_owner_idx",
+    ];
+
+    for (const index of expectedIndexes) {
+      expect(migration).toContain(`create index if not exists ${index}`);
+    }
+    expect(migration).not.toMatch(/\b(drop|alter|insert|update|delete)\b/i);
+  });
+
   test("binds one real published decision to a brokerless whole-share command", () => {
     expect(build()).toEqual({
       status: "ready",
