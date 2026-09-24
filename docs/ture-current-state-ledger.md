@@ -9,6 +9,23 @@ not new runtime or strategy evidence. The older IF receipts below remain usable;
 their former queue and Avanza execution priority are superseded. Repository
 roadmap/governance/ledger are the only control sources; Notion stays outside scope.
 
+### Continuous-observation technical direction — 2026-09-24
+
+The 2026-09-23 market-timing decision is implemented as a future observation
+orchestration transition: a scheduler is a safe wake-up mechanism, not a rule
+that authorizes provider work or determines when a recommendation may publish.
+The future cycle policy must use verified session, freshness, material change,
+coverage, candidate state, explicit budget and persisted retry/backoff facts.
+It must preserve the scheduler kill switch, private invocation, idempotent
+claim and durable receipts while it separates observation,
+discovery/evaluation and publication.
+
+This is a roadmap/control decision only. It does not enable continuous polling,
+increase provider spend, relax a publication gate, invoke a provider, migrate
+data or authorize a broker action. `scheduled_scan_runs` and old
+window-derived diagnostics remain compatibility surfaces until consumers have
+moved to generic cycle receipts; historic records are retained.
+
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
 **A.1 reconciliation completed, 2026-09-21:** an aggregate-only production
@@ -1393,6 +1410,27 @@ merge-candidate provenance, then merged as main
 `6ab36ab79411ee0008ec3e28` is `ready` on that exact revision. This closes
 source/deploy verification, not historical-data integrity, real fill behavior
 or strategy-quality evidence.
+
+**Selected independent SV-E.1 CLOSED exit-cost fail-closed repair,
+2026-09-24 (4–8h):** owner Codex on isolated
+`codex/sv-e1-exit-cost-fail-closed`, based on main
+`2d81ed53f6ce5e00bc84b6682496d89820493696`. The existing
+`internal_paper_market_replay_v1` result and cost model remain unchanged for
+valid fills. A valid deterministic gap-stop fixture with a sale worth less than
+its exit commission reproduced a false `completed` result: the loop silently
+discarded the triggered stop and later filled a target. The EOD branch could
+likewise turn an unpayable triggered exit into a generic incomplete-day result.
+The focused correction returns the already defined
+`economic_result_out_of_range` blocker at the triggered exit, so neither a
+future price nor a missing EOD close can replace that evidence. It changes no
+A.2 scan, provider call, ranking, publication, database, schema or broker path.
+The red gap-stop test became green; a separate EOD regression is green. The
+six-file E.1–F.1/H.3 replay chain passed 80/80 tests, changed-file and full
+repository lint passed with zero errors/eight existing warnings, strict
+TypeScript passed and the Next webpack production build completed. This is
+local CLOSED fixture evidence only, not licensed historical-data, real fill,
+strategy-quality, OPEN or production runtime evidence. Protected CI, merge and
+exact deploy verification remain separate.
 
 **Selected SV-A.2 CLOSED ranking-plan integrity repair, 2026-09-23 (4–8h):**
 owner Codex on `codex/sv-a2-ranking-plan-integrity`, based on the verified
