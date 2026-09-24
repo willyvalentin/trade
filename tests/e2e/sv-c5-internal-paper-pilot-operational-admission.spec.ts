@@ -11,6 +11,23 @@ test.describe("SV-C5 internal-paper pilot operational admission", () => {
   test("freezes explicit numeric limits without activating an account or schedule", () => {
     const source = readFileSync(MIGRATION, "utf8").toLowerCase();
     const executableSource = source.replace(/^--.*$/gm, "");
+    const preFunctionDdl = executableSource.slice(
+      0,
+      executableSource.indexOf(
+        "create function public.app_freeze_internal_paper_pilot_policy_v1",
+      ),
+    );
+    expect(source).toContain("set lock_timeout = '5s'");
+    expect(source).toContain("set statement_timeout = '60s'");
+    expect(source).toContain("sv_c5_requires_empty_c1_c2_c3_state");
+    expect(source).toContain("sv_c5_unexpected_read_boundary_contract");
+    expect(source).toContain("sv_c5_requires_unconsumed_ledger_sequence");
+    expect(source).toContain("sv_c5_preexisting_operational_admission_contract");
+    expect(source).toContain("internal_paper_worker_heartbeats_account_owner_idx");
+    expect(source).not.toMatch(/create\s+or\s+replace\s+function/i);
+    expect(preFunctionDdl).not.toMatch(
+      /\b(insert\s+into|update\s+public\.|delete\s+from)\b/i,
+    );
     expect(source).toContain("max_daily_provider_credits smallint not null default 800");
     expect(source).toContain("max_per_minute_provider_credits smallint not null default 8");
     expect(source).toContain("retry_reserve_credits smallint not null default 8");
