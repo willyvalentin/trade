@@ -26,16 +26,39 @@ begin
     where conrelid = 'public.internal_paper_ledger_entries'::regclass
       and conname = 'internal_paper_ledger_entries_account_bucket_check'
       and contype = 'c'
+      and convalidated
+      and pg_catalog.pg_get_constraintdef(oid, true) =
+        'CHECK (account_bucket = ANY (ARRAY[''cash''::text, ''position_cost_basis''::text, ''execution_cost_expense''::text]))'
   ) or not exists (
     select 1 from pg_catalog.pg_constraint
     where conrelid = 'public.internal_paper_ledger_entries'::regclass
       and conname = 'internal_paper_ledger_entries_entry_type_check'
       and contype = 'c'
+      and convalidated
+      and pg_catalog.pg_get_constraintdef(oid, true) =
+        'CHECK (entry_type = ''paper_entry_fill''::text)'
   ) or not exists (
     select 1 from pg_catalog.pg_constraint
     where conrelid = 'public.internal_paper_ledger_entries'::regclass
       and conname = 'internal_paper_ledger_entries_amount_check'
       and contype = 'c'
+      and convalidated
+      and pg_catalog.pg_get_constraintdef(oid, true) =
+        'CHECK (amount <> 0::numeric)'
+  ) or not exists (
+    select 1 from pg_catalog.pg_attribute
+    where attrelid = 'public.internal_paper_ledger_entries'::regclass
+      and attname = 'intent_id'
+      and atttypid = 'uuid'::regtype
+      and attnotnull
+      and not attisdropped
+  ) or not exists (
+    select 1 from pg_catalog.pg_attribute
+    where attrelid = 'public.internal_paper_ledger_entries'::regclass
+      and attname = 'fill_id'
+      and atttypid = 'uuid'::regtype
+      and attnotnull
+      and not attisdropped
   ) then
     raise exception 'sv_c2_unexpected_c1_ledger_contract';
   end if;

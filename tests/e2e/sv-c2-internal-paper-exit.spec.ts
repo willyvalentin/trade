@@ -65,6 +65,15 @@ test.describe("SV-C2 internal-paper exit admission", () => {
     expect(migration).toContain("set statement_timeout = '60s'");
     expect(migration).toContain("sv_c2_requires_empty_c1_state");
     expect(migration).toContain("sv_c2_unexpected_c1_ledger_contract");
+    expect(migration).toContain(
+      "pg_catalog.pg_get_constraintdef(oid, true)",
+    );
+    expect(migration).toContain(
+      "CHECK (amount <> 0::numeric)",
+    );
+    expect(migration).toContain("and attname = 'intent_id'");
+    expect(migration).toContain("and attname = 'fill_id'");
+    expect(migration.match(/and attnotnull/g)).toHaveLength(2);
 
     for (const table of [
       "internal_paper_accounts",
