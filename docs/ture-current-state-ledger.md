@@ -9,6 +9,23 @@ not new runtime or strategy evidence. The older IF receipts below remain usable;
 their former queue and Avanza execution priority are superseded. Repository
 roadmap/governance/ledger are the only control sources; Notion stays outside scope.
 
+### Continuous-observation technical direction — 2026-09-24
+
+The 2026-09-23 market-timing decision is implemented as a future observation
+orchestration transition: a scheduler is a safe wake-up mechanism, not a rule
+that authorizes provider work or determines when a recommendation may publish.
+The future cycle policy must use verified session, freshness, material change,
+coverage, candidate state, explicit budget and persisted retry/backoff facts.
+It must preserve the scheduler kill switch, private invocation, idempotent
+claim and durable receipts while it separates observation,
+discovery/evaluation and publication.
+
+This is a roadmap/control decision only. It does not enable continuous polling,
+increase provider spend, relax a publication gate, invoke a provider, migrate
+data or authorize a broker action. `scheduled_scan_runs` and old
+window-derived diagnostics remain compatibility surfaces until consumers have
+moved to generic cycle receipts; historic records are retained.
+
 ### Now — SV-A current engine finish, reusing IF-2/IF-4/IF-5
 
 **A.1 reconciliation completed, 2026-09-21:** an aggregate-only production
