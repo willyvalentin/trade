@@ -26,7 +26,12 @@ export const ATTRIBUTED_CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v2" as const;
 export const CANDIDATE_DECISION_RECORD_VERSION =
   "candidate_decision_record_v3" as const;
-export const CANDIDATE_DECISION_SCANNER_VERSION = "scanner_v1" as const;
+// v2 changes only scanner data-collection admission: a confirmed fresh
+// intraday cache is reused before a bounded provider refresh is reserved.
+// Existing v1 decision records remain historical evidence and are never
+// rewritten into this cohort.
+export const CANDIDATE_DECISION_SCANNER_VERSION =
+  "scanner_v2_fresh_cache_before_refresh" as const;
 export const CANDIDATE_DECISION_UNIVERSE_VERSION =
   "scanner_universe_v1" as const;
 export const CANDIDATE_DECISION_PROVIDER_CONTRACT_VERSION =
