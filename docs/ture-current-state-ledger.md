@@ -58,6 +58,28 @@ repository warnings) and a complete Next production build. The local browser
 reached the password boundary; authenticated UI rendering remains environment
 verification to perform without entering credentials into browser automation.
 
+**Selected A.2 CLOSED preflight-readback repair, 2026-09-24 (4–8h):** the
+2026-09-24 frozen observation was correctly marked `no_go` before activation
+when a direct production read of
+`basic_free_discovery_credit_reservations` returned `403`. That relation is
+intentionally not directly readable, so treating the error as an empty ledger
+would have made the eight-credit and overlap checks unverifiable. The isolated
+repair adds an additive, aggregate-only service-role RPC for one owner, New
+York date and canonical quarter-hour target. It returns no reservation,
+attempt, user or provider identifiers and cannot claim, begin, finalize or
+release credits. The authenticated, read-only application endpoint validates
+its strict versioned output and returns `ready`, `blocked` or `unavailable`;
+it cannot arm a scheduler, invoke a provider or take a broker action. The
+actual scheduled path retains its atomic eight-credit guard, so preflight
+success is never an authorization or reservation. Local evidence: four
+adversarial preflight tests, Next typegen, strict TypeScript, changed-file
+ESLint, diff check, scheduler-runtime packaging and a complete webpack
+production build pass. The SQL migration has **not** been applied anywhere;
+local SQL execution remains unverified because Docker is unavailable. A
+separate migration-application decision, generated-type/catalog verification,
+production deploy and then a newly frozen OPEN test card remain required
+before another normal scan may be armed.
+
 **A.2 authorized catalog-probe bounded missing result, 2026-09-21:** before
 the 15:30 CEST scheduled slot, a direct production ledger read for New York
 date `2026-09-21` found zero `catalog_observation` reservations and zero
