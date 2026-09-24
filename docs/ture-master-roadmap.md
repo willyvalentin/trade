@@ -28,6 +28,29 @@ Pre-/after-market information stays separately labelled research/watch data;
 late-session entry safety is retained until separately validated. This decision
 does not itself enable a provider call, scheduled production run or broker action.
 
+### Delivery priority — CLOSED readiness before OPEN, 2026-09-24
+
+Within SV-A/A.2, prioritize a cohesive, reproducible scheduled-runtime → durable
+decision → readback delivery before expanding the affected live experiment.
+Reuse existing repairs and tests; close demonstrated gaps rather than starting
+a competing implementation. Its CLOSED acceptance includes built-runtime
+integration with an isolated database, provider-boundary fixtures, controlled
+time, failure/restart cases and a tested evidence reader. Its OPEN acceptance
+remains a separately authorized, attributable real-session observation.
+
+Follow [operating governance](./roadmap-operating-governance.md) and the
+[OPEN test contract](./open-market-test-contract.md): prepare outside market
+hours, verify readiness before the session, then run bounded evidence-producing
+observations at eligible times. Independent CLOSED slices with satisfied
+dependencies continue during waits. This adds no roadmap phase and does not
+block all downstream research on alpha or on one pending market observation.
+
+Separate operational reliability, data fitness and recommendation quality in
+acceptance. Do not count green CI, one live candidate or a complete `no_trade`
+as demonstrated strategy improvement. Efficient observation-series control
+(attempt/credit caps, stop conditions and automatic expiry) is a capability to
+implement and verify before use, not permission to widen current one-shot limits.
+
 ### Destination and retained principles
 
 Ture observes licensed market data, classifies market state, discovers candidates,

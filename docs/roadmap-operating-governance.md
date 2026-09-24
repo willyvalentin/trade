@@ -42,6 +42,59 @@ remains outside the development workflow.
   positive alpha before building the paper/replay infrastructure needed to
   test it. Early paper remains experimental; live promotion requires the gates.
 
+### CLOSED readiness and efficient OPEN delivery — 2026-09-24
+
+Prepare operational correctness while the market is closed; use OPEN primarily
+to resolve uncertainties that require a real current session. This is a delivery
+rule, not a promise that experiments succeed or permission to weaken acceptance.
+
+- Before the affected OPEN experiment, exercise the built runtime end to end:
+  scheduled event → application/backend → provider boundary → decision → isolated
+  database persistence → authoritative/owner-scoped readback. Substitute external
+  providers at their boundary, not every internal component. Verify deployed
+  packaging and runtime configuration assumptions, not only source strings.
+- Reproduce each operational escape as a failing CLOSED regression before fixing
+  it. Cover identity continuity through updates, valid `no_trade`, stale/missing
+  data, timeout, duplicate/restart, and unavailable runtime configuration where
+  relevant. Use a controlled clock and legally retained, sanitized provider
+  fixtures; otherwise use explicitly synthetic representative fixtures. Neither
+  is current-market evidence. A repeat needs a verified fix or a different,
+  documented test question, not another identical attempt.
+- Test the result reader as part of the delivery: schema/version fields, exact
+  identity joins, timestamps, missing and partial receipts, and permissions.
+  A diagnostic query defect must not be reported as a missing engine capability.
+- Before OPEN, verify the deployed revision/configuration and provider-free
+  integration where permitted. Keep test records isolated from production
+  learning and evaluation cohorts. Any diagnostic writes or deployed execution
+  still require their normal authorization. Staging uses the same main revision
+  for bounded integration; it is not a separate product line.
+- Target revision selection and deployment by session-open minus 90 minutes,
+  and go/no-go by minus 30 minutes. These are planning targets, not new fixed
+  scan windows. Use the verified exchange calendar/session, allow required
+  scheduler propagation, and use the next eligible authorized opportunity.
+  A missed readiness target means a later safe opportunity or independent CLOSED
+  work, never bypassing controls. Freeze the observed candidate, not all development.
+- During development run fast affected behavior checks; before integration run
+  the applicable broader tests, lint, types and build. Reuse recorded evidence
+  only for the exact revision with unchanged relevant dependencies, configuration
+  and environment. Never skip required CI or branch protection. Prefer one
+  coherent delivery over repeated speculative pushes/deploys.
+- Keep operational reliability, data fitness and recommendation/strategy quality
+  as separate acceptance questions. A complete no-trade receipt can pass the
+  first without proving the other two. An honest negative scientific result is
+  useful; do not optimize a test pass rate by relaxing requirements.
+
+Use the [OPEN contract](./open-market-test-contract.md) for bounded test series.
+Keep one compact current Now/Next/Blocked selection in the existing ledger and
+retain older results as dated evidence. At each material result, select the
+actual bottleneck and a usable vertical outcome, not a queue of helpers or
+documentation-only substitutes. The existing two-slice maximum still applies.
+Track from available receipts: time to first useful session observation,
+complete attributable results / attempted runs (with inconclusive results
+identified), repeated regression escapes, deploy/manual-operation count per
+series, and credits per useful observation. Mark unavailable measures unknown;
+do not create a dashboard project or equate these measures with alpha.
+
 ### Continuous observation and publication
 
 The scheduler is a safe wake-up mechanism, not a publication clock. A

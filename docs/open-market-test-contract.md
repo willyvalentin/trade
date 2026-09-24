@@ -40,6 +40,29 @@ felaktig readback och säker återställning. Kör relevanta tester, lint,
 typkontroll och build; prova lokalt flöde när beteendet påverkas. Märk
 fixture-/replaybevis som CLOSED, aldrig som verklig OPEN-evidens.
 
+### Testkedja och avgränsad serie
+
+Före den berörda OPEN-observationen ska byggd runtime ha testats genom hela
+kedjan till en isolerad databas och faktisk readback. Ersätt providern vid
+yttergränsen; mocka inte bort interna steg som testet ska verifiera. Testa även
+diagnostikens fältnamn/versioner, identitetskopplingar och behörigheter. Kända
+produktionsfel ska ha reproducerbara CLOSED-regressioner. Dokumentera kvarvarande
+miljöskillnader; fixture/replay ersätter inte marknadsevidens.
+
+Om flera observationer behövs, frys dessutom maximalt antal försök, total
+creditbudget, tak per körning, giltig session/sluttid och vad nästa observation
+ska lära oss. Räkna även fel, retries och osäkra reservationer i budgetkontrollen.
+Körningarna ska ha separata identiteter och inte överlappa. Budgetosäkerhet,
+felbunden lineage eller överlapp stoppar serien; andra fel följer fördeklarerade
+stop-/retryvillkor. Ändrad revision eller hypotes kräver ett nytt testkort och
+ny readiness, inte sammanblandad evidens.
+
+En sådan serie får aktiveras först när runtime kan upprätthålla gränserna och
+automatiskt förfalla till säkert läge utan att en assistent måste vakna i tid.
+Verifiera stopp, expiry och återställning i CLOSED före användning. Till dess
+gäller befintliga one-shot-gränser och godkännanden oförändrat; dokumentet
+aktiverar ingenting. Cleanup och verifierad readback krävs även efter expiry.
+
 ## 2. Go/no-go inför OPEN
 
 Kontrollera det publicerade systemet, inte bara källkoden: rätt revision och
@@ -65,6 +88,11 @@ revision/experimentkandidat och kräver relevant omtestning; blanda inte dess
 resultat med den frysta föregångarens.
 
 ## 4. Efteråt — klassificera ärligt
+
+Håll tre frågor separata: fungerade körkedjan, var datan användbar för avsett
+beslut, och finns jämförbar evidens för rekommendationskvalitet? Ett operationellt
+pass får inte automatiskt uppgradera de andra två. Ett test ska kunna ge ett
+hederligt negativt resultat; målet är användbar evidens, inte enbart gröna tester.
 
 Återläs faktisk session, revision, data/cohort, tidsstämplar, beslut, avslag,
 `no_trade`, kostnad/kapacitet, fel, retries och slutstatus. Klassificera
