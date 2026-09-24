@@ -280,7 +280,7 @@ function policyReasons(policy: InternalPaperDriftHealthPolicy) {
   ) {
     reasons.push("drift_health_policy_invalid");
   }
-  const bounds: Array<[unknown, unknown]> = [
+  const boundedRateLimits: Array<[unknown, unknown]> = [
     [
       policy.narrow_feature_missing_rate_increase,
       policy.pause_feature_missing_rate_increase,
@@ -289,18 +289,28 @@ function policyReasons(policy: InternalPaperDriftHealthPolicy) {
       policy.narrow_regime_distribution_distance,
       policy.pause_regime_distribution_distance,
     ],
-    [policy.narrow_expectancy_r_decline, policy.pause_expectancy_r_decline],
     [
       policy.narrow_calibration_error_increase,
       policy.pause_calibration_error_increase,
     ],
     [policy.narrow_outcome_coverage_decline, policy.pause_outcome_coverage_decline],
+  ];
+  const nonNegativeLimits: Array<[unknown, unknown]> = [
+    [policy.narrow_expectancy_r_decline, policy.pause_expectancy_r_decline],
     [
       policy.narrow_execution_cost_r_increase,
       policy.pause_execution_cost_r_increase,
     ],
   ];
-  if (bounds.some(([narrow, pause]) => !nonNegative(narrow) || !nonNegative(pause) || narrow > pause)) {
+  if (
+    boundedRateLimits.some(
+      ([narrow, pause]) => !rate(narrow) || !rate(pause) || narrow > pause,
+    ) ||
+    nonNegativeLimits.some(
+      ([narrow, pause]) =>
+        !nonNegative(narrow) || !nonNegative(pause) || narrow > pause,
+    )
+  ) {
     reasons.push("drift_health_policy_invalid");
   }
   return uniqueSorted(reasons);

@@ -618,9 +618,10 @@ on missing, mixed-version, out-of-order or unsupported evidence, and have no
 provider, database, scheduler, ranking/publication, persistence or broker
 authority. Local acceptance is focused adversarial behavior tests plus strict
 TypeScript, changed-file lint, diff check and production build. Local evidence:
-seven focused tests cover healthy continuation, bounded narrowing, severe pause,
+eight focused tests cover healthy continuation, bounded narrowing, severe pause,
 outage-versus-drift classification, minimum-sample narrowing, invalid/mixed/
-overlapping/future policy-window rejection and authority containment; strict
+overlapping/future policy-window rejection, out-of-domain bounded-metric
+threshold rejection and authority containment; strict
 TypeScript, changed-file ESLint, diff check and a complete Next webpack
 production build pass. It cannot prove forward drift, false-alarm rates, a
 strategy change, or runtime pause behavior; those remain SV-J OPEN/integration

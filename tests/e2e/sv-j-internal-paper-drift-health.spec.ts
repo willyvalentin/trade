@@ -278,6 +278,38 @@ test("fails closed on mixed-version, overlapping or malformed metric windows", (
   expect(verifyInternalPaperDriftHealthDigest(malformed)).toBe(true);
 });
 
+test("fails closed when a bounded metric threshold could silently disable its guard", () => {
+  const invalidFeatureThreshold = evaluateInternalPaperDriftHealth(
+    input({
+      policy: {
+        ...input().policy,
+        pause_feature_missing_rate_increase: 1.01,
+      },
+    }),
+  );
+  const invalidRegimeThreshold = evaluateInternalPaperDriftHealth(
+    input({
+      policy: {
+        ...input().policy,
+        pause_regime_distribution_distance: 1.01,
+      },
+    }),
+  );
+
+  expect(invalidFeatureThreshold).toMatchObject({
+    status: "blocked",
+    action: "pause",
+    reason_codes: ["drift_health_policy_invalid"],
+  });
+  expect(invalidRegimeThreshold).toMatchObject({
+    status: "blocked",
+    action: "pause",
+    reason_codes: ["drift_health_policy_invalid"],
+  });
+  expect(verifyInternalPaperDriftHealthDigest(invalidFeatureThreshold)).toBe(true);
+  expect(verifyInternalPaperDriftHealthDigest(invalidRegimeThreshold)).toBe(true);
+});
+
 test("has no provider, policy-promotion, runtime-pause or broker authority", () => {
   const result = evaluateInternalPaperDriftHealth(input());
 
